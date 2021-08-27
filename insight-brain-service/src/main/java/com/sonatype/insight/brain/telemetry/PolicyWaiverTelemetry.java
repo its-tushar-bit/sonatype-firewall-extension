@@ -1,0 +1,119 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.telemetry;
+
+import java.util.Date;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+
+public class PolicyWaiverTelemetry
+{
+  private final String policyWaiverId;
+
+  private final String ownerType;
+
+  private final String ownerId;
+
+  private final String componentFormat;
+
+  private final Long violationTime;
+
+  private final Long waiverTime;
+
+  private final Long waiverExpiration;
+
+  private final String componentHash;
+
+  private final String stageId;
+
+  public PolicyWaiverTelemetry(
+      final PolicyWaiver policyWaiver,
+      final String ownerType,
+      final ComponentIdentifier componentIdentifier,
+      final String stageId,
+      final Date violationTime)
+  {
+    this(policyWaiver.getId(),
+        ownerType,
+        policyWaiver.getOwnerId(),
+        componentIdentifier,
+        policyWaiver.getHash(),
+        violationTime,
+        policyWaiver.getCreateTime(),
+        policyWaiver.getExpiryTime(),
+        stageId);
+  }
+
+  public PolicyWaiverTelemetry(
+      final PolicyWaiver policyWaiver,
+      final String ownerType)
+  {
+    this(policyWaiver.getId(), ownerType, policyWaiver.getOwnerId(), null, policyWaiver.getHash(),
+        null, policyWaiver.getCreateTime(), policyWaiver.getExpiryTime(), null);
+  }
+
+  PolicyWaiverTelemetry(
+      final String policyWaiverId,
+      final String ownerType,
+      final String ownerId,
+      final ComponentIdentifier componentIdentifier,
+      final String hash,
+      final Date violationTime,
+      final Date waiverTime,
+      final Date waiverExpiration,
+      final String stageId)
+  {
+    this.policyWaiverId = HdsClientAnalytics.obfuscate(policyWaiverId);
+    this.ownerType = ownerType;
+    this.ownerId = HdsClientAnalytics.obfuscate(ownerId);
+    this.componentFormat = componentIdentifier == null ? null : componentIdentifier.getFormat();
+    this.componentHash = hash;
+    this.violationTime = violationTime == null ? null : violationTime.toInstant().toEpochMilli();
+    this.waiverTime =
+        waiverTime == null ? null : waiverTime.toInstant().toEpochMilli();
+    this.waiverExpiration =
+        waiverExpiration == null ? null : waiverExpiration.toInstant().toEpochMilli();
+    this.stageId = stageId;
+  }
+
+  public String getPolicyWaiverId() {
+    return policyWaiverId;
+  }
+
+  public String getOwnerType() {
+    return ownerType;
+  }
+
+  public String getOwnerId() {
+    return ownerId;
+  }
+
+  public String getComponentFormat() {
+    return componentFormat;
+  }
+
+  public Long getViolationTime() {
+    return violationTime;
+  }
+
+  public Long getWaiverTime() {
+    return waiverTime;
+  }
+
+  public Long getWaiverExpiration() {
+    return waiverExpiration;
+  }
+
+  public String getComponentHash() {
+    return componentHash;
+  }
+
+  public String getStageId() {
+    return stageId;
+  }
+}

@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogg
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -70,17 +71,21 @@ public class ApiComponentReleaseQuarantineService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  private final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
+
   @Inject
   public ApiComponentReleaseQuarantineService(
       RepositoryDAO repositoryDAO,
       RepositoryComponentDAO repositoryComponentDAO,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
-      PolicyViolationLoggerFactory policyViolationLoggerFactory)
+      PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator)
   {
     this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
+    this.policyWaiverTelemetryCreator = policyWaiverTelemetryCreator;
   }
 
   public ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
@@ -180,6 +185,8 @@ public class ApiComponentReleaseQuarantineService
     repositoryPolicyViolation.setPolicyWaiverComment(policyWaiver.getComment());
     repositoryPolicyViolation.setWaiveTime(now);
     repositoryPolicyViolationDAO.update(tx, repositoryPolicyViolation);
+
+    policyWaiverTelemetryCreator.sendRepositoryWaiverTelemetry(policyWaiver, repositoryPolicyViolation);
 
     return policyWaiver;
   }

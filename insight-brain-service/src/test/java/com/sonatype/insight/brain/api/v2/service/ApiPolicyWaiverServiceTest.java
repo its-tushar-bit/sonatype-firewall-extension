@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -62,7 +63,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class ApiPolicyWaiverServiceTest
@@ -89,6 +92,9 @@ public class ApiPolicyWaiverServiceTest
   @Mock
   private ApiPolicyViolationServiceV2 apiPolicyViolationServiceV2Mock;
 
+  @Mock
+  private PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
+
   @Rule
   public LogOutput logOutput = new LogOutput(ApiPolicyWaiverService.class);
 
@@ -96,6 +102,7 @@ public class ApiPolicyWaiverServiceTest
   public void configure(Binder binder) {
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     binder.bind(ApiPolicyViolationServiceV2.class).toInstance(apiPolicyViolationServiceV2Mock);
+    binder.bind(PolicyWaiverTelemetryCreator.class).toInstance(policyWaiverTelemetryCreator);
   }
 
   @Before
@@ -117,6 +124,7 @@ public class ApiPolicyWaiverServiceTest
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.APPLICATION, "waiver comment");
     assertNotExpiringPolicyWaiver(app.getId(), "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.APPLICATION, app.getId());
+    assertWaiverTelemetry(OwnerType.APPLICATION, policyViolation, policyWaiverDAO.getByOwnerId(app.getId()).get(0));
   }
 
   /**
@@ -128,6 +136,7 @@ public class ApiPolicyWaiverServiceTest
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.ORGANIZATION, "waiver comment");
     assertNotExpiringPolicyWaiver(org.getId(), "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.ORGANIZATION, org.getId());
+    assertWaiverTelemetry(OwnerType.ORGANIZATION, policyViolation, policyWaiverDAO.getByOwnerId(org.getId()).get(0));
   }
 
   /**
@@ -172,6 +181,7 @@ public class ApiPolicyWaiverServiceTest
         policyViolation.getId(), "waiver comment", false, null);
     assertNotExpiringPolicyWaiver(app.getId(), "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.APPLICATION, app.getId());
+    assertWaiverTelemetry(OwnerType.APPLICATION, policyViolation, policyWaiverDAO.getByOwnerId(app.getId()).get(0));
   }
 
   @Test
@@ -181,6 +191,7 @@ public class ApiPolicyWaiverServiceTest
 
     assertNotExpiringPolicyWaiver(app.getId(), "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.APPLICATION, app.getId());
+    assertWaiverTelemetry(OwnerType.APPLICATION, policyViolation, policyWaiverDAO.getByOwnerId(app.getId()).get(0));
   }
 
   @Test
@@ -212,6 +223,7 @@ public class ApiPolicyWaiverServiceTest
 
     assertNotExpiringPolicyWaiver(org.getId(), "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.ORGANIZATION, org.getId());
+    assertWaiverTelemetry(OwnerType.ORGANIZATION, policyViolation, policyWaiverDAO.getByOwnerId(org.getId()).get(0));
   }
 
   @Test
@@ -232,6 +244,8 @@ public class ApiPolicyWaiverServiceTest
 
     assertNotExpiringPolicyWaiver(Organization.ROOT_ORGANIZATION_ID, "waiver comment", policyViolation.getHash());
     assertTelemetry(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+    assertWaiverTelemetry(OwnerType.ORGANIZATION, policyViolation,
+        policyWaiverDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).get(0));
   }
 
   @Test
@@ -742,6 +756,7 @@ public class ApiPolicyWaiverServiceTest
         policyEvaluation.getScanId(), componentIdentifier, null, null);
     assertThat(policyWaiverDAO.getByOwnerId(app.getId())).isEmpty();
     assertTelemetry(OwnerType.APPLICATION, app.getPublicId());
+    verifyNoInteractions(policyWaiverTelemetryCreator);
   }
 
   @Test
@@ -793,6 +808,7 @@ public class ApiPolicyWaiverServiceTest
     assertThat(policyWaiver.getHash()).isEqualTo(policyViolation.getHash());
     assertThat(policyWaiver.getExpiryTime()).isEqualTo(expiryTime);
     assertThat(policyWaiver.getComment()).isEqualTo(comment);
+    assertWaiverTelemetry(OwnerType.APPLICATION, policyViolation, policyWaiver, 0, 2);
 
     policyWaiver =
         policyWaivers.stream().filter(waiver -> waiver.getPolicyId().equals(policy2.getId())).findFirst().get();
@@ -801,6 +817,7 @@ public class ApiPolicyWaiverServiceTest
     assertThat(policyWaiver.getHash()).isEqualTo(policyViolation2.getHash());
     assertThat(policyWaiver.getExpiryTime()).isEqualTo(expiryTime);
     assertThat(policyWaiver.getComment()).isEqualTo(comment);
+    assertWaiverTelemetry(OwnerType.APPLICATION, policyViolation2, policyWaiver, 1, 2);
 
     assertTelemetry(OwnerType.APPLICATION, app.getPublicId());
   }
@@ -833,6 +850,7 @@ public class ApiPolicyWaiverServiceTest
         .contains("Unable to add waiver for PolicyViolation ID " + policyViolation.getId());
 
     assertTelemetry(OwnerType.APPLICATION, app.getPublicId());
+    verifyNoInteractions(policyWaiverTelemetryCreator);
   }
 
   @Test
@@ -1033,5 +1051,38 @@ public class ApiPolicyWaiverServiceTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.POLICY_WAIVER_API);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+  }
+
+  private void assertWaiverTelemetry(
+      final OwnerType ownerType,
+      final PolicyViolation policyViolation,
+      final PolicyWaiver policyWaiver)
+  {
+    assertWaiverTelemetry(ownerType, policyViolation, policyWaiver, 0, 1);
+  }
+
+  private void assertWaiverTelemetry(
+      final OwnerType ownerType,
+      final PolicyViolation policyViolation,
+      final PolicyWaiver policyWaiver,
+      int index,
+      int invocations)
+  {
+    final ArgumentCaptor<PolicyWaiver> policyWaiverArgumentCaptor = ArgumentCaptor.forClass(PolicyWaiver.class);
+    final ArgumentCaptor<OwnerType> ownerTypeArgumentCaptor = ArgumentCaptor.forClass(OwnerType.class);
+    final ArgumentCaptor<PolicyViolation> policyViolationArgumentCaptor =
+        ArgumentCaptor.forClass(PolicyViolation.class);
+    verify(policyWaiverTelemetryCreator, times(invocations))
+        .sendWaiverTelemetryForOwnerType(policyWaiverArgumentCaptor.capture(), ownerTypeArgumentCaptor.capture(),
+            policyViolationArgumentCaptor.capture());
+
+    final PolicyWaiver policyWaiverValue = policyWaiverArgumentCaptor.getAllValues().get(index);
+    final OwnerType ownerTypeValue = ownerTypeArgumentCaptor.getAllValues().get(index);
+    final PolicyViolation policyViolationValue = policyViolationArgumentCaptor.getAllValues().get(index);
+    assertThat(ownerTypeValue).isNotNull().isEqualTo(ownerType);
+    assertThat(policyViolationValue).isNotNull();
+    assertThat(policyViolationValue.getId()).isEqualTo(policyViolation.getId());
+    assertThat(policyWaiverValue).isNotNull();
+    assertThat(policyWaiverValue.getId()).isEqualTo(policyWaiver.getId());
   }
 }

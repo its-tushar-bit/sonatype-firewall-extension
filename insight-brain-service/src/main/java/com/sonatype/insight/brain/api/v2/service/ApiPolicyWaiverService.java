@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.policy.ConstraintFactDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -85,6 +86,8 @@ public class ApiPolicyWaiverService
 
   private final ApiPolicyViolationServiceV2 apiPolicyViolationServiceV2;
 
+  private final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
+
   @Inject
   public ApiPolicyWaiverService(
       TelemetrySender telemetrySender,
@@ -93,7 +96,8 @@ public class ApiPolicyWaiverService
       ApplicationDAO applicationDAO,
       OwnerDAO ownerDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
-      ApiPolicyViolationServiceV2 apiPolicyViolationServiceV2)
+      ApiPolicyViolationServiceV2 apiPolicyViolationServiceV2,
+      PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator)
   {
     this.telemetrySender = telemetrySender;
     this.policyWaiverDAO = policyWaiverDAO;
@@ -102,6 +106,7 @@ public class ApiPolicyWaiverService
     this.ownerDAO = ownerDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.apiPolicyViolationServiceV2 = apiPolicyViolationServiceV2;
+    this.policyWaiverTelemetryCreator = policyWaiverTelemetryCreator;
   }
 
   /**
@@ -181,6 +186,7 @@ public class ApiPolicyWaiverService
   {
     PolicyWaiver policyWaiver = savePolicyWaiver(ownerId, policyViolation, comment, applyToAllComponents, expiryTime);
     auditPolicyWaiver(policyWaiver);
+    policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(policyWaiver, ownerType, policyViolation);
     sendTelemetry(ownerType, ownerId);
   }
 
@@ -357,6 +363,7 @@ public class ApiPolicyWaiverService
         try {
           PolicyWaiver policyWaiver =
               savePolicyWaiver(tx, owner.getId(), policyViolation, waiverDTO.comment, false, waiverDTO.expiryTime);
+          policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(policyWaiver, owner.getType(), policyViolation);
           try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
             auditPolicyWaiver(policyWaiver, tx);
           }

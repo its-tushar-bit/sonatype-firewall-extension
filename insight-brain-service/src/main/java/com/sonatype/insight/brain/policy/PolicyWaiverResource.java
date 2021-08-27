@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -35,6 +36,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -56,14 +58,22 @@ public class PolicyWaiverResource
 
   private final OwnerDAO ownerDAO = new OwnerDAO();
 
+  private final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
+
+  @Inject
+  public PolicyWaiverResource(final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator) {
+    this.policyWaiverTelemetryCreator = policyWaiverTelemetryCreator;
+  }
+
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
   @Audited(AuditEvent.CREATE_WAIVER)
-  public PolicyWaiver addPolicyWaiver(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-                                      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-                                      PolicyWaiver policyWaiver)
+  public PolicyWaiver addPolicyWaiver(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+      PolicyWaiver policyWaiver)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
@@ -75,6 +85,7 @@ public class PolicyWaiverResource
     policyWaiver.setOwnerId(internalOwnerId);
     new PolicyWaiverDAO().insert(policyWaiver);
     auditPolicyWaiver(policyWaiver);
+    policyWaiverTelemetryCreator.sendWaiverTelemetryWithoutViolationInformation(policyWaiver, ownerType);
     return policyWaiver;
   }
 

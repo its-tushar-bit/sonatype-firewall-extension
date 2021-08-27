@@ -5,9 +5,15 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.io.IOException;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import javax.mail.MessagingException;
+import javax.mail.util.ByteArrayDataSource;
 
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpRequest;
@@ -18,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -31,11 +38,20 @@ import com.sonatype.insight.brain.policy.PolicyWaiverResource.AppliedWaivers;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.PolicyWaiverDTO;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.WaiversByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.mock.hds.HttpResponseProcessor;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator.POLICY_WAIVER_TELEMETRY;
+import static com.sonatype.insight.telemetry.model.TelemetryPurpose.POLICY_WAIVER;
+import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyWaiverResourceTest
@@ -72,6 +88,13 @@ public class PolicyWaiverResourceTest
 
   @Test
   public void testCRU_NullConstraintFacts() throws Exception {
+    final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
+    initServer(config -> {
+      getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
+        responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
+      }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
+    });
+
     String appPublicId = "PolicyWaiverResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
     String policyId = createPolicy(application.getId()).getId();
@@ -80,11 +103,23 @@ public class PolicyWaiverResourceTest
     HttpResponse response = restRequest(OwnerType.APPLICATION, application.getPublicId()).body(policyWaiver).post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Policy waiver must have constraint facts.");
+
+    final Map<TelemetryPurpose, List<TelemetryItem>> telemetryItemsMap =
+        getTelemetryItems(ImmutableMap.copyOf(responses)).stream()
+            .collect(groupingBy(telemetryItem -> telemetryItem.getTelemetryPurposes().get(0)));
+    assertThat(telemetryItemsMap).doesNotContainKey(POLICY_WAIVER);
   }
 
   private void testCRU(OwnerType ownerType, String ownerPublicId, String ownerId, String constraintFactsJson)
       throws Exception
   {
+    final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
+    initServer(config -> {
+      getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
+        responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
+      }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
+    });
+
     String policyId = createPolicy(ownerId).getId();
 
     // Create
@@ -107,6 +142,9 @@ public class PolicyWaiverResourceTest
     assertThat(policyWaivers.waiversByOwner.get(0).waivers).hasSize(1);
     assertPolicyWaiverDTO(policyId, ownerPublicId, "My comment", policyWaiver.getConstraintFactsJson(),
         policyWaiver.getConstraintFacts(), policyWaivers.waiversByOwner.get(0).waivers.get(0));
+
+    // Assert that telemetry was sent
+    assertTelemetry(responseWaiver, ownerType, responses);
   }
 
   private void assertWaiversByOwner(
@@ -120,6 +158,42 @@ public class PolicyWaiverResourceTest
     assertThat(actual.waivers).hasSize(1);
     assertPolicyWaiverDTO(policyId, expectedOwnerId, waiverComment, constraintFactsJson, constraints,
         actual.waivers.get(0));
+  }
+
+  private void assertTelemetry(
+      final PolicyWaiver policyWaiver,
+      final OwnerType ownerType,
+      final Map<ByteArrayDataSource, Integer> responses) throws MessagingException, IOException
+  {
+    final Map<TelemetryPurpose, List<TelemetryItem>> telemetryItemsMap =
+        getTelemetryItems(ImmutableMap.copyOf(responses)).stream()
+            .collect(groupingBy(telemetryItem -> telemetryItem.getTelemetryPurposes().get(0)));
+    assertThat(telemetryItemsMap).containsKey(POLICY_WAIVER);
+    final List<TelemetryItem> telemetryItems = telemetryItemsMap.get(POLICY_WAIVER);
+    assertThat(telemetryItems).hasSize(1);
+    final TelemetryItem telemetryItem = telemetryItems.get(0);
+    assertThat(telemetryItem.getTelemetryPurposes()).hasSize(1);
+    assertThat(telemetryItem.getTelemetryPurposes().get(0)).isEqualTo(POLICY_WAIVER);
+    assertThat(telemetryItem.getTelemetryData()).hasSize(1);
+    final TelemetryData telemetryData = telemetryItem.getTelemetryData().get(0);
+    final Map<String, Object> attributes = telemetryData.getAttributes();
+    assertThat(attributes).hasSize(2);
+    assertThat(attributes).containsKey(POLICY_WAIVER_TELEMETRY);
+    assertThat(attributes).containsKey(POLICY_VIOLATION_TELEMETRY);
+
+    final Map<String, Object> policyWaiverTelemetry = (Map) attributes.get(POLICY_WAIVER_TELEMETRY);
+    assertThat(policyWaiverTelemetry).containsEntry("ownerType", ownerType.toString());
+    assertThat(policyWaiverTelemetry)
+        .containsEntry("policyWaiverId", HdsClientAnalytics.obfuscate(policyWaiver.getId()));
+    assertThat(policyWaiverTelemetry).containsEntry("ownerId", HdsClientAnalytics.obfuscate(policyWaiver.getOwnerId()));
+    assertThat(policyWaiverTelemetry).containsEntry("componentHash", policyWaiver.getHash());
+    assertThat(policyWaiverTelemetry).containsEntry("waiverTime",
+        policyWaiver.getCreateTime() == null ? null : policyWaiver.getCreateTime().toInstant().toEpochMilli());
+    assertThat(policyWaiverTelemetry).containsEntry("waiverExpiration",
+        policyWaiver.getExpiryTime() == null ? null : policyWaiver.getExpiryTime().toInstant().toEpochMilli());
+
+    final Map<String, Object> policyViolationTelemetry = (Map) attributes.get(POLICY_VIOLATION_TELEMETRY);
+    assertThat((List) policyViolationTelemetry.get("constraints")).hasSize(policyWaiver.getConstraintFacts().size());
   }
 
   @Test

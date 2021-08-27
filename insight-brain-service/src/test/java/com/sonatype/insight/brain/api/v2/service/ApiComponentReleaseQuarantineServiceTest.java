@@ -35,16 +35,23 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.test.LogOutput;
 
+import com.google.inject.Binder;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class ApiComponentReleaseQuarantineServiceTest
     extends AbstractComponentTest
@@ -57,6 +64,9 @@ public class ApiComponentReleaseQuarantineServiceTest
   public LogOutput policyViolationLoggerOutput =
       new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
+  @Mock
+  private PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
+
   @Inject
   private ApiComponentReleaseQuarantineService service;
 
@@ -67,6 +77,12 @@ public class ApiComponentReleaseQuarantineServiceTest
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
   private final PackageUrlIdentifier packageURLIdentifier = new PackageUrlIdentifier("pkg:maven/g1/a1@v1?type=e1");
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(PolicyWaiverTelemetryCreator.class).toInstance(policyWaiverTelemetryCreator);
+    super.configure(binder);
+  }
 
   @Test
   public void testReleaseQuarantineWithoutReEval() throws Exception {
@@ -111,6 +127,8 @@ public class ApiComponentReleaseQuarantineServiceTest
 
     assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before, after,
         Collections.singletonList(repositoryPolicyViolation));
+
+    verify(policyWaiverTelemetryCreator, times(1)).sendRepositoryWaiverTelemetry(any(), any());
   }
 
   @Test
@@ -124,6 +142,7 @@ public class ApiComponentReleaseQuarantineServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), null))
         .withMessage("Comment has not been specified.");
+    verifyNoInteractions(policyWaiverTelemetryCreator);
   }
 
   @Test
@@ -137,6 +156,7 @@ public class ApiComponentReleaseQuarantineServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), ""))
         .withMessage("Comment has not been specified.");
+    verifyNoInteractions(policyWaiverTelemetryCreator);
   }
 
   @Test
@@ -150,6 +170,7 @@ public class ApiComponentReleaseQuarantineServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), "comment")).withMessage(
         "Component with quarantineId " + repositoryComponent.getId() + " is not quarantined.");
+    verifyNoInteractions(policyWaiverTelemetryCreator);
   }
 
   @Test
@@ -188,6 +209,8 @@ public class ApiComponentReleaseQuarantineServiceTest
     assertThat(repositoryComponentPolicyViolationDTO.policyViolations).isEmpty();
 
     assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before, after, new ArrayList<>());
+
+    verifyNoInteractions(policyWaiverTelemetryCreator);
   }
 
   @Test
@@ -195,6 +218,7 @@ public class ApiComponentReleaseQuarantineServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> service.releaseQuarantineWithoutReEval("unknownId", "comment")).withMessage(
         "Cannot find a component with quarantineId unknownId.");
+    verifyNoInteractions(policyWaiverTelemetryCreator);
   }
 
   @Test
@@ -239,6 +263,8 @@ public class ApiComponentReleaseQuarantineServiceTest
 
     assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before, after,
         Collections.singletonList(repositoryPolicyViolation));
+
+    verify(policyWaiverTelemetryCreator, times(1)).sendRepositoryWaiverTelemetry(any(), any());
   }
 
   private RepositoryPolicyViolation createRepositoryPolicyViolation(

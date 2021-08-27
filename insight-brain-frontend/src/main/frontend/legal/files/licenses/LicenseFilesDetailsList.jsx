@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { componentPropType } from '../../advancedLegalPropTypes';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
@@ -24,6 +24,8 @@ export default function LicenseFilesDetailsList(props) {
       ? 'legal.stageTypeComponentLicenseFilesDetails.licenseFilesDetails'
       : 'legal.componentLicenseFilesDetails.licenseFilesDetails';
 
+  const licenseRef = React.useRef(new Map());
+
   const listItems =
     component && component.licenseLegalData
       ? component.licenseLegalData.licenseFiles.map((item, index) => (
@@ -38,12 +40,26 @@ export default function LicenseFilesDetailsList(props) {
               })}
               className={listLinkClass(index)}
             >
-              <div className="nx-list__text nx-truncate-ellipsis">{item.relPath ? item.relPath : 'Custom License'}</div>
+              <div
+                className="nx-list__text nx-truncate-ellipsis"
+                ref={(element) => licenseRef.current.set(index, element)}
+              >
+                {item.relPath ? item.relPath : 'Custom License'}
+              </div>
               <div className="nx-list__subtext">{attributionStatus(item)}</div>
             </a>
           </li>
         ))
       : null;
+
+  useEffect(() => {
+    if (adjustedIndex && licenseRef.current && licenseRef.current.get(adjustedIndex)) {
+      licenseRef.current.get(adjustedIndex).scrollIntoView({
+        behavior: 'auto',
+        block: 'center',
+      });
+    }
+  });
 
   return loading || error ? null : (
     <aside className="nx-scrollable nx-viewport-sized__scrollable">

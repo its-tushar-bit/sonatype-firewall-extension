@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { componentPropType } from '../../advancedLegalPropTypes';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
@@ -20,6 +20,10 @@ export default function NoticeDetailsList(props) {
   const noticeTargetState = () =>
     stageTypeId ? 'legal.stageTypeComponentNoticeDetails.noticeDetails' : 'legal.componentNoticeDetails.noticeDetails';
 
+  const noticeRef = React.useRef(new Map());
+
+  const selectedNotice = parseInt(noticeIndex);
+
   const listItems =
     component && component.licenseLegalData
       ? component.licenseLegalData.noticeFiles.map((item, index) => (
@@ -33,12 +37,26 @@ export default function NoticeDetailsList(props) {
               })}
               className={listLinkClass(index)}
             >
-              <div className="nx-list__text nx-truncate-ellipsis">{item.relPath ? item.relPath : 'Custom Notice'}</div>
+              <div
+                className="nx-list__text nx-truncate-ellipsis"
+                ref={(element) => noticeRef.current.set(index, element)}
+              >
+                {item.relPath ? item.relPath : 'Custom Notice'}
+              </div>
               <div className="nx-list__subtext">{attributionStatus(item)}</div>
             </a>
           </li>
         ))
       : '';
+
+  useEffect(() => {
+    if (noticeRef && noticeRef.current && noticeRef.current.get(selectedNotice)) {
+      noticeRef.current.get(selectedNotice).scrollIntoView({
+        behavior: 'auto',
+        block: 'center',
+      });
+    }
+  });
 
   return loading || error ? null : (
     <aside className="nx-scrollable nx-viewport-sized__scrollable">

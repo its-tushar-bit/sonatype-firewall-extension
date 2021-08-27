@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment } from 'react';
+import React, { Fragment, useEffect } from 'react';
 import { licenseLegalMetadataPropType } from '../advancedLegalPropTypes';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
@@ -18,13 +18,17 @@ export default function LicenseList(props) {
   const licenseDetailsTargetState = () =>
     stageTypeId ? 'legal.stageTypeComponentLicenseDetails' : 'legal.componentLicenseDetails';
 
+  const licenseRef = React.useRef(new Map());
+
   const licenseItem = (item, index) => (
     <li key={index} className="nx-list__item nx-list__item--link">
       <a
         href={$state.href(licenseDetailsTargetState(), { ownerType, ownerId, hash, licenseIndex: index })}
         className={listLinkClass(index)}
       >
-        <span className="nx-list__text nx-truncate-ellipsis">{item}</span>
+        <span className="nx-list__text nx-truncate-ellipsis" ref={(element) => licenseRef.current.set(index, element)}>
+          {item}
+        </span>
         <span className="nx-list__subtext">{licenseThreat(item)}</span>
       </a>
     </li>
@@ -54,6 +58,15 @@ export default function LicenseList(props) {
   }
 
   const listItems = licenseLegalMetadata.map((l, i) => makeListItem(l.licenseId, i));
+
+  useEffect(() => {
+    if (selectedLicense && licenseRef.current && licenseRef.current.get(selectedLicense)) {
+      licenseRef.current.get(selectedLicense).scrollIntoView({
+        behavior: 'auto',
+        block: 'center',
+      });
+    }
+  }, [selectedLicense]);
 
   return (
     <aside className="nx-scrollable nx-viewport-sized__scrollable">

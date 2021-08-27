@@ -9,7 +9,7 @@ export default {
       <main class="nx-page-main nx-viewport-sized">
         <notice-details-header></notice-details-header>
         <div id="component-notice-details-content" class="legal-details-content nx-viewport-sized__container">
-          <notice-details-list></notice-details-list>
+          <notice-details-list class="nx-scrollable nx-viewport-sized__scrollable"></notice-details-list>
           <ui-view></ui-view>
         </div>
       </main>

@@ -9,20 +9,30 @@
 .iq-component-information-tile {
   > .nx-tile-content {
     .iq-inline-definition-list {
+      flex-wrap: wrap;
+      row-gap: 32px;
       .iq-inline-definition-list__item {
-        display: flex;
         padding-bottom: var(--nx-spacing-2x);
 
         dt {
           @include regular();
-
           white-space: nowrap;
+          margin-bottom: 10px;
         }
 
         dd {
           @include semi-bold();
+          margin-left: 0;
         }
       }
+    }
+    .nx-grid-col--40{
+      flex: 0 0 40%;
+      max-width: 40%;
+    }
+    .nx-grid-col--60{
+      flex: 0 0 60%;
+      max-width: 60%;
     }
   }
 }

@@ -31,8 +31,8 @@ export default function Overview({ componentInformation, ancestors, routeName })
   );
 
   const generalInfoSectionContent = (
-    <dl className="iq-inline-definition-list">
-      <div className="iq-inline-definition-list__item">
+    <dl className="iq-inline-definition-list nx-grid-row">
+      <div className="iq-inline-definition-list__item nx-grid-col--50">
         <dt>Type:</dt>
         <dd>{format}</dd>
       </div>
@@ -40,7 +40,7 @@ export default function Overview({ componentInformation, ancestors, routeName })
       {displayName.parts.map(
         ({ field, value }) =>
           field && (
-            <div className="iq-inline-definition-list__item" key={`${field}${value}`}>
+            <div className="iq-inline-definition-list__item nx-grid-col--50" key={`${field}${value}`}>
               <dt>{`${field}:`}</dt>
               <dd>{value}</dd>
             </div>
@@ -50,31 +50,26 @@ export default function Overview({ componentInformation, ancestors, routeName })
   );
 
   const identificationInfoSectionContent = (
-    <dl className="iq-inline-definition-list">
-      <div className="iq-inline-definition-list__item">
+    <dl className="iq-inline-definition-list nx-grid-row">
+      <div className="iq-inline-definition-list__item nx-grid-col--33">
         <dt>Cataloged:</dt>
         <dd>{catalogedDateAgo}</dd>
       </div>
-      <div className="iq-inline-definition-list__item">
+      <div className="iq-inline-definition-list__item nx-grid-col--33">
         <dt>Match State:</dt>
         <dd>{matchState}</dd>
       </div>
-      <div className="iq-inline-definition-list__item">
+      <div className="iq-inline-definition-list__item nx-grid-col--33">
+        <dt>Occurrences:</dt>
+        <dd>{pathnames.length} File Matches</dd>
+      </div>
+      <div className="iq-inline-definition-list__item nx-grid-col--33">
         <dt>Identification Source:</dt>
         <dd>{identificationSource}</dd>
       </div>
-      <div className="iq-inline-definition-list__item">
+      <div className="iq-inline-definition-list__item nx-grid-col--33">
         <dt>Category:</dt>
         <dd>{joinedComponentCategories}</dd>
-      </div>
-    </dl>
-  );
-
-  const occurrencesSectionContent = (
-    <dl className="iq-inline-definition-list">
-      <div className="iq-inline-definition-list__item">
-        <dt>File Matches:</dt>
-        <dd>{pathnames.length}</dd>
       </div>
     </dl>
   );
@@ -88,23 +83,17 @@ export default function Overview({ componentInformation, ancestors, routeName })
       </header>
       <div className="nx-tile-content">
         <div className="nx-grid-row">
-          <section className="nx-grid-col nx-grid-col--33">
+          <section className="nx-grid-col nx-grid-col--40">
             <header className="nx-grid-header">
               <h3 className="nx-h3 nx-grid-header__title">General Info</h3>
             </header>
             {generalInfoSectionContent}
           </section>
-          <section className="nx-grid-col nx-grid-col--33">
+          <section className="nx-grid-col nx-grid-col--60">
             <header className="nx-grid-header">
               <h3 className="nx-h3 nx-grid-header__title">Identification Info</h3>
             </header>
             {identificationInfoSectionContent}
-          </section>
-          <section className="nx-grid-col nx-grid-col--33">
-            <header className="nx-grid-header">
-              <h3 className="nx-h3 nx-grid-header__title">Occurrences</h3>
-            </header>
-            {occurrencesSectionContent}
           </section>
         </div>
       </div>

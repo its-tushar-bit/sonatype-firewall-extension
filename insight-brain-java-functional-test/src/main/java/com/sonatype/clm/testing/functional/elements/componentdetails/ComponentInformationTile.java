@@ -38,10 +38,6 @@ public class ComponentInformationTile
     return new IdentificationInfoSection(this.childSelector(TILE_CONTENT_SELECTOR, "section:nth-child(2)"));
   }
 
-  public OccurrencesSection occurrencesSection() {
-    return new OccurrencesSection(this.childSelector(TILE_CONTENT_SELECTOR, "section:nth-child(3)"));
-  }
-
   public static class GeneralInfoSection
       extends BasicElement<GeneralInfoSection>
   {
@@ -81,31 +77,19 @@ public class ComponentInformationTile
       return definitionPairs.get(1);
     }
 
-    public SelenideElement getIdentificationSourceItem() {
+    public SelenideElement getOccurrencesItem() {
       ElementsCollection definitionPairs = getDefinitionPairs();
       return definitionPairs.get(2);
     }
 
-    public SelenideElement getCategoryItem() {
+    public SelenideElement getIdentificationSourceItem() {
       ElementsCollection definitionPairs = getDefinitionPairs();
       return definitionPairs.get(3);
     }
 
-    private ElementsCollection getDefinitionPairs() {
-      return children(SECTION_DEFINITION_ITEM_SELECTOR);
-    }
-  }
-
-  public static class OccurrencesSection
-      extends BasicElement<OccurrencesSection>
-  {
-    private OccurrencesSection(String selector) {
-      super(selector);
-    }
-
-    public SelenideElement getFileMatchesItem() {
+    public SelenideElement getCategoryItem() {
       ElementsCollection definitionPairs = getDefinitionPairs();
-      return definitionPairs.get(0);
+      return definitionPairs.get(4);
     }
 
     private ElementsCollection getDefinitionPairs() {

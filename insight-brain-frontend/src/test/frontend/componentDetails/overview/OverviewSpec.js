@@ -28,10 +28,9 @@ describe('ComponentDetailsOverview', () => {
       content = component.find('.nx-tile-content'),
       sections = content.find('section');
 
-    expect(sections.length).toBe(3);
+    expect(sections.length).toBe(2);
     expect(sections.at(0).find('header')).toHaveText('General Info');
     expect(sections.at(1).find('header')).toHaveText('Identification Info');
-    expect(sections.at(2).find('header')).toHaveText('Occurrences');
   });
 
   describe('when component is unknown', () => {
@@ -60,7 +59,7 @@ describe('ComponentDetailsOverview', () => {
         identificationInfoSection = sections.at(1);
 
       const definitionItems = identificationInfoSection.find('.iq-inline-definition-list__item');
-      expect(definitionItems.length).toBe(4);
+      expect(definitionItems.length).toBe(5);
 
       const [catalogedDateLabel, catalogedDateValue] = [
         definitionItems.at(0).find('dt'),
@@ -73,30 +72,20 @@ describe('ComponentDetailsOverview', () => {
       expect(matchStateLabel).toHaveText('Match State:');
       expect(matchStateValue).toHaveText('unknown');
 
+      const [OcurrencesLabel, OcurrencesValue] = [definitionItems.at(2).find('dt'), definitionItems.at(2).find('dd')];
+      expect(OcurrencesLabel).toHaveText('Occurrences:');
+      expect(OcurrencesValue).toHaveText('1 File Matches');
+
       const [IdentificationSourceLabel, IdentificationSourceValue] = [
-        definitionItems.at(2).find('dt'),
-        definitionItems.at(2).find('dd'),
+        definitionItems.at(3).find('dt'),
+        definitionItems.at(3).find('dd'),
       ];
       expect(IdentificationSourceLabel).toHaveText('Identification Source:');
       expect(IdentificationSourceValue).toHaveText('');
 
-      const [categoryLabel, categoryValue] = [definitionItems.at(3).find('dt'), definitionItems.at(3).find('dd')];
+      const [categoryLabel, categoryValue] = [definitionItems.at(4).find('dt'), definitionItems.at(4).find('dd')];
       expect(categoryLabel).toHaveText('Category:');
       expect(categoryValue).toHaveText('');
-    });
-
-    it('renders the Occurrences section', () => {
-      const component = getShallow(),
-        content = component.find('.nx-tile-content'),
-        sections = content.find('section'),
-        occurrencesSection = sections.at(2);
-
-      const definitionItems = occurrencesSection.find('.iq-inline-definition-list__item');
-      expect(definitionItems.length).toBe(1);
-
-      const [occurrencesLabel, occurrencesValue] = [definitionItems.at(0).find('dt'), definitionItems.at(0).find('dd')];
-      expect(occurrencesLabel).toHaveText('File Matches:');
-      expect(occurrencesValue).toHaveText('1');
     });
   });
 
@@ -156,7 +145,7 @@ describe('ComponentDetailsOverview', () => {
         identificationInfoSection = sections.at(1);
 
       const definitionItems = identificationInfoSection.find('.iq-inline-definition-list__item');
-      expect(definitionItems.length).toBe(4);
+      expect(definitionItems.length).toBe(5);
 
       const [catalogedDateLabel, catalogedDateValue] = [
         definitionItems.at(0).find('dt'),
@@ -169,30 +158,20 @@ describe('ComponentDetailsOverview', () => {
       expect(matchStateLabel).toHaveText('Match State:');
       expect(matchStateValue).toHaveText('exact');
 
+      const [OcurrencesLabel, OcurrencesValue] = [definitionItems.at(2).find('dt'), definitionItems.at(2).find('dd')];
+      expect(OcurrencesLabel).toHaveText('Occurrences:');
+      expect(OcurrencesValue).toHaveText('2 File Matches');
+
       const [IdentificationSourceLabel, IdentificationSourceValue] = [
-        definitionItems.at(2).find('dt'),
-        definitionItems.at(2).find('dd'),
+        definitionItems.at(3).find('dt'),
+        definitionItems.at(3).find('dd'),
       ];
       expect(IdentificationSourceLabel).toHaveText('Identification Source:');
       expect(IdentificationSourceValue).toHaveText('clair');
 
-      const [categoryLabel, categoryValue] = [definitionItems.at(3).find('dt'), definitionItems.at(3).find('dd')];
+      const [categoryLabel, categoryValue] = [definitionItems.at(4).find('dt'), definitionItems.at(4).find('dd')];
       expect(categoryLabel).toHaveText('Category:');
       expect(categoryValue).toHaveText('category1,category2');
-    });
-
-    it('renders the Occurrences section', () => {
-      const component = getShallow(knownComponentProps),
-        content = component.find('.nx-tile-content'),
-        sections = content.find('section'),
-        occurrencesSection = sections.at(2);
-
-      const definitionItems = occurrencesSection.find('.iq-inline-definition-list__item');
-      expect(definitionItems.length).toBe(1);
-
-      const [occurrencesLabel, occurrencesValue] = [definitionItems.at(0).find('dt'), definitionItems.at(0).find('dd')];
-      expect(occurrencesLabel).toHaveText('File Matches:');
-      expect(occurrencesValue).toHaveText('2');
     });
   });
 });

@@ -19,7 +19,6 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
-import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.OccurrencesSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
@@ -217,10 +216,8 @@ public class ComponentDetailsTest
     identificationInfoSection.getIdentificationSourceItem().shouldHave(text("Identification Source:"));
     identificationInfoSection.getCategoryItem().shouldHave(text("Category:"));
 
-    OccurrencesSection occurrencesSection =
-        componentDetailsPage.overviewTabContent().componentInformationTile().occurrencesSection();
-    occurrencesSection.shouldBe(visible);
-    occurrencesSection.getFileMatchesItem().shouldHave(text("1"));
+    identificationInfoSection.getOccurrencesItem().shouldBe(visible);
+    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences: 1 File Matches"));
 
     eyesWatcher.eyesCheck("component details overview tab component information");
   }

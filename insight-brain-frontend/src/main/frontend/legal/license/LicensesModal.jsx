@@ -79,9 +79,13 @@ export default function LicensesModal(props) {
 
   const canInherit = getHierarchyIndexById(ownerId) < hierarchy.length - 1;
 
-  const getInheritableStatus = () => {
+  function getMostValidOverride() {
     const index = getHierarchyIndexById(ownerId) + 1;
-    const override = hierarchy.slice(index).find(({ licenseOverride }) => licenseOverride);
+    return hierarchy.slice(index).find(({ licenseOverride }) => licenseOverride);
+  }
+
+  const getInheritableStatus = () => {
+    const override = getMostValidOverride();
     return override ? getStatusName(override.licenseOverride.status) : 'Open';
   };
 
@@ -123,10 +127,11 @@ export default function LicensesModal(props) {
     );
   };
 
-  const createOptionFromValue = (value) => {
-    const displayValue = value.inheritable ? `Inherit Status (${value.status})` : value.status;
+  const createOptionFromValue = (status) => {
+    const displayValue = status.inheritable ? `Inherit Status (${status.status})` : status.status;
+    const value = status.inheritable ? 'Inherit' : status.status;
     return (
-      <option id={`edit-license-status-option-${displayValue}`} key={displayValue} value={value.status}>
+      <option id={`edit-license-status-option-${displayValue}`} key={displayValue} value={value}>
         {displayValue}
       </option>
     );
@@ -202,14 +207,24 @@ export default function LicensesModal(props) {
       filter((scope) => scope.id === scopeVal)
     )(availableScopes.values);
 
+  const getLicenseIdsToSave = (status) => {
+    if (status === 'Selected' || status === 'Overridden') {
+      return Array.from(checkedLicenses);
+    } else if (status === 'Inherit') {
+      return Array.from(getMostValidOverride().licenseOverride.licenseIds);
+    }
+    return [];
+  };
+
   const trySave = () => {
     const ownerInformation = getOwnerInformationFromScopeDropdown();
+    const statusValueToSave = statusVal === 'Inherit' ? getInheritableStatus() : statusVal;
     const postBody = {
       componentIdentifier: component.componentIdentifier,
       comment: commentsTextInput.value,
-      status: statusVal.toUpperCase(),
+      status: statusValueToSave.toUpperCase(),
       ownerId: ownerInformation.publicId,
-      licenseIds: statusVal === 'Selected' || statusVal === 'Overridden' ? Array.from(checkedLicenses) : [],
+      licenseIds: getLicenseIdsToSave(statusVal),
     };
     saveLicenses({
       ownerType: ownerInformation.type,
@@ -252,7 +267,7 @@ export default function LicensesModal(props) {
                   id="edit-licenses-status-selection"
                   className="nx-form-select"
                   value={statusVal}
-                  onChange={(event) => onStatusChange(event.currentTarget.value)}
+                  onChange={(event) => onStatusChange(event.target.value)}
                 >
                   {getStatusOptions().map(createOptionFromValue)}
                 </select>

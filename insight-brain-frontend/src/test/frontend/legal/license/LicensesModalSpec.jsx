@@ -5,7 +5,7 @@
  */
 import LicensesModal from '../../../../main/frontend/legal/license/LicensesModal';
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxFormGroup, NxModal, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { NxForm, NxFormGroup, NxModal, NxThreatIndicator } from '@sonatype/react-shared-components';
 
 describe('LicensesModal', function () {
   let getShallowComponent,
@@ -236,7 +236,7 @@ describe('LicensesModal', function () {
       expect(statusGroup.find('option').at(2).prop('value')).toEqual('Overridden');
       expect(statusGroup.find('option').at(3).prop('value')).toEqual('Selected');
       expect(statusGroup.find('option').at(4).prop('value')).toEqual('Confirmed');
-      expect(statusGroup.find('option').at(5).prop('value')).toEqual('Confirmed');
+      expect(statusGroup.find('option').at(5).prop('value')).toEqual('Inherit');
       expect(statusGroup.find('option').at(5).childAt(0).text()).toEqual('Inherit Status (Confirmed)');
       const licenseDiv = wrapper.find('.nx-scrollable--edit-license-modal-licenses');
       expect(licenseDiv).toExist();
@@ -314,5 +314,92 @@ describe('LicensesModal', function () {
       expect(scopeSelect).toHaveProp('value', 'appId');
       expect(scopeSelect.find('option').length).toEqual(3);
     });
+  });
+
+  it('calls saveLicensesSpy with the correct information when you save', () => {
+    const expectedPostBody = {
+      ownerType: 'application',
+      ownerId: 'appPublicId',
+      postBody: Object({
+        componentIdentifier: Object({
+          coordinates: Object({ name: 'jquery-form', qualifier: '', version: '3.50.0' }),
+          format: 'a-name',
+          displayName: 'jquery-form 3.50.0',
+          hash: '9c06887e03feb6c996ab',
+        }),
+        comment: '',
+        status: 'SELECTED',
+        ownerId: 'appPublicId',
+        licenseIds: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0'],
+      }),
+      hash: 'hash123',
+    };
+    const wrapper = getMountedComponent();
+    const form = wrapper.find(NxForm);
+    form.simulate('submit');
+    expect(saveLicensesSpy).toHaveBeenCalledWith(expectedPostBody);
+  });
+
+  it('calls saveLicensesSpy with the correct information when you save an inherited status', () => {
+    const expectedPostBody = {
+      ownerType: undefined,
+      ownerId: 'ROOT_ORGANIZATION_ID',
+      postBody: Object({
+        componentIdentifier: Object({
+          coordinates: Object({ name: 'jquery-form', qualifier: '', version: '3.50.0' }),
+          format: 'a-name',
+          displayName: 'jquery-form 3.50.0',
+          hash: '9c06887e03feb6c996ab',
+        }),
+        comment: '',
+        status: 'SELECTED',
+        ownerId: 'ROOT_ORGANIZATION_ID',
+        licenseIds: ['overriddenLicense'],
+      }),
+      hash: 'hash123',
+    };
+    const wrapper = getMountedComponent({
+      ownerId: 'orgPublicId',
+      component: {
+        licenseLegalData: {
+          effectiveLicenses: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0', 'License-2.0 or License-3.0'],
+          observedLicenses: ['License-2.0', 'License-1.0-License-2.0', 'License-2.0 or License-3.0'],
+          declaredLicenses: ['License-1.0-License-2.0'],
+          effectiveLicenseStatus: 'Selected',
+          hierarchy: [
+            {
+              licenseOverride: null,
+              ownerId: 'appPublicId',
+            },
+            {
+              licenseOverride: null,
+              ownerId: 'orgPublicId',
+            },
+            {
+              licenseOverride: {
+                comment: 'anOverride3',
+                status: 'SELECTED',
+                licenseIds: ['overriddenLicense'],
+              },
+              ownerId: 'ROOT_ORGANIZATION_ID',
+            },
+          ],
+        },
+        componentIdentifier: {
+          coordinates: { name: 'jquery-form', qualifier: '', version: '3.50.0' },
+          format: 'a-name',
+          displayName: 'jquery-form 3.50.0',
+          hash: '9c06887e03feb6c996ab',
+        },
+      },
+    });
+    const form = wrapper.find(NxForm);
+    const formGroups = wrapper.find(NxFormGroup);
+    const statusGroup = formGroups.at(0);
+    expect(statusGroup.find('option').at(5).childAt(0).text()).toEqual('Inherit Status (Selected)');
+    const statusSelect = statusGroup.find('select');
+    statusSelect.simulate('change', { target: { value: 'Inherit' } });
+    form.simulate('submit');
+    expect(saveLicensesSpy).toHaveBeenCalledWith(expectedPostBody);
   });
 });

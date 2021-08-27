@@ -693,6 +693,46 @@ public class DependencyResolverTest
   }
 
   @Test
+  public void testResolve_AddInnerSource_WhenNotIdentifiedByMJA() throws Exception {
+    Application appInnerSource1 = tempEntity.newApplicationWithParent();
+    tempEntity.newInnerSourceComponent("pkg:npm/producer", appInnerSource1);
+
+    JsonNode dependenciesJson = getJsonNodeInformation(
+        "report-innersource-npm-add-unrecognized/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation(
+        "report-innersource-npm-add-unrecognized/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation(
+        "report-innersource-npm-add-unrecognized/summary.json");
+    JsonNode dataJson = getJsonNodeInformation(
+        "report-innersource-npm-add-unrecognized/data.json");
+
+    ComponentIdentifier innerSourceId = ComponentIdentifier
+        .createNpmCoordinates("producer", "file:../producer");
+    Set<InnerSourceData> expectedInnerSourceData = Sets
+        .newHashSet(new InnerSourceData(appInnerSource1.getName(), appInnerSource1.getId(), null));
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+
+    assertBomNodeDependencyInfo(bomJson, innerSourceId, true, true, null, expectedInnerSourceData);
+    assertSummaryCounters(summaryJson, dataJson, 3, 3);
+
+    JsonNode newIsNode = findNodeById(bomJson, innerSourceId);
+    AnalyzerFeatures analyzerFeatures = JsonUtils
+        .asPojo(newIsNode.get("analyzerFeatures"), AnalyzerFeatures.class);
+
+    assertThat(newIsNode.get("hash").asText()).isNotBlank();
+    assertThat(newIsNode.get("proprietary").asBoolean()).isFalse();
+    assertThat(newIsNode.get("createTime")).isNotNull();
+    assertThat(newIsNode.get("relativePopularity").asInt()).isZero();
+    assertThat(analyzerFeatures.getAnalysisSource()).isEqualTo(AnalysisSource.THIRD_PARTY);
+    assertThat(analyzerFeatures.getAnalysisType()).isEqualTo(AnalysisType.COORDINATE);
+    assertThat(analyzerFeatures.getScanClient()).isEqualTo("ci");
+    assertThat(analyzerFeatures.isHasIdentity()).isFalse();
+    assertThat(analyzerFeatures.isHasLicense()).isFalse();
+    assertThat(analyzerFeatures.isHasSecurity()).isFalse();
+  }
+
+  @Test
   public void testResolve_npm() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
@@ -850,12 +890,23 @@ public class DependencyResolverTest
   }
 
   private void assertSummaryCounters(JsonNode summaryJson, JsonNode dataJson, int expectedCount) {
+    assertSummaryCounters(summaryJson, dataJson, expectedCount, null);
+  }
+
+  private void assertSummaryCounters(JsonNode summaryJson, JsonNode dataJson, int expectedCount,
+      Integer totalArtifactCount)
+  {
     assertThat(summaryJson).isNotNull();
     assertThat(summaryJson.get("knownArtifactCount").asInt()).isEqualTo(expectedCount);
 
     assertThat(dataJson).isNotNull();
     assertThat(dataJson.get("exactlyMatchedComponentCount").asInt()).isEqualTo(expectedCount);
     assertThat(dataJson.get("knownArtifactCount").asInt()).isEqualTo(expectedCount);
+
+    if (totalArtifactCount != null) {
+      assertThat(summaryJson.get("totalArtifactCount").asInt()).isEqualTo(totalArtifactCount);
+      assertThat(dataJson.get("totalArtifactCount").asInt()).isEqualTo(totalArtifactCount);
+    }
   }
 
   private void assertInnerSourceParent(

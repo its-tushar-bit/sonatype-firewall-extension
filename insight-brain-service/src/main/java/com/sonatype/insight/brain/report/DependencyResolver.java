@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
@@ -26,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
@@ -34,6 +36,7 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.util.HashUtils;
 import com.sonatype.insight.util.ComponentIdentifierHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -59,6 +62,8 @@ public class DependencyResolver
 
   private static final String KNOWN_ARTIFACT_COUNT = "knownArtifactCount";
 
+  private static final String TOTAL_ARTIFACT_COUNT = "totalArtifactCount";
+
   public static final String MATCH_STATE = "matchState";
 
   private static final String FIELD_DIRECT_DEPENDENCY = "directDependency";
@@ -68,6 +73,10 @@ public class DependencyResolver
   private static final String FIELD_COMPONENT_IDENTIFIER = "componentIdentifier";
 
   private static final String PURL_PREFIX = "pkg:";
+
+  public static final String AA_DATA_NODE = "aaData";
+
+  public static final String FIELD_ANALYZER_FEATURES = "analyzerFeatures";
 
   private final JsonNode dependenciesJson;
 
@@ -86,6 +95,8 @@ public class DependencyResolver
   private final ApplicationDAO applicationDAO;
 
   private AtomicInteger knownArtifactCount = new AtomicInteger();
+
+  private AtomicInteger totalArtifactCount = new AtomicInteger();
 
   private AtomicInteger exactlyMatchedComponentCount = new AtomicInteger();
 
@@ -136,6 +147,7 @@ public class DependencyResolver
     this.applicationDAO = applicationDAO;
     if (summaryJson != null) {
       knownArtifactCount = new AtomicInteger(summaryJson.path(KNOWN_ARTIFACT_COUNT).asInt());
+      totalArtifactCount = new AtomicInteger(summaryJson.path(TOTAL_ARTIFACT_COUNT).asInt());
       exactlyMatchedComponentCount = new AtomicInteger(dataJson.path(EXACTLY_MATCHED_COMPONENT_COUNT).asInt());
     }
   }
@@ -329,39 +341,82 @@ public class DependencyResolver
     ObjectNode dataObjectNode = (ObjectNode) dataJson;
     dataObjectNode.put(EXACTLY_MATCHED_COMPONENT_COUNT, exactlyMatchedComponentCount.intValue());
     dataObjectNode.put(KNOWN_ARTIFACT_COUNT, knownArtifactCount.intValue());
+    dataObjectNode.put(TOTAL_ARTIFACT_COUNT, totalArtifactCount.intValue());
 
     ((ObjectNode) summaryJson).put(KNOWN_ARTIFACT_COUNT, knownArtifactCount.intValue());
+    ((ObjectNode) summaryJson).put(TOTAL_ARTIFACT_COUNT, totalArtifactCount.intValue());
   }
 
   private boolean updateDependencyBomAsInnerSource(
       final ComponentIdentifier innerSourceComponentIdentifier,
       final Application innerSourceApp)
   {
-    return findBomComponent(innerSourceComponentIdentifier)
-        .map(bomObjectNode -> {
-          //If the component is direct and exists as InnerSource, it needs to be updated as such
-          boolean isInnerSourceDependency = false;
+    //If the component is direct and exists as InnerSource, it needs to be updated as such
+    boolean isInnerSourceDependency = false;
+    // If the associated app for the InnerSource component and the current app in context is the same
+    // it does not need to be identified as InnerSource as it belongs to the app of the current report,
+    if (!Objects.equals(application.getId(), innerSourceApp.getId())) {
+      isInnerSourceDependency = true;
+    }
 
-          // If the associated app for the InnerSource component and the current app in context is the same
-          // it does not need to be identified as InnerSource as it belongs to the app of the current report,
-          // but it can be marked as a known component
-          if (!Objects.equals(application.getId(), innerSourceApp.getId())) {
-            InnerSourceData innerSourceData =
-                new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), null);
-            updateBomNodeDependencyInformation(true, true, innerSourceComponentIdentifier, null, innerSourceData);
-            isInnerSourceDependency = true;
-          }
+    Optional<ObjectNode> bomLookup = findBomComponent(innerSourceComponentIdentifier);
+    if (bomLookup.isPresent()) {
+      ObjectNode bomObjectNode = bomLookup.get();
+      if (isInnerSourceDependency) {
+        InnerSourceData innerSourceData =
+            new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), null);
+        updateBomNodeDependencyInformation(true, true, innerSourceComponentIdentifier, null,
+            innerSourceData);
+      }
 
-          if (MatchState.UNKNOWN.getId().equals(bomObjectNode.get(MATCH_STATE).asText())) {
-            markComponentAsKnown(bomObjectNode, innerSourceComponentIdentifier);
-          }
+      if (MatchState.UNKNOWN.getId().equals(bomObjectNode.get(MATCH_STATE).asText())) {
+        markComponentAsKnown(bomObjectNode, innerSourceComponentIdentifier);
+      }
+      log.debug(isInnerSourceDependency ? "InnerSource component" : "Component" +
+          "'{}' was updated in bom.json as a known component", innerSourceComponentIdentifier);
+    }
+    else {
+      //In some scenarios (for example during MJA matching) the IS component is not identified
+      // and not present in the bom.json. However we are certain at this point this is
+      // an IS component so add a new identified component here.
+      ObjectNode isNode = newNodeForISComponent(innerSourceComponentIdentifier);
+      bomComponentNodes.put(innerSourceComponentIdentifier, isNode);
+      InnerSourceData innerSourceData =
+            new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), null);
+      totalArtifactCount.getAndIncrement();
+      markComponentAsKnown(isNode, innerSourceComponentIdentifier);
+      updateBomNodeDependencyInformation(true, true, innerSourceComponentIdentifier, null, innerSourceData);
+    }
+    return isInnerSourceDependency;
+  }
 
-          log.debug(isInnerSourceDependency ? "InnerSource component" : "Component" +
-              "'{}' was updated in bom.json as a known component", innerSourceComponentIdentifier);
+  private ObjectNode newNodeForISComponent(ComponentIdentifier componentIdentifier) {
+    ArrayNode aaNode = (ArrayNode) bomJson.get(AA_DATA_NODE);
+    ObjectNode isNode = aaNode.addObject();
+    isNode.put("hash", getHash(componentIdentifier));
+    isNode.put("proprietary", false);
+    isNode.set(FIELD_ANALYZER_FEATURES, JsonUtils.asTree(getAnalyzerFeaturesForNewNode(aaNode)));
+    isNode.put("createTime", new Date().getTime());
+    isNode.put("relativePopularity", 0);
+    return isNode;
+  }
 
-          return isInnerSourceDependency;
-        })
-        .orElse(false);
+  private String getHash(ComponentIdentifier componentIdentifier) {
+    String hashString = componentIdentifier.getFormat() + ":" + StringUtils
+        .join(componentIdentifier.getCoordinates().values(), ":");
+    return HashHelper.truncateHash(HashUtils.hash(hashString, HashUtils.SHA1));
+  }
+
+  private AnalyzerFeatures getAnalyzerFeaturesForNewNode(JsonNode aaNode) {
+    // its extremely unlikely to have bom.json with 0 components (identified+unknown combined)
+    // and having a innersource coordinate in dependencies.json. Setting to "cli"
+    // in such a rare case where in all other cases it will adopt a sibling's scanClient.
+    String scanClient = "cli";
+    if (aaNode.size() > 0 && aaNode.get(0).hasNonNull(FIELD_ANALYZER_FEATURES)) {
+      scanClient = aaNode.get(0).get(FIELD_ANALYZER_FEATURES).get("scanClient").asText();
+    }
+    return new AnalyzerFeatures(AnalysisSource.THIRD_PARTY,
+        AnalysisType.COORDINATE, scanClient, false, false, false);
   }
 
   private Optional<ObjectNode> findBomComponent(ComponentIdentifier identifier) {
@@ -372,7 +427,7 @@ public class DependencyResolver
   private void loadBomComponentsIfNotLoaded() {
     if (bomComponentNodes == null) {
       bomComponentNodes = new HashMap<>();
-      for (JsonNode bomChild : bomJson.get("aaData")) {
+      for (JsonNode bomChild : bomJson.get(AA_DATA_NODE)) {
         ComponentIdentifier bomComponentIdentifier = getBomComponentIdentifier(bomChild);
         if (bomComponentIdentifier != null) {
           bomComponentNodes.put(bomComponentIdentifier, (ObjectNode) bomChild);
@@ -396,8 +451,8 @@ public class DependencyResolver
 
     ComponentDisplayNameUtil.injectDisplayName(bomObjectNode);
 
-    JsonNode analyzerFeatures = bomObjectNode.get("analyzerFeatures");
-    bomObjectNode.set("analyzerFeatures", JsonUtils.asTree(new AnalyzerFeatures(AnalysisSource.THIRD_PARTY,
+    JsonNode analyzerFeatures = bomObjectNode.get(FIELD_ANALYZER_FEATURES);
+    bomObjectNode.set(FIELD_ANALYZER_FEATURES, JsonUtils.asTree(new AnalyzerFeatures(AnalysisSource.THIRD_PARTY,
         AnalysisType.COORDINATE, analyzerFeatures.get("scanClient").asText())));
   }
 

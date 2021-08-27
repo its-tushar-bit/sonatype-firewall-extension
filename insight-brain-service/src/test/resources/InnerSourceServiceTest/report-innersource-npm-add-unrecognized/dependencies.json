@@ -1,0 +1,55 @@
+{
+  "dependencyTree": {
+    "componentIdentifier": {
+      "format": "npm",
+      "coordinates": {
+        "packageId": "consumer",
+        "version": "1.2.0"
+      }
+    },
+    "children": [
+      {
+        "componentIdentifier": {
+          "format": "npm",
+          "coordinates": {
+            "packageId": "producer",
+            "version": "file:../producer"
+          }
+        },
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "npm",
+              "coordinates": {
+                "packageId": "@dabh/diagnostics",
+                "version": "2.0.2"
+              }
+            },
+            "children": [
+              {
+                "componentIdentifier": {
+                  "format": "npm",
+                  "coordinates": {
+                    "packageId": "enabled",
+                    "version": "2.0.0"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "componentIdentifier": {
+              "format": "npm",
+              "coordinates": {
+                "packageId": "kuler",
+                "version": "2.0.0"
+              }
+            }
+          }
+        ],
+        "direct": true
+      }
+    ],
+    "module": true
+  }
+}

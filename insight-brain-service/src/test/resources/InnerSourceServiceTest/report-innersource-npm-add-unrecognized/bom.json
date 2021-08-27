@@ -1,0 +1,126 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "npm",
+        "coordinates": {
+          "packageId": "@dabh/diagnostics",
+          "version": "2.0.2"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "@dabh/diagnostics:2.0.2"
+      ],
+      "pathnames": [
+        "dependency:/consumer/package-lock.json/pkg:npm/%40dabh/diagnostics@2.0.2"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "290d08f7b381b8f94607",
+      "relativePopularity": null,
+      "createTime": 1592847755156,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "COORDINATE",
+        "scanClient": "ci",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "packageId",
+            "value": "@dabh/diagnostics"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "version",
+            "value": "2.0.2"
+          }
+        ],
+        "name": "@dabh/diagnostics : 2.0.2"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "npm",
+        "coordinates": {
+          "packageId": "enabled",
+          "version": "2.0.0"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "enabled:2.0.0"
+      ],
+      "pathnames": [
+        "dependency:/consumer/package-lock.json/pkg:npm/enabled@2.0.0"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "f9dd92ec2d6f4bbc0d5d",
+      "relativePopularity": null,
+      "createTime": 1540768637748,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "COORDINATE",
+        "scanClient": "ci",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "packageId",
+            "value": "enabled"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "version",
+            "value": "2.0.0"
+          }
+        ],
+        "name": "enabled : 2.0.0"
+      }
+    }
+  ]
+}

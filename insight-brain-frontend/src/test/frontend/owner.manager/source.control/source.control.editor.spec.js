@@ -7,7 +7,7 @@ import sourceControlModule from '../../../../main/frontend/owner.manager/source.
 import utilityModule from '../../../../main/frontend/utility/utility.module';
 import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
 
-fdescribe('source.control.editor.spec', function () {
+describe('source.control.editor.spec', function () {
   const ROOT_ORGANIZATION_ID = 'rootOrganizationId';
   const SUB_ORGANIZATION_ID = 'subOrganizationId';
   const APPLICATION_ID = 'applicationId';

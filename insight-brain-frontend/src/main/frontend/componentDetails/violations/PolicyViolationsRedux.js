@@ -41,7 +41,7 @@ const loadRequested = (state) => {
 const loadFulfilled = (state, { payload }) => {
   const { violationsResult = { aaData: [] }, waiversResult = { waiversByOwner: [] }, permissionResult, hash } = payload;
 
-  const componentViolationInformation = violationsResult.aaData.find((violation) => violation.hash === hash);
+  const componentViolationInformation = violationsResult.aaData.find((violation) => violation.hash === hash) || {};
   const componentWaivers = flatten(
     waiversResult.waiversByOwner.map((waiversWithOwner) =>
       waiversWithOwner.waivers.map((waiver) => ({
@@ -76,12 +76,15 @@ const mapWaiversInformationToViolations = (componentWaivers, allViolations) => {
     return matchesPolicyId(waiver, violation) && matchesConstraintFacts(waiver, violation);
   };
 
-  return allViolations.map((violation) => ({
-    ...violation,
-    applicableWaivers: componentWaivers
-      .filter((waiver) => waiverIsApplicableToViolation(waiver, violation))
-      .map((waiver) => waiver.policyWaiverId),
-  }));
+  return (
+    allViolations &&
+    allViolations.map((violation) => ({
+      ...violation,
+      applicableWaivers: componentWaivers
+        .filter((waiver) => waiverIsApplicableToViolation(waiver, violation))
+        .map((waiver) => waiver.policyWaiverId),
+    }))
+  );
 };
 
 function loadFailed(state, { payload }) {

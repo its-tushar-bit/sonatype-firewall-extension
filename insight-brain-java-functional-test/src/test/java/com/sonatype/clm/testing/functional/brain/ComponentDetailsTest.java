@@ -71,9 +71,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ComponentDetailsTest
     extends AbstractFunctionalTest
 {
-  public static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
+  private static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
 
-  public static final String HASH = "fa78f54738ccf77379d1";
+  private static final String HASH = "fa78f54738ccf77379d1";
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
@@ -224,16 +224,31 @@ public class ComponentDetailsTest
 
   @Test
   public void testPolicyViolationsTab_violationTableEntries() {
-    waiveFirstReportRow();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
-    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
-
-    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
+    SelenideElement lastViolation = reportPage.resultRows().last();
+    lastViolation.click();
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "bd804633b9c2cf062586"));
+    ComponentDetailsPage componentDetailsPage =  new ComponentDetailsPage();
+    componentDetailsPage.violationsTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, "bd804633b9c2cf062586"));
+    componentDetailsPage.violationsTabContent().shouldBe(visible);
 
     PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHaveSize(1);
     ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
+    rowCells.shouldHaveSize(1);
+    rowCells.get(0).shouldHave(text("No policy violations"));
+
+    waiveFirstReportRow();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+
+    componentDetailsPage = openComponentDetailsPageForFirstViolation();
+    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
+    policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(1);
+    rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
     rowCells.shouldHaveSize(6);
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
         "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Unapplied Waiver", ""));

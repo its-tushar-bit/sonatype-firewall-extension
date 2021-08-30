@@ -328,14 +328,18 @@ describe('LicensesModal', function () {
           hash: '9c06887e03feb6c996ab',
         }),
         comment: '',
-        status: 'SELECTED',
+        status: 'ACKNOWLEDGED',
         ownerId: 'appPublicId',
-        licenseIds: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0'],
+        licenseIds: [],
       }),
       hash: 'hash123',
     };
     const wrapper = getMountedComponent();
     const form = wrapper.find(NxForm);
+    const formGroups = wrapper.find(NxFormGroup);
+    const statusGroup = formGroups.at(0);
+    const statusSelect = statusGroup.find('select');
+    statusSelect.simulate('change', { target: { value: 'Acknowledged' } });
     form.simulate('submit');
     expect(saveLicensesSpy).toHaveBeenCalledWith(expectedPostBody);
   });

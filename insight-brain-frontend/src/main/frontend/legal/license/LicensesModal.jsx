@@ -44,6 +44,7 @@ export default function LicensesModal(props) {
   const { initialState, userInput } = nxTextInputStateHelpers;
   const [commentsTextInput, setCommentsTextInput] = useState(initialState(''));
   const [scopeVal, setScopeVal] = useState('');
+  const [validationErrors, setValidationErrors] = useState('There are no changes to save.');
   const [statusVal, setStatusVal] = useState(effectiveLicenseStatus);
   const [licenseOptions, setLicenseOptions] = useState([]);
   const [showLicenseDiv, setShowLicenseDiv] = useState(
@@ -138,6 +139,7 @@ export default function LicensesModal(props) {
   };
 
   const toggleCheckbox = (license) => {
+    setValidationErrors(undefined);
     if (checkedLicenses.has(license)) {
       const newCheckedLicenseSet = new Set(checkedLicenses);
       newCheckedLicenseSet.delete(license);
@@ -181,6 +183,7 @@ export default function LicensesModal(props) {
 
   const onStatusChange = (statusSelection) => {
     setStatusVal(statusSelection);
+    setValidationErrors(undefined);
     setCheckedLicenses(new Set([]));
     setShowLicenseDiv(statusSelection === 'Selected' || statusSelection === 'Overridden');
     populateLicenseOptions(statusSelection);
@@ -216,6 +219,16 @@ export default function LicensesModal(props) {
     return [];
   };
 
+  const updateScopeOption = (scope) => {
+    setValidationErrors(undefined);
+    setScopeVal(scope);
+  };
+
+  const updateCommentsInput = (payload) => {
+    setValidationErrors(undefined);
+    setCommentsTextInput(userInput(null, payload));
+  };
+
   const trySave = () => {
     const ownerInformation = getOwnerInformationFromScopeDropdown();
     const statusValueToSave = statusVal === 'Inherit' ? getInheritableStatus() : statusVal;
@@ -249,6 +262,7 @@ export default function LicensesModal(props) {
         submitError={licensesError}
         submitMaskState={saveLicensesSubmitMask}
         onSubmit={trySave}
+        validationErrors={validationErrors}
         submitBtnText="Save"
       >
         <header className="nx-modal-header">
@@ -284,7 +298,7 @@ export default function LicensesModal(props) {
                   type="textarea"
                   {...commentsTextInput}
                   className="nx-text-input--long edit-licenses-modal-textarea"
-                  onChange={(payload) => setCommentsTextInput(userInput(null, payload))}
+                  onChange={(payload) => updateCommentsInput(payload)}
                 />
               </NxFormGroup>
               <NxFormGroup label="Scope" sublabel="Apply changes to" isRequired>
@@ -292,7 +306,7 @@ export default function LicensesModal(props) {
                   id="edit-licenses-scope-selection"
                   className="nx-form-select nx-form-select--long"
                   value={scopeVal}
-                  onChange={(event) => setScopeVal(event.currentTarget.value)}
+                  onChange={(event) => updateScopeOption(event.currentTarget.value)}
                 >
                   {availableScopes.values.map(createScopeOption)}
                 </select>

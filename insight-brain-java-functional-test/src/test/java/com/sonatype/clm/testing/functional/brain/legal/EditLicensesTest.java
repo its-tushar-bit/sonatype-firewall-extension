@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.EditLicensesModal;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -85,6 +86,9 @@ public class EditLicensesTest
     assertThat(licensesModal.commentTextInput().getText()).isEmpty();
     assertOption(licensesModal.scopeDropdown().getSelectedOption(), app);
 
+    licensesModal.save().hover();
+    Tooltip.get().shouldBe(Condition.visible).shouldBe(Condition.exactText("There are no changes to save."));
+    licensesModal.save().shouldHave(Condition.cssClass("disabled"));
     licensesModal.statusDropdown().click();
 
     licensesModal.statusOpenOption().shouldBe(Condition.visible);
@@ -94,6 +98,10 @@ public class EditLicensesTest
     licensesModal.statusConfirmedption().shouldBe(Condition.visible);
 
     licensesModal.statusSelectedOption().click();
+
+    licensesModal.save().hover();
+    Tooltip.get().shouldNotBe(Condition.visible);
+    licensesModal.save().shouldNotHave(Condition.cssClass("disabled"));
 
     licensesModal.getCheckboxAt(0).shouldBe(Condition.visible);
     licensesModal.getCheckboxAt(1).shouldBe(Condition.visible).click();

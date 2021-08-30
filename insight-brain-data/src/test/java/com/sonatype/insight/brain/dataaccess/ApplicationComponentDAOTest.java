@@ -575,7 +575,7 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
-  public void testLastByComponentIdentifier() throws InterruptedException {
+  public void testLastByComponentIdentifier() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     Application app = tempEntity.newApplicationWithParent();
 

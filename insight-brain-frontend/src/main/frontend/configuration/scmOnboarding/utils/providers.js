@@ -8,6 +8,7 @@ const GIT_HOST_NAMES = {
   github: 'GitHub',
   bitbucket: 'Bitbucket',
   gitlab: 'GitLab',
+  azure: 'Azure DevOps',
 };
 
 const displayName = (provider) => {

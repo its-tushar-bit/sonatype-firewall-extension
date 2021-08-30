@@ -61,6 +61,8 @@ public class ApplicationSourceControlEditorTest
   
   private static final String BITBUCKET_REPOSITORY_URL_SANITIZED = "https://bitbucket.org/org/repo";
 
+  private static final String AZURE_REPO_URL = "https://dev.azure.com/org/prj/_git/app";
+
   private static final String SSH_REPOSITORY_URL = "ssh://a.com/b/c";
 
   @Override
@@ -491,6 +493,42 @@ public class ApplicationSourceControlEditorTest
   }
 
   @Test
+  public void testSourceControlEditor_azureCredentials() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+    verifyStartNoSourceControl();
+    tempEntity
+        .newSourceControl(rootOrganization.getId(), null, null, null, SourceControlProvider.AZURE, true,
+            false, "master", null);
+    refresh();
+
+    SourceControlEditorPage.credentialsOverrideRadio().shouldBe(selected);
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(selected, enabled);
+    SourceControlEditorPage.credentialsToken().shouldBe(enabled);
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    assertToolTip("There are no changes to update.");
+
+    SourceControlEditorPage.credentialsToken().click();
+    SourceControlEditorPage.credentialsToken().setValue(TOKEN);
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    assertToolTip("There are no changes to update.");
+
+    SourceControlEditorPage.credentialsUsername().click();
+    SourceControlEditorPage.credentialsUsername().setValue("appuser");
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    assertToolTip("Unable to update: fields with invalid or missing data.");
+
+    SourceControlEditorPage.repositoryUrl().setValue(AZURE_REPO_URL);
+    SourceControlEditorPage.saveButton().shouldBe(enabled);
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.advancedSettings().shouldNotBe(visible);
+  }
+
+  @Test
   public void testSourceControlEditor_updateFailure() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
     verifyStartNoSourceControl();
@@ -617,6 +655,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.token().setValue(TOKEN);
     SourceControlEditorPage.tokenWarning().shouldBe(visible);
 
+    SourceControlEditorPage.saveButton().hover();
     SourceControlEditorPage.saveButton().click();
     FormMask.seeAndWaitForDismissal();
 

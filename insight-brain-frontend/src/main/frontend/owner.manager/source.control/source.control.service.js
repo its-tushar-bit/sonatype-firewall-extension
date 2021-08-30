@@ -88,6 +88,7 @@ export default function SourceControlService($http, CLMLocations) {
       { name: 'GitHub', value: 'github' },
       { name: 'GitLab', value: 'gitlab' },
       { name: 'Bitbucket', value: 'bitbucket' },
+      { name: 'Azure DevOps', value: 'azure' },
     ];
   }
 }

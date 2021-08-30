@@ -1,5 +1,5 @@
 <#include "iq-for-scm-common.ftl">
-### :thinking_face: Nexus IQ found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by this change.<#lt>
+### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by this change.<#lt>
 
 <#if suggestedVersion?has_content>
   :shield: **Bumping to version ${suggestedVersion}** will resolve all policy violations for this component<#if ( remediationForDependencies )> and its dependencies</#if> (as of _${date}_)<#lt>

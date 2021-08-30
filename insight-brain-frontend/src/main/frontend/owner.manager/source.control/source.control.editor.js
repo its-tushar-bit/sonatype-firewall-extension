@@ -13,6 +13,8 @@ export default {
 
 const ROOT_ORG_NAME = 'Root Organization';
 
+const PROVIDERS_WITH_USERNAME = ['bitbucket', 'azure'];
+
 function SourceControlEditorController(
   CLMContextLocations,
   OrganizationStore,
@@ -61,7 +63,7 @@ function SourceControlEditorController(
   vm.showSshUrlInfo = false;
   vm.isSshUrl = isSshUrl;
   vm.checkUrlFormat = checkUrlFormat;
-  vm.providersSupportingPullRequests = ['github', 'gitlab', 'bitbucket'];
+  vm.providersSupportingPullRequests = ['github', 'gitlab', 'bitbucket', 'azure'];
   // function reference to initiate the SCM Configuration validation
   vm.validateScmConfig = validateScmConfig;
   // result object of the SCM validation
@@ -74,6 +76,7 @@ function SourceControlEditorController(
   vm.sourceControlMetrics = undefined;
   vm.effectiveProvider = effectiveProvider;
   vm.effectiveTokenInheritFrom = effectiveTokenInheritFrom;
+  vm.providerNeedsUsername = providerNeedsUsername;
 
   /**
    * Matches any absolute HTTP(S) and SSH URL as per RFC 3986
@@ -142,7 +145,7 @@ function SourceControlEditorController(
       // set this value so that it can be used for intermediate calculations
       vm.originalSourceControl = angular.copy(vm.dirtySourceControl);
       vm.dirtySourceControl.usernameInherit =
-        vm.dirtySourceControl.usernameInherit && !isUsernameRequiredOnNode() && effectiveProvider() === 'bitbucket';
+        vm.dirtySourceControl.usernameInherit && !isUsernameRequiredOnNode() && providerNeedsUsername();
       vm.dirtySourceControl.credentialsInherit = vm.dirtySourceControl.usernameInherit && !isUsernameRequiredOnNode();
       vm.usernameInheritText = getInheritText(
         vm.dirtySourceControl.usernameInheritFrom,
@@ -266,21 +269,26 @@ function SourceControlEditorController(
     model.providerInheritFrom = compositeSourceControl.provider.parentName;
     model.providerInheritValue = compositeSourceControl.provider.parentValue;
 
-    model.username = compositeSourceControl.username.value;
-    model.usernameInherit = compositeSourceControl.username.value === null && !vm.isRootOrg;
-    model.usernameInheritFrom = compositeSourceControl.username.parentName;
-    model.usernameInheritedValue = compositeSourceControl.username.parentValue;
-
     if (model.providerInheritFrom !== ROOT_ORG_NAME && compositeSourceControl.token.parentName === ROOT_ORG_NAME) {
       model.token = compositeSourceControl.token.value;
       // provider is inherited from a suborg but the token is at the root
       // so act as if token is not set
       model.tokenInherit = false;
       model.tokenInheritFrom = null;
+
+      model.username = null;
+      model.usernameInherit = false;
+      model.usernameInheritFrom = null;
+      model.usernameInheritedValue = null;
     } else {
       model.token = compositeSourceControl.token.value;
       model.tokenInherit = compositeSourceControl.token.value === null && !vm.isRootOrg;
       model.tokenInheritFrom = compositeSourceControl.token.parentName;
+
+      model.username = compositeSourceControl.username.value;
+      model.usernameInherit = compositeSourceControl.username.value === null && !vm.isRootOrg;
+      model.usernameInheritFrom = compositeSourceControl.username.parentName;
+      model.usernameInheritedValue = compositeSourceControl.username.parentValue;
     }
 
     model.baseBranch = getBaseBranchValue(compositeSourceControl.baseBranch.value);
@@ -314,14 +322,17 @@ function SourceControlEditorController(
 
     sourceControl.username = null;
     sourceControl.token = null;
-    if (model.provider === 'bitbucket' || (model.providerInheritValue === 'bitbucket' && model.providerInherit)) {
+    if (
+      PROVIDERS_WITH_USERNAME.includes(model.provider) ||
+      (PROVIDERS_WITH_USERNAME.includes(model.providerInheritValue) && model.providerInherit)
+    ) {
       // bitbucket uses 'credentials' to gather username & password. They both move as a single block
       if ((!model.credentialsInherit || vm.isRootOrg || !model.providerInherit) && model.token && model.username) {
         sourceControl.username = model.username;
         sourceControl.token = model.token;
       }
     } else {
-      // username only supported in Bitbucket
+      // username only supported in Bitbucket & Azure DevOps
       if ((!model.tokenInherit || vm.isRootOrg || !model.providerInherit) && model.token) {
         sourceControl.token = model.token === '' ? null : model.token;
       }
@@ -356,8 +367,12 @@ function SourceControlEditorController(
     return vm.isApp && !vm.effectiveTokenInheritFrom();
   }
 
+  function providerNeedsUsername() {
+    return PROVIDERS_WITH_USERNAME.includes(effectiveProvider());
+  }
+
   function isUsernameRequiredOnNode() {
-    return vm.isApp && !vm.dirtySourceControl.usernameInheritFrom && effectiveProvider() === 'bitbucket';
+    return vm.isApp && !vm.dirtySourceControl.usernameInheritFrom && providerNeedsUsername();
   }
 
   function isProviderRequiredOnNode() {
@@ -386,7 +401,7 @@ function SourceControlEditorController(
   function canCollapseAdvanced() {
     const hasToken = vm.dirtySourceControl.tokenInherit || vm.dirtySourceControl.token;
     const hasUserName =
-      vm.dirtySourceControl.usernameInherit || vm.dirtySourceControl.username || effectiveProvider() !== 'bitbucket';
+      vm.dirtySourceControl.usernameInherit || vm.dirtySourceControl.username || !providerNeedsUsername();
     const hasBaseBranch = vm.dirtySourceControl.baseBranchInherit || vm.dirtySourceControl.baseBranch;
     const hasProvider =
       (vm.dirtySourceControl.providerInherit || vm.dirtySourceControl.provider) && !!effectiveProvider();

@@ -89,6 +89,10 @@ public class PullRequestFeedbackDetailsTest
 
   private GitRepositoryInfo bitbucketGitRepositoryInfo;
 
+  private GitRepositoryInfo azureGitRepositoryInfo;
+
+  private GitRepositoryInfo azureOnPremGitRepositoryInfo;
+
   private int pullRequestNumber = 10;
 
   private SourceControlComponentDetails componentDetails;
@@ -162,6 +166,40 @@ public class PullRequestFeedbackDetailsTest
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(contents.get()).isEqualTo(expectedContent);
+  }
+
+  @Test
+  public void testPullRequestFeedback_AzureCloud_richHtml() throws Exception {
+    //setup test data
+    setupTestData();
+
+    //when we get details for azure cloud
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, azureGitRepositoryInfo, pullRequestNumber, app,
+            lookup(DefaultBaseUrl.class).getConfigured());
+
+    //then assert that created contents follow the HTML template
+    final Optional<String> contents = details.renderTemplateAndGetContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(contents.get()).contains("<details>");
+  }
+
+  @Test
+  public void testPullRequestFeedback_AzureOnPrem_noEmbeddedHtml() throws Exception {
+    //setup test data
+    setupTestData();
+
+    //when get details for azure on prem
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, azureOnPremGitRepositoryInfo, pullRequestNumber, app,
+            lookup(DefaultBaseUrl.class).getConfigured());
+
+    //then assert that created contents are following the no-html template
+    final Optional<String> contents = details.renderTemplateAndGetContents();
+    assertThat(contents).isNotEmpty();
+    assertThat(contents.get()).doesNotContain("<details>");
   }
 
   @Test
@@ -731,6 +769,14 @@ public class PullRequestFeedbackDetailsTest
     bitbucketGitRepositoryInfo =
         new GitRepositoryInfo("https://bitbucket.com/scm/sonatype/enhanced-commit-information", "user", "token",
             SourceControlProvider.BITBUCKET, "master", true, true, true, true, null);
+
+    azureGitRepositoryInfo =
+        new GitRepositoryInfo("https://dev.azure.com/sonatype/int/_git/enhanced-commit-information",
+            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true, true, true, true, null);
+
+    azureOnPremGitRepositoryInfo =
+        new GitRepositoryInfo("https://azure-on-prem.com/sonatype/int/_git/enhanced-commit-information",
+            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true, true, true, true, null);
 
     //setup source control component details
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(

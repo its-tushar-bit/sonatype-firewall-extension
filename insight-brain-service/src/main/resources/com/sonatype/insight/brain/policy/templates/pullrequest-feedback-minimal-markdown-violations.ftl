@@ -1,6 +1,6 @@
 <#include "iq-for-scm-common.ftl">
 <#if ( policiesViolatedCount > 0 )><#t>
-### :thinking_face: Nexus IQ found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if> introduced by this PR:
+### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if> introduced by this PR:
 
 &#8192;<#-- spacer -->
 

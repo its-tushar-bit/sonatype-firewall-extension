@@ -56,6 +56,12 @@ public class PullRequestLineFeedbackTest
 
   public static final String SINGLE_WITH_SUGGESTION = "singleWithSuggestion";
 
+  public static final String SINGLE_WITH_SUGGESTION_AZCLOUD = "singleWithSuggestion_azureCloud";
+
+  public static final String SINGLE_WITH_SUGGESTION_AZONPREM = "singleWithSuggestion_azureOnPrem";
+
+  private static final String SCM_ON_PREM_BASE_URL = "https://scm.mycompany.com";
+
   @Inject
   private InsightConfig config;
 
@@ -64,20 +70,28 @@ public class PullRequestLineFeedbackTest
   @Before
   public void before() {
     config.setBaseUrl("http://localhost:1122");
-    String baseUrl = lookup(DefaultBaseUrl.class).getConfigured();
+    String iqBaseUrl = lookup(DefaultBaseUrl.class).getConfigured();
     testCases = ImmutableMap.<String, PullRequestLineFeedback>builder()
         .put(MULTIPLE_NO_SUGGESTIONS, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
-            baseUrl, null))
+            iqBaseUrl, null, SCM_ON_PREM_BASE_URL))
         .put(MULTIPLE_WITH_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
-            baseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, 3)))
+            iqBaseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, 3),
+            SCM_ON_PREM_BASE_URL))
         .put(MULTIPLE_WITH_SUGGESTION_AND_DEPENDENCY_REMEDIATION,
-            new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
-                baseUrl,
-                new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, 3)))
-        .put(SINGLE_NO_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component", baseUrl,
-            null))
-        .put(SINGLE_WITH_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component", baseUrl,
-            new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS)))
+            new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component", iqBaseUrl,
+                new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, 3),
+                SCM_ON_PREM_BASE_URL))
+        .put(SINGLE_NO_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component", iqBaseUrl,
+            null, SCM_ON_PREM_BASE_URL))
+        .put(SINGLE_WITH_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component",
+            iqBaseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
+            SCM_ON_PREM_BASE_URL))
+        .put(SINGLE_WITH_SUGGESTION_AZCLOUD, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component",
+            "http://dev.azure.com/foo/bar/_git/baz",
+            new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS), "http://dev.azure.com"))
+        .put(SINGLE_WITH_SUGGESTION_AZONPREM, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component",
+            iqBaseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
+            SCM_ON_PREM_BASE_URL))
         .build();
   }
 
@@ -174,9 +188,23 @@ public class PullRequestLineFeedbackTest
   }
 
   @Test
+  public void testPullRequestFeedback_singleWithSuggestion_azureCloud() throws Exception {
+    // Azure Cloud uses the standard template with embedded HTML
+    assertContents(testCases.get(SINGLE_WITH_SUGGESTION_AZCLOUD),
+        "PullRequestLineFeedback_singleWithSuggestion.md", SourceControlProvider.AZURE);
+  }
+
+  @Test
+  public void testPullRequestFeedback_singleWithSuggestion_azureOnPrem() throws Exception {
+    // on-prem Azure uses the no-HTML template
+    assertContents(testCases.get(SINGLE_WITH_SUGGESTION_AZONPREM),
+        "PullRequestLineFeedback_singleWithSuggestion_noHtml.md", SourceControlProvider.AZURE);
+  }
+
+  @Test
   public void testPullRequestFeedback_nullViolations() throws Exception {
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
-      new PullRequestLineFeedback(null, "Test Component", lookup(DefaultBaseUrl.class).getConfigured(), null);
+      new PullRequestLineFeedback(null, "Test Component", lookup(DefaultBaseUrl.class).getConfigured(), null, null);
     }).withMessageContaining("violations is required and cannot be null");
   }
 
@@ -184,7 +212,7 @@ public class PullRequestLineFeedbackTest
   public void testPullRequestFeedback_emptyViolations() throws Exception {
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       new PullRequestLineFeedback(new ArrayList<>(), "Test Component",
-          lookup(DefaultBaseUrl.class).getConfigured(), null)
+          lookup(DefaultBaseUrl.class).getConfigured(), null, null)
           .renderTemplateAndGetContents(SourceControlProvider.GITHUB);
     }).withMessageContaining("violations cannot be empty");
   }
@@ -192,7 +220,7 @@ public class PullRequestLineFeedbackTest
   @Test
   public void testPullRequestFeedback_nullDisplayName() throws Exception {
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
-      new PullRequestLineFeedback(new ArrayList<>(), null, lookup(DefaultBaseUrl.class).getConfigured(), null);
+      new PullRequestLineFeedback(new ArrayList<>(), null, lookup(DefaultBaseUrl.class).getConfigured(), null, null);
     }).withMessageContaining("displayName is required and cannot be null");
   }
 

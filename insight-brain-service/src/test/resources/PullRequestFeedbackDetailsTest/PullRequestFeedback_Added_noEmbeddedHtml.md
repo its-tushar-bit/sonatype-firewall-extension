@@ -1,4 +1,4 @@
-### :thinking_face: Nexus IQ found multiple policy violations introduced by this PR:
+### :thinking: Nexus IQ found multiple policy violations introduced by this PR:
 
 &#8192;
 

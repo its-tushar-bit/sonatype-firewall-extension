@@ -52,6 +52,8 @@ public class PullRequestRemediationDetailsTest
 
   private static final String SCAN_ID = "5ea5363997ee2ba0c8730a5f785ae2c6";
 
+  private static final String TEST_SCM_URL = "https://scm.mycompany.com";
+
   private Application app;
 
   @Before
@@ -95,7 +97,7 @@ public class PullRequestRemediationDetailsTest
   @Test
   public void testSecurityVulnerabilityReport_minimalHtml() throws Exception {
     testSecurityVulnerabilityReport(SourceControlProvider.BITBUCKET,
-        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bitbucket.md", null);
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_noHtml.md", null);
   }
 
   @Test
@@ -116,6 +118,13 @@ public class PullRequestRemediationDetailsTest
         "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_manyBreakingChanges.md", 7);
   }
 
+  @Test
+  public void testSecurityVulnerabilityReport_azure_noHtml() throws Exception {
+    // azure uses minimal HTML
+    testSecurityVulnerabilityReport(SourceControlProvider.AZURE,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_noHtml.md", null);
+  }
+
   private void testSecurityVulnerabilityReport(
       SourceControlProvider provider,
       String expectedResource,
@@ -129,7 +138,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", breakingChangesCount, "pullRequest",
-            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider);
+            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider, TEST_SCM_URL);
 
     assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
 
@@ -173,7 +182,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "1.1", null, "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider);
+            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider, TEST_SCM_URL);
 
     assertThat(details.getTitle()).isEqualTo("Bump @sonatype/foo to 1.1");
 
@@ -218,7 +227,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "v0.3.3", null, "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider);
+            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider, TEST_SCM_URL);
 
     assertThat(details.getTitle()).isEqualTo("Bump golang.org/x/text to v0.3.3");
 
@@ -235,7 +244,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", null, "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), SourceControlProvider.GITHUB);
+            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), SourceControlProvider.GITHUB, TEST_SCM_URL);
 
     assertThat(details.getContents().replace("\r\n", "\n"))
         .startsWith("## :shield: Automated pull request: Nexus IQ found 1 Policy Violation\n");

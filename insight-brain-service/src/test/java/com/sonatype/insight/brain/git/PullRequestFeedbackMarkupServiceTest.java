@@ -192,7 +192,7 @@ public class PullRequestFeedbackMarkupServiceTest
     final Optional<String> contents =
         pullRequestFeedbackMarkupService.createLineMarkup(policyViolations, "Test Component",
             new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
-            SourceControlProvider.GITHUB);
+            SourceControlProvider.GITHUB, "https://scm.mycompany.com");
 
     // then: markup is generated
     final String expectedContent =

@@ -33,15 +33,15 @@ public class PullRequestFeedbackMarkupService
 {
   private final ApplicationDAO applicationDAO;
 
-  private final BaseUrl baseUrl;
+  private final BaseUrl iqBaseUrl;
 
   @Inject
   public PullRequestFeedbackMarkupService(
       final ApplicationDAO applicationDAO,
-      final BaseUrl baseUrl)
+      final BaseUrl iqBaseUrl)
   {
     this.applicationDAO = applicationDAO;
-    this.baseUrl = baseUrl;
+    this.iqBaseUrl = iqBaseUrl;
   }
 
   /**
@@ -62,7 +62,7 @@ public class PullRequestFeedbackMarkupService
     PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation,
             policyViolationDiff, remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber,
-            application, baseUrl.getConfigured());
+            application, iqBaseUrl.getConfigured());
 
     Optional<String> optionalString = details.renderTemplateAndGetContents();
     telemetry.newViolationsComponentCount = details.getNewViolationsComponentCount();
@@ -80,10 +80,12 @@ public class PullRequestFeedbackMarkupService
       final List<PolicyViolation> violations,
       final String componentNameAndVersion,
       final RemediationVersionDTO remediationVersion,
-      final SourceControlProvider provider)
+      final SourceControlProvider provider,
+      final String scmBaseUrl)
   {
     PullRequestLineFeedback details =
-        new PullRequestLineFeedback(violations, componentNameAndVersion, baseUrl.getConfigured(), remediationVersion);
+        new PullRequestLineFeedback(violations, componentNameAndVersion, iqBaseUrl.getConfigured(), remediationVersion,
+            scmBaseUrl);
     return details.renderTemplateAndGetContents(provider);
   }
 }

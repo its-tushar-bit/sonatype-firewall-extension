@@ -227,6 +227,128 @@ public class OrganizationSourceControlEditorTest
   }
 
   @Test
+  public void testSourceControlEditor_azureInherit() {
+    final String rootUsername = "rootusername";
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartNoSourceControl();
+
+    assertSourceControlDoesNotExist(rootOrganization.getId());
+    assertSourceControlDoesNotExist(organization.getId());
+
+    // given root starts with Azure
+    tempEntity
+        .newSourceControl(rootOrganization.getId(), null, rootUsername, TOKEN, SourceControlProvider.AZURE, true,
+            false, "master", null);
+    tempEntity.newSourceControl(organization.getId(), null, null, null);
+
+    refresh();
+
+    // then we should see the username for credentials
+    verifyStartWithSourceControl();
+    SourceControlEditorPage.credentialsToken().shouldBe(visible, disabled);
+    SourceControlEditorPage.credentialsInheritRadio().label()
+        .shouldHave(text("Inherit from Root Organization (" + rootUsername + ")"));
+    SourceControlEditorPage.credentialsInheritRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.credentialsOverrideRadio().label().shouldHave(text("Override"));
+    SourceControlEditorPage.credentialsOverrideRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(selected);
+    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
+    SourceControlEditorPage.token().shouldNotBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+    SourceControlEditorPage.credentialsOverrideRadio().click();
+    SourceControlEditorPage.credentialsUsername().setValue("orgusername");
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+    SourceControlEditorPage.credentialsToken().setValue("orgsecrettoken");
+    SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.credentialsToken().shouldHave(value(FAKE_SECRET_KEY));
+  }
+
+  @Test
+  public void testSourceControlEditor_azureOverride() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartNoSourceControl();
+
+    assertSourceControlDoesNotExist(rootOrganization.getId());
+    assertSourceControlDoesNotExist(organization.getId());
+
+    // given root starts with non-Azure
+    tempEntity
+        .newSourceControl(rootOrganization.getId(), null, null, TOKEN, SourceControlProvider.GITHUB, true,
+            false, "master", null);
+    tempEntity.newSourceControl(organization.getId(), null, null, null);
+
+    refresh();
+
+    // then we should see not see the username
+    verifyStartWithSourceControl();
+    SourceControlEditorPage.credentialsToken().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
+    SourceControlEditorPage.token().shouldBe(visible);
+
+    // when we switch to azure as a provider
+    SourceControlEditorPage.credentialsUsername().shouldNotBe(visible);
+    SourceControlEditorPage.providerOverrideRadio().click();
+    SourceControlEditorPage.provider().chooseOption(new Option(3, "Azure DevOps"));
+
+    // then the credentials should be shown with no option to inherit
+    SourceControlEditorPage.credentialsToken().shouldBe(visible, enabled);
+    SourceControlEditorPage.credentialsUsername().shouldBe(visible, enabled);
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(visible);
+    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
+    SourceControlEditorPage.token().shouldNotBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+  }
+
+  @Test
+  public void testSourceControlEditor_azureOverrideBitbucket() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartNoSourceControl();
+
+    assertSourceControlDoesNotExist(rootOrganization.getId());
+    assertSourceControlDoesNotExist(organization.getId());
+
+    // given root starts with Bitbucket which has a user & token, same as Azure
+    tempEntity
+        .newSourceControl(rootOrganization.getId(), null, "username", TOKEN, SourceControlProvider.BITBUCKET, true,
+            false, "master", null);
+    tempEntity.newSourceControl(organization.getId(), null, null, null);
+
+    refresh();
+
+    // then we should see usernaem & token fields
+    verifyStartWithSourceControl();
+    SourceControlEditorPage.credentialsUsername().shouldBe(visible);
+    SourceControlEditorPage.credentialsToken().shouldBe(visible, disabled);
+    SourceControlEditorPage.credentialsUsername().shouldBe(visible, disabled);
+    SourceControlEditorPage.credentialsInheritRadio().shouldBe(visible);
+    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
+
+    // when we switch to azure as a provider
+    SourceControlEditorPage.providerOverrideRadio().click();
+    SourceControlEditorPage.provider().chooseOption(new Option(3, "Azure DevOps"));
+
+    // then the credentials should be shown with no option to inherit and should be enabled
+    SourceControlEditorPage.credentialsToken().shouldBe(visible, enabled);
+    SourceControlEditorPage.credentialsUsername().shouldBe(visible, enabled);
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(visible);
+    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
+    SourceControlEditorPage.token().shouldNotBe(visible);
+  }
+
+  @Test
   public void testSourceControlEditor_updateFailure() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
     verifyStartNoSourceControl();

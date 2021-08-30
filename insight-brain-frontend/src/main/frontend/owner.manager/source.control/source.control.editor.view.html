@@ -128,7 +128,7 @@
             </div>
           </div>
         </div>
-        <div class="iq-form-row" ng-if="vm.effectiveProvider() === 'bitbucket'">
+        <div class="iq-form-row" ng-if="vm.providerNeedsUsername()">
           <div class="iq-form-group" ng-if="!vm.isRootOrg && vm.dirtySourceControl.providerInherit">
             <label for="editor-source-control-credentials-inherit" class="iq-label"><!--
            -->Credentials
@@ -162,7 +162,7 @@
                      ng-model="vm.dirtySourceControl.username"
                      ng-maxlength="255"
                      clm-input
-                     ng-disabled="!vm.effectiveProvider() || vm.dirtySourceControl.credentialsInherit"
+                     ng-disabled="!vm.effectiveProvider() || (vm.dirtySourceControl.credentialsInherit && vm.dirtySourceControl.providerInherit)"
                      ng-required="(!vm.isRootOrg && !vm.dirtySourceControl.credentialsInherit) || vm.dirtySourceControl.token"
                      messages="{required: 'A valid username and token are required'}">
             </div>
@@ -178,13 +178,13 @@
                      ng-model="vm.dirtySourceControl.token"
                      ng-maxlength="512"
                      clm-input
-                     ng-disabled="vm.dirtySourceControl.credentialsInherit"
+                     ng-disabled="!vm.effectiveProvider() || (vm.dirtySourceControl.credentialsInherit && vm.dirtySourceControl.providerInherit)"
                      ng-required="(!vm.isRootOrg && !vm.dirtySourceControl.credentialsInherit) || vm.dirtySourceControl.username"
                      messages="{required: 'A valid username and token are required'}"/>
             </div>
           </div>
         </div>
-        <div class="iq-form-row" ng-if="vm.effectiveProvider() !== 'bitbucket'">
+        <div class="iq-form-row" ng-if="!vm.providerNeedsUsername()">
           <div class="iq-form-group">
             <label for="editor-source-control-token" class="iq-label" ng-disabled="!vm.effectiveProvider()"><!--
            -->Access Token

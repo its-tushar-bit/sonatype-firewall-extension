@@ -67,6 +67,6 @@ public class ScmApplicationNameConverterTest
   }
 
   private SCMRepository buildRepo(final String namespace, final String project) {
-    return new SCMRepository(BITBUCKET, "http://example.com", false, namespace, project, "description");
+    return new SCMRepository(BITBUCKET, "http://example.com", null, false, namespace, project, "description");
   }
 }

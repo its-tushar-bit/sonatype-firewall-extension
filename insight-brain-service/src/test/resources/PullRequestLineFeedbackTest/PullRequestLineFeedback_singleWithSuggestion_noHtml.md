@@ -1,4 +1,4 @@
-### :thinking_face: Nexus IQ found a policy violation introduced by this change.
+### :thinking: Nexus IQ found a policy violation introduced by this change.
 
 :shield: **Bumping to version 123** will resolve all policy violations for this component (as of _Jul 03, 2020_)
 

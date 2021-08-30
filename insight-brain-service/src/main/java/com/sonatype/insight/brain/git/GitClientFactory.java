@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
@@ -35,24 +36,34 @@ public class GitClientFactory
     Configuration configuration = gitApiClientFactory.createConfiguration();
     String apiUrl = getClientUtils(gitRepositoryInfo.provider).getApiUrl(gitRepositoryInfo.repositoryUrl);
     insightProxy.contextualize(configuration, apiUrl);
-    return gitApiClientFactory.getGitApiClient(
-        gitRepositoryInfo.provider, configuration, gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.username,
-        gitRepositoryInfo.token);
+    return gitApiClientFactory.getGitApiClient(gitRepositoryInfo.provider, configuration,
+        gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.username, gitRepositoryInfo.token);
   }
 
   public PullRequestInfoProvider createPullRequestInfoClient(GitRepositoryInfo gitRepositoryInfo) {
     Configuration configuration = gitApiClientFactory.createConfiguration();
 
-    GitApiClientUtils gitApiClientUtils = gitApiClientFactory.getGitApiClientUtils(gitRepositoryInfo.provider);
-    String graphqlApiUrl = gitApiClientUtils.getPullRequestInfoProviderUrl(gitRepositoryInfo.repositoryUrl);
+    String graphqlApiUrl = getClientUtils(gitRepositoryInfo.provider).getPullRequestInfoProviderUrl(
+        gitRepositoryInfo.repositoryUrl);
     insightProxy.contextualize(configuration, graphqlApiUrl);
 
-    return gitApiClientFactory
-        .getPullRequestInfoClient(gitRepositoryInfo.provider, configuration, gitRepositoryInfo.username,
-            gitRepositoryInfo.token, gitRepositoryInfo.repositoryUrl);
+    return gitApiClientFactory.getPullRequestInfoClient(gitRepositoryInfo.provider, configuration,
+        gitRepositoryInfo.username, gitRepositoryInfo.token, gitRepositoryInfo.repositoryUrl);
   }
 
-  private GitApiClientUtils getClientUtils(final SourceControlProvider provider) {
+  public GeneralSCMApiClient createGeneralApiClient(
+      final SourceControlProvider sourceControlProvider,
+      final String hostUrl,
+      final String username,
+      final String token)
+  {
+    Configuration configuration = gitApiClientFactory.createConfiguration();
+    String baseApiUrl = getClientUtils(sourceControlProvider).getBaseApiUrl(hostUrl);
+    insightProxy.contextualize(configuration, baseApiUrl);
+    return gitApiClientFactory.getGeneralSCMApiClient(sourceControlProvider, configuration, username, token);
+  }
+
+  public GitApiClientUtils getClientUtils(final SourceControlProvider provider) {
     return gitApiClientFactory.getGitApiClientUtils(provider);
   }
 }

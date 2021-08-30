@@ -113,11 +113,12 @@ public class PullRequestRemediationDetails
       final Application app,
       final String scanId,
       final String stage,
-      final String baseUrl,
-      final SourceControlProvider provider) throws IOException
+      final String iqBaseUrl,
+      final SourceControlProvider provider,
+      final String scmBaseUrl) throws IOException
   {
     this(toBeRemediated, remediatedVersion, breakingChangesCount, pullRequestBranchName, app, scanId, stage);
-    this.contents = constructContents(notifications, baseUrl, provider);
+    this.contents = constructContents(notifications, iqBaseUrl, provider, scmBaseUrl);
   }
 
   public PullRequestRemediationDetails(
@@ -174,14 +175,15 @@ public class PullRequestRemediationDetails
 
   private String constructContents(
       final List<PolicyNotification> notifications,
-      final String baseUrl,
-      final SourceControlProvider provider) throws IOException
+      final String iqBaseUrl,
+      final SourceControlProvider provider,
+      final String scmBaseUrl) throws IOException
   {
     List<Map<String, Object>> threatList = notifications.stream()
         .map(policyNotification -> ImmutableMap.<String, Object>builder()
             .put("policy", policyNotification.getPolicyFact().getPolicyName())
             .put("threat", policyNotification.getPolicyFact().getThreatLevel())
-            .put("constraints", getViolationDetails(policyNotification, baseUrl))
+            .put("constraints", getViolationDetails(policyNotification, iqBaseUrl))
             .build())
         .collect(toList());
 
@@ -197,12 +199,12 @@ public class PullRequestRemediationDetails
         .put("date", DATE_TIME_FORMATTER.format(ZonedDateTime.now(clock)))
         .put("stage", stage)
         .put("detailedReportUrl",
-            baseUrl + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId) + "?source=auto-pr")
-        .put("baseIqUrl", baseUrl)
+            iqBaseUrl + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId) + "?source=auto-pr")
+        .put("baseIqUrl", iqBaseUrl)
         .put("provider", provider)
         .build();
 
-    return TemplateUtils.render(getPolicyTemplate(provider, baseUrl), model);
+    return TemplateUtils.render(getPolicyTemplate(provider, scmBaseUrl), model);
   }
 
   /**
@@ -281,8 +283,8 @@ public class PullRequestRemediationDetails
         coordinates.get(MAVEN_GROUP_ID), coordinates.get(MAVEN_ARTIFACT_ID), coordinates.get(VERSION));
   }
 
-  private Template getPolicyTemplate(final SourceControlProvider provider, final String baseUrl) {
-    if (provider.supportsEmbeddedHtmlInMarkdown(baseUrl)) {
+  private Template getPolicyTemplate(final SourceControlProvider provider, final String scmBaseUrl) {
+    if (provider.supportsEmbeddedHtmlInMarkdown(scmBaseUrl)) {
       return policyThreatsMDEmbeddedHtmlTemplate;
     }
     return policyThreatsMDMinimalTemplate;

@@ -93,7 +93,7 @@ public class PullRequestFeedbackDetails
 
   private final int pullRequestNumber;
 
-  private final String baseUrl;
+  private final String iqBaseUrl;
 
   private int newViolationsComponentCount;
 
@@ -121,7 +121,7 @@ public class PullRequestFeedbackDetails
       final GitRepositoryInfo gitRepositoryInfo,
       final int pullRequestNumber,
       final Application app,
-      final String baseUrl)
+      final String iqBaseUrl)
   {
     Preconditions
         .checkNotNull(sourceControlComponentDetails, "sourceControlComponentDetails is required and cannot be null");
@@ -141,7 +141,7 @@ public class PullRequestFeedbackDetails
     Preconditions.checkNotNull(app, "app is required and cannot be null");
     this.app = app;
     this.pullRequestNumber = pullRequestNumber;
-    this.baseUrl = baseUrl;
+    this.iqBaseUrl = iqBaseUrl;
     Preconditions.checkNotNull(gitRepositoryInfo.provider, "provider is required and cannot be null");
   }
 
@@ -168,25 +168,25 @@ public class PullRequestFeedbackDetails
         getComponentPolicyViolationsMap(diff.getAppeared()) : Collections.emptyMap();
     //Get a map containing the PR feedback for each of the components
     final List<Map<String, Object>> newComponentFeedbackList = getNewComponentFeedbackList(componentPolicyViolationsMap,
-        remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, baseUrl);
+        remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, iqBaseUrl);
     newViolationsComponentCount = newComponentFeedbackList.size();
 
     final Map<String, List<PolicyViolation>> fixedComponentPolicyViolationsMap = diff.hasCleared() ?
         getComponentPolicyViolationsMap(diff.getCleared()) : Collections.emptyMap();
     //Get a map containing the PR feedback for each of the components
     final List<Map<String, Object>> fixedComponentFeedbackList =
-        getFixedComponentFeedbackList(fixedComponentPolicyViolationsMap, baseUrl);
+        getFixedComponentFeedbackList(fixedComponentPolicyViolationsMap, iqBaseUrl);
     clearedViolationsComponentCount = fixedComponentFeedbackList.size();
 
     //Get a map containing all model values to be used in the template
     final Map<String, Object> modelMap =
-        getModelMap(newComponentFeedbackList, fixedComponentFeedbackList, gitRepositoryInfo.provider, baseUrl);
+        getModelMap(newComponentFeedbackList, fixedComponentFeedbackList, gitRepositoryInfo.provider, iqBaseUrl);
 
     return TemplateUtils.render(getPolicyTemplate(), modelMap);
   }
 
   private Template getPolicyTemplate() {
-    if (gitRepositoryInfo.provider.supportsEmbeddedHtmlInMarkdown(baseUrl)) {
+    if (gitRepositoryInfo.provider.supportsEmbeddedHtmlInMarkdown(gitRepositoryInfo.getRepositoryUrl())) {
       return policyViolationDiffMDEmbeddedHtmlTemplate;
     }
     return policyViolationDiffMDMinimalHtmlTemplate;

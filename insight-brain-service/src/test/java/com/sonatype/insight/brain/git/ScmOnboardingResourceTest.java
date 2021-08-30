@@ -130,7 +130,7 @@ public class ScmOnboardingResourceTest
     // when we make a call to import a repository
     String repoUrl = "https://localhost:5333/org/repo.git";
     List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
-        repoUrl, true, "org", "repo", null));
+        repoUrl, null, true, "org", "repo", null));
     HttpResponse response = restRequest()
         .path(UriBuilder.fromPath(IMPORT_REPO_PATH).build(org.getId()).toString())
         .body(new ImportRepositoriesRequest(toAdd, 5, 2))
@@ -151,7 +151,7 @@ public class ScmOnboardingResourceTest
     // when we make a call to import a repository that doesn't exist
     String repoUrl = "https://localhost:5333/org/repo.git";
     List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
-        repoUrl, true, "org", "repo", null));
+        repoUrl, null, true, "org", "repo", null));
     HttpResponse response = restRequest()
         .path(UriBuilder.fromPath(IMPORT_REPO_PATH).build("missing-org-id").toString())
         .body(new ImportRepositoriesRequest(toAdd, 5, 2))

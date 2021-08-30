@@ -44,7 +44,6 @@ import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -52,7 +51,6 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
-import com.sonatype.nexus.scm.api.GitApiClientUtils;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import org.apache.commons.lang3.StringUtils;
@@ -99,7 +97,7 @@ public class ScmOnboardingService
 
   private final ApiCompositeSourceControlService apiCompositeSourceControlService;
 
-  private final GitApiClientFactory gitApiClientFactory;
+  private final GitClientFactory gitClientFactory;
 
   private final TelemetrySender telemetrySender;
 
@@ -119,7 +117,7 @@ public class ScmOnboardingService
       final ApiSourceControlService apiSourceControlService,
       final ApiCompositeSourceControlService apiCompositeSourceControlService,
       final OrganizationService organizationService,
-      final GitApiClientFactory gitApiClientFactory,
+      final GitClientFactory gitClientFactory,
       final TelemetrySender telemetrySender,
       final ScmApplicationNameConverter applicationNameConverter,
       final InsightConfig insightConfig,
@@ -133,7 +131,7 @@ public class ScmOnboardingService
     this.apiSourceControlService = apiSourceControlService;
     this.apiCompositeSourceControlService = apiCompositeSourceControlService;
     this.organizationService = organizationService;
-    this.gitApiClientFactory = gitApiClientFactory;
+    this.gitClientFactory = gitClientFactory;
     this.telemetrySender = telemetrySender;
     this.applicationNameConverter = applicationNameConverter;
     this.insightConfig = insightConfig;
@@ -172,13 +170,8 @@ public class ScmOnboardingService
         sourceControlDTO.token.value :
         sourceControlDTO.token.parentValue;
 
-    GitApiClientUtils gitUtils = gitApiClientFactory.getGitApiClientUtils(provider);
-    String serverUrl = gitUtils.getBaseApiUrl(hostUrl);
-    log.debug("Attempting to retrieve repositories using base url: {}", serverUrl);
-    Configuration configuration = gitApiClientFactory.createConfiguration();
-    configuration.setServerUrl(serverUrl);
-    GeneralSCMApiClient generalClient = gitApiClientFactory
-        .getGeneralSCMApiClient(provider, configuration, username, token);
+    log.debug("Attempting to retrieve repositories using given host url: {}", hostUrl);
+    GeneralSCMApiClient generalClient = gitClientFactory.createGeneralApiClient(provider, hostUrl, username, token);
     try {
       List<SCMRepository> allRepositories = postProcess(generalClient.listAllRepositories());
       List<SCMRepository> availableRepositories = trimAlreadyConfigured(allRepositories);
@@ -246,7 +239,7 @@ public class ScmOnboardingService
 
   private String getBaseUrl(String repoUrl, SourceControlProvider provider) {
     try {
-      return gitApiClientFactory.getGitApiClientUtils(provider).getBaseUrlFromRepo(repoUrl);
+      return gitClientFactory.getClientUtils(provider).getBaseUrlFromRepo(repoUrl);
     }
     catch (URISyntaxException e) {
       log.info("Was not able to parse repo url {}, falling back to default for the provider", repoUrl, e);

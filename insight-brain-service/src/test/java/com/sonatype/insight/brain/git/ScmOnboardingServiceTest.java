@@ -462,11 +462,11 @@ public class ScmOnboardingServiceTest
 
     // given a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1", ""),
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo2", false, "org", "repo2", ""),
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo3", false, "org", "repo3", ""),
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", null, false, "org", "repo1", ""),
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo2", null, false, "org", "repo2", ""),
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo3", null, false, "org", "repo3", ""),
         // use org & app names with IQ app name restrictions
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo4", false,
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo4", null, false,
             "--bad-__-org", "--bad_name_99--", ""),
     };
     int totalRepoCount = 50;
@@ -524,7 +524,7 @@ public class ScmOnboardingServiceTest
 
     // and a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1",
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", null, false, "org", "repo1",
             "a description")
     };
     int totalRepoCount = 50;
@@ -603,7 +603,8 @@ public class ScmOnboardingServiceTest
 
     // and a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1", "foo")
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", null, false, "org", "repo1",
+            "foo")
     };
     int totalRepoCount = 50;
     int prevImportedCount = 8;
@@ -670,7 +671,7 @@ public class ScmOnboardingServiceTest
 
     // given a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1", "")
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", null, false, "org", "repo1", "")
     };
 
     // and we call import
@@ -711,7 +712,7 @@ public class ScmOnboardingServiceTest
     // when we make a call to import a repository
     String repoUrl = "https://localhost:5333/org/repo.git";
     List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
-        repoUrl, true, "??invalidorg??", "!!invalidproject!!", null));
+        repoUrl, null, true, "??invalidorg??", "!!invalidproject!!", null));
     ImportResults importResults = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(toAdd, 5, 2));
 
@@ -731,14 +732,14 @@ public class ScmOnboardingServiceTest
     // and we have an existing repository
     String repoUrl1 = "https://localhost:5333/org/repo1.git";
     List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
-        repoUrl1, true, "org", "project", null));
+        repoUrl1, null, true, "org", "project", null));
     scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(toAdd, 5, 2));
 
     // when we import another repository where the name only differs in invalid characters that have been stripped out
     String repoUrl2 = "https://localhost:5333/org/repo2.git";
     List<SCMRepository> toAddConflicting = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
-        repoUrl2, true, "org", "project!!", null));
+        repoUrl2, null, true, "org", "project!!", null));
     ImportResults importResults = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(toAddConflicting, 5, 2));
 
@@ -761,7 +762,7 @@ public class ScmOnboardingServiceTest
     // with more conflicts than we are willing to fix by renaming
     List<SCMRepository> toAdd = IntStream.range(0, MAX_PUBLICID_RENAME_ATTEMPTS + 2)
         .mapToObj(i -> new SCMRepository(SourceControlProvider.GITHUB, "https://localhost:5333/org/repo" + i + ".git",
-            true, "org", "project!!", null))
+            null, true, "org", "project!!", null, null))
         .collect(Collectors.toList());
     ImportResults importResults = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(toAdd, 5, 2));
@@ -804,7 +805,7 @@ public class ScmOnboardingServiceTest
 
     // given a repo to import
     SCMRepository scmRepository =
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo", true, "org", "repo", "");
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo", null, true, "org", "repo", "");
     int totalRepoCount = 10;
     int prevImportedCount = 1;
 

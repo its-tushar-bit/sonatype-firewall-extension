@@ -514,9 +514,9 @@ public class PullRequestLineCommentingServiceTest
           }
           when(mockPositionDiscoveryExecutor.execute(anyMap(), anyInt(), any())).thenReturn(positionDiscoveryResult);
         }
-        
+
         Optional<String> markup = Optional.of(markupContent);
-        when(mockPullRequestFeedbackMarkupService.createLineMarkup(anyList(), any(), any(), any()))
+        when(mockPullRequestFeedbackMarkupService.createLineMarkup(anyList(), any(), any(), any(), any()))
             .thenReturn(markup);
 
         CommentResponse response = new DefaultCommentResponse();

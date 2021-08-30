@@ -39,20 +39,24 @@ public class PullRequestLineFeedback
 
   private final RemediationVersionDTO remediationVersionDTO;
 
-  private final String baseUrl;
+  private final String iqBaseUrl;
+
+  private final String scmBaseUrl;
 
   public PullRequestLineFeedback(
       final List<PolicyViolation> violations,
       final String displayName,
-      final String baseUrl,
-      final RemediationVersionDTO remediationVersionDTO)
+      final String iqBaseUrl,
+      final RemediationVersionDTO remediationVersionDTO,
+      final String scmBaseUrl)
   {
     Preconditions.checkNotNull(violations, "violations is required and cannot be null");
     this.violations = violations;
     Preconditions.checkNotNull(displayName, "displayName is required and cannot be null");
     this.displayName = displayName;
     this.remediationVersionDTO = remediationVersionDTO;
-    this.baseUrl = baseUrl;
+    this.iqBaseUrl = iqBaseUrl;
+    this.scmBaseUrl = scmBaseUrl;
   }
 
   private synchronized Template getLineFeedbackTemplate(final boolean includeEmbeddedHtml) throws IOException {
@@ -101,9 +105,9 @@ public class PullRequestLineFeedback
 
     //Get a map containing the values to be populated in the template for the component
     final Map<String, Object> componentFeedbackList =
-        getComponentFeedbackList(displayName, violations, baseUrl, remediationVersionDTO, provider);
+        getComponentFeedbackList(displayName, violations, iqBaseUrl, remediationVersionDTO, provider);
     return TemplateUtils
-        .render(getLineFeedbackTemplate(provider.supportsEmbeddedHtmlInMarkdown(baseUrl)), componentFeedbackList);
+        .render(getLineFeedbackTemplate(provider.supportsEmbeddedHtmlInMarkdown(scmBaseUrl)), componentFeedbackList);
   }
 
   /**

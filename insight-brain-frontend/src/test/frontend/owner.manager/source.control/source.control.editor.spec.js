@@ -170,6 +170,7 @@ describe('source.control.editor.spec', function () {
         github: 'GitHub',
         gitlab: 'GitLab',
         bitbucket: 'Bitbucket',
+        azure: 'Azure',
       });
       mockOrganizationStore.getById.and.callFake(function (id) {
         return id === ROOT_ORGANIZATION_ID ? getByIdDeferred.promise : null;
@@ -723,44 +724,27 @@ describe('source.control.editor.spec', function () {
     });
 
     describe('isPullRequestsSupported', function () {
-      it('should return true if licence supports automation and provider is github', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORGANIZATION_ID,
+      const testData = [
+        { provider: 'bitbucket', isPrSupported: true },
+        { provider: 'azure', isPrSupported: true },
+        { provider: 'github', isPrSupported: true },
+        { provider: 'gitlab', isPrSupported: true },
+      ];
+
+      for (var currentTest of testData) {
+        it(`should return ${currentTest.isPrSupported} if licence supports automation and provider is ${currentTest.provider}`, function () {
+          getByIdDeferred.resolve({
+            name: 'rootOrganizationName',
+            id: ROOT_ORGANIZATION_ID,
+          });
+          loadProductFeaturesDefer.resolve({});
+          getSourceControlDeferred.resolve(compositeSourceControl);
+
+          $scope.$digest();
+          vm.dirtySourceControl.provider = currentTest.provider;
+          expect(vm.isPullRequestsSupported()).toBe(currentTest.isPrSupported);
         });
-        loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve(compositeSourceControl);
-
-        $scope.$digest();
-        vm.dirtySourceControl.provider = 'bitbucket';
-        expect(vm.isPullRequestsSupported()).toBeTruthy();
-      });
-
-      it('should return true if licence supports automation and provider is bitbucket', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORGANIZATION_ID,
-        });
-        loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve(compositeSourceControl);
-
-        $scope.$digest();
-        expect(vm.isPullRequestsSupported()).toBeTruthy();
-      });
-
-      it('should return true if licence supports automation and provider is gitlab', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORGANIZATION_ID,
-        });
-        loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve(compositeSourceControl);
-
-        $scope.$digest();
-        vm.dirtySourceControl.provider = 'gitlab';
-        expect(vm.isPullRequestsSupported()).toBeTruthy();
-      });
-
+      }
       it('should return false if licence does not support automation', function () {
         getByIdDeferred.resolve({
           name: 'rootOrganizationName',
@@ -2870,7 +2854,7 @@ describe('source.control.editor.spec', function () {
 
       it('should return false if token can be inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.token.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.token.parentName = 'Root Organization';
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -2915,72 +2899,81 @@ describe('source.control.editor.spec', function () {
     });
 
     describe('isUsernameRequiredOnNode', function () {
-      it('should return true if username cannot be inherited on bitbucket', function () {
-        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.provider.parentValue = 'bitbucket';
+      const testData = [
+        { provider: 'bitbucket', usernameRequired: true },
+        { provider: 'azure', usernameRequired: true },
+        { provider: 'github', usernameRequired: false },
+        { provider: 'gitlab', usernameRequired: false },
+      ];
 
-        getByIdDeferred.resolve({
-          name: 'applicationName',
-          id: APPLICATION_ID,
+      for (var currentTest of testData) {
+        it(`should return ${currentTest.usernameRequired} if username cannot be inherited on ${currentTest.provider}`, function () {
+          let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+          compositeSourceControlCopy.provider.parentValue = currentTest.provider;
+
+          getByIdDeferred.resolve({
+            name: 'applicationName',
+            id: APPLICATION_ID,
+          });
+          loadProductFeaturesDefer.resolve({});
+          getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+          $scope.$digest();
+          expect(vm.isUsernameRequiredOnNode()).toBe(currentTest.usernameRequired);
         });
-        loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
-        $scope.$digest();
-        expect(vm.isUsernameRequiredOnNode()).toBeTruthy();
-      });
+        it(`should return false if username can be inherited on ${currentTest.provider}`, function () {
+          let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+          compositeSourceControlCopy.token.parentName = 'Root Organization';
+          compositeSourceControlCopy.username.parentName = 'Root Organization';
+          compositeSourceControlCopy.provider = {
+            value: null,
+            parentValue: currentTest.provider,
+            parentName: 'Root Organization',
+          };
 
-      it('should return false if username can be inherited on bitbucket', function () {
-        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.token.parentName = 'Root Organizaation';
-        compositeSourceControlCopy.username.parentName = 'Root Organizaation';
-        compositeSourceControlCopy.provider = {
-          value: null,
-          parentValue: 'bitbucket',
-          parentName: 'Root Organization',
-        };
+          getByIdDeferred.resolve({
+            name: 'applicationName',
+            id: APPLICATION_ID,
+          });
+          loadProductFeaturesDefer.resolve({});
+          getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
-        getByIdDeferred.resolve({
-          name: 'applicationName',
-          id: APPLICATION_ID,
+          $scope.$digest();
+          expect(vm.isUsernameRequiredOnNode()).toBeFalsy();
         });
-        loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
-        $scope.$digest();
-        expect(vm.isUsernameRequiredOnNode()).toBeFalsy();
-      });
+        it(`should return true if username is not specified on ${currentTest.provider}`, function () {
+          let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+          compositeSourceControlCopy.provider.parentValue = currentTest.provider;
 
-      it('should return true if username is not specified on bitbucket', function () {
-        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.provider.parentValue = 'bitbucket';
+          getByIdDeferred.resolve({
+            name: 'applicationName',
+            id: APPLICATION_ID,
+          });
+          loadProductFeaturesDefer.resolve({});
+          getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
-        getByIdDeferred.resolve({
-          name: 'applicationName',
-          id: APPLICATION_ID,
+          $scope.$digest();
+          expect(vm.isUsernameRequiredOnNode()).toBe(currentTest.usernameRequired);
         });
-        loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
-        $scope.$digest();
-        expect(vm.isUsernameRequiredOnNode()).toBeTruthy();
-      });
+        it(`should return true if username is specified, on ${currentTest.provider}`, function () {
+          let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+          compositeSourceControlCopy.username.value = 'TOKEN';
+          compositeSourceControlCopy.provider.parentValue = currentTest.provider;
 
-      it('should return true if username is specified, on bitbucket', function () {
-        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.username.value = 'TOKEN';
-        compositeSourceControlCopy.provider.parentValue = 'bitbucket';
+          getByIdDeferred.resolve({
+            name: 'applicationName',
+            id: APPLICATION_ID,
+          });
+          loadProductFeaturesDefer.resolve({});
+          getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
-        getByIdDeferred.resolve({
-          name: 'applicationName',
-          id: APPLICATION_ID,
+          $scope.$digest();
+          expect(vm.isUsernameRequiredOnNode()).toBe(currentTest.usernameRequired);
         });
-        loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve(compositeSourceControlCopy);
-
-        $scope.$digest();
-        expect(vm.isUsernameRequiredOnNode()).toBeTruthy();
-      });
+      }
     });
 
     describe('showAdvanced', function () {
@@ -2998,7 +2991,7 @@ describe('source.control.editor.spec', function () {
 
       it('should return false if token is inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.token.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.token.parentName = 'Root Organization';
         compositeSourceControlCopy.token.parentValue = 'token';
 
         getByIdDeferred.resolve({
@@ -3074,7 +3067,7 @@ describe('source.control.editor.spec', function () {
 
       it('should return false if username, token are inherited and provider is bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.username.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.username.parentName = 'Root Organization';
         compositeSourceControlCopy.username.parentValue = 'parentuser';
         compositeSourceControlCopy.provider = {
           value: null,
@@ -3097,7 +3090,7 @@ describe('source.control.editor.spec', function () {
 
       it('should return true if username (but not token) is inherited and provider is bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.username.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.username.parentName = 'Root Organization';
         compositeSourceControlCopy.username.parentValue = 'parentuser';
         compositeSourceControlCopy.provider = {
           value: null,
@@ -3131,7 +3124,7 @@ describe('source.control.editor.spec', function () {
 
       it('should return false if token is inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.token.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.token.parentName = 'Root Organization';
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -3163,9 +3156,9 @@ describe('source.control.editor.spec', function () {
     describe('canCollapseAdvanced', function () {
       it('should return true if token and branch is inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.token.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.token.parentName = 'Root Organization';
         compositeSourceControlCopy.token.parentValue = 'token';
-        compositeSourceControlCopy.baseBranch.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.baseBranch.parentName = 'Root Organization';
         compositeSourceControlCopy.baseBranch.parentValue = 'master';
 
         getByIdDeferred.resolve({
@@ -3182,7 +3175,7 @@ describe('source.control.editor.spec', function () {
       it('should return true if token is specified and not inheritable and base branch is inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.value = 'TOKEN';
-        compositeSourceControlCopy.baseBranch.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.baseBranch.parentName = 'Root Organization';
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -3213,7 +3206,7 @@ describe('source.control.editor.spec', function () {
 
       it('should return true if token is inherited and base branch is specified', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.token.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.token.parentName = 'Root Organization';
         compositeSourceControlCopy.token.parentValue = 'token';
         compositeSourceControlCopy.baseBranch.value = 'master';
 

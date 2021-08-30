@@ -46,7 +46,7 @@ public class RootOrganizationSourceControlEditorTest
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
     verifyStartNoSourceControl();
-    
+
     SourceControlEditorPage.provider().chooseOption(new Option(0, "github"));
 
     SourceControlEditorPage.root().shouldBe(visible);
@@ -273,6 +273,35 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.deleteButton().shouldBe(visible);
     SourceControlEditorPage.baseBranchInput().shouldHave(value("develop"));
+  }
+
+  @Test
+  public void testSourceControlEditor_azureShowCredentials() {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartWithSourceControl();
+
+    // when we select Azure as a provider
+    SourceControlEditorPage.provider().chooseOption(new Option(3, "Azure DevOps"));
+
+    // then credentials are shown
+    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible);
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsUsername().shouldBe(visible);
+    SourceControlEditorPage.credentialsToken().shouldBe(visible);
+    SourceControlEditorPage.token().shouldNotBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+
+    // when we set username and token
+    SourceControlEditorPage.credentialsUsername().setValue("myusername");
+    SourceControlEditorPage.credentialsToken().shouldHave(value(FAKE_SECRET_KEY));
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // then the SC record should be Azure
+    assertSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.AZURE);
   }
 
   @Test

@@ -13,7 +13,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ComponentNoticeDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ComponentNoticeDetailsPage.NoticeFileEditor;
-import com.sonatype.clm.testing.functional.pages.ComponentNoticeDetailsPage.NoticeHeader;
 import com.sonatype.clm.testing.functional.pages.ComponentNoticeDetailsPage.NoticeList;
 import com.sonatype.clm.testing.functional.pages.ComponentNoticeDetailsPage.NoticeOverview;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -136,9 +135,8 @@ public class NoticeDetailsTest
   @Test
   public void testEditNotice() {
     refreshOrOpen(ComponentNoticeDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
-    final NoticeHeader noticeHeader = ComponentNoticeDetailsPage.noticeHeader();
 
-    final SelenideElement noticeEditButton = noticeHeader.noticeEditButton();
+    final SelenideElement noticeEditButton = ComponentNoticeDetailsPage.NoticeHeader.noticeEditButton();
     noticeEditButton.click();
 
     final String noticeText = "text of added notice";

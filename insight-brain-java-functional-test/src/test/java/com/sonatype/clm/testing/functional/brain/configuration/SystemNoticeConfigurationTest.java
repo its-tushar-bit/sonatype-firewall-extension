@@ -103,7 +103,7 @@ public class SystemNoticeConfigurationTest
   private void noChangesToUpdateTooltipShowsWithoutChanges() throws Exception {
     init();
     systemNoticeConfigurationPage.update().hover();
-    systemNoticeConfigurationPage.tooltipShowing(systemNoticeConfigurationPage.NOT_DIRTY_FORM);
+    systemNoticeConfigurationPage.tooltipShowing(SystemNoticeConfigurationPage.NOT_DIRTY_FORM);
 
     systemNoticeConfigurationPage.toggle().hover();
     systemNoticeConfigurationPage.toggleDisplay();
@@ -113,7 +113,7 @@ public class SystemNoticeConfigurationTest
     systemNoticeConfigurationPage.toggle().hover();
     systemNoticeConfigurationPage.toggleDisplay();
     systemNoticeConfigurationPage.update().hover();
-    systemNoticeConfigurationPage.tooltipShowing(systemNoticeConfigurationPage.NOT_DIRTY_FORM);
+    systemNoticeConfigurationPage.tooltipShowing(SystemNoticeConfigurationPage.NOT_DIRTY_FORM);
   }
 
   private void noticeTextEmptyMessageTooltipShows() throws Exception {
@@ -122,7 +122,7 @@ public class SystemNoticeConfigurationTest
     systemNoticeConfigurationPage.setText(" ");
 
     systemNoticeConfigurationPage.update().hover();
-    systemNoticeConfigurationPage.tooltipShowing(systemNoticeConfigurationPage.EMPTY_NOTICE_MESSAGE);
+    systemNoticeConfigurationPage.tooltipShowing(SystemNoticeConfigurationPage.EMPTY_NOTICE_MESSAGE);
 
     systemNoticeConfigurationPage.toggle().hover();
     systemNoticeConfigurationPage.toggleDisplay();

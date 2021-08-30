@@ -96,7 +96,7 @@ public class RepositoryUrlErrorRuleTest
   @Test
   public void testCanPushEvent_errorMessageIndicatesUrlProblem() {
     RepositoryUrlErrorRule rule = new RepositoryUrlErrorRule(mockSourceControlUtils);
-    rule.URL_ERROR_MESSAGES.forEach(message -> {
+    RepositoryUrlErrorRule.URL_ERROR_MESSAGES.forEach(message -> {
       // given: an event with repository info
       SourceControlEvent event = createEventWithRepositoryInfo(SourceControlEvent.STATUS_UPDATE_EVENT,
           "http://scm.com/project-1/repo-" + UUID.randomUUID().toString());

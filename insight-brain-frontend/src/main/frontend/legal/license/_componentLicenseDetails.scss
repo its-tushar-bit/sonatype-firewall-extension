@@ -74,6 +74,7 @@ component-license-details {
   padding-left: var(--nx-spacing-2x);
 }
 
+.license-obligations-modal-textarea textarea.nx-text-input__input,
 .edit-licenses-modal-textarea textarea.nx-text-input__input {
   min-height: 120px;
 }

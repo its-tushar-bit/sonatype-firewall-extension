@@ -102,6 +102,7 @@ export default function LicenseObligationModal(props) {
           </NxFormGroup>
           <NxFormGroup label="Comments">
             <NxTextInput
+              className="license-obligations-modal-textarea"
               type="textarea"
               {...commentTextInput}
               onChange={(payload) => {

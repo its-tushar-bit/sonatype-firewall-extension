@@ -45,6 +45,9 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -73,19 +76,23 @@ public class ApiComponentReleaseQuarantineService
 
   private final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
 
+  private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+
   @Inject
   public ApiComponentReleaseQuarantineService(
       RepositoryDAO repositoryDAO,
       RepositoryComponentDAO repositoryComponentDAO,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
-      PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator)
+      PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator,
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
   {
     this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.policyWaiverTelemetryCreator = policyWaiverTelemetryCreator;
+    this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
   }
 
   public ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
@@ -157,6 +164,11 @@ public class ApiComponentReleaseQuarantineService
 
       componentReleasedFromQuarantineDTO.componentReleasedFromQuarantine =
           buildRepositoryComponentPolicyViolationDTO(repositoryComponent, repositoryPolicyViolations, policyWaivers);
+
+      repositoryComponentTelemetryCreator
+          .sendRepositoryComponentTelemetry(repositoryComponent, repositoryPolicyViolations,
+              repository.getRepositoryManagerId(), RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
+              ReleaseQuarantineType.MANUAL);
     }
 
     return componentReleasedFromQuarantineDTO;

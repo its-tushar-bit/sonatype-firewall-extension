@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.slf4j.Logger;
@@ -38,13 +39,15 @@ public class RepositoryService extends AbstractRepositoryService
   private static final Logger log = LoggerFactory.getLogger(RepositoryService.class);
 
   @Inject
-  public RepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-                           ProprietaryComponentNameDetector proprietaryComponentNameDetector,
-                           ProductLicense productLicense,
-                           PolicyViolationLoggerFactory policyViolationLoggerFactory)
+  public RepositoryService(
+      RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+      ProprietaryComponentNameDetector proprietaryComponentNameDetector,
+      ProductLicense productLicense,
+      PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
-        LicensedFeature.FIREWALL);
+        LicensedFeature.FIREWALL, repositoryComponentTelemetryCreator);
   }
 
   /**

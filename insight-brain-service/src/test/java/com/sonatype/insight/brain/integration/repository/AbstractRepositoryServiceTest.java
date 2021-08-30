@@ -74,6 +74,8 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyAlertEmailer;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.test.LogOutput;
@@ -95,6 +97,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public abstract class AbstractRepositoryServiceTest
@@ -136,6 +140,9 @@ public abstract class AbstractRepositoryServiceTest
   @Mock
   private FirewallQuarantineHdsClient quarantineHdsClient;
 
+  @Mock
+  private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+
   protected abstract AbstractRepositoryService getRepositoryService();
 
   @Override
@@ -143,6 +150,7 @@ public abstract class AbstractRepositoryServiceTest
     binder.bind(HdsClient.class).toInstance(hdsClient);
     binder.bind(FirewallAuditHdsClient.class).toInstance(auditHdsClient);
     binder.bind(FirewallQuarantineHdsClient.class).toInstance(quarantineHdsClient);
+    binder.bind(RepositoryComponentTelemetryCreator.class).toInstance(repositoryComponentTelemetryCreator);
     super.configure(binder);
   }
 
@@ -1715,6 +1723,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath");
     }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
+    verifyNoInteractions(repositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -1726,6 +1735,7 @@ public abstract class AbstractRepositoryServiceTest
 
     repository = repositoryDAO.getById(repository.getId());
     assertThat(repository.isEnabled()).isTrue();
+    verifyNoInteractions(repositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -1748,6 +1758,10 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(policyViolation1).isNull();
     policyViolation2 = repositoryPolicyViolationDAO.getById(policyViolation2.getId());
     assertThat(policyViolation2).isNotNull();
+
+    verify(repositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repositoryManager.getId()),
+            eq(RepositoryComponentTelemetryEventType.DELETE));
   }
 
   @Test
@@ -1770,6 +1784,10 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(policyViolation1).isNull();
     policyViolation2 = repositoryPolicyViolationDAO.getById(policyViolation2.getId());
     assertThat(policyViolation2).isNotNull();
+
+    verify(repositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repositoryManager.getId()),
+            eq(RepositoryComponentTelemetryEventType.DELETE));
   }
 
   private Policy createQuarantiningPolicy(Repository repository) {
@@ -1821,6 +1839,10 @@ public abstract class AbstractRepositoryServiceTest
 
     policyViolation = new RepositoryPolicyViolationDAO().getById(policyViolation.getId());
     assertThat(policyViolation).isNull();
+
+    verify(repositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
+            eq(RepositoryComponentTelemetryEventType.DELETE));
   }
 
   @Test
@@ -1843,6 +1865,10 @@ public abstract class AbstractRepositoryServiceTest
     PolicyViolationLogDTOAssert
         .assertRepositoryPolicyViolationData(policyViolationLogDTOs, PolicyViolationLogEvent.FIX, repository, before,
             after, Arrays.asList(activeRepositoryPolicyViolation1, activeRepositoryPolicyViolation2));
+
+    verify(repositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
+            eq(RepositoryComponentTelemetryEventType.DELETE));
   }
 
   @Test

@@ -44,6 +44,8 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -73,21 +75,26 @@ public abstract class AbstractRepositoryService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+
   // Visible for tests
   final LicensedFeature requiredFeature;
 
   @Inject
-  public AbstractRepositoryService(RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-                                   ProprietaryComponentNameDetector proprietaryComponentNameDetector,
-                                   ProductLicense productLicense,
-                                   PolicyViolationLoggerFactory policyViolationLoggerFactory,
-                                   LicensedFeature requiredFeature)
+  public AbstractRepositoryService(
+      RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+      ProprietaryComponentNameDetector proprietaryComponentNameDetector,
+      ProductLicense productLicense,
+      PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      LicensedFeature requiredFeature,
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
     this.productLicense = productLicense;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.requiredFeature = requiredFeature;
+    this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
   }
 
   private void checkLicenseFeature() {
@@ -376,11 +383,13 @@ public abstract class AbstractRepositoryService
     if (repositoryComponent != null) {
       RepositoryPolicyViolationLogger repositoryPolicyViolationLogger = policyViolationLoggerFactory
           .newLogger(new Date(), repository);
+      List<RepositoryPolicyViolation> repositoryPolicyViolations;
       try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
         tx.begin();
-        for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolationDAO
+        repositoryPolicyViolations = repositoryPolicyViolationDAO
             .getActiveByRepositoryIdAndPathname(tx, repositoryComponent.getRepositoryId(),
-                repositoryComponent.getPathname())) {
+                repositoryComponent.getPathname());
+        for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolations) {
           repositoryPolicyViolationDAO.delete(tx, policyViolation);
           repositoryPolicyViolationLogger.add(PolicyViolationLogEvent.FIX, policyViolation);
         }
@@ -393,6 +402,12 @@ public abstract class AbstractRepositoryService
           AuditData.get().setRepository(repository).setComponentHash(repositoryComponent.getHash());
           auditComponentPath(repositoryComponent.getPathname());
         }
+      }
+
+      if (!repositoryPolicyViolations.isEmpty()) {
+        repositoryComponentTelemetryCreator
+            .sendRepositoryComponentTelemetry(repositoryComponent, repositoryPolicyViolations,
+                repository.getRepositoryManagerId(), RepositoryComponentTelemetryEventType.DELETE);
       }
     }
   }

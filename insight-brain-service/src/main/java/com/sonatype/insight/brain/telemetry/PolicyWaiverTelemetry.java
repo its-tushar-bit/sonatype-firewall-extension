@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.telemetry;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 
 public class PolicyWaiverTelemetry
@@ -68,9 +67,9 @@ public class PolicyWaiverTelemetry
       final Date waiverExpiration,
       final String stageId)
   {
-    this.policyWaiverId = HdsClientAnalytics.obfuscate(policyWaiverId);
+    this.policyWaiverId = policyWaiverId;
     this.ownerType = ownerType;
-    this.ownerId = HdsClientAnalytics.obfuscate(ownerId);
+    this.ownerId = ownerId;
     this.componentFormat = componentIdentifier == null ? null : componentIdentifier.getFormat();
     this.componentHash = hash;
     this.violationTime = violationTime == null ? null : violationTime.toInstant().toEpochMilli();

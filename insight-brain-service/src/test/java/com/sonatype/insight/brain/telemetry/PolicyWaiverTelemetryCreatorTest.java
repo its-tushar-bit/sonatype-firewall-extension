@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetry.ConstraintT
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
 import org.assertj.core.util.Lists;
@@ -359,7 +360,7 @@ public class PolicyWaiverTelemetryCreatorTest
     verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
     final TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
     final Map<String, Object> expectedAttributes = new HashMap<>();
-    expectedAttributes.put(POLICY_VIOLATION_TELEMETRY, policyViolationTelemetry);
+    expectedAttributes.put(POLICY_VIOLATION_TELEMETRY, ImmutableList.of(policyViolationTelemetry));
     expectedAttributes.put(POLICY_WAIVER_TELEMETRY, policyWaiverTelemetry);
 
     assertThat(telemetryData).isNotNull();
@@ -375,21 +376,22 @@ public class PolicyWaiverTelemetryCreatorTest
     assertThat(actualAttributes).containsKey(POLICY_VIOLATION_TELEMETRY);
     assertThat(actualAttributes).containsKey(POLICY_WAIVER_TELEMETRY);
 
-    assertPolicyViolationTelemetry((PolicyViolationTelemetry) expectedAttributes.get(POLICY_VIOLATION_TELEMETRY),
-        (PolicyViolationTelemetry) actualAttributes.get(POLICY_VIOLATION_TELEMETRY));
+    assertPolicyViolationTelemetry((List<PolicyViolationTelemetry>) expectedAttributes.get(POLICY_VIOLATION_TELEMETRY),
+        (List<PolicyViolationTelemetry>) actualAttributes.get(POLICY_VIOLATION_TELEMETRY));
 
     assertPolicyWaiverTelemetry((PolicyWaiverTelemetry) expectedAttributes.get(POLICY_WAIVER_TELEMETRY),
         (PolicyWaiverTelemetry) actualAttributes.get(POLICY_WAIVER_TELEMETRY));
   }
 
   private void assertPolicyViolationTelemetry(
-      final PolicyViolationTelemetry expected,
-      final PolicyViolationTelemetry actual)
+      final List<PolicyViolationTelemetry> expected,
+      final List<PolicyViolationTelemetry> actual)
   {
-    assertThat(actual.getActionTypeId()).isEqualTo(expected.getActionTypeId());
-    assertThat(actual.getThreatLevel()).isEqualTo(expected.getThreatLevel());
-    assertThat(actual.getThreatCategory()).isEqualTo(expected.getThreatCategory());
-    assertConstraints(expected.getConstraints(), actual.getConstraints());
+    assertThat(actual).isNotNull().hasSize(1);
+    assertThat(actual.get(0).getActionTypeId()).isEqualTo(expected.get(0).getActionTypeId());
+    assertThat(actual.get(0).getThreatLevel()).isEqualTo(expected.get(0).getThreatLevel());
+    assertThat(actual.get(0).getThreatCategory()).isEqualTo(expected.get(0).getThreatCategory());
+    assertConstraints(expected.get(0).getConstraints(), actual.get(0).getConstraints());
   }
 
   private void assertConstraints(final List<ConstraintTelemetry> expected, final List<ConstraintTelemetry> actual) {

@@ -46,6 +46,9 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -72,13 +75,17 @@ public class RepositoryService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
+  private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+
   @Inject
   public RepositoryService(
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      PolicyViolationLoggerFactory policyViolationLoggerFactory)
+      PolicyViolationLoggerFactory policyViolationLoggerFactory,
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
+    this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
   }
 
   /**
@@ -131,7 +138,14 @@ public class RepositoryService
     else {
       repositoryComponent.setUnquarantineTimeForManualRelease(new Date());
     }
+
     repositoryComponentDAO.update(repositoryComponent);
+
+    final Repository repository = repositoryDAO.getById(repositoryId);
+    repositoryComponentTelemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, repositoryPolicyViolations,
+            repository.getRepositoryManagerId(), RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
+            autoUnquarantined ? ReleaseQuarantineType.AUTO : ReleaseQuarantineType.MANUAL);
   }
 
   private boolean policyViolationsHaveFailedAction(final List<RepositoryPolicyViolation> repositoryPolicyViolations) {

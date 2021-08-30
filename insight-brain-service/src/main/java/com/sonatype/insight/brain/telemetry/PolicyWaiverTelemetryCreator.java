@@ -16,12 +16,14 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.common.collect.ImmutableList;
+
 @Named
 public class PolicyWaiverTelemetryCreator
 {
-  public static final String POLICY_WAIVER_TELEMETRY = "POLICY_WAIVER";
+  public static final String POLICY_WAIVER_TELEMETRY = "policy_waiver";
 
-  public static final String POLICY_VIOLATION_TELEMETRY = "POLICY_VIOLATION";
+  public static final String POLICY_VIOLATION_TELEMETRY = "policy_violations";
 
   private final TelemetrySender telemetrySender;
 
@@ -68,7 +70,7 @@ public class PolicyWaiverTelemetryCreator
   {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.POLICY_WAIVER);
     telemetryData.getAttributes().put(POLICY_WAIVER_TELEMETRY, policyWaiverTelemetry);
-    telemetryData.getAttributes().put(POLICY_VIOLATION_TELEMETRY, policyViolationTelemetry);
+    telemetryData.getAttributes().put(POLICY_VIOLATION_TELEMETRY, ImmutableList.of(policyViolationTelemetry));
     telemetrySender.send(telemetryData);
   }
 }

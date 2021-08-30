@@ -12,7 +12,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -88,8 +87,8 @@ public class RepositoryConfigurationCollector
         final boolean enabled,
         final boolean quarantineEnabled)
     {
-      this.repositoryManagerId = HdsClientAnalytics.obfuscate(repositoryManagerId);
-      this.repositoryId = HdsClientAnalytics.obfuscate(repositoryId);
+      this.repositoryManagerId = repositoryManagerId;
+      this.repositoryId = repositoryId;
       this.repositoryFormat = repositoryFormat;
       this.enabled = enabled;
       this.quarantineEnabled = quarantineEnabled;

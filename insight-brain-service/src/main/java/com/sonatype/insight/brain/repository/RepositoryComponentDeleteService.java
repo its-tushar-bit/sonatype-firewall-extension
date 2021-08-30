@@ -16,10 +16,14 @@ import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.slf4j.Logger;
@@ -43,19 +47,23 @@ public class RepositoryComponentDeleteService
 
   private final ComponentLabelDAO componentLabelDAO;
 
+  private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+
   @Inject
   public RepositoryComponentDeleteService(
       FirewallIgnorePatternService firewallIgnorePatternService,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       RepositoryComponentDAO repositoryComponentDAO,
       PolicyWaiverDAO policyWaiverDAO,
-      ComponentLabelDAO componentLabelDAO)
+      ComponentLabelDAO componentLabelDAO,
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
   {
     this.firewallIgnorePatternService = firewallIgnorePatternService;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.componentLabelDAO = componentLabelDAO;
+    this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
   }
 
   public void deleteUnknownIgnoredComponents(Repository repository) {
@@ -91,7 +99,9 @@ public class RepositoryComponentDeleteService
           .forEach(policyWaiver -> policyWaiverDAO.delete(tx, policyWaiver));
 
       // Delete related policy violations
-      repositoryPolicyViolationDAO.getByRepositoryIdAndPathname(tx, repoId, componentPath)
+      List<RepositoryPolicyViolation> repositoryPolicyViolations =
+          repositoryPolicyViolationDAO.getByRepositoryIdAndPathname(tx, repoId, componentPath);
+      repositoryPolicyViolations
           .forEach(repositoryPolicyViolation -> repositoryPolicyViolationDAO.delete(tx, repositoryPolicyViolation));
 
       // Delete component itself
@@ -99,6 +109,13 @@ public class RepositoryComponentDeleteService
 
       tx.commit();
       log.info("Deleted ignored repository component {} (hash: {}).", componentPath, componentHash);
+
+      if (!repositoryPolicyViolations.isEmpty()) {
+        Repository repository = new RepositoryDAO().getById(component.getRepositoryId());
+        repositoryComponentTelemetryCreator
+            .sendRepositoryComponentTelemetry(component, repositoryPolicyViolations,
+                repository.getRepositoryManagerId(), RepositoryComponentTelemetryEventType.DELETE);
+      }
     }
   }
 }

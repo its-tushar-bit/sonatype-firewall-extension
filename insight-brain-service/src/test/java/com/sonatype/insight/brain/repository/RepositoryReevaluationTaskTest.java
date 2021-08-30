@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -90,6 +91,9 @@ public class RepositoryReevaluationTaskTest
 
   @Inject
   private ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
+
+  @Inject
+  private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
@@ -145,7 +149,8 @@ public class RepositoryReevaluationTaskTest
     task = new RepositoryReevaluationTask(repository,
         new RepositoryPolicyEvaluator(componentPolicyEvaluator, repositoryComponentDAO, repositoryPolicyViolationDAO,
             auditHdsClient, null, policyViolationLoggerFactory, firewallIgnorePatternService,
-            componentDetailsLoaderFactory, repositoryComponentDeleteService, repositoryPolicyAlertEmailer),
+            componentDetailsLoaderFactory, repositoryComponentDeleteService, repositoryPolicyAlertEmailer,
+            repositoryComponentTelemetryCreator),
         executorService, 10);
     createHdsResponse();
   }

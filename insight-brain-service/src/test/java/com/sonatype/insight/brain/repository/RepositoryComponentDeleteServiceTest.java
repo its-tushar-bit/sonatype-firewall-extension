@@ -27,6 +27,8 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 
 import com.google.inject.Binder;
 import org.junit.Test;
@@ -37,7 +39,11 @@ import static com.sonatype.insight.brain.model.component.MatchState.UNKNOWN;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class RepositoryComponentDeleteServiceTest
@@ -61,9 +67,13 @@ public class RepositoryComponentDeleteServiceTest
   @Mock
   private HdsClient hdsClientMock;
 
+  @Mock
+  private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
+    binder.bind(RepositoryComponentTelemetryCreator.class).toInstance(repositoryComponentTelemetryCreator);
     super.configure(binder);
   }
 
@@ -110,6 +120,10 @@ public class RepositoryComponentDeleteServiceTest
     assertThat(getPolicyWaiverIdsOf(policy)).containsOnly(waiver2.getId());
 
     assertThat(getComponentLabelIds(label)).containsOnly(componentLabel1.getId(), componentLabel2.getId());
+
+    verify(repositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
+            eq(RepositoryComponentTelemetryEventType.DELETE));
   }
 
   @Test
@@ -135,6 +149,8 @@ public class RepositoryComponentDeleteServiceTest
     assertThat(reload(violation)).isNotNull();
     assertThat(getPolicyWaiverIdsOf(policy)).containsOnly(policyWaiver.getId());
     assertThat(getComponentLabelIds(label)).containsOnly(componentLabel.getId());
+
+    verifyNoInteractions(repositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -160,6 +176,8 @@ public class RepositoryComponentDeleteServiceTest
     assertThat(reload(violation)).isNotNull();
     assertThat(getPolicyWaiverIdsOf(policy)).containsOnly(policyWaiver.getId());
     assertThat(getComponentLabelIds(label)).containsOnly(componentLabel.getId());
+
+    verifyNoInteractions(repositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -185,6 +203,8 @@ public class RepositoryComponentDeleteServiceTest
     assertThat(reload(violation)).isNotNull();
     assertThat(getPolicyWaiverIdsOf(policy)).containsOnly(policyWaiver.getId());
     assertThat(getComponentLabelIds(label)).containsOnly(componentLabel.getId());
+
+    verifyNoInteractions(repositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -213,6 +233,8 @@ public class RepositoryComponentDeleteServiceTest
     assertThat(repositoryComponentDAO.getById(unknownSha.getId())).isNotNull();
     RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
     assertThat(repositoryPolicyViolationDAO.getById(unknownShaViolation.getId())).isNotNull();
+
+    verifyNoInteractions(repositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -239,6 +261,8 @@ public class RepositoryComponentDeleteServiceTest
     assertThat(repositoryComponentDAO.getById(unknownSha.getId())).isNotNull();
     RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
     assertThat(repositoryPolicyViolationDAO.getById(unknownShaViolation.getId())).isNotNull();
+
+    verifyNoInteractions(repositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -261,6 +285,31 @@ public class RepositoryComponentDeleteServiceTest
     // Assertions
     assertThat(reload(unknownSha)).isNotNull();
     assertThat(reload(unknownShaViolation)).isNotNull();
+
+    verifyNoInteractions(repositoryComponentTelemetryCreator);
+  }
+
+  @Test
+  public void testDeleteComponent_Telemetry() {
+    // setup
+    String repositoryFormat = "maven2";
+    Repository repository = tempEntity.newRepository("rm1", "r1", repositoryFormat);
+    Policy policy = tempEntity.newPolicy();
+
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository, "pathname", UNKNOWN, "hash");
+    tempEntity.newRepositoryPolicyViolation(component, policy.getId());
+
+    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository, "pathname2", EXACT, "hash2");
+
+    // when: a components are deleted
+    repositoryComponentDeleteService.deleteComponent(component);
+    repositoryComponentDeleteService.deleteComponent(component2);
+
+    // then: telemetry is only sent for components with violations
+    verify(repositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
+            eq(RepositoryComponentTelemetryEventType.DELETE));
+    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
 
   private RepositoryComponent reload(RepositoryComponent repositoryComponent) {

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,12 @@ import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.insight.brain.hds.*;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
+import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
+import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -54,6 +60,8 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -83,14 +91,16 @@ public class RepositoryPolicyEvaluator
   private final FirewallQuarantineHdsClient quarantineHdsClient;
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
-  
+
   private final FirewallIgnorePatternService firewallIgnorePatternService;
 
   private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
-  
+
   private final RepositoryComponentDeleteService repositoryComponentDeleteService;
 
   private final RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer;
+
+  private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
 
   @Inject
   public RepositoryPolicyEvaluator(
@@ -103,7 +113,8 @@ public class RepositoryPolicyEvaluator
       FirewallIgnorePatternService firewallIgnorePatternService,
       ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
       RepositoryComponentDeleteService repositoryComponentDeleteService,
-      RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer)
+      RepositoryPolicyAlertEmailer repositoryPolicyAlertEmailer,
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
   {
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -115,6 +126,7 @@ public class RepositoryPolicyEvaluator
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.repositoryComponentDeleteService = repositoryComponentDeleteService;
     this.repositoryPolicyAlertEmailer = repositoryPolicyAlertEmailer;
+    this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
   }
 
   public RepositoryComponentEvaluationDataList evaluate(
@@ -183,6 +195,10 @@ public class RepositoryPolicyEvaluator
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(), new Stage(ProxyStageType.ID),
         components.stream().filter(Objects::nonNull).collect(Collectors.toList()), false /* forMonitoring */);
 
+    // Only notify new component evaluation policy violations
+    boolean shouldSendNotifications =
+        RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT.equals(componentEvaluationDataRequestList.cause);
+
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationData repositoryComponentEvaluationResult = new RepositoryComponentEvaluationData();
       repositoryComponentEvaluationResult.requestIndex = requestIndex;
@@ -190,7 +206,7 @@ public class RepositoryPolicyEvaluator
       if (component != null) {
         if (persistEvaluationResults) {
           RepositoryComponent repositoryComponent = persistEvaluationResults(repository, now, component,
-              policyResults, withQuarantine);
+              policyResults, withQuarantine, shouldSendNotifications);
           repositoryComponentEvaluationResult.quarantine = repositoryComponent.isQuarantined();
         }
         else {
@@ -201,7 +217,7 @@ public class RepositoryPolicyEvaluator
     }
 
     // Only notify new component evaluation policy violations
-    if (RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT.equals(componentEvaluationDataRequestList.cause)) {
+    if (shouldSendNotifications) {
       repositoryPolicyAlertEmailer.sendNotifications(repository, policyResults.getActiveNotifications());
     }
 
@@ -214,11 +230,13 @@ public class RepositoryPolicyEvaluator
         .collect(Collectors.toList());
   }
 
-  private RepositoryComponent persistEvaluationResults(Repository repository,
-                                                       Date evaluationTime,
-                                                       Component component,
-                                                       PolicyResults policyResults,
-                                                       boolean canBeQuarantined)
+  private RepositoryComponent persistEvaluationResults(
+      Repository repository,
+      Date evaluationTime,
+      Component component,
+      PolicyResults policyResults,
+      boolean canBeQuarantined,
+      boolean shouldSendNotifications)
   {
     RepositoryComponent repositoryComponent;
     try (
@@ -239,6 +257,16 @@ public class RepositoryPolicyEvaluator
       tx.commit();
       AuditData.get().commitSubEvents();
       policyViolationLogger.log();
+
+      if (policyResults.getActiveAlerts() != null && !policyResults.getActiveAlerts().isEmpty()) {
+        List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
+            .getActiveByRepositoryIdAndPathname(repository.getId(), repositoryComponent.getPathname());
+        repositoryComponentTelemetryCreator
+            .sendRepositoryComponentTelemetry(repositoryComponent, repositoryPolicyViolations,
+                repository.getRepositoryManagerId(), repositoryComponent.isQuarantined() ?
+                    RepositoryComponentTelemetryEventType.QUARANTINE : RepositoryComponentTelemetryEventType.AUDIT,
+                shouldSendNotifications ? policyResults.getActiveNotifications() : Collections.emptyList());
+      }
     }
     return repositoryComponent;
   }

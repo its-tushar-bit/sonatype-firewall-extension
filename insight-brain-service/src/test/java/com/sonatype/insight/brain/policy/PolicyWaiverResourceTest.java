@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
-import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -184,15 +183,17 @@ public class PolicyWaiverResourceTest
     final Map<String, Object> policyWaiverTelemetry = (Map) attributes.get(POLICY_WAIVER_TELEMETRY);
     assertThat(policyWaiverTelemetry).containsEntry("ownerType", ownerType.toString());
     assertThat(policyWaiverTelemetry)
-        .containsEntry("policyWaiverId", HdsClientAnalytics.obfuscate(policyWaiver.getId()));
-    assertThat(policyWaiverTelemetry).containsEntry("ownerId", HdsClientAnalytics.obfuscate(policyWaiver.getOwnerId()));
+        .containsEntry("policyWaiverId", policyWaiver.getId());
+    assertThat(policyWaiverTelemetry).containsEntry("ownerId", policyWaiver.getOwnerId());
     assertThat(policyWaiverTelemetry).containsEntry("componentHash", policyWaiver.getHash());
     assertThat(policyWaiverTelemetry).containsEntry("waiverTime",
         policyWaiver.getCreateTime() == null ? null : policyWaiver.getCreateTime().toInstant().toEpochMilli());
     assertThat(policyWaiverTelemetry).containsEntry("waiverExpiration",
         policyWaiver.getExpiryTime() == null ? null : policyWaiver.getExpiryTime().toInstant().toEpochMilli());
 
-    final Map<String, Object> policyViolationTelemetry = (Map) attributes.get(POLICY_VIOLATION_TELEMETRY);
+    final List<Map<String, Object>> policyViolationTelemetries = (List) attributes.get(POLICY_VIOLATION_TELEMETRY);
+    assertThat(policyViolationTelemetries).hasSize(1);
+    final Map<String, Object> policyViolationTelemetry = policyViolationTelemetries.get(0);
     assertThat((List) policyViolationTelemetry.get("constraints")).hasSize(policyWaiver.getConstraintFacts().size());
   }
 

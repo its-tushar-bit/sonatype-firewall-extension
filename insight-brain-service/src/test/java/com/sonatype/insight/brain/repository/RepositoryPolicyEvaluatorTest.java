@@ -65,6 +65,8 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.LogOutput;
 
@@ -74,14 +76,19 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.hamcrest.MockitoHamcrest;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.extractProperty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class RepositoryPolicyEvaluatorTest
@@ -105,6 +112,9 @@ public class RepositoryPolicyEvaluatorTest
   @Mock
   private HdsClient mockHdsClient;
 
+  @Mock
+  private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+
   @Rule
   public LogOutput policyViolationLoggerOutput = new LogOutput(
       AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
@@ -114,6 +124,7 @@ public class RepositoryPolicyEvaluatorTest
     binder.bind(FirewallAuditHdsClient.class).toInstance(auditHdsClient);
     binder.bind(FirewallQuarantineHdsClient.class).toInstance(quarantineHdsClient);
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
+    binder.bind(RepositoryComponentTelemetryCreator.class).toInstance(repositoryComponentTelemetryCreator);
     super.configure(binder);
   }
 
@@ -242,6 +253,11 @@ public class RepositoryPolicyEvaluatorTest
             .collect(Collectors.toList());
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before2, after2, newPolicyViolations);
     assertRepositoryComponent(repository, 2);
+
+    verify(repositoryComponentTelemetryCreator, times(4))
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
+            RepositoryComponentTelemetryEventType.AUDIT), eq(Collections.emptyList()));
+    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -283,6 +299,11 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(0);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX, repository, before2, after2, policyViolations);
     assertRepositoryComponent(repository, 2);
+
+    verify(repositoryComponentTelemetryCreator, times(2))
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
+            RepositoryComponentTelemetryEventType.AUDIT), eq(Collections.emptyList()));
+    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -564,6 +585,11 @@ public class RepositoryPolicyEvaluatorTest
         .isNotNull();
     assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId()))
         .extracting(RepositoryPolicyViolation::getPathname).containsExactly(unignorableRequest.pathname);
+
+    verify(repositoryComponentTelemetryCreator, times(1))
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
+            eq(RepositoryComponentTelemetryEventType.QUARANTINE), eq(Collections.emptyList()));
+    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
 
   @Test
@@ -668,7 +694,7 @@ public class RepositoryPolicyEvaluatorTest
 
     RepositoryComponentEvaluationDataList resultList =
         repositoryPolicyEvaluator.evaluate(repo, componentEvaluationDataRequestList, true, null);
-    
+
     assertThat(resultList.componentEvalResults).hasSize(2);
     assertThat(resultList.componentEvalResults.get(0).quarantine).isTrue();
     assertThat(resultList.componentEvalResults.get(1).quarantine).isFalse();
@@ -678,5 +704,67 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(policyViolations.get(0).getPolicyId()).isEqualTo(policy.getId());
     assertThat(policyViolations.get(0).getComponentIdentifier())
         .isEqualTo(ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "999"));
+  }
+
+  @Test
+  public void testEvaluate_Telemetry_SendNotificationsForNewComponent() throws Exception {
+    Repository repository = tempEntity.newRepository();
+
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
+    policy.setAction("proxy", "fail");
+    new PolicyDAO().update(policy);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT;
+
+    // Prepare request and mock the HDS request
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    for (int i = 0; i < 2; i++) {
+      componentEvaluationDataRequestList.components
+          .add(new RepositoryComponentEvaluationDataRequest("maven2", "path" + i, "h" + i));
+      hdsResult.components.add(createComponentEvaluationData(
+          ComponentIdentifier.createMavenCoordinates("g" + i, "a" + i, "v" + i, "c" + i, "e" + i), "h" + i,
+          MatchState.EXACT, i /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
+          createSecurityVulnerabilities(), i /* popularity */));
+    }
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
+
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true, null);
+
+    verify(repositoryComponentTelemetryCreator, times(2))
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
+            RepositoryComponentTelemetryEventType.QUARANTINE), (List) MockitoHamcrest.argThat(hasSize(2)));
+    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+  }
+
+  @Test
+  public void testEvaluate_Telemetry_DontSendNotificationsForExistingComponent() throws Exception {
+    Repository repository = tempEntity.newRepository();
+
+    tempEntity.newPolicy(repository.getParentOwnerId());
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = RepositoryComponentEvaluationDataRequestList.ADHOC;
+
+    // Prepare request and mock the HDS request
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    for (int i = 0; i < 2; i++) {
+      componentEvaluationDataRequestList.components
+          .add(new RepositoryComponentEvaluationDataRequest("maven2", "path" + i, "h" + i));
+      hdsResult.components.add(createComponentEvaluationData(
+          ComponentIdentifier.createMavenCoordinates("g" + i, "a" + i, "v" + i, "c" + i, "e" + i), "h" + i,
+          MatchState.EXACT, i /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
+          createSecurityVulnerabilities(), i /* popularity */));
+    }
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+
+    verify(repositoryComponentTelemetryCreator, times(2))
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
+            RepositoryComponentTelemetryEventType.AUDIT), eq(Collections.emptyList()));
+    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
 }

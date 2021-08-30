@@ -108,7 +108,10 @@ describe('successMetricsReportActions', () => {
     describe('fires SUCCESS_METRICS_REPORT_LOAD_FAILED', () => {
       const errorMessage = 'fetch failed';
       const reportId = '101';
-      const store = SpecUtil.mockReduxStore();
+      let store;
+      beforeEach(() => {
+        store = SpecUtil.mockReduxStore();
+      });
 
       it('when getSuccessMetricsConfigUrl fetch fails', (done) => {
         mockAxiosCalls({
@@ -132,7 +135,7 @@ describe('successMetricsReportActions', () => {
       it('when getSuccessMetricsChartDataUrl fetch fails', (done) => {
         mockAxiosCalls({
           get: {
-            [getSuccessMetricsConfigUrl()]: Promise.resolve(),
+            [getSuccessMetricsConfigUrl()]: Promise.resolve({ data: { enabled: true } }),
             [getSuccessMetricsChartDataUrl(reportId)]: Promise.reject(errorMessage),
             [getSuccessMetricsReportsUrl()]: Promise.resolve(),
             [getSuccessMetricsComponentCountsUrl(reportId)]: Promise.resolve(),
@@ -151,7 +154,7 @@ describe('successMetricsReportActions', () => {
       it('when getSuccessMetricsReportsUrl fetch fails', (done) => {
         mockAxiosCalls({
           get: {
-            [getSuccessMetricsConfigUrl()]: Promise.resolve(),
+            [getSuccessMetricsConfigUrl()]: Promise.resolve({ data: { enabled: true } }),
             [getSuccessMetricsChartDataUrl(reportId)]: Promise.resolve(),
             [getSuccessMetricsReportsUrl()]: Promise.reject(errorMessage),
             [getSuccessMetricsComponentCountsUrl(reportId)]: Promise.resolve(),
@@ -170,7 +173,7 @@ describe('successMetricsReportActions', () => {
       it('when getSuccessMetricsComponentCountsUrl fetch fails', (done) => {
         mockAxiosCalls({
           get: {
-            [getSuccessMetricsConfigUrl()]: Promise.resolve(),
+            [getSuccessMetricsConfigUrl()]: Promise.resolve({ data: { enabled: true } }),
             [getSuccessMetricsChartDataUrl(reportId)]: Promise.resolve(),
             [getSuccessMetricsReportsUrl()]: Promise.resolve(),
             [getSuccessMetricsComponentCountsUrl(reportId)]: Promise.reject(errorMessage),

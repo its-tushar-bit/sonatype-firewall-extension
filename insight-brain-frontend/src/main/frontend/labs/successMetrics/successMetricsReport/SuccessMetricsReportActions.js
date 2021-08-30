@@ -91,10 +91,13 @@ export const load = (successMetricsReportId) => {
     };
     return checkPermissions(['CONFIGURE_SYSTEM'])
       .then(() =>
-        axios.get(getSuccessMetricsConfigUrl()).then(({ data }) => {
-          if (data.enabled) return loadChartData();
-          else return dispatch(loadFailed(SUCCESS_METRICS_DISABLED_MESSAGE));
-        })
+        axios
+          .get(getSuccessMetricsConfigUrl())
+          .then(({ data }) => {
+            if (data.enabled) return loadChartData();
+            else return dispatch(loadFailed(SUCCESS_METRICS_DISABLED_MESSAGE));
+          })
+          .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage))
       )
       .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));
   };

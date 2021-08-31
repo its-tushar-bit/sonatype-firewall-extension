@@ -52,7 +52,7 @@ describe('AddWaiverPageContainer', function () {
     AddWaiverPageContainer = require('inject-loader!../../../main/frontend/waivers/AddWaiverPageContainer')({
       './waiverActions': {
         loadAddWaiverData: loadAddWaiverDataMock,
-        saveWaiver: saveWaiverMock,
+        saveWaiverAndRedirect: saveWaiverMock,
         setWaiverComment: setWaiverCommentMock,
         setWaiverScope: setWaiverScopeMock,
         setExpiryTime: setExpiryTimeMock,

@@ -24,7 +24,8 @@ import {
   loadApplicableWaivers,
   loadManageWaiversData,
   returnToAddWaiverOriginPage,
-  saveWaiver,
+  saveWaiverAndLoadPolicyViolationData,
+  saveWaiverAndRedirect,
   setApplyToAllComponents,
   setExpiryTime,
   setWaiverComment,
@@ -78,10 +79,10 @@ describe('waiverActions', function () {
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   });
 
-  describe('saveWaiver', function () {
+  describe('saveWaiverAndRedirect', function () {
     it('immediately dispatches an WAIVERS_SAVE_WAIVER_REQUESTED action', function () {
       spyOn(axios, 'post').and.returnValue(Promise.resolve());
-      store.dispatch(saveWaiver('policyViolationId', 'waiverScope', 'ownerId', 'some comments', true));
+      store.dispatch(saveWaiverAndRedirect('policyViolationId', 'waiverScope', 'ownerId', 'some comments', true));
 
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
@@ -91,7 +92,7 @@ describe('waiverActions', function () {
       let expectedUrl, expectedPayload;
       spyOn(axios, 'post').and.returnValue(Promise.resolve());
 
-      store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', 'some comments', true, 7));
+      store.dispatch(saveWaiverAndRedirect('policyViolationId', 'application', 'ownerId', 'some comments', true, 7));
       expectedUrl = '/api/v2/policyWaivers/application/ownerId/policyViolationId';
       expectedPayload = {
         comment: 'some comments',
@@ -100,7 +101,7 @@ describe('waiverActions', function () {
       };
       expect(axios.post).toHaveBeenCalledWith(expectedUrl, expectedPayload);
 
-      store.dispatch(saveWaiver('policyViolationId2', 'organization', 'org1Id', '', false, null));
+      store.dispatch(saveWaiverAndRedirect('policyViolationId2', 'organization', 'org1Id', '', false, null));
       expectedUrl = '/api/v2/policyWaivers/organization/org1Id/policyViolationId2';
       expectedPayload = {
         comment: '',
@@ -124,9 +125,12 @@ describe('waiverActions', function () {
           post: {
             [url]: Promise.resolve(),
           },
+          get: {
+            [url]: Promise.resolve(),
+          },
         });
 
-        store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false, 7)).then(() => {
+        store.dispatch(saveWaiverAndRedirect('policyViolationId', 'application', 'ownerId', '', false, 7)).then(() => {
           setTimeout(() => {
             expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
             const actions = store.getActions();
@@ -156,9 +160,12 @@ describe('waiverActions', function () {
           post: {
             [url]: Promise.resolve(),
           },
+          get: {
+            [url]: Promise.resolve(),
+          },
         });
 
-        store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false, 30)).then(() => {
+        store.dispatch(saveWaiverAndRedirect('policyViolationId', 'application', 'ownerId', '', false, 30)).then(() => {
           expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
           expect(store.getActions().length).toBe(3);
           expect(store.getActions()[1].type).toBe(WAIVERS_SAVE_WAIVER_FULFILLED);
@@ -175,11 +182,139 @@ describe('waiverActions', function () {
       it('dispatches the WAIVERS_SAVE_WAIVER_FAILED action', function (done) {
         spyOn(axios, 'post').and.returnValue(Promise.reject('Err'));
 
-        store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false, null)).then(() => {
-          expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[1].type).toBe(WAIVERS_SAVE_WAIVER_FAILED);
-          done();
+        store
+          .dispatch(saveWaiverAndRedirect('policyViolationId', 'application', 'ownerId', '', false, null))
+          .then(() => {
+            expect(store.getActions().length).toBe(2);
+            expect(store.getActions()[1].type).toBe(WAIVERS_SAVE_WAIVER_FAILED);
+            done();
+          });
+
+        expect(store.getActions().length).toBe(1);
+        expect(store.getActions()).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
+      });
+    });
+  });
+
+  describe('saveWaiverAndLoadPolicyViolationData', function () {
+    it('immediately dispatches an WAIVERS_SAVE_WAIVER_REQUESTED action', function () {
+      spyOn(axios, 'post').and.returnValue(Promise.resolve());
+      store.dispatch(
+        saveWaiverAndLoadPolicyViolationData('policyViolationId', 'waiverScope', 'ownerId', 'some comments', true)
+      );
+
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
+    });
+
+    it('sends a POST request with proper data and config', function () {
+      let expectedUrl, expectedPayload;
+      spyOn(axios, 'post').and.returnValue(Promise.resolve());
+
+      store.dispatch(
+        saveWaiverAndLoadPolicyViolationData('policyViolationId', 'application', 'ownerId', 'some comments', true, 7)
+      );
+      expectedUrl = '/api/v2/policyWaivers/application/ownerId/policyViolationId';
+      expectedPayload = {
+        comment: 'some comments',
+        applyToAllComponents: true,
+        expiryTime: getFutureDate(7),
+      };
+      expect(axios.post).toHaveBeenCalledWith(expectedUrl, expectedPayload);
+
+      store.dispatch(
+        saveWaiverAndLoadPolicyViolationData('policyViolationId2', 'organization', 'org1Id', '', false, null)
+      );
+      expectedUrl = '/api/v2/policyWaivers/organization/org1Id/policyViolationId2';
+      expectedPayload = {
+        comment: '',
+        applyToAllComponents: false,
+        expiryTime: null,
+      };
+
+      expect(axios.post).toHaveBeenCalledWith(expectedUrl, expectedPayload);
+    });
+
+    describe('after a successful POST', function () {
+      it('dispatches the WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE action once the timer is done', function (done) {
+        const url = getAddPolicyViolationWaiverUrl('application', 'ownerId', 'policyViolationId'),
+          expectedPayload = {
+            comment: '',
+            applyToAllComponents: false,
+            expiryTime: getFutureDate(7),
+          };
+
+        mockAxiosCalls({
+          post: {
+            [url]: Promise.resolve(),
+          },
+          get: {
+            [url]: Promise.resolve(),
+          },
         });
+
+        store
+          .dispatch(saveWaiverAndLoadPolicyViolationData('policyViolationId', 'application', 'ownerId', '', false, 7))
+          .then(() => {
+            setTimeout(() => {
+              expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
+              const actions = store.getActions();
+              expect(actions.length).toBe(5);
+              expect(actions).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
+              expect(actions).toHaveActionType(WAIVERS_SAVE_WAIVER_FULFILLED);
+              expect(actions).toHaveActionType(WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE);
+              done();
+            }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          });
+
+        expect(store.getActions().length).toBe(1);
+        expect(store.getActions()).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
+      });
+
+      it('dispatches the WAIVERS_SAVE_WAIVER_FULFILLED action', function (done) {
+        const url = getAddPolicyViolationWaiverUrl('application', 'ownerId', 'policyViolationId'),
+          expectedPayload = {
+            comment: '',
+            applyToAllComponents: false,
+            expiryTime: getFutureDate(30),
+          };
+
+        mockAxiosCalls({
+          post: {
+            [url]: Promise.resolve(),
+          },
+          get: {
+            [url]: Promise.resolve(),
+          },
+        });
+
+        store
+          .dispatch(saveWaiverAndLoadPolicyViolationData('policyViolationId', 'application', 'ownerId', '', false, 30))
+          .then(() => {
+            expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
+            expect(store.getActions().length).toBe(4);
+            expect(store.getActions()[1].type).toBe(WAIVERS_SAVE_WAIVER_FULFILLED);
+            done();
+          });
+
+        expect(store.getActions().length).toBe(1);
+        expect(store.getActions()).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
+      });
+    });
+
+    describe('after a failed POST', function () {
+      it('dispatches the WAIVERS_SAVE_WAIVER_FAILED action', function (done) {
+        spyOn(axios, 'post').and.returnValue(Promise.reject('Err'));
+
+        store
+          .dispatch(
+            saveWaiverAndLoadPolicyViolationData('policyViolationId', 'application', 'ownerId', '', false, null)
+          )
+          .then(() => {
+            expect(store.getActions().length).toBe(2);
+            expect(store.getActions()[1].type).toBe(WAIVERS_SAVE_WAIVER_FAILED);
+            done();
+          });
 
         expect(store.getActions().length).toBe(1);
         expect(store.getActions()).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);

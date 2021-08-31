@@ -70,29 +70,43 @@ function startSubmitMaskTimer(dispatch) {
  * @param applyToAllComponents { boolean }
  * @param expiration { string }
  */
-export function saveWaiver(policyViolationId, waiverScope, ownerId, comment, applyToAllComponents, expiration) {
-  return (dispatch) => {
-    dispatch(saveWaiverRequested());
-
-    const url = getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViolationId),
-      payload = {
-        comment,
-        applyToAllComponents,
-        expiryTime: getExpiryTime(expiration),
-      };
-
-    return axios
-      .post(url, payload)
-      .then(() => {
-        startSubmitMaskTimer(dispatch);
-        dispatch(saveWaiverFulfilled());
-        return dispatch(returnToAddWaiverOriginPage());
-      })
-      .catch((err) => {
-        return dispatch(saveWaiverFailed(err));
-      });
-  };
+function saveWaiver(policyViolationId, waiverScope, ownerId, comment, applyToAllComponents, expiration, dispatch) {
+  dispatch(saveWaiverRequested());
+  const url = getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViolationId),
+    payload = {
+      comment,
+      applyToAllComponents,
+      expiryTime: getExpiryTime(expiration),
+    };
+  return axios.post(url, payload).then(() => {
+    startSubmitMaskTimer(dispatch);
+    return dispatch(saveWaiverFulfilled());
+  });
 }
+
+export const saveWaiverAndRedirect = (
+  policyViolationId,
+  waiverScope,
+  ownerId,
+  comment,
+  applyToAllComponents,
+  expiration
+) => (dispatch) =>
+  saveWaiver(policyViolationId, waiverScope, ownerId, comment, applyToAllComponents, expiration, dispatch)
+    .then(() => dispatch(returnToAddWaiverOriginPage()))
+    .catch((err) => dispatch(saveWaiverFailed(err)));
+
+export const saveWaiverAndLoadPolicyViolationData = (
+  policyViolationId,
+  waiverScope,
+  ownerId,
+  comment,
+  applyToAllComponents,
+  expiration
+) => (dispatch) =>
+  saveWaiver(policyViolationId, waiverScope, ownerId, comment, applyToAllComponents, expiration, dispatch)
+    .then(() => dispatch(policyViolationsActions.load()))
+    .catch((err) => dispatch(saveWaiverFailed(err)));
 
 /**
  * @param {string } violationId

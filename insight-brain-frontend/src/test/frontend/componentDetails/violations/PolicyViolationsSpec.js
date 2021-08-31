@@ -6,12 +6,12 @@
 import { NxButton } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../enzymeUtils';
-import { IqPopover } from '../../../../main/frontend/react/IqPopover';
 import PolicyViolations from '../../../../main/frontend/componentDetails/violations/PolicyViolations';
 import PolicyViolationsTable from '../../../../main/frontend/componentDetails/violations/PolicyViolationsTable';
 import PolicyViolationDetailsPopover from '../../../../main/frontend/componentDetails/violations/PolicyViolationDetailsPopover';
 import ComponentWaiversPopover from '../../../../main/frontend/componentDetails/violations/componentWaivers/ComponentWaiversPopover';
-import RequestWaivers from '../../../../main/frontend/waivers/requestWaiversPopover/RequestWaiversPopover';
+import RequestWaiversPopover from '../../../../main/frontend/waivers/requestWaiversPopover/RequestWaiversPopover';
+import AddWaiverPopover from '../../../../main/frontend/waivers/addWaiverPopover/AddWaiverPopoverContainer';
 
 describe('PolicyViolations', () => {
   let minimalProps, getShallow, getMounted;
@@ -181,11 +181,11 @@ describe('PolicyViolations', () => {
   describe('Add waiver popover', () => {
     it('renders the popover when showAddWaiverPopover is true', () => {
       let component = getShallow({ showAddWaiverPopover: false });
-      let addWaiverPopover = component.find(IqPopover);
+      let addWaiverPopover = component.find(AddWaiverPopover);
       expect(addWaiverPopover).not.toExist();
 
       component = getShallow({ showAddWaiverPopover: true });
-      addWaiverPopover = component.find(IqPopover);
+      addWaiverPopover = component.find(AddWaiverPopover);
 
       expect(addWaiverPopover).toExist();
       expect(addWaiverPopover).toHaveProp('onClose', minimalProps.toggleAddWaiverPopover);
@@ -195,11 +195,11 @@ describe('PolicyViolations', () => {
   describe('Request waiver popover', () => {
     it('renders the popover when showRequestWaiverPopover is true', () => {
       let component = getShallow({ showRequestWaiverPopover: false });
-      let requestWaiverPopover = component.find(RequestWaivers);
+      let requestWaiverPopover = component.find(RequestWaiversPopover);
       expect(requestWaiverPopover).not.toExist();
 
       component = getShallow({ showRequestWaiverPopover: true });
-      requestWaiverPopover = component.find(RequestWaivers);
+      requestWaiverPopover = component.find(RequestWaiversPopover);
 
       expect(requestWaiverPopover).toExist();
       expect(requestWaiverPopover).toHaveProp('onClose', minimalProps.toggleRequestWaiverPopover);

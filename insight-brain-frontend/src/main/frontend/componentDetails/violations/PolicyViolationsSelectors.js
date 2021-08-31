@@ -22,7 +22,7 @@ export const selectSelectedViolationId = createSelector(
   }
 );
 
-const selectSelectedComponentPolicyViolationId = createSelector(
+export const selectSelectedComponentPolicyViolationId = createSelector(
   selectComponentDetailsViolationsSlice,
   prop('selectedPolicyViolationId')
 );

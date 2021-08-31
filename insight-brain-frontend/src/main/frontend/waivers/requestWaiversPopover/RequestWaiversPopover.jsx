@@ -13,7 +13,7 @@ import { getRequestWaiverUrl } from '../../util/CLMLocation';
 import { extractViolationDetails } from '../../util/violationDetailsUtil';
 import { uriTemplate } from '../../util/urlUtil';
 
-const RequestWaivers = ({ isShown, onClose, violationDetails }) => {
+const RequestWaiversPopover = ({ onClose, violationDetails }) => {
   const { policyViolationId, policyName, constraintName, componentName, reasons = [] } = extractViolationDetails(
     violationDetails
   );
@@ -33,64 +33,65 @@ const RequestWaivers = ({ isShown, onClose, violationDetails }) => {
   const urlLinkEl = useRef();
 
   return (
-    isShown && (
-      <IqPopover size="automatic" onClose={onClose} id="request-waivers">
-        <IqPopover.Header className="legal-dashboard-filter-header">
-          <div className="request-waivers-header__title">
-            <h2 className="nx-h2 request-waivers-header__title-text">Request Waiver</h2>
-            <NxButton onClick={onClose} variant="icon-only" title="Close" id="request-waivers-close-button">
-              <NxFontAwesomeIcon icon={faArrowToRight} />
-            </NxButton>
-          </div>
-        </IqPopover.Header>
-        <NxInfoAlert>
-          To request a waiver, please share the Policy Violation ID and sample curl command (found below) with the
-          approver.{' '}
-          <NxTextLink
-            href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers#Waivers-RequestingaWaivertobeAdded"
-            external
-          >
-            Learn about automating waiver requests.
-          </NxTextLink>
-        </NxInfoAlert>
-        <dl className="nx-read-only">
-          <dt className="nx-read-only__label">Component</dt>
-          <dd className="nx-read-only__data">{componentName}</dd>
-          <dt className="nx-read-only__label">Policy</dt>
-          <dd className="nx-read-only__data">{policyName}</dd>
-          <dt className="nx-read-only__label">Constraint Name</dt>
-          <dd className="nx-read-only__data">{constraintName}</dd>
-          <dt className="nx-read-only__label">Conditions</dt>
-          {reasonsElements}
-        </dl>
-        <NxCodeSnippet
-          label="Policy Violation ID"
-          content={policyViolationId}
-          className="visual-testing-ignore iq-request-waivers-page__violation-id"
-          id="request-waivers-policy-violation-id"
-        />
-        <NxCodeSnippet
-          label="Policy Violation Details Page"
-          content={policyViolationUrl}
-          className="visual-testing-ignore iq-request-waivers-page__page-url"
-          onCopyUsingBtn={() => urlLinkEl.current.select()}
-        />
-        <NxTextLink newTab href={policyViolationUrl}>
-          <input
-            readOnly
-            ref={urlLinkEl}
-            value={policyViolationUrl}
-            className="visual-testing-ignore iq-request-waivers-page__link-input"
-          />
+    <IqPopover size="automatic" onClose={onClose} id="request-waivers">
+      <IqPopover.Header className="request-waiver-header">
+        <div className="request-waivers-header__title">
+          <h2 className="nx-h2 request-waivers-header__title-text">Request Waiver</h2>
+          <NxButton onClick={onClose} variant="icon-only" title="Close" id="request-waivers-close-button">
+            <NxFontAwesomeIcon icon={faArrowToRight} />
+          </NxButton>
+        </div>
+      </IqPopover.Header>
+      <NxInfoAlert>
+        To request a waiver, please share the Policy Violation ID and sample curl command (found below) with the
+        approver.{' '}
+        <NxTextLink
+          href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers#Waivers-RequestingaWaivertobeAdded"
+          external
+        >
+          Learn about automating waiver requests.
         </NxTextLink>
-        <NxCodeSnippet label="Curl Example" content={curlExample} className="iq-request-waivers-page__curl" />
-      </IqPopover>
-    )
+      </NxInfoAlert>
+      <dl className="nx-read-only">
+        <dt className="nx-read-only__label">Component</dt>
+        <dd className="nx-read-only__data">{componentName}</dd>
+        <dt className="nx-read-only__label">Policy</dt>
+        <dd className="nx-read-only__data">{policyName}</dd>
+        <dt className="nx-read-only__label">Constraint Name</dt>
+        <dd className="nx-read-only__data">{constraintName}</dd>
+        <dt className="nx-read-only__label">Conditions</dt>
+        {reasonsElements}
+      </dl>
+      <NxCodeSnippet
+        label="Policy Violation ID"
+        content={policyViolationId}
+        className="visual-testing-ignore iq-request-waivers-popover__violation-id"
+        id="request-waivers-policy-violation-id"
+      />
+      <NxCodeSnippet
+        label="Policy Violation Details Page"
+        content={policyViolationUrl}
+        className="visual-testing-ignore iq-request-waivers-popover__page-url"
+        onCopyUsingBtn={() => urlLinkEl.current.select()}
+      />
+      <NxTextLink newTab href={policyViolationUrl}>
+        <input
+          readOnly
+          ref={urlLinkEl}
+          value={policyViolationUrl}
+          className="visual-testing-ignore iq-request-waivers-popover__link-input"
+        />
+      </NxTextLink>
+      <NxCodeSnippet
+        label="Curl Example"
+        content={curlExample}
+        className="visual-testing-ignore iq-request-waivers-popover__curl"
+      />
+    </IqPopover>
   );
 };
 
-RequestWaivers.propTypes = {
-  isShown: PropTypes.bool,
+RequestWaiversPopover.propTypes = {
   violationDetails: PropTypes.shape({
     policyViolationId: PropTypes.string,
     policyName: PropTypes.string,
@@ -105,4 +106,4 @@ RequestWaivers.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
-export default RequestWaivers;
+export default RequestWaiversPopover;

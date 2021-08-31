@@ -7,36 +7,32 @@
 import { connect } from 'react-redux';
 import { pick } from 'ramda';
 
-import AddWaiverPage from './AddWaiverPage';
+import AddWaiverPopover from './AddWaiverPopover';
 import {
   loadAddWaiverData,
-  saveWaiverAndRedirect,
+  saveWaiverAndLoadPolicyViolationData,
   setWaiverComment,
   setWaiverScope,
   setApplyToAllComponents,
   setExpiryTime,
-  returnToAddWaiverOriginPage,
-} from './waiverActions';
-import { openVulnerabilityDetailsModal } from '../vulnerabilityDetails/vulnerabilityDetailsModalActions';
+} from '../waiverActions';
+import { openVulnerabilityDetailsModal } from '../../vulnerabilityDetails/vulnerabilityDetailsModalActions';
 
-function mapStateToProps({ addWaiver, violation, router }) {
+function mapStateToProps({ addWaiver, violation }) {
   return {
     ...addWaiver,
     ...pick(['violationDetails'], violation),
-    ...pick(['violationId'], router.currentParams),
   };
 }
 
 const mapDispatchToProps = {
   loadAddWaiverData,
   openVulnerabilityDetailsModal,
-  saveWaiver: saveWaiverAndRedirect,
+  saveWaiver: saveWaiverAndLoadPolicyViolationData,
   setWaiverComment,
   setWaiverScope,
   setApplyToAllComponents,
   setExpiryTime,
-  cancelAction: returnToAddWaiverOriginPage,
 };
 
-const AddWaiverPageContainer = connect(mapStateToProps, mapDispatchToProps)(AddWaiverPage);
-export default AddWaiverPageContainer;
+export default connect(mapStateToProps, mapDispatchToProps)(AddWaiverPopover);

@@ -3,11 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-.iq-request-waivers-page__violation-id textarea.nx-text-input__input {
+.iq-request-waivers-popover__violation-id textarea.nx-text-input__input {
   min-height: 0;
 }
 
-div.iq-request-waivers-page__page-url {
+div.iq-request-waivers-popover__page-url {
   margin-bottom: 0;
 
   .nx-text-input {
@@ -15,7 +15,7 @@ div.iq-request-waivers-page__page-url {
   }
 }
 
-.iq-request-waivers-page__link-input {
+.iq-request-waivers-popover__link-input {
   width: 100%;
   border: none;
   color: var(--nx-color-link);
@@ -34,7 +34,7 @@ div.iq-request-waivers-page__page-url {
   }
 }
 
-.iq-request-waivers-page__curl {
+.iq-request-waivers-popover__curl {
   margin-top: var(--nx-spacing-8x);
 }
 

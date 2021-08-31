@@ -153,7 +153,7 @@ describe('requestWaiversPopover', function () {
     });
 
     it('renders an input for policy violation details page url section', () => {
-      const policyPageUrlSection = element.find('.iq-request-waivers-page__link-input').at(0);
+      const policyPageUrlSection = element.find('.iq-request-waivers-popover__link-input').at(0);
       expect(policyPageUrlSection).toHaveProp('value', `/assets/#/violation/${violationDetailsMock.policyViolationId}`);
       expect(policyPageUrlSection).toHaveProp('readOnly', true);
     });

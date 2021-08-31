@@ -236,7 +236,7 @@ public class RepositoryPolicyEvaluator
       Component component,
       PolicyResults policyResults,
       boolean canBeQuarantined,
-      boolean shouldSendNotifications)
+      boolean isNotificationsToBeSent)
   {
     RepositoryComponent repositoryComponent;
     try (
@@ -252,31 +252,23 @@ public class RepositoryPolicyEvaluator
       // The order of the following calls are important and must not be changed. See: CLM-13853
       persistPolicyViolations(tx, repository, evaluationTime, component, policyResults, policyViolationLogger);
       repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
-          canBeQuarantined, policyResults);
+          canBeQuarantined, policyResults, isNotificationsToBeSent);
 
       tx.commit();
       AuditData.get().commitSubEvents();
       policyViolationLogger.log();
-
-      if (policyResults.getActiveAlerts() != null && !policyResults.getActiveAlerts().isEmpty()) {
-        List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-            .getActiveByRepositoryIdAndPathname(repository.getId(), repositoryComponent.getPathname());
-        repositoryComponentTelemetryCreator
-            .sendRepositoryComponentTelemetry(repositoryComponent, repositoryPolicyViolations,
-                repository.getRepositoryManagerId(), repositoryComponent.isQuarantined() ?
-                    RepositoryComponentTelemetryEventType.QUARANTINE : RepositoryComponentTelemetryEventType.AUDIT,
-                shouldSendNotifications ? policyResults.getActiveNotifications() : Collections.emptyList());
-      }
     }
     return repositoryComponent;
   }
 
-  private RepositoryComponent persistRepositoryComponent(TransactionContext tx,
-                                                         Repository repository,
-                                                         Date evaluationTime,
-                                                         Component component,
-                                                         boolean canBeQuarantined,
-                                                         PolicyResults policyResults)
+  private RepositoryComponent persistRepositoryComponent(
+      TransactionContext tx,
+      Repository repository,
+      Date evaluationTime,
+      Component component,
+      boolean canBeQuarantined,
+      PolicyResults policyResults,
+      boolean isNotificationsToBeSent)
   {
     String pathname = component.getPathnames().get(0);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
@@ -313,6 +305,7 @@ public class RepositoryPolicyEvaluator
         repositoryComponent.setId(repositoryComponentId);
         repositoryComponentDAO.update(tx, repositoryComponent);
       }
+      sendRepositoryComponentTelemetry(policyResults, repositoryComponent, repository, isNotificationsToBeSent);
     }
     else {
       repositoryComponent.setHash(component.getHash());
@@ -326,12 +319,30 @@ public class RepositoryPolicyEvaluator
     return repositoryComponent;
   }
 
-  private void persistPolicyViolations(TransactionContext tx,
-                                       Repository repository,
-                                       Date evaluationTime,
-                                       Component component,
-                                       PolicyResults policyResults,
-                                       RepositoryPolicyViolationLogger policyViolationLogger)
+  private void sendRepositoryComponentTelemetry(
+      final PolicyResults policyResults,
+      final RepositoryComponent repositoryComponent,
+      final Repository repository,
+      final boolean isNotificationsToBeSent)
+  {
+    if (policyResults.getActiveAlerts() != null && !policyResults.getActiveAlerts().isEmpty()) {
+      List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
+          .getActiveByRepositoryIdAndPathname(repository.getId(), repositoryComponent.getPathname());
+      repositoryComponentTelemetryCreator
+          .sendRepositoryComponentTelemetry(repositoryComponent, repositoryPolicyViolations,
+              repository.getRepositoryManagerId(), repositoryComponent.isQuarantined() ?
+                  RepositoryComponentTelemetryEventType.QUARANTINE : RepositoryComponentTelemetryEventType.AUDIT,
+              isNotificationsToBeSent ? policyResults.getActiveNotifications() : Collections.emptyList());
+    }
+  }
+
+  private void persistPolicyViolations(
+      TransactionContext tx,
+      Repository repository,
+      Date evaluationTime,
+      Component component,
+      PolicyResults policyResults,
+      RepositoryPolicyViolationLogger policyViolationLogger)
   {
     String pathname = component.getPathnames().get(0);
     // Delete the current RepositoryPolicyViolations for this component

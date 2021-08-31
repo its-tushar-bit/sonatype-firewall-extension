@@ -254,7 +254,7 @@ public class RepositoryPolicyEvaluatorTest
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before2, after2, newPolicyViolations);
     assertRepositoryComponent(repository, 2);
 
-    verify(repositoryComponentTelemetryCreator, times(4))
+    verify(repositoryComponentTelemetryCreator, times(2))
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
             RepositoryComponentTelemetryEventType.AUDIT), eq(Collections.emptyList()));
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);

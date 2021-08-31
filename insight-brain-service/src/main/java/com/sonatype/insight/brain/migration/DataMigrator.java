@@ -38,6 +38,8 @@ public class DataMigrator
 
   private final ProductLicenseMigrator productLicenseMigrator;
 
+  private final PullRequestCommentingConfigMigrator pullRequestCommentingConfigMigrator;
+
   private final SourceControlFileStorageMigrator sourceControlFileStorageMigrator;
 
   @Inject
@@ -52,6 +54,7 @@ public class DataMigrator
       MailConfigurationMigrator mailConfigurationMigrator,
       ProxyServerConfigurationMigrator proxyServerConfigurationMigrator,
       ProductLicenseMigrator productLicenseMigrator,
+      PullRequestCommentingConfigMigrator pullRequestCommentingConfigMigrator,
       SourceControlFileStorageMigrator sourceControlFileStorageMigrator)
   {
     this.policyJsonMigrator = policyJsonMigrator;
@@ -64,6 +67,7 @@ public class DataMigrator
     this.mailConfigurationMigrator = mailConfigurationMigrator;
     this.proxyServerConfigurationMigrator = proxyServerConfigurationMigrator;
     this.productLicenseMigrator = productLicenseMigrator;
+    this.pullRequestCommentingConfigMigrator = pullRequestCommentingConfigMigrator;
     this.sourceControlFileStorageMigrator = sourceControlFileStorageMigrator;
   }
 
@@ -81,6 +85,7 @@ public class DataMigrator
     mailConfigurationMigrator.migrate();
     proxyServerConfigurationMigrator.migrate();
     productLicenseMigrator.migrate();
+    pullRequestCommentingConfigMigrator.migrate();
     sourceControlFileStorageMigrator.migrate();
   }
 }

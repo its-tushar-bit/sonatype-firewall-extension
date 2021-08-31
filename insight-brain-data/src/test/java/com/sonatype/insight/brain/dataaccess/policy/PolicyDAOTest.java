@@ -7,14 +7,20 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.SearchIndexChange;
@@ -33,6 +39,7 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -480,6 +487,36 @@ public class PolicyDAOTest
     assertThat(policies).isEmpty();
 
     policies = policyDAO.getByOwnerIds(Arrays.asList(application.getId(), "non-existent"));
+    assertThat(policies).extracting(Policy::getId).containsExactly(appPolicy.getId());
+  }
+
+  @Test
+  public void testGetByOwnerIds_PostgresLimit() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testGetByOwnerIds_internal();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testGetByOwnerIds_internal() {
+    Organization organization = tempEntity.newOrganization("TempOrg");
+    Application application = tempEntity.newApplication("TempAppName", "TempAppPublicId",
+        organization.getId());
+    Policy appPolicy = tempEntity.newPolicy(application);
+    tempEntity.newPolicy(organization);
+    List<Policy> policies;
+
+    Set<String> largeIdList = new HashSet<>();
+    for (int i = 0; i < AbstractOperationalSqlDAO.POSTGRES_IN_OPERATOR_THRESHOLD; i++) {
+      largeIdList.add(new Integer(i).toString());
+    }
+    largeIdList.add(application.getId());
+
+    policies = policyDAO.getByOwnerIds(largeIdList);
     assertThat(policies).extracting(Policy::getId).containsExactly(appPolicy.getId());
   }
 

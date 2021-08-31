@@ -12,8 +12,8 @@
         and shared with other internal projects.
       </div>
     </div>
-    <div ng-if="vm.selectedComponent.latestReport">
-      <inner-source-producer-report-modal />
+    <div ng-if="vm.selectedComponent.latestReport.url">
+      <inner-source-producer-report-modal report-url="vm.selectedComponent.latestReport.url" />
     </div>
   </div>
 

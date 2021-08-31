@@ -11,7 +11,6 @@ import InnerSourceProducerReportModal from './InnerSourceProducerReportModal';
 function mapStateToProps({ applicationReport }) {
   return {
     showModal: applicationReport.selectedComponent.showInnerSourceProducerReportModal,
-    reportUrl: applicationReport.selectedComponent.latestReport.url,
   };
 }
 
@@ -20,7 +19,7 @@ const mapDispatchToProps = {
 };
 
 function InnerSourceProducerReportModalContainer(props) {
-  return props.showModal ? <InnerSourceProducerReportModal {...props} /> : null;
+  return props.showModal && props.reportUrl ? <InnerSourceProducerReportModal {...props} /> : null;
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(InnerSourceProducerReportModalContainer);

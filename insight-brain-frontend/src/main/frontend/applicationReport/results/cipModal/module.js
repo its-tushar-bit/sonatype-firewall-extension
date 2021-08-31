@@ -67,7 +67,7 @@ export default angular
   .component('rootAncestors', rootAncestors)
   .component(
     'innerSourceProducerReportModal',
-    react2angular(withStoreProvider(innerSourceProducerReportModalContainer), [], ['$ngRedux'])
+    react2angular(withStoreProvider(innerSourceProducerReportModalContainer), ['reportUrl'], ['$ngRedux'])
   )
   .service('OwnerContext', OwnerContext);
 

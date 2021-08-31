@@ -207,6 +207,7 @@ public class ApplicationReportCipTest
 
     testInnerSourceDependencyComponentHeader();
     testInnerSourceComponentHeader();
+    testInnerSourceProducerPopupFromTransitive();
     testComponentInfoTab();
     testPolicyTab();
     testLicensesTab();
@@ -285,6 +286,27 @@ public class ApplicationReportCipTest
     cipModal.innerSourceAlertInfo().shouldHave(exactText("InnerSource components are software components that are " +
         "developed internally and shared with other internal projects."));
 
+    cipModal.latestReportLink().click();
+    InnerSourceProducerReportModal innerSourceProducerReportModal = cipModal.innerSourceProducerReportModal();
+    innerSourceProducerReportModal.shouldBe(visible);
+    innerSourceProducerReportModal.header().shouldHave(exactText("Newer Component Version Found in Report"));
+    innerSourceProducerReportModal.content()
+        .shouldHave(exactText("A newer version of the InnerSource component is being used in the latest report."));
+    innerSourceProducerReportModal.continueToReportButton().shouldBe(visible);
+    innerSourceProducerReportModal.cancelButton().click();
+    innerSourceProducerReportModal.shouldNotBe(visible);
+
+    cipModal.closeButton().click();
+  }
+
+  private void testInnerSourceProducerPopupFromTransitive() {
+    CipModal cipModal = reportPage.cipModal();
+    reportPage.resultRow(8).click();
+    cipModal.getElement().shouldBe(visible);
+
+    VersionsCIP.rootAncestorLink(1).link().click();
+
+    cipModal.header().shouldHave(text("java2html : j2h : 1.3.1"));
     cipModal.latestReportLink().click();
     InnerSourceProducerReportModal innerSourceProducerReportModal = cipModal.innerSourceProducerReportModal();
     innerSourceProducerReportModal.shouldBe(visible);

@@ -25,21 +25,17 @@ describe('InnerSourceProducerReportModalContainer', function () {
       applicationReport: {
         selectedComponent: {
           showInnerSourceProducerReportModal: true,
-          latestReport: {
-            url: 'someUrl',
-          },
         },
       },
     };
 
     store = configureStore()(() => state);
-    vdom = <InnerSourceProducerReportModalContainer store={store} />;
+    vdom = <InnerSourceProducerReportModalContainer store={store} reportUrl="someUrl" />;
   });
 
   it('maps the state slice to props', () => {
     let wrapper = shallow(vdom).dive();
     expect(wrapper).toHaveProp('showModal', true);
-    expect(wrapper).toHaveProp('reportUrl', 'someUrl');
   });
 
   it('correctly maps the action creators to the InnerSourceProducerReportModalContainer props', function () {
@@ -55,6 +51,12 @@ describe('InnerSourceProducerReportModalContainer', function () {
   it('returns null if showModal is false', function () {
     state = pathSet(['applicationReport', 'selectedComponent', 'showInnerSourceProducerReportModal'], false, state);
     store = configureStore()(() => state);
+    vdom = <InnerSourceProducerReportModalContainer store={store} reportUrl="someUrl" />;
+    const wrapper = mount(vdom);
+    expect(wrapper).toBeEmptyRender();
+  });
+
+  it('returns null if reportUrl is not present', function () {
     vdom = <InnerSourceProducerReportModalContainer store={store} />;
     const wrapper = mount(vdom);
     expect(wrapper).toBeEmptyRender();

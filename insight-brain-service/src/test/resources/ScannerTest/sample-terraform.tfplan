@@ -1,0 +1,180 @@
+{
+  "format_version": "0.1",
+  "terraform_version": "0.13.5",
+  "planned_values": {
+    "outputs": {
+      "endpoint": {
+        "sensitive": false
+      },
+      "kubeconfig-certificate-authority-data": {
+        "sensitive": false
+      }
+    },
+    "root_module": {
+      "resources": {
+        "address": "aws_ami.example",
+        "mode": "managed",
+        "type": "aws_ami",
+        "name": "example",
+        "provider_name": "registry.terraform.io/hashicorp/aws",
+        "schema_version": 0,
+        "values": {
+          "architecture": "x86_64",
+          "description": null,
+          "ebs_block_device": [
+            {
+              "delete_on_termination": true,
+              "device_name": "/dev/xvda",
+              "encrypted": null,
+              "iops": null,
+              "volume_size": 8,
+              "volume_type": "standard"
+            }
+          ],
+          "ena_support": null,
+          "kernel_id": null,
+          "name": "autotest-ami",
+          "ramdisk_id": null,
+          "root_device_name": "/dev/xvda",
+          "sriov_net_support": "simple",
+          "tags": null,
+          "timeouts": null,
+          "virtualization_type": "hvm"
+        }
+      }
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "aws_ami.example",
+      "mode": "managed",
+      "type": "aws_ami",
+      "name": "example",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "architecture": "x86_64",
+          "description": null,
+          "ebs_block_device": [
+            {
+              "delete_on_termination": true,
+              "device_name": "/dev/xvda",
+              "encrypted": null,
+              "iops": null,
+              "volume_size": 8,
+              "volume_type": "standard"
+            }
+          ],
+          "ena_support": null,
+          "kernel_id": null,
+          "name": "autotest-ami",
+          "ramdisk_id": null,
+          "root_device_name": "/dev/xvda",
+          "sriov_net_support": "simple",
+          "tags": null,
+          "timeouts": null,
+          "virtualization_type": "hvm"
+        },
+        "after_unknown": {
+          "ebs_block_device": [
+            {
+              "snapshot_id": true
+            }
+          ],
+          "ephemeral_block_device": true,
+          "id": true,
+          "image_location": true,
+          "manage_ebs_snapshots": true,
+          "root_snapshot_id": true
+        }
+      }
+    }
+  ],
+  "output_changes": {
+    "endpoint": {
+      "actions": [
+        "create"
+      ],
+      "before": null,
+      "after_unknown": true
+    },
+    "kubeconfig-certificate-authority-data": {
+      "actions": [
+        "create"
+      ],
+      "before": null,
+      "after_unknown": true
+    }
+  },
+  "configuration": {
+    "provider_config": {
+      "aws": {
+        "name": "aws",
+        "version_constraint": "~\u003e 2.49.0",
+        "expressions": {
+          "region": {
+            "constant_value": "us-east-2"
+          }
+        }
+      }
+    },
+    "root_module": {
+      "outputs": {
+        "endpoint": {
+          "expression": {
+            "references": [
+              "aws_eks_cluster.example"
+            ]
+          }
+        },
+        "kubeconfig-certificate-authority-data": {
+          "expression": {
+            "references": [
+              "aws_eks_cluster.example"
+            ]
+          }
+        }
+      },
+      "resources": [
+        {
+          "address": "aws_ami.example",
+          "mode": "managed",
+          "type": "aws_ami",
+          "name": "example",
+          "provider_config_key": "aws",
+          "expressions": {
+            "ebs_block_device": [
+              {
+                "device_name": {
+                  "constant_value": "/dev/xvda"
+                },
+                "snapshot_id": {
+                  "references": [
+                    "aws_ebs_snapshot.example_snapshot"
+                  ]
+                },
+                "volume_size": {
+                  "constant_value": 8
+                }
+              }
+            ],
+            "name": {
+              "constant_value": "autotest-ami"
+            },
+            "root_device_name": {
+              "constant_value": "/dev/xvda"
+            },
+            "virtualization_type": {
+              "constant_value": "hvm"
+            }
+          },
+          "schema_version": 0
+        }
+      ]
+    }
+  }
+}

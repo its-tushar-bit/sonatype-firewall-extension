@@ -6,12 +6,14 @@
 package com.sonatype.insight.brain.scan;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.util.Collections;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
@@ -19,14 +21,21 @@ import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.insight.scan.model.io.ScanReader;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.inject.Binder;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.sisu.launch.InjectedTest;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static com.sonatype.insight.license.model.LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK;
+import static java.nio.charset.StandardCharsets.*;
+import static org.apache.commons.io.FileUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.*;
 
 public class ScannerTest extends InjectedTest
 {
@@ -38,6 +47,22 @@ public class ScannerTest extends InjectedTest
 
   @Inject
   private ScanReader scanReader;
+
+  private ProductLicense productLicense = mock(ProductLicense.class);
+
+  private FeaturesService featuresService = mock(FeaturesService.class);
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(ProductLicense.class).toInstance(productLicense);
+    binder.bind(FeaturesService.class).toInstance(featuresService);
+    super.configure(binder);
+  }
+
+  @Before
+  public void before() {
+    when(productLicense.isValid()).thenReturn(true);
+  }
 
   @Test
   public void testScan() throws Exception {
@@ -95,7 +120,7 @@ public class ScannerTest extends InjectedTest
   @Test
   public void testScanContent_SbomFile() throws Exception {
     String sbom =
-        FileUtils.readFileToString(new File("src/test/resources/ScannerTest/iq-scan-sbom.xml"), StandardCharsets.UTF_8)
+        readFileToString(new File("src/test/resources/ScannerTest/iq-scan-sbom.xml"), UTF_8)
             .replace("\r\n", "\n");
 
     String scannerDriver = "thirdPartyApiTest";
@@ -174,5 +199,35 @@ public class ScannerTest extends InjectedTest
 
     ScanItem item = scan.getItems().get(0);
     assertThat(item.getPath()).isEqualTo("sourceControlScan/requirements.txt");
+  }
+
+  @Test
+  public void testScan_ScanTerraformFile_IacFeatureExists() throws IOException {
+    when(featuresService.getFeatures()).thenReturn(ImmutableSet.of(INFRASTRUCTURE_AS_CODE_PACK));
+    File terraformFile = new File("src/test/resources/ScannerTest/sample-terraform.tfplan");
+
+    ScanResult scanResult = scanner.scan(terraformFile, "sample-terraform.tfplan", tempDir.getRoot(), null, null, null);
+
+    Scan scan = scanReader.read(scanResult.getScanFile());
+    assertThat(scan.getItems()).hasSize(1);
+
+    ScanItem item = scan.getItems().get(0);
+    assertThat(item.getPath()).isEqualTo("sample-terraform.tfplan");
+    assertThat(item.getContent()).isEqualTo(readFileToString(terraformFile, UTF_8));
+  }
+
+  @Test
+  public void testScan_ScanTerraformFile_IacFeatureMissing() throws IOException {
+    when(featuresService.getFeatures()).thenReturn(ImmutableSet.of());
+    File terraformFile = new File("src/test/resources/ScannerTest/sample-terraform.tfplan");
+
+    ScanResult scanResult = scanner.scan(terraformFile, "sample-terraform.tfplan", tempDir.getRoot(), null, null, null);
+
+    Scan scan = scanReader.read(scanResult.getScanFile());
+    assertThat(scan.getItems()).hasSize(1);
+
+    ScanItem item = scan.getItems().get(0);
+    assertThat(item.getPath()).isEqualTo("sample-terraform.tfplan");
+    assertThat(item.getContent()).isNull();
   }
 }

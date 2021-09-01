@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Date;
 import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -17,6 +19,8 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
+import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.scan.client.ClientScanRequest;
 import com.sonatype.insight.scan.client.ClientScanner;
 import com.sonatype.insight.scan.config.ScanPropertiesLoader;
@@ -65,19 +69,23 @@ public class Scanner
 
   private final FileCleaner fileCleaner;
 
+  private final FeaturesService featuresService;
+
   @Inject
   public Scanner(
       ScanPropertiesLoader configLoader,
       ClientScanner clientScanner,
       FileScanner fileScanner,
       ScanWriterFactory writerFactory,
-      FileCleaner fileCleaner)
+      FileCleaner fileCleaner,
+      FeaturesService featuresService)
   {
     this.configLoader = configLoader;
     this.clientScanner = clientScanner;
     this.fileScanner = fileScanner;
     this.writerFactory = writerFactory;
     this.fileCleaner = fileCleaner;
+    this.featuresService = featuresService;
   }
 
   /**
@@ -123,6 +131,8 @@ public class Scanner
         writer.writeMetadata(scanMetadata);
         scan.getSummary().setStartTime();
         ScanSession scanSession = new ScanSession(scan, writer);
+        Set<Feature> features = featuresService.getFeatures();
+        scanSession.setLicensedFeatures(features.stream().map(Feature::getId).collect(Collectors.toSet()));
         clientScanner.scan(new ClientScanRequest(scan));
         if (filename == null || target.isDirectory()) {
           // for source control scan: use all files in the folder

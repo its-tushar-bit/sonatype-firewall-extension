@@ -23,7 +23,6 @@ import com.sonatype.insight.scan.model.io.ScanReader;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
-import org.apache.commons.io.FileUtils;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;

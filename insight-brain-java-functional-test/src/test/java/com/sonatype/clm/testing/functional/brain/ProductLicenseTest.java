@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import org.apache.tools.ant.util.DateUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -35,8 +36,9 @@ public class ProductLicenseTest
   }
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL);
+    setExpirationDate(DateUtils.parseIso8601Date("2100-05-01"));
     refreshOrOpen(ProductLicensePage.url());
   }
 

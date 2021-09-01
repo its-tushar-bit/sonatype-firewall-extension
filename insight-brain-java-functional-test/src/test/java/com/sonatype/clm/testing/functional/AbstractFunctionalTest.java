@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -561,6 +562,11 @@ public abstract class AbstractFunctionalTest
 
   protected void setLicensedProducts(String... products) {
     productLicenseManager.setProducts(products);
+    installLicense();
+  }
+
+  protected void setExpirationDate(Date date) {
+    productLicenseManager.setExpirationDate(date);
     installLicense();
   }
 

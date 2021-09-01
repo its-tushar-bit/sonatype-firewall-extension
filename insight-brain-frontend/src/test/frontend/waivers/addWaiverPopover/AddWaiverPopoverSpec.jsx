@@ -150,7 +150,6 @@ describe('AddWaiverPopover', function () {
     expect(addWaiverForm).toHaveProp('saveWaiver', minimalProps.saveWaiver);
     expect(addWaiverForm).toHaveProp('openVulnerabilityDetailsModal', openVulnerabilityDetailsModalMock);
     expect(addWaiverForm).toHaveProp('vulnerabilityId', 'CVE-67890');
-    expect(addWaiverForm).toHaveProp('cancelAction', fullProps.onClose);
     expect(addWaiverForm).toHaveProp('expiryTime', fullProps.expiryTime);
     expect(addWaiverForm).toHaveProp('setExpiryTime', minimalProps.setExpiryTime);
   });

@@ -21,6 +21,8 @@ import {
   WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE,
   WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS,
   WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME,
+  WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL,
+  WAIVERS_RESET_ADD_WAIVER_DATA,
 } from './waiverActions';
 
 const initState = Object.freeze({
@@ -29,6 +31,7 @@ const initState = Object.freeze({
   loadError: null,
   submitMaskState: null,
   submitError: null,
+  showUnsavedChangesModal: false,
   // data
   waiverComments: Object.freeze(initialState('')),
   availableWaiverScopes: null,
@@ -127,6 +130,11 @@ const saveWaiverFulfilled = (payload, state) => ({
   isDirty: false,
 });
 
+const setShowUnsavedChangesModal = (payload, state) => ({
+  ...state,
+  showUnsavedChangesModal: payload,
+});
+
 const reducerActionMap = {
   [WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED]: propSetConst('loading', true),
   [WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED]: setLoadedData,
@@ -139,6 +147,8 @@ const reducerActionMap = {
   [WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE]: setSelectedWaiverScope,
   [WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS]: setApplyToAllComponents,
   [WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME]: setExpiryTime,
+  [WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL]: setShowUnsavedChangesModal,
+  [WAIVERS_RESET_ADD_WAIVER_DATA]: always(initState),
   [UI_ROUTER_ON_FINISH]: always(initState),
 };
 

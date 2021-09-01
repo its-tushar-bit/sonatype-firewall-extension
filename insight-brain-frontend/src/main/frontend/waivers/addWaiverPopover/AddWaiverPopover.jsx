@@ -15,6 +15,7 @@ import AddWaiverForm, { waiverScopePropTypes } from '../AddWaiverForm';
 import { violationDetailsPropTypes } from '../../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../../violation/PolicyViolationConstraintInfoTile';
 import LoadWrapper from '../../react/LoadWrapper';
+import UnsavedChangesModal from '../../unsavedChangesModal/UnsavedChangesModal';
 
 const AddWaiversPopover = (props) => {
   const {
@@ -37,6 +38,10 @@ const AddWaiversPopover = (props) => {
     loadAddWaiverData,
     onClose,
     submitMaskState,
+    showUnsavedChangesModal,
+    setShowUnsavedChangesModal,
+    resetAddWaiverData,
+    isDirty,
   } = props;
 
   const load = () => {
@@ -52,6 +57,25 @@ const AddWaiversPopover = (props) => {
   useEffect(load, [violationId]);
 
   useEffect(closeWhensubmitFinish, [submitMaskState]);
+
+  const openUnsavedChangesModal = () => {
+    if (isDirty) {
+      setShowUnsavedChangesModal(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const closeUnsavedChangesModal = () => {
+    setShowUnsavedChangesModal(false);
+  };
+
+  const closeAddWaiverPopover = () => {
+    if (isDirty) {
+      resetAddWaiverData();
+    }
+    onClose();
+  };
 
   const getFormProps = () => {
     if (!violationDetails) {
@@ -71,17 +95,25 @@ const AddWaiversPopover = (props) => {
       setApplyToAllComponents,
       setExpiryTime,
       saveWaiver,
-      cancelAction: onClose,
+      cancelAction: openUnsavedChangesModal,
       ...extractViolationDetails(violationDetails),
     };
   };
 
   return (
-    <IqPopover size="large" onClose={onClose} id="add-waiver-popover">
+    <IqPopover size="large" onClose={closeAddWaiverPopover} id="add-waiver-popover">
+      {showUnsavedChangesModal && (
+        <UnsavedChangesModal onContinue={closeAddWaiverPopover} onClose={closeUnsavedChangesModal} />
+      )}
       <IqPopover.Header className="add-waiver-popover-header">
         <div className="add-waiver-popover-header__title">
           <h2 className="nx-h2 add-waivers-popover-header__title-text">Add Waiver</h2>
-          <NxButton onClick={onClose} variant="icon-only" title="Close" id="add=waiver=popover-close-button">
+          <NxButton
+            onClick={openUnsavedChangesModal}
+            variant="icon-only"
+            title="Close"
+            id="add=waiver=popover-close-button"
+          >
             <NxFontAwesomeIcon icon={faArrowToRight} />
           </NxButton>
         </div>
@@ -131,6 +163,10 @@ AddWaiversPopover.propTypes = {
   setApplyToAllComponents: PropTypes.func.isRequired,
   setExpiryTime: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
+  showUnsavedChangesModal: PropTypes.bool.isRequired,
+  setShowUnsavedChangesModal: PropTypes.func.isRequired,
+  resetAddWaiverData: PropTypes.func.isRequired,
+  isDirty: PropTypes.bool.isRequired,
 };
 
 export default AddWaiversPopover;

@@ -15,6 +15,8 @@ import {
   setWaiverScope,
   setApplyToAllComponents,
   setExpiryTime,
+  setShowUnsavedChangesModal,
+  resetAddWaiverData,
 } from '../waiverActions';
 import { openVulnerabilityDetailsModal } from '../../vulnerabilityDetails/vulnerabilityDetailsModalActions';
 
@@ -33,6 +35,8 @@ const mapDispatchToProps = {
   setWaiverScope,
   setApplyToAllComponents,
   setExpiryTime,
+  setShowUnsavedChangesModal,
+  resetAddWaiverData,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(AddWaiverPopover);

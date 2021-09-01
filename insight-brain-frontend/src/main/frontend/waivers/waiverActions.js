@@ -36,11 +36,13 @@ export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED = 'WAIVERS_LOAD_MANAGE_W
 export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED';
 export const WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN = 'WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN';
 export const WAIVERS_SET_WAIVER_TO_DELETE = 'WAIVERS_SET_WAIVER_TO_DELETE';
+export const WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL = 'WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL';
 export const WAIVERS_HIDE_DELETE_WAIVER_MODAL = 'WAIVERS_HIDE_DELETE_WAIVER_MODAL';
 export const WAIVERS_DELETE_WAIVER_REQUESTED = 'WAIVERS_DELETE_WAIVER_REQUESTED';
 export const WAIVERS_DELETE_WAIVER_FULFILLED = 'WAIVERS_DELETE_WAIVER_FULFILLED';
 export const WAIVERS_DELETE_WAIVER_FAILED = 'WAIVERS_DELETE_WAIVER_FAILED';
 export const WAIVERS_DELETE_MASK_TIMER_DONE = 'WAIVERS_DELETE_MASK_TIMER_DONE';
+export const WAIVERS_RESET_ADD_WAIVER_DATA = 'WAIVERS_RESET_ADD_WAIVER_DATA';
 
 export const WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED = 'WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED';
 export const WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED = 'WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED';
@@ -55,6 +57,7 @@ const loadAddWaiverDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_ADD_WA
 const loadManageWaiversDataRequested = noPayloadActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
 const loadManageWaiversDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED);
 const loadManageWaiversDataFailed = payloadParamActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED);
+export const resetAddWaiverData = noPayloadActionCreator(WAIVERS_RESET_ADD_WAIVER_DATA);
 
 function startSubmitMaskTimer(dispatch) {
   setTimeout(() => {
@@ -106,6 +109,7 @@ export const saveWaiverAndLoadPolicyViolationData = (
 ) => (dispatch) =>
   saveWaiver(policyViolationId, waiverScope, ownerId, comment, applyToAllComponents, expiration, dispatch)
     .then(() => dispatch(policyViolationsActions.load()))
+    .then(() => dispatch(resetAddWaiverData()))
     .catch((err) => dispatch(saveWaiverFailed(err)));
 
 /**
@@ -267,3 +271,9 @@ export function setIsRequestWaiverPopoverShown(flag) {
     dispatch(payloadParamActionCreator(WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN)(flag));
   };
 }
+
+export const setShowUnsavedChangesModal = (flag) => {
+  return function (dispatch) {
+    dispatch(payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL)(flag));
+  };
+};

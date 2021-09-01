@@ -54,6 +54,7 @@ import {
   WAIVERS_SAVE_WAIVER_FULFILLED,
   WAIVERS_SAVE_WAIVER_REQUESTED,
   WAIVERS_SET_WAIVER_TO_DELETE,
+  WAIVERS_RESET_ADD_WAIVER_DATA,
 } from '../../../main/frontend/waivers/waiverActions';
 import {
   VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED,
@@ -259,9 +260,10 @@ describe('waiverActions', function () {
             setTimeout(() => {
               expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
               const actions = store.getActions();
-              expect(actions.length).toBe(5);
+              expect(actions.length).toBe(6);
               expect(actions).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
               expect(actions).toHaveActionType(WAIVERS_SAVE_WAIVER_FULFILLED);
+              expect(actions).toHaveActionType(WAIVERS_RESET_ADD_WAIVER_DATA);
               expect(actions).toHaveActionType(WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE);
               done();
             }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -292,7 +294,7 @@ describe('waiverActions', function () {
           .dispatch(saveWaiverAndLoadPolicyViolationData('policyViolationId', 'application', 'ownerId', '', false, 30))
           .then(() => {
             expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
-            expect(store.getActions().length).toBe(4);
+            expect(store.getActions().length).toBe(5);
             expect(store.getActions()[1].type).toBe(WAIVERS_SAVE_WAIVER_FULFILLED);
             done();
           });

@@ -30,9 +30,6 @@ public class ApiSourceControlResourceAuditTest
 {
   private Application app;
 
-  private final ApiSourceControlAdapter apiSourceControlAdapter =
-      new ApiSourceControlAdapter();
-
   @Before
   public void setup() {
     app = tempEntity.newApplicationWithParent();
@@ -43,7 +40,7 @@ public class ApiSourceControlResourceAuditTest
   public void testAuditForCRUD() throws Exception {
     //CREATE
     String repositoryUrl = ApiSourceControlResourceTest.VALID_URL;
-    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+    ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(repositoryUrl).setToken("token")
             .build());
     HttpResponse response =

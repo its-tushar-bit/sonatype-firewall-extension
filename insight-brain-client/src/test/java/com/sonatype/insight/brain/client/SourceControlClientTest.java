@@ -85,8 +85,7 @@ public class SourceControlClientTest
   private void addOrgSourceControlForTest() throws Exception {
     turnOnAutomaticSourceControl();
 
-    ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
-    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+    ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl("https://github.com/org/proj")
             .setToken("token").build());
     HttpResponse response =

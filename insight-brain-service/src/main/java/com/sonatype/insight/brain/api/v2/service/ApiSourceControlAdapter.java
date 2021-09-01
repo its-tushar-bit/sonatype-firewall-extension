@@ -8,19 +8,14 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-@Named
-@Singleton
 public class ApiSourceControlAdapter
 {
-  public ApiSourceControlDTO convertToDTO(final SourceControl sourceControl) {
+  public static ApiSourceControlDTO convertToDTO(final SourceControl sourceControl) {
     if (sourceControl == null) {
       return null;
     }
@@ -42,7 +37,7 @@ public class ApiSourceControlAdapter
     return apiSourceControlDTO;
   }
 
-  private SourceControlProvider getSourceControlProvider(final String provider) {
+  private static SourceControlProvider getSourceControlProvider(final String provider) {
     try {
       return SourceControlProvider.fromString(provider);
     }
@@ -56,7 +51,7 @@ public class ApiSourceControlAdapter
     }
   }
 
-  public SourceControl convertFromDTO(final ApiSourceControlDTO dto) {
+  static SourceControl convertFromDTO(final ApiSourceControlDTO dto) {
     if (dto == null) {
       return null;
     }

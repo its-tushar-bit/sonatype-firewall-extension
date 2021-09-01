@@ -43,8 +43,6 @@ public class ApiSourceControlServiceAuthzTest
   @Inject
   private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
-  private final ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
-
   @Test(expected = UnauthenticatedException.class)
   public void testGetAll_Unauthenticated() {
     sourceControlService.getAll();
@@ -102,7 +100,7 @@ public class ApiSourceControlServiceAuthzTest
     grantWritePermission(app.getId());
     sourceControlService.addSourceControlByOwner(
         OwnerType.APPLICATION, app.getId(),
-        apiSourceControlAdapter.convertToDTO(
+        ApiSourceControlAdapter.convertToDTO(
             new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
                 .build()));
   }
@@ -124,7 +122,7 @@ public class ApiSourceControlServiceAuthzTest
   public void testUpdateSourceControlByOwner_Authorized() {
     grantWritePermission(app.getId());
     ApiSourceControlDTO sourceControl = sourceControlService.addSourceControlByOwner(OwnerType.APPLICATION,
-        app.getId(), apiSourceControlAdapter.convertToDTO(
+        app.getId(), ApiSourceControlAdapter.convertToDTO(
             new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
               .build()));
     sourceControl.token = "newToken";

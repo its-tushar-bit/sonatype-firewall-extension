@@ -21,8 +21,8 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
@@ -77,8 +77,6 @@ public class ApiSourceControlService
 
   private final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
-  private final ApiSourceControlAdapter apiSourceControlAdapter;
-
   private final ApiSourceControlMetricsAdapter apiSourceControlMetricsAdapter;
 
   private final IqForScmLicenseChecker licenseChecker;
@@ -96,7 +94,6 @@ public class ApiSourceControlService
       final OwnerDAO ownerDAO,
       final ApplicationDAO applicationDAO,
       final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO,
-      final ApiSourceControlAdapter apiSourceControlAdapter,
       final ApiSourceControlMetricsAdapter apiSourceControlMetricsAdapter,
       final IqForScmLicenseChecker licenseChecker,
       final TelemetrySender telemetrySender,
@@ -108,7 +105,6 @@ public class ApiSourceControlService
     this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
     this.automaticSourceControlConfigurationDAO = automaticSourceControlConfigurationDAO;
-    this.apiSourceControlAdapter = apiSourceControlAdapter;
     this.apiSourceControlMetricsAdapter = apiSourceControlMetricsAdapter;
     this.licenseChecker = licenseChecker;
     this.telemetrySender = telemetrySender;
@@ -122,7 +118,7 @@ public class ApiSourceControlService
     List<SourceControl> sourceControlDAOAll = sourceControlDAO.getAll();
     sourceControlDAOAll.forEach(this::encryptToken);
     return sourceControlDAOAll.stream()
-        .map(apiSourceControlAdapter::convertToDTO)
+        .map(ApiSourceControlAdapter::convertToDTO)
         .collect(Collectors.toList());
   }
 
@@ -188,7 +184,7 @@ public class ApiSourceControlService
       }
     }
 
-    return apiSourceControlAdapter.convertToDTO(setTokenValueForReturn(sourceControl));
+    return ApiSourceControlAdapter.convertToDTO(setTokenValueForReturn(sourceControl));
   }
 
   @Authorize(permission = Permission.READ)
@@ -205,7 +201,7 @@ public class ApiSourceControlService
     setTokenValueForReturn(sourceControl);
     sendSourceControlTelemetryData(METHOD.GET_BY_OWNER_ID, ownerId);
 
-    return apiSourceControlAdapter.convertToDTO(sourceControl);
+    return ApiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -217,7 +213,7 @@ public class ApiSourceControlService
     sourceControlDTO.ownerId = ownerId;
     checkLicense();
 
-    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(sourceControlDTO);
+    SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(sourceControlDTO);
     setTokenValueForSave(sourceControl);
     encryptToken(sourceControl);
 
@@ -232,7 +228,7 @@ public class ApiSourceControlService
     auditSourceControl(sourceControl);
     setTokenValueForReturn(sourceControl);
     sendSourceControlTelemetryData(METHOD.ADD, ownerId, sourceControl);
-    return apiSourceControlAdapter.convertToDTO(sourceControl);
+    return ApiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -250,7 +246,7 @@ public class ApiSourceControlService
           "Cannot find SourceControl for %s with id: %s", ownerType, getPublicOwnerId(ownerId)));
     }
 
-    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(sourceControlDTO);
+    SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(sourceControlDTO);
     sourceControl.setId(storedSourceControl.getId());
     sourceControl.setPullRequestPollTime(storedSourceControl.getPullRequestPollTime());
     sourceControl.setPullRequestErrorCount(storedSourceControl.getPullRequestErrorCount());
@@ -277,7 +273,7 @@ public class ApiSourceControlService
     auditSourceControl(sourceControl);
     setTokenValueForReturn(sourceControl);
     sendSourceControlTelemetryData(METHOD.UPDATE, ownerId, sourceControl);
-    return apiSourceControlAdapter.convertToDTO(sourceControl);
+    return ApiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
   @Authorize(permission = Permission.WRITE)

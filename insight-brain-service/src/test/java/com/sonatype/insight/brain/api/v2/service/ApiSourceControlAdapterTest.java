@@ -5,11 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import javax.inject.Inject;
-
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Test;
@@ -17,11 +14,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiSourceControlAdapterTest
-    extends AbstractComponentTest
 {
-  @Inject
-  private ApiSourceControlAdapter adapter;
-
   @Test
   public void convertToDTO() {
     SourceControl sourceControl = new SourceControl();
@@ -38,7 +31,7 @@ public class ApiSourceControlAdapterTest
     sourceControl.setSourceControlScansEnabled(true);
     sourceControl.setSourceControlScanTarget("/target/*");
 
-    ApiSourceControlDTO dto = adapter.convertToDTO(sourceControl);
+    ApiSourceControlDTO dto = ApiSourceControlAdapter.convertToDTO(sourceControl);
 
     assertThat(dto.id).isEqualTo("id");
     assertThat(dto.ownerId).isEqualTo("ownerId");
@@ -70,7 +63,7 @@ public class ApiSourceControlAdapterTest
     apiSourceControlDTO.sourceControlScansEnabled = true;
     apiSourceControlDTO.sourceControlScanTarget = "/target/*";
 
-    SourceControl sourceControl = adapter.convertFromDTO(apiSourceControlDTO);
+    SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
 
     assertThat(sourceControl.getId()).isNull();
     assertThat(sourceControl.getOwnerId()).isEqualTo("ownerId");

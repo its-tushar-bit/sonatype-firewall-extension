@@ -33,8 +33,6 @@ public class ApiSourceControlResourceTest
 
   static final String VALID_SSH_URL = "git@example.com:organization/project";
 
-  private static final ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
-
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private Application app;
@@ -87,7 +85,7 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testAddSourceControlByOwner_ByOrganization() throws Exception {
-    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+    ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(org.getId()).setToken("token")
             .build());
     HttpResponse response = restRequest()
@@ -116,7 +114,7 @@ public class ApiSourceControlResourceTest
   }
 
   private void testAddSourceControlByOwner_ByApplication(String givenUrl, String expectedUrl) throws Exception {
-    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+    ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(givenUrl).setToken("token")
             .build());
     HttpResponse response = restRequest()
@@ -141,7 +139,7 @@ public class ApiSourceControlResourceTest
     HttpResponse response = restRequest()
         .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
-        .body(apiSourceControlAdapter.convertToDTO(sourceControl))
+        .body(ApiSourceControlAdapter.convertToDTO(sourceControl))
         .put();
     assertResponseStatus(200, response);
 
@@ -169,7 +167,7 @@ public class ApiSourceControlResourceTest
     HttpResponse response = restRequest()
         .path(DefaultApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
-        .body(apiSourceControlAdapter.convertToDTO(sourceControl))
+        .body(ApiSourceControlAdapter.convertToDTO(sourceControl))
         .put();
     assertResponseStatus(200, response);
 
@@ -184,7 +182,7 @@ public class ApiSourceControlResourceTest
   public void testAddSourceControlByOwner_InvalidSourceControlProvider()
       throws Exception
   {
-    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
+    ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
         tempEntity.newSourceControl(org.getId(), null, "token", null));
 
     ObjectNode node = (ObjectNode) OBJECT_MAPPER.valueToTree(sourceControl);
@@ -205,8 +203,8 @@ public class ApiSourceControlResourceTest
   public void testUpdateSourceControlByOwner_InvalidSourceControlProvider()
       throws Exception
   {
-    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
-        tempEntity.newSourceControl(org.getId(), null, "token", null));
+    ApiSourceControlDTO sourceControl =
+        ApiSourceControlAdapter.convertToDTO(tempEntity.newSourceControl(org.getId(), null, "token", null));
 
     ObjectNode node = (ObjectNode) OBJECT_MAPPER.valueToTree(sourceControl);
     node.put("provider", "invalid_scm");

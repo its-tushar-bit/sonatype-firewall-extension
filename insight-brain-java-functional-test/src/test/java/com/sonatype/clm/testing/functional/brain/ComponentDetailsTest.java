@@ -204,20 +204,19 @@ public class ComponentDetailsTest
     GeneralInfoSection generalInfoSection =
         componentDetailsPage.overviewTabContent().componentInformationTile().generalInfoSection();
     generalInfoSection.shouldBe(visible);
-    generalInfoSection.getTypeItem().shouldHave(text("Type: maven"));
+    generalInfoSection.getTypeItem().shouldHave(text("Type maven"));
     generalInfoSection.getNamingItems()
-        .shouldHave(exactTexts("Group: com.mycila", "Artifact: license-maven-plugin", "Version: 2.11"));
-
+        .shouldHave(exactTexts("Group com.mycila", "Artifact license-maven-plugin", "Version 2.11"));
     IdentificationInfoSection identificationInfoSection =
         componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
     identificationInfoSection.shouldBe(visible);
-    identificationInfoSection.getCatalogedDateItem().shouldHave(text("Cataloged: 6 years ago"));
-    identificationInfoSection.getMatchStateItem().shouldHave(text("Match State: exact"));
-    identificationInfoSection.getIdentificationSourceItem().shouldHave(text("Identification Source:"));
-    identificationInfoSection.getCategoryItem().shouldHave(text("Category:"));
+    identificationInfoSection.getCatalogedDateItem().shouldHave(text("Cataloged 6 years ago"));
+    identificationInfoSection.getMatchStateItem().shouldHave(text("Match State exact"));
+    identificationInfoSection.getIdentificationSourceItem().shouldHave(text("Identification Source"));
+    identificationInfoSection.getCategoryItem().shouldHave(text("Category"));
 
     identificationInfoSection.getOccurrencesItem().shouldBe(visible);
-    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences: 1 File Matches"));
+    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File Matches"));
 
     eyesWatcher.eyesCheck("component details overview tab component information");
   }

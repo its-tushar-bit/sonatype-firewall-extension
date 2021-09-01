@@ -31,18 +31,18 @@ export default function Overview({ componentInformation, ancestors, routeName })
   );
 
   const generalInfoSectionContent = (
-    <dl className="iq-inline-definition-list nx-grid-row">
-      <div className="iq-inline-definition-list__item nx-grid-col--50">
-        <dt>Type:</dt>
-        <dd>{format}</dd>
+    <dl className="nx-read-only nx-read-only--grid iq-general-info-definition-list">
+      <div className="nx-read-only__item">
+        <dt className="nx-read-only__label">Type</dt>
+        <dd className="nx-read-only__data">{format}</dd>
       </div>
 
       {displayName.parts.map(
         ({ field, value }) =>
           field && (
-            <div className="iq-inline-definition-list__item nx-grid-col--50" key={`${field}${value}`}>
-              <dt>{`${field}:`}</dt>
-              <dd>{value}</dd>
+            <div className="nx-read-only__item" key={`${field}${value}`}>
+              <dt className="nx-read-only__label">{`${field}`}</dt>
+              <dd className="nx-read-only__data">{value}</dd>
             </div>
           )
       )}
@@ -50,26 +50,26 @@ export default function Overview({ componentInformation, ancestors, routeName })
   );
 
   const identificationInfoSectionContent = (
-    <dl className="iq-inline-definition-list nx-grid-row">
-      <div className="iq-inline-definition-list__item nx-grid-col--33">
-        <dt>Cataloged:</dt>
-        <dd>{catalogedDateAgo}</dd>
+    <dl className="nx-read-only nx-read-only--grid iq-identification-info-definition-list">
+      <div className="nx-read-only__item">
+        <dt className="nx-read-only__label">Cataloged</dt>
+        <dd className="nx-read-only__data">{catalogedDateAgo}</dd>
       </div>
-      <div className="iq-inline-definition-list__item nx-grid-col--33">
-        <dt>Match State:</dt>
-        <dd>{matchState}</dd>
+      <div className="nx-read-only__item">
+        <dt className="nx-read-only__label">Match State</dt>
+        <dd className="nx-read-only__data">{matchState}</dd>
       </div>
-      <div className="iq-inline-definition-list__item nx-grid-col--33">
-        <dt>Occurrences:</dt>
-        <dd>{pathnames.length} File Matches</dd>
+      <div className="nx-read-only__item">
+        <dt className="nx-read-only__label">Occurrences</dt>
+        <dd className="nx-read-only__data">{pathnames.length} File Matches</dd>
       </div>
-      <div className="iq-inline-definition-list__item nx-grid-col--33">
-        <dt>Identification Source:</dt>
-        <dd>{identificationSource}</dd>
+      <div className="nx-read-only__item">
+        <dt className="nx-read-only__label">Identification Source</dt>
+        <dd className="nx-read-only__data">{identificationSource}</dd>
       </div>
-      <div className="iq-inline-definition-list__item nx-grid-col--33">
-        <dt>Category:</dt>
-        <dd>{joinedComponentCategories}</dd>
+      <div className="nx-read-only__item">
+        <dt className="nx-read-only__label">Category</dt>
+        <dd className="nx-read-only__data">{joinedComponentCategories}</dd>
       </div>
     </dl>
   );
@@ -83,13 +83,13 @@ export default function Overview({ componentInformation, ancestors, routeName })
       </header>
       <div className="nx-tile-content">
         <div className="nx-grid-row">
-          <section className="nx-grid-col nx-grid-col--40">
+          <section className="nx-grid-col iq-component-data-col">
             <header className="nx-grid-header">
               <h3 className="nx-h3 nx-grid-header__title">General Info</h3>
             </header>
             {generalInfoSectionContent}
           </section>
-          <section className="nx-grid-col nx-grid-col--60">
+          <section className="nx-grid-col iq-component-data-col">
             <header className="nx-grid-header">
               <h3 className="nx-h3 nx-grid-header__title">Identification Info</h3>
             </header>

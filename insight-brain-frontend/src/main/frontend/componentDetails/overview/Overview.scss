@@ -8,31 +8,32 @@
 
 .iq-component-information-tile {
   > .nx-tile-content {
-    .iq-inline-definition-list {
-      flex-wrap: wrap;
-      row-gap: 32px;
-      .iq-inline-definition-list__item {
-        padding-bottom: var(--nx-spacing-2x);
-
-        dt {
-          @include regular();
-          white-space: nowrap;
-          margin-bottom: 10px;
-        }
-
-        dd {
-          @include semi-bold();
-          margin-left: 0;
-        }
-      }
+    .iq-general-info-definition-list {
+      grid-template-columns: repeat(2, auto);
     }
-    .nx-grid-col--40 {
-      flex: 0 0 40%;
+
+    .iq-identification-info-definition-list {
+      grid-template-columns: repeat(3, auto);
+    }
+
+    .iq-component-data-col {
+      flex: none;
+    }
+
+    .iq-component-data-col:first-child {
       max-width: 40%;
     }
-    .nx-grid-col--60 {
-      flex: 0 0 60%;
+
+    .iq-component-data-col:last-child {
       max-width: 60%;
+    }
+
+    dt {
+      white-space: nowrap;
+    }
+
+    dd {
+      overflow-wrap: anywhere;
     }
   }
 }

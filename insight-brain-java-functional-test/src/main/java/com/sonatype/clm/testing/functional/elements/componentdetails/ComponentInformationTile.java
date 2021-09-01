@@ -19,7 +19,7 @@ public class ComponentInformationTile
   private static final String TILE_CONTENT_SELECTOR = ".nx-tile-content";
 
   private static final String SECTION_DEFINITION_ITEM_SELECTOR =
-      ".iq-inline-definition-list > .iq-inline-definition-list__item";
+      ".nx-read-only > .nx-read-only__item";
 
   public static ComponentInformationTile getOverviewTileForParent(String parentSelector) {
     String combinedSelector = SelectorUtils.createSelector(parentSelector, TILE_SELECTOR);

@@ -20,7 +20,6 @@ pipeline {
 
   environment {
     minorVersion = "${parseVersion(params.releaseVersion)?.minor}"
-    runId = "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}"
   }
   options {
     buildDiscarder(logRotator(numToKeepStr: '10'))
@@ -59,7 +58,7 @@ pipeline {
           job: 'insight/insight-brain/deploy',
           parameters: [
             string(name: 'environment', value: 'Staging'),
-            run(name: 'releaseBuild', runId: env.runId)
+            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")
           ]
         )
       }
@@ -70,7 +69,7 @@ pipeline {
           job: 'insight/insight-brain/deploy',
           parameters: [
             string(name: 'environment', value: 'Production'),
-            run(name: 'releaseBuild', runId: env.runId)
+            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")
           ]
         )
       }
@@ -79,7 +78,7 @@ pipeline {
       steps {
         triggerBuildAndVerifySafeToContinuePipeline(
           'insight/insight-brain/docker/docker-nexus-iq-server',
-          [run(name: 'releaseBuild', runId: env.runId)]
+          [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")]
         )
       }
     }
@@ -88,7 +87,7 @@ pipeline {
         build(
           job: 'integrations/cloud/nexus-iq-ha-reference',
           parameters: [
-            run(name: 'releaseBuild', runId: env.runId)
+            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")
           ]
         )
       }

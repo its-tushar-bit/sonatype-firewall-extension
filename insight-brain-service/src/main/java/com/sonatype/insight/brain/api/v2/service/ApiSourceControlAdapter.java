@@ -35,7 +35,7 @@ public class ApiSourceControlAdapter
     apiSourceControlDTO.baseBranch = sourceControl.getBaseBranch();
     apiSourceControlDTO.remediationPullRequestsEnabled = sourceControl.getRemediationPullRequestsEnabled();
     apiSourceControlDTO.statusChecksEnabled = sourceControl.getStatusChecksEnabled();
-    apiSourceControlDTO.pullRequestCommentingEnabled = sourceControl.getStatusChecksEnabled();
+    apiSourceControlDTO.pullRequestCommentingEnabled = sourceControl.getPullRequestCommentingEnabled();
     apiSourceControlDTO.sourceControlScansEnabled = sourceControl.getSourceControlScansEnabled();
     apiSourceControlDTO.sourceControlScanTarget = sourceControl.getSourceControlScanTarget();
 

@@ -10,9 +10,13 @@ import CLMLocationModule from './util/CLMLocation';
 import { httpInterceptors, unauthenticatedResponseHttpInterceptor } from './util/HttpInterceptors';
 import IqHttpInterceptorsModule from './util/IqHttpInterceptors';
 import productFeaturesModule from './util/ProductFeatures';
-import gettingStartedModule from './configuration/gettingStarted/module';
-import { GETTING_STARTED_STATE } from './configuration/gettingStarted/module';
-import { REDIRECTED_ACTION, DEPARTED_ACTION } from './configuration/gettingStarted/gettingStartedUsageTelemetryService';
+import { GETTING_STARTED_STATE } from './configuration/module';
+import {
+  REDIRECTED_ACTION,
+  DEPARTED_ACTION,
+  submitData,
+} from './configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
+import reduxConfigModule from './reduxConfig/module';
 import SessionSecurityModule from './SessionSecurityModule';
 import mainHeaderModule from './mainHeader/module';
 import navigationContainer from './navigationContainer/module';
@@ -23,6 +27,7 @@ import pendoModule from './pendo/module';
 import externalLinkModule from './externalLink/module';
 import utilityServicesModule from './utility/services/utility.services.module';
 import unsavedChangesModalModule from './unsavedChangesModal/module';
+import configurationModule from './configuration/module';
 import legalModule from './legal/legal.module';
 import { not, contains, path } from 'ramda';
 import axios from 'axios';
@@ -61,12 +66,13 @@ export const InitModule = angular
       dashboardModule.name,
       formsModule.name,
       SessionSecurityModule.name,
-      gettingStartedModule.name,
       pendoModule.name,
       externalLinkModule.name,
       utilityServicesModule.name,
       unsavedChangesModalModule.name,
       legalModule.name,
+      reduxConfigModule.name,
+      configurationModule.name,
     ],
     [
       '$stateProvider',
@@ -142,7 +148,6 @@ export const InitModule = angular
     '$timeout',
     'state.history.service',
     'SessionSecurityService',
-    'gettingStartedUsageTelemetryService',
     'pendoService',
     'externalLinkModalService',
     'LoginModalService',
@@ -167,7 +172,6 @@ export const InitModule = angular
       $timeout,
       StateHistoryService,
       SessionSecurityService,
-      gettingStartedUsageTelemetryService,
       pendoService,
       externalLinkModalService,
       LoginModalService,
@@ -308,7 +312,7 @@ export const InitModule = angular
         if (cancelUnlicensedStateChangeHandler) cancelUnlicensedStateChangeHandler();
 
         $state.go('gettingStarted');
-        gettingStartedUsageTelemetryService.submitData(REDIRECTED_ACTION, {
+        submitData(REDIRECTED_ACTION, {
           pageNavigatedFrom: $state.current.name,
         });
 
@@ -432,7 +436,7 @@ export const InitModule = angular
 
         function unloadListener() {
           if ($state.current.name === GETTING_STARTED_STATE) {
-            gettingStartedUsageTelemetryService.submitData(DEPARTED_ACTION, null, true);
+            submitData(DEPARTED_ACTION, null, true);
           }
 
           if (!isProcessingStateChange) {

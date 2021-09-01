@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reduce, { FAKE_PASSWORD } from '../../../../main/frontend/configuration/proxy/proxyConfigReducer';
+import reduce from '../../../../main/frontend/configuration/proxy/proxyConfigReducer';
+import { FAKE_PASSWORD } from '../../../../main/frontend/configuration/proxy/proxyConfigActions';
 
 describe('proxyConfigReducer', () => {
   let otherObject;

@@ -35,25 +35,25 @@ public class GettingStartedPage
   }
 
   public SelenideElement systemSetup() {
-    return child("system-setup");
+    return child("#system-setup");
   }
 
   public SelenideElement learningTopics() {
-    return child("learning-topics");
+    return child("#learning-topics");
   }
 
   public SelenideElement docLink(int index) {
-    return child(nthChild(index + 1), "getting-started-doc-link");
+    return child(nthChild(index + 1), ".nx-text-link");
   }
 
   public SelenideElement docLinkIcon(int index) {
-    return child(nthChild(index + 1), "getting-started-doc-link i");
+    return child(nthChild(index + 1), ".nx-text-link svg");
   }
 
   public static class ProductLicenseSummaryTile
       extends BasicElement<ProductLicenseSummaryTile>
   {
-    private static final String ROOT = "product-license-summary";
+    private static final String ROOT = "#product-license-summary";
 
     ProductLicenseSummaryTile() {
       super(ROOT);
@@ -72,7 +72,7 @@ public class GettingStartedPage
     }
 
     public ElementsCollection products() {
-      return children("#license-products .iq-read-only-data");
+      return children("#license-products .nx-read-only__data");
     }
 
     public ElementsCollection licensedDevelopersRows() {

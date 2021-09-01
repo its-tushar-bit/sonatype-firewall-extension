@@ -19,7 +19,6 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.matchText;
-import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
 import static com.sonatype.insight.brain.model.security.MembershipMapping.GLOBAL_CONTEXT_ID;
@@ -68,7 +67,7 @@ public class GettingStartedTest
     refreshOrOpen(GettingStartedPage.url());
 
     // non-admin user only sees the HDS connectivity warning and learning topics tile
-    gettingStartedPage.hdsConnectivityWarning().shouldBe(visible).shouldHave(text("retry in a bit"));
+    gettingStartedPage.hdsConnectivityWarning().shouldBe(visible);
     gettingStartedPage.productLicenseSummary().shouldNotBe(visible);
     gettingStartedPage.systemSetup().shouldNotBe(visible);
     scrollIntoView(gettingStartedPage.learningTopics()).shouldBe(visible);
@@ -91,6 +90,7 @@ public class GettingStartedTest
     gettingStartedPage.productLicenseSummary().shouldBe(visible);
     checkLicenseSummaryContent();
     gettingStartedPage.systemSetup().shouldBe(visible);
+    eyesWatcher.eyesCheck("Non-default admin user");
     scrollIntoView(gettingStartedPage.learningTopics()).shouldBe(visible);
 
     testCLMServer.getHdsServer().respondWith("alive").atUri("ping");

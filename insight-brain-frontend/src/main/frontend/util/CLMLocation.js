@@ -114,6 +114,13 @@ export function getOrganizationsUrl() {
   return uriTemplate`/rest/organization`;
 }
 
+export function getIsHdsReachable() {
+  return uriTemplate`/rest/hdsPing`;
+}
+
+export function getTelemetryUrl() {
+  return uriTemplate`/rest/environment/stats`;
+}
 export function getScmOrganizationsUrl() {
   return uriTemplate`/rest/onboarding/organizations`;
 }
@@ -818,9 +825,9 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
 
       getShouldDisplayDefaultPasswordWarning: () => `${baseUrl.get()}/rest/user/shouldDisplayDefaultPasswordWarning`,
 
-      getIsHdsReachable: () => `${baseUrl.get()}/rest/hdsPing`,
+      getIsHdsReachable,
 
-      getTelemetryUrl: () => `${baseUrl.get()}/rest/environment/stats`,
+      getTelemetryUrl,
 
       getReportPolicyThreatsUrl: getBrowseReportUrl('policythreats.json'),
 

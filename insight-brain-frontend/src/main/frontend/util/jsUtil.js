@@ -43,6 +43,8 @@ export const lookup = flip(prop);
 
 export const getDaysFromNow = (timestamp) => Math.floor((timestamp - Date.now()) / (1000 * 60 * 60 * 24));
 
+export const getExpiryDate = (timestamp) => moment(timestamp).format('MMMM DD, yyyy');
+
 export const isNilOrEmpty = either(isNil, isEmpty);
 
 export const union = (set1, set2) => new Set(setToArray(set1).concat(setToArray(set2)));

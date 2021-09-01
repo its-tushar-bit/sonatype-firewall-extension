@@ -3,18 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import gettingStartedModule from '../../../../main/frontend/configuration/gettingStarted/module';
+import gettingStartedModule from '../../../../main/frontend/configuration/module';
+import * as gettingStartedTelemetryServiceHelper from '../../../../main/frontend/configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
 
-describe('gettingStarted routerListener', function () {
-  var telemetryServiceMock, $state, $rootScope;
+describe('gettingStartedRouterListener', function () {
+  let $state, $rootScope;
 
   beforeEach(
     angular.mock.module(gettingStartedModule.name, function ($provide, $stateProvider) {
-      telemetryServiceMock = jasmine.createSpyObj('gettingStartedUsageTelemetryService', ['submitData']);
-
-      $provide.service('gettingStartedUsageTelemetryService', function () {
-        return telemetryServiceMock;
-      });
+      spyOn(gettingStartedTelemetryServiceHelper, 'submitData');
 
       $stateProvider.state('someOtherState', {
         url: '/someOtherState',
@@ -25,7 +22,7 @@ describe('gettingStarted routerListener', function () {
   beforeEach(inject(function (_$state_, $transitions, routerListener, _$rootScope_) {
     $state = _$state_;
     $rootScope = _$rootScope_;
-    routerListener($transitions, telemetryServiceMock);
+    routerListener($transitions);
   }));
 
   it('fires "DEPARTED" telemetry event when transitions from gettingStarted page', function () {
@@ -34,11 +31,11 @@ describe('gettingStarted routerListener', function () {
 
     $state.go('gettingStarted');
     $rootScope.$digest();
-    expect(telemetryServiceMock.submitData).not.toHaveBeenCalled();
+    expect(gettingStartedTelemetryServiceHelper.submitData).not.toHaveBeenCalled();
 
     $state.go('someOtherState');
     $rootScope.$digest();
-    expect(telemetryServiceMock.submitData).toHaveBeenCalledWith('DEPARTED', {
+    expect(gettingStartedTelemetryServiceHelper.submitData).toHaveBeenCalledWith('DEPARTED', {
       departedTo: 'someOtherState',
     });
   });

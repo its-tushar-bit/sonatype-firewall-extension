@@ -3,39 +3,30 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import gettingStartedModule from '../../../../main/frontend/configuration/gettingStarted/module';
+
+import { NxTextLink } from '@sonatype/react-shared-components';
+import GettingStartedDocLink from '../../../../main/frontend/configuration/gettingStarted/components/GettingStartedDocLink';
+import * as enzymeUtils from '../../enzymeUtils';
 
 describe('gettingStartedDocLink', function () {
-  var vm, telemetryServiceMock;
+  let getShallow, initialProps;
 
-  beforeEach(
-    angular.mock.module(gettingStartedModule.name, function ($provide) {
-      telemetryServiceMock = jasmine.createSpyObj('gettingStartedUsageTelemetryService', ['submitData']);
+  beforeEach(() => {
+    initialProps = {
+      href: 'testLinkHref',
+      text: 'gettingStartedDocLink',
+    };
+    getShallow = enzymeUtils.getShallowComponent(GettingStartedDocLink, initialProps);
+  });
 
-      $provide.service('gettingStartedUsageTelemetryService', function () {
-        return telemetryServiceMock;
-      });
-    })
-  );
+  describe('load', function () {
+    it('gettingStarted doc link exists', function () {
+      expect(getShallow().find(NxTextLink)).toExist();
+    });
 
-  beforeEach(inject(function ($componentController) {
-    vm = $componentController(
-      'gettingStartedDocLink',
-      {
-        gettingStartedUsageTelemetryService: telemetryServiceMock,
-      },
-      {
-        href: 'testLinkHref',
-      }
-    );
-  }));
-
-  describe('onClick()', function () {
-    it('fires "LINK_CLICKED" telemetry event', function () {
-      vm.onClick();
-      expect(telemetryServiceMock.submitData).toHaveBeenCalledWith('LINK_CLICKED', {
-        href: 'testLinkHref',
-      });
+    it('has "href" prop set correctly', function () {
+      const docLink = getShallow().find(NxTextLink);
+      expect(docLink).toHaveProp('href', 'testLinkHref');
     });
   });
 });

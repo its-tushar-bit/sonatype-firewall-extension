@@ -4,31 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import angularCookiesModuleName from 'angular-cookies';
-import CLMLocationModule from '../util/CLMLocation';
+import angular from 'angular';
+import { submitTelemetryData } from '../util/telemetryUtils';
 
-function telemetryService($http, $cookies, CLMLocations) {
-  function submitData(purpose, attributes, sync) {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', CLMLocations.getTelemetryUrl(), sync !== true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader($http.defaults.xsrfHeaderName, $cookies.get($http.defaults.xsrfCookieName));
-    xhr.send(
-      JSON.stringify({
-        purpose,
-        attributes,
-        timestamp: new Date().getTime(),
-      })
-    );
-  }
-
+export default angular.module('telemetryServiceModule', []).service('telemetryService', function telemetryService() {
   return {
-    submitData,
+    submitData: submitTelemetryData,
   };
-}
-
-telemetryService.$inject = ['$http', '$cookies', 'CLMLocations'];
-
-export default angular
-  .module('telemetryServiceModule', [CLMLocationModule.name, angularCookiesModuleName])
-  .service('telemetryService', telemetryService);
+});

@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { react2angular } from 'react2angular';
-import gettingStartedModule from './gettingStarted/module';
 import ldapModule from './ldap/ldap.module';
 import samlModule from './saml/module';
 import webhookModule from './webhook/webhook.module';
@@ -21,10 +20,13 @@ import AdvancedSearchConfigContainer from './advancedSearch/AdvancedSearchConfig
 import SuccessMetricsConfigurationContainer from './successMetricsConfiguration/SuccessMetricsConfigurationContainer';
 import SystemNoticeConfigurationContainer from './systemNoticeConfiguration/SystemNoticeConfigurationContainer';
 import AutomaticApplicationsConfiguration from './automaticApplicationsConfiguration/AutomaticApplicationsConfigurationContainer';
+import GettingStartedContainer from './gettingStarted/GettingStartedContainer';
+import { submitData, DEPARTED_ACTION } from './gettingStarted/gettingStartedTelemetryServiceHelper';
+
+export const GETTING_STARTED_STATE = 'gettingStarted';
 
 export default angular
   .module('configurationModule', [
-    gettingStartedModule.name,
     ldapModule.name,
     samlModule.name,
     webhookModule.name,
@@ -48,6 +50,7 @@ export default angular
     'advancedSearchConfig',
     react2angular(withStoreProvider(AdvancedSearchConfigContainer), ['isAuthorized'], ['$ngRedux'])
   )
+  .component('gettingStarted', react2angular(withStoreProvider(GettingStartedContainer), [], ['$ngRedux']))
   .component(
     'scmOnboarding',
     react2angular(withStoreProvider(ScmOnboardingContainer), ['isAuthorized'], ['$ngRedux', '$state'])
@@ -65,7 +68,9 @@ export default angular
     react2angular(withStoreProvider(SystemNoticeConfigurationContainer), [], ['$ngRedux'])
   )
   .factory('scmOnboardingActions', scmOnboardingActions)
-  .config(routes);
+  .value('routerListener', routerListener) // add to angular so we can test it
+  .config(routes)
+  .run(routerListener);
 
 function routes($stateProvider) {
   const scmOnboardingRouteCommonProps = {
@@ -179,7 +184,24 @@ function routes($stateProvider) {
         title: 'Automatic Applications',
         isDirty: ['automaticApplicationsConfiguration', 'isDirty'],
       },
+    })
+    .state('gettingStarted', {
+      component: 'gettingStarted',
+      url: '/gettingStarted',
+      data: {
+        title: 'Getting Started',
+      },
     });
 }
 
+// track transitions from gettingStarted page
+function routerListener($transitions) {
+  $transitions.onFinish({ from: GETTING_STARTED_STATE }, (transition) => {
+    return submitData(DEPARTED_ACTION, {
+      departedTo: transition.to().name,
+    });
+  });
+}
+
 routes.$inject = ['$stateProvider'];
+routerListener.$inject = ['$transitions'];

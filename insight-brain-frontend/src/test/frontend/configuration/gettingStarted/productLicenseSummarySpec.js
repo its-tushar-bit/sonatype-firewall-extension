@@ -3,151 +3,246 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import gettingStartedModule from '../../../../main/frontend/configuration/gettingStarted/module';
+
+import ProductLicenseSummary from '../../../../main/frontend/configuration/gettingStarted/components/ProductLicenseSummary';
+import { getDaysFromNow, getExpiryDate } from '../../../../main/frontend/util/jsUtil';
+import * as enzymeUtils from '../../enzymeUtils';
 
 describe('productLicenseSummary', function () {
-  beforeEach(angular.mock.module(gettingStartedModule.name));
+  let initialProps, getShallow;
 
-  var getVm;
-
-  beforeEach(inject(function ($componentController) {
-    getVm = function (license) {
-      return $componentController('productLicenseSummary', null, {
-        license: license,
-      });
+  beforeEach(() => {
+    initialProps = {
+      license: {
+        productEdition: 'Lifecycle',
+        fingerprint: '99c9cd6be744c30439b4260010bf14d7e2c3013a',
+        expiryTimestamp: 1627862400000,
+        licensedUsersToDisplay: null,
+        applicationLimitToDisplay: null,
+        applicationCountToDisplay: null,
+        firewallUsersToDisplay: null,
+        contactName: 'Nick Cook',
+        contactCompany: 'Sonatype Inc',
+        contactEmail: 'ncook@sonatype.com',
+        products: [
+          'Nexus Lifecycle',
+          'Nexus Firewall',
+          'Nexus Firewall for Artifactory',
+          'Nexus Advanced Development Pack',
+        ],
+      },
     };
-  }));
+    getShallow = enzymeUtils.getShallowComponent(ProductLicenseSummary, initialProps);
+  });
 
-  describe('$onInit()', function () {
+  describe('loaded', function () {
     describe('daysToExpiration', function () {
       it('is set to zero if expiryTimestamp is today', function () {
-        var anHourFromNow = new Date().getTime() + 1000 * 60 * 60;
-        var vm = getVm({
-          expiryTimestamp: anHourFromNow,
-        });
+        const anHourFromNow = new Date().getTime() + 1000 * 60 * 60;
+        const daysFromNow = getDaysFromNow(anHourFromNow);
 
-        vm.$onInit();
+        const newProps = {
+          license: {
+            ...initialProps.license,
+            expiryTimestamp: anHourFromNow,
+          },
+        };
 
-        expect(vm.daysToExpiration).toBe(0);
+        const shallowComponent = getShallow(newProps);
+        const daysToExpiration = shallowComponent.find('#license-days-to-expiration');
+
+        expect(daysToExpiration).toExist();
+        expect(daysToExpiration).toHaveText(daysFromNow.toString());
       });
 
       it('is set to 1 if expiryTimestamp is tomorrow', function () {
-        var anHourFromNow = new Date().getTime() + 1000 * 60 * 60 * 25;
-        var vm = getVm({
-          expiryTimestamp: anHourFromNow,
-        });
+        const aDayFromNow = new Date().getTime() + 1000 * 60 * 60 * 25;
 
-        vm.$onInit();
+        const newProps = {
+          license: {
+            ...initialProps.license,
+            expiryTimestamp: aDayFromNow,
+          },
+        };
 
-        expect(vm.daysToExpiration).toBe(1);
+        const shallowComponent = getShallow(newProps);
+        const daysToExpiration = shallowComponent.find('#license-days-to-expiration');
+
+        expect(daysToExpiration).toExist();
+        expect(daysToExpiration).toHaveText('1');
       });
 
       it('is set to 2 if expiryTimestamp is day after tomorrow', function () {
-        var anHourFromNow = new Date().getTime() + 1000 * 60 * 60 * 49;
-        var vm = getVm({
-          expiryTimestamp: anHourFromNow,
-        });
+        const aDayFromNow = new Date().getTime() + 1000 * 60 * 60 * 49;
 
-        vm.$onInit();
+        const newProps = {
+          license: {
+            ...initialProps.license,
+            expiryTimestamp: aDayFromNow,
+          },
+        };
 
-        expect(vm.daysToExpiration).toBe(2);
+        const shallowComponent = getShallow(newProps);
+        const daysToExpiration = shallowComponent.find('#license-days-to-expiration');
+
+        expect(daysToExpiration).toExist();
+        expect(daysToExpiration).toHaveText('2');
       });
     });
 
-    describe('userLimits', function () {
-      it('is set to array of Lifecycle and Firewall userLimits objects if license contains both', function () {
-        var vm = getVm({
-          firewallUsersToDisplay: 1000,
-          licensedUsersToDisplay: 2000,
-        });
+    describe('expirationDate', function () {
+      it('is set to same day if expirationDate is today', function () {
+        const anHourFromNow = new Date().getTime() + 1000 * 60 * 60;
+        const daysFromNow = getExpiryDate(anHourFromNow);
 
-        vm.$onInit();
+        const newProps = {
+          license: {
+            ...initialProps.license,
+            expiryTimestamp: anHourFromNow,
+          },
+        };
 
-        expect(vm.userLimits).toEqual([
-          { name: 'Lifecycle', count: 2000 },
-          { name: 'Firewall', count: 1000 },
-        ]);
+        const shallowComponent = getShallow(newProps);
+        const licenseExpiryDate = shallowComponent.find('#license-expiry-date');
+
+        expect(licenseExpiryDate).toExist();
+        expect(licenseExpiryDate).toHaveText(daysFromNow.toString());
       });
 
-      it('is set to array with single Lifecycle userLimits object if license contains only Lifecycle value', () => {
-        var vm = getVm({
-          licensedUsersToDisplay: 2000,
-        });
+      it('is set to 1 if expirationDate is tomorrow', function () {
+        const aDayFromNow = new Date().getTime() + 1000 * 60 * 60 * 25;
+        const daysFromNow = getExpiryDate(aDayFromNow);
 
-        vm.$onInit();
+        const newProps = {
+          license: {
+            ...initialProps.license,
+            expiryTimestamp: aDayFromNow,
+          },
+        };
 
-        expect(vm.userLimits).toEqual([{ name: 'Lifecycle', count: 2000 }]);
+        const shallowComponent = getShallow(newProps);
+        const licenseExpiryDate = shallowComponent.find('#license-expiry-date');
+
+        expect(licenseExpiryDate).toExist();
+        expect(licenseExpiryDate).toHaveText(daysFromNow.toString());
       });
 
-      it('is set to array with single Lifecycle userLimits object if Firewall value is null', function () {
-        var vm = getVm({
-          firewallUsersToDisplay: null,
-          licensedUsersToDisplay: 2000,
-        });
+      it('is set to 2 if expirationDate is day after tomorrow', function () {
+        const aDayFromNow = new Date().getTime() + 1000 * 60 * 60 * 49;
+        const daysFromNow = getExpiryDate(aDayFromNow);
 
-        vm.$onInit();
+        const newProps = {
+          license: {
+            ...initialProps.license,
+            expiryTimestamp: aDayFromNow,
+          },
+        };
 
-        expect(vm.userLimits).toEqual([{ name: 'Lifecycle', count: 2000 }]);
-      });
+        const shallowComponent = getShallow(newProps);
+        const licenseExpiryDate = shallowComponent.find('#license-expiry-date');
 
-      it('is set to array with single Firewall userLimits object if license contains only Firewall value', function () {
-        var vm = getVm({
-          firewallUsersToDisplay: 1000,
-        });
-
-        vm.$onInit();
-
-        expect(vm.userLimits).toEqual([{ name: 'Firewall', count: 1000 }]);
-      });
-
-      it('is set to array with single Firewall userLimits object if Lifecycle value is null', function () {
-        var vm = getVm({
-          firewallUsersToDisplay: 1000,
-          licensedUsersToDisplay: null,
-        });
-
-        vm.$onInit();
-
-        expect(vm.userLimits).toEqual([{ name: 'Firewall', count: 1000 }]);
-      });
-
-      it('is set to empty array if license contains neither Lifecycle nor Firewall value', function () {
-        var vm = getVm({});
-
-        vm.$onInit();
-
-        expect(vm.userLimits).toEqual([]);
+        expect(licenseExpiryDate).toExist();
+        expect(licenseExpiryDate).toHaveText(daysFromNow.toString());
       });
     });
-    describe('shouldDisplayApplicationLimit', function () {
-      it('is set to false if applicationLimitToDisplay is null', function () {
-        var vm = getVm({
-          applicationLimitToDisplay: null,
-        });
 
-        vm.$onInit();
+    describe('fingerprint', function () {
+      it('fingerprint alphanumeric id exists', function () {
+        const newProps = {
+          license: {
+            ...initialProps.license,
+            fingerprint: 'randomFingerPrint',
+          },
+        };
 
-        expect(vm.shouldDisplayApplicationLimit).toBe(false);
+        const shallowComponent = getShallow(newProps);
+        const licenseFingerprint = shallowComponent.find('#license-fingerprint');
+
+        expect(licenseFingerprint).toExist();
+        expect(licenseFingerprint).toHaveText('randomFingerPrint');
+      });
+    });
+
+    describe('licenseType', function () {
+      it('shows inside License Type list', function () {
+        const newProps = {
+          license: {
+            ...initialProps.license,
+            products: [
+              'Nexus Lifecycle',
+              'Nexus Firewall',
+              'Nexus Firewall for Artifactory',
+              'Nexus Advanced Development Pack',
+            ],
+          },
+        };
+
+        const shallowComponent = getShallow(newProps);
+        const productsList = shallowComponent.find('#license-products');
+        const productsListChildren = shallowComponent.find('#license-products .nx-read-only__data');
+
+        expect(productsList).toExist();
+        expect(productsListChildren.at(0).text()).toEqual('Nexus Lifecycle');
+        expect(productsListChildren.at(1).text()).toEqual('Nexus Firewall');
+        expect(productsListChildren.at(2).text()).toEqual('Nexus Firewall for Artifactory');
+        expect(productsListChildren.at(3).text()).toEqual('Nexus Advanced Development Pack');
+      });
+    });
+
+    describe('licensed developers is showed', function () {
+      it('containing 300 licensed users and 100 firewall users', function () {
+        const newProps = {
+          license: {
+            ...initialProps.license,
+            firewallUsersToDisplay: 100,
+            licensedUsersToDisplay: 300,
+          },
+        };
+
+        const shallowComponent = getShallow(newProps);
+        const licensedDevelopers = shallowComponent.find('#license-licensed-developers');
+        const developersByType = licensedDevelopers.find('div');
+
+        expect(licensedDevelopers).toExist();
+        expect(developersByType.at(0).find('.nx-read-only__label').text()).toEqual('Lifecycle');
+        expect(developersByType.at(0).find('.nx-read-only__data').text()).toEqual('300');
+        expect(developersByType.at(1).find('.nx-read-only__label').text()).toEqual('Firewall');
+        expect(developersByType.at(1).find('.nx-read-only__data').text()).toEqual('100');
       });
 
-      it('is set to false if applicationLimitToDisplay is undefined', function () {
-        var vm = getVm({
-          applicationLimitToDisplay: undefined,
-        });
+      it('containing 101 licensed users and no firewall users', function () {
+        const newProps = {
+          license: {
+            ...initialProps.license,
+            licensedUsersToDisplay: 101,
+          },
+        };
 
-        vm.$onInit();
+        const shallowComponent = getShallow(newProps);
+        const licensedDevelopers = shallowComponent.find('#license-licensed-developers');
 
-        expect(vm.shouldDisplayApplicationLimit).toBe(false);
+        expect(licensedDevelopers).toExist();
+        expect(licensedDevelopers.text()).toBe('101');
       });
+    });
 
-      it('is set to true if applicationLimitToDisplay is zero', function () {
-        var vm = getVm({
-          applicationLimitToDisplay: 0,
-        });
+    describe('license application limit', function () {
+      it('is showed with proper text', function () {
+        const appLimit = 404;
+        const appCount = 101;
+        const newProps = {
+          license: {
+            ...initialProps.license,
+            applicationLimitToDisplay: appLimit,
+            applicationCountToDisplay: appCount,
+          },
+        };
 
-        vm.$onInit();
+        const shallowComponent = getShallow(newProps);
+        const licenseLimit = shallowComponent.find('#license-application-limit');
 
-        expect(vm.shouldDisplayApplicationLimit).toBe(true);
+        expect(licenseLimit).toExist();
+        expect(licenseLimit.text()).toEqual(`${appLimit} (${appCount} in use)`);
       });
     });
   });

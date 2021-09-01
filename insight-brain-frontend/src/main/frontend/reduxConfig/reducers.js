@@ -47,6 +47,7 @@ import auditLogReducer from '../componentDetails/auditLog/auditLogReducer';
 import webhookReducer from '../configuration/webhook/webhookReducer';
 import roleEditorReducer from '../security/roleEditor/roleEditorReducer';
 import automaticApplicationsConfigurationReducer from '../configuration/automaticApplicationsConfiguration/automaticApplicationsConfigurationReducer';
+import gettingStartedReducer from '../configuration/gettingStarted/gettingStartedReducer';
 import transitiveViolationsReducer from '../violation/transitiveViolationsReducer';
 import userConfigurationReducer from '../security/users/usersReducer';
 import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolationsRedux';
@@ -99,6 +100,7 @@ export default combineReducers({
   webhooks: webhookReducer,
   roleEditor: roleEditorReducer,
   automaticApplicationsConfiguration: automaticApplicationsConfigurationReducer,
+  gettingStarted: gettingStartedReducer,
   transitiveViolations: transitiveViolationsReducer,
   waiveTransitiveViolations: waiveTransitiveViolationsReducer,
   componentDetailsPolicyViolations: componentDetailsViolationsReducer,

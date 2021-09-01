@@ -12,7 +12,8 @@ import { getProxyConfigUrl, getValidateLicenseUrl } from '../../util/CLMLocation
 import { checkPermissions } from '../../util/authorizationUtil';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
-import { FAKE_PASSWORD } from './proxyConfigReducer';
+
+export const FAKE_PASSWORD = '\x00\x00\x00\x00\x00';
 
 export const PROXY_CONFIG_LOAD_REQUESTED = 'PROXY_CONFIG_LOAD_REQUESTED';
 export const PROXY_CONFIG_LOAD_FULFILLED = 'PROXY_CONFIG_LOAD_FULFILLED';

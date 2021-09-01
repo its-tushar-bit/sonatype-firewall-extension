@@ -4,22 +4,18 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { InitModule } from '../../../main/frontend/MainModule';
+import * as gettingStartedTelemetryServiceHelper from '../../../main/frontend/configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
 
 /* global beforeEach, module, jasmine, afterEach, inject, describe, it, expect, SpecUtil */
 window.angularDebug = true;
 
 describe('mainModuleSpec', function () {
-  var scope, telemetryServiceMock, pendoServiceMock;
+  var scope, pendoServiceMock;
 
   beforeEach(
     angular.mock.module(InitModule.name, function ($provide, $stateProvider) {
       // mock the window using anything on which events can be dispatched
       $provide.value('$window', document.createElement('div'));
-
-      telemetryServiceMock = jasmine.createSpyObj('gettingStartedUsageTelemetryService', ['submitData']);
-      $provide.service('gettingStartedUsageTelemetryService', function () {
-        return telemetryServiceMock;
-      });
 
       pendoServiceMock = jasmine.createSpyObj('pendoService', ['start']);
       $provide.service('pendoService', function () {
@@ -279,7 +275,6 @@ describe('mainModuleSpec', function () {
       expect(ProductFeatures.isReportsListAvailable()).toBeFalsy();
       expect($window.externalLinkClickHandler).toBeDefined();
       expect($state.current.name).toBe('gettingStarted');
-
       expect(pendoServiceMock.start).toHaveBeenCalled();
     }));
   });
@@ -287,14 +282,17 @@ describe('mainModuleSpec', function () {
   describe('on beforeunload event', function () {
     let $httpBackend, $window;
 
-    beforeEach(inject(function (_$httpBackend_, CLMLocations, _$window_) {
-      $httpBackend = _$httpBackend_;
-      $window = _$window_;
+    beforeEach(() => {
+      spyOn(gettingStartedTelemetryServiceHelper, 'submitData');
+      return inject(function (_$httpBackend_, CLMLocations, _$window_) {
+        $httpBackend = _$httpBackend_;
+        $window = _$window_;
 
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
-    }));
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
+      });
+    });
 
     it('fires synchronous "DEPARTED" telemetry event if current page is gettingStarted', inject(function (
       initService,
@@ -305,14 +303,14 @@ describe('mainModuleSpec', function () {
       $state.current.name = 'gettingStarted';
       scope.$digest();
       $window.dispatchEvent(new Event('beforeunload'));
-      expect(telemetryServiceMock.submitData).toHaveBeenCalledWith('DEPARTED', null, true);
+      expect(gettingStartedTelemetryServiceHelper.submitData).toHaveBeenCalledWith('DEPARTED', null, true);
     }));
 
     it('does not fire "DEPARTED" telemetry event if current page is not gettingStarted', inject(function (initService) {
       initService.start();
       $httpBackend.flush();
       $window.dispatchEvent(new Event('beforeunload'));
-      expect(telemetryServiceMock.submitData).not.toHaveBeenCalled();
+      expect(gettingStartedTelemetryServiceHelper.submitData).not.toHaveBeenCalled();
     }));
   });
 

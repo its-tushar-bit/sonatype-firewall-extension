@@ -37,9 +37,8 @@ import {
   PROXY_CONFIG_DELETE_MASK_TIMER_DONE,
   PROXY_CONFIG_LOAD_LICENSED_FULFILLED,
   PROXY_CONFIG_LOAD_LICENSED_FAILED,
+  FAKE_PASSWORD,
 } from './proxyConfigActions';
-
-export const FAKE_PASSWORD = '\x00\x00\x00\x00\x00';
 
 const initialState = {
   // the data object as it is on the server, based on the last GET or synthesized after the last save

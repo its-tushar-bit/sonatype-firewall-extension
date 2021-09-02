@@ -18,7 +18,7 @@ import { getApplicationSummaryUrl } from '../util/CLMLocation';
 import { fetchCrossStageViolation, fetchApplicableWaivers } from '../violation/violationActions';
 import { getExpiryTime } from '../util/waiverUtils';
 
-import { actions as policyViolationsActions } from '../componentDetails/violations/PolicyViolationsRedux';
+import { actions as policyViolationsActions } from '../componentDetails/violations/PolicyViolationsSlice';
 
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';

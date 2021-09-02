@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import reduce from '../../../main/frontend/violation/waiveTransitiveViolationsRedux';
+import reduce from '../../../main/frontend/violation/waiveTransitiveViolationsSlice';
 
 describe('waiveTransitiveViolationsReducer', function () {
   let otherObject;

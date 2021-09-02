@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import { getWaiveTransitiveViolationsUrl } from '../../../main/frontend/util/CLMLocation';
-import { actions } from '../../../main/frontend/violation/waiveTransitiveViolationsRedux';
+import { actions } from '../../../main/frontend/violation/waiveTransitiveViolationsSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { getExpiryTime } from '../../../main/frontend/util/waiverUtils';
 

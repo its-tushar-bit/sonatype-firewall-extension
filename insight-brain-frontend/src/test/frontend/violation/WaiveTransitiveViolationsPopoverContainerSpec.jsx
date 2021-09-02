@@ -47,7 +47,7 @@ describe('WaiveTransitiveViolationsPopoverContainer', function () {
         './transitiveViolationsActions': {
           toggleWaiveTransitiveViolations: spyToggleWaiveTransitiveViolations,
         },
-        './waiveTransitiveViolationsRedux': {
+        './waiveTransitiveViolationsSlice': {
           actions: {
             setScope: spySetScope,
             setExpiration: spySetExpiration,

@@ -80,7 +80,7 @@ describe('TransitiveViolationsPageContainer', function () {
           toggleRequestWaiveTransitiveViolations: toggleRequestWaiveTransitiveViolationsMock,
           toggleWaiveTransitiveViolations: toggleWaiveTransitiveViolationsMock,
         },
-        '../componentDetails/violations/PolicyViolationsRedux': {
+        '../componentDetails/violations/PolicyViolationsSlice': {
           actions: {
             setSelectedPolicyViolationId: setSelectedPolicyViolationIdMock,
             toggleShowViolationsDetailPopover: toggleShowViolationsDetailPopoverMock,

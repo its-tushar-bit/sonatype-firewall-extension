@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { pick } from 'ramda';
 
 import PolicyViolations from './PolicyViolations';
-import { actions } from './PolicyViolationsRedux';
+import { actions } from './PolicyViolationsSlice';
 import {
   selectComponentDetailsViolationsSlice,
   selectComponentViolations,

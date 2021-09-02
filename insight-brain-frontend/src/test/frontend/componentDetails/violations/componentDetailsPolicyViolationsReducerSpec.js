@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from '../../../../main/frontend/componentDetails/violations/PolicyViolationsRedux';
+import reducer from '../../../../main/frontend/componentDetails/violations/PolicyViolationsSlice';
 
 describe('componentDetailsPolicyViolationsReducer', () => {
   const stateConstantObject = { value: 'test value' };

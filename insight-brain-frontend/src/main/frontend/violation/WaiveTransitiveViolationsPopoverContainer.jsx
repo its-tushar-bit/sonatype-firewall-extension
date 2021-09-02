@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { pick } from 'ramda';
 
 import { toggleWaiveTransitiveViolations } from './transitiveViolationsActions';
-import { actions } from './waiveTransitiveViolationsRedux';
+import { actions } from './waiveTransitiveViolationsSlice';
 import WaiveTransitiveViolationsPopover from './WaiveTransitiveViolationsPopover';
 
 function mapStateToProps({ transitiveViolations, waiveTransitiveViolations }) {

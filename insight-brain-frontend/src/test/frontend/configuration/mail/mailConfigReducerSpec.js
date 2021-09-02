@@ -5,11 +5,11 @@
  */
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 
-import reduce from '../../../../main/frontend/configuration/mail/mailConfigRedux';
+import reduce from '../../../../main/frontend/configuration/mail/mailConfigSlice';
 
 const { initialState, userInput } = nxTextInputStateHelpers;
 
-describe('mailConfigRedux reducer', function () {
+describe('mailConfigSlice reducer', function () {
   let otherObject;
 
   beforeEach(function () {

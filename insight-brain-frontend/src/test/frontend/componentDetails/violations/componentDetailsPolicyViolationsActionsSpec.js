@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 
-import { actions } from '../../../../main/frontend/componentDetails/violations/PolicyViolationsRedux';
+import { actions } from '../../../../main/frontend/componentDetails/violations/PolicyViolationsSlice';
 import { getComponentWaivers, getReportPolicyThreatsUrl } from '../../../../main/frontend/util/CLMLocation';
 import { omit } from 'ramda';
 import { getPermissionContextTestUrl } from '../../../../main/frontend/util/CLMContextLocation';

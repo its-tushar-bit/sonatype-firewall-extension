@@ -6,7 +6,7 @@
 import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-import { actions } from '../../../../main/frontend/configuration/mail/mailConfigRedux';
+import { actions } from '../../../../main/frontend/configuration/mail/mailConfigSlice';
 import { getMailConfigUrl, getTestMailUrl } from '../../../../main/frontend/util/CLMLocation';
 
 const {
@@ -26,7 +26,7 @@ const {
   submitMaskTimerDone,
 } = actions;
 
-describe('mailConfigRedux actions', function () {
+describe('mailConfigSlice actions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
     mailConfigUrl = getMailConfigUrl(),
     serverData = {

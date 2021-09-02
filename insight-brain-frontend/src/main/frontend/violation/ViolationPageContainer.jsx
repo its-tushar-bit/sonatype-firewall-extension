@@ -11,7 +11,7 @@ import { stateGo } from '../reduxUiRouter/routerActions';
 import { fetchStageTypes } from '../stages/stagesActions';
 import ViolationPage from './ViolationPage';
 import { selectSelectedViolationId } from '../componentDetails/violations/PolicyViolationsSelectors';
-import { actions } from '../componentDetails/violations/PolicyViolationsRedux';
+import { actions } from '../componentDetails/violations/PolicyViolationsSlice';
 
 function mapStateToProps(state) {
   const { stages, violation } = state;

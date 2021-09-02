@@ -12,7 +12,7 @@ import applicationReportReducer from '../applicationReport/applicationReportRedu
 import userReducer from '../user/userReducer';
 import vulnerabilitySearchReducer from '../vulnerabilitySearch/vulnerabilitySearchReducer';
 import vulnerabilityDetailsModalReducer from '../vulnerabilityDetails/vulnerabilityDetailsModalReducer';
-import mailConfigReducer from '../configuration/mail/mailConfigRedux';
+import mailConfigReducer from '../configuration/mail/mailConfigSlice';
 import violationReducer from '../violation/violationReducer';
 import proxyConfigReducer from '../configuration/proxy/proxyConfigReducer';
 import stagesReducer from '../stages/stagesReducer';
@@ -50,8 +50,8 @@ import automaticApplicationsConfigurationReducer from '../configuration/automati
 import gettingStartedReducer from '../configuration/gettingStarted/gettingStartedReducer';
 import transitiveViolationsReducer from '../violation/transitiveViolationsReducer';
 import userConfigurationReducer from '../security/users/usersReducer';
-import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolationsRedux';
-import componentDetailsViolationsReducer from '../componentDetails/violations/PolicyViolationsRedux';
+import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolationsSlice';
+import componentDetailsViolationsReducer from '../componentDetails/violations/PolicyViolationsSlice';
 import successMetricsReportSlice from '../labs/successMetrics/successMetricsReportSlice';
 import productLicenseReducer from '../configuration/license/productLicenseReducer';
 

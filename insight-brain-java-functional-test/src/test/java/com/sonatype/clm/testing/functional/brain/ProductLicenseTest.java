@@ -59,7 +59,7 @@ public class ProductLicenseTest
   @Test
   public void testLicenseInformation() {
     ProductLicensePage.expiryDate().shouldBe(visible).should(matchText("[a-zA-Z]+ [0-9]+, 2[0-9]{3}"));
-    ProductLicensePage.daysToExpiration().shouldBe(visible).shouldHave(matchText("[0-1]"));
+    ProductLicensePage.daysToExpiration().shouldBe(visible).shouldHave(matchText("[0-9]+"));
     ProductLicensePage.contactName().shouldBe(visible).shouldHave(text("Billy"));
     ProductLicensePage.contactCompany().shouldBe(visible).shouldHave(text("Acme"));
     ProductLicensePage.contactEmail().shouldBe(visible).shouldHave(text("billy@example.com"));

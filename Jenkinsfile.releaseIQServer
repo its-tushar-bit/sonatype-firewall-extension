@@ -74,22 +74,26 @@ pipeline {
         )
       }
     }
-    stage('Publish Docker Image') {
-      steps {
-        triggerBuildAndVerifySafeToContinuePipeline(
-          'insight/insight-brain/docker/docker-nexus-iq-server',
-          [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")]
-        )
-      }
-    }
-    stage('Publish CloudFormation Templates') {
-      steps {
-        build(
-          job: 'integrations/cloud/nexus-iq-ha-reference',
-          parameters: [
-            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")
-          ]
-        )
+    stage('Publish Integrations') {
+      parallel {
+        stage('Publish Docker Image') {
+          steps {
+            triggerBuildAndVerifySafeToContinuePipeline(
+              'insight/insight-brain/docker/docker-nexus-iq-server',
+              [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")]
+            )
+          }
+        }
+        stage('Publish CloudFormation Templates') {
+          steps {
+            build(
+              job: 'integrations/cloud/nexus-iq-ha-reference',
+              parameters: [
+                run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")
+              ]
+            )
+          }
+        }
       }
     }
     stage('Publish Release Notes & Documentation') {

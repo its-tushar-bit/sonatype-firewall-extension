@@ -531,6 +531,38 @@ export function getComponentWaivers(ownerType, ownerId, hash) {
   return uriTemplate`/rest/policyWaiver/${ownerType}/${ownerId}/component/${hash}`;
 }
 
+export const getVersionGraphUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  hash,
+  matchState,
+  proprietary,
+  pathname,
+  identificationSource,
+  scanId,
+}) => {
+  const params = toURIParams({
+    componentIdentifier:
+      componentIdentifier.coordinates &&
+      JSON.stringify({
+        format: componentIdentifier.componentType,
+        coordinates: componentIdentifier.coordinates,
+      }),
+    hash,
+    matchState,
+    proprietary,
+    pathname,
+    identificationSource,
+    scanId,
+    reportId: scanId,
+  });
+  return (
+    uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${encodeURIComponent(ownerId)}/allVersions?` + params
+  );
+};
+
 export const getSuccessMetricsChartDataUrl = (successMetricsReportId) =>
   uriTemplate`/rest/successMetrics/report/${encodeURIComponent(successMetricsReportId)}/chartData`;
 

@@ -3,13 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
 import { useRouterState } from '../../../react/RouterStateContext';
-import { NxTable, NxTextLink, NxButton } from '@sonatype/react-shared-components';
+import { NxTable, NxTextLink, NxButton, NxLoadWrapper } from '@sonatype/react-shared-components';
+import VersionGraphExplorer from '../VersionGraphExplorer/VersionGraphExplorer';
 
-export const RiskRemediation = ({ directDependency, ancestors, routeName }) => {
+export const RiskRemediation = ({
+  directDependency,
+  ancestors,
+  routeName,
+  versionExplorerData,
+  requestVersionGraphData,
+}) => {
   const uiRouterState = useRouterState();
 
   const listOfAncestors = () => {
@@ -101,6 +108,8 @@ export const RiskRemediation = ({ directDependency, ancestors, routeName }) => {
       </div>
     </section>
   );
+  const data = versionExplorerData.data || {};
+  const { version, versions } = data;
 
   const versionExplorerSection = (
     <section className="iq-version-explorer nx-tile">
@@ -108,7 +117,13 @@ export const RiskRemediation = ({ directDependency, ancestors, routeName }) => {
         <h3 className="nx-h3 nx-tile-header__title">Version Explorer</h3>
       </header>
       <div className="nx-tile-content">
-        <h3>TODO</h3>
+        <NxLoadWrapper
+          loading={versionExplorerData && versionExplorerData.loading}
+          retryHandler={requestVersionGraphData}
+          error={versionExplorerData.loadError}
+        >
+          {version && versions && <VersionGraphExplorer data={versionExplorerData.data} />}
+        </NxLoadWrapper>
       </div>
     </section>
   );
@@ -185,7 +200,9 @@ export const RiskRemediation = ({ directDependency, ancestors, routeName }) => {
       </div>
     </div>
   );
-
+  useEffect(() => {
+    requestVersionGraphData();
+  }, []);
   if (directDependency) {
     return (
       <section id="overview-component-risk-remediation-tile" className="nx-tile iq-component-risk-remediation-tile">
@@ -204,8 +221,6 @@ export const RiskRemediation = ({ directDependency, ancestors, routeName }) => {
 };
 
 RiskRemediation.propTypes = {
-  directDependency: PropTypes.bool.isRequired,
-  routeName: PropTypes.string.isRequired,
   ancestors: PropTypes.arrayOf(
     PropTypes.shape({
       hash: PropTypes.string.isRequired,
@@ -222,4 +237,15 @@ RiskRemediation.propTypes = {
       }),
     })
   ),
+  directDependency: PropTypes.bool.isRequired,
+  requestVersionGraphData: PropTypes.func,
+  routeName: PropTypes.string.isRequired,
+  versionExplorerData: PropTypes.shape({
+    data: PropTypes.shape({
+      version: PropTypes.string,
+      versions: PropTypes.array,
+    }),
+    loading: PropTypes.bool,
+    loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  }),
 };

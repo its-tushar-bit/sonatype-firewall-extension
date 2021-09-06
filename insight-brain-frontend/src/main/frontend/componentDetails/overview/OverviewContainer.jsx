@@ -9,15 +9,20 @@ import Overview from './Overview';
 import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
 import { selectComponentAncestors } from '../componentDetailsSelectors';
 import { selectCurrentRouteName } from '../../reduxUiRouter/routerSelectors';
+import { actions } from './overviewReducer';
+import { selectComponentDetailsOverviewVersionExplorerSlice } from './overviewSelectors';
 
 function mapStateToProps(state) {
   return {
     componentInformation: selectSelectedComponent(state),
     ancestors: selectComponentAncestors(state),
     routeName: selectCurrentRouteName(state),
+    versionExplorerData: selectComponentDetailsOverviewVersionExplorerSlice(state),
   };
 }
 
-const mapDispatchToProps = {};
+const mapDispatchToProps = {
+  requestVersionGraphData: actions.loadVersionGraphData,
+};
 
 export const OverviewContainer = connect(mapStateToProps, mapDispatchToProps)(Overview);

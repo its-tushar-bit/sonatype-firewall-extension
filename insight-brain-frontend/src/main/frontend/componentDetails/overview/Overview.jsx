@@ -10,7 +10,13 @@ import { join } from 'ramda';
 import { formatTimeAgoUpToDay } from '../../util/dateUtils';
 import { RiskRemediation } from './riskRemediation/RiskRemediation';
 
-export default function Overview({ componentInformation, ancestors, routeName }) {
+export default function Overview({
+  componentInformation,
+  ancestors,
+  routeName,
+  requestVersionGraphData,
+  versionExplorerData,
+}) {
   const {
     componentIdentifier,
     displayName,
@@ -21,10 +27,13 @@ export default function Overview({ componentInformation, ancestors, routeName })
     pathnames,
     directDependency,
   } = componentInformation;
-
   const isUnknown = !matchState || matchState === 'unknown';
   const format = isUnknown ? '' : componentIdentifier.format;
   const catalogedDateAgo = createTime ? formatTimeAgoUpToDay(createTime) : '';
+  const version =
+    displayName && displayName.parts && displayName.parts.find((part) => part.field === 'Version')
+      ? displayName.parts.find((part) => part.field === 'Version').value
+      : '';
   const joinedComponentCategories = join(
     ',',
     componentCategories.map((category) => category.path)
@@ -103,7 +112,19 @@ export default function Overview({ componentInformation, ancestors, routeName })
   return (
     <div>
       {overviewComponentInformationTile}
-      <RiskRemediation directDependency={directDependency} ancestors={ancestors} routeName={routeName} />
+      <RiskRemediation
+        directDependency={directDependency}
+        ancestors={ancestors}
+        routeName={routeName}
+        requestVersionGraphData={requestVersionGraphData}
+        versionExplorerData={{
+          ...versionExplorerData,
+          data: {
+            ...versionExplorerData.data,
+            version,
+          },
+        }}
+      />
     </div>
   );
 }
@@ -144,4 +165,13 @@ Overview.propTypes = {
       }),
     })
   ),
+  requestVersionGraphData: PropTypes.func,
+  versionExplorerData: PropTypes.shape({
+    data: PropTypes.shape({
+      version: PropTypes.string,
+      versions: PropTypes.array,
+    }),
+    loading: PropTypes.bool,
+    loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  }),
 };

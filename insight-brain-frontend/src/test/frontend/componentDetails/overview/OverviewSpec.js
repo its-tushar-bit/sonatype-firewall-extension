@@ -18,6 +18,12 @@ describe('ComponentDetailsOverview', () => {
         matchState: 'unknown',
         pathnames: ['componentPath'],
       },
+      requestVersionGraphData: jasmine.createSpy('versionExplorerData'),
+      versionExplorerData: {
+        loading: false,
+        loadError: null,
+        data: null,
+      },
     };
 
     getShallow = enzymeUtils.getShallowComponent(Overview, minimalProps);

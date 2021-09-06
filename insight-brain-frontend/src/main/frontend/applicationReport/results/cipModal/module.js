@@ -44,6 +44,7 @@ import cipTabPanel from './cipTabPanel/cipTabPanel';
 import cipClaimComponent from './cipClaimComponent/cipClaimComponent';
 import rootAncestors from './rootAncestors/rootAncestors';
 import innerSourceProducerReportModalContainer from './cipTabPanel/innerSourceProducerReportModal/InnerSourceProducerReportModalContainer';
+import innerSourceProducerPermissionsModalContainer from './cipTabPanel/innerSourceProducerPermissionsModal/InnerSourceProducerPermissionsModalContainer';
 
 export default angular
   .module('cipModal', [
@@ -68,6 +69,10 @@ export default angular
   .component(
     'innerSourceProducerReportModal',
     react2angular(withStoreProvider(innerSourceProducerReportModalContainer), ['reportUrl'], ['$ngRedux'])
+  )
+  .component(
+    'innerSourceProducerPermissionsModal',
+    react2angular(withStoreProvider(innerSourceProducerPermissionsModalContainer), ['applicationName'], ['$ngRedux'])
   )
   .service('OwnerContext', OwnerContext);
 

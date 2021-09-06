@@ -39,6 +39,8 @@ import {
   APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR,
   OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL,
   CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL,
+  OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL,
+  CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL,
 } from './applicationReportActions';
 
 import { sortItemsByFields } from '../util/sortUtils';
@@ -220,6 +222,12 @@ export default function applicationReportReducer(state = initState, { type, payl
 
     case CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL:
       return pathSet(['selectedComponent', 'showInnerSourceProducerReportModal'], false, state);
+
+    case OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL:
+      return pathSet(['selectedComponent', 'showInnerSourceProducerPermissionsModal'], true, state);
+
+    case CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL:
+      return pathSet(['selectedComponent', 'showInnerSourceProducerPermissionsModal'], false, state);
 
     default:
       return state;

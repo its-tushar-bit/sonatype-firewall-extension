@@ -2301,4 +2301,34 @@ describe('applicationReportReducer', function () {
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
+
+  describe('OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL action', function () {
+    it('sets showInnerSourceProducerPermissionsModal to true', function () {
+      const state = Object.freeze({
+        selectedComponent: {
+          showInnerSourceProducerPermissionsModal: false,
+        },
+        other: otherObject,
+      });
+
+      const newState = reduce(state, { type: 'OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL' });
+      expect(newState.selectedComponent.showInnerSourceProducerPermissionsModal).toBe(true);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL action', function () {
+    it('sets showInnerSourceProducerPermissionsModal to false', function () {
+      const state = Object.freeze({
+        selectedComponent: {
+          showInnerSourceProducerPermissionsModal: true,
+        },
+        other: otherObject,
+      });
+
+      const newState = reduce(state, { type: 'CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL' });
+      expect(newState.selectedComponent.showInnerSourceProducerPermissionsModal).toBe(false);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
 });

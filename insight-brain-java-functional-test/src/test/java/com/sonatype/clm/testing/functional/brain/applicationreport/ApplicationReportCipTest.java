@@ -34,6 +34,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipAuditT
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipOccurrencesTab;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipSimilarTab;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.InnerSourceProducerPermissionsModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.InnerSourceProducerReportModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
@@ -208,6 +209,7 @@ public class ApplicationReportCipTest
     testInnerSourceDependencyComponentHeader();
     testInnerSourceComponentHeader();
     testInnerSourceProducerPopupFromTransitive();
+    testInnerSourceProducerPermissionsPopup();
     testComponentInfoTab();
     testPolicyTab();
     testLicensesTab();
@@ -297,6 +299,38 @@ public class ApplicationReportCipTest
     innerSourceProducerReportModal.shouldNotBe(visible);
 
     cipModal.closeButton().click();
+  }
+
+  private void testInnerSourceProducerPermissionsPopup() {
+    logout();
+    User user = tempEntity.newUser("user-no-permission", "user", "no-permission", "user@no-permission");
+    tempEntity.newMembershipMapping(app.getId(), DEVELOPER_ROLE_ID, user.getUsername(), USER);
+    tempEntity.newApplicationWithSpecificId("09895fab56384b61adb3161fa1ec58cd", "ApplicationReportTest2",
+        "ApplicationReportTest2", app.getOrganizationId());
+    login(user.getUsername(), user.getPassword());
+
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+
+    CipModal cipModal = reportPage.cipModal();
+    reportPage.resultRow(11).click();
+
+    cipModal.latestReportLink().click();
+    InnerSourceProducerPermissionsModal innerSourceProducerPermissionsModal =
+        cipModal.innerSourceProducerPermissionsModal();
+
+    innerSourceProducerPermissionsModal.shouldBe(visible);
+    innerSourceProducerPermissionsModal.header().shouldHave(exactText("Insufficient Permissions"));
+    innerSourceProducerPermissionsModal.content()
+        .shouldHave(exactText("Insufficient permissions to view the report for ApplicationReportTest2. Please contact"
+            + " your Policy Administrator or an Owner to request access."));
+    innerSourceProducerPermissionsModal.closeButton().shouldBe(visible).click();
+    innerSourceProducerPermissionsModal.shouldNotBe(visible);
+
+    cipModal.closeButton().click();
+
+    logout();
+    loginAsAdmin();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
   }
 
   private void testInnerSourceProducerPopupFromTransitive() {

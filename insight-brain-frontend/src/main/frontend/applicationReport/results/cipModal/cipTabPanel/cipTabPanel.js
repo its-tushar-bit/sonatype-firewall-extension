@@ -9,6 +9,8 @@ import template from './cipTabPanel.html';
 import {
   openInnerSourceProducerReportModal,
   closeInnerSourceProducerReportModal,
+  openInnerSourceProducerPermissionsModal,
+  closeInnerSourceProducerPermissionsModal,
 } from '../../../applicationReportActions';
 
 /**
@@ -33,7 +35,12 @@ export default {
 
 function CipTabPanelController($scope, CLMLocations, $http, Messages, OwnerContext, $window, $ngRedux) {
   const vm = this,
-    actions = { openInnerSourceProducerReportModal, closeInnerSourceProducerReportModal };
+    actions = {
+      openInnerSourceProducerReportModal,
+      closeInnerSourceProducerReportModal,
+      openInnerSourceProducerPermissionsModal,
+      closeInnerSourceProducerPermissionsModal,
+    };
 
   vm.reduxUnsubscribe = $ngRedux.connect(null, actions)(vm);
 
@@ -41,6 +48,7 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages, OwnerConte
     selectedTab: 'componentInfo',
     openLatestInnerSourceReport: openLatestInnerSourceReport,
     closeInnerSourceProducerReportModal: closeInnerSourceProducerReportModal,
+    closeInnerSourceProducerPermissionsModal: closeInnerSourceProducerPermissionsModal,
   });
 
   function updateTabs() {
@@ -121,7 +129,7 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages, OwnerConte
   const byStage = comparator((reportA, reportB) => getStageOrder(reportA) < getStageOrder(reportB));
 
   function loadInnerSourceReportUrl() {
-    if (vm.selectedComponent && vm.selectedComponent.latestReport) {
+    if ((vm.selectedComponent && vm.selectedComponent.latestReport) || vm.selectedComponent.insufficientPermissions) {
       return;
     }
 
@@ -134,7 +142,7 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages, OwnerConte
     ) {
       $http
         .get(CLMLocations.getApplicationReportsUrl(innerSourceData[0].ownerApplicationId))
-        .then(handleLatestInnerSourceReportsUrlResponse, (error) => (vm.error = Messages.getHttpErrorMessage(error)));
+        .then(handleLatestInnerSourceReportsUrlResponse, handleLatestInnerSourceReportsUrlError);
     }
   }
 
@@ -146,21 +154,35 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages, OwnerConte
         stage: lastInnerSourceReportData.stage,
         url: CLMLocations.getAbsoluteUrl(lastInnerSourceReportData.latestReportHtmlUrl),
       };
+      vm.selectedComponent.insufficientPermissions = false;
 
-      $http.get(CLMLocations.getInnerSourceComponentLatestVersionUrl(vm.selectedComponent.componentIdentifier)).then(
-        (response) => (vm.selectedComponent.innerSourceData[0].latestVersion = response.data),
-        (error) => (vm.error = Messages.getHttpErrorMessage(error))
-      );
+      $http
+        .get(CLMLocations.getInnerSourceComponentLatestVersionUrl(vm.selectedComponent.componentIdentifier))
+        .then(
+          (response) => (vm.selectedComponent.innerSourceData[0].latestVersion = response.data),
+          handleLatestInnerSourceReportsUrlError
+        );
+    }
+  }
+
+  function handleLatestInnerSourceReportsUrlError(error) {
+    vm.error = Messages.getHttpErrorMessage(error);
+    if (error && error.status === 403) {
+      vm.selectedComponent.insufficientPermissions = true;
     }
   }
 
   function openLatestInnerSourceReport() {
-    const currentVersion = vm.selectedComponent.componentIdentifier.coordinates.version;
-    const { latestVersion } = vm.selectedComponent.innerSourceData[0];
-    if (latestVersion && latestVersion !== currentVersion) {
-      vm.openInnerSourceProducerReportModal();
+    if (vm.selectedComponent.insufficientPermissions) {
+      vm.openInnerSourceProducerPermissionsModal();
     } else {
-      $window.open(vm.selectedComponent.latestReport.url, '_blank');
+      const currentVersion = vm.selectedComponent.componentIdentifier.coordinates.version;
+      const { latestVersion } = vm.selectedComponent.innerSourceData[0];
+      if (latestVersion && latestVersion !== currentVersion) {
+        vm.openInnerSourceProducerReportModal();
+      } else {
+        $window.open(vm.selectedComponent.latestReport.url, '_blank');
+      }
     }
   }
 
@@ -177,6 +199,7 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages, OwnerConte
 
   $scope.$on('$destroy', function () {
     vm.closeInnerSourceProducerReportModal();
+    vm.closeInnerSourceProducerPermissionsModal();
     vm.reduxUnsubscribe();
   });
 }

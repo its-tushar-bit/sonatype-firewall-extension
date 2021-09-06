@@ -15,6 +15,7 @@
     <div ng-if="vm.selectedComponent.latestReport.url">
       <inner-source-producer-report-modal report-url="vm.selectedComponent.latestReport.url" />
     </div>
+    <inner-source-producer-permissions-modal application-name="vm.selectedComponent.innerSourceData[0].ownerApplicationName" />
   </div>
 
   <div class="iq-tab-bar">

@@ -102,6 +102,7 @@ describe('cipTabPanel', function () {
       $httpBackend.flush();
 
       expect(controller.selectedComponent.latestReport.url).toContain('releaseUrl');
+      expect(controller.selectedComponent.insufficientPermissions).toBeFalsy();
     });
 
     it('sets the latest version for a selected InnerSource component', function () {
@@ -128,6 +129,16 @@ describe('cipTabPanel', function () {
 
       expect(controller.error).toContain('error');
       expect(controller.selectedComponent.latestReport).toBeUndefined();
+      expect(controller.selectedComponent.insufficientPermissions).toBeFalsy();
+    });
+
+    it('handle the error action if last report URL request fails due to lack of permissions', function () {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationReportsUrl('id'))).respond(403, 'error');
+      controller.selectedComponent = innerSourceComponent;
+      $scope.$digest();
+      $httpBackend.flush();
+
+      expect(controller.selectedComponent.insufficientPermissions).toBeTruthy();
     });
 
     it('handle the error action if request for InnerSource component latest version fails', function () {
@@ -180,6 +191,20 @@ describe('cipTabPanel', function () {
       controller.openLatestInnerSourceReport();
 
       expect(controller.openInnerSourceProducerReportModal).toHaveBeenCalled();
+      expect($window.open).not.toHaveBeenCalled();
+    }));
+
+    it('opens a modal asking to request permissions when not allowed in the producer app', inject(function ($window) {
+      spyOn($window, 'open');
+      spyOn(controller, 'openInnerSourceProducerPermissionsModal');
+      spyOn(controller, 'openInnerSourceProducerReportModal');
+
+      controller.selectedComponent = innerSourceComponent;
+      controller.selectedComponent.insufficientPermissions = true;
+      controller.openLatestInnerSourceReport();
+
+      expect(controller.openInnerSourceProducerPermissionsModal).toHaveBeenCalled();
+      expect(controller.openInnerSourceProducerReportModal).not.toHaveBeenCalled();
       expect($window.open).not.toHaveBeenCalled();
     }));
 

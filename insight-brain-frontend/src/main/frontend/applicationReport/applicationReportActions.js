@@ -53,6 +53,8 @@ export const SELECT_COMPONENT = 'SELECT_COMPONENT';
 export const APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR = 'APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR';
 export const OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL = 'OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL';
 export const CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL = 'CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL';
+export const OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL = 'OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL';
+export const CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL = 'CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL';
 
 // To be used for filters that are done by substring matching, as opposed to matching a discrete set of values
 export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
@@ -316,6 +318,12 @@ const reevaluateReportCancelled = noPayloadActionCreator(REEVALUATE_REPORT_CANCE
 
 export const openInnerSourceProducerReportModal = noPayloadActionCreator(OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL);
 export const closeInnerSourceProducerReportModal = noPayloadActionCreator(CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL);
+export const openInnerSourceProducerPermissionsModal = noPayloadActionCreator(
+  OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL
+);
+export const closeInnerSourceProducerPermissionsModal = noPayloadActionCreator(
+  CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL
+);
 
 export default function applicationReportActions() {
   return {
@@ -340,5 +348,7 @@ export default function applicationReportActions() {
     toggleFilterSidebar,
     openInnerSourceProducerReportModal,
     closeInnerSourceProducerReportModal,
+    openInnerSourceProducerPermissionsModal,
+    closeInnerSourceProducerPermissionsModal,
   };
 }

@@ -319,6 +319,10 @@ public class ApplicationReportPage
     public InnerSourceProducerReportModal innerSourceProducerReportModal() {
       return new InnerSourceProducerReportModal();
     }
+
+    public InnerSourceProducerPermissionsModal innerSourceProducerPermissionsModal() {
+      return new InnerSourceProducerPermissionsModal();
+    }
   }
 
   public static class CipOccurrencesTab
@@ -424,6 +428,28 @@ public class ApplicationReportPage
 
     public SelenideElement continueToReportButton() {
       return child("#innersource-producer-report-modal-continue-to-report");
+    }
+  }
+
+  public static class InnerSourceProducerPermissionsModal
+      extends BasicElement<InnerSourceProducerPermissionsModal>
+  {
+    public static final String ROOT = "#innersource-producer-insufficient-permissions-modal";
+
+    public InnerSourceProducerPermissionsModal() {
+      super(ROOT);
+    }
+
+    public SelenideElement header() {
+      return child(".nx-modal-header .nx-h2");
+    }
+
+    public SelenideElement content() {
+      return child(".nx-modal-content");
+    }
+
+    public SelenideElement closeButton() {
+      return child("#innersource-producer-insufficient-permissions-modal-close");
     }
   }
 

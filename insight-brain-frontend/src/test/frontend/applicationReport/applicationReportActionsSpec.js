@@ -780,6 +780,24 @@ describe('applicationReportActions', function () {
     });
   });
 
+  describe('openInnerSourceProducerPermissionsModal', function () {
+    it('returns a OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL action with no payload', function () {
+      const action = applicationReportActions.openInnerSourceProducerPermissionsModal();
+
+      expect(action.type).toBe('OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL');
+      expect(action.payload).not.toBeDefined();
+    });
+  });
+
+  describe('closeInnerSourceProducerPermissionsModal', function () {
+    it('returns a CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL action with no payload', function () {
+      const action = applicationReportActions.closeInnerSourceProducerPermissionsModal();
+
+      expect(action.type).toBe('CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL');
+      expect(action.payload).not.toBeDefined();
+    });
+  });
+
   function expectCommonDataCalls(isSuccess, additionalCalls = {}) {
     mockAxiosCalls({
       get: {

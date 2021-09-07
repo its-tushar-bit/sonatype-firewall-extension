@@ -24,14 +24,17 @@ public class InvalidRequestFilterTest
     extends AbstractBrainServiceTest
 {
   @Test
-  public void testBackslashSemicolonNonAsciiBlockedByDefault() throws Exception {
+  public void testBackslashSemicolonBlockedByDefault() throws Exception {
     HttpResponse response = restRequest().path("any/thing/\\after-backslash").get();
     assertResponseStatus(400, response);
 
-    assertThat(doRequestWithNonAsciiCharacters()).isEqualTo(400);
-
     response = restRequest().path("any/thing/;after-semicolon").get();
     assertResponseStatus(400, response);
+  }
+
+  @Test
+  public void testNonAsciiAllowedByDefault() throws Exception {
+    assertThat(doRequestWithNonAsciiCharacters()).isEqualTo(404);
   }
 
   @Test
@@ -53,6 +56,16 @@ public class InvalidRequestFilterTest
     });
 
     assertThat(doRequestWithNonAsciiCharacters()).isEqualTo(404);
+  }
+
+  @Test
+  @ManualServerInit
+  public void testNonAsciiDisabled() throws Exception {
+    initServer(config -> {
+      config.setBlockNonAsciiInPath(true);
+    });
+
+    assertThat(doRequestWithNonAsciiCharacters()).isEqualTo(400);
   }
 
   @Test

@@ -302,11 +302,15 @@ public class InsightConfig
 
   /**
    * This configuration blocks requests containing non-ASCII characters in the path to avoid malicious attacks.
+   * Since shiro:1.7.0, the InvalidRequestFilter.isAccessAllowed() method checks for non-ascii chars
+   * both the encoded URI and the decoded path.
+   * Since we allow non-ascii chars in our URLs (for ex, in app public IDs that are used in REST paths),
+   * we cannot enable this check.
    *
    * @since 1.98
    */
   @JsonProperty
-  private boolean blockNonAsciiInPath = true;
+  private boolean blockNonAsciiInPath = false;
 
   /**
    * This configuration limits the number of parallel requests for license data made to HDS for the Advanced Legal Pack.

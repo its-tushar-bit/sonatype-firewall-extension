@@ -86,7 +86,7 @@ export default function ProductLicenceSummary({ license }) {
           <div className="nx-grid-col nx-grid-col--33">
             <div>
               <dt className="nx-read-only__label">Expiration Date</dt>
-              <dd className="nx-read-only__data" id="license-expiry-date">
+              <dd className="nx-read-only__data visual-testing-ignore" id="license-expiry-date">
                 {getExpiryDate(license.expiryTimestamp)}
               </dd>
 

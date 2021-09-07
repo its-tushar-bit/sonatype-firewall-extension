@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiSourceControlAdapterTest
 {
+  @SuppressWarnings("deprecation")
   @Test
   public void convertToDTO() {
     SourceControl sourceControl = new SourceControl();
@@ -41,7 +42,9 @@ public class ApiSourceControlAdapterTest
     assertThat(dto.provider).isEqualTo("github");
     assertThat(dto.baseBranch).isEqualTo("master");
     assertThat(dto.remediationPullRequestsEnabled).isEqualTo(true);
+    assertThat(dto.enablePullRequests).isEqualTo(dto.remediationPullRequestsEnabled);
     assertThat(dto.statusChecksEnabled).isEqualTo(false);
+    assertThat(dto.enableStatusChecks).isEqualTo(dto.statusChecksEnabled);
     assertThat(dto.pullRequestCommentingEnabled).isEqualTo(true);
     assertThat(dto.sourceControlScansEnabled).isEqualTo(true);
     assertThat(dto.sourceControlScanTarget).isEqualTo("/target/*");
@@ -77,5 +80,18 @@ public class ApiSourceControlAdapterTest
     assertThat(sourceControl.getPullRequestCommentingEnabled()).isEqualTo(true);
     assertThat(sourceControl.getSourceControlScansEnabled()).isEqualTo(true);
     assertThat(sourceControl.getSourceControlScanTarget()).isEqualTo("/target/*");
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void convertFromDTO_DeprecatedFields() {
+    ApiSourceControlDTO apiSourceControlDTO = new ApiSourceControlDTO();
+    apiSourceControlDTO.enablePullRequests = true;
+    apiSourceControlDTO.enableStatusChecks = false;
+
+    SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
+
+    assertThat(sourceControl.getRemediationPullRequestsEnabled()).isEqualTo(true);
+    assertThat(sourceControl.getStatusChecksEnabled()).isEqualTo(false);
   }
 }

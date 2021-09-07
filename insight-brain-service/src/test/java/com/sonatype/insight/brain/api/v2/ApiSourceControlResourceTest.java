@@ -346,4 +346,140 @@ public class ApiSourceControlResourceTest
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).startsWith("Cannot validate SourceControl repositoryUrl");
   }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void testAddSourceControl_DeprecatedFieldsAreUsedWhenReplacementFieldsAreNotPopulated() throws Exception {
+    DeprecatedApiSourceControlDTO apiSourceControlDTO = new DeprecatedApiSourceControlDTO();
+    apiSourceControlDTO.ownerId = org.getId();
+    apiSourceControlDTO.token = "token";
+    // Deprecated fields must be used if the replacement fields are not populated
+    apiSourceControlDTO.enablePullRequests = true;
+    apiSourceControlDTO.enableStatusChecks = false;
+
+    HttpResponse response = restRequest().path(DefaultApiSourceControlResource.BY_OWNER)
+        .parameter(OwnerType.ORGANIZATION, org.getId()).body(apiSourceControlDTO).post();
+    assertResponseStatus(200, response);
+    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
+
+    assertThat(result.id).isNotNull();
+    assertThat(result.ownerId).isEqualTo(org.getId());
+    assertThat(result.repositoryUrl).isEqualTo(apiSourceControlDTO.repositoryUrl);
+    assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
+    assertThat(result.provider).isNull();
+
+    assertThat(result.remediationPullRequestsEnabled).isTrue();
+    assertThat(result.enablePullRequests).isTrue();
+    assertThat(result.statusChecksEnabled).isFalse();
+    assertThat(result.enableStatusChecks).isFalse();
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void testAddSourceControl_DeprecatedFieldsAreNotUsedWhenReplacementFieldsArePopulated() throws Exception {
+    ApiSourceControlDTO apiSourceControlDTO = ApiSourceControlAdapter
+        .convertToDTO(new SourceControl.Builder().setOwnerId(org.getId()).setToken("token").build());
+    // Deprecated fields must be used if the replacement fields are not populated
+    apiSourceControlDTO.remediationPullRequestsEnabled = true;
+    apiSourceControlDTO.enablePullRequests = false;
+    apiSourceControlDTO.statusChecksEnabled = false;
+    apiSourceControlDTO.enableStatusChecks = true;
+
+    HttpResponse response = restRequest().path(DefaultApiSourceControlResource.BY_OWNER)
+        .parameter(OwnerType.ORGANIZATION, org.getId()).body(apiSourceControlDTO).post();
+    assertResponseStatus(200, response);
+    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
+
+    assertThat(result.id).isNotNull();
+    assertThat(result.ownerId).isEqualTo(org.getId());
+    assertThat(result.repositoryUrl).isEqualTo(apiSourceControlDTO.repositoryUrl);
+    assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
+    assertThat(result.provider).isNull();
+
+    assertThat(result.remediationPullRequestsEnabled).isTrue();
+    assertThat(result.enablePullRequests).isTrue();
+    assertThat(result.statusChecksEnabled).isFalse();
+    assertThat(result.enableStatusChecks).isFalse();
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void testUpdateSourceControl_DeprecatedFieldsAreUsedWhenReplacementFieldsAreNotPopulated() throws Exception {
+    DeprecatedApiSourceControlDTO apiSourceControlDTO = new DeprecatedApiSourceControlDTO();
+    apiSourceControlDTO.ownerId = org.getId();
+    apiSourceControlDTO.token = "token";
+    // Deprecated fields must be used if the replacement fields are not populated
+    apiSourceControlDTO.enablePullRequests = true;
+    apiSourceControlDTO.enableStatusChecks = false;
+
+    SourceControl sourceControl = tempEntity.newSourceControl(org.getId(), null, "token", null);
+    HttpResponse response = restRequest().path(DefaultApiSourceControlResource.BY_OWNER)
+        .parameter(OwnerType.ORGANIZATION, org.getId()).body(apiSourceControlDTO).put();
+    assertResponseStatus(200, response);
+
+    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
+    assertThat(result.id).isEqualTo(sourceControl.getId());
+    assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
+    assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
+    assertThat(result.provider).isNull();
+
+    assertThat(result.remediationPullRequestsEnabled).isTrue();
+    assertThat(result.enablePullRequests).isTrue();
+    assertThat(result.statusChecksEnabled).isFalse();
+    assertThat(result.enableStatusChecks).isFalse();
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void testUpdateSourceControl_DeprecatedFieldsAreNotUsedWhenReplacementFieldsArePopulated() throws Exception {
+    ApiSourceControlDTO apiSourceControlDTO = ApiSourceControlAdapter
+        .convertToDTO(new SourceControl.Builder().setOwnerId(org.getId()).setToken("token").build());
+    // Deprecated fields must be used if the replacement fields are not populated
+    apiSourceControlDTO.remediationPullRequestsEnabled = true;
+    apiSourceControlDTO.enablePullRequests = false;
+    apiSourceControlDTO.statusChecksEnabled = false;
+    apiSourceControlDTO.enableStatusChecks = true;
+
+    SourceControl sourceControl = tempEntity.newSourceControl(org.getId(), null, "token", null);
+    HttpResponse response = restRequest().path(DefaultApiSourceControlResource.BY_OWNER)
+        .parameter(OwnerType.ORGANIZATION, org.getId()).body(apiSourceControlDTO).put();
+    assertResponseStatus(200, response);
+
+    ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
+    assertThat(result.id).isEqualTo(sourceControl.getId());
+    assertThat(result.repositoryUrl).isEqualTo(sourceControl.getRepositoryUrl());
+    assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
+    assertThat(result.provider).isNull();
+
+    assertThat(result.remediationPullRequestsEnabled).isTrue();
+    assertThat(result.enablePullRequests).isTrue();
+    assertThat(result.statusChecksEnabled).isFalse();
+    assertThat(result.enableStatusChecks).isFalse();
+  }
+
+  /**
+   * This is a verbatim copy of the ApiSourceControlDTO class before some fields were deprecated.
+   * It is used to test the API still works with the old API DTO.
+   */
+  @SuppressWarnings("unused")
+  private static class DeprecatedApiSourceControlDTO
+  {
+    public String id;
+
+    public String ownerId;
+
+    public String repositoryUrl;
+
+    public String username;
+
+    public String token;
+
+    public String provider;
+
+    public String baseBranch;
+
+    public Boolean enablePullRequests;
+
+    public Boolean enableStatusChecks;
+  }
 }

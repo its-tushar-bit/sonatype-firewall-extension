@@ -15,6 +15,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 public class ApiSourceControlAdapter
 {
+  @SuppressWarnings("deprecation")
   public static ApiSourceControlDTO convertToDTO(final SourceControl sourceControl) {
     if (sourceControl == null) {
       return null;
@@ -29,7 +30,9 @@ public class ApiSourceControlAdapter
     apiSourceControlDTO.provider = sourceControl.getProvider() == null ? null : sourceControl.getProvider().toString();
     apiSourceControlDTO.baseBranch = sourceControl.getBaseBranch();
     apiSourceControlDTO.remediationPullRequestsEnabled = sourceControl.getRemediationPullRequestsEnabled();
+    apiSourceControlDTO.enablePullRequests = apiSourceControlDTO.remediationPullRequestsEnabled;
     apiSourceControlDTO.statusChecksEnabled = sourceControl.getStatusChecksEnabled();
+    apiSourceControlDTO.enableStatusChecks = apiSourceControlDTO.statusChecksEnabled;
     apiSourceControlDTO.pullRequestCommentingEnabled = sourceControl.getPullRequestCommentingEnabled();
     apiSourceControlDTO.sourceControlScansEnabled = sourceControl.getSourceControlScansEnabled();
     apiSourceControlDTO.sourceControlScanTarget = sourceControl.getSourceControlScanTarget();
@@ -51,6 +54,7 @@ public class ApiSourceControlAdapter
     }
   }
 
+  @SuppressWarnings("deprecation")
   static SourceControl convertFromDTO(final ApiSourceControlDTO dto) {
     if (dto == null) {
       return null;
@@ -59,8 +63,9 @@ public class ApiSourceControlAdapter
     SourceControl sourceControl = new SourceControl.Builder().setOwnerId(dto.ownerId)
         .setRepositoryUrl(dto.repositoryUrl).setUsername(dto.username).setToken(dto.token)
         .setProvider(getSourceControlProvider(dto.provider))
-        .setRemediationPullRequestsEnabled(dto.remediationPullRequestsEnabled)
-        .setStatusChecksEnabled(dto.statusChecksEnabled)
+        .setRemediationPullRequestsEnabled(
+            dto.remediationPullRequestsEnabled != null ? dto.remediationPullRequestsEnabled : dto.enablePullRequests)
+        .setStatusChecksEnabled(dto.statusChecksEnabled != null ? dto.statusChecksEnabled : dto.enableStatusChecks)
         .setBaseBranch(dto.baseBranch)
         .setPullRequestCommentingEnabled(dto.pullRequestCommentingEnabled)
         .setSourceControlScansEnabled(dto.sourceControlScansEnabled)

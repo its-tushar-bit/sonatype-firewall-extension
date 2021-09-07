@@ -21,7 +21,21 @@ public class ApiSourceControlDTO
 
   public String baseBranch;
 
+  /**
+   * @deprecated Deprecated in 1.124. Can be removed in March 2022.
+   *             Use remediationPullRequestsEnabled instead.
+   */
+  @Deprecated
+  public Boolean enablePullRequests;
+
   public Boolean remediationPullRequestsEnabled;
+
+  /**
+   * @deprecated Deprecated in 1.124. Can be removed in March 2022.
+   *             Use statusChecksEnabled instead.
+   */
+  @Deprecated
+  public Boolean enableStatusChecks;
 
   public Boolean statusChecksEnabled;
 

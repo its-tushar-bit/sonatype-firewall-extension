@@ -88,6 +88,7 @@ export default function LegalDashboardApplicationsTab({
               App Categories
             </NxTableCell>
             <NxTableCell>Components Reviewed</NxTableCell>
+            <NxTableCell chevron />
           </NxTableRow>
         </NxTableHead>
         <NxTableBody

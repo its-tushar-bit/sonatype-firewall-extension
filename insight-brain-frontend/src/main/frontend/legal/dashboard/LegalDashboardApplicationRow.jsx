@@ -39,6 +39,7 @@ export default function LegalDashboardApplicationRow({ row, stateGo }) {
           {row.componentsReviewedCount} / {row.componentsTotalCount}
         </span>
       </NxTableCell>
+      <NxTableCell chevron />
     </NxTableRow>
   );
 }

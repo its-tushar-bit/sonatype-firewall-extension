@@ -45,7 +45,7 @@ describe('LegalDashboardApplicationRow component', function () {
     expect(tableRow).toHaveProp('isClickable', true);
     expect(tableRow).toHaveProp('onClick', jasmine.any(Function));
     let cells = tableRow.find(NxTableCell);
-    expect(cells.length).toEqual(4);
+    expect(cells.length).toEqual(5);
     expect(cells.at(0).children().text()).toEqual('appName1');
     expect(terseAgoSpy).toHaveBeenCalledWith(1607030429000);
     expect(cells.at(1).children().text()).toEqual('2d - Build');
@@ -54,6 +54,7 @@ describe('LegalDashboardApplicationRow component', function () {
     expect(donutChart).toExist();
     expect(donutChart).toHaveProp('percent', 60);
     expect(cells.at(3).childAt(1).text()).toEqual('12 / 20');
+    expect(cells.at(4)).toHaveProp('chevron');
   });
 
   it('links to the application details page', function () {

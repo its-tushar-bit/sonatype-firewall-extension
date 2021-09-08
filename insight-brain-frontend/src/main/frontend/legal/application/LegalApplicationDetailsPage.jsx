@@ -156,6 +156,7 @@ export default function LegalApplicationDetailsPage(props) {
                     >
                       Review Status
                     </NxTableCell>
+                    <NxTableCell chevron />
                   </NxTableRow>
                 </NxTableHead>
                 <NxTableBody
@@ -180,6 +181,7 @@ export default function LegalApplicationDetailsPage(props) {
                         onChange={(newVal) => changeLicenseNameFilter({ filter: newVal })}
                       />
                     </NxTableCell>
+                    <NxTableCell />
                     <NxTableCell />
                     <NxTableCell />
                   </NxTableRow>

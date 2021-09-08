@@ -123,7 +123,7 @@ describe('LegalDashboardApplicationsTab component', function () {
     const tableHeadCells = table.find(NxTableHead).find(NxTableCell);
 
     expect(tableHeadCells).toExist();
-    expect(tableHeadCells.length).toBe(4);
+    expect(tableHeadCells.length).toBe(5);
 
     const expectedResults = ['APPLICATION_NAME', 'LAST_SCAN_TIME', 'TAG_NAMES'];
 

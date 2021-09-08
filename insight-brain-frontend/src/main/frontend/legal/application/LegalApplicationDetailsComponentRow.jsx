@@ -52,6 +52,7 @@ export default function LegalApplicationDetailsComponentRow({ applicationPublicI
       <NxTableCell className={`legal-application-details-review-status status-${reviewStatus}`}>
         {reviewStatusDisplayNames[reviewStatus]}
       </NxTableCell>
+      <NxTableCell chevron />
     </NxTableRow>
   );
 }

@@ -36,12 +36,13 @@ describe('LegalApplicationDetailsComponentRow component', function () {
     expect(tableRow).toHaveProp('isClickable', true);
     expect(tableRow).toHaveProp('onClick', jasmine.any(Function));
     const cells = tableRow.find(NxTableCell);
-    expect(cells.length).toEqual(4);
+    expect(cells.length).toEqual(5);
     expect(cells.at(0).children().text()).toEqual('g : a : v');
     expect(cells.at(1).children().length).toEqual(0);
     expect(cells.at(2).children().length).toEqual(0);
     expect(cells.at(3).children().text()).toEqual('Completed');
     expect(cells.at(3)).toHaveClassName('status-COMPLETED');
+    expect(cells.at(4)).toHaveProp('chevron');
   });
 
   it('links to the component overview page', function () {

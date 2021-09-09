@@ -48,8 +48,7 @@ pipeline {
   stages {
     stage('Send Policy Results to Corporate Legal and Security Teams') {
       steps {
-        downloadLatestReleasePdfReport('6831d5c0e34549c692943e306505ec97', 'IQ Server and scanner Release Report.pdf')
-        downloadLatestReleasePdfReport('615b9a79758341568bbdf3ace2d8e668', 'IQ Server Frontend Release Report.pdf')
+        downloadLatestReleasePdfReport('34530ad4a5be49508a22c08feb1778cb', 'IQ Server Report.pdf')
         emailext(
           attachmentsPattern: '**/*.pdf',
           mimeType: 'text/html',

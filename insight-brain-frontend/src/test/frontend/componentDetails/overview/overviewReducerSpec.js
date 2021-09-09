@@ -32,7 +32,7 @@ describe('componentDetailsPolicyViolationsReducer', () => {
         other: stateConstantObject,
         graphExplorerData: {
           loading: false,
-          loadError: null,
+          loadError: 'There is an error',
           data: null,
         },
       });
@@ -42,6 +42,7 @@ describe('componentDetailsPolicyViolationsReducer', () => {
       });
 
       expect(newState.graphExplorerData.loading).toBe(true);
+      expect(newState.graphExplorerData.loadError).toBe(null);
       expect(newState.other).toBe(stateConstantObject);
     });
   });

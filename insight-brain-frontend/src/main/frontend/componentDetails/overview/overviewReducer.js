@@ -26,6 +26,7 @@ const loadRequested = (state) => {
     graphExplorerData: {
       ...state.graphExplorerData,
       loading: true,
+      loadError: null,
     },
   };
 };

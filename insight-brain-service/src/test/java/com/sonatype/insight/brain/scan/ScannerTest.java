@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.scan;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -228,5 +229,22 @@ public class ScannerTest extends InjectedTest
     ScanItem item = scan.getItems().get(0);
     assertThat(item.getPath()).isEqualTo("sample-terraform.tfplan");
     assertThat(item.getContent()).isNull();
+  }
+
+  @Test
+  public void testScan_MustExclude__macosxFolder() throws IOException {
+    when(featuresService.getFeatures()).thenReturn(ImmutableSet.of(INFRASTRUCTURE_AS_CODE_PACK));
+    // macOS archive utility is adding a bogus folder in zip archives which causes exceptions bit.ly/3zMBiZF
+    // This is a zip I created with macOS archive utility that includes the unwanted __MACOS folder in the archive
+    File terraformFile = new File("src/test/resources/ScannerTest/aws.large.tfplan.zip");
+
+    ScanResult scanResult = scanner.scan(terraformFile, "aws.large.tfplan.zip", tempDir.getRoot(), null, null, null);
+
+    Scan scan = scanReader.read(scanResult.getScanFile());
+    //noinspection unchecked
+    List<ScanItem> scanItems = (List<ScanItem>) scan.getItems().get(0).getItems();
+    assertThat(scanItems).hasSize(1);
+    ScanItem scanItem = scanItems.get(0);
+    assertThat(scanItem.getPath()).isEqualTo("aws.large.tfplan");
   }
 }

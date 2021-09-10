@@ -49,6 +49,8 @@ import io.dropwizard.logging.AppenderFactory;
 import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.FileAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
+import io.dropwizard.request.logging.RequestLogFactory;
+import io.dropwizard.request.logging.old.LogbackClassicRequestLogFactory;
 import io.dropwizard.server.DefaultServerFactory;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -117,9 +119,20 @@ class SupportService
   }
 
   static File getRequestLog(final InsightConfig config) {
-    List<String> requestLogFilenames = getFilenames(
-        ((LogbackAccessRequestLogFactory) ((DefaultServerFactory) config.getServerFactory()).getRequestLogFactory())
-            .getAppenders());
+    RequestLogFactory<?> requestLogFactory = ((DefaultServerFactory) config.getServerFactory()).getRequestLogFactory();
+    List<String> requestLogFilenames = null;
+    if (requestLogFactory instanceof LogbackAccessRequestLogFactory) {
+      requestLogFilenames = getFilenames(((LogbackAccessRequestLogFactory) requestLogFactory).getAppenders());
+    }
+    else if (requestLogFactory instanceof LogbackClassicRequestLogFactory) {
+      requestLogFilenames = getFilenames(((LogbackClassicRequestLogFactory) requestLogFactory).getAppenders());
+    }
+    else {
+      log.warn("Cannot get list of request files. Unexpected class type for requestLogFactory: "
+          + requestLogFactory.getClass().getName());
+      return null;
+    }
+
     if (requestLogFilenames.isEmpty()) {
       return null;
     }

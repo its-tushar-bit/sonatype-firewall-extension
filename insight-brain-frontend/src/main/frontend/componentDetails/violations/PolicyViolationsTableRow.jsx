@@ -227,6 +227,7 @@ const PolicyViolationsWaiverButtons = ({
           onClick={openAddWaiverPopoverHandler}
           buttonContent="Add Waiver"
           disabled={!policyViolationId}
+          id="policy-violations-add-waiver-button"
         >
           <button className="nx-dropdown-button" onClick={openRequestWaiverPopoverHandler}>
             <span>Request Waiver</span>

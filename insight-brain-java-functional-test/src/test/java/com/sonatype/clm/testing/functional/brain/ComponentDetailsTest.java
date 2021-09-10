@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
@@ -376,6 +377,7 @@ public class ComponentDetailsTest
     row1Cells.shouldHave(texts("License-Banned", "License not approved in any situation",
         dateString, "Application - ApplicationReportTest", "com.mycila : license-maven-plugin : 2.11", "- -", ""));
     eyesWatcher.eyesCheck("component details violations tab component waivers popover");
+    componentWaiversTable.deleteWaiverButton(0).click();
     componentWaiversTable.deleteWaiverButton(1).click();
 
     ListWaiversPage.DeleteWaiverModal deleteWaiverModal = componentWaiversPopover.deleteWaiverModal();
@@ -385,6 +387,41 @@ public class ComponentDetailsTest
 
     componentWaiversTable.emptyTableMessage().shouldBe(visible);
     componentWaiversTable.emptyTableMessage().shouldHave(text("No existing component waivers"));
+  }
+
+  @Test
+  public void testPolicyViolationsTab_openAddWaiverPopover() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
+
+    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
+
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(1);
+    policyViolationsTable.addWaiverButton(0).shouldBe(visible);
+    policyViolationsTable.addWaiverButton(0).click();
+
+    AddWaiverPopover addWaiver = new AddWaiverPopover();
+
+    List<PolicyViolation> violations =
+        new PolicyViolationDAO().getActiveByApplicationIdAndStageIdAndHash(app.getId(), "build", HASH);
+    assertThat(violations).hasSize(1);
+
+    ComponentIdentifier componentIdentifier = violations.get(0).getComponentIdentifier();
+    assertThat(componentIdentifier.isMaven()).isTrue();
+    String artifactId = componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID);
+
+    addWaiver.artifactName().shouldHave(text(artifactId));
+
+    addWaiver.policyName().shouldHave(text(violations.get(0).getPolicyName()));
+    assertThat(violations.get(0).getConstraintFacts()).hasSize(1);
+    ConstraintFact constraintFact = violations.get(0).getConstraintFacts().get(0);
+    addWaiver.constraintName().shouldHave(text(constraintFact.getConstraintName()));
+    addWaiver.conditions().get(0).shouldHave(text(constraintFact.getConditionFacts().get(0).getReason()));
+
+    addWaiver.saveButton().shouldBe(visible, enabled).click();
+    policyViolationsTable.shouldBe(visible);
   }
 
   @Test
@@ -427,6 +464,7 @@ public class ComponentDetailsTest
     requestWaiver.requestWaiverCancelButton().click();
     policyViolationsTable.shouldBe(visible);
   }
+
 
   /* Part of testPolicyViolationsTab_violationTableEntries. */
   private void testGrandfatheringIndicator(final ComponentDetailsPage componentDetailsPage) {

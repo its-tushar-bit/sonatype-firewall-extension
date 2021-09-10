@@ -120,10 +120,12 @@ public class UserEventManagerTest
         .setApplicationId("app-completed");
 
     String reason = "for testing";
-    userEventManager.onEventPartiallyCompleted(completedEvent, reason);
+    Exception error = new Exception(reason);
+    userEventManager.onEventPartiallyCompleted(completedEvent, reason, error);
 
     // then: completed event should be marked as such and queued event should be sent for processing
-    verify(mockSourceControlEventDAO, times(1)).markEventPartiallyComplete(eq(completedEvent.getId()), eq(reason));
+    verify(mockSourceControlEventDAO, times(1)).markEventPartiallyComplete(eq(completedEvent.getId()), eq(reason),
+        eq(error));
     verify(mockSourceControlEventProcessor, times(1)).processEvent(eq(event), eq(userEventManager));
   }
 
@@ -176,10 +178,11 @@ public class UserEventManagerTest
     SourceControlEvent errorEvent =
         new SourceControlEvent().forRemediationPullRequest().withId("error-event").setApplicationId("errorApp");
     String errorMsg = "for testing";
-    userEventManager.onEventError(errorEvent, new Exception(errorMsg));
+    Exception error = new Exception(errorMsg);
+    userEventManager.onEventError(errorEvent, error);
 
     // then: event marked as error and no events processed
-    verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(errorEvent.getId()), eq(errorMsg));
+    verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(errorEvent.getId()), eq(errorMsg), eq(error));
     verify(mockSourceControlEventDAO, never()).insert(any());
     verify(mockSourceControlEventProcessor, never()).processEvent(eq(event), eq(userEventManager));
   }
@@ -199,8 +202,9 @@ public class UserEventManagerTest
     SourceControlEvent errorEvent =
         new SourceControlEvent().forRemediationPullRequest().withId("error-event").setApplicationId("errorApp");
     String errorMsg = "for testing";
+    Exception error = new UnknownHostException(errorMsg);
 
-    userEventManager.onEventError(errorEvent, new UnknownHostException(errorMsg));
+    userEventManager.onEventError(errorEvent, error);
 
     // the retry errors also have suspension rules associated with them;  so, we need to wait for the suspension to
     // expire and then do something to trigger event processing - such as simulating completion of an event
@@ -208,7 +212,7 @@ public class UserEventManagerTest
     userEventManager.onEventCompleted(createEvent().setEventType(SourceControlEvent.STATUS_UPDATE_EVENT));
 
     // then: event marked as error
-    verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(errorEvent.getId()), eq(errorMsg));
+    verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(errorEvent.getId()), eq(errorMsg), eq(error));
 
     // and then: the retry event was sent for processing
     verify(mockSourceControlEventProcessor, times(1))

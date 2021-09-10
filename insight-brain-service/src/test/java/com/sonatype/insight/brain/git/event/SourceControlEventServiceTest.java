@@ -304,12 +304,14 @@ public class SourceControlEventServiceTest
         "1:app2:" + SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT,
         "1:app2:" + SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
     final String errorMsg = "simulated";
+    Exception error1 = new SourceControlException(errorMsg, true);
+    Exception error2 = new IOException(errorMsg);
     when(mockSourceControlEventDAO
         .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
-    doThrow(new SourceControlException(errorMsg, true)).when(mockPullRequestCommentingEventHandler)
+    doThrow(error1).when(mockPullRequestCommentingEventHandler)
         .onDiscoveredPullRequest(any(SourceControlEvent.class));
-    doThrow(new IOException(errorMsg)).when(mockPullRequestRemediationService)
+    doThrow(error2).when(mockPullRequestRemediationService)
         .onRemediateComponent(any(SourceControlEvent.class));
 
     CountDownLatch event0Latch = createOnEventFinishedLatch(events.get(0));
@@ -329,12 +331,12 @@ public class SourceControlEventServiceTest
         EventProcessAction.onAppEval,
         EventProcessAction.markedComplete);
 
-    verifyProcessEventsActions(events.get(1), errorMsg,
+    verifyProcessEventsActions(events.get(1), errorMsg, error1,
         EventProcessAction.markedInProgress,
         EventProcessAction.onPrDiscovered,
         EventProcessAction.markedPartiallyComplete);
 
-    verifyProcessEventsActions(events.get(2), errorMsg,
+    verifyProcessEventsActions(events.get(2), errorMsg, error2,
         EventProcessAction.markedInProgress,
         EventProcessAction.onComponentRemediation,
         EventProcessAction.markedHasError);
@@ -528,7 +530,7 @@ public class SourceControlEventServiceTest
 
     // then:
     verifyUnlatched(eventsProcessedLatch);
-    verifyProcessEventsActions(event, "invalid event type",
+    verifyProcessEventsActions(event, "invalid event type", null,
         EventProcessAction.markedInProgress,
         EventProcessAction.markedHasError,
         EventProcessAction.noPropagation);
@@ -572,10 +574,11 @@ public class SourceControlEventServiceTest
         .setApplicationId("app1")
         .setEventType(SourceControlEvent.APPLICATION_EVALUATION_EVENT);
     final String errorMsg = "simulated error";
+    Exception error = new RuntimeException(errorMsg);
     when(mockSourceControlEventDAO
         .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(ImmutableList.of(event));
-    doThrow(new RuntimeException(errorMsg)).when(mockSourceControlEventDAO).markEventComplete(eq(event.getId()));
+    doThrow(error).when(mockSourceControlEventDAO).markEventComplete(eq(event.getId()));
 
     CountDownLatch eventsProcessedLatch = createOnEventFinishedLatch(event);
 
@@ -584,7 +587,7 @@ public class SourceControlEventServiceTest
 
     // then:
     verifyUnlatched(eventsProcessedLatch);
-    verifyProcessEventsActions(event, errorMsg,
+    verifyProcessEventsActions(event, errorMsg, error,
         EventProcessAction.markedInProgress,
         EventProcessAction.onAppEval,
         EventProcessAction.markedComplete);
@@ -605,13 +608,15 @@ public class SourceControlEventServiceTest
         .setEventType(SourceControlEvent.APPLICATION_EVALUATION_EVENT);
     event.setId("def456");
 
+    String errorMsg = "simulated";
+    Exception error = new RuntimeException(errorMsg);
     when(mockSourceControlEventDAO
         .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(ImmutableList.of(event));
-    doThrow(new RuntimeException("simulated")).when(mockPullRequestCommentingEventHandler)
+    doThrow(error).when(mockPullRequestCommentingEventHandler)
         .onApplicationEvaluation(eq(event));
-    doThrow(new RuntimeException("simulated")).when(mockSourceControlEventDAO)
-        .markEventHasError(eq(event.getId()), any());
+    doThrow(error).when(mockSourceControlEventDAO)
+        .markEventHasError(eq(event.getId()), any(), any());
 
     CountDownLatch eventsProcessedLatch = createOnEventFinishedLatch(event);
 
@@ -620,7 +625,7 @@ public class SourceControlEventServiceTest
 
     // then:
     verifyUnlatched(eventsProcessedLatch);
-    verifyProcessEventsActions(event, "simulated",
+    verifyProcessEventsActions(event, errorMsg, error,
         EventProcessAction.markedInProgress,
         EventProcessAction.onAppEval,
         EventProcessAction.markedHasError);
@@ -788,12 +793,13 @@ public class SourceControlEventServiceTest
   private void verifyProcessEventsActions(SourceControlEvent event, EventProcessAction... conditions)
       throws Exception
   {
-    verifyProcessEventsActions(event, "no message specified", conditions);
+    verifyProcessEventsActions(event, "no message specified", null, conditions);
   }
 
   private void verifyProcessEventsActions(
       SourceControlEvent event,
       String message,
+      Exception error,
       EventProcessAction... actions)
       throws Exception
   {
@@ -814,19 +820,19 @@ public class SourceControlEventServiceTest
     }
 
     if (actionSet.contains(EventProcessAction.markedHasError)) {
-      verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(event.getId()), eq(message));
+      verify(mockSourceControlEventDAO, times(1)).markEventHasError(eq(event.getId()), eq(message), eq(error));
     }
     else {
-      verify(mockSourceControlEventDAO, never()).markEventHasError(eq(event.getId()), any());
+      verify(mockSourceControlEventDAO, never()).markEventHasError(eq(event.getId()), any(), any());
     }
 
     if (actionSet.contains(EventProcessAction.markedPartiallyComplete)) {
       verify(mockSourceControlEventDAO, times(1))
-          .markEventPartiallyComplete(eq(event.getId()), eq(message));
+          .markEventPartiallyComplete(eq(event.getId()), eq(message), eq(error));
     }
     else {
       verify(mockSourceControlEventDAO, never())
-          .markEventPartiallyComplete(eq(event.getId()), any());
+          .markEventPartiallyComplete(eq(event.getId()), any(), any());
     }
 
     if (actionSet.contains(EventProcessAction.noPropagation)) {

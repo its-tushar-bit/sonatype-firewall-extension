@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -291,40 +292,70 @@ public class SourceControlEventDAOTest
   }
 
   @Test
-  public void testMarkEventHasError() {
+  public void testMarkEventHasError_NullException() {
+    testMarkEventHasError(null);
+  }
+
+  @Test
+  public void testMarkEventHasError_NotNullException() {
+    testMarkEventHasError(new Exception("test error message"));
+  }
+
+  private void testMarkEventHasError(Exception testException) {
     // given 4 new source control events
     createNewSourceControlEvents(4);
 
     // when we mark an event with an error
     sourceControlEventDAO.reserveEventsForInstance("1");
     SourceControlEvent sourceControlEvent = sourceControlEventDAO.selectEventsForInstance("1", 1).get(0);
-    sourceControlEventDAO.markEventHasError(sourceControlEvent.getId(), "error message");
+    sourceControlEventDAO.markEventHasError(sourceControlEvent.getId(), "error message", testException);
 
     // then the event is marked with the error message and a complete time
     SourceControlEvent sourceControlEventById = sourceControlEventDAO.getById(sourceControlEvent.getId());
     assertThat(sourceControlEventById.getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_ERROR);
     assertThat(sourceControlEventById.getEventStatusDetails()).isEqualTo("error message");
     assertThat(sourceControlEventById.getCompleteTime()).isAfter(testStartTime);
+    if (testException == null) {
+      assertThat(sourceControlEventById.getEventErrorDetails()).isNull();
+    }
+    else {
+      assertThat(sourceControlEventById.getEventErrorDetails()).isEqualTo(ExceptionUtils.getStackTrace(testException));
+    }
   }
 
   @Test
-  public void testMarkEventPartiallyComplete() {
+  public void testMarkEventPartiallyComplete_NullException() {
+    testMarkEventPartiallyComplete(null);
+  }
+
+  @Test
+  public void testMarkEventPartiallyComplete_NotNullException() {
+    testMarkEventPartiallyComplete(new Exception("test error message"));
+  }
+
+  private void testMarkEventPartiallyComplete(Exception testException) {
     // given 4 new source control events
     createNewSourceControlEvents(4);
 
     // when we mark an event with an error
     sourceControlEventDAO.reserveEventsForInstance("1");
     SourceControlEvent sourceControlEvent = sourceControlEventDAO.selectEventsForInstance("1", 1).get(0);
-    sourceControlEventDAO.markEventPartiallyComplete(sourceControlEvent.getId(), "informational message");
+    sourceControlEventDAO.markEventPartiallyComplete(sourceControlEvent.getId(), "informational message",
+        testException);
 
     // then the event is marked with partial completion message and a complete time
     SourceControlEvent sourceControlEventById = sourceControlEventDAO.getById(sourceControlEvent.getId());
     assertThat(sourceControlEventById.getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE);
     assertThat(sourceControlEventById.getEventStatusDetails()).isEqualTo("informational message");
     assertThat(sourceControlEventById.getCompleteTime()).isAfter(testStartTime);
+    if (testException == null) {
+      assertThat(sourceControlEventById.getEventErrorDetails()).isNull();
+    }
+    else {
+      assertThat(sourceControlEventById.getEventErrorDetails()).isEqualTo(ExceptionUtils.getStackTrace(testException));
+    }
   }
 
-  @Test
   public void testDeleteByApplicationId() {
     // when we have events for different application ids
     createNewSourceControlEvents(2);

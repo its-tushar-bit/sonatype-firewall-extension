@@ -13,7 +13,7 @@ public interface SourceControlEventStatusListener
 
   void onEventError(SourceControlEvent sourceControlEvent, Exception e);
 
-  void onEventPartiallyCompleted(SourceControlEvent sourceControlEvent, String reason);
+  void onEventPartiallyCompleted(SourceControlEvent sourceControlEvent, String reason, Exception e);
 
   void onEventStarted(SourceControlEvent sourceControlEvent);
 }

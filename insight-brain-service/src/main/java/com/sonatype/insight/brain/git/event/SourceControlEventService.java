@@ -314,7 +314,7 @@ public class SourceControlEventService
         default:
           log.warn("Invalid source control event type '{}' for event '{}'", event.getEventType(), event.getId());
           success = false;
-          sourceControlEventDAO.markEventHasError(event.getId(), "invalid event type");
+          sourceControlEventDAO.markEventHasError(event.getId(), "invalid event type", null);
       }
     }
     catch (Exception e) {
@@ -329,12 +329,12 @@ public class SourceControlEventService
     if (e instanceof SourceControlException && ((SourceControlException)e).isPartialFailure()) {
       log.warn("Partially processed event '{}' of type '{}' for application '{}' : {}", event.getId(),
           event.getEventType(), event.getApplicationId(), e.getMessage(), e);
-      sourceControlEventDAO.markEventPartiallyComplete(event.getId(), e.getMessage());
+      sourceControlEventDAO.markEventPartiallyComplete(event.getId(), e.getMessage(), e);
     }
     else {
       log.error("Unable to process event '{}' of type '{}' for application '{}' : {}", event.getId(),
           event.getEventType(), event.getApplicationId(), e.getMessage(), e);
-      sourceControlEventDAO.markEventHasError(event.getId(), e.getMessage());
+      sourceControlEventDAO.markEventHasError(event.getId(), e.getMessage(), e);
     }
   }
 

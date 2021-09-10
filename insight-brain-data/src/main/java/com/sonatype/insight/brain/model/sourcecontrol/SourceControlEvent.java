@@ -101,6 +101,9 @@ public class  SourceControlEvent
   @Column(name = "event_status_details")
   private String eventStatusDetails;
 
+  @Column(name = "event_error_details")
+  private String eventErrorDetails;
+
   @Column(name = "commit_hash")
   private String commitHash;
 
@@ -268,6 +271,14 @@ public class  SourceControlEvent
   public SourceControlEvent setEventStatusDetails(final String eventStatusDetails) {
     this.eventStatusDetails = eventStatusDetails;
     return this;
+  }
+
+  public String getEventErrorDetails() {
+    return eventErrorDetails;
+  }
+
+  public void setEventErrorDetails(String eventErrorDetails) {
+    this.eventErrorDetails = eventErrorDetails;
   }
 
   public String getCommitHash() {

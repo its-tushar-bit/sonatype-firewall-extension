@@ -239,7 +239,7 @@ public class SourceControlEventProcessor
     if (e instanceof SourceControlException && ((SourceControlException) e).isPartialFailure()) {
       log.warn("Partially processed event '{}' of type '{}' for application '{}' : {}", event.getId(),
           event.getEventType(), event.getApplicationId(), e.getMessage(), e);
-      event.onPartiallyComplete(e.getMessage());
+      event.onPartiallyComplete(e.getMessage(), e);
     }
     else {
       log.error("Unable to process event '{}' of type '{}' for application '{}' : {}", event.getId(),
@@ -306,8 +306,8 @@ public class SourceControlEventProcessor
       sourceControlEventStatusListener.onEventError(sourceControlEvent, e);
     }
 
-    public void onPartiallyComplete(String reason) {
-      sourceControlEventStatusListener.onEventPartiallyCompleted(sourceControlEvent, reason);
+    public void onPartiallyComplete(String reason, Exception e) {
+      sourceControlEventStatusListener.onEventPartiallyCompleted(sourceControlEvent, reason, e);
     }
 
     public void onEventStarted() {

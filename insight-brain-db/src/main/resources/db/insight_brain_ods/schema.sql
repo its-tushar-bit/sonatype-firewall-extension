@@ -783,6 +783,7 @@ CREATE TABLE source_control_event (
   event_priority int NOT NULL DEFAULT 2,
   event_status varchar(50) NOT NULL,
   event_status_details varchar(2048),
+  event_error_details text NULL,
   commit_hash varchar(128),
   policy_evaluation_id varchar(50),
   policy_evaluation_outcome varchar(20),

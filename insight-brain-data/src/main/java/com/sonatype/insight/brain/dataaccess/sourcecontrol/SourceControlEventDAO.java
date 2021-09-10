@@ -18,6 +18,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -156,19 +157,26 @@ public class SourceControlEventDAO
     log.debug(UPDATED_EVENT_WITH_STATUS, eventId, EVENT_STATUS_COMPLETE);
   }
 
-  public void markEventHasError(final String eventId, final String errorMessage) {
-    markEventFinishedWithMessage(eventId, errorMessage, EVENT_STATUS_ERROR);
+  public void markEventHasError(final String eventId, final String errorMessage, Exception eventException) {
+    markEventFinishedWithMessage(eventId, errorMessage, EVENT_STATUS_ERROR, eventException);
   }
 
-  public void markEventPartiallyComplete(final String eventId, final String message) {
-    markEventFinishedWithMessage(eventId, message, EVENT_STATUS_PARTIALLY_COMPLETE);
+  public void markEventPartiallyComplete(final String eventId, final String message, Exception eventException) {
+    markEventFinishedWithMessage(eventId, message, EVENT_STATUS_PARTIALLY_COMPLETE, eventException);
   }
 
-  private void markEventFinishedWithMessage(final String eventId, final String message, final String eventStatus) {
-    String sQuery = UPDATE_ENTITY +
-        "SET entity.eventStatus=?2, entity.eventStatusDetails=?3, entity.completeTime=?4 " +
+  private void markEventFinishedWithMessage(
+      final String eventId,
+      final String message,
+      final String eventStatus,
+      Exception eventException)
+  {
+    String eventErrorDetails = eventException == null ? null : ExceptionUtils.getStackTrace(eventException);
+    String sQuery = UPDATE_ENTITY + //
+        "SET entity.eventStatus=?2, entity.eventStatusDetails=?3, " + //
+        "entity.eventErrorDetails=?4, entity.completeTime=?5 " + //
         WHERE_ENTITY_ID_MATCHES;
-    createQuery(sQuery, eventId, eventStatus, StringUtils.abbreviate(message, 2048),
+    createQuery(sQuery, eventId, eventStatus, StringUtils.abbreviate(message, 2048), eventErrorDetails,
         new Timestamp(System.currentTimeMillis())).executeUpdate();
     log.debug(UPDATED_EVENT_WITH_STATUS, eventId, eventStatus);
   }

@@ -126,11 +126,11 @@ public class UserEventManager
   }
 
   @Override
-  public void onEventPartiallyCompleted(SourceControlEvent event, String reason) {
+  public void onEventPartiallyCompleted(SourceControlEvent event, String reason, Exception e) {
     synchronized (prioritizedEventMap) {
       log.debug("Source control event event '{}' of type '{}' for application '{}' partially complete because {}",
           event.getId(), event.getEventType(), event.getApplicationId(), reason);
-      sourceControlEventDAO.markEventPartiallyComplete(event.getId(), reason);
+      sourceControlEventDAO.markEventPartiallyComplete(event.getId(), reason, e);
       eventsInProgress.remove(event.getApplicationId());
       notifyEventProcessedListeners(event);
       processRetryEvents();
@@ -143,7 +143,7 @@ public class UserEventManager
     synchronized (prioritizedEventMap) {
       log.debug("Error processing source control event '{}' of type '{}' for application '{}': {}", event.getId(),
           event.getEventType(), event.getApplicationId(), e.getMessage(), e);
-      sourceControlEventDAO.markEventHasError(event.getId(), e.getMessage());
+      sourceControlEventDAO.markEventHasError(event.getId(), e.getMessage(), e);
       eventsInProgress.remove(event.getApplicationId());
       handleEventProcessingError(event, e);
     }
@@ -236,7 +236,7 @@ public class UserEventManager
     for (SourceControlEvent event : events) {
       if (!repositoryUrlErrorRule.canPushEvent(event)) {
         log.trace("Repository URL error limit exceeded for source control event '{}'", event.getEventType());
-        sourceControlEventDAO.markEventHasError(event.getId(), "Repository URL error limit exceeded");
+        sourceControlEventDAO.markEventHasError(event.getId(), "Repository URL error limit exceeded", null);
         ignoredEvents.add(event);
         continue;
       }

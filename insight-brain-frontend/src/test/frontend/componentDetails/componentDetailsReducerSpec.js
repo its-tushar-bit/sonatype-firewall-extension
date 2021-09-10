@@ -54,15 +54,16 @@ describe('componentDetailsReducer', function () {
     });
   });
 
-  describe('LOAD_COMPONENT_LABELS_FULLFILED action', function () {
+  describe('LOAD_COMPONENT_LABELS_FULFILLED action', function () {
     it('adds labels value and removes "labels" pending load', function () {
       const state = { pendingLoads: new Set(), labels: [], loadError: null };
       const newState = reduce(state, {
-        type: 'LOAD_COMPONENT_LABELS_FULLFILED',
+        type: 'LOAD_COMPONENT_LABELS_FULFILLED',
         payload: [],
       });
       expect(newState.pendingLoads.size).toEqual(0);
       expect(newState.labels).toEqual([]);
+      expect(newState.loadError).toBeNull();
     });
   });
 
@@ -75,6 +76,22 @@ describe('componentDetailsReducer', function () {
       });
       expect(newState.pendingLoads.size).toEqual(0);
       expect(newState.loadError).toEqual('error');
+    });
+
+    it('clears error state on retry', function () {
+      const state = { pendingLoads: new Set(), labels: [], loadError: null };
+      const newState = reduce(state, {
+        type: 'LOAD_COMPONENT_LABELS_FAILED',
+        payload: 'error',
+      });
+      expect(newState.pendingLoads.size).toEqual(0);
+      expect(newState.loadError).toEqual('error');
+
+      const retryState = reduce(newState, {
+        type: 'LOAD_COMPONENT_LABELS_FULFILLED',
+        payload: [],
+      });
+      expect(retryState.loadError).toBeNull();
     });
   });
 });

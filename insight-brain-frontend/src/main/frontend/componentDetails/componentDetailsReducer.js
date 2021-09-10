@@ -7,7 +7,7 @@ import { curryN } from 'ramda';
 
 import {
   LOAD_COMPONENT_LABELS_REQUESTED,
-  LOAD_COMPONENT_LABELS_FULLFILED,
+  LOAD_COMPONENT_LABELS_FULFILLED,
   LOAD_COMPONENT_LABELS_FAILED,
 } from './componentDetailsActions';
 
@@ -22,10 +22,11 @@ export default function applicationReportReducer(state = initState, { type, payl
     case LOAD_COMPONENT_LABELS_REQUESTED:
       return setPendingLoads(['labels'], state);
 
-    case LOAD_COMPONENT_LABELS_FULLFILED:
+    case LOAD_COMPONENT_LABELS_FULFILLED:
       return unsetPendingLoads(['labels'], {
         ...state,
         labels: payload,
+        loadError: null,
       });
 
     case LOAD_COMPONENT_LABELS_FAILED:

@@ -11,7 +11,7 @@ import * as applicationReportActions from '../../../main/frontend/applicationRep
 
 const {
   LOAD_COMPONENT_LABELS_REQUESTED,
-  LOAD_COMPONENT_LABELS_FULLFILED,
+  LOAD_COMPONENT_LABELS_FULFILLED,
   LOAD_COMPONENT_LABELS_FAILED,
   loadComponentDetails,
 } = componentDetailsActions;
@@ -64,7 +64,7 @@ describe('componentDetailsActions', function () {
       store.dispatch(loadComponentDetails()).then(() => {
         expect(axios.get).toHaveBeenCalledWith(url);
         expect(store.getActions().length).toBe(3);
-        expect(store.getActions()).toHaveActionType(LOAD_COMPONENT_LABELS_FULLFILED);
+        expect(store.getActions()).toHaveActionType(LOAD_COMPONENT_LABELS_FULFILLED);
         done();
       });
     });
@@ -78,7 +78,7 @@ describe('componentDetailsActions', function () {
       store.dispatch(loadComponentDetails()).then(() => {
         expect(store.getActions().length).toBe(3);
         expect(store.getActions()).toHaveAction({
-          type: LOAD_COMPONENT_LABELS_FULLFILED,
+          type: LOAD_COMPONENT_LABELS_FULFILLED,
           payload: [{ test: 'test' }],
         });
         done();

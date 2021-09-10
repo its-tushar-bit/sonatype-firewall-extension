@@ -12,7 +12,7 @@ import { loadReport } from '../applicationReport/applicationReportActions';
 import { reduce } from 'ramda';
 
 export const LOAD_COMPONENT_LABELS_REQUESTED = 'LOAD_COMPONENT_LABELS_REQUESTED';
-export const LOAD_COMPONENT_LABELS_FULLFILED = 'LOAD_COMPONENT_LABELS_FULFILLED';
+export const LOAD_COMPONENT_LABELS_FULFILLED = 'LOAD_COMPONENT_LABELS_FULFILLED';
 export const LOAD_COMPONENT_LABELS_FAILED = 'LOAD_COMPONENT_LABELS_FAILED';
 
 const loadComponentLabelsFailed = httpErrorMessageActionCreator(LOAD_COMPONENT_LABELS_FAILED);
@@ -43,7 +43,7 @@ export const loadComponentDetails = () => {
         );
 
         dispatch({
-          type: LOAD_COMPONENT_LABELS_FULLFILED,
+          type: LOAD_COMPONENT_LABELS_FULFILLED,
           payload: labels,
         });
       })

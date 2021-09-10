@@ -609,7 +609,28 @@ public class ApplicationReportCipTest
     LicenseCIP.licenseSelector().shouldNot(exist);
     LicenseCIP.updateButton().shouldNotBe(enabled);
 
-    // Update to Selected state
+    // Update to Overridden for Root Organization
+    LicenseCIP.scope().selectOption("Root Organization");
+    LicenseCIP.status().selectOption("Overridden");
+    LicenseCIP.licenseSelector().button().shouldBe(visible).click();
+    LicenseCIP.licenseSelector().entry(0).click();
+    LicenseCIP.licenseSelector().button().click();
+    LicenseCIP.comment().setValue("root override");
+    LicenseCIP.updateButton().shouldBe(enabled).click();
+
+    // Update to Inherited (Overridden) for Application
+    LicenseCIP.scope().selectOption("ApplicationReportTest");
+    LicenseCIP.status().selectOption("Inherit Status (Overridden)");
+    LicenseCIP.updateButton().shouldBe(enabled).click();
+
+    // Update to Open for Root Organization
+    LicenseCIP.scope().shouldHave(text("Root Organization"));
+    LicenseCIP.status().shouldHave(value("Overridden"));
+    LicenseCIP.status().selectOption("Open");
+    LicenseCIP.updateButton().shouldBe(enabled).click();
+
+    // Update to Selected state for Application
+    LicenseCIP.scope().selectOption("ApplicationReportTest");
     LicenseCIP.status().selectOption("Selected");
     LicenseCIP.licenseSelector().button().shouldBe(visible).click();
     LicenseCIP.licenseSelector().entries().shouldHave(texts("Apache-2.0", "GPL-2.0"));

@@ -131,6 +131,68 @@ describe('CIP License Editor', function () {
     delete Insight.updateSummary;
   });
 
+  describe('Org with override and App without override', function () {
+    beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
+      $httpBackend
+        .expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true'))
+        .respond(LicenseGroupMockData.getLicensesData());
+      $httpBackend
+        .expectGET(
+          SpecUtil.toRegExp(
+            CLM.path +
+              'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
+          )
+        )
+        .respond(getLicenseWithThreats());
+      $httpBackend
+        .expectGET(
+          SpecUtil.toRegExp(
+            CLM.path +
+              'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
+          )
+        )
+        .respond(getAppliedLicenseOverrides(null, null, 'OVERRIDDEN', 'AFL-1.2'));
+      $controller('LicenseEditorController as vm', {
+        $scope: scope,
+      });
+      $httpBackend.flush();
+    }));
+
+    afterEach(inject(function ($httpBackend) {
+      $httpBackend.verifyNoOutstandingExpectation();
+      $httpBackend.verifyNoOutstandingRequest();
+    }));
+
+    it('does not delete if there is no license override', inject(function ($httpBackend, SelectedComponent) {
+      $httpBackend
+        .expectGET(
+          SpecUtil.toRegExp(
+            CLM.path +
+              'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
+          )
+        )
+        .respond(getLicenseWithThreats());
+
+      scope.$apply(function () {
+        scope.override.ownerId = 'bom1-12345678';
+        scope.override.status = 'DELETE';
+        scope.save();
+      });
+      $httpBackend.flush();
+
+      expect(scope.override).toEqual({
+        ownerId: 'org1',
+        status: 'OVERRIDDEN',
+        licenseIds: ['AFL-1.2'],
+      });
+      expect(scope.canInherit()).toBeTruthy();
+      expect(scope.getInheritableStatus()).toEqual('Open');
+    }));
+  });
+
   describe('App+Org with Overrides', function () {
     beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
       $httpBackend

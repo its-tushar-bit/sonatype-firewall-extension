@@ -192,6 +192,19 @@ export default function LicenseEditorController($scope, $q, $http, Messages, Sel
     );
   };
 
+  function getCreateComponentRequest() {
+    return createComponentRequest().then(
+      function (updatedComponent) {
+        $scope.saving = false;
+        updateTable(updatedComponent.data);
+      },
+      function (error) {
+        $scope.saving = false;
+        $scope.alert = Messages.getHttpErrorMessage(error);
+      }
+    );
+  }
+
   $scope.save = function () {
     $scope.saving = true;
 
@@ -215,6 +228,10 @@ export default function LicenseEditorController($scope, $q, $http, Messages, Sel
     licenseOverride.ownerId = owner.ownerId;
 
     if (licenseOverride.status === 'DELETE') {
+      if (!owner.licenseOverride) {
+        $scope.reset();
+        return getCreateComponentRequest();
+      }
       $http['delete'](
         CLM.path +
           'rest/licenseOverride/' +
@@ -228,16 +245,7 @@ export default function LicenseEditorController($scope, $q, $http, Messages, Sel
           owner.licenseOverride = null;
           $scope.reset();
 
-          return createComponentRequest().then(
-            function (updatedComponent) {
-              $scope.saving = false;
-              updateTable(updatedComponent.data);
-            },
-            function (error) {
-              $scope.saving = false;
-              $scope.alert = Messages.getHttpErrorMessage(error);
-            }
-          );
+          return getCreateComponentRequest();
         },
         function (error) {
           $scope.alert = Messages.getHttpErrorMessage(error);
@@ -250,16 +258,7 @@ export default function LicenseEditorController($scope, $q, $http, Messages, Sel
           owner.licenseOverride = response.data;
           $scope.reset();
 
-          return createComponentRequest().then(
-            function (updatedComponent) {
-              $scope.saving = false;
-              updateTable(updatedComponent.data);
-            },
-            function (error) {
-              $scope.saving = false;
-              $scope.alert = Messages.getHttpErrorMessage(error);
-            }
-          );
+          return getCreateComponentRequest();
         },
         function (error) {
           $scope.alert = Messages.getHttpErrorMessage(error);

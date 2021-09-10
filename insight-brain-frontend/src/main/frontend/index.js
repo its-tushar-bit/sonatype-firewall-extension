@@ -41,7 +41,6 @@ import pv from './lib/protovis/protovis.min';
 import Fuse from 'fuse.js';
 import ClassyBrew from 'classybrew/src/classybrew';
 
-import './utility/axiosConfig';
 import './utility/Polyfills';
 import './util/Globals';
 import './ManagementApp';

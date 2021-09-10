@@ -5,10 +5,100 @@
  */
 
 import axios from 'axios';
+import isIqIframe from '../util/isIqFrame';
+import UnauthenticatedRequestQueueService from './services/unauthenticated.request.queue.service';
 
-import { pathSet } from '../util/jsUtil';
+/**
+ * @param setServerDate   Angular service SessionSecurityService setServerDate method.
+ * @param rootScope       Angular's $rootScope variable.
+ * @param window     Angular's $window variable.
+ * @param showModal     Angular service LoginModalService show method.
+ **/
 
-// Http cache-buster interceptor
-axios.interceptors.request.use((config) => pathSet(['params', 'timestamp'], Date.now(), config));
-axios.defaults.xsrfHeaderName = 'X-CSRF-TOKEN';
-axios.defaults.xsrfCookieName = 'CLM-CSRF-TOKEN';
+export const attachAxiosInterceptors = (setServerDate, rootScope, window, showModal) => {
+  // http interceptor
+  axios.interceptors.response.use(
+    (response) => {
+      return response;
+    },
+    (error) => {
+      const isUnauthorized = error.response.status === 401;
+      if (isUnauthorized) {
+        // rootScope.username will be present if this is the top frame and login had already succeeded previously.
+        // If we are in a child frame (for a report), the username won't be available but we can still detect that
+        // we are in a child frame.
+        if (rootScope.username || isIqIframe(window)) {
+          // session expired - tell SessionSecurityService of the main IQ UI, which resides in the top frame of
+          // the page.
+          window.top.sessionExpired();
+        } else {
+          if (error.response.config && error.response.config.waitForLogin === false) {
+            return Promise.reject(error.response);
+          } else {
+            UnauthenticatedRequestQueueService.addRequest(() => {
+              // simply replay the request
+              axios(error.response.config)
+                .then(() => Promise.resolve(arguments[0]))
+                .catch(() => Promise.reject(arguments[0]));
+            });
+
+            const authenticate = (showSamlSso, identityProviderName) => {
+              return showModal(showSamlSso, identityProviderName);
+            };
+
+            if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
+              authenticate(
+                error.response.headers('WWW-Authenticate') === 'SAML',
+                error.response.headers('X-SAML-IdP')
+              ).then(
+                () => {
+                  Promise.all(UnauthenticatedRequestQueueService.getPromises()).finally(() =>
+                    UnauthenticatedRequestQueueService.clearRequests()
+                  );
+                },
+                () => {
+                  // login was cancelled
+                  UnauthenticatedRequestQueueService.clearRequests();
+                }
+              );
+            }
+          }
+        }
+      }
+      return Promise.reject(error);
+    }
+  );
+
+  // cache busting interceptor factory, which handles adding a timestamp query parameter to each request
+  axios.interceptors.request.use(
+    function (config) {
+      // Do something before request is sent
+      if (
+        (config.url.indexOf('/rest/') > -1 || config.url.indexOf('/api/') > -1 || config.url.indexOf('.json') > -1) &&
+        config.url.indexOf('timestamp=') < 0
+      ) {
+        config.params = config.params || {};
+        config.params.timestamp = new Date().getTime();
+      }
+      config.xsrfCookieName = 'CLM-CSRF-TOKEN';
+      config.xsrfHeaderName = 'X-CSRF-TOKEN';
+      return config;
+    },
+    function (error) {
+      // Do something with request error
+      return Promise.reject(error);
+    }
+  );
+
+  // iq interceptor
+  axios.interceptors.response.use(function (response) {
+    const { date: dateString } = response.headers;
+    const serverDate = dateString ? new Date(dateString) : undefined;
+
+    if (serverDate) {
+      setServerDate(serverDate);
+    }
+
+    return response;
+  });
+};

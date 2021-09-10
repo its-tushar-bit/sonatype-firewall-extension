@@ -65,7 +65,8 @@ public class SessionTimeoutTest
    * Test that when the session expires (simulated by deleting the cookie), that the next authentication-requiring
    * HTTP request causes the page to reload back to the login screen
    */
-  //@Test see CLM-18674
+ 
+  @Test
   public void testReloginPromptOnAjaxDetectedSessionExpiration() {
     refreshOrOpen(ProductLicensePage.url());
     loginAsAdmin();

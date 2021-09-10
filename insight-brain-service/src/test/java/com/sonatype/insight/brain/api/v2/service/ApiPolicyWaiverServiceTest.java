@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -14,7 +15,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
@@ -23,11 +26,16 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
@@ -40,6 +48,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -85,6 +94,12 @@ public class ApiPolicyWaiverServiceTest
   private Organization org;
 
   private final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+
+  @Inject
+  private PolicyDAO policyDAO;
+
+  @Inject
+  private OwnerDAO ownerDAO;
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -1084,5 +1099,177 @@ public class ApiPolicyWaiverServiceTest
     assertThat(policyViolationValue.getId()).isEqualTo(policyViolation.getId());
     assertThat(policyWaiverValue).isNotNull();
     assertThat(policyWaiverValue.getId()).isEqualTo(policyWaiver.getId());
+  }
+
+  @Test
+  public void testGetTransitivePolicyWaiversByAppScanComponent_NotAnApp() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(OwnerType.ORGANIZATION, null, null,
+            null, null, null)
+    ).withMessageContaining("scanId can only be specified for an application.");
+  }
+
+  @Test
+  public void testGetTransitivePolicyWaiversByAppScanComponent_NoComponentIdentifier_NoPackageUrl_NoHash() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(OwnerType.APPLICATION, null,
+            null, null, null, null)
+    ).withMessageContaining("componentIdentifier or packageUrl or hash must be specified.");
+  }
+
+  @Test
+  public void testGetTransitivePolicyWaiversByAppScanComponent_AppNotFound() {
+    String appId = "unknown";
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(OwnerType.APPLICATION, appId, null,
+            null, null, "hash")
+    ).withMessageContaining("Could not find an application with ID " + appId + ".");
+  }
+
+  @Test
+  public void testGetTransitivePolicyWaiversByAppScanComponent_ScanNotFound() {
+    String scanId = "unknown";
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(OwnerType.APPLICATION, app.getId(),
+            scanId, null, null, "hash")
+    ).withMessageContaining("scanId " + scanId + " not found for application " + app.getPublicId() + ".");
+  }
+
+  @Test
+  public void testGetTransitivePolicyWaiversByAppScanComponent() {
+    Application app = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver appWaiver = tempEntity.newWaiver("hash1", policy.getId(), app.getId());
+    PolicyWaiver orgWaiver = tempEntity.newWaiver("hash2", policy.getId(), app.getParentOwnerId());
+    PolicyWaiver rootOrgWaiver = tempEntity.newWaiver("hash3", policy.getId(), Organization.ROOT_ORGANIZATION_ID);
+    List<PolicyWaiver> expectedWaivers = Arrays.asList(appWaiver, orgWaiver, rootOrgWaiver);
+    List<Component> components = createComponents("hash1", "hash2", "hash3", "hash4");
+    List<Component> expectedComponents = new ArrayList<>();
+    expectedComponents.add(new Component());
+    expectedComponents.addAll(components);
+    when(apiPolicyViolationServiceV2Mock.getTransitiveComponentsByAppScanComponent(app.getId(), scanId, null, null,
+        "hash")).thenReturn(components);
+
+    ApiComponentPolicyWaiversDTO result =
+        apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(OwnerType.APPLICATION, app.getId(), scanId,
+            null, null, "hash");
+
+    assertApiComponentPolicyWaiversDTO(result, expectedWaivers, expectedComponents);
+  }
+
+  private List<Component> createComponents(String... hashes) {
+    return Arrays.stream(hashes).map(this::createComponent).collect(Collectors.toList());
+  }
+
+  private Component createComponent(String hash) {
+    Component component = new Component();
+    component.setHash(hash);
+    component.setDisplayName(hash + " name");
+    return component;
+  }
+
+  @Test
+  public void testGetPolicyWaivers_ByComponentHashes_EmptyComponentHashes() {
+    Organization rootOrg = new OrganizationDAO().getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    List<PolicyWaiver> expectedWaivers = createPolicyWaivers(null, rootOrg, org, app);
+    List<Component> expectedComponents = Collections.singletonList(new Component());
+    createPolicyWaivers("hash", rootOrg, org, app);
+    ApiComponentPolicyWaiversDTO result;
+
+    result = apiPolicyWaiverService.getPolicyWaivers(app, Stream.empty());
+    assertApiComponentPolicyWaiversDTO(result, expectedWaivers, expectedComponents);
+    result = apiPolicyWaiverService.getPolicyWaivers(org, Stream.empty());
+    assertApiComponentPolicyWaiversDTO(result, expectedWaivers.subList(0, 2), expectedComponents);
+    result = apiPolicyWaiverService.getPolicyWaivers(rootOrg, Stream.empty());
+    assertApiComponentPolicyWaiversDTO(result, expectedWaivers.subList(0, 1), expectedComponents);
+  }
+
+  @Test
+  public void testGetPolicyWaivers_ByComponentHashes() {
+    Organization rootOrg = new OrganizationDAO().getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    List<PolicyWaiver> waiversNullHash = createPolicyWaivers(null, rootOrg, org, app);
+    List<PolicyWaiver> waiversHash = createPolicyWaivers("hash", rootOrg, org, app);
+    PolicyWaiver waiverRootOrg = createPolicyWaiver("hashRootOrg", rootOrg);
+    PolicyWaiver waiverOrg = createPolicyWaiver("hashOrg", org);
+    PolicyWaiver waiverApp = createPolicyWaiver("hashApp", app);
+    createPolicyWaivers("hash2", rootOrg, org, app);
+    List<Component> components = createComponents("hash", "hashRootOrg", "hashOrg", "hashApp");
+    List<Component> expectedComponents = new ArrayList<>();
+    expectedComponents.add(new Component());
+    expectedComponents.addAll(components);
+    ApiComponentPolicyWaiversDTO result;
+    List<PolicyWaiver> expectedWaivers;
+
+    result = apiPolicyWaiverService.getPolicyWaivers(app, components.stream());
+    expectedWaivers = new ArrayList<>();
+    expectedWaivers.addAll(waiversNullHash);
+    expectedWaivers.addAll(waiversHash);
+    expectedWaivers.add(waiverRootOrg);
+    expectedWaivers.add(waiverOrg);
+    expectedWaivers.add(waiverApp);
+    assertApiComponentPolicyWaiversDTO(result, expectedWaivers, expectedComponents);
+
+    result = apiPolicyWaiverService.getPolicyWaivers(org, components.stream());
+    expectedWaivers = new ArrayList<>();
+    expectedWaivers.addAll(waiversNullHash.subList(0, 2));
+    expectedWaivers.addAll(waiversHash.subList(0, 2));
+    expectedWaivers.add(waiverRootOrg);
+    expectedWaivers.add(waiverOrg);
+    assertApiComponentPolicyWaiversDTO(result, expectedWaivers, expectedComponents);
+
+    result = apiPolicyWaiverService.getPolicyWaivers(rootOrg, components.stream());
+    expectedWaivers = new ArrayList<>();
+    expectedWaivers.addAll(waiversNullHash.subList(0, 1));
+    expectedWaivers.addAll(waiversHash.subList(0, 1));
+    expectedWaivers.add(waiverRootOrg);
+    assertApiComponentPolicyWaiversDTO(result, expectedWaivers, expectedComponents);
+  }
+
+  private List<PolicyWaiver> createPolicyWaivers(String hash, Owner... owners) {
+    return Arrays.stream(owners).map(owner -> createPolicyWaiver(hash, owner)).collect(Collectors.toList());
+  }
+
+  private PolicyWaiver createPolicyWaiver(String hash, Owner owner) {
+    return tempEntity.newWaiver(hash, tempEntity.newPolicy().getId(), owner.getId());
+  }
+
+  private void assertApiComponentPolicyWaiversDTO(
+      ApiComponentPolicyWaiversDTO actual,
+      List<PolicyWaiver> expectedWaivers,
+      List<Component> expectedComponents)
+  {
+    assertThat(actual).isNotNull();
+    assertThat(actual.componentPolicyWaivers).hasSize(expectedWaivers.size());
+    for (PolicyWaiver policyWaiver : expectedWaivers) {
+      ApiPolicyWaiverDTO policyWaiverDTO = actual.componentPolicyWaivers.stream()
+          .filter(a -> a.policyWaiverId.equals(policyWaiver.getId()))
+          .findFirst()
+          .orElse(null);
+      assertThat(policyWaiverDTO).isNotNull();
+      assertThat(policyWaiverDTO.policyId).isEqualTo(policyWaiver.getPolicyId());
+      assertThat(policyWaiverDTO.policyName).isEqualTo(policyDAO.getById(policyWaiver.getPolicyId()).getName());
+      Owner owner = ownerDAO.getById(policyWaiver.getOwnerId());
+      assertThat(policyWaiverDTO.scopeOwnerId).isEqualTo(owner.getId());
+      assertThat(policyWaiverDTO.scopeOwnerName).isEqualTo(owner.getName());
+      assertThat(policyWaiverDTO.scopeOwnerType).isEqualTo(
+          ScopeOwnerUtils.getScopeOwnerType(owner.getType(), owner.getId()));
+      assertThat(policyWaiverDTO.hash).isEqualTo(policyWaiver.getHash());
+      assertThat(policyWaiverDTO.createTime).isEqualTo(policyWaiver.getCreateTime());
+      assertThat(policyWaiverDTO.comment).isEqualTo(policyWaiver.getComment());
+      assertThat(policyWaiverDTO.constraintFacts).isEqualTo(policyWaiver.getConstraintFacts());
+      assertThat(policyWaiverDTO.constraintFactsJson).isEqualTo(policyWaiver.getConstraintFactsJson());
+      Component expectedComponent = expectedComponents.stream()
+          .filter(component -> Objects.equals(component.getHash(), policyWaiver.getHash()))
+          .findFirst()
+          .orElse(null);
+      assertThat(expectedComponent).isNotNull();
+      assertThat(policyWaiverDTO.componentName).isEqualTo(expectedComponent.getDisplayName());
+    }
   }
 }

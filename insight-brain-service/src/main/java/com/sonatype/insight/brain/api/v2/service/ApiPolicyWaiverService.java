@@ -8,10 +8,12 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -21,6 +23,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -47,6 +50,7 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -208,6 +212,96 @@ public class ApiPolicyWaiverService
     }
 
     return apiPolicyWaiverDTOS;
+  }
+
+  public ApiComponentPolicyWaiversDTO getTransitivePolicyWaiversByAppScanComponent(
+      OwnerType ownerType,
+      String ownerId,
+      String scanId,
+      ComponentIdentifier componentIdentifier,
+      String packageUrl,
+      String hash)
+  {
+    if (!OwnerType.APPLICATION.equals(ownerType)) {
+      throw new BadRequestException("scanId can only be specified for an application.");
+    }
+    if (componentIdentifier == null && packageUrl == null && hash == null) {
+      throw new BadRequestException("componentIdentifier or packageUrl or hash must be specified.");
+    }
+    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    checkOwnerReadAuthz(owner);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(owner.getId(), scanId);
+    if (policyEvaluation == null) {
+      throw new NotFoundException("scanId " + scanId + " not found for application " + owner.getPublicId() + ".");
+    }
+    List<Component> transitiveComponents = apiPolicyViolationServiceV2.getTransitiveComponentsByAppScanComponent(
+        owner.getId(), scanId, componentIdentifier, packageUrl, hash);
+    return getPolicyWaivers(owner, transitiveComponents.stream());
+  }
+
+  @Authorize(permission = Permission.READ)
+  void checkOwnerReadAuthz(@AuthzContext(Key.OWNER) Owner owner) {
+    // permission checked by annotations, no method body needed
+  }
+
+  // Visible for testing
+  ApiComponentPolicyWaiversDTO getPolicyWaivers(Owner owner, Stream<Component> components) {
+    // Add a component with a null hash to get policy waivers that apply to any component
+    components = Stream.concat(Stream.of(new Component()), components);
+    ApiComponentPolicyWaiversDTO result = new ApiComponentPolicyWaiversDTO();
+    Map<String, String> policyNameById = new HashMap<>();
+    Map<String, Owner> ownerById = new HashMap<>();
+    ownerDAO.walkHierarchy(owner)
+        .forEach(ownerInHierarchy -> ownerById.put(ownerInHierarchy.getId(), ownerInHierarchy));
+    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
+      components.forEach(component -> {
+        for (Owner ownerInHierarchy : ownerById.values()) {
+          // For the given owner, add policy waivers that apply to the component (i.e. they match its hash)
+          // If the hash is null, then the policy waiver applies to any component
+          policyWaiverDAO.getActiveByOwnerIdAndHash(tx, ownerInHierarchy.getId(), component.getHash()).forEach(
+              policyWaiver -> addApiPolicyWaiverDTO(tx, result, policyNameById, ownerById, policyWaiver,
+                  component.getDisplayName()));
+        }
+      });
+    }
+    return result;
+  }
+
+  private void addApiPolicyWaiverDTO(
+      TransactionContext tx,
+      ApiComponentPolicyWaiversDTO apiComponentPolicyWaiversDTO,
+      Map<String, String> policyNameById,
+      Map<String, Owner> ownerById,
+      PolicyWaiver policyWaiver,
+      String componentName)
+  {
+    policyNameById.putIfAbsent(policyWaiver.getPolicyId(), policyDAO.getById(tx, policyWaiver.getPolicyId()).getName());
+    apiComponentPolicyWaiversDTO.componentPolicyWaivers.add(
+        convert(policyWaiver, policyNameById, ownerById, componentName)
+    );
+  }
+
+  private ApiPolicyWaiverDTO convert(
+      PolicyWaiver policyWaiver,
+      Map<String, String> policyNameById,
+      Map<String, Owner> ownerById,
+      String componentName)
+  {
+    ApiPolicyWaiverDTO result = new ApiPolicyWaiverDTO();
+    result.policyId = policyWaiver.getPolicyId();
+    result.policyName = policyNameById.get(policyWaiver.getPolicyId());
+    result.policyWaiverId = policyWaiver.getId();
+    Owner owner = ownerById.get(policyWaiver.getOwnerId());
+    result.scopeOwnerId = owner.getId();
+    result.scopeOwnerName = owner.getName();
+    result.scopeOwnerType = ScopeOwnerUtils.getScopeOwnerType(owner.getType(), owner.getId());
+    result.hash = policyWaiver.getHash();
+    result.createTime = policyWaiver.getCreateTime();
+    result.comment = policyWaiver.getComment();
+    result.constraintFacts = policyWaiver.getConstraintFacts();
+    result.constraintFactsJson = policyWaiver.getConstraintFactsJson();
+    result.componentName = componentName;
+    return result;
   }
 
   public void deletePolicyWaiver(OwnerType ownerType, String ownerId, String policyWaiverId) {

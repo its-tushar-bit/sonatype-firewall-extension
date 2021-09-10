@@ -875,6 +875,84 @@ public class ApiPolicyViolationServiceV2Test
     assertThat(result).usingRecursiveComparison().isEqualTo(create(create(9, c1), create(4, c2)));
   }
 
+  @Test
+  public void testGetTransitiveComponentsByAppScanComponent_ReportNotFound() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> apiPolicyViolationService.getTransitiveComponentsByAppScanComponent("appId", "scanId", null, null, null)
+    ).withMessageContaining("Component not found.");
+  }
+
+  @Test
+  public void testGetTransitiveComponentsByAppScanComponent_ComponentNotInReport() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ReportTestUtils.createReportFile(app.getId(), scanId,
+        zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> apiPolicyViolationService.getTransitiveComponentsByAppScanComponent(app.getId(), scanId, null, null,
+            "hash3")
+    ).withMessageContaining("Component not found.");
+  }
+
+  @Test
+  public void testGetTransitiveComponentsByAppScanComponent_ComponentWithoutTransitiveComponents() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ReportTestUtils.createReportFile(app.getId(), scanId,
+        zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
+
+    List<Component> transitiveComponentsByAppScanComponent =
+        apiPolicyViolationService.getTransitiveComponentsByAppScanComponent(app.getId(), scanId, null, null, "hash1");
+
+    assertThat(transitiveComponentsByAppScanComponent).isEmpty();
+  }
+
+  @Test
+  public void testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents_ByComponentIdentifier()
+      throws Exception
+  {
+    testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents(
+        ComponentIdentifier.createMavenCoordinates("g", "direct2", "v", "", "e"), null, null);
+  }
+
+  @Test
+  public void testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents_ByPackageUrl()
+      throws Exception
+  {
+    testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents(
+        null, "pkg:maven/g/direct2@v?type=e", null);
+  }
+
+  @Test
+  public void testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents_ByHash()
+      throws Exception
+  {
+    testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents(
+        null, null, "hash2");
+  }
+
+  private void testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents(
+      ComponentIdentifier componentIdentifier,
+      String packageUrl,
+      String hash) throws Exception
+  {
+    Application app = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ReportTestUtils.createReportFile(app.getId(), scanId,
+        zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
+
+    List<Component> transitiveComponentsByAppScanComponent =
+        apiPolicyViolationService.getTransitiveComponentsByAppScanComponent(app.getId(), scanId, componentIdentifier,
+            packageUrl, hash);
+
+    assertThat(transitiveComponentsByAppScanComponent).extracting(Component::getHash)
+        .containsExactly("hash21", "hash22", "hash221", "hash222");
+  }
+
   private ApiComponentTransitivePolicyViolationsDTO create(
       ApiStagePolicyViolationComponentDTO... policyViolations)
   {

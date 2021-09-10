@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -138,5 +139,22 @@ public class DefaultApiPolicyWaiverResource implements ApiPolicyWaiverResource
   {
     apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(ownerType, ownerId, stageId,
         componentIdentifier, packageUrl, hash, apiWaiverOptionsDTO);
+  }
+
+  @Override
+  @GET
+  @Path(TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH)
+  @Audited(AuditEvent.VIEW_WAIVER)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiComponentPolicyWaiversDTO getTransitivePolicyWaiversByAppScanComponent(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      @PathParam("scanId") final String scanId,
+      @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
+      @QueryParam("packageUrl") final String packageUrl,
+      @QueryParam("hash") final String hash)
+  {
+    return apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(ownerType, ownerId, scanId,
+        componentIdentifier, packageUrl, hash);
   }
 }

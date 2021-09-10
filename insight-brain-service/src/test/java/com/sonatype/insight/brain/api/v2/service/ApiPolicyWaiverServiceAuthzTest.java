@@ -482,4 +482,24 @@ public class ApiPolicyWaiverServiceAuthzTest
         null
     );
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetTransitivePolicyWaiversByAppScanComponent_Unauthenticated() {
+    apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(OwnerType.APPLICATION, app.getId(), null, null,
+        null, "hash");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetTransitivePolicyWaiversByAppScanComponent_Unauthorized() {
+    login();
+    apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(OwnerType.APPLICATION, app.getId(), null, null,
+        null, "hash");
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetTransitivePolicyWaiversByAppScanComponent_Authorized() {
+    grantReadPermission(app.getId());
+    apiPolicyWaiverService.getTransitivePolicyWaiversByAppScanComponent(OwnerType.APPLICATION, app.getId(), null, null,
+        null, "hash");
+  }
 }

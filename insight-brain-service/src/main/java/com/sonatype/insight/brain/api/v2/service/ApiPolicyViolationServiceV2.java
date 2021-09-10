@@ -349,6 +349,26 @@ public class ApiPolicyViolationServiceV2
             Comparator.nullsLast(Comparator.naturalOrder())));
   }
 
+  List<Component> getTransitiveComponentsByAppScanComponent(
+      String applicationId,
+      String scanId,
+      ComponentIdentifier componentIdentifier,
+      String packageUrl,
+      String hash)
+  {
+    List<Component> components = getComponents(applicationId, scanId);
+    if (components == null) {
+      components = Collections.emptyList();
+    }
+    ComponentIdentifier compIdentifier = getComponentIdentifier(componentIdentifier, packageUrl);
+    String truncatedHash = HashHelper.truncateHash(hash);
+    Component component = getComponentByComponentIdentifierOrHash(components, compIdentifier, truncatedHash);
+    if (component == null) {
+      throw new NotFoundException("Component not found.");
+    }
+    return getTransitiveComponents(component.getComponentIdentifier(), components);
+  }
+
   private List<Component> getComponents(String applicationId, String scanId) {
     try {
       File reportFile = reportService.getReport(applicationId, scanId);

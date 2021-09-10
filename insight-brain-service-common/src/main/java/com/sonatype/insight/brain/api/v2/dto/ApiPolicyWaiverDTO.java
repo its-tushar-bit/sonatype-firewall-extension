@@ -6,9 +6,11 @@
 package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -77,6 +79,30 @@ public class ApiPolicyWaiverDTO
    */
   @JsonInclude(Include.NON_EMPTY)
   public String vulnerabilityId;
+
+  /**
+   * @since 1.125
+   */
+  @JsonInclude(Include.NON_NULL)
+  public String policyName;
+
+  /**
+   * @since 1.125
+   */
+  @JsonInclude(Include.NON_NULL)
+  public List<ConstraintFact> constraintFacts;
+
+  /**
+   * @since 1.125
+   */
+  @JsonInclude(Include.NON_NULL)
+  public String constraintFactsJson;
+
+  /**
+   * @since 1.125
+   */
+  @JsonInclude(Include.NON_NULL)
+  public String componentName;
 
   public static ApiPolicyWaiverDTO toDto(PolicyWaiver policyWaiver, Owner owner) {
     ApiPolicyWaiverDTO dto = new ApiPolicyWaiverDTO();

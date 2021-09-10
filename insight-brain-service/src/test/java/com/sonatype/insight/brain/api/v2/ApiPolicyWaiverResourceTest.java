@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
+import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -453,6 +454,45 @@ public class ApiPolicyWaiverResourceTest
     assertThat(allPolicyWaivers).hasSize(1);
     assertPolicyWaiver(app.getId(), policy, policyViolationTransitive, allPolicyWaivers.get(0),
         waiverOptionsDTO.comment, policyViolationTransitive.getHash(), waiverOptionsDTO.expiryTime);
+  }
+
+  @Test
+  public void testGetTransitivePolicyWaiversByAppScanComponent_ByComponentIdentifier() throws Exception {
+    testGetTransitivePolicyWaiversByAppScanComponent(request -> request.query("componentIdentifier",
+        ComponentIdentifier.createMavenCoordinates("g", "direct", "v", "", "e")));
+  }
+
+  @Test
+  public void testGetTransitivePolicyWaiversByAppScanComponent_ByPackageUrl() throws Exception {
+    testGetTransitivePolicyWaiversByAppScanComponent(
+        request -> request.query("packageUrl", "pkg:maven/g/direct@v?type=e"));
+  }
+
+  @Test
+  public void testGetTransitivePolicyWaiversByAppScanComponent_ByHash() throws Exception {
+    testGetTransitivePolicyWaiversByAppScanComponent(request -> request.query("hash", "hash1"));
+  }
+
+  private void testGetTransitivePolicyWaiversByAppScanComponent(UnaryOperator<HttpRequest> operator) throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
+    ReportTestUtils.createReportFile(app.getId(), policyEvaluation.getScanId(),
+        zipReportDir("/ApiPolicyWaiverResourceTest/report", tempDir),
+        getCLMServer().getInstance(InsightWork.class));
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash2", policy.getId(), app.getId());
+
+    HttpRequest request = restRequest()
+        .path(TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH)
+        .parameter(OwnerType.APPLICATION, app.getPublicId(), policyEvaluation.getScanId());
+
+    HttpResponse response = operator.apply(request).get();
+    assertResponseStatus(200, response);
+    ApiComponentPolicyWaiversDTO result = response.getBody(ApiComponentPolicyWaiversDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.componentPolicyWaivers).isNotNull();
+    assertThat(result.componentPolicyWaivers).extracting(componentPolicyWaiver -> componentPolicyWaiver.policyWaiverId)
+        .containsExactly(policyWaiver.getId());
   }
 
   @Override

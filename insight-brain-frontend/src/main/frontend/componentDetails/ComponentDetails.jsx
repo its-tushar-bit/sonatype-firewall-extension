@@ -23,9 +23,10 @@ import {
   Title,
 } from './ComponentDetailsHeader';
 import { ComponentDetailsFooter, propTypes as footerPropTypes } from './ComponentDetailsFooter';
-import { PolicyViolationsContainer } from './violations';
 import { OverviewContainer } from './overview';
 import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
+import PolicyViolations from './PolicyViolations/PolicyViolations';
+import ComponentDetailsSecurityTab from './ComponentDetailsSecurityTab/ComponentDetailsSecurityTab';
 
 const tabIdPerIndex = ['overview', 'violations', 'security', 'legal', 'audit'];
 
@@ -93,10 +94,10 @@ export default function ComponentDetails({
             <OverviewContainer />
           </NxTabPanel>
           <NxTabPanel>
-            <PolicyViolationsContainer />
+            <PolicyViolations />
           </NxTabPanel>
           <NxTabPanel>
-            <PlaceholderTabContent tabIndex={3}>Security</PlaceholderTabContent>
+            <ComponentDetailsSecurityTab />
           </NxTabPanel>
           <NxTabPanel>
             <PlaceholderTabContent tabIndex={4}>Legal</PlaceholderTabContent>

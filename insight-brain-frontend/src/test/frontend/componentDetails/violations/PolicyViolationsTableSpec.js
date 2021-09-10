@@ -6,8 +6,8 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
 
-import PolicyViolationsTable from '../../../../main/frontend/componentDetails/violations/PolicyViolationsTable';
-import PolicyViolationsTableRow from '../../../../main/frontend/componentDetails/violations/PolicyViolationsTableRow';
+import PolicyViolationsTable from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationsTable';
+import PolicyViolationsTableRow from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationsTableRow';
 
 describe('PolicyViolationsTable', () => {
   let minimalProps, getShallow, getMounted;

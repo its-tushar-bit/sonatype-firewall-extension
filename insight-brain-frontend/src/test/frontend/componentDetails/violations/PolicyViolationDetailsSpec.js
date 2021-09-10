@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import PolicyViolationDetailsPopover from '../../../../main/frontend/componentDetails/violations/PolicyViolationDetailsPopover';
+import PolicyViolationDetailsPopover from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationDetailsPopover';
 
 describe('PolicyViolationDetails', () => {
   let minimalProps, getShallow;

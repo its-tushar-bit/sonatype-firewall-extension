@@ -15,7 +15,7 @@ import ComponentWaiversPopover from './componentWaivers/ComponentWaiversPopover'
 import RequestWaiversPopover from '../../waivers/requestWaiversPopover/RequestWaiversPopover';
 import AddWaiverPopover from '../../waivers/addWaiverPopover/AddWaiverPopoverContainer';
 
-export default function PolicyViolations({
+export default function ViolationsTableTile({
   violations,
   waivers,
   componentName,
@@ -35,10 +35,18 @@ export default function PolicyViolations({
   hasPermissionToAddWaivers,
   setSelectedPolicyViolationId,
   selectedViolationDetail,
+  title,
+  showViewAllComponents,
+  violationType,
+  setViolationType,
 }) {
   useEffect(() => {
     loadPolicyViolationsInformation();
   }, []);
+
+  useEffect(() => {
+    setViolationType(violationType);
+  }, [violationType]);
 
   const orderedViolations = violations
     ? sort((threatA, threatB) => threatB.policyThreatLevel - threatA.policyThreatLevel, violations)
@@ -77,9 +85,11 @@ export default function PolicyViolations({
         )}
         <header className="nx-tile-header">
           <div className="nx-tile-header__title">
-            <h2 className="nx-h2">Policy Violations</h2>
+            <h2 className="nx-h2" id="violations__tile__title">
+              {title}
+            </h2>
           </div>
-          <div className="nx-tile__actions">{viewAllComponentWaiversButton}</div>
+          {showViewAllComponents && <div className="nx-tile__actions">{viewAllComponentWaiversButton}</div>}
         </header>
         <div className="nx-tile-content">
           <PolicyViolationsTable {...tableProps} />
@@ -104,7 +114,7 @@ export default function PolicyViolations({
   );
 }
 
-PolicyViolations.propTypes = {
+ViolationsTableTile.propTypes = {
   violations: PolicyViolationsTable.propTypes.violations,
   waivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   componentName: PropTypes.string.isRequired,
@@ -124,4 +134,8 @@ PolicyViolations.propTypes = {
   hasPermissionToAddWaivers: PropTypes.bool.isRequired,
   setSelectedPolicyViolationId: PropTypes.func.isRequired,
   selectedViolationDetail: RequestWaiversPopover.propTypes.violationDetails,
+  showViewAllComponents: PropTypes.bool,
+  title: PropTypes.string,
+  violationType: PropTypes.string,
+  setViolationType: PropTypes.func,
 };

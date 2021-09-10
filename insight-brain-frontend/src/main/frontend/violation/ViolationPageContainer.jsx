@@ -10,8 +10,8 @@ import { loadViolation, loadVulnerabilityDetails } from './violationActions';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { fetchStageTypes } from '../stages/stagesActions';
 import ViolationPage from './ViolationPage';
-import { selectSelectedViolationId } from '../componentDetails/violations/PolicyViolationsSelectors';
-import { actions } from '../componentDetails/violations/PolicyViolationsSlice';
+import { selectSelectedViolationId } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
+import { actions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 
 function mapStateToProps(state) {
   const { stages, violation } = state;

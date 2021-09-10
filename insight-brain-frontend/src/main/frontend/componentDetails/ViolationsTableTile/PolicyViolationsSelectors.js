@@ -11,7 +11,20 @@ import { selectSelectedComponent } from '../../applicationReport/applicationRepo
 
 export const selectComponentDetailsViolationsSlice = prop('componentDetailsPolicyViolations');
 
-export const selectComponentViolations = createSelector(selectComponentDetailsViolationsSlice, prop('violations'));
+const violationsSlice = createSelector(selectComponentDetailsViolationsSlice, prop('violations'));
+const violationTypeSlice = createSelector(selectComponentDetailsViolationsSlice, prop('violationType'));
+export const selectComponentViolations = createSelector(
+  violationsSlice,
+  violationTypeSlice,
+  (violations, violationType) => {
+    if (violations && violationType) {
+      return violations.filter((violation) => violation.policyThreatCategory === violationType);
+    } else {
+      return violations;
+    }
+  }
+);
+
 export const selectComponentWaivers = createSelector(selectComponentDetailsViolationsSlice, prop('waivers'));
 
 export const selectSelectedViolationId = createSelector(

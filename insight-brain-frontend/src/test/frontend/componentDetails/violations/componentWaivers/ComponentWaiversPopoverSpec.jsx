@@ -6,11 +6,11 @@
 import * as enzymeUtils from '../../../enzymeUtils';
 import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 
-import ComponentWaiversPopover from '../../../../../main/frontend/componentDetails/violations/componentWaivers/ComponentWaiversPopover';
+import ComponentWaiversPopover from '../../../../../main/frontend/componentDetails/ViolationsTableTile/componentWaivers/ComponentWaiversPopover';
 import IqPopover from '../../../../../main/frontend/react/IqPopover';
 import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import DeleteWaiverModalContainer from '../../../../../main/frontend/waivers/deleteWaiverModal/DeleteWaiverModalContainer';
-import ComponentWaiversPopoverTable from '../../../../../main/frontend/componentDetails/violations/componentWaivers/ComponentWaiversPopoverTable';
+import ComponentWaiversPopoverTable from '../../../../../main/frontend/componentDetails/ViolationsTableTile/componentWaivers/ComponentWaiversPopoverTable';
 
 describe('ComponentWaiversPopover', function () {
   let minimalProps, getShallow;

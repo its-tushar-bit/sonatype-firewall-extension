@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from '../../../../main/frontend/componentDetails/overview/overviewReducer';
+import reducer from '../../../../main/frontend/componentDetails/overview/overviewSlice';
 
-describe('componentDetailsPolicyViolationsReducer', () => {
+describe('componentDetailspolicyViolationsSlice', () => {
   const stateConstantObject = { value: 'test value' };
 
   describe('unknown action', () => {
@@ -71,7 +71,7 @@ describe('componentDetailsPolicyViolationsReducer', () => {
 
       expect(newState.graphExplorerData.loading).toBe(false);
       expect(newState.graphExplorerData.loadError).toBe(null);
-      expect(newState.graphExplorerData.data).toEqual(jasmine.objectContaining({ versions: versionsList }));
+      expect(newState.graphExplorerData.data).toEqual({ versions: versionsList });
       expect(newState.other).toBe(stateConstantObject);
     });
   });

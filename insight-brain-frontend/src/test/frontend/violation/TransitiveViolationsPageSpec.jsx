@@ -13,7 +13,7 @@ import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 import WaiveTransitiveViolationsPopoverContainer from '../../../main/frontend/violation/WaiveTransitiveViolationsPopoverContainer';
 import RequestWaiveTransitiveViolationsPopoverContainer from '../../../main/frontend/violation/RequestWaiveTransitiveViolationsPopoverContainer';
 import * as routerContext from '../../../main/frontend/react/RouterStateContext';
-import PolicyViolationDetailsPopover from '../../../main/frontend/componentDetails/violations/PolicyViolationDetailsPopover';
+import PolicyViolationDetailsPopover from '../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationDetailsPopover';
 
 describe('TransitiveViolationsPage', function () {
   let minimalProps,

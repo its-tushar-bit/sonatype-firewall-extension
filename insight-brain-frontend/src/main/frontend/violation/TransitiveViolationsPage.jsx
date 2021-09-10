@@ -17,7 +17,7 @@ import { ComponentDetailsReportInfo } from '../componentDetails/ComponentDetails
 import { ComponentDetailsHeader, ComponentDetailsTags, Title } from '../componentDetails/ComponentDetailsHeader';
 import WaiveTransitiveViolationsPopoverContainer from './WaiveTransitiveViolationsPopoverContainer';
 import RequestWaiveTransitiveViolationsPopoverContainer from './RequestWaiveTransitiveViolationsPopoverContainer';
-import PolicyViolationDetailsPopover from '../componentDetails/violations/PolicyViolationDetailsPopover';
+import PolicyViolationDetailsPopover from '../componentDetails/ViolationsTableTile/PolicyViolationDetailsPopover';
 import { useRouterState } from '../react/RouterStateContext';
 
 export default function TransitiveViolationsPage(props) {

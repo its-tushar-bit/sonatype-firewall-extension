@@ -9,7 +9,7 @@ import Overview from './Overview';
 import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
 import { selectComponentAncestors } from '../componentDetailsSelectors';
 import { selectCurrentRouteName } from '../../reduxUiRouter/routerSelectors';
-import { actions } from './overviewReducer';
+import { actions } from './overviewSlice';
 import { selectComponentDetailsOverviewVersionExplorerSlice } from './overviewSelectors';
 
 function mapStateToProps(state) {

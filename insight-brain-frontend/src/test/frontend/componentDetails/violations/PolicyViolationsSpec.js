@@ -6,10 +6,10 @@
 import { NxButton } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../enzymeUtils';
-import PolicyViolations from '../../../../main/frontend/componentDetails/violations/PolicyViolations';
-import PolicyViolationsTable from '../../../../main/frontend/componentDetails/violations/PolicyViolationsTable';
-import PolicyViolationDetailsPopover from '../../../../main/frontend/componentDetails/violations/PolicyViolationDetailsPopover';
-import ComponentWaiversPopover from '../../../../main/frontend/componentDetails/violations/componentWaivers/ComponentWaiversPopover';
+import PolicyViolations from '../../../../main/frontend/componentDetails/ViolationsTableTile/ViolationsTableTile';
+import PolicyViolationsTable from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationsTable';
+import PolicyViolationDetailsPopover from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationDetailsPopover';
+import ComponentWaiversPopover from '../../../../main/frontend/componentDetails/ViolationsTableTile/componentWaivers/ComponentWaiversPopover';
 import RequestWaiversPopover from '../../../../main/frontend/waivers/requestWaiversPopover/RequestWaiversPopover';
 import AddWaiverPopover from '../../../../main/frontend/waivers/addWaiverPopover/AddWaiverPopoverContainer';
 
@@ -45,10 +45,22 @@ describe('PolicyViolations', () => {
       hasPermissionToAddWaivers: true,
       setSelectedPolicyViolationId: jasmine.createSpy('setSelectedPolicyViolationId'),
       selectedViolationDetail: { policyViolationId: 'selectedViolationId' },
+      title: 'Title',
+      showViewAllComponents: true,
+      violationType: null,
+      setViolationType: jasmine.createSpy('setViolationType'),
     };
 
     getShallow = enzymeUtils.getShallowComponent(PolicyViolations, minimalProps);
     getMounted = enzymeUtils.getMountedComponent(PolicyViolations, minimalProps);
+  });
+
+  describe('renders title', () => {
+    it('renders the title correctly', () => {
+      const title = getShallow().find('#violations__tile__title');
+
+      expect(title).toHaveText('Title');
+    });
   });
 
   describe('ComponentWaiversPopover', () => {
@@ -75,6 +87,13 @@ describe('PolicyViolations', () => {
     });
   });
 
+  describe('setViolationType action', () => {
+    it('calls setViolationType when the component renders', () => {
+      getMounted({ violationType: 'test' });
+      expect(minimalProps.setViolationType).toHaveBeenCalledWith('test');
+    });
+  });
+
   describe('View All Component Waivers button', () => {
     it('is rendered', () => {
       const component = getShallow();
@@ -92,6 +111,15 @@ describe('PolicyViolations', () => {
 
       button.simulate('click');
       expect(minimalProps.toggleComponentWaiversPopover).toHaveBeenCalled();
+    });
+  });
+
+  describe('showViewAllComponents prop', () => {
+    it('Hides All Component Waivers button', () => {
+      const component = getShallow({ showViewAllComponents: false });
+      const button = component.find(NxButton);
+
+      expect(button).not.toExist();
     });
   });
 

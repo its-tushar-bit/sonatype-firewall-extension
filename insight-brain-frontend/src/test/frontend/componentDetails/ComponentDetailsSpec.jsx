@@ -11,7 +11,7 @@ import ComponentDetails from '../../../main/frontend/componentDetails/ComponentD
 import { ComponentDetailsFooter } from '../../../main/frontend/componentDetails/ComponentDetailsFooter';
 import * as routerContext from '../../../main/frontend/react/RouterStateContext';
 import * as fullAuditLog from '../../../main/frontend/componentDetails/auditLog/AuditLogContainer';
-import * as violationsTab from '../../../main/frontend/componentDetails/violations/PolicyViolationsContainer';
+import * as violationsTab from '../../../main/frontend/componentDetails/ViolationsTableTile/ViolationsTableTileContainer';
 import * as overviewTab from '../../../main/frontend/componentDetails/overview/OverviewContainer';
 import MenuBarBackButton from '../../../main/frontend/mainHeader/MenuBar/MenuBarBackButton';
 
@@ -97,7 +97,7 @@ describe('ComponentDetails', function () {
     it('calls onTabChange action with the appropriate activeTabId when clicking on a tab', function () {
       // Mock containers so that `getMountedComponent` doesn't complain.
       spyOn(fullAuditLog, 'default').and.returnValue(<div>auditLog</div>);
-      spyOn(violationsTab, 'PolicyViolationsContainer').and.returnValue(<div>violations</div>);
+      spyOn(violationsTab, 'ViolationsTableTileContainer').and.returnValue(<div>violations</div>);
       spyOn(overviewTab, 'OverviewContainer').and.returnValue(<div>overview</div>);
 
       let component = getMountedComponent({
@@ -141,7 +141,7 @@ describe('ComponentDetails', function () {
     it('does not call onTabChange when clicking on the same tab twice', function () {
       // Mock `AuditLogContainer` so that `getMountedComponent` doesn't complain.
       spyOn(fullAuditLog, 'default').and.returnValue(<div>hello</div>);
-      spyOn(violationsTab, 'PolicyViolationsContainer').and.returnValue(<div>violations</div>);
+      spyOn(violationsTab, 'ViolationsTableTileContainer').and.returnValue(<div>violations</div>);
       spyOn(overviewTab, 'OverviewContainer').and.returnValue(<div>overview</div>);
 
       const component = getMountedComponent({

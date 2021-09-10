@@ -8,7 +8,7 @@ import { NxButton, NxFontAwesomeIcon, NxTableBody, NxTableCell, NxTableRow } fro
 
 import ComponentWaiversPopoverTable, {
   ComponentWaiversTableRow,
-} from '../../../../../main/frontend/componentDetails/violations/componentWaivers/ComponentWaiversPopoverTable';
+} from '../../../../../main/frontend/componentDetails/ViolationsTableTile/componentWaivers/ComponentWaiversPopoverTable';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 
 describe('ComponentWaiversPopover', function () {

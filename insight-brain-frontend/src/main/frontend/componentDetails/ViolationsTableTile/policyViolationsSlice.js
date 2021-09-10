@@ -29,6 +29,7 @@ const initialState = {
   showRequestWaiverPopover: false,
   hasPermissionToAddWaivers: false,
   selectedPolicyViolationId: null,
+  violationType: null,
 };
 
 const loadRequested = (state) => {
@@ -147,6 +148,7 @@ const componentDetailsViolationsSlice = createSlice({
   reducers: {
     toggleComponentWaiversPopover,
     setSelectedPolicyViolationId: propSet('selectedPolicyViolationId'),
+    setViolationType: propSet('violationType'),
     toggleShowViolationsDetailPopover: toggleBooleanProp('showViolationsDetailPopover'),
     toggleAddWaiverPopover: toggleBooleanProp('showAddWaiverPopover'),
     toggleRequestWaiverPopover: toggleBooleanProp('showRequestWaiverPopover'),

@@ -13,7 +13,7 @@ import {
 import { omit } from 'ramda';
 
 import * as enzymeUtils from '../../enzymeUtils';
-import PolicyViolationsTableRow from '../../../../main/frontend/componentDetails/violations/PolicyViolationsTableRow';
+import PolicyViolationsTableRow from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationsTableRow';
 import ViolationExclamation from '../../../../main/frontend/react/ViolationExclamation';
 import ActiveWaiversIndicator from '../../../../main/frontend/violation/ActiveWaiversIndicator';
 

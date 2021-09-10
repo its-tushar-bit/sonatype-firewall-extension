@@ -6,8 +6,8 @@
 import { connect } from 'react-redux';
 import { pick } from 'ramda';
 
-import PolicyViolations from './PolicyViolations';
-import { actions } from './PolicyViolationsSlice';
+import ViolationsTableTile from './ViolationsTableTile';
+import { actions } from './policyViolationsSlice';
 import {
   selectComponentDetailsViolationsSlice,
   selectComponentViolations,
@@ -54,7 +54,8 @@ const mapDispatchToProps = {
   toggleAddWaiverPopover: actions.toggleAddWaiverPopover,
   toggleRequestWaiverPopover: actions.toggleRequestWaiverPopover,
   setSelectedPolicyViolationId: actions.setSelectedPolicyViolationId,
+  setViolationType: actions.setViolationType,
   setWaiverToDelete,
 };
 
-export const PolicyViolationsContainer = connect(mapStateToProps, mapDispatchToProps)(PolicyViolations);
+export const ViolationsTableTileContainer = connect(mapStateToProps, mapDispatchToProps)(ViolationsTableTile);

@@ -16,7 +16,7 @@ import {
   toggleRequestWaiveTransitiveViolations,
   toggleWaiveTransitiveViolations,
 } from './transitiveViolationsActions';
-import { actions } from '../componentDetails/violations/PolicyViolationsSlice';
+import { actions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 
 function mapStateToProps({ router, transitiveViolations, componentDetailsPolicyViolations }) {
   return {

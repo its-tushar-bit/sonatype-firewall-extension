@@ -8,9 +8,9 @@ import {
   selectComponentDetailsViolationsSlice,
   selectComponentViolations,
   selectSelectedViolationDetail,
-} from '../../../../main/frontend/componentDetails/violations/PolicyViolationsSelectors';
+} from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 
-describe('PolicyViolationsSelectors', () => {
+describe('policyViolationsSelectors', () => {
   const mainViolation = {
     policyId: 'policy2',
     policyViolationId: 'violation2',
@@ -69,6 +69,7 @@ describe('PolicyViolationsSelectors', () => {
       loading: false,
       loadError: 'error during last load',
       selectedPolicyViolationId: 'violation2',
+      violationType: null,
     },
   };
 
@@ -80,6 +81,7 @@ describe('PolicyViolationsSelectors', () => {
         loading: false,
         loadError: 'error during last load',
         selectedPolicyViolationId: 'violation2',
+        violationType: null,
       };
 
       const actualSelection = selectComponentDetailsViolationsSlice(mockState);
@@ -92,6 +94,19 @@ describe('PolicyViolationsSelectors', () => {
       const expectedSelection = mockViolations;
 
       const actualSelection = selectComponentViolations(mockState);
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+
+    it('returns the filtered violations currently contained in the componentDetailsViolations slice', () => {
+      const expectedSelection = mockViolations.filter((violation) => violation.policyThreatCategory === 'SECURITY');
+
+      const actualSelection = selectComponentViolations({
+        ...mockState,
+        componentDetailsPolicyViolations: {
+          ...mockState.componentDetailsPolicyViolations,
+          violationType: 'SECURITY',
+        },
+      });
       expect(actualSelection).toEqual(expectedSelection);
     });
   });

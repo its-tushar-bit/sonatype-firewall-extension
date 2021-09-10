@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from '../../../../main/frontend/componentDetails/violations/PolicyViolationsSlice';
+import reducer from '../../../../main/frontend/componentDetails/ViolationsTableTile/policyViolationsSlice';
 
-describe('componentDetailsPolicyViolationsReducer', () => {
+describe('componentDetailspolicyViolationsSlice', () => {
   const stateConstantObject = { value: 'test value' };
 
   describe('unknown action', () => {
@@ -493,6 +493,22 @@ describe('componentDetailsPolicyViolationsReducer', () => {
         payload: 'oneViolationToRuleThemAll',
       });
       expect(newState.selectedPolicyViolationId).toBe('oneViolationToRuleThemAll');
+      expect(newState.other).toBe(stateConstantObject);
+    });
+  });
+
+  describe('setViolationType', () => {
+    it('sets the violationType to the received payload', () => {
+      const state = Object.freeze({
+        other: stateConstantObject,
+        violationType: null,
+      });
+
+      const newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/setViolationType',
+        payload: 'test',
+      });
+      expect(newState.violationType).toBe('test');
       expect(newState.other).toBe(stateConstantObject);
     });
   });

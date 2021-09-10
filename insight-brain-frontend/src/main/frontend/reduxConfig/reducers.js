@@ -51,10 +51,10 @@ import gettingStartedReducer from '../configuration/gettingStarted/gettingStarte
 import transitiveViolationsReducer from '../violation/transitiveViolationsReducer';
 import userConfigurationReducer from '../security/users/usersReducer';
 import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolationsSlice';
-import componentDetailsViolationsReducer from '../componentDetails/violations/PolicyViolationsSlice';
+import componentDetailsViolationsReducer from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import successMetricsReportSlice from '../labs/successMetrics/successMetricsReportSlice';
 import productLicenseReducer from '../configuration/license/productLicenseReducer';
-import overviewReducer from '../componentDetails/overview/overviewReducer';
+import overviewSlice from '../componentDetails/overview/overviewSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -105,7 +105,7 @@ export default combineReducers({
   transitiveViolations: transitiveViolationsReducer,
   waiveTransitiveViolations: waiveTransitiveViolationsReducer,
   componentDetailsPolicyViolations: componentDetailsViolationsReducer,
-  componentDetailsOverview: overviewReducer,
+  componentDetailsOverview: overviewSlice,
   successMetrics: successMetricsReportSlice,
   productLicense: productLicenseReducer,
 });

@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
@@ -142,9 +142,12 @@ public class PullRequestRemediationDetailsTest
 
     assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
 
-    Path path = Paths.get(getClass().getResource(expectedResource).toURI());
-    String expectedContent = new String(Files.readAllBytes(path));
+    String expectedContent = loadResource(expectedResource);
     assertThat(details.getContents()).isEqualTo(expectedContent);
+  }
+
+  private String loadResource(String resource) throws Exception {
+    return new String(Files.readAllBytes(Paths.get(getClass().getResource(resource).toURI())), StandardCharsets.UTF_8);
   }
 
   @Test
@@ -186,8 +189,7 @@ public class PullRequestRemediationDetailsTest
 
     assertThat(details.getTitle()).isEqualTo("Bump @sonatype/foo to 1.1");
 
-    Path path = Paths.get(getClass().getResource(expectedResultResource).toURI());
-    String expectedContent = new String(Files.readAllBytes(path));
+    String expectedContent = loadResource(expectedResultResource);
     assertThat(details.getContents()).isEqualTo(expectedContent);
   }
 
@@ -231,8 +233,7 @@ public class PullRequestRemediationDetailsTest
 
     assertThat(details.getTitle()).isEqualTo("Bump golang.org/x/text to v0.3.3");
 
-    Path path = Paths.get(getClass().getResource(expectedResultResource).toURI());
-    String expectedContent = new String(Files.readAllBytes(path));
+    String expectedContent = loadResource(expectedResultResource);
     assertThat(details.getContents()).isEqualTo(expectedContent);
   }
 

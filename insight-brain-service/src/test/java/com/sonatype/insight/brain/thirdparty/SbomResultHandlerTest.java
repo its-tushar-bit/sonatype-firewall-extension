@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.io.StringReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -775,7 +776,7 @@ public class SbomResultHandlerTest
 
   private String getSbomFile(final String fileType, final String fileName) throws Exception {
     URL resource = getClass().getResource("/SbomResultsHandlerTest/" + fileType + "/" + fileName);
-    return new String(Files.readAllBytes(Paths.get(resource.toURI())));
+    return new String(Files.readAllBytes(Paths.get(resource.toURI())), StandardCharsets.UTF_8);
   }
 
   private String getSbomXmlFile(final String fileName) throws Exception {

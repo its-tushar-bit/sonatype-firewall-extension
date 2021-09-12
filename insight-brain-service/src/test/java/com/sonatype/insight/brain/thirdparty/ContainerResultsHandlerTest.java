@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Iterator;
@@ -35,10 +36,14 @@ public class ContainerResultsHandlerTest
   @Inject
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
+  private String loadResource(String name) throws Exception {
+    URL resource = getClass().getResource("/ContainerResultsHandlerTest/" + name);
+    return new String(Files.readAllBytes(Paths.get(resource.toURI())), StandardCharsets.UTF_8);
+  }
+
   @Test
   public void testHandleAndFilterContents_Filtered() throws Exception {
-    URL resource = getClass().getResource("/ContainerResultsHandlerTest/alpine-3.6.json");
-    String json = new String(Files.readAllBytes(Paths.get(resource.toURI())));
+    String json = loadResource("alpine-3.6.json");
 
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("container://alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
@@ -47,15 +52,13 @@ public class ContainerResultsHandlerTest
     ContainerResultHandler containerResultHandler = new ContainerResultHandler();
     String filteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile);
 
-    URL expectedResource = getClass().getResource("/ContainerResultsHandlerTest/alpine-3.6-expected-bom.xml");
-    String expectedXml = new String(Files.readAllBytes(Paths.get(expectedResource.toURI())));
+    String expectedXml = loadResource("alpine-3.6-expected-bom.xml");
     assertThat(filteredContent).isEqualTo(expectedXml);
   }
 
   @Test
   public void testHandleAndFilterContents() throws Exception {
-    URL resource = getClass().getResource("/ContainerResultsHandlerTest/alpine-3.6.json");
-    String json = new String(Files.readAllBytes(Paths.get(resource.toURI())));
+    String json = loadResource("alpine-3.6.json");
 
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("container://alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
@@ -117,8 +120,7 @@ public class ContainerResultsHandlerTest
 
   @Test
   public void testHandleAndFilterContents_DoesNotIncludeCoordinatesForMissingCveInformation() throws Exception {
-    URL resource = getClass().getResource("/ContainerResultsHandlerTest/alpine-3.6-missing-cve.json");
-    String json = new String(Files.readAllBytes(Paths.get(resource.toURI())));
+    String json = loadResource("alpine-3.6-missing-cve.json");
 
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("container://alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);

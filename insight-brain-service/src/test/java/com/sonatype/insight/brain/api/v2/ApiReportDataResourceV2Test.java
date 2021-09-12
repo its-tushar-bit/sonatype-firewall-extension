@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Date;
@@ -471,7 +472,7 @@ public class ApiReportDataResourceV2Test
 
     final String expectedResult = new String(Files.readAllBytes(Paths
         .get(ApiReportDataResourceV2Test.class.getResource("/ApiReportDataResourceV2Test/diff-result/diffResult.json")
-            .toURI())));
+            .toURI())), StandardCharsets.UTF_8);
     JSONAssert.assertEquals(expectedResult, result, new CustomComparator(JSONCompareMode.NON_EXTENSIBLE,
         new Customization("diffTime", (o1, o2) -> true),
         new Customization("*Commit.scanTime", (o1, o2) -> true)

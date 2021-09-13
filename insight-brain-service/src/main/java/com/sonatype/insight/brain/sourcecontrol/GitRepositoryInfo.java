@@ -11,6 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public class GitRepositoryInfo
 {
+  public GitRepositoryInfo() {}
+
   public GitRepositoryInfo(final String repositoryUrl,
                            final String username,
                            final String token,

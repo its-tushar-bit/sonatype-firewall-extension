@@ -42,6 +42,8 @@ public class SourceControlUtilsTest
 
   private static final String TOKEN = "token";
 
+  private static final String USERNAME = "username";
+
   private ApiSourceControlService mockSourceControlService;
 
   private GitClientFactory mockGitClientFactory;
@@ -368,5 +370,70 @@ public class SourceControlUtilsTest
     verify(mockGitClientApi, times(1)).getUserId();
     assertThat(userId).isNotNull();
     assertThat(userId).isEqualTo("scmUser");
+  }
+
+  @Test
+  public void testGetGitRepositoryInfoForRepository_inheritRepositoryValuesFromFromOrganization() {
+    SourceControl orgSourceControl = new SourceControl.Builder()
+        .setOwnerId(org.getId())
+        .setBaseBranch("base-branch")
+        .setToken(TOKEN)
+        .setUsername(USERNAME)
+        .setRemediationPullRequestsEnabled(true)
+        .setStatusChecksEnabled(true)
+        .setPullRequestCommentingEnabled(true)
+        .setSourceControlScansEnabled(true)
+        .setSourceControlScanTarget("/target/*")
+        .build();
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(org.getId())))
+        .thenReturn(orgSourceControl);
+
+    GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForRepository(org.getId(), VALID_URL, GITHUB);
+
+    verify(mockSourceControlService).getSourceControlByOwnerDecrypted(org.getId());
+    verify(mockSourceControlService, never()).getSourceControlByOwnerDecrypted(org.getParentOrganizationId());
+    assertGitRepositoryInfoValuesForRepository(value);
+  }
+
+  @Test
+  public void testGetGitRepositoryInfoForRepository_inheritRepositoryValuesFromRootOrganization() {
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(org.getId())))
+        .thenReturn(null);
+
+    SourceControl rootOrgSourceControl = new SourceControl.Builder()
+        .setOwnerId(org.getParentOrganizationId())
+        .setToken(TOKEN)
+        .setUsername(USERNAME)
+        .setBaseBranch("base-branch")
+        .setRemediationPullRequestsEnabled(true)
+        .setStatusChecksEnabled(true)
+        .setPullRequestCommentingEnabled(true)
+        .setSourceControlScansEnabled(true)
+        .setSourceControlScanTarget("/target/*")
+        .build();
+
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(Organization.ROOT_ORGANIZATION_ID)))
+        .thenReturn(rootOrgSourceControl);
+
+    GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForRepository(org.getId(), VALID_URL, GITHUB);
+
+    verify(mockSourceControlService).getSourceControlByOwnerDecrypted(org.getId());
+    verify(mockSourceControlService).getSourceControlByOwnerDecrypted(org.getParentOrganizationId());
+    assertGitRepositoryInfoValuesForRepository(value);
+  }
+
+  private void assertGitRepositoryInfoValuesForRepository(GitRepositoryInfo gitRepositoryInfo) {
+    assertThat(gitRepositoryInfo).isNotNull();
+    // values for URL and provider
+    assertThat(gitRepositoryInfo.repositoryUrl).isEqualTo(VALID_URL);
+    assertThat(gitRepositoryInfo.provider).isEqualTo(SourceControlProvider.GITHUB);
+    // values inherited from organization/root organization if applicable
+    assertThat(gitRepositoryInfo.token).isEqualTo(TOKEN);
+    assertThat(gitRepositoryInfo.username).isEqualTo(USERNAME);
+    assertThat(gitRepositoryInfo.pullRequestCommentingEnabled).isTrue();
+    assertThat(gitRepositoryInfo.sourceControlScansEnabled).isTrue();
+    assertThat(gitRepositoryInfo.sourceControlScanTarget).isEqualTo("/target/*");
+    assertThat(gitRepositoryInfo.baseBranch).isEqualTo("base-branch");
   }
 }

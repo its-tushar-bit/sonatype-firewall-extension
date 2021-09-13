@@ -348,18 +348,76 @@ describe('ResultsTable', function () {
       isImported: false,
     };
 
+    const notDefinedRepository = {
+      httpCloneUrl: 'https://example.com/',
+      namespace: 'namespace',
+      project: 'project',
+      description: 'description',
+      defaultBranch: '',
+      isSelected: false,
+      isImported: false,
+    };
+
+    const unknownRepository = {
+      httpCloneUrl: 'https://example.com/',
+      namespace: 'namespace',
+      project: 'project',
+      description: 'description',
+      defaultBranch: 'UNKNOWN_DEFAULT_BRANCH',
+      isSelected: false,
+      isImported: false,
+    };
+
     it('Renders RepositoryRow fields', () => {
       const component = getShallowRepositoryRow({ rowKey: 'key', repo: repository });
       const row = component.find(NxTableRow),
         defaultBranch = row.find('.iq-scm-repository-default-branch').first(),
         description = row.find('.iq-scm-repository-description').first(),
         project = row.find('.iq-scm-repository-project').find(NxExternalLink).first(),
-        namespace = row.find('.iq-scm-repository-namespace').first();
+        namespace = row.find('.iq-scm-repository-namespace').first(),
+        defaultBranchTooltip = defaultBranch.find(NxTooltip);
 
       expect(defaultBranch.text()).toEqual('defaultBranch');
       expect(description.text()).toEqual('description');
       expect(project.text().trim()).toEqual('project');
       expect(namespace.text()).toEqual('namespace');
+      expect(defaultBranchTooltip.length).toBe(0);
+    });
+
+    it('Renders tooltip for default branch when its value is Not defined', () => {
+      const component = getShallowRepositoryRow({ rowKey: 'key', repo: notDefinedRepository });
+      const row = component.find(NxTableRow),
+        defaultBranch = row.find('.iq-scm-repository-default-branch').first(),
+        description = row.find('.iq-scm-repository-description').first(),
+        project = row.find('.iq-scm-repository-project').find(NxExternalLink).first(),
+        namespace = row.find('.iq-scm-repository-namespace').first(),
+        defaultBranchTooltip = defaultBranch.find(NxTooltip);
+
+      expect(defaultBranch.text()).toEqual('Not defined');
+      expect(description.text()).toEqual('description');
+      expect(project.text().trim()).toEqual('project');
+      expect(namespace.text()).toEqual('namespace');
+      expect(defaultBranchTooltip).toBeDefined();
+      expect(defaultBranchTooltip.prop('title')).toEqual('Repository does not have a default branch configured.');
+    });
+
+    it('Renders tooltip for default branch when its value is Not defined', () => {
+      const component = getShallowRepositoryRow({ rowKey: 'key', repo: unknownRepository });
+      const row = component.find(NxTableRow),
+        defaultBranch = row.find('.iq-scm-repository-default-branch').first(),
+        description = row.find('.iq-scm-repository-description').first(),
+        project = row.find('.iq-scm-repository-project').find(NxExternalLink).first(),
+        namespace = row.find('.iq-scm-repository-namespace').first(),
+        defaultBranchTooltip = defaultBranch.find(NxTooltip);
+
+      expect(defaultBranch.text()).toEqual('Unknown');
+      expect(description.text()).toEqual('description');
+      expect(project.text().trim()).toEqual('project');
+      expect(namespace.text()).toEqual('namespace');
+      expect(defaultBranchTooltip).toBeDefined();
+      expect(defaultBranchTooltip.prop('title')).toEqual(
+        'The default branch is not yet known. It will be retrieved on import.'
+      );
     });
   });
 });

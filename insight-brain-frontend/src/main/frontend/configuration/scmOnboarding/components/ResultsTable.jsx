@@ -13,6 +13,7 @@ import {
   NxTableRow,
   NxTooltip,
   NxPagination,
+  NxFontAwesomeIcon,
 } from '@sonatype/react-shared-components';
 import React, { useMemo, useState } from 'react';
 import * as PropTypes from 'prop-types';
@@ -20,6 +21,7 @@ import { repositoryPropType } from '../ScmOnboarding';
 import NxFilterInput from '@sonatype/react-shared-components/components/NxFilterInput/NxFilterInput';
 import NxExternalLink from '../../../react/NxExternalLink';
 import { propSet } from '../../../util/jsUtil';
+import { faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
 
 export default function ResultsTable(props) {
   const {
@@ -273,6 +275,8 @@ ResultsTable.propTypes = {
 
 export function RepositoryRow(props) {
   const { rowKey, repo, setSelectedRepositories, selectedRepositories } = props;
+  const DEFAULT_BRANCH_NOT_DEFINED = '';
+  const UNKNOWN_DEFAULT_BRANCH = 'UNKNOWN_DEFAULT_BRANCH';
 
   const toggleSelection = () => {
     setSelectedRepositories(
@@ -281,6 +285,63 @@ export function RepositoryRow(props) {
         : selectedRepositories.concat([repo])
     );
   };
+
+  function isDefaultBranchValid() {
+    return !isDefaultBranchNotDefined() && !isDefaultBranchUnknown();
+  }
+
+  function isDefaultBranchNotDefined() {
+    return repo.defaultBranch === DEFAULT_BRANCH_NOT_DEFINED;
+  }
+
+  function isDefaultBranchUnknown() {
+    return repo.defaultBranch === UNKNOWN_DEFAULT_BRANCH;
+  }
+
+  function getDefaultBranchTooltipMessage() {
+    if (isDefaultBranchNotDefined()) {
+      return 'Repository does not have a default branch configured.';
+    }
+
+    if (isDefaultBranchUnknown()) {
+      return 'The default branch is not yet known. It will be retrieved on import.';
+    }
+  }
+
+  function getDefaultBranchText() {
+    if (isDefaultBranchNotDefined()) {
+      return 'Not defined';
+    }
+
+    if (isDefaultBranchUnknown()) {
+      return 'Unknown';
+    }
+
+    return repo.defaultBranch;
+  }
+
+  function renderDefaultBranch() {
+    let defaultBranchText = getDefaultBranchText();
+
+    if (isDefaultBranchValid()) {
+      return repo.defaultBranch;
+    }
+
+    return renderDefaultBranchWithTooltip(defaultBranchText);
+  }
+
+  function renderDefaultBranchWithTooltip(defaultBranchText) {
+    return (
+      <div>
+        {defaultBranchText}
+        <NxTooltip id="default-branch-tooltip" title={getDefaultBranchTooltipMessage()}>
+          <span id="default-branch-question-icon">
+            <NxFontAwesomeIcon icon={faQuestionCircle} color="blue" />
+          </span>
+        </NxTooltip>
+      </div>
+    );
+  }
 
   return (
     <NxTableRow key={rowKey}>
@@ -296,7 +357,7 @@ export function RepositoryRow(props) {
           <div className="nx-truncate-ellipsis">{repo.description}</div>
         </NxTooltip>
       </NxTableCell>
-      <NxTableCell className="iq-scm-repository-default-branch">{repo.defaultBranch}</NxTableCell>
+      <NxTableCell className="iq-scm-repository-default-branch">{renderDefaultBranch()}</NxTableCell>
     </NxTableRow>
   );
 }

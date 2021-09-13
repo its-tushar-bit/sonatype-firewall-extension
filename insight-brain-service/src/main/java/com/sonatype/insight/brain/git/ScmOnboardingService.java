@@ -43,6 +43,8 @@ import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -51,6 +53,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
+import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import org.apache.commons.lang3.StringUtils;
@@ -107,6 +110,8 @@ public class ScmOnboardingService
 
   private final IqForScmLicenseChecker licenseChecker;
 
+  private SourceControlUtils sourceControlUtils;
+
   @Inject
   public ScmOnboardingService(
       final SourceControlDAO sourceControlDAO,
@@ -121,7 +126,8 @@ public class ScmOnboardingService
       final TelemetrySender telemetrySender,
       final ScmApplicationNameConverter applicationNameConverter,
       final InsightConfig insightConfig,
-      final IqForScmLicenseChecker licenseChecker)
+      final IqForScmLicenseChecker licenseChecker,
+      final SourceControlUtils sourceControlUtils)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
@@ -136,6 +142,7 @@ public class ScmOnboardingService
     this.applicationNameConverter = applicationNameConverter;
     this.insightConfig = insightConfig;
     this.licenseChecker = licenseChecker;
+    this.sourceControlUtils = sourceControlUtils;
   }
 
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
@@ -270,6 +277,11 @@ public class ScmOnboardingService
   private List<SCMRepository> postProcess(final List<SCMRepository> repositories) {
     for (SCMRepository repository : repositories) {
       repository.setHttpCloneUrl(sanitizeUrl(repository.getHttpCloneUrl()));
+      // this will ensure we return a standard value to the UI
+      // when the default branch is null or empty
+      if (StringUtils.isEmpty(repository.getDefaultBranch())) {
+        repository.setDefaultBranch(GitApiClient.DEFAULT_BRANCH_NOT_DEFINED);
+      }
     }
     return repositories;
   }
@@ -380,8 +392,11 @@ public class ScmOnboardingService
         app = appDAO.getById(reposWithMatchingUrl.get(0).getOwnerId());
       }
     }
+
+    // get default branch value and updates SCM repository value with result
+    String defaultBranch = getAndSetDefaultBranch(scmRepository, orgId);
     ApiSourceControlDTO apiSourceControlDTO =
-        apiSourceControlService.addOrUpdateSourceControl(app.getPublicId(), cloneUrl, scmRepository.getDefaultBranch());
+        apiSourceControlService.addOrUpdateSourceControl(app.getPublicId(), cloneUrl, defaultBranch);
 
     if (licenseChecker.isIqForScmSupported()) {
       if (insightConfig.isFeatureEnabled(InsightConfig.Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)) {
@@ -390,6 +405,66 @@ public class ScmOnboardingService
     }
 
     return scmRepository;
+  }
+
+  private String getAndSetDefaultBranch(
+      final SCMRepository scmRepository,
+      final String orgId)
+  {
+    String defaultBranch = scmRepository.getDefaultBranch();
+
+    if (isAValidDefaultBranch(defaultBranch)) {
+      defaultBranch = normalizeDefaultBranch(defaultBranch);
+    }
+    else {
+      // if is invalid we try to get it from SCM
+      defaultBranch = getDefaultBranchFromSCM(scmRepository, orgId);
+    }
+
+    scmRepository.setDefaultBranch(defaultBranch);
+
+    return defaultBranch;
+  }
+
+  private String getDefaultBranchFromSCM(final SCMRepository scmRepository, final String orgId) {
+    String defaultBranch = null;
+
+    try {
+      GitRepositoryInfo repositoryInfo = getGitRepositoryInfo(scmRepository, orgId);
+      GitApiClient gitApiClient = gitClientFactory.createApiClient(repositoryInfo);
+      defaultBranch = gitApiClient.getDefaultBranch();
+    }
+    catch (IOException e) {
+      // not need to stop the process. Making default branch not defined
+      log.debug("Error getting default branch found for: {}", scmRepository.getHttpCloneUrl(),  e);
+    }
+
+    return normalizeDefaultBranch(defaultBranch);
+  }
+
+  private boolean isAValidDefaultBranch(final String defaultBranch) {
+    // Git Client sets the branch to UNKNOWN_DEFAULT_BRANCH when the SCM doesn't return the branch
+    // with the list of all repositories
+    return !GeneralSCMApiClient.UNKNOWN_DEFAULT_BRANCH.equals(defaultBranch);
+  }
+
+  private String normalizeDefaultBranch(String defaultBranch) {
+    // if branch is not defined, we set the default branch to null
+    // with this we will leverage org/root-org configuration
+    if (StringUtils.isEmpty(defaultBranch)) {
+      return null;
+    }
+    return defaultBranch;
+  }
+
+  private GitRepositoryInfo getGitRepositoryInfo(
+      SCMRepository scmRepository,
+      String orgId)
+  {
+    return sourceControlUtils.getGitRepositoryInfoForRepository(
+        orgId,
+        sanitizeUrl(scmRepository.getHttpCloneUrl()),
+        scmRepository.getSourceControlProvider());
   }
 
   private void initiateSourceControlEvaluation(ApiSourceControlDTO sourceControlDTO) {

@@ -44,15 +44,19 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
+import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -62,6 +66,7 @@ import org.mockito.Mock;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.git.ScmOnboardingService.MAX_PUBLICID_RENAME_ATTEMPTS;
@@ -81,6 +86,14 @@ public class ScmOnboardingServiceTest
   private static final String PAGE_0 = "allRepos0.json";
 
   public static final String PAGE_1 = "emptyResponse.json";
+
+  public static final String LIST_WITH_EMPTY_REPOS = "listWithEmptyRepos.json";
+
+  public static final String BITBUCKET_DEFAULT_BRANCH_RESPONSE = "bitbucketDefaultBranchResponse.json";
+
+  private static final String MOCK_USER_JSON = "{\"username\":\"foo\"}";
+
+  public static final String MAIN_BRANCH = "main";
 
   @Rule
   public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
@@ -129,10 +142,8 @@ public class ScmOnboardingServiceTest
   public void setup() throws Exception {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication("tmpapp", org.getId());
-    gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
-        .willReturn(aResponse()
-        .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-        .withBody("{\"username\":\"foo\"}")));
+    mockGetRequest(gitService, "/api/v3/user", MOCK_USER_JSON, HttpStatus.SC_OK);
+    mockGetRequest(gitService, "/rest/user", MOCK_USER_JSON, HttpStatus.SC_OK);
     tempEntity
         .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
   }
@@ -278,6 +289,24 @@ public class ScmOnboardingServiceTest
 
     // and: no source control evaluation events
     verifyNoManifestEvaluationEventsCreated();
+  }
+
+  @Test
+  public void testLoadRepositories_setDefaultBranchWithStandardValue_forEmptyStringAndNull() throws Exception {
+    // given we receive a list of repos with some having empty default branch
+    String emptyRepos = getResourceAsString(LIST_WITH_EMPTY_REPOS);
+    mockRepoForPage(gitService, 0, emptyRepos);
+    mockRepoForPage(gitService, 1, "[]");
+
+    // when we get the list of repositories
+    SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+
+    // then for repos with default branch with value null or empty string the new value should be
+    // GitApiClient.DEFAULT_BRANCH_NOT_DEFINED
+    assertThat(repositories.availableRepositories.stream().map(SCMRepository::getDefaultBranch))
+        .containsExactly(GitApiClient.DEFAULT_BRANCH_NOT_DEFINED,
+            GitApiClient.DEFAULT_BRANCH_NOT_DEFINED,
+            MAIN_BRANCH);
   }
 
   @Test
@@ -472,7 +501,7 @@ public class ScmOnboardingServiceTest
     int totalRepoCount = 50;
     int prevImportedCount = 10;
 
-    // when the repos are be imported
+    // when the repos are imported
     ImportResults response = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount));
 
@@ -498,7 +527,7 @@ public class ScmOnboardingServiceTest
     assertThat(allApps.stream().map(Application::getName))
         .containsExactlyInAnyOrder("Repo1 - Org", "Repo2 - Org", "Repo3 - Org", "Bad_name_99 - Bad __ Org");
 
-    // and that all of the clone URLs were added
+    // and that all the clone URLs were added
     assertThat(sourceControlDAO.getAll().stream()
         .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
         .map(SourceControl::getRepositoryUrl)).containsExactly("http://localhost/org/repo1",
@@ -512,6 +541,73 @@ public class ScmOnboardingServiceTest
     int batchCount = reposToImport.length;
     int totalPercent = (int)((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
     assertTelemetry(batchPercent, batchCount, totalPercent, batchCount);
+  }
+
+  @Test
+  public void testImportRepositories_Bitbucket_repositoriesWithInvalidDefaultBranch() throws Exception {
+    // given git repositories details
+    String repo1GetDefaultBranchURL = "/rest/api/1.0/projects/org/repos/repo1/branches/default";
+    String repo2GetDefaultBranchURL = "/rest/api/1.0/projects/org/repos/repo2/branches/default";
+    String bitBucketResponse = getResourceAsString(BITBUCKET_DEFAULT_BRANCH_RESPONSE);
+    mockGetRequest(gitService, repo1GetDefaultBranchURL, bitBucketResponse, HttpStatus.SC_OK);
+    mockGetRequest(gitService, repo2GetDefaultBranchURL, "", HttpStatus.SC_NO_CONTENT);
+
+    // given a list of repos to import
+    String repo1URL = String.format("%s/scm/org/repo1", gitService.baseUrl());
+    String repo2URL = String.format("%s/scm/org/repo2", gitService.baseUrl());
+    SCMRepository[] reposToImport = new SCMRepository[] {
+        // existing repository on BB with unknown default branch
+        // should get default branch from SCM
+        new SCMRepository(SourceControlProvider.BITBUCKET, repo1URL, null,
+            false, "org", "repo1", "", GeneralSCMApiClient.UNKNOWN_DEFAULT_BRANCH),
+        // empty repository on BB with unknown default branch
+        // should get null default branch
+        new SCMRepository(SourceControlProvider.BITBUCKET, repo2URL, null,
+            false, "org", "repo2", "", GeneralSCMApiClient.UNKNOWN_DEFAULT_BRANCH)
+        };
+    int totalRepoCount = 50;
+    int prevImportedCount = 10;
+
+    // when the repos are imported
+    ImportResults response = scmOnboardingService.importRepositories(org.getId(),
+        new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount));
+
+    // then all the repos are imported
+    List<SCMRepository> imported = response.getImportedRepositories();
+    assertThat(imported.size()).isEqualTo(2);
+    assertThat(response.getFailedRepositories()).isEmpty();
+
+    // and the proper default branch is set for each repository
+    assertThat(imported.get(0).getDefaultBranch()).isEqualTo(MAIN_BRANCH);
+    assertThat(imported.get(1).getDefaultBranch()).isEqualTo(null);
+
+    // and Git client was used to get the default branch name
+    WireMock.verify(1, getRequestedFor(urlPathEqualTo(repo1GetDefaultBranchURL)));
+    WireMock.verify(1, getRequestedFor(urlPathEqualTo(repo2GetDefaultBranchURL)));
+
+    // and they exist in the DB
+    List<Application> allApps = sourceControlDAO.getAll().stream()
+        .filter(sc -> !sc.getOwnerId().equals(ROOT_ORGANIZATION_ID))
+        .map(sc -> applicationDAO.getById(sc.getOwnerId()))
+        .collect(Collectors.toList());
+    assertThat(allApps.stream().map(Application::getPublicId))
+        .containsExactlyInAnyOrder("repo1__org", "repo2__org");
+    assertThat(allApps.stream().map(Application::getName))
+        .containsExactlyInAnyOrder("Repo1 - Org", "Repo2 - Org");
+
+    // and the default branches are stored on DB
+    assertThat(sourceControlDAO.getAll().stream()
+        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
+        .map(SourceControl::getBaseBranch))
+        .containsExactly(MAIN_BRANCH,null);
+  }
+
+  private void mockGetRequest(WireMockRule gitService, String urlPath, String json, int status) {
+    gitService.stubFor(get(urlPathEqualTo(urlPath))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(json)
+            .withStatus(status)));
   }
 
   @Test
@@ -530,7 +626,7 @@ public class ScmOnboardingServiceTest
     int totalRepoCount = 50;
     int prevImportedCount = 8;
 
-    // when the repos are be imported
+    // when the repos are imported
     ImportResults response = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount));
 
@@ -609,7 +705,7 @@ public class ScmOnboardingServiceTest
     int totalRepoCount = 50;
     int prevImportedCount = 8;
 
-    // when the repos are be imported
+    // when the repos are imported
     ImportResults response = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(Arrays.asList(reposToImport), totalRepoCount, prevImportedCount));
 
@@ -630,7 +726,7 @@ public class ScmOnboardingServiceTest
     assertThat(allApps.stream().map(Application::getPublicId))
         .containsExactlyInAnyOrder("repo1__org", app.getPublicId());
 
-    // and all of the source control entries were created
+    // and all the source control entries were created
     List<Application> allSourceControlApps = sourceControlDAO.getAll().stream()
         .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.bitbucket.BitbucketApiClientUtils;
 
@@ -95,12 +96,8 @@ public class SourceControlUtils
         populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, orgSourceControl);
       }
 
-      if (!gitRepositoryInfo.isDataComplete()) {
-        // fields are still missing, check at the root organization level
-        SourceControl rootOrgSourceControl =
-            sourceControlService.getSourceControlByOwnerDecrypted(Organization.ROOT_ORGANIZATION_ID);
-        populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, rootOrgSourceControl);
-      }
+      // check at root organization level for any missing field
+      populateGitRepositoryInformationFromRootOrganization(gitRepositoryInfo);
     }
 
     // TODO remove this check when Aquila has enforced a default branch at the root org level
@@ -180,6 +177,15 @@ public class SourceControlUtils
     }
   }
 
+  private void populateGitRepositoryInformationFromRootOrganization(final GitRepositoryInfo gitRepositoryInfo) {
+    // if there are missing fields, check at the root organization level
+    if (!gitRepositoryInfo.isDataComplete()) {
+      SourceControl rootOrgSourceControl =
+          sourceControlService.getSourceControlByOwnerDecrypted(Organization.ROOT_ORGANIZATION_ID);
+      populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, rootOrgSourceControl);
+    }
+  }
+
   /**
    * Checks whether the checkout directory exists. If so, it is returned; otherwise it is created.
    */
@@ -225,5 +231,30 @@ public class SourceControlUtils
     GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
 
     return gitApiClient.getUserId();
+  }
+
+  /**
+   * Returns a {@link GitRepositoryInfo} object with provider and token sourced from the organization hierarchy
+   *
+   * @param orgId The id of the organization for which the information needs to be retrieved
+   * @param repoUrl The repository URL for which the information needs to be retrieved
+   * @param provider The SCM provider for which the information needs to be retrieved
+   * @return The git repository information for the given information
+   */
+  public GitRepositoryInfo getGitRepositoryInfoForRepository(
+      String orgId,
+      String repoUrl,
+      SourceControlProvider provider)
+  {
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
+    gitRepositoryInfo.repositoryUrl = repoUrl;
+    gitRepositoryInfo.provider = provider;
+
+    // check at sub-organization level for missing fields
+    SourceControl orgSourceControl = sourceControlService.getSourceControlByOwnerDecrypted(orgId);
+    populateGitRepositoryInformationFromOrganization(gitRepositoryInfo, orgSourceControl);
+    populateGitRepositoryInformationFromRootOrganization(gitRepositoryInfo);
+
+    return gitRepositoryInfo;
   }
 }

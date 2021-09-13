@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.insight.test.reverseproxy.IRequestHandler;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyHandler;
 
@@ -39,10 +40,14 @@ public class CacheBusterTest
     SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
     systemConfigMenu.dropdownToggle().shouldBe(visible).click();
     systemConfigMenu.webhooks().click();
+    WebhookConfigurationPage webhookPage = new WebhookConfigurationPage();
+    webhookPage.emptyListMessage().shouldBe(visible);
 
     refreshOrOpen(DashboardPage.url());
     systemConfigMenu.dropdownToggle().shouldBe(visible).click();
     systemConfigMenu.webhooks().click();
+    webhookPage = new WebhookConfigurationPage();
+    webhookPage.emptyListMessage().shouldBe(visible);
 
     ArrayList<String> timestamps = handler.getAllTimestamps();
 

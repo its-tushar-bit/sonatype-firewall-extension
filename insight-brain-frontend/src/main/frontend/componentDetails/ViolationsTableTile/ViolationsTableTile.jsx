@@ -74,7 +74,7 @@ export default function ViolationsTableTile({
 
   return (
     <Fragment>
-      <section id="component-details-policy-violations" className="nx-tile">
+      <section className="nx-tile">
         {containsOldViolations && (
           <NxWarningAlert>
             Re-evaluate this report to enable <b>waivers functionality</b>.

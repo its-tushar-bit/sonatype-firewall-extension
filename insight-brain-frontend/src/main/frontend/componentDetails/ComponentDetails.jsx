@@ -93,10 +93,10 @@ export default function ComponentDetails({
           <NxTabPanel id="component-details-overview-tab-content">
             <OverviewContainer />
           </NxTabPanel>
-          <NxTabPanel>
+          <NxTabPanel id="component-details-policy-violations">
             <PolicyViolations />
           </NxTabPanel>
-          <NxTabPanel>
+          <NxTabPanel id="component-details-security-tab-content">
             <ComponentDetailsSecurityTab />
           </NxTabPanel>
           <NxTabPanel>

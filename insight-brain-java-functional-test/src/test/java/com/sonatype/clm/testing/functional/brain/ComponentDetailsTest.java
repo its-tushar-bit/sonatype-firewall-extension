@@ -16,6 +16,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
@@ -464,6 +465,75 @@ public class ComponentDetailsTest
     policyViolationsTable.shouldBe(visible);
   }
 
+  @Test
+  public void testSecurityTab_securityViolationTableEntries() {
+    refreshOrOpen(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "197d803ab63dd3523d9d"));
+    ComponentDetailsPage componentDetailsPage =  new ComponentDetailsPage();
+    componentDetailsPage.securityTabContent().shouldBe(visible);
+
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.securityTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(3);
+    ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
+    rowCells.shouldHaveSize(6);
+    rowCells.shouldHave(exactTexts("9", "Security-High", "High risk CVSS score",
+            "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
+            + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
+            + "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'",
+            "Add Waiver", ""));
+
+    eyesWatcher.eyesCheck("component details security tab violation table add waiver");
+
+    rowCells.get(4).find("button").click();
+    AddWaiverPopover addWaiverPopover = new AddWaiverPopover();
+    Button saveButton = addWaiverPopover.saveButton();
+    saveButton.shouldBe(visible).click();
+
+    componentDetailsPage =  new ComponentDetailsPage();
+    componentDetailsPage.securityTabContent().shouldBe(visible);
+
+    policyViolationsTable = componentDetailsPage.securityTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(3);
+    rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
+    rowCells.shouldHaveSize(6);
+    rowCells.shouldHave(exactTexts("9", "Security-High", "High risk CVSS score",
+            "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
+            + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
+            + "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'",
+            "Unapplied Waiver", ""));
+
+    eyesWatcher.eyesCheck("component details security tab violation table Unapplied waiver");
+
+    MainHeader.backButton().click();
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+    reportPage.reevaluateButton().click();
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID,true));
+    ApplicationReportPage.AppReportHeaders reportHeaders = new ApplicationReportPage.AppReportHeaders();
+    reportHeaders.componentNameFilterInput()
+      .setValue("org.springframework.security : spring-security-web : 3.2.4.release");
+    reportPage.resultRows().first().click();
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "197d803ab63dd3523d9d"));
+
+    componentDetailsPage =  new ComponentDetailsPage();
+    componentDetailsPage.securityTab().click();
+    componentDetailsPage.securityTabContent().shouldBe(visible);
+
+    policyViolationsTable = componentDetailsPage.securityTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(3);
+    rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
+    rowCells.shouldHaveSize(6);
+    rowCells.shouldHave(exactTexts("9", "Security-High", "High risk CVSS score",
+            "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
+            + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
+            + "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'",
+            "1 Active Waiver", ""));
+
+    eyesWatcher.eyesCheck("component details security tab violation table Active waiver");
+  }
+
 
   /* Part of testPolicyViolationsTab_violationTableEntries. */
   private void testGrandfatheringIndicator(final ComponentDetailsPage componentDetailsPage) {
@@ -623,6 +693,12 @@ public class ComponentDetailsTest
     componentDetailsPage.violationsTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, HASH));
     componentDetailsPage.violationsTabContent().shouldBe(visible);
+  }
+
+  private void navigateToComponentDetailsPageSecurityTab(final ComponentDetailsPage componentDetailsPage) {
+    componentDetailsPage.securityTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, HASH));
+    componentDetailsPage.securityTabContent().shouldBe(visible);
   }
 
   private void waiveFirstReportRow() {

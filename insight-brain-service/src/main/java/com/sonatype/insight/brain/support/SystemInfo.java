@@ -64,6 +64,8 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -147,7 +149,9 @@ class SystemInfo
   }
 
   String getObfuscatedYaml(final InputStream input) {
-    final Yaml yaml = new Yaml();
+    DumperOptions dumperOptions = new DumperOptions();
+    dumperOptions.setDefaultFlowStyle(FlowStyle.BLOCK);
+    final Yaml yaml = new Yaml(dumperOptions);
     Object yamlObject = yaml.load(input);
     obfuscateYaml(yamlObject);
     return yaml.dump(yamlObject);

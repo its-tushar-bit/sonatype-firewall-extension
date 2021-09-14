@@ -1,0 +1,11 @@
+hdsUrl: https://clm-staging.sonatype.com
+baseUrl: http://localhost:8070
+consentToUpgradeToVersion_1_45: true
+logging:
+  level: DEBUG
+  loggers:
+    com.sonatype.insight.brain.git.event: INFO
+    com.sonatype.insight.brain.git.PullRequestPollingScheduler: INFO
+  appenders:
+  - type: console
+    logFormat: '%d{"yyyy-MM-dd HH:mm:ss,SSSZ"} %level %logger - %msg%n'

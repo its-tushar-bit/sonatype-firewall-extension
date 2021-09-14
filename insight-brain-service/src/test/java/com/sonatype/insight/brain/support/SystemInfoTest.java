@@ -49,12 +49,14 @@ import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.FileAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.server.DefaultServerFactory;
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
 
@@ -221,6 +223,22 @@ public class SystemInfoTest
     final Map<String, Object> entryTestMap = (Map<String, Object>) obufscatedMap.get("testmap");
     assertThat(entryTestMap).containsEntry("json_map-passwords", SystemInfo.MASK);
     assertThat(entryTestMap).containsEntry("json_seq-passwords", SystemInfo.MASK);
+  }
+
+  @Test
+  public void testGetObfuscatedYaml_PreservesBlockFlowFormatting() throws Exception {
+    File configYml = new File(getClass()
+        .getResource(
+            "/" + getClass().getSimpleName() + "/testGetObfuscatedYaml_PreservesBlockFlowFormatting-config.yml")
+        .getFile());
+    assertThat(configYml.exists()).isTrue();
+    String configYmlContent = FileUtils.readFileToString(configYml, Charsets.UTF_8).replaceAll("\r\n", "\n");
+
+    String obfuscatedYaml;
+    try (final InputStream reader = new FileInputStream(configYml)) {
+      obfuscatedYaml = systemInfo.getObfuscatedYaml(reader).replaceAll("\r\n", "\n");
+    }
+    assertThat(obfuscatedYaml).isEqualTo(configYmlContent);
   }
 
   @Test

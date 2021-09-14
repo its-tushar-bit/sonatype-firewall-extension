@@ -6,6 +6,8 @@
 import {
   selectComponentDetailsOverviewVersionExplorerSlice,
   selectVersionExplorerRequestData,
+  selectRemediationData,
+  selectComponenDetailsOverviewRemediationSlice,
 } from '../../../../main/frontend/componentDetails/overview/overviewSelectors';
 
 describe('overviewSelectors', () => {
@@ -15,6 +17,50 @@ describe('overviewSelectors', () => {
     data: {
       someData: 'data',
     },
+  };
+  const remediation = {
+    versionChanges: [
+      {
+        type: 'next-no-violations',
+        data: {
+          component: {
+            packageUrl: 'pkg:maven/org.springframework.boot/spring-boot-jarmode-layertools@2.4.10?type=jar',
+            hash: null,
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: 'spring-boot-jarmode-layertools',
+                classifier: '',
+                extension: 'jar',
+                groupId: 'org.springframework.boot',
+                version: '2.4.10',
+              },
+            },
+            displayName: 'org.springframework.boot : spring-boot-jarmode-layertools : 2.4.10',
+          },
+        },
+      },
+      {
+        type: 'next-non-failing',
+        data: {
+          component: {
+            packageUrl: 'pkg:maven/org.springframework.boot/spring-boot-jarmode-layertools@2.4.9?type=jar',
+            hash: null,
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: 'spring-boot-jarmode-layertools',
+                classifier: '',
+                extension: 'jar',
+                groupId: 'org.springframework.boot',
+                version: '2.4.9',
+              },
+            },
+            displayName: 'org.springframework.boot : spring-boot-jarmode-layertools : 2.4.9',
+          },
+        },
+      },
+    ],
   };
   const mockState = {
     router: {
@@ -32,15 +78,22 @@ describe('overviewSelectors', () => {
             matchState: 'exact',
             proprietary: false,
             identificationSource: 'is',
+            derivedDependencyType: 'transitive',
             componentIdentifier: {
               format: 'format',
-              coordinates: {},
+              coordinates: {
+                version: '2.4.9',
+              },
             },
           },
         ],
       },
+      metadata: {
+        stageId: 'build',
+      },
     },
     componentDetailsOverview: {
+      remediation,
       graphExplorerData,
     },
   };
@@ -62,12 +115,31 @@ describe('overviewSelectors', () => {
         identificationSource: 'is',
         componentIdentifier: {
           componentType: 'format',
-          coordinates: {},
+          coordinates: {
+            version: '2.4.9',
+          },
         },
         hash: 'some-component-hash',
         scanId: 'scanId',
+        stageId: 'build',
+        dependencyType: 'transitive',
       };
       const actualSelection = selectVersionExplorerRequestData(mockState);
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+
+    it('selects the selectComponenDetailsOverviewRemediationSlice slice of the state', () => {
+      const expectedSelection = remediation;
+      const actualSelection = selectComponenDetailsOverviewRemediationSlice(mockState);
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+
+    it('selects the selectRemediationData slice of the state', () => {
+      const expectedSelection = {
+        actualVersion: '2.4.9',
+        stageId: 'build',
+      };
+      const actualSelection = selectRemediationData(mockState);
       expect(actualSelection).toEqual(expectedSelection);
     });
   });

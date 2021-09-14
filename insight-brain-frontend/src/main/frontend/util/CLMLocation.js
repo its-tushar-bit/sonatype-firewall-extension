@@ -542,6 +542,8 @@ export const getVersionGraphUrl = ({
   pathname,
   identificationSource,
   scanId,
+  stageId,
+  dependencyType,
 }) => {
   const params = toURIParams({
     componentIdentifier:
@@ -556,7 +558,8 @@ export const getVersionGraphUrl = ({
     pathname,
     identificationSource,
     scanId,
-    reportId: scanId,
+    stageId,
+    dependencyType,
   });
   return (
     uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${encodeURIComponent(ownerId)}/allVersions?` + params

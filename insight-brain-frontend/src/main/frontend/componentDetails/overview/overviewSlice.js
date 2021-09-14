@@ -13,6 +13,7 @@ import { selectVersionExplorerRequestData } from './overviewSelectors';
 const REDUCER_NAME = 'componentDetailsOverview';
 
 const initialState = {
+  remediation: null,
   graphExplorerData: {
     loading: false,
     loadError: null,
@@ -31,18 +32,17 @@ const loadRequested = (state) => {
   };
 };
 
-const loadFulfilled = (state, { payload }) => {
-  return {
-    ...state,
-    graphExplorerData: {
-      loading: false,
-      loadError: null,
-      data: {
-        versions: payload.data.allVersions,
-      },
+const loadFulfilled = (state, { payload }) => ({
+  ...state,
+  remediation: payload.data.remediation,
+  graphExplorerData: {
+    loading: false,
+    loadError: null,
+    data: {
+      versions: payload.data.allVersions,
     },
-  };
-};
+  },
+});
 
 function loadFailed(state, { payload }) {
   return {

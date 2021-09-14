@@ -58,8 +58,53 @@ describe('componentDetailspolicyViolationsSlice', () => {
         },
       });
       const versionsList = ['list'];
+      const remediation = {
+        versionChanges: [
+          {
+            type: 'next-non-failing',
+            data: {
+              component: {
+                packageUrl: 'pkg:maven/com.h2database/h2@1.4.200?type=jar',
+                hash: null,
+                componentIdentifier: {
+                  format: 'maven',
+                  coordinates: {
+                    artifactId: 'h2',
+                    classifier: '',
+                    extension: 'jar',
+                    groupId: 'com.h2database',
+                    version: '1.4.200',
+                  },
+                },
+                displayName: 'com.h2database : h2 : 1.4.200',
+              },
+            },
+          },
+          {
+            type: 'next-non-failing-with-dependencies',
+            data: {
+              component: {
+                packageUrl: 'pkg:maven/com.h2database/h2@1.4.200?type=jar',
+                hash: null,
+                componentIdentifier: {
+                  format: 'maven',
+                  coordinates: {
+                    artifactId: 'h2',
+                    classifier: '',
+                    extension: 'jar',
+                    groupId: 'com.h2database',
+                    version: '1.4.200',
+                  },
+                },
+                displayName: 'com.h2database : h2 : 1.4.200',
+              },
+            },
+          },
+        ],
+      };
       const payload = {
         data: {
+          remediation: remediation,
           allVersions: versionsList,
         },
       };
@@ -72,6 +117,7 @@ describe('componentDetailspolicyViolationsSlice', () => {
       expect(newState.graphExplorerData.loading).toBe(false);
       expect(newState.graphExplorerData.loadError).toBe(null);
       expect(newState.graphExplorerData.data).toEqual({ versions: versionsList });
+      expect(newState.remediation).toEqual(remediation);
       expect(newState.other).toBe(stateConstantObject);
     });
   });

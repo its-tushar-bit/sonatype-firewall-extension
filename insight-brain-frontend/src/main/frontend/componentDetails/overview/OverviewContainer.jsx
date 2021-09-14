@@ -10,13 +10,21 @@ import { selectSelectedComponent } from '../../applicationReport/applicationRepo
 import { selectComponentAncestors } from '../componentDetailsSelectors';
 import { selectCurrentRouteName } from '../../reduxUiRouter/routerSelectors';
 import { actions } from './overviewSlice';
-import { selectComponentDetailsOverviewVersionExplorerSlice } from './overviewSelectors';
+import {
+  selectComponentDetailsOverviewVersionExplorerSlice,
+  selectComponenDetailsOverviewRemediationSlice,
+  selectRemediationData,
+} from './overviewSelectors';
 
 function mapStateToProps(state) {
+  const { actualVersion, stageId } = selectRemediationData(state);
   return {
     componentInformation: selectSelectedComponent(state),
     ancestors: selectComponentAncestors(state),
     routeName: selectCurrentRouteName(state),
+    actualVersion: actualVersion,
+    stageId: stageId,
+    remediation: selectComponenDetailsOverviewRemediationSlice(state),
     versionExplorerData: selectComponentDetailsOverviewVersionExplorerSlice(state),
   };
 }

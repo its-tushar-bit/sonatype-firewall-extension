@@ -6,7 +6,10 @@
 
 import { createSelector } from '@reduxjs/toolkit';
 import { prop } from 'ramda';
-import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
+import {
+  selectSelectedComponent,
+  selectApplicationReportMetaData,
+} from '../../applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
 
 export const selectComponentDetailsOverviewSlice = prop('componentDetailsOverview');
@@ -16,10 +19,16 @@ export const selectComponentDetailsOverviewVersionExplorerSlice = createSelector
   prop('graphExplorerData')
 );
 
+export const selectComponenDetailsOverviewRemediationSlice = createSelector(
+  selectComponentDetailsOverviewSlice,
+  prop('remediation')
+);
+
 export const selectVersionExplorerRequestData = createSelector(
   selectSelectedComponent,
+  selectApplicationReportMetaData,
   selectRouterCurrentParams,
-  (component, params) => ({
+  (component, metadata, params) => ({
     clientType: 'ci',
     ownerType: 'application',
     ownerId: params.publicId,
@@ -29,9 +38,24 @@ export const selectVersionExplorerRequestData = createSelector(
     componentIdentifier: {
       componentType:
         !component.matchState || component.matchState === 'unknown' ? '' : component.componentIdentifier.format,
-      coordinates: component.componentIdentifier.coordinates,
+      coordinates:
+        !component.matchState || component.matchState === 'unknown' ? null : component.componentIdentifier.coordinates,
     },
     hash: component.hash,
     scanId: params.scanId,
+    stageId: metadata.stageId,
+    dependencyType: component.derivedDependencyType,
+  })
+);
+
+export const selectRemediationData = createSelector(
+  selectSelectedComponent,
+  selectApplicationReportMetaData,
+  (component, metadata) => ({
+    actualVersion:
+      !component.matchState || component.matchState === 'unknown'
+        ? 'unknown'
+        : component.componentIdentifier.coordinates.version,
+    stageId: metadata.stageId,
   })
 );

@@ -8,7 +8,191 @@ import VersionGraphExplorer from '../../../../../main/frontend/componentDetails/
 import { RiskRemediation } from '../../../../../main/frontend/componentDetails/overview/riskRemediation/RiskRemediation';
 
 describe('ComponentDetailsOverviewRiskRemediation', () => {
-  let minimalProps, getShallow, getMounted;
+  let minimalProps, getMounted;
+
+  const allVersions = [
+    {
+      matchState: 'exact',
+      declaredLicenses: [
+        {
+          licenseId: 'Apache-2.0',
+          licenseName: 'Apache-2.0',
+        },
+      ],
+      observedLicenses: [
+        {
+          licenseId: 'Apache-2.0',
+          licenseName: 'Apache-2.0',
+        },
+      ],
+      overriddenLicenses: [],
+      effectiveLicenses: [
+        {
+          licenseId: 'Apache-2.0',
+          licenseName: 'Apache-2.0',
+        },
+      ],
+      effectiveLicenseStatus: null,
+      catalogDate: 1589521958000,
+      relativePopularity: 29,
+      website: null,
+      policyMaxThreatLevelsByCategory: {},
+      violatedPolicyCount: 0,
+      highestSecurityVulnerabilitySeverity: 0.0,
+      securityVulnerabilityCount: 0,
+      majorRevisionStep: false,
+      identificationSource: 'Sonatype',
+      identificationSourceComment: null,
+      displayName: {
+        parts: [
+          {
+            field: 'Group',
+            value: 'org.springframework.boot',
+          },
+          {
+            value: ' : ',
+          },
+          {
+            field: 'Artifact',
+            value: 'spring-boot-jarmode-layertools',
+          },
+          {
+            value: ' : ',
+          },
+          {
+            field: 'Version',
+            value: '2.3.0.RELEASE',
+          },
+        ],
+        name: 'spring-boot-jarmode-layertools',
+      },
+      componentIdentifier: {
+        format: 'maven',
+        coordinates: {
+          artifactId: 'spring-boot-jarmode-layertools',
+          classifier: '',
+          extension: 'jar',
+          groupId: 'org.springframework.boot',
+          version: '2.3.0.RELEASE',
+        },
+      },
+      policyAlerts: [],
+      breakingChangesCount: null,
+    },
+    {
+      matchState: 'exact',
+      declaredLicenses: [
+        {
+          licenseId: 'Apache-2.0',
+          licenseName: 'Apache-2.0',
+        },
+      ],
+      observedLicenses: [
+        {
+          licenseId: 'Apache-2.0',
+          licenseName: 'Apache-2.0',
+        },
+      ],
+      overriddenLicenses: [],
+      effectiveLicenses: [
+        {
+          licenseId: 'Apache-2.0',
+          licenseName: 'Apache-2.0',
+        },
+      ],
+      effectiveLicenseStatus: null,
+      catalogDate: 1589521958000,
+      relativePopularity: 31,
+      website: null,
+      policyMaxThreatLevelsByCategory: {},
+      violatedPolicyCount: 0,
+      highestSecurityVulnerabilitySeverity: 0.0,
+      securityVulnerabilityCount: 0,
+      majorRevisionStep: false,
+      identificationSource: 'Sonatype',
+      identificationSourceComment: null,
+      displayName: {
+        parts: [
+          {
+            field: 'Group',
+            value: 'org.springframework.boot',
+          },
+          {
+            value: ' : ',
+          },
+          {
+            field: 'Artifact',
+            value: 'spring-boot-jarmode-layertools',
+          },
+          {
+            value: ' : ',
+          },
+          {
+            field: 'Version',
+            value: '2.3.1.RELEASE',
+          },
+        ],
+        name: 'spring-boot-jarmode-layertools',
+      },
+      componentIdentifier: {
+        format: 'maven',
+        coordinates: {
+          artifactId: 'spring-boot-jarmode-layertools',
+          classifier: '',
+          extension: 'jar',
+          groupId: 'org.springframework.boot',
+          version: '2.3.1.RELEASE',
+        },
+      },
+      policyAlerts: [],
+      breakingChangesCount: null,
+    },
+  ];
+
+  const remediation = {
+    versionChanges: [
+      {
+        type: 'next-no-violations',
+        data: {
+          component: {
+            packageUrl: 'pkg:maven/org.springframework.boot/spring-boot-jarmode-layertools@2.4.10?type=jar',
+            hash: null,
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: 'spring-boot-jarmode-layertools',
+                classifier: '',
+                extension: 'jar',
+                groupId: 'org.springframework.boot',
+                version: '2.4.10',
+              },
+            },
+            displayName: 'org.springframework.boot : spring-boot-jarmode-layertools : 2.4.10',
+          },
+        },
+      },
+      {
+        type: 'next-non-failing',
+        data: {
+          component: {
+            packageUrl: 'pkg:maven/org.springframework.boot/spring-boot-jarmode-layertools@2.4.9?type=jar',
+            hash: null,
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: 'spring-boot-jarmode-layertools',
+                classifier: '',
+                extension: 'jar',
+                groupId: 'org.springframework.boot',
+                version: '2.4.9',
+              },
+            },
+            displayName: 'org.springframework.boot : spring-boot-jarmode-layertools : 2.4.9',
+          },
+        },
+      },
+    ],
+  };
 
   beforeEach(function () {
     minimalProps = {
@@ -25,6 +209,9 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
           derivedComponentName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
         },
       ],
+      actualVersion: '2.4.19',
+      stageId: 'build',
+      remediation: remediation,
       routeName: 'applicationReport.componentDetails.overview',
       requestVersionGraphData: jasmine.createSpy('requestVersionGraphData'),
       versionExplorerData: {
@@ -34,21 +221,22 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
       },
     };
 
-    getShallow = enzymeUtils.getShallowComponent(RiskRemediation, minimalProps);
     getMounted = enzymeUtils.getMountedComponent(RiskRemediation, minimalProps);
   });
 
   it('renders dependency information tile if it is not a direct dependency', () => {
-    const component = getShallow(),
+    const component = getMounted(),
       dependencyInfoTile = component.find('.iq-dependency-information');
 
     expect(dependencyInfoTile).not.toBeNull();
-    const ancestorsList = dependencyInfoTile.find('li');
+    const ancestorsList = dependencyInfoTile.find('.nx-list');
     expect(ancestorsList.length).toBe(1);
+    const listElements = ancestorsList.find('li');
+    expect(listElements.length).toBe(1);
   });
 
   it('does not render dependency information tile if it is a direct dependency', () => {
-    const component = getShallow({ directDependency: true }),
+    const component = getMounted({ directDependency: true }),
       dependencyInfoTile = component.find('.iq-dependency-information');
 
     expect(dependencyInfoTile.length).toBe(0);
@@ -63,19 +251,30 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
   it('renders the VersionGraphExplorer', () => {
     const data = {
       version: '123',
-      versions: {
-        version: '2.0.4',
-        versions: [],
-      },
+      versions: allVersions,
     };
-    const component = getShallow({
+    const component = getMounted({
       versionExplorerData: {
         loading: false,
         loadError: null,
         data: data,
       },
-    }).find(VersionGraphExplorer);
-    expect(component).toExist();
-    expect(component).toHaveProp('data', data);
+    });
+
+    const versionExplorerTile = component.find('iq-version-explorer');
+    const content = versionExplorerTile.find('#aiVersionChartContainer');
+    expect(content).not.toBeNull();
+    const versionExplorerComponent = component.find(VersionGraphExplorer);
+    expect(versionExplorerComponent).toHaveProp('data', data);
+  });
+
+  it('renders the Recommended Versions tile', () => {
+    const component = getMounted(),
+      recommendedVersionTile = component.find('.iq-recommended-version');
+    expect(recommendedVersionTile).not.toBeNull();
+    const recommendedVersionsList = recommendedVersionTile.find('.nx-list');
+    expect(recommendedVersionsList.length).toBe(1);
+    const listElements = recommendedVersionsList.find('li');
+    expect(listElements.length).toBe(2);
   });
 });

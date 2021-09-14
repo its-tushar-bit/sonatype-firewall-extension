@@ -9,11 +9,15 @@ import { join } from 'ramda';
 
 import { formatTimeAgoUpToDay } from '../../util/dateUtils';
 import { RiskRemediation } from './riskRemediation/RiskRemediation';
+import { RemediationPropTypes, AncestorPropTypes } from './overviewTypes';
 
 export default function Overview({
   componentInformation,
   ancestors,
   routeName,
+  actualVersion,
+  stageId,
+  remediation,
   requestVersionGraphData,
   versionExplorerData,
 }) {
@@ -25,7 +29,6 @@ export default function Overview({
     identificationSource,
     componentCategories = [],
     pathnames,
-    directDependency,
   } = componentInformation;
   const isUnknown = !matchState || matchState === 'unknown';
   const format = isUnknown ? '' : componentIdentifier.format;
@@ -109,6 +112,11 @@ export default function Overview({
     </section>
   );
 
+  if (isUnknown) {
+    return <div>{overviewComponentInformationTile}</div>;
+  }
+
+  const directDependency = componentInformation.directDependency;
   return (
     <div>
       {overviewComponentInformationTile}
@@ -116,6 +124,9 @@ export default function Overview({
         directDependency={directDependency}
         ancestors={ancestors}
         routeName={routeName}
+        actualVersion={actualVersion}
+        stageId={stageId}
+        remediation={remediation}
         requestVersionGraphData={requestVersionGraphData}
         versionExplorerData={{
           ...versionExplorerData,
@@ -146,25 +157,13 @@ Overview.propTypes = {
       })
     ),
     pathnames: PropTypes.arrayOf(PropTypes.string).isRequired,
-    directDependency: PropTypes.bool.isRequired,
+    directDependency: PropTypes.bool,
   }),
   routeName: PropTypes.string.isRequired,
-  ancestors: PropTypes.arrayOf(
-    PropTypes.shape({
-      hash: PropTypes.string.isRequired,
-      derivedComponentName: PropTypes.string.isRequired,
-      componentIdentifier: PropTypes.shape({
-        format: PropTypes.string.isRequired,
-        coordinates: PropTypes.shape({
-          artifactId: PropTypes.string.isRequired,
-          classifier: PropTypes.string,
-          extension: PropTypes.string.isRequired,
-          groupId: PropTypes.string.isRequired,
-          version: PropTypes.string.isRequired,
-        }),
-      }),
-    })
-  ),
+  ancestors: PropTypes.arrayOf(AncestorPropTypes),
+  actualVersion: PropTypes.string.isRequired,
+  stageId: PropTypes.string.isRequired,
+  remediation: RemediationPropTypes,
   requestVersionGraphData: PropTypes.func,
   versionExplorerData: PropTypes.shape({
     data: PropTypes.shape({

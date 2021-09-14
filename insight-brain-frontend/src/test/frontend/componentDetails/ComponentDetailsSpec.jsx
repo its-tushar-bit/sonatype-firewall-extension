@@ -79,6 +79,7 @@ describe('ComponentDetails', function () {
           componentDetails: {
             name: 'Mock Component Name',
             hash: 'some-crazy-hash',
+            matchState: 'exact',
           },
         }),
         tabBar = component.find(NxStatefulTabs);
@@ -104,6 +105,7 @@ describe('ComponentDetails', function () {
           componentDetails: {
             name: 'Mock Component Name',
             hash: 'some-crazy-hash',
+            matchState: 'exact',
           },
         }),
         tabBar = component.find(NxStatefulTabs),
@@ -127,6 +129,7 @@ describe('ComponentDetails', function () {
         componentDetails: {
           name: 'Mock Component Name',
           hash: 'some-crazy-hash',
+          matchState: 'exact',
         },
         activeTabId: 'security',
         onTabChange: onTabChangeInInfoSpy,
@@ -148,6 +151,7 @@ describe('ComponentDetails', function () {
           componentDetails: {
             name: 'Mock Component Name',
             hash: 'some-crazy-hash',
+            matchState: 'exact',
           },
         }),
         tabBar = component.find(NxStatefulTabs),
@@ -168,6 +172,7 @@ describe('ComponentDetails', function () {
         componentDetails: {
           name: 'Mock Component Name',
           hash: 'some-crazy-hash',
+          matchState: 'exact',
         },
         pagination: mockPagination,
       });

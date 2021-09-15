@@ -125,7 +125,6 @@ export default function Overview({
     return <div>{overviewComponentInformationTile}</div>;
   }
 
-  const directDependency = componentInformation.directDependency;
   return (
     <div>
       <InnerSourceProducerReportModalContainer />
@@ -133,7 +132,6 @@ export default function Overview({
       <InnerSourceProducerAlertContainer />
       {overviewComponentInformationTile}
       <RiskRemediation
-        directDependency={directDependency}
         ancestors={ancestors}
         routeName={routeName}
         actualVersion={actualVersion}
@@ -169,7 +167,9 @@ Overview.propTypes = {
       })
     ),
     pathnames: PropTypes.arrayOf(PropTypes.string).isRequired,
-    directDependency: PropTypes.bool,
+    dependencyInfo: PropTypes.shape({
+      isDirectDependency: PropTypes.bool.isRequired,
+    }),
   }),
   routeName: PropTypes.string.isRequired,
   ancestors: PropTypes.arrayOf(AncestorPropTypes),

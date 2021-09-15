@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
 import { NxLoadWrapper } from '@sonatype/react-shared-components';
@@ -14,7 +14,6 @@ import { RecommendedVersions } from './RecommendedVersions';
 import { AncestorPropTypes, RemediationPropTypes } from '../overviewTypes';
 
 export const RiskRemediation = ({
-  directDependency,
   ancestors,
   routeName,
   actualVersion,
@@ -35,81 +34,70 @@ export const RiskRemediation = ({
     </header>
   );
 
-  const overviewComponentRiskRemediationTile_contentDirectDependency = (
-    <div className="nx-tile-content">
-      <NxLoadWrapper
-        loading={versionExplorerData && versionExplorerData.loading}
-        retryHandler={requestVersionGraphData}
-        error={versionExplorerData.loadError}
-      >
+  const overviewComponentRiskRemediationTile_contentDirectDependency = () => (
+    <div className="nx-grid-row">
+      <div className="nx-grid-col nx-grid-col--50">
+        <RecommendedVersions actualVersion={actualVersion} stageId={stageId} remediation={remediation} />
+      </div>
+      <div className="nx-grid-col nx-grid-col--50">
         <div className="nx-grid-row">
-          <div className="nx-grid-col nx-grid-col--50">
-            <RecommendedVersions actualVersion={actualVersion} stageId={stageId} remediation={remediation} />
-          </div>
-          <div className="nx-grid-col nx-grid-col--50">
-            <div className="nx-grid-row">
-              <div className="nx-grid-col iq-grid-col--100">
-                <VersionExplorer versionExplorerData={versionExplorerData} />
-              </div>
-            </div>
-            <div className="nx-grid-row">
-              <div className="nx-grid-col iq-grid-col--100">
-                <CompareVersions />
-              </div>
-            </div>
-          </div>
-        </div>
-      </NxLoadWrapper>
-    </div>
-  );
-
-  const overviewComponentRiskRemediationTile_contentTransitiveDependency = (
-    <div className="nx-tile-content">
-      <NxLoadWrapper
-        loading={versionExplorerData && versionExplorerData.loading}
-        retryHandler={requestVersionGraphData}
-        error={versionExplorerData.loadError}
-      >
-        <div className="nx-grid-row">
-          <div className="nx-grid-col nx-grid-col--50">
-            <DependencyInformation routeName={routeName} ancestors={ancestors} />
-          </div>
-          <div className="nx-grid-col nx-grid-col--50">
+          <div className="nx-grid-col iq-grid-col--100">
             <VersionExplorer versionExplorerData={versionExplorerData} />
           </div>
         </div>
         <div className="nx-grid-row">
-          <div className="nx-grid-col nx-grid-col--50">
-            <RecommendedVersions actualVersion={actualVersion} stageId={stageId} remediation={remediation} />
-          </div>
-          <div className="nx-grid-col nx-grid-col--50">
+          <div className="nx-grid-col iq-grid-col--100">
             <CompareVersions />
           </div>
         </div>
-      </NxLoadWrapper>
+      </div>
     </div>
   );
 
-  if (directDependency) {
-    return (
-      <section id="overview-component-risk-remediation-tile" className="nx-tile iq-component-risk-remediation-tile">
-        {overviewComponentRiskRemediationTile_header}
-        {overviewComponentRiskRemediationTile_contentDirectDependency}
-      </section>
-    );
-  } else {
-    return (
-      <section id="overview-component-risk-remediation-tile" className="nx-tile iq-component-risk-remediation-tile">
-        {overviewComponentRiskRemediationTile_header}
-        {overviewComponentRiskRemediationTile_contentTransitiveDependency}
-      </section>
-    );
-  }
+  const overviewComponentRiskRemediationTile_contentTransitiveDependency = () => (
+    <Fragment>
+      <div className="nx-grid-row">
+        <div className="nx-grid-col nx-grid-col--50">
+          <DependencyInformation routeName={routeName} ancestors={ancestors} />
+        </div>
+        <div className="nx-grid-col nx-grid-col--50">
+          <VersionExplorer versionExplorerData={versionExplorerData} />
+        </div>
+      </div>
+      <div className="nx-grid-row">
+        <div className="nx-grid-col nx-grid-col--50">
+          <RecommendedVersions actualVersion={actualVersion} stageId={stageId} remediation={remediation} />
+        </div>
+        <div className="nx-grid-col nx-grid-col--50">
+          <CompareVersions />
+        </div>
+      </div>
+    </Fragment>
+  );
+
+  const content =
+    ancestors && ancestors.length
+      ? overviewComponentRiskRemediationTile_contentTransitiveDependency()
+      : overviewComponentRiskRemediationTile_contentDirectDependency();
+
+  return (
+    <section id="overview-component-risk-remediation-tile" className="nx-tile iq-component-risk-remediation-tile">
+      {overviewComponentRiskRemediationTile_header}
+      <div className="nx-tile-content">
+        <NxLoadWrapper
+          loading={versionExplorerData && versionExplorerData.loading}
+          retryHandler={requestVersionGraphData}
+          error={versionExplorerData.loadError}
+        >
+          {content}
+        </NxLoadWrapper>
+      </div>
+    </section>
+  );
 };
 
 RiskRemediation.propTypes = {
   ancestors: PropTypes.arrayOf(AncestorPropTypes),
-  directDependency: PropTypes.bool.isRequired,
   actualVersion: PropTypes.string.isRequired,
   stageId: PropTypes.string.isRequired,
   remediation: RemediationPropTypes,

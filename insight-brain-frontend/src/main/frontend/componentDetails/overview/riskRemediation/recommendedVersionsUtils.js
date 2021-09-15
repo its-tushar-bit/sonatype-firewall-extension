@@ -89,7 +89,6 @@ const createSuggestedRemediationWithCurrentVersion = (item, remediationVersion, 
 };
 
 const createSuggestedRemediation = (item, applicationVersion, stageId) => {
-  console.log(item);
   const remediationVersion =
     item &&
     item.data &&

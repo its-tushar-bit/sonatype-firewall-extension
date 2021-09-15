@@ -22,17 +22,6 @@ describe('AncestorsList', () => {
     expect(getMounted()).toExist();
   });
 
-  it('returns a list of with no ancestors link', () => {
-    const component = getMounted();
-    expect(component).toHaveProp('ancestors', []);
-    expect(component).toHaveProp('routeName', 'applicationReport.componentDetails.overview');
-    const listElements = component.find('li');
-    expect(listElements.length).toBe(1);
-    const element = listElements.at(0);
-    expect(element).not.toBeNull();
-    expect(element).toHaveText('This Component does not have any Ancestors');
-  });
-
   it('returns a list with one ancestor link', () => {
     const ancestors = [
       {

@@ -13,11 +13,13 @@ import {
 } from './riskRemediation/recommendedVersionsUtils';
 
 export const CoordinatesPropTypes = PropTypes.shape({
-  artifactId: PropTypes.string.isRequired,
+  name: PropTypes.string,
+  qualifier: PropTypes.string,
+  artifactId: PropTypes.string,
   classifier: PropTypes.string,
-  extension: PropTypes.string.isRequired,
-  groupId: PropTypes.string.isRequired,
-  version: PropTypes.string.isRequired,
+  extension: PropTypes.string,
+  groupId: PropTypes.string,
+  version: PropTypes.string,
 });
 
 export const ComponentIdentifierPropTypes = PropTypes.shape({

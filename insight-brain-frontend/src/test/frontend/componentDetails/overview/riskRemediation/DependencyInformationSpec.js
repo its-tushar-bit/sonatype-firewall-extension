@@ -38,22 +38,6 @@ describe('DependencyInformation', () => {
     );
   });
 
-  it('The Tile contains a list of with no ancestors link', () => {
-    const component = getMounted();
-    expect(component).not.toBeNull();
-    expect(component).toHaveProp('ancestors', []);
-    expect(component).toHaveProp('routeName', 'applicationReport.componentDetails.overview');
-
-    const content = component.find('.nx-tile-content');
-    expect(content).not.toBeNull();
-
-    const listElements = content.find('li');
-    expect(listElements.length).toBe(1);
-    const element = listElements.at(0);
-    expect(element).not.toBeNull();
-    expect(element).toHaveText('This Component does not have any Ancestors');
-  });
-
   it('The Tile contains a list with one ancestor link', () => {
     const ancestors = [
       {

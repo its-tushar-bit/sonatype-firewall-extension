@@ -196,7 +196,6 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
 
   beforeEach(function () {
     minimalProps = {
-      directDependency: false,
       ancestors: [
         {
           componentIdentifier: {
@@ -235,8 +234,8 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
     expect(listElements.length).toBe(1);
   });
 
-  it('does not render dependency information tile if it is a direct dependency', () => {
-    const component = getMounted({ directDependency: true }),
+  it('does not render dependency information tile if it does not have ancestors', () => {
+    const component = getMounted({ ancestors: [] }),
       dependencyInfoTile = component.find('.iq-dependency-information');
 
     expect(dependencyInfoTile.length).toBe(0);

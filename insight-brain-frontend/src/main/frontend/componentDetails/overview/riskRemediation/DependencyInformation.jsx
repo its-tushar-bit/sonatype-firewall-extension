@@ -4,10 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import * as PropTypes from 'prop-types';
 
 import { AncestorsList } from './AncestorsList';
-import { AncestorPropTypes } from '../overviewTypes';
 
 export const DependencyInformation = ({ routeName, ancestors }) => {
   return (
@@ -26,7 +24,4 @@ export const DependencyInformation = ({ routeName, ancestors }) => {
   );
 };
 
-DependencyInformation.propTypes = {
-  routeName: PropTypes.string.isRequired,
-  ancestors: PropTypes.arrayOf(AncestorPropTypes),
-};
+DependencyInformation.propTypes = { ...AncestorsList.PropTypes };

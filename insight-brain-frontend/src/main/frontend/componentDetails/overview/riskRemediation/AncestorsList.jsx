@@ -13,18 +13,6 @@ import { AncestorPropTypes } from '../overviewTypes';
 export const AncestorsList = ({ routeName, ancestors }) => {
   const uiRouterState = useRouterState();
 
-  const emptyListOfAncestors = (
-    <ul className="nx-list">
-      <li className="nx-list__item nx-list__item--empty">
-        <span className="nx-list__text">This Component does not have any Ancestors</span>
-      </li>
-    </ul>
-  );
-
-  if (!ancestors.length) {
-    return emptyListOfAncestors;
-  }
-
   return (
     <ul className="nx-list">
       {ancestors.map(({ hash, derivedComponentName }) => (
@@ -38,5 +26,5 @@ export const AncestorsList = ({ routeName, ancestors }) => {
 
 AncestorsList.propTypes = {
   routeName: PropTypes.string.isRequired,
-  ancestors: PropTypes.arrayOf(AncestorPropTypes),
+  ancestors: PropTypes.arrayOf(AncestorPropTypes).isRequired,
 };

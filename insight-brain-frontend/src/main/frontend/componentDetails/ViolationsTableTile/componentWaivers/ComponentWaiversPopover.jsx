@@ -15,14 +15,14 @@ import ComponentWaiversPopoverTable from './ComponentWaiversPopoverTable';
 import { waiverType } from '../../../util/waiverUtils';
 
 export default function ComponentWaiversPopover(props) {
-  const { componentName, toggleComponentWaiversPopover, waivers, setWaiverToDelete, waiverToDelete } = props;
+  const { title, componentName, toggleComponentWaiversPopover, waivers, setWaiverToDelete, waiverToDelete } = props;
 
   return (
     <IqPopover id="component-waivers-container" size="automatic" onClose={toggleComponentWaiversPopover}>
       {waiverToDelete && <DeleteWaiverModalContainer />}
       <IqPopover.Header className="component-waivers-header" id="component-waivers-header">
         <div className="component-waivers-header__title">
-          <h3 className="nx-h3 component-waivers-header__title-text">Component Waivers</h3>
+          <h3 className="nx-h3 component-waivers-header__title-text">{title || 'Component Waivers'}</h3>
           <NxButton
             id="component-waivers-close-btn"
             onClick={toggleComponentWaiversPopover}
@@ -43,6 +43,7 @@ export default function ComponentWaiversPopover(props) {
 }
 
 ComponentWaiversPopover.propTypes = {
+  title: PropTypes.string,
   componentName: PropTypes.string,
   toggleComponentWaiversPopover: PropTypes.func.isRequired,
   waivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),

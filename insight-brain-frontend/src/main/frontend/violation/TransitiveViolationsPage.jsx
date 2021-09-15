@@ -10,6 +10,7 @@ import {
   availableScopesPropType,
   componentTransitivePolicyViolationsPropType,
   reportMetadataPropType,
+  transitiveViolationWaiversPropType,
 } from './transitiveViolationsPropTypes';
 import LoadWrapper from '../react/LoadWrapper';
 import TransitiveViolationsPageTable from './TransitiveViolationsPageTable';
@@ -19,6 +20,8 @@ import WaiveTransitiveViolationsPopoverContainer from './WaiveTransitiveViolatio
 import RequestWaiveTransitiveViolationsPopoverContainer from './RequestWaiveTransitiveViolationsPopoverContainer';
 import PolicyViolationDetailsPopover from '../componentDetails/ViolationsTableTile/PolicyViolationDetailsPopover';
 import { useRouterState } from '../react/RouterStateContext';
+import { waiverType } from '../util/waiverUtils';
+import ComponentWaiversPopover from '../componentDetails/ViolationsTableTile/componentWaivers/ComponentWaiversPopover';
 
 export default function TransitiveViolationsPage(props) {
   const {
@@ -29,8 +32,11 @@ export default function TransitiveViolationsPage(props) {
     availableScopes,
     reportMetadata,
     componentTransitivePolicyViolations,
+    transitiveViolationWaivers,
+    waiverToDelete,
     isRequestWaiveTransitiveViolationsOpen,
     isWaiveTransitiveViolationsOpen,
+    isViewTransitiveViolationWaiversOpen,
     showViolationsDetailPopover,
     loadAvailableScopes,
     loadTransitiveViolations,
@@ -39,8 +45,11 @@ export default function TransitiveViolationsPage(props) {
     loadReportMetadata,
     toggleRequestWaiveTransitiveViolations,
     toggleWaiveTransitiveViolations,
+    loadTransitiveViolationWaivers,
+    toggleViewTransitiveViolationWaivers,
     setSelectedPolicyViolationId,
     toggleShowViolationsDetailPopover,
+    setWaiverToDelete,
   } = props;
 
   function load() {
@@ -86,6 +95,15 @@ export default function TransitiveViolationsPage(props) {
             </ComponentDetailsHeader>
             {isRequestWaiveTransitiveViolationsOpen && <RequestWaiveTransitiveViolationsPopoverContainer />}
             {isWaiveTransitiveViolationsOpen && <WaiveTransitiveViolationsPopoverContainer />}
+            {isViewTransitiveViolationWaiversOpen && (
+              <ComponentWaiversPopover
+                title="Transitive Component Waivers"
+                toggleComponentWaiversPopover={toggleViewTransitiveViolationWaivers}
+                waivers={transitiveViolationWaivers.data.componentPolicyWaivers}
+                setWaiverToDelete={setWaiverToDelete}
+                waiverToDelete={waiverToDelete}
+              />
+            )}
             <section className="nx-tile nx-viewport-sized__container">
               <header className="nx-tile-header">
                 <div className="nx-tile-header__title">
@@ -107,6 +125,13 @@ export default function TransitiveViolationsPage(props) {
                     disabled={componentTransitivePolicyViolations.data.violations.length === 0}
                   >
                     Waive Transitive Violations
+                  </NxButton>
+                  <NxButton
+                    id="transitive-violations-page-view-waivers"
+                    variant="tertiary"
+                    onClick={() => loadTransitiveViolationWaivers(ownerId, scanId, hash)}
+                  >
+                    View Existing Waivers
                   </NxButton>
                 </div>
               </header>
@@ -141,8 +166,11 @@ TransitiveViolationsPage.propTypes = {
   availableScopes: availableScopesPropType.isRequired,
   reportMetadata: reportMetadataPropType.isRequired,
   componentTransitivePolicyViolations: componentTransitivePolicyViolationsPropType.isRequired,
+  transitiveViolationWaivers: transitiveViolationWaiversPropType,
+  waiverToDelete: PropTypes.shape(waiverType),
   isRequestWaiveTransitiveViolationsOpen: PropTypes.bool.isRequired,
   isWaiveTransitiveViolationsOpen: PropTypes.bool.isRequired,
+  isViewTransitiveViolationWaiversOpen: PropTypes.bool.isRequired,
   showViolationsDetailPopover: PropTypes.bool.isRequired,
   loadAvailableScopes: PropTypes.func.isRequired,
   loadTransitiveViolations: PropTypes.func.isRequired,
@@ -151,6 +179,9 @@ TransitiveViolationsPage.propTypes = {
   loadReportMetadata: PropTypes.func.isRequired,
   toggleRequestWaiveTransitiveViolations: PropTypes.func.isRequired,
   toggleWaiveTransitiveViolations: PropTypes.func.isRequired,
+  loadTransitiveViolationWaivers: PropTypes.func.isRequired,
+  toggleViewTransitiveViolationWaivers: PropTypes.func.isRequired,
   setSelectedPolicyViolationId: PropTypes.func.isRequired,
   toggleShowViolationsDetailPopover: PropTypes.func.isRequired,
+  setWaiverToDelete: PropTypes.func.isRequired,
 };

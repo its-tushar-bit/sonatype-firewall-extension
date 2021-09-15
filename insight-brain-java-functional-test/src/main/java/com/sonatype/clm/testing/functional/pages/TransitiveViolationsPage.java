@@ -66,6 +66,10 @@ public class TransitiveViolationsPage
     return child("#transitive-violations-page-waive");
   }
 
+  public SelenideElement viewTransitiveViolationWaivers() {
+    return child("#transitive-violations-page-view-waivers");
+  }
+
   public TransitiveViolationsTable transitiveViolationsTable() {
     return new TransitiveViolationsTable();
   }

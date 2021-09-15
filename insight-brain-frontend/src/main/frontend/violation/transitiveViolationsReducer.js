@@ -5,6 +5,9 @@
  */
 import { createReducerFromActionMap } from '../util/reduxUtil';
 import {
+  TRANSITIVE_VIOLATION_WAIVERS_LOAD_FAILED,
+  TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED,
+  TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED,
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FAILED,
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FULFILLED,
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED,
@@ -17,6 +20,7 @@ import {
   TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS,
   TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
   TRANSITIVE_VIOLATIONS_TOGGLE_REQUEST_WAIVE,
+  TRANSITIVE_VIOLATIONS_TOGGLE_VIEW_WAIVERS,
   TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE,
 } from './transitiveViolationsActions';
 import { Messages } from '../util/CommonServices';
@@ -49,8 +53,14 @@ const initialState = {
     threatCountsTotal: null,
     componentCount: null,
   },
+  transitiveViolationWaivers: {
+    loading: false,
+    error: null,
+    data: { componentPolicyWaivers: [] },
+  },
   isRequestWaiveTransitiveViolationsOpen: false,
   isWaiveTransitiveViolationsOpen: false,
+  isViewTransitiveViolationWaiversOpen: false,
 };
 
 function loadAvailableScopesRequested(_, state) {
@@ -298,6 +308,48 @@ function toggleWaiveTransitiveViolations(_, state) {
   };
 }
 
+function toggleViewTransitiveViolationWaivers(_, state) {
+  return {
+    ...state,
+    isViewTransitiveViolationWaiversOpen: !state.isViewTransitiveViolationWaiversOpen,
+  };
+}
+
+function loadTransitiveViolationWaiversRequested(_, state) {
+  return {
+    ...state,
+    transitiveViolationWaivers: {
+      ...initialState.transitiveViolationWaivers,
+      loading: true,
+      error: null,
+    },
+  };
+}
+
+function loadTransitiveViolationWaiversFulfilled(payload, state) {
+  return {
+    ...state,
+    transitiveViolationWaivers: {
+      ...state.transitiveViolationWaivers,
+      loading: false,
+      error: null,
+      data: payload,
+    },
+    isViewTransitiveViolationWaiversOpen: true,
+  };
+}
+
+function loadTransitiveViolationWaiversFailed(payload, state) {
+  return {
+    ...state,
+    transitiveViolationWaivers: {
+      ...state.transitiveViolationWaivers,
+      loading: false,
+      error: Messages.getHttpErrorMessage(payload),
+    },
+  };
+}
+
 const reducerActionMap = {
   [TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED]: loadAvailableScopesRequested,
   [TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FULFILLED]: loadAvailableScopesFulfilled,
@@ -312,6 +364,10 @@ const reducerActionMap = {
   [TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS]: setFilteringParameters,
   [TRANSITIVE_VIOLATIONS_TOGGLE_REQUEST_WAIVE]: toggleRequestWaiveTransitiveViolations,
   [TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE]: toggleWaiveTransitiveViolations,
+  [TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED]: loadTransitiveViolationWaiversRequested,
+  [TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED]: loadTransitiveViolationWaiversFulfilled,
+  [TRANSITIVE_VIOLATION_WAIVERS_LOAD_FAILED]: loadTransitiveViolationWaiversFailed,
+  [TRANSITIVE_VIOLATIONS_TOGGLE_VIEW_WAIVERS]: toggleViewTransitiveViolationWaivers,
 };
 
 const transitiveViolationsReducer = createReducerFromActionMap(reducerActionMap, initialState);

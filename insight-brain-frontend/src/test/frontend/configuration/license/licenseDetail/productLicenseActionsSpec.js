@@ -194,7 +194,7 @@ describe('productLicenseActions', () => {
         expect(type).toBe(PRODUCT_LICENSE_UPDATE_LICENSE_REQUESTED);
       });
 
-      it(`dispatches a ${PRODUCT_LICENSE_UPDATE_LICENSE_FAILED} because of service failures`, () => {
+      it(`dispatches a ${PRODUCT_LICENSE_UPDATE_LICENSE_FAILED} because of service failures`, (done) => {
         const error = 'some error happened';
         mockAxiosCalls({
           post: {
@@ -205,6 +205,7 @@ describe('productLicenseActions', () => {
           const [, { type, payload }] = store.getActions();
           expect(type).toBe(PRODUCT_LICENSE_UPDATE_LICENSE_FAILED);
           expect(payload).toBe(error);
+          done();
         });
       });
     });

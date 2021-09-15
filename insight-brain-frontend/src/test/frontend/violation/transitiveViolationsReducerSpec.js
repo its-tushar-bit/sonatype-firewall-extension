@@ -6,6 +6,9 @@
 
 import reduce from '../../../main/frontend/violation/transitiveViolationsReducer.js';
 import {
+  TRANSITIVE_VIOLATION_WAIVERS_LOAD_FAILED,
+  TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED,
+  TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED,
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FAILED,
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FULFILLED,
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED,
@@ -18,6 +21,7 @@ import {
   TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS,
   TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
   TRANSITIVE_VIOLATIONS_TOGGLE_REQUEST_WAIVE,
+  TRANSITIVE_VIOLATIONS_TOGGLE_VIEW_WAIVERS,
   TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE,
 } from '../../../main/frontend/violation/transitiveViolationsActions';
 import { Messages } from '../../../main/frontend/util/CommonServices';
@@ -55,8 +59,14 @@ describe('transitiveViolationsReducer', function () {
           threatCountsTotal: null,
           componentCount: null,
         },
+        transitiveViolationWaivers: {
+          loading: false,
+          error: null,
+          data: { componentPolicyWaivers: [] },
+        },
         isRequestWaiveTransitiveViolationsOpen: false,
         isWaiveTransitiveViolationsOpen: false,
+        isViewTransitiveViolationWaiversOpen: false,
       });
     });
   });
@@ -856,6 +866,77 @@ describe('transitiveViolationsReducer', function () {
 
       expect(newState).toEqual({
         isWaiveTransitiveViolationsOpen: false,
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED action', function () {
+    it('sets in transitiveViolationWaivers loading to true, error to null, and data to the initial value', function () {
+      const state = {};
+      const action = { type: TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED };
+      const newState = reduce(state, action);
+
+      const { transitiveViolationWaivers } = newState;
+      expect(transitiveViolationWaivers).toEqual({
+        loading: true,
+        error: null,
+        data: { componentPolicyWaivers: [] },
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED action', function () {
+    it(
+      'sets in transitiveViolationWaivers loading to false, error to null, data to the payload,' +
+        'and opens the view transitive violation waivers popover',
+      function () {
+        const state = {};
+        const action = { type: TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED, payload: 'data' };
+        const newState = reduce(state, action);
+
+        const { transitiveViolationWaivers } = newState;
+        expect(transitiveViolationWaivers).toEqual({
+          loading: false,
+          error: null,
+          data: 'data',
+        });
+        expect(newState.isViewTransitiveViolationWaiversOpen).toBeTruthy();
+      }
+    );
+  });
+
+  describe('TRANSITIVE_VIOLATION_WAIVERS_LOAD_FAILED action', function () {
+    it('sets in transitiveViolationWaivers loading to false and the error to the http error message', function () {
+      const state = {};
+      const action = { type: TRANSITIVE_VIOLATION_WAIVERS_LOAD_FAILED, payload: 'error' };
+      const newState = reduce(state, action);
+
+      const { transitiveViolationWaivers } = newState;
+      expect(transitiveViolationWaivers).toEqual({
+        loading: false,
+        error: 'error',
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_TOGGLE_VIEW_WAIVERS action', function () {
+    it('sets isViewTransitiveViolationWaiversOpen to true if it is false', function () {
+      const state = { isViewTransitiveViolationWaiversOpen: false };
+      const action = { type: TRANSITIVE_VIOLATIONS_TOGGLE_VIEW_WAIVERS };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        isViewTransitiveViolationWaiversOpen: true,
+      });
+    });
+
+    it('sets isViewTransitiveViolationWaiversOpen to false if it is true', function () {
+      const state = { isViewTransitiveViolationWaiversOpen: true };
+      const action = { type: TRANSITIVE_VIOLATIONS_TOGGLE_VIEW_WAIVERS };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        isViewTransitiveViolationWaiversOpen: false,
       });
     });
   });

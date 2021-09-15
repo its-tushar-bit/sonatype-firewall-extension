@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as PropTypes from 'prop-types';
+import { waiverType } from '../util/waiverUtils';
 
 export const scopePropType = PropTypes.shape({
   id: PropTypes.string.isRequired,
@@ -82,4 +83,12 @@ export const componentTransitivePolicyViolationsPropType = PropTypes.shape({
   threatCounts: threatCountsPropType,
   threatCountsTotal: PropTypes.number,
   componentCount: PropTypes.number,
+});
+
+export const transitiveViolationWaiversPropType = PropTypes.shape({
+  loading: PropTypes.bool.isRequired,
+  error: PropTypes.string,
+  data: PropTypes.shape({
+    componentPolicyWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType).isRequired).isRequired,
+  }).isRequired,
 });

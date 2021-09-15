@@ -15,6 +15,7 @@ import {
   getOwnerContextHierarchyUrl,
   getReportPolicyThreatsUrl,
   getViolationDetailsUrl,
+  getWaiveTransitiveViolationsUrl,
 } from '../../../main/frontend/util/CLMLocation';
 import { getPermissionContextTestUrl } from '../../../main/frontend/util/CLMContextLocation';
 import {
@@ -62,6 +63,10 @@ import {
 } from '../../../main/frontend/violation/violationActions';
 import { STATE_GO } from '../../../main/frontend/reduxUiRouter/routerActions';
 import { getFutureDate } from '../../../main/frontend/util/jsUtil';
+import {
+  TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED,
+  TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED,
+} from '../../../main/frontend/violation/transitiveViolationsActions';
 
 describe('waiverActions', function () {
   let store, mockAxiosCalls;
@@ -885,6 +890,7 @@ describe('waiverActions', function () {
             policyViolationId: 'foo',
           },
         },
+        router: { currentState: { name: 'some state' } },
       };
       store = SpecUtil.mockReduxStore(state);
     });
@@ -905,6 +911,49 @@ describe('waiverActions', function () {
     });
 
     describe('after a successful DELETE', function () {
+      it('dispatches WAIVERS_DELETE_WAIVER_FULFILLED and reloads transitive violation waivers if on the transitive violation waivers page', function (done) {
+        state = {
+          ...state,
+          router: {
+            currentState: { name: 'transitiveViolations' },
+            currentParams: { ownerId: 'ownerId', scanId: 'scanId', hash: 'hash' },
+          },
+          componentDetailsPolicyViolations: {
+            reloadComponentWaivers: false,
+          },
+        };
+        store = SpecUtil.mockReduxStore(state);
+
+        const requestUrl = deleteWaiverUrl('application', 'ownerId', 'waiverId');
+
+        mockAxiosCalls({
+          get: {
+            [getWaiveTransitiveViolationsUrl('ownerId', 'scanId', 'hash')]: Promise.resolve({
+              data: 'transitiveComponentWaivers',
+            }),
+          },
+          del: {
+            [requestUrl]: Promise.resolve(),
+          },
+        });
+
+        store.dispatch(deleteWaiver('application', 'ownerId', 'waiverId')).then(() => {
+          expect(axios.delete).toHaveBeenCalledWith(requestUrl);
+          setTimeout(() => {
+            expect(store.getActions().length).toBe(5);
+            expect(store.getActions()[1].type).toBe(WAIVERS_DELETE_WAIVER_FULFILLED);
+            expect(store.getActions()[2].type).toEqual(TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED);
+            expect(store.getActions()[3].type).toEqual(TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED);
+            expect(store.getActions()[3].payload).toBe('transitiveComponentWaivers');
+            expect(store.getActions()[4].type).toBe(WAIVERS_DELETE_MASK_TIMER_DONE);
+            done();
+          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        });
+
+        expect(store.getActions().length).toBe(1);
+        expect(store.getActions()[0].type).toBe(WAIVERS_DELETE_WAIVER_REQUESTED);
+      });
+
       it('dispatches WAIVERS_DELETE_WAIVER_FULFILLED and reloads applicable waivers if reloadComponentWaivers is falsy', function (done) {
         const requestUrl = deleteWaiverUrl('application', 'ownerId', 'waiverId');
 
@@ -943,6 +992,7 @@ describe('waiverActions', function () {
         state = {
           ...state,
           router: {
+            ...state.router,
             currentParams: {
               hash: 'a-hash',
               publicId: 'publicId',

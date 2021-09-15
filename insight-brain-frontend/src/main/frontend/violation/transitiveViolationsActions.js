@@ -5,7 +5,12 @@
  */
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import axios from 'axios';
-import { getOwnerHierarchyUrl, getReportMetadataUrl, getTransitiveViolationsUrl } from '../util/CLMLocation';
+import {
+  getOwnerHierarchyUrl,
+  getReportMetadataUrl,
+  getTransitiveViolationsUrl,
+  getWaiveTransitiveViolationsUrl,
+} from '../util/CLMLocation';
 import { processOwnerHierarchy } from '../util/hierarchyUtil';
 
 export const TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED =
@@ -98,3 +103,30 @@ export const toggleRequestWaiveTransitiveViolations = noPayloadActionCreator(
 export const TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE = 'TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE';
 
 export const toggleWaiveTransitiveViolations = noPayloadActionCreator(TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE);
+
+export const TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED = 'TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED';
+export const TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED = 'TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED';
+export const TRANSITIVE_VIOLATION_WAIVERS_LOAD_FAILED = 'TRANSITIVE_VIOLATION_WAIVERS_LOAD_FAILED';
+
+const loadTransitiveViolationWaiversRequested = noPayloadActionCreator(TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED);
+const loadTransitiveViolationWaiversFulfilled = payloadParamActionCreator(TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED);
+const loadTransitiveViolationWaiversFailed = payloadParamActionCreator(TRANSITIVE_VIOLATION_WAIVERS_LOAD_FAILED);
+
+export function loadTransitiveViolationWaivers(ownerId, scanId, hash) {
+  return (dispatch) => {
+    dispatch(loadTransitiveViolationWaiversRequested());
+
+    return axios
+      .get(getWaiveTransitiveViolationsUrl(ownerId, scanId, hash))
+      .then(({ data }) => {
+        dispatch(loadTransitiveViolationWaiversFulfilled(data));
+      })
+      .catch((error) => {
+        dispatch(loadTransitiveViolationWaiversFailed(error));
+      });
+  };
+}
+
+export const TRANSITIVE_VIOLATIONS_TOGGLE_VIEW_WAIVERS = 'TRANSITIVE_VIOLATIONS_TOGGLE_VIEW_WAIVERS';
+
+export const toggleViewTransitiveViolationWaivers = noPayloadActionCreator(TRANSITIVE_VIOLATIONS_TOGGLE_VIEW_WAIVERS);

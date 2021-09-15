@@ -50,4 +50,5 @@ export const waiverType = {
   comment: PropTypes.string,
   constraintFacts: PropTypes.array,
   constraintFactsJson: PropTypes.string,
+  componentName: PropTypes.string,
 };

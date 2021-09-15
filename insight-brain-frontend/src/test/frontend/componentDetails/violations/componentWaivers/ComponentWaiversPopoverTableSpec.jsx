@@ -46,6 +46,18 @@ describe('ComponentWaiversPopover', function () {
         createTime: waiverCreateTime.getTime(),
         comment: 'Some comment',
       },
+      {
+        policyId: 'policyId3',
+        policyName: 'policyName3',
+        policyWaiverId: 'policyWaiverId3',
+        scopeOwnerId: 'scopeOwnerId3',
+        scopeOwnerName: 'owner1',
+        scopeOwnerType: 'application',
+        hash: 'hash-2',
+        constraintFacts: [{ constraintName: 'constraint-3' }],
+        createTime: waiverCreateTime.getTime(),
+        componentName: 'component name',
+      },
     ];
     minimalProps = {
       waivers,
@@ -77,7 +89,7 @@ describe('ComponentWaiversPopover', function () {
     const component = getShallowComponent().dive();
     const tableBody = component.find(NxTableBody);
     const rows = tableBody.find(ComponentWaiversTableRow);
-    expect(rows.length).toBe(2);
+    expect(rows.length).toBe(3);
 
     const row1 = rows.at(0).dive().find(NxTableRow);
     const cellsRow1 = row1.find(NxTableCell);
@@ -100,5 +112,16 @@ describe('ComponentWaiversPopover', function () {
     expect(cellsRow2.at(4).dive()).toHaveText('All');
     expect(cellsRow2.at(5).dive()).toHaveText('Some comment');
     assertDeleteWaiverBtn(cellsRow2.at(6), minimalProps.waivers[1]);
+
+    const row3 = rows.at(2).dive().find(NxTableRow);
+    const cellsRow3 = row3.find(NxTableCell);
+    expect(cellsRow3.length).toBe(7);
+    expect(cellsRow3.at(0).dive()).toHaveText('policyName3');
+    expect(cellsRow3.at(1).dive()).toHaveText('constraint-3');
+    expect(cellsRow3.at(2).dive()).toHaveText(waiverCreateDate);
+    expect(cellsRow3.at(3).dive()).toHaveText('Application - owner1');
+    expect(cellsRow3.at(4).dive()).toHaveText('component name');
+    expect(cellsRow3.at(5).dive()).toHaveText('- -');
+    assertDeleteWaiverBtn(cellsRow3.at(6), minimalProps.waivers[2]);
   });
 });

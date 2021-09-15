@@ -36,6 +36,22 @@ describe('ComponentWaiversPopover', function () {
     expect(popover).toHaveProp('onClose', minimalProps.toggleComponentWaiversPopover);
   });
 
+  it('renders a component with the default title', function () {
+    const component = getShallow();
+    expect(component).toExist();
+
+    const title = component.find('.component-waivers-header__title-text');
+    expect(title).toHaveText('Component Waivers');
+  });
+
+  it('renders a component with the given title', function () {
+    const component = getShallow({ title: 'some title' });
+    expect(component).toExist();
+
+    const title = component.find('.component-waivers-header__title-text');
+    expect(title).toHaveText('some title');
+  });
+
   it('renders a Header with title and close button', () => {
     const component = getShallow().dive();
     const title = component.find('.component-waivers-header__title-text');

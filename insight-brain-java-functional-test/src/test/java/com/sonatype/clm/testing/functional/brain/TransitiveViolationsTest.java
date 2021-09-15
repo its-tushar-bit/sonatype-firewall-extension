@@ -21,10 +21,13 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxThreatCounter;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
+import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.RequestWaiveTransitiveViolationsPopover;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage.ComponentDetailsHeader;
@@ -34,11 +37,13 @@ import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.WaiveTransitiveViolationsPopover;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -54,6 +59,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.google.common.collect.ImmutableMap;
+import org.apache.tools.ant.util.DateUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -62,6 +68,7 @@ import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -73,6 +80,8 @@ public class TransitiveViolationsTest
     refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
   }
+
+  private Organization rootOrganization;
 
   private Organization organization;
 
@@ -90,6 +99,7 @@ public class TransitiveViolationsTest
   public void before() throws Exception {
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
+    rootOrganization = new OrganizationDAO().getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
     organization = tempEntity.newOrganization("Test Org 0af5aa00a2424db19b115f70b6f873d9");
     application = tempEntity.newApplication("Test App 56770d0ec3da47b0aa8eab53d874efdb",
         "56770d0ec3da47b0aa8eab53d874efdb", organization.getId());
@@ -442,6 +452,81 @@ public class TransitiveViolationsTest
     waiveTransitiveViolationsPopover.saveButton().shouldBe(Condition.visible).shouldHave(Condition.text("Save"));
   }
 
+  @Test
+  public void testViewTransitiveViolationWaivers() throws Exception {
+    ComponentWaiversPopover componentWaiversPopover = visitViewWaiversPopover();
+    componentWaiversPopover.title().shouldHave(Condition.text("Transitive Component Waivers"));
+    componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHaveSize(1);
+    componentWaiversPopover.componentWaiversPopoverTable().emptyTableMessage().shouldBe(Condition.visible);
+    componentWaiversPopover.closePopoverButton().shouldBe(Condition.visible).click();
+
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/dd/yyyy");
+    Policy appPolicy = tempEntity.newPolicy(application.getId(), "appPolicy");
+    Policy orgPolicy = tempEntity.newPolicy(organization.getId(), "orgPolicy");
+    Policy rootOrgPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "rootOrgPolicy");
+    Date creationDate = DateUtils.parseIso8601Date("2000-05-01");
+    PolicyWaiver appPolicyWaiver = tempEntity.newWaiver("hash2", appPolicy.getId(), application.getId(),
+        getConstraintFacts(appPolicy), "comment", creationDate);
+    PolicyWaiver orgPolicyWaiver = tempEntity.newWaiver("hash3", orgPolicy.getId(), organization.getId(),
+        getConstraintFacts(orgPolicy), null, creationDate);
+    PolicyWaiver rootOrgPolicyWaiver = tempEntity.newWaiver(null, rootOrgPolicy.getId(),
+        Organization.ROOT_ORGANIZATION_ID, getConstraintFacts(rootOrgPolicy), null, creationDate);
+
+    componentWaiversPopover = visitViewWaiversPopover();
+    componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHaveSize(3);
+
+    ElementsCollection appPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
+        .find(Condition.text(application.getName())).findAll("td").shouldHaveSize(7);
+    appPolicyWaiverCells.get(0).shouldHave(Condition.text(appPolicy.getName()));
+    appPolicyWaiverCells.get(1)
+        .shouldHave(Condition.text(appPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
+    appPolicyWaiverCells.get(2).shouldHave(Condition.text(simpleDateFormat.format(appPolicyWaiver.getCreateTime())));
+    appPolicyWaiverCells.get(3)
+        .shouldHave(Condition.text(application.getType().name() + " - " + application.getName()));
+    appPolicyWaiverCells.get(4).shouldHave(Condition.text("g : atransitivey : v"));
+    appPolicyWaiverCells.get(5).shouldHave(Condition.text(appPolicyWaiver.getComment()));
+
+    ElementsCollection orgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
+        .find(Condition.text(organization.getName())).findAll("td").shouldHaveSize(7);
+    orgPolicyWaiverCells.get(0).shouldHave(Condition.text(orgPolicy.getName()));
+    orgPolicyWaiverCells.get(1)
+        .shouldHave(Condition.text(orgPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
+    orgPolicyWaiverCells.get(2).shouldHave(Condition.text(simpleDateFormat.format(orgPolicyWaiver.getCreateTime())));
+    orgPolicyWaiverCells.get(3)
+        .shouldHave(Condition.text(organization.getType().name() + " - " + organization.getName()));
+    orgPolicyWaiverCells.get(4).shouldHave(Condition.text("g : ZtransitiveY : v"));
+    orgPolicyWaiverCells.get(5).shouldHave(Condition.text("- -"));
+
+    ElementsCollection rootOrgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
+        .find(Condition.text(rootOrganization.getName())).findAll("td").shouldHaveSize(7);
+    rootOrgPolicyWaiverCells.get(0).shouldHave(Condition.text(rootOrgPolicy.getName()));
+    rootOrgPolicyWaiverCells.get(1)
+        .shouldHave(Condition.text(rootOrgPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
+    rootOrgPolicyWaiverCells.get(2)
+        .shouldHave(Condition.text(simpleDateFormat.format(rootOrgPolicyWaiver.getCreateTime())));
+    rootOrgPolicyWaiverCells.get(3).shouldHave(Condition.text(rootOrganization.getName()));
+    rootOrgPolicyWaiverCells.get(4).shouldHave(Condition.text("All"));
+    rootOrgPolicyWaiverCells.get(5).shouldHave(Condition.text("- -"));
+
+    eyesWatcher.eyesCheck();
+
+    orgPolicyWaiverCells.get(6).find(".nx-btn--delete-waiver").click();
+    DeleteWaiverModal deleteWaiverModal = new DeleteWaiverModal();
+    deleteWaiverModal.yesButton().click();
+    componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHaveSize(2);
+    componentWaiversPopover.componentWaiversPopoverTable().getRows().find(Condition.text(application.getName()))
+        .shouldBe(visible);
+    componentWaiversPopover.componentWaiversPopoverTable().getRows().find(Condition.text(rootOrganization.getName()))
+        .shouldBe(visible);
+  }
+
+  private List<ConstraintFact> getConstraintFacts(Policy policy) {
+    return policy.getConstraints().stream()
+        .map(constraint ->
+            new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name()))
+        .collect(Collectors.toList());
+  }
+
   private TransitiveViolationsPage visitPage() {
     return visitPage("hash1");
   }
@@ -468,6 +553,14 @@ public class TransitiveViolationsTest
     WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = new WaiveTransitiveViolationsPopover();
     waiveTransitiveViolationsPopover.shouldBe(Condition.visible);
     return waiveTransitiveViolationsPopover;
+  }
+
+  private ComponentWaiversPopover visitViewWaiversPopover() {
+    TransitiveViolationsPage transitiveViolationsPage = visitPage();
+    transitiveViolationsPage.viewTransitiveViolationWaivers().click();
+    ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
+    componentWaiversPopover.shouldBe(Condition.visible);
+    return componentWaiversPopover;
   }
 
   private PolicyViolationDetailPopover visitPolicyViolationDetailsPopover() {

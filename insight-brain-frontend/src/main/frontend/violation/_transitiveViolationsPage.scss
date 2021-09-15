@@ -55,12 +55,17 @@ transitive-violations-page-container {
 
   #component-details-policy-violations-popover {
     .iq-popover__content {
-      padding-top: 0px;
+      padding-top: 0;
     }
 
     .iq-waiver-indicator,
     .nx-tile__actions {
       display: none;
     }
+  }
+
+  #component-waivers-container {
+    width: 916px;
+    max-width: 916px;
   }
 }

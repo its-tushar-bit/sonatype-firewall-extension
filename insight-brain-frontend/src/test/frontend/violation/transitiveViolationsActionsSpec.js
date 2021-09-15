@@ -8,12 +8,17 @@ import {
   getOwnerHierarchyUrl,
   getReportMetadataUrl,
   getTransitiveViolationsUrl,
+  getWaiveTransitiveViolationsUrl,
 } from '../../../main/frontend/util/CLMLocation';
 import { pick } from 'ramda';
 import {
   loadAvailableScopes,
   loadReportMetadata,
   loadTransitiveViolations,
+  loadTransitiveViolationWaivers,
+  TRANSITIVE_VIOLATION_WAIVERS_LOAD_FAILED,
+  TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED,
+  TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED,
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FAILED,
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FULFILLED,
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED,
@@ -191,6 +196,56 @@ describe('transitiveViolationsActions', function () {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(TRANSITIVE_VIOLATIONS_LOAD_FAILED);
+        expect(actions[1].payload).toEqual(error);
+        done();
+      });
+    });
+  });
+
+  describe('loadTransitiveViolationWaivers', function () {
+    let store;
+
+    beforeEach(function () {
+      store = SpecUtil.mockReduxStore({});
+    });
+
+    it('immediately dispatches a TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED action', function () {
+      store.dispatch(loadTransitiveViolationWaivers('ownerId', 'stageTypeId', 'hash'));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    it('dispatches a TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED action with the returned data', function (done) {
+      mockAxiosCalls({
+        get: {
+          [getWaiveTransitiveViolationsUrl('ownerId', 'stageTypeId', 'hash')]: Promise.resolve({
+            data: 'data',
+          }),
+        },
+      });
+      store.dispatch(loadTransitiveViolationWaivers('ownerId', 'stageTypeId', 'hash')).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED);
+        expect(actions[1].payload).toEqual('data');
+        done();
+      });
+    });
+
+    it('dispatches a TRANSITIVE_VIOLATION_WAIVERS_LOAD_FAILED action when the API fails', function (done) {
+      const error = 'error';
+      mockAxiosCalls({
+        get: {
+          [getWaiveTransitiveViolationsUrl('ownerId', 'stageTypeId', 'hash')]: Promise.reject(error),
+        },
+      });
+      store.dispatch(loadTransitiveViolationWaivers('ownerId', 'stageTypeId', 'hash')).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(TRANSITIVE_VIOLATION_WAIVERS_LOAD_FAILED);
         expect(actions[1].payload).toEqual(error);
         done();
       });

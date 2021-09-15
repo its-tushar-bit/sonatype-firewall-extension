@@ -15,10 +15,13 @@ import {
   setSortingParameters,
   toggleRequestWaiveTransitiveViolations,
   toggleWaiveTransitiveViolations,
+  toggleViewTransitiveViolationWaivers,
+  loadTransitiveViolationWaivers,
 } from './transitiveViolationsActions';
 import { actions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
+import { setWaiverToDelete } from '../waivers/waiverActions';
 
-function mapStateToProps({ router, transitiveViolations, componentDetailsPolicyViolations }) {
+function mapStateToProps({ router, transitiveViolations, componentDetailsPolicyViolations, deleteWaiver }) {
   return {
     ...pick(['ownerType', 'ownerId', 'scanId', 'hash'], router.currentParams),
     ...pick(
@@ -26,12 +29,15 @@ function mapStateToProps({ router, transitiveViolations, componentDetailsPolicyV
         'availableScopes',
         'reportMetadata',
         'componentTransitivePolicyViolations',
+        'transitiveViolationWaivers',
         'isRequestWaiveTransitiveViolationsOpen',
         'isWaiveTransitiveViolationsOpen',
+        'isViewTransitiveViolationWaiversOpen',
       ],
       transitiveViolations
     ),
     showViolationsDetailPopover: componentDetailsPolicyViolations.showViolationsDetailPopover,
+    ...pick(['waiverToDelete'], deleteWaiver),
   };
 }
 
@@ -39,12 +45,15 @@ const mapDispatchToProps = {
   loadAvailableScopes,
   loadReportMetadata,
   loadTransitiveViolations,
+  loadTransitiveViolationWaivers,
   setSortingParameters,
   setFilteringParameters,
   toggleRequestWaiveTransitiveViolations,
   toggleWaiveTransitiveViolations,
+  toggleViewTransitiveViolationWaivers,
   setSelectedPolicyViolationId: actions.setSelectedPolicyViolationId,
   toggleShowViolationsDetailPopover: actions.toggleShowViolationsDetailPopover,
+  setWaiverToDelete,
 };
 
 const TransitiveViolationsPageContainer = connect(mapStateToProps, mapDispatchToProps)(TransitiveViolationsPage);

@@ -19,6 +19,7 @@ import { fetchCrossStageViolation, fetchApplicableWaivers } from '../violation/v
 import { getExpiryTime } from '../util/waiverUtils';
 
 import { actions as policyViolationsActions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
+import { loadTransitiveViolationWaivers } from '../violation/transitiveViolationsActions';
 
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
@@ -229,7 +230,7 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
   return (dispatch, getState) => {
     dispatch(deleteWaiverRequested());
 
-    const { violation, componentDetailsPolicyViolations } = getState();
+    const { violation, componentDetailsPolicyViolations, router } = getState();
     const { reloadComponentWaivers } = componentDetailsPolicyViolations;
     const policyViolationId = path(['violationDetails', 'policyViolationId'], violation);
     const endpointUrl = deleteWaiverUrl(ownerType, ownerId, waiverId);
@@ -238,10 +239,18 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
       .delete(endpointUrl)
       .then(() => {
         dispatch(deleteWaiverFulfilled());
-        if (!reloadComponentWaivers) {
-          dispatch(loadApplicableWaivers(policyViolationId));
+        const currentState = router.currentState;
+        if (currentState.name === 'transitiveViolations') {
+          const ownerId = router.currentParams.ownerId;
+          const scanId = router.currentParams.scanId;
+          const hash = router.currentParams.hash;
+          dispatch(loadTransitiveViolationWaivers(ownerId, scanId, hash));
         } else {
-          dispatch(policyViolationsActions.load());
+          if (!reloadComponentWaivers) {
+            dispatch(loadApplicableWaivers(policyViolationId));
+          } else {
+            dispatch(policyViolationsActions.load());
+          }
         }
         setTimeout(() => {
           dispatch(deleteWaiverMaskTimerDone());

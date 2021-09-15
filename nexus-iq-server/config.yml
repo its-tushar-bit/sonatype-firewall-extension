@@ -68,9 +68,12 @@ logging:
     eu.medsea.mimeutil.MimeUtil2: ${LOGGER_MIMEUTIL2_LEVEL:-INFO}
     org.apache.http: ${LOGGER_HTTP_LEVEL:-INFO}
     org.apache.http.wire: ${LOGGER_HTTP_WIRE_LEVEL:-ERROR}
+    org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter: ${LOGGER_AUTHENTICATION_FILTER_LEVEL:-INFO}
     org.eclipse.birt.report.engine.layout.pdf.font.FontConfigReader: ${LOGGER_FONT_CONFIG_READER_LEVEL:-WARN}
     org.eclipse.jetty: ${LOGGER_ECLIPSE_JETTY_LEVEL:-INFO}
-    org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter: ${LOGGER_AUTHENTICATION_FILTER_LEVEL:-INFO}
+    org.postgresql.jdbc.PgConnection: INFO
+    org.quartz: INFO
+    org.zeroturnaround.exec: INFO
   appenders:
   - type: console
     threshold: ${LOGGER_CONSOLE_THRESHOLD:-INFO}

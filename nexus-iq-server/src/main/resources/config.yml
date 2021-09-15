@@ -149,10 +149,12 @@ logging:
     "eu.medsea.mimeutil.MimeUtil2": INFO
     "org.apache.http": INFO
     "org.apache.http.wire": ERROR
+    "org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter": INFO   # WARNING: This reveals credentials at DEBUG level
     "org.eclipse.birt.report.engine.layout.pdf.font.FontConfigReader": WARN
     "org.eclipse.jetty": INFO
-    "org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter": INFO   # WARNING: This reveals credentials at DEBUG level
+    "org.postgresql.jdbc.PgConnection": INFO
     "org.quartz": INFO
+    "org.zeroturnaround.exec": INFO
     "com.sonatype.insight.audit":
       appenders:
       - type: file

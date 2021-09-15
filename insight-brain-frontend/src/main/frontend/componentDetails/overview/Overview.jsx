@@ -3,12 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { join } from 'ramda';
 
 import { formatTimeAgoUpToDay } from '../../util/dateUtils';
 import { RiskRemediation } from './riskRemediation/RiskRemediation';
+import InnerSourceProducerReportModalContainer from './InnerSourceProducerReportModal/InnerSourceProducerReportModalContainer';
+import InnerSourceProducerPermissionsModalContainer from './InnerSourceProducerPermissionsModal/InnerSourceProducerPermissionsModalContainer';
+import InnerSourceProducerAlertContainer from './InnerSourceProducerAlert/InnerSourceProducerAlertContainer';
 import { RemediationPropTypes, AncestorPropTypes } from './overviewTypes';
 
 export default function Overview({
@@ -20,6 +23,7 @@ export default function Overview({
   remediation,
   requestVersionGraphData,
   versionExplorerData,
+  loadInnerSourceProducerData,
 }) {
   const {
     componentIdentifier,
@@ -30,6 +34,11 @@ export default function Overview({
     componentCategories = [],
     pathnames,
   } = componentInformation;
+
+  useEffect(() => {
+    loadInnerSourceProducerData();
+  }, []);
+
   const isUnknown = !matchState || matchState === 'unknown';
   const format = isUnknown ? '' : componentIdentifier.format;
   const catalogedDateAgo = createTime ? formatTimeAgoUpToDay(createTime) : '';
@@ -119,6 +128,9 @@ export default function Overview({
   const directDependency = componentInformation.directDependency;
   return (
     <div>
+      <InnerSourceProducerReportModalContainer />
+      <InnerSourceProducerPermissionsModalContainer />
+      <InnerSourceProducerAlertContainer />
       {overviewComponentInformationTile}
       <RiskRemediation
         directDependency={directDependency}
@@ -173,4 +185,5 @@ Overview.propTypes = {
     loading: PropTypes.bool,
     loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
+  loadInnerSourceProducerData: PropTypes.func.isRequired,
 };

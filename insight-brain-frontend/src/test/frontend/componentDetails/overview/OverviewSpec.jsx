@@ -3,13 +3,28 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import React from 'react';
 import * as enzymeUtils from '../../enzymeUtils';
 import Overview from '../../../../main/frontend/componentDetails/overview/Overview';
+import * as InnerSourceProducerAlertContainer from '../../../../main/frontend/componentDetails/overview/InnerSourceProducerAlert/InnerSourceProducerAlertContainer';
+import * as InnerSourceProducerReportModalContainer from '../../../../main/frontend/componentDetails/overview/InnerSourceProducerReportModal/InnerSourceProducerReportModalContainer';
+import * as InnerSourceProducerPermissionsModalContainer from '../../../../main/frontend/componentDetails/overview/InnerSourceProducerPermissionsModal/InnerSourceProducerPermissionsModalContainer';
+import * as RiskRemediation from '../../../../main/frontend/componentDetails/overview/riskRemediation/RiskRemediation';
 
 describe('ComponentDetailsOverview', () => {
-  let minimalProps, getShallow;
+  let minimalProps, getShallow, getMounted, loadInnerSourceProducerDataSpy;
 
   beforeEach(function () {
+    loadInnerSourceProducerDataSpy = jasmine.createSpy('loadInnerSourceProducerData');
+
+    spyOn(InnerSourceProducerAlertContainer, 'default').and.returnValue(<div>InnerSourceProducerAlertContainer</div>);
+    spyOn(InnerSourceProducerReportModalContainer, 'default').and.returnValue(
+      <div>InnerSourceProducerReportModalContainer</div>
+    );
+    spyOn(InnerSourceProducerPermissionsModalContainer, 'default').and.returnValue(
+      <div>InnerSourceProducerPermissionsModalContainer</div>
+    );
+
     minimalProps = {
       componentInformation: {
         displayName: {
@@ -19,6 +34,7 @@ describe('ComponentDetailsOverview', () => {
         pathnames: ['componentPath'],
       },
       requestVersionGraphData: jasmine.createSpy('versionExplorerData'),
+      loadInnerSourceProducerData: loadInnerSourceProducerDataSpy,
       versionExplorerData: {
         loading: false,
         loadError: null,
@@ -27,6 +43,7 @@ describe('ComponentDetailsOverview', () => {
     };
 
     getShallow = enzymeUtils.getShallowComponent(Overview, minimalProps);
+    getMounted = enzymeUtils.getMountedComponent(Overview, minimalProps);
   });
 
   it('renders a tile with 3 subsections as content', () => {
@@ -37,6 +54,14 @@ describe('ComponentDetailsOverview', () => {
     expect(sections.length).toBe(2);
     expect(sections.at(0).find('header')).toHaveText('General Info');
     expect(sections.at(1).find('header')).toHaveText('Identification Info');
+  });
+
+  it('calls loadInnerSourceProducerDataSpy on mount', () => {
+    spyOn(RiskRemediation, 'RiskRemediation').and.returnValue(<div>RiskRemediation</div>);
+
+    getMounted();
+
+    expect(loadInnerSourceProducerDataSpy).toHaveBeenCalledTimes(1);
   });
 
   describe('when component is unknown', () => {

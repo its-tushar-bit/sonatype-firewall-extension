@@ -3,7 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { chain, curry, either, flip, isEmpty, isNil, lensPath, lensProp, map, prop, set, transduce } from 'ramda';
+import {
+  chain,
+  curry,
+  either,
+  flip,
+  isEmpty,
+  isNil,
+  lensPath,
+  lensProp,
+  map,
+  prop,
+  set,
+  transduce,
+  over,
+  not,
+} from 'ramda';
 import moment from 'moment';
 
 /**
@@ -31,6 +46,12 @@ export const propSet = curry((propName, value, target) => set(lensProp(propName)
  * Set nested property using path
  */
 export const pathSet = curry((path, value, target) => set(lensPath(path), value, target));
+
+/**
+ * [String] -> a -> b -> b
+ * Toggle nested property using path
+ */
+export const togglePath = curry((path, target) => over(lensPath(path), not, target));
 
 /**
  * {k: v} -> k -> v | Undefined

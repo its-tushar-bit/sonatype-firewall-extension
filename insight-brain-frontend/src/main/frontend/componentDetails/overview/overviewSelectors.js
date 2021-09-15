@@ -59,3 +59,30 @@ export const selectRemediationData = createSelector(
     stageId: metadata.stageId,
   })
 );
+
+export const selectInnerSourceProducerData = createSelector(
+  selectComponentDetailsOverviewSlice,
+  prop('innerSourceProducerData')
+);
+
+export const selectInnerSourceProducerUrl = createSelector(selectInnerSourceProducerData, prop('reportUrl'));
+
+export const selectShowInnerSourceProducerReportModal = createSelector(
+  selectInnerSourceProducerData,
+  prop('showInnerSourceProducerReportModal')
+);
+
+export const selectInsufficientPermission = createSelector(
+  selectInnerSourceProducerData,
+  prop('insufficientPermission')
+);
+
+export const selectShowInsufficientPermissionsModal = createSelector(
+  selectInnerSourceProducerData,
+  prop('showInnerSourcePermissionsModal')
+);
+
+export const selectLatestInnerSourceComponentVersion = createSelector(
+  selectInnerSourceProducerData,
+  prop('latestInnerSourceComponentVersion')
+);

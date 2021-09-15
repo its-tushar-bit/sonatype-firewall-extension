@@ -31,6 +31,7 @@ function mapStateToProps(state) {
 
 const mapDispatchToProps = {
   requestVersionGraphData: actions.loadVersionGraphData,
+  loadInnerSourceProducerData: actions.loadInnerSourceProducerData,
 };
 
 export const OverviewContainer = connect(mapStateToProps, mapDispatchToProps)(Overview);

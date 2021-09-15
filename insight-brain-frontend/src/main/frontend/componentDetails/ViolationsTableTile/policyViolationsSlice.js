@@ -14,6 +14,7 @@ import { stateGo } from '../../reduxUiRouter/routerActions';
 import { propSet } from '../../util/reduxToolkitUtil';
 import { getAddWaiverPermissionForApplicationPromiseBuilder } from '../../waivers/waiverActions';
 import { selectApplicationReportMetaData } from '../../applicationReport/applicationReportSelectors';
+import { toggleBooleanProp } from '../../util/reduxUtil';
 
 const REDUCER_NAME = 'componentDetailsPolicyViolations';
 
@@ -132,13 +133,6 @@ const goToWaivers = (policyViolationId) => {
   return (dispatch, getState) => {
     const { hash } = selectRouterCurrentParams(getState());
     return dispatch(stateGo('applicationReport.violationWaivers', { hash, violationId: policyViolationId }));
-  };
-};
-
-const toggleBooleanProp = (propName) => (state) => {
-  return {
-    ...state,
-    [propName]: !state[propName],
   };
 };
 

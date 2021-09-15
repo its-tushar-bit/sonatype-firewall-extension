@@ -49,3 +49,10 @@ export const mappedPayloadParamActionCreator = (type, mapper) => (payloadSrc) =>
 export function httpErrorMessageActionCreator(type) {
   return mappedPayloadParamActionCreator(type, Messages.getHttpErrorMessage);
 }
+
+export const toggleBooleanProp = (propName) => (state) => {
+  return {
+    ...state,
+    [propName]: !state[propName],
+  };
+};

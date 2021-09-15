@@ -5,7 +5,13 @@
  */
 import {
   selectComponentDetailsOverviewVersionExplorerSlice,
+  selectInnerSourceProducerData,
   selectVersionExplorerRequestData,
+  selectInnerSourceProducerUrl,
+  selectShowInnerSourceProducerReportModal,
+  selectInsufficientPermission,
+  selectShowInsufficientPermissionsModal,
+  selectLatestInnerSourceComponentVersion,
   selectRemediationData,
   selectComponenDetailsOverviewRemediationSlice,
 } from '../../../../main/frontend/componentDetails/overview/overviewSelectors';
@@ -18,6 +24,17 @@ describe('overviewSelectors', () => {
       someData: 'data',
     },
   };
+
+  const innerSourceProducerData = {
+    reportUrl: 'http://localhost:8070/ui/links/application/appProducer/latestReport/build',
+    latestInnerSourceComponentVersion: '2.0.0',
+    insufficientPermission: false,
+    loading: false,
+    loadError: null,
+    showInnerSourcePermissionsModal: false,
+    showInnerSourceProducerReportModal: false,
+  };
+
   const remediation = {
     versionChanges: [
       {
@@ -95,6 +112,7 @@ describe('overviewSelectors', () => {
     componentDetailsOverview: {
       remediation,
       graphExplorerData,
+      innerSourceProducerData,
     },
   };
 
@@ -125,6 +143,48 @@ describe('overviewSelectors', () => {
         dependencyType: 'transitive',
       };
       const actualSelection = selectVersionExplorerRequestData(mockState);
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+
+    it('selects innerSourceProducerData', () => {
+      const expectedSelection = innerSourceProducerData;
+      const actualSelection = selectInnerSourceProducerData(mockState);
+
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+
+    it('selects selectInnerSourceProducerUrl', () => {
+      const expectedSelection = 'http://localhost:8070/ui/links/application/appProducer/latestReport/build';
+      const actualSelection = selectInnerSourceProducerUrl(mockState);
+
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+
+    it('selects selectShowInnerSourceProducerReportModal', () => {
+      const expectedSelection = false;
+      const actualSelection = selectShowInnerSourceProducerReportModal(mockState);
+
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+
+    it('selects selectInsufficientPermission', () => {
+      const expectedSelection = false;
+      const actualSelection = selectInsufficientPermission(mockState);
+
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+
+    it('selects selectShowInsufficientPermissionsModal', () => {
+      const expectedSelection = false;
+      const actualSelection = selectShowInsufficientPermissionsModal(mockState);
+
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+
+    it('selects selectLatestInnerSourceComponentVersion', () => {
+      const expectedSelection = '2.0.0';
+      const actualSelection = selectLatestInnerSourceComponentVersion(mockState);
+
       expect(actualSelection).toEqual(expectedSelection);
     });
 

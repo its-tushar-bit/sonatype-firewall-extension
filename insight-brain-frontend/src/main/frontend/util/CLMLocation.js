@@ -582,6 +582,9 @@ export function getLicenseUploadUrl() {
   return uriTemplate`/api/v2/product/license`;
 }
 
+export const getInnerSourceComponentLatestVersionUrl = (componentIdentifier) =>
+  uriTemplate`/rest/innerSource/component/latestVersion?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',
@@ -917,9 +920,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
         return baseUrl.get() + `/${url}`;
       },
 
-      getInnerSourceComponentLatestVersionUrl: (componentIdentifier) =>
-        `${baseUrl.get()}/rest/innerSource/component/latestVersion?` +
-        `componentIdentifier=${encodeURIComponent(JSON.stringify(componentIdentifier))}`,
+      getInnerSourceComponentLatestVersionUrl,
     };
   },
 ]);

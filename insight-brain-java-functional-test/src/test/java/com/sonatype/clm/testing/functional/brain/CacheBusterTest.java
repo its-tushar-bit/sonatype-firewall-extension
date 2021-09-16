@@ -67,7 +67,7 @@ public class CacheBusterTest
     public RequestCopyHandler(int brainPort, String url) {
       this.url = url;
       this.reverseProxy = new ReverseProxyHandler(brainPort, System.getProperty("proxy.basePath", ""));
-      timestamps = new ArrayList<String>();
+      timestamps = new ArrayList<>();
     }
 
     @Override

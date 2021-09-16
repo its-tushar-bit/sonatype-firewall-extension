@@ -6,6 +6,7 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.File;
+import java.util.Arrays;
 
 import org.junit.Test;
 
@@ -26,5 +27,14 @@ public class ParametersTest
     assertThat(new Parameters("-b").getBaseDir()).isNull();
     assertThat(new Parameters("-b", "/dir").getBaseDir()).isEqualTo(new File("/dir"));
     assertThat(new Parameters("--base-dir", "/dir").getBaseDir()).isEqualTo(new File("/dir"));
+  }
+
+  @Test
+  public void testModuleExcludes() {
+    String moduleExclusion1 = "**/module-1-exclude/module.xml";
+    String moduleExclusion2 = "**/module-2-exclude/module.xml";
+    assertThat(new Parameters().getModuleExcludes()).isNull();
+    assertThat(new Parameters("--module-exclude", moduleExclusion1, "--module-exclude",
+        moduleExclusion2).getModuleExcludes()).isEqualTo(Arrays.asList(moduleExclusion1, moduleExclusion2));
   }
 }

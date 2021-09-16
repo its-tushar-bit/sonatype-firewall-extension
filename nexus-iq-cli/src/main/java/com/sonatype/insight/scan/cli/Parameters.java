@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.List;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.converters.StringConverter;
 
 public class Parameters
     extends AbstractParameters
@@ -32,6 +33,11 @@ public class Parameters
 
   @Parameter(description = "Archives or directories to scan", required = true)
   private List<String> scanTargets;
+
+  @Parameter(names = {"--module-exclude"},
+      description = "Module information files to be ignored",
+      listConverter = StringConverter.class)
+  private List<String> moduleExcludes;
 
   @Override
   protected String getProgramName() {
@@ -65,5 +71,10 @@ public class Parameters
   @Override
   public List<String> getScanTargets() {
     return scanTargets;
+  }
+
+  @Override
+  public List<String> getModuleExcludes() {
+    return moduleExcludes;
   }
 }

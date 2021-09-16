@@ -8,9 +8,11 @@ package com.sonatype.insight.scan.cli;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
@@ -25,6 +27,10 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.scan.model.ArtifactId;
+import com.sonatype.insight.scan.model.Dependency;
+import com.sonatype.insight.scan.model.DirectoryScanItem;
+import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanItem;
@@ -641,6 +647,74 @@ public abstract class DefaultPolicyEvaluatorTest
         .build()
         .tryGetCommitHash();
     assertThat(scan.getMetadata().getCommitHash()).isEqualTo(commitHash.get());
+  }
+
+  @Test
+  public void testRun_ScanWithModule() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    List<String> params = ImmutableList.of(
+        "-s", insightServerUrl,
+        "-a", "admin:admin123",
+        "-i", app.getPublicId(),
+        "--output-directory", tempDir.getRoot().getAbsolutePath(),
+        "src/test/data/module"
+    );
+
+    withTestRunner(params).doPolicyEvaluationRun();
+
+    File scanFile = findScanFile();
+    Scan scan = scanReader.read(scanFile);
+    assertThat(scan).isNotNull();
+    assertThat(scan.getItems()).hasSize(3);
+    ScanItem moduleXmlFile = findScanItemByPath(scan.getItems(), "module/sonatype-clm/module.xml");
+    assertThat(moduleXmlFile).isNotNull();
+    DirectoryScanItem artifact =
+        (DirectoryScanItem) findScanItemByPath(scan.getItems(), "module/test2-1.0-SNAPSHOT.jar");
+    assertThat(artifact.getItems()).extracting(ScanItem::getPath).containsExactly(
+        "META-INF/MANIFEST.MF",
+        "META-INF/maven/org.example/test2/pom.xml",
+        "META-INF/maven/org.example/test2/pom.properties",
+        "Main.class"
+    );
+    assertThat(artifact.getIds()).hasSize(1);
+    ArtifactId artifactId = artifact.getIds().get(0);
+    assertThat(artifactId.getKind()).isEqualTo("maven");
+    assertThat(artifactId.getId()).isEqualTo("org.example:test2:1.0-SNAPSHOT");
+    ProjectScanItem project = (ProjectScanItem) findScanItemById(scan.getItems(), "org.example:test2:jar:1.0-SNAPSHOT");
+    List<Dependency> dependencies = project.getDependencies();
+    assertThat(dependencies).hasSize(4);
+    assertDependency(dependencies, "org.apache.httpcomponents:httpclient:jar:4.5.13",
+        "org.apache.httpcomponents:httpcore:jar:4.4.13",
+        "commons-logging:commons-logging:jar:1.2",
+        "commons-codec:commons-codec:jar:1.11"
+    );
+    assertDependency(dependencies, "org.apache.httpcomponents:httpcore:jar:4.4.13");
+    assertDependency(dependencies, "commons-logging:commons-logging:jar:1.2");
+    assertDependency(dependencies, "commons-codec:commons-codec:jar:1.11");
+  }
+
+  private ScanItem findScanItemByPath(Collection<ScanItem> scanItems, String path) {
+    return findScanItemByPredicate(scanItems, scanItem -> path.equals(scanItem.getPath()));
+  }
+
+  private ScanItem findScanItemById(Collection<ScanItem> scanItems, String id) {
+    return findScanItemByPredicate(scanItems, scanItem -> id.equals(scanItem.getId()));
+  }
+
+  private ScanItem findScanItemByPredicate(Collection<ScanItem> scanItems, Predicate<ScanItem> predicate) {
+    if (scanItems == null) {
+      return null;
+    }
+    return scanItems.stream()
+        .filter(predicate)
+        .findFirst()
+        .orElse(null);
+  }
+
+  private void assertDependency(Collection<Dependency> dependencies, String id, String... childIds) {
+    Dependency dependency = dependencies.stream().filter(d -> d.getId().equals(id)).findFirst().orElse(null);
+    assertThat(dependency).isNotNull();
+    assertThat(dependency.getDependencies()).extracting(Dependency::getId).containsExactlyInAnyOrder(childIds);
   }
 
   private String decrementVersion(String versionAsString) {

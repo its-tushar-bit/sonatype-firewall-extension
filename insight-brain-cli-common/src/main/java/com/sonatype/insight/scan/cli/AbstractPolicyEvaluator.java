@@ -9,10 +9,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -34,6 +37,7 @@ import com.sonatype.nexus.git.utils.Environment.GitLabCI;
 import com.sonatype.nexus.git.utils.commit.CommitHashFinderBuilder;
 
 import org.apache.http.client.HttpResponseException;
+import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +47,9 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   public static final String MINIMAL_SERVER_VERSION_REQUIRED = "1.69.0";
 
   private static final Logger log = LoggerFactory.getLogger(AbstractPolicyEvaluator.class);
+
+  private static final List<String> DEFAULT_MODULE_INCLUDES =
+      Collections.unmodifiableList(Arrays.asList("**/sonatype-clm/module.xml", "**/nexus-iq/module.xml"));
 
   protected final RestClientFactory restClientFactory;
 
@@ -189,10 +196,11 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       for (String scanTarget : params.getScanTargets()) {
         files.add(new File(scanTarget));
       }
+      List<File> moduleIndices = getModuleIndices(params.getBaseDir(), files, params.getModuleExcludes());
 
       log.debug("Saving scan file to {}", scanFile.getAbsolutePath());
 
-      return scanner.scan(scanFile, params.getBaseDir(), files,
+      return scanner.scan(scanFile, params.getBaseDir(), files, moduleIndices,
           getScanConfiguration(params, proprietaryConfig), scanMetadata, licensedFeatures);
     }
     catch (IOException e) {
@@ -200,6 +208,37 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       saveErrorData(params, CLIError.forSystemError("The scan could not be performed: " + e.getMessage()), restClient);
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
+  }
+
+  // Visible for testing
+  List<File> getModuleIndices(File baseDirectory, List<File> targets, List<String> moduleExcludes) {
+    List<File> moduleIndices = new ArrayList<>();
+    for (File target : targets) {
+      if (target.getPath().startsWith("container:") || target.getPath().startsWith("iac:") || target.isFile()) {
+        continue;
+      }
+      if (baseDirectory != null && !target.isAbsolute()) {
+        target = baseDirectory.toPath().resolve(target.getPath()).toFile();
+      }
+      moduleIndices.addAll(getModuleIndices(target.getAbsoluteFile(), moduleExcludes));
+    }
+    return moduleIndices;
+  }
+
+  // Visible for testing
+  List<File> getModuleIndices(File baseDirectory, List<String> moduleExcludes) {
+    DirectoryScanner directoryScanner = new DirectoryScanner();
+    directoryScanner.setBasedir(baseDirectory);
+    directoryScanner.setIncludes(DEFAULT_MODULE_INCLUDES.toArray(new String[0]));
+    if (moduleExcludes != null) {
+      directoryScanner.setExcludes(moduleExcludes.toArray(new String[0]));
+    }
+    directoryScanner.addDefaultExcludes();
+    directoryScanner.scan();
+    return Arrays.stream(directoryScanner.getIncludedFiles())
+        .map(f -> new File(baseDirectory, f))
+        .sorted()
+        .collect(Collectors.toList());
   }
 
   protected Properties getScanConfiguration(P params, ProprietaryConfig proprietaryConfig) {

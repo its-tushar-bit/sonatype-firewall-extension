@@ -28,6 +28,11 @@ public class AbstractParametersTest
     }
 
     @Override
+    public List<String> getModuleExcludes() {
+      return null;
+    }
+
+    @Override
     public String getServerUser() {
       return null;
     }

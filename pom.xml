@@ -673,6 +673,11 @@
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.scan</groupId>
+        <artifactId>insight-module-model</artifactId>
+        <version>${insight-scanner.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.scan</groupId>
         <artifactId>insight-test-networking</artifactId>
         <version>${insight-scanner.version}</version>
         <scope>test</scope>
@@ -1179,6 +1184,7 @@
               <exclude>**/src/main/resources/com/sonatype/insight/brain/cyclonedx/spdx.xsd</exclude>
               <exclude>**/rst/**</exclude>
               <exclude>**/src/test/data/manifest/*</exclude>
+              <exclude>**/src/test/data/module/**/*</exclude>
             </excludes>
           </configuration>
         </plugin>

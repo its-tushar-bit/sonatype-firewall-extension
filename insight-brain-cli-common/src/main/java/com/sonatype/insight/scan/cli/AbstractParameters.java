@@ -148,6 +148,8 @@ public abstract class AbstractParameters
 
   public abstract List<String> getScanTargets();
 
+  public abstract List<String> getModuleExcludes();
+
   public List<String> getProperties() {
     return properties;
   }

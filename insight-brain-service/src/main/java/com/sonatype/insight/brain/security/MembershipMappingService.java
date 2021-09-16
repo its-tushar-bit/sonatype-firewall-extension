@@ -67,8 +67,6 @@ public class MembershipMappingService
 
   private final ManagementEventService managementEventService;
 
-  private final ApiMemberMappingAdapter apiMemberMappingAdapter;
-
   @Inject
   public MembershipMappingService(
       final ApplicationDAO appDAO,
@@ -77,8 +75,7 @@ public class MembershipMappingService
       final MembershipMappingDAO membershipMappingDAO,
       final OwnerDAO ownerDAO,
       UserDirectory userDirectory,
-      final ManagementEventService managementEventService,
-      ApiMemberMappingAdapter apiMemberMappingAdapter)
+      final ManagementEventService managementEventService)
   {
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
@@ -87,7 +84,6 @@ public class MembershipMappingService
     this.ownerDAO = ownerDAO;
     this.userDirectory = userDirectory;
     this.managementEventService = managementEventService;
-    this.apiMemberMappingAdapter = apiMemberMappingAdapter;
   }
 
   // Authorization is checked in loadMembersByRoleForGlobalContext and loadMembersByRoleForNonGlobalContext
@@ -145,7 +141,7 @@ public class MembershipMappingService
     }
     ApplicableMembershipMappings applicableMembershipMappings =
         getApplicableMembershipMappings(ownerType, internalOwnerId);
-    ApiRoleMemberMappingListDTO roleMemberMappingList = apiMemberMappingAdapter.convert(applicableMembershipMappings);
+    ApiRoleMemberMappingListDTO roleMemberMappingList = ApiMemberMappingAdapter.convert(applicableMembershipMappings);
     roleMemberMappingList.memberMappings = roleMemberMappingList.memberMappings.stream()
         .filter(dto -> !dto.members.isEmpty()).collect(Collectors.toList());
     return roleMemberMappingList;

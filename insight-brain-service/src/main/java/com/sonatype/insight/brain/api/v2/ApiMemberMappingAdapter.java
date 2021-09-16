@@ -10,8 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Named;
-
 import com.sonatype.insight.brain.api.v2.dto.ApiMemberDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
@@ -25,14 +23,16 @@ import com.sonatype.insight.brain.security.MembersByRole;
 /**
  * @since 1.11.0
  */
-@Named
 public class ApiMemberMappingAdapter
 {
-  public ApiRoleMemberMappingListDTO convert(ApplicableMembershipMappings mappings) {
+  public static ApiRoleMemberMappingListDTO convert(ApplicableMembershipMappings mappings) {
     return convert(mappings, null);
   }
 
-  public ApiRoleMemberMappingListDTO convert(final ApplicableMembershipMappings mappings, final OwnerType ownerType) {
+  static ApiRoleMemberMappingListDTO convert(
+      final ApplicableMembershipMappings mappings,
+      final OwnerType ownerType)
+  {
     final List<ApiRoleMemberMappingDTO> roleMemberMappingDTOs = new ArrayList<>();
     for (final MembersByRole membersByRole : mappings.membersByRole) {
       final ApiRoleMemberMappingDTO roleMemberMappingDTO = new ApiRoleMemberMappingDTO();
@@ -66,7 +66,7 @@ public class ApiMemberMappingAdapter
     return memberMappingDTO;
   }
 
-  public Map<String, List<Member>> convert(final ApiRoleMemberMappingListDTO memberMappingDTOs) {
+  public static Map<String, List<Member>> convert(final ApiRoleMemberMappingListDTO memberMappingDTOs) {
     Map<String, List<Member>> roleToMembers = new LinkedHashMap<>();
     for (ApiRoleMemberMappingDTO memberMappingDTO : memberMappingDTOs.memberMappings) {
       roleToMembers.put(memberMappingDTO.roleId, convert(memberMappingDTO.members));
@@ -74,7 +74,7 @@ public class ApiMemberMappingAdapter
     return roleToMembers;
   }
 
-  private List<Member> convert(final List<ApiMemberDTO> memberDTOs) {
+  private static List<Member> convert(final List<ApiMemberDTO> memberDTOs) {
     final List<Member> memberList = new ArrayList<>();
     if (memberDTOs != null) {
       for (final ApiMemberDTO memberDTO : memberDTOs) {

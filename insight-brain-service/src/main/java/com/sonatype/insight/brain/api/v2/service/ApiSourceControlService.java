@@ -77,8 +77,6 @@ public class ApiSourceControlService
 
   private final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
-  private final ApiSourceControlMetricsAdapter apiSourceControlMetricsAdapter;
-
   private final IqForScmLicenseChecker licenseChecker;
 
   private final TelemetrySender telemetrySender;
@@ -94,7 +92,6 @@ public class ApiSourceControlService
       final OwnerDAO ownerDAO,
       final ApplicationDAO applicationDAO,
       final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO,
-      final ApiSourceControlMetricsAdapter apiSourceControlMetricsAdapter,
       final IqForScmLicenseChecker licenseChecker,
       final TelemetrySender telemetrySender,
       final SourceControlPullRequestMetrics sourceControlPullRequestMetrics,
@@ -105,7 +102,6 @@ public class ApiSourceControlService
     this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
     this.automaticSourceControlConfigurationDAO = automaticSourceControlConfigurationDAO;
-    this.apiSourceControlMetricsAdapter = apiSourceControlMetricsAdapter;
     this.licenseChecker = licenseChecker;
     this.telemetrySender = telemetrySender;
     this.sourceControlPullRequestMetrics = sourceControlPullRequestMetrics;
@@ -424,7 +420,7 @@ public class ApiSourceControlService
   {
     checkLicense();
 
-    return apiSourceControlMetricsAdapter.convertToDTO(sourceControlPullRequestMetrics.metricsForApplication(ownerId));
+    return ApiSourceControlMetricsAdapter.convertToDTO(sourceControlPullRequestMetrics.metricsForApplication(ownerId));
   }
 
   enum METHOD

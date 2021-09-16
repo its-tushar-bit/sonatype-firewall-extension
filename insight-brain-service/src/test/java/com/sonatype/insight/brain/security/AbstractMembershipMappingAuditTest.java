@@ -81,7 +81,7 @@ public class AbstractMembershipMappingAuditTest
   protected void assertRoleMembershipData(List<AuditDTO> auditDTOs,
                                           ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO)
   {
-    Map<String, List<Member>> roleToMembers = new ApiMemberMappingAdapter().convert(apiRoleMemberMappingListDTO);
+    Map<String, List<Member>> roleToMembers = ApiMemberMappingAdapter.convert(apiRoleMemberMappingListDTO);
     for (String roleId : roleToMembers.keySet()) {
       assertRoleMembershipData(findFirstByDataKeyValue(auditDTOs, "roleId", roleId), roleId, roleToMembers.get(roleId));
     }

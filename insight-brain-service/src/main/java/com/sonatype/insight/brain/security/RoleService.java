@@ -39,17 +39,13 @@ public class RoleService
 
   private final RolePermissionDAO rolePermissionDAO;
 
-  private final ApiRoleAdapter apiRoleAdapter;
-
   @Inject
   public RoleService(
       final RoleDAO roleDAO,
-      final RolePermissionDAO rolePermissionDAO,
-      final ApiRoleAdapter apiRoleAdapter)
+      final RolePermissionDAO rolePermissionDAO)
   {
     this.roleDAO = roleDAO;
     this.rolePermissionDAO = rolePermissionDAO;
-    this.apiRoleAdapter = apiRoleAdapter;
   }
 
   /**
@@ -62,7 +58,7 @@ public class RoleService
 
   @Authorize(permission = Permission.VIEW_ROLES)
   public ApiRoleListDTO getRolesAsApiRoleListDTO() {
-    return apiRoleAdapter.convertToDTO(roleDAO.getAll());
+    return ApiRoleAdapter.convertToDTO(roleDAO.getAll());
   }
 
   @Authorize(permission = Permission.VIEW_ROLES)

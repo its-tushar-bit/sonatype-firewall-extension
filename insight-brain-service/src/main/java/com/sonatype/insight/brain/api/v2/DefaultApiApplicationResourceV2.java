@@ -72,8 +72,6 @@ public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
 
   private final MembershipMappingService membershipMappingService;
 
-  private final ApiMemberMappingAdapter apiMemberMappingAdapter;
-
   private final ApplicationCloneService applicationCloneService;
 
   private final ApplicationMoveService applicationMoveService;
@@ -81,13 +79,11 @@ public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
   @Inject
   public DefaultApiApplicationResourceV2(final ApiApplicationService apiApplicationService,
                                          final MembershipMappingService membershipMappingService,
-                                         final ApiMemberMappingAdapter apiMemberMappingAdapter,
                                          final ApplicationCloneService applicationCloneService,
                                          final ApplicationMoveService applicationMoveService)
   {
     this.apiApplicationService = apiApplicationService;
     this.membershipMappingService = membershipMappingService;
-    this.apiMemberMappingAdapter = apiMemberMappingAdapter;
     this.applicationCloneService = applicationCloneService;
     this.applicationMoveService = applicationMoveService;
   }
@@ -163,7 +159,7 @@ public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
   {
     final ApplicableMembershipMappings mappings = membershipMappingService.getApplicableMembershipMappings(
         OwnerType.APPLICATION, applicationId);
-    return apiMemberMappingAdapter.convert(mappings, OwnerType.APPLICATION);
+    return ApiMemberMappingAdapter.convert(mappings, OwnerType.APPLICATION);
   }
 
   @Override
@@ -175,7 +171,7 @@ public class DefaultApiApplicationResourceV2 implements ApiApplicationResourceV2
   public void setMembershipMappingForRole(@PathParam("applicationId") final String applicationId,
                                           final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
   {
-    Map<String, List<Member>> roleToMembers = apiMemberMappingAdapter.convert(roleMemberMappingDTOs);
+    Map<String, List<Member>> roleToMembers = ApiMemberMappingAdapter.convert(roleMemberMappingDTOs);
     membershipMappingService.setMembershipMappings(OwnerType.APPLICATION, applicationId, roleToMembers);
   }
 

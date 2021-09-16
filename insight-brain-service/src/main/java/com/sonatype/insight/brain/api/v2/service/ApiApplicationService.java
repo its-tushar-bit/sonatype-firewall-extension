@@ -51,8 +51,6 @@ public class ApiApplicationService
 
   private final RoleDAO roleDAO;
 
-  private final ApiRoleAdapter roleAdapter;
-
   private final ApplicationHelper applicationHelper;
 
   private final ApplicationDAO applicationDAO;
@@ -66,7 +64,6 @@ public class ApiApplicationService
                                final ApplicationTagDAO applicationTagDAO,
                                final RoleDAO roleDAO,
                                final ApplicationDAO applicationDAO,
-                               final ApiRoleAdapter roleAdapter,
                                final ApplicationHelper applicationHelper,
                                final TagDAO tagDAO,
                                final OrganizationDAO organizationDAO)
@@ -75,7 +72,6 @@ public class ApiApplicationService
     this.applicationTagDAO = applicationTagDAO;
     this.applicationDAO = applicationDAO;
     this.roleDAO = roleDAO;
-    this.roleAdapter = roleAdapter;
     this.applicationHelper = applicationHelper;
     this.tagDAO = tagDAO;
     this.organizationDAO = organizationDAO;
@@ -185,7 +181,7 @@ public class ApiApplicationService
 
   public ApiRoleListDTO getApplicationRoles() {
     List<Role> roles = roleDAO.getApplicationRoles();
-    return roleAdapter.convertToDTO(roles);
+    return ApiRoleAdapter.convertToDTO(roles);
   }
 
   /**

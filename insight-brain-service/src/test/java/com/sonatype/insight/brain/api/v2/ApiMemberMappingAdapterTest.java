@@ -29,8 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiMemberMappingAdapterTest
     extends AbstractComponentTest
 {
-  private final ApiMemberMappingAdapter apiMemberMappingAdapter = new ApiMemberMappingAdapter();
-
   private final String roleId = "testRoleId";
 
   private final String testUserName = "testUserName";
@@ -42,8 +40,8 @@ public class ApiMemberMappingAdapterTest
     final OwnerType ownerType = OwnerType.APPLICATION;
     final ApplicableMembershipMappings mappings = createApplicableMembershipMappings(ownerType);
 
-    final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO = apiMemberMappingAdapter
-        .convert(mappings, ownerType);
+    final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO =
+        ApiMemberMappingAdapter.convert(mappings, ownerType);
 
     assertRoleMemberMappingDTO(apiRoleMemberMappingListDTO);
   }
@@ -53,8 +51,8 @@ public class ApiMemberMappingAdapterTest
     final OwnerType ownerType = OwnerType.ORGANIZATION;
     final ApplicableMembershipMappings mappings = createApplicableMembershipMappings(ownerType);
 
-    final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO = apiMemberMappingAdapter
-        .convert(mappings, ownerType);
+    final ApiRoleMemberMappingListDTO apiRoleMemberMappingListDTO =
+        ApiMemberMappingAdapter.convert(mappings, ownerType);
 
     assertRoleMemberMappingDTO(apiRoleMemberMappingListDTO);
   }
@@ -72,7 +70,7 @@ public class ApiMemberMappingAdapterTest
     apiRoleMemberMappingDTO.members.add(memberDTO);
     apiRoleMemberMappingListDTO.memberMappings.add(apiRoleMemberMappingDTO);
 
-    Map<String, List<Member>> roleToMembers = apiMemberMappingAdapter.convert(apiRoleMemberMappingListDTO);
+    Map<String, List<Member>> roleToMembers = ApiMemberMappingAdapter.convert(apiRoleMemberMappingListDTO);
     assertRoleToMemberMap(roleToMembers);
   }
 

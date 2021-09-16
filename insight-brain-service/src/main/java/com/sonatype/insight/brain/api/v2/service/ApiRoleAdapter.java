@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.inject.Named;
-
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.model.security.Role;
@@ -17,10 +15,9 @@ import com.sonatype.insight.brain.model.security.Role;
 /**
  * @since 1.11.0
  */
-@Named
 public class ApiRoleAdapter
 {
-  public ApiRoleListDTO convertToDTO(Collection<Role> roles) {
+  public static ApiRoleListDTO convertToDTO(Collection<Role> roles) {
     ApiRoleListDTO roleListDTO = new ApiRoleListDTO();
     roleListDTO.roles = new ArrayList<>();
     for (Role role : roles) {
@@ -29,7 +26,7 @@ public class ApiRoleAdapter
     return roleListDTO;
   }
 
-  private ApiRoleDTO convertToDTO(Role role) {
+  private static ApiRoleDTO convertToDTO(Role role) {
     ApiRoleDTO roleDTO = new ApiRoleDTO();
     roleDTO.id = role.getId();
     roleDTO.name = role.getName();

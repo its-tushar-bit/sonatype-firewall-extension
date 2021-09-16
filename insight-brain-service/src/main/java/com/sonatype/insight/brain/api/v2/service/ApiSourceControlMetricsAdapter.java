@@ -9,9 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResult;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults;
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
@@ -19,11 +16,9 @@ import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 /**
  * @since 1.97
  */
-@Named
-@Singleton
-public class ApiSourceControlMetricsAdapter
+class ApiSourceControlMetricsAdapter
 {
-  public ApiPullRequestResults convertToDTO(final List<EnhancedPullRequestResult> results) {
+  static ApiPullRequestResults convertToDTO(final List<EnhancedPullRequestResult> results) {
     ApiPullRequestResults apiPullRequestResults = new ApiPullRequestResults();
     if (null == results || results.isEmpty()) {
       apiPullRequestResults.results = Collections.emptyList();

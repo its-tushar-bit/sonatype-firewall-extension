@@ -18,8 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiRoleAdapterTest
 {
-  private final ApiRoleAdapter roleAdapter = new ApiRoleAdapter();
-
   @Test
   public void testConvertToDTO() {
     List<Role> roles = new ArrayList<>();
@@ -29,7 +27,7 @@ public class ApiRoleAdapterTest
     role.setDescription("testRoleDescription");
     roles.add(role);
 
-    ApiRoleListDTO apiRoleListDTO = roleAdapter.convertToDTO(roles);
+    ApiRoleListDTO apiRoleListDTO = ApiRoleAdapter.convertToDTO(roles);
     assertThat(apiRoleListDTO).isNotNull();
     assertThat(apiRoleListDTO.roles).hasSize(1);
 

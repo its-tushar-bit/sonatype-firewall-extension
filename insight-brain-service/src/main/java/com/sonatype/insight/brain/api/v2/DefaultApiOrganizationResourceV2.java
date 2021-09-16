@@ -52,16 +52,13 @@ public class DefaultApiOrganizationResourceV2 implements ApiOrganizationResource
 
   private final MembershipMappingService membershipMappingService;
 
-  private final ApiMemberMappingAdapter apiMemberMappingAdapter;
-
   @Inject
-  public DefaultApiOrganizationResourceV2(final ApiOrganizationService apiOrganizationService,
-                                          final MembershipMappingService membershipMappingService,
-                                          final ApiMemberMappingAdapter apiMemberMappingAdapter)
+  public DefaultApiOrganizationResourceV2(
+      final ApiOrganizationService apiOrganizationService,
+      final MembershipMappingService membershipMappingService)
   {
     this.apiOrganizationService = apiOrganizationService;
     this.membershipMappingService = membershipMappingService;
-    this.apiMemberMappingAdapter = apiMemberMappingAdapter;
   }
 
   @Override
@@ -89,7 +86,7 @@ public class DefaultApiOrganizationResourceV2 implements ApiOrganizationResource
   {
     final ApplicableMembershipMappings mappings = membershipMappingService.getApplicableMembershipMappings(
         OwnerType.ORGANIZATION, organizationId);
-    return apiMemberMappingAdapter.convert(mappings, OwnerType.ORGANIZATION);
+    return ApiMemberMappingAdapter.convert(mappings, OwnerType.ORGANIZATION);
   }
 
   @Override
@@ -101,7 +98,7 @@ public class DefaultApiOrganizationResourceV2 implements ApiOrganizationResource
   public void setMembershipMappingForRole(@PathParam("organizationId") final String organizationId,
                                           final ApiRoleMemberMappingListDTO roleMemberMappingDTOs)
   {
-    Map<String, List<Member>> roleToMembers = apiMemberMappingAdapter.convert(roleMemberMappingDTOs);
+    Map<String, List<Member>> roleToMembers = ApiMemberMappingAdapter.convert(roleMemberMappingDTOs);
     membershipMappingService.setMembershipMappings(OwnerType.ORGANIZATION, organizationId, roleToMembers);
   }
 

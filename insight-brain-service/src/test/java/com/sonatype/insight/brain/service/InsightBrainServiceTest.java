@@ -286,7 +286,7 @@ public class InsightBrainServiceTest
         .extracting(t -> JsonUtils
             .asPojo(JsonUtils.asTree(t.getAttributes().get(TelemetryContainerRequestFilter.REST_ENDPOINT_TELEMETRY)),
                 RestEndpointTelemetry.class))
-        .usingFieldByFieldElementComparator().containsExactlyInAnyOrder(expected);
+        .usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(expected);
   }
 
   @Test

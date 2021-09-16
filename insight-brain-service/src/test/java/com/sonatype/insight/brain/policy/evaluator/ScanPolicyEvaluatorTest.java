@@ -1991,7 +1991,7 @@ public class ScanPolicyEvaluatorTest
         new ApplicationComponentLicense(applicationComponent.getId(), "EPL-1.0-LGPL-2.1");
 
     assertThat(applicationComponentLicenses)
-        .usingElementComparatorIgnoringFields(ArrayUtils.add(JPA.IGNORE_FIELDS, "id"))
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields(ArrayUtils.add(JPA.IGNORE_FIELDS, "id"))
         .containsExactlyInAnyOrder(applicationComponentLicense1, applicationComponentLicense2,
             applicationComponentLicense3);
   }

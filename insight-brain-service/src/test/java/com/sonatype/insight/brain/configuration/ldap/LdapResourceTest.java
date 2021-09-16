@@ -68,7 +68,7 @@ public class LdapResourceTest
     response = restRequest().get();
     assertResponseStatus(200, response);
     LdapServer[] ldapServers = response.getBody(LdapServer[].class);
-    assertThat(ldapServers).usingElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
+    assertThat(ldapServers).usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
         .containsExactly(ldapServer);
 
     // Update

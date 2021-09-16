@@ -135,6 +135,6 @@ public class TelemetryContainerRequestFilterTest
     assertThat(telemetryData)
         .extracting(
             t -> (RestEndpointTelemetry) t.getAttributes().get(TelemetryContainerRequestFilter.REST_ENDPOINT_TELEMETRY))
-        .usingFieldByFieldElementComparator().containsExactlyInAnyOrder(restEndpointTelemetry);
+        .usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(restEndpointTelemetry);
   }
 }

@@ -39,7 +39,7 @@ public class AdvancedSearchTelemetryMetricsTest
 
     AggregatedSearchStats stats = metrics.computeStatsAndReset();
     assertThat(stats.getSearchCounts()).hasSize(3);
-    assertThat(stats.getSearchCounts()).usingFieldByFieldElementComparator()
+    assertThat(stats.getSearchCounts()).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(new SearchCount("organizationName", 2L), new SearchCount("vulnerabilityId", 1L),
             new SearchCount("itemType", 1L));
     assertThat(stats.getTotalSearches()).isEqualTo(3L);

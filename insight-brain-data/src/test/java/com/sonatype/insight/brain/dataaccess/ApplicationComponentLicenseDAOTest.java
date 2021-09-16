@@ -130,7 +130,7 @@ public class ApplicationComponentLicenseDAOTest
     tempEntity.newApplicationComponentLicense(applicationComponent7.getId(), "license-7");
 
     assertThat(dao.getApplicationComponentEffectiveLicenses(application.getId(), Sets.newHashSet(stageType.getId())))
-        .usingFieldByFieldElementComparator()
+        .usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(
             newApplicationComponentLicensesDTO(applicationComponent1, "license-1"),
             newApplicationComponentLicensesDTO(applicationComponent2, "license-1", "license-2"),

@@ -1748,7 +1748,7 @@ public class LdapServiceTest
     LdapServer ldapServer1 = tempEntity.newLdapServer("test1");
     LdapServer ldapServer2 = tempEntity.newLdapServer("test2");
     List<LdapServer> ldapServers = ldapService.getAllLdapServers();
-    assertThat(ldapServers).usingElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
+    assertThat(ldapServers).usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
         .containsExactlyInAnyOrder(ldapServer1, ldapServer2);
   }
 

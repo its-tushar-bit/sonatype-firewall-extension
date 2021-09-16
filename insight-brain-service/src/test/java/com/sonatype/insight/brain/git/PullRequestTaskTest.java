@@ -130,7 +130,7 @@ public class PullRequestTaskTest
   }
 
   @Test
-  public void test_run_notInited() {
+  public void testRun_notInited() {
     pullRequestTask.run(null, null);
     assertThat(logOutput).atErrorLevel().contains("Missing required PullRequestRemediationDetails");
     verifyNoInteractions(sourceControlUtils, gitClientFactory, fileCleaner,
@@ -143,7 +143,7 @@ public class PullRequestTaskTest
   }
 
   @Test
-  public void test_run_nothing_remediated() throws Exception {
+  public void testRun_nothing_remediated() throws Exception {
     File sonatypeWorkDir = temporaryFolder.newFolder();
     sourceControlConfig.setSonatypeWorkDir(sonatypeWorkDir);
     File targetDirectory = new File(sourceControlConfig.getCloneDirectory(), APP_INTERNAL_ID);
@@ -160,7 +160,7 @@ public class PullRequestTaskTest
   }
 
   @Test
-  public void test_run_nothing_remediated_custom_directory() throws Exception {
+  public void testRun_nothing_remediated_custom_directory() throws Exception {
     File sonatypeWorkDir = temporaryFolder.newFolder();
     sourceControlConfig.setSonatypeWorkDir(sonatypeWorkDir);
     sourceControlConfig.setCloneDirectory(APP_INTERNAL_ID);
@@ -176,7 +176,7 @@ public class PullRequestTaskTest
   }
 
   @Test
-  public void test_run_existing_content() throws Exception {
+  public void testRun_existing_content() throws Exception {
     File sonatypeWorkDir = temporaryFolder.newFolder();
     sourceControlConfig.setSonatypeWorkDir(sonatypeWorkDir);
     File targetDirectory = new File(sourceControlConfig.getCloneDirectory(), APP_INTERNAL_ID);
@@ -205,7 +205,7 @@ public class PullRequestTaskTest
   }
 
   @Test
-  public void test_run_failure() throws Exception {
+  public void testRun_failure() throws Exception {
     File sonatypeWorkDir = temporaryFolder.newFolder();
     sourceControlConfig.setSonatypeWorkDir(sonatypeWorkDir);
 
@@ -222,7 +222,7 @@ public class PullRequestTaskTest
   }
 
   @Test
-  public void test_default_committer() throws Exception {
+  public void testRun_default_committer() throws Exception {
     sourceControlConfig.setCommitUsername(null); // same as default, none defined
     sourceControlConfig.setCommitEmail(null); // same as default, none defined
 
@@ -245,7 +245,7 @@ public class PullRequestTaskTest
   }
 
   @Test
-  public void test_custom_committer() throws Exception {
+  public void testRun_custom_committer() throws Exception {
     sourceControlConfig.setCommitUsername("bar");
     sourceControlConfig.setCommitEmail("foo@bar.com");
 
@@ -267,7 +267,7 @@ public class PullRequestTaskTest
   }
 
   @Test
-  public void test_use_username_in_repo_url() throws Exception {
+  public void testRun_use_username_in_repo_url() throws Exception {
     gitRepositoryInfo.provider = SourceControlProvider.BITBUCKET;
     gitRepositoryInfo.username = "foo";
     sourceControlConfig.setUseUsernameInRepositoryCloneUrl(true);

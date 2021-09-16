@@ -32,8 +32,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.support.LimitedFileInputStreamTest.CONFIG_YML;
-import static com.sonatype.insight.brain.support.LimitedFileInputStreamTest.CONFIG_YML_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -42,6 +40,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SupportServiceTest
     extends AbstractComponentTest
 {
+  private static final String CONFIG_YML_FILENAME = "config-support-test.yml";
+
   @Inject
   private InsightConfig insightConfig;
 
@@ -61,7 +61,7 @@ public class SupportServiceTest
   }
 
   private File getConfigYml() {
-    return new File(SupportServiceTest.class.getResource(CONFIG_YML).getFile());
+    return new File(getClass().getResource("/" + getClass().getSimpleName() + "/" + CONFIG_YML_FILENAME).getFile());
   }
 
   @Test

@@ -60,7 +60,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
 
-import static com.sonatype.insight.brain.support.LimitedFileInputStreamTest.CONFIG_YML;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -180,7 +179,8 @@ public class SystemInfoTest
   @SuppressWarnings("unchecked")
   @Test
   public void testGetObfuscatedYaml() throws Exception {
-    final File configYml = new File(LimitedFileInputStream.class.getResource(CONFIG_YML).getFile());
+    final File configYml =
+        new File(getClass().getResource("/" + getClass().getSimpleName() + "/config-support-test.yml").getFile());
     assertThat(configYml.exists()).isTrue();
 
     final String obfuscatedYaml;

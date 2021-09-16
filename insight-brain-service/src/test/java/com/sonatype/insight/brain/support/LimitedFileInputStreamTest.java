@@ -20,10 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class LimitedFileInputStreamTest
 {
-  static final String CONFIG_YML_FILENAME = "config-support-test.yml";
-
-  static final String CONFIG_YML = "/SupportTest/" + CONFIG_YML_FILENAME;
-
   private File configYml;
 
   private LimitedFileInputStream limitedInputStream;
@@ -32,7 +28,8 @@ public class LimitedFileInputStreamTest
 
   @Before
   public void setUp() throws Exception {
-    configYml = new File(LimitedFileInputStream.class.getResource(CONFIG_YML).getFile());
+    configYml =
+        new File(getClass().getResource("/" + getClass().getSimpleName() + "/config-support-test.yml").getFile());
     assertThat(configYml).isFile();
   }
 

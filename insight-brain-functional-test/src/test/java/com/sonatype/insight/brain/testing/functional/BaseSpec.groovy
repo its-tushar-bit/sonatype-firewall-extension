@@ -35,6 +35,7 @@ import org.junit.rules.TestName
 import org.openqa.selenium.logging.LogEntry
 import org.openqa.selenium.logging.LogType
 import org.openqa.selenium.StaleElementReferenceException
+import org.openqa.selenium.remote.RemoteWebDriver
 import spock.lang.Shared
 
 @Slf4j
@@ -92,8 +93,48 @@ extends GebReportingSpec {
 
   def setupSpec() {
     // Use port as reported by service under test since it's not known until runtime.
-    System.setProperty("geb.build.baseUrl", "http://localhost:" + serviceRule.getPort() + "/")
+    def baseUrl = resolveBaseUrl(driver, "http://localhost:${serviceRule.getPort()}/")
+
+    System.setProperty("geb.build.baseUrl", baseUrl)
     BrowserInfo.init(driver)
+  }
+
+  def resolveBaseUrl(def driver, String baseUrl) {
+    if (driver.getWrappedDriver().getClass() == RemoteWebDriver) {
+      // On some docker hosts the containers cannot use the loopback address of the host, so we need to lookup an
+      // address that they can use
+      Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+
+      while (interfaces.hasMoreElements()) {
+        NetworkInterface iface = interfaces.nextElement();
+        try {
+          if (iface.isUp() && !iface.isLoopback()) {
+            Enumeration<InetAddress> addresses = iface.getInetAddresses();
+            while (addresses.hasMoreElements()) {
+              InetAddress address = addresses.nextElement();
+
+              // only try 32-bit (IPv4 addresses)
+              if (address.getAddress().length == 4) {
+                String addressedUrl = baseUrl.replace("localhost", address.getHostAddress());
+                try {
+                  if (!address.isLoopbackAddress() && address.isReachable(2000)) {
+                    return addressedUrl;
+                  }
+                }
+                catch (Exception ignored) {
+                  // try the next address
+                }
+              }
+            }
+          }
+        }
+        catch (Exception ignored) {
+          // try the next interface
+        }
+      }
+    }
+
+    return baseUrl
   }
 
   def cleanupSpec() {

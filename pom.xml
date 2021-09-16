@@ -58,6 +58,16 @@
     <nexus-scm-client.version>1.42.0-SNAPSHOT</nexus-scm-client.version>
     <nexus-dependency-management.version>1.20.0</nexus-dependency-management.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
+
+    <!--
+      Properties for functional test docker container used by insight-brain-java-functional-test 
+      and insight-brain-functional-test
+    -->
+    <docker.image.registry></docker.image.registry>
+    <docker.image.version>3.141.59-20210607</docker.image.version>
+    <docker.image>standalone-chrome:${docker.image.version}</docker.image>
+    <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
+    <test.group>all</test.group>
   </properties>
 
   <scm>

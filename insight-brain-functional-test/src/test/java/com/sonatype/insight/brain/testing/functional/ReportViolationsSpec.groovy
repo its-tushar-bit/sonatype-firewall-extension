@@ -29,6 +29,7 @@ class ReportViolationsSpec
 
     when: "org header is clicked"
       clickHeader(orgNameHeader)
+      waitFor { page.reportViolationRows[1].orgName }
 
     then: "rows sorted by organization"
       page.reportViolationRows[1].orgName.text() == "org1"
@@ -36,6 +37,7 @@ class ReportViolationsSpec
 
     when: "org header is clicked again"
       clickHeader(orgNameHeader)
+      waitFor { page.reportViolationRows[1].orgName }
 
     then: "rows reverse sorted by organization"
       page.reportViolationRows[1].orgName.text() == "org2"
@@ -48,9 +50,9 @@ class ReportViolationsSpec
 
     when: "I type a filter"
       page.filter << "org2" + Keys.ENTER
+      waitFor { reportViolationRows.size() == 3 }
 
     then:
-      reportViolationRows.size() == 3
       reportViolationRows[1].orgName.text() == "org2"
   }
 

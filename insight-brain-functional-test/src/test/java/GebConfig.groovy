@@ -39,78 +39,20 @@ waiting {
     }
   }
 }
-// Consult these documents for how to configure for SauceLabs
-// http://www.gebish.org/manual/current/sauce-labs.html#saucelabs_integration
-// https://saucelabs.com/docs/platforms/webdriver
-def sauceBrowser = System.getProperty("geb.sauce.browser")
-if (sauceBrowser) {
-  driver = {
-    def username = System.getProperty("GEB_SAUCE_LABS_USER")
-    assert username
-    def accessKey = System.getProperty("GEB_SAUCE_LABS_ACCESS_PASSWORD")
-    assert accessKey
-    WebDriver driver = new SauceLabsDriverFactory().create(sauceBrowser, username, accessKey)
-    driver.manage().window().maximize()
-    return driver
-  }
-  // increase default timeouts to account for remote execution
-  waiting {
-    timeout = 10
-    retryInterval = 0.5
-  }
-}
-else {
-  // see https://github.com/detro/ghostdriver
 
-  String phantomJsBinary = System.getProperty("phantomjs.binary", null)
+driver = {
+  if (System.getProperty("remote") != null) {
+    def capabilities = new DesiredCapabilities()
+    capabilities.setBrowserName("chrome")
 
-  driver = {
-    DesiredCapabilities capabilities = DesiredCapabilities.phantomjs()
-    if (phantomJsBinary) {
-      capabilities.setCapability('phantomjs.binary.path', phantomJsBinary)
-    }
-    capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, ['--webdriver-loglevel=DEBUG'] as String[]);
-    capabilities.
-        setCapability(PhantomJSDriverService.PHANTOMJS_GHOSTDRIVER_CLI_ARGS, ["--logLevel=DEBUG"] as String[])
-    RemoteWebDriver webDriver = new PhantomJSDriver(capabilities)
-    webDriver.setLogLevel(Level.ALL)
-    return configure(webDriver)
+    configure(new RemoteWebDriver(new URL(System.getProperty("remote")), capabilities))
+  }
+  else {
+    configure(new ChromeDriver())
   }
 }
 
-Platform current = Platform.current
 environments {
-
-  // run as “mvn -Dgeb.env=chrome test”
-  // See: http://code.google.com/p/selenium/wiki/ChromeDriver
-  chrome {
-    driver = { configure(new ChromeDriver()) }
-  }
-
-  // see https://code.google.com/p/selenium/wiki/SafariDriver
-  safari {
-    if (current.is(Platform.MAC)) {
-      driver = { configure(new SafariDriver()) }
-    }
-    else {
-      throw new IllegalStateException('Only runs on mac!')
-    }
-  }
-
-  // see https://code.google.com/p/selenium/wiki/InternetExplorerDriver
-  ie {
-    if (current.is(Platform.WINDOWS)) {
-      driver = { configure(new InternetExplorerDriver()) }
-    }
-    else {
-      throw new IllegalStateException('Only runs on windows!')
-    }
-  }
-
-  firefox {
-    driver = { configure(new FirefoxDriver()) }
-  }
-
   ci {
     // increase default timeout to account for slower CI server
     waiting {

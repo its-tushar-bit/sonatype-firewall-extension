@@ -41,10 +41,10 @@
           <compilerId>groovy-eclipse-compiler</compilerId>
         </configuration>
       </plugin>
-      <!-- Make surefire aware of Spec tests -->
+      <!-- Make failsafe aware of Spec tests -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
+        <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <!--
             Don't halt on failures, so that the damage control report can pick up the test results.
@@ -62,7 +62,6 @@
           </includes>
           <systemPropertyVariables>
             <slowmo.enable>true</slowmo.enable>
-            <phantomjs.binary.path>${phantomjs.binary}</phantomjs.binary.path>
             <!--
               Defined in GebConfig.groovy so that tests can be executed in Eclipse or from Maven CLI.
             -->
@@ -71,61 +70,16 @@
           </systemPropertyVariables>
           <trimStackTrace>false</trimStackTrace>
         </configuration>
-      </plugin>
-      <!--
-        A nice report using the Spock blocks
-        https://github.com/damage-control/
-      -->
-      <plugin>
-        <groupId>com.github.damage-control.report</groupId>
-        <artifactId>damage-control-maven-plugin</artifactId>
-        <version>1.1.0</version>
-        <configuration>
-          <skip>${skipTests}</skip>
-          <specDefinitionsFolder>${project.build.testSourceDirectory}</specDefinitionsFolder>
-        </configuration>
         <executions>
           <execution>
-            <phase>test</phase>
             <goals>
-              <goal>report</goal>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>com.github.klieber</groupId>
-        <artifactId>phantomjs-maven-plugin</artifactId>
-      </plugin>
     </plugins>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>com.github.klieber</groupId>
-                    <artifactId>phantomjs-maven-plugin</artifactId>
-                    <versionRange>[0.1,)</versionRange>
-                    <goals>
-                      <goal>install</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
   </build>
 
   <dependencies>
@@ -242,6 +196,218 @@
       </activation>
       <properties>
         <skipTests>true</skipTests>
+      </properties>
+    </profile>
+    <profile>
+      <id>docker-registry</id>
+      <activation>
+        <property>
+          <name>docker.registry</name>
+        </property>
+      </activation>
+      <properties>
+        <docker.image.registry>${docker.registry}/</docker.image.registry>
+      </properties>
+    </profile>
+    <profile>
+      <id>docker-functional-tests</id>
+      <activation>
+        <property>
+          <name>run-functional-tests</name>
+          <value>docker</value>
+        </property>
+      </activation>
+      <properties>
+        <skip.functional.tests>false</skip.functional.tests>
+        <selenide.timeout>8000</selenide.timeout>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <argLine>@{argLine} -Duser.timezone=UTC</argLine>
+              <systemPropertyVariables>
+                <remote>http://${host}:${port}/wd/hub</remote>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <version>0.31.0</version>
+            <configuration>
+              <skip>${skip.functional.tests}</skip>
+              <images>
+                <image>
+                  <name>${docker.image.registry}selenium/${docker.image}</name>
+                  <run>
+                    <ports>
+                      <port>+host:port:4444</port>
+                    </ports>
+                    <volumes>
+                      <bind>
+                        <volume>/dev/shm:/dev/shm</volume>
+                      </bind>
+                    </volumes>
+                    <log>
+                      <file>test-group-${test.group}-docker.log</file>
+                    </log>
+                  </run>
+                </image>
+              </images>
+              <removeMode>all</removeMode>
+            </configuration>
+            <executions>
+              <execution>
+                <id>start-integration-test</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>stop-integration-test</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>stop</goal>
+                  <goal>remove</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>download-webdriver</id>
+      <activation>
+        <property>
+          <name>!webdriver.chrome.driver</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>unpack-chromedriver</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <skip>${skip.functional.tests}</skip>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.chromium</groupId>
+                      <artifactId>chromedriver</artifactId>
+                      <version>91.0.4472.19</version>
+                      <classifier>${chromedriver.classifier}</classifier>
+                      <type>zip</type>
+                    </artifactItem>
+                  </artifactItems>
+                  <outputDirectory>${project.build.directory}</outputDirectory>
+                  <overWriteIfNewer>true</overWriteIfNewer>
+                  <overWriteReleases>true</overWriteReleases>
+                  <overWriteSnapshots>true</overWriteSnapshots>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <systemPropertyVariables>
+                <webdriver.chrome.driver>${webdriver.chrome.driver}</webdriver.chrome.driver>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>windows</id>
+      <activation>
+        <os>
+          <family>windows</family>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>windows</chromedriver.classifier>
+        <webdriver.chrome.driver>${project.build.directory}/chromedriver.exe</webdriver.chrome.driver>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux-x86</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <arch>x86</arch>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>linux32</chromedriver.classifier>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux-i386</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <arch>i386</arch>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>linux32</chromedriver.classifier>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux-64</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <arch>x64</arch>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>linux64</chromedriver.classifier>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux-i686</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <arch>i686</arch>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>linux64</chromedriver.classifier>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux-amd64</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <arch>amd64</arch>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>linux64</chromedriver.classifier>
+      </properties>
+    </profile>
+    <profile>
+      <id>osx</id>
+      <activation>
+        <os>
+          <family>mac</family>
+        </os>
+      </activation>
+      <properties>
+        <chromedriver.classifier>mac64</chromedriver.classifier>
       </properties>
     </profile>
   </profiles>

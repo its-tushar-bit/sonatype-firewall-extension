@@ -21,8 +21,10 @@ def copyRepo() {
 
 def gebTests() {
   copyRepo()
-  def testConfig = testConfig('-Dgeb.env=ci', 'insight-brain-functional-test/pom.xml')
-  mvn testConfig, 'clean test'
+  String mavenOptions = "-Dgeb.env=ci -Drun-functional-tests=docker -Ddocker.registry=${sonatypeDockerRegistryId()}"
+
+  def testConfig = testConfig(mavenOptions, 'insight-brain-functional-test/pom.xml')
+  mvn testConfig, 'clean verify'
 }
 
 def functionalTests(String browser, String testRegex, String testGroupLabel) {

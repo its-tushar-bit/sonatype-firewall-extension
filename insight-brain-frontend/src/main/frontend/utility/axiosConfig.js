@@ -37,9 +37,7 @@ export const attachAxiosInterceptors = (setServerDate, rootScope, window, showMo
           } else {
             UnauthenticatedRequestQueueService.addRequest(() => {
               // simply replay the request
-              axios(error.response.config)
-                .then(() => Promise.resolve(arguments[0]))
-                .catch(() => Promise.reject(arguments[0]));
+              axios(error.response.config);
             });
 
             const authenticate = (showSamlSso, identityProviderName) => {

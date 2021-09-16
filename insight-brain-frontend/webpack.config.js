@@ -6,13 +6,10 @@
 const webpack = require('webpack');
 const path = require('path');
 const fs = require('fs');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const CSSSplitPlugin = require('css-split-webpack-plugin').default;
 const StyleLintPlugin = require('stylelint-webpack-plugin');
-const transformObjectRestSpread = require('babel-plugin-transform-object-rest-spread');
-const transformJsx = require('babel-plugin-transform-react-jsx');
-const transformRuntime = require('babel-plugin-transform-runtime');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const DOMParser = require('xmldom').DOMParser;
+const EslintPlugin = require('eslint-webpack-plugin');
 
 const CopyPlugin = require('copy-webpack-plugin');
 const CopyModulesPlugin = require('copy-modules-webpack-plugin');
@@ -50,14 +47,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
       CLM_BUILD_TIMESTAMP: new Date().getTime(),
       CLM_SERVER_VERSION: JSON.stringify(extractFromPom('version')),
     },
-    extractSass = new ExtractTextPlugin({ filename: cssOutputPath }),
-    getCssPlugins = () => [
-      extractSass,
-      new CSSSplitPlugin({
-        size: 4095,
-        filename: '[name]-[part].[ext]',
-      }),
-    ],
+    getCssPlugins = () => [new MiniCssExtractPlugin({ filename: cssOutputPath })],
     productionPlugins = [
       new CopyModulesPlugin({
         destination: path.join('target', 'webpack-modules'),
@@ -77,126 +67,124 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
       { from: '**/*.{ttf,woff,png,svg,gif,jpg,ico}', transform: false },
     ],
     plugins = [
-      new CopyPlugin(
-        copyPluginFromGlobs.map(({ from, transform }) => ({
+      new CopyPlugin({
+        patterns: copyPluginFromGlobs.map(({ from, transform }) => ({
           from,
           to: path.join(__dirname, 'target/classes/assets'),
-          transform: transform ? transformCopiedFile : null,
-        }))
-      ),
+          transform: transform ? transformCopiedFile : undefined,
+        })),
+      }),
       new webpack.DefinePlugin(buildConstants),
       new StyleLintPlugin({ syntax: 'scss' }),
+      new EslintPlugin({
+        emitWarning: !production,
+        context: __dirname,
+        exclude: [
+          'node_modules',
+          'src/main/frontend/lib',
+          'src/main/frontend/audit-report',
+          'src/main/frontend/version-graph',
+          'src/main/frontend/cip',
+        ],
+      }),
     ].concat(cssOutputPath ? getCssPlugins() : [], productionPlugins),
-    babelLoaderBaseRule = {
-      test: /\.jsx?$/,
-      use: {
-        loader: 'babel-loader',
-        options: {
-          presets: [['env', { modules: false }]],
-          // NOTE: babel's transformRuntime and webpack's exports-loader cannot be used on the
-          // same files due to https://github.com/webpack/webpack/issues/4039#issuecomment-274094298
-          plugins: [transformObjectRestSpread, transformJsx, [transformRuntime, { polyfill: false }]],
-          babelrc: false,
-        },
-      },
+    // Babel is used to transpile JSX only. All ES6 syntax is passed on to browsers at this point
+    reactLoaderBaseRule = {
+      test: /\.jsx$/,
+      use: { loader: 'babel-loader' },
     };
 
   return {
+    mode: 'development', // overridden by --mode flag
     context: path.resolve(__dirname, 'src/main/frontend'),
     entry: entryPath,
     output: {
       path: webpackOutputDir,
+      publicPath: './',
       filename: outputPath,
     },
     resolve: {
       extensions: ['.js', '.jsx'],
+
+      // sjcl tries to load the node crypto module, don't allow it
+      fallback: { crypto: false },
     },
     module: {
       rules: [
+        reactLoaderBaseRule,
         {
-          ...babelLoaderBaseRule,
-          exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/,
-        },
-        {
-          ...babelLoaderBaseRule,
-          include: /node_modules[\/\\](fuse\.js|asn1.js|@uirouter|@react-hook|@rooks)/,
-        },
-        {
-          test: /\.jsx?$/,
-          enforce: 'pre',
-          exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\](lib|cip|audit-report|version-graph)/,
-          loader: require.resolve('eslint-loader'),
-          options: {
-            emitWarning: !production,
+          test: require.resolve(path.join(__dirname, 'src/main/frontend/lib/protovis/protovis.min')),
+          use: {
+            loader: 'exports-loader',
+            options: {
+              exports: 'default pv',
+            },
           },
         },
         {
-          test: require.resolve(path.join(__dirname, 'src/main/frontend/lib/protovis/protovis.min')),
-          use: 'exports-loader?pv',
-        },
-        {
           test: require.resolve(path.join(__dirname, 'src/main/frontend/lib/Base64')),
-          use: 'exports-loader?Base64',
+          use: {
+            loader: 'exports-loader',
+            options: {
+              exports: 'default Base64',
+            },
+          },
         },
         {
           test: /\.html$/,
           use: {
             loader: 'html-loader',
             options: {
-              attrs: false,
+              sources: false,
             },
           },
         },
         {
           test: /\.s?css$/,
-          use: extractSass.extract({
-            use: [
-              { loader: 'css-loader' },
-              {
-                loader: 'resolve-url-loader',
-                options: { attempts: 1 },
+          use: [
+            { loader: MiniCssExtractPlugin.loader },
+            { loader: 'css-loader' },
+            {
+              loader: 'resolve-url-loader',
+            },
+            {
+              loader: 'sass-loader',
+              options: {
+                sourceMap: true,
               },
-              {
-                loader: 'sass-loader',
-                options: {
-                  sourceMap: true,
-
-                  // for unknown reasons this fixes a build error relating to css source maps and
-                  // resolve-url-loader. It is mentioned in the sass-loader docs
-                  // https://webpack.js.org/loaders/sass-loader/
-                  outputStyle: 'compressed',
-                },
-              },
-            ],
-          }),
+            },
+          ],
         },
         {
           test: /\.(png|jpg|jpeg|gif)/,
-          loader: 'file-loader',
-          options: {
-            name: 'images/[name].[ext]',
+          type: 'asset/resource',
+          generator: {
+            filename: 'images/[name][ext]',
           },
         },
         {
           test: /\.(ttf|eot|woff2?|svg)$/,
-          loader: 'file-loader',
-          options: {
-            name: 'fonts/[name].[ext]',
+          type: 'asset/resource',
+          generator: {
+            filename: 'fonts/[name][ext]',
           },
         },
       ],
     },
     plugins: plugins,
     externals,
-    devtool: production ? undefined : 'eval-sourcemap',
+    devtool: production ? undefined : 'eval-source-map',
     devServer: {
       port: 8070,
 
       // makes misconfiguration of the backend easier to notice - without this, OSX will allow the backend to run on all
       // interfaces while this runs on just localhost, even if they're on the same port
       host: '0.0.0.0',
-      contentBase: path.join(__dirname, 'target', 'classes'),
-      publicPath: '/assets/',
+      static: {
+        directory: path.join(__dirname, 'target', 'classes'),
+        serveIndex: true,
+        watch: true,
+      },
       proxy: [
         {
           context: ['/rest', '/api', '/ui', '/policy-assets', '/saml'],

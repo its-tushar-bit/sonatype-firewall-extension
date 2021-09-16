@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular */
 import utilityServicesModule from './services/utility.services.module';
 import commonServicesModule from '../util/CommonServices';
 import formsModule from '../FormsModule';

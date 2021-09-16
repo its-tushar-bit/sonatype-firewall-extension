@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular */
 import CLMLocationModule from '../util/CLMLocation';
 import CLMContextLocationModule from '../util/CLMContextLocation';
 import storesModule from '../util/Stores';

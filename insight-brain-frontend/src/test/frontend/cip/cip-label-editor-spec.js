@@ -6,7 +6,6 @@
 import testComponentProviderModule from './cip.TestComponentProvider';
 import cipLabelEditorModule from '../../../main/frontend/cip/cip.label.editor/cip.label.editor.module';
 
-/*global window*/
 window.Insight = window.Insight || {};
 describe('cip.label.editor tests', function () {
   var scope;

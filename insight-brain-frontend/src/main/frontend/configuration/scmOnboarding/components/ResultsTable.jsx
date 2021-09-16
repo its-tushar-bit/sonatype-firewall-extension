@@ -17,7 +17,7 @@ import {
 } from '@sonatype/react-shared-components';
 import React, { useMemo, useState } from 'react';
 import * as PropTypes from 'prop-types';
-import { repositoryPropType } from '../ScmOnboarding';
+import { repositoryPropType } from '../scmPropTypes';
 import NxFilterInput from '@sonatype/react-shared-components/components/NxFilterInput/NxFilterInput';
 import NxExternalLink from '../../../react/NxExternalLink';
 import { propSet } from '../../../util/jsUtil';

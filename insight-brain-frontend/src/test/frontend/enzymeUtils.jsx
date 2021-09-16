@@ -13,8 +13,8 @@ export const getShallowComponent = (Component, minimalProps) =>
   };
 
 export const getMountedComponent = (Component, minimalProps, mountOpts) =>
-  function getMounted(additionalProps) {
-    return mount(<Component {...minimalProps} {...additionalProps} />, mountOpts);
+  function getMounted(additionalProps, additionalMountOpts) {
+    return mount(<Component {...minimalProps} {...additionalProps} />, { ...mountOpts, ...additionalMountOpts });
   };
 
 export const getLoadWrapperChildren = function getLoadWrapperChildren(pageShallowWrapper) {

@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { organizationPropType } from '../ScmOnboarding';
+import { organizationPropType } from '../scmPropTypes';
 import DropdownFilterInput from './DropdownFilterInput';
 
 export default function TargetOrganizationDropdown(props) {

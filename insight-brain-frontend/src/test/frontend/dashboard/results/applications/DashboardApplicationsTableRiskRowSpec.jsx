@@ -4,25 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import * as enzymeUtils from '../../../enzymeUtils';
+import { mount } from 'enzyme';
 
 import { NxTableCell } from '@sonatype/react-shared-components';
+import RouterStateContext from '../../../../../main/frontend/react/RouterStateContext';
 import DashboardApplicationsTableStageRiskRow from '../../../../../main/frontend/dashboard/results/applications/DashboardApplicationsTableStageRiskRow';
 
 describe('DashboardApplicationsTableStageRiskRow', function () {
-  let getMountedComponent, realUseContext, hrefSpy;
+  let hrefSpy;
 
   beforeEach(function () {
-    getMountedComponent = enzymeUtils.getMountedComponent(DashboardApplicationsTableStageRiskRow);
     hrefSpy = jasmine.createSpy('href').and.returnValue('linkToReport');
-
-    // Mock the expected hook 'useContext'
-    realUseContext = React.useContext;
-    React.useContext = jasmine.createSpy('useContextHook').and.returnValue({ href: hrefSpy });
-  });
-
-  afterEach(function () {
-    React.useContext = realUseContext;
   });
 
   it('renders a link to the related stage report in the stage name', function () {
@@ -31,7 +23,11 @@ describe('DashboardApplicationsTableStageRiskRow', function () {
       stageRisk: { stageTypeName: 'build', scanId: 'scan1', risk: {} },
     };
 
-    const row = getMountedComponent(riskRowProps),
+    const row = mount(
+        <RouterStateContext.Provider value={{ href: hrefSpy }}>
+          <DashboardApplicationsTableStageRiskRow {...riskRowProps} />
+        </RouterStateContext.Provider>
+      ),
       stageNameCell = row.find(NxTableCell).at(0),
       link = stageNameCell.find('a');
 

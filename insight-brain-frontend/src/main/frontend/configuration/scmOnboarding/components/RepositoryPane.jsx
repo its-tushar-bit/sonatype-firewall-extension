@@ -7,7 +7,7 @@
 import LoadWrapper from '../../../react/LoadWrapper';
 import React, { Fragment, useState } from 'react';
 import * as PropTypes from 'prop-types';
-import { organizationPropType, repositoryPropType } from '../ScmOnboarding';
+import { organizationPropType, repositoryPropType } from '../scmPropTypes';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
 import { NxFontAwesomeIcon, NxTooltip, NxSubmitMask } from '@sonatype/react-shared-components';
 import { faPlus, faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
@@ -300,7 +300,7 @@ RepositoryPane.propTypes = {
   scmConfigurationHref: PropTypes.string,
   scmProvider: PropTypes.string,
   // textInputPropType is implied required, but this val is optional
-  currentHostUrlState: PropTypes.oneOfType(PropTypes.object, PropTypes.shape(textInputPropType)),
+  currentHostUrlState: PropTypes.oneOfType([PropTypes.object, PropTypes.shape(textInputPropType)]),
   defaultHostUrl: PropTypes.string,
   isGitHostNeeded: PropTypes.bool,
   isSelectingOrganization: PropTypes.bool,

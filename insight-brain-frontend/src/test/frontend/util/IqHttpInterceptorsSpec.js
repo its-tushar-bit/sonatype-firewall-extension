@@ -5,8 +5,6 @@
  */
 import iqHttpInterceptors from '../../../main/frontend/util/IqHttpInterceptors';
 
-/* global describe, it, expect, spyOn, beforeEach */
-/* global module, inject */
 describe('IqHttpInterceptors', function () {
   var $httpBackend, $http;
 

@@ -1,11 +1,8 @@
 var isProd = process.env.NODE_ENV;
 module.exports = {
   parserOptions: {
-    ecmaVersion: 6,
+    ecmaVersion: 2018,
     sourceType: 'module',
-    ecmaFeatures: {
-      experimentalObjectRestSpread: true,
-    },
   },
   env: {
     browser: true,
@@ -47,6 +44,7 @@ module.exports = {
     strict: 'error',
     'no-invalid-this': 'off',
     'no-nested-ternary': 'off',
+    'no-prototype-builtins': 'off',
     'vars-on-top': 'off',
     'no-console': isProd ? ['error', { allow: ['warn', 'error'] }] : 'off',
     'no-debugger': isProd ? 'error' : 'off',

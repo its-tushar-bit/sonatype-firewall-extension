@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global angular */
 
 /**
  * This file contains HttpInterceptors that are needed only in the top-level IQ UI and not in child frames such as

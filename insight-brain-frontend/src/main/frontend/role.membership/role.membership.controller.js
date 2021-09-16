@@ -37,7 +37,6 @@ export default function RoleMembershipController($scope, $http, CLMContextLocati
    * `getCurrentMembers` A function that returns a filtered view of `members` that only shows the users who
    * are currently picked.  This property is exposed to the parent component.
    */
-  vm.originalMembers = vm.originalMembers; //don't use undefined; it'll overwrite the passed-in value.
   vm.members = undefined;
   vm.getCurrentMembers = getCurrentMembers;
   vm.getCurrentMembersToSave = getCurrentMembersToSave;

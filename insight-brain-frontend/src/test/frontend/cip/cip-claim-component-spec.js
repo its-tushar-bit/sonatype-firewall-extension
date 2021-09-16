@@ -6,7 +6,7 @@
 import '../SpecUtil';
 import { ClaimComponentModule } from '../../../main/frontend/cip/cip-claim-component';
 
-/*global InsightDatatable, window*/
+/*global InsightDatatable*/
 var dataTableItems = [];
 var current = 0;
 

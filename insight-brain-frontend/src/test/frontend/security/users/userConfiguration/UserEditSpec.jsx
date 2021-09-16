@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
 import { NxForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../enzymeUtils';
 import * as routerContext from '../../../../../main/frontend/react/RouterStateContext';
@@ -15,7 +14,7 @@ import CopyToClipboard from '../../../../../main/frontend/security/users/userCon
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
 describe('UserEdit', () => {
-  let getShallowComponent;
+  let getShallowComponent, getMountedComponent;
 
   const stateGoSpy = jasmine.createSpy('stateGo');
   const getSpy = jasmine.createSpy('get').and.returnValue({ data: { title: 'some title' } });
@@ -53,11 +52,11 @@ describe('UserEdit', () => {
       get: getSpy,
     });
     getShallowComponent = enzymeUtils.getShallowComponent(UserEdit, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(UserEdit, minimalProps);
   });
 
   describe('on initial load', () => {
     it('calls load', () => {
-      const getMountedComponent = enzymeUtils.getMountedComponent(UserEdit, minimalProps);
       const component = getMountedComponent();
 
       expect(loadUserByIdMock).toHaveBeenCalled();
@@ -65,7 +64,6 @@ describe('UserEdit', () => {
     });
 
     it('resets the form before unmount component', () => {
-      const getMountedComponent = enzymeUtils.getMountedComponent(UserEdit, minimalProps);
       const component = getMountedComponent();
       component.unmount();
 
@@ -210,11 +208,19 @@ describe('UserEdit', () => {
   });
 
   describe('copy to clipboard modal', () => {
-    const setMode = jasmine.createSpy('setMode');
+    let container;
+
+    beforeEach(() => {
+      container = document.createElement('div');
+      document.body.appendChild(container);
+    });
+
+    afterEach(() => {
+      container.remove();
+    });
 
     it('shown when mode set to COPY_TO_CLIPBOARD', () => {
-      spyOn(React, 'useState').and.returnValue(['copyToClipboard', setMode]);
-      const component = getShallowComponent({ newPassword: 'weAreDoomed' });
+      const component = getMountedComponent({ newPassword: 'weAreDoomed' }, { attachTo: container });
 
       expect(component.find(CopyToClipboard)).toExist();
     });

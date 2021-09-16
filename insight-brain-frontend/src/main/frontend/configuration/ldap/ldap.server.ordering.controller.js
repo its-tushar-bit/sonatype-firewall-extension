@@ -5,7 +5,6 @@
  */
 import template from './ldap.server.ordering.modal.html';
 
-/*global angular*/
 export function LdapServerOrderingController($scope, $http, LdapConfigurationStore, CLMLocation, Messages) {
   var vm = this,
     originalStoreOrder;

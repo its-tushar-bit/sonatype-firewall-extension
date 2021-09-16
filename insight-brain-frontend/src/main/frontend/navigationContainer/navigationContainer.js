@@ -8,7 +8,7 @@ import { loadConfiguration as loadSuccessMetricsConfig } from '../configuration/
 import template from './navigationContainer.html';
 import { path } from 'ramda';
 
-/* global angular, clmServerVersion, clmBuildTimestamp */
+/* global clmServerVersion */
 function NavigationContainerController(
   $rootScope,
   $state,

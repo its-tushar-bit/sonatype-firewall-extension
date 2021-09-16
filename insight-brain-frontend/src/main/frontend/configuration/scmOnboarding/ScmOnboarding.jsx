@@ -11,6 +11,7 @@ import RepositoryPane from './components/RepositoryPane';
 import ReportsCta from './components/ReportsCta';
 import { displayName } from './utils/providers';
 import ImportStatusModal from './components/ImportStatusModal';
+import { repositoryPropType } from './scmPropTypes';
 
 const iqAuthorizationErrorMessage = `It appears you do not have permission to access this page.
         If you believe this to be incorrect please contact your administrator.`;
@@ -73,21 +74,6 @@ export default function ScmOnboarding(props) {
     </main>
   );
 }
-
-export const organizationPropType = {
-  id: PropTypes.string,
-  name: PropTypes.string,
-};
-
-export const repositoryPropType = {
-  httpCloneUrl: PropTypes.string.isRequired,
-  namespace: PropTypes.string,
-  project: PropTypes.string,
-  defaultBranch: PropTypes.string,
-  description: PropTypes.string,
-  isSelected: PropTypes.bool,
-  isImported: PropTypes.bool,
-};
 
 ScmOnboarding.propTypes = {
   // config

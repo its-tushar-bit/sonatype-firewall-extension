@@ -5,7 +5,6 @@
  */
 import { contains, split } from 'ramda';
 
-/* global window, angular */
 import commonServicesModule from '../util/CommonServices';
 import CLMLocationModule from '../util/CLMLocation';
 import { getBaseUrl, uriTemplate } from './urlUtil';

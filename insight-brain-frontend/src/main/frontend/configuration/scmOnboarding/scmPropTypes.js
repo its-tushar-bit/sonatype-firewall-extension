@@ -11,3 +11,18 @@ import { pick } from 'ramda';
 export const textInputPropType = PropTypes.shape(
   pick(['value', 'isPristine', 'validationErrors'], NxTextInput.propTypes)
 );
+
+export const organizationPropType = {
+  id: PropTypes.string,
+  name: PropTypes.string,
+};
+
+export const repositoryPropType = {
+  httpCloneUrl: PropTypes.string.isRequired,
+  namespace: PropTypes.string,
+  project: PropTypes.string,
+  defaultBranch: PropTypes.string,
+  description: PropTypes.string,
+  isSelected: PropTypes.bool,
+  isImported: PropTypes.bool,
+};

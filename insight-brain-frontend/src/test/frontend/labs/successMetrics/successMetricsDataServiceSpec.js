@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global inject, beforeEach, afterEach, it, describe, expect */
 import successMetricsModule from '../../../../main/frontend/labs/successMetrics/module';
 import PolicyViolationAggregationResourceMockData from './mock.data/policy.violation.aggregation.mock.data';
 

@@ -6,7 +6,7 @@
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxModal, NxErrorAlert, NxSuccessAlert, NxButton } from '@sonatype/react-shared-components';
-import { organizationPropType, repositoryPropType } from '../ScmOnboarding';
+import { organizationPropType, repositoryPropType } from '../scmPropTypes';
 import ReportsCta from './ReportsCta';
 /*
  The dialog which provides the user with feedback on the result of their

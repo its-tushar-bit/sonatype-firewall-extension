@@ -5,17 +5,16 @@
  */
 const webpack = require('webpack');
 const path = require('path');
-const JasmineWebpackPlugin = require('jasmine-webpack-plugin');
-const transformObjectRestSpread = require('babel-plugin-transform-object-rest-spread');
-const transformJsx = require('babel-plugin-transform-react-jsx');
 
 const outputPath = path.resolve(__dirname, 'target/classes/assets');
 
 const config = {
+  mode: 'development',
   context: path.resolve(__dirname, 'src/test/frontend'),
   entry: './specRoot.js',
   output: {
     path: outputPath,
+    publicPath: '',
     filename: 'test-bundle.js',
   },
   plugins: [
@@ -23,10 +22,10 @@ const config = {
       CLM_BUILD_TIMESTAMP: 0,
       CLM_SERVER_VERSION: '1',
     }),
-    new JasmineWebpackPlugin(),
   ],
   resolve: {
     extensions: ['.js', '.jsx'],
+    fallback: { crypto: false },
   },
   module: {
     rules: [
@@ -36,8 +35,7 @@ const config = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['env'],
-            plugins: [transformObjectRestSpread, transformJsx],
+            presets: [['@babel/preset-env', { modules: 'commonjs' }]],
           },
         },
       },
@@ -47,8 +45,7 @@ const config = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: [['env']],
-            plugins: [transformObjectRestSpread],
+            presets: [['@babel/preset-env', { modules: 'commonjs' }]],
           },
         },
       },
@@ -57,7 +54,7 @@ const config = {
         use: {
           loader: 'html-loader',
           options: {
-            attrs: false,
+            sources: false,
           },
         },
       },
@@ -67,19 +64,14 @@ const config = {
       },
       {
         test: /\.(png|svg)$/,
-        loader: 'file-loader',
-        options: {
-          name: 'images/[name].[ext]',
+        type: 'asset/resource',
+        generator: {
+          filename: 'images/[name][ext]',
         },
       },
     ],
   },
   devtool: 'eval',
-  devServer: {
-    index: '_specRunner.html',
-    port: 8235,
-    host: '0.0.0.0',
-  },
 };
 
 module.exports = function (env) {

@@ -5,7 +5,6 @@
  */
 import permissionServiceModule from '../../../main/frontend/util/PermissionService';
 
-/* global describe, beforeEach, module, it, inject, expect, afterEach */
 describe('PermissionService.js', function () {
   var successSpy, errorSpy;
 

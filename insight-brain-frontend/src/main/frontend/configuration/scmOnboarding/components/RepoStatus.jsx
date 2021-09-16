@@ -7,7 +7,7 @@
 import React from 'react';
 import { NxBinaryDonutChart } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
-import { repositoryPropType } from '../ScmOnboarding';
+import { repositoryPropType } from '../scmPropTypes';
 
 /*
  Component that displays the status of the import of repositories

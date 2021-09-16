@@ -6,7 +6,6 @@
 import { InitModule } from '../../../main/frontend/MainModule';
 import * as gettingStartedTelemetryServiceHelper from '../../../main/frontend/configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
 
-/* global beforeEach, module, jasmine, afterEach, inject, describe, it, expect, SpecUtil */
 window.angularDebug = true;
 
 describe('mainModuleSpec', function () {

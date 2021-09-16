@@ -6,7 +6,6 @@
 import checkUserMappingTemplate from '../components/ldap-checkusermapping.html';
 import checkLoginTemplate from '../components/ldap-checklogin.html';
 
-/* global angular, clmBuildTimestamp */
 function showAlert(alerts, alert) {
   alerts.length = 0;
   alerts.push(alert);

@@ -83,15 +83,15 @@ To run all JavaScript unit tests in the CLI and see the results there, simply ru
 
 `yarn run test`
 
-You can also run tests in 'watch' mode and view the reports in your browser (we use the [Jasmine Webpack Plugin](https://www.npmjs.com/package/jasmine-webpack-plugin) for this). To do so, use the `test-watch` task (note that you do NOT need a back-end server running):
+You can also run tests in 'watch' mode which opens a visible browser window and allows repeated re-execution. To do so, use the `test-watch` task (note that you do NOT need a back-end server running):
 
 `yarn run test-watch`
 
-You can then launch your browser, point it at `http://localhost:8235/`, and enjoy an interactive test runner environment. This means that as you make changes to your tests, the runner will automagically re-run your tests, and update the test report in the browser in real time.
+In this interactive environment, as you make changes to your tests, the runner will automatically re-run your tests. The
+test report can be seen in the your terminal.
 
-In the browser, you can additionally filter the tests that you see by adding a matcher to the `spec` query param of the URL. For example, to execute all specs that begin with the word "dashboard", you would access the following URL:
-
-`http://localhost:8235/?spec=dashboard`
+If you want to limit which tests run, you can change any `it` test function to `fit` to run only that test, or any
+`describe` to `fdescribe` to only run the contained tests.
 
 #### Linting and Formatting
 

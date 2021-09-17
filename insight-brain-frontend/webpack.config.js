@@ -100,7 +100,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
     entry: entryPath,
     output: {
       path: webpackOutputDir,
-      publicPath: './',
+      publicPath: production ? './' : '/assets/',
       filename: outputPath,
     },
     resolve: {
@@ -182,6 +182,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
       host: '0.0.0.0',
       static: {
         directory: path.join(__dirname, 'target', 'classes'),
+        publicPath: '/',
         serveIndex: true,
         watch: true,
       },

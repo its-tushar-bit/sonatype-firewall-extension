@@ -7,7 +7,14 @@ import ownerManagerModule from '../../main/frontend/owner.manager/owner.manager.
 import legacyConfigurationModule from '../../main/frontend/LegacyConfigurationModule';
 
 describe('owner.tree.view.directive.spec.js', function () {
-  var scope, $httpBackend, $state, $timeout, CLMLocations, CLMContextLocations, EventNameConstant;
+  let scope,
+    $httpBackend,
+    $state,
+    $timeout,
+    CLMLocations,
+    CLMContextLocations,
+    EventNameConstant,
+    mockSourceControlService;
 
   beforeEach(
     angular.mock.module(function ($provide) {
@@ -21,6 +28,8 @@ describe('owner.tree.view.directive.spec.js', function () {
   );
   beforeEach(
     angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name, function ($provide) {
+      mockSourceControlService = jasmine.createSpyObj('SourceControlService', ['getCompositeSourceControlRecord']);
+      $provide.value('SourceControlService', mockSourceControlService);
       SpecUtil.mockNgRedux($provide);
       $provide.factory('scmOnboardingActions', function () {
         return {
@@ -38,6 +47,84 @@ describe('owner.tree.view.directive.spec.js', function () {
       scope.$destroy();
     }
   }));
+
+  describe('populates SCM icon', function () {
+    [
+      // providers with repos
+      { scmProvider: 'azure', repoUrl: 'http://azure/repo', expectedIcon: 'git' },
+      { scmProvider: 'github', repoUrl: 'http://github/repo', expectedIcon: 'github' },
+      { scmProvider: 'bitbucket', repoUrl: 'http://bitbucket/repo', expectedIcon: 'bitbucket' },
+      { scmProvider: 'gitlab', repoUrl: 'http://gitlab/repo', expectedIcon: 'gitlab' },
+      { scmProvider: null, repoUrl: undefined, expectedIcon: 'terminal' },
+      // no repos are defined
+      { scmProvider: 'azure', repoUrl: null, expectedIcon: 'terminal' },
+      { scmProvider: 'azure', repoUrl: undefined, expectedIcon: 'terminal' },
+      { scmProvider: 'github', repoUrl: undefined, expectedIcon: 'terminal' },
+      { scmProvider: 'bitbucket', repoUrl: undefined, expectedIcon: 'terminal' },
+      { scmProvider: 'gitlab', repoUrl: undefined, expectedIcon: 'terminal' },
+      { scmProvider: null, repoUrl: undefined, expectedIcon: 'terminal' },
+    ].forEach((value) => {
+      const { scmProvider, repoUrl, expectedIcon } = value;
+      it(
+        'for ' + scmProvider + ' with repo ' + repoUrl + ' uses icon ' + expectedIcon,
+        inject(function (
+          _$rootScope_,
+          _$httpBackend_,
+          _$q_,
+          _$state_,
+          _$timeout_,
+          _$compile_,
+          _CLMLocations_,
+          _CLMContextLocations_,
+          $injector
+        ) {
+          $timeout = _$timeout_;
+          $httpBackend = _$httpBackend_;
+          $state = _$state_;
+          CLMLocations = _CLMLocations_;
+          CLMContextLocations = _CLMContextLocations_;
+          EventNameConstant = $injector.get('event.name.constant');
+
+          // given connected backends
+          $httpBackend
+            .expectGET(CLMLocations.getOwnerListUrl())
+            .respond(SidebarResourceMockData.getOwnerListUrl_onlySynthetic());
+          $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond([]);
+          $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
+
+          // given the tree-view
+          scope = _$rootScope_.$new();
+          var ownerTreeView = angular.element('<div owner-tree-view></div>');
+          _$compile_(ownerTreeView)(scope);
+          scope.$digest();
+
+          spyOn($state, 'includes').and.returnValue(false);
+
+          // given value of the provider to be based on the test input
+          mockSourceControlService.getCompositeSourceControlRecord.and.returnValue(
+            _$q_.resolve({
+              provider: { value: scmProvider },
+              token: { value: 'TOKEN' },
+              repositoryUrl: repoUrl,
+            })
+          );
+
+          // when the state gets resolved
+          scope.$apply();
+          scope.$digest();
+          $httpBackend.flush();
+          $timeout.flush();
+
+          // then the expected value for the icons matches
+          scope.vm.organizations.forEach((org) => {
+            org.applications.forEach((app) => {
+              expect(app.icon).toBe(expectedIcon);
+            });
+          });
+        })
+      );
+    });
+  });
 
   function runTestsForOwnerTreeViewDirective(permissions) {
     describe('ownerTreeViewDirective', function () {
@@ -66,6 +153,10 @@ describe('owner.tree.view.directive.spec.js', function () {
           .respond(permissions);
 
         $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
+
+        mockSourceControlService.getCompositeSourceControlRecord.and.returnValue(
+          Promise.resolve({ provider: { value: 'github' }, token: { value: 'TOKEN' } })
+        );
 
         scope = _$rootScope_.$new();
         var ownerTreeView = angular.element('<div owner-tree-view></div>');
@@ -559,6 +650,10 @@ describe('owner.tree.view.directive.spec.js', function () {
       $timeout = _$timeout_;
       CLMLocations = _CLMLocations_;
       CLMContextLocations = _CLMContextLocations_;
+
+      mockSourceControlService.getCompositeSourceControlRecord.and.returnValue(
+        Promise.resolve({ provider: { value: 'github' }, token: { value: 'TOKEN' } })
+      );
 
       spyOn($state, 'is').and.returnValue(true);
       scope = _$rootScope_.$new();

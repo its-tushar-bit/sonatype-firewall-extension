@@ -19,7 +19,7 @@ describe('owner.summary.controller.js', function () {
   );
 
   function createTests(type, storeName, owner) {
-    var vm,
+    let vm,
       $timeout,
       $httpBackend,
       CLMLocations,
@@ -116,6 +116,10 @@ describe('owner.summary.controller.js', function () {
       resolveStageTypeStore(MockData.getDashboardStageData());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveCompositeSourceControl();
+      if (isApp) {
+        $httpBackend.flush();
+      }
       resolveApplicationWritePermission(true);
       resolveApplicationEvaluatePermission(true);
 
@@ -140,6 +144,10 @@ describe('owner.summary.controller.js', function () {
       resolveStageTypeStore(MockData.getDashboardStageData());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveCompositeSourceControl();
+      if (isApp) {
+        $httpBackend.flush();
+      }
       resolveApplicationWritePermission(false);
       resolveApplicationEvaluatePermission(false);
 
@@ -159,6 +167,10 @@ describe('owner.summary.controller.js', function () {
       resolveStageTypeStore(MockData.getDashboardStageData());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveCompositeSourceControl();
+      if (isApp) {
+        $httpBackend.flush();
+      }
       resolveApplicationWritePermission(true);
 
       if (isApp) {
@@ -189,6 +201,7 @@ describe('owner.summary.controller.js', function () {
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
 
       if (isApp) {
+        $httpBackend.flush();
         $timeout.flush();
       } else {
         $httpBackend.flush();
@@ -204,6 +217,9 @@ describe('owner.summary.controller.js', function () {
       resolveStageTypeStore(MockData.getDashboardStageData());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      if (isApp) {
+        $httpBackend.flush();
+      }
       $timeout.flush();
 
       expect(vm.owner).toBeUndefined();
@@ -215,6 +231,10 @@ describe('owner.summary.controller.js', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveCompositeSourceControl();
+      if (isApp) {
+        $httpBackend.flush();
+      }
       resolveApplicationWritePermission(true);
 
       if (isApp) {
@@ -236,6 +256,7 @@ describe('owner.summary.controller.js', function () {
       resolveApplicationSummary(400, 'Bad Request');
 
       if (isApp) {
+        $httpBackend.flush();
         $timeout.flush();
         expect(vm.error).toBeDefined();
       } else {
@@ -253,6 +274,7 @@ describe('owner.summary.controller.js', function () {
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
 
       if (isApp) {
+        $httpBackend.flush();
         $timeout.flush();
         expect(vm.error).toBeDefined();
       } else {
@@ -268,6 +290,10 @@ describe('owner.summary.controller.js', function () {
       resolveStageTypeStore(MockData.getDashboardStageData());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveCompositeSourceControl();
+      if (isApp) {
+        $httpBackend.flush();
+      }
       resolveApplicationWritePermission(true);
 
       if (isApp) {
@@ -295,6 +321,8 @@ describe('owner.summary.controller.js', function () {
           resolveStageTypeStore(MockData.getDashboardStageData());
           $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
           resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+          resolveCompositeSourceControl();
+          $httpBackend.flush();
           resolveApplicationWritePermission(true);
           $timeout.flush();
 
@@ -312,6 +340,8 @@ describe('owner.summary.controller.js', function () {
           resolveStageTypeStore(MockData.getDashboardStageData());
           $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
           resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+          resolveCompositeSourceControl();
+          $httpBackend.flush();
           resolveApplicationWritePermission(false);
           $timeout.flush();
 
@@ -324,7 +354,7 @@ describe('owner.summary.controller.js', function () {
       });
 
       describe('grandfather()', function () {
-        it('Does not open modal when grandfathering is not enabled and is not supported', function () {
+        it('Does not open modal when grandfathering is not enabled and is NOT supported', function () {
           createGrandfatheringMocks(false, false);
 
           $timeout.flush();
@@ -452,11 +482,12 @@ describe('owner.summary.controller.js', function () {
 
         if (isApp) {
           $timeout.flush();
-        } else {
-          $httpBackend.flush();
         }
 
         vm.revokeGrandfathering();
+        if (!isApp) {
+          $httpBackend.flush();
+        }
         expect(mockRevokeGrandfatheringModalService.open).not.toHaveBeenCalled();
       });
 
@@ -465,19 +496,66 @@ describe('owner.summary.controller.js', function () {
 
         if (isApp) {
           $timeout.flush();
-        } else {
-          $httpBackend.flush();
         }
 
+        if (!isApp) {
+          $httpBackend.flush();
+        }
         vm.revokeGrandfathering();
         expect(mockRevokeGrandfatheringModalService.open).toHaveBeenCalled();
       });
     });
 
+    describe('populates SCM icon', function () {
+      [
+        { scmProvider: 'azure', repoUrl: 'http://azure/repo', expectedIcon: 'git' },
+        { scmProvider: 'github', repoUrl: 'http://github/repo', expectedIcon: 'github' },
+        { scmProvider: 'bitbucket', repoUrl: 'http://bitbucket/repo', expectedIcon: 'bitbucket' },
+        { scmProvider: 'gitlab', repoUrl: 'http://gitlab/repo', expectedIcon: 'gitlab' },
+        { scmProvider: null, icon: undefined, repoUrl: undefined },
+      ].forEach((value) => {
+        const { scmProvider, repoUrl, expectedIcon } = value;
+
+        it('for ' + scmProvider + ' uses icon ' + expectedIcon, () => {
+          mockOwnerStore.resolveGet([owner]);
+          mockOwnerStore.resolveGetById(owner);
+          resolveGetGrandfathering(true);
+          resolveStageTypeStore(MockData.getDashboardStageData());
+          $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
+          resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+          if (isApp) {
+            $httpBackend
+              .expectGET(CLMLocations.getCompositeSourceControlUrl('application', '0000abcd'))
+              .respond({ provider: { value: scmProvider }, token: { value: 'TOKEN' }, repositoryUrl: repoUrl });
+            $httpBackend.flush();
+          }
+          resolveApplicationWritePermission(true);
+          resolveApplicationEvaluatePermission(true);
+
+          if (isApp) {
+            $timeout.flush();
+            expect(vm.scmProviderIcon).toBe(expectedIcon);
+            expect(vm.repositoryUrl).toBe(repoUrl);
+          } else {
+            $httpBackend.flush();
+          }
+
+          expect(vm.owner).toEqual(owner);
+        });
+      });
+    });
+
+    function resolveCompositeSourceControl() {
+      if (isApp) {
+        $httpBackend
+          .expectGET(CLMLocations.getCompositeSourceControlUrl('application', '0000abcd'))
+          .respond({ provider: { value: 'github' }, token: { value: 'TOKEN' } });
+      }
+    }
+
     function resolveApplicationSummary() {
       if (isApp) {
         $httpBackend.expectGET(CLMLocations.getApplicationSummaryUrl(owner.publicId)).respond.apply(null, arguments);
-        $httpBackend.flush();
       }
     }
 
@@ -524,6 +602,10 @@ describe('owner.summary.controller.js', function () {
         .expectGET(CLMLocations.getProductFeaturesUrl())
         .respond(isGrandfatheringSuppored ? ['policy-grandfathering'] : []);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveCompositeSourceControl();
+      if (isApp) {
+        $httpBackend.flush();
+      }
     }
 
     function createEvaluateAppMocks(hasEvaluateAppPermission, isEvaluateAppSupported) {
@@ -535,6 +617,8 @@ describe('owner.summary.controller.js', function () {
         .expectGET(CLMLocations.getProductFeaturesUrl())
         .respond(isEvaluateAppSupported ? ['cli-integration'] : []);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveCompositeSourceControl();
+      $httpBackend.flush();
       resolveApplicationEvaluatePermission(hasEvaluateAppPermission);
     }
   }

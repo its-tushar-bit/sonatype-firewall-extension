@@ -86,6 +86,7 @@ import proprietaryEditorTemplate from './policy/proprietary.config.editor.view.h
 import ltgEditorTemplate from './license.threat.group/license.threat.group.editor.view.html';
 import categoryEditorTemplate from './category/category.editor.view.html';
 import appCategoryEditorTemplate from './category/application.category.editor.view.html';
+import SourceControlService from './source.control/source.control.service';
 
 export default angular
   .module('owner.manager.module', [
@@ -159,6 +160,7 @@ export default angular
   .controller('RevokeGrandfatheringModalController', RevokeGrandfatheringModalController)
   .controller('GrandfatherModalController', GrandfatherModalController)
   .controller('import.policy.modal.controller', ImportPolicyModalController)
+  .service('SourceControlService', SourceControlService)
   .directive('numberInputWithStringValue', NumberInputWithStringValue)
   .directive('sameOwnerEditSref', SameOwnerEditSref)
   .directive('sameOwnerViewSref', SameOwnerViewSref)

@@ -86,4 +86,12 @@ public class OwnerSummaryPage
   public static AccessTile accessTile() {
     return new AccessTile("#owner-pill-access");
   }
+
+  public static SelenideElement repositoryUrlAnchor() {
+    return $(".page-repository-url a");
+  }
+
+  public static SelenideElement repositoryUrlIcon() {
+    return $(".page-repository-url i");
+  }
 }

@@ -28,7 +28,8 @@ export default function OwnerSummaryController(
   RevokeGrandfatheringModalService,
   GrandfatherModalService,
   PolicyViolationGrandfatheringService,
-  ProductFeatures
+  ProductFeatures,
+  SourceControlService
 ) {
   var vm = this;
 
@@ -59,6 +60,8 @@ export default function OwnerSummaryController(
   vm.getDisabledGrandfatherTooltipMessage = getDisabledGrandfatherTooltipMessage;
   vm.getDisabledEvaluateTooltipMessage = getDisabledEvaluateTooltipMessage;
   vm.isEvaluateApplicationAvailable = undefined;
+  vm.repositoryUrl = undefined;
+  vm.scmProvider = undefined;
 
   var siblings,
     stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
@@ -90,6 +93,7 @@ export default function OwnerSummaryController(
       promises.push(StageTypeStore.getDashboardStages());
       promises.push($http.get(CLMLocations.getApplicationSummaryUrl(id)));
       promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
+      promises.push(ApplicationStore.getById(CLMContextLocations.getEntityId()));
     }
 
     $q.all(promises).then(
@@ -106,6 +110,7 @@ export default function OwnerSummaryController(
           vm.isGrandfatheringEnabled = results[5].calculatedEnabled;
           getAppChangePermissions();
           getAppEvaluatePermissions();
+          getSourceControl(results[6].id);
         }
       },
       function (error) {
@@ -114,6 +119,20 @@ export default function OwnerSummaryController(
     );
 
     delete vm.error;
+  }
+
+  function getSourceControl(ownerInternalId) {
+    return SourceControlService.getCompositeSourceControlRecord('application', ownerInternalId).then(function (result) {
+      if (result && result.provider) {
+        vm.repositoryUrl = result.repositoryUrl;
+        vm.scmProviderIcon = result.provider.value ? result.provider.value : result.provider.parentValue;
+        if (vm.scmProviderIcon === 'azure') {
+          // no Font Awesome icon for Azure, use Microsoft instead once FA v5 is available (eg: React migration)
+          // see: https://github.com/FortAwesome/Font-Awesome/issues/14058
+          vm.scmProviderIcon = 'git';
+        }
+      }
+    });
   }
 
   function getAppChangePermissions() {
@@ -256,4 +275,5 @@ OwnerSummaryController.$inject = [
   'GrandfatherModalService',
   'policyViolationGrandfatheringService',
   'ProductFeatures',
+  'SourceControlService',
 ];

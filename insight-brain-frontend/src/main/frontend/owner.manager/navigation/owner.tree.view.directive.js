@@ -22,7 +22,8 @@ function OwnerTreeViewController(
   LastSelectedOrganization,
   fuzzyFilter,
   scmOnboardingActions,
-  ProductFeatures
+  ProductFeatures,
+  SourceControlService
 ) {
   var vm = this;
 
@@ -39,6 +40,7 @@ function OwnerTreeViewController(
   vm.goToOrganizationIfNotSynthetic = goToOrganizationIfNotSynthetic;
   vm.handleOrganizationTwistyClick = handleOrganizationTwistyClick;
   vm.isSourceControlSupported = undefined;
+  vm.scmProviderIcon = undefined;
 
   $scope.$watch('vm.filter.value', filter, function (error) {
     vm.error = error;
@@ -134,6 +136,7 @@ function OwnerTreeViewController(
 
           organization.applications.forEach(function (application) {
             application.isVisible = true;
+            calculateApplicationIcon(application);
           });
 
           if (organization.id === ownerConstant.ROOT_ORGANIZATION_ID) {
@@ -141,7 +144,6 @@ function OwnerTreeViewController(
             vm.organizations.splice(i, 1);
           }
         }
-
         redirectIfNecessary(true);
 
         assignSelectedParentOrganization();
@@ -150,6 +152,22 @@ function OwnerTreeViewController(
         vm.error = error;
       }
     );
+  }
+
+  function calculateApplicationIcon(application) {
+    SourceControlService.getCompositeSourceControlRecord('application', application.id).then(function (result) {
+      if (result && result.provider && result.repositoryUrl) {
+        let icon = result.provider.value ? result.provider.value : result.provider.parentValue;
+        if (icon === 'azure') {
+          // no Font Awesome icon for Azure, use Microsoft once FA v5 is available (eg: React migration)
+          // see: https://github.com/FortAwesome/Font-Awesome/issues/14058
+          icon = 'git';
+        }
+        application.icon = icon;
+      } else {
+        application.icon = 'terminal';
+      }
+    });
   }
 
   function redirectIfNecessary(replaceLastHistoryRecord) {
@@ -324,6 +342,7 @@ OwnerTreeViewController.$inject = [
   'fuzzyFilter',
   'scmOnboardingActions',
   'ProductFeatures',
+  'SourceControlService',
 ];
 
 export default function ownerTreeView() {

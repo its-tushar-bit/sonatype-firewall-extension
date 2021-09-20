@@ -608,4 +608,57 @@ public class ApplicationSummaryViewTest
 
     tile.itemSubText().shouldBe(visible);
   }
+
+  @Test
+  public void testSourceControlRepositoryHeader_github() {
+    testSourceControl("http://localhost/my/app", SourceControlProvider.GITHUB, "fa-github");
+  }
+
+  @Test
+  public void testSourceControlRepositoryHeader_gitlab() {
+    testSourceControl("http://localhost/my/app", SourceControlProvider.GITLAB, "fa-gitlab");
+  }
+
+  @Test
+  public void testSourceControlRepositoryHeader_bitbucket() {
+    testSourceControl("http://localhost/scm/my/app", SourceControlProvider.BITBUCKET, "fa-bitbucket");
+  }
+
+  @Test
+  public void testSourceControlRepositoryHeader_azure() {
+    testSourceControl("http://localhost/user/prj/_git/app", SourceControlProvider.AZURE, "fa-git");
+  }
+
+  private void testSourceControl(String repoUrl, SourceControlProvider provider, String expectedIcon) {
+    tempEntity.newSourceControl(application.getId(), repoUrl, "token", provider);
+
+    refresh();
+
+    OwnerSummaryPage.repositoryUrlAnchor().shouldHave(text(repoUrl));
+    OwnerSummaryPage.repositoryUrlIcon().shouldHave(cssClass(expectedIcon));
+
+    // check that sidebar icon is updated
+    OrganizationNode organizationNode = OwnerTreeView.organization(0);
+    organizationNode.treeViewElement().click();
+    waitUntilNotUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
+    organizationNode.applicationIcon(0).shouldHave(cssClass(expectedIcon));
+
+    if (provider == SourceControlProvider.GITHUB) {
+      eyesWatcher.eyesCheck("Orgs & Apps: Github repo added to an application");
+    }
+  }
+
+  @Test
+  public void testSourceControlRepositoryHeader_noRepoGetsTerminalIcon() {
+    refresh();
+
+    OwnerSummaryPage.repositoryUrlAnchor().shouldNotBe(visible);
+    OwnerSummaryPage.repositoryUrlIcon().shouldNotBe(visible);
+
+    // check that sidebar icon is updated
+    OrganizationNode organizationNode = OwnerTreeView.organization(0);
+    organizationNode.treeViewElement().click();
+    waitUntilNotUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
+    organizationNode.applicationIcon(0).shouldHave(cssClass("fa-terminal"));
+  }
 }

@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../../enzymeUtils';
 import { DependencyInformation } from '../../../../../main/frontend/componentDetails/overview/riskRemediation/DependencyInformation';
+import * as enzymeUtils from '../../../enzymeUtils';
 
 describe('DependencyInformation', () => {
   let minimalProps, getMounted;
@@ -34,7 +34,7 @@ describe('DependencyInformation', () => {
     expect(content).not.toBeNull();
     const contentParagraph = component.find('p');
     expect(contentParagraph).toHaveText(
-      'This dependency was brought in by the listed component(s). Clicking the component will take you to the associated component detail page'
+      'This dependency was brought in by the component(s) listed below. Clicking on a component will take you to its Component Details Page.'
     );
   });
 

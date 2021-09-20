@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-
 import { AncestorsList } from './AncestorsList';
 
 export const DependencyInformation = ({ routeName, ancestors }) => {
@@ -15,8 +14,8 @@ export const DependencyInformation = ({ routeName, ancestors }) => {
       </header>
       <div className="nx-tile-content">
         <p className="nx-p">
-          This dependency was brought in by the listed component(s). Clicking the component will take you to the
-          associated component detail page
+          This dependency was brought in by the component(s) listed below. Clicking on a component will take you to its
+          Component Details Page.
         </p>
         <AncestorsList routeName={routeName} ancestors={ancestors} />
       </div>

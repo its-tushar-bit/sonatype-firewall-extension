@@ -55,14 +55,13 @@ describe('owner.tree.view.directive.spec.js', function () {
       { scmProvider: 'github', repoUrl: 'http://github/repo', expectedIcon: 'github' },
       { scmProvider: 'bitbucket', repoUrl: 'http://bitbucket/repo', expectedIcon: 'bitbucket' },
       { scmProvider: 'gitlab', repoUrl: 'http://gitlab/repo', expectedIcon: 'gitlab' },
-      { scmProvider: null, repoUrl: undefined, expectedIcon: 'terminal' },
+      { scmProvider: null, repoUrl: undefined, expectedIcon: undefined },
       // no repos are defined
-      { scmProvider: 'azure', repoUrl: null, expectedIcon: 'terminal' },
-      { scmProvider: 'azure', repoUrl: undefined, expectedIcon: 'terminal' },
-      { scmProvider: 'github', repoUrl: undefined, expectedIcon: 'terminal' },
-      { scmProvider: 'bitbucket', repoUrl: undefined, expectedIcon: 'terminal' },
-      { scmProvider: 'gitlab', repoUrl: undefined, expectedIcon: 'terminal' },
-      { scmProvider: null, repoUrl: undefined, expectedIcon: 'terminal' },
+      { scmProvider: 'azure', repoUrl: null, expectedIcon: undefined },
+      { scmProvider: 'azure', repoUrl: undefined, expectedIcon: undefined },
+      { scmProvider: 'github', repoUrl: undefined, expectedIcon: undefined },
+      { scmProvider: 'bitbucket', repoUrl: undefined, expectedIcon: undefined },
+      { scmProvider: 'gitlab', repoUrl: undefined, expectedIcon: undefined },
     ].forEach((value) => {
       const { scmProvider, repoUrl, expectedIcon } = value;
       it(

@@ -164,8 +164,6 @@ function OwnerTreeViewController(
           icon = 'git';
         }
         application.icon = icon;
-      } else {
-        application.icon = 'terminal';
       }
     });
   }

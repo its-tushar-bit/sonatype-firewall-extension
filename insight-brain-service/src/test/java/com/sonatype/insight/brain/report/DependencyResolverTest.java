@@ -761,6 +761,45 @@ public class DependencyResolverTest
     assertTelemetryInformation(app.getId(), innerSourceIds);
   }
 
+  @Test
+  public void testResolve_SimilarMatches() throws Exception {
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-similar-match/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-similar-match/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-similar-match/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-similar-match/data.json");
+    JsonNode bomNode = findNodeById(bomJson, ComponentIdentifier.createMavenCoordinates(
+        "org.apache.camel", "camel-hl7", "2.23.2", "", "jar"));
+    JsonNode bomNodeNoPathnames = findNodeById(bomJson, ComponentIdentifier.createMavenCoordinates(
+        "org.apache.camel", "camel-hl7-no-pathnames", "2.23.2", "", "jar"));
+    JsonNode bomNodeEmptyPathnames = findNodeById(bomJson, ComponentIdentifier.createMavenCoordinates(
+        "org.apache.camel", "camel-hl7-empty-pathnames", "2.23.2", "", "jar"));
+    JsonNode bomNodeBadPathnames = findNodeById(bomJson, ComponentIdentifier.createMavenCoordinates(
+        "org.apache.camel", "camel-hl7-bad-pathnames", "2.23.2", "", "jar"));
+    assertThat(bomNode).isNotNull();
+    assertThat(bomNode.get("directDependency")).isNull();
+    assertThat(bomNode.get("innerSource")).isNull();
+    assertThat(bomNodeNoPathnames).isNotNull();
+    assertThat(bomNodeNoPathnames.get("directDependency")).isNull();
+    assertThat(bomNodeNoPathnames.get("innerSource")).isNull();
+    assertThat(bomNodeEmptyPathnames).isNotNull();
+    assertThat(bomNodeEmptyPathnames.get("directDependency")).isNull();
+    assertThat(bomNodeEmptyPathnames.get("innerSource")).isNull();
+    assertThat(bomNodeBadPathnames).isNotNull();
+    assertThat(bomNodeBadPathnames.get("directDependency")).isNull();
+    assertThat(bomNodeBadPathnames.get("innerSource")).isNull();
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+
+    assertThat(bomNode.get("directDependency")).isNotNull();
+    assertThat(bomNode.get("innerSource")).isNotNull();
+    assertThat(bomNodeNoPathnames.get("directDependency")).isNull();
+    assertThat(bomNodeNoPathnames.get("innerSource")).isNull();
+    assertThat(bomNodeEmptyPathnames.get("directDependency")).isNull();
+    assertThat(bomNodeEmptyPathnames.get("innerSource")).isNull();
+    assertThat(bomNodeBadPathnames.get("directDependency")).isNull();
+    assertThat(bomNodeBadPathnames.get("innerSource")).isNull();
+  }
+
   private void assertInnerSourceInformation(
       final JsonNode bomJson,
       int expectedISComponents,

@@ -432,6 +432,18 @@ public class DependencyResolver
         if (bomComponentIdentifier != null) {
           bomComponentNodes.put(bomComponentIdentifier, (ObjectNode) bomChild);
         }
+        String matchStateString = bomChild.path(MATCH_STATE).asText();
+        MatchState matchState = MatchState.getById(matchStateString);
+        if (matchState == MatchState.SIMILAR) {
+          JsonNode pathnames = bomChild.get("pathnames");
+          if (pathnames == null || pathnames.isEmpty()) {
+            continue;
+          }
+          bomComponentIdentifier = parsePathToId(pathnames.get(0).asText());
+          if (bomComponentIdentifier != null) {
+            bomComponentNodes.put(bomComponentIdentifier, (ObjectNode) bomChild);
+          }
+        }
       }
     }
   }

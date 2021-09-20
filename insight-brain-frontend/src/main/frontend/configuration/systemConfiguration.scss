@@ -17,7 +17,11 @@ role-editor,
 users,
 create-user,
 edit-user,
+create-ldap,
+edit-ldap-connection,
+edit-ldap-user-mapping,
 labs-data-insights,
-product-license-detail {
+product-license-detail,
+ldap-list {
   display: contents;
 }

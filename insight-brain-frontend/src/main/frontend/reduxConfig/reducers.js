@@ -13,6 +13,7 @@ import userReducer from '../user/userReducer';
 import vulnerabilitySearchReducer from '../vulnerabilitySearch/vulnerabilitySearchReducer';
 import vulnerabilityDetailsModalReducer from '../vulnerabilityDetails/vulnerabilityDetailsModalReducer';
 import mailConfigReducer from '../configuration/mail/mailConfigSlice';
+import ldapConfigReducer from '../configuration/ldap/ldapConfigSlice';
 import violationReducer from '../violation/violationReducer';
 import proxyConfigReducer from '../configuration/proxy/proxyConfigReducer';
 import stagesReducer from '../stages/stagesReducer';
@@ -54,6 +55,7 @@ import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolat
 import componentDetailsViolationsReducer from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import successMetricsReportSlice from '../labs/successMetrics/successMetricsReportSlice';
 import productLicenseReducer from '../configuration/license/productLicenseReducer';
+import ldapListReducer from '../configuration/ldap/ldapServersList/ldapListSlice';
 import overviewSlice from '../componentDetails/overview/overviewSlice';
 
 export default combineReducers({
@@ -69,6 +71,8 @@ export default combineReducers({
   vulnerabilityDetailsModal: vulnerabilityDetailsModalReducer,
   vulnerabilitySearch: vulnerabilitySearchReducer,
   mailConfig: mailConfigReducer,
+  ldapConfig: ldapConfigReducer,
+  ldapList: ldapListReducer,
   violation: violationReducer,
   proxyConfig: proxyConfigReducer,
   advancedSearchConfig: advancedSearchConfigReducer,

@@ -5,9 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import com.sonatype.clm.testing.functional.elements.IqBackButton;
+import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.LdapConnectionForm;
-import com.sonatype.clm.testing.functional.elements.LdapNameEditor;
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -31,39 +31,63 @@ public class LdapConfigurationPage
     return $(ROOT_SELECTOR);
   }
 
-  public static IqBackButton backButton() {
-    return new IqBackButton(ROOT_SELECTOR);
+  public static NxBackButton backButton() {
+    return new NxBackButton("");
   }
 
   public static SelenideElement connectionTab() {
-    return $("#tab-connection");
+    return $(".nx-tab-list li:nth-child(1)");
   }
 
   public static SelenideElement userAndGroupSettingsTab() {
-    return $("#tab-user");
+    return $(".nx-tab-list li:nth-child(2)");
   }
 
   public static LdapConnectionForm ldapConnectionForm() {
-    return new LdapConnectionForm(ROOT_SELECTOR, "#ldap-connection-form");
+    return new LdapConnectionForm(ROOT_SELECTOR, "#ldap-edit-connection");
   }
 
   public static LdapUserAndGroupSettingsForm ldapUserAndGroupSettingsForm() {
-    return new LdapUserAndGroupSettingsForm(ROOT_SELECTOR, "#user-group-mapping-form");
+    return new LdapUserAndGroupSettingsForm(ROOT_SELECTOR, "#ldap-edit-usermapping");
   }
 
-  public static LdapNameEditor ldapNameEditor() {
-    return new LdapNameEditor("#ldap-name");
+  public static CreateServer ldapNameEditor() {
+    return new CreateServer("#ldap-create-server");
+  }
+
+  public static class CreateServer
+      extends BasicElement<CreateServer>
+  {
+    CreateServer(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement serverNameInput() {
+      return child("#serverName");
+    }
+
+    public SelenideElement save() {
+      return child(".nx-form__submit-btn");
+    }
+
+    public SelenideElement cancel() {
+      return child(".nx-form__cancel-btn");
+    }
   }
 
   public static SelenideElement discardChangesModalButton() {
-    return $("#ldap-unsaved-changes .iq-btn--primary");
+    return $("#unsaved-changes-modal-continue-button");
   }
 
   public static SelenideElement deleteButton() {
-    return $("#ldap-name #ldap-connection-delete");
+    return $("#remove-server");
   }
 
   public static SelenideElement deleteConfirmationButton() {
-    return $("#delete-ldap-confirmation .btn-primary");
+    return $("#delete-user-modal .nx-form__submit-btn");
+  }
+
+  public static SelenideElement getInputValidationElement(SelenideElement element) {
+    return element.closest(".nx-form-group").find(".nx-text-input__invalid-message");
   }
 }

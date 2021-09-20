@@ -32,8 +32,8 @@ public class LdapUserAndGroupSettingsForm
     return child("#ldap-user-base-dn");
   }
 
-  public Toggle userSubtree() {
-    return new Toggle(childSelector("#ldap-user-subtree"));
+  public NxToggle userSubtree() {
+    return new NxToggle(childSelector("#ldap-user-subtree"));
   }
 
   public SelenideElement userObjectClass() {
@@ -65,8 +65,8 @@ public class LdapUserAndGroupSettingsForm
     return Arrays.asList(userObjectClass(), userIDAttribute(), userRealNameAttribute(), userEmailAttribute());
   }
 
-  public Dropdown groupMappingType() {
-    return new Dropdown(childSelector("#ldap-group-mapping-type"));
+  public NxFormSelect groupMappingType() {
+    return new NxFormSelect(childSelector("#ldap-group-mapping-type"));
   }
 
   public SelenideElement groupBaseDN() {
@@ -98,7 +98,7 @@ public class LdapUserAndGroupSettingsForm
   }
 
   public SelenideElement groupSearchWarning() {
-    return child("#group-search-warning");
+    return child(".iq-ldap-group-search-toggle");
   }
 
   public TestLoginModal testLoginModal() {
@@ -106,29 +106,29 @@ public class LdapUserAndGroupSettingsForm
   }
 
   public CheckUserMappingModal checkUserMappingModal() {
-    return new CheckUserMappingModal("#ldap-checkusermapping-modal");
+    return new CheckUserMappingModal("#ldap-user-mapping-modal");
   }
 
   public SelenideElement successAlertBox() {
-    return child(".alert-success");
+    return child(".nx-alert--success");
   }
 
   public SelenideElement checkUserMappingButton() {
-    return $("#ldap-mapping-check");
+    return $("#check-user-mapping");
   }
 
   public SelenideElement checkUserLoginButton() {
-    return $("#ldap-mapping-checklogin");
+    return $("#check-login");
   }
 
   @Override
   public SelenideElement cancelButton() {
-    return $("#ldap-mapping-cancel");
+    return $(".nx-form__cancel-btn");
   }
 
   @Override
   public SelenideElement saveButton() {
-    return $("#ldap-mapping-save");
+    return $(".nx-form__submit-btn");
   }
 
   public static class TestLoginModal
@@ -139,23 +139,23 @@ public class LdapUserAndGroupSettingsForm
     }
 
     public SelenideElement username() {
-      return child("#username");
+      return child("#check-login-username");
     }
 
     public SelenideElement password() {
-      return child("input[type=password]");
+      return child("#check-login-password");
     }
 
     public SelenideElement successAlertBox() {
-      return child(".alert-success");
+      return child(".nx-alert.nx-alert--success");
     }
 
     public SelenideElement testLoginButton() {
-      return child(".iq-modal-footer", ".iq-btn--primary");
+      return child(".nx-form__submit-btn");
     }
 
     public SelenideElement cancelButton() {
-      return child(".iq-modal-footer", "#check-login-cancel");
+      return child(".nx-form__cancel-btn");
     }
   }
 
@@ -171,7 +171,7 @@ public class LdapUserAndGroupSettingsForm
     }
 
     public SelenideElement cancelButton() {
-      return child("#verify-field-mappings-cancel");
+      return child(".nx-btn.nx-btn--secondary");
     }
 
     public CheckUserMappingModal shouldHaveUserEntry(int row,

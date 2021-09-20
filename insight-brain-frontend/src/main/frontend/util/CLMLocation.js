@@ -244,6 +244,34 @@ export function getAutomaticApplicationsConfigurationUrl() {
   return uriTemplate`/rest/config/automaticApplications`;
 }
 
+export function getLdapConfigUrl(ldapId) {
+  return ldapId ? uriTemplate`/rest/config/ldap/${ldapId}` : uriTemplate`/rest/config/ldap`;
+}
+
+export function getLdapConnectionConfig(ldapId) {
+  return `${getLdapConfigUrl(ldapId)}/connection`;
+}
+
+export function getLdapConnectionTest(ldapId) {
+  return `${getLdapConfigUrl(ldapId)}/testConnection`;
+}
+
+export function getLdapLoginTest(ldapId) {
+  return `${getLdapConfigUrl(ldapId)}/testLogin`;
+}
+
+export function getLdapUserMappingConfig(ldapId) {
+  return `${getLdapConfigUrl(ldapId)}/userMapping`;
+}
+
+export function getLdapUserMappingTest(ldapId) {
+  return `${getLdapConfigUrl(ldapId)}/testUserMapping`;
+}
+
+export function getLdapPriority() {
+  return uriTemplate`/rest/config/ldap/priority`;
+}
+
 export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc) {
   let params = toURIParams({
     page: page,
@@ -653,9 +681,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
         return baseUrl.get() + '/rest/config/proprietary';
       },
 
-      getLdapPriority: function () {
-        return baseUrl.get() + '/rest/config/ldap/priority';
-      },
+      getLdapPriority,
 
       getReportUrl: (applicationPublicId, scanId) =>
         getBaseReportUrl(applicationPublicId, scanId) + '/browseReport/index.html',

@@ -261,3 +261,32 @@
   top: 10px;
   right: 15px;
 }
+
+#ldap-edit-connection,
+#ldap-edit-usermapping {
+  & .nx-tile-subsection {
+    border-top: var(--nx-border-subsection);
+    margin-top: var(--nx-spacing-6x);
+    padding-top: var(--nx-spacing-6x);
+    &:first-of-type {
+      border-top: none;
+      margin-top: var(--nx-spacing-8x);
+      padding-top: 0;
+    }
+  }
+}
+
+.iq-ldap-server-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+#ldap-dynamic-group-search-enabled {
+  max-width: none;
+}
+
+.iq-ldap-group-search-toggle {
+  font-size: var(--nx-font-size-s);
+  margin-top: var(--nx-spacing-2x);
+}

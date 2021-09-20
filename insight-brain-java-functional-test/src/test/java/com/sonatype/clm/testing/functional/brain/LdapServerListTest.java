@@ -8,27 +8,24 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.ActionList;
-import com.sonatype.clm.testing.functional.elements.ActionList.ActionListElement;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.ldap.ReorderLdapModal;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
+import com.sonatype.clm.testing.functional.pages.LdapServerListPage.ListRow;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 
-import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.codeborne.selenide.Condition.disabled;
 
 public class LdapServerListTest
     extends AbstractFunctionalTest
@@ -57,23 +54,21 @@ public class LdapServerListTest
     LdapServerListPage ldapServerListPage = new LdapServerListPage();
     ldapServerListPage.shouldBe(visible);
 
-    ActionList serverList = ldapServerListPage.ldapServerList();
-
-    serverList.elements().shouldHaveSize(0);
-    serverList.emptyDescriptor().shouldBe(visible);
+    ldapServerListPage.listElements().shouldHaveSize(0);
+    ldapServerListPage.emptyDescriptor().shouldBe(visible);
 
     tempEntity.newLdapServer("IQ Ldap Server");
     tempEntity.newLdapServer("Another Ldap Server");
 
     refresh();
 
-    serverList.emptyDescriptor().shouldBe(hidden);
-    serverList.elements().shouldHaveSize(2);
+    ldapServerListPage.emptyDescriptor().shouldBe(hidden);
+    ldapServerListPage.listElements().shouldHaveSize(2);
 
-    ActionListElement row = serverList.element(0);
+    ListRow row = ldapServerListPage.listRow(1);
     row.chevron().shouldBe(visible);
     row.shouldBe(visible).shouldHave(text("IQ Ldap Server"));
-    ActionListElement row2 = serverList.element(1);
+    ListRow row2 = ldapServerListPage.listRow(2);
     row2.chevron().shouldBe(visible);
     row2.shouldBe(visible).shouldHave(text("Another Ldap Server"));
     eyesWatcher.eyesCheck();
@@ -87,45 +82,41 @@ public class LdapServerListTest
     tempEntity.newLdapServer("First Server");
     refresh();
 
-    ReorderLdapModal modal = new LdapServerListPage().openModalWithAssert();
-    modal.assertOrder("Fourth Server", "Third Server", "Second Server", "First Server");
-    modal.assertUpDownButtonEnabled(false, false);
-    modal.saveButton().shouldBe(DISABLED).hover();
-    Tooltip.get().shouldHave(text("There are no changes to update."));
+    LdapServerListPage ldapServerListPage = new LdapServerListPage();
+
+    ldapServerListPage.reorderButton().shouldBe(visible).click();
+    ldapServerListPage.addButton().shouldBe(disabled);
+    ldapServerListPage.reorderButton().shouldBe(disabled);
+    ldapServerListPage.saveButton().shouldBe(DISABLED).hover();
+    Tooltip.get().shouldHave(text("There are no changes to save"));
+
+    ldapServerListPage.listElements().shouldHave(texts("Fourth Server",
+        "Third Server", "Second Server", "First Server"));
 
     eyesWatcher.eyesCheck();
-    SelenideElement row = modal.row(0);
-    row.click();
+    ListRow reorderRow = ldapServerListPage.listRow(1);
+    reorderRow.reorderUp().shouldBe(disabled);
+    reorderRow.reorderDown().shouldNotBe(disabled);
 
-    row.shouldBe(ReorderLdapModal.SELECTED);
-    modal.assertUpDownButtonEnabled(false, true);
+    reorderRow.reorderDown().click();
+    ldapServerListPage.listElements().shouldHave(texts("Third Server",
+        "Fourth Server", "Second Server", "First Server"));
 
-    modal.moveToLastButton().click();
-    modal.assertOrder("Third Server", "Second Server", "First Server", "Fourth Server");
-    modal.assertUpDownButtonEnabled(true, false);
+    ListRow reorderRowLast = ldapServerListPage.listRow(4);
+    reorderRowLast.reorderUp().shouldNotBe(disabled);
+    reorderRowLast.reorderDown().shouldBe(disabled);
 
-    modal.row(0).click();
-    modal.moveDownButton().click();
-    modal.assertOrder("Second Server", "Third Server", "First Server", "Fourth Server");
-    modal.assertUpDownButtonEnabled(true, true);
+    reorderRowLast.reorderUp().click();
+    ldapServerListPage.listElements().shouldHave(texts("Third Server",
+        "Fourth Server", "First Server", "Second Server"));
 
-    modal.row(2).click();
-    modal.moveUpButton().click();
-    modal.assertOrder("Second Server", "First Server", "Third Server", "Fourth Server");
-    modal.assertUpDownButtonEnabled(true, true);
-
-    modal.moveToFirstButton().click();
-    modal.assertOrder("First Server", "Second Server", "Third Server", "Fourth Server");
-    modal.assertUpDownButtonEnabled(false, true);
-
-    modal.saveButton().shouldNotBe(DISABLED).click();
-    modal.should(disappear);
-
-    new LdapServerListPage().shouldBe(visible).ldapServerList().elements()
-        .shouldHave(texts("First Server", "Second Server", "Third Server", "Fourth Server"));
+    ldapServerListPage.saveButton().shouldNotBe(DISABLED).click();
+    ldapServerListPage.listElements().shouldHave(texts("Third Server",
+        "Fourth Server", "First Server", "Second Server"));
 
     List<LdapServer> actualLdapServers = new LdapServerDAO().getAll();
-    String[] ldapServerNames = new String[]{"First Server", "Second Server", "Third Server", "Fourth Server"};
+    String[] ldapServerNames = new String[]{"Third Server", "Fourth Server",
+        "First Server", "Second Server"};
     for (int i = 0; i < ldapServerNames.length; i++) {
       LdapServer ldapServer = actualLdapServers.get(i);
       assertThat(ldapServer.getName()).isEqualTo(ldapServerNames[i]);

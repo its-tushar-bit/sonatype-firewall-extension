@@ -11,6 +11,7 @@ import {
   validateNonEmpty,
   validateForm,
   validateNameCharacters,
+  validateMinMax,
 } from '../../../main/frontend/util/validationUtil';
 
 describe('validationUtil', function () {
@@ -117,6 +118,22 @@ describe('validationUtil', function () {
     it('returns bull for valid values', () => {
       expect(validateNameCharacters('a')).toBeNull();
       expect(validateNameCharacters('John Doe')).toBeNull();
+    });
+  });
+
+  describe('validateMinMax', () => {
+    const message = 'Integer between 3 and 12';
+
+    it('returns error message if value is less than approved', () => {
+      expect(validateMinMax([3, 12], message, 2)).toBe(message);
+    });
+
+    it('returns error message if value is bigger than approved', () => {
+      expect(validateMinMax([3, 12], message, 13)).toBe(message);
+    });
+
+    it('returns null if value is within limits', () => {
+      expect(validateMinMax([3, 12], message, 5)).toBeNull();
     });
   });
 

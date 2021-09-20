@@ -6,17 +6,17 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
+import com.sonatype.clm.testing.functional.elements.CLM;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.ILdapForm;
 import com.sonatype.clm.testing.functional.elements.LdapConnectionForm;
-import com.sonatype.clm.testing.functional.elements.LdapNameEditor;
-import com.sonatype.clm.testing.functional.elements.LdapNameEditor.NameEditor;
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm;
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm.CheckUserMappingModal;
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm.TestLoginModal;
-import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.LdapConfigurationPage;
+import com.sonatype.clm.testing.functional.pages.LdapServerListPage.ListRow;
+import com.sonatype.clm.testing.functional.pages.LdapConfigurationPage.CreateServer;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -82,25 +82,29 @@ public class LdapConfigurationTest
     refreshOrOpen(LdapServerListPage.url());
 
     LdapServerListPage serverListPage = new LdapServerListPage();
-    serverListPage.ldapServerList().elements().shouldHaveSize(1);
-    serverListPage.newServerButton().click();
+    serverListPage.listElements().shouldHaveSize(1);
+    serverListPage.addButton().click();
 
     waitUntilUrl(LdapConfigurationPage.urlToCreate());
+
     LdapConfigurationPage.backButton().shouldHave(text("Back to LDAP Servers")).click();
-    serverListPage.ldapServerList().elements().shouldHaveSize(1);
-    serverListPage.newServerButton().click();
+    serverListPage.listElements().shouldHaveSize(1);
+    serverListPage.addButton().click();
 
     waitUntilUrl(LdapConfigurationPage.urlToCreate());
-    LdapNameEditor ldapNameEditor = LdapConfigurationPage.ldapNameEditor();
-    NameEditor nameEditor = ldapNameEditor.nameEditor();
 
-    ldapNameEditor.saveButton().shouldBe(visible, disabled);
-    ldapNameEditor.cancelButton().shouldBe(visible, enabled);
+    CreateServer createPage = LdapConfigurationPage.ldapNameEditor();
+    SelenideElement serverNameInput = createPage.serverNameInput();
 
-    nameEditor.shouldBe(visible).setValue("Another Ldap Server");
-    ldapNameEditor.saveButton().shouldBe(visible, enabled).click();
-    ldapNameEditor.saveButton().shouldBe(hidden);
-    ldapNameEditor.cancelButton().shouldBe(hidden);
+    createPage.save().shouldBe(CLM.DISABLED);
+    createPage.cancel().shouldBe(enabled);
+
+    serverNameInput.shouldBe(visible).setValue("Another Ldap Server");
+    createPage.save().shouldBe(enabled).click();
+
+    createPage.save().shouldBe(hidden);
+    createPage.cancel().shouldBe(hidden);
+
     LdapConfigurationPage.ldapConnectionForm().shouldBe(visible);
 
     eyesWatcher.eyesCheck();
@@ -123,18 +127,19 @@ public class LdapConfigurationTest
     refreshOrOpen(LdapServerListPage.url());
 
     LdapServerListPage serverListPage = new LdapServerListPage();
-    serverListPage.newServerButton().click();
+    serverListPage.addButton().click();
 
-    LdapNameEditor ldapNameEditor = LdapConfigurationPage.ldapNameEditor();
-    ldapNameEditor.cancelButton().shouldBe(visible, enabled).click();
+    CreateServer createPage = LdapConfigurationPage.ldapNameEditor();
+    createPage.cancel().shouldBe(enabled).click();
 
     serverListPage.shouldBe(visible);
-    serverListPage.newServerButton().click();
+    serverListPage.addButton().click();
 
-    NameEditor nameEditor = ldapNameEditor.nameEditor();
-    nameEditor.shouldBe(visible).setValue("Another Ldap Server");
+    SelenideElement serverNameInput = createPage.serverNameInput();
+    serverNameInput.shouldBe(visible).setValue("Another Ldap Server");
 
-    ldapNameEditor.cancelButton().shouldBe(visible, enabled).click();
+    createPage.cancel().shouldBe(enabled).click();
+
     UnsavedModal unsavedModal = new UnsavedModal();
     unsavedModal.shouldBe(visible);
     unsavedModal.continueButton().click();
@@ -152,6 +157,8 @@ public class LdapConfigurationTest
     ldapConnectionForm.searchBase().shouldBe(visible, empty).setValue("dc=win,dc=blackforest,dc=local");
 
     discardChangesAndReset(ldapConnectionForm);
+
+    refreshOrOpen(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
 
     // User And Group Form
     LdapConfigurationPage.userAndGroupSettingsTab().scrollIntoView(false).click();
@@ -171,16 +178,22 @@ public class LdapConfigurationTest
     refreshOrOpen(LdapServerListPage.url());
 
     LdapServerListPage serverListPage = new LdapServerListPage();
-    serverListPage.ldapServerList().elements().shouldHaveSize(1).get(0).shouldBe(visible).click();
+    serverListPage.listElements().shouldHaveSize(1);
+
+    ListRow row = serverListPage.listRow(1);
+    row.element().shouldBe(visible).click();
 
     waitUntilUrl(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
+
     LdapConfigurationPage.root().should(appear);
+
     LdapConfigurationPage.deleteButton().shouldBe(visible).click();
     LdapConfigurationPage.deleteConfirmationButton().shouldBe(visible).click();
 
     waitUntilUrl(LdapServerListPage.url());
-    serverListPage.ldapServerList().elements().shouldHaveSize(0);
-    serverListPage.ldapServerList().emptyDescriptor().shouldBe(visible);
+
+    serverListPage.listElements().shouldHaveSize(0);
+    serverListPage.emptyDescriptor().shouldBe(visible);
     assertThat(new LdapServerDAO().getById(ldapServer.getId())).isNull();
   }
 
@@ -191,7 +204,9 @@ public class LdapConfigurationTest
     refreshOrOpen(LdapServerListPage.url());
 
     LdapServerListPage serverListPage = new LdapServerListPage();
-    serverListPage.ldapServerList().elements().last().click();
+    ListRow row = serverListPage.listRow(2);
+    row.element().click();
+
     waitUntilUrl(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
     LdapConfigurationPage.root().should(appear);
 
@@ -202,17 +217,17 @@ public class LdapConfigurationTest
     // Initial state - default password should be cleared if hostname/port are updated and restored if they are reverted
     ScrollUtil.awaitEndOfScrolling(ldapConnectionForm.systemPassword().should(exist).scrollIntoView(true));
     assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(String.valueOf(LdapService.FAKE_PASSWORD));
-    ldapConnectionForm.passwordNeedsEntryMessage().shouldNotBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldBe(hidden);
 
     // Update the hostname
     ldapConnectionForm.hostname().setValue(originalHost + "1");
     ldapConnectionForm.systemPassword().shouldBe(empty);
-    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldBe(visible);
 
     // Revert the hostname
     ldapConnectionForm.hostname().setValue(originalHost);
     assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(String.valueOf(LdapService.FAKE_PASSWORD));
-    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldNotBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldBe(hidden);
 
     // Update the port
     ldapConnectionForm.port().setValue(ldapConnectionForm.port().getValue() + "1");
@@ -222,7 +237,7 @@ public class LdapConfigurationTest
     // Revert the port
     ldapConnectionForm.port().setValue(originalPort);
     assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(String.valueOf(LdapService.FAKE_PASSWORD));
-    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldNotBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldBe(hidden);
 
     // User enters a password - password should not be updated if hostname or port are updated/reverted
     String password = "password";
@@ -231,68 +246,70 @@ public class LdapConfigurationTest
     // Update the hostname
     ldapConnectionForm.hostname().setValue(originalHost + "1");
     assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(password);
-    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldNotBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldBe(hidden);
 
     // Revert the hostname
     ldapConnectionForm.hostname().setValue(originalHost);
     assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(password);
-    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldNotBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldBe(hidden);
 
     // Update the port
     ldapConnectionForm.port().setValue(ldapConnectionForm.port().getValue() + "1");
     assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(password);
-    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldNotBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldBe(hidden);
 
     // Revert the port
     ldapConnectionForm.port().setValue(originalPort);
     assertThat(ldapConnectionForm.systemPassword().getValue()).isEqualTo(password);
-    ldapConnectionForm.passwordNeedsEntryMessage().scrollIntoView(false).shouldNotBe(visible);
+    ldapConnectionForm.passwordNeedsEntryMessage().shouldBe(hidden);
   }
 
   private void testFormValidation() {
     LdapConnectionForm ldapConnectionForm = LdapConfigurationPage.ldapConnectionForm();
     ldapConnectionForm.shouldBe(visible);
 
-    // Test port validation
     ldapConnectionForm.port().setValue("0");
-    PopoverViolations.on(ldapConnectionForm.port()).shouldShowError("Minimum allowed value is 1");
+    LdapConfigurationPage.getInputValidationElement(ldapConnectionForm.port())
+        .shouldHave(text("Integer between 1 to 65535"));
 
     ldapConnectionForm.port().setValue("999999");
-    PopoverViolations.on(ldapConnectionForm.port()).shouldShowError("Maximum allowed value is 65535");
+    LdapConfigurationPage.getInputValidationElement(ldapConnectionForm.port())
+        .shouldHave(text("Integer between 1 to 65535"));
 
     testRequiredFormFields(ldapConnectionForm);
+
+    refreshOrOpen(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
 
     LdapConfigurationPage.userAndGroupSettingsTab().scrollIntoView(false).click();
     LdapUserAndGroupSettingsForm userAndGroupSettingsForm = LdapConfigurationPage.ldapUserAndGroupSettingsForm();
     userAndGroupSettingsForm.shouldBe(visible);
 
+    userAndGroupSettingsForm.userSubtree().click();
+
     testRequiredFormFields(userAndGroupSettingsForm);
 
-    LdapConfigurationPage.connectionTab().scrollIntoView(false).click();
-    ldapConnectionForm.shouldBe(visible);
+    LdapServerListPage serverListPage = new LdapServerListPage();
+    serverListPage.shouldBe(visible);
   }
 
   private void testRequiredFormFields(ILdapForm ldapForm) {
     for (SelenideElement element : ldapForm.requiredFields()) {
       element.sendKeys("a");
       element.sendKeys(Keys.BACK_SPACE);
-      popoverViolations(element).shouldHave(text("Please enter a value"));
+      LdapConfigurationPage.getInputValidationElement(element).shouldHave(text("Must be non-empty"));
     }
 
     resetForm(ldapForm);
   }
 
   private void discardChangesAndReset(ILdapForm ldapForm) {
-    for (SelenideElement field : ldapForm.requiredFields()) {
-      field.shouldNotHave(cssClass("ng-invalid-required"));
+    for (SelenideElement element : ldapForm.requiredFields()) {
+      LdapConfigurationPage.getInputValidationElement(element).shouldBe(hidden);
     }
 
     ldapForm.saveButton().scrollIntoView(false).shouldBe(visible, enabled);
 
     resetForm(ldapForm);
-
-    ldapForm.saveButton().shouldBe(disabled);
-    ldapForm.cancelButton().shouldBe(disabled);
   }
 
   private void resetForm(ILdapForm ldapForm) {
@@ -309,24 +326,24 @@ public class LdapConfigurationTest
   }
 
   private void testConnection() {
-    // On connection configuration page
+    refreshOrOpen(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
     LdapConnectionForm connectionForm = LdapConfigurationPage.ldapConnectionForm();
     connectionForm.should(visible);
 
-    connectionForm.protocol().selectedItem().shouldHave(text("LDAP"));
+    connectionForm.protocol().shouldHave(text("LDAP"));
     connectionForm.hostname().shouldBe(visible).setValue(testLdapServer.getHostname());
     connectionForm.port().shouldBe(visible).shouldHave(value("389")).setValue("" + testLdapServer.getPort());
     connectionForm.searchBase().shouldBe(visible).setValue("ou=users,dc=company,dc=com");
-    connectionForm.ignoreReferrals().shouldBe(visible, enabled).shouldNotBe(checked);
+    connectionForm.ignoreReferrals().input().shouldNotBe(checked);
 
     connectionForm.cancelButton().shouldBe(enabled);
     connectionForm.saveButton().shouldBe(enabled);
-    connectionForm.testConnectionButton().shouldBe(enabled).scrollIntoView(false).click();
 
+    connectionForm.testConnectionButton().shouldBe(enabled).scrollIntoView(false).click();
     connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Success!"));
 
     // fill all inputs to ensure persisted on save
-    connectionForm.authenticationMethod().selectedItem().shouldHave(text("NONE"));
+    connectionForm.authenticationMethod().shouldHave(text("NONE"));
     connectionForm.authenticationMethod().chooseOption(new Option(1, "SIMPLE"));
     connectionForm.saslRealm().shouldBe(visible, empty).setValue("just checking if persisted");
     connectionForm.systemUsername().scrollIntoView(false).shouldBe(visible, empty)
@@ -334,7 +351,9 @@ public class LdapConfigurationTest
     connectionForm.systemPassword().scrollIntoView(false).shouldBe(visible, empty)
         .setValue("just checking if persisted");
     connectionForm.ignoreReferrals().click();
+
     connectionForm.saveButton().scrollIntoView(false);
+
     connectionForm.connectionTimeout().shouldBe(value("30")).setValue("31");
     connectionForm.retryDelay().shouldBe(value("30")).setValue("31");
 
@@ -342,8 +361,7 @@ public class LdapConfigurationTest
 
     // Connection saved
     connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
-    connectionForm.cancelButton().shouldBe(disabled);
-    connectionForm.saveButton().shouldBe(disabled);
+    connectionForm.saveButton().shouldBe(CLM.DISABLED);
 
     // Ensure persisted Connection matches
     LdapConnection persistedLdapConnection = new LdapConnectionDAO().getByServerId(ldapServer.getId());
@@ -362,11 +380,11 @@ public class LdapConfigurationTest
     assertThat(persistedLdapConnection.getRetryDelay()).isEqualTo(31);
 
     // Revert back to no authentication
-    connectionForm.authenticationMethod().selectedItem().shouldHave(text("SIMPLE"));
+    connectionForm.authenticationMethod().shouldHave(text("SIMPLE"));
     connectionForm.authenticationMethod().chooseOption(new Option(0, "NONE"));
     connectionForm.saveButton().scrollIntoView(false).shouldBe(enabled).click();
     connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
-    connectionForm.saveButton().shouldBe(disabled);
+    connectionForm.saveButton().shouldBe(CLM.DISABLED);
   }
 
   private void testUserMapping() {
@@ -378,19 +396,18 @@ public class LdapConfigurationTest
 
     userAndGroupSettingsForm.checkUserLoginButton().scrollIntoView(false).shouldBe(visible, disabled);
     userAndGroupSettingsForm.checkUserMappingButton().shouldBe(visible, disabled);
-    userAndGroupSettingsForm.saveButton().shouldBe(visible, disabled);
-    userAndGroupSettingsForm.cancelButton().shouldBe(visible, disabled);
+    userAndGroupSettingsForm.saveButton().shouldBe(visible, CLM.DISABLED);
 
     // Fill out form
     userAndGroupSettingsForm.userObjectClass().scrollIntoView(false).shouldBe(empty).setValue("person");
     userAndGroupSettingsForm.userIDAttribute().shouldBe(empty).setValue("uid");
     userAndGroupSettingsForm.userRealNameAttribute().shouldBe(empty).setValue("cn");
     userAndGroupSettingsForm.userEmailAttribute().shouldBe(empty).setValue("mail");
-    userAndGroupSettingsForm.userSubtree().shouldBe(visible, enabled).shouldNotBe(checked);
+    userAndGroupSettingsForm.userSubtree().input().shouldNotBe(checked);
     userAndGroupSettingsForm.userSubtree().click();
 
     userAndGroupSettingsForm.groupSearchWarning().shouldBe(hidden);
-    userAndGroupSettingsForm.groupMappingType().selectedItem().scrollIntoView(true).shouldHave(text("NONE"));
+    userAndGroupSettingsForm.groupMappingType().shouldHave(text("NONE"));
     userAndGroupSettingsForm.groupMappingType().chooseOption(new Option(2, "DYNAMIC"));
     userAndGroupSettingsForm.groupSearchWarning().scrollIntoView(true).shouldBe(visible)
         .shouldHave(text(LdapUserAndGroupSettingsForm.GROUP_SEARCH_WARNING));
@@ -435,7 +452,7 @@ public class LdapConfigurationTest
     // Save and ensure persistence of the user mapping
     userAndGroupSettingsForm.saveButton().scrollIntoView(false).shouldBe(enabled).click();
     userAndGroupSettingsForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
-    userAndGroupSettingsForm.saveButton().shouldBe(disabled);
+    userAndGroupSettingsForm.saveButton().shouldBe(CLM.DISABLED);
 
     LdapUserMapping persistedLdapUserMapping = new LdapUserMappingDAO().getByServerId(ldapServer.getId());
 
@@ -452,7 +469,7 @@ public class LdapConfigurationTest
   }
 
   private void testLdapFormDataMatchesPersistedData() {
-    refresh();
+    refreshOrOpen(LdapConfigurationPage.urlToEdit(ldapServer.getId()));
 
     LdapConnection persistedConnection = new LdapConnectionDAO().getByServerId(ldapServer.getId());
     LdapUserMapping persistedUserMapping = new LdapUserMappingDAO().getByServerId(ldapServer.getId());
@@ -460,16 +477,15 @@ public class LdapConfigurationTest
     // Test Connection
     LdapConnectionForm connectionForm = LdapConfigurationPage.ldapConnectionForm();
     connectionForm.shouldBe(visible);
-    connectionForm.protocol().selectedItem().shouldHave(
-        text(persistedConnection.getProtocol().getProtocol().toUpperCase()));
+
+    connectionForm.protocol().shouldHave(text(persistedConnection.getProtocol().getProtocol().toUpperCase()));
     connectionForm.hostname().shouldHave(value(persistedConnection.getHostname()));
     connectionForm.port().shouldHave(value("" + persistedConnection.getPort()));
     connectionForm.searchBase().shouldHave(value(persistedConnection.getSearchBase()));
-    connectionForm.ignoreReferrals().shouldBe(persistedConnection.isReferralIgnored() ? checked : not(checked));
+    connectionForm.ignoreReferrals().input().scrollIntoView(true)
+        .shouldBe(persistedConnection.isReferralIgnored() ? checked : not(checked));
     connectionForm.authenticationMethod().shouldHave(
         text(persistedConnection.getAuthenticationMethod().getMethod().toUpperCase()));
-    connectionForm.saslRealm().shouldHave(value(persistedConnection.getSaslRealm()));
-    connectionForm.systemUsername().shouldHave(value(persistedConnection.getSystemUsername()));
     connectionForm.connectionTimeout().shouldHave(value("" + persistedConnection.getConnectionTimeout()));
     connectionForm.retryDelay().shouldHave(value("" + persistedConnection.getRetryDelay()));
 
@@ -483,9 +499,11 @@ public class LdapConfigurationTest
     userAndGroupSettingsForm.userIDAttribute().shouldHave(value(persistedUserMapping.getUserIDAttribute()));
     userAndGroupSettingsForm.userRealNameAttribute().shouldHave(value(persistedUserMapping.getUserRealNameAttribute()));
     userAndGroupSettingsForm.userEmailAttribute().shouldHave(value(persistedUserMapping.getUserEmailAttribute()));
-    assertThat(userAndGroupSettingsForm.userSubtree().isChecked()).isEqualTo(persistedUserMapping.isUserSubtree());
 
-    userAndGroupSettingsForm.groupMappingType().selectedItem().scrollIntoView(false)
+    assertThat(userAndGroupSettingsForm.userSubtree().input().isSelected())
+        .isEqualTo(persistedUserMapping.isUserSubtree());
+
+    userAndGroupSettingsForm.groupMappingType()
         .shouldHave(text(persistedUserMapping.getGroupMappingType().toString()));
     userAndGroupSettingsForm.userMemberOfGroupAttribute()
         .shouldHave(value(persistedUserMapping.getUserMemberOfGroupAttribute()));

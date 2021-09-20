@@ -13,6 +13,10 @@ export const validateHostname = (value) => (isValidHostname(value) ? null : 'Inv
 
 export const validateNonEmpty = (val) => (val && val.length ? null : 'Must be non-empty');
 
+export const validateMinMax = curryN(3, function validateMinMax(limits, message, val) {
+  return val < limits[0] || val > limits[1] ? message : null;
+});
+
 export const validateMaxLength = curryN(2, function validateMaxLength(maxLength, val) {
   if (!val || !maxLength) {
     return null;

@@ -6,15 +6,14 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.ActionList;
-import com.sonatype.clm.testing.functional.ldap.ReorderLdapModal;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$;
 
-public class LdapServerListPage 
+public class LdapServerListPage
     extends BasicElement<LdapServerListPage>
 {
   private static final String ROOT_SELECTOR = "#ldap-server-list";
@@ -35,24 +34,53 @@ public class LdapServerListPage
     return child(".iq-tile-header__sub-title");
   }
 
-  public SelenideElement newServerButton() {
-    return child("button:last-child");
-  }
-
-  public ReorderLdapModal openModalWithAssert() {
-    reorderButton().shouldBe(visible).click();
-
-    ReorderLdapModal modal = new ReorderLdapModal();
-    modal.shouldBe(visible);
-
-    return modal;
-  }
-
   public SelenideElement reorderButton() {
-    return child("button:first-child");
+    return $("#reorder-ldap-list-btn");
   }
 
-  public ActionList ldapServerList() {
-    return new ActionList(childSelector(".iq-list"));
+  public SelenideElement saveButton() {
+    return $(".nx-form__submit-btn");
+  }
+
+  public SelenideElement addButton() {
+    return $("#add-ldap-server-btn");
+  }
+
+  public ElementsCollection listElements() {
+    return children(".nx-list__item:not(.nx-list__item--empty)");
+  }
+
+  public SelenideElement emptyDescriptor() {
+    return child(".nx-list__item--empty");
+  }
+
+  public ListRow listRow(int num) {
+    return new ListRow(num);
+  }
+
+  public static class ListRow
+      extends BasicElement<ListRow>
+  {
+    private static final String ROOT_SELECTOR = ".nx-list__item";
+
+    ListRow(int num) {
+      super(ROOT_SELECTOR + ":nth-child(" + num + ")");
+    }
+
+    public SelenideElement element() {
+      return child(".nx-list__btn");
+    }
+
+    public SelenideElement chevron() {
+      return child(".fa-angle-right");
+    }
+
+    public SelenideElement reorderUp() {
+      return child(".fa-arrow-up").parent();
+    }
+
+    public SelenideElement reorderDown() {
+      return child(".fa-arrow-down").parent();
+    }
   }
 }

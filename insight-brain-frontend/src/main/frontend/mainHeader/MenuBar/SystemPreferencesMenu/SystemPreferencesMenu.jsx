@@ -37,7 +37,7 @@ export const SystemPreferencesMenu = ({
       <NavLink stateName="productlicense" id="system-configuration-product-license" showIf={CONFIGURE_SYSTEM}>
         Product License
       </NavLink>
-      <NavLink stateName="ldap-servers" id="system-configuration-ldap" showIf={CONFIGURE_SYSTEM}>
+      <NavLink stateName="ldap-list" id="system-configuration-ldap" showIf={CONFIGURE_SYSTEM}>
         LDAP
       </NavLink>
       <NavLink stateName="saml" showIf={CONFIGURE_SYSTEM}>

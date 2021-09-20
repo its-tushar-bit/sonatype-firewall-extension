@@ -3,27 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { react2angular } from 'react2angular';
+import withStoreProvider from '../../reactAdapter/StoreProvider';
+import withRouterStateProvider from '../../reactAdapter/RouterStateProvider';
+
 import resourceModule from '../../Resource';
 import commonServicesModule from '../../util/CommonServices';
 import angularCommonModule from '../../util/AngularCommon';
 import CLMLocationModule from '../../util/CLMLocation';
 import EditorToolsModule from '../../EditorTools';
-import LdapConfigurationStore from './ldap.configuration.store';
-import {
-  LdapConfigurationController,
-  LdapConnectionController,
-  LdapUsermappingController,
-  LdapCheckUserMappingController,
-  LdapCheckLoginController,
-} from './LdapConfigurationController';
 import BootstrapAddonsModule from '../../util/BootstrapAddonsModule';
-import LdapServerListController from './ldap.server.list.controller';
-import { LdapServerOrderingController, LdapServerOrderingModal } from './ldap.server.ordering.controller';
-
-import listTemplate from '../components/ldap.server.list.html';
-import editTemplate from '../components/ldap.html';
-import connectionTemplate from '../components/ldap-connection.html';
-import userMappingTemplate from '../components/ldap-usermapping.html';
+import CreateLdapContainer from '../ldap/CreateLdapContainer';
+import EditLdapConnectionContainer from '../ldap/EditLdapConnectionContainer';
+import EditLdapUsermappingContainer from '../ldap/EditLdapUsermappingContainer';
+import LdapListContainer from './ldapServersList/LdapListContainer';
 
 export default angular
   .module(
@@ -39,74 +32,56 @@ export default angular
     ],
     ldapModuleConfiguration
   )
-  .service('LdapConfigurationStore', LdapConfigurationStore)
-  .controller('LdapConfigurationController', LdapConfigurationController)
-  .controller('LdapConnectionController', LdapConnectionController)
-  .controller('LdapUsermappingController', LdapUsermappingController)
-  .controller('LdapCheckUserMappingController', LdapCheckUserMappingController)
-  .controller('LdapCheckLoginController', LdapCheckLoginController)
-  .controller('ldap.server.list.controller', LdapServerListController)
-  .controller('LdapServerOrderingController', LdapServerOrderingController)
-  .factory('LdapServerOrderingModal', LdapServerOrderingModal);
+  .component(
+    'ldapList',
+    react2angular(withStoreProvider(withRouterStateProvider(LdapListContainer)), [], ['$ngRedux', '$state'])
+  )
+  .component(
+    'createLdap',
+    react2angular(withStoreProvider(withRouterStateProvider(CreateLdapContainer)), [], ['$ngRedux', '$state'])
+  )
+  .component(
+    'editLdapConnection',
+    react2angular(withStoreProvider(withRouterStateProvider(EditLdapConnectionContainer)), [], ['$ngRedux', '$state'])
+  )
+  .component(
+    'editLdapUserMapping',
+    react2angular(withStoreProvider(withRouterStateProvider(EditLdapUsermappingContainer)), [], ['$ngRedux', '$state'])
+  );
 
 function ldapModuleConfiguration($stateProvider) {
   $stateProvider
-    .state('ldap-servers', {
-      url: '/ldap-servers',
-      controller: 'ldap.server.list.controller',
-      controllerAs: 'vm',
-      template: listTemplate,
-      data: {
-        title: 'LDAP Servers',
-      },
-      resolve: {
-        isAuthorized: [
-          'PermissionService',
-          function (PermissionService) {
-            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-          },
-        ],
-      },
-    })
-    .state('edit-ldap', {
-      url: '/ldap/edit/{ldapId}',
-      controller: 'LdapConfigurationController',
-      template: editTemplate,
-      data: {
-        title: 'Edit LDAP Configuration',
-      },
-      resolve: {
-        isAuthorized: [
-          'PermissionService',
-          function (PermissionService) {
-            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-          },
-        ],
-      },
-    })
     .state('create-ldap', {
       url: '/ldap/create',
-      controller: 'LdapConfigurationController',
-      template: editTemplate,
+      component: 'createLdap',
       data: {
         title: 'Create LDAP Configuration',
-      },
-      resolve: {
-        isAuthorized: [
-          'PermissionService',
-          function (PermissionService) {
-            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-          },
-        ],
+        isDirty: ['ldapConfig', 'isDirty'],
       },
     })
-    .state('edit-ldap.connection', {
-      controller: 'LdapConnectionController',
-      template: connectionTemplate,
+    .state('edit-ldap-connection', {
+      url: '/ldap/edit/{ldapId}',
+      component: 'editLdapConnection',
+      data: {
+        title: 'Edit LDAP Configuration',
+        isDirty: ['ldapConfig', 'isDirty'],
+      },
     })
-    .state('edit-ldap.usermapping', {
-      controller: 'LdapUsermappingController',
-      template: userMappingTemplate,
+    .state('edit-ldap-usermapping', {
+      url: '/ldap/edit/{ldapId}/userMapping',
+      component: 'editLdapUserMapping',
+      data: {
+        title: 'Edit LDAP Configuration',
+        isDirty: ['ldapConfig', 'isDirty'],
+      },
+    })
+    .state('ldap-list', {
+      url: '/ldap-servers',
+      component: 'ldapList',
+      data: {
+        title: 'LDAP Servers',
+        isDirty: ['ldapList', 'isDirty'],
+      },
     });
 }
 

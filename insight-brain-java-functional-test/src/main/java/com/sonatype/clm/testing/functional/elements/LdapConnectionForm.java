@@ -22,12 +22,12 @@ public class LdapConnectionForm
     super(selectors);
   }
 
-  public Dropdown authenticationMethod() {
-    return new Dropdown(childSelector("#ldap-authentication-method"));
+  public NxFormSelect authenticationMethod() {
+    return new NxFormSelect(childSelector("#method-selector"));
   }
 
   public SelenideElement connectionTimeout() {
-    return child("#ldap-connection-timeout");
+    return child("#connection");
   }
 
   @Override
@@ -36,60 +36,60 @@ public class LdapConnectionForm
   }
 
   public SelenideElement hostname() {
-    return child("#ldap-hostname");
+    return child("#hostname");
   }
 
   public SelenideElement port() {
-    return child("#ldap-port");
+    return child("#port");
   }
 
-  public Dropdown protocol() {
-    return new Dropdown(childSelector("#ldap-protocol"));
+  public NxFormSelect protocol() {
+    return new NxFormSelect(childSelector("#protocol-selector"));
   }
 
   public SelenideElement retryDelay() {
-    return child("#ldap-retry-delay");
+    return child("#retryDelay");
   }
 
   public SelenideElement saslRealm() {
-    return child("#ldap-sasl-realm");
+    return child("#saslRealm");
   }
 
   public SelenideElement searchBase() {
-    return child("#ldap-search-base");
+    return child("#searchBase");
   }
 
-  public Toggle ignoreReferrals() {
-    return new Toggle(childSelector("#ldap-ignore-referrals"));
+  public NxToggle ignoreReferrals() {
+    return new NxToggle(childSelector("#ignore-referrals-toggle"));
   }
 
   public SelenideElement systemPassword() {
-    return child("#ldap-system-password");
+    return child("#password");
   }
 
   public SelenideElement passwordNeedsEntryMessage() {
-    return child("#ldap-password-needs-entry-message");
+    return child(".nx-alert.nx-alert--error");
   }
 
   public SelenideElement systemUsername() {
-    return child("#ldap-system-username");
+    return child("#username");
   }
 
   public SelenideElement successAlertBox() {
-    return child(".alert-success");
+    return child(".nx-alert--success");
   }
 
   public SelenideElement testConnectionButton() {
-    return $("#ldap-connection-test");
+    return $("#test-connection");
   }
 
   @Override
   public SelenideElement saveButton() {
-    return $("#ldap-connection-save");
+    return $(".nx-form__submit-btn");
   }
 
   @Override
   public SelenideElement cancelButton() {
-    return $("#ldap-connection-cancel");
+    return $(".nx-form__cancel-btn");
   }
 }

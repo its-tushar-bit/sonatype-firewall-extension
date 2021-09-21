@@ -42,6 +42,9 @@ public class SourceControl
   @Column(name = "repository_url")
   private String repositoryUrl;
 
+  @Column(name = "repository_ssh_url")
+  private String repositorySshUrl;
+
   @Column(name = "username")
   private String username;
 
@@ -76,12 +79,16 @@ public class SourceControl
   @Column(name = "source_control_scan_target")
   private String sourceControlScanTarget;
 
+  @Column(name = "ssh_enabled")
+  private Boolean sshEnabled;
+
   public SourceControl() {
   }
 
   public SourceControl(
       final String ownerId,
       final String repositoryUrl,
+      final String repositorySshUrl,
       final String username,
       final String token,
       final SourceControlProvider provider,
@@ -90,10 +97,12 @@ public class SourceControl
       final String baseBranch,
       final Boolean pullRequestCommentingEnabled,
       final Boolean sourceControlScansEnabled,
-      final String sourceControlScanTarget)
+      final String sourceControlScanTarget,
+      final Boolean sshEnabled)
   {
     this.ownerId = ownerId;
     setRepositoryUrl(repositoryUrl);
+    this.repositorySshUrl = repositorySshUrl;
     this.username = username;
     this.token = token;
     this.provider = provider;
@@ -103,6 +112,7 @@ public class SourceControl
     this.pullRequestCommentingEnabled = pullRequestCommentingEnabled;
     this.sourceControlScansEnabled = sourceControlScansEnabled;
     this.sourceControlScanTarget = sourceControlScanTarget;
+    this.sshEnabled = sshEnabled;
   }
 
   @Override
@@ -226,11 +236,29 @@ public class SourceControl
     this.sourceControlScanTarget = sourceControlScanTarget;
   }
 
+  public String getRepositorySshUrl() {
+    return repositorySshUrl;
+  }
+
+  public void setRepositorySshUrl(final String repositorySshUrl) {
+    this.repositorySshUrl = repositorySshUrl;
+  }
+
+  public Boolean getSshEnabled() {
+    return sshEnabled;
+  }
+
+  public void setSshEnabled(final Boolean sshEnabled) {
+    this.sshEnabled = sshEnabled;
+  }
+
   public static class Builder
   {
     private String ownerId;
 
     private String repositoryUrl;
+
+    private String repositorySshUrl;
 
     private String username;
 
@@ -252,6 +280,8 @@ public class SourceControl
 
     private String sourceControlScanTarget;
 
+    private Boolean sshEnabled;
+
     public Builder setOwnerId(final String ownerId) {
       this.ownerId = ownerId;
       return this;
@@ -259,6 +289,11 @@ public class SourceControl
 
     public Builder setRepositoryUrl(final String repositoryUrl) {
       this.repositoryUrl = repositoryUrl;
+      return this;
+    }
+
+    public Builder setRepositorySshUrl(final String repositorySshUrl) {
+      this.repositorySshUrl = repositorySshUrl;
       return this;
     }
 
@@ -312,10 +347,16 @@ public class SourceControl
       return this;
     }
 
+    public Builder setSshEnabled(final Boolean sshEnabled) {
+      this.sshEnabled = sshEnabled;
+      return this;
+    }
+
     public SourceControl build() {
-      SourceControl sourceControl = new SourceControl(ownerId, repositoryUrl, username, token, provider,
-          remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestCommentingEnabled,
-          sourceControlScansEnabled, sourceControlScanTarget);
+      SourceControl sourceControl =
+          new SourceControl(ownerId, repositoryUrl, repositorySshUrl, username, token, provider,
+              remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestCommentingEnabled,
+              sourceControlScansEnabled, sourceControlScanTarget, sshEnabled);
       sourceControl.setPullRequestPollTime(pullRequestPollTime);
       return sourceControl;
     }
@@ -327,6 +368,7 @@ public class SourceControl
         "id='" + id + '\'' +
         ", ownerId='" + ownerId + '\'' +
         ", repositoryUrl='" + repositoryUrl + '\'' +
+        ", repositorySshUrl='" + repositorySshUrl + '\'' +
         ", username='" + username + '\'' +
         ", token='MASKED" + '\'' +
         ", provider=" + provider +
@@ -338,6 +380,7 @@ public class SourceControl
         ", pullRequestCommentingEnabled=" + pullRequestCommentingEnabled +
         ", sourceControlScansEnabled=" + sourceControlScansEnabled +
         ", sourceControlScanTarget=" + sourceControlScanTarget +
+        ", sshEnabled=" + sshEnabled +
         '}';
   }
 }

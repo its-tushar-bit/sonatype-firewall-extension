@@ -41,6 +41,8 @@ public class SourceControlDAOTest
 {
   private static final String VALID_URL = "https://example.com/organization/Project";
 
+  private static final String VALID_SSH_URL = "git@example.com:organization/Project.git";
+
   private static final int INTERVAL_IN_HOURS = 24;
 
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
@@ -1144,6 +1146,52 @@ public class SourceControlDAOTest
     sourceControl.setToken(sourceControl.getToken() + "Updated");
     sourceControlDAO.update(sourceControl);
     assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(1);
+  }
+
+  @Test
+  public void testUpdate_ClearsSshUrlIfRepositoryUrlIsChanged() {
+    // given a root org with github as a provider
+    createRootOrgWithGitHubProvider();
+    // and a SC for an app with a SSH URL
+    SourceControl sourceControl = tempEntity.newSourceControl(new SourceControl.Builder()
+        .setOwnerId(app.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setRepositorySshUrl(VALID_SSH_URL)
+        .setSshEnabled(true)
+        .build());
+
+    // when we update the repo URL
+    sourceControl.setRepositoryUrl(VALID_URL + "Updated");
+    sourceControlDAO.update(sourceControl);
+
+    // then the ssh URL gets cleared
+    SourceControl retrievedSourceControl = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(retrievedSourceControl.getRepositorySshUrl()).isNull();
+
+    // and other attributes are unaffected
+    assertThat(retrievedSourceControl.getSshEnabled()).isTrue();
+  }
+
+  @Test
+  public void testUpdate_SshUrlUnchangedIfRepositoryUrlNotChanged() {
+    // given a root org with github as a provider
+    createRootOrgWithGitHubProvider();
+    // and a SC for an app with a SSH URL
+    SourceControl sourceControl = tempEntity.newSourceControl(new SourceControl.Builder()
+        .setOwnerId(app.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setRepositorySshUrl(VALID_SSH_URL)
+        .setSshEnabled(true)
+        .build());
+
+    // when we update the source control, leaving repository URL unchanged
+    sourceControl.setBaseBranch("new_base_branch");
+    sourceControlDAO.update(sourceControl);
+
+    // then the ssh URL is populated
+    SourceControl retrievedSourceControl = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(retrievedSourceControl.getRepositorySshUrl()).isEqualTo(VALID_SSH_URL);
+    assertThat(retrievedSourceControl.getSshEnabled()).isTrue();
   }
 
   @Test

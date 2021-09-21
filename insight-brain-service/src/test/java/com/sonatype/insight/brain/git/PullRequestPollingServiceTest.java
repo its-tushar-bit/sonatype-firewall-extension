@@ -727,8 +727,8 @@ public class PullRequestPollingServiceTest
 
       String username = currentMockRepo.sourceControlProvider.requiresUsername() ? "username" : null;
       currentMockRepo.sourceControl =
-          new SourceControl(applicationId, currentMockRepo.repositoryUrl, username, "token",
-              currentMockRepo.sourceControlProvider, true, true, defaultBranch, false, false, null);
+          new SourceControl(applicationId, currentMockRepo.repositoryUrl, null, username, "token",
+              currentMockRepo.sourceControlProvider, true, true, defaultBranch, false, false, null, false);
       currentMockRepo.sourceControl.setId(UUID.randomUUID().toString());
       currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(currentMockRepo.repositoryUrl, username, "token",
           currentMockRepo.sourceControlProvider, defaultBranch, true, true, true, true, null);

@@ -2579,10 +2579,32 @@ public class TemporaryEntity
                                         String sourceControlScanTarget
                                         )
   {
+    return newSourceControl(applicationId, repositoryUrl, null, username, token, provider,
+        remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestPollTime,
+        pullRequestCommentingEnabled, sourceControlScansEnabled, sourceControlScanTarget, false);
+  }
+
+  public SourceControl newSourceControl(String applicationId,
+                                        String repositoryUrl,
+                                        String repositorySshUrl,
+                                        String username,
+                                        String token,
+                                        SourceControlProvider provider,
+                                        Boolean remediationPullRequestsEnabled,
+                                        Boolean statusChecksEnabled,
+                                        String baseBranch,
+                                        Date pullRequestPollTime,
+                                        Boolean pullRequestCommentingEnabled,
+                                        Boolean sourceControlScansEnabled,
+                                        String sourceControlScanTarget,
+                                        Boolean sshEnabled
+  )
+  {
     SourceControl sourceControl =
         new SourceControl.Builder()
             .setOwnerId(applicationId)
             .setRepositoryUrl(repositoryUrl)
+            .setRepositorySshUrl(repositorySshUrl)
             .setUsername(username)
             .setToken(token)
             .setProvider(provider)
@@ -2593,7 +2615,14 @@ public class TemporaryEntity
             .setPullRequestCommentingEnabled(pullRequestCommentingEnabled)
             .setSourceControlScansEnabled(sourceControlScansEnabled)
             .setSourceControlScanTarget(sourceControlScanTarget)
+            .setSshEnabled(sshEnabled)
             .build();
+    sourceControlDAO.insert(sourceControl);
+    sourceControls.add(sourceControl);
+    return sourceControl;
+  }
+
+  public SourceControl newSourceControl(SourceControl sourceControl) {
     sourceControlDAO.insert(sourceControl);
     sourceControls.add(sourceControl);
     return sourceControl;

@@ -36,6 +36,7 @@ public class ApiSourceControlAdapter
     apiSourceControlDTO.pullRequestCommentingEnabled = sourceControl.getPullRequestCommentingEnabled();
     apiSourceControlDTO.sourceControlScansEnabled = sourceControl.getSourceControlScansEnabled();
     apiSourceControlDTO.sourceControlScanTarget = sourceControl.getSourceControlScanTarget();
+    apiSourceControlDTO.sshEnabled = sourceControl.getSshEnabled();
 
     return apiSourceControlDTO;
   }
@@ -69,7 +70,9 @@ public class ApiSourceControlAdapter
         .setBaseBranch(dto.baseBranch)
         .setPullRequestCommentingEnabled(dto.pullRequestCommentingEnabled)
         .setSourceControlScansEnabled(dto.sourceControlScansEnabled)
-        .setSourceControlScanTarget(dto.sourceControlScanTarget).build();
+        .setSourceControlScanTarget(dto.sourceControlScanTarget)
+        .setSshEnabled(dto.sshEnabled)
+        .build();
     
     return sourceControl;
   }

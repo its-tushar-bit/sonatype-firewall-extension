@@ -899,4 +899,39 @@ public class ComponentRemediationServiceTest
       assertThat(found).as(expected.getType() + " does not exist in remediation result!").isTrue();
     }
   }
+
+  @Test
+  public void testGetSuggestedRemediation_Conan() {
+    ComponentIdentifier cd1 = ComponentIdentifier.createConanCoordinates("bison", "3.5.3", null, null);
+    ComponentIdentifier cd2 = ComponentIdentifier.createConanCoordinates("bison", "3.7.1", null, null);
+    ComponentIdentifier cd3 = ComponentIdentifier.createConanCoordinates("bison", "3.7.6", null, null);
+
+    ComponentDetailsDTO detailsDtoConan = new ComponentDetailsDTO();
+    detailsDtoConan.violatedPolicyCount = 1;
+    detailsDtoConan.componentIdentifier = cd1;
+    detailsDtoConan.policyAlerts = Arrays.asList(warnAlert, failAlert);
+
+    ComponentDetailsDTO detailsDtoConan1 = new ComponentDetailsDTO();
+    detailsDtoConan1.violatedPolicyCount = 2;
+    detailsDtoConan1.componentIdentifier = cd2;
+    detailsDtoConan1.policyAlerts = Arrays.asList(warnAlert, failAlert);
+
+    ComponentDetailsDTO detailsDtoConan3 = new ComponentDetailsDTO();
+    detailsDtoConan3.violatedPolicyCount = 0;
+    detailsDtoConan3.componentIdentifier = cd3;
+
+    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoConan, detailsDtoConan1, detailsDtoConan3);
+
+    cd1.ensureComplete();
+    ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(cd1,
+        allVersions, org.getType(), org.getId(), DevelopStageType.ID);
+
+    ApiComponentDTOV2 conanDto = new ApiComponentDTOV2();
+    conanDto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(cd3);
+    conanDto.packageUrl = PackageUrlIdentifier.toPackageUrl(cd3);
+
+    assertThat(dto.versionChanges).hasSize(2);
+    assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, conanDto));
+    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, conanDto));
+  }
 }

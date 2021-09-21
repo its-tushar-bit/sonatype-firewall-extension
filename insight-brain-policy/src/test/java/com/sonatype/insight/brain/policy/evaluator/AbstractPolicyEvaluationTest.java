@@ -249,6 +249,9 @@ public abstract class AbstractPolicyEvaluationTest
       case ComponentIdentifier.FORMAT_CONTAINER:
         componentIdentifier = ComponentIdentifier.createContainerCoordinates(coord[0], coord[1], coord[2]);
         break;
+      case ComponentIdentifier.FORMAT_CONAN:
+        componentIdentifier = ComponentIdentifier.createConanCoordinates(coord[1], coord[2], coord[0], coord[3]);
+        break;
       default:
         componentIdentifier = createLqaComponentIdentifier(format, coord);
     }
@@ -270,9 +273,6 @@ public abstract class AbstractPolicyEvaluationTest
         case CONDA:
         case DRUPAL:
           coords = ImmutableMap.of("name", coord[1], "version", coord[2]);
-          return new ComponentIdentifier(format, coords);
-        case CONAN:
-          coords = ImmutableMap.of("name", coord[1], "version", coord[2], "owner", coord[0], "channel", coord[3]);
           return new ComponentIdentifier(format, coords);
         case DEBIAN:
         case COMPOSER:

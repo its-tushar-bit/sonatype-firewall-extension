@@ -100,6 +100,13 @@ public class ComponentRemediationService
     this.productLicense = productLicense;
   }
 
+  private ComponentIdentifier ensureCompleteIfNeeded(ComponentIdentifier componentIdentifier) {
+    if (ComponentIdentifier.FORMAT_CONAN.equals(componentIdentifier.getFormat())) {
+      componentIdentifier.ensureComplete();
+    }
+    return componentIdentifier;
+  }
+
   public ApiComponentRemediationValueDTO getSuggestedRemediation(
       final ComponentIdentifier currentComponent,
       final List<ComponentDetailsDTO> allVersions,
@@ -114,7 +121,8 @@ public class ComponentRemediationService
     ApiComponentRemediationValueDTO componentRemediationDto = new ApiComponentRemediationValueDTO();
 
     int currentIndex = IntStream.range(0, allVersions.size())
-        .filter(i -> allVersions.get(i).componentIdentifier.equals(currentComponent))
+        .filter(i -> ensureCompleteIfNeeded(allVersions.get(i).componentIdentifier)
+            .equals(ensureCompleteIfNeeded(currentComponent)))
         .findFirst()
         .orElse(-1);
 

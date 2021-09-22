@@ -16,11 +16,13 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.DependencyTypeFilter;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
+import com.sonatype.clm.testing.functional.elements.componentdetails.OccurrencesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
@@ -81,7 +83,7 @@ public class ComponentDetailsTest
 
   private Application app;
 
-  private TestReportEvaluator evaluator;
+  private TestReportEvaluator evaluator; 
 
   @Before
   public void start() throws IOException {
@@ -197,6 +199,15 @@ public class ComponentDetailsTest
   }
 
   @Test
+  public void testComponentDetailsUnknownComponentAlert() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForUnknownComponent();
+
+    SelenideElement unknownComponentAlert = componentDetailsPage.unknownComponentAlert();
+    unknownComponentAlert.shouldBe(visible);
+  }
+
+  @Test
   public void testOverviewTab_componentInformationTile() {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
@@ -221,6 +232,30 @@ public class ComponentDetailsTest
     identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File Matches"));
 
     eyesWatcher.eyesCheck("component details overview tab component information");
+  }
+
+  @Test
+  public void testOverviewTab_OccurrencesPopover() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
+    componentDetailsPage.overviewTab().shouldBe(visible);
+    componentDetailsPage.overviewTabContent().shouldBe(visible);
+
+    IdentificationInfoSection identificationInfoSection =
+        componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
+    identificationInfoSection.shouldBe(visible);
+    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File Matches"));
+    identificationInfoSection.getOccurrencesLink().click();
+
+    OccurrencesPopover occurrencesPopover = new OccurrencesPopover();
+    occurrencesPopover.title().shouldHave(text("Occurrences"));
+    occurrencesPopover.subtitle().shouldHave(text("Component Occurrences"));
+    occurrencesPopover.infoMessage().shouldBe(visible);
+    occurrencesPopover.externalLink().shouldBe(visible);
+    eyesWatcher.eyesCheck("Occurrences Popover");
+
+    occurrencesPopover.closeButton().click();
+    occurrencesPopover.shouldNotBe(visible);
   }
 
   @Test
@@ -685,6 +720,19 @@ public class ComponentDetailsTest
     ElementsCollection violations = reportPage.resultRows();
     SelenideElement firstViolation = violations.first();
     firstViolation.click();
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
+    return new ComponentDetailsPage();
+  }
+
+  private ComponentDetailsPage openComponentDetailsPageForUnknownComponent() {
+    reportPage.filterToggle().click();
+    DependencyTypeFilter dependencyTypeFilter = reportPage.filterPanel().dependencyTypeFilter();
+    dependencyTypeFilter.click();
+    dependencyTypeFilter.unknown().click();
+
+    ElementsCollection violations = reportPage.resultRows();
+    SelenideElement unknownViolation = violations.first();
+    unknownViolation.click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
     return new ComponentDetailsPage();
   }

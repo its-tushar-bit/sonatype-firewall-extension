@@ -408,7 +408,7 @@ public class PullRequestCommentingEventHandlerTest
   public void testOnUpdatedPullRequest_createsComments() {
     // given: a resolver and a discovered PR event that will lead to comments being created
     List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("testAppId", 1);
-    pullRequestPolicyEvaluationDTOs.get(0).getDefaultBranchPolicyEvaluation()
+    pullRequestPolicyEvaluationDTOs.get(0).getTargetPolicyEvaluation()
         .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
     pullRequestPolicyEvaluationDTOs.get(0).getFeatureBranchPolicyEvaluation()
         .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
@@ -450,7 +450,7 @@ public class PullRequestCommentingEventHandlerTest
   public void testOnUpdatedPullRequest_doesNotCreateCommentsIfDefaultBranchPolicyEvaluationIsExternal() {
     // given: a resolver and a discovered PR event that will lead to comments being created
     List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("testAppId", 1);
-    pullRequestPolicyEvaluationDTOs.get(0).getDefaultBranchPolicyEvaluation().setScanTriggerType(ScanTriggerType.CLI);
+    pullRequestPolicyEvaluationDTOs.get(0).getTargetPolicyEvaluation().setScanTriggerType(ScanTriggerType.CLI);
     pullRequestPolicyEvaluationDTOs.get(0).getFeatureBranchPolicyEvaluation()
         .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
     PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
@@ -470,7 +470,7 @@ public class PullRequestCommentingEventHandlerTest
   public void testOnUpdatedPullRequest_doesNotCreateCommentsIfPRBranchPolicyEvaluationIsExternal() {
     // given: a resolver and a discovered PR event that will lead to comments being created
     List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("testAppId", 1);
-    pullRequestPolicyEvaluationDTOs.get(0).getDefaultBranchPolicyEvaluation()
+    pullRequestPolicyEvaluationDTOs.get(0).getTargetPolicyEvaluation()
         .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
     pullRequestPolicyEvaluationDTOs.get(0).getFeatureBranchPolicyEvaluation().setScanTriggerType(ScanTriggerType.CLI);
     PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
@@ -516,7 +516,7 @@ public class PullRequestCommentingEventHandlerTest
           .setFeatureBranchName(UUID.randomUUID().toString())
           .setPullRequestHeadCommit(UUID.randomUUID().toString())
           .setFeatureBranchPolicyEvaluation(createPolicyEvaluation(applicationId))
-          .setDefaultBranchPolicyEvaluation(createPolicyEvaluation(applicationId));
+          .setTargetPolicyEvaluation(createPolicyEvaluation(applicationId));
       result.add(dto);
     }
 
@@ -602,7 +602,7 @@ public class PullRequestCommentingEventHandlerTest
           ? pullRequestPolicyEvaluationsDTOs.get(0)
           : null)
           .when(mockPullRequestPolicyEvaluationResolver)
-          .resolveForPullRequest(any(), any(), anyInt(), any(), any());
+          .resolveForPullRequest(any(), any(), anyInt(), any(), any(), any(), any());
 
       return new PullRequestCommentingEventHandler(
           mockPullRequestCommentingService,

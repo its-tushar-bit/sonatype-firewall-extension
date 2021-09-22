@@ -732,7 +732,7 @@ describe('source.control.editor.spec', function () {
       ];
 
       for (var currentTest of testData) {
-        it(`should return ${currentTest.isPrSupported} if licence supports automation and provider is ${currentTest.provider}`, function () {
+        it(`should return ${currentTest.isPrSupported} if license supports automation and provider is ${currentTest.provider}`, function () {
           getByIdDeferred.resolve({
             name: 'rootOrganizationName',
             id: ROOT_ORGANIZATION_ID,
@@ -745,7 +745,7 @@ describe('source.control.editor.spec', function () {
           expect(vm.isPullRequestsSupported()).toBe(currentTest.isPrSupported);
         });
       }
-      it('should return false if licence does not support automation', function () {
+      it('should return false if license does not support automation', function () {
         getByIdDeferred.resolve({
           name: 'rootOrganizationName',
           id: ROOT_ORGANIZATION_ID,
@@ -765,7 +765,7 @@ describe('source.control.editor.spec', function () {
     });
 
     describe('getPullRequestsNotAvailableMessage', function () {
-      it('should return message for provider if licence supports automation', function () {
+      it('should return message for provider if license supports automation', function () {
         getByIdDeferred.resolve({
           name: 'rootOrganizationName',
           id: ROOT_ORGANIZATION_ID,
@@ -783,7 +783,7 @@ describe('source.control.editor.spec', function () {
         expect(vm.getPullRequestsNotAvailableMessage()).toEqual('');
       });
 
-      it('should return licencing message if licence does not support automation', function () {
+      it('should return licencing message if license does not support automation', function () {
         getByIdDeferred.resolve({
           name: 'rootOrganizationName',
           id: ROOT_ORGANIZATION_ID,
@@ -795,15 +795,15 @@ describe('source.control.editor.spec', function () {
         });
 
         $scope.$digest();
-        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not supported by your licence');
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not supported by your license');
 
         vm.dirtySourceControl.provider = 'gitlab';
-        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not supported by your licence');
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not supported by your license');
       });
     });
 
     describe('isProviderSpecifiedAndPullRequestsSupported', function () {
-      it('should return true for provider if licence supports automation', function () {
+      it('should return true for provider if license supports automation', function () {
         getByIdDeferred.resolve({
           name: 'rootOrganizationName',
           id: ROOT_ORGANIZATION_ID,
@@ -824,7 +824,7 @@ describe('source.control.editor.spec', function () {
         expect(vm.isProviderSpecifiedAndPullRequestsSupported()).toBeFalsy();
       });
 
-      it('should return false if licence does not support automation', function () {
+      it('should return false if license does not support automation', function () {
         getByIdDeferred.resolve({
           name: 'rootOrganizationName',
           id: ROOT_ORGANIZATION_ID,

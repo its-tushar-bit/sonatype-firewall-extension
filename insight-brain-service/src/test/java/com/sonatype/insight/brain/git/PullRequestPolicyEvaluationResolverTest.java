@@ -19,6 +19,7 @@ import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.model.CommitInformation;
 import com.sonatype.nexus.scm.api.model.PullRequest;
+import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
 import com.sonatype.nexus.scm.gitlab.dto.GitlabMergeRequestResponse;
 
 import org.junit.Before;
@@ -167,7 +168,43 @@ public class PullRequestPolicyEvaluationResolverTest
     assertThat(dto.getApplicationId()).isEqualTo(application.getId());
     assertThat(dto.getFeatureBranchName()).isEqualTo(featureBranchName);
     assertThat(dto.getPullRequestHeadCommit()).isEqualTo(featureCommit);
-    assertThat(dto.getDefaultBranchPolicyEvaluationId()).isEqualTo(defaultBranchPolicyEvaluationId);
+    assertThat(dto.getTargetPolicyEvaluationId()).isEqualTo(defaultBranchPolicyEvaluationId);
+    assertThat(dto.getFeatureBranchPolicyEvaluationId()).isEqualTo(featureBranchPolicyEvaluationId);
+    assertThatLogMessagesEqual(
+        debug("0 base branch commits to process for application '" + application.getId() + "'")
+    );
+  }
+
+  @Test
+  public void testResolveForPolicyEvaluation_haveNeededPolicyEvaluationsForCommit() throws GitException, IOException {
+    // given: default and feature branch policy evals
+    final String defaultBranchPolicyEvaluationId = "default-policy-5";
+    final String policyEvaluationIdForCommit = "default-policy-6";
+    final String featureBranchPolicyEvaluationId = "feature-policy-5";
+    final String baseCommit = "baseCommit";
+    final String featureCommit = "commit123";
+    final String featureBranchName = "feature-branch";
+    GitRepositoryInfo gitRepositoryInfo = createDefaultGitRepositoryInfo();
+
+    PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver = new TestablePolicyEvaluationResolver()
+        .withDefaultBranchPolicyEvaluation(application.getId(), defaultBranchPolicyEvaluationId, false)
+        .withBaseCommitPolicyEvaluation(application.getId(), baseCommit, policyEvaluationIdForCommit, false)
+        .withFeatureBranchPolicyEvaluation(application.getId(), featureBranchPolicyEvaluationId, false)
+        .withPullRequestWithBaseCommit(5, featureBranchName, baseCommit, featureCommit, true)
+        .build();
+
+    // when: resolve policy evaluations
+    List<PullRequestPolicyEvaluationsDTO> policyEvaluationsDTOs = pullRequestPolicyEvaluationResolver
+        .resolveForPolicyEvaluation(application.getId(), gitRepositoryInfo, featureBranchPolicyEvaluationId,
+            featureCommit);
+
+    // then: we have a PR we can comment on
+    assertThat(policyEvaluationsDTOs.size()).isEqualTo(1);
+    PullRequestPolicyEvaluationsDTO dto = policyEvaluationsDTOs.get(0);
+    assertThat(dto.getApplicationId()).isEqualTo(application.getId());
+    assertThat(dto.getFeatureBranchName()).isEqualTo(featureBranchName);
+    assertThat(dto.getPullRequestHeadCommit()).isEqualTo(featureCommit);
+    assertThat(dto.getTargetPolicyEvaluationId()).isEqualTo(policyEvaluationIdForCommit);
     assertThat(dto.getFeatureBranchPolicyEvaluationId()).isEqualTo(featureBranchPolicyEvaluationId);
     assertThatLogMessagesEqual(
         debug("0 base branch commits to process for application '" + application.getId() + "'")
@@ -187,7 +224,8 @@ public class PullRequestPolicyEvaluationResolverTest
 
     // when: resolve policy evaluations
     PullRequestPolicyEvaluationsDTO policyEvaluationsDTO = pullRequestPolicyEvaluationResolver
-        .resolveForPullRequest(application.getId(), gitRepositoryInfo, pullRequestNumber, "eval123", "commit123");
+        .resolveForPullRequest(application.getId(), gitRepositoryInfo, pullRequestNumber,
+            "eval123", "main", "commit123", null);
 
     // then: result is empty
     assertThat(policyEvaluationsDTO).isNull();
@@ -212,7 +250,8 @@ public class PullRequestPolicyEvaluationResolverTest
 
     // when: resolve policy evaluations
     PullRequestPolicyEvaluationsDTO policyEvaluationsDTO = pullRequestPolicyEvaluationResolver
-        .resolveForPullRequest(application.getId(), gitRepositoryInfo, 2, featureBranchName, commitHash);
+        .resolveForPullRequest(application.getId(), gitRepositoryInfo, 2,
+            featureBranchName, "main", commitHash, null);
 
     // then: result is empty
     assertThat(policyEvaluationsDTO).isNull();
@@ -242,7 +281,8 @@ public class PullRequestPolicyEvaluationResolverTest
 
     // when: resolve policy evaluations
     PullRequestPolicyEvaluationsDTO policyEvaluationsDTO = pullRequestPolicyEvaluationResolver
-        .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4, featureBranchName, featureCommit);
+        .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4,
+            featureBranchName, "main", featureCommit, null);
 
     // then: result is empty
     assertThat(policyEvaluationsDTO).isNull();
@@ -272,7 +312,8 @@ public class PullRequestPolicyEvaluationResolverTest
 
     // when: resolve policy evaluations
     PullRequestPolicyEvaluationsDTO policyEvaluationsDTO = pullRequestPolicyEvaluationResolver
-        .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4, featureBranchName, featureCommit);
+        .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4,
+            featureBranchName, "main", featureCommit, null);
 
     // then: result is empty
     assertThat(policyEvaluationsDTO).isNull();
@@ -300,14 +341,48 @@ public class PullRequestPolicyEvaluationResolverTest
 
     // when: resolve policy evaluations
     PullRequestPolicyEvaluationsDTO policyEvaluationsDTO = pullRequestPolicyEvaluationResolver
-        .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4, featureBranchName, featureCommit);
+        .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4,
+            featureBranchName, "main", featureCommit, null);
 
     // then: we have a PR we can comment on
     assertThat(policyEvaluationsDTO).isNotNull();
     assertThat(policyEvaluationsDTO.getApplicationId()).isEqualTo(application.getId());
     assertThat(policyEvaluationsDTO.getFeatureBranchName()).isEqualTo(featureBranchName);
     assertThat(policyEvaluationsDTO.getPullRequestHeadCommit()).isEqualTo(featureCommit);
-    assertThat(policyEvaluationsDTO.getDefaultBranchPolicyEvaluationId()).isEqualTo(defaultBranchPolicyEvaluationId);
+    assertThat(policyEvaluationsDTO.getTargetPolicyEvaluationId()).isEqualTo(defaultBranchPolicyEvaluationId);
+    assertThat(policyEvaluationsDTO.getFeatureBranchPolicyEvaluationId()).isEqualTo(featureBranchPolicyEvaluationId);
+  }
+
+  @Test
+  public void testResolveForPullRequest_haveNeededPolicyEvaluationsForCommit() throws GitException, IOException {
+    // given: default and feature branch policy evals
+    final String defaultBranchPolicyEvaluationId = "default-policy-7";
+    final String policyEvaluationIdForCommit = "default-policy-8";
+    final String featureBranchPolicyEvaluationId = "feature-policy-7";
+    final String baseCommit = "baseCommit";
+    final String featureCommit = "commit123";
+    final String featureBranchName = "feature-branch";
+    GitRepositoryInfo gitRepositoryInfo = createDefaultGitRepositoryInfo();
+
+    PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver = new TestablePolicyEvaluationResolver()
+        .withDefaultBranchPolicyEvaluation(application.getId(), defaultBranchPolicyEvaluationId, true)
+        .withBaseCommitPolicyEvaluation(application.getId(), baseCommit, policyEvaluationIdForCommit, true)
+        .withFeatureBranchPolicyEvaluationForCommit(application.getId(), featureBranchPolicyEvaluationId, featureCommit,
+            true)
+        .withPullRequest(2, featureBranchName, featureCommit, true)
+        .build();
+
+    // when: resolve policy evaluations
+    PullRequestPolicyEvaluationsDTO policyEvaluationsDTO = pullRequestPolicyEvaluationResolver
+        .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4,
+            featureBranchName, "main", featureCommit, baseCommit);
+
+    // then: we have a PR we can comment on
+    assertThat(policyEvaluationsDTO).isNotNull();
+    assertThat(policyEvaluationsDTO.getApplicationId()).isEqualTo(application.getId());
+    assertThat(policyEvaluationsDTO.getFeatureBranchName()).isEqualTo(featureBranchName);
+    assertThat(policyEvaluationsDTO.getPullRequestHeadCommit()).isEqualTo(featureCommit);
+    assertThat(policyEvaluationsDTO.getTargetPolicyEvaluationId()).isEqualTo(policyEvaluationIdForCommit);
     assertThat(policyEvaluationsDTO.getFeatureBranchPolicyEvaluationId()).isEqualTo(featureBranchPolicyEvaluationId);
   }
 
@@ -325,6 +400,9 @@ public class PullRequestPolicyEvaluationResolverTest
     private PullRequestDefaultBranchPolicyEvaluationResolver mockDefaultBranchPolicyEvaluationResolver;
 
     @Mock
+    private PullRequestBaseCommitPolicyEvaluationResolver mockBaseCommitPolicyEvaluationResolver;
+
+    @Mock
     private PullRequestEligibilityValidator mockPullRequestEligibilityValidator;
 
     private CommitInformation commitInformation = new CommitInformation();
@@ -338,15 +416,31 @@ public class PullRequestPolicyEvaluationResolverTest
         String policyEvaluationId,
         boolean internallyTriggered) throws GitException, IOException
     {
+      return withBaseCommitPolicyEvaluation(applicationId, null, policyEvaluationId, internallyTriggered);
+    }
+
+    private TestablePolicyEvaluationResolver withBaseCommitPolicyEvaluation(
+        String applicationId,
+        String commitHash,
+        String policyEvaluationId,
+        boolean internallyTriggered) throws GitException, IOException
+    {
       PolicyEvaluation policyEvaluation = new PolicyEvaluation();
       policyEvaluation.setApplicationId(applicationId);
       policyEvaluation.setId(policyEvaluationId);
+      policyEvaluation.setCommitHash(commitHash);
       policyEvaluation.setScanTriggerType(
           internallyTriggered ? ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING : ScanTriggerType.CLI);
       doReturn(Optional.of(policyEvaluation)).when(mockGitCommitHistoryService)
           .getLatestPolicyEvaluationForApplicationBaseBranch(applicationId, !internallyTriggered);
-      doReturn(policyEvaluation).when(mockDefaultBranchPolicyEvaluationResolver)
-          .getOrPerformDefaultBranchPolicyEvaluation(eq(applicationId), any(), any());
+      if (null == commitHash) {
+        doReturn(policyEvaluation).when(mockDefaultBranchPolicyEvaluationResolver)
+            .getOrPerformDefaultBranchPolicyEvaluation(eq(applicationId), any(), any());
+      }
+      else {
+        doReturn(policyEvaluation).when(mockBaseCommitPolicyEvaluationResolver)
+            .getOrPerformBaseCommitPolicyEvaluation(eq(applicationId), any(), any());
+      }
       return this;
     }
 
@@ -400,6 +494,26 @@ public class PullRequestPolicyEvaluationResolverTest
       return this;
     }
 
+    private TestablePolicyEvaluationResolver withPullRequestWithBaseCommit(
+        int pullRequestNumber,
+        String branchName,
+        String baseCommitHash,
+        String headCommitHash,
+        boolean isEligibleForCommenting)
+    {
+      PullRequest pullRequest = new GithubPullRequest();
+      pullRequest.setNumber(pullRequestNumber);
+      pullRequest.setHead(branchName);
+      pullRequest.setBaseCommitHash(baseCommitHash);
+      pullRequest.setHeadCommitHash(headCommitHash);
+
+      doReturn(isEligibleForCommenting).when(mockPullRequestEligibilityValidator)
+          .isPullRequestEligibleForCommenting(any(), any(), any(), any());
+
+      commitInformation.addPullRequest(pullRequest);
+      return this;
+    }
+
     PullRequestPolicyEvaluationResolver build() {
       doReturn(commitInformation).when(mockPullRequestInfoClient).getCommitInfoFromScm(any(), any());
 
@@ -407,6 +521,7 @@ public class PullRequestPolicyEvaluationResolverTest
           mockGitCommitHistoryService,
           mockPolicyEvaluationDAO,
           mockDefaultBranchPolicyEvaluationResolver,
+          mockBaseCommitPolicyEvaluationResolver,
           mockPullRequestEligibilityValidator,
           mockPullRequestInfoClient,
           mockSourceControlScanService);

@@ -441,7 +441,7 @@ function SourceControlEditorController(
 
     return vm.isAutomationSupported
       ? 'This feature is not currently supported for ' + vm.providerTypesMap[effectiveProvider()]
-      : 'This feature is not supported by your licence';
+      : 'This feature is not supported by your license';
   }
 
   function getRemediationPullRequestsEnabledFlagFromModel(model) {

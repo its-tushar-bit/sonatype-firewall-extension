@@ -10,6 +10,7 @@ import { selectSelectedComponent } from '../../applicationReport/applicationRepo
 import { selectComponentAncestors } from '../componentDetailsSelectors';
 import { selectCurrentRouteName } from '../../reduxUiRouter/routerSelectors';
 import { actions } from './overviewSlice';
+import { occurrencesPopoverActions } from './occurrencesPopover/occurrencesPopoverSlice';
 import {
   selectComponentDetailsOverviewVersionExplorerSlice,
   selectComponenDetailsOverviewRemediationSlice,
@@ -30,6 +31,7 @@ function mapStateToProps(state) {
 }
 
 const mapDispatchToProps = {
+  toggleShowOccurrencesPopover: occurrencesPopoverActions.toggleShowOccurrencesPopover,
   requestVersionGraphData: actions.loadVersionGraphData,
   loadInnerSourceProducerData: actions.loadInnerSourceProducerData,
 };

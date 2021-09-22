@@ -38,6 +38,7 @@ import componentCopyrightDetailsReducer from '../legal/copyright/componentCopyri
 import componentLicenseDetailsReducer from '../legal/license/componentLicenseDetailsReducer';
 import manageLegalFiltersReducer from '../legal/dashboard/filter/manageLegalFiltersReducer';
 import legalApplicationDetailsReducer from '../legal/application/legalApplicationDetailsReducer';
+import AttributionReportsReducer from '../legal/application/attributionReportsReducer';
 import labsDataInsightsReducer from '../configuration/labsDataInsights/labsDataInsightsReducer';
 import notificationsReducer from '../mainHeader/MenuBar/NotificationsMenu/notificationsReducer';
 import successMetricsConfigurationReducer from '../configuration/successMetricsConfiguration/successMetricsConfigurationReducer';
@@ -55,6 +56,7 @@ import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolat
 import componentDetailsViolationsReducer from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import successMetricsReportSlice from '../labs/successMetrics/successMetricsReportSlice';
 import productLicenseReducer from '../configuration/license/productLicenseReducer';
+import occurrencesPopoverReducer from '../componentDetails/overview/occurrencesPopover/occurrencesPopoverSlice';
 import ldapListReducer from '../configuration/ldap/ldapServersList/ldapListSlice';
 import overviewSlice from '../componentDetails/overview/overviewSlice';
 
@@ -95,6 +97,7 @@ export default combineReducers({
   firewallConfigurationModal: firewallConfigurationModalReducer,
   manageLegalFilters: manageLegalFiltersReducer,
   legalApplicationDetails: legalApplicationDetailsReducer,
+  attributionReports: AttributionReportsReducer,
   labsDataInsights: labsDataInsightsReducer,
   notifications: notificationsReducer,
   successMetricsConfiguration: successMetricsConfigurationReducer,
@@ -112,4 +115,5 @@ export default combineReducers({
   componentDetailsOverview: overviewSlice,
   successMetrics: successMetricsReportSlice,
   productLicense: productLicenseReducer,
+  occurrencesPopover: occurrencesPopoverReducer,
 });

@@ -6,6 +6,8 @@
 import { react2angular } from 'react2angular';
 import ComponentLegalOverviewContainer from './ComponentLegalOverviewContainer';
 import LegalApplicationDetailsContainer from './application/LegalApplicationDetailsContainer';
+import AttributionReportForm from './application/AttributionReportFormContainer';
+import AttributionReportTemplateForm from './application/AttributionReportTemplateFormContainer';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 import componentCopyrightDetails from './copyright/componentCopyrightDetails';
 import CopyrightDetailsHeaderContainer from './copyright/CopyrightDetailsHeaderContainer';
@@ -35,6 +37,14 @@ export default angular
   .component(
     'legalApplicationDetails',
     react2angular(withStoreProvider(LegalApplicationDetailsContainer), [], ['$ngRedux', '$state'])
+  )
+  .component(
+    'attributionReportForm',
+    react2angular(withStoreProvider(AttributionReportForm), [], ['$ngRedux', '$state'])
+  )
+  .component(
+    'attributionReportTemplateForm',
+    react2angular(withStoreProvider(AttributionReportTemplateForm), [], ['$ngRedux', '$state'])
   )
   .component('componentCopyrightDetails', componentCopyrightDetails)
   .component(
@@ -123,6 +133,20 @@ function routes($stateProvider) {
       component: 'legalApplicationDetails',
       data: {
         title: 'Application Details',
+      },
+    })
+    .state('legal.attributionReport', {
+      url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/attributionReport',
+      component: 'attributionReportForm',
+      data: {
+        title: 'Attribution Report',
+      },
+    })
+    .state('legal.attributionReportTemplate', {
+      url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/attributionReportTemplate',
+      component: 'attributionReportTemplateForm',
+      data: {
+        title: 'Attribution Report Templates',
       },
     })
     .state('legal.componentCopyrightDetails', {

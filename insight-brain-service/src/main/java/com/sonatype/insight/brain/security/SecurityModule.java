@@ -45,6 +45,9 @@ public class SecurityModule
 {
   public static final String SESSION_COOKIE_NAME = "CLMSESSIONID";
 
+  private static final String CUSTOM_CSRF_FILTERS = "noSessionCreation, antiCsrf[%s], " +
+      "reverseProxy, sessionExpirationCookie, secureCookies, authcBasic, requireAuth";
+  
   @Override
   protected void configureShiro() {
     bind(Managed.class).toInstance(new Destroyer());
@@ -96,6 +99,10 @@ public class SecurityModule
         "authcBasic[permissive]");
     manager.createChain("/ping", anonFilters);
 
+    // Legal attribution report doesn't need CSRF check as it doesn't update server state (despite being POST form)
+    manager.createChain("/api/v2/licenseLegalMetadata/application/*/stage/*/report",
+        String.format(CUSTOM_CSRF_FILTERS, AntiCsrfFilter.FORM_POST_ALLOWED));
+
     // public REST API
     manager.createChain("/api/**", "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], " +
         "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + "], authcBasic, saml, requireAuth");
@@ -117,8 +124,7 @@ public class SecurityModule
 
   private void configureFilterChainsForNonAjaxFormSubmissions(FilterChainManager manager) {
     // old-school (i.e. non-AJAX) form submissions as done by IE9 can't use CSRF header
-    String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.FORM_POST_ALLOWED
-        + "], reverseProxy, authcBasic, saml, requireAuth, sessionExpirationCookie, secureCookies";
+    String filters = String.format(CUSTOM_CSRF_FILTERS, AntiCsrfFilter.FORM_POST_ALLOWED);
     manager.createChain("/rest/application/icon/*", filters);
     manager.createChain("/rest/application/icon/sync", filters);
     manager.createChain("/rest/organization/icon/*", filters);
@@ -134,8 +140,7 @@ public class SecurityModule
 
   private void configureFilterChainsForIntegrations(FilterChainManager manager) {
     // client integrations don't have CSRF tokens and need access via explicit auth
-    String filters = "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED
-        + "], reverseProxy, sessionExpirationCookie, secureCookies, authcBasic, requireAuth";
+    String filters = String.format(CUSTOM_CSRF_FILTERS, AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED);
     manager.createChain("/rest/ide/scan/**", filters);
     manager.createChain("/rest/integration/repositories/**", filters);
     manager.createChain("/rest/quality/evaluations/*/*", filters);

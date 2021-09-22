@@ -17,6 +17,8 @@ public class AttributionReportTemplateDTO
 {
   private String id;
 
+  private String templateName;
+
   private String documentTitle;
 
   private String header;
@@ -27,6 +29,8 @@ public class AttributionReportTemplateDTO
 
   private boolean includeAppendix;
 
+  private boolean includeStandardLicenseTexts;
+
   private Date lastUpdatedAt;
 
   public AttributionReportTemplateDTO() {
@@ -34,34 +38,42 @@ public class AttributionReportTemplateDTO
 
   public AttributionReportTemplateDTO(
       final String id,
+      final String templateName,
       final String documentTitle,
       final String header,
       final String footer,
       final boolean contents,
       final boolean appendix,
+      final boolean includeStandardLicenseTexts,
       final Date lastUpdatedAt)
   {
     this.id = id;
+    this.templateName = templateName;
     this.documentTitle = documentTitle;
     this.header = header;
     this.footer = footer;
     this.includeTableOfContents = contents;
     this.includeAppendix = appendix;
+    this.includeStandardLicenseTexts = includeStandardLicenseTexts;
     this.lastUpdatedAt = lastUpdatedAt;
   }
 
   public AttributionReportTemplateDTO(
+      final String templateName,
       final String documentTitle,
       final String header,
       final String footer,
       final boolean contents,
-      final boolean appendix)
+      final boolean appendix,
+      final boolean includeStandardLicenseTexts)
   {
+    this.templateName = templateName;
     this.documentTitle = documentTitle;
     this.header = header;
     this.footer = footer;
     this.includeTableOfContents = contents;
     this.includeAppendix = appendix;
+    this.includeStandardLicenseTexts = includeStandardLicenseTexts;
   }
 
   public static AttributionReportTemplateDTO fromReportTemplate(
@@ -72,11 +84,13 @@ public class AttributionReportTemplateDTO
     }
     return new AttributionReportTemplateDTO(
         attributionReportTemplate.getId(),
+        attributionReportTemplate.getTemplateName(),
         attributionReportTemplate.getDocumentTitle(),
         attributionReportTemplate.getDocumentHeader(),
         attributionReportTemplate.getDocumentFooter(),
         attributionReportTemplate.isIncludeTableOfContents(),
         attributionReportTemplate.isIncludeAppendix(),
+        attributionReportTemplate.isIncludeStandardLicenseTexts(),
         attributionReportTemplate.getLastUpdatedAt()
     );
   }
@@ -87,6 +101,14 @@ public class AttributionReportTemplateDTO
 
   public void setId(final String id) {
     this.id = id;
+  }
+
+  public String getTemplateName() {
+    return templateName;
+  }
+
+  public void setTemplateName(final String templateName) {
+    this.templateName = templateName;
   }
 
   public String getDocumentTitle() {
@@ -129,6 +151,14 @@ public class AttributionReportTemplateDTO
     this.includeAppendix = includeAppendix;
   }
 
+  public boolean isIncludeStandardLicenseTexts() {
+    return includeStandardLicenseTexts;
+  }
+
+  public void setIncludeStandardLicenseTexts(final boolean includeStandardLicenseTexts) {
+    this.includeStandardLicenseTexts = includeStandardLicenseTexts;
+  }
+
   public Date getLastUpdatedAt() {
     return lastUpdatedAt;
   }
@@ -146,17 +176,16 @@ public class AttributionReportTemplateDTO
       return false;
     }
     AttributionReportTemplateDTO that = (AttributionReportTemplateDTO) o;
-    return Objects.equals(getId(), that.getId()) &&
-        Objects.equals(getDocumentTitle(), that.getDocumentTitle()) &&
-        Objects.equals(getHeader(), that.getHeader()) &&
-        Objects.equals(getFooter(), that.getFooter()) &&
-        Objects.equals(isIncludeTableOfContents(), that.isIncludeTableOfContents()) &&
-        Objects.equals(isIncludeAppendix(), that.isIncludeAppendix()) &&
-        Objects.equals(getLastUpdatedAt(), that.getLastUpdatedAt());
+    return includeTableOfContents == that.includeTableOfContents && includeAppendix == that.includeAppendix &&
+        includeStandardLicenseTexts == that.includeStandardLicenseTexts && Objects.equals(id, that.id) &&
+        Objects.equals(templateName, that.templateName) &&
+        Objects.equals(documentTitle, that.documentTitle) && Objects.equals(header, that.header) &&
+        Objects.equals(footer, that.footer);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, documentTitle, header, footer, includeTableOfContents, includeAppendix);
+    return Objects.hash(id, templateName, documentTitle, header, footer, includeTableOfContents, includeAppendix,
+        includeStandardLicenseTexts);
   }
 }

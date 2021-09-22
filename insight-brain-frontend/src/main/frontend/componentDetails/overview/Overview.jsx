@@ -9,22 +9,25 @@ import { join } from 'ramda';
 
 import { formatTimeAgoUpToDay } from '../../util/dateUtils';
 import { RiskRemediation } from './riskRemediation/RiskRemediation';
+import OccurrencesPopoverContainer from './occurrencesPopover/OccurrencesPopoverContainer';
 import InnerSourceProducerReportModalContainer from './InnerSourceProducerReportModal/InnerSourceProducerReportModalContainer';
 import InnerSourceProducerPermissionsModalContainer from './InnerSourceProducerPermissionsModal/InnerSourceProducerPermissionsModalContainer';
 import InnerSourceProducerAlertContainer from './InnerSourceProducerAlert/InnerSourceProducerAlertContainer';
 import { RemediationPropTypes, AncestorPropTypes } from './overviewTypes';
 
-export default function Overview({
-  componentInformation,
-  ancestors,
-  routeName,
-  actualVersion,
-  stageId,
-  remediation,
-  requestVersionGraphData,
-  versionExplorerData,
-  loadInnerSourceProducerData,
-}) {
+export default function Overview(props) {
+  const {
+    componentInformation,
+    ancestors,
+    routeName,
+    requestVersionGraphData,
+    versionExplorerData,
+    toggleShowOccurrencesPopover,
+    actualVersion,
+    stageId,
+    remediation,
+    loadInnerSourceProducerData,
+  } = props;
   const {
     componentIdentifier,
     displayName,
@@ -82,7 +85,14 @@ export default function Overview({
       </div>
       <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Occurrences</dt>
-        <dd className="nx-read-only__data">{pathnames.length} File Matches</dd>
+        <dd className="nx-read-only__data">
+          <a
+            className="iq-identification-info-definition-list__occurrences-link"
+            onClick={toggleShowOccurrencesPopover}
+          >
+            {pathnames.length} File Matches
+          </a>
+        </dd>
       </div>
       <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Identification Source</dt>
@@ -127,6 +137,7 @@ export default function Overview({
 
   return (
     <div>
+      <OccurrencesPopoverContainer occurrences={pathnames} />
       <InnerSourceProducerReportModalContainer />
       <InnerSourceProducerPermissionsModalContainer />
       <InnerSourceProducerAlertContainer />
@@ -185,5 +196,6 @@ Overview.propTypes = {
     loading: PropTypes.bool,
     loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
+  toggleShowOccurrencesPopover: PropTypes.func.isRequired,
   loadInnerSourceProducerData: PropTypes.func.isRequired,
 };

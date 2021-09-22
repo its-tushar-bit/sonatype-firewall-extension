@@ -229,7 +229,8 @@ public abstract class AbstractPolicyEditorTest
     assertCondition(constraint.getConditions().get(18), PackageUrlConditionType.ID, "matches",
         "pkg:pypi/*/*/a@*?extension=*&qualifier=*");
     assertCondition(constraint.getConditions().get(19), PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/a@*");
-    assertCondition(constraint.getConditions().get(20), PackageUrlConditionType.ID, "matches", "pkg:conan/*/*/a@*");
+    assertCondition(constraint.getConditions().get(20), PackageUrlConditionType.ID, "matches",
+        "pkg:conan/*/*/a@*?channel=*");
     assertCondition(constraint.getConditions().get(21), PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/*@*");
     assertCondition(constraint.getConditions().get(22), HygieneRatingConditionType.ID, "is not",
         HygieneRating.getById("4").getId());

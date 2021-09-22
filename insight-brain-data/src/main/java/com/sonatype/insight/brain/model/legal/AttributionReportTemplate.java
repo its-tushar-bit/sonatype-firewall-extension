@@ -26,6 +26,9 @@ public class AttributionReportTemplate
   @Column(name = "attribution_report_template_id")
   private String id;
 
+  @Column(name = "template_name")
+  private String templateName;
+
   @Column(name = "document_title")
   private String documentTitle;
 
@@ -41,6 +44,9 @@ public class AttributionReportTemplate
   @Column(name = "include_appendix")
   private boolean includeAppendix;
 
+  @Column(name = "include_standard_license_texts")
+  private boolean includeStandardLicenseTexts;
+
   @Column(name = "last_updated_at")
   private Date lastUpdatedAt;
 
@@ -49,33 +55,40 @@ public class AttributionReportTemplate
 
   public AttributionReportTemplate(
       String id,
+      String templateName,
       String documentTitle,
       String documentHeader,
       String documentFooter,
       boolean includeTableOfContents,
-      boolean includeAppendix)
+      boolean includeAppendix,
+      boolean includeStandardLicenseTexts)
   {
     this.id = id;
+    this.templateName = templateName;
     this.documentTitle = documentTitle;
     this.documentHeader = documentHeader;
     this.documentFooter = documentFooter;
     this.includeTableOfContents = includeTableOfContents;
     this.includeAppendix = includeAppendix;
+    this.includeStandardLicenseTexts = includeStandardLicenseTexts;
   }
 
   public AttributionReportTemplate(
+      String templateName,
       String documentTitle,
       String documentHeader,
       String documentFooter,
       boolean includeTableOfContents,
-      boolean includeAppendix)
+      boolean includeAppendix,
+      boolean includeStandardLicenseTexts)
   {
-    this.id = null;
+    this.templateName = templateName;
     this.documentTitle = documentTitle;
     this.documentHeader = documentHeader;
     this.documentFooter = documentFooter;
     this.includeTableOfContents = includeTableOfContents;
     this.includeAppendix = includeAppendix;
+    this.includeStandardLicenseTexts = includeStandardLicenseTexts;
   }
 
   @Override
@@ -86,6 +99,14 @@ public class AttributionReportTemplate
   @Override
   public void setId(String id) {
     this.id = id;
+  }
+
+  public String getTemplateName() {
+    return templateName;
+  }
+
+  public void setTemplateName(final String templateName) {
+    this.templateName = templateName;
   }
 
   public String getDocumentTitle() {
@@ -126,6 +147,14 @@ public class AttributionReportTemplate
 
   public void setIncludeAppendix(boolean includeAppendix) {
     this.includeAppendix = includeAppendix;
+  }
+
+  public boolean isIncludeStandardLicenseTexts() {
+    return includeStandardLicenseTexts;
+  }
+
+  public void setIncludeStandardLicenseTexts(final boolean includeStandardLicenseTexts) {
+    this.includeStandardLicenseTexts = includeStandardLicenseTexts;
   }
 
   public Date getLastUpdatedAt() {

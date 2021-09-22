@@ -163,7 +163,7 @@ public class PullRequestCommentingEventHandler
 
     PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO = pullRequestPolicyEvaluationResolver
         .resolveForPullRequest(applicationId, gitRepositoryInfo, event.getPullRequestNumber(), event.getBranchName(),
-            event.getCommitHash());
+            event.getBaseBranchName(), event.getCommitHash(), event.getBaseCommitHash());
 
     if (null != pullRequestPolicyEvaluationsDTO) {
       pullRequestCommentingService.doCreateOrUpdatePullRequestComment(pullRequestPolicyEvaluationsDTO);
@@ -176,13 +176,14 @@ public class PullRequestCommentingEventHandler
 
     PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO =
         pullRequestPolicyEvaluationResolver.resolveForPullRequest(applicationId, gitRepositoryInfo,
-            event.getPullRequestNumber(), event.getBranchName(), event.getCommitHash());
+            event.getPullRequestNumber(), event.getBranchName(), event.getBaseBranchName(),
+            event.getCommitHash(), event.getBaseCommitHash());
 
     if (pullRequestPolicyEvaluationsDTO == null) {
       return;
     }
 
-    if (!pullRequestPolicyEvaluationsDTO.getDefaultBranchPolicyEvaluation().wasInternallyTriggered()
+    if (!pullRequestPolicyEvaluationsDTO.getTargetPolicyEvaluation().wasInternallyTriggered()
         || !pullRequestPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluation().wasInternallyTriggered()) {
       // There is at least one policy evaluation triggered externally for this pull request.
       return;

@@ -81,7 +81,7 @@ public class PullRequestFeedbackDetails
 
   private final PolicyEvaluation featureBranchEvaluation;
 
-  private final PolicyEvaluation defaultBranchEvaluation;
+  private final PolicyEvaluation baseBranchEvaluation;
 
   private final PolicyViolationDiff<PolicyViolation> diff;
 
@@ -114,7 +114,7 @@ public class PullRequestFeedbackDetails
   public PullRequestFeedbackDetails(
       final SourceControlComponentDetails sourceControlComponentDetails,
       final PolicyEvaluation featureBranchEvaluation,
-      final PolicyEvaluation defaultBranchEvaluation,
+      final PolicyEvaluation baseBranchEvaluation,
       final PolicyViolationDiff<PolicyViolation> diff,
       final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final List<PullRequestLineCommentDTO> pullRequestLineComments,
@@ -128,8 +128,8 @@ public class PullRequestFeedbackDetails
     this.sourceControlComponentDetails = sourceControlComponentDetails;
     Preconditions.checkNotNull(featureBranchEvaluation, "featureBranchEvaluation is required and cannot be null");
     this.featureBranchEvaluation = featureBranchEvaluation;
-    Preconditions.checkNotNull(defaultBranchEvaluation, "defaultBranchEvaluation is required and cannot be null");
-    this.defaultBranchEvaluation = defaultBranchEvaluation;
+    Preconditions.checkNotNull(baseBranchEvaluation, "baseBranchEvaluation is required and cannot be null");
+    this.baseBranchEvaluation = baseBranchEvaluation;
     Preconditions.checkNotNull(diff, "diff is required and cannot be null");
     this.diff = diff;
     Preconditions.checkNotNull(remediationVersionMap, "remediationVersionMap is required and cannot be null");
@@ -380,12 +380,12 @@ public class PullRequestFeedbackDetails
         .put("componentList", newComponentFeedbackList)
         .put("date", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(featureBranchEvaluation.getTime()))
         .put("featureBranchStage", StringUtils.capitalize(featureBranchEvaluation.getStageTypeId()))
-        .put("defaultBranchStage", StringUtils.capitalize(defaultBranchEvaluation.getStageTypeId()))
+        .put("baseBranchStage", StringUtils.capitalize(baseBranchEvaluation.getStageTypeId()))
         .put("detailedFeatureBranchReportUrl", baseUrl +
             UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), featureBranchEvaluation.getScanId()) +
             "?source=pr-commenting")
-        .put("detailedDefaultBranchReportUrl", baseUrl +
-            UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), defaultBranchEvaluation.getScanId()) +
+        .put("detailedBaseBranchReportUrl", baseUrl +
+            UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), baseBranchEvaluation.getScanId()) +
             "?source=pr-commenting")
         .put("baseIqUrl", baseUrl)
         .put("policiesViolatedCount",

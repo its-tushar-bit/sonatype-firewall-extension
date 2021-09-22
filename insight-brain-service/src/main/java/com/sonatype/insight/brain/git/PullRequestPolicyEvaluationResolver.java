@@ -25,6 +25,7 @@ import com.sonatype.nexus.scm.api.model.Commit;
 import com.sonatype.nexus.scm.api.model.CommitInformation;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,8 @@ public class PullRequestPolicyEvaluationResolver
 
   private final PullRequestDefaultBranchPolicyEvaluationResolver defaultBranchPolicyEvaluationResolver;
 
+  private final PullRequestBaseCommitPolicyEvaluationResolver baseCommitPolicyEvaluationResolver;
+
   private final PullRequestEligibilityValidator pullRequestEligibilityValidator;
 
   private final PullRequestInfoClient pullRequestInfoClient;
@@ -53,6 +56,7 @@ public class PullRequestPolicyEvaluationResolver
       GitCommitHistoryService gitCommitHistoryService,
       PolicyEvaluationDAO policyEvaluationDAO,
       PullRequestDefaultBranchPolicyEvaluationResolver defaultBranchPolicyEvaluationResolver,
+      PullRequestBaseCommitPolicyEvaluationResolver baseCommitPolicyEvaluationResolver,
       PullRequestEligibilityValidator pullRequestEligibilityValidator,
       PullRequestInfoClient pullRequestInfoClient,
       SourceControlScanService sourceControlScanService)
@@ -60,6 +64,7 @@ public class PullRequestPolicyEvaluationResolver
     this.gitCommitHistoryService = gitCommitHistoryService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.defaultBranchPolicyEvaluationResolver = defaultBranchPolicyEvaluationResolver;
+    this.baseCommitPolicyEvaluationResolver = baseCommitPolicyEvaluationResolver;
     this.pullRequestEligibilityValidator = pullRequestEligibilityValidator;
     this.pullRequestInfoClient = pullRequestInfoClient;
     this.sourceControlScanService = sourceControlScanService;
@@ -95,21 +100,36 @@ public class PullRequestPolicyEvaluationResolver
     // commit history for the base branch
     processDefaultBranchCommitHistory(applicationId, possibleFeatureBranchPolicyEvaluation, commitInfo.getCommits());
 
-    PolicyEvaluation defaultBranchPolicyEvaluation = null;
-
     for (PullRequest pullRequest : commitInfo.getPullRequests()) {
       if (pullRequestEligibilityValidator.isPullRequestEligibleForCommenting(applicationId, pullRequest,
           gitRepositoryInfo, possibleFeatureBranchPolicyEvaluation)) {
 
-        if (null == defaultBranchPolicyEvaluation) {
-          defaultBranchPolicyEvaluation = getLatestExternalPolicyEvaluationForBaseBranch(applicationId);
+        PolicyEvaluation targetPolicyEvaluation = null;
+
+        // if possible, we try to find the policy evaluation for the base commit of the PR
+        if (StringUtils.isNotBlank(pullRequest.getBaseCommitHash())) {
+          try {
+            targetPolicyEvaluation = baseCommitPolicyEvaluationResolver.getOrPerformBaseCommitPolicyEvaluation(
+                applicationId, pullRequest.getBase(), pullRequest.getBaseCommitHash());
+          }
+          catch (GitException | IOException e) {
+            log.error(
+                String.format(
+                    "Encountered a problem locating a policy evaluation for application %s and base commit %s",
+                    applicationId, pullRequest.getBaseCommitHash()), e);
+          }
         }
 
-        if (null != defaultBranchPolicyEvaluation) {
+        // otherwise, we get the latest policy evaluation available
+        if (null == targetPolicyEvaluation) {
+          targetPolicyEvaluation = getLatestExternalPolicyEvaluationForBaseBranch(applicationId);
+        }
+
+        if (null != targetPolicyEvaluation) {
           PullRequestPolicyEvaluationsDTO dto = new PullRequestPolicyEvaluationsDTO()
               .setApplicationId(applicationId)
               .setFeatureBranchName(pullRequest.getHead())
-              .setDefaultBranchPolicyEvaluation(defaultBranchPolicyEvaluation)
+              .setTargetPolicyEvaluation(targetPolicyEvaluation)
               .setFeatureBranchPolicyEvaluation(possibleFeatureBranchPolicyEvaluation)
               .setGitRepositoryInfo(gitRepositoryInfo)
               .setPullRequestHeadCommit(pullRequest.getHeadCommitHash())
@@ -135,7 +155,9 @@ public class PullRequestPolicyEvaluationResolver
       GitRepositoryInfo gitRepositoryInfo,
       int pullRequestNumber,
       String featureBranchName,
-      String pullRequestHeadCommitHash)
+      String baseBranchName,
+      String pullRequestHeadCommitHash,
+      String pullRequestBaseCommitHash)
   {
     PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO = null;
 
@@ -145,21 +167,32 @@ public class PullRequestPolicyEvaluationResolver
     }
 
     try {
-      PolicyEvaluation defaultBranchPolicyEvaluation = defaultBranchPolicyEvaluationResolver
-          .getOrPerformDefaultBranchPolicyEvaluation(applicationId, gitRepositoryInfo, pullRequestHeadCommitHash);
+      PolicyEvaluation targetPolicyEvaluation = null;
 
-      if (null != defaultBranchPolicyEvaluation) {
+      // if possible, we try to find the policy evaluation for the base commit of the PR
+      if (StringUtils.isNotBlank(pullRequestBaseCommitHash)) {
+        targetPolicyEvaluation = baseCommitPolicyEvaluationResolver
+            .getOrPerformBaseCommitPolicyEvaluation(applicationId, baseBranchName, pullRequestBaseCommitHash);
+      }
+
+      // otherwise, we get the latest policy evaluation available
+      if (null == targetPolicyEvaluation) {
+        targetPolicyEvaluation = defaultBranchPolicyEvaluationResolver
+            .getOrPerformDefaultBranchPolicyEvaluation(applicationId, gitRepositoryInfo, pullRequestHeadCommitHash);
+      }
+
+      if (null != targetPolicyEvaluation) {
         PolicyEvaluation featureBranchPolicyEvaluation =
             getOrPerformFeatureBranchPolicyEvaluation(applicationId, pullRequestHeadCommitHash, featureBranchName,
-                defaultBranchPolicyEvaluation.wasInternallyTriggered());
+                targetPolicyEvaluation.wasInternallyTriggered());
 
         if (null != featureBranchPolicyEvaluation) {
-          if (defaultBranchPolicyEvaluation.wasInternallyTriggered()
+          if (targetPolicyEvaluation.wasInternallyTriggered()
               == featureBranchPolicyEvaluation.wasInternallyTriggered()) {
             pullRequestPolicyEvaluationsDTO = new PullRequestPolicyEvaluationsDTO()
                 .setApplicationId(applicationId)
                 .setFeatureBranchName(featureBranchName)
-                .setDefaultBranchPolicyEvaluation(defaultBranchPolicyEvaluation)
+                .setTargetPolicyEvaluation(targetPolicyEvaluation)
                 .setFeatureBranchPolicyEvaluation(featureBranchPolicyEvaluation)
                 .setGitRepositoryInfo(gitRepositoryInfo)
                 .setPullRequestHeadCommit(pullRequestHeadCommitHash)
@@ -211,7 +244,7 @@ public class PullRequestPolicyEvaluationResolver
   private PolicyEvaluation getLatestExternalPolicyEvaluationForBaseBranch(String applicationId) {
     Optional<PolicyEvaluation> policyEvaluation =
         gitCommitHistoryService.getLatestPolicyEvaluationForApplicationBaseBranch(applicationId, true);
-    return policyEvaluation.isPresent() ? policyEvaluation.get() : null;
+    return policyEvaluation.orElse(null);
   }
 
   private void processDefaultBranchCommitHistory(

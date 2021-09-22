@@ -12,16 +12,27 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationRep
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.model.OwnerType;
 
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.server.ContainerRequest;
+
 /**
- * Resource for API License Legal
+ * Resource for API Legal Report
  */
-public interface ApiLicenseLegalResourceV2
+public interface ApiLegalReportResourceV2
 {
   ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(String applicationId);
 
   ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(String applicationId, String stageId);
 
   String getLicenseLegalApplicationHTMLReport(String applicationId, String stageId);
+
+  String getLicenseLegalCustomApplicationHTMLReport(String applicationId, String stageId, FormDataMultiPart formData);
+
+  String getLicenseLegalCustomApplicationHTMLReport(
+      String applicationId,
+      String stageId,
+      String templateId,
+      ContainerRequest request);
 
   ApiLicenseLegalComponentReportDTO getLicenseLegalComponentReport(
       OwnerType ownerType,

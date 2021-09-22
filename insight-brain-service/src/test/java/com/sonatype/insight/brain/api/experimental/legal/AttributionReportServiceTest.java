@@ -35,11 +35,13 @@ public class AttributionReportServiceTest
   @Test
   public void testSave_validTemplate() {
     AttributionReportTemplateDTO reportTemplateDTO = new AttributionReportTemplateDTO();
+    reportTemplateDTO.setTemplateName("Template Name");
     reportTemplateDTO.setDocumentTitle("Test Report");
     reportTemplateDTO.setHeader("Test header");
     reportTemplateDTO.setFooter("Test footer");
     reportTemplateDTO.setIncludeTableOfContents(true);
     reportTemplateDTO.setIncludeAppendix(true);
+    reportTemplateDTO.setIncludeStandardLicenseTexts(true);
     AttributionReportTemplateDTO savedReport = attributionReportService
         .saveAttributionReportTemplate(reportTemplateDTO);
 
@@ -49,19 +51,22 @@ public class AttributionReportServiceTest
 
     assertThat(savedReport.getDocumentTitle()).isEqualTo(reportTemplateDTO.getDocumentTitle());
     assertThat(retrievedReport.get().getDocumentTitle()).isEqualTo(savedReport.getDocumentTitle());
-    assertThat(retrievedReport.get()).isEqualTo(savedReport);
+    assertThat(retrievedReport).contains(savedReport);
   }
 
   @Test
   public void testGetAll_licensed() {
     AttributionReportTemplate reportTemplate1 = tempEntity
-        .createNewAttributionReportTemplate("report 1");
-    AttributionReportTemplate reportTemplate2 = tempEntity.createNewAttributionReportTemplate("report 2");
+        .createNewAttributionReportTemplate("template one", "report 1");
+    AttributionReportTemplate reportTemplate2 =
+        tempEntity.createNewAttributionReportTemplate("template two", "report 2");
     List<AttributionReportTemplateDTO> allReports = attributionReportService
         .getAllAttributionReportTemplates();
     assertThat(allReports.size()).isEqualTo(2);
     assertThat(allReports.stream().map(AttributionReportTemplateDTO::getDocumentTitle).collect(Collectors.toSet()))
         .containsExactlyInAnyOrder(reportTemplate1.getDocumentTitle(), reportTemplate2.getDocumentTitle());
+    assertThat(allReports.stream().map(AttributionReportTemplateDTO::getTemplateName).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder(reportTemplate1.getTemplateName(), reportTemplate2.getTemplateName());
   }
 
   @Test
@@ -91,18 +96,24 @@ public class AttributionReportServiceTest
   public void testSave_updateExisting() {
     assertThat(attributionReportService.getAllAttributionReportTemplates().size()).isZero();
     AttributionReportTemplateDTO reportTemplateDTO = new AttributionReportTemplateDTO();
-    reportTemplateDTO.setDocumentTitle("report title");
+    reportTemplateDTO.setTemplateName("template name");
+    reportTemplateDTO.setDocumentTitle("document title");
+
     AttributionReportTemplateDTO savedReport = attributionReportService
         .saveAttributionReportTemplate(reportTemplateDTO);
-    savedReport.setDocumentTitle("Updated report title");
+    savedReport.setTemplateName("Updated template name");
+    savedReport.setDocumentTitle("Updated document title");
     savedReport.setHeader("Updated report header");
     savedReport.setFooter("Updated report footer");
-    savedReport.setIncludeTableOfContents(false);
-    savedReport.setIncludeAppendix(false);
+    savedReport.setIncludeTableOfContents(true);
+    savedReport.setIncludeAppendix(true);
+    savedReport.setIncludeStandardLicenseTexts(true);
+
     attributionReportService.saveAttributionReportTemplate(savedReport);
     Optional<AttributionReportTemplateDTO> updatedReport = attributionReportService
         .getAttributionReportTemplateById(savedReport.getId());
     assertThat(updatedReport).isPresent();
+    assertThat(savedReport.getTemplateName()).isEqualTo(updatedReport.get().getTemplateName());
     assertThat(savedReport.getDocumentTitle()).isEqualTo(updatedReport.get().getDocumentTitle());
     assertThat(savedReport.getHeader()).isEqualTo(updatedReport.get().getHeader());
     assertThat(savedReport.getFooter()).isEqualTo(updatedReport.get().getFooter());

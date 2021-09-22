@@ -82,6 +82,10 @@ public class ComponentInformationTile
       return definitionPairs.get(2);
     }
 
+    public SelenideElement getOccurrencesLink() {
+      return child(".iq-identification-info-definition-list__occurrences-link");
+    }
+
     public SelenideElement getIdentificationSourceItem() {
       ElementsCollection definitionPairs = getDefinitionPairs();
       return definitionPairs.get(3);

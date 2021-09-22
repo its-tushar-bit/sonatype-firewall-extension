@@ -443,9 +443,9 @@ public class PackageUrlConditionTypeTest
 
   @Test
   public void testEvaluate_Conan_MatchWildcard() {
-    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.CONAN.format + "/a2@v*?owner=g2&channel=e2");
-    testEvaluate_MatchExact(LqaFormat.CONAN.format, constraint,
-        "(matches package URL pkg:conan/a2@v*?channel=e2&owner=g2)");
+    Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_CONAN + "/g2/a2@v*?channel=e2");
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_CONAN, constraint,
+        "(matches package URL pkg:conan/g2/a2@v*?channel=e2)");
   }
 
   @Test
@@ -794,6 +794,7 @@ public class PackageUrlConditionTypeTest
     convertIfNeededPecoff();
     convertIfNeededTerraform();
     convertIfNeededContainer();
+    convertIfNeededConan();
   }
 
   private void convertIfNeededMaven() {
@@ -887,6 +888,17 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:cocoapods/N@V", "pkg:cocoapods/N@V");
   }
 
+  private void convertIfNeededConan() {
+    assertConvertIfNeeded("pkg:conan/n", "pkg:conan/*/n@*?channel=*");
+    assertConvertIfNeeded("pkg:conan/o/n?channel=q", "pkg:conan/o/n@*?channel=q");
+    assertConvertIfNeeded("pkg:conan/o/n@v?channel=q", "pkg:conan/o/n@v?channel=q");
+    assertConvertIfNeeded("pkg:conan/o/n@v?channel=", "pkg:conan/o/n@v?channel=*");
+    assertConvertIfNeeded("pkg:conan/o/n@v", "pkg:conan/o/n@v?channel=*");
+    assertConvertIfNeeded("pkg:conan/o/N@v", "pkg:conan/o/N@v?channel=*");
+    assertConvertIfNeeded("pkg:conan/O/n@V", "pkg:conan/O/n@V?channel=*");
+    assertConvertIfNeeded("pkg:conan/O/N@V", "pkg:conan/O/N@V?channel=*");
+  }
+  
   private void convertIfNeededSwift() {
     assertConvertIfNeeded("pkg:swift/n", "pkg:swift/n@*");
     assertConvertIfNeeded("pkg:swift/n@v", "pkg:swift/n@v");

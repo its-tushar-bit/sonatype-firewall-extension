@@ -432,10 +432,10 @@ public class OrganizationSourceControlEditorTest
 
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
     SourceControlEditorPage.defaultBranchNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your licence"));
+        .shouldHave(text("This feature is not supported by your license"));
     SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldBe(visible);
     SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your licence"));
+        .shouldHave(text("This feature is not supported by your license"));
     SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(visible);
@@ -449,10 +449,10 @@ public class OrganizationSourceControlEditorTest
     refresh();
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
     SourceControlEditorPage.defaultBranchNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your licence"));
+        .shouldHave(text("This feature is not supported by your license"));
     SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldBe(visible);
     SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your licence"));
+        .shouldHave(text("This feature is not supported by your license"));
     SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(visible);

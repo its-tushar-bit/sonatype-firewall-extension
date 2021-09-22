@@ -2579,10 +2579,32 @@ public class TemporaryEntity
                                         String sourceControlScanTarget
                                         )
   {
+    return newSourceControl(applicationId, repositoryUrl, null, username, token, provider,
+        remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestPollTime,
+        pullRequestCommentingEnabled, sourceControlScansEnabled, sourceControlScanTarget, false);
+  }
+
+  public SourceControl newSourceControl(String applicationId,
+                                        String repositoryUrl,
+                                        String repositorySshUrl,
+                                        String username,
+                                        String token,
+                                        SourceControlProvider provider,
+                                        Boolean remediationPullRequestsEnabled,
+                                        Boolean statusChecksEnabled,
+                                        String baseBranch,
+                                        Date pullRequestPollTime,
+                                        Boolean pullRequestCommentingEnabled,
+                                        Boolean sourceControlScansEnabled,
+                                        String sourceControlScanTarget,
+                                        Boolean sshEnabled
+  )
+  {
     SourceControl sourceControl =
         new SourceControl.Builder()
             .setOwnerId(applicationId)
             .setRepositoryUrl(repositoryUrl)
+            .setRepositorySshUrl(repositorySshUrl)
             .setUsername(username)
             .setToken(token)
             .setProvider(provider)
@@ -2593,7 +2615,14 @@ public class TemporaryEntity
             .setPullRequestCommentingEnabled(pullRequestCommentingEnabled)
             .setSourceControlScansEnabled(sourceControlScansEnabled)
             .setSourceControlScanTarget(sourceControlScanTarget)
+            .setSshEnabled(sshEnabled)
             .build();
+    sourceControlDAO.insert(sourceControl);
+    sourceControls.add(sourceControl);
+    return sourceControl;
+  }
+
+  public SourceControl newSourceControl(SourceControl sourceControl) {
     sourceControlDAO.insert(sourceControl);
     sourceControls.add(sourceControl);
     return sourceControl;
@@ -3043,29 +3072,63 @@ public class TemporaryEntity
   }
 
   public SourceControlPullRequest newSourceControlPullRequest() {
-    return newSourceControlPullRequest("http://localhost/" + uuid(), 1, uuid(), uuid(), new Date(), new Date(),
-        new Date());
+    return newSourceControlPullRequest("http://localhost/" + uuid(), 1, uuid(), uuid(), uuid(), uuid());
   }
 
   public SourceControlPullRequest newSourceControlPullRequest(
       String repositoryUrl,
       int pullRequestId,
       String headCommitHash,
+      String baseCommitHash,
       String branchName,
+      String baseBranchName)
+  {
+    return newSourceControlPullRequest(repositoryUrl, pullRequestId, headCommitHash, baseCommitHash,
+        branchName, baseBranchName, new Date(), new Date(), new Date());
+  }
+
+  public SourceControlPullRequest newSourceControlPullRequest(
+      String repositoryUrl,
+      int pullRequestId,
+      String headCommitHash,
+      String baseCommitHash,
+      String branchName,
+      String baseBranchName,
       Date createTime,
       Date lastCheckTime,
       Date lastDetectedUpdateTime)
   {
     SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest(repositoryUrl, pullRequestId,
-        headCommitHash, branchName, createTime, lastCheckTime, lastDetectedUpdateTime);
+        headCommitHash, baseCommitHash, branchName, baseBranchName, createTime, lastCheckTime, lastDetectedUpdateTime);
     sourceControlPullRequestDAO.insert(sourceControlPullRequest);
     sourceControlPullRequests.add(sourceControlPullRequest);
     return sourceControlPullRequest;
   }
 
-  public AttributionReportTemplate createNewAttributionReportTemplate(String docTitle) {
-    AttributionReportTemplate template = new AttributionReportTemplate(docTitle, null, null, true, true);
+  public AttributionReportTemplate createNewAttributionReportTemplate(String templateName, String docTitle) {
+    AttributionReportTemplate template =
+        new AttributionReportTemplate(templateName, docTitle, null, null, true, true, true);
     template.setId(uuid());
+    attributionReportTemplateDAO.insert(template);
+    return template;
+  }
+
+  public AttributionReportTemplate createNewAttributionReportTemplate(
+      String templateName,
+      String documentTitle,
+      String documentHeader,
+      String documentFooter,
+      boolean includeTableOfContents,
+      boolean includeAppendix,
+      boolean includeStandardLicenseTexts)
+  {
+    AttributionReportTemplate template = new AttributionReportTemplate(templateName,
+        documentTitle,
+        documentHeader,
+        documentFooter,
+        includeTableOfContents,
+        includeAppendix,
+        includeStandardLicenseTexts);
     attributionReportTemplateDAO.insert(template);
     return template;
   }

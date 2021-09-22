@@ -37,8 +37,14 @@ public class SourceControlPullRequest
   @Column(name = "head_commit_hash")
   private String headCommitHash;
 
+  @Column(name = "base_commit_hash")
+  private String baseCommitHash;
+
   @Column(name = "branch_name")
   private String branchName;
+
+  @Column(name = "base_branch_name")
+  private String baseBranchName;
 
   @Column(name = "create_time")
   private Date createTime;
@@ -56,7 +62,9 @@ public class SourceControlPullRequest
       String repositoryUrl,
       int pullRequestId,
       String headCommitHash,
+      String baseCommitHash,
       String branchName,
+      String baseBranchName,
       Date createTime,
       Date lastCheckTime,
       Date lastDetectedUpdateTime)
@@ -64,7 +72,9 @@ public class SourceControlPullRequest
     setRepositoryUrl(repositoryUrl);
     this.pullRequestId = pullRequestId;
     this.headCommitHash = headCommitHash;
+    this.baseCommitHash = baseCommitHash;
     this.branchName = branchName;
+    this.baseBranchName = baseBranchName;
     this.createTime = createTime;
     this.lastCheckTime = lastCheckTime;
     this.lastDetectedUpdateTime = lastDetectedUpdateTime;
@@ -110,6 +120,22 @@ public class SourceControlPullRequest
 
   public void setHeadCommitHash(String headCommitHash) {
     this.headCommitHash = headCommitHash;
+  }
+
+  public String getBaseCommitHash() {
+    return baseCommitHash;
+  }
+
+  public void setBaseCommitHash(final String baseCommitHash) {
+    this.baseCommitHash = baseCommitHash;
+  }
+
+  public String getBaseBranchName() {
+    return baseBranchName;
+  }
+
+  public void setBaseBranchName(final String baseBranchName) {
+    this.baseBranchName = baseBranchName;
   }
 
   public String getBranchName() {

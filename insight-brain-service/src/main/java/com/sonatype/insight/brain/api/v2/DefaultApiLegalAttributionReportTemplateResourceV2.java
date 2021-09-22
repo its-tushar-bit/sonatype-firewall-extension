@@ -24,17 +24,17 @@ import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.codahale.metrics.annotation.Timed;
+import org.apache.commons.lang3.StringUtils;
 import org.unbescape.html.HtmlEscape;
 import org.unbescape.html.HtmlEscapeLevel;
 import org.unbescape.html.HtmlEscapeType;
-import com.codahale.metrics.annotation.Timed;
-import org.apache.commons.lang.StringUtils;
 
 @Named
 @Timed
 @Path(PublicApiPaths.LICENSE_LEGAL_RESOURCE_PATH_V2)
-public class DefaultApiLegalAttributionReportResourceV2
-    implements ApiLicenseLegalReportResourceV2
+public class DefaultApiLegalAttributionReportTemplateResourceV2
+    implements ApiLegalAttributionReportTemplateResourceV2
 {
   public static final String REPORT_TEMPLATE_PATH = "report-template/";
 
@@ -43,7 +43,7 @@ public class DefaultApiLegalAttributionReportResourceV2
   private final AttributionReportService attributionReportService;
 
   @Inject
-  public DefaultApiLegalAttributionReportResourceV2(
+  public DefaultApiLegalAttributionReportTemplateResourceV2(
       AttributionReportService attributionReportService)
   {
     this.attributionReportService = attributionReportService;
@@ -79,18 +79,15 @@ public class DefaultApiLegalAttributionReportResourceV2
     if (reportTemplateDTO.getId() != null && StringUtils.isBlank(reportTemplateDTO.getId())) {
       throw new InvalidNameException("id cannot be an empty string. Leave id null and allow service to set one");
     }
-    else if (StringUtils.isBlank(reportTemplateDTO.getDocumentTitle())) {
+    if (StringUtils.isBlank(reportTemplateDTO.getDocumentTitle())) {
       throw new InvalidNameException("Report template title cannot be blank");
     }
-    else if (
-        attributionReportService.getAttributionReportTemplateByTitle(reportTemplateDTO.getDocumentTitle()).isPresent())
-    {
-      throw new InvalidNameException(
-          String.format("Report template already exists with title %s", reportTemplateDTO.getDocumentTitle()));
+
+    if (StringUtils.isBlank(reportTemplateDTO.getTemplateName())) {
+      throw new InvalidNameException("Report template name cannot be blank");
     }
-    else {
-      return attributionReportService.saveAttributionReportTemplate(reportTemplateDTO);
-    }
+
+    return attributionReportService.saveAttributionReportTemplate(reportTemplateDTO);
   }
 
   @Override
@@ -105,9 +102,12 @@ public class DefaultApiLegalAttributionReportResourceV2
     }
   }
 
-  private AttributionReportTemplateDTO sanitizeAllTextFields(AttributionReportTemplateDTO reportTemplateDTO) {
+  private void sanitizeAllTextFields(AttributionReportTemplateDTO reportTemplateDTO) {
     if (reportTemplateDTO.getId() != null) {
       reportTemplateDTO.setId(sanitizeString(reportTemplateDTO.getId()));
+    }
+    if (reportTemplateDTO.getTemplateName() != null) {
+      reportTemplateDTO.setTemplateName(sanitizeString(reportTemplateDTO.getTemplateName()));
     }
     if (reportTemplateDTO.getDocumentTitle() != null) {
       reportTemplateDTO.setDocumentTitle(sanitizeString(reportTemplateDTO.getDocumentTitle()));
@@ -118,13 +118,12 @@ public class DefaultApiLegalAttributionReportResourceV2
     if (reportTemplateDTO.getFooter() != null) {
       reportTemplateDTO.setFooter(sanitizeString(reportTemplateDTO.getFooter()));
     }
-    return reportTemplateDTO;
   }
 
   private String sanitizeString(final String text) {
     return HtmlEscape
-      .escapeHtml(text,
-          HtmlEscapeType.HTML5_NAMED_REFERENCES_DEFAULT_TO_HEXA,
-          HtmlEscapeLevel.LEVEL_1_ONLY_MARKUP_SIGNIFICANT);
+        .escapeHtml(text,
+            HtmlEscapeType.HTML5_NAMED_REFERENCES_DEFAULT_TO_HEXA,
+            HtmlEscapeLevel.LEVEL_1_ONLY_MARKUP_SIGNIFICANT);
   }
 }

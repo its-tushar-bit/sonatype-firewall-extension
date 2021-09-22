@@ -41,6 +41,8 @@ public class SourceControlDAOTest
 {
   private static final String VALID_URL = "https://example.com/organization/Project";
 
+  private static final String VALID_SSH_URL = "git@example.com:organization/Project.git";
+
   private static final int INTERVAL_IN_HOURS = 24;
 
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
@@ -1055,8 +1057,8 @@ public class SourceControlDAOTest
     Application app1 = tempEntity.newApplicationWithParent();
     SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL);
     SourceControl sourceControl1 = tempEntity.newSourceControl(app1.getId(), VALID_URL);
-    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testBranch", new Date(), new Date(),
-        new Date());
+    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testCommitHash",
+        "testBranch", "baseBranch");
 
     // Then delete should not cascade to pull requests (because there are two source control records with the same
     // repository URL).
@@ -1115,8 +1117,8 @@ public class SourceControlDAOTest
     Application app1 = tempEntity.newApplicationWithParent();
     SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL);
     SourceControl sourceControl1 = tempEntity.newSourceControl(app1.getId(), VALID_URL);
-    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testBranch", new Date(), new Date(),
-        new Date());
+    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testCommitHash",
+        "testBranch", "baseBranch");
 
     // Then update should not delete pull requests (because there were two source control records with the same
     // repository URL).
@@ -1137,13 +1139,59 @@ public class SourceControlDAOTest
     createRootOrgWithGitHubProvider();
     // And a source control and a pull request
     SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL);
-    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testBranch", new Date(), new Date(),
-        new Date());
+    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testCommitHash",
+        "testBranch", "baseBranch");
 
     // Then update should not delete pull requests
     sourceControl.setToken(sourceControl.getToken() + "Updated");
     sourceControlDAO.update(sourceControl);
     assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(1);
+  }
+
+  @Test
+  public void testUpdate_ClearsSshUrlIfRepositoryUrlIsChanged() {
+    // given a root org with github as a provider
+    createRootOrgWithGitHubProvider();
+    // and a SC for an app with a SSH URL
+    SourceControl sourceControl = tempEntity.newSourceControl(new SourceControl.Builder()
+        .setOwnerId(app.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setRepositorySshUrl(VALID_SSH_URL)
+        .setSshEnabled(true)
+        .build());
+
+    // when we update the repo URL
+    sourceControl.setRepositoryUrl(VALID_URL + "Updated");
+    sourceControlDAO.update(sourceControl);
+
+    // then the ssh URL gets cleared
+    SourceControl retrievedSourceControl = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(retrievedSourceControl.getRepositorySshUrl()).isNull();
+
+    // and other attributes are unaffected
+    assertThat(retrievedSourceControl.getSshEnabled()).isTrue();
+  }
+
+  @Test
+  public void testUpdate_SshUrlUnchangedIfRepositoryUrlNotChanged() {
+    // given a root org with github as a provider
+    createRootOrgWithGitHubProvider();
+    // and a SC for an app with a SSH URL
+    SourceControl sourceControl = tempEntity.newSourceControl(new SourceControl.Builder()
+        .setOwnerId(app.getId())
+        .setRepositoryUrl(VALID_URL)
+        .setRepositorySshUrl(VALID_SSH_URL)
+        .setSshEnabled(true)
+        .build());
+
+    // when we update the source control, leaving repository URL unchanged
+    sourceControl.setBaseBranch("new_base_branch");
+    sourceControlDAO.update(sourceControl);
+
+    // then the ssh URL is populated
+    SourceControl retrievedSourceControl = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(retrievedSourceControl.getRepositorySshUrl()).isEqualTo(VALID_SSH_URL);
+    assertThat(retrievedSourceControl.getSshEnabled()).isTrue();
   }
 
   @Test

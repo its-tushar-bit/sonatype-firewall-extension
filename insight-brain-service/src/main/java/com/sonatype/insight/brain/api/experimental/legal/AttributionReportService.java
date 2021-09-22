@@ -14,10 +14,9 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportTemplateDTO;
 import com.sonatype.insight.brain.dataaccess.legal.AttributionReportTemplateDAO;
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
-import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.security.Authorize;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,18 +50,22 @@ public class AttributionReportService
    * @return a {@link AttributionReportTemplateDTO} representing the created/updated {@link AttributionReportTemplate}.
    * @since 1.120
    */
-  @Authorize(permission = Permission.LEGAL_REVIEWER)
   public AttributionReportTemplateDTO saveAttributionReportTemplate(
       final AttributionReportTemplateDTO attributionReportTemplateDTO)
   {
     LegalServiceUtil.checkLicense(productLicense, log);
     AttributionReportTemplate attributionReportTemplate = new AttributionReportTemplate(
         attributionReportTemplateDTO.getId(),
+        attributionReportTemplateDTO.getTemplateName(),
         attributionReportTemplateDTO.getDocumentTitle(),
         attributionReportTemplateDTO.getHeader(),
         attributionReportTemplateDTO.getFooter(),
         attributionReportTemplateDTO.isIncludeTableOfContents(),
-        attributionReportTemplateDTO.isIncludeAppendix());
+        attributionReportTemplateDTO.isIncludeAppendix(),
+        attributionReportTemplateDTO.isIncludeStandardLicenseTexts());
+
+    validateTemplateName(attributionReportTemplate);
+
     if (attributionReportTemplate.getId() == null) {
       attributionReportTemplateDAO.insert(attributionReportTemplate);
     }
@@ -72,7 +75,21 @@ public class AttributionReportService
     return AttributionReportTemplateDTO.fromReportTemplate(attributionReportTemplate);
   }
 
-  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  private void validateTemplateName(final AttributionReportTemplate attributionReportTemplate) {
+    Optional<AttributionReportTemplate> existingTemplate =
+        getAttributionReportTemplateByTemplateName(attributionReportTemplate.getTemplateName());
+
+    if (existingTemplate.isPresent()) {
+      if (attributionReportTemplate.getId() == null
+          ||
+          (attributionReportTemplate.getId() != null &&
+              !attributionReportTemplate.getId().equals(existingTemplate.get().getId()))) {
+        throw new InvalidNameException(
+            String.format("Report template already exists with name %s", attributionReportTemplate.getTemplateName()));
+      }
+    }
+  }
+
   public Optional<AttributionReportTemplateDTO> getAttributionReportTemplateById(
       String id)
   {
@@ -84,11 +101,9 @@ public class AttributionReportService
   /**
    * Get a list of all available {@link AttributionReportTemplateDTO}
    *
-   * @return a list of {@link AttributionReportTemplateDTO} representing the {@link
-   * AttributionReportTemplate}s.
+   * @return a list of {@link AttributionReportTemplateDTO} representing the {@link AttributionReportTemplate}s.
    * @since 1.120
    */
-  @Authorize(permission = Permission.LEGAL_REVIEWER)
   public List<AttributionReportTemplateDTO> getAllAttributionReportTemplates() {
     LegalServiceUtil.checkLicense(productLicense, log);
 
@@ -102,15 +117,13 @@ public class AttributionReportService
    * @param attributionReportId
    * @since 1.120
    */
-  @Authorize(permission = Permission.LEGAL_REVIEWER)
   public void deleteAttributionReportById(final String attributionReportId) {
     LegalServiceUtil.checkLicense(productLicense, log);
     attributionReportTemplateDAO.deleteById(attributionReportId);
   }
 
-  @Authorize(permission = Permission.LEGAL_REVIEWER)
-  public Optional<AttributionReportTemplate> getAttributionReportTemplateByTitle(final String reportTemplateTitle) {
+  public Optional<AttributionReportTemplate> getAttributionReportTemplateByTemplateName(final String templateName) {
     LegalServiceUtil.checkLicense(productLicense, log);
-    return Optional.ofNullable(attributionReportTemplateDAO.getByTitle(reportTemplateTitle));
+    return Optional.ofNullable(attributionReportTemplateDAO.getByTemplateName(templateName));
   }
 }

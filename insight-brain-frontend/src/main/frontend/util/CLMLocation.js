@@ -593,6 +593,18 @@ export const getVersionGraphUrl = ({
   );
 };
 
+export function getAttributionReportUrl(applicationPublicId, stageTypeId) {
+  return uriTemplate`/api/v2/licenseLegalMetadata/application/${applicationPublicId}/stage/${stageTypeId}/report`;
+}
+
+export function getAttributionReportTemplatesUrl() {
+  return uriTemplate`/api/v2/licenseLegalMetadata/report-template`;
+}
+
+export function getAttributionReportTemplateUrl(templateId) {
+  return uriTemplate`/api/v2/licenseLegalMetadata/report-template/${templateId}`;
+}
+
 export const getSuccessMetricsChartDataUrl = (successMetricsReportId) =>
   uriTemplate`/rest/successMetrics/report/${encodeURIComponent(successMetricsReportId)}/chartData`;
 
@@ -601,6 +613,7 @@ export const getSuccessMetricsComponentCountsUrl = (successMetricsReportId) =>
 
 export const getSuccessMetricsReportUrl = (successMetricsId) =>
   uriTemplate`/rest/successMetrics/report/${successMetricsId}`;
+
 export function getLicenseSummaryUrl() {
   return uriTemplate`/rest/product/license`;
 }

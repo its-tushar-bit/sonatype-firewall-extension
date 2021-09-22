@@ -329,11 +329,12 @@ public class SourceControlDAO
     validate(tx, sourceControl);
     setDefaultsAsNecessary(sourceControl);
 
-    // If the repository URL has changed and this is the only source control record with the old repository URL, then
-    // delete all pull requests for the old repository URL.
     SourceControl existingSourceControl = getById(tx, sourceControl.getId());
     if (!Objects.equals(sourceControl.getRepositoryUrl(), existingSourceControl.getRepositoryUrl())
         && !StringUtils.isBlank(existingSourceControl.getRepositoryUrl())) {
+      // If the repository URL has changed, clear the SSH URL
+      sourceControl.setRepositorySshUrl(null);
+      // if other SC entries have the same repo URL, clear their PRs
       List<SourceControl> sourceControlsWithSameRepositoryUrl =
           getByRepositoryUrl(tx, existingSourceControl.getRepositoryUrl());
       if (sourceControlsWithSameRepositoryUrl.size() == 1) {

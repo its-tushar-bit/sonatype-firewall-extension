@@ -302,6 +302,39 @@ public class SourceControlScanServiceTest
   }
 
   @Test
+  public void testDoSynchronousSourceControlScan_forCommit() throws Exception {
+    // given: a source control configuration
+    doReturn(mockGitRepositoryInfo).when(spySourceControlUtils)
+        .getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId());
+    when(mockGitApiFactory.createGitApi(mockGitRepositoryInfo)).thenReturn(mockGitApi);
+
+    // and a scan result
+    scanResult = new ScanResult();
+    File scanDir = mock(File.class);
+    scanResult.setScanFile(mock(File.class));
+    when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
+    ArgumentCaptor<ScanConfiguration> scanConfigurationArgCaptor = ArgumentCaptor.forClass(ScanConfiguration.class);
+    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+        any(ScanMetadata.class))).thenReturn(scanResult);
+
+    // and a policy evaluation
+    Stage stage = new Stage(Stage.ID_DEVELOP);
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+    when(policyEvaluateService.evaluateSynchronousNoAuth(any(Application.class), any(ClientScanType.class),
+        any(File.class), eq(stage), eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST), eq(null)))
+            .thenReturn(policyEvaluation);
+
+    // when: we do synchronous source control scan and evaluate the SCM repository content
+    PolicyEvaluation returnedPolicyEvaluation =
+        service.doSynchronousSourceControlScan(APP_ID, stage, "testBranchName", "testCommitHash");
+
+    // then: it returns the expected policy evaluation
+    assertThat(returnedPolicyEvaluation).isEqualTo(policyEvaluation);
+    verify(scanner, times(1)).scan(any(), any(), any(), any(), scanConfigurationArgCaptor.capture(), any());
+    assertThat(scanConfigurationArgCaptor.getValue().getProperties().get("dirExcludes")).isEqualTo("**/src/test");
+  }
+
+  @Test
   public void testDoSynchronousSourceControlScan_InternalSourceControlPolicyEvaluationsDisabled() throws Exception {
     // given internal SCM policy evaluations are disable
     insightConfig.setFeatures(ImmutableMap.of(Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS.getFlag(), false));

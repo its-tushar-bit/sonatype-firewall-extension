@@ -746,10 +746,10 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.advancedElementsTrigger().click();
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
     SourceControlEditorPage.defaultBranchNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your licence"));
+        .shouldHave(text("This feature is not supported by your license"));
     SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldBe(visible);
     SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your licence"));
+        .shouldHave(text("This feature is not supported by your license"));
     SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(visible);
@@ -758,7 +758,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
 
-    eyesWatcher.eyesCheck("Source Control Editor - Pull requests disabled no licence");
+    eyesWatcher.eyesCheck("Source Control Editor - Pull requests disabled no license");
 
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB, true, true, "master");
 
@@ -766,10 +766,10 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.advancedElementsTrigger().click();
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
     SourceControlEditorPage.defaultBranchNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your licence"));
+        .shouldHave(text("This feature is not supported by your license"));
     SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldBe(visible);
     SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your licence"));
+        .shouldHave(text("This feature is not supported by your license"));
     SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(visible);

@@ -13,11 +13,15 @@
    -->{{vm.isOrg ? (vm.isRootOrg ? '' : ' organization') : ' application'}}
     </div>
   </header>
+
+  <!-- source control not supported -->
   <div id="source-control-not-supported"
        class="iq-alert iq-alert--info"
        ng-if="!vm.isSourceControlSupported">
        <i class="fa fa-info-circle"></i>Source Control is not supported by your license
   </div>
+
+  <!-- source control configuration -->
   <div class="iq-tile-content">
     <form name="vm.sourceControlEditor"
           class="iq-form"
@@ -30,13 +34,15 @@
       <div id="source-control-provider-warning"
            class="iq-alert"
            ng-if="vm.shouldShowProviderWarning">
-        <i class="fa fa-warning"></i>Access Token provider must be configured at Root Organization
+        <i class="fa fa-warning"></i>Source Control Management System must be configured at Root Organization
       </div>
       <div id="source-control-token-warning"
            class="iq-alert"
            ng-if="vm.shouldShowAccessTokenWarning">
         <i class="fa fa-warning"></i>Access Token must be configured
       </div>
+
+      <!-- app repository URL -->
       <div id="repository-url-row" class="iq-form-row" ng-if="vm.isApp">
         <div class="iq-form-group">
           <label class="iq-label" for="editor-source-control-url" ng-disabled="!vm.effectiveProvider()"><!--
@@ -46,7 +52,7 @@
                  type="text"
                  ng-change="vm.checkUrlFormat()"
                  ng-pattern="vm.httpAndSshUrlPattern"
-                 class="iq-text-input iq-text-input--long"
+                 class="iq-text-input iq-text-input--repo-url"
                  name="repositoryUrl"
                  ng-model="vm.dirtySourceControl.repositoryUrl"
                  ng-maxlength="2048"
@@ -61,6 +67,8 @@
           </div>
         </div>
       </div>
+
+      <!-- advanced settings -->
       <div class="iq-tree-view iq-tree-view--source-control-editor" ng-if="vm.isApp">
         <a id="source-control-advanced-settings-trigger" class="iq-tree-view__trigger"
            ng-click="vm.toggleShowAdvanced()"
@@ -74,9 +82,11 @@
       </div>
       <div id="source-control-advanced-section" ng-show="vm.showAdvanced">
         <hr class="iq-hr" ng-if="vm.isApp" />
+
+        <!-- root scm provider -->
         <div class="iq-form-row" ng-if="vm.isRootOrg">
           <div class="iq-form-group">
-            <label for="source-control-provider" class="iq-label">Access Token Provider</label>
+            <label for="source-control-provider" class="iq-label">Source Control Management System</label>
             <dropdown-selector id="source-control-provider"
                                ng-model="vm.dirtySourceControl.provider"
                                options="vm.providerTypes"
@@ -86,14 +96,16 @@
                                clm-input
                                required
                                empty-option-string="-- Not Configured --"
-                               messages="{required: 'Source Control provider is required'}"
+                               messages="{required: 'Source Control Management System is required'}"
                                focus-input="true">
             </dropdown-selector>
           </div>
         </div>
+
+        <!-- scm provider -->
         <div class="iq-form-row" ng-if="!vm.isRootOrg">
           <div class="iq-form-group">
-            <label for="source-control-provider-suborg" class="iq-label">Access Token Provider</label>
+            <label for="source-control-provider-suborg" class="iq-label">Source Control Management System</label>
             <fieldset class="iq-radio-group">
               <iq-radio id="editor-source-control-provider-inherit"
                         model="vm.dirtySourceControl.providerInherit"
@@ -128,6 +140,8 @@
             </div>
           </div>
         </div>
+
+        <!-- credentials -->
         <div class="iq-form-row" ng-if="vm.providerNeedsUsername()">
           <div class="iq-form-group" ng-if="!vm.isRootOrg && vm.dirtySourceControl.providerInherit">
             <label for="editor-source-control-credentials-inherit" class="iq-label"><!--
@@ -184,6 +198,8 @@
             </div>
           </div>
         </div>
+
+        <!-- token -->
         <div class="iq-form-row" ng-if="!vm.providerNeedsUsername()">
           <div class="iq-form-group">
             <label for="editor-source-control-token" class="iq-label" ng-disabled="!vm.effectiveProvider()"><!--
@@ -219,12 +235,65 @@
                    messages="{required: 'When override is selected a valid token is required'}">
           </div>
         </div>
+
+        <!-- default branch -->
+        <div class="iq-form-row">
+          <div class="iq-form-group">
+            <label for="editor-source-control-branch"
+                   class="iq-label"
+                   ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"><!--
+          -->Default Branch
+              <div class="iq-sub-label"
+                   ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()">
+                The branch used for Automated PRs and as the basis for finding introduced violations in feature
+                branches
+              </div>
+            </label>
+            <div id="source-control-base-branch-unavailable"
+                 class="iq-alert iq-alert--info"
+                 ng-if="!vm.isPullRequestsSupported()">
+              <i class="fa fa-info-circle"></i>{{vm.getPullRequestsNotAvailableMessage()}}
+            </div>
+            <fieldset class="iq-radio-group" ng-if="vm.isPullRequestsSupported()">
+              <iq-radio id="editor-source-control-branch-inherit"
+                        model="vm.dirtySourceControl.baseBranchInherit"
+                        value="true"
+                        ng-if="!vm.isRootOrg"
+                        is-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"><!--
+                     -->{{vm.baseBranchInheritText}}
+              </iq-radio>
+              <iq-radio id="editor-source-control-branch-override"
+                        model="vm.dirtySourceControl.baseBranchInherit"
+                        value="false"
+                        ng-if="!vm.isRootOrg"
+                        is-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"><!--
+                     -->Override
+              </iq-radio>
+            </fieldset>
+            <input id="editor-source-control-branch"
+                   type="text"
+                   class="iq-text-input iq-text-input--long"
+                   name="baseBranch"
+                   ng-model="vm.dirtySourceControl.baseBranch"
+                   ng-class="{'iq-text-input--double-indent': !vm.isRootOrg}"
+                   ng-maxlength="243"
+                   clm-input
+                   ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported() ||
+                                 vm.dirtySourceControl.baseBranchInherit"
+                   ng-required="vm.isRootOrg || !vm.dirtySourceControl.baseBranchInherit"
+                   messages="{required: vm.isRootOrg ? 'A valid branch name is required for the ' + vm.ownerName
+                   : 'When override is selected a valid branch name is required' }"
+                   ng-if="vm.isPullRequestsSupported()">
+          </div>
+        </div>
+
+        <!-- remediation pull requests -->
         <div class="iq-form-row">
           <div class="iq-form-group">
             <label for="editor-source-control-enable-remediation-pull-requests"
                    class="iq-label"
                    ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"><!--
-          -->Pull Requests
+          -->Automated Remediation Pull Requests
             </label>
             <div class="iq-form-group" id="editor-source-control-enable-remediation-pull-requests">
               <div id="source-control-remediation-pull-request-unavailable"
@@ -260,56 +329,9 @@
             </div>
           </div>
         </div>
-        <div class="iq-form-row">
-          <div class="iq-form-group">
-            <label for="editor-source-control-branch"
-                   class="iq-label"
-                   ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"><!--
-          -->Default Branch
-             <div class="iq-sub-label"
-                  ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()">
-               The branch used for Automated PRs and as the basis for finding introduced violations in feature
-               branches
-             </div>
-            </label>
-            <div id="source-control-base-branch-unavailable"
-                 class="iq-alert iq-alert--info"
-                 ng-if="!vm.isPullRequestsSupported()">
-                 <i class="fa fa-info-circle"></i>{{vm.getPullRequestsNotAvailableMessage()}}
-            </div>
-            <fieldset class="iq-radio-group" ng-if="vm.isPullRequestsSupported()">
-              <iq-radio id="editor-source-control-branch-inherit"
-                        model="vm.dirtySourceControl.baseBranchInherit"
-                        value="true"
-                        ng-if="!vm.isRootOrg"
-                        is-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"><!--
-                     -->{{vm.baseBranchInheritText}}
-              </iq-radio>
-              <iq-radio id="editor-source-control-branch-override"
-                        model="vm.dirtySourceControl.baseBranchInherit"
-                        value="false"
-                        ng-if="!vm.isRootOrg"
-                        is-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"><!--
-                     -->Override
-              </iq-radio>
-            </fieldset>
-            <input id="editor-source-control-branch"
-                   type="text"
-                   class="iq-text-input iq-text-input--long"
-                   name="baseBranch"
-                   ng-model="vm.dirtySourceControl.baseBranch"
-                   ng-class="{'iq-text-input--double-indent': !vm.isRootOrg}"
-                   ng-maxlength="243"
-                   clm-input
-                   ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported() ||
-                                 vm.dirtySourceControl.baseBranchInherit"
-                   ng-required="vm.isRootOrg || !vm.dirtySourceControl.baseBranchInherit"
-                   messages="{required: vm.isRootOrg ? 'A valid branch name is required for the ' + vm.ownerName
-                   : 'When override is selected a valid branch name is required' }"
-                   ng-if="vm.isPullRequestsSupported()">
-          </div>
-        </div>
+
       </div>
+
       <div id="scm-config-results"
            class="iq-list iq-list--scm-test-config-results"
            ng-if="vm.isApp && vm.scmConfigValidationResult">
@@ -367,6 +389,8 @@
     </form>
   </div>
 </div>
+
+<!-- scm metrics -->
 <div id="metricsTable"
      ng-if="vm.isApp && vm.originalSourceControl.repositoryUrl"
      class="iq-tile">
@@ -409,7 +433,7 @@
     </tr>
     <tr class="nx-table-row" ng-if="!vm.sourceControlMetrics || vm.sourceControlMetrics.results.length == 0">
       <td colspan="5" style="text-align:center;">
-        <i>No automated pull requests results available.</i>
+        <i>No automated pull request results available.</i>
       </td>
     </tr>
     </tbody>

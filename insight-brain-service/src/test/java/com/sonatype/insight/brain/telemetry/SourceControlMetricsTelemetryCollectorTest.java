@@ -120,35 +120,35 @@ public class SourceControlMetricsTelemetryCollectorTest extends AbstractComponen
     Calendar calendar = Calendar.getInstance();
     calendar.add(Calendar.DATE, -10);
     Date updateTime = calendar.getTime();
-    tempEntity.newSourceControlPullRequest("repoUrl", 1, "sha", "b-1", new Date(), new Date(),
-        updateTime);
+    tempEntity.newSourceControlPullRequest("repoUrl", 1, "sha", "b-sha", "b-1", "bb",
+        new Date(), new Date(), updateTime);
 
     // add 2 records with update time older than 1 month
     calendar.add(Calendar.DATE, -25);
     updateTime = calendar.getTime();
-    tempEntity.newSourceControlPullRequest("repoUrl", 2, "sha", "b-2", new Date(), new Date(),
-        updateTime);
-    tempEntity.newSourceControlPullRequest("repoUrl", 3, "sha", "b-3", new Date(), new Date(),
-        updateTime);
+    tempEntity.newSourceControlPullRequest("repoUrl", 2, "sha", "b-sha", "b-2", "bb",
+        new Date(), new Date(), updateTime);
+    tempEntity.newSourceControlPullRequest("repoUrl", 3, "sha", "b-sha", "b-3", "bb",
+        new Date(), new Date(), updateTime);
 
     // add 1 record with update time older than 2 months
     calendar.add(Calendar.MONTH, -1);
     updateTime = calendar.getTime();
-    tempEntity.newSourceControlPullRequest("repoUrl", 4, "sha", "b-4", new Date(), new Date(),
-        updateTime);
+    tempEntity.newSourceControlPullRequest("repoUrl", 4, "sha", "b-sha", "b-4", "bb",
+        new Date(), new Date(), updateTime);
 
     // add 2 records with update time older than 3 month
     calendar.add(Calendar.MONTH, -1);
     updateTime = calendar.getTime();
-    tempEntity.newSourceControlPullRequest("repoUrl", 5, "sha", "b-5", new Date(), new Date(),
-        updateTime);
-    tempEntity.newSourceControlPullRequest("repoUrl", 6, "sha", "b-6", new Date(), new Date(),
-        updateTime);
+    tempEntity.newSourceControlPullRequest("repoUrl", 5, "sha", "b-sha", "b-5", "bb",
+        new Date(), new Date(), updateTime);
+    tempEntity.newSourceControlPullRequest("repoUrl", 6, "sha", "b-sha", "b-6", "bb",
+        new Date(), new Date(), updateTime);
 
     // add 1 record with update time older than 6 months
     calendar.add(Calendar.MONTH, -4);
     updateTime = calendar.getTime();
-    tempEntity.newSourceControlPullRequest("repoUrl", 7, "sha", "b-7", new Date(), new Date(),
-        updateTime);
+    tempEntity.newSourceControlPullRequest("repoUrl", 7, "sha", "b-sha", "b-7", "bb",
+        new Date(), new Date(), updateTime);
   }
 }

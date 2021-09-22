@@ -15,7 +15,7 @@ public class PullRequestPolicyEvaluationsDTO
 
   private String featureBranchName;
 
-  private PolicyEvaluation defaultBranchPolicyEvaluation;
+  private PolicyEvaluation targetPolicyEvaluation;
 
   private PolicyEvaluation featureBranchPolicyEvaluation;
 
@@ -34,19 +34,19 @@ public class PullRequestPolicyEvaluationsDTO
     return this;
   }
 
-  public PolicyEvaluation getDefaultBranchPolicyEvaluation() {
-    return defaultBranchPolicyEvaluation;
+  public PolicyEvaluation getTargetPolicyEvaluation() {
+    return targetPolicyEvaluation;
   }
 
-  public PullRequestPolicyEvaluationsDTO setDefaultBranchPolicyEvaluation(
-      PolicyEvaluation defaultBranchPolicyEvaluation)
+  public PullRequestPolicyEvaluationsDTO setTargetPolicyEvaluation(
+      PolicyEvaluation targetPolicyEvaluation)
   {
-    this.defaultBranchPolicyEvaluation = defaultBranchPolicyEvaluation;
+    this.targetPolicyEvaluation = targetPolicyEvaluation;
     return this;
   }
 
-  public String getDefaultBranchPolicyEvaluationId() {
-    return null != defaultBranchPolicyEvaluation ? defaultBranchPolicyEvaluation.getId() : null;
+  public String getTargetPolicyEvaluationId() {
+    return null != targetPolicyEvaluation ? targetPolicyEvaluation.getId() : null;
   }
 
   public String getFeatureBranchName() {

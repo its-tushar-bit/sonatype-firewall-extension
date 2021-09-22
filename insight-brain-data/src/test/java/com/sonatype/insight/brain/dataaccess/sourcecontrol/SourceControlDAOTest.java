@@ -1057,8 +1057,8 @@ public class SourceControlDAOTest
     Application app1 = tempEntity.newApplicationWithParent();
     SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL);
     SourceControl sourceControl1 = tempEntity.newSourceControl(app1.getId(), VALID_URL);
-    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testBranch", new Date(), new Date(),
-        new Date());
+    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testCommitHash",
+        "testBranch", "baseBranch");
 
     // Then delete should not cascade to pull requests (because there are two source control records with the same
     // repository URL).
@@ -1117,8 +1117,8 @@ public class SourceControlDAOTest
     Application app1 = tempEntity.newApplicationWithParent();
     SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL);
     SourceControl sourceControl1 = tempEntity.newSourceControl(app1.getId(), VALID_URL);
-    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testBranch", new Date(), new Date(),
-        new Date());
+    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testCommitHash",
+        "testBranch", "baseBranch");
 
     // Then update should not delete pull requests (because there were two source control records with the same
     // repository URL).
@@ -1139,8 +1139,8 @@ public class SourceControlDAOTest
     createRootOrgWithGitHubProvider();
     // And a source control and a pull request
     SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL);
-    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testBranch", new Date(), new Date(),
-        new Date());
+    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testCommitHash",
+        "testBranch", "baseBranch");
 
     // Then update should not delete pull requests
     sourceControl.setToken(sourceControl.getToken() + "Updated");

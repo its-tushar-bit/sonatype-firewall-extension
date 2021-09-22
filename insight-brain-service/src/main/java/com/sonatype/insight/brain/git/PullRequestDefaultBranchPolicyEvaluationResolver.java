@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
-import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.Optional;
 
@@ -14,7 +13,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -27,20 +25,11 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 @Singleton
 public class PullRequestDefaultBranchPolicyEvaluationResolver
+    extends BasePullRequestPolicyEvaluationResolver
 {
-  private static final long INTERNAL_POLICY_EVALUATION_RECHECK_INTERVAL = 1000L * 60 * 90; // 90 minutes
-
-  private static final Stage SOURCE_STAGE = new Stage(Stage.ID_SOURCE);
-
-  private static final int EXTERNAL_EVALUATION_WINDOW_IN_DAYS = 7;
-
   private final GitCommitHistoryService gitCommitHistoryService;
 
-  private final PolicyEvaluationDAO policyEvaluationDAO;
-
   private final PullRequestInfoClient pullRequestInfoClient;
-
-  private final SourceControlScanService sourceControlScanService;
 
   @Inject
   public PullRequestDefaultBranchPolicyEvaluationResolver(
@@ -49,10 +38,9 @@ public class PullRequestDefaultBranchPolicyEvaluationResolver
       PullRequestInfoClient pullRequestInfoClient,
       SourceControlScanService sourceControlScanService)
   {
+    super(policyEvaluationDAO, sourceControlScanService);
     this.gitCommitHistoryService = gitCommitHistoryService;
-    this.policyEvaluationDAO = policyEvaluationDAO;
     this.pullRequestInfoClient = pullRequestInfoClient;
-    this.sourceControlScanService = sourceControlScanService;
   }
 
   /**
@@ -70,9 +58,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolver
       GitRepositoryInfo gitRepositoryInfo,
       String pullRequestHeadCommitHash) throws GitException, IOException
   {
-    OffsetDateTime dateTime = OffsetDateTime.now().minusDays(EXTERNAL_EVALUATION_WINDOW_IN_DAYS);
-    Date cutoffTime = Date.from(dateTime.toInstant());
-    boolean hasExternalPolicyEvaluations = policyEvaluationDAO.hasExternalPolicyEvaluations(applicationId, cutoffTime);
+    boolean hasExternalPolicyEvaluations = hasExternalPolicyEvaluations(applicationId);
 
     PolicyEvaluation defaultBranchPolicyEvaluation =
         getLatestPolicyEvaluationForBaseBranch(applicationId, hasExternalPolicyEvaluations);
@@ -136,34 +122,9 @@ public class PullRequestDefaultBranchPolicyEvaluationResolver
         gitCommitHistoryService.getLatestPolicyEvaluationForApplicationBaseBranch(applicationId, externallyTriggered);
 
     if (latestPolicyEvaluation.isPresent()) {
-      policyEvaluation = resolveForStage(latestPolicyEvaluation.get(), Stage.ID_BUILD);
-      if (null == policyEvaluation) {
-        policyEvaluation = resolveForStage(latestPolicyEvaluation.get(), Stage.ID_SOURCE);
-      }
-      if (null == policyEvaluation) {
-        policyEvaluation = latestPolicyEvaluation.get();
-      }
+      policyEvaluation = resolveForPreferredStages(latestPolicyEvaluation.get());
     }
 
-    return policyEvaluation;
-  }
-
-  /**
-   * if the given policy evaluation is not for the given stage try to find one for the same commit that is
-   */
-  private PolicyEvaluation resolveForStage(PolicyEvaluation policyEvaluation, String stageTypeId) {
-    if (!policyEvaluation.getStageTypeId().equalsIgnoreCase(stageTypeId)) {
-      final PolicyEvaluation policyEvaluationCandidate =
-          policyEvaluationDAO.getLastByApplicationIdCommitHashAndStageId(
-              policyEvaluation.getApplicationId(),
-              policyEvaluation.getCommitHash(),
-              stageTypeId);
-      if (policyEvaluationCandidate != null &&
-          policyEvaluationCandidate.wasInternallyTriggered() == policyEvaluation.wasInternallyTriggered()) {
-        return policyEvaluationCandidate;
-      }
-      return null;
-    }
     return policyEvaluation;
   }
 }

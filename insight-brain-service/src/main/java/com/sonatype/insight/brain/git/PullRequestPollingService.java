@@ -15,7 +15,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
@@ -53,8 +52,6 @@ public class PullRequestPollingService
 
   private final ApplicationDAO applicationDAO;
 
-  private final PolicyEvaluationDAO policyEvaluationDAO;
-
   private final SourceControlDAO sourceControlDAO;
 
   private final SourceControlPullRequestDAO sourceControlPullRequestDAO;
@@ -77,7 +74,6 @@ public class PullRequestPollingService
   @Inject
   public PullRequestPollingService(
       ApplicationDAO applicationDAO,
-      PolicyEvaluationDAO policyEvaluationDAO,
       SourceControlDAO sourceControlDAO,
       SourceControlPullRequestDAO sourceControlPullRequestDAO,
       SourceControlEventPublisher sourceControlEventPublisher,
@@ -88,7 +84,6 @@ public class PullRequestPollingService
       IqForScmLicenseChecker licenseChecker)
   {
     this.applicationDAO = applicationDAO;
-    this.policyEvaluationDAO = policyEvaluationDAO;
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
@@ -138,24 +133,12 @@ public class PullRequestPollingService
               "Repository '{}' pull request '{}' is for application '{}' base branch, skipping commenting",
               gitRepositoryInfo.getRepositoryUrl(), pullRequest.getNumber(), app.getPublicId());
         }
-        else if (!targetsBaseBranch(pullRequest, gitRepositoryInfo)
-            && !hasFeatureBranchPolicyEvaluation(app.getId(), pullRequest.getHeadCommitHash())) {
-          // we have 2 ways to associate a pull request with a specific application:
-          // The PR repo must match the application's source control repo AND either:
-          //   (a) via a policy evaluation for the head commit (eval commit = PR head commit)
-          //   (b) the PR target branch matches the application default branch
-          log.debug(
-              "Repository '{}' pull request '{}' for application '{}' neither targets the default branch nor has a " +
-                  "policy evaluation associated with the head commit, skipping commenting",
-              gitRepositoryInfo.getRepositoryUrl(), pullRequest.getNumber(), app.getPublicId());
-        }
         else {
           if (!pullRequestWasPersisted) {
             persistPullRequest(pullRequest);
             pullRequestWasPersisted = true;
           }
-          createAndSendDiscoveredPullRequestEvent(app.getId(), pullRequest.getNumber(), pullRequest.getHead(),
-              pullRequest.getHeadCommitHash());
+          createAndSendDiscoveredPullRequestEvent(app.getId(), pullRequest);
         }
 
         pollingTracker.onPullRequestProcessedForApplication(app.getId(), pullRequest.getCreated());
@@ -167,7 +150,9 @@ public class PullRequestPollingService
   private void persistPullRequest(PullRequest pullRequest) {
     SourceControlPullRequest sourceControlPullRequest =
         new SourceControlPullRequest(pullRequest.getRepository(), pullRequest.getNumber(),
-            pullRequest.getHeadCommitHash(), pullRequest.getHead(), pullRequest.getCreated(), new Date(), new Date());
+            pullRequest.getHeadCommitHash(), pullRequest.getBaseCommitHash(),
+            pullRequest.getHead(), pullRequest.getBase(),
+            pullRequest.getCreated(), new Date(), new Date());
     sourceControlPullRequestDAO.insert(sourceControlPullRequest);
   }
 
@@ -187,30 +172,22 @@ public class PullRequestPollingService
     return pullRequest.getHead().equalsIgnoreCase(gitRepositoryInfo.baseBranch);
   }
 
-  private boolean targetsBaseBranch(PullRequest pullRequest, GitRepositoryInfo gitRepositoryInfo) {
-    return pullRequest.getBase().equalsIgnoreCase(gitRepositoryInfo.getBaseBranch());
-  }
-
-  private boolean hasFeatureBranchPolicyEvaluation(String applicationId, String commitHash) {
-    return policyEvaluationDAO.getLastByApplicationAndCommitHash(applicationId, commitHash) != null;
-  }
-
   private void createAndSendDiscoveredPullRequestEvent(
       String applicationId,
-      int pullRequestNumber,
-      String branchName,
-      String pullRequestHeadCommitHash)
+      PullRequest pullRequest)
   {
     SourceControlEvent event = new SourceControlEvent()
         .forDiscoveredPullRequest()
         .setApplicationId(applicationId)
-        .setBranchName(branchName)
-        .setCommitHash(pullRequestHeadCommitHash)
-        .setPullRequestNumber(pullRequestNumber)
+        .setBranchName(pullRequest.getHead())
+        .setCommitHash(pullRequest.getHeadCommitHash())
+        .setBaseCommitHash(pullRequest.getBaseCommitHash())
+        .setBaseBranchName(pullRequest.getBase())
+        .setPullRequestNumber(pullRequest.getNumber())
         .setInitiator(POLLING);
     sourceControlEventPublisher.publishEvent(event);
     log.info("Sent pull request discovered event for application '{}' with PR# '{}' and commit '{}'",
-        applicationId, pullRequestNumber, pullRequestHeadCommitHash);
+        applicationId, pullRequest.getNumber(), pullRequest.getHeadCommitHash());
   }
 
   /**

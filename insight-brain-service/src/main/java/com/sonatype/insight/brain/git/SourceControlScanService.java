@@ -137,6 +137,16 @@ public class SourceControlScanService
   public PolicyEvaluation doSynchronousSourceControlScan(String applicationId, Stage stage, String branchName)
       throws GitException, IOException
   {
+    return doSynchronousSourceControlScan(applicationId, stage, branchName, null);
+  }
+
+  public PolicyEvaluation doSynchronousSourceControlScan(
+      String applicationId,
+      Stage stage,
+      String branchName,
+      String commitHash)
+      throws GitException, IOException
+  {
     if (!licenseChecker.isIqForScmSupported()) {
       log.debug("License does not support source control notification or automation features");
       return null;
@@ -159,7 +169,7 @@ public class SourceControlScanService
           AuditData.get().setApplication(application);
           AuditData.get().setStageId(stage.getStageTypeId());
 
-          RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, branchName);
+          RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, branchName, commitHash);
           ScanResult scanResult = scan(application, repoSyncResult.getHeadRef());
           ClientScanType clientScanType =
               scanResult.hasThirdPartyScanContent() ? ClientScanType.SONATYPE_THIRD_PARTY : ClientScanType.SONATYPE;
@@ -179,14 +189,28 @@ public class SourceControlScanService
     return result;
   }
 
-  private RepositorySyncResult checkout(Application application, GitRepositoryInfo gitRepositoryInfo, String branch)
+  private RepositorySyncResult checkout(
+      Application application,
+      GitRepositoryInfo gitRepositoryInfo,
+      String branchName)
+      throws GitException
+  {
+    return checkout(application, gitRepositoryInfo, branchName, null);
+  }
+
+  private RepositorySyncResult checkout(
+      Application application,
+      GitRepositoryInfo gitRepositoryInfo,
+      String branchName,
+      String commitHash)
       throws GitException
   {
     final GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
     final File repositoryDirectory = sourceControlUtils.getCheckoutDirectory(application);
 
     try {
-      return new RepositorySyncExecutor().execute(new RepositorySyncCommand(gitApi, branch, repositoryDirectory));
+      return new RepositorySyncExecutor().execute(
+          new RepositorySyncCommand(gitApi, branchName, commitHash, repositoryDirectory));
     }
     catch (GitException e) {
       final Throwable cause = e.getCause();

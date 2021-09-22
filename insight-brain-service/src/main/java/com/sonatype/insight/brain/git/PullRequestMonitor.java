@@ -300,6 +300,8 @@ public class PullRequestMonitor
           .setApplicationId(application.getId()) //
           .setBranchName(pullRequest.getBranchName()) //
           .setCommitHash(pullRequest.getHeadCommitHash()) //
+          .setBaseCommitHash(pullRequest.getBaseCommitHash()) //
+          .setBaseBranchName(pullRequest.getBaseBranchName()) //
           .setPullRequestNumber(pullRequest.getPullRequestId()) //
           .setInitiator("polling");
       sourceControlEventPublisher.publishEvent(event);

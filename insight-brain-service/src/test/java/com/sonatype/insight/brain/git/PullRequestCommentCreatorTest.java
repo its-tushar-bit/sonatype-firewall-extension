@@ -216,7 +216,7 @@ public class PullRequestCommentCreatorTest
       PolicyEvaluation policyEvaluation = new PolicyEvaluation();
       policyEvaluation.setId(id);
       policyEvaluation.setCommitHash(commitHash);
-      pullRequestPolicyEvaluationsDTO.setDefaultBranchPolicyEvaluation(policyEvaluation);
+      pullRequestPolicyEvaluationsDTO.setTargetPolicyEvaluation(policyEvaluation);
       return this;
     }
 

@@ -66,7 +66,7 @@ public class PullRequestCommentingService
     try {
       Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff = policyEvaluationDiffService
           .createPolicyViolationDiff(
-              dto.getDefaultBranchPolicyEvaluation(),
+              dto.getTargetPolicyEvaluation(),
               dto.getFeatureBranchPolicyEvaluation(),
               MINIMUM_THREAT_LEVEL);
 

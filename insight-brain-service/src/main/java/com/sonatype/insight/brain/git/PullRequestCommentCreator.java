@@ -113,7 +113,7 @@ public class PullRequestCommentCreator
         prPolicyEvaluationsDTO.getApplicationId(), prPolicyEvaluationsDTO.getPullRequestNumber());
 
     PolicyEvaluation featureBranchPolicyEvaluation = prPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluation();
-    PolicyEvaluation defaultBranchPolicyEvaluation = prPolicyEvaluationsDTO.getDefaultBranchPolicyEvaluation();
+    PolicyEvaluation targetPolicyEvaluation = prPolicyEvaluationsDTO.getTargetPolicyEvaluation();
 
     LocationDiscoveryResult locationDiscoveryResult = getLocationDiscovery(prPolicyEvaluationsDTO, policyViolationDiff);
 
@@ -127,7 +127,7 @@ public class PullRequestCommentCreator
             featureBranchPolicyEvaluation.getCommitHash(),
             prPolicyEvaluationsDTO.getApplicationId(),
             featureBranchPolicyEvaluation.getId(),
-            defaultBranchPolicyEvaluation.getId(),
+            targetPolicyEvaluation.getId(),
             locationDiscoveryResult);
 
     try {
@@ -141,7 +141,7 @@ public class PullRequestCommentCreator
       Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService.createMarkup(
           policyViolationDiff, remediationVersionMap, pullRequestLineComments,
           prPolicyEvaluationsDTO.getGitRepositoryInfo(), prPolicyEvaluationsDTO.getPullRequestNumber(),
-          featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, sourceControlComponentDetails, telemetry);
+          featureBranchPolicyEvaluation, targetPolicyEvaluation, sourceControlComponentDetails, telemetry);
 
       if (policyEvaluationDiffMarkup.isPresent()) {
         Optional<CommentResponse> response = pullRequestCommentingClient.createOrUpdateCommentInGitSCM(
@@ -166,7 +166,7 @@ public class PullRequestCommentCreator
               policyViolationDiff,
               sourceControlComponentDetails,
               featureBranchPolicyEvaluation,
-              defaultBranchPolicyEvaluation,
+              targetPolicyEvaluation,
               prPolicyEvaluationsDTO.getFeatureBranchName(),
               locationDiscoveryResult);
 
@@ -254,7 +254,7 @@ public class PullRequestCommentCreator
               commentVersion,
               contentHash,
               pullRequestPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluationId(),
-              pullRequestPolicyEvaluationsDTO.getDefaultBranchPolicyEvaluationId()
+              pullRequestPolicyEvaluationsDTO.getTargetPolicyEvaluationId()
           );
       pullRequestCommentDAO.insert(pullRequestComment);
     }
@@ -265,7 +265,7 @@ public class PullRequestCommentCreator
       existingPullRequestComment
           .setSourcePolicyEvaluationId(pullRequestPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluationId());
       existingPullRequestComment
-          .setTargetPolicyEvaluationId(pullRequestPolicyEvaluationsDTO.getDefaultBranchPolicyEvaluationId());
+          .setTargetPolicyEvaluationId(pullRequestPolicyEvaluationsDTO.getTargetPolicyEvaluationId());
       pullRequestCommentDAO.update(existingPullRequestComment);
     }
     log.debug("pull request comment '{}' for application '{}' pull request '{}' recorded in database", commentId,

@@ -107,6 +107,9 @@ public class  SourceControlEvent
   @Column(name = "commit_hash")
   private String commitHash;
 
+  @Column(name = "base_commit_hash")
+  private String baseCommitHash;
+
   @Column(name = "policy_evaluation_id")
   private String policyEvaluationId;
 
@@ -136,6 +139,9 @@ public class  SourceControlEvent
 
   @Column(name = "branch_name")
   private String branchName;
+
+  @Column(name = "base_branch_name")
+  private String baseBranchName;
 
   @Column(name = "pull_request_number")
   private int pullRequestNumber;
@@ -287,6 +293,24 @@ public class  SourceControlEvent
 
   public SourceControlEvent setCommitHash(final String commitHash) {
     this.commitHash = commitHash;
+    return this;
+  }
+
+  public String getBaseCommitHash() {
+    return baseCommitHash;
+  }
+
+  public SourceControlEvent setBaseCommitHash(final String baseCommitHash) {
+    this.baseCommitHash = baseCommitHash;
+    return this;
+  }
+
+  public String getBaseBranchName() {
+    return baseBranchName;
+  }
+
+  public SourceControlEvent setBaseBranchName(final String baseBranchName) {
+    this.baseBranchName = baseBranchName;
     return this;
   }
 
@@ -478,6 +502,8 @@ public class  SourceControlEvent
         .setApplicationId(applicationId)
         .setBranchName(branchName)
         .setCommitHash(commitHash)
+        .setBaseCommitHash(baseCommitHash)
+        .setBaseBranchName(baseBranchName)
         .setCriticalComponentCount(criticalComponentCount)
         .setEventPriority(eventPriority)
         .setEventStatus(EVENT_STATUS_NEW)

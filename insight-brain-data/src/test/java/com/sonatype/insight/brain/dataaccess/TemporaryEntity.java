@@ -3072,21 +3072,34 @@ public class TemporaryEntity
   }
 
   public SourceControlPullRequest newSourceControlPullRequest() {
-    return newSourceControlPullRequest("http://localhost/" + uuid(), 1, uuid(), uuid(), new Date(), new Date(),
-        new Date());
+    return newSourceControlPullRequest("http://localhost/" + uuid(), 1, uuid(), uuid(), uuid(), uuid());
   }
 
   public SourceControlPullRequest newSourceControlPullRequest(
       String repositoryUrl,
       int pullRequestId,
       String headCommitHash,
+      String baseCommitHash,
       String branchName,
+      String baseBranchName)
+  {
+    return newSourceControlPullRequest(repositoryUrl, pullRequestId, headCommitHash, baseCommitHash,
+        branchName, baseBranchName, new Date(), new Date(), new Date());
+  }
+
+  public SourceControlPullRequest newSourceControlPullRequest(
+      String repositoryUrl,
+      int pullRequestId,
+      String headCommitHash,
+      String baseCommitHash,
+      String branchName,
+      String baseBranchName,
       Date createTime,
       Date lastCheckTime,
       Date lastDetectedUpdateTime)
   {
     SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest(repositoryUrl, pullRequestId,
-        headCommitHash, branchName, createTime, lastCheckTime, lastDetectedUpdateTime);
+        headCommitHash, baseCommitHash, branchName, baseBranchName, createTime, lastCheckTime, lastDetectedUpdateTime);
     sourceControlPullRequestDAO.insert(sourceControlPullRequest);
     sourceControlPullRequests.add(sourceControlPullRequest);
     return sourceControlPullRequest;

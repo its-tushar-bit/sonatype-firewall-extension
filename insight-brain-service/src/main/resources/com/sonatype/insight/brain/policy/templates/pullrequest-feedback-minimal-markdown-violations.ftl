@@ -69,7 +69,7 @@
 **Organization**: ${organizationName}   <#lt>
 **Date**: ${date}<#lt>
 
-**PR Branch**: ${featureBranchStage} Stage - [Full Report](${detailedFeatureBranchReportUrl})   <#lt>
-**Default Branch**: ${defaultBranchStage} Stage - [Full Report](${detailedDefaultBranchReportUrl})<#lt>
+**Source Branch**: ${featureBranchStage} Stage - [Full Report](${detailedFeatureBranchReportUrl})   <#lt>
+**Target Branch**: ${baseBranchStage} Stage - [Full Report](${detailedBaseBranchReportUrl})<#lt>
 
 [Give feedback](https://community.sonatype.com/t/user-feedback-github-pr-reviews/3811)<#t>

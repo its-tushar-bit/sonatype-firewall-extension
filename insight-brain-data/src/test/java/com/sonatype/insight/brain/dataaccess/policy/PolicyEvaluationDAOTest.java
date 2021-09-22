@@ -1140,6 +1140,43 @@ public class PolicyEvaluationDAOTest
     assertThat(policyEvaluation).isNull();
   }
 
+  @Test
+  public void testGetLastByApplicationAndCommitHashAndTriggerType() {
+    // setup
+    PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+    String commitHash = "hash";
+
+    // add a couple BUILD stage policy evaluations for the same commit hash
+    Calendar now = Calendar.getInstance();
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-1",
+        false, false, false, now.getTime(), commitHash, ScanTriggerType.CLI);
+    now.add(Calendar.MINUTE, 10);
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-2",
+        false, false, false, now.getTime(), commitHash, ScanTriggerType.CLI);
+    now.add(Calendar.MINUTE, 10);
+
+    // add one DEVELOP stage policy evaluation for the same commit hash
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_DEVELOP, "scan-develop-1",
+        false, false, false, now.getTime(), commitHash,
+        ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST);
+
+    // when fetching last external evaluation for the given app and commit hash
+    PolicyEvaluation policyEvaluation =
+        dao.getLastByApplicationAndCommitHashAndTriggerType(application.getId(), commitHash, true);
+
+    // then assert that the second BUILD evaluation is returned
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation).extracting(PolicyEvaluation::getScanId).isEqualTo("scan-build-2");
+
+    // when fetching last internal evaluation for the given app and commit hash
+    policyEvaluation =
+        dao.getLastByApplicationAndCommitHashAndTriggerType(application.getId(), commitHash, false);
+
+    // then assert that the DEVELOP evaluation is returned
+    assertThat(policyEvaluation).isNotNull();
+    assertThat(policyEvaluation).extracting(PolicyEvaluation::getScanId).isEqualTo("scan-develop-1");
+  }
+
   @FunctionalInterface
   interface PolicyEvaluationChooser
   {

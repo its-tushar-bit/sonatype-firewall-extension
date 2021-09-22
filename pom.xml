@@ -56,11 +56,11 @@
     <selenium.version>3.141.59</selenium.version>
     <httpcomponents.version>4.5.13</httpcomponents.version>
     <nexus-scm-client.version>1.42.0-SNAPSHOT</nexus-scm-client.version>
-    <nexus-dependency-management.version>1.20.0</nexus-dependency-management.version>
+    <nexus-dependency-management.version>1.21.0-SNAPSHOT</nexus-dependency-management.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
 
     <!--
-      Properties for functional test docker container used by insight-brain-java-functional-test 
+      Properties for functional test docker container used by insight-brain-java-functional-test
       and insight-brain-functional-test
     -->
     <docker.image.registry></docker.image.registry>

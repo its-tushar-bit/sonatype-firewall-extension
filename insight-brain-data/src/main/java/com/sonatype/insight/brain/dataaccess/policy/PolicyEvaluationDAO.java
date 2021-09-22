@@ -419,4 +419,20 @@ public class PolicyEvaluationDAO
         "ORDER BY entity.time DESC";
     return createQuery(sQuery, applicationId, commitHash, stageTypeId).forceSingleResult().get();
   }
+
+  public PolicyEvaluation getLastByApplicationAndCommitHashAndTriggerType(
+      final String applicationId,
+      final String commitHash,
+      final boolean externallyTriggered)
+  {
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
+        " WHERE entity.commitHash=?1" + //
+        " AND entity.applicationId=?2" + //
+        " AND entity.scanTriggerType ";
+    if (externallyTriggered) {
+      sQuery += "NOT ";
+    }
+    sQuery += "IN (?3) ORDER BY entity.time DESC";
+    return createQuery(sQuery, commitHash, applicationId, ScanTriggerType.internalScanTypes).forceSingleResult().get();
+  }
 }

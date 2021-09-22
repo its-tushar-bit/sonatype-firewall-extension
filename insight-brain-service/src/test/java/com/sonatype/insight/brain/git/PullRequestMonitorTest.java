@@ -151,9 +151,9 @@ public class PullRequestMonitorTest
     String repositoryUrl = "http://example.com/testorg/testproject";
     tempEntity.newSourceControl(app.getId(), repositoryUrl);
     SourceControlPullRequest pullRequest1 = tempEntity.newSourceControlPullRequest(repositoryUrl, 1,
-        "testHeadCommitHash1", "testBranchName1", new Date(), new Date(), new Date());
+        "testHeadCommitHash1", "testBaseCommitHash1", "testBranchName1", "baseBranchName");
     SourceControlPullRequest pullRequest2 = tempEntity.newSourceControlPullRequest(repositoryUrl, 2,
-        "testHeadCommitHash2", "testBranchName2", new Date(), new Date(), new Date());
+        "testHeadCommitHash2", "testBaseCommitHash2", "testBranchName2", "baseBranchName");
 
     // Only for the first pull request the branch still exists
     when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl))
@@ -180,9 +180,11 @@ public class PullRequestMonitorTest
     Date createTime = new Date(System.currentTimeMillis() - 2000);
     Date lastUpdateTime = new Date(System.currentTimeMillis() - 1000);
     SourceControlPullRequest pullRequest1 = tempEntity.newSourceControlPullRequest(repositoryUrl, 1,
-        "testHeadCommitHash1", "testBranchName1", createTime, lastUpdateTime, lastUpdateTime);
+        "testHeadCommitHash1", "testBaseCommitHash1", "testBranchName1", "baseBranchName",
+        createTime, lastUpdateTime, lastUpdateTime);
     SourceControlPullRequest pullRequest2 = tempEntity.newSourceControlPullRequest(repositoryUrl, 2,
-        "testHeadCommitHash2", "testBranchName2", createTime, lastUpdateTime, lastUpdateTime);
+        "testHeadCommitHash2", "testBaseCommitHash2", "testBranchName2", "baseBranchName",
+        createTime, lastUpdateTime, lastUpdateTime);
 
     // First branch is updated
     Map<String, String> headCommitsByBranch = new HashMap<>();
@@ -196,11 +198,13 @@ public class PullRequestMonitorTest
 
     // Then only the first pull request is updated
     pullRequest1 = pullRequestDAO.getById(pullRequest1.getId());
-    assertPullRequest(pullRequest1, repositoryUrl, 1, "testHeadCommitHash1Updated", "testBranchName1", createTime);
+    assertPullRequest(pullRequest1, repositoryUrl, 1, "testHeadCommitHash1Updated", "testBaseCommitHash1",
+        "testBranchName1", createTime);
     assertThat(pullRequest1.getLastCheckTime()).isBetween(before, after, true, true);
     assertThat(pullRequest1.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
     pullRequest2 = pullRequestDAO.getById(pullRequest2.getId());
-    assertPullRequest(pullRequest2, repositoryUrl, 2, "testHeadCommitHash2", "testBranchName2", createTime);
+    assertPullRequest(pullRequest2, repositoryUrl, 2, "testHeadCommitHash2", "testBaseCommitHash2", "testBranchName2",
+        createTime);
     assertThat(pullRequest2.getLastCheckTime()).isBetween(before, after, true, true);
     assertThat(pullRequest2.getLastDetectedUpdateTime()).isEqualTo(lastUpdateTime);
 
@@ -221,7 +225,8 @@ public class PullRequestMonitorTest
     Date createTime = new Date(System.currentTimeMillis() - 2000);
     Date lastUpdateTime = new Date(System.currentTimeMillis() - 1000);
     SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(repositoryUrl, 1,
-        "testHeadCommitHash", "testBranchName", createTime, lastUpdateTime, lastUpdateTime);
+        "testHeadCommitHash", "testBaseCommitHash1", "testBranchName", "baseBranchName",
+        createTime, lastUpdateTime, lastUpdateTime);
 
     // First branch is updated
     when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl))
@@ -232,7 +237,8 @@ public class PullRequestMonitorTest
 
     // Then only the first pull request is updated
     pullRequest = pullRequestDAO.getById(pullRequest.getId());
-    assertPullRequest(pullRequest, repositoryUrl, 1, "testHeadCommitHashUpdated", "testBranchName", createTime);
+    assertPullRequest(pullRequest, repositoryUrl, 1, "testHeadCommitHashUpdated", "testBaseCommitHash1",
+        "testBranchName", createTime);
     assertThat(pullRequest.getLastCheckTime()).isBetween(before, after, true, true);
     assertThat(pullRequest.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
 
@@ -262,7 +268,8 @@ public class PullRequestMonitorTest
     Date createTime = new Date(System.currentTimeMillis() - 2000);
     Date lastUpdateTime = new Date(System.currentTimeMillis() - 1000);
     SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(repositoryUrl, 1,
-        "testHeadCommitHash1", "testBranchName1", createTime, lastUpdateTime, lastUpdateTime);
+        "testHeadCommitHash1", "testBaseCommitHash1", "testBranchName1", "baseBranchName",
+        createTime, lastUpdateTime, lastUpdateTime);
 
     // First branch is updated and one branch is not tracked (i.e. no corresponding PR)
     Map<String, String> headCommitsByBranch = new HashMap<>();
@@ -276,7 +283,8 @@ public class PullRequestMonitorTest
 
     // Then only the first pull request is updated
     pullRequest = pullRequestDAO.getById(pullRequest.getId());
-    assertPullRequest(pullRequest, repositoryUrl, 1, "testHeadCommitHash1Updated", "testBranchName1", createTime);
+    assertPullRequest(pullRequest, repositoryUrl, 1, "testHeadCommitHash1Updated", "testBaseCommitHash1",
+        "testBranchName1", createTime);
     assertThat(pullRequest.getLastCheckTime()).isBetween(before, after, true, true);
     assertThat(pullRequest.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
 
@@ -304,7 +312,8 @@ public class PullRequestMonitorTest
     Date createTime = new Date(System.currentTimeMillis() - 2000);
     Date lastUpdateTime = new Date(System.currentTimeMillis() - 1000);
     SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(repositoryUrl, 1,
-        "testHeadCommitHash", "testBranchName", createTime, lastUpdateTime, lastUpdateTime);
+        "testHeadCommitHash", "testBaseCommitHash1", "testBranchName", "baseBranchName",
+        createTime, lastUpdateTime, lastUpdateTime);
     // And an existing event
     SourceControlEvent existingEvent = new SourceControlEvent() //
         .setApplicationId(app.getId()) //
@@ -327,12 +336,14 @@ public class PullRequestMonitorTest
       String repositoryUrl,
       int pullRequestId,
       String headCommitHash,
+      String baseCommitHash,
       String branchName,
       Date createTime)
   {
     assertThat(pullRequest.getRepositoryUrl()).isEqualTo(repositoryUrl);
     assertThat(pullRequest.getPullRequestId()).isEqualTo(pullRequestId);
     assertThat(pullRequest.getHeadCommitHash()).isEqualTo(headCommitHash);
+    assertThat(pullRequest.getBaseCommitHash()).isEqualTo(baseCommitHash);
     assertThat(pullRequest.getBranchName()).isEqualTo(branchName);
     assertThat(pullRequest.getCreateTime()).isEqualTo(createTime);
   }

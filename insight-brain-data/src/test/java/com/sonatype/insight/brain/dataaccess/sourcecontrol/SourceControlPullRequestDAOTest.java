@@ -30,12 +30,15 @@ public class SourceControlPullRequestDAOTest
     String repositoryUrlLowercase = "testrepositoryurl";
     int pullRequestId = 1234;
     String headCommitHash = "testHeadCommitHash";
+    String baseCommitHash = "testBaseCommitHash";
     String branchName = "testBranchName";
+    String baseBranchName = "testBaseBranchName";
     Date createTime = new Date(System.currentTimeMillis() - 1000);
     Date lastCheckTime = new Date(System.currentTimeMillis());
     Date lastDetectedUpdateTime = new Date(System.currentTimeMillis() + 1000);
     SourceControlPullRequest sourceControlPullRequest = tempEntity.newSourceControlPullRequest(repositoryUrl,
-        pullRequestId, headCommitHash, branchName, createTime, lastCheckTime, lastDetectedUpdateTime);
+        pullRequestId, headCommitHash, baseCommitHash, branchName, baseBranchName,
+        createTime, lastCheckTime, lastDetectedUpdateTime);
     assertThat(sourceControlPullRequest.getId()).isNotNull();
 
     // Read
@@ -46,6 +49,7 @@ public class SourceControlPullRequestDAOTest
     assertThat(sourceControlPullRequest.getPullRequestId()).isEqualTo(pullRequestId);
     assertThat(sourceControlPullRequest.getHeadCommitHash()).isEqualTo(headCommitHash);
     assertThat(sourceControlPullRequest.getBranchName()).isEqualTo(branchName);
+    assertThat(sourceControlPullRequest.getBaseBranchName()).isEqualTo(baseBranchName);
     assertThat(sourceControlPullRequest.getCreateTime()).isEqualTo(createTime);
     assertThat(sourceControlPullRequest.getLastCheckTime()).isEqualTo(lastCheckTime);
     assertThat(sourceControlPullRequest.getLastDetectedUpdateTime()).isEqualTo(lastDetectedUpdateTime);
@@ -85,11 +89,11 @@ public class SourceControlPullRequestDAOTest
   public void testDeleteByRepositoryUrl() {
     // Given 3 pull requests, of which two have the same repository URL (case insensitive)
     SourceControlPullRequest sourceControlPullRequest = tempEntity.newSourceControlPullRequest("testRepositoryUrl1", 1,
-        "testHeadCommitHash1", "testBranchName1", new Date(), new Date(), new Date());
-    tempEntity.newSourceControlPullRequest("testRepositoryUrl2", 1, "testHeadCommitHash2", "testBranchName2",
-        new Date(), new Date(), new Date());
-    tempEntity.newSourceControlPullRequest("TESTRepositoryUrl2", 2, "testHeadCommitHash3", "testBranchName3",
-        new Date(), new Date(), new Date());
+        "testHeadCommitHash1", "testBaseCommitHash1", "testBranchName1", "testBaseBranchName");
+    tempEntity.newSourceControlPullRequest("testRepositoryUrl2", 1,
+        "testHeadCommitHash2", "testBaseCommitHash2", "testBranchName2", "testBaseBranchName");
+    tempEntity.newSourceControlPullRequest("TESTRepositoryUrl2", 2,
+        "testHeadCommitHash3", "testBaseCommitHash3", "testBranchName3", "testBaseBranchName");
 
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
@@ -106,22 +110,21 @@ public class SourceControlPullRequestDAOTest
   public void testGetCountByUpdateTimeRange() {
     // Given several pull requests:
     // - 1 PR last updated now
-    tempEntity.newSourceControlPullRequest("repoUrl", 1, "sha", "b-1",
-        new Date(), new Date(), new Date());
+    tempEntity.newSourceControlPullRequest("repoUrl", 1, "sha", "b-sha", "b-1", "bb");
 
     // - 2 PRs last updated between 1 and 2 weeks ago
     Calendar calendar = Calendar.getInstance();
     calendar.add(Calendar.DATE, -10);
     Date updateTime = calendar.getTime();
-    tempEntity.newSourceControlPullRequest("repoUrl", 2, "sha", "b-2",
+    tempEntity.newSourceControlPullRequest("repoUrl", 2, "sha", "b-sha", "b-2", "bb",
         new Date(), new Date(), updateTime);
-    tempEntity.newSourceControlPullRequest("repoUrl", 3, "sha", "b-3",
+    tempEntity.newSourceControlPullRequest("repoUrl", 3, "sha", "b-sha", "b-3", "bb",
         new Date(), new Date(), updateTime);
 
     // - 1 PR last updated more than a months ago
     calendar.add(Calendar.MONTH, -1);
     updateTime = calendar.getTime();
-    tempEntity.newSourceControlPullRequest("repoUrl", 4, "sha", "b-4",
+    tempEntity.newSourceControlPullRequest("repoUrl", 4, "sha", "b-sha", "b-4", "bb",
         new Date(), new Date(), updateTime);
 
     // when check how many PRs were updated between 1 and 2 weeks ago

@@ -1,0 +1,68 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import * as PropTypes from 'prop-types';
+
+import { NxButton, NxFontAwesomeIcon, NxList, NxTextLink } from '@sonatype/react-shared-components';
+import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
+
+import IqPopover from '../../../react/IqPopover';
+import Occurrence from './Occurrence';
+import { parseOccurrencePathname } from '../../componentDetailsUtils';
+
+const EXTERNAL_OCCURRENCES_INFO_LINK =
+  'https://help.sonatype.com/iqserver/reporting/application-composition-report/the-component-information-panel#TheComponentInformationPanel-Occurrences';
+
+export default function OccurrencesPopover(props) {
+  const { occurrences, onClose, showOccurrencesPopover } = props;
+
+  const occurrencesDocumentationLink = (
+    <NxTextLink external href={EXTERNAL_OCCURRENCES_INFO_LINK}>
+      Learn more about Component Occurrences here.
+    </NxTextLink>
+  );
+
+  const occurrencesInfoText =
+    'Component Occurrences shows a list of file names and locations where the component was encountered.';
+
+  const parsedPathNames = occurrences.map(parseOccurrencePathname);
+
+  return showOccurrencesPopover ? (
+    <IqPopover id="occurrences-popover" size="large" onClose={onClose}>
+      <IqPopover.Header>
+        <div className="iq-popover-header__title iq-occurrences-popover-header__title">
+          <h2 className="nx-h2 iq-popover-header__title-text iq-occurrences-popover-header__title-text">Occurrences</h2>
+          <NxButton
+            id="iq-occurrences-popover-close-btn"
+            onClick={onClose}
+            variant="icon-only"
+            title="Close"
+            className="iq-popover-header__close-btn iq-occurrences-popover-header__title-close"
+          >
+            <NxFontAwesomeIcon icon={faArrowToRight} />
+          </NxButton>
+        </div>
+      </IqPopover.Header>
+      <div className="iq-occurrences-popover-content">
+        <p className="iq-occurrences-popover-content__message">
+          {occurrencesInfoText} {occurrencesDocumentationLink}
+        </p>
+        <h3 className="nx-h3">Component Occurrences</h3>
+        <NxList>
+          {parsedPathNames.map((occurrence) => (
+            <Occurrence occurrence={occurrence} key={occurrence.basename} />
+          ))}
+        </NxList>
+      </div>
+    </IqPopover>
+  ) : null;
+}
+
+OccurrencesPopover.propTypes = {
+  occurrences: PropTypes.arrayOf(PropTypes.string).isRequired,
+  onClose: PropTypes.func.isRequired,
+  showOccurrencesPopover: PropTypes.bool.isRequired,
+};

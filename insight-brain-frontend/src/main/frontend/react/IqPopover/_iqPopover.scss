@@ -78,3 +78,18 @@
 .iq-popover__footer {
   padding-top: 0;
 }
+
+.iq-popover-header__title {
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+
+  .iq-popover-header__title-text {
+    flex: 1;
+  }
+
+  .iq-popover-header__close-btn {
+    margin-left: auto;
+    margin-right: 0;
+  }
+}

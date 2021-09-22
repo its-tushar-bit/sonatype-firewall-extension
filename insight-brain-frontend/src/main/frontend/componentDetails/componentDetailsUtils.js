@@ -39,3 +39,24 @@ function createLicenseDetails(record) {
 
   return overriddenLicenses ? `License as ${join(', ', overriddenLicenses)}` : 'License Analysis';
 }
+
+const PATHNAME_REGEX = /^(dependency:\/)?((.*?)\/)?([^/]+)$/;
+
+// @visibleForTesting
+export function parseOccurrencePathname(pathname) {
+  const [
+      ,
+      /* overall match */ dependency /* dirname including delimiter */,
+      ,
+      dirname,
+      originalBasename,
+    ] = PATHNAME_REGEX.exec(pathname),
+    isDependency = !!dependency;
+
+  // component names which contains '/' are replaced with '\' by the Occurrence pathnames string in the backend. This is
+  // to avoid considering them as part of basename. Replacing them back as how it should be after resolving base name -
+  // CLM-12606
+  const basename = originalBasename.replace(/\\/g, '/');
+
+  return { isDependency, dirname, basename };
+}

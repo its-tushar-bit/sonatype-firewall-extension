@@ -21,6 +21,7 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
+import com.sonatype.clm.testing.functional.elements.componentdetails.OccurrencesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
@@ -221,6 +222,30 @@ public class ComponentDetailsTest
     identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File Matches"));
 
     eyesWatcher.eyesCheck("component details overview tab component information");
+  }
+
+  @Test
+  public void testOverviewTab_OccurrencesPopover() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
+    componentDetailsPage.overviewTab().shouldBe(visible);
+    componentDetailsPage.overviewTabContent().shouldBe(visible);
+
+    IdentificationInfoSection identificationInfoSection =
+        componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
+    identificationInfoSection.shouldBe(visible);
+    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File Matches"));
+    identificationInfoSection.getOccurrencesLink().click();
+
+    OccurrencesPopover occurrencesPopover = new OccurrencesPopover();
+    occurrencesPopover.title().shouldHave(text("Occurrences"));
+    occurrencesPopover.subtitle().shouldHave(text("Component Occurrences"));
+    occurrencesPopover.infoMessage().shouldBe(visible);
+    occurrencesPopover.externalLink().shouldBe(visible);
+    eyesWatcher.eyesCheck("Occurrences Popover");
+
+    occurrencesPopover.closeButton().click();
+    occurrencesPopover.shouldNotBe(visible);
   }
 
   @Test

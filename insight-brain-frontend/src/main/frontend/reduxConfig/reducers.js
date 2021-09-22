@@ -55,6 +55,7 @@ import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolat
 import componentDetailsViolationsReducer from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import successMetricsReportSlice from '../labs/successMetrics/successMetricsReportSlice';
 import productLicenseReducer from '../configuration/license/productLicenseReducer';
+import occurrencesPopoverReducer from '../componentDetails/overview/occurrencesPopover/occurrencesPopoverSlice';
 import ldapListReducer from '../configuration/ldap/ldapServersList/ldapListSlice';
 import overviewSlice from '../componentDetails/overview/overviewSlice';
 
@@ -112,4 +113,5 @@ export default combineReducers({
   componentDetailsOverview: overviewSlice,
   successMetrics: successMetricsReportSlice,
   productLicense: productLicenseReducer,
+  occurrencesPopover: occurrencesPopoverReducer,
 });

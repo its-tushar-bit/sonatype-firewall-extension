@@ -12,6 +12,8 @@ import {
   NxTab,
   NxTabList,
   NxTabPanel,
+  NxWarningAlert,
+  NxButton,
 } from '@sonatype/react-shared-components';
 
 import AuditLogContainer from './auditLog/AuditLogContainer';
@@ -67,6 +69,18 @@ export default function ComponentDetails({
 
   const { name, metadata, format, dependencyType, isInnerSource, labels } = componentDetails;
 
+  const unknownComponentAlert = (
+    <NxWarningAlert className="iq-component-details-unknown-component-alert">
+      The component is unknown.
+      <NxButton onClick={() => {}} variant="secondary" title="Claim Component">
+        Claim Component
+      </NxButton>
+      <NxButton onClick={() => {}} variant="primary" title="Add Propietary Component Matchers">
+        Add Propietary Component Matchers
+      </NxButton>
+    </NxWarningAlert>
+  );
+
   return (
     <main className="nx-page-main nx-viewport-sized iq-component-details-page">
       <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-details-page__content">
@@ -81,6 +95,8 @@ export default function ComponentDetails({
             labels={labels}
           />
         </ComponentDetailsHeader>
+
+        {dependencyType === 'unknown' && unknownComponentAlert}
 
         <NxStatefulTabs defaultActiveTab={tabIdPerIndex.indexOf(activeTabId)} onTabSelect={handleTabChange}>
           <NxTabList aria-label="Component detail tabs">

@@ -54,6 +54,10 @@ public class ComponentDetailsPage
     return child(".nx-text-link");
   }
 
+  public SelenideElement unknownComponentAlert() {
+    return child(".iq-component-details-unknown-component-alert");
+  }
+
   public ComponentDetailsHeader header() {
     return new ComponentDetailsHeader(childSelector(".component-details-header"));
   }

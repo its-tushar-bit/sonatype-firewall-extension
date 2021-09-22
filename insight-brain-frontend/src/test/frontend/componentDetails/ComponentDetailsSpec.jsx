@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as enzymeUtils from '../enzymeUtils';
-import { NxLoadError, NxLoadingSpinner, NxStatefulTabs, NxTab } from '@sonatype/react-shared-components';
+import { NxLoadError, NxLoadingSpinner, NxStatefulTabs, NxTab, NxButton } from '@sonatype/react-shared-components';
 
 import ComponentDetails from '../../../main/frontend/componentDetails/ComponentDetails';
 import { ComponentDetailsFooter } from '../../../main/frontend/componentDetails/ComponentDetailsFooter';
@@ -64,6 +64,40 @@ describe('ComponentDetails', function () {
     const component = getMountedComponent();
     expect(loadComponentDetailsSpy).toHaveBeenCalled();
     component.unmount();
+  });
+
+  describe('renders unknown component alert', function () {
+    it('does not render if there is no unknown dependency type', function () {
+      const component = getShallowComponent();
+      const alertEl = component.find('.iq-component-details-unknown-component-alert');
+
+      expect(alertEl).not.toExist();
+    });
+
+    it('renders unknown component alert when there is an unknown dependency type', function () {
+      const component = getShallowComponent({
+        componentDetails: {
+          name: 'Mock Component Name',
+          hash: 'some-crazy-hash',
+          matchState: 'exact',
+          dependencyType: 'unknown',
+        },
+      });
+      const alertEl = component.find('.iq-component-details-unknown-component-alert');
+      const claimButton = alertEl.find(NxButton).at(0);
+      const addButton = alertEl.find(NxButton).at(1);
+
+      expect(alertEl).toExist();
+      expect(alertEl.children().first().text()).toEqual('The component is unknown.');
+
+      expect(claimButton).toExist();
+      expect(claimButton).toHaveProp('title', 'Claim Component');
+      expect(claimButton.text()).toEqual('Claim Component');
+
+      expect(addButton).toExist();
+      expect(addButton).toHaveProp('title', 'Add Propietary Component Matchers');
+      expect(addButton.text()).toEqual('Add Propietary Component Matchers');
+    });
   });
 
   describe('renders tabs', function () {

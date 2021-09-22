@@ -16,6 +16,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.DependencyTypeFilter;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
@@ -82,7 +83,7 @@ public class ComponentDetailsTest
 
   private Application app;
 
-  private TestReportEvaluator evaluator;
+  private TestReportEvaluator evaluator; 
 
   @Before
   public void start() throws IOException {
@@ -195,6 +196,15 @@ public class ComponentDetailsTest
 
     componentDetailsPage.overviewTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
+  }
+
+  @Test
+  public void testComponentDetailsUnknownComponentAlert() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForUnknownComponent();
+
+    SelenideElement unknownComponentAlert = componentDetailsPage.unknownComponentAlert();
+    unknownComponentAlert.shouldBe(visible);
   }
 
   @Test
@@ -710,6 +720,19 @@ public class ComponentDetailsTest
     ElementsCollection violations = reportPage.resultRows();
     SelenideElement firstViolation = violations.first();
     firstViolation.click();
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
+    return new ComponentDetailsPage();
+  }
+
+  private ComponentDetailsPage openComponentDetailsPageForUnknownComponent() {
+    reportPage.filterToggle().click();
+    DependencyTypeFilter dependencyTypeFilter = reportPage.filterPanel().dependencyTypeFilter();
+    dependencyTypeFilter.click();
+    dependencyTypeFilter.unknown().click();
+
+    ElementsCollection violations = reportPage.resultRows();
+    SelenideElement unknownViolation = violations.first();
+    unknownViolation.click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
     return new ComponentDetailsPage();
   }

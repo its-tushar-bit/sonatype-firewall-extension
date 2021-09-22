@@ -336,7 +336,7 @@ public class PullRequestLineCommentingServiceTest
     // then: delete should be called on API client for each, dao for all that were deleted on api
     verify(mockGitClientFactory).createApiClient(any());
     verify(mockGitApiClient, times(5)).deletePullRequestLineComment(anyInt(), anyInt(), anyInt());
-    verify(mockPullRequestCommentDAO, times(4)).delete(any());
+    verify(mockPullRequestCommentDAO, times(5)).delete(any());
 
     // and: there were no exceptions recorded
     assertThat(result.hasExceptions()).isFalse();
@@ -358,7 +358,7 @@ public class PullRequestLineCommentingServiceTest
     // then: processing of deletes should stop after exception
     verify(mockGitClientFactory).createApiClient(any());
     verify(mockGitApiClient, times(2)).deletePullRequestLineComment(anyInt(), anyInt(), anyInt());
-    verify(mockPullRequestCommentDAO, never()).delete(any());
+    verify(mockPullRequestCommentDAO, times(2)).delete(any());
 
     // and: there were 2 exceptions recorded
     assertThat(result.hasExceptions()).isTrue();

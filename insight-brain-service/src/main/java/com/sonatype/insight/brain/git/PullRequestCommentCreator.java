@@ -186,16 +186,28 @@ public class PullRequestCommentCreator
       }
     }
     catch (Exception e) {
-      throw new SourceControlException("Failed to create or update PR comments", e);
+      SourceControlException sourceControlException =
+          new SourceControlException("Failed to create or update PR comments", e);
+      addLineCommentsCreationException(lineCommentsCreationResult, sourceControlException);
+      throw sourceControlException;
     }
 
     if (lineCommentsCreationResult.hasExceptions()) {
       SourceControlException sourceControlException =
           new SourceControlException("Failed to delete/create some PR line comments", true);
-      for (Exception exception : lineCommentsCreationResult.getExceptionList()) {
-        sourceControlException.addSuppressed(exception);
-      }
+      addLineCommentsCreationException(lineCommentsCreationResult, sourceControlException);
       throw sourceControlException;
+    }
+  }
+
+  private void addLineCommentsCreationException(
+      PullRequestLineCommentCreationResult pullRequestLineCommentCreationResult,
+      Exception targetException)
+  {
+    if (pullRequestLineCommentCreationResult.hasExceptions()) {
+      for (Exception exception : pullRequestLineCommentCreationResult.getExceptionList()) {
+        targetException.addSuppressed(exception);
+      }
     }
   }
 

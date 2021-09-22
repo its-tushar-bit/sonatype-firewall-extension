@@ -272,9 +272,9 @@ public class PullRequestLineCommentingService
       for (SourceControlPullRequestComment comment : existingLineComments) {
         //Users can delete comments, which will result in 404 on delete, we should handle this and continue
         try {
+          pullRequestCommentDAO.delete(comment);
           gitApiClient.deletePullRequestLineComment(comment.getPullRequestCommentId(), pullRequestId,
               comment.getPullRequestCommentVersion());
-          pullRequestCommentDAO.delete(comment);
         }
         catch (IOException e) {
           if (e instanceof HttpResponseException &&

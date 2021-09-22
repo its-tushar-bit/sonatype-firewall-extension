@@ -55,6 +55,11 @@
       margin-left: 20px;
     }
 
+    a, a:visited {
+      color: #045dd1;
+      text-decoration: none;
+    }
+
     blockquote {
       background-color: #f4f5f9;
       border: 1px solid #d1d6f0;
@@ -67,12 +72,15 @@
     blockquote div {
       display: -webkit-box;
       -webkit-box-orient: vertical;
-      white-space: pre-wrap
+      white-space: pre-wrap;
+      font-size: 8px;
     }
 
     .componentBox {
       border: 1px solid #e4e7f6;
+      border-collapse: separate;
       border-radius: 6px;
+      -moz-border-radius: 6px;
       padding: 0 24px 24px 24px;
       margin: 24px 0;
     }
@@ -89,22 +97,107 @@
       padding: 0;
     }
 
-    ul.report-list li{
+    ul.report-list li {
       padding-bottom: 12px;
     }
 
-    ul.report-list li:last-child{
+    ul.report-list li:last-child {
       padding-bottom: 0;
+    }
+
+    /** Table of contents styling **/
+    #table-of-contents {
+      width: 100%;
+      border-radius: 6px;
+      border: solid 1px #d1d6f0;
+      border-spacing: 0;
+      box-shadow: 0 1px 3px 1px rgba(209, 211, 214, 0.5);
+    }
+
+    #table-of-contents th:first-of-type {
+      border-top-left-radius: 6px;
+      background-color: #bbc1de;
+    }
+
+    #table-of-contents th:last-of-type {
+      border-top-right-radius: 6px;
+      background-color: #bbc1de;
+    }
+
+    #table-of-contents tr:last-of-type td:first-of-type {
+      border-bottom-left-radius: 6px;
+      border-bottom-width: 0;
+    }
+
+    #table-of-contents tr:last-of-type td:last-of-type {
+      border-bottom-right-radius: 6px;
+      border-bottom-width: 0;
+    }
+
+    #table-of-contents th {
+      text-align: left;
+      padding: 0;
+      font-size: 14px;
+      height: 48px;
+    }
+
+    #table-of-contents tbody {
+      font-size: 16px;
+    }
+
+    #table-of-contents th,
+    #table-of-contents td {
+      padding-left: 16px;
+    }
+
+    #table-of-contents td {
+      padding-top: 10px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e9e9e9;
+    }
+
+    #table-of-contents thead {
+      background-color: #bbc1de;
     }
 
   </style>
 </head>
 <body>
-<h1 th:text="${'Attribution Report for ' + applicationPublicId}"></h1>
+
+<p th:if="${!#strings.isEmpty(reportParameters.header)}"
+   id="header"
+   th:text="${reportParameters.header}">Report Header</p>
+
+<!--/*@thymesVar id="applicationReport" type="com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO"*/-->
+<h1 th:text="${reportParameters.title}">Attribution Report for application</h1>
+
+<h2 th:if="${reportParameters.includeToc}">Table of Contents</h2>
+
+<table th:if="${reportParameters.includeToc}" id="table-of-contents">
+  <thead>
+  <tr>
+    <th>Component</th>
+    <th>License</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr     th:if="${applicationReport.components != null}"
+          th:each="component : ${applicationReport.components}">
+    <td><a th:href="${'#' + component.packageUrl}" th:text="${component.displayName}">Link to component</a></td>
+    <td>
+        <span th:each="license,iterState : ${component.licenseLegalData.effectiveLicenses}">
+          <a
+                  th:href="${'#' + purlLicenseToLicenseLink.get(component.packageUrl+'-'+license)}"
+                  th:text="${license}">License</a><span th:text="${!iterState.last? ', ' : ''}"></span>
+        </span>
+    </td>
+  </tr>
+  </tbody>
+</table>
 
 <!-- Component Loop -->
 <div th:each="component : ${applicationReport.components}" class="componentBox">
-  <h2 th:text="${component.displayName}">Component data</h2>
+  <h2 th:text="${component.displayName}" th:id="${component.packageUrl}">Component Name</h2>
 
   <div class="component-divider"></div>
 
@@ -113,7 +206,7 @@
   <ul class="report-list">
     <li
             th:each="license : ${component.licenseLegalData.effectiveLicenses}"
-            th:text="${license}">License Data
+            th:text="${license}">Effective License List
     </li>
   </ul>
 
@@ -121,9 +214,10 @@
   <h3 th:if="${component.licenseLegalData.copyrights != null && #lists.size(component.licenseLegalData.copyrights) > 0}">
     Copyright Notices</h3>
   <ul class="report-list">
-  <li th:each="copyright : ${component.licenseLegalData.copyrights}"
-     th:if="${#strings.equals(copyright.status, 'enabled')}"
-     th:text="${copyright.content}">Copyright Data</li>
+    <li th:each="copyright : ${component.licenseLegalData.copyrights}"
+        th:if="${#strings.equals(copyright.status, 'enabled')}"
+        th:text="${copyright.content}">Copyright Data
+    </li>
   </ul>
 
   <!-- Notice Files -->
@@ -132,14 +226,13 @@
     <blockquote
             th:each="noticeFile : ${component.licenseLegalData.noticeFiles}"
             th:if="${#strings.equals(noticeFile.status, 'enabled')}">
-
-      <div th:text="${noticeFile.content}"></div>
+      <div th:text="${noticeFile.content}">Notice File Content</div>
     </blockquote>
   </div>
 
   <!-- License Files -->
   <div th:if="${component.licenseLegalData.licenseFiles != null && #lists.size(component.licenseLegalData.licenseFiles) > 0}">
-    <h3>License Files</h3>
+    <h3 th:id="${component.packageUrl + '-license-files'}">License Files</h3>
     <blockquote
             th:each="licenseFile : ${component.licenseLegalData.licenseFiles}"
             th:if="${#strings.equals(licenseFile .status, 'enabled')}">
@@ -159,24 +252,46 @@
 
   </div>
 
-  <!-- License Text -->
-  <div th:if="${(component.licenseLegalData.licenseFiles == null  ||
-            #lists.size(component.licenseLegalData.licenseFiles) == 0) &&
-            component.licenseLegalData.effectiveLicenses != null &&
-            #lists.size(component.licenseLegalData.effectiveLicenses) > 0}">
+  <!-- Standard License Text -->
+  <div th:if="${not reportParameters.includeAppendix && reportParameters.includeStandardLicenseTexts && #maps.containsKey(purlToStandardLicenseText, component.packageUrl)}">
     <h3>Standard License Text</h3>
-    <div th:each="effectiveLicense : ${component.licenseLegalData.effectiveLicenses}">
-      <div th:each="license : ${applicationReport.licenseLegalMetadata}">
-        <div th:if="${license.licenseName == effectiveLicense && !#strings.isEmpty(license.licenseText)}">
-          <blockquote>
-            <div th:text="${license.licenseText}"></div>
-          </blockquote>
-        </div>
-      </div>
+    <div th:each="licensePair : ${purlToStandardLicenseText.get(component.packageUrl)}">
+      <h4 th:id="${component.packageUrl+'-standard-'+licensePair.left}" th:text="${licensePair.left}"></h4>
+      <blockquote>
+        <div th:text="${licensePair.right}">Standard License Text</div>
+      </blockquote>
     </div>
   </div>
 
+
 </div>
+
+<!-- Additional Notices -->
+<div id="additional-notices" th:if="${not #lists.isEmpty(reportParameters.noticeFiles)}">
+  <h2>Additional Notices</h2>
+  <blockquote th:each="notice : ${reportParameters.noticeFiles}">
+    <div th:text="${notice}">Additional Notice File Content</div>
+  </blockquote>
+
+</div>
+
+<!-- Appendix -->
+<div id="appendix"
+     th:if="${reportParameters.includeAppendix && reportParameters.includeStandardLicenseTexts && not #maps.isEmpty(purlToStandardLicenseText)}">
+  <h2>Appendix</h2>
+  <h3>Standard License Text</h3>
+  <div th:each="element : ${licenseIdToStandardLicenseText}">
+    <h4 th:id="${'standard-' + element.key}" th:text="${element.key}"></h4>
+    <blockquote>
+      <div th:text="${element.value}">Standard License Text</div>
+    </blockquote>
+  </div>
+</div>
+
+<p th:if="${!#strings.isEmpty(reportParameters.footer)}"
+   id="footer"
+   th:text="${reportParameters.footer}">Report Footer</p>
+
 
 </body>
 </html>

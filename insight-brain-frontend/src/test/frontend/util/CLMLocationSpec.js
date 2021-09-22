@@ -497,5 +497,23 @@ describe('CLMLocation.js', function () {
     it('getLicensesWithSyntheticFilterUrl should return the URL with params', function () {
       expect(CLMLocation.getLicensesWithSyntheticFilterUrl()).toBe('/rest/license?filterSynthetic=true');
     });
+
+    it('getAttributionReportUrl should return the URL with params', function () {
+      expect(CLMLocation.getAttributionReportUrl('testApplication', 'stageTypeId')).toBe(
+        '/api/v2/licenseLegalMetadata/application/testApplication/stage/stageTypeId/report'
+      );
+    });
+  });
+
+  describe('AttributionReports', function () {
+    it('getAttributionReportTemplatesUrl should return an URL without params', function () {
+      expect(CLMLocation.getAttributionReportTemplatesUrl()).toBe('/api/v2/licenseLegalMetadata/report-template');
+    });
+
+    it('getAttributionReportTemplateUrl should return the URL with params', function () {
+      expect(CLMLocation.getAttributionReportTemplateUrl('123')).toBe(
+        '/api/v2/licenseLegalMetadata/report-template/123'
+      );
+    });
   });
 });

@@ -3105,9 +3105,30 @@ public class TemporaryEntity
     return sourceControlPullRequest;
   }
 
-  public AttributionReportTemplate createNewAttributionReportTemplate(String docTitle) {
-    AttributionReportTemplate template = new AttributionReportTemplate(docTitle, null, null, true, true);
+  public AttributionReportTemplate createNewAttributionReportTemplate(String templateName, String docTitle) {
+    AttributionReportTemplate template =
+        new AttributionReportTemplate(templateName, docTitle, null, null, true, true, true);
     template.setId(uuid());
+    attributionReportTemplateDAO.insert(template);
+    return template;
+  }
+
+  public AttributionReportTemplate createNewAttributionReportTemplate(
+      String templateName,
+      String documentTitle,
+      String documentHeader,
+      String documentFooter,
+      boolean includeTableOfContents,
+      boolean includeAppendix,
+      boolean includeStandardLicenseTexts)
+  {
+    AttributionReportTemplate template = new AttributionReportTemplate(templateName,
+        documentTitle,
+        documentHeader,
+        documentFooter,
+        includeTableOfContents,
+        includeAppendix,
+        includeStandardLicenseTexts);
     attributionReportTemplateDAO.insert(template);
     return template;
   }

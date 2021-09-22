@@ -55,13 +55,226 @@ public class ApplicationAttributionReportBuilderTest
   }
 
   @Test
-  public void testSuccessfulReport() throws IOException {
+  public void testDefaultSuccessfulReport() throws IOException {
     Application application = tempEntity.newApplicationWithParent("appId");
+    generateReportDataAndMocks(application);
+
+    String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
+        LegalCustomReportParameters.builder().buildWithDefaults(application.getPublicId()));
+    Document doc = Jsoup.parse(content);
+
+    String bodyContent = doc.select("body").first().toString();
+
+    String expectedContent = IOUtils.toString(Objects.requireNonNull(getClass().getClassLoader()
+            .getResource("ApplicationAttributionReportTest/expectedApplicationAttributionReport.html")),
+        StandardCharsets.UTF_8);
+
+    assertThat(bodyContent).isEqualToIgnoringWhitespace(expectedContent);
+
+    assertThat(doc.select("#table-of-contents")).isNotEmpty();
+    assertThat(doc.select("h1").first()).hasToString("<h1>Attribution Report for appId</h1>");
+    assertThat(doc.select("#appendix")).isNotEmpty();
+    assertThat(doc.select("#header")).isEmpty();
+    assertThat(doc.select("#footer")).isEmpty();
+    assertThat(doc.select("#additional-notices")).isEmpty();
+
+    //Ensures that the appendix contains this license
+    assertThat(doc.select("#standard-LicenseOne")).isNotEmpty();
+  }
+
+  @Test
+  public void testNoTableOfContent() {
+    Application application = tempEntity.newApplicationWithParent("appId");
+    generateReportDataAndMocks(application);
+
+    String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
+        LegalCustomReportParameters.builder()
+            .withTitle("My Report")
+            .withIncludeToc(false)
+            .build());
+
+    Document doc = Jsoup.parse(content);
+
+    assertThat(doc.select("#table-of-contents")).isEmpty();
+    assertThat(doc.select("h1").first()).hasToString("<h1>My Report</h1>");
+    assertThat(doc.select("#appendix")).isNotEmpty();
+    assertThat(doc.select("#header")).isEmpty();
+    assertThat(doc.select("#footer")).isEmpty();
+    assertThat(doc.select("#additional-notices")).isEmpty();
+
+    //Ensures that the appendix contains this license
+    assertThat(doc.select("#standard-LicenseOne")).isNotEmpty();
+  }
+
+  @Test
+  public void testNoStandardLicenseTextNoAppendix() {
+    Application application = tempEntity.newApplicationWithParent("appId");
+    generateReportDataAndMocks(application);
+
+    String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
+        LegalCustomReportParameters.builder()
+            .withIncludeStandardLicenseTexts(false)
+            .withIncludeAppendix(false)
+            .withTitle("My Report")
+            .build());
+
+    Document doc = Jsoup.parse(content);
+
+    assertThat(doc.select("#table-of-contents")).isNotEmpty();
+    assertThat(doc.select("h1").first()).hasToString("<h1>My Report</h1>");
+    assertThat(doc.select("#appendix")).isEmpty();
+    assertThat(doc.select("#header")).isEmpty();
+    assertThat(doc.select("#footer")).isEmpty();
+    assertThat(doc.select("#additional-notices")).isEmpty();
+
+    //Ensures that the appendix doesn't contain this license
+    assertThat(doc.select("#standard-LicenseOne")).isEmpty();
+  }
+
+  @Test
+  public void testNoAppendix() {
+    Application application = tempEntity.newApplicationWithParent("appId");
+    generateReportDataAndMocks(application);
+
+    String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
+        LegalCustomReportParameters.builder()
+            .withIncludeAppendix(false)
+            .withTitle("My Report")
+            .build());
+
+    Document doc = Jsoup.parse(content);
+
+    assertThat(doc.select("#table-of-contents")).isNotEmpty();
+    assertThat(doc.select("h1").first()).hasToString("<h1>My Report</h1>");
+    assertThat(doc.select("#appendix")).isEmpty();
+    assertThat(doc.select("#header")).isEmpty();
+    assertThat(doc.select("#footer")).isEmpty();
+    assertThat(doc.select("#additional-notices")).isEmpty();
+
+    //Ensures that the appendix doesn't contain this license
+    assertThat(doc.select("#standard-LicenseOne")).isEmpty();
+
+    // component 1 contains LicenseOne but has license files, therefore no license text
+    assertThat(doc.select("#purl1-license-files")).isNotEmpty();
+    assertThat(doc.select("#purl1-standard-LicenseOne")).isEmpty();
+
+    //Component 3 contains LicenseOne with no License files, therefore we should show Standard License Text in the
+    // component box
+    assertThat(doc.select("#purl3-standard-LicenseOne")).isNotEmpty();
+    assertThat(doc.select("#purl3-license-files")).isEmpty();
+  }
+
+  @Test
+  public void testAppendixDontIncludeStandardLicenseText() {
+    Application application = tempEntity.newApplicationWithParent("appId");
+    generateReportDataAndMocks(application);
+
+    String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
+        LegalCustomReportParameters.builder()
+            .withIncludeAppendix(true)
+            .withIncludeStandardLicenseTexts(false)
+            .withTitle("My Report")
+            .build());
+
+    Document doc = Jsoup.parse(content);
+
+    assertThat(doc.select("#table-of-contents")).isNotEmpty();
+    assertThat(doc.select("h1").first()).hasToString("<h1>My Report</h1>");
+    assertThat(doc.select("#appendix")).isEmpty();
+    assertThat(doc.select("#header")).isEmpty();
+    assertThat(doc.select("#footer")).isEmpty();
+    assertThat(doc.select("#additional-notices")).isEmpty();
+
+    assertThat(doc.select("#standard-LicenseOne")).isEmpty();
+    assertThat(doc.select("#purl1-standard-LicenseOne")).isEmpty();
+    assertThat(doc.select("#purl3-standard-LicenseOne")).isEmpty();
+  }
+
+  @Test
+  public void testAppendixEmptyStandardLicenseText() {
+    Application application = tempEntity.newApplicationWithParent("appId");
+    generateReportDataAndMocks(application, false);
+
+    String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
+        LegalCustomReportParameters.builder()
+            .withIncludeAppendix(true)
+            .withIncludeStandardLicenseTexts(false)
+            .withTitle("My Report")
+            .build());
+
+    Document doc = Jsoup.parse(content);
+
+    assertThat(doc.select("#table-of-contents")).isNotEmpty();
+    assertThat(doc.select("h1").first()).hasToString("<h1>My Report</h1>");
+    assertThat(doc.select("#appendix")).isEmpty();
+    assertThat(doc.select("#header")).isEmpty();
+    assertThat(doc.select("#footer")).isEmpty();
+    assertThat(doc.select("#additional-notices")).isEmpty();
+
+    assertThat(doc.select("#standard-LicenseOne")).isEmpty();
+    assertThat(doc.select("#purl1-standard-LicenseOne")).isEmpty();
+    assertThat(doc.select("#purl3-standard-LicenseOne")).isEmpty();
+  }
+
+  @Test
+  public void testWithHeaderAndFooter() throws IOException {
+    Application application = tempEntity.newApplicationWithParent("appId");
+    generateReportDataAndMocks(application);
+
+    String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
+        LegalCustomReportParameters.builder()
+            .withIncludeAppendix(false)
+            .withTitle("My Report")
+            .withHeader("My Header Content")
+            .withFooter("My Footer Content")
+            .build());
+
+    Document doc = Jsoup.parse(content);
+
+    assertThat(doc.select("#header")).isNotEmpty();
+    assertThat(doc.select("#header")).hasToString("<p id=\"header\">My Header Content</p>");
+    assertThat(doc.select("#additional-notices")).isEmpty();
+
+    assertThat(doc.select("#footer")).isNotEmpty();
+    assertThat(doc.select("#footer")).hasToString("<p id=\"footer\">My Footer Content</p>");
+  }
+
+  @Test
+  public void testWithNoticeFiles() throws IOException {
+    Application application = tempEntity.newApplicationWithParent("appId");
+    generateReportDataAndMocks(application);
+
+    String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
+        LegalCustomReportParameters.builder()
+            .withIncludeAppendix(false)
+            .withTitle("My Report")
+            .withNoticeFiles(Lists.newArrayList(
+                "First Notice File Content",
+                "Second Notice File Content"
+            ))
+            .build());
+
+    Document doc = Jsoup.parse(content);
+
+    assertThat(doc.select("#additional-notices")).isNotEmpty();
+    assertThat(doc.select("#additional-notices").first().toString())
+        .contains("First Notice File Content");
+    assertThat(doc.select("#additional-notices").first().toString())
+        .contains("Second Notice File Content");
+  }
+
+  private void generateReportDataAndMocks(final Application application) {
+    generateReportDataAndMocks(application, true);
+  }
+
+  private void generateReportDataAndMocks(final Application application, boolean addStandardLicenseTextToMetadata) {
+
     ApiLicenseLegalApplicationReportDTO reportDTO = new ApiLicenseLegalApplicationReportDTO();
 
     //First Component
     ApiComponentDTOV2 component1 = new ApiComponentDTOV2();
     component1.displayName = "component 1";
+    component1.packageUrl = "purl1";
 
     List<ApiLicenseLegalCopyrightDTO> copyrights1 = new ArrayList<>();
     copyrights1
@@ -86,7 +299,7 @@ public class ApplicationAttributionReportBuilderTest
     licenseLegalData1.copyrights = copyrights1;
     licenseLegalData1.licenseFiles = licenseFiles;
     licenseLegalData1.effectiveLicenses = new ArrayList<>();
-    licenseLegalData1.effectiveLicenses.add("LicenseOneName");
+    licenseLegalData1.effectiveLicenses.add("LicenseOne");
     licenseLegalData1.effectiveLicenses.add("LicenseTwo");
     licenseLegalData1.attributions = attributions;
 
@@ -96,6 +309,7 @@ public class ApplicationAttributionReportBuilderTest
     //Second Component
     ApiComponentDTOV2 component2 = new ApiComponentDTOV2();
     component2.displayName = "component 2";
+    component2.packageUrl = "purl2";
 
     List<ApiLicenseLegalCopyrightDTO> copyrights2 = new ArrayList<>();
     copyrights1
@@ -115,9 +329,10 @@ public class ApplicationAttributionReportBuilderTest
     //Third Component - only contains standard license text
     ApiComponentDTOV2 component3 = new ApiComponentDTOV2();
     component3.displayName = "component 3";
+    component3.packageUrl = "purl3";
 
     ApiLicenseLegalDataDTO licenseLegalData3 = new ApiLicenseLegalDataDTO();
-    licenseLegalData3.effectiveLicenses = Lists.newArrayList("LicenseOneName");
+    licenseLegalData3.effectiveLicenses = Lists.newArrayList("LicenseOne");
 
     reportDTO.components = new ArrayList<>();
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component1, licenseLegalData1, null));
@@ -129,20 +344,10 @@ public class ApplicationAttributionReportBuilderTest
 
     reportDTO.licenseLegalMetadata = new HashSet<>();
     ApiLicenseLegalMetadataDTO licenseLegalMetadataDTO =
-        new ApiLicenseLegalMetadataDTO("LicenseOne", "LicenseOneName", "License One Standard License Text",
+        new ApiLicenseLegalMetadataDTO("LicenseOne", "LicenseOneName",
+            addStandardLicenseTextToMetadata ? "License One Standard License Text" : null,
             new HashSet<>(), null);
     reportDTO.licenseLegalMetadata.add(licenseLegalMetadataDTO);
-
-    String content = reportBuilder.generateLegalApplicationAttributionReport(application, BuildStageType.ID);
-    Document doc = Jsoup.parse(content);
-
-    String bodyContent = doc.select("body").first().toString();
-
-    String expectedContent = IOUtils.toString(Objects.requireNonNull(getClass().getClassLoader()
-            .getResource("ApplicationAttributionReportTest/expectedApplicationAttributionReport.html")),
-        StandardCharsets.UTF_8);
-
-    assertThat(bodyContent).isEqualToIgnoringWhitespace(expectedContent);
   }
 
   @Test
@@ -153,7 +358,8 @@ public class ApplicationAttributionReportBuilderTest
     when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID))
         .thenReturn(reportDTO);
 
-    assertThat(reportBuilder.generateLegalApplicationAttributionReport(application, BuildStageType.ID))
+    assertThat(reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
+        LegalCustomReportParameters.builder().buildWithDefaults(application.getPublicId())))
         .isNotNull();
   }
 }

@@ -22,18 +22,27 @@ public class ApplicationAttributionReportBuilderAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGenerateLegalAttributionApplicationReport_Unauthenticated() {
-    applicationAttributionReportBuilder.generateLegalApplicationAttributionReport(app, BuildStageType.ID);
+    applicationAttributionReportBuilder.generateCustomLegalApplicationAttributionReport(
+        app,
+        BuildStageType.ID,
+        LegalCustomReportParameters.builder().buildWithDefaults("app"));
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGenerateLegalAttributionApplicationReport_Unauthorized() {
     login();
-    applicationAttributionReportBuilder.generateLegalApplicationAttributionReport(app, BuildStageType.ID);
+    applicationAttributionReportBuilder.generateCustomLegalApplicationAttributionReport(
+        app,
+        BuildStageType.ID,
+        LegalCustomReportParameters.builder().buildWithDefaults("app"));
   }
 
   @Test(expected = NotFoundException.class)
   public void testGenerateLegalAttributionApplicationReport_Authorized() {
     grantLegalReviewerPermission(app.getId());
-    applicationAttributionReportBuilder.generateLegalApplicationAttributionReport(app, BuildStageType.ID);
+    applicationAttributionReportBuilder.generateCustomLegalApplicationAttributionReport(
+        app,
+        BuildStageType.ID,
+        LegalCustomReportParameters.builder().buildWithDefaults("app"));
   }
 }

@@ -48,8 +48,6 @@ export default function LegalApplicationDetailsPage(props) {
     }
   }, [applicationPublicId, stageTypeId]);
 
-  const reportUrl = `/api/v2/licenseLegalMetadata/application/${applicationPublicId}/stage/${stageTypeId}/report`;
-
   const getLicenseThreatGroupsFromComponents = pipe(
     chain(prop('licenses')),
     chain(getLicenseThreatGroupsFromLicense),
@@ -102,7 +100,15 @@ export default function LegalApplicationDetailsPage(props) {
         <div className="nx-page-title">
           <h1 className="nx-h1">{application.name} Obligations</h1>
           <div className="nx-btn-bar">
-            <NxButton variant="primary" onClick={() => window.open(reportUrl, '_blank')}>
+            <NxButton
+              variant="primary"
+              onClick={() => {
+                stateGo('legal.attributionReport', {
+                  applicationPublicId,
+                  stageTypeId,
+                });
+              }}
+            >
               Create Attribution Report
             </NxButton>
           </div>

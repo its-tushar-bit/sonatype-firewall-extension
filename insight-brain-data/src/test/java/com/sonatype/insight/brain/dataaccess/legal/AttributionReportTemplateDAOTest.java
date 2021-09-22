@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
-
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -26,20 +25,24 @@ public class AttributionReportTemplateDAOTest
   private AttributionReportTemplateDAO dao;
 
   private AttributionReportTemplate createTemplate(
+      String templateName,
       String title,
       String header,
       String footer,
-      boolean index,
-      boolean contents)
+      boolean includeAppendix,
+      boolean includeTableOfContents,
+      boolean includeStandardLicenseText)
   {
     Date now = new Date();
     AttributionReportTemplate attributionReportTemplate = new AttributionReportTemplate();
     attributionReportTemplate.setLastUpdatedAt(new Date(now.getTime() - 1));
+    attributionReportTemplate.setTemplateName(templateName);
     attributionReportTemplate.setDocumentTitle(title);
     attributionReportTemplate.setDocumentHeader(header);
     attributionReportTemplate.setDocumentFooter(footer);
-    attributionReportTemplate.setIncludeAppendix(index);
-    attributionReportTemplate.setIncludeTableOfContents(contents);
+    attributionReportTemplate.setIncludeAppendix(includeAppendix);
+    attributionReportTemplate.setIncludeTableOfContents(includeTableOfContents);
+    attributionReportTemplate.setIncludeStandardLicenseTexts(includeStandardLicenseText);
 
     return attributionReportTemplate;
   }
@@ -56,7 +59,8 @@ public class AttributionReportTemplateDAOTest
   @Test
   public void testCRUD() {
     // Create
-    AttributionReportTemplate attributionReportTemplate = createTemplate("doc title", "header", "footer", false, false);
+    AttributionReportTemplate attributionReportTemplate =
+        createTemplate("template name", "doc title", "header", "footer", false, false, false);
     dao.insert(attributionReportTemplate);
     assertThat(attributionReportTemplate.getId()).isNotNull();
 
@@ -71,6 +75,7 @@ public class AttributionReportTemplateDAOTest
     attributionReportTemplate.setDocumentFooter("updated document footer");
     attributionReportTemplate.setIncludeAppendix(true);
     attributionReportTemplate.setIncludeTableOfContents(true);
+    attributionReportTemplate.setIncludeStandardLicenseTexts(true);
     attributionReportTemplate.setLastUpdatedAt(now);
     dao.update(attributionReportTemplate);
     assertThat(dao.getById(attributionReportTemplate.getId())).usingRecursiveComparison()
@@ -86,16 +91,20 @@ public class AttributionReportTemplateDAOTest
   public void testGetAll() {
     AttributionReportTemplate attributionReportTemplate1 =
         new AttributionReportTemplate(
+            "template 1",
             "title1",
             "header1",
             "footer1",
             false,
+            false,
             false);
     AttributionReportTemplate attributionReportTemplate2 =
         new AttributionReportTemplate(
+            "template2",
             "title2",
             "header2",
             "footer2",
+            false,
             false,
             false);
     dao.insert(attributionReportTemplate1);
@@ -106,12 +115,43 @@ public class AttributionReportTemplateDAOTest
   }
 
   @Test
+  public void testGetByTemplateName() {
+    AttributionReportTemplate attributionReportTemplate1 =
+        new AttributionReportTemplate(
+            "template 1",
+            "title1",
+            "header1",
+            "footer1",
+            false,
+            false,
+            false);
+    AttributionReportTemplate attributionReportTemplate2 =
+        new AttributionReportTemplate(
+            "template 2",
+            "title2",
+            "header2",
+            "footer2",
+            false,
+            false,
+            false);
+    dao.insert(attributionReportTemplate1);
+    dao.insert(attributionReportTemplate2);
+
+    assertThat(dao.getByTemplateName("template 2")).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .usingOverriddenEquals().isEqualTo(attributionReportTemplate2);
+    ;
+  }
+
+  @Test
   public void testInsert_SetsDateIfNull() {
     AttributionReportTemplate attributionReportTemplate =
         new AttributionReportTemplate(
+            "template name",
             "title",
             "header",
             "footer",
+            false,
             false,
             false);
     attributionReportTemplate.setLastUpdatedAt(null);
@@ -126,7 +166,7 @@ public class AttributionReportTemplateDAOTest
   public void testUpdate_SetsDate() {
     Date now = new Date();
     AttributionReportTemplate attributionReportTemplate =
-        new AttributionReportTemplate("title", "header", "footer", false, false);
+        new AttributionReportTemplate("template name", "title", "header", "footer", false, false, false);
     attributionReportTemplate.setLastUpdatedAt(new Date(now.getTime() - 1));
     dao.insert(attributionReportTemplate);
     assertThat(dao.getById(attributionReportTemplate.getId()).getLastUpdatedAt()).isBefore(now);
@@ -139,13 +179,13 @@ public class AttributionReportTemplateDAOTest
   @Test
   public void testUpdate_DoesNotExist() {
     AttributionReportTemplate attributionReportTemplate =
-        new AttributionReportTemplate("title", "header", "footer", false, false);
+        new AttributionReportTemplate("template name", "title", "header", "footer", false, false, false);
     attributionReportTemplate.setId("doesNotExist");
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> dao.update(attributionReportTemplate))
         .withMessageContaining(
-            "Cannot update obligation report with id " + attributionReportTemplate.getId() +
+            "Cannot update attribution report template with id " + attributionReportTemplate.getId() +
                 " because it does not exist.");
   }
 }

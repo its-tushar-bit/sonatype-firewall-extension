@@ -38,7 +38,7 @@ public class AttributionReportTemplateDAO
   public void update(TransactionContext tx, AttributionReportTemplate attributionReportTemplate) {
     if (getById(tx, attributionReportTemplate.getId()) == null) {
       throw new BadRequestException(
-          "Cannot update obligation report with id " + attributionReportTemplate.getId() +
+          "Cannot update attribution report template with id " + attributionReportTemplate.getId() +
               " because it does not exist.");
     }
     attributionReportTemplate.setLastUpdatedAt(new Date());
@@ -55,9 +55,9 @@ public class AttributionReportTemplateDAO
     createQuery(sQuery, attributionReportId).executeUpdate();
   }
 
-  public AttributionReportTemplate getByTitle(String reportTemplateTitle) {
+  public AttributionReportTemplate getByTemplateName(String templateName) {
     final String sQuery = "SELECT entity FROM AttributionReportTemplate entity" + //
-        " WHERE entity.documentTitle=?1";
-    return get(sQuery, reportTemplateTitle);
+        " WHERE entity.templateName=?1";
+    return get(sQuery, templateName);
   }
 }

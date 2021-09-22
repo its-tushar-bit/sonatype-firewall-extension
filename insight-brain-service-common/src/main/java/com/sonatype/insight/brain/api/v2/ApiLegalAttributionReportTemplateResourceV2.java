@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportTemplateDTO;
 /**
  * Resource for API License Legal
  */
-public interface ApiLicenseLegalReportResourceV2
+public interface ApiLegalAttributionReportTemplateResourceV2
 {
   AttributionReportTemplateDTO getAttributionReportTemplateById(final String reportId);
 

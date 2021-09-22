@@ -109,6 +109,7 @@ export default function (state = initState, { type, payload }) {
       return applyFilters(setSortOrder(state, payload));
     case LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER_SIDEBAR:
       return { ...state, filterSidebarOpen: payload };
+
     default:
       return state;
   }

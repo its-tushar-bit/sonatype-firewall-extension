@@ -26,9 +26,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.codahale.metrics.annotation.Timed;
 import org.apache.commons.lang3.StringUtils;
-import org.unbescape.html.HtmlEscape;
-import org.unbescape.html.HtmlEscapeLevel;
-import org.unbescape.html.HtmlEscapeType;
 
 @Named
 @Timed
@@ -104,26 +101,22 @@ public class DefaultApiLegalAttributionReportTemplateResourceV2
 
   private void sanitizeAllTextFields(AttributionReportTemplateDTO reportTemplateDTO) {
     if (reportTemplateDTO.getId() != null) {
-      reportTemplateDTO.setId(sanitizeString(reportTemplateDTO.getId()));
+      reportTemplateDTO.setId(reportTemplateDTO.getId());
     }
     if (reportTemplateDTO.getTemplateName() != null) {
-      reportTemplateDTO.setTemplateName(sanitizeString(reportTemplateDTO.getTemplateName()));
+      reportTemplateDTO.setTemplateName(reportTemplateDTO.getTemplateName());
+    }
+    if (reportTemplateDTO.getTemplateName() != null) {
+      reportTemplateDTO.setTemplateName(reportTemplateDTO.getTemplateName());
     }
     if (reportTemplateDTO.getDocumentTitle() != null) {
-      reportTemplateDTO.setDocumentTitle(sanitizeString(reportTemplateDTO.getDocumentTitle()));
+      reportTemplateDTO.setDocumentTitle(reportTemplateDTO.getDocumentTitle());
     }
     if (reportTemplateDTO.getHeader() != null) {
-      reportTemplateDTO.setHeader(sanitizeString(reportTemplateDTO.getHeader()));
+      reportTemplateDTO.setHeader(reportTemplateDTO.getHeader());
     }
     if (reportTemplateDTO.getFooter() != null) {
-      reportTemplateDTO.setFooter(sanitizeString(reportTemplateDTO.getFooter()));
+      reportTemplateDTO.setFooter(reportTemplateDTO.getFooter());
     }
-  }
-
-  private String sanitizeString(final String text) {
-    return HtmlEscape
-        .escapeHtml(text,
-            HtmlEscapeType.HTML5_NAMED_REFERENCES_DEFAULT_TO_HEXA,
-            HtmlEscapeLevel.LEVEL_1_ONLY_MARKUP_SIGNIFICANT);
   }
 }

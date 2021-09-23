@@ -724,6 +724,11 @@ public class DependencyResolverTest
     assertThat(newIsNode.get("proprietary").asBoolean()).isFalse();
     assertThat(newIsNode.get("createTime")).isNotNull();
     assertThat(newIsNode.get("relativePopularity").asInt()).isZero();
+    assertThat(newIsNode.get("filenames").get(0).asText()).isEqualTo(
+        PackageUrlIdentifier.fromComponentIdentifier(innerSourceId).getPackageUrl());
+    assertThat(newIsNode.get("pathnames").get(0).asText()).isEqualTo(
+        "dependency:/" + PackageUrlIdentifier.fromComponentIdentifier(innerSourceId).getPackageUrl().replace("/", "\\")
+    );
     assertThat(analyzerFeatures.getAnalysisSource()).isEqualTo(AnalysisSource.THIRD_PARTY);
     assertThat(analyzerFeatures.getAnalysisType()).isEqualTo(AnalysisType.COORDINATE);
     assertThat(analyzerFeatures.getScanClient()).isEqualTo("ci");

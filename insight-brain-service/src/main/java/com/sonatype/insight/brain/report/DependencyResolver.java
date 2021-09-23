@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,7 +15,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
@@ -398,6 +398,24 @@ public class DependencyResolver
     isNode.set(FIELD_ANALYZER_FEATURES, JsonUtils.asTree(getAnalyzerFeaturesForNewNode(aaNode)));
     isNode.put("createTime", new Date().getTime());
     isNode.put("relativePopularity", 0);
+    PackageUrlIdentifier packageUrl = null;
+    try {
+      packageUrl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+    }
+    catch (Exception e) {
+      log.debug(e.getMessage(), e);
+      // we don't need to fail if the package url can't be determined
+    }
+    if (packageUrl != null) {
+      String packageUrlString = packageUrl.getPackageUrl();
+      ObjectMapper objectMapper = new ObjectMapper();
+      ArrayNode filenames = objectMapper.createArrayNode();
+      filenames.add(packageUrlString);
+      isNode.set("filenames", filenames);
+      ArrayNode pathnames = objectMapper.createArrayNode();
+      pathnames.add("dependency:/" + packageUrlString.replace('/', '\\'));
+      isNode.set("pathnames", pathnames);
+    }
     return isNode;
   }
 

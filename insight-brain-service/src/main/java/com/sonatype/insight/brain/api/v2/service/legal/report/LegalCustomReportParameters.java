@@ -8,13 +8,8 @@ package com.sonatype.insight.brain.api.v2.service.legal.report;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportTemplateDTO;
-
-import org.unbescape.html.HtmlEscape;
-import org.unbescape.html.HtmlEscapeLevel;
-import org.unbescape.html.HtmlEscapeType;
 
 public final class LegalCustomReportParameters
 {
@@ -99,7 +94,7 @@ public final class LegalCustomReportParameters
 
     private List<String> noticeFiles = Collections.emptyList();
 
-    private Builder() {}
+    private Builder() { }
 
     public Builder withTitle(final String title) {
       this.title = title;
@@ -146,22 +141,15 @@ public final class LegalCustomReportParameters
           .withIncludeAppendix(templateDTO.isIncludeAppendix());
     }
 
-    private String sanitizeString(final String text) {
-      return HtmlEscape
-          .escapeHtml(text,
-              HtmlEscapeType.HTML5_NAMED_REFERENCES_DEFAULT_TO_HEXA,
-              HtmlEscapeLevel.LEVEL_1_ONLY_MARKUP_SIGNIFICANT);
-    }
-
     public LegalCustomReportParameters build() {
       return new LegalCustomReportParameters(
-          sanitizeString(this.title),
-          sanitizeString(this.header),
-          sanitizeString(this.footer),
+          this.title,
+          this.header,
+          this.footer,
           this.includeToc,
           this.includeStandardLicenseTexts,
           this.includeAppendix,
-          this.noticeFiles.stream().map(this::sanitizeString).collect(Collectors.toList()));
+          this.noticeFiles);
     }
 
     public LegalCustomReportParameters buildWithDefaults(final String applicationId) {

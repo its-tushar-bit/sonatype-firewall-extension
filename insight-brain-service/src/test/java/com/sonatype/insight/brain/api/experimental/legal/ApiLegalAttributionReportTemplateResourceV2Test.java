@@ -240,9 +240,9 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
     HttpResponse response = restRequest().path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
         .body(reportTemplateDTO).post();
     AttributionReportTemplateDTO savedDto = response.getBody(AttributionReportTemplateDTO.class);
-    assertThat(savedDto.getTemplateName()).isEqualTo("&lt;html&gt;template name&lt;/html&gt;");
-    assertThat(savedDto.getDocumentTitle()).isEqualTo("&lt;html&gt;title&lt;/html&gt;");
-    assertThat(savedDto.getHeader()).isEqualTo("&lt;html&gt;header&lt;/html&gt;");
-    assertThat(savedDto.getFooter()).isEqualTo("&lt;html&gt;footer&lt;/html&gt;");
+    assertThat(savedDto.getTemplateName()).isEqualTo("<html>template name</html>");
+    assertThat(savedDto.getDocumentTitle()).isEqualTo("<html>title</html>");
+    assertThat(savedDto.getHeader()).isEqualTo("<html>header</html>");
+    assertThat(savedDto.getFooter()).isEqualTo("<html>footer</html>");
   }
 }

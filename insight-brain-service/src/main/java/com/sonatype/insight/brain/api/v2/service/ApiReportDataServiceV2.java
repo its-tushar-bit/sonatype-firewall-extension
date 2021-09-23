@@ -230,9 +230,8 @@ public class ApiReportDataServiceV2
 
   private List<String> getPathnames(JsonNode componentNode) {
     List<String> pathnames = new ArrayList<>();
-    ArrayNode pathnamesArray = (ArrayNode) componentNode.get("pathnames");
-    for (int i = 0; i < pathnamesArray.size(); i++) {
-      pathnames.add(getPathname(pathnamesArray.get(i).asText()));
+    for (JsonNode pathname : componentNode.path("pathnames")) {
+      pathnames.add(getPathname(pathname.asText()));
     }
     return pathnames;
   }

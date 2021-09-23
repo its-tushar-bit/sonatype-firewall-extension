@@ -180,8 +180,12 @@ public class ApiLegalReportResourceV2Test
 
     assertResponseStatus(200, response);
     final String bodyText = response.getBodyText();
-    assertThat(bodyText).contains("notice file content").contains("Report title")
-    .contains("Report header").contains("Report footer");
+
+    assertThat(bodyText)
+        .contains("notice file content")
+        .contains("Report title")
+        .contains("Report header")
+        .contains("Report footer");
   }
 
   @Test

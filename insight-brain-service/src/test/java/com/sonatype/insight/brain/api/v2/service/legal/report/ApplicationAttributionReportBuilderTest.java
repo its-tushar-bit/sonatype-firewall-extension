@@ -362,4 +362,26 @@ public class ApplicationAttributionReportBuilderTest
         LegalCustomReportParameters.builder().buildWithDefaults(application.getPublicId())))
         .isNotNull();
   }
+
+  @Test
+  public void testHtmlEscaping() {
+    Application application = tempEntity.newApplicationWithParent("appId");
+    generateReportDataAndMocks(application);
+
+    String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
+        LegalCustomReportParameters.builder()
+            .withIncludeAppendix(false)
+            .withTitle("User's Legal template in français é î ü & company <script>alert('test');</script>")
+            .withHeader("!@#$%^&*())_")
+            .withFooter("<h2>title</h2>")
+            .build());
+
+    Document doc = Jsoup.parse(content);
+    assertThat(doc.select("h1").first()).hasToString(
+        "<h1>User's Legal template in français é î ü &amp; company &lt;script&gt;alert('test');&lt;/script&gt;</h1>");
+    assertThat(doc.select("#header")).isNotEmpty();
+    assertThat(doc.select("#header")).hasToString("<p id=\"header\">!@#$%^&amp;*())_</p>");
+    assertThat(doc.select("#footer")).isNotEmpty();
+    assertThat(doc.select("#footer")).hasToString("<p id=\"footer\">&lt;h2&gt;title&lt;/h2&gt;</p>");
+  }
 }

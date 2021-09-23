@@ -374,6 +374,16 @@ public class ApiReportDataServiceV2Test
     assertThat(component.dependencyData).isNull();
   }
 
+  @Test
+  public void testGetPolicyViolationsData_NoPathnames() throws Exception {
+    makeReport("report-4");
+    populatePolicyThreats("report-4", "policythreats.json");
+
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId);
+
+    assertThat(data).isNotNull();
+  }
+
   private void assertUnknownComponent(final ApiReportComponentPolicyViolationsDTOV2 component) {
     assertThat(component.hash).isEqualTo("69b58197caabec2e0d06");
     assertThat(component.matchState).isEqualTo("unknown");

@@ -35,7 +35,7 @@ export default function Overview(props) {
     matchState,
     identificationSource,
     componentCategories = [],
-    pathnames,
+    pathnames = [],
   } = componentInformation;
 
   useEffect(() => {

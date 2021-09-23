@@ -47,7 +47,7 @@ public class RootOrganizationSourceControlEditorTest
 
     verifyStartNoSourceControl();
 
-    SourceControlEditorPage.provider().chooseOption(new Option(0, "github"));
+    SourceControlEditorPage.provider().chooseOption(new Option(2, "github"));
 
     SourceControlEditorPage.root().shouldBe(visible);
     SourceControlEditorPage.provider().shouldBe(visible, enabled);
@@ -67,7 +67,7 @@ public class RootOrganizationSourceControlEditorTest
 
     verifyStartNoSourceControl();
 
-    SourceControlEditorPage.provider().chooseOption(new Option(0, "github"));
+    SourceControlEditorPage.provider().chooseOption(new Option(2, "github"));
 
     SourceControlEditorPage.token().shouldBe(enabled);
     SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(enabled);
@@ -93,7 +93,7 @@ public class RootOrganizationSourceControlEditorTest
   public void testSourceControlEditor_createFailure() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
-    SourceControlEditorPage.provider().chooseOption(new Option(0, "GitHub"));
+    SourceControlEditorPage.provider().chooseOption(new Option(2, "GitHub"));
 
     SourceControlEditorPage.token().shouldBe(enabled);
     SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(enabled);
@@ -134,7 +134,7 @@ public class RootOrganizationSourceControlEditorTest
 
     verifyStartWithSourceControl();
 
-    SourceControlEditorPage.provider().chooseOption(new Option(1, "gitlab"));
+    SourceControlEditorPage.provider().chooseOption(new Option(3, "gitlab"));
 
     SourceControlEditorPage.token().shouldBe(enabled);
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
@@ -155,7 +155,7 @@ public class RootOrganizationSourceControlEditorTest
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
     verifyStartWithSourceControl();
-    SourceControlEditorPage.provider().chooseOption(new Option(1, "GitLab"));
+    SourceControlEditorPage.provider().chooseOption(new Option(3, "GitLab"));
     SourceControlEditorPage.token().shouldBe(enabled);
     SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible);
     SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldBe(visible);
@@ -284,7 +284,7 @@ public class RootOrganizationSourceControlEditorTest
     verifyStartWithSourceControl();
 
     // when we select Azure as a provider
-    SourceControlEditorPage.provider().chooseOption(new Option(3, "Azure DevOps"));
+    SourceControlEditorPage.provider().chooseOption(new Option(0, "Azure DevOps"));
 
     // then credentials are shown
     SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible);
@@ -311,7 +311,7 @@ public class RootOrganizationSourceControlEditorTest
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
     verifyStartWithSourceControl();
-    SourceControlEditorPage.provider().chooseOption(new Option(2, "Bitbucket"));
+    SourceControlEditorPage.provider().chooseOption(new Option(1, "Bitbucket"));
 
     eyesWatcher.eyesCheck("Source Control Editor Bitbucket Default State");
 
@@ -340,7 +340,7 @@ public class RootOrganizationSourceControlEditorTest
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
     verifyStartWithSourceControl();
-    SourceControlEditorPage.provider().chooseOption(new Option(2, "Bitbucket"));
+    SourceControlEditorPage.provider().chooseOption(new Option(1, "Bitbucket"));
 
     SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible);
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);

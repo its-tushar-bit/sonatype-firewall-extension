@@ -298,7 +298,7 @@ public class OrganizationSourceControlEditorTest
     // when we switch to azure as a provider
     SourceControlEditorPage.credentialsUsername().shouldNotBe(visible);
     SourceControlEditorPage.providerOverrideRadio().click();
-    SourceControlEditorPage.provider().chooseOption(new Option(3, "Azure DevOps"));
+    SourceControlEditorPage.provider().chooseOption(new Option(0, "Azure DevOps"));
 
     // then the credentials should be shown with no option to inherit
     SourceControlEditorPage.credentialsToken().shouldBe(visible, enabled);
@@ -337,7 +337,7 @@ public class OrganizationSourceControlEditorTest
 
     // when we switch to azure as a provider
     SourceControlEditorPage.providerOverrideRadio().click();
-    SourceControlEditorPage.provider().chooseOption(new Option(3, "Azure DevOps"));
+    SourceControlEditorPage.provider().chooseOption(new Option(0, "Azure DevOps"));
 
     // then the credentials should be shown with no option to inherit and should be enabled
     SourceControlEditorPage.credentialsToken().shouldBe(visible, enabled);
@@ -500,7 +500,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.credentialsUsername().shouldNotBe(visible);
     SourceControlEditorPage.providerOverrideRadio().click();
     SourceControlEditorPage.provider().shouldBe(visible, enabled);
-    SourceControlEditorPage.provider().chooseOption(new Option(2, "bitbucket"));
+    SourceControlEditorPage.provider().chooseOption(new Option(1, "bitbucket"));
 
     // then credentials are shown with no inherit/override radio buttons
     SourceControlEditorPage.tokenInheritRadio().shouldNotBe(visible);
@@ -510,7 +510,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.credentialsUsername().shouldBe(visible, enabled);
 
     // when change to gitlab (no user name required)
-    SourceControlEditorPage.provider().chooseOption(new Option(1, "gitlab"));
+    SourceControlEditorPage.provider().chooseOption(new Option(3, "gitlab"));
 
     // then username is not show, and token inherit radio buttons also not shown
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);

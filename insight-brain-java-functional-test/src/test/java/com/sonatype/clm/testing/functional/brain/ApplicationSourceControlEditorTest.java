@@ -925,7 +925,7 @@ public class ApplicationSourceControlEditorTest
     // when we switch to bitbucket as a provider
     SourceControlEditorPage.credentialsUsername().shouldNotBe(visible);
     SourceControlEditorPage.providerOverrideRadio().click();
-    SourceControlEditorPage.provider().chooseOption(new Option(2, "bitbucket"));
+    SourceControlEditorPage.provider().chooseOption(new Option(1, "bitbucket"));
 
     // then we should see the username/token credentials input fields
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
@@ -968,7 +968,7 @@ public class ApplicationSourceControlEditorTest
     // when we override the provider
     SourceControlEditorPage.advancedSettingsTree().click();
     SourceControlEditorPage.providerOverrideRadio().click();
-    SourceControlEditorPage.provider().chooseOption(new Option(0, "github"));
+    SourceControlEditorPage.provider().chooseOption(new Option(2, "github"));
 
     // then the token is required
     SourceControlEditorPage.saveButton().hover();

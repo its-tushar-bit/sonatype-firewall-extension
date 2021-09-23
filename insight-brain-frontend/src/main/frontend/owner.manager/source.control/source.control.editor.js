@@ -13,7 +13,7 @@ export default {
 
 const ROOT_ORG_NAME = 'Root Organization';
 
-const PROVIDERS_WITH_USERNAME = ['bitbucket', 'azure'];
+const PROVIDERS_WITH_USERNAME = ['azure', 'bitbucket'];
 
 function SourceControlEditorController(
   CLMContextLocations,
@@ -63,7 +63,7 @@ function SourceControlEditorController(
   vm.showSshUrlInfo = false;
   vm.isSshUrl = isSshUrl;
   vm.checkUrlFormat = checkUrlFormat;
-  vm.providersSupportingPullRequests = ['github', 'gitlab', 'bitbucket', 'azure'];
+  vm.providersSupportingPullRequests = ['azure', 'bitbucket', 'github', 'gitlab'];
   // function reference to initiate the SCM Configuration validation
   vm.validateScmConfig = validateScmConfig;
   // result object of the SCM validation

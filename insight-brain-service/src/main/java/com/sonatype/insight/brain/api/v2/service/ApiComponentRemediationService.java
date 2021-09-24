@@ -111,8 +111,7 @@ public class ApiComponentRemediationService
     ComponentSummary componentSummary;
 
     if (scanId != null && isThirdPartySource) {
-      componentSummary = thirdPartyComponentDAO
-          .getComponentSummary(componentDTO.componentIdentifier.toComponentIdentifier(), ownerId, scanId);
+      componentSummary = thirdPartyComponentDAO.getComponentSummary(componentIdentifier, ownerId, scanId);
     }
     else {
       componentSummary = getComponentSummary(componentIdentifier);

@@ -120,6 +120,34 @@ public class ApiComponentRemediationResourceTest
   }
 
   @Test
+  public void testSuggestedRemediation_Application_ThirdParty_ByPurl() throws Exception {
+    String scanId = "ScanId";
+    createReportFile(app.getId(), scanId, "/ApiComponentRemediationResourceTest/report");
+    ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian-9", "glibc", "2.24-11+deb9u3");
+    ApiComponentDTOV2 apiComponentDTOV2 = new ApiComponentDTOV2();
+    apiComponentDTOV2.packageUrl = PackageUrlIdentifier.fromComponentIdentifier(tpComponentIdentifier).getPackageUrl();
+    String identificationSource = IdentificationSource.CLAIR.getId();
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2).parameter(OwnerType.APPLICATION, app.getId())
+        .query("identificationSource", identificationSource).query("scanId", scanId)
+        .body(apiComponentDTOV2).post();
+
+    assertResponseStatus(200, response);
+    String responseText = response.getBodyText();
+    assertThat(responseText).doesNotContain("proprietary");
+    ApiComponentRemediationDTO result = response.getBody(ApiComponentRemediationDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.remediation.versionChanges).hasSize(1);
+    ApiVersionChangeOptionDTO versionChangeDTO = result.remediation.versionChanges.get(0);
+    assertThat(versionChangeDTO.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    assertThat(versionChangeDTO.getData().getComponent().packageUrl).isEqualTo("pkg:debian-9/glibc@3.47-32%2Bdeb9u1");
+    assertThat(versionChangeDTO.getData().getComponent().displayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(versionChangeDTO.getData().getComponent().componentIdentifier
+            .toComponentIdentifier()).toString());
+  }
+
+  @Test
   public void testSuggestedRemediation_Application_Purl() throws Exception {
     String purl = "pkg:maven/g1/a1@v1?type=jar";
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purl);

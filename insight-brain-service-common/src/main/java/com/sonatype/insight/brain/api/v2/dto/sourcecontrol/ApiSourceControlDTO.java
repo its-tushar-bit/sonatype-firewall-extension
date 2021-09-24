@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.sourcecontrol;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class ApiSourceControlDTO
 {
   public String id;
@@ -45,5 +47,7 @@ public class ApiSourceControlDTO
 
   public String sourceControlScanTarget;
 
+  // TODO INT-5980 remove this when ready for release
+  @JsonIgnore
   public Boolean sshEnabled;
 }

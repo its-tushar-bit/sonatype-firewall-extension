@@ -2581,7 +2581,7 @@ public class TemporaryEntity
   {
     return newSourceControl(applicationId, repositoryUrl, null, username, token, provider,
         remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestPollTime,
-        pullRequestCommentingEnabled, sourceControlScansEnabled, sourceControlScanTarget, false);
+        pullRequestCommentingEnabled, sourceControlScansEnabled, sourceControlScanTarget, null);
   }
 
   public SourceControl newSourceControl(String applicationId,

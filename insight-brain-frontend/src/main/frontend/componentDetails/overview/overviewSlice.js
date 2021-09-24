@@ -7,12 +7,14 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import {
   getVersionGraphUrl,
+  getComponentDetailsUrl,
   getApplicationReportsUrl,
   getInnerSourceComponentLatestVersionUrl,
 } from '../../util/CLMLocation';
 import { BASE_URL } from '../../util/urlUtil';
 import { Messages } from '../../util/CommonServices';
 import {
+  selectComponentDetailsRequestData,
   selectVersionExplorerRequestData,
   selectInnerSourceProducerUrl,
   selectLatestInnerSourceComponentVersion,
@@ -26,11 +28,12 @@ import { togglePath } from '../../util/jsUtil';
 const REDUCER_NAME = 'componentDetailsOverview';
 
 const initialState = {
-  remediation: null,
-  graphExplorerData: {
+  versionExplorerData: {
     loading: false,
     loadError: null,
-    data: null,
+    versions: null,
+    remediation: null,
+    currentVersionDetails: null,
   },
   innerSourceProducerData: {
     reportUrl: '',
@@ -109,8 +112,8 @@ const loadInnerSourceProducerDataFailed = (state, { payload }) => {
 const loadRequested = (state) => {
   return {
     ...state,
-    graphExplorerData: {
-      ...state.graphExplorerData,
+    versionExplorerData: {
+      ...state.versionExplorerData,
       loading: true,
       loadError: null,
     },
@@ -119,33 +122,40 @@ const loadRequested = (state) => {
 
 const loadFulfilled = (state, { payload }) => ({
   ...state,
-  remediation: payload.data.remediation,
-  graphExplorerData: {
+  versionExplorerData: {
     loading: false,
     loadError: null,
-    data: {
-      versions: payload.data.allVersions,
-    },
+    versions: payload.componentVersionsData.allVersions,
+    remediation: payload.componentVersionsData.remediation,
+    currentVersionDetails: payload.currentVersionDetails,
   },
 });
 
 function loadFailed(state, { payload }) {
   return {
     ...state,
-    graphExplorerData: {
-      ...state.graphExplorerData,
+    versionExplorerData: {
+      ...state.versionExplorerData,
       loading: false,
       loadError: Messages.getHttpErrorMessage(payload),
     },
   };
 }
 
-const loadVersionGraphData = createAsyncThunk(
-  `${REDUCER_NAME}/loadVersionGraphData`,
+const loadVersionExplorerData = createAsyncThunk(
+  `${REDUCER_NAME}/loadVersionExplorerData`,
   (_, { getState, rejectWithValue }) => {
-    return axios
-      .get(getVersionGraphUrl(selectVersionExplorerRequestData(getState())))
-      .then((result) => result)
+    const promises = [
+      axios.get(getVersionGraphUrl(selectVersionExplorerRequestData(getState()))),
+      axios.get(getComponentDetailsUrl(selectComponentDetailsRequestData(getState()))),
+    ];
+
+    return Promise.all(promises)
+      .then((results) => {
+        const componentVersionsData = results[0].data;
+        const currentVersionDetails = results[1].data;
+        return { componentVersionsData, currentVersionDetails };
+      })
       .catch(rejectWithValue);
   }
 );
@@ -187,9 +197,9 @@ const componentDetailsOverviewSlice = createSlice({
     setLatestInnerSourceComponentVersion: pathSet(['innerSourceProducerData', 'latestInnerSourceComponentVersion']),
   },
   extraReducers: {
-    [loadVersionGraphData.pending]: loadRequested,
-    [loadVersionGraphData.fulfilled]: loadFulfilled,
-    [loadVersionGraphData.rejected]: loadFailed,
+    [loadVersionExplorerData.pending]: loadRequested,
+    [loadVersionExplorerData.fulfilled]: loadFulfilled,
+    [loadVersionExplorerData.rejected]: loadFailed,
     [loadInnerSourceProducerData.pending]: loadInnerSourceProducerDataRequested,
     [loadInnerSourceProducerData.fulfilled]: loadInnerSourceProducerDataFulfilled,
     [loadInnerSourceProducerData.rejected]: loadInnerSourceProducerDataFailed,
@@ -199,7 +209,7 @@ const componentDetailsOverviewSlice = createSlice({
 export default componentDetailsOverviewSlice.reducer;
 export const actions = {
   ...componentDetailsOverviewSlice.actions,
-  loadVersionGraphData,
+  loadVersionExplorerData,
   loadInnerSourceProducerData,
   openInnerSourceProducerReport,
 };

@@ -573,12 +573,7 @@ export const getVersionGraphUrl = ({
   dependencyType,
 }) => {
   const params = toURIParams({
-    componentIdentifier:
-      componentIdentifier.coordinates &&
-      JSON.stringify({
-        format: componentIdentifier.componentType,
-        coordinates: componentIdentifier.coordinates,
-      }),
+    componentIdentifier,
     hash,
     matchState,
     proprietary,
@@ -591,6 +586,30 @@ export const getVersionGraphUrl = ({
   return (
     uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${encodeURIComponent(ownerId)}/allVersions?` + params
   );
+};
+
+export const getComponentDetailsUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  hash,
+  matchState,
+  proprietary,
+  pathname,
+  identificationSource,
+  scanId,
+}) => {
+  const params = toURIParams({
+    componentIdentifier,
+    hash,
+    matchState,
+    proprietary,
+    pathname,
+    identificationSource,
+    scanId,
+  });
+  return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${encodeURIComponent(ownerId)}?` + params;
 };
 
 export function getAttributionReportUrl(applicationPublicId, stageTypeId) {

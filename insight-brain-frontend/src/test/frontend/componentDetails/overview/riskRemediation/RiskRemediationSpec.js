@@ -196,6 +196,7 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
 
   beforeEach(function () {
     minimalProps = {
+      currentVersion: '123',
       ancestors: [
         {
           componentIdentifier: {
@@ -210,13 +211,13 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
       ],
       actualVersion: '2.4.19',
       stageId: 'build',
-      remediation: remediation,
       routeName: 'applicationReport.componentDetails.overview',
-      requestVersionGraphData: jasmine.createSpy('requestVersionGraphData'),
+      loadVersionExplorerData: jasmine.createSpy('loadVersionExplorerData'),
       versionExplorerData: {
         loading: false,
         loadError: null,
-        data: null,
+        versions: null,
+        remediation: remediation,
       },
     };
 
@@ -241,22 +242,18 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
     expect(dependencyInfoTile.length).toBe(0);
   });
 
-  it('calls the requestVersionGraphData method when mounted and VersionGraphExplorer not to exists', () => {
+  it('calls the loadVersionExplorerData method when mounted and VersionGraphExplorer not to exists', () => {
     const component = getMounted().find(VersionGraphExplorer);
     expect(component).not.toExist();
-    expect(minimalProps.requestVersionGraphData).toHaveBeenCalledTimes(1);
+    expect(minimalProps.loadVersionExplorerData).toHaveBeenCalledTimes(1);
   });
 
   it('renders the VersionGraphExplorer', () => {
-    const data = {
-      version: '123',
-      versions: allVersions,
-    };
     const component = getMounted({
       versionExplorerData: {
         loading: false,
         loadError: null,
-        data: data,
+        versions: allVersions,
       },
     });
 
@@ -264,7 +261,8 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
     const content = versionExplorerTile.find('#aiVersionChartContainer');
     expect(content).not.toBeNull();
     const versionExplorerComponent = component.find(VersionGraphExplorer);
-    expect(versionExplorerComponent).toHaveProp('data', data);
+    expect(versionExplorerComponent).toHaveProp('versions', allVersions);
+    expect(versionExplorerComponent).toHaveProp('currentVersion', '123');
   });
 
   it('renders the Recommended Versions tile', () => {

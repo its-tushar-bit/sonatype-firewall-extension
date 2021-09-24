@@ -8,7 +8,8 @@ import React, { useEffect } from 'react';
 import { renderVersionGraph } from '@sonatype/version-graph';
 
 const VersionGraphExplorer = ({
-  data,
+  versions,
+  currentVersion,
   selectable,
   showDetails,
   showCurrentVersionLabel,
@@ -17,7 +18,10 @@ const VersionGraphExplorer = ({
 }) => {
   useEffect(() => {
     renderVersionGraph({
-      data,
+      data: {
+        versions,
+        version: currentVersion,
+      },
       selectable,
       showDetails,
       showCurrentVersionLabel,
@@ -33,10 +37,8 @@ const VersionGraphExplorer = ({
   );
 };
 export const GraphExplorerTypes = {
-  data: PropTypes.shape({
-    versions: PropTypes.array.isRequired,
-    version: PropTypes.string.isRequired,
-  }).isRequired,
+  versions: PropTypes.array.isRequired,
+  currentVersion: PropTypes.string.isRequired,
   selectable: PropTypes.bool,
   showCurrentVersionLabel: PropTypes.bool,
   showDetails: PropTypes.bool,

@@ -36,7 +36,7 @@ describe('ComponentDetailsOverview', () => {
         matchState: 'unknown',
         pathnames: ['componentPath'],
       },
-      requestVersionGraphData: jasmine.createSpy('versionExplorerData'),
+      loadVersionExplorerData: jasmine.createSpy('loadVersionExplorerData'),
       loadInnerSourceProducerData: loadInnerSourceProducerDataSpy,
       versionExplorerData: {
         loading: false,

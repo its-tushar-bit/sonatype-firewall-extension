@@ -106,4 +106,6 @@ public class PublicApiPaths
   public static final String PING_RESOURCE_PATH = "/ping";
 
   public static final String PRODUCT_LICENSE_RESOURCE_PATH = API_VERSION_PATH_V2 + "product/license";
+
+  public static final String REPOSITORIES_RESOURCE_PATH = API_VERSION_PATH_V2 + "repositories";
 }

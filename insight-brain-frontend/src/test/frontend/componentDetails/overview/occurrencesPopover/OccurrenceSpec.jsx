@@ -41,4 +41,19 @@ describe('Occurrence', function () {
     const dirname = component.dive().find('.iq-occurrence__dirname');
     expect(dirname).toHaveText(' located at /a/directory/path');
   });
+
+  it('renders an NxList.Item with dependency modifiers if provided', () => {
+    const component = getShallowComponent({
+      occurrence: {
+        basename: 'a-component',
+        dirname: '/a/directory/path',
+        isDependency: true,
+      },
+    });
+    expect(component).toMatchSelector(NxList.Item);
+    const baseName = component.find('.iq-occurrence__basename');
+    expect(baseName).toHaveText('Dependency a-component');
+    const dirname = component.dive().find('.iq-occurrence__dirname');
+    expect(dirname).toHaveText(' located at Module /a/directory/path');
+  });
 });

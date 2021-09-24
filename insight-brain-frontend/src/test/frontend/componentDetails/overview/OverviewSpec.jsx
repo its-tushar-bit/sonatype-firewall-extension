@@ -10,6 +10,7 @@ import * as InnerSourceProducerAlertContainer from '../../../../main/frontend/co
 import * as InnerSourceProducerReportModalContainer from '../../../../main/frontend/componentDetails/overview/InnerSourceProducerReportModal/InnerSourceProducerReportModalContainer';
 import * as InnerSourceProducerPermissionsModalContainer from '../../../../main/frontend/componentDetails/overview/InnerSourceProducerPermissionsModal/InnerSourceProducerPermissionsModalContainer';
 import * as RiskRemediation from '../../../../main/frontend/componentDetails/overview/riskRemediation/RiskRemediation';
+import * as OccurrencesPopoverContainer from '../../../../main/frontend/componentDetails/overview/occurrencesPopover/OccurrencesPopoverContainer';
 
 describe('ComponentDetailsOverview', () => {
   let minimalProps, getShallow, getMounted, loadInnerSourceProducerDataSpy;
@@ -24,6 +25,8 @@ describe('ComponentDetailsOverview', () => {
     spyOn(InnerSourceProducerPermissionsModalContainer, 'default').and.returnValue(
       <div>InnerSourceProducerPermissionsModalContainer</div>
     );
+
+    spyOn(OccurrencesPopoverContainer, 'default').and.returnValue(<div>OccurrencesPopoverContainer</div>);
 
     minimalProps = {
       componentInformation: {
@@ -65,6 +68,12 @@ describe('ComponentDetailsOverview', () => {
   });
 
   describe('when component is unknown', () => {
+    it('renders an OccurrencesPopoverContainer', () => {
+      const component = getShallow();
+      const occurrencesPopover = component.find(OccurrencesPopoverContainer);
+
+      expect(occurrencesPopover).not.toBeNull();
+    });
     it('only renders the display name in the General Info section', () => {
       const component = getShallow(),
         content = component.find('.nx-tile-content'),
@@ -140,6 +149,13 @@ describe('ComponentDetailsOverview', () => {
         pathnames: ['knownComponentPath', 'knownComponentPath2'],
       },
     };
+
+    it('renders an OccurrencesPopoverContainer', () => {
+      const component = getShallow(knownComponentProps);
+      const occurrencesPopover = component.find(OccurrencesPopoverContainer);
+
+      expect(occurrencesPopover).not.toBeNull();
+    });
 
     it('renders the format and display name in the General Info section', () => {
       const component = getShallow(knownComponentProps),

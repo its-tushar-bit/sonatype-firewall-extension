@@ -107,6 +107,7 @@ export default function Overview(props) {
 
   const overviewComponentInformationTile = (
     <section id="overview-component-information-tile" className="nx-tile iq-component-information-tile">
+      <OccurrencesPopoverContainer occurrences={pathnames} />
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">Component Information</h2>
@@ -137,7 +138,6 @@ export default function Overview(props) {
 
   return (
     <div>
-      <OccurrencesPopoverContainer occurrences={pathnames} />
       <InnerSourceProducerReportModalContainer />
       <InnerSourceProducerPermissionsModalContainer />
       <InnerSourceProducerAlertContainer />

@@ -15,7 +15,7 @@
     "test-watch": "npm-run-all test-lint test-watch-initial-compile test-webpack-karma-watch",
     "test-watch-initial-compile": "webpack --config webpack.config.brain-test.js --env skipTestCoverage",
     "test-webpack-karma-watch": "npm-run-all -p test-webpack-watch test-karma-watch",
-    "test-webpack-watch": "webpack --watch --config webpack.config.brain-test.js --env skipTestCoverage",
+    "test-webpack-watch": "webpack watch --config webpack.config.brain-test.js --env skipTestCoverage",
     "test-karma-watch": "karma start karma.conf.interactive.js",
     "clean": "rimraf target/classes/assets",
     "format": "prettier -w"

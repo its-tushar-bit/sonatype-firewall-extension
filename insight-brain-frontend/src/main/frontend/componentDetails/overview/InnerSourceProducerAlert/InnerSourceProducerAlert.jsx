@@ -17,7 +17,7 @@ const InnerSourceProducerAlert = ({ innerSourceProducerData, isInnerSource, onCl
   }
 
   return (
-    <NxInfoAlert>
+    <NxInfoAlert id="inner-source-producer-alert">
       This Component was brought in by an Innersource Component. Innersource Components are software components that are
       developed internally and shared with other internal projects.{' '}
       <a className="nx-text-link" onClick={onClick}>

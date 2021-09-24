@@ -54,7 +54,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
     });
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FAILED on permissions error', function (done) {
       const errorMsg = 'authorization error';
-      checkPermissionsSpy.and.returnValue(Promise.reject(errorMsg));
+      checkPermissionsSpy.and.callFake(() => Promise.reject(errorMsg));
 
       store.dispatch(load()).then(() => {
         const actions = store.getActions();
@@ -70,7 +70,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
       const errorMsg = 'error fetching organizations';
       mockAxiosCalls({
         get: {
-          [OrganizationsUrl]: Promise.reject(errorMsg),
+          [OrganizationsUrl]: () => Promise.reject(errorMsg),
         },
       });
 
@@ -86,7 +86,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
       const errorMsg = 'error fetching automaticApplicationsConfiguration';
       mockAxiosCalls({
         get: {
-          [AutomaticApplicationsConfigurationUrl]: Promise.reject(errorMsg),
+          [AutomaticApplicationsConfigurationUrl]: () => Promise.reject(errorMsg),
         },
       });
 
@@ -140,7 +140,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
       const errorMsg = 'error updating';
       mockAxiosCalls({
         put: {
-          [AutomaticApplicationsConfigurationUrl]: Promise.reject(errorMsg),
+          [AutomaticApplicationsConfigurationUrl]: () => Promise.reject(errorMsg),
         },
       });
 

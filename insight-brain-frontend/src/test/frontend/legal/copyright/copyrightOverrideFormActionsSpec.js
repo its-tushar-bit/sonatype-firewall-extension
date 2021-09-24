@@ -330,7 +330,7 @@ describe('copyrightOverrideFormAction', function () {
       };
       mockAxiosCalls({
         post: {
-          [getSaveComponentCopyrightOverrideUrl('organization', 'org')]: Promise.reject('error'),
+          [getSaveComponentCopyrightOverrideUrl('organization', 'org')]: () => Promise.reject('error'),
         },
       });
 

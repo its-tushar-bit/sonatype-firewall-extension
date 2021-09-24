@@ -95,7 +95,7 @@ describe('advancedSearchConfigActions', function () {
       beforeEach(function () {
         mockAxiosCalls({
           put: {
-            [advancedSearchConfigUrl]: Promise.reject('error!'),
+            [advancedSearchConfigUrl]: () => Promise.reject('error!'),
           },
         });
       });
@@ -180,7 +180,7 @@ describe('advancedSearchConfigActions', function () {
       it('dispatches an ADVANCED_SEARCH_RE_INDEX_FAILED action', function (done) {
         mockAxiosCalls({
           post: {
-            [advancedSearchIndexUrl]: Promise.reject('error!'),
+            [advancedSearchIndexUrl]: () => Promise.reject('error!'),
           },
         });
 
@@ -320,7 +320,7 @@ describe('advancedSearchConfigActions', function () {
         it('dispatches an ADVANCED_SEARCH_POLL_STATE_FAILED action', function (done) {
           mockAxiosCalls({
             get: {
-              [advancedSearchConfigUrl]: Promise.reject('error!'),
+              [advancedSearchConfigUrl]: () => Promise.reject('error!'),
             },
           });
 
@@ -451,7 +451,7 @@ describe('advancedSearchConfigActions', function () {
       it('dispatches an ADVANCED_SEARCH_CONFIG_LOAD_FAILED action', function (done) {
         mockAxiosCalls({
           get: {
-            [advancedSearchConfigUrl]: Promise.reject('error!'),
+            [advancedSearchConfigUrl]: () => Promise.reject('error!'),
           },
         });
 

@@ -63,7 +63,7 @@ describe('successMetricsReportListState', () => {
         const errorMsg = 'error message';
         mockAxiosCalls({
           get: {
-            [getSuccessMetricsConfigUrl()]: Promise.reject(errorMsg),
+            [getSuccessMetricsConfigUrl()]: () => Promise.reject(errorMsg),
             [getSuccessMetricsReportsUrl()]: Promise.resolve({ data: reports }),
           },
         });
@@ -84,7 +84,7 @@ describe('successMetricsReportListState', () => {
         mockAxiosCalls({
           get: {
             [getSuccessMetricsConfigUrl()]: Promise.resolve({ data: { enabled: true } }),
-            [getSuccessMetricsReportsUrl()]: Promise.reject(errorMsg),
+            [getSuccessMetricsReportsUrl()]: () => Promise.reject(errorMsg),
           },
         });
 

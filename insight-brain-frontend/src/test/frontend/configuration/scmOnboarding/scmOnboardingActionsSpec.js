@@ -244,7 +244,7 @@ describe('scmOnboardingActions', function () {
             [compositeSourceControlUrl]: Promise.resolve({
               data: compositeSourceControlPayload,
             }),
-            [scmOrganizationsUrl]: Promise.reject('failed call'),
+            [scmOrganizationsUrl]: () => Promise.reject('failed call'),
             [defaultScmHostUrl]: Promise.resolve({
               data: scmDefaultHostPayload,
             }),
@@ -254,7 +254,7 @@ describe('scmOnboardingActions', function () {
       testFailure('scmOnboardingConfig', () => {
         return {
           get: {
-            [scmOnboardingConfigUrl]: Promise.reject('failed call'),
+            [scmOnboardingConfigUrl]: () => Promise.reject('failed call'),
             [compositeSourceControlUrl]: Promise.resolve({
               data: compositeSourceControlPayload,
             }),
@@ -273,7 +273,7 @@ describe('scmOnboardingActions', function () {
             [scmOnboardingConfigUrl]: Promise.resolve({
               data: scmOnboardingConfigPayload,
             }),
-            [compositeSourceControlUrl]: Promise.reject('failed call'),
+            [compositeSourceControlUrl]: () => Promise.reject('failed call'),
             [scmOrganizationsUrl]: Promise.resolve({
               data: organizationsPayload,
             }),
@@ -295,7 +295,7 @@ describe('scmOnboardingActions', function () {
             [scmOrganizationsUrl]: Promise.resolve({
               data: organizationsPayload,
             }),
-            [defaultScmHostUrl]: Promise.reject('failed call'),
+            [defaultScmHostUrl]: () => Promise.reject('failed call'),
           },
         };
       });
@@ -345,7 +345,7 @@ describe('scmOnboardingActions', function () {
       const scmUrl = 'http://localhost:1234';
       mockAxiosCalls({
         get: {
-          [getScmRepositoriesUrl(orgId, scmUrl)]: Promise.reject('Failed request'),
+          [getScmRepositoriesUrl(orgId, scmUrl)]: () => Promise.reject('Failed request'),
         },
       });
 
@@ -697,7 +697,7 @@ describe('scmOnboardingActions', function () {
       beforeEach(function () {
         mockAxiosCalls({
           post: {
-            [getOrganizationsUrl()]: Promise.reject(failureMessage),
+            [getOrganizationsUrl()]: () => Promise.reject(failureMessage),
           },
         });
       });

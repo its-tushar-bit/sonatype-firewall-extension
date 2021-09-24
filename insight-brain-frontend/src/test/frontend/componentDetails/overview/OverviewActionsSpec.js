@@ -81,7 +81,8 @@ describe('componentDetailsOverviewActions', () => {
       });
       mockAxiosCalls({
         get: {
-          [getApplicationReportsUrl(ownerApplicationId)]: Promise.reject({ response: { status: 403, data: 'error' } }),
+          [getApplicationReportsUrl(ownerApplicationId)]: () =>
+            Promise.reject({ response: { status: 403, data: 'error' } }),
         },
       });
 
@@ -102,7 +103,7 @@ describe('componentDetailsOverviewActions', () => {
       });
       mockAxiosCalls({
         get: {
-          [getApplicationReportsUrl(ownerApplicationId)]: Promise.reject({ response: { data: 'error' } }),
+          [getApplicationReportsUrl(ownerApplicationId)]: () => Promise.reject({ response: { data: 'error' } }),
         },
       });
 

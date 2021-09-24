@@ -72,8 +72,8 @@ describe('addSuccessMetricsReportActions', () => {
       const error = 'some error';
       mockAxiosCall({
         get: {
-          [applicationsUrl]: Promise.reject(error),
-          [organizationsUrl]: Promise.reject(error),
+          [applicationsUrl]: () => Promise.reject(error),
+          [organizationsUrl]: () => Promise.reject(error),
         },
       });
       store.dispatch(loadOrgsAndApps()).then(() => {
@@ -154,7 +154,7 @@ describe('addSuccessMetricsReportActions', () => {
     describe('fail', () => {
       it(`dispatches ${ADD_SUCCESS_METRICS_REPORT_SUBMIT_FAILED} action`, (done) => {
         const error = 'some error';
-        spyOn(axios, 'post').and.returnValue(Promise.reject(error));
+        spyOn(axios, 'post').and.callFake(() => Promise.reject(error));
         store.dispatch(submit(closeFn)).then(() => {
           const [, { type: actionType, payload: actionPayload }] = actions;
           expect(actionType).toBe(ADD_SUCCESS_METRICS_REPORT_SUBMIT_FAILED);

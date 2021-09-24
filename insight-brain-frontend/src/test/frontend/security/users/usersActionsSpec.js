@@ -90,7 +90,7 @@ describe('usersActions', () => {
 
     describe('when not authorized', () => {
       it('does not load user add page', (done) => {
-        checkPermissionsSpy.and.returnValue(Promise.reject('user add page authorization error'));
+        checkPermissionsSpy.and.callFake(() => Promise.reject('user add page authorization error'));
         const store = SpecUtil.mockReduxStore();
         mockAxiosCalls({
           get: {},
@@ -142,7 +142,7 @@ describe('usersActions', () => {
 
     describe('when not authorized', () => {
       it('does not load user add page', (done) => {
-        checkPermissionsSpy.and.returnValue(Promise.reject('user list page authorization error'));
+        checkPermissionsSpy.and.callFake(() => Promise.reject('user list page authorization error'));
         const store = SpecUtil.mockReduxStore();
         mockAxiosCalls({
           get: {},
@@ -214,7 +214,7 @@ describe('usersActions', () => {
     it('fires CREATE_USER_SAVE_FAILED action on error', (done) => {
       mockAxiosCalls({
         post: {
-          [userUrl]: Promise.reject('cannot save'),
+          [userUrl]: () => Promise.reject('cannot save'),
         },
       });
 
@@ -294,7 +294,7 @@ describe('usersActions', () => {
 
     describe('when not authorized', () => {
       it('does not load user edit page', (done) => {
-        checkPermissionsSpy.and.returnValue(Promise.reject('user edit page authorization error'));
+        checkPermissionsSpy.and.callFake(() => Promise.reject('user edit page authorization error'));
         const store = SpecUtil.mockReduxStore();
         mockAxiosCalls({
           get: {},
@@ -374,7 +374,7 @@ describe('usersActions', () => {
     it('fires EDIT_USER_UPDATE_FAILED action on error', (done) => {
       mockAxiosCalls({
         put: {
-          [userUrl]: Promise.reject('cannot update'),
+          [userUrl]: () => Promise.reject('cannot update'),
         },
       });
 
@@ -445,7 +445,7 @@ describe('usersActions', () => {
     it('fires DELETE_USER_FAILED action on error', (done) => {
       mockAxiosCalls({
         del: {
-          [getUserByIdUrl('201')]: Promise.reject({ response: 'failed to delete user' }),
+          [getUserByIdUrl('201')]: () => Promise.reject({ response: 'failed to delete user' }),
         },
       });
 
@@ -497,9 +497,10 @@ describe('usersActions', () => {
     it('fires RESET_USER_PASSWORD_FAILED action on error', (done) => {
       mockAxiosCalls({
         put: {
-          [getUserResetPasswordByIdUrl('201', state.selectedUserServerData.username)]: Promise.reject({
-            response: 'failed to reset user password',
-          }),
+          [getUserResetPasswordByIdUrl('201', state.selectedUserServerData.username)]: () =>
+            Promise.reject({
+              response: 'failed to reset user password',
+            }),
         },
       });
 

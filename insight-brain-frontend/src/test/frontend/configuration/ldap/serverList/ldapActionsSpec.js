@@ -46,7 +46,7 @@ describe('ldapListActions', () => {
     });
 
     it('fires ldapList/loadServers/rejected because of permissions', (done) => {
-      checkPermissionsSpy.and.returnValue(Promise.reject('some error'));
+      checkPermissionsSpy.and.callFake(() => Promise.reject('some error'));
       const store = SpecUtil.mockReduxStore();
       store.dispatch(loadServers()).then(() => {
         const actions = store.getActions();
@@ -60,7 +60,7 @@ describe('ldapListActions', () => {
       checkPermissionsSpy.and.returnValue(Promise.resolve());
       mockAxiosCalls({
         get: {
-          [loadConfigUrl]: Promise.reject('some error'),
+          [loadConfigUrl]: () => Promise.reject('some error'),
         },
       });
       const store = SpecUtil.mockReduxStore();
@@ -74,7 +74,7 @@ describe('ldapListActions', () => {
     });
 
     it('skips permission check if called with true flag', (done) => {
-      checkPermissionsSpy.and.returnValue(Promise.reject('some error'));
+      checkPermissionsSpy.and.callFake(() => Promise.reject('some error'));
       mockAxiosCalls({
         get: {
           [loadConfigUrl]: Promise.resolve({ data: [] }),
@@ -128,7 +128,7 @@ describe('ldapListActions', () => {
     });
 
     it('fires ldapList/saveOrder/rejected because of permissions', (done) => {
-      checkPermissionsSpy.and.returnValue(Promise.reject('some error'));
+      checkPermissionsSpy.and.callFake(() => Promise.reject('some error'));
       const store = SpecUtil.mockReduxStore();
       store.dispatch(saveOrder()).then(() => {
         const actions = store.getActions();
@@ -142,7 +142,7 @@ describe('ldapListActions', () => {
       checkPermissionsSpy.and.returnValue(Promise.resolve());
       mockAxiosCalls({
         put: {
-          [saveOrderUrl]: Promise.reject('some error'),
+          [saveOrderUrl]: () => Promise.reject('some error'),
         },
       });
 

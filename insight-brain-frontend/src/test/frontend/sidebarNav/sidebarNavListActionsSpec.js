@@ -112,7 +112,7 @@ describe('sidebarNavListActions', function () {
     it('dispatches LOAD_SIDEBAR_NAV_LIST_FAILED when the response fails', function (done) {
       const responseError = 'errrr!';
 
-      spyOn(DashboardFilterActions, 'loadFilter').and.returnValue(Promise.reject(responseError));
+      spyOn(DashboardFilterActions, 'loadFilter').and.callFake(() => Promise.reject(responseError));
 
       store
         .dispatch(

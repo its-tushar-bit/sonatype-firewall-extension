@@ -28,6 +28,8 @@
 - [ React Sample component ](#react-sample-component)
   - [Writing tests for React components](#writing-tests-for-react-components)
   - [How to add an Unsaved Changes modal warning to your page](#how-to-add-an-unsaved-changes-modal-warning-to-your-page)
+- [ Notes on Testing ](#notes-on-testing)
+  - [Mocking Rejected Promises](#mocking-rejected-promises)
 
 ## Front-end development
 
@@ -192,5 +194,48 @@ For example, if you store your the "isDirty" flag in the `addWaiver` reducer in 
     ...
 })
 ```
+
+## Notes on Testing
+
+The following section deals with suggestions and common pitfalls that may be encountered while writing tests.
+
+### Mocking Rejected Promises
+
+There's an [issue](https://github.com/jasmine/jasmine/issues/1590) with Jasmine and the handling of rejected promises that _sometimes_ shows up in our test executions.
+The root of the issue is Jasmine's inability to handle rejected promises in a context that isn't the usual `then().catch()`; for that reason the following is suggested:
+
+Instead of
+
+```
+spyOn(object, 'method').and.returnValue(Promise.reject('rejection'));
+```
+
+do:
+
+```
+spyOn(object, 'method').and.callFake(() => Promise.reject('rejection'));
+```
+
+And, instead of
+
+```
+mockAxiosCalls({
+  put: {
+    [url]: Promise.reject('some error'),
+  },
+});
+```
+
+do:
+
+```
+mockAxiosCalls({
+  put: {
+    [url]: () => Promise.reject('some error'),
+  },
+});
+```
+
+In a nutshell: don't create the rejected promise until you need it.
 
 For any questions about front-end development, reach out to the `@iq-laurel-team` in `#iq-laurel` in Slack

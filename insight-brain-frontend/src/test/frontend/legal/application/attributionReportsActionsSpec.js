@@ -120,7 +120,7 @@ describe('attributionReportsActions', function () {
   it('error loading attribution report templates', function (done) {
     mockAxiosCalls({
       get: {
-        [getAttributionReportTemplatesUrl()]: Promise.reject('error'),
+        [getAttributionReportTemplatesUrl()]: () => Promise.reject('error'),
       },
     });
     store.dispatch(getAttributionReportTemplates()).then(() => {
@@ -154,7 +154,7 @@ describe('attributionReportsActions', function () {
   it('error saving a new attribution report template', function (done) {
     mockAxiosCalls({
       post: {
-        [getAttributionReportTemplatesUrl()]: Promise.reject('error'),
+        [getAttributionReportTemplatesUrl()]: () => Promise.reject('error'),
       },
     });
     store.dispatch(saveAttributionReportTemplate(newReportTemplate)).then(() => {
@@ -188,7 +188,7 @@ describe('attributionReportsActions', function () {
   it('error deleting an attribution report template', function (done) {
     mockAxiosCalls({
       del: {
-        [getAttributionReportTemplateUrl(existingEditedReportTemplate.id)]: Promise.reject('error'),
+        [getAttributionReportTemplateUrl(existingEditedReportTemplate.id)]: () => Promise.reject('error'),
       },
     });
     store.dispatch(deleteAttributionReportTemplateById(existingEditedReportTemplate.id)).then(() => {

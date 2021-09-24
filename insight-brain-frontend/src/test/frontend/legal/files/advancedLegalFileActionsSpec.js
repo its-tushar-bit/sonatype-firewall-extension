@@ -431,7 +431,7 @@ describe('advancedLegalFileActions', function () {
       store = SpecUtil.mockReduxStore(initialState);
       mockAxiosCalls({
         post: {
-          [getSaveLegalFileUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.reject('error'),
+          [getSaveLegalFileUrl('organization', 'ROOT_ORGANIZATION_ID')]: () => Promise.reject('error'),
         },
       });
       const expectedPostBody = {
@@ -464,7 +464,7 @@ describe('advancedLegalFileActions', function () {
           [getSaveLegalFileUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve(),
         },
         get: {
-          [getLegalFileUrl('application', 'app', 'componentIdentifier', 'notice')]: Promise.reject('error'),
+          [getLegalFileUrl('application', 'app', 'componentIdentifier', 'notice')]: () => Promise.reject('error'),
         },
       });
       const expectedPostBody = {
@@ -738,7 +738,7 @@ describe('advancedLegalFileActions', function () {
       store = SpecUtil.mockReduxStore(initialState);
       mockAxiosCalls({
         post: {
-          [getSaveLegalFileUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.reject('error'),
+          [getSaveLegalFileUrl('organization', 'ROOT_ORGANIZATION_ID')]: () => Promise.reject('error'),
         },
       });
       const expectedPostBody = {
@@ -771,7 +771,7 @@ describe('advancedLegalFileActions', function () {
           [getSaveLegalFileUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve(),
         },
         get: {
-          [getLegalFileUrl('application', 'app', 'componentIdentifier', 'license')]: Promise.reject('error'),
+          [getLegalFileUrl('application', 'app', 'componentIdentifier', 'license')]: () => Promise.reject('error'),
         },
       });
       const expectedPostBody = {

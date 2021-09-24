@@ -72,7 +72,7 @@ describe('legalDashboardActions', function () {
           const errorTest = 'Error test';
           mockAxiosCalls({
             post: {
-              [getLegalDashboardApplicationsUrl()]: Promise.reject(errorTest),
+              [getLegalDashboardApplicationsUrl()]: () => Promise.reject(errorTest),
             },
           });
 

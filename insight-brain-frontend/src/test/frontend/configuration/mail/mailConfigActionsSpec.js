@@ -135,7 +135,7 @@ describe('mailConfigSlice actions', function () {
       beforeEach(function () {
         mockAxiosCalls({
           put: {
-            [mailConfigUrl]: Promise.reject('error!'),
+            [mailConfigUrl]: () => Promise.reject('error!'),
           },
         });
       });
@@ -216,7 +216,7 @@ describe('mailConfigSlice actions', function () {
       beforeEach(function () {
         mockAxiosCalls({
           del: {
-            [mailConfigUrl]: Promise.reject('error!'),
+            [mailConfigUrl]: () => Promise.reject('error!'),
           },
         });
       });
@@ -299,7 +299,7 @@ describe('mailConfigSlice actions', function () {
       beforeEach(function () {
         mockAxiosCalls({
           post: {
-            [testMailUrl]: Promise.reject('error!'),
+            [testMailUrl]: () => Promise.reject('error!'),
           },
         });
       });

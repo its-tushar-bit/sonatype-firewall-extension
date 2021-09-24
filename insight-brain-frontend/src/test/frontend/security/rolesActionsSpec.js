@@ -119,7 +119,7 @@ describe('rolesActions', () => {
         getPermissionsSpy.and.returnValue(Promise.resolve(['VIEW_ROLES', 'EDIT_ROLES']));
         mockAxiosCalls({
           get: {
-            [rolesListUrl]: Promise.reject('error'),
+            [rolesListUrl]: () => Promise.reject('error'),
           },
         });
 

@@ -188,7 +188,7 @@ describe('waiveTransitiveViolationsActions', function () {
       beforeEach(function () {
         mockAxiosCalls({
           post: {
-            [getWaiveTransitiveViolationsUrl('someScope', 'someScanId', 'someHash')]: Promise.reject('error!'),
+            [getWaiveTransitiveViolationsUrl('someScope', 'someScanId', 'someHash')]: () => Promise.reject('error!'),
           },
         });
       });

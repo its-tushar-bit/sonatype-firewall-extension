@@ -65,7 +65,7 @@ describe('manageLegalFilterActions', function () {
     it('dispatches LEGAL_DASHBOARD_FETCH_SAVED_FILTERS_FAILED when the backend call fails', function (done) {
       mockAxiosCalls({
         get: {
-          [getLegalDashboardSavedFilters()]: Promise.reject({ status: 403 }),
+          [getLegalDashboardSavedFilters()]: () => Promise.reject({ status: 403 }),
         },
       });
 
@@ -214,7 +214,7 @@ describe('manageLegalFilterActions', function () {
     it('dispatches LEGAL_DASHBOARD_SAVE_FILTER_FAILED and does not fetch the saved filters if PUT fails', (done) => {
       mockAxiosCalls({
         put: {
-          [dashboardSavedFiltersUrl]: Promise.reject({ status: 403 }),
+          [dashboardSavedFiltersUrl]: () => Promise.reject({ status: 403 }),
         },
       });
 
@@ -240,7 +240,7 @@ describe('manageLegalFilterActions', function () {
           }),
         },
         get: {
-          [dashboardSavedFiltersUrl]: Promise.reject({ status: 403 }),
+          [dashboardSavedFiltersUrl]: () => Promise.reject({ status: 403 }),
         },
       });
 
@@ -465,7 +465,7 @@ describe('manageLegalFilterActions', function () {
     it('dispatches LEGAL_DASHBOARD_DELETE_FILTER_FAILED and rejects promise if deleteSavedFilter fails', (done) => {
       mockAxiosCalls({
         del: {
-          [deleteFiltersUrl]: Promise.reject('error!'),
+          [deleteFiltersUrl]: () => Promise.reject('error!'),
         },
       });
 
@@ -486,7 +486,7 @@ describe('manageLegalFilterActions', function () {
           [deleteFiltersUrl]: Promise.resolve({}),
         },
         get: {
-          [dashboardSavedFiltersUrl]: Promise.reject({ status: 403 }),
+          [dashboardSavedFiltersUrl]: () => Promise.reject({ status: 403 }),
         },
       });
 

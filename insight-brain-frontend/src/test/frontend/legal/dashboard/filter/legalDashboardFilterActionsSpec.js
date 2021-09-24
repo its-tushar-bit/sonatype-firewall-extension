@@ -79,7 +79,7 @@ describe('legalDashboardFilterActions', function () {
         mockAxiosCalls({
           get: {
             ...mockGetData,
-            [getApplicationsUrl()]: Promise.reject('failed to get applications data'),
+            [getApplicationsUrl()]: () => Promise.reject('failed to get applications data'),
           },
         });
 
@@ -156,7 +156,7 @@ describe('legalDashboardFilterActions', function () {
     it(`dispatches ${expectedFailAction.type} if failed to update filters`, function (done) {
       mockAxiosCalls({
         put: {
-          [getLegalDashboardFilters()]: Promise.reject({ status: 403 }),
+          [getLegalDashboardFilters()]: () => Promise.reject({ status: 403 }),
         },
         post: {
           [getLegalDashboardApplicationsUrl()]: Promise.resolve({
@@ -255,7 +255,7 @@ describe('legalDashboardFilterActions', function () {
           }),
         },
         post: {
-          [getLegalDashboardApplicationsUrl()]: Promise.reject('load results error'),
+          [getLegalDashboardApplicationsUrl()]: () => Promise.reject('load results error'),
         },
       });
 

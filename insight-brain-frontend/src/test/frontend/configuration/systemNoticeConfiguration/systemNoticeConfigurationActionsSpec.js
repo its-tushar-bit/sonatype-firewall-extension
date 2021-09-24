@@ -66,7 +66,7 @@ describe('systemNoticeConfigurationActions', function () {
       it('dispatches SYSTEM_NOTICE_CONFIGURATION_SYSTEM_NOTICE_LOAD_FAILED action', function (done) {
         mockAxiosCalls({
           get: {
-            [systemNoticeFetchUrl]: Promise.reject({ status: 403 }),
+            [systemNoticeFetchUrl]: () => Promise.reject({ status: 403 }),
           },
         });
 
@@ -146,7 +146,7 @@ describe('systemNoticeConfigurationActions', function () {
 
     describe('when not authorized', () => {
       it('fires an SYSTEM_NOTICE_CONFIGURATION_LOAD_PAGE_FAILED action', (done) => {
-        checkPermissionsSpy.and.returnValue(Promise.reject('system notice page authorization error'));
+        checkPermissionsSpy.and.callFake(() => Promise.reject('system notice page authorization error'));
         const store = SpecUtil.mockReduxStore();
 
         store.dispatch(load()).then(() => {
@@ -231,7 +231,7 @@ describe('systemNoticeConfigurationActions', function () {
       beforeEach(function () {
         mockAxiosCalls({
           put: {
-            [systemNoticeUpdateUrl]: Promise.reject({ status: 403 }),
+            [systemNoticeUpdateUrl]: () => Promise.reject({ status: 403 }),
           },
         });
       });

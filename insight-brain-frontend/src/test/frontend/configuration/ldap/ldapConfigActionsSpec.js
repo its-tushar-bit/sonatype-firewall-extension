@@ -75,7 +75,7 @@ describe('ldapConfigSliceActions', () => {
 
     describe('when not authorized', () => {
       it('does not load ldap add server page', (done) => {
-        checkPermissionsSpy.and.returnValue(Promise.reject('ldap add server page authorization error'));
+        checkPermissionsSpy.and.callFake(() => Promise.reject('ldap add server page authorization error'));
         const store = SpecUtil.mockReduxStore();
 
         store.dispatch(loadAddPage()).then(() => {
@@ -200,7 +200,7 @@ describe('ldapConfigSliceActions', () => {
 
     describe('when not authorized', () => {
       it('does not load ldap edit page', (done) => {
-        checkPermissionsSpy.and.returnValue(Promise.reject('ldap edit page authorization error'));
+        checkPermissionsSpy.and.callFake(() => Promise.reject('ldap edit page authorization error'));
         const store = SpecUtil.mockReduxStore({
           ldapConfig: {
             serverData: {
@@ -268,7 +268,7 @@ describe('ldapConfigSliceActions', () => {
     it('fires ldapConfig/saveServerName/rejected action on error', (done) => {
       mockAxiosCalls({
         post: {
-          [ldapUrl]: Promise.reject('cannot save'),
+          [ldapUrl]: () => Promise.reject('cannot save'),
         },
       });
 
@@ -359,7 +359,7 @@ describe('ldapConfigSliceActions', () => {
     it('fires ldapConfig/saveConnection/rejected action if server name already exist', (done) => {
       mockAxiosCalls({
         put: {
-          [ldapUrl]: Promise.reject('newName1 is already used as a name.'),
+          [ldapUrl]: () => Promise.reject('newName1 is already used as a name.'),
         },
       });
 
@@ -388,7 +388,7 @@ describe('ldapConfigSliceActions', () => {
               priority: 1,
             },
           }),
-          [ldapConnectionUrl]: Promise.reject('not enough data'),
+          [ldapConnectionUrl]: () => Promise.reject('not enough data'),
         },
       });
 
@@ -514,7 +514,7 @@ describe('ldapConfigSliceActions', () => {
       const store = SpecUtil.mockReduxStore();
       mockAxiosCalls({
         del: {
-          [removeLdapUrl]: Promise.reject('Can not remove ldap server'),
+          [removeLdapUrl]: () => Promise.reject('Can not remove ldap server'),
         },
       });
 
@@ -613,7 +613,7 @@ describe('ldapConfigSliceActions', () => {
     it('fires ldapConfig/saveUserAndGroupSettings/rejected action if server name already exist', (done) => {
       mockAxiosCalls({
         put: {
-          [ldapUrl]: Promise.reject('newName2 is already used as a name.'),
+          [ldapUrl]: () => Promise.reject('newName2 is already used as a name.'),
         },
       });
 
@@ -642,7 +642,7 @@ describe('ldapConfigSliceActions', () => {
               priority: 1,
             },
           }),
-          [ldapUsermappingUrl]: Promise.reject('not enough data'),
+          [ldapUsermappingUrl]: () => Promise.reject('not enough data'),
         },
       });
 
@@ -728,7 +728,7 @@ describe('ldapConfigSliceActions', () => {
     it('fires ldapConfig/checkLogin/reject because of service failure', (done) => {
       mockAxiosCalls({
         put: {
-          [getLdapLoginTest('ldapID')]: Promise.reject('error'),
+          [getLdapLoginTest('ldapID')]: () => Promise.reject('error'),
         },
       });
       store.dispatch(checkLogin('ldapID')).then(() => {
@@ -821,7 +821,7 @@ describe('ldapConfigSliceActions', () => {
       const errorMsg = 'error';
       mockAxiosCalls({
         put: {
-          [getLdapUserMappingTest('serverID')]: Promise.reject(errorMsg),
+          [getLdapUserMappingTest('serverID')]: () => Promise.reject(errorMsg),
         },
       });
       store.dispatch(loadUserMapping()).then(() => {

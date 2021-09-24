@@ -63,7 +63,7 @@ describe('RoleEditorActions', function () {
       let error = 'some error happened';
       mockAxiosCalls({
         post: {
-          [roleListUrl]: Promise.reject(error),
+          [roleListUrl]: () => Promise.reject(error),
         },
       });
       store.dispatch(save()).then(() => {
@@ -165,7 +165,7 @@ describe('RoleEditorActions', function () {
       let data = 'some error happened';
       mockAxiosCalls({
         get: {
-          [roleForNewUrl]: Promise.reject(data),
+          [roleForNewUrl]: () => Promise.reject(data),
         },
       });
       store.dispatch(load()).then(() => {
@@ -242,7 +242,7 @@ describe('RoleEditorActions', function () {
       const roleByIdUrl = getRoleByIdUrl(id);
       mockAxiosCalls({
         del: {
-          [roleByIdUrl]: Promise.reject(error),
+          [roleByIdUrl]: () => Promise.reject(error),
         },
       });
       store.dispatch(deleteRole(id)).then(() => {

@@ -116,7 +116,7 @@ describe('successMetricsReportActions', () => {
       it('when getSuccessMetricsConfigUrl fetch fails', (done) => {
         mockAxiosCalls({
           get: {
-            [getSuccessMetricsConfigUrl()]: Promise.reject(errorMessage),
+            [getSuccessMetricsConfigUrl()]: () => Promise.reject(errorMessage),
             [getSuccessMetricsChartDataUrl(reportId)]: Promise.resolve(),
             [getSuccessMetricsReportsUrl()]: Promise.resolve(),
             [getSuccessMetricsComponentCountsUrl(reportId)]: Promise.resolve(),
@@ -136,7 +136,7 @@ describe('successMetricsReportActions', () => {
         mockAxiosCalls({
           get: {
             [getSuccessMetricsConfigUrl()]: Promise.resolve({ data: { enabled: true } }),
-            [getSuccessMetricsChartDataUrl(reportId)]: Promise.reject(errorMessage),
+            [getSuccessMetricsChartDataUrl(reportId)]: () => Promise.reject(errorMessage),
             [getSuccessMetricsReportsUrl()]: Promise.resolve(),
             [getSuccessMetricsComponentCountsUrl(reportId)]: Promise.resolve(),
           },
@@ -156,7 +156,7 @@ describe('successMetricsReportActions', () => {
           get: {
             [getSuccessMetricsConfigUrl()]: Promise.resolve({ data: { enabled: true } }),
             [getSuccessMetricsChartDataUrl(reportId)]: Promise.resolve(),
-            [getSuccessMetricsReportsUrl()]: Promise.reject(errorMessage),
+            [getSuccessMetricsReportsUrl()]: () => Promise.reject(errorMessage),
             [getSuccessMetricsComponentCountsUrl(reportId)]: Promise.resolve(),
           },
         });
@@ -176,7 +176,7 @@ describe('successMetricsReportActions', () => {
             [getSuccessMetricsConfigUrl()]: Promise.resolve({ data: { enabled: true } }),
             [getSuccessMetricsChartDataUrl(reportId)]: Promise.resolve(),
             [getSuccessMetricsReportsUrl()]: Promise.resolve(),
-            [getSuccessMetricsComponentCountsUrl(reportId)]: Promise.reject(errorMessage),
+            [getSuccessMetricsComponentCountsUrl(reportId)]: () => Promise.reject(errorMessage),
           },
         });
 
@@ -228,7 +228,7 @@ describe('successMetricsReportActions', () => {
     it('fires SUCCESS_METRICS_DELETE_FAILED action on error', (done) => {
       mockAxiosCalls({
         del: {
-          [getSuccessMetricsReportUrl('404')]: Promise.reject({ response: 'failed to delete report' }),
+          [getSuccessMetricsReportUrl('404')]: () => Promise.reject({ response: 'failed to delete report' }),
         },
       });
 

@@ -48,7 +48,7 @@ describe('advancedLegalActions', function () {
       const errorTest = 'Error test';
       mockAxiosCalls({
         get: {
-          [getLicenseLegalComponentUrl('orgOrApp', 'ownerId', 'hash')]: Promise.reject(errorTest),
+          [getLicenseLegalComponentUrl('orgOrApp', 'ownerId', 'hash')]: () => Promise.reject(errorTest),
         },
       });
 
@@ -105,7 +105,7 @@ describe('advancedLegalActions', function () {
       const errorTest = 'Error test';
       mockAxiosCalls({
         get: {
-          [getOwnerHierarchyUrl('ownerType', 'ownerId')]: Promise.reject(errorTest),
+          [getOwnerHierarchyUrl('ownerType', 'ownerId')]: () => Promise.reject(errorTest),
         },
       });
 

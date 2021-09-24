@@ -150,7 +150,7 @@ describe('webhookActions', () => {
 
     describe('when not authorized', () => {
       it('does not load webhook data and fires EDIT_WEBHOOK_LOAD_FAILED action with authorization error', (done) => {
-        checkPermissionsSpy.and.returnValue(Promise.reject('webhook authorization error'));
+        checkPermissionsSpy.and.callFake(() => Promise.reject('webhook authorization error'));
         const store = SpecUtil.mockReduxStore();
 
         mockAxiosCalls({ get: {} });
@@ -242,7 +242,7 @@ describe('webhookActions', () => {
         const store = SpecUtil.mockReduxStore();
         mockAxiosCalls({
           get: {
-            [getWebhookEventTypesUrl()]: Promise.reject({ response: 'failed to get event types' }),
+            [getWebhookEventTypesUrl()]: () => Promise.reject({ response: 'failed to get event types' }),
             [getProductFeaturesUrl()]: Promise.resolve({
               data: ['webhooks-for-applications', 'webhooks-for-repositories'],
             }),
@@ -267,7 +267,7 @@ describe('webhookActions', () => {
         mockAxiosCalls({
           get: {
             [getWebhookEventTypesUrl()]: Promise.resolve({ data: ['eventType1', 'eventType2'] }),
-            [getProductFeaturesUrl()]: Promise.reject({ response: 'failed to get product features' }),
+            [getProductFeaturesUrl()]: () => Promise.reject({ response: 'failed to get product features' }),
           },
         });
 
@@ -309,7 +309,7 @@ describe('webhookActions', () => {
 
     describe('when not authorised', () => {
       it('does not load webhook data and fires EDIT_WEBHOOK_LOAD_FAILED action with authorisation error', (done) => {
-        checkPermissionsSpy.and.returnValue(Promise.reject('webhook authorisation error'));
+        checkPermissionsSpy.and.callFake(() => Promise.reject('webhook authorisation error'));
         const store = SpecUtil.mockReduxStore();
 
         mockAxiosCalls({ get: {} });
@@ -401,7 +401,7 @@ describe('webhookActions', () => {
         const store = SpecUtil.mockReduxStore();
         mockAxiosCalls({
           get: {
-            [getWebhooksUrl()]: Promise.reject({ response: 'failed to get webhooks' }),
+            [getWebhooksUrl()]: () => Promise.reject({ response: 'failed to get webhooks' }),
             [getProductFeaturesUrl()]: Promise.resolve({
               data: ['webhooks-for-applications', 'webhooks-for-repositories'],
             }),
@@ -426,7 +426,7 @@ describe('webhookActions', () => {
         mockAxiosCalls({
           get: {
             [getWebhooksUrl()]: Promise.resolve({ data: ['webhook1', 'webhook2'] }),
-            [getProductFeaturesUrl()]: Promise.reject({ response: 'failed to get product features' }),
+            [getProductFeaturesUrl()]: () => Promise.reject({ response: 'failed to get product features' }),
           },
         });
 
@@ -468,7 +468,7 @@ describe('webhookActions', () => {
 
     describe('when not authorised', () => {
       it('does not load webhook data and fires EDIT_WEBHOOK_LOAD_FAILED action with authorisation error', (done) => {
-        checkPermissionsSpy.and.returnValue(Promise.reject('webhook authorisation error'));
+        checkPermissionsSpy.and.callFake(() => Promise.reject('webhook authorisation error'));
         const store = SpecUtil.mockReduxStore();
 
         mockAxiosCalls({ get: {} });
@@ -534,7 +534,7 @@ describe('webhookActions', () => {
     it('fires EDIT_WEBHOOK_SAVE_FAILED action on error', (done) => {
       mockAxiosCalls({
         post: {
-          [getWebhooksUrl()]: Promise.reject({ response: 'failed to save webhook' }),
+          [getWebhooksUrl()]: () => Promise.reject({ response: 'failed to save webhook' }),
         },
       });
 
@@ -598,7 +598,7 @@ describe('webhookActions', () => {
     it('fires EDIT_WEBHOOK_DELETE_FAILED action on error', (done) => {
       mockAxiosCalls({
         del: {
-          [deleteWebhooksUrl('404')]: Promise.reject({ response: 'failed to delete webhook' }),
+          [deleteWebhooksUrl('404')]: () => Promise.reject({ response: 'failed to delete webhook' }),
         },
       });
 

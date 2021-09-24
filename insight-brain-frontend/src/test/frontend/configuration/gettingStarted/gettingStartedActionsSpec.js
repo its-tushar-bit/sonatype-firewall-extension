@@ -70,7 +70,7 @@ describe('gettingStartedReducerActions', () => {
     describe('fail', () => {
       const errorMsg = 'fetch failed';
       beforeEach(() => {
-        getPermissionsSpy.and.returnValue(Promise.reject(errorMsg));
+        getPermissionsSpy.and.callFake(() => Promise.reject(errorMsg));
       });
 
       it(`dispatches a ${GETTING_STARTED_LOAD_REQUESTED} action`, () => {
@@ -96,7 +96,7 @@ describe('gettingStartedReducerActions', () => {
         getPermissionsSpy.and.returnValue(Promise.resolve());
         mockAxiosCalls({
           get: {
-            [licenseSummaryUrl]: Promise.reject({ response: {} }),
+            [licenseSummaryUrl]: () => Promise.reject({ response: {} }),
           },
         });
         store = SpecUtil.mockReduxStore();

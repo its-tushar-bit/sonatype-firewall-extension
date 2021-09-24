@@ -80,7 +80,7 @@ describe('dashboardFilterActions: non-angular', function () {
         mockAxiosCalls({
           get: {
             ...mockGetData,
-            [getApplicationsUrl()]: Promise.reject('failed to get applications data'),
+            [getApplicationsUrl()]: () => Promise.reject('failed to get applications data'),
           },
         });
 
@@ -391,7 +391,7 @@ describe('dashboardFilterActions: non-angular', function () {
     it(`dispatches ${expectedFailAction.type} if failed to update filters`, function (done) {
       mockAxiosCalls({
         put: {
-          [getDashboardFilters()]: Promise.reject({ status: 403 }),
+          [getDashboardFilters()]: () => Promise.reject({ status: 403 }),
         },
         post: {},
       });
@@ -486,7 +486,7 @@ describe('dashboardFilterActions: non-angular', function () {
           }),
         },
         post: {
-          [getNewestRisksUrl()]: Promise.reject('load results error'),
+          [getNewestRisksUrl()]: () => Promise.reject('load results error'),
         },
       });
 

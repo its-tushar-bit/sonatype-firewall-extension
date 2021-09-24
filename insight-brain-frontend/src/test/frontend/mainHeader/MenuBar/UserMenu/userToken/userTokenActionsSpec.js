@@ -133,7 +133,7 @@ describe('userTokenActions', function () {
       it('dispatches the USER_TOKEN_CHECK_TOKEN_EXISTENCE_FAILED action', function (done) {
         mockAxiosCalls({
           get: {
-            [checkTokenUrl]: Promise.reject('Err'),
+            [checkTokenUrl]: () => Promise.reject('Err'),
           },
         });
 
@@ -229,7 +229,7 @@ describe('userTokenActions', function () {
       it('dispatches the USER_TOKEN_GENERATE_TOKEN_FAILED action', function (done) {
         mockAxiosCalls({
           post: {
-            [createUserTokenUrl]: Promise.reject('Err'),
+            [createUserTokenUrl]: () => Promise.reject('Err'),
           },
         });
 
@@ -322,7 +322,7 @@ describe('userTokenActions', function () {
       it('dispatches the USER_TOKEN_DELETE_TOKEN_FAILED action', function (done) {
         mockAxiosCalls({
           del: {
-            [deleteTokenUrl]: Promise.reject('Err'),
+            [deleteTokenUrl]: () => Promise.reject('Err'),
           },
         });
 

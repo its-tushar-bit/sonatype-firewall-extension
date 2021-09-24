@@ -59,7 +59,7 @@ describe('AutomaticSourceControlConfigurationActions', () => {
     });
 
     it('dispatches AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FAIL action when there is not permissions', (done) => {
-      checkPermissionsSpy.and.returnValue(Promise.reject('ASC config page authorization error'));
+      checkPermissionsSpy.and.callFake(() => Promise.reject('ASC config page authorization error'));
 
       store.dispatch(load()).then(() => {
         expect(actions.length).toBe(2);
@@ -93,7 +93,7 @@ describe('AutomaticSourceControlConfigurationActions', () => {
     it('dispatches an AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_FAILED action', (done) => {
       mockAxiosCalls({
         put: {
-          [automaticSourceControlControlConfigurationUrl]: Promise.reject({ status: 403 }),
+          [automaticSourceControlControlConfigurationUrl]: () => Promise.reject({ status: 403 }),
         },
       });
 

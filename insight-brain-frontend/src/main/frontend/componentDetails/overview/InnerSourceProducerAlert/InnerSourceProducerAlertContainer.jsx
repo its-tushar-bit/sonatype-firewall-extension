@@ -5,14 +5,17 @@
  */
 import { connect } from 'react-redux';
 import { actions } from '../overviewSlice';
+import { path } from 'ramda';
 import InnerSourceProducerAlert from './InnerSourceProducerAlert';
 import { selectInnerSourceProducerData } from '../overviewSelectors';
 import { selectSelectedComponent } from '../../../applicationReport/applicationReportSelectors';
 
 function mapStateToProps(state) {
+  const { innerSource, innerSourceData } = selectSelectedComponent(state);
   return {
     innerSourceProducerData: selectInnerSourceProducerData(state),
-    isInnerSource: !!selectSelectedComponent(state).innerSource,
+    isInnerSource: !!innerSource,
+    ownerApplicationName: path([0, 'ownerApplicationName'], innerSourceData),
   };
 }
 

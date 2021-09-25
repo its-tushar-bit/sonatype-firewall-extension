@@ -13,6 +13,7 @@ import * as routerContext from '../../../main/frontend/react/RouterStateContext'
 import * as fullAuditLog from '../../../main/frontend/componentDetails/auditLog/AuditLogContainer';
 import * as violationsTab from '../../../main/frontend/componentDetails/ViolationsTableTile/ViolationsTableTileContainer';
 import * as overviewTab from '../../../main/frontend/componentDetails/overview/OverviewContainer';
+import * as vulnerailitiesTile from '../../../main/frontend/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTableTileContainer';
 import MenuBarBackButton from '../../../main/frontend/mainHeader/MenuBar/MenuBarBackButton';
 
 describe('ComponentDetails', function () {
@@ -134,6 +135,7 @@ describe('ComponentDetails', function () {
       spyOn(fullAuditLog, 'default').and.returnValue(<div>auditLog</div>);
       spyOn(violationsTab, 'ViolationsTableTileContainer').and.returnValue(<div>violations</div>);
       spyOn(overviewTab, 'OverviewContainer').and.returnValue(<div>overview</div>);
+      spyOn(vulnerailitiesTile, 'VulnerabilitiesTableTileContainer').and.returnValue(<div>vulnerabilities</div>);
 
       let component = getMountedComponent({
           componentDetails: {

@@ -612,6 +612,24 @@ export const getComponentDetailsUrl = ({
   return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${encodeURIComponent(ownerId)}?` + params;
 };
 
+export const getVulnerabilitiesUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  hash,
+  identificationSource,
+  scanId,
+}) => {
+  const params = toURIParams({
+    componentIdentifier,
+    hash,
+    identificationSource,
+    scanId,
+  });
+  return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${ownerId}/vulnerabilities?` + params;
+};
+
 export function getAttributionReportUrl(applicationPublicId, stageTypeId) {
   return uriTemplate`/api/v2/licenseLegalMetadata/application/${applicationPublicId}/stage/${stageTypeId}/report`;
 }

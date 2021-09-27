@@ -111,7 +111,7 @@ describe('productLicenseActions', () => {
         checkPermissionsSpy.and.returnValue(Promise.resolve());
         mockAxiosCalls({
           get: {
-            [licenseSummaryUrl]: Promise.reject({ response: {} }),
+            [licenseSummaryUrl]: () => Promise.reject({ response: {} }),
           },
         });
         store = SpecUtil.mockReduxStore();
@@ -136,7 +136,7 @@ describe('productLicenseActions', () => {
         ({ load: load, updateLicense: updateLicense, uninstallLicense: uninstallLicense } = actionsModule);
         mockAxiosCalls({
           get: {
-            [licenseSummaryUrl]: Promise.reject({ response: { status: 402 } }),
+            [licenseSummaryUrl]: () => Promise.reject({ response: { status: 402 } }),
           },
         });
         store = SpecUtil.mockReduxStore();
@@ -198,7 +198,7 @@ describe('productLicenseActions', () => {
         const error = 'some error happened';
         mockAxiosCalls({
           post: {
-            [licenseUploadUrl]: Promise.reject(error),
+            [licenseUploadUrl]: () => Promise.reject(error),
           },
         });
         store.dispatch(updateLicense()).then(() => {
@@ -254,7 +254,7 @@ describe('productLicenseActions', () => {
       beforeEach(() => {
         mockAxiosCalls({
           del: {
-            [licenseUploadUrl]: Promise.reject(error),
+            [licenseUploadUrl]: () => Promise.reject(error),
           },
         });
         store = SpecUtil.mockReduxStore();

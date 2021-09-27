@@ -83,6 +83,7 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
     rootOrgSourcecontrol.setSourceControlScansEnabled(true);
     rootOrgSourcecontrol.setSourceControlScanTarget("target/*");
+    rootOrgSourcecontrol.setSshEnabled(true);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
@@ -116,6 +117,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isEqualTo("target/*");
     assertThat(dto.sourceControlScanTarget.parentName).isNull();
     assertThat(dto.sourceControlScanTarget.parentValue).isNull();
+    assertThat(dto.sshEnabled.value).isTrue();
+    assertThat(dto.sshEnabled.parentName).isNull();
+    assertThat(dto.sshEnabled.parentValue).isNull();
   }
 
   @Test
@@ -161,10 +165,11 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
     rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
     rootOrgSourcecontrol.setSourceControlScansEnabled(false);
+    rootOrgSourcecontrol.setSshEnabled(false);
     sourceControlDAO.update(rootOrgSourcecontrol);
     final SourceControl orgSourceControl =
-        tempEntity.newSourceControl(org.getId(), null, null, TOKEN, null, false,
-            null, null, null, true, true, "/target/*");
+        tempEntity.newSourceControl(org.getId(), null, null, null, TOKEN, null, false,
+            null, null, null, true, true, "/target/*", true);
 
     final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
@@ -199,6 +204,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isEqualTo("/target/*");
     assertThat(dto.sourceControlScanTarget.parentName).isNull();
     assertThat(dto.sourceControlScanTarget.parentValue).isNull();
+    assertThat(dto.sshEnabled.value).isTrue();
+    assertThat(dto.sshEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.sshEnabled.parentValue).isFalse();
   }
 
   @Test
@@ -240,6 +248,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isNull();
     assertThat(dto.sourceControlScanTarget.parentName).isNull();
     assertThat(dto.sourceControlScanTarget.parentValue).isNull();
+    assertThat(dto.sshEnabled.value).isNull();
+    assertThat(dto.sshEnabled.parentName).isNull();
+    assertThat(dto.sshEnabled.parentValue).isNull();
   }
 
   @Test
@@ -277,6 +288,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isNull();
     assertThat(dto.sourceControlScanTarget.parentName).isNull();
     assertThat(dto.sourceControlScanTarget.parentValue).isNull();
+    assertThat(dto.sshEnabled.value).isNull();
+    assertThat(dto.sshEnabled.parentName).isNull();
+    assertThat(dto.sshEnabled.parentValue).isNull();
   }
 
   @Test
@@ -286,6 +300,7 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
     rootOrgSourcecontrol.setSourceControlScansEnabled(true);
     rootOrgSourcecontrol.setSourceControlScanTarget("target/*");
+    rootOrgSourcecontrol.setSshEnabled(true);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
@@ -321,6 +336,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isNull();
     assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("target/*");
+    assertThat(dto.sshEnabled.value).isNull();
+    assertThat(dto.sshEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.sshEnabled.parentValue).isTrue();
   }
 
   @Test
@@ -361,6 +379,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isNull();
     assertThat(dto.sourceControlScanTarget.parentName).isNull();
     assertThat(dto.sourceControlScanTarget.parentValue).isNull();
+    assertThat(dto.sshEnabled.value).isNull();
+    assertThat(dto.sshEnabled.parentName).isNull();
+    assertThat(dto.sshEnabled.parentValue).isNull();
   }
 
   @Test
@@ -407,12 +428,16 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isNull();
     assertThat(dto.sourceControlScanTarget.parentName).isNull();
     assertThat(dto.sourceControlScanTarget.parentValue).isNull();
+    assertThat(dto.sshEnabled.value).isNull();
+    assertThat(dto.sshEnabled.parentName).isNull();
+    assertThat(dto.sshEnabled.parentValue).isNull();
 
     appSourceControl.setBaseBranch("BASE_BRANCH_APP");
     appSourceControl.setRemediationPullRequestsEnabled(true);
     appSourceControl.setPullRequestCommentingEnabled(false);
     appSourceControl.setSourceControlScansEnabled(true);
     appSourceControl.setSourceControlScanTarget("target/*");
+    appSourceControl.setSshEnabled(true);
     sourceControlDAO.update(appSourceControl);
 
     dto = apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
@@ -447,6 +472,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isEqualTo("target/*");
     assertThat(dto.sourceControlScanTarget.parentName).isNull();
     assertThat(dto.sourceControlScanTarget.parentValue).isNull();
+    assertThat(dto.sshEnabled.value).isTrue();
+    assertThat(dto.sshEnabled.parentName).isNull();
+    assertThat(dto.sshEnabled.parentValue).isNull();
   }
 
   @Test
@@ -456,6 +484,7 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
     rootOrgSourcecontrol.setSourceControlScansEnabled(true);
     rootOrgSourcecontrol.setSourceControlScanTarget("target/*");
+    rootOrgSourcecontrol.setSshEnabled(true);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final SourceControl appSourceControl =
@@ -494,13 +523,16 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isNull();
     assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("target/*");
+    assertThat(dto.sshEnabled.value).isNull();
+    assertThat(dto.sshEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.sshEnabled.parentValue).isTrue();
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationNoRootOrgSourceControl() {
     final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
-    tempEntity.newSourceControl(parentOrg.getId(), null, null, TOKEN, SourceControlProvider.GITLAB, false,
-        null, null, null, true, true, "/target/*");
+    tempEntity.newSourceControl(parentOrg.getId(), null, null, null, TOKEN, SourceControlProvider.GITLAB, false,
+            null, null, null, true, true, "/target/*", true);
     final SourceControl appSourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN, null, null, true, null);
     sourceControlDAO.delete(rootOrgSourcecontrol);
@@ -538,6 +570,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isNull();
     assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(parentOrg.getName());
     assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("/target/*");
+    assertThat(dto.sshEnabled.value).isNull();
+    assertThat(dto.sshEnabled.parentName).isEqualTo(parentOrg.getName());
+    assertThat(dto.sshEnabled.parentValue).isTrue();
   }
 
   @Test
@@ -547,6 +582,7 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
     rootOrgSourcecontrol.setSourceControlScansEnabled(true);
     rootOrgSourcecontrol.setSourceControlScanTarget("target/*");
+    rootOrgSourcecontrol.setSshEnabled(true);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
@@ -585,6 +621,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isNull();
     assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("target/*");
+    assertThat(dto.sshEnabled.value).isNull();
+    assertThat(dto.sshEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.sshEnabled.parentValue).isTrue();
   }
 
   @Test
@@ -626,6 +665,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isNull();
     assertThat(dto.sourceControlScanTarget.parentName).isNull();
     assertThat(dto.sourceControlScanTarget.parentValue).isNull();
+    assertThat(dto.sshEnabled.value).isNull();
+    assertThat(dto.sshEnabled.parentName).isNull();
+    assertThat(dto.sshEnabled.parentValue).isNull();
   }
 
   @Test
@@ -667,13 +709,16 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isNull();
     assertThat(dto.sourceControlScanTarget.parentName).isNull();
     assertThat(dto.sourceControlScanTarget.parentValue).isNull();
+    assertThat(dto.sshEnabled.value).isNull();
+    assertThat(dto.sshEnabled.parentName).isNull();
+    assertThat(dto.sshEnabled.parentValue).isNull();
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationOrgSourceControlOnly() {
     final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
-    tempEntity.newSourceControl(parentOrg.getId(), null, null, TOKEN, SourceControlProvider.GITLAB, false,
-        null, null, null, true, true, "/target/*");
+    tempEntity.newSourceControl(parentOrg.getId(), null, null, null, TOKEN, SourceControlProvider.GITLAB, false,
+        null, null, null, true, true, "/target/*", true);
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
@@ -709,6 +754,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isNull();
     assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(parentOrg.getName());
     assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("/target/*");
+    assertThat(dto.sshEnabled.value).isNull();
+    assertThat(dto.sshEnabled.parentName).isEqualTo(parentOrg.getName());
+    assertThat(dto.sshEnabled.parentValue).isTrue();
   }
 
   @Test
@@ -748,6 +796,9 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.sourceControlScanTarget.value).isNull();
     assertThat(dto.sourceControlScanTarget.parentName).isNull();
     assertThat(dto.sourceControlScanTarget.parentValue).isNull();
+    assertThat(dto.sshEnabled.value).isNull();
+    assertThat(dto.sshEnabled.parentName).isNull();
+    assertThat(dto.sshEnabled.parentValue).isNull();
   }
 
   @Test

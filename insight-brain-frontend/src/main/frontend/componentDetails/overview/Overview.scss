@@ -6,6 +6,7 @@
 
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 @import './riskRemediation/RiskRemediation';
+@import './InnerSourceProducerAlert/InnerSourceProducerAlert.scss';
 
 .iq-component-information-tile {
   > .nx-tile-content {

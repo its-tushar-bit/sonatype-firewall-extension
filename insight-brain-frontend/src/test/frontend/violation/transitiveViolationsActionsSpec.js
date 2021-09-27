@@ -83,7 +83,7 @@ describe('transitiveViolationsActions', function () {
       const error = 'error';
       mockAxiosCalls({
         get: {
-          [getOwnerHierarchyUrl('ownerType', 'ownerId')]: Promise.reject(error),
+          [getOwnerHierarchyUrl('ownerType', 'ownerId')]: () => Promise.reject(error),
         },
       });
 
@@ -138,7 +138,7 @@ describe('transitiveViolationsActions', function () {
       const error = 'error';
       mockAxiosCalls({
         get: {
-          [getReportMetadataUrl('applicationPublicId', 'scanId')]: Promise.reject(error),
+          [getReportMetadataUrl('applicationPublicId', 'scanId')]: () => Promise.reject(error),
         },
       });
 
@@ -189,7 +189,7 @@ describe('transitiveViolationsActions', function () {
       const error = 'error';
       mockAxiosCalls({
         get: {
-          [getTransitiveViolationsUrl('ownerType', 'ownerId', 'stageTypeId', 'hash')]: Promise.reject(error),
+          [getTransitiveViolationsUrl('ownerType', 'ownerId', 'stageTypeId', 'hash')]: () => Promise.reject(error),
         },
       });
       store.dispatch(loadTransitiveViolations('ownerType', 'ownerId', 'stageTypeId', 'hash')).then(() => {
@@ -239,7 +239,7 @@ describe('transitiveViolationsActions', function () {
       const error = 'error';
       mockAxiosCalls({
         get: {
-          [getWaiveTransitiveViolationsUrl('ownerId', 'stageTypeId', 'hash')]: Promise.reject(error),
+          [getWaiveTransitiveViolationsUrl('ownerId', 'stageTypeId', 'hash')]: () => Promise.reject(error),
         },
       });
       store.dispatch(loadTransitiveViolationWaivers('ownerId', 'stageTypeId', 'hash')).then(() => {

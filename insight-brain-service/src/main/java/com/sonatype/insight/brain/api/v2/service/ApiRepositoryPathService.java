@@ -1,0 +1,109 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2.service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.inject.Inject;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryPathResponseDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryPathResponseDTO.ApiRepositoryComponentPath;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryPathResponseDTO.ApiRepositoryPathVersions;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.integration.repository.AbstractRepositoryService;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @since 1.125
+ */
+public class ApiRepositoryPathService
+{
+  private static final Logger log = LoggerFactory.getLogger(ApiRepositoryPathService.class);
+
+  private final RepositoryDAO repositoryDAO;
+
+  private final RepositoryComponentDAO repositoryComponentDAO;
+
+  @Inject
+  public ApiRepositoryPathService(
+      final RepositoryDAO repositoryDAO,
+      final RepositoryComponentDAO repositoryComponentDAO)
+  {
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryComponentDAO = repositoryComponentDAO;
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiRepositoryPathResponseDTO getQuarantinedByPathnames(
+      final String repositoryManagerInstanceId,
+      final String repositoryPublicId,
+      final List<String> pathnames)
+  {
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+        repositoryManagerInstanceId, repositoryPublicId);
+
+    log.debug("Getting unquarantined component paths for repository {}:{} ({}), since {}.", repositoryManagerInstanceId,
+        repositoryPublicId, repository.getId(), pathnames);
+    
+    ApiRepositoryPathResponseDTO repositoryPathResponse = new ApiRepositoryPathResponseDTO();
+    if (pathnames == null) {
+      return repositoryPathResponse;
+    }
+
+    List<RepositoryComponent> quarantinedComponents =
+        repositoryComponentDAO.getQuarantinedByRepositoryId(repository.getId());
+    int index = 0;
+    for (String path : pathnames) {
+      ApiRepositoryPathVersions pathVersions = new ApiRepositoryPathVersions();
+      pathVersions.requestIndex = index;
+      for (RepositoryComponent matchedRepositoryPath : getComponentsAtPath(repository.getFormat(),
+          quarantinedComponents, path)) {
+        ApiRepositoryComponentPath repositoryPathStatus = new ApiRepositoryComponentPath();
+        repositoryPathStatus.quarantine = true;
+        repositoryPathStatus.pathname = matchedRepositoryPath.getPathname();
+        pathVersions.repositoryComponentPaths.add(repositoryPathStatus);
+      }
+      repositoryPathResponse.pathVersions.add(pathVersions);
+      index++;      
+    }
+    return repositoryPathResponse;
+  }
+
+  private List<RepositoryComponent> getComponentsAtPath(
+      final String format,
+      final List<RepositoryComponent> quarantinedComponents,
+      final String path)
+  {
+    List<RepositoryComponent> matchedComponents;
+    if (ComponentIdentifier.FORMAT_NPM.equals(format)) {
+      if (path.matches(".+/-/.+")) {
+        final String searchPath = extractNpmPath(AbstractRepositoryService.normalizePathname(path));
+        matchedComponents = quarantinedComponents.stream().filter(
+            component -> extractNpmPath(component.getPathname()).equals(searchPath)).collect(Collectors.toList());
+      }
+      else {
+        throw new UnsupportedOperationException("NPM path is not supported for repository paths.");
+      }
+    }
+    else {
+      throw new UnsupportedOperationException("Format is not supported for repository paths.");
+    }
+    return matchedComponents;
+  }
+
+  private String extractNpmPath(final String pathname) {
+    return pathname.substring(0, pathname.lastIndexOf("/") + 1);
+  }
+}

@@ -16,14 +16,13 @@ import { AncestorPropTypes, RemediationPropTypes } from '../overviewTypes';
 export const RiskRemediation = ({
   ancestors,
   routeName,
-  actualVersion,
   stageId,
-  remediation,
   versionExplorerData,
-  requestVersionGraphData,
+  currentVersion,
+  loadVersionExplorerData,
 }) => {
   useEffect(() => {
-    requestVersionGraphData();
+    loadVersionExplorerData();
   }, []);
 
   const overviewComponentRiskRemediationTile_header = (
@@ -37,12 +36,16 @@ export const RiskRemediation = ({
   const overviewComponentRiskRemediationTile_contentDirectDependency = () => (
     <div className="nx-grid-row">
       <div className="nx-grid-col nx-grid-col--50">
-        <RecommendedVersions actualVersion={actualVersion} stageId={stageId} remediation={remediation} />
+        <RecommendedVersions
+          actualVersion={currentVersion}
+          stageId={stageId}
+          remediation={versionExplorerData.remediation}
+        />
       </div>
       <div className="nx-grid-col nx-grid-col--50">
         <div className="nx-grid-row">
           <div className="nx-grid-col iq-grid-col--100">
-            <VersionExplorer versionExplorerData={versionExplorerData} />
+            <VersionExplorer versions={versionExplorerData.versions} currentVersion={currentVersion} />
           </div>
         </div>
         <div className="nx-grid-row">
@@ -61,12 +64,16 @@ export const RiskRemediation = ({
           <DependencyInformation routeName={routeName} ancestors={ancestors} />
         </div>
         <div className="nx-grid-col nx-grid-col--50">
-          <VersionExplorer versionExplorerData={versionExplorerData} />
+          <VersionExplorer versions={versionExplorerData.versions} currentVersion={currentVersion} />
         </div>
       </div>
       <div className="nx-grid-row">
         <div className="nx-grid-col nx-grid-col--50">
-          <RecommendedVersions actualVersion={actualVersion} stageId={stageId} remediation={remediation} />
+          <RecommendedVersions
+            actualVersion={currentVersion}
+            stageId={stageId}
+            remediation={versionExplorerData.remediation}
+          />
         </div>
         <div className="nx-grid-col nx-grid-col--50">
           <CompareVersions />
@@ -86,7 +93,7 @@ export const RiskRemediation = ({
       <div className="nx-tile-content">
         <NxLoadWrapper
           loading={versionExplorerData && versionExplorerData.loading}
-          retryHandler={requestVersionGraphData}
+          retryHandler={loadVersionExplorerData}
           error={versionExplorerData.loadError}
         >
           {content}
@@ -98,16 +105,13 @@ export const RiskRemediation = ({
 
 RiskRemediation.propTypes = {
   ancestors: PropTypes.arrayOf(AncestorPropTypes),
-  actualVersion: PropTypes.string.isRequired,
+  currentVersion: PropTypes.string.isRequired,
   stageId: PropTypes.string.isRequired,
-  remediation: RemediationPropTypes,
-  requestVersionGraphData: PropTypes.func,
+  loadVersionExplorerData: PropTypes.func,
   routeName: PropTypes.string.isRequired,
   versionExplorerData: PropTypes.shape({
-    data: PropTypes.shape({
-      version: PropTypes.string,
-      versions: PropTypes.array,
-    }),
+    versions: PropTypes.array,
+    remediation: RemediationPropTypes,
     loading: PropTypes.bool,
     loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),

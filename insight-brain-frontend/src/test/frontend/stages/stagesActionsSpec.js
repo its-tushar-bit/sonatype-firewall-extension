@@ -154,7 +154,7 @@ describe('stagesActions', function () {
           responseError = 'errrr!',
           store = SpecUtil.mockReduxStore(mockState);
 
-        spyOn(axios, 'get').and.returnValue(Promise.reject(responseError));
+        spyOn(axios, 'get').and.callFake(() => Promise.reject(responseError));
 
         store.dispatch(fetchStageTypes('cli')).then(() => {
           expect(store.getActions().length).toBe(2);

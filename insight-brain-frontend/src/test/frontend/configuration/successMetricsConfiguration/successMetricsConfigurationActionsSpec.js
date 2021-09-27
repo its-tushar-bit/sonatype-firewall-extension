@@ -76,7 +76,7 @@ describe('successMetricsConfigurationActions', () => {
       it('dispatches an SUCCESS_METRICS_CONFIGURATION_LOAD_FAILED action', function (done) {
         mockAxiosCalls({
           get: {
-            [successMetricsConfigurationUrl]: Promise.reject({ status: 403 }),
+            [successMetricsConfigurationUrl]: () => Promise.reject({ status: 403 }),
           },
         });
 
@@ -149,7 +149,7 @@ describe('successMetricsConfigurationActions', () => {
 
     describe('when not authorized', () => {
       it('fires an SUCCESS_METRICS_CONFIGURATION_LOAD_FAILED action', (done) => {
-        checkPermissionsSpy.and.returnValue(Promise.reject('success metrics config page authorization error'));
+        checkPermissionsSpy.and.callFake(() => Promise.reject('success metrics config page authorization error'));
 
         store.dispatch(load()).then(() => {
           const actions = store.getActions();
@@ -247,7 +247,7 @@ describe('successMetricsConfigurationActions', () => {
       beforeEach(function () {
         mockAxiosCalls({
           put: {
-            [successMetricsConfigurationUrl]: Promise.reject({ status: 403 }),
+            [successMetricsConfigurationUrl]: () => Promise.reject({ status: 403 }),
           },
         });
       });

@@ -11,7 +11,9 @@ import * as componentDetailsOverviewSelectors from '../../../../main/frontend/co
 import {
   getApplicableWaiversUrl,
   getApplicationReportsUrl,
+  getComponentDetailsUrl,
   getInnerSourceComponentLatestVersionUrl,
+  getVersionGraphUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 
 describe('componentDetailsOverviewActions', () => {
@@ -81,7 +83,8 @@ describe('componentDetailsOverviewActions', () => {
       });
       mockAxiosCalls({
         get: {
-          [getApplicationReportsUrl(ownerApplicationId)]: Promise.reject({ response: { status: 403, data: 'error' } }),
+          [getApplicationReportsUrl(ownerApplicationId)]: () =>
+            Promise.reject({ response: { status: 403, data: 'error' } }),
         },
       });
 
@@ -102,7 +105,7 @@ describe('componentDetailsOverviewActions', () => {
       });
       mockAxiosCalls({
         get: {
-          [getApplicationReportsUrl(ownerApplicationId)]: Promise.reject({ response: { data: 'error' } }),
+          [getApplicationReportsUrl(ownerApplicationId)]: () => Promise.reject({ response: { data: 'error' } }),
         },
       });
 
@@ -199,6 +202,80 @@ describe('componentDetailsOverviewActions', () => {
 
       expect(store.getActions().length).toBe(0);
       expect(windowOpenSpy).toHaveBeenCalledWith('mockUrl', '_blank');
+    });
+  });
+
+  describe('loadVersionExplorerData', () => {
+    beforeEach(() => {
+      spyOn(componentDetailsOverviewSelectors, 'selectVersionExplorerRequestData').and.returnValue({});
+      spyOn(componentDetailsOverviewSelectors, 'selectComponentDetailsRequestData').and.returnValue({});
+    });
+
+    it('loads component details and versions data and dispatches fulfilled action with all the data', (done) => {
+      const versionExplorerData = {};
+      const componentDetails = {};
+      mockAxiosCalls({
+        get: {
+          [getVersionGraphUrl({})]: Promise.resolve({ data: versionExplorerData }),
+          [getComponentDetailsUrl({})]: Promise.resolve({ data: componentDetails }),
+        },
+      });
+
+      store.dispatch(actions.loadVersionExplorerData()).then(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()).toHaveActionTypesInOrder([
+          'componentDetailsOverview/loadVersionExplorerData/pending',
+          'componentDetailsOverview/loadVersionExplorerData/fulfilled',
+        ]);
+
+        const fulfilledPayload = store.getActions()[1].payload;
+        expect(fulfilledPayload.componentVersionsData).toBe(versionExplorerData);
+        expect(fulfilledPayload.currentVersionDetails).toBe(componentDetails);
+
+        done();
+      });
+    });
+
+    it('dispatches rejected action if Version Explorer data request fails', (done) => {
+      mockAxiosCalls({
+        get: {
+          [getVersionGraphUrl({})]: () => Promise.reject('failed to load version explorer data'),
+          [getComponentDetailsUrl({})]: Promise.resolve({ data: {} }),
+        },
+      });
+
+      store.dispatch(actions.loadVersionExplorerData()).then(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()).toHaveActionTypesInOrder([
+          'componentDetailsOverview/loadVersionExplorerData/pending',
+          'componentDetailsOverview/loadVersionExplorerData/rejected',
+        ]);
+
+        expect(store.getActions()[1].payload).toBe('failed to load version explorer data');
+
+        done();
+      });
+    });
+
+    it('dispatches rejected action if Component Details request fails', (done) => {
+      mockAxiosCalls({
+        get: {
+          [getVersionGraphUrl({})]: Promise.resolve({ data: {} }),
+          [getComponentDetailsUrl({})]: () => Promise.reject('failed to load component details'),
+        },
+      });
+
+      store.dispatch(actions.loadVersionExplorerData()).then(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()).toHaveActionTypesInOrder([
+          'componentDetailsOverview/loadVersionExplorerData/pending',
+          'componentDetailsOverview/loadVersionExplorerData/rejected',
+        ]);
+
+        expect(store.getActions()[1].payload).toBe('failed to load component details');
+
+        done();
+      });
     });
   });
 });

@@ -178,7 +178,8 @@ describe('advancedLegalObligationActions', function () {
         };
         mockAxiosCalls({
           post: {
-            [getSaveComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.reject('error'),
+            [getSaveComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID')]: () =>
+              Promise.reject('error'),
           },
         });
 
@@ -228,12 +229,8 @@ describe('advancedLegalObligationActions', function () {
             ),
           },
           get: {
-            [getComponentObligationAttributionUrl(
-              'organization',
-              'org',
-              'componentIdentifier',
-              'name'
-            )]: Promise.reject('error'),
+            [getComponentObligationAttributionUrl('organization', 'org', 'componentIdentifier', 'name')]: () =>
+              Promise.reject('error'),
           },
         });
 
@@ -403,7 +400,7 @@ describe('advancedLegalObligationActions', function () {
       store = SpecUtil.mockReduxStore(state);
       mockAxiosCalls({
         del: {
-          [getDeleteComponentObligationAttributionUrl('id')]: Promise.reject('error'),
+          [getDeleteComponentObligationAttributionUrl('id')]: () => Promise.reject('error'),
         },
       });
 
@@ -550,7 +547,7 @@ describe('advancedLegalObligationActions', function () {
         };
         mockAxiosCalls({
           post: {
-            [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.reject('error'),
+            [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: () => Promise.reject('error'),
           },
         });
 
@@ -589,7 +586,8 @@ describe('advancedLegalObligationActions', function () {
             [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve('postData'),
           },
           get: {
-            [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'name')]: Promise.reject('error'),
+            [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'name')]: () =>
+              Promise.reject('error'),
           },
         });
 
@@ -735,7 +733,7 @@ describe('advancedLegalObligationActions', function () {
       store = SpecUtil.mockReduxStore(state);
       mockAxiosCalls({
         del: {
-          [getDeleteComponentObligationsUrl(['id'])]: Promise.reject('error'),
+          [getDeleteComponentObligationsUrl(['id'])]: () => Promise.reject('error'),
         },
       });
 
@@ -907,7 +905,7 @@ describe('advancedLegalObligationActions', function () {
       ];
       mockAxiosCalls({
         post: {
-          [getSaveComponentObligationsUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.reject('error'),
+          [getSaveComponentObligationsUrl('organization', 'ROOT_ORGANIZATION_ID')]: () => Promise.reject('error'),
         },
       });
 
@@ -951,7 +949,8 @@ describe('advancedLegalObligationActions', function () {
           [getSaveComponentObligationsUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve('postData'),
         },
         get: {
-          [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'name')]: Promise.reject('error'),
+          [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'name')]: () =>
+            Promise.reject('error'),
           [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'otherName')]: Promise.resolve({
             data: {
               id: 'id',
@@ -987,7 +986,7 @@ describe('advancedLegalObligationActions', function () {
       store = SpecUtil.mockReduxStore(initialState);
       mockAxiosCalls({
         del: {
-          [getDeleteComponentObligationsUrl(['id'])]: Promise.reject('error'),
+          [getDeleteComponentObligationsUrl(['id'])]: () => Promise.reject('error'),
         },
       });
 

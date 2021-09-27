@@ -1,4 +1,4 @@
--- Since 1.126
+-- Since 1.125
 
 -- Remove unique constraint on document title. The constraint wasn't named, so dropping and re-creating column
 ALTER TABLE attribution_report_template ADD COLUMN temp varchar(250) NULL;

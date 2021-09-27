@@ -8,29 +8,19 @@ import * as PropTypes from 'prop-types';
 
 import VersionGraphExplorer from '../VersionGraphExplorer/VersionGraphExplorer';
 
-export const VersionExplorer = ({ versionExplorerData }) => {
-  const data = versionExplorerData.data || {};
-  const { version, versions } = data;
-
+export const VersionExplorer = (props) => {
+  const { versions, currentVersion } = props;
   return (
     <section className="iq-version-explorer nx-tile">
       <header className="nx-tile-header">
         <h3 className="nx-h3 nx-tile-header__title">Version Explorer</h3>
       </header>
-      <div className="nx-tile-content">
-        {version && versions && <VersionGraphExplorer data={versionExplorerData.data} />}
-      </div>
+      <div className="nx-tile-content">{currentVersion && versions && <VersionGraphExplorer {...props} />}</div>
     </section>
   );
 };
 
 VersionExplorer.propTypes = {
-  versionExplorerData: PropTypes.shape({
-    data: PropTypes.shape({
-      version: PropTypes.string,
-      versions: PropTypes.array,
-    }),
-    loading: PropTypes.bool,
-    loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-  }),
+  versions: PropTypes.array,
+  currentVersion: PropTypes.string,
 };

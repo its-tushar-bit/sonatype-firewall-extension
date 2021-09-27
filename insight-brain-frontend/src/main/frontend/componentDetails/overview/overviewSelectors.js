@@ -14,17 +14,12 @@ import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
 
 export const selectComponentDetailsOverviewSlice = prop('componentDetailsOverview');
 
-export const selectComponentDetailsOverviewVersionExplorerSlice = createSelector(
+export const selectVersionExplorerData = createSelector(
   selectComponentDetailsOverviewSlice,
-  prop('graphExplorerData')
+  prop('versionExplorerData')
 );
 
-export const selectComponenDetailsOverviewRemediationSlice = createSelector(
-  selectComponentDetailsOverviewSlice,
-  prop('remediation')
-);
-
-export const selectVersionExplorerRequestData = createSelector(
+export const selectComponentDetailsRequestData = createSelector(
   selectSelectedComponent,
   selectApplicationReportMetaData,
   selectRouterCurrentParams,
@@ -35,14 +30,23 @@ export const selectVersionExplorerRequestData = createSelector(
     matchState: component.matchState,
     proprietary: component.proprietary,
     identificationSource: component.identificationSource,
-    componentIdentifier: {
-      componentType:
-        !component.matchState || component.matchState === 'unknown' ? '' : component.componentIdentifier.format,
-      coordinates:
-        !component.matchState || component.matchState === 'unknown' ? null : component.componentIdentifier.coordinates,
-    },
+    componentIdentifier: stringifyComponentIdentifier(component.componentIdentifier, component.matchState),
     hash: component.hash,
     scanId: params.scanId,
+  })
+);
+
+function stringifyComponentIdentifier(componentIdentifier, matchState) {
+  const coordinates = !matchState || matchState === 'unknown' ? null : componentIdentifier.coordinates;
+  return coordinates ? JSON.stringify({ format: componentIdentifier.format, coordinates }) : null;
+}
+
+export const selectVersionExplorerRequestData = createSelector(
+  selectSelectedComponent,
+  selectApplicationReportMetaData,
+  selectComponentDetailsRequestData,
+  (component, metadata, data) => ({
+    ...data,
     stageId: metadata.stageId,
     dependencyType: component.derivedDependencyType,
   })
@@ -52,7 +56,7 @@ export const selectRemediationData = createSelector(
   selectSelectedComponent,
   selectApplicationReportMetaData,
   (component, metadata) => ({
-    actualVersion:
+    currentVersion:
       !component.matchState || component.matchState === 'unknown'
         ? 'unknown'
         : component.componentIdentifier.coordinates.version,

@@ -59,6 +59,7 @@ import productLicenseReducer from '../configuration/license/productLicenseReduce
 import occurrencesPopoverReducer from '../componentDetails/overview/occurrencesPopover/occurrencesPopoverSlice';
 import ldapListReducer from '../configuration/ldap/ldapServersList/ldapListSlice';
 import overviewSlice from '../componentDetails/overview/overviewSlice';
+import vulnerabilitiesSlice from '../componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -113,6 +114,7 @@ export default combineReducers({
   waiveTransitiveViolations: waiveTransitiveViolationsReducer,
   componentDetailsPolicyViolations: componentDetailsViolationsReducer,
   componentDetailsOverview: overviewSlice,
+  componentDetailsVulnerabilities: vulnerabilitiesSlice,
   successMetrics: successMetricsReportSlice,
   productLicense: productLicenseReducer,
   occurrencesPopover: occurrencesPopoverReducer,

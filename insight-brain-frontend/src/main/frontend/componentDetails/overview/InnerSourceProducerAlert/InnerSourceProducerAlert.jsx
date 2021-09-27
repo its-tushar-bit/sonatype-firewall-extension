@@ -8,22 +8,20 @@ import React from 'react';
 import { NxInfoAlert } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
-const InnerSourceProducerAlert = ({ innerSourceProducerData, isInnerSource, onClick }) => {
+const InnerSourceProducerAlert = ({ innerSourceProducerData, isInnerSource, ownerApplicationName, onClick }) => {
   const { loading, loadError } = innerSourceProducerData;
-  const showInnerSourceProducerAlert = isInnerSource && !loading && !loadError;
+  const showInnerSourceProducerAlert = isInnerSource && ownerApplicationName && !loading && !loadError;
 
   if (!showInnerSourceProducerAlert) {
     return null;
   }
 
   return (
-    <NxInfoAlert>
-      This Component was brought in by an Innersource Component. Innersource Components are software components that are
-      developed internally and shared with other internal projects.{' '}
+    <NxInfoAlert id="inner-source-producer-alert">
+      This InnerSource component was produced by the application <b>{ownerApplicationName}</b>.{' '}
       <a className="nx-text-link" onClick={onClick}>
         View the latest report
       </a>{' '}
-      of the application that produced this Innersource Component.
     </NxInfoAlert>
   );
 };
@@ -31,6 +29,7 @@ const InnerSourceProducerAlert = ({ innerSourceProducerData, isInnerSource, onCl
 InnerSourceProducerAlert.propTypes = {
   onClick: PropTypes.func.isRequired,
   isInnerSource: PropTypes.bool.isRequired,
+  ownerApplicationName: PropTypes.string,
   innerSourceProducerData: PropTypes.shape({
     loading: PropTypes.bool.isRequired,
     loadError: PropTypes.bool,

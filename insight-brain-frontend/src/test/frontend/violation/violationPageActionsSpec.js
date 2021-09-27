@@ -128,7 +128,7 @@ describe('violationActions', function () {
 
       mockAxiosCalls({
         get: {
-          [getViolationDetailsUrl('foo')]: Promise.reject(responseError),
+          [getViolationDetailsUrl('foo')]: () => Promise.reject(responseError),
           [getApplicableWaiversUrl('foo')]: Promise.resolve({
             data: { activeWaivers: ['foo'], expiredWaivers: ['bar'] },
           }),
@@ -159,7 +159,7 @@ describe('violationActions', function () {
           [getViolationDetailsUrl('foo')]: Promise.resolve({
             data: 'violationDetails',
           }),
-          [getApplicableWaiversUrl('foo')]: Promise.reject(responseError),
+          [getApplicableWaiversUrl('foo')]: () => Promise.reject(responseError),
         },
       });
 
@@ -240,7 +240,7 @@ describe('violationActions', function () {
             [getApplicableWaiversUrl('foo')]: Promise.resolve({
               data: { activeWaivers: [], expiredWaivers: [] },
             }),
-            [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: Promise.reject(vulnerabilityResponseError),
+            [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: () => Promise.reject(vulnerabilityResponseError),
           },
         });
 
@@ -324,7 +324,7 @@ describe('violationActions', function () {
 
       mockAxiosCalls({
         get: {
-          [expectedUrl]: Promise.reject(vulnerabilityResponseError),
+          [expectedUrl]: () => Promise.reject(vulnerabilityResponseError),
         },
       });
 

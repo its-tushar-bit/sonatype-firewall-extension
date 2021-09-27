@@ -104,7 +104,7 @@ describe('legalApplicationDetailsActions', function () {
 
       mockAxiosCalls({
         get: {
-          [getApplicationUrl(applicationPublicId)]: Promise.reject('error application'),
+          [getApplicationUrl(applicationPublicId)]: () => Promise.reject('error application'),
         },
       });
 
@@ -158,7 +158,7 @@ describe('legalApplicationDetailsActions', function () {
           [getApplicationUrl(applicationPublicId)]: Promise.resolve({
             data: 'result application',
           }),
-          [getActionStageUrl()]: Promise.reject('error stage type'),
+          [getActionStageUrl()]: () => Promise.reject('error stage type'),
         },
       });
 
@@ -198,7 +198,7 @@ describe('legalApplicationDetailsActions', function () {
           [getActionStageUrl()]: Promise.resolve({ data: stageTypes }),
         },
         post: {
-          [getLegalDashboardApplicationUrl(applicationPublicId)]: Promise.reject('error components'),
+          [getLegalDashboardApplicationUrl(applicationPublicId)]: () => Promise.reject('error components'),
         },
       });
 

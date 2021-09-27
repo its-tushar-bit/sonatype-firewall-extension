@@ -21,7 +21,7 @@ describe('componentDetailsOverviewReducer', () => {
     it('returns original state', function () {
       const state = Object.freeze({
         foo: 'bar',
-        graphExplorerData: {
+        versionExplorerData: {
           loading: false,
           loadError: null,
           data: null,
@@ -35,11 +35,11 @@ describe('componentDetailsOverviewReducer', () => {
     });
   });
 
-  describe('componentDetailsOverview/loadVersionGraphData/pending action', () => {
+  describe('componentDetailsOverview/loadVersionExplorerData/pending action', () => {
     it('sets the loading flag to true', () => {
       const state = Object.freeze({
         other: stateConstantObject,
-        graphExplorerData: {
+        versionExplorerData: {
           loading: false,
           loadError: 'There is an error',
           data: null,
@@ -47,26 +47,26 @@ describe('componentDetailsOverviewReducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'componentDetailsOverview/loadVersionGraphData/pending',
+        type: 'componentDetailsOverview/loadVersionExplorerData/pending',
       });
 
-      expect(newState.graphExplorerData.loading).toBe(true);
-      expect(newState.graphExplorerData.loadError).toBe(null);
+      expect(newState.versionExplorerData.loading).toBe(true);
+      expect(newState.versionExplorerData.loadError).toBe(null);
       expect(newState.other).toBe(stateConstantObject);
     });
   });
 
-  describe('componentDetailsOverview/loadVersionGraphData/fulfilled action', () => {
+  describe('componentDetailsOverview/loadVersionExplorerData/fulfilled action', () => {
     it('sets loading flag to false, unsets the loadError and fills the data', () => {
       const state = Object.freeze({
         other: stateConstantObject,
-        graphExplorerData: {
+        versionExplorerData: {
           loading: true,
           loadError: 'error',
           data: null,
         },
       });
-      const versionsList = ['list'];
+      const allVersions = ['list'];
       const remediation = {
         versionChanges: [
           {
@@ -111,31 +111,34 @@ describe('componentDetailsOverviewReducer', () => {
           },
         ],
       };
+      const currentVersionDetails = {};
       const payload = {
-        data: {
-          remediation: remediation,
-          allVersions: versionsList,
+        componentVersionsData: {
+          remediation,
+          allVersions,
         },
+        currentVersionDetails,
       };
 
       const newState = reducer(state, {
-        type: 'componentDetailsOverview/loadVersionGraphData/fulfilled',
+        type: 'componentDetailsOverview/loadVersionExplorerData/fulfilled',
         payload,
       });
 
-      expect(newState.graphExplorerData.loading).toBe(false);
-      expect(newState.graphExplorerData.loadError).toBe(null);
-      expect(newState.graphExplorerData.data).toEqual({ versions: versionsList });
-      expect(newState.remediation).toEqual(remediation);
+      expect(newState.versionExplorerData.loading).toBe(false);
+      expect(newState.versionExplorerData.loadError).toBe(null);
+      expect(newState.versionExplorerData.versions).toBe(allVersions);
+      expect(newState.versionExplorerData.remediation).toBe(remediation);
+      expect(newState.versionExplorerData.currentVersionDetails).toBe(currentVersionDetails);
       expect(newState.other).toBe(stateConstantObject);
     });
   });
 
-  describe('componentDetailsOverview/loadVersionGraphData/rejected action', () => {
+  describe('componentDetailsOverview/loadVersionExplorerData/rejected action', () => {
     it('sets the loadError to the payload and the loading flag to true', () => {
       const state = Object.freeze({
         other: stateConstantObject,
-        graphExplorerData: {
+        versionExplorerData: {
           loading: true,
           loadError: 'error',
           data: null,
@@ -143,12 +146,12 @@ describe('componentDetailsOverviewReducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'componentDetailsOverview/loadVersionGraphData/rejected',
+        type: 'componentDetailsOverview/loadVersionExplorerData/rejected',
         payload: 'loadError',
       });
 
-      expect(newState.graphExplorerData.loading).toBe(false);
-      expect(newState.graphExplorerData.loadError).toBe('loadError');
+      expect(newState.versionExplorerData.loading).toBe(false);
+      expect(newState.versionExplorerData.loadError).toBe('loadError');
       expect(newState.other).toBe(stateConstantObject);
     });
   });

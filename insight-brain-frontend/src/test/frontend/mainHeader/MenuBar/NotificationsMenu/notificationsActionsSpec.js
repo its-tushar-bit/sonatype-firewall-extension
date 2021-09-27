@@ -81,7 +81,7 @@ describe('notifications actions', function () {
       it('dispatches the MAIN_MENU_LOAD_NOTIFICATIONS_FAILED action', function (done) {
         mockAxiosCalls({
           get: {
-            [loadNotificationsUrl]: Promise.reject('Err'),
+            [loadNotificationsUrl]: () => Promise.reject('Err'),
           },
         });
 

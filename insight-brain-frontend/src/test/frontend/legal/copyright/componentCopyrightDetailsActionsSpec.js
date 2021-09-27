@@ -223,7 +223,7 @@ describe('ComponentCopyrightDetailsAction', function () {
 
         mockAxiosCalls({
           get: {
-            [copyrightFileCountUrl]: Promise.reject({ value: 'Error' }),
+            [copyrightFileCountUrl]: () => Promise.reject({ value: 'Error' }),
             [copyrightFilePathsUrl]: Promise.resolve({
               data: {
                 filePaths: [
@@ -282,7 +282,7 @@ describe('ComponentCopyrightDetailsAction', function () {
                 path2: 10,
               },
             }),
-            [copyrightFilePathsUrl]: Promise.reject({ value: 'Error' }),
+            [copyrightFilePathsUrl]: () => Promise.reject({ value: 'Error' }),
             [copyrightContextUrl]: Promise.resolve({
               data: ['context 1', 'context 2'],
             }),
@@ -410,7 +410,7 @@ describe('ComponentCopyrightDetailsAction', function () {
                 totalFileMatches: 1,
               },
             }),
-            [copyrightContextUrl]: Promise.reject({ value: 'Error' }),
+            [copyrightContextUrl]: () => Promise.reject({ value: 'Error' }),
           },
         });
 
@@ -478,9 +478,10 @@ describe('ComponentCopyrightDetailsAction', function () {
         );
         mockAxiosCalls({
           get: {
-            [copyrightContextUrl]: Promise.reject({
-              value: 'Error',
-            }),
+            [copyrightContextUrl]: () =>
+              Promise.reject({
+                value: 'Error',
+              }),
           },
         });
 
@@ -599,9 +600,10 @@ describe('ComponentCopyrightDetailsAction', function () {
         );
         mockAxiosCalls({
           get: {
-            [copyrightFilePathsUrl]: Promise.reject({
-              value: 'Error',
-            }),
+            [copyrightFilePathsUrl]: () =>
+              Promise.reject({
+                value: 'Error',
+              }),
           },
         });
 

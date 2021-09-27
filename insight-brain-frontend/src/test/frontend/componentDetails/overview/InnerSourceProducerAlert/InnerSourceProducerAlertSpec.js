@@ -21,6 +21,7 @@ describe('InnerSourceProducerAlert', () => {
         loading: false,
         loadError: null,
       },
+      ownerApplicationName: 'appProducer',
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(InnerSourceProducerAlert, minimalProps);
@@ -51,6 +52,14 @@ describe('InnerSourceProducerAlert', () => {
         loading: false,
         loadError: 'some error',
       },
+    });
+
+    expect(wrapper.isEmptyRender()).toBe(true);
+  });
+
+  it('should not render if there is no ownerApplicationName', () => {
+    const wrapper = getShallowComponent({
+      ownerApplicationName: '',
     });
 
     expect(wrapper.isEmptyRender()).toBe(true);

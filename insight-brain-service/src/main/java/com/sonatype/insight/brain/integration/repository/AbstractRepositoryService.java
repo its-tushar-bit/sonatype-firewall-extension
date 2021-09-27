@@ -412,7 +412,7 @@ public abstract class AbstractRepositoryService
     }
   }
 
-  private static String normalizePathname(String pathname) {
+  public static String normalizePathname(String pathname) {
     if (pathname != null && pathname.startsWith("/")) {
       return pathname.substring(1);
     }

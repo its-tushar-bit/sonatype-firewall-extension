@@ -60,7 +60,7 @@ describe('manageFilterActions', function () {
     it('dispatches FETCH_SAVED_FILTERS_FAILED when the backend call fails', function (done) {
       mockAxiosCalls({
         get: {
-          [getDashboardSavedFilters()]: Promise.reject({ status: 403 }),
+          [getDashboardSavedFilters()]: () => Promise.reject({ status: 403 }),
         },
       });
 
@@ -208,7 +208,7 @@ describe('manageFilterActions', function () {
     it('dispatches SAVE_FILTER_FAILED and does not fetch the saved filters if the PUT fails', function (done) {
       mockAxiosCalls({
         put: {
-          [dashboardSavedFiltersUrl]: Promise.reject({ status: 403 }),
+          [dashboardSavedFiltersUrl]: () => Promise.reject({ status: 403 }),
         },
       });
 
@@ -234,7 +234,7 @@ describe('manageFilterActions', function () {
           }),
         },
         get: {
-          [dashboardSavedFiltersUrl]: Promise.reject({ status: 403 }),
+          [dashboardSavedFiltersUrl]: () => Promise.reject({ status: 403 }),
         },
       });
 
@@ -459,7 +459,7 @@ describe('manageFilterActions', function () {
     it('dispatches DELETE_FILTER_FAILED and rejects the promise if deleteSavedFilter fails', function (done) {
       mockAxiosCalls({
         post: {
-          [deleteFiltersUrl]: Promise.reject('error!'),
+          [deleteFiltersUrl]: () => Promise.reject('error!'),
         },
       });
 
@@ -480,7 +480,7 @@ describe('manageFilterActions', function () {
           [deleteFiltersUrl]: Promise.resolve({}),
         },
         get: {
-          [dashboardSavedFiltersUrl]: Promise.reject({ status: 403 }),
+          [dashboardSavedFiltersUrl]: () => Promise.reject({ status: 403 }),
         },
       });
 

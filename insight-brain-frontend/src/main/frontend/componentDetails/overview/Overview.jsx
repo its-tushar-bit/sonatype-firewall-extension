@@ -8,26 +8,13 @@ import * as PropTypes from 'prop-types';
 import { join } from 'ramda';
 
 import { formatTimeAgoUpToDay } from '../../util/dateUtils';
-import { RiskRemediation } from './riskRemediation/RiskRemediation';
+import { RiskRemediationContainer } from './riskRemediation/RiskRemediationContainer';
 import OccurrencesPopoverContainer from './occurrencesPopover/OccurrencesPopoverContainer';
 import InnerSourceProducerReportModalContainer from './InnerSourceProducerReportModal/InnerSourceProducerReportModalContainer';
 import InnerSourceProducerPermissionsModalContainer from './InnerSourceProducerPermissionsModal/InnerSourceProducerPermissionsModalContainer';
 import InnerSourceProducerAlertContainer from './InnerSourceProducerAlert/InnerSourceProducerAlertContainer';
-import { RemediationPropTypes, AncestorPropTypes } from './overviewTypes';
 
-export default function Overview(props) {
-  const {
-    componentInformation,
-    ancestors,
-    routeName,
-    requestVersionGraphData,
-    versionExplorerData,
-    toggleShowOccurrencesPopover,
-    actualVersion,
-    stageId,
-    remediation,
-    loadInnerSourceProducerData,
-  } = props;
+export default function Overview({ componentInformation, loadInnerSourceProducerData, toggleShowOccurrencesPopover }) {
   const {
     componentIdentifier,
     displayName,
@@ -45,10 +32,6 @@ export default function Overview(props) {
   const isUnknown = !matchState || matchState === 'unknown';
   const format = isUnknown ? '' : componentIdentifier.format;
   const catalogedDateAgo = createTime ? formatTimeAgoUpToDay(createTime) : '';
-  const version =
-    displayName && displayName.parts && displayName.parts.find((part) => part.field === 'Version')
-      ? displayName.parts.find((part) => part.field === 'Version').value
-      : '';
   const joinedComponentCategories = join(
     ',',
     componentCategories.map((category) => category.path)
@@ -107,6 +90,7 @@ export default function Overview(props) {
 
   const overviewComponentInformationTile = (
     <section id="overview-component-information-tile" className="nx-tile iq-component-information-tile">
+      <OccurrencesPopoverContainer occurrences={pathnames} />
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">Component Information</h2>
@@ -137,26 +121,11 @@ export default function Overview(props) {
 
   return (
     <div>
-      <OccurrencesPopoverContainer occurrences={pathnames} />
       <InnerSourceProducerReportModalContainer />
       <InnerSourceProducerPermissionsModalContainer />
       <InnerSourceProducerAlertContainer />
       {overviewComponentInformationTile}
-      <RiskRemediation
-        ancestors={ancestors}
-        routeName={routeName}
-        actualVersion={actualVersion}
-        stageId={stageId}
-        remediation={remediation}
-        requestVersionGraphData={requestVersionGraphData}
-        versionExplorerData={{
-          ...versionExplorerData,
-          data: {
-            ...versionExplorerData.data,
-            version,
-          },
-        }}
-      />
+      <RiskRemediationContainer />
     </div>
   );
 }
@@ -181,20 +150,6 @@ Overview.propTypes = {
     dependencyInfo: PropTypes.shape({
       isDirectDependency: PropTypes.bool.isRequired,
     }),
-  }),
-  routeName: PropTypes.string.isRequired,
-  ancestors: PropTypes.arrayOf(AncestorPropTypes),
-  actualVersion: PropTypes.string.isRequired,
-  stageId: PropTypes.string.isRequired,
-  remediation: RemediationPropTypes,
-  requestVersionGraphData: PropTypes.func,
-  versionExplorerData: PropTypes.shape({
-    data: PropTypes.shape({
-      version: PropTypes.string,
-      versions: PropTypes.array,
-    }),
-    loading: PropTypes.bool,
-    loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
   toggleShowOccurrencesPopover: PropTypes.func.isRequired,
   loadInnerSourceProducerData: PropTypes.func.isRequired,

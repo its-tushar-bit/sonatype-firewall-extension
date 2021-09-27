@@ -243,6 +243,14 @@ public class ApiCompositeSourceControlService
         grandParentName,
         grandParentSourceControl.getSourceControlScanTarget()
     );
+
+    dto.sshEnabled = collateCompositeDTO(
+            sourceControl.getSshEnabled(),
+            parentName,
+            parentSourceControl.getSshEnabled(),
+            grandParentName,
+            grandParentSourceControl.getSshEnabled()
+    );
   }
 
   private <T> ApiCompositeValueDTO<T> collateCompositeDTO(

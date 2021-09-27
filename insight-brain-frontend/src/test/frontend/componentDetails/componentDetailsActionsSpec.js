@@ -88,7 +88,7 @@ describe('componentDetailsActions', function () {
     it('dispatches LOAD_COMPONENT_LABELS_FAILED after a failed reponse', (done) => {
       mockAxiosCalls({
         get: {
-          [url]: Promise.reject('error'),
+          [url]: () => Promise.reject('error'),
         },
       });
       store.dispatch(loadComponentDetails()).then(() => {

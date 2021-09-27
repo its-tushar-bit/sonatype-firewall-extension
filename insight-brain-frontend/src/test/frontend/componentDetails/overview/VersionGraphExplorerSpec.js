@@ -7,14 +7,12 @@ import * as enzymeUtils from '../../enzymeUtils';
 import * as versionGraph from '@sonatype/version-graph';
 import VersionGraphExplorer from '../../../../main/frontend/componentDetails/overview/VersionGraphExplorer/VersionGraphExplorer';
 
-describe('OverviewVersionGraphExplorer', () => {
+describe('VersionGraphExplorer', () => {
   let minimalProps, getShallow, getMounted;
   beforeEach(function () {
     minimalProps = {
-      data: {
-        versions: [],
-        version: '2',
-      },
+      versions: [],
+      currentVersion: '2',
       selectable: false,
       showDetails: true,
       showCurrentVersionLabel: true,
@@ -41,6 +39,16 @@ describe('OverviewVersionGraphExplorer', () => {
     const renderVersionGraphSpy = spyOn(versionGraph, 'renderVersionGraph');
     getMounted();
     expect(renderVersionGraphSpy).toHaveBeenCalledTimes(1);
-    expect(renderVersionGraphSpy).toHaveBeenCalledWith(minimalProps);
+    expect(renderVersionGraphSpy).toHaveBeenCalledWith({
+      data: {
+        versions: [],
+        version: '2',
+      },
+      selectable: false,
+      showDetails: true,
+      showCurrentVersionLabel: true,
+      versionClick: minimalProps.versionClick,
+      versionDblClick: minimalProps.versionDblClick,
+    });
   });
 });

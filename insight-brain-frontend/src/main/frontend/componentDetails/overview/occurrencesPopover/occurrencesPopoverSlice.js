@@ -4,7 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSlice } from '@reduxjs/toolkit';
+import { always } from 'ramda';
+
 import { toggleBooleanProp } from '../../../util/reduxUtil';
+import { UI_ROUTER_ON_FINISH } from '../../../reduxUiRouter/routerActions';
 
 const REDUCER_NAME = 'occurrencesPopover';
 
@@ -17,6 +20,9 @@ const occurrencesPopoverSlice = createSlice({
   initialState,
   reducers: {
     toggleShowOccurrencesPopover: toggleBooleanProp('showOccurrencesPopover'),
+  },
+  extraReducers: {
+    [UI_ROUTER_ON_FINISH]: always(initialState),
   },
 });
 

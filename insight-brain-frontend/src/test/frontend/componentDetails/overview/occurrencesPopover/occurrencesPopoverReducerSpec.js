@@ -28,12 +28,28 @@ describe('occurrencesPopoverSlice', () => {
       const newState = reducer(state, action);
 
       expect(newState.showOccurrencesPopover).toBe(true);
-      expect(newState.other).toBe(stateConstantObject);
+      expect(newState.other).toEqual(stateConstantObject);
 
       const newState2 = reducer(newState, action);
 
       expect(newState2.showOccurrencesPopover).toBe(false);
-      expect(newState2.other).toBe(stateConstantObject);
+      expect(newState2.other).toEqual(stateConstantObject);
+    });
+  });
+
+  describe('UI_ROUTER_ON_FINISH action', () => {
+    it('always returns the initial state', () => {
+      const action = { type: '@@reduxUiRouter/onFinish' };
+
+      const newState = reducer(state, action);
+
+      expect(newState.showOccurrencesPopover).toBe(false);
+
+      const newState2 = { showOccurrencesPopover: true };
+
+      const newState3 = reducer(newState2, action);
+
+      expect(newState3.showOccurrencesPopover).toBe(false);
     });
   });
 });

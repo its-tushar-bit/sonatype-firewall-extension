@@ -7,32 +7,17 @@ import { connect } from 'react-redux';
 
 import Overview from './Overview';
 import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
-import { selectComponentAncestors } from '../componentDetailsSelectors';
-import { selectCurrentRouteName } from '../../reduxUiRouter/routerSelectors';
 import { actions } from './overviewSlice';
 import { occurrencesPopoverActions } from './occurrencesPopover/occurrencesPopoverSlice';
-import {
-  selectComponentDetailsOverviewVersionExplorerSlice,
-  selectComponenDetailsOverviewRemediationSlice,
-  selectRemediationData,
-} from './overviewSelectors';
 
 function mapStateToProps(state) {
-  const { actualVersion, stageId } = selectRemediationData(state);
   return {
     componentInformation: selectSelectedComponent(state),
-    ancestors: selectComponentAncestors(state),
-    routeName: selectCurrentRouteName(state),
-    actualVersion: actualVersion,
-    stageId: stageId,
-    remediation: selectComponenDetailsOverviewRemediationSlice(state),
-    versionExplorerData: selectComponentDetailsOverviewVersionExplorerSlice(state),
   };
 }
 
 const mapDispatchToProps = {
   toggleShowOccurrencesPopover: occurrencesPopoverActions.toggleShowOccurrencesPopover,
-  requestVersionGraphData: actions.loadVersionGraphData,
   loadInnerSourceProducerData: actions.loadInnerSourceProducerData,
 };
 

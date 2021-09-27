@@ -110,7 +110,7 @@ describe('auditLogActions', function () {
     it('dispatches AUDIT_LOG_LOAD_AUDIT_LOG_FAILED after a failed reponse', (done) => {
       mockAxiosCalls({
         get: {
-          [url]: Promise.reject('error'),
+          [url]: () => Promise.reject('error'),
         },
       });
       store.dispatch(loadAuditLogForComponent()).then(() => {

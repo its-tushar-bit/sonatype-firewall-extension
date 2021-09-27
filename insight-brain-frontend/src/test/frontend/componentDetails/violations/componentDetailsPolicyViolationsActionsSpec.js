@@ -98,7 +98,7 @@ describe('componentDetailsPolicyViolationsActions', () => {
     it('dispatches a componentDetailsPolicyViolations/load/rejected action after an error occurs in the requests', (done) => {
       mockAxiosCalls({
         get: {
-          [getReportPolicyThreatsUrl('appPublicId', 'currentScanId')]: Promise.reject('errorMessage'),
+          [getReportPolicyThreatsUrl('appPublicId', 'currentScanId')]: () => Promise.reject('errorMessage'),
           [getComponentWaivers('application', 'appPublicId', 'currentComponentHash')]: Promise.resolve({
             data: [{ id: 'waiver1' }],
           }),

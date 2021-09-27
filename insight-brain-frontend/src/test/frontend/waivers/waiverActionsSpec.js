@@ -186,7 +186,7 @@ describe('waiverActions', function () {
 
     describe('after a failed POST', function () {
       it('dispatches the WAIVERS_SAVE_WAIVER_FAILED action', function (done) {
-        spyOn(axios, 'post').and.returnValue(Promise.reject('Err'));
+        spyOn(axios, 'post').and.callFake(() => Promise.reject('Err'));
 
         store
           .dispatch(saveWaiverAndRedirect('policyViolationId', 'application', 'ownerId', '', false, null))
@@ -311,7 +311,7 @@ describe('waiverActions', function () {
 
     describe('after a failed POST', function () {
       it('dispatches the WAIVERS_SAVE_WAIVER_FAILED action', function (done) {
-        spyOn(axios, 'post').and.returnValue(Promise.reject('Err'));
+        spyOn(axios, 'post').and.callFake(() => Promise.reject('Err'));
 
         store
           .dispatch(
@@ -408,7 +408,7 @@ describe('waiverActions', function () {
               [loadViolationDetailsUrl]: Promise.resolve({
                 data: violationDetails,
               }),
-              [ownerContextHierarchyUrl]: Promise.reject('err'),
+              [ownerContextHierarchyUrl]: () => Promise.reject('err'),
             },
           });
 
@@ -434,7 +434,7 @@ describe('waiverActions', function () {
             [applicableWaiversUrl]: Promise.resolve({
               data: { activeWaivers: [], expiredWaivers: [] },
             }),
-            [loadViolationDetailsUrl]: Promise.reject('Err'),
+            [loadViolationDetailsUrl]: () => Promise.reject('Err'),
           },
         });
 
@@ -601,7 +601,7 @@ describe('waiverActions', function () {
               [applicableWaiversUrl]: Promise.resolve({
                 data: 'applicableWaivers',
               }),
-              [applicationSummaryUrl]: Promise.reject('app summary error'),
+              [applicationSummaryUrl]: () => Promise.reject('app summary error'),
             },
           });
 
@@ -635,7 +635,7 @@ describe('waiverActions', function () {
               }),
             },
             put: {
-              [permissionContextTestUrl]: Promise.reject('load permission error'),
+              [permissionContextTestUrl]: () => Promise.reject('load permission error'),
             },
           });
 
@@ -659,7 +659,7 @@ describe('waiverActions', function () {
       it('dispatches WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED', function (done) {
         mockAxiosCalls({
           get: {
-            [getViolationDetailsUrl('foo')]: Promise.reject('load violation details error'),
+            [getViolationDetailsUrl('foo')]: () => Promise.reject('load violation details error'),
             [getApplicableWaiversUrl('foo')]: Promise.resolve({
               data: 'applicableWaivers',
             }),
@@ -692,7 +692,7 @@ describe('waiverActions', function () {
             [loadViolationDetailsUrl]: Promise.resolve({
               data: { applicationPublicId: '' },
             }),
-            [applicableWaiversUrl]: Promise.reject('load applicable waivers error'),
+            [applicableWaiversUrl]: () => Promise.reject('load applicable waivers error'),
             [applicationSummaryUrl]: Promise.resolve({
               data: { id: 'applicationPrivateId' },
             }),
@@ -1057,7 +1057,7 @@ describe('waiverActions', function () {
 
         mockAxiosCalls({
           del: {
-            [url]: Promise.reject('Error!'),
+            [url]: () => Promise.reject('Error!'),
           },
         });
 
@@ -1079,7 +1079,7 @@ describe('waiverActions', function () {
     it('starts the request', function () {
       mockAxiosCalls({
         get: {
-          [getApplicableWaiversUrl('foo')]: Promise.reject('ERR'),
+          [getApplicableWaiversUrl('foo')]: () => Promise.reject('ERR'),
         },
       });
 
@@ -1114,7 +1114,7 @@ describe('waiverActions', function () {
     it('dispatches WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED if the request fails', function (done) {
       mockAxiosCalls({
         get: {
-          [getApplicableWaiversUrl('foo')]: Promise.reject('ERR'),
+          [getApplicableWaiversUrl('foo')]: () => Promise.reject('ERR'),
         },
       });
 

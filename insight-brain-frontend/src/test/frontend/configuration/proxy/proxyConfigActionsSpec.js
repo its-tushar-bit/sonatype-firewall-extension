@@ -118,7 +118,7 @@ describe('proxyConfigActions', () => {
       beforeEach(() => {
         mockAxiosCalls({
           put: {
-            [proxyConfigUrl]: Promise.reject('error!'),
+            [proxyConfigUrl]: () => Promise.reject('error!'),
           },
         });
       });
@@ -208,7 +208,7 @@ describe('proxyConfigActions', () => {
       beforeEach(() => {
         mockAxiosCalls({
           del: {
-            [proxyConfigUrl]: Promise.reject('error!'),
+            [proxyConfigUrl]: () => Promise.reject('error!'),
           },
         });
       });

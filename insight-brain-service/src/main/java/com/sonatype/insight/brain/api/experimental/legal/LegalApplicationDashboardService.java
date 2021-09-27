@@ -249,7 +249,9 @@ public class LegalApplicationDashboardService
    * @param multiLicenseIds the multiLicenses which will be the keys
    * @return a map of multiLicense to singleLicenses
    */
-  private HashMap<String, Set<String>> buildMultiLicenseIdToSingleLicenseIdsMap(final Collection<String> multiLicenseIds) {
+  private HashMap<String, Set<String>> buildMultiLicenseIdToSingleLicenseIdsMap(
+      final Collection<String> multiLicenseIds)
+  {
     return multiLicenseIds.stream()
         .collect(Collectors.toMap(
             Function.identity(),

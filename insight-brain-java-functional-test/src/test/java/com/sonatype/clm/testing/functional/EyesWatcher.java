@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional;
 import java.util.Arrays;
 
 import com.applitools.eyes.BatchInfo;
+import com.applitools.eyes.FileLogger;
 import com.applitools.eyes.selenium.Eyes;
 import com.applitools.eyes.selenium.fluent.SeleniumCheckSettings;
 import com.applitools.eyes.selenium.fluent.Target;
@@ -37,6 +38,8 @@ public class EyesWatcher
 
   private static final String APPLITOOLS_KEY = System.getProperty("applitoolsKey");
 
+  private static final String APPLITOOLS_LOG_FILE_NAME = System.getProperty("applitoolsLogFileName");
+
   static {
     localBranchName = System.getProperty("branchName", System.getenv("GIT_LOCAL_BRANCH"));
     eyes.setIsDisabled(APPLITOOLS_KEY == null || !isApplitoolsEnabled());
@@ -65,6 +68,10 @@ public class EyesWatcher
       eyes.setBatch(batch);
       eyes.setHideCaret(false);
       eyes.setHideScrollbars(false);
+
+      if (StringUtils.isNotBlank(APPLITOOLS_LOG_FILE_NAME)) {
+        eyes.setLogHandler(new FileLogger(APPLITOOLS_LOG_FILE_NAME, true, true));
+      }
     }
   }
 

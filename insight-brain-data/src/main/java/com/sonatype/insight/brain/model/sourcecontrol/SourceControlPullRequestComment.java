@@ -32,6 +32,14 @@ public class SourceControlPullRequestComment
   @Column(name = "component_hash")
   private String componentHash;
 
+  /**
+   * The pathname of the file where the line comment is added. Null for summary comments.
+   * 
+   * @since 1.125
+   */
+  @Column(name = "pathname")
+  private String pathname;
+
   @Column(name = "pull_request_id")
   private int pullRequestId;
 
@@ -83,12 +91,13 @@ public class SourceControlPullRequestComment
   }
 
   /**
-   * This constructor is intended for creating a line-level PR comment as it includes the component hash to which
-   * the line comment pertains
+   * This constructor is intended for creating a line-level PR comment as it includes the component hash and pathname to
+   * which the line comment pertains
    */
   public SourceControlPullRequestComment(
       String applicationId,
       String componentHash,
+      String pathname,
       int pullRequestId,
       int pullRequestCommentId,
       Integer pullRequestCommentVersion,
@@ -98,6 +107,7 @@ public class SourceControlPullRequestComment
     this(applicationId, pullRequestId, pullRequestCommentId, pullRequestCommentVersion, null, sourcePolicyEvaluationId,
         targetPolicyEvaluationId);
     this.componentHash = componentHash;
+    this.pathname = pathname;
   }
 
   @Override
@@ -198,5 +208,13 @@ public class SourceControlPullRequestComment
   public SourceControlPullRequestComment setContentHash(final String contentHash) {
     this.contentHash = contentHash;
     return this;
+  }
+
+  public String getPathname() {
+    return pathname;
+  }
+
+  public void setPathname(String pathname) {
+    this.pathname = pathname;
   }
 }

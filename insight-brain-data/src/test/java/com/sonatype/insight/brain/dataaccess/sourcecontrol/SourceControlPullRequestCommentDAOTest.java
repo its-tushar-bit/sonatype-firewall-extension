@@ -111,6 +111,7 @@ public class SourceControlPullRequestCommentDAOTest
       tempEntity.newSourceControlPullRequestCommentForLine(
           application.getId(),
           "hash" + commentId,
+          "testpathname" + commentId,
           subjectPullRequestId,
           commentId,
           pullRequestCommentVersion,
@@ -138,6 +139,7 @@ public class SourceControlPullRequestCommentDAOTest
       tempEntity.newSourceControlPullRequestCommentForLine(
           app2.getId(),
           "hash" + commentId,
+          "testpathname" + commentId,
           additionalPullRequestId,
           commentId,
           pullRequestCommentVersion,
@@ -157,6 +159,7 @@ public class SourceControlPullRequestCommentDAOTest
       assertThat(comment.getApplicationId()).isEqualTo(application.getId());
       assertThat(comment.getPullRequestId()).isEqualTo(subjectPullRequestId);
       assertThat(comment.getComponentHash()).isEqualTo("hash" + comment.getPullRequestCommentId());
+      assertThat(comment.getPathname()).isEqualTo("testpathname" + comment.getPullRequestCommentId());
       assertThat(comment.getPullRequestCommentVersion()).isEqualTo(pullRequestCommentVersion);
       assertThat(commentIdSet).doesNotContain(comment.getPullRequestCommentId());
       commentIdSet.add(comment.getPullRequestCommentId());
@@ -171,6 +174,7 @@ public class SourceControlPullRequestCommentDAOTest
     assertThat(lineComment.getApplicationId()).isEqualTo(application.getId());
     assertThat(lineComment.getPullRequestId()).isEqualTo(subjectPullRequestId);
     assertThat(lineComment.getComponentHash()).isEqualTo("hash3");
+    assertThat(lineComment.getPathname()).isEqualTo("testpathname3");
 
     // when: delete the line comments for the subject PR
     pullRequestCommentDAO.deleteByApplicationIdAndPullRequestIdWithComponents(application.getId(),

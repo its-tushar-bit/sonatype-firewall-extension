@@ -1396,6 +1396,7 @@ public class TemporaryEntity
   public SourceControlPullRequestComment newSourceControlPullRequestCommentForLine(
       String applicationId,
       String componentHash,
+      String pathname,
       int pullRequestId,
       int pullRequestCommentId,
       Integer pullRequestCommentVersion,
@@ -1405,6 +1406,7 @@ public class TemporaryEntity
     SourceControlPullRequestComment pullRequestComment = new SourceControlPullRequestComment(
         applicationId,
         componentHash,
+        pathname,
         pullRequestId,
         pullRequestCommentId,
         pullRequestCommentVersion,

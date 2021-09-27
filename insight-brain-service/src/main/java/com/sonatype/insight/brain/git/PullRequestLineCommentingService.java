@@ -192,8 +192,14 @@ public class PullRequestLineCommentingService
 
       //Add the line comment details to the database
       SourceControlPullRequestComment pullRequestComment = new SourceControlPullRequestComment(
-          applicationId, lineCommentDTO.getHash(), pullRequestId, response.getId(),
-          response.getVersion(), sourcePolicyEvaluationId, basePolicyEvaluationId);
+          applicationId, //
+          lineCommentDTO.getHash(), //
+          lineCommentDTO.getDiffPosition().getFilePath(), //
+          pullRequestId, //
+          response.getId(), //
+          response.getVersion(), //
+          sourcePolicyEvaluationId, //
+          basePolicyEvaluationId);
       pullRequestCommentDAO.insert(pullRequestComment);
       wasCreated = true;
     }

@@ -595,6 +595,7 @@ public class PolicyEvaluationDAOTest
     SourceControlPullRequestComment lineComment = new SourceControlPullRequestComment(
         application.getId(),
         componentHash,
+        "testpathname",
         2,
         3,
         4,

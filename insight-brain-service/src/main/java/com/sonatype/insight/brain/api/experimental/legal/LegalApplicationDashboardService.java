@@ -6,10 +6,13 @@
 package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
@@ -154,19 +157,27 @@ public class LegalApplicationDashboardService
           continue;
         }
 
-        Set<String> licenseIds = componentLicensesDTO.getLicenses();
+        Set<String> multiLicenseIds = componentLicensesDTO.getLicenses();
+
+        Map<String, Set<String>> multiLicenseIdToSingleLicenseId =
+            buildMultiLicenseIdToSingleLicenseIdsMap(multiLicenseIds);
+
+        Set<String> singleLicenseIds = multiLicenseIdToSingleLicenseId.values().stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
 
         Map<String, List<LicenseThreatGroup>> threatGroupsByLicenseId = licenseThreatGroupDAO
-            .getLicenseIdThreatGroupsByOwnerIdAndLicenseIdsWithHierarchy(tx, application.getId(), licenseIds);
+            .getLicenseIdThreatGroupsByOwnerIdAndLicenseIdsWithHierarchy(tx, application.getId(), singleLicenseIds);
 
         if (isNotEmpty(licenseThreatGroupNames)) {
-          licenseIds = filterLicenseIdsByThreatGroups(licenseIds, licenseThreatGroupNames, threatGroupsByLicenseId);
-          if (isEmpty(licenseIds)) {
+          singleLicenseIds =
+              filterLicenseIdsByThreatGroups(singleLicenseIds, licenseThreatGroupNames, threatGroupsByLicenseId);
+          if (isEmpty(singleLicenseIds)) {
             continue;
           }
         }
 
-        Set<String> allObligationNames = licenseIds.stream()
+        Set<String> allObligationNames = singleLicenseIds.stream()
             .filter(obligationNamesByLicenseId::containsKey)
             .flatMap(licenseId -> obligationNamesByLicenseId.get(licenseId).stream())
             .collect(Collectors.toSet());
@@ -202,7 +213,7 @@ public class LegalApplicationDashboardService
           reviewStatus = LicenseObligationReviewStatus.FLAGGED;
         }
         else if (isEmpty(allObligationNames)) {
-          reviewStatus = isEmptyOrUnspecifiedLicenses(licenseIds) ? LicenseObligationReviewStatus.UNREVIEWED
+          reviewStatus = isEmptyOrUnspecifiedLicenses(multiLicenseIds) ? LicenseObligationReviewStatus.UNREVIEWED
               : LicenseObligationReviewStatus.COMPLETED;
         }
         else if (openCount == allObligationNames.size()) {
@@ -218,7 +229,8 @@ public class LegalApplicationDashboardService
           dto.displayName =
               ComponentDisplayNameUtil.fromIdentifier(componentLicensesDTO.getComponentIdentifier()).toString();
           dto.licenses =
-              newApiLicenses(licenseIds, licenseThreatGroupNames, threatGroupsByLicenseId, licenseNamesByLicenseId);
+              newApiLicenses(multiLicenseIdToSingleLicenseId, licenseThreatGroupNames, threatGroupsByLicenseId,
+                  licenseNamesByLicenseId);
           dto.reviewCompletedCount = addressedCount;
           dto.reviewTotalCount = allObligationNames.size();
           dto.reviewStatus = reviewStatus;
@@ -228,6 +240,26 @@ public class LegalApplicationDashboardService
     }
 
     return result;
+  }
+
+  /**
+   * Given a Collection of multiLicenseIds, build a map where the key is the multiLicenseId and the value is a set of
+   * singleLicenseIds for that multiLicense.
+   *
+   * @param multiLicenseIds the multiLicenses which will be the keys
+   * @return a map of multiLicense to singleLicenses
+   */
+  private HashMap<String, Set<String>> buildMultiLicenseIdToSingleLicenseIdsMap(final Collection<String> multiLicenseIds) {
+    return multiLicenseIds.stream()
+        .collect(Collectors.toMap(
+            Function.identity(),
+            multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId)
+                .stream()
+                .map(License::getId)
+                .collect(Collectors.toSet()),
+            (prev, next) -> next,
+            HashMap::new
+        ));
   }
 
   private void checkLicense() {
@@ -283,7 +315,7 @@ public class LegalApplicationDashboardService
   }
 
   private Set<ApiLicenseDTOV2> newApiLicenses(
-      Set<String> licenseIds,
+      Map<String, Set<String>> multiLicenseIdToSingleLicenseIds,
       Set<String> licenseThreatGroupNamesToInclude,
       Map<String, List<LicenseThreatGroup>> threatGroupsByLicenseId,
       Map<String, String> licenseNamesByLicenseId)
@@ -291,15 +323,25 @@ public class LegalApplicationDashboardService
     Set<ApiLicenseDTOV2> licenses = new TreeSet<>(Comparator.comparing(dto -> dto.licenseName));
     ApiLicenseDataAdapter licenseDataAdapter = new ApiLicenseDataAdapter();
 
-    for (String licenseId : licenseIds) {
-      List<ApiLicenseThreatDTOV2> licenseThreatGroups =
-          threatGroupsByLicenseId.getOrDefault(licenseId, Collections.emptyList()).stream()
-              .filter(threatGroup -> isEmpty(licenseThreatGroupNamesToInclude)
-                  || licenseThreatGroupNamesToInclude.contains(threatGroup.getName()))
-              .map(licenseDataAdapter::convert)
-              .collect(Collectors.toList());
+    for (Entry<String, Set<String>> e : multiLicenseIdToSingleLicenseIds.entrySet()) {
 
-      licenses.add(new ApiLicenseDTOV2(licenseId, licenseNamesByLicenseId.get(licenseId), licenseThreatGroups));
+      List<ApiLicenseThreatDTOV2> licenseThreatGroups = new ArrayList<>();
+
+      for (String singleLicense : e.getValue()) {
+        //Fetch all license threat groups associated with this license, filter based on user selection
+        final List<LicenseThreatGroup> singleLicenseThreatGroups =
+            threatGroupsByLicenseId.getOrDefault(singleLicense, Collections.emptyList());
+
+        licenseThreatGroups.addAll(
+            singleLicenseThreatGroups.stream()
+                .filter(threatGroup -> isEmpty(licenseThreatGroupNamesToInclude)
+                    || licenseThreatGroupNamesToInclude.contains(threatGroup.getName()))
+                .map(licenseDataAdapter::convert)
+                .collect(Collectors.toList())
+        );
+      }
+
+      licenses.add(new ApiLicenseDTOV2(e.getKey(), licenseNamesByLicenseId.get(e.getKey()), licenseThreatGroups));
     }
 
     return licenses;

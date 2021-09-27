@@ -44,6 +44,7 @@ import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import org.apache.commons.lang3.tuple.Triple;
@@ -127,7 +128,7 @@ public class LegalApplicationDashboardServiceTest
   @Test
   public void testGetLicenseLegalApplicationDashboard_FlaggedObligation() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    List<String> licenseIds = Arrays.asList("MIT");
+    List<String> licenseIds = Collections.singletonList("MIT");
     List<ApiLicenseDTOV2> licenses = getApiLicenses(licenseIds);
 
     Application app = setupApplicationWithLicenses(componentIdentifier, licenseIds.get(0)).getLeft();
@@ -144,7 +145,7 @@ public class LegalApplicationDashboardServiceTest
   @Test
   public void testGetLicenseLegalApplicationDashboard_CompletedObligation() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    List<String> licenseIds = Arrays.asList("MIT");
+    List<String> licenseIds = Collections.singletonList("MIT");
     List<ApiLicenseDTOV2> licenses = getApiLicenses(licenseIds);
 
     Application app = setupApplicationWithLicenses(componentIdentifier, licenseIds.get(0)).getLeft();
@@ -161,7 +162,7 @@ public class LegalApplicationDashboardServiceTest
   @Test
   public void testGetLicenseLegalApplicationDashboard_CompletedObligation_LicensesWithoutObligations() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    List<String> licenseIds = Arrays.asList("MIT");
+    List<String> licenseIds = Collections.singletonList("MIT");
     List<ApiLicenseDTOV2> licenses = getApiLicenses(licenseIds);
 
     Application app = setupApplicationWithLicenses(componentIdentifier, licenseIds.get(0)).getLeft();
@@ -177,7 +178,7 @@ public class LegalApplicationDashboardServiceTest
   @Test
   public void testGetLicenseLegalApplicationDashboard_UnreviewedObligation() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    List<String> licenseIds = Arrays.asList("MIT");
+    List<String> licenseIds = Collections.singletonList("MIT");
     List<ApiLicenseDTOV2> licenses = getApiLicenses(licenseIds);
 
     Application app = setupApplicationWithLicenses(componentIdentifier, licenseIds.get(0)).getLeft();
@@ -214,7 +215,7 @@ public class LegalApplicationDashboardServiceTest
     List<ApiLicenseDTOV2> licenses = getApiLicenses(licenseIds);
 
     Application app =
-        setupApplicationWithLicenses(componentIdentifier, licenseIds.stream().toArray(String[]::new)).getLeft();
+        setupApplicationWithLicenses(componentIdentifier, licenseIds.toArray(new String[0])).getLeft();
 
     List<ApiLicenseLegalApplicationComponentDTO> result =
         legalApplicationDashboardService.getLicenseLegalApplicationDashboard(app.getPublicId(), null);
@@ -227,7 +228,7 @@ public class LegalApplicationDashboardServiceTest
   @Test
   public void testGetLicenseLegalApplicationDashboard_InProgressObligation() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    List<String> licenseIds = Arrays.asList("MIT");
+    List<String> licenseIds = Collections.singletonList("MIT");
     List<ApiLicenseDTOV2> licenses = getApiLicenses(licenseIds);
 
     Application app = setupApplicationWithLicenses(componentIdentifier, licenseIds.get(0)).getLeft();
@@ -328,7 +329,7 @@ public class LegalApplicationDashboardServiceTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
     List<String> licenseIds = Arrays.asList("MIT", "Apache-1.0");
-    List<ApiLicenseDTOV2> licenses = getApiLicenses(Arrays.asList("MIT"));
+    List<ApiLicenseDTOV2> licenses = getApiLicenses(Collections.singletonList("MIT"));
 
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
     setupLicenseObligations(app, componentIdentifier1, licenseIds, compontent1ObligationStatus,
@@ -354,24 +355,26 @@ public class LegalApplicationDashboardServiceTest
   @Test
   public void testGetLicenseLegalApplicationDashboard_ByLicenseThreatGroupNames() {
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    List<String> licenseIds = Arrays.asList("MIT");
+    List<String> licenseIds = Collections.singletonList("MIT");
 
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
 
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
     ApplicationComponent applicationComponent =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", componentIdentifier2);
-    tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "Test-License");
+    tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "Beerware-Pizzaware");
 
     tempEntity.newLicenseThreatGroup(app.getId(), "Group 1", 0, licenseIds.get(0));
     tempEntity.newLicenseThreatGroup(app.getOrganizationId(), "Group 2", 5, licenseIds.get(0));
     tempEntity.newLicenseThreatGroup(Organization.ROOT_ORGANIZATION_ID, "Group 3", 9, licenseIds.get(0));
     tempEntity.newLicenseThreatGroup(Organization.ROOT_ORGANIZATION_ID, "Group 4", 3, "Apache-1.0");
+    tempEntity.newLicenseThreatGroup(Organization.ROOT_ORGANIZATION_ID, "Group 5", 7, "Pizzaware");
 
     ApiLicenseThreatDTOV2 groupTest = new ApiLicenseThreatDTOV2();
     groupTest.licenseThreatGroupName = "Group 1";
     List<ApiLicenseDTOV2> licenses =
-        Arrays.asList(new ApiLicenseDTOV2(licenseIds.get(0), licenseIds.get(0), Arrays.asList(groupTest)));
+        Collections.singletonList(new ApiLicenseDTOV2(licenseIds.get(0), licenseIds.get(0),
+            Collections.singletonList(groupTest)));
 
     LicenseLegalApplicationComponentsFilterDTO filter = new LicenseLegalApplicationComponentsFilterDTO();
     filter.licenseThreatGroupNames = Sets.newHashSet(groupTest.licenseThreatGroupName);
@@ -384,7 +387,9 @@ public class LegalApplicationDashboardServiceTest
 
     groupTest = new ApiLicenseThreatDTOV2();
     groupTest.licenseThreatGroupName = "Group 2";
-    licenses = Arrays.asList(new ApiLicenseDTOV2(licenseIds.get(0), licenseIds.get(0), Arrays.asList(groupTest)));
+    licenses =
+        Collections.singletonList(new ApiLicenseDTOV2(licenseIds.get(0), licenseIds.get(0),
+            Collections.singletonList(groupTest)));
 
     filter = new LicenseLegalApplicationComponentsFilterDTO();
     filter.licenseThreatGroupNames = Sets.newHashSet(groupTest.licenseThreatGroupName);
@@ -396,7 +401,8 @@ public class LegalApplicationDashboardServiceTest
 
     groupTest = new ApiLicenseThreatDTOV2();
     groupTest.licenseThreatGroupName = "Group 3";
-    licenses = Arrays.asList(new ApiLicenseDTOV2(licenseIds.get(0), licenseIds.get(0), Arrays.asList(groupTest)));
+    licenses = Collections.singletonList(new ApiLicenseDTOV2(licenseIds.get(0), licenseIds.get(0),
+        Collections.singletonList(groupTest)));
 
     filter = new LicenseLegalApplicationComponentsFilterDTO();
     filter.licenseThreatGroupNames = Sets.newHashSet(groupTest.licenseThreatGroupName);
@@ -404,6 +410,21 @@ public class LegalApplicationDashboardServiceTest
     result = legalApplicationDashboardService.getLicenseLegalApplicationDashboard(app.getPublicId(), filter);
     assertThat(result).hasSize(1);
     assertApiLicenseLegalApplicationComponentDTO(result.get(0), componentIdentifier1, licenses, 0, 0,
+        LicenseObligationReviewStatus.COMPLETED);
+
+    //Filter by LTG which is within a multi license
+    groupTest = new ApiLicenseThreatDTOV2();
+    groupTest.licenseThreatGroupName = "Group 5";
+    licenses =
+        Collections.singletonList(
+            new ApiLicenseDTOV2("Beerware-Pizzaware", "Beerware or Pizzaware", Collections.singletonList(groupTest)));
+
+    filter = new LicenseLegalApplicationComponentsFilterDTO();
+    filter.licenseThreatGroupNames = Sets.newHashSet(groupTest.licenseThreatGroupName);
+
+    result = legalApplicationDashboardService.getLicenseLegalApplicationDashboard(app.getPublicId(), filter);
+    assertThat(result).hasSize(1);
+    assertApiLicenseLegalApplicationComponentDTO(result.get(0), "hash2", componentIdentifier2, licenses, 0, 0,
         LicenseObligationReviewStatus.COMPLETED);
   }
 
@@ -413,7 +434,7 @@ public class LegalApplicationDashboardServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ApplicationComponent applicationComponent =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash", componentIdentifier);
-    String effectiveLicenseId = "effectiveLicenseId";
+    String effectiveLicenseId = "MIT";
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), effectiveLicenseId);
     LicenseObligationDTO licenseObligationDTO = new LicenseObligationDTO("obligation", Collections.emptySet());
     LicenseMetadataDTO licenseMetadataDTO = new LicenseMetadataDTO();
@@ -426,8 +447,10 @@ public class LegalApplicationDashboardServiceTest
         legalApplicationDashboardService.getLicenseLegalApplicationDashboard(app.getPublicId(), null);
 
     assertThat(result).hasSize(1);
+    ApiLicenseThreatDTOV2 expectedLtg = new ApiLicenseThreatDTOV2();
+    expectedLtg.licenseThreatGroupName = "Liberal";
     assertApiLicenseLegalApplicationComponentDTO(result.get(0), componentIdentifier,
-        Collections.singletonList(new ApiLicenseDTOV2(effectiveLicenseId, null, Collections.emptyList())), 0, 1,
+        Collections.singletonList(new ApiLicenseDTOV2(effectiveLicenseId, null, Lists.newArrayList(expectedLtg))), 0, 1,
         LicenseObligationReviewStatus.UNREVIEWED);
   }
 
@@ -472,8 +495,8 @@ public class LegalApplicationDashboardServiceTest
     }
 
     List<LicenseMetadataDTO> licenseMetadataDTOs = createLicenseMetadataDTOs(licenses);
-    for (int i = 0; i < licenseMetadataDTOs.size(); i++) {
-      licenseMetadataDTOs.get(i).setLicenseObligations(obligationDtos);
+    for (LicenseMetadataDTO licenseMetadataDTO : licenseMetadataDTOs) {
+      licenseMetadataDTO.setLicenseObligations(obligationDtos);
     }
 
     doReturn(licenseMetadataDTOs).when(mockApiLicenseLegalHdsService)
@@ -488,7 +511,20 @@ public class LegalApplicationDashboardServiceTest
       int reviewTotalCount,
       LicenseObligationReviewStatus reviewStatus)
   {
-    assertThat(dto.hash).isEqualTo("hash");
+    assertApiLicenseLegalApplicationComponentDTO(dto, "hash", componentIdentifier, licenses, reviewCompletedCount,
+        reviewTotalCount, reviewStatus);
+  }
+
+  private void assertApiLicenseLegalApplicationComponentDTO(
+      ApiLicenseLegalApplicationComponentDTO dto,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      List<ApiLicenseDTOV2> licenses,
+      int reviewCompletedCount,
+      int reviewTotalCount,
+      LicenseObligationReviewStatus reviewStatus)
+  {
+    assertThat(dto.hash).isEqualTo(hash);
     assertThat(dto.displayName).isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
     assertThat(dto.licenses.stream().map(license -> license.licenseId).collect(Collectors.toSet()))
         .containsExactlyInAnyOrderElementsOf(

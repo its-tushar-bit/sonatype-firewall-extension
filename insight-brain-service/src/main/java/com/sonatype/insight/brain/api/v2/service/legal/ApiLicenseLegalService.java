@@ -460,9 +460,9 @@ public class ApiLicenseLegalService
 
     Map<String, LicenseMetadataDTO> licenseMetadataById = allMultiLicenses.isEmpty() ? Collections.emptyMap() :
         apiLicenseLegalHdsService.getLicenseMetadata(
-            allSingleLicenses.stream()
-                .map(License::getId)
-                .collect(Collectors.toCollection(LinkedHashSet::new)))
+                allSingleLicenses.stream()
+                    .map(License::getId)
+                    .collect(Collectors.toCollection(LinkedHashSet::new)))
             .stream()
             .collect(toMap(LicenseMetadataDTO::getLicenseId, Function.identity()));
 
@@ -471,7 +471,8 @@ public class ApiLicenseLegalService
     Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData> componentIdentifierToLegalData =
         fetchApiReportComponentDTOV2ToLegalData(
             application,
-            apiReportComponentDTOV2s
+            apiReportComponentDTOV2s,
+            multiLicenseToSingleLicense
         );
 
     Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier =
@@ -579,9 +580,9 @@ public class ApiLicenseLegalService
     Map<String, LicenseMetadataDTO> licenseMetadataById =
         allMultiLicenses.isEmpty() ? Collections.emptyMap() :
             apiLicenseLegalHdsService.getLicenseMetadata(
-                allSingleLicenses.stream()
-                    .map(License::getId)
-                    .collect(Collectors.toCollection(LinkedHashSet::new)))
+                    allSingleLicenses.stream()
+                        .map(License::getId)
+                        .collect(Collectors.toCollection(LinkedHashSet::new)))
                 .stream()
                 .collect(toMap(LicenseMetadataDTO::getLicenseId, Function.identity()));
 
@@ -596,7 +597,8 @@ public class ApiLicenseLegalService
     ComponentIdentifierLegalData componentIdentifierLegalData =
         fetchApiReportComponentDTOV2ToLegalData(
             owner,
-            Collections.singleton(apiReportComponentDTOV2)
+            Collections.singleton(apiReportComponentDTOV2),
+            multiLicenseToSingleLicense
         ).entrySet().iterator().next().getValue();
 
     // We prefer hash over component.getHash() to get the stage scans since
@@ -615,7 +617,7 @@ public class ApiLicenseLegalService
   }
 
   private Map<ApiLicenseDTO, Set<License>> buildMultiLicenseToSingleLicenseMap(
-      final Set<ApiLicenseDTO> allMultiLicenses)
+      final Collection<ApiLicenseDTO> allMultiLicenses)
   {
     return allMultiLicenses.stream()
         .collect(Collectors.toMap(
@@ -862,8 +864,8 @@ public class ApiLicenseLegalService
         .collect(Collectors.toCollection(LinkedHashSet::new));
 
     return apiLicenseLegalHdsService.getAnameComponentLegalComments(
-        aNameComponents,
-        componentIdentifiers).stream()
+            aNameComponents,
+            componentIdentifiers).stream()
         // reconstruct component comments by adding component hashes to each element of returned set
         .collect(
             groupingBy(c -> LegalComponentIdentifierUtil.removeClassifierAndExtension(c.getComponentIdentifier()),
@@ -893,7 +895,7 @@ public class ApiLicenseLegalService
       Collection<ApiReportRawDataDTOV2> rawReports)
   {
     return apiLicenseLegalHdsService.getComponentLegalFiles(
-        getComponentIdentifiers(rawReports)).stream()
+            getComponentIdentifiers(rawReports)).stream()
         .collect(Collectors
             .groupingBy(c -> LegalComponentIdentifierUtil.removeClassifierAndExtension(c.getComponentIdentifier()),
                 Collectors.toCollection(LinkedHashSet::new)));
@@ -1104,7 +1106,8 @@ public class ApiLicenseLegalService
 
   private Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData> fetchApiReportComponentDTOV2ToLegalData(
       Owner owner,
-      Collection<ApiReportComponentDTOV2> apiReportComponentDTOV2s)
+      Collection<ApiReportComponentDTOV2> apiReportComponentDTOV2s,
+      Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense)
   {
 
     String ownerId = owner.getId();
@@ -1155,13 +1158,18 @@ public class ApiLicenseLegalService
         componentIdentifierLegalDataMap
             .put(apiReportComponentDTOV2, componentIdentifierLegalData);
 
+        Set<String> componentMultiLicenses = apiReportComponentDTOV2.licenseData.effectiveLicenses.stream()
+            .map(l -> l.licenseId)
+            .collect(Collectors.toSet());
+
+        Set<String> componentSingleLicense = multiLicenseToSingleLicense.entrySet().stream()
+            .filter(e -> componentMultiLicenses.contains(e.getKey().licenseId))
+            .flatMap(e -> e.getValue().stream())
+            .map(License::getId)
+            .collect(Collectors.toSet());
+
         componentIdentifierLegalData.setHighestEffectiveLicenseThreatGroup(
-            getHighestLicenseThreatGroupWithHierarchy(tx, owner.getId(),
-                apiReportComponentDTOV2.licenseData.effectiveLicenses
-                    .stream()
-                    .map(effectiveLicense -> effectiveLicense.licenseId)
-                    .collect(Collectors.toCollection(LinkedHashSet::new)))
-        );
+            getHighestLicenseThreatGroupWithHierarchy(tx, owner.getId(), componentSingleLicense));
       }
     }
     return componentIdentifierLegalDataMap;

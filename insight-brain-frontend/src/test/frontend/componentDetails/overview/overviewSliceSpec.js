@@ -175,25 +175,6 @@ describe('componentDetailsOverviewReducer', () => {
     });
   });
 
-  describe('componentDetailsOverview/loadInnerSourceProducerData/pending action', () => {
-    it('sets the loadError to null and the loading flag to true', () => {
-      const state = Object.freeze({
-        innerSourceProducerData: {
-          ...initialInnerSourceProducerData,
-          loading: false,
-          loadError: 'loadError',
-        },
-      });
-
-      const newState = reducer(state, {
-        type: 'componentDetailsOverview/loadInnerSourceProducerData/pending',
-      });
-
-      expect(newState.innerSourceProducerData.loading).toBe(true);
-      expect(newState.innerSourceProducerData.loadError).toBeNull();
-    });
-  });
-
   describe('componentDetailsOverview/loadInnerSourceProducerData/rejected action', () => {
     it('sets the loadError to the payload and the loading flag to true', () => {
       const state = Object.freeze({
@@ -318,6 +299,20 @@ describe('componentDetailsOverviewReducer', () => {
       });
 
       expect(newState.innerSourceProducerData.latestInnerSourceComponentVersion).toBe('2.0');
+    });
+  });
+
+  describe('componentDetailsOverview/toggleShowSimilarMatches', () => {
+    it('toggles between boolean values for showSimilarMatches', () => {
+      const state = Object.freeze({
+        showSimilarMatchesPopover: true,
+      });
+
+      let newState = reducer(state, { type: 'componentDetailsOverview/toggleShowSimilarMatches' });
+      expect(newState.showSimilarMatchesPopover).toBe(false);
+
+      newState = reducer(newState, { type: 'componentDetailsOverview/toggleShowSimilarMatches' });
+      expect(newState.showSimilarMatchesPopover).toBe(true);
     });
   });
 });

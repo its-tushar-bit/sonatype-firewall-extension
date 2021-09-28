@@ -9,15 +9,18 @@ import Overview from './Overview';
 import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
 import { actions } from './overviewSlice';
 import { occurrencesPopoverActions } from './occurrencesPopover/occurrencesPopoverSlice';
+import { selectComponentSimilarMatches } from '../componentDetailsSelectors';
 
 function mapStateToProps(state) {
   return {
     componentInformation: selectSelectedComponent(state),
+    similarMatches: selectComponentSimilarMatches(state),
   };
 }
 
 const mapDispatchToProps = {
   toggleShowOccurrencesPopover: occurrencesPopoverActions.toggleShowOccurrencesPopover,
+  toggleShowSimilarMatches: actions.toggleShowSimilarMatches,
   loadInnerSourceProducerData: actions.loadInnerSourceProducerData,
 };
 

@@ -13,8 +13,15 @@ import OccurrencesPopoverContainer from './occurrencesPopover/OccurrencesPopover
 import InnerSourceProducerReportModalContainer from './InnerSourceProducerReportModal/InnerSourceProducerReportModalContainer';
 import InnerSourceProducerPermissionsModalContainer from './InnerSourceProducerPermissionsModal/InnerSourceProducerPermissionsModalContainer';
 import InnerSourceProducerAlertContainer from './InnerSourceProducerAlert/InnerSourceProducerAlertContainer';
+import SimilarMatchesPopoverContainer from './SimilarMatchesPopoover/SimilarMatchesPopoverContainer';
 
-export default function Overview({ componentInformation, loadInnerSourceProducerData, toggleShowOccurrencesPopover }) {
+export default function Overview({
+  componentInformation,
+  loadInnerSourceProducerData,
+  toggleShowOccurrencesPopover,
+  similarMatches,
+  toggleShowSimilarMatches,
+}) {
   const {
     componentIdentifier,
     displayName,
@@ -56,6 +63,15 @@ export default function Overview({ componentInformation, loadInnerSourceProducer
     </dl>
   );
 
+  const viewSimilarMatchesLink = !!similarMatches.length && (
+    <span>
+      {/* required space before link */ ' '}
+      <a className="iq-identification-info-definition-list__similar-matches-link" onClick={toggleShowSimilarMatches}>
+        (View Similar Matches)
+      </a>
+    </span>
+  );
+
   const identificationInfoSectionContent = (
     <dl className="nx-read-only nx-read-only--grid iq-identification-info-definition-list">
       <div className="nx-read-only__item">
@@ -64,7 +80,10 @@ export default function Overview({ componentInformation, loadInnerSourceProducer
       </div>
       <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Match State</dt>
-        <dd className="nx-read-only__data">{matchState}</dd>
+        <dd className="nx-read-only__data">
+          {matchState}
+          {viewSimilarMatchesLink}
+        </dd>
       </div>
       <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Occurrences</dt>
@@ -121,6 +140,7 @@ export default function Overview({ componentInformation, loadInnerSourceProducer
 
   return (
     <div>
+      <SimilarMatchesPopoverContainer />
       <InnerSourceProducerReportModalContainer />
       <InnerSourceProducerPermissionsModalContainer />
       <InnerSourceProducerAlertContainer />
@@ -152,5 +172,7 @@ Overview.propTypes = {
     }),
   }),
   toggleShowOccurrencesPopover: PropTypes.func.isRequired,
+  toggleShowSimilarMatches: PropTypes.func.isRequired,
+  similarMatches: PropTypes.array,
   loadInnerSourceProducerData: PropTypes.func.isRequired,
 };

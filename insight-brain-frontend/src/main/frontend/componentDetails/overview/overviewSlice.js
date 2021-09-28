@@ -24,6 +24,7 @@ import { comparator, path, sort } from 'ramda';
 import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
 import { pathSet } from '../../util/reduxToolkitUtil';
 import { togglePath } from '../../util/jsUtil';
+import { toggleBooleanProp } from '../../util/reduxUtil';
 
 const REDUCER_NAME = 'componentDetailsOverview';
 
@@ -44,6 +45,7 @@ const initialState = {
     showInnerSourcePermissionsModal: false,
     showInnerSourceProducerReportModal: false,
   },
+  showSimilarMatchesPopover: false,
 };
 
 const stagesOrder = {
@@ -195,6 +197,7 @@ const componentDetailsOverviewSlice = createSlice({
     setInsufficientPermission: pathSet(['innerSourceProducerData', 'insufficientPermission']),
     setInnerSourceProducerReportUrl: pathSet(['innerSourceProducerData', 'reportUrl']),
     setLatestInnerSourceComponentVersion: pathSet(['innerSourceProducerData', 'latestInnerSourceComponentVersion']),
+    toggleShowSimilarMatches: toggleBooleanProp('showSimilarMatchesPopover'),
   },
   extraReducers: {
     [loadVersionExplorerData.pending]: loadRequested,

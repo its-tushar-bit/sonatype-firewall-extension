@@ -43,13 +43,15 @@ describe('ComponentDetailsOverview', () => {
         loadError: null,
         data: null,
       },
+      similarMatches: [],
+      toggleShowSimilarMatches: jasmine.createSpy('toggleShowSimilarMatches'),
     };
 
     getShallow = enzymeUtils.getShallowComponent(Overview, minimalProps);
     getMounted = enzymeUtils.getMountedComponent(Overview, minimalProps);
   });
 
-  it('renders a tile with 3 subsections as content', () => {
+  it('renders a tile with 2 subsections as content', () => {
     const component = getShallow(),
       content = component.find('.nx-tile-content'),
       sections = content.find('section');
@@ -147,6 +149,7 @@ describe('ComponentDetailsOverview', () => {
         identificationSource: 'clair',
         componentCategories: [{ path: 'category1' }, { path: 'category2' }],
         pathnames: ['knownComponentPath', 'knownComponentPath2'],
+        similarMatches: [],
       },
     };
 
@@ -219,6 +222,44 @@ describe('ComponentDetailsOverview', () => {
       const [categoryLabel, categoryValue] = [definitionItems.at(4).find('dt'), definitionItems.at(4).find('dd')];
       expect(categoryLabel).toHaveText('Category');
       expect(categoryValue).toHaveText('category1,category2');
+    });
+  });
+
+  describe('when component is a similar match', () => {
+    it('renders a link that will trigger the opening of the similar matches popover', () => {
+      const similarComponentProps = {
+        ...minimalProps,
+        componentInformation: {
+          componentIdentifier: {
+            format: 'custom',
+          },
+          displayName: {
+            parts: [
+              { field: 'Artifact Id', value: 'componentArtifactID' },
+              { value: ' , ' },
+              { field: 'Version', value: 'v1.0.1' },
+            ],
+          },
+          matchState: 'similar',
+          pathnames: ['componentPath'],
+        },
+        similarMatches: ['bestMatch', 'otherMatch'],
+      };
+
+      const component = getShallow(similarComponentProps),
+        content = component.find('.nx-tile-content'),
+        sections = content.find('section'),
+        identificationInfoSection = sections.at(1),
+        definitionItems = identificationInfoSection.find('.nx-read-only__item');
+
+      const [matchStateLabel, matchStateValue] = [definitionItems.at(1).find('dt'), definitionItems.at(1).find('dd')];
+      expect(matchStateLabel).toHaveText('Match State');
+      expect(matchStateValue).toHaveText('similar (View Similar Matches)');
+
+      const viewSimilarMatchesLink = matchStateValue.find('a');
+      expect(viewSimilarMatchesLink).toExist();
+      viewSimilarMatchesLink.simulate('click');
+      expect(minimalProps.toggleShowSimilarMatches).toHaveBeenCalled();
     });
   });
 });

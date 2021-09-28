@@ -5,9 +5,10 @@
  */
 import {
   selectComponentDetails,
-  selectComponentPagination,
-  selectComponentViolations,
   selectComponentName,
+  selectComponentPagination,
+  selectComponentSimilarMatches,
+  selectComponentViolations,
 } from '../../../main/frontend/componentDetails/componentDetailsSelectors';
 
 describe('componentDetailsSelectors', () => {
@@ -219,6 +220,96 @@ describe('componentDetailsSelectors', () => {
       };
       actual = selectComponentName(newState);
       expect(actual).toEqual('Component2');
+    });
+  });
+
+  describe('selectComponentSimilarMatches', () => {
+    it('returns an empty array when the matchState is exact', () => {
+      const exactMatchDisplayedEntries = [
+        {
+          hash: 'hash1',
+          matchState: 'exact',
+          matchDetails: ['match'],
+        },
+      ];
+      const mockStateForMatchState = {
+        ...mockState,
+        applicationReport: {
+          ...mockState.applicationReport,
+          selectedReport: {
+            displayedEntries: exactMatchDisplayedEntries,
+          },
+        },
+        router: {
+          ...mockState.router,
+          currentParams: {
+            hash: 'hash1',
+          },
+        },
+      };
+
+      const selection = selectComponentSimilarMatches(mockStateForMatchState);
+      expect(selection).toEqual([]);
+    });
+    it('returns an empty array when the matchState is unknown', () => {
+      const unknownMatchDisplayedEntries = [
+        {
+          derivedComponentName: 'My Component',
+          hash: 'hash2',
+          componentIdentifier: { format: 'maven' },
+          derivedDependencyType: 'transitive',
+          matchState: 'unknown',
+          matchDetails: ['match'],
+        },
+      ];
+      const mockStateForMatchState = {
+        ...mockState,
+        applicationReport: {
+          ...mockState.applicationReport,
+          selectedReport: {
+            displayedEntries: unknownMatchDisplayedEntries,
+          },
+        },
+        router: {
+          ...mockState.router,
+          currentParams: {
+            hash: 'hash2',
+          },
+        },
+      };
+
+      const selection = selectComponentSimilarMatches(mockStateForMatchState);
+      expect(selection).toEqual([]);
+    });
+    it('returns the matchDetails of the component information when the matchState is similar', () => {
+      const similarMatchDisplayedEntries = [
+        {
+          derivedComponentName: 'My Component',
+          hash: 'hash3',
+          componentIdentifier: { format: 'maven' },
+          derivedDependencyType: 'transitive',
+          matchState: 'similar',
+          matchDetails: ['bestMatch', 'otherMatch'],
+        },
+      ];
+      const mockStateForMatchState = {
+        ...mockState,
+        applicationReport: {
+          ...mockState.applicationReport,
+          selectedReport: {
+            displayedEntries: similarMatchDisplayedEntries,
+          },
+        },
+        router: {
+          ...mockState.router,
+          currentParams: {
+            hash: 'hash3',
+          },
+        },
+      };
+
+      const selection = selectComponentSimilarMatches(mockStateForMatchState);
+      expect(selection).toEqual(['bestMatch', 'otherMatch']);
     });
   });
 });

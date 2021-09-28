@@ -42,17 +42,21 @@ public class PullRequestLocationDiscoveryService
 
   private final ApplicationDAO applicationDAO;
 
+  private final SourceControlSshService sourceControlSshService;
+
   @Inject
   public PullRequestLocationDiscoveryService(
       final GitApiFactory gitApiFactory,
       final ApplicationDAO applicationDAO,
       final LocationDiscoveryExecutor locationDiscoveryExecutor,
-      final SourceControlUtils sourceControlUtils)
+      final SourceControlUtils sourceControlUtils,
+      final SourceControlSshService sourceControlSshService)
   {
     this.gitApiFactory = gitApiFactory;
     this.applicationDAO = applicationDAO;
     this.locationDiscoveryExecutor = locationDiscoveryExecutor;
     this.sourceControlUtils = sourceControlUtils;
+    this.sourceControlSshService = sourceControlSshService;
   }
 
   /**
@@ -69,6 +73,8 @@ public class PullRequestLocationDiscoveryService
       final String branch,
       final String applicationId)
   {
+    sourceControlSshService.verifySshUrlAndUpdateIfNeeded(applicationId);
+
     LocationDiscoveryResult result = null;
 
     List<ComponentIdentifier> componentIdentifierSet = violationList.stream()

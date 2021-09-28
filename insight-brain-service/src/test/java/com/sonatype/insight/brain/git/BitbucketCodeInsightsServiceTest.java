@@ -122,8 +122,8 @@ public class BitbucketCodeInsightsServiceTest
     createReportFile(application.getId(), TO_SCAN_ID,
         zipReportDir("/BitbucketCodeInsightsServiceTest/to-report", tempDir), insightWork);
 
-    gitRepositoryInfo = new GitRepositoryInfo("https://foo.com", "username", "token", BITBUCKET, "baseBranch", true,
-        true, true, true, null);
+    gitRepositoryInfo = new GitRepositoryInfo("https://foo.com", null, "username", "token", BITBUCKET, "baseBranch",
+        true, true, true, true, false, null);
 
     //setup evaluations
     defaultBranchPolicyEvaluation = tempEntity

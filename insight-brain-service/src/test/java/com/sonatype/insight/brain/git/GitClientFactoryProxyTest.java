@@ -36,15 +36,15 @@ public class GitClientFactoryProxyTest
 {
   private static final TestConsumer createApiClient = (client, provider, url, urlSuffix, username) -> {
     GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo(url + urlSuffix, username, "token", provider, "master", false, false,
-            false, false, null);
+        new GitRepositoryInfo(url + urlSuffix, null, username, "token", provider, "master", false, false,
+            false, false, false, null);
     client.createApiClient(gitRepositoryInfo).isRepositoryPrivate();
   };
 
   private static final TestConsumer createPullRequestInfoClient = (client, provider, url, urlSuffix, username) -> {
     GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo(url + urlSuffix, username, "token", provider, "master", false, false,
-            false, false, null);
+        new GitRepositoryInfo(url + urlSuffix, null, username, "token", provider, "master", false, false,
+            false, false, false, null);
     client.createPullRequestInfoClient(gitRepositoryInfo).getPullRequestsSince("namespace", OffsetDateTime.now(), 0);
   };
 

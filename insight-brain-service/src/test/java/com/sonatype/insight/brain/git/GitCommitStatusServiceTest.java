@@ -474,6 +474,8 @@ public class GitCommitStatusServiceTest
 
     private boolean statusChecksEnabled = true;
 
+    private boolean sshEnabled = false;
+
     private boolean skipRepositoryInfo = false;
 
     private String statusMessage = "status message";
@@ -530,9 +532,9 @@ public class GitCommitStatusServiceTest
 
       if (!skipRepositoryInfo) {
         String repositoryUrl = format("http://%s.com/%s/%s", null != provider ? provider.toString() : null, org, repo);
-        gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, username, token, provider, baseBranch,
+        gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, null, username, token, provider, baseBranch,
             remediationPullRequestsEnabled, statusChecksEnabled, pullRequestCommentingEnabled,
-            sourceControlScansEnabled, sourceControlScanTarget);
+            sourceControlScansEnabled, sshEnabled, sourceControlScanTarget);
         doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
       }
 

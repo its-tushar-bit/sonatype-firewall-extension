@@ -186,8 +186,8 @@ public class PullRequestCommentCreatorTest
 
     TestCase() {
       pullRequestPolicyEvaluationsDTO.setGitRepositoryInfo(
-          new GitRepositoryInfo("http://gitlab.com/test/app1", "user", "token", SourceControlProvider.GITLAB, "master",
-              true, true, true, true, null));
+          new GitRepositoryInfo("http://gitlab.com/test/app1", null, "user", "token", SourceControlProvider.GITLAB,
+              "master", true, true, true, true, false, null));
     }
 
     TestCase forApplication(String applicationId) {

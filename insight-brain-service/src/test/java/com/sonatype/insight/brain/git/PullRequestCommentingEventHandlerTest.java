@@ -568,6 +568,8 @@ public class PullRequestCommentingEventHandlerTest
 
     private boolean sourceControlScansEnabled = true;
 
+    private boolean sshEnabled = true;
+
     private String sourceControlScanTarget = null;
 
     private GitRepositoryInfo gitRepositoryInfo;
@@ -575,6 +577,8 @@ public class PullRequestCommentingEventHandlerTest
     private boolean featureFlagEnabled = true;
 
     private String repositoryUrl;
+
+    private String sshRepositoryUrl;
 
     private List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationsDTOs;
 
@@ -590,9 +594,9 @@ public class PullRequestCommentingEventHandlerTest
       doReturn(repositoryUrl.contains("bitbucket.org"))
           .when(mockSourceControlUtils).isBitbucketCloud(any(GitRepositoryInfo.class));
 
-      gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, username, token, provider, baseBranch,
+      gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, sshRepositoryUrl, username, token, provider, baseBranch,
           remediationPullRequestsEnabled, statusChecksEnabled, pullRequestCommentingEnabled, sourceControlScansEnabled,
-          sourceControlScanTarget);
+          sshEnabled, sourceControlScanTarget);
       doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
 
       doReturn(null != pullRequestPolicyEvaluationsDTOs ? pullRequestPolicyEvaluationsDTOs : new ArrayList<>())

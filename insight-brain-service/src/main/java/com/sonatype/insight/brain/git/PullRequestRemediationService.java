@@ -41,19 +41,23 @@ public class PullRequestRemediationService
 
   private final Provider<PullRequestTask> pullRequestTaskProvider;
 
+  private final SourceControlSshService sourceControlSshService;
+
   @Inject
   public PullRequestRemediationService(
       PullRequestExecutor pullRequestExecutor,
       GitClientFactory gitClientFactory,
       ApplicationDAO applicationDAO,
       SourceControlUtils sourceControlUtils,
-      Provider<PullRequestTask> pullRequestTaskProvider)
+      Provider<PullRequestTask> pullRequestTaskProvider,
+      SourceControlSshService sourceControlSshService)
   {
     this.pullRequestExecutor = pullRequestExecutor;
     this.gitClientFactory = gitClientFactory;
     this.applicationDAO = applicationDAO;
     this.sourceControlUtils = sourceControlUtils;
     this.pullRequestTaskProvider = pullRequestTaskProvider;
+    this.sourceControlSshService = sourceControlSshService;
   }
 
   /**
@@ -68,6 +72,8 @@ public class PullRequestRemediationService
       log.info("Branch already exists on remote server for remediation [{}]", event.getBranchName());
     }
     else {
+      sourceControlSshService.verifySshUrlAndUpdateIfNeeded(event.getApplicationId());
+
       Application application = applicationDAO.getById(event.getApplicationId());
       PullRequestRemediationDetails pullRequestRemediationDetails = new PullRequestRemediationDetails(
           event.getComponentIdentifier(),

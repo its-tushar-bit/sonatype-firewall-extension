@@ -193,9 +193,12 @@ public class PullRequestRepositoryValidatorTest
     boolean statusChecksEnabled = true;
     boolean pullRequestCommentingEnabled = true;
     boolean sourceControlScansEnabled = true;
+    boolean sshEnabled = false;
+
     String sourceControlScanTarget = null;
     String username = provider.requiresUsername() ? "username" : null;
-    return new GitRepositoryInfo(repoUrl, username, "token", provider, "baseBranch", remediationPullRequestEnabled,
-        statusChecksEnabled, pullRequestCommentingEnabled, sourceControlScansEnabled, sourceControlScanTarget);
+    return new GitRepositoryInfo(repoUrl, null, username, "token", provider, "baseBranch",
+        remediationPullRequestEnabled, statusChecksEnabled, pullRequestCommentingEnabled, sourceControlScansEnabled,
+        sshEnabled, sourceControlScanTarget);
   }
 }

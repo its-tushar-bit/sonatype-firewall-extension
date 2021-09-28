@@ -150,7 +150,7 @@ public class RepositoryUrlErrorRuleTest
   }
 
   private GitRepositoryInfo createGitRepositoryInfo(String repositoryUrl) {
-    return new GitRepositoryInfo(repositoryUrl, "user", "token", SourceControlProvider.GITLAB, "main", true, true, true,
-        true, null);
+    return new GitRepositoryInfo(repositoryUrl, null, "user", "token", SourceControlProvider.GITLAB, "main", true, true,
+        true, true, false, null);
   }
 }

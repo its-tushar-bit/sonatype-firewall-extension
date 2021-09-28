@@ -53,7 +53,7 @@ public class GitCommitStatusServiceTest
     extends VerifiableLoggingTestBase
 {
   @Mock
-  GitApiClient mockGitApiClient;
+  private GitApiClient mockGitApiClient;
 
   @Mock
   private SourceControlEventPublisher mockSourceControlEventPublisher;
@@ -565,14 +565,15 @@ public class GitCommitStatusServiceTest
       ProjectUri projectUri = new GitlabProjectUri("https://gitlab.com/sonatype/testing/testRepo1");
       doReturn(projectUri).when(mockGitApiClient).getProjectUri();
 
+      ScmStatusHelper scmStatusHelper = new ScmStatusHelper(mockApplicationDAO,mockBaseUrl);
+
       return new GitCommitStatusService(
           mockSourceControlUtils,
-          mockBaseUrl,
-          mockApplicationDAO,
           mockGitClientFactory,
           licenseChecker,
           mockSourceControlEventPublisher,
-          mockAsyncEventBus
+          mockAsyncEventBus,
+          scmStatusHelper
       );
     }
   }

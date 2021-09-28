@@ -3,6 +3,7 @@
     "name": "prj-1",
     "description": "long description: Nexus IQ Server is the on-premises server that customers run to evaluate their applications against a set of policies and review the results. It is part of the Nexus Lifecycle product umbrella (historically, this product umbrella was previously known as Component Lifecycle Management (CLM)). insight-brain contains the server, front-end, and component scanner for Nexus IQ Server. It scans projects (i.e. it generates hashes that represent components in an application - see also: insight-scanner), and evaluates known component vulnerabilities and component license information against user-configured policies. It then uses these data to generate an application scan report.",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-1/prj-1.git",
     "ssh_url": "git@localhost:org-1/prj-1.git"
   },
@@ -10,6 +11,7 @@
     "name": "prj-2",
     "description": "were",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-1/prj-2.git",
     "ssh_url": "git@localhost:org-1/prj-2.git"
   },
@@ -17,6 +19,7 @@
     "name": "prj-3",
     "description": "the",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-1/prj-3.git",
     "ssh_url": "git@localhost:org-1/prj-3.git"
   },
@@ -24,6 +27,7 @@
     "name": "dupe-prj",
     "description": "days",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-1/dupe-prj.git",
     "ssh_url": "git@localhost:org-1/dupe-prj.git"
   },
@@ -31,6 +35,7 @@
     "name": "dupe-prj",
     "description": "",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-3/dupe-prj.git",
     "ssh_url": "git@localhost:org-1/dupe-prj.git"
   },
@@ -38,6 +43,7 @@
     "name": "a",
     "description": "",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-3/a.git",
     "ssh_url": "git@localhost:org-3/a.git"
   },
@@ -45,6 +51,7 @@
     "name": "f",
     "description": "",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-3/f.git",
     "ssh_url": "git@localhost:org-3/f.git"
   },
@@ -52,6 +59,7 @@
     "name": "b",
     "description": "",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-3/b.git",
     "ssh_url": "git@localhost:org-3/b.git"
   },
@@ -59,6 +67,7 @@
     "name": "e",
     "description": "",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-3/e.git",
     "ssh_url": "git@localhost:org-3/e.git"
   },
@@ -66,6 +75,7 @@
     "name": "c",
     "description": "",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-3/c.git",
     "ssh_url": "git@localhost:org-3/c.git"
   },
@@ -73,6 +83,7 @@
     "name": "dupe-prj",
     "description": "my",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-2/dupe-prj.git",
     "ssh_url": "git@localhost:org-2/dupe-prj.git"
   },
@@ -80,6 +91,7 @@
     "name": "name-9",
     "description": "friend",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-2/name-9.git",
     "ssh_url": "git@localhost:org-2/name-9.git"
   },
@@ -87,6 +99,7 @@
     "name": "name-8",
     "description": "we",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-2/name-8.git",
     "ssh_url": "git@localhost:org-2/name-8.git"
   },
@@ -94,6 +107,7 @@
     "name": "name-7",
     "description": "",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-2/name-7.git",
     "ssh_url": "git@localhost:org-2/name-7.git"
   },
@@ -101,6 +115,7 @@
     "name": "d",
     "description": "",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-3/d.git",
     "ssh_url": "git@localhost:org-3/d.git"
   },
@@ -108,6 +123,7 @@
     "name": "g",
     "description": "",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-3/g.git",
     "ssh_url": "git@localhost:org-3/g.git"
   },
@@ -115,6 +131,7 @@
     "name": "z",
     "description": "",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-3/z.git",
     "ssh_url": "git@localhost:org-3/z.git"
   },
@@ -122,6 +139,7 @@
     "name": "n",
     "description": "",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-3/n.git",
     "ssh_url": "git@localhost:org-3/n.git"
   },
@@ -129,6 +147,7 @@
     "name": "v",
     "description": "",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-3/v.git",
     "ssh_url": "git@localhost:org-3/v.git"
   },
@@ -136,6 +155,7 @@
     "name": "m",
     "description": "",
     "private": false,
+    "archived": false,
     "clone_url": "https://localhost/org-3/m.git",
     "ssh_url": "git@localhost:org-3/m.git"
   }

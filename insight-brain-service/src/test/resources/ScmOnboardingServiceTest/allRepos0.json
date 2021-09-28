@@ -5,7 +5,8 @@
     "private": false,
     "clone_url": "https://localhost/depshield-ci/ci-project-1.git",
     "ssh_url": "git@localhost:depshield-ci/ci-project-1.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   },
   {
     "name": "ci-project-16",
@@ -13,7 +14,8 @@
     "private": false,
     "clone_url": "https://localhost/depshield-ci/ci-project-16.git",
     "ssh_url": "git@localhost:depshield-ci/ci-project-16.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   },
   {
     "name": "create-react-app",
@@ -21,7 +23,8 @@
     "private": false,
     "clone_url": "https://admin:admin123@localhost/depshield-ci/create-react-app.git",
     "ssh_url": "git@localhost:depshield-ci/create-react-app.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   },
   {
     "name": "nexus-repository-p2",
@@ -29,7 +32,8 @@
     "private": false,
     "clone_url": "https://admin@localhost/sonatype-nexus-community/nexus-repository-p2.git",
     "ssh_url": "git@localhost:sonatype-nexus-community/nexus-repository-p2.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   },
   {
     "name": "nexus-repository-puppet",
@@ -37,7 +41,8 @@
     "private": false,
     "clone_url": "https://localhost/sonatype-nexus-community/nexus-repository-puppet.git",
     "ssh_url": "git@localhost:sonatype-nexus-community/nexus-repository-puppet.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   },
   {
     "name": "nexus-repository-terraform",
@@ -45,7 +50,8 @@
     "private": false,
     "clone_url": "https://localhost/sonatype-nexus-community/nexus-repository-terraform.git",
     "ssh_url": "git@localhost:sonatype-nexus-community/nexus-repository-terraform.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   },
   {
     "name": "nexus-repository-vgo",
@@ -53,7 +59,8 @@
     "private": false,
     "clone_url": "https://localhost/sonatype-nexus-community/nexus-repository-vgo.git",
     "ssh_url": "git@localhost:sonatype-nexus-community/nexus-repository-vgo.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   },
   {
     "name": "nexus-scripting-examples",
@@ -61,7 +68,8 @@
     "private": false,
     "clone_url": "https://localhost/sonatype-nexus-community/nexus-scripting-examples.git",
     "ssh_url": "git@localhost:sonatype-nexus-community/nexus-scripting-examples.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   },
   {
     "name": "nexus-webhook-example-collection",
@@ -69,7 +77,8 @@
     "private": false,
     "clone_url": "https://localhost/sonatype-nexus-community/nexus-webhook-example-collection.git",
     "ssh_url": "git@localhost:sonatype-nexus-community/nexus-webhook-example-collection.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   },
   {
     "name": "nxrm-cli",
@@ -77,7 +86,8 @@
     "private": false,
     "clone_url": "https://localhost/sonatype-nexus-community/nxrm-cli.git",
     "ssh_url": "git@localhost:sonatype-nexus-community/nxrm-cli.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   },
   {
     "name": "ossindex-gradle-plugin",
@@ -85,7 +95,8 @@
     "private": false,
     "clone_url": "https://localhost/sonatype-nexus-community/ossindex-gradle-plugin.git",
     "ssh_url": "git@localhost:sonatype-nexus-community/ossindex-gradle-plugin.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   },
   {
     "name": "MixedCase",
@@ -93,7 +104,8 @@
     "private": false,
     "clone_url": "https://localhost/org/MixedCase.git",
     "ssh_url": "git@localhost:org/MixedCase.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   },
   {
     "name": "prime-nexus-proxy-repos",
@@ -101,6 +113,7 @@
     "private": false,
     "clone_url": "https://localhost/sonatype-nexus-community/prime-nexus-proxy-repos.git",
     "ssh_url": "git@localhost:sonatype-nexus-community/prime-nexus-proxy-repos.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   }
 ]

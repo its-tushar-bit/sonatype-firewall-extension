@@ -5,14 +5,16 @@
     "private": false,
     "clone_url": "https://localhost/depshield-ci/ci-project-1.git",
     "ssh_url": "git@localhost:depshield-ci/ci-project-1.git",
-    "default_branch": ""
+    "default_branch": "",
+    "archived" : false
   },
   {
     "name": "nexus-repository-p2",
     "description": "days",
     "private": false,
     "clone_url": "https://admin@localhost/sonatype-nexus-community/nexus-repository-p2.git",
-    "ssh_url": "git@localhost:sonatype-nexus-community/nexus-repository-p2.git"
+    "ssh_url": "git@localhost:sonatype-nexus-community/nexus-repository-p2.git",
+    "archived" : false
   },
   {
     "name": "nexus-repository-puppet",
@@ -20,6 +22,7 @@
     "private": false,
     "clone_url": "https://localhost/sonatype-nexus-community/nexus-repository-puppet.git",
     "ssh_url": "git@localhost:sonatype-nexus-community/nexus-repository-puppet.git",
-    "default_branch": "main"
+    "default_branch": "main",
+    "archived" : false
   }
 ]

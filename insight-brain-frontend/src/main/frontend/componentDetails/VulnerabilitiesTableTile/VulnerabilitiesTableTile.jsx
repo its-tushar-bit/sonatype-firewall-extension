@@ -3,18 +3,30 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 import VulnerabilitiesTable, { vulnerabilitiesPropTypes } from './VulnerabilitiesTable';
-import { useEffect } from 'react';
+import { VulnerabilityDetailsPopoverContainer } from './VulnerabilityDetailsPopoverContainer';
 
-export default function VulnerabilitiesTableTile({ vulnerabilities, loadVulnerabilities }) {
+export default function VulnerabilitiesTableTile({
+  vulnerabilities,
+  loadVulnerabilities,
+  setVulnerabilityIdAndToggleVisibility,
+}) {
   useEffect(() => {
     loadVulnerabilities();
   }, []);
+
+  const tableProps = {
+    vulnerabilities,
+    loadVulnerabilities,
+    setVulnerabilityIdAndToggleVisibility,
+  };
+
   return (
     <section className="nx-tile">
+      <VulnerabilityDetailsPopoverContainer />
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2" id="component-details-vulnerabilities-title">
@@ -23,7 +35,7 @@ export default function VulnerabilitiesTableTile({ vulnerabilities, loadVulnerab
         </div>
       </header>
       <div className="nx-tile-content">
-        <VulnerabilitiesTable vulnerabilities={vulnerabilities} loadVulnerabilities={loadVulnerabilities} />
+        <VulnerabilitiesTable {...tableProps} />
       </div>
     </section>
   );
@@ -32,4 +44,5 @@ export default function VulnerabilitiesTableTile({ vulnerabilities, loadVulnerab
 VulnerabilitiesTableTile.propTypes = {
   loadVulnerabilities: PropTypes.func.isRequired,
   vulnerabilities: PropTypes.shape(vulnerabilitiesPropTypes),
+  setVulnerabilityIdAndToggleVisibility: PropTypes.func.isRequired,
 };

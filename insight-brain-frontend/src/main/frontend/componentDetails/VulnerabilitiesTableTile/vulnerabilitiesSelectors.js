@@ -16,3 +16,12 @@ export const selectVulnerabilitiesSortedSlice = createSelector(selectVulnerabili
   }
   return vulnerabilitiesSlice.vulnerabilities;
 });
+
+export const selectShowVulnerabilityDetailPopover = createSelector(
+  selectVulnerabilitiesSlice,
+  prop('showVulnerabilityDetailPopover')
+);
+
+export const selectVulnerabilityDetailsSlice = createSelector(selectVulnerabilitiesSlice, prop('vulnerabilityDetails'));
+
+export const selectVulnerabityRefId = createSelector(selectVulnerabilitiesSlice, prop('selectedRefId'));

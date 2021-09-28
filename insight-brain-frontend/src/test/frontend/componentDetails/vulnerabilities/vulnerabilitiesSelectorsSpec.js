@@ -6,6 +6,8 @@
 import {
   selectVulnerabilitiesSlice,
   selectVulnerabilitiesSortedSlice,
+  selectVulnerabityRefId,
+  selectVulnerabilityDetailsSlice,
 } from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSelectors';
 
 describe('vulnerabilitiesSelectors', () => {
@@ -32,6 +34,16 @@ describe('vulnerabilitiesSelectors', () => {
         loading: false,
         error: null,
       },
+      selectedRefId: '2',
+      vulnerabilityDetails: {
+        loading: false,
+        error: null,
+        details: {
+          identifier: 'CVE-2014-3625',
+          description: 'Directory traversal vulnerability',
+          categories: ['data', 'operational'],
+        },
+      },
     },
   };
 
@@ -53,6 +65,16 @@ describe('vulnerabilitiesSelectors', () => {
           ],
           loading: false,
           error: null,
+        },
+        selectedRefId: '2',
+        vulnerabilityDetails: {
+          loading: false,
+          error: null,
+          details: {
+            identifier: 'CVE-2014-3625',
+            description: 'Directory traversal vulnerability',
+            categories: ['data', 'operational'],
+          },
         },
       };
 
@@ -81,6 +103,30 @@ describe('vulnerabilitiesSelectors', () => {
       };
 
       const actualSelection = selectVulnerabilitiesSortedSlice(mockState);
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+  });
+
+  describe('selectVulnerabityRefId', () => {
+    it('returns proper refId', () => {
+      const actualSelection = selectVulnerabityRefId(mockState);
+      expect(actualSelection).toBe('2');
+    });
+  });
+
+  describe('selectVulnerabilityDetailsSlice', () => {
+    it('returns vulnerability details contained in the vulnerabilitiesDataSlice', () => {
+      const expectedSelection = {
+        loading: false,
+        error: null,
+        details: {
+          identifier: 'CVE-2014-3625',
+          description: 'Directory traversal vulnerability',
+          categories: ['data', 'operational'],
+        },
+      };
+
+      const actualSelection = selectVulnerabilityDetailsSlice(mockState);
       expect(actualSelection).toEqual(expectedSelection);
     });
   });

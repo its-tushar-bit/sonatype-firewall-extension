@@ -182,6 +182,10 @@ function loadFilePaths(dispatch, ownerType, ownerId, component, copyright, pageN
 }
 
 function loadFilePathsPromise(ownerType, ownerId, component, copyright, pageNumber) {
+  if (copyright === undefined) {
+    return Promise.reject('Invalid copyright index');
+  }
+  console.log('cd', copyright);
   if (copyright.originalContentHash) {
     const copyrightFilePathsUrl = getCopyrightFilePathsUrl(
       ownerType,

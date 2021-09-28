@@ -17,7 +17,11 @@ function mapStateToProps({ advancedLegal, componentCopyrightDetails }) {
   const availableScopes = advancedLegal.availableScopes || {};
   return {
     loading: component.loading || availableScopes.loading || componentCopyrightDetails.loadingCopyrightFileCounts,
-    error: component.error || availableScopes.error || componentCopyrightDetails.errorCopyrightFileCounts,
+    error:
+      component.error ||
+      availableScopes.error ||
+      componentCopyrightDetails.errorCopyrightFileCounts ||
+      componentCopyrightDetails.errorFilePaths,
     availableScopes,
     componentCopyrightDetails,
     ...pick(['component'], component),

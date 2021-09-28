@@ -86,6 +86,7 @@ import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -1908,6 +1909,35 @@ public class ApiLicenseLegalServiceTest
     expected.licenseThreatGroupCategory = "critical";
     expected.licenseThreatGroupName = "Copyleft";
     expected.licenseThreatGroupLevel = 9;
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.highestEffectiveLicenseThreatGroup)
+        .usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_HasHighestEffectiveLicenseThreatGroup_overrides() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+
+    LicenseThreatGroup licenseThreatGroup =
+        licenseThreatGroup = tempEntity.newLicenseThreatGroup(Organization.ROOT_ORGANIZATION_ID, "Very Bad", 10);
+    tempEntity.newLicenseThreatGroupLicense(Organization.ROOT_ORGANIZATION_ID, licenseThreatGroup.getId(),
+        "CDDL-1.1");
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails(
+        Arrays.asList("CDDL-1.1-GPL-2.0-CPE"),
+        Arrays.asList("MIT"));
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    ApiLicenseThreatDTOV2 expected = new ApiLicenseThreatDTOV2();
+    expected.licenseThreatGroupCategory = "critical";
+    expected.licenseThreatGroupName = "Very Bad";
+    expected.licenseThreatGroupLevel = 10;
     assertThat(licenseLegalComponentReport.component.licenseLegalData.highestEffectiveLicenseThreatGroup)
         .usingRecursiveComparison().isEqualTo(expected);
   }

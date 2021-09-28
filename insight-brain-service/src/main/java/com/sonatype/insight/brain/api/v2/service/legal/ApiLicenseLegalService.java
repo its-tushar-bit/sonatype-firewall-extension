@@ -103,6 +103,7 @@ import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
+import com.sonatype.insight.license.dto.model.LicenseThreatGroupDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -118,7 +119,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
@@ -458,13 +458,9 @@ public class ApiLicenseLegalService
 
     sendApplicationTelemetryData(application.getPublicId(), latestRawReport, allMultiLicenses);
 
-    Map<String, LicenseMetadataDTO> licenseMetadataById = allMultiLicenses.isEmpty() ? Collections.emptyMap() :
-        apiLicenseLegalHdsService.getLicenseMetadata(
-                allSingleLicenses.stream()
-                    .map(License::getId)
-                    .collect(Collectors.toCollection(LinkedHashSet::new)))
-            .stream()
-            .collect(toMap(LicenseMetadataDTO::getLicenseId, Function.identity()));
+    Map<String, LicenseMetadataDTO> licenseMetadataById = allMultiLicenses.isEmpty() ?
+        Collections.emptyMap() :
+        getLicenseMetadata(allSingleLicenses, application.getId());
 
     final Set<ApiReportComponentDTOV2> apiReportComponentDTOV2s = new HashSet<>(latestRawReport.components);
 
@@ -481,7 +477,7 @@ public class ApiLicenseLegalService
     Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier =
         getComponentLegalFilesByComponentIdentifier(Collections.singleton(latestRawReport));
 
-    log.info("Building license metadata report.");
+    log.info("Building license metadata report for {}.", application.getName());
     return legalReportBuilder
         .getLicenseLegalApplicationReport(
             latestRawReport,
@@ -577,14 +573,9 @@ public class ApiLicenseLegalService
         .flatMap(Collection::stream)
         .collect(Collectors.toSet());
 
-    Map<String, LicenseMetadataDTO> licenseMetadataById =
-        allMultiLicenses.isEmpty() ? Collections.emptyMap() :
-            apiLicenseLegalHdsService.getLicenseMetadata(
-                    allSingleLicenses.stream()
-                        .map(License::getId)
-                        .collect(Collectors.toCollection(LinkedHashSet::new)))
-                .stream()
-                .collect(toMap(LicenseMetadataDTO::getLicenseId, Function.identity()));
+    Map<String, LicenseMetadataDTO> licenseMetadataById = allMultiLicenses.isEmpty() ?
+        Collections.emptyMap() :
+        getLicenseMetadata(allSingleLicenses, owner.getId());
 
     Set<ComponentLegalCommentDTO> componentLegalComments =
         getComponentLegalComments(compIdentifier, component.getHash());
@@ -614,6 +605,40 @@ public class ApiLicenseLegalService
         multiLicenseToSingleLicense,
         licenseMetadataById
     );
+  }
+
+  /**
+   * Given a set of {@link License}s and the ownerId, return map of LicenseId to LicenseMetadataDTO.
+   *
+   * @param singleLicenses set of {@link License}
+   * @param ownerId        ownerId
+   * @return map of license id to licenseMetadataDto
+   */
+  private Map<String, LicenseMetadataDTO> getLicenseMetadata(final Set<License> singleLicenses, String ownerId) {
+    List<LicenseMetadataDTO> licenseMetadataDTOS = apiLicenseLegalHdsService.getLicenseMetadata(
+        singleLicenses.stream()
+            .map(License::getId)
+            .collect(Collectors.toCollection(LinkedHashSet::new)));
+
+    Map<String, LicenseMetadataDTO> licenseMetadataMap = new HashMap<>();
+
+    try (TransactionContext tx = applicationComponentDAO.createTransactionContext()) {
+      //Need to check if any LicenseThreatGroup overrides have been performed
+      for (LicenseMetadataDTO licenseMetadataDTO : licenseMetadataDTOS) {
+        ApiLicenseThreatDTOV2 licenseThreatGroup = getHighestLicenseThreatGroupWithHierarchy(tx, ownerId,
+            Collections.singleton(licenseMetadataDTO.getLicenseId()));
+
+        if (licenseThreatGroup != null) {
+          licenseMetadataDTO.setLicenseThreatGroup(
+              new LicenseThreatGroupDTO(licenseThreatGroup.licenseThreatGroupName,
+                  licenseThreatGroup.licenseThreatGroupLevel));
+        }
+
+        licenseMetadataMap.put(licenseMetadataDTO.getLicenseId(), licenseMetadataDTO);
+      }
+    }
+
+    return licenseMetadataMap;
   }
 
   private Map<ApiLicenseDTO, Set<License>> buildMultiLicenseToSingleLicenseMap(

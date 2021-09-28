@@ -45,6 +45,7 @@ export const selectComponentDetails = createSelector(
           format: formatFromComponent(component),
           metadata,
           labels: details.labels,
+          matchState: component.matchState,
         }
       : null
 );

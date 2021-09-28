@@ -67,7 +67,7 @@ export default function ComponentDetails({
     onTabChange(tabIdToMoveTo);
   };
 
-  const { name, metadata, format, dependencyType, isInnerSource, labels } = componentDetails;
+  const { name, metadata, format, dependencyType, isInnerSource, labels, matchState } = componentDetails;
 
   const unknownComponentAlert = (
     <NxWarningAlert className="iq-component-details-unknown-component-alert">
@@ -96,7 +96,7 @@ export default function ComponentDetails({
           />
         </ComponentDetailsHeader>
 
-        {dependencyType === 'unknown' && unknownComponentAlert}
+        {matchState === 'unknown' && unknownComponentAlert}
 
         <NxStatefulTabs defaultActiveTab={tabIdPerIndex.indexOf(activeTabId)} onTabSelect={handleTabChange}>
           <NxTabList aria-label="Component detail tabs">
@@ -142,6 +142,7 @@ ComponentDetails.propTypes = {
       reportTime: PropTypes.number,
       reportTitle: PropTypes.string,
     }),
+    matchState: PropTypes.string,
   }),
   loadComponentDetails: PropTypes.func.isRequired,
 

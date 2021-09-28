@@ -16,7 +16,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.DependencyTypeFilter;
+import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.MatchStateFilter;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
@@ -726,14 +726,14 @@ public class ComponentDetailsTest
 
   private ComponentDetailsPage openComponentDetailsPageForUnknownComponent() {
     reportPage.filterToggle().click();
-    DependencyTypeFilter dependencyTypeFilter = reportPage.filterPanel().dependencyTypeFilter();
-    dependencyTypeFilter.click();
-    dependencyTypeFilter.unknown().click();
+    MatchStateFilter matchStateFilter = reportPage.filterPanel().matchStateFilter();
+    matchStateFilter.click();
+    matchStateFilter.unknown().click();
 
     ElementsCollection violations = reportPage.resultRows();
     SelenideElement unknownViolation = violations.first();
     unknownViolation.click();
-    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
     return new ComponentDetailsPage();
   }
 

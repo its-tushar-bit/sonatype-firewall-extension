@@ -25,6 +25,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentIn
 import com.sonatype.clm.testing.functional.elements.componentdetails.OccurrencesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
+import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
@@ -65,11 +66,11 @@ import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.exist;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentDetailsTest
@@ -83,7 +84,7 @@ public class ComponentDetailsTest
 
   private Application app;
 
-  private TestReportEvaluator evaluator; 
+  private TestReportEvaluator evaluator;
 
   @Before
   public void start() throws IOException {
@@ -569,6 +570,31 @@ public class ComponentDetailsTest
     eyesWatcher.eyesCheck("component details security tab violation table Active waiver");
   }
 
+  @Test
+  public void testSecurityTab_vulnerabilityTableEntries() {
+    mockHdsResponseForFirstComponent();
+
+    refreshOrOpen(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "1e48256a2341047e7d72"));
+    ComponentDetailsPage componentDetailsPage =  new ComponentDetailsPage();
+    componentDetailsPage.securityTabContent().shouldBe(visible);
+
+    VulnerabilitiesTable vulnerabilitiesTable = componentDetailsPage.securityTabContent().vulnerabilitiesTable();
+    vulnerabilitiesTable.shouldBe(visible);
+
+    vulnerabilitiesTable.getHeaderRow().findAll(By.tagName("th"))
+        .shouldHave(exactTexts("CVSS", "Problem Code", "Status", ""));
+
+    vulnerabilitiesTable.getRows().shouldHaveSize(3);
+    ElementsCollection rowCells = vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"));
+    rowCells.shouldHaveSize(4);
+    rowCells.shouldHave(exactTexts("9", "CVE-1234-56789", "Open", ""));
+    rowCells = vulnerabilitiesTable.getRow(2).findAll(By.tagName("td"));
+    rowCells.shouldHave(exactTexts("4", "OSVDB-1234", "Open", ""));
+    rowCells = vulnerabilitiesTable.getRows().last().findAll(By.tagName("td"));
+    rowCells.shouldHave(exactTexts("0", "OSVDB-4321", "Open", ""));
+
+    eyesWatcher.eyesCheck("component details security tab vulnerabilities table entries");
+  }
 
   /* Part of testPolicyViolationsTab_violationTableEntries. */
   private void testGrandfatheringIndicator(final ComponentDetailsPage componentDetailsPage) {

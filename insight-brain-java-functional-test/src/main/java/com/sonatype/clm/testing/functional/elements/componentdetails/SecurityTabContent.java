@@ -19,4 +19,8 @@ public class SecurityTabContent
   public PolicyViolationsTable policyViolationsTable() {
     return PolicyViolationsTable.getPolicyViolationsTableForParent(SECURITY_TAB_SELECTOR);
   }
+
+  public VulnerabilitiesTable vulnerabilitiesTable() {
+    return VulnerabilitiesTable.getVulnerabilitiesTableForParent(SECURITY_TAB_SELECTOR);
+  }
 }

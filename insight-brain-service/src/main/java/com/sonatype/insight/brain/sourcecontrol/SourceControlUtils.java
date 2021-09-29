@@ -83,9 +83,9 @@ public class SourceControlUtils
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(sourceControl.getRepositoryUrl(),
         sourceControl.getRepositorySshUrl(), sourceControl.getUsername(), sourceControl.getToken(),
         sourceControl.getProvider(), sourceControl.getBaseBranch(), sourceControl.getRemediationPullRequestsEnabled(),
-        sourceControl.getStatusChecksEnabled(), sourceControl.getSshEnabled(),
+        sourceControl.getStatusChecksEnabled(),
         sourceControl.getPullRequestCommentingEnabled(), sourceControl.getSourceControlScansEnabled(),
-        sourceControl.getSourceControlScanTarget());
+        sourceControl.getSshEnabled(), sourceControl.getSourceControlScanTarget());
 
     if (!gitRepositoryInfo.isDataComplete()) {
       // check at sub-organization level for missing fields

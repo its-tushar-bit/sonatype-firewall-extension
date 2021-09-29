@@ -10,6 +10,7 @@ import {
   MAIN_MENU_LOAD_NOTIFICATIONS_REQUESTED,
   MAIN_MENU_SET_NOTIFICATION_SEEN,
 } from './notificationsActions';
+import { Messages } from '../../../util/CommonServices';
 
 const initialState = Object.freeze({
   loading: false,
@@ -34,7 +35,7 @@ const loadNotificationsFulfilled = (payload, state) => ({
 const loadNotificationsFailed = (payload, state) => ({
   ...state,
   loading: false,
-  error: payload,
+  error: Messages.getHttpErrorMessage(payload),
   notificationsToDisplay: null,
 });
 

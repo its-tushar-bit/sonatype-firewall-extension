@@ -20,7 +20,7 @@ const NotificationsMenu = (props) => {
     : 0;
 
   useEffect(() => {
-    if (!notificationsToDisplay) {
+    if (!notificationsToDisplay && !error) {
       loadNotifications();
     }
   });

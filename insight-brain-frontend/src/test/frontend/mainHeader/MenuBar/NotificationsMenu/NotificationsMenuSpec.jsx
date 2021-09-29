@@ -32,6 +32,12 @@ describe('NotificationsMenu', function () {
     expect(notificationLoadSpy).toHaveBeenCalled();
   });
 
+  it('does not continue trying to load available notifications if there was an error', function () {
+    const notificationLoadSpy = jasmine.createSpy('loadNotifications');
+    getMountedComponent({ loadNotifications: notificationLoadSpy, error: 'some error' });
+    expect(notificationLoadSpy).not.toHaveBeenCalled();
+  });
+
   describe('when loading notifications', function () {
     it('renders a loading message as the MenuButton content', function () {
       const component = getShallowComponent({ loading: true }),

@@ -99,6 +99,20 @@ describe('notifications reducer', function () {
       expect(newState.error).toEqual('error occurred while loading notifications');
       expect(newState.otherProp).toBe('foo');
     });
+
+    it('sets the error to the message in the payload', function () {
+      const state = {
+        error: null,
+      };
+
+      const action = {
+        type: MAIN_MENU_LOAD_NOTIFICATIONS_FAILED,
+        payload: { response: 'error occurred while loading notifications' },
+      };
+      const newState = reducer(state, action);
+
+      expect(newState.error).toEqual('error occurred while loading notifications');
+    });
   });
 
   describe('MAIN_MENU_SET_NOTIFICATION_SEEN', function () {

@@ -5,11 +5,19 @@
  */
 import axios from 'axios';
 import { update } from '../../../../main/frontend/configuration/automaticSourceControlConfiguration/automaticSourceControlConfigurationActions';
-import { getAutomaticSourceControlConfigurationUrl } from '../../../../main/frontend/util/CLMLocation';
+import {
+  getAutomaticApplicationsConfigurationUrl,
+  getAutomaticSourceControlConfigurationUrl,
+  getCompositeSourceControlUrl,
+  getOrganizationsUrl,
+} from '../../../../main/frontend/util/CLMLocation';
 
 describe('AutomaticSourceControlConfigurationActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-  const automaticSourceControlControlConfigurationUrl = getAutomaticSourceControlConfigurationUrl();
+  const automaticSourceControlControlConfigurationUrl = getAutomaticSourceControlConfigurationUrl(),
+    automaticApplicationsConfigurationUrl = getAutomaticApplicationsConfigurationUrl(),
+    organizationsUrl = getOrganizationsUrl(),
+    compositeSourceControlUrl = getCompositeSourceControlUrl('organization', 1);
   let checkPermissionsSpy, load, store, state, actions;
 
   beforeEach(() => {
@@ -41,10 +49,12 @@ describe('AutomaticSourceControlConfigurationActions', () => {
       checkPermissionsSpy.and.returnValue(Promise.resolve());
     });
 
-    it('requests load configuration', (done) => {
+    it('requests load configuration without automatic applications', (done) => {
       mockAxiosCalls({
         get: {
           [automaticSourceControlControlConfigurationUrl]: Promise.resolve({ data: [] }),
+          [automaticApplicationsConfigurationUrl]: Promise.resolve({ data: [] }),
+          [organizationsUrl]: Promise.resolve({ data: [] }),
         },
       });
 
@@ -52,7 +62,43 @@ describe('AutomaticSourceControlConfigurationActions', () => {
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionsInOrder([
           { type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_REQUESTED' },
-          { type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FULFILLED', payload: [] },
+          {
+            type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FULFILLED',
+            payload: {
+              automaticSourceControlConfiguration: [],
+              automaticApplicationsConfiguration: [],
+              organizations: [],
+            },
+          },
+        ]);
+        done();
+      });
+    });
+
+    it('requests load configuration with automatic applications', (done) => {
+      const automaticApplicationsConfiguration = { enabled: true, parentOrganizationId: '1' };
+      mockAxiosCalls({
+        get: {
+          [automaticSourceControlControlConfigurationUrl]: Promise.resolve({ data: [] }),
+          [automaticApplicationsConfigurationUrl]: Promise.resolve({ data: automaticApplicationsConfiguration }),
+          [organizationsUrl]: Promise.resolve({ data: [] }),
+          [compositeSourceControlUrl]: Promise.resolve({ data: [] }),
+        },
+      });
+
+      store.dispatch(load()).then(() => {
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionsInOrder([
+          { type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_REQUESTED' },
+          {
+            type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FULFILLED',
+            payload: {
+              automaticSourceControlConfiguration: [],
+              automaticApplicationsConfiguration: automaticApplicationsConfiguration,
+              organizations: [],
+              compositeSourceControl: [],
+            },
+          },
         ]);
         done();
       });

@@ -23,6 +23,7 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AutomaticApplicationsConfigurationTest
@@ -36,8 +37,10 @@ public class AutomaticApplicationsConfigurationTest
     refreshOrOpen(AutomaticApplicationsConfigurationPage.url());
     loginAsAdmin();
 
-    // check description is present
+    // check descriptions visibility
     automaticApplicationsConfigurationPage.explanation().shouldBe(visible).shouldNotBe(empty);
+    automaticApplicationsConfigurationPage.explanationSourceControl().shouldBe(visible)
+        .shouldNotHave(text("which is configured to use"));
 
     // check initial state
     automaticApplicationsConfigurationPage.organization().listItems().shouldHaveSize(0);
@@ -92,6 +95,26 @@ public class AutomaticApplicationsConfigurationTest
     FormMask.seeAndWaitForDismissal();
     automaticApplicationsConfigurationPage.update().shouldBe(CLM.DISABLED);
     verifyConfiguration(false, org1);
+  }
+
+  @Test
+  public void automaticApplicationsConfigurationTest_explanationSourceControl() {
+    // given automatic applications are enabled
+    Organization organization = tempEntity.newOrganizationAutomaticApplicationsConfiguration();
+
+    // and source control is configured
+    tempEntity.newSourceControl(organization.getId(), null, "token", GITHUB);
+
+    // when opening the automatic applications page
+    AutomaticApplicationsConfigurationPage automaticApplicationsConfigurationPage =
+        new AutomaticApplicationsConfigurationPage();
+    refreshOrOpen(AutomaticApplicationsConfigurationPage.url());
+    loginAsAdmin();
+
+    // then source control configuration is mentioned in the explanation
+    automaticApplicationsConfigurationPage.explanation().shouldBe(visible).shouldNotBe(empty);
+    automaticApplicationsConfigurationPage.explanationSourceControl().shouldBe(visible)
+        .shouldHave(text("which is configured to use Github"));
   }
 
   private void verifyConfiguration(boolean enabled, Organization organization) {

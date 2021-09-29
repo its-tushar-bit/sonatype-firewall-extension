@@ -10,9 +10,12 @@ import {
   AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_REQUESTED,
   AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FAILED,
   AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_REQUESTED,
+  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED,
+  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED,
 } from '../../../../main/frontend/configuration/automaticApplicationsConfiguration/automaticApplicationsConfigurationActions';
 import {
   getAutomaticApplicationsConfigurationUrl,
+  getCompositeSourceControlUrl,
   getOrganizationsUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 
@@ -20,7 +23,8 @@ describe('AutomaticApplicationConfigurationActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const OrganizationsUrl = getOrganizationsUrl();
   const AutomaticApplicationsConfigurationUrl = getAutomaticApplicationsConfigurationUrl();
-  let checkPermissionsSpy, load, update;
+  const CompositeSourceControlUrl = getCompositeSourceControlUrl('organization', '1');
+  let checkPermissionsSpy, load, update, setParentOrganization;
 
   beforeEach(() => {
     checkPermissionsSpy = jasmine.createSpy('checkPermissions');
@@ -33,6 +37,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
     );
     load = actionsModule.load;
     update = actionsModule.update;
+    setParentOrganization = actionsModule.setParentOrganization;
   });
 
   describe('load', function () {
@@ -98,6 +103,28 @@ describe('AutomaticApplicationConfigurationActions', function () {
         done();
       });
     });
+
+    it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FAILED on fetch compositeSourceControl error', function (done) {
+      const errorMsg = 'error fetching compositeSourceControl';
+      const automaticApplicationsConfiguration = { enabled: true, parentOrganizationId: '1' };
+      const organizations = [{ id: '1', name: 'test' }];
+      mockAxiosCalls({
+        get: {
+          [OrganizationsUrl]: Promise.resolve({ data: organizations }),
+          [AutomaticApplicationsConfigurationUrl]: Promise.resolve({ data: automaticApplicationsConfiguration }),
+          [CompositeSourceControlUrl]: Promise.reject(errorMsg),
+        },
+      });
+
+      store.dispatch(load()).then(() => {
+        const actions = store.getActions();
+        expect(actions[0].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_REQUESTED');
+        expect(actions[1].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FAILED');
+        expect(actions[1].payload).toBe(errorMsg);
+        done();
+      });
+    });
+
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FULFILLED on success', function (done) {
       const organizations = [{ id: '1', name: 'test' }];
       const automaticApplicationsConfiguration = { enabled: true };
@@ -114,6 +141,29 @@ describe('AutomaticApplicationConfigurationActions', function () {
         expect(actions[1]).toEqual({
           type: 'AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FULFILLED',
           payload: { organizations, automaticApplicationsConfiguration },
+        });
+        done();
+      });
+    });
+
+    it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FULFILLED on success with parentOrganizationId', function (done) {
+      const organizations = [{ id: '1', name: 'test' }];
+      const compositeSourceControl = { scmProvider: 'provider' };
+      const automaticApplicationsConfiguration = { enabled: true, parentOrganizationId: '1' };
+      mockAxiosCalls({
+        get: {
+          [OrganizationsUrl]: Promise.resolve({ data: organizations }),
+          [AutomaticApplicationsConfigurationUrl]: Promise.resolve({ data: automaticApplicationsConfiguration }),
+          [CompositeSourceControlUrl]: Promise.resolve({ data: compositeSourceControl }),
+        },
+      });
+
+      store.dispatch(load()).then(() => {
+        const actions = store.getActions();
+        expect(actions[0].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_REQUESTED');
+        expect(actions[1]).toEqual({
+          type: 'AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FULFILLED',
+          payload: { organizations, automaticApplicationsConfiguration, compositeSourceControl },
         });
         done();
       });
@@ -182,6 +232,76 @@ describe('AutomaticApplicationConfigurationActions', function () {
           expect(actions[2].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_SUBMIT_MASK_TIMER_DONE');
           done();
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+      });
+    });
+  });
+
+  describe('setParent', function () {
+    let store;
+
+    beforeEach(() => {
+      checkPermissionsSpy.and.returnValue(Promise.resolve());
+      store = SpecUtil.mockReduxStore();
+    });
+
+    it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED', function (done) {
+      store.dispatch(setParentOrganization('1')).then(() => {
+        const actions = store.getActions();
+        expect(actions).toHaveAction({
+          type: AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED,
+          payload: '1',
+        });
+        done();
+      });
+    });
+
+    it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED on permissions error', function (done) {
+      const errorMsg = 'authorization error';
+      checkPermissionsSpy.and.returnValue(Promise.reject(errorMsg));
+
+      store.dispatch(setParentOrganization('1')).then(() => {
+        const actions = store.getActions();
+        expect(actions).toHaveAction({
+          type: AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED,
+          payload: errorMsg,
+        });
+        done();
+      });
+    });
+
+    it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED on fetch compositeSourceControl error', function (done) {
+      const errorMsg = 'error fetching compositeSourceControl';
+      mockAxiosCalls({
+        get: {
+          [CompositeSourceControlUrl]: Promise.reject(errorMsg),
+        },
+      });
+
+      store.dispatch(setParentOrganization('1')).then(() => {
+        const actions = store.getActions();
+        expect(actions[0].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED');
+        expect(actions[1].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED');
+        expect(actions[1].payload).toBe(errorMsg);
+        done();
+      });
+    });
+
+    it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FULFILLED on success', function (done) {
+      const compositeSourceControl = { scmProvider: 'provider' };
+      mockAxiosCalls({
+        get: {
+          [CompositeSourceControlUrl]: Promise.resolve({ data: compositeSourceControl }),
+        },
+      });
+
+      store.dispatch(setParentOrganization('1')).then(() => {
+        const actions = store.getActions();
+        expect(actions[0].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED');
+        expect(actions[1]).toEqual({
+          type: 'AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FULFILLED',
+          payload: { compositeSourceControl },
+        });
+        done();
       });
     });
   });

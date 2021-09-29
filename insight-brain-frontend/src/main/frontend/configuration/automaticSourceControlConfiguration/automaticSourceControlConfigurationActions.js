@@ -8,7 +8,12 @@ import axios from 'axios';
 import { compose } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { checkPermissions } from '../../util/authorizationUtil';
-import { getAutomaticSourceControlConfigurationUrl } from '../../util/CLMLocation';
+import {
+  getAutomaticApplicationsConfigurationUrl,
+  getAutomaticSourceControlConfigurationUrl,
+  getCompositeSourceControlUrl,
+  getOrganizationsUrl,
+} from '../../util/CLMLocation';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { Messages } from '../../util/CommonServices';
 
@@ -54,8 +59,50 @@ export function load() {
     dispatch(loadRequested());
 
     return checkPermissions(permissions)
-      .then(() => axios.get(getAutomaticSourceControlConfigurationUrl()))
-      .then(({ data }) => dispatch(loadFulfilled(data)))
+      .then(() => {
+        const loadAutomaticSourceControlConfiguration = axios.get(getAutomaticSourceControlConfigurationUrl());
+        const loadAutomaticApplicationsConfiguration = axios.get(getAutomaticApplicationsConfigurationUrl());
+        const loadOrganizations = axios.get(getOrganizationsUrl());
+
+        return Promise.all([
+          loadAutomaticSourceControlConfiguration,
+          loadAutomaticApplicationsConfiguration,
+          loadOrganizations,
+        ])
+          .then(
+            ([
+              { data: automaticSourceControlConfiguration },
+              { data: automaticApplicationsConfiguration },
+              { data: organizations },
+            ]) => {
+              if (automaticApplicationsConfiguration.enabled) {
+                const loadCompositeSourceControl = axios.get(
+                  getCompositeSourceControlUrl('organization', automaticApplicationsConfiguration.parentOrganizationId)
+                );
+
+                loadCompositeSourceControl.then(({ data: compositeSourceControl }) => {
+                  dispatch(
+                    loadFulfilled({
+                      automaticSourceControlConfiguration,
+                      automaticApplicationsConfiguration,
+                      organizations,
+                      compositeSourceControl,
+                    })
+                  );
+                });
+              } else {
+                dispatch(
+                  loadFulfilled({
+                    automaticSourceControlConfiguration,
+                    automaticApplicationsConfiguration,
+                    organizations,
+                  })
+                );
+              }
+            }
+          )
+          .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));
+      })
       .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));
   };
 }

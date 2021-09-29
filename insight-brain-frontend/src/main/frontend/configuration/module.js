@@ -35,11 +35,11 @@ export default angular
   ])
   .component(
     'automaticApplicationsConfiguration',
-    react2angular(withStoreProvider(AutomaticApplicationsConfiguration), [], ['$ngRedux'])
+    react2angular(withStoreProvider(AutomaticApplicationsConfiguration), [], ['$ngRedux', '$state'])
   )
   .component(
     'automaticSourceControlConfiguration',
-    react2angular(withStoreProvider(AutomaticSourceControlConfigurationContainer), [], ['$ngRedux'])
+    react2angular(withStoreProvider(AutomaticSourceControlConfigurationContainer), [], ['$ngRedux', '$state'])
   )
   .component('mailConfig', react2angular(withStoreProvider(MailConfigContainer), ['isAuthorized'], ['$ngRedux']))
   .component(

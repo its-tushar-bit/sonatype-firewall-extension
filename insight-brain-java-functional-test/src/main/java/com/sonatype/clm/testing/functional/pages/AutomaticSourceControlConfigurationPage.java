@@ -29,7 +29,11 @@ public class AutomaticSourceControlConfigurationPage
   }
 
   public SelenideElement explanation() {
-    return child(".nx-toggle__content");
+    return child("#automatic-source-control-explanation");
+  }
+
+  public SelenideElement explanationAutomaticApplications() {
+    return child("#automatic-source-control-automatic-applications-explanation");
   }
 
   public NxToggle toggle() {

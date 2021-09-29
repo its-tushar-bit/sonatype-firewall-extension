@@ -14,7 +14,9 @@ import {
   AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_SUBMIT_MASK_TIMER_DONE,
   AUTOMATIC_APPLICATION_CONFIGURATION_RESET_FORM,
   AUTOMATIC_APPLICATION_CONFIGURATION_TOGGLE_ENABLED,
-  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION,
+  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED,
+  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FULFILLED,
+  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED,
 } from '../../../../main/frontend/configuration/automaticApplicationsConfiguration/automaticApplicationsConfigurationActions';
 import reducer from '../../../../main/frontend/configuration/automaticApplicationsConfiguration/automaticApplicationsConfigurationReducer';
 
@@ -77,6 +79,14 @@ describe('AutomaticApplicationConfigurationReducer', function () {
 
       expect(newState.serverData.enabled).toBe(true);
       expect(newState.serverData.parentOrganizationId).toBe('3');
+    });
+    it('updates scmProvider', function () {
+      const newState = reducer(initialState, {
+        ...action,
+        payload: { ...action.payload, compositeSourceControl: { provider: { value: 'provider' } } },
+      });
+
+      expect(newState.scmProvider).toBe('provider');
     });
   });
   describe('AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FAILED', function () {
@@ -195,10 +205,10 @@ describe('AutomaticApplicationConfigurationReducer', function () {
       expect(newState.formState.enabled).toBe(true);
     });
   });
-  describe('AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION', function () {
+  describe('AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED', function () {
     let newState, action;
     beforeEach(() => {
-      action = { type: AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION, payload: '3' };
+      action = { type: AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED, payload: '3' };
       const oldState = {
         ...initialState,
         serverData: { ...automaticApplicationsConfiguration },
@@ -208,8 +218,40 @@ describe('AutomaticApplicationConfigurationReducer', function () {
     it('sets isDirty', function () {
       expect(newState.isDirty).toBe(true);
     });
-    it('sets formState.enabled', function () {
+    it('updates parentOrganizationId', function () {
       expect(newState.formState.parentOrganizationId).toBe(action.payload);
+    });
+  });
+  describe('AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FULFILLED', function () {
+    let newState, action;
+    beforeEach(() => {
+      action = {
+        type: AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FULFILLED,
+        payload: { compositeSourceControl: { provider: { value: 'provider' } } },
+      };
+      const oldState = {
+        ...initialState,
+      };
+      newState = reducer(oldState, action);
+    });
+    it('updates scmProvider', function () {
+      expect(newState.scmProvider).toBe('provider');
+    });
+  });
+  describe('AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED', function () {
+    let action, newState, errorMsg;
+    beforeEach(() => {
+      errorMsg = 'error on load';
+      action = { type: AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED, payload: errorMsg };
+      newState = reducer(initialState, action);
+    });
+
+    it('sets loading', function () {
+      expect(newState.loading).toBe(false);
+    });
+
+    it('sets loadError', function () {
+      expect(newState.loadError).toBe(errorMsg);
     });
   });
   describe('when toggle is initially enabled and parent org is preselected, changing the parent org and clicking on toggle', function () {
@@ -220,7 +262,7 @@ describe('AutomaticApplicationConfigurationReducer', function () {
 
     const toggleAction = { type: AUTOMATIC_APPLICATION_CONFIGURATION_TOGGLE_ENABLED };
     const toggleNewParentSelectionAction = {
-      type: AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION,
+      type: AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED,
       payload: NEW_PARENT_ID,
     };
 

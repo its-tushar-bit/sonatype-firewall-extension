@@ -33,6 +33,10 @@ public class AutomaticApplicationsConfigurationPage
     return child("#auto-app-config-explanation");
   }
 
+  public SelenideElement explanationSourceControl() {
+    return child("#auto-app-config-source-control-explanation");
+  }
+
   public NxToggle toggle() {
     return new NxToggle(childSelector("#auto-app-config-toggle-checkbox"));
   }

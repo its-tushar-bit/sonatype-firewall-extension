@@ -9,7 +9,7 @@ import AutomaticApplicationsConfiguration from '../../../../main/frontend/config
 import * as enzymeUtils from '../../enzymeUtils';
 
 describe('AutomaticApplicationConfiguration', function () {
-  let initialProps, initialFunctions, getShallow, getMounted;
+  let initialProps, initialFunctions, getShallow, getMounted, mock$state;
 
   beforeEach(() => {
     initialProps = {
@@ -23,7 +23,10 @@ describe('AutomaticApplicationConfiguration', function () {
       submitMaskState: null,
       isDirty: false,
       organizations: [],
+      $state: mock$state,
     };
+
+    mock$state = jasmine.createSpyObj('$state', ['get', 'href']);
 
     getShallow = enzymeUtils.getShallowComponent(AutomaticApplicationsConfiguration, initialProps);
   });
@@ -31,7 +34,7 @@ describe('AutomaticApplicationConfiguration', function () {
   describe('component load', function () {
     it('passes error when a load error exist', function () {
       const errorMsg = 'Error on page load';
-      const autoApplicationConfig = getShallow({ loadError: errorMsg }).find(NxForm);
+      const autoApplicationConfig = getShallow({ loadError: errorMsg, $state: mock$state }).find(NxForm);
       expect(autoApplicationConfig).toHaveProp('loadError', errorMsg);
     });
 

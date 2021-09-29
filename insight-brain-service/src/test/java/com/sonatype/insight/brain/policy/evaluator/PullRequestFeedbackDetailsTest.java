@@ -759,24 +759,24 @@ public class PullRequestFeedbackDetailsTest
 
     //setup gitRepositoryInfo
     githubGitRepositoryInfo =
-        new GitRepositoryInfo("https://github.com/sonatype/enhanced-commit-information", null, "token",
-            SourceControlProvider.GITHUB, "master", true, true, true, true, null);
+        new GitRepositoryInfo("https://github.com/sonatype/enhanced-commit-information", null, null, "token",
+            SourceControlProvider.GITHUB, "master", true, true, true, true, false, null);
 
     gitlabGitRepositoryInfo =
-        new GitRepositoryInfo("https://gitlab.com/sonatype/enhanced-commit-information", null, "token",
-            SourceControlProvider.GITLAB, "master", true, true, true, true, null);
+        new GitRepositoryInfo("https://gitlab.com/sonatype/enhanced-commit-information", null, null, "token",
+            SourceControlProvider.GITLAB, "master", true, true, true, true, false, null);
 
     bitbucketGitRepositoryInfo =
-        new GitRepositoryInfo("https://bitbucket.com/scm/sonatype/enhanced-commit-information", "user", "token",
-            SourceControlProvider.BITBUCKET, "master", true, true, true, true, null);
+        new GitRepositoryInfo("https://bitbucket.com/scm/sonatype/enhanced-commit-information", null, "user", "token",
+            SourceControlProvider.BITBUCKET, "master", true, true, true, true, false, null);
 
     azureGitRepositoryInfo =
-        new GitRepositoryInfo("https://dev.azure.com/sonatype/int/_git/enhanced-commit-information",
-            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true, true, true, true, null);
+        new GitRepositoryInfo("https://dev.azure.com/sonatype/int/_git/enhanced-commit-information", null,
+            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true, true, true, true, false, null);
 
     azureOnPremGitRepositoryInfo =
-        new GitRepositoryInfo("https://azure-on-prem.com/sonatype/int/_git/enhanced-commit-information",
-            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true, true, true, true, null);
+        new GitRepositoryInfo("https://azure-on-prem.com/sonatype/int/_git/enhanced-commit-information", null,
+            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true, true, true, true, false, null);
 
     //setup source control component details
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(

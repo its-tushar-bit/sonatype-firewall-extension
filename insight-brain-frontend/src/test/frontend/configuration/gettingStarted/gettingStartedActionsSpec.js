@@ -93,7 +93,7 @@ describe('gettingStartedReducerActions', () => {
       });
 
       it(`dispatches a ${GETTING_STARTED_LOAD_FAILED} action because of service failures`, (done) => {
-        getPermissionsSpy.and.returnValue(Promise.resolve());
+        getPermissionsSpy.and.returnValue(Promise.resolve(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']));
         mockAxiosCalls({
           get: {
             [licenseSummaryUrl]: () => Promise.reject({ response: {} }),

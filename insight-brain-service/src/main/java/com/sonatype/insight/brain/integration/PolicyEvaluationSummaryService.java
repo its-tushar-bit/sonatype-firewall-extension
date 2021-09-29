@@ -64,7 +64,8 @@ public class PolicyEvaluationSummaryService
       return null;
     }
 
-    PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation);
+    PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator.createPolicyEvaluationResult(
+        policyEvaluation, false);
 
     PolicyEvaluationSummary summary = new PolicyEvaluationSummary();
     summary.setAffectedComponentCount(policyEvaluationResult.getAffectedComponentCount());

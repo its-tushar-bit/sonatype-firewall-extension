@@ -129,9 +129,8 @@ public class PullRequestFeedbackMarkupServiceTest
     pullRequestLineComments.add(lineCommentDTO);
 
     //setup gitRepositoryInfo
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo("http://example.com/project/repository", null, "token",
-            SourceControlProvider.GITHUB, "master", true, true, true, true, null);
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("http://example.com/project/repository", null, null,
+        "token", SourceControlProvider.GITHUB, "master", true, true, true, true, false, null);
 
     //setup source control component details
     SourceControlComponentDetails componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(

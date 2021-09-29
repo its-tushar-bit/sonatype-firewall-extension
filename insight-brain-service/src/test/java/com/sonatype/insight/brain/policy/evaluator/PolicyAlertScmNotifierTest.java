@@ -18,9 +18,9 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
-import com.sonatype.insight.brain.git.RemediationPullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.RemediationBranchNamePrefixGenerator;
+import com.sonatype.insight.brain.git.RemediationPullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
@@ -187,8 +187,8 @@ public class PolicyAlertScmNotifierTest
   @Test
   public void test_remediationEventForBranchAlreadyExists() throws Exception {
     // given we have repository info for an application
-    GitRepositoryInfo githubRepositoryInfo =
-        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true, true, true, null);
+    GitRepositoryInfo githubRepositoryInfo = new GitRepositoryInfo(null, null, null, null, SourceControlProvider.GITHUB,
+        null, true, true, true, true, false, null);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(githubRepositoryInfo);
 
@@ -226,8 +226,8 @@ public class PolicyAlertScmNotifierTest
   @Test
   public void test_pullRequestEventCreated() throws Exception {
     // given we have repository info for an application
-    GitRepositoryInfo githubRepositoryInfo =
-        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true, true, true, null);
+    GitRepositoryInfo githubRepositoryInfo = new GitRepositoryInfo(null, null, null, null, SourceControlProvider.GITHUB,
+        null, true, true, true, true, false, null);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(githubRepositoryInfo);
 

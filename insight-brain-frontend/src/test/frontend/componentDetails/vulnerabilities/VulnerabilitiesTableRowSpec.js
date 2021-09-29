@@ -3,21 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxTableCell } from '@sonatype/react-shared-components';
+import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 import VulnerabilitiesTableRow from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTableRow';
 
 import * as enzymeUtils from '../../enzymeUtils';
 
 describe('VulnerabilitiesTableRow', () => {
-  let minimalProps, getShallow;
+  let minimalProps, getShallow, setVulnerabilityIdAndToggleVisibilityMock;
 
   beforeEach(function () {
+    setVulnerabilityIdAndToggleVisibilityMock = jasmine.createSpy('setVulnerabilityIdAndToggleVisibility');
     minimalProps = {
       vulnerability: {
         refId: '1',
         severity: 8.8,
         status: 'status 1',
       },
+      setVulnerabilityIdAndToggleVisibility: setVulnerabilityIdAndToggleVisibilityMock,
     };
 
     getShallow = enzymeUtils.getShallowComponent(VulnerabilitiesTableRow, minimalProps);
@@ -55,6 +57,14 @@ describe('VulnerabilitiesTableRow', () => {
         statusCell = rowCells.at(3);
 
       expect(statusCell).toHaveProp('chevron');
+    });
+
+    it('calls setVulnerabilityIdAndToggleVisibility with proper refId on row click ', () => {
+      const component = getShallow();
+      const rows = component.find(NxTableRow);
+      rows.at(0).simulate('click');
+
+      expect(setVulnerabilityIdAndToggleVisibilityMock).toHaveBeenCalledWith('1');
     });
   });
 });

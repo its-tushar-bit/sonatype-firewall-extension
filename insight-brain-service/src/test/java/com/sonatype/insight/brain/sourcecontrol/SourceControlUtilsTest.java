@@ -89,6 +89,7 @@ public class SourceControlUtilsTest
         .setStatusChecksEnabled(false)
         .setPullRequestCommentingEnabled(true)
         .setSourceControlScansEnabled(true)
+        .setSshEnabled(true)
         .setSourceControlScanTarget("/target/*")
         .build();
 
@@ -122,6 +123,7 @@ public class SourceControlUtilsTest
         .setRemediationPullRequestsEnabled(true)
         .setStatusChecksEnabled(true)
         .setPullRequestCommentingEnabled(true)
+        .setSshEnabled(true)
         .setSourceControlScansEnabled(true)
         .setSourceControlScanTarget("/target/*")
         .build();
@@ -329,21 +331,20 @@ public class SourceControlUtilsTest
   @Test
   public void testIsBitbucketCloud() {
     // BB cloud
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo("https://bitbucket.org/organization/project", "user", TOKEN, BITBUCKET,
-            "base-branch", true, true, true, true, null);
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("https://bitbucket.org/organization/project", null,
+        "user", TOKEN, BITBUCKET, "base-branch", true, true, true, true, false, null);
     assertThat(sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)).isTrue();
 
     // BB server
     gitRepositoryInfo =
-        new GitRepositoryInfo("https://my.domain.com/organization/project", "user", TOKEN, BITBUCKET,
-            "base-branch", true, true, true, true, null);
+        new GitRepositoryInfo("https://my.domain.com/organization/project", null, "user", TOKEN, BITBUCKET,
+            "base-branch", true, true, true, true, false, null);
     assertThat(sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)).isFalse();
 
     // Not BB
     gitRepositoryInfo =
-        new GitRepositoryInfo("https://my.domain.com/organization/project", "user", TOKEN, GITHUB,
-            "base-branch", true, true, true, true, null);
+        new GitRepositoryInfo("https://my.domain.com/organization/project", null, "user", TOKEN, GITHUB,
+            "base-branch", true, true, true, true, false, null);
     assertThat(sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)).isFalse();
   }
 
@@ -383,6 +384,7 @@ public class SourceControlUtilsTest
         .setStatusChecksEnabled(true)
         .setPullRequestCommentingEnabled(true)
         .setSourceControlScansEnabled(true)
+        .setSshEnabled(true)
         .setSourceControlScanTarget("/target/*")
         .build();
 

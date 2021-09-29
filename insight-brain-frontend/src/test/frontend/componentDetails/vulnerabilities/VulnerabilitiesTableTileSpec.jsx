@@ -3,15 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
+import React from 'react';
 import * as enzymeUtils from '../../enzymeUtils';
 import VulnerabilitiesTableTile from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTableTile';
 import VulnerabilitiesTable from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTable';
+import * as popover from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/VulnerabilityDetailsPopoverContainer';
 
 describe('VulnerabilitiesTableTile', () => {
   let minimalProps, getShallow, getMounted;
   const loadVulnerabilities = jasmine.createSpy('loadVulnerabilities');
-  beforeEach(function () {
+  const setVulnerabilityIdAndToggleVisibility = jasmine.createSpy('setVulnerabilityIdAndToggleVisibility');
+
+  beforeEach(() => {
     minimalProps = {
       vulnerabilities: {
         data: null,
@@ -19,6 +22,7 @@ describe('VulnerabilitiesTableTile', () => {
         error: null,
       },
       loadVulnerabilities,
+      setVulnerabilityIdAndToggleVisibility,
     };
     getShallow = enzymeUtils.getShallowComponent(VulnerabilitiesTableTile, minimalProps);
     getMounted = enzymeUtils.getMountedComponent(VulnerabilitiesTableTile, minimalProps);
@@ -34,6 +38,8 @@ describe('VulnerabilitiesTableTile', () => {
 
   describe('loadVulnerabilities action', () => {
     it('calls loadVulnerabilities when the component renders', () => {
+      spyOn(popover, 'VulnerabilityDetailsPopoverContainer').and.returnValue(<div>vulnerabilities popover</div>);
+
       getMounted();
       expect(minimalProps.loadVulnerabilities).toHaveBeenCalledTimes(1);
     });

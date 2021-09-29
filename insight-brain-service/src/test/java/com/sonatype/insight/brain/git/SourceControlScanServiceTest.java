@@ -101,6 +101,9 @@ public class SourceControlScanServiceTest
   private Scanner scanner;
 
   @Mock
+  private SourceControlSshService sourceControlSshService;
+
+  @Mock
   private AuditRecorder mockAuditRecorder;
 
   private SourceControlConfig sourceControlConfig;
@@ -165,7 +168,8 @@ public class SourceControlScanServiceTest
     licenseChecker = new IqForScmLicenseChecker(testProductLicense);
 
     service = new SourceControlScanService(mockGitApiFactory, spySourceControlUtils, mockApplicationDAO, licenseChecker,
-        proprietaryConfigService, policyEvaluateService, mockInsightWork, scanner, mockAuditRecorder, insightConfig);
+        proprietaryConfigService, policyEvaluateService, mockInsightWork, scanner, mockAuditRecorder, insightConfig,
+        sourceControlSshService);
 
     proprietaryConfig = new ProprietaryConfig();
     when(proprietaryConfigService.getProprietaryConfig(eq(OwnerType.APPLICATION), eq("public-app-id")))
@@ -186,6 +190,9 @@ public class SourceControlScanServiceTest
 
     // and it never tries any git operations
     verifyNoInteractions(mockGitApiFactory, mockGitApi);
+
+    // and it never interacts with the SSH service
+    verifyNoInteractions(sourceControlSshService);
   }
 
   @Test
@@ -225,6 +232,8 @@ public class SourceControlScanServiceTest
         isA(Application.class), eq(ClientScanType.SONATYPE), argThat(s -> s.getStageTypeId().equals(Stage.ID_DEVELOP)),
         eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING), isA(File.class), eq("api"),
         eq("userAgent"));
+
+    verifySshServiceInvoked();
   }
 
   @Test
@@ -270,6 +279,8 @@ public class SourceControlScanServiceTest
         isA(Application.class), eq(ClientScanType.SONATYPE), argThat(s -> s.getStageTypeId().equals(Stage.ID_DEVELOP)),
         eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING), isA(File.class), eq("api"),
         eq("userAgent"));
+
+    verifySshServiceInvoked();
   }
 
   @Test
@@ -299,6 +310,8 @@ public class SourceControlScanServiceTest
     assertThat(service.doSynchronousSourceControlScan(APP_ID, stage, "testBranchName")).isEqualTo(policyEvaluation);
     verify(scanner, times(1)).scan(any(), any(), any(), any(), scanConfigurationArgCaptor.capture(), any());
     assertThat(scanConfigurationArgCaptor.getValue().getProperties().get("dirExcludes")).isEqualTo("**/src/test");
+
+    verifySshServiceInvoked();
   }
 
   @Test
@@ -332,6 +345,8 @@ public class SourceControlScanServiceTest
     assertThat(returnedPolicyEvaluation).isEqualTo(policyEvaluation);
     verify(scanner, times(1)).scan(any(), any(), any(), any(), scanConfigurationArgCaptor.capture(), any());
     assertThat(scanConfigurationArgCaptor.getValue().getProperties().get("dirExcludes")).isEqualTo("**/src/test");
+
+    verifySshServiceInvoked();
   }
 
   @Test
@@ -341,6 +356,9 @@ public class SourceControlScanServiceTest
 
     // it does not evaluate the SCM repository content and it returns null
     assertThat(service.doSynchronousSourceControlScan(APP_ID, new Stage(Stage.ID_DEVELOP), "testBranchName")).isNull();
+
+    // and it never interacts with the SSH service
+    verifyNoInteractions(sourceControlSshService);
   }
 
   @Test
@@ -351,6 +369,13 @@ public class SourceControlScanServiceTest
     // it does not evaluate the SCM repository content and it returns null
     assertThat(service.doSynchronousSourceControlScan(APP_ID, new Stage(Stage.ID_DEVELOP), "testBranchName")).isNull();
     assertThatLogMessagesEqual(debug("License does not support source control notification or automation features"));
+
+    // and it never interacts with the SSH service
+    verifyNoInteractions(sourceControlSshService);
+  }
+
+  private void verifySshServiceInvoked() {
+    verify(sourceControlSshService, times(1)).verifySshUrlAndUpdateIfNeeded(APP_ID);
   }
 }
 

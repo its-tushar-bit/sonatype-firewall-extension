@@ -29,7 +29,9 @@ import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class PullRequestRemediationServiceTest
@@ -56,6 +58,9 @@ public class PullRequestRemediationServiceTest
   @Mock
   private Provider<PullRequestTask> mockPullRequestTaskProvider;
 
+  @Mock
+  private SourceControlSshService mockSourceControlSshService;
+
   // subject
   private PullRequestRemediationService pullRequestRemediationService;
 
@@ -69,7 +74,7 @@ public class PullRequestRemediationServiceTest
     MockitoAnnotations.openMocks(this);
     super.setup();
     pullRequestRemediationService = new PullRequestRemediationService(mockPullRequestExecutor, mockGitClientFactory,
-        mockApplicationDAO, mockSourceControlUtils, mockPullRequestTaskProvider);
+        mockApplicationDAO, mockSourceControlUtils, mockPullRequestTaskProvider, mockSourceControlSshService);
   }
 
   private Application setupApplication(String appId) {
@@ -80,9 +85,8 @@ public class PullRequestRemediationServiceTest
   }
 
   private void setupGitRepositoryInfoForApp(String appId) {
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo("repoUrl", "username", "token", SourceControlProvider.GITLAB, "baseBranch", true, true,
-            true, true, null);
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("repoUrl", "sshRepoUrl", "username", "token",
+        SourceControlProvider.GITLAB, "baseBranch", true, true, true, true, false, null);
 
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(appId)).thenReturn(gitRepositoryInfo);
   }
@@ -131,6 +135,8 @@ public class PullRequestRemediationServiceTest
     assertThat(remediationDetails.getStage()).isEqualTo(stage);
     assertThat(remediationDetails.getContents()).isEqualTo(prContents);
     assertThat(remediationDetails.getToBeRemediated()).isEqualTo(componentId);
+
+    verifySshServiceInvoked(appId);
   }
 
   @Test
@@ -139,9 +145,8 @@ public class PullRequestRemediationServiceTest
     final String branchName = "branch/already/exists";
     setupBranchExistence(branchName, true);
     SourceControlEvent event = new SourceControlEvent().setBranchName(branchName);
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo("repoUrl", "username", "token", SourceControlProvider.GITLAB, "baseBranch", true, true,
-            true, true, null);
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("repoUrl", "sshRepoUrl", "username", "token",
+        SourceControlProvider.GITLAB, "baseBranch", true, true, true, true, false, null);
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     // when: try to remediate a component for this same branch
@@ -151,6 +156,8 @@ public class PullRequestRemediationServiceTest
     assertThatLogMessagesEqual(
         info("Branch already exists on remote server for remediation [branch/already/exists]")
     );
+
+    verifyNoInteractions(mockSourceControlSshService);
   }
 
   @Test
@@ -161,6 +168,8 @@ public class PullRequestRemediationServiceTest
 
     // then we see that the format is not supported
     assertThat(supported).isFalse();
+
+    verifyNoInteractions(mockSourceControlSshService);
   }
 
   @Test
@@ -179,5 +188,9 @@ public class PullRequestRemediationServiceTest
   private void setupBranchExistence(String branchName, boolean exists) throws IOException {
     when(mockGitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockGitApiClient);
     when(mockGitApiClient.isBranchOnServer(branchName)).thenReturn(exists);
+  }
+
+  private void verifySshServiceInvoked(String appId) {
+    verify(mockSourceControlSshService, times(1)).verifySshUrlAndUpdateIfNeeded(appId);
   }
 }

@@ -57,6 +57,8 @@ public class PullRequestCommentingEventHandler
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
+  private final PullRequestStatusService pullRequestStatusService;
+
   @Inject
   public PullRequestCommentingEventHandler(
       final PullRequestCommentingService pullRequestCommentingService,
@@ -66,7 +68,8 @@ public class PullRequestCommentingEventHandler
       final IqForScmLicenseChecker licenseChecker,
       final InsightConfig insightConfig,
       final PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver,
-      final PolicyEvaluationDAO policyEvaluationDAO)
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final PullRequestStatusService pullRequestStatusService)
   {
     this.pullRequestCommentingService = pullRequestCommentingService;
     this.sourceControlUtils = sourceControlUtils;
@@ -76,6 +79,7 @@ public class PullRequestCommentingEventHandler
     this.insightConfig = insightConfig;
     this.pullRequestPolicyEvaluationResolver = pullRequestPolicyEvaluationResolver;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.pullRequestStatusService = pullRequestStatusService;
   }
 
   @Override
@@ -154,6 +158,8 @@ public class PullRequestCommentingEventHandler
 
     for (PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO : pullRequestPolicyEvaluationsDTOs) {
       pullRequestCommentingService.doCreateOrUpdatePullRequestComment(pullRequestPolicyEvaluationsDTO);
+      // triggering logic for pull request status creation
+      pullRequestStatusService.doCreatePullRequestStatus(pullRequestPolicyEvaluationsDTO);
     }
   }
 
@@ -167,6 +173,8 @@ public class PullRequestCommentingEventHandler
 
     if (null != pullRequestPolicyEvaluationsDTO) {
       pullRequestCommentingService.doCreateOrUpdatePullRequestComment(pullRequestPolicyEvaluationsDTO);
+      // triggering logic for pull request status creation
+      pullRequestStatusService.doCreatePullRequestStatus(pullRequestPolicyEvaluationsDTO);
     }
   }
 
@@ -190,6 +198,8 @@ public class PullRequestCommentingEventHandler
     }
 
     pullRequestCommentingService.doCreateOrUpdatePullRequestComment(pullRequestPolicyEvaluationsDTO);
+    // triggering logic for pull request status creation
+    pullRequestStatusService.doCreatePullRequestStatus(pullRequestPolicyEvaluationsDTO);
   }
 
   private boolean eventHasCommitHashAndScmIsEnabled(ApplicationEvaluationEvent event) {

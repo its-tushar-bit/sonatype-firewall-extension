@@ -63,6 +63,9 @@ public class PullRequestCommentingEventHandlerTest
   @Mock
   private PolicyEvaluationDAO mockPolicyEvaluationDAO;
 
+  @Mock
+  private PullRequestStatusService mockPullRequestStatusService;
+
   public PullRequestCommentingEventHandlerTest() {
     super(PullRequestCommentingEventHandler.class);
   }
@@ -317,7 +320,7 @@ public class PullRequestCommentingEventHandlerTest
   }
 
   @Test
-  public void testOnApplicationEvaluationSourceControlEvent_createsComments() {
+  public void testOnApplicationEvaluationSourceControlEvent_createsCommentsAndCreatesPullRequestStatus() {
     // given: a scenario that will lead to comments being created
     List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("app33", 5);
     PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
@@ -333,15 +336,19 @@ public class PullRequestCommentingEventHandlerTest
     // then: there should have been multiple attempts to create PR comments
     final ArgumentCaptor<PullRequestPolicyEvaluationsDTO> policyEvalDTOCaptor =
         ArgumentCaptor.forClass(PullRequestPolicyEvaluationsDTO.class);
-
     verify(mockPullRequestCommentingService, times(pullRequestPolicyEvaluationDTOs.size()))
         .doCreateOrUpdatePullRequestComment(policyEvalDTOCaptor.capture());
+
+    // and: there should have been 5 attempt to create a PR status
+    verify(mockPullRequestStatusService, times(pullRequestPolicyEvaluationDTOs.size()))
+        .doCreatePullRequestStatus(any(PullRequestPolicyEvaluationsDTO.class));
+
     List<PullRequestPolicyEvaluationsDTO> capturedDTOs = policyEvalDTOCaptor.getAllValues();
     verifyPullRequestPolicyEvalationsDTOs(capturedDTOs, pullRequestPolicyEvaluationDTOs);
   }
 
   @Test
-  public void testOnApplicationEvaluationSourceControlEvent_doesNotCreateComments() {
+  public void testOnApplicationEvaluationSourceControlEvent_doesNotCreateCommentsOrPullRequestStatus() {
     // given: a resolver that doesn't return any resolved PR policy evals
     PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
         .build();
@@ -355,15 +362,18 @@ public class PullRequestCommentingEventHandlerTest
     // then: we never attempted to create comments
     final ArgumentCaptor<PullRequestPolicyEvaluationsDTO> policyEvalDTOCaptor =
         ArgumentCaptor.forClass(PullRequestPolicyEvaluationsDTO.class);
-
     verify(mockPullRequestCommentingService, never())
         .doCreateOrUpdatePullRequestComment(policyEvalDTOCaptor.capture());
+
+    // and: we never attempted to create a PR status
+    verify(mockPullRequestStatusService, never()).doCreatePullRequestStatus(policyEvalDTOCaptor.capture());
+
     List<PullRequestPolicyEvaluationsDTO> capturedDTOs = policyEvalDTOCaptor.getAllValues();
     assertThat(capturedDTOs).isEmpty();
   }
 
   @Test
-  public void testOnDiscoveredPullRequest_createsComments() {
+  public void testOnDiscoveredPullRequest_createsCommentsAndCreatesPullRequestStatus() {
     // given: a resolver and a discovered PR event that will lead to comments being created
     List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("app75", 1);
     PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
@@ -380,15 +390,19 @@ public class PullRequestCommentingEventHandlerTest
     // then: there should have been 1 attempt to create a PR comment
     final ArgumentCaptor<PullRequestPolicyEvaluationsDTO> policyEvalDTOCaptor =
         ArgumentCaptor.forClass(PullRequestPolicyEvaluationsDTO.class);
-
     verify(mockPullRequestCommentingService, times(1))
         .doCreateOrUpdatePullRequestComment(policyEvalDTOCaptor.capture());
+
+    // and: there should have been 1 attempt to create a PR status
+    verify(mockPullRequestStatusService, times(1))
+        .doCreatePullRequestStatus(policyEvalDTOCaptor.capture());
+
     PullRequestPolicyEvaluationsDTO capturedDTO = policyEvalDTOCaptor.getValue();
     assertThat(capturedDTO).isEqualTo(pullRequestPolicyEvaluationDTOs.get(0));
   }
 
   @Test
-  public void testOnDiscoveredPullRequest_doesNotCreateComments() {
+  public void testOnDiscoveredPullRequest_doesNotProcessPullRequest() {
     // given: a resolver that doesn't return any PR policy evals
     PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
         .build();
@@ -402,10 +416,13 @@ public class PullRequestCommentingEventHandlerTest
 
     // then: there should have been no attempt to create a PR comment
     verify(mockPullRequestCommentingService, never()).doCreateOrUpdatePullRequestComment(any());
+
+    // and: we never attempted to create a PR status
+    verify(mockPullRequestStatusService, never()).doCreatePullRequestStatus(any());
   }
 
   @Test
-  public void testOnUpdatedPullRequest_createsComments() {
+  public void testOnUpdatedPullRequest_createsCommentsAndCreatesPullRequestStatus() {
     // given: a resolver and a discovered PR event that will lead to comments being created
     List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("testAppId", 1);
     pullRequestPolicyEvaluationDTOs.get(0).getTargetPolicyEvaluation()
@@ -424,15 +441,19 @@ public class PullRequestCommentingEventHandlerTest
     // then: there should have been 1 attempt to create a PR comment
     final ArgumentCaptor<PullRequestPolicyEvaluationsDTO> policyEvalDTOCaptor =
         ArgumentCaptor.forClass(PullRequestPolicyEvaluationsDTO.class);
-
     verify(mockPullRequestCommentingService, times(1))
         .doCreateOrUpdatePullRequestComment(policyEvalDTOCaptor.capture());
+
+    // and: there should have been 1 attempt to create a PR status
+    verify(mockPullRequestStatusService, times(1))
+        .doCreatePullRequestStatus(policyEvalDTOCaptor.capture());
+
     PullRequestPolicyEvaluationsDTO capturedDTO = policyEvalDTOCaptor.getValue();
     assertThat(capturedDTO).isEqualTo(pullRequestPolicyEvaluationDTOs.get(0));
   }
 
   @Test
-  public void testOnUpdatedPullRequest_doesNotCreateCommentsIfThereAreNoPolicyEvaluations() {
+  public void testOnUpdatedPullRequest_doesNotCreateCommentsOrPullRequestStatusIfThereAreNoPolicyEvaluations() {
     // given: a resolver that doesn't return any PR policy evals
     PullRequestCommentingEventHandler commentingEventHandler =
         new TestablePullRequestCommentingEventHandlerBuilder().build();
@@ -444,10 +465,13 @@ public class PullRequestCommentingEventHandlerTest
 
     // then: there should have been no attempt to create a PR comment
     verify(mockPullRequestCommentingService, never()).doCreateOrUpdatePullRequestComment(any());
+
+    // and: we never attempted to create a PR status
+    verify(mockPullRequestStatusService, never()).doCreatePullRequestStatus(any());
   }
 
   @Test
-  public void testOnUpdatedPullRequest_doesNotCreateCommentsIfDefaultBranchPolicyEvaluationIsExternal() {
+  public void testOnUpdatedPullRequest_doesNotCreateCommentsOrPRStatusIfDefaultBranchPolicyEvaluationIsExternal() {
     // given: a resolver and a discovered PR event that will lead to comments being created
     List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("testAppId", 1);
     pullRequestPolicyEvaluationDTOs.get(0).getTargetPolicyEvaluation().setScanTriggerType(ScanTriggerType.CLI);
@@ -464,10 +488,13 @@ public class PullRequestCommentingEventHandlerTest
 
     // then: there should have been no attempt to create a PR comment
     verify(mockPullRequestCommentingService, never()).doCreateOrUpdatePullRequestComment(any());
+
+    // and: we never attempted to create a PR status
+    verify(mockPullRequestStatusService, never()).doCreatePullRequestStatus(any());
   }
 
   @Test
-  public void testOnUpdatedPullRequest_doesNotCreateCommentsIfPRBranchPolicyEvaluationIsExternal() {
+  public void testOnUpdatedPullRequest_doesNotCreateCommentsOrPullRequestStatusIfPRBranchPolicyEvaluationIsExternal() {
     // given: a resolver and a discovered PR event that will lead to comments being created
     List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("testAppId", 1);
     pullRequestPolicyEvaluationDTOs.get(0).getTargetPolicyEvaluation()
@@ -484,6 +511,9 @@ public class PullRequestCommentingEventHandlerTest
 
     // then: there should have been no attempt to create a PR comment
     verify(mockPullRequestCommentingService, never()).doCreateOrUpdatePullRequestComment(any());
+
+    // and: we never attempted to create a PR status
+    verify(mockPullRequestStatusService, never()).doCreatePullRequestStatus(any());
   }
 
   @Test
@@ -568,6 +598,8 @@ public class PullRequestCommentingEventHandlerTest
 
     private boolean sourceControlScansEnabled = true;
 
+    private boolean sshEnabled = true;
+
     private String sourceControlScanTarget = null;
 
     private GitRepositoryInfo gitRepositoryInfo;
@@ -575,6 +607,8 @@ public class PullRequestCommentingEventHandlerTest
     private boolean featureFlagEnabled = true;
 
     private String repositoryUrl;
+
+    private String sshRepositoryUrl;
 
     private List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationsDTOs;
 
@@ -590,9 +624,9 @@ public class PullRequestCommentingEventHandlerTest
       doReturn(repositoryUrl.contains("bitbucket.org"))
           .when(mockSourceControlUtils).isBitbucketCloud(any(GitRepositoryInfo.class));
 
-      gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, username, token, provider, baseBranch,
+      gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, sshRepositoryUrl, username, token, provider, baseBranch,
           remediationPullRequestsEnabled, statusChecksEnabled, pullRequestCommentingEnabled, sourceControlScansEnabled,
-          sourceControlScanTarget);
+          sshEnabled, sourceControlScanTarget);
       doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
 
       doReturn(null != pullRequestPolicyEvaluationsDTOs ? pullRequestPolicyEvaluationsDTOs : new ArrayList<>())
@@ -612,7 +646,8 @@ public class PullRequestCommentingEventHandlerTest
           licenseChecker,
           getInsightConfig(featureFlagEnabled),
           mockPullRequestPolicyEvaluationResolver,
-          mockPolicyEvaluationDAO
+          mockPolicyEvaluationDAO,
+          mockPullRequestStatusService
       );
     }
 

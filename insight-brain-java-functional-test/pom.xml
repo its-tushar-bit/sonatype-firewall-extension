@@ -227,6 +227,9 @@
               <argLine>@{argLine} -Duser.timezone=UTC</argLine>
               <systemPropertyVariables>
                 <remote>http://${host}:${port}/wd/hub</remote>
+                <applitoolsLogFileName>
+                  ${project.parent.basedir}/test-group-${test.group}-docker.log
+                </applitoolsLogFileName>
               </systemPropertyVariables>
             </configuration>
           </plugin>

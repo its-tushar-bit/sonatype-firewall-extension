@@ -86,6 +86,7 @@ import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -1565,9 +1566,9 @@ public class ApiLicenseLegalServiceTest
 
     Map<ApiLicenseDTO, Set<com.sonatype.insight.brain.model.license.License>> multiLicenseToSingleLicense =
         Sets.newHashSet(Iterables.concat(
-            licenseLegalComponent.licenseLegalData.effectiveLicenses,
-            licenseLegalComponent.licenseLegalData.declaredLicenses,
-            licenseLegalComponent.licenseLegalData.observedLicenses)).stream()
+                licenseLegalComponent.licenseLegalData.effectiveLicenses,
+                licenseLegalComponent.licenseLegalData.declaredLicenses,
+                licenseLegalComponent.licenseLegalData.observedLicenses)).stream()
             .map(multiLicenseDAO::getByIdNotNull)
             .collect(Collectors.toMap(
                 multiLicense -> new ApiLicenseDTO(multiLicense.getId(), multiLicense.getShortDisplayName()),
@@ -1599,8 +1600,8 @@ public class ApiLicenseLegalServiceTest
 
   private Set<String> getExpectedEffectiveLicenseIds(NamedComponentDetails namedComponentDetails) {
     return Sets.newHashSet(Iterables.concat(
-        namedComponentDetails.getEffectiveLicenses(),
-        namedComponentDetails.getOverriddenLicenses()))
+            namedComponentDetails.getEffectiveLicenses(),
+            namedComponentDetails.getOverriddenLicenses()))
         .stream()
         .map(License::getLicenseId)
         .collect(Collectors.toSet());
@@ -1889,6 +1890,59 @@ public class ApiLicenseLegalServiceTest
   }
 
   @Test
+  public void testGetLicenseLegalComponentReport_multiLicense_HasHighestEffectiveLicenseThreatGroup() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c", "e");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails(
+        Arrays.asList("CDDL-1.1-GPL-2.0-CPE"),
+        Arrays.asList("MIT"));
+
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    ApiLicenseThreatDTOV2 expected = new ApiLicenseThreatDTOV2();
+    expected.licenseThreatGroupCategory = "critical";
+    expected.licenseThreatGroupName = "Copyleft";
+    expected.licenseThreatGroupLevel = 9;
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.highestEffectiveLicenseThreatGroup)
+        .usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_HasHighestEffectiveLicenseThreatGroup_overrides() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+
+    LicenseThreatGroup licenseThreatGroup =
+        licenseThreatGroup = tempEntity.newLicenseThreatGroup(Organization.ROOT_ORGANIZATION_ID, "Very Bad", 10);
+    tempEntity.newLicenseThreatGroupLicense(Organization.ROOT_ORGANIZATION_ID, licenseThreatGroup.getId(),
+        "CDDL-1.1");
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails(
+        Arrays.asList("CDDL-1.1-GPL-2.0-CPE"),
+        Arrays.asList("MIT"));
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    ApiLicenseThreatDTOV2 expected = new ApiLicenseThreatDTOV2();
+    expected.licenseThreatGroupCategory = "critical";
+    expected.licenseThreatGroupName = "Very Bad";
+    expected.licenseThreatGroupLevel = 10;
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.highestEffectiveLicenseThreatGroup)
+        .usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
   public void testGetLicenseLegalComponentReport_HasNoHighestEffectiveLicenseThreatGroup() throws Exception {
     Owner owner = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
@@ -2078,7 +2132,7 @@ public class ApiLicenseLegalServiceTest
             null, null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.attributions).extracting(
-        ComponentObligationAttributionDTO::getObligationName)
+            ComponentObligationAttributionDTO::getObligationName)
         .containsExactly("a", "b", "k", "x", "y", "z", null);
   }
 
@@ -2105,7 +2159,7 @@ public class ApiLicenseLegalServiceTest
   private NamedComponentDetails createNamedComponentDetails() {
     return createNamedComponentDetails(
         Arrays.asList("Apache-2.0+", "Apache-2.0-MIT"),
-        Arrays.asList("GPL-3.0-LGPL-2.0", "Beerware"));
+        Arrays.asList("Beerware-Pizzaware", "Beerware"));
   }
 
   private NamedComponentDetails createNamedComponentDetails(
@@ -2202,7 +2256,7 @@ public class ApiLicenseLegalServiceTest
         .filter(c -> c.componentIdentifier != null)
         .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
         .flatMap(component -> Stream.concat(Stream.concat(component.licenseData.declaredLicenses.stream(),
-            component.licenseData.observedLicenses.stream()),
+                component.licenseData.observedLicenses.stream()),
             component.licenseData.effectiveLicenses.stream()))
         .map(license -> license.licenseId)
         .collect(Collectors.toCollection(LinkedHashSet::new)));

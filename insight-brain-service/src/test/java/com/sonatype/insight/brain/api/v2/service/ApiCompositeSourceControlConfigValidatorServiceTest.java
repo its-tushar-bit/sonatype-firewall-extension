@@ -156,7 +156,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
   }
 
   private GitRepositoryInfo getGitRepositoryInfo(String scanTarget) {
-    return new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true, true, true,
-        scanTarget);
+    return new GitRepositoryInfo(null, null, null, null, SourceControlProvider.GITHUB, null, true, true, true, true,
+        false, scanTarget);
   }
 }

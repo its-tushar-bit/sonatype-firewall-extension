@@ -33,6 +33,7 @@ import com.sonatype.nexus.scm.api.model.DefaultCommentResponse;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -91,9 +92,9 @@ public class PullRequestLineCommentingServiceTest
   private final ComponentIdentifier identifier2 =
       ComponentIdentifier.createMavenCoordinates("group2", "artifact2", "2.0");
 
-  private final DiffPosition diffPosition1 =  new DiffPosition("path", 1, 0, 1, 1);
+  private final DiffPosition diffPosition1 = new DiffPosition("path1", 1, 0, 1, 1);
 
-  private final DiffPosition diffPosition2 = new DiffPosition("path", 2, 1, 2, 2);
+  private final DiffPosition diffPosition2 = new DiffPosition("path2", 2, 1, 2, 2);
 
   public PullRequestLineCommentingServiceTest() {
     super(PullRequestLineCommentingService.class);
@@ -134,6 +135,20 @@ public class PullRequestLineCommentingServiceTest
 
     // and: there were no exceptions recorded
     assertThat(result.hasExceptions()).isFalse();
+
+    // and: the SourceControlPullRequestComment was saved to the db
+    ArgumentCaptor<SourceControlPullRequestComment> sourceControlPullRequestCommentCaptor =
+        ArgumentCaptor.forClass(SourceControlPullRequestComment.class);
+    verify(mockPullRequestCommentDAO).insert(sourceControlPullRequestCommentCaptor.capture());
+    SourceControlPullRequestComment sourceControlPullRequestComment = sourceControlPullRequestCommentCaptor.getValue();
+    assertThat(sourceControlPullRequestComment.getApplicationId()).isEqualTo(applicationId);
+    assertThat(sourceControlPullRequestComment.getComponentHash()).isEqualTo("hash1");
+    assertThat(sourceControlPullRequestComment.getPathname()).isEqualTo("path1");
+    assertThat(sourceControlPullRequestComment.getPullRequestId()).isEqualTo(pullRequestId);
+    assertThat(sourceControlPullRequestComment.getPullRequestCommentId()).isEqualTo(scmId);
+    assertThat(sourceControlPullRequestComment.getPullRequestCommentVersion()).isEqualTo(85);
+    assertThat(sourceControlPullRequestComment.getSourcePolicyEvaluationId()).isEqualTo(sourcePolicyEvaluationId);
+    assertThat(sourceControlPullRequestComment.getTargetPolicyEvaluationId()).isEqualTo(basePolicyEvaluationId);
   }
 
   @Test
@@ -142,6 +157,7 @@ public class PullRequestLineCommentingServiceTest
     PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
         .withTwoComponentsFoundInCode()
         .withTwoComponentsFoundInPrDiff()
+        .withCommentVersion(85)
         .build();
 
     // when: try to create line comments
@@ -157,6 +173,32 @@ public class PullRequestLineCommentingServiceTest
 
     // and: there were no exceptions recorded
     assertThat(result.hasExceptions()).isFalse();
+
+    // and: the SourceControlPullRequestComments ware saved to the db
+    ArgumentCaptor<SourceControlPullRequestComment> sourceControlPullRequestCommentCaptor =
+        ArgumentCaptor.forClass(SourceControlPullRequestComment.class);
+    verify(mockPullRequestCommentDAO, times(2)).insert(sourceControlPullRequestCommentCaptor.capture());
+    SourceControlPullRequestComment sourceControlPullRequestComment1 =
+        sourceControlPullRequestCommentCaptor.getAllValues().get(0);
+    assertThat(sourceControlPullRequestComment1.getApplicationId()).isEqualTo(applicationId);
+    assertThat(sourceControlPullRequestComment1.getComponentHash()).isEqualTo("hash1");
+    assertThat(sourceControlPullRequestComment1.getPathname()).isEqualTo("path1");
+    assertThat(sourceControlPullRequestComment1.getPullRequestId()).isEqualTo(pullRequestId);
+    assertThat(sourceControlPullRequestComment1.getPullRequestCommentId()).isEqualTo(scmId);
+    assertThat(sourceControlPullRequestComment1.getPullRequestCommentVersion()).isEqualTo(85);
+    assertThat(sourceControlPullRequestComment1.getSourcePolicyEvaluationId()).isEqualTo(sourcePolicyEvaluationId);
+    assertThat(sourceControlPullRequestComment1.getTargetPolicyEvaluationId()).isEqualTo(basePolicyEvaluationId);
+
+    SourceControlPullRequestComment sourceControlPullRequestComment2 =
+        sourceControlPullRequestCommentCaptor.getAllValues().get(1);
+    assertThat(sourceControlPullRequestComment2.getApplicationId()).isEqualTo(applicationId);
+    assertThat(sourceControlPullRequestComment2.getComponentHash()).isEqualTo("hash2");
+    assertThat(sourceControlPullRequestComment2.getPathname()).isEqualTo("path2");
+    assertThat(sourceControlPullRequestComment2.getPullRequestId()).isEqualTo(pullRequestId);
+    assertThat(sourceControlPullRequestComment2.getPullRequestCommentId()).isEqualTo(scmId);
+    assertThat(sourceControlPullRequestComment2.getPullRequestCommentVersion()).isEqualTo(85);
+    assertThat(sourceControlPullRequestComment2.getSourcePolicyEvaluationId()).isEqualTo(sourcePolicyEvaluationId);
+    assertThat(sourceControlPullRequestComment2.getTargetPolicyEvaluationId()).isEqualTo(basePolicyEvaluationId);
   }
 
   @Test
@@ -442,16 +484,78 @@ public class PullRequestLineCommentingServiceTest
     assertThat(result.hasExceptions()).isFalse();
   }
 
+  @Test
+  public void testCreatePullRequestLineComments_sameCommentTwice() throws Exception {
+    // given:
+    PositionDiscoveryResult positionDiscoveryResult = new PositionDiscoveryResult();
+    List<DiffPosition> diffPositionlist = new ArrayList<>();
+    diffPositionlist.add(new DiffPosition("path1", 1, 1, 1, 1));
+    diffPositionlist.add(new DiffPosition("path2", 2, 2, 2, 2));
+    positionDiscoveryResult.addDiffPositionsForComponent(identifier1, diffPositionlist);
+    PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder() //
+        .withCommentVersion(85) //
+        .withPositionDiscoveryResult(positionDiscoveryResult) //
+        .build();
+    locationDiscoveryResult = new LocationDiscoveryResult();
+    List<RankedSourceLocation> rankedSourceLocationlist = new ArrayList<>();
+    rankedSourceLocationlist.add(new RankedSourceLocation("path1", 1, 1));
+    rankedSourceLocationlist.add(new RankedSourceLocation("path2", 2, 2));
+    locationDiscoveryResult.getLocationMap().put(identifier1, rankedSourceLocationlist);
+
+    // when: try to create line comments
+    PullRequestLineCommentCreationResult result = service.createPullRequestLineComments(getViolationList(1),
+        gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId, sourcePolicyEvaluationId,
+        basePolicyEvaluationId, locationDiscoveryResult);
+
+    // then: two comments should be created
+    List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();
+    verify(mockGitClientFactory, atLeastOnce()).createApiClient(any());
+    assertThat(lineComments).hasSize(2);
+    assertThat(lineComments.get(0).getScmId()).isEqualTo(scmId);
+    assertThat(lineComments.get(0).getScmVersion()).isEqualTo(85);
+    assertThat(lineComments.get(0).getMarkup()).isEqualTo(markupContent);
+
+    // and: there were no exceptions recorded
+    assertThat(result.hasExceptions()).isFalse();
+
+    // and: the SourceControlPullRequestComments ware saved to the db
+    ArgumentCaptor<SourceControlPullRequestComment> sourceControlPullRequestCommentCaptor =
+        ArgumentCaptor.forClass(SourceControlPullRequestComment.class);
+    verify(mockPullRequestCommentDAO, times(2)).insert(sourceControlPullRequestCommentCaptor.capture());
+    SourceControlPullRequestComment sourceControlPullRequestComment1 =
+        sourceControlPullRequestCommentCaptor.getAllValues().get(0);
+    assertThat(sourceControlPullRequestComment1.getApplicationId()).isEqualTo(applicationId);
+    assertThat(sourceControlPullRequestComment1.getComponentHash()).isEqualTo("hash1");
+    assertThat(sourceControlPullRequestComment1.getPathname()).isEqualTo("path1");
+    assertThat(sourceControlPullRequestComment1.getPullRequestId()).isEqualTo(pullRequestId);
+    assertThat(sourceControlPullRequestComment1.getPullRequestCommentId()).isEqualTo(scmId);
+    assertThat(sourceControlPullRequestComment1.getPullRequestCommentVersion()).isEqualTo(85);
+    assertThat(sourceControlPullRequestComment1.getSourcePolicyEvaluationId()).isEqualTo(sourcePolicyEvaluationId);
+    assertThat(sourceControlPullRequestComment1.getTargetPolicyEvaluationId()).isEqualTo(basePolicyEvaluationId);
+
+    SourceControlPullRequestComment sourceControlPullRequestComment2 =
+        sourceControlPullRequestCommentCaptor.getAllValues().get(1);
+    assertThat(sourceControlPullRequestComment2.getApplicationId()).isEqualTo(applicationId);
+    assertThat(sourceControlPullRequestComment2.getComponentHash()).isEqualTo("hash1");
+    assertThat(sourceControlPullRequestComment2.getPathname()).isEqualTo("path2");
+    assertThat(sourceControlPullRequestComment2.getPullRequestId()).isEqualTo(pullRequestId);
+    assertThat(sourceControlPullRequestComment2.getPullRequestCommentId()).isEqualTo(scmId);
+    assertThat(sourceControlPullRequestComment2.getPullRequestCommentVersion()).isEqualTo(85);
+    assertThat(sourceControlPullRequestComment2.getSourcePolicyEvaluationId()).isEqualTo(sourcePolicyEvaluationId);
+    assertThat(sourceControlPullRequestComment2.getTargetPolicyEvaluationId()).isEqualTo(basePolicyEvaluationId);
+  }
+
   private List<PolicyViolation> getViolationList(int itemCount) {
     List<PolicyViolation> violations = new LinkedList<>();
-    PolicyViolation violation = new PolicyViolation();
-    violation.setComponentIdentifier(identifier1);
-    violation.setHash("hash");
-    violations.add(violation);
+    PolicyViolation violation1 = new PolicyViolation();
+    violation1.setComponentIdentifier(identifier1);
+    violation1.setHash("hash1");
+    violations.add(violation1);
     if (itemCount == 2) {
-      violation.setComponentIdentifier(identifier2);
-      violation.setHash("hash2");
-      violations.add(violation);
+      PolicyViolation violation2 = new PolicyViolation();
+      violation2.setComponentIdentifier(identifier2);
+      violation2.setHash("hash2");
+      violations.add(violation2);
     }
     return violations;
   }
@@ -472,6 +576,8 @@ public class PullRequestLineCommentingServiceTest
     private boolean sourceLocationsAvailable = true;
 
     private boolean positionsAvailable = true;
+
+    private PositionDiscoveryResult positionDiscoveryResult;
 
     private int componentsFoundInCode = 1;
 
@@ -502,15 +608,17 @@ public class PullRequestLineCommentingServiceTest
         }
 
         if (positionsAvailable) {
-          PositionDiscoveryResult positionDiscoveryResult = new PositionDiscoveryResult();
-          List<DiffPosition> list = new LinkedList<>();
-          list.add(diffPosition1);
-          positionDiscoveryResult.addDiffPositionsForComponent(identifier1, list);
-          if (componentsFoundInPrDiff == 2) {
-            list = new LinkedList<>();
-            // this diff position is for an unchanged line in the PR diff
-            list.add(diffPosition2);
-            positionDiscoveryResult.addDiffPositionsForComponent(identifier2, list);
+          if (positionDiscoveryResult == null) {
+            positionDiscoveryResult = new PositionDiscoveryResult();
+            List<DiffPosition> list = new LinkedList<>();
+            list.add(diffPosition1);
+            positionDiscoveryResult.addDiffPositionsForComponent(identifier1, list);
+            if (componentsFoundInPrDiff == 2) {
+              list = new LinkedList<>();
+              // this diff position is for an unchanged line in the PR diff
+              list.add(diffPosition2);
+              positionDiscoveryResult.addDiffPositionsForComponent(identifier2, list);
+            }
           }
           when(mockPositionDiscoveryExecutor.execute(anyMap(), anyInt(), any())).thenReturn(positionDiscoveryResult);
         }
@@ -528,8 +636,8 @@ public class PullRequestLineCommentingServiceTest
         if (existingLineCommentsCount > 0) {
           List<SourceControlPullRequestComment> existingLineComments = new ArrayList<>(existingLineCommentsCount);
           for (int i = 0; i < existingLineCommentsCount; i++) {
-            SourceControlPullRequestComment sourceControlPullRequestComment =
-                new SourceControlPullRequestComment(applicationId, "componentHash" + i, pullRequestId, i, 1, "", "");
+            SourceControlPullRequestComment sourceControlPullRequestComment = new SourceControlPullRequestComment(
+                applicationId, "componentHash" + i, "path" + i, pullRequestId, i, 1, "", "");
             existingLineComments.add(sourceControlPullRequestComment);
           }
           when(mockPullRequestCommentDAO.getByApplicationIdAndPullRequestIdWithComponents(applicationId, pullRequestId))
@@ -558,6 +666,14 @@ public class PullRequestLineCommentingServiceTest
 
     TestablePullRequestLineCommentingServiceBuilder withNoPositionsAvailable() {
       this.positionsAvailable = false;
+      return this;
+    }
+
+    TestablePullRequestLineCommentingServiceBuilder withPositionDiscoveryResult(
+        PositionDiscoveryResult positionDiscoveryResult)
+    {
+      positionsAvailable = true;
+      this.positionDiscoveryResult = positionDiscoveryResult;
       return this;
     }
 

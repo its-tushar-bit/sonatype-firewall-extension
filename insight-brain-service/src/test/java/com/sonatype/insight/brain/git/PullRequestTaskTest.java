@@ -113,17 +113,16 @@ public class PullRequestTaskTest
   //Subject
   private PullRequestTask pullRequestTask;
 
-  public static final GitRepositoryInfo INFO =
-      new GitRepositoryInfo("localhost", null, "token", SourceControlProvider.GITHUB, "master", true, true, true, true,
-          null);
+  public static final GitRepositoryInfo INFO = new GitRepositoryInfo("localhost", null, null, "token",
+      SourceControlProvider.GITHUB, "master", true, true, true, true, false, null);
 
   private GitRepositoryInfo gitRepositoryInfo;
 
   @Before
   public void setup() {
     sourceControlConfig = new SourceControlConfig();
-    gitRepositoryInfo = new GitRepositoryInfo("http://localhost", null, "token", SourceControlProvider.GITHUB, "master",
-        true, true, true, true, null);
+    gitRepositoryInfo = new GitRepositoryInfo("http://localhost", null, null, "token", SourceControlProvider.GITHUB,
+        "master", true, true, true, true, false, null);
     when(insightConfig.getSourceControl()).thenReturn(sourceControlConfig);
     pullRequestTask = new PullRequestTask(gitClientFactory, metrics, gitApiFactory, auditRecorder, sourceControlUtils,
         insightConfig);

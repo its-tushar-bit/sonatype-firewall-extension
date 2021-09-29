@@ -80,12 +80,12 @@ public class SourceControlUtils
       return null;
     }
 
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo(sourceControl.getRepositoryUrl(), sourceControl.getUsername(), sourceControl.getToken(),
-            sourceControl.getProvider(), sourceControl.getBaseBranch(),
-            sourceControl.getRemediationPullRequestsEnabled(), sourceControl.getStatusChecksEnabled(),
-            sourceControl.getPullRequestCommentingEnabled(), sourceControl.getSourceControlScansEnabled(),
-            sourceControl.getSourceControlScanTarget());
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(sourceControl.getRepositoryUrl(),
+        sourceControl.getRepositorySshUrl(), sourceControl.getUsername(), sourceControl.getToken(),
+        sourceControl.getProvider(), sourceControl.getBaseBranch(), sourceControl.getRemediationPullRequestsEnabled(),
+        sourceControl.getStatusChecksEnabled(),
+        sourceControl.getPullRequestCommentingEnabled(), sourceControl.getSourceControlScansEnabled(),
+        sourceControl.getSshEnabled(), sourceControl.getSourceControlScanTarget());
 
     if (!gitRepositoryInfo.isDataComplete()) {
       // check at sub-organization level for missing fields
@@ -170,6 +170,10 @@ public class SourceControlUtils
 
     if (gitRepositoryInfo.sourceControlScansEnabled == null) {
       gitRepositoryInfo.sourceControlScansEnabled = orgSourceControl.getSourceControlScansEnabled();
+    }
+
+    if (gitRepositoryInfo.sshEnabled == null) {
+      gitRepositoryInfo.sshEnabled = orgSourceControl.getSshEnabled();
     }
 
     if (gitRepositoryInfo.sourceControlScanTarget == null) {

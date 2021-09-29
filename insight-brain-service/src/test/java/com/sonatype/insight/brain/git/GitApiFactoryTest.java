@@ -44,8 +44,8 @@ public class GitApiFactoryTest
 
   private InsightWork insightWork;
 
-  private final GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("localhost", null, "token",
-      SourceControlProvider.GITHUB, "master", true, true, true, true, null);
+  private final GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("localhost", null, null, "token",
+      SourceControlProvider.GITHUB, "master", true, true, true, true, false, null);
 
   private GitApiFactory gitApiFactory;
 

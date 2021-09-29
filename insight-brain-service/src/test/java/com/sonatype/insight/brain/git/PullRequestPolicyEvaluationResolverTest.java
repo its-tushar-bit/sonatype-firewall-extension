@@ -387,8 +387,8 @@ public class PullRequestPolicyEvaluationResolverTest
   }
 
   private GitRepositoryInfo createDefaultGitRepositoryInfo() {
-    return new GitRepositoryInfo("https://gitlab.com/test/project1", "user", "token", SourceControlProvider.GITLAB,
-        "master", true, true, true, true, null);
+    return new GitRepositoryInfo("https://gitlab.com/test/project1", null, "user", "token",
+        SourceControlProvider.GITLAB, "master", true, true, true, true, false, null);
   }
 
   private class TestablePolicyEvaluationResolver
@@ -400,7 +400,7 @@ public class PullRequestPolicyEvaluationResolverTest
     private PullRequestDefaultBranchPolicyEvaluationResolver mockDefaultBranchPolicyEvaluationResolver;
 
     @Mock
-    private PullRequestBaseCommitPolicyEvaluationResolver mockBaseCommitPolicyEvaluationResolver;
+    private PullRequestTargetCommitPolicyEvaluationResolver mockTargetCommitPolicyEvaluationResolver;
 
     @Mock
     private PullRequestEligibilityValidator mockPullRequestEligibilityValidator;
@@ -438,8 +438,8 @@ public class PullRequestPolicyEvaluationResolverTest
             .getOrPerformDefaultBranchPolicyEvaluation(eq(applicationId), any(), any());
       }
       else {
-        doReturn(policyEvaluation).when(mockBaseCommitPolicyEvaluationResolver)
-            .getOrPerformBaseCommitPolicyEvaluation(eq(applicationId), any(), any());
+        doReturn(policyEvaluation).when(mockTargetCommitPolicyEvaluationResolver)
+            .getOrPerformTargetCommitPolicyEvaluation(any(), any(), any(), any(), any());
       }
       return this;
     }
@@ -521,7 +521,7 @@ public class PullRequestPolicyEvaluationResolverTest
           mockGitCommitHistoryService,
           mockPolicyEvaluationDAO,
           mockDefaultBranchPolicyEvaluationResolver,
-          mockBaseCommitPolicyEvaluationResolver,
+          mockTargetCommitPolicyEvaluationResolver,
           mockPullRequestEligibilityValidator,
           mockPullRequestInfoClient,
           mockSourceControlScanService);

@@ -19,6 +19,73 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
     });
   });
 
+  describe('componentDetailsVulnerabilities/loadVulnerabilityDetails/pending action', () => {
+    it('sets the loading flag to true', () => {
+      const state = Object.freeze({
+        vulnerabilityDetails: {
+          loading: false,
+        },
+      });
+
+      const { vulnerabilityDetails } = reducer(state, {
+        type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/pending',
+      });
+
+      expect(vulnerabilityDetails.loading).toBe(true);
+    });
+  });
+
+  describe('componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled action', () => {
+    it('sets loading flag to false, unsets the error and fills in the details', () => {
+      const state = Object.freeze({
+        vulnerabilityDetails: {
+          details: null,
+          loading: true,
+          error: 'error',
+        },
+      });
+
+      const payload = {
+        identifier: 'CVE-2014-3625',
+        description: 'Directory traversal vulnerability',
+        categories: ['data', 'operational'],
+      };
+
+      const { vulnerabilityDetails } = reducer(state, {
+        type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled',
+        payload,
+      });
+
+      expect(vulnerabilityDetails.details).toEqual({
+        identifier: 'CVE-2014-3625',
+        description: 'Directory traversal vulnerability',
+        categories: ['data', 'operational'],
+      });
+      expect(vulnerabilityDetails.loading).toBe(false);
+      expect(vulnerabilityDetails.error).toBe(null);
+    });
+  });
+
+  describe('componentDetailsVulnerabilities/loadVulnerabilityDetails/rejected action', () => {
+    it('sets the error to the payload and the loading flag to false', () => {
+      const state = Object.freeze({
+        vulnerabilityDetails: {
+          details: null,
+          loading: true,
+          error: null,
+        },
+      });
+
+      const { vulnerabilityDetails } = reducer(state, {
+        type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/rejected',
+        payload: 'load error',
+      });
+
+      expect(vulnerabilityDetails.loading).toBe(false);
+      expect(vulnerabilityDetails.error).toBe('load error');
+    });
+  });
+
   describe('componentDetailsVulnerabilities/loadVulnerabilities/pending action', () => {
     it('sets the loading flag to true', () => {
       const state = Object.freeze({

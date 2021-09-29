@@ -9,6 +9,9 @@ import java.net.URL;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.events.EventFiringWebDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Tweaks loaded pages to ease testing, mostly exists to work around EventFiringWebDriver's inability to notify
@@ -17,15 +20,34 @@ import org.openqa.selenium.support.events.EventFiringWebDriver;
 public class PageTweakingWebDriver
     extends EventFiringWebDriver
 {
+  private final Logger log = LoggerFactory.getLogger(PageTweakingWebDriver.class);
+
   public PageTweakingWebDriver(WebDriver driver) {
     super(driver);
   }
 
   protected void injectTweaks() {
-    executeScript("jQuery(document).ready(function() { jQuery('head').append('<style>"
-        // Fully disabling transitions breaks bootstrap, so we're a little more selective
-        + ".fade { transition: opacity 1ms } " + ".modal.fade { transition: top 0ms, opacity 0ms } "
-        + ".collapse { transition: height 1ms }" + "</style>'); });");
+    try {
+      // skip injection of tweaks for "about" page
+      if (getCurrentUrl() != null && getCurrentUrl().endsWith("/about")) {
+        return;
+      }
+      waitForJQueryToLoad();
+
+      executeScript("jQuery(document).ready(function() { jQuery('head').append('<style>"
+          // Fully disabling transitions breaks bootstrap, so we're a little more selective
+          + ".fade { transition: opacity 1ms } " + ".modal.fade { transition: top 0ms, opacity 0ms } "
+          + ".collapse { transition: height 1ms }" + "</style>'); });");
+    }
+    catch (Exception e) {
+      log.debug("Failed to inject tweaks", e);
+      // do nothing
+    }
+  }
+
+  public void waitForJQueryToLoad() {
+    new WebDriverWait(getWrappedDriver(), 10)
+        .until(d -> executeScript("return !!window.jQuery && jQuery.active === 0"));
   }
 
   @Override

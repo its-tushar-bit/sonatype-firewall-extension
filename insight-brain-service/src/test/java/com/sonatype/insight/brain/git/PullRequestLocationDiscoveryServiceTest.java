@@ -40,6 +40,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -65,9 +66,11 @@ public class PullRequestLocationDiscoveryServiceTest
   @Mock
   private ApplicationDAO applicationDAO;
 
-  private GitRepositoryInfo gitRepositoryInfo =
-      new GitRepositoryInfo("https://github.com/org/proj", "user", "token", SourceControlProvider.GITHUB,
-          "master", true, true, true, true, null);
+  @Mock
+  private SourceControlSshService sourceControlSshService;
+
+  private GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("https://github.com/org/proj", null, "user",
+      "token", SourceControlProvider.GITHUB, "master", true, true, true, true, false, null);
 
   private String branch = "branch";
 
@@ -96,7 +99,7 @@ public class PullRequestLocationDiscoveryServiceTest
         .thenReturn(new File(temporaryFolder.getRoot(), applicationId));
 
     locationDiscoveryService = new PullRequestLocationDiscoveryService(
-        gitApiFactory, applicationDAO, locationDiscoveryExecutor, mockSourceControlUtils);
+        gitApiFactory, applicationDAO, locationDiscoveryExecutor, mockSourceControlUtils, sourceControlSshService);
   }
 
   @Test
@@ -111,6 +114,7 @@ public class PullRequestLocationDiscoveryServiceTest
     // then: no locations discovered
     assertThat(discoveryResult).isNull();
     verify(locationDiscoveryExecutor, never()).execute(any());
+    verifySshServiceInvoked();
   }
 
   @Test
@@ -127,6 +131,7 @@ public class PullRequestLocationDiscoveryServiceTest
     // then: no locations discovered
     assertThat(discoveryResult).isNull();
     verify(locationDiscoveryExecutor, never()).execute(any());
+    verifySshServiceInvoked();
   }
 
   @Test
@@ -151,6 +156,7 @@ public class PullRequestLocationDiscoveryServiceTest
         debug("Pull request location discovery initiated for application 'appId'"),
         error("Failed to execute pull request location discovery")
     );
+    verifySshServiceInvoked();
   }
 
   @Test
@@ -176,6 +182,7 @@ public class PullRequestLocationDiscoveryServiceTest
         debug("Pull request location discovery initiated for application 'appId'"),
         debug("Pull request location discovery completed for application 'appId': 0 components found")
     );
+    verifySshServiceInvoked();
   }
 
   @Test
@@ -205,6 +212,7 @@ public class PullRequestLocationDiscoveryServiceTest
         debug("Pull request location discovery initiated for application 'appId'"),
         debug("Pull request location discovery completed for application 'appId': 1 components found")
     );
+    verifySshServiceInvoked();
   }
 
   private class PolicyViolationBuilder
@@ -220,5 +228,9 @@ public class PullRequestLocationDiscoveryServiceTest
       return new PolicyViolation(evaluation, "policyId", "policyName", 5, PolicyThreatCategory.LICENSE, "hash",
           componentIdentifier, "{}", null);
     }
-  } 
+  }
+
+  private void verifySshServiceInvoked() {
+    verify(sourceControlSshService, times(1)).verifySshUrlAndUpdateIfNeeded(applicationId);
+  }
 }

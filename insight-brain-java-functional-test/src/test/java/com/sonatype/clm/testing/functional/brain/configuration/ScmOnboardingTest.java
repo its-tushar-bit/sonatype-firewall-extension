@@ -72,20 +72,17 @@ import static org.openqa.selenium.Keys.BACK_SPACE;
 public class ScmOnboardingTest
     extends AbstractFunctionalTest
 {
-  private static final String SCM_ROOT = "https\\:\\/\\/localhost\\/";
+  private static final String ID_SELECTOR_FORMAT = "http\\:\\/\\/localhost\\:%s\\/%s";
 
-  private static final String CI_PROJECT_1_GIT = SCM_ROOT + "depshield-ci\\/ci-project-1";
+  private static final String CI_PROJECT_1_GIT = "depshield-ci\\/ci-project-1";
 
-  private static final String REPOSITORY_P_2_GIT = SCM_ROOT + "sonatype-nexus-community\\/nexus-repository-p2";
+  private static final String REPOSITORY_P_2_GIT = "sonatype-nexus-community\\/nexus-repository-p2";
 
-  private static final String REPOSITORY_PUPPET_GIT =
-      SCM_ROOT + "sonatype-nexus-community\\/nexus-repository-puppet";
+  private static final String REPOSITORY_PUPPET_GIT = "sonatype-nexus-community\\/nexus-repository-puppet";
 
-  private static final String REPOSITORY_TERRAFORM_GIT =
-      SCM_ROOT + "sonatype-nexus-community\\/nexus-repository-terraform";
+  private static final String REPOSITORY_TERRAFORM_GIT = "sonatype-nexus-community\\/nexus-repository-terraform";
 
-  private static final String REPOSITORY_VGO_GIT =
-      SCM_ROOT + "sonatype-nexus-community\\/nexus-repository-vgo";
+  private static final String REPOSITORY_VGO_GIT = "sonatype-nexus-community\\/nexus-repository-vgo";
 
   public static final String EMPTY_JSON_ARRAY = "[]";
 
@@ -161,7 +158,7 @@ public class ScmOnboardingTest
         .withQueryParam("page", equalTo(Integer.toString(page)))
         .willReturn(aResponse()
             .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .withBody(json)));
+            .withBody(json.replaceAll("https://localhost", gitService.baseUrl()))));
   }
 
   private String getResourceAsString(String filename) throws IOException {
@@ -484,7 +481,8 @@ public class ScmOnboardingTest
 
     // when the application already exists in IQ
     Application application = tempEntity.newApplication(org.getId());
-    tempEntity.newSourceControl(application.getId(), "https://localhost/depshield-ci/ci-project-1.git", new Date());
+    String repositoryUrl = String.format("%s/depshield-ci/ci-project-1.git",gitService.baseUrl());
+    tempEntity.newSourceControl(application.getId(), repositoryUrl, new Date());
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
 
     // it is no longer displayed in the table and the UI is updated
@@ -787,7 +785,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.importStatusModal().shouldBe(visible);
     scmOnboardingPage.errorMessage().shouldBe(text("2 repositories had an error. See details below."));
     scmOnboardingPage.importSuccessDetailMsg().shouldBe(text("1 repository was successfully imported to IQ Server " +
-            "as applications under the Test Org Organization."));
+        "as applications under the Test Org Organization."));
     scmOnboardingPage.importErrorDetailMsg().shouldBe(text("2 repositories had an error"));
     scmOnboardingPage.importErrorDetails().shouldHave(exactTexts(
         "org2/broken-url-1 failed with Unsupported repository URL format: `h://localhost/org2/broken-url-1.git`",
@@ -872,19 +870,19 @@ public class ScmOnboardingTest
         "nexus-repository-vgo"));
 
     // and the repositories checkboxes are selected
-    scmOnboardingPage.selectionCheckboxById(REPOSITORY_P_2_GIT).shouldBe(selected);
-    scmOnboardingPage.selectionCheckboxById(REPOSITORY_PUPPET_GIT).shouldBe(selected);
-    scmOnboardingPage.selectionCheckboxById(REPOSITORY_TERRAFORM_GIT).shouldBe(selected);
-    scmOnboardingPage.selectionCheckboxById(REPOSITORY_VGO_GIT).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(getIdSelector(REPOSITORY_P_2_GIT)).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(getIdSelector(REPOSITORY_PUPPET_GIT)).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(getIdSelector(REPOSITORY_TERRAFORM_GIT)).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(getIdSelector(REPOSITORY_VGO_GIT)).shouldBe(selected);
 
     // when the filter is changed
     scmOnboardingPage.projectFilter().setValue("i");
 
     // then the selections remain selected
-    scmOnboardingPage.selectionCheckboxById(REPOSITORY_P_2_GIT).shouldBe(selected);
-    scmOnboardingPage.selectionCheckboxById(REPOSITORY_PUPPET_GIT).shouldBe(selected);
-    scmOnboardingPage.selectionCheckboxById(REPOSITORY_TERRAFORM_GIT).shouldBe(selected);
-    scmOnboardingPage.selectionCheckboxById(REPOSITORY_VGO_GIT).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(getIdSelector(REPOSITORY_P_2_GIT)).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(getIdSelector(REPOSITORY_PUPPET_GIT)).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(getIdSelector(REPOSITORY_TERRAFORM_GIT)).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(getIdSelector(REPOSITORY_VGO_GIT)).shouldBe(selected);
 
     // and other repositories remain deselected
     scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).shouldNotBe(selected);
@@ -906,10 +904,10 @@ public class ScmOnboardingTest
 
     // when a repository is clicked
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
-    scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).parent().click();
+    scmOnboardingPage.selectionCheckboxById(getIdSelector(CI_PROJECT_1_GIT)).parent().click();
 
     // then the checkbox is selected
-    scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).shouldBe(selected);
+    scmOnboardingPage.selectionCheckboxById(getIdSelector(CI_PROJECT_1_GIT)).shouldBe(selected);
   }
 
   @Test
@@ -1687,7 +1685,7 @@ public class ScmOnboardingTest
 
     // and an authentication error is displayed in the host URL modal
     scmOnboardingPage.hostUrlAuthError().shouldHave(text("Authentication Error. IQ Server was unable to authenticate " +
-            "with GitHub using the credentials associated with the Custom Host Organization."));
+        "with GitHub using the credentials associated with the Custom Host Organization."));
     scmOnboardingPage.hostUrlAuthErrorLink().shouldHave(attribute("href", expectedUrl));
   }
 
@@ -1765,5 +1763,9 @@ public class ScmOnboardingTest
     scmOnboardingPage.loadError().shouldHave(text("We could not find a token."));
     scmOnboardingPage.loadError()
         .shouldHave(text("or you can provide a custom token for the Custom Provider Organization."));
+  }
+
+  private String getIdSelector(String id) {
+    return String.format(ID_SELECTOR_FORMAT, gitService.port(), id);
   }
 }

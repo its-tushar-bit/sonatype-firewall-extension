@@ -437,10 +437,9 @@ public class PullRequestCodeInsightsDetailsTest
     pullRequestLineComments.add(lineCommentDTO);
 
     //setup gitRepositoryInfo
-    bitbucketGitRepositoryInfo =
-        new GitRepositoryInfo(repositoryUrl, "user", "token",
-            SourceControlProvider.BITBUCKET, "master", true, true, true, true, null);
-    
+    bitbucketGitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, null, "user", "token",
+        SourceControlProvider.BITBUCKET, "master", true, true, true, true, false, null);
+
     //setup source control component details
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
         featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());

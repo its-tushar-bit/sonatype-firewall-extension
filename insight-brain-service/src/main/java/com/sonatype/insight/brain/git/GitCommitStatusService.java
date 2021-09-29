@@ -8,23 +8,14 @@ package com.sonatype.insight.brain.git;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
-import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
-import com.sonatype.nexus.scm.api.GitApiClient.StateType;
 import com.sonatype.nexus.scm.api.model.Status;
 import com.sonatype.nexus.scm.api.model.StatusRequest;
 
@@ -34,18 +25,18 @@ import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class handles all the logic to create a <strong>Commit Status</strong>
+ * <p>
+ * With this commit status we can tell the SCM if a particular commit is safe to merge giving a policy
+ * evaluation result, by tagging it with a proper state and a description.
+ */
 @Named
 @Singleton
 public class GitCommitStatusService
     implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(GitCommitStatusService.class);
-
-  private static final String IQ_POLICY_EVALUATION = "IQ Policy Evaluation";
-
-  private final BaseUrl baseUrl;
-
-  private final ApplicationDAO applicationDAO;
 
   private final GitClientFactory gitClientFactory;
 
@@ -57,21 +48,21 @@ public class GitCommitStatusService
 
   private final AsyncEventBus asyncEventBus;
 
+  private final ScmStatusHelper scmStatusHelper;
+
   @Inject
   public GitCommitStatusService(
       final SourceControlUtils sourceControlUtils,
-      final BaseUrl baseUrl,
-      final ApplicationDAO applicationDAO,
       final GitClientFactory gitClientFactory,
       final IqForScmLicenseChecker licenseChecker,
-      SourceControlEventPublisher sourceControlEventPublisher,
-      AsyncEventBus asyncEventBus)
+      final SourceControlEventPublisher sourceControlEventPublisher,
+      final AsyncEventBus asyncEventBus,
+      final ScmStatusHelper scmStatusHelper)
   {
-    this.baseUrl = baseUrl;
-    this.applicationDAO = applicationDAO;
     this.gitClientFactory = gitClientFactory;
     this.licenseChecker = licenseChecker;
     this.sourceControlUtils = sourceControlUtils;
+    this.scmStatusHelper = scmStatusHelper;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.asyncEventBus = asyncEventBus;
   }
@@ -124,7 +115,8 @@ public class GitCommitStatusService
 
     GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
 
-    StatusRequest statusRequest = createStatusRequest(event, gitApiClient, gitRepositoryInfo.provider);
+    StatusRequest statusRequest = scmStatusHelper.createStatusRequestFromSourceControlEvent(event,
+        gitApiClient, gitRepositoryInfo.provider);
 
     log.debug("Creating a {} commit status for repository: {}, commit hash: {}, with outcome: {}, state: {}",
         gitRepositoryInfo.provider, gitApiClient.getProjectUri().getUrl(),
@@ -145,56 +137,6 @@ public class GitCommitStatusService
           event.getPolicyEvaluationId(), e.getMessage());
       throw new SourceControlException(message, e);
     }
-  }
-
-  private StatusRequest createStatusRequest(
-      final SourceControlEvent event,
-      final GitApiClient gitApiClient,
-      final SourceControlProvider provider)
-  {
-    return gitApiClient.createStatusRequest(
-        getState(event, gitApiClient),
-        IQ_POLICY_EVALUATION,
-        createStatusMessage(event),
-        getReportUrl(event.getApplicationId(), event.getScanId(), provider));
-  }
-
-  private String getReportUrl(
-      final String ownerId,
-      final String scanId,
-      final SourceControlProvider provider)
-  {
-    Application application = applicationDAO.getByIdNotNull(ownerId);
-    String reportPath = UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), scanId);
-    reportPath = addSourceQuery(reportPath, provider);
-    ScanReceipt scanReceipt = new ScanReceipt();
-    scanReceipt.setReportUrl(reportPath);
-    return scanReceipt.resolveReportUrl(baseUrl.get());
-  }
-
-  private String addSourceQuery(
-      final String reportPath,
-      final SourceControlProvider provider)
-  {
-    return UriBuilder.fromPath(reportPath).queryParam("source", provider.toString()).toString();
-  }
-
-  private static String getState(
-      final SourceControlEvent event,
-      final GitApiClient gitApiClient)
-  {
-    switch (event.getPolicyEvaluationOutcome()) {
-      case ApplicationEvaluationEvent.ACTION_ID_NONE:
-      case Action.ID_WARN:
-        return gitApiClient.getState(StateType.SUCCESS);
-      default:
-        return gitApiClient.getState(StateType.FAILURE);
-    }
-  }
-
-  private static String createStatusMessage(final SourceControlEvent event) {
-    return String.format("Components: Critical: %d, Severe: %d, Moderate: %d", event.getCriticalComponentCount(),
-        event.getSevereComponentCount(), event.getModerateComponentCount());
   }
 
   @Override

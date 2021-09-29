@@ -521,7 +521,7 @@ public class PullRequestPollingServiceTest
     final Date repo2pullRequestCreateDate = new Date(System.currentTimeMillis() - 3000);
     final Date repo1pullRequestPollingTime = new Date(System.currentTimeMillis() - 10000);
     final Date repo2pullRequestPollingTime = new Date(System.currentTimeMillis() - 8000);
-    TestablePullRequestPollingServiceBuilder testablePullRequestPollingServiceBuilder = 
+    TestablePullRequestPollingServiceBuilder testablePullRequestPollingServiceBuilder =
         new TestablePullRequestPollingServiceBuilder();
     PullRequestPollingService pollingService = testablePullRequestPollingServiceBuilder
 
@@ -566,7 +566,7 @@ public class PullRequestPollingServiceTest
         .updatePollTimeAndErrorCounts(eq(sourceControl1.getId()), eq(repo2pullRequestCreateDate), eq(0));
     verify(testablePullRequestPollingServiceBuilder.mockSourceControlDAO)
         .updatePollTimeAndErrorCounts(eq(sourceControl2.getId()), eq(repo2pullRequestCreateDate), eq(0));
-    
+
     //  and events are emitted
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
@@ -730,8 +730,8 @@ public class PullRequestPollingServiceTest
           new SourceControl(applicationId, currentMockRepo.repositoryUrl, null, username, "token",
               currentMockRepo.sourceControlProvider, true, true, defaultBranch, false, false, null, false);
       currentMockRepo.sourceControl.setId(UUID.randomUUID().toString());
-      currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(currentMockRepo.repositoryUrl, username, "token",
-          currentMockRepo.sourceControlProvider, defaultBranch, true, true, true, true, null);
+      currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(currentMockRepo.repositoryUrl, null, username, "token",
+          currentMockRepo.sourceControlProvider, defaultBranch, true, true, true, true, false, null);
       return this;
     }
 

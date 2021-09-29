@@ -9,7 +9,7 @@ import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@son
 import VulnerabilitiesTableRow from './VulnerabilitiesTableRow';
 import { vulnerabilitiyPropTypes } from './VulnerabilitiesTableRow';
 
-const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities }) => {
+const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, setVulnerabilityIdAndToggleVisibility }) => {
   return (
     <NxTable className="iq-policy-vulnerability-table">
       <NxTableHead>
@@ -28,7 +28,11 @@ const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities }) => {
       >
         {vulnerabilities.data &&
           vulnerabilities.data.map((vulnerability) => (
-            <VulnerabilitiesTableRow key={vulnerability.refId} vulnerability={vulnerability} />
+            <VulnerabilitiesTableRow
+              key={vulnerability.refId}
+              vulnerability={vulnerability}
+              setVulnerabilityIdAndToggleVisibility={setVulnerabilityIdAndToggleVisibility}
+            />
           ))}
       </NxTableBody>
     </NxTable>
@@ -43,6 +47,7 @@ export const vulnerabilitiesPropTypes = {
 VulnerabilitiesTable.propTypes = {
   loadVulnerabilities: PropTypes.func.isRequired,
   vulnerabilities: PropTypes.shape(vulnerabilitiesPropTypes),
+  setVulnerabilityIdAndToggleVisibility: PropTypes.func.isRequired,
 };
 
 export default VulnerabilitiesTable;

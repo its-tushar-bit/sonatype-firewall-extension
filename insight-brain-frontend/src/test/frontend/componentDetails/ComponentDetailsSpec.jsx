@@ -68,20 +68,19 @@ describe('ComponentDetails', function () {
   });
 
   describe('renders unknown component alert', function () {
-    it('does not render if there is no unknown dependency type', function () {
+    it('does not render if there is no unknown match state', function () {
       const component = getShallowComponent();
       const alertEl = component.find('.iq-component-details-unknown-component-alert');
 
       expect(alertEl).not.toExist();
     });
 
-    it('renders unknown component alert when there is an unknown dependency type', function () {
+    it('renders unknown component alert when there is an unknown match state', function () {
       const component = getShallowComponent({
         componentDetails: {
           name: 'Mock Component Name',
           hash: 'some-crazy-hash',
-          matchState: 'exact',
-          dependencyType: 'unknown',
+          matchState: 'unknown',
         },
       });
       const alertEl = component.find('.iq-component-details-unknown-component-alert');

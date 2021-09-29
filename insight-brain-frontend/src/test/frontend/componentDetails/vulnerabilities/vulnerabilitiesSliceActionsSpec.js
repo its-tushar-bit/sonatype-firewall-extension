@@ -7,7 +7,7 @@ import axios from 'axios';
 import { omit } from 'ramda';
 
 import { actions } from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
-import { getVulnerabilitiesUrl } from '../../../../main/frontend/util/CLMLocation';
+import { getVulnerabilitiesUrl, getVulnerabilityJsonDetailUrl } from '../../../../main/frontend/util/CLMLocation';
 
 describe('vulnerabilitiesSliceActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -46,6 +46,9 @@ describe('vulnerabilitiesSliceActions', () => {
             stageId: 'internalAppId',
           },
         },
+      },
+      componentDetailsVulnerabilities: {
+        selectedRefId: '2',
       },
     };
     store = SpecUtil.mockReduxStore(state);
@@ -139,6 +142,66 @@ describe('vulnerabilitiesSliceActions', () => {
       store.dispatch(loadVulnerabilities()).then(() => {
         // Remove metadata and custom error information from redux toolkit before comparisons
         const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
+        expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFailedAction]);
+        done();
+      });
+    });
+  });
+
+  describe('loadVulnerabilityDetails', () => {
+    const { loadVulnerabilityDetails } = actions;
+
+    it('dispatches a componentDetailsVulnerabilities/loadVulnerabilities/fulfilled action after successful requests', (done) => {
+      const vulnerabilityDetails = {
+        identifier: 'CVE-2014-3625',
+        description: 'Directory traversal vulnerability',
+        categories: ['data', 'operational'],
+      };
+
+      mockAxiosCalls({
+        get: {
+          [getVulnerabilityJsonDetailUrl('2')]: Promise.resolve({
+            data: {
+              ...vulnerabilityDetails,
+            },
+          }),
+        },
+      });
+
+      const expectedPendingAction = {
+        type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/pending',
+      };
+      const expectedFulfilledAction = {
+        type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled',
+        payload: { ...vulnerabilityDetails },
+      };
+
+      store.dispatch(loadVulnerabilityDetails()).then(() => {
+        const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
+
+        expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFulfilledAction]);
+        done();
+      });
+    });
+
+    it('dispatches componentDetailsVulnerabilities/loadVulnerabilityDetails/rejected action', (done) => {
+      mockAxiosCalls({
+        get: {
+          [getVulnerabilityJsonDetailUrl('2')]: () => Promise.reject('some error'),
+        },
+      });
+
+      const expectedPendingAction = {
+        type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/pending',
+      };
+      const expectedFailedAction = {
+        type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/rejected',
+        payload: 'some error',
+      };
+
+      store.dispatch(loadVulnerabilityDetails()).then(() => {
+        const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
+
         expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFailedAction]);
         done();
       });

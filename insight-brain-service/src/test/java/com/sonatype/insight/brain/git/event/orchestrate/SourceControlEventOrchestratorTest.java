@@ -79,8 +79,8 @@ public class SourceControlEventOrchestratorTest
     );
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
     GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo("https://gitlab.org/organization/project", "user", "token", GITLAB,
-            "base-branch", true, true, true, true, null);
+        new GitRepositoryInfo("https://gitlab.org/organization/project", null, "user", "token", GITLAB,
+            "base-branch", true, true, true, true, false, null);
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     SourceControlEvent user1Event =
@@ -115,8 +115,8 @@ public class SourceControlEventOrchestratorTest
     );
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
     GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo("https://bitbucket.org/organization/project", "user", "token", BITBUCKET,
-            "base-branch", true, true, true, true, null);
+        new GitRepositoryInfo("https://bitbucket.org/organization/project", null, "user", "token", BITBUCKET,
+            "base-branch", true, true, true, true, false, null);
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     SourceControlEvent user1Event1 =
@@ -167,8 +167,8 @@ public class SourceControlEventOrchestratorTest
     when(mockInsightConfig.isExperimentalFeatureEnabled(Feature.ORCHESTRATED_EVENT_PROCESSING)).thenReturn(true);
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
     GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo("https://azure.org/organization/project", "user", "token", AZURE,
-            "base-branch", true, true, true, true, null);
+        new GitRepositoryInfo("https://azure.org/organization/project", null, "user", "token", AZURE,
+            "base-branch", true, true, true, true, false, null);
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(

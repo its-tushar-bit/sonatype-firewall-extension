@@ -74,6 +74,8 @@ public class SourceControlScanService
 
   private final InsightConfig insightConfig;
 
+  private final SourceControlSshService sourceControlSshService;
+
   @Inject
   public SourceControlScanService(
       final GitApiFactory gitApiFactory,
@@ -85,7 +87,8 @@ public class SourceControlScanService
       final InsightWork work,
       final Scanner scanner,
       final AuditRecorder auditRecorder,
-      final InsightConfig insightConfig)
+      final InsightConfig insightConfig,
+      final SourceControlSshService sourceControlSshService)
   {
     this.gitApiFactory = gitApiFactory;
     this.sourceControlUtils = sourceControlUtils;
@@ -97,6 +100,7 @@ public class SourceControlScanService
     this.scanner = scanner;
     this.auditRecorder = auditRecorder;
     this.insightConfig = insightConfig;
+    this.sourceControlSshService = sourceControlSshService;
   }
 
   /**
@@ -207,6 +211,8 @@ public class SourceControlScanService
   {
     final GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
     final File repositoryDirectory = sourceControlUtils.getCheckoutDirectory(application);
+
+    sourceControlSshService.verifySshUrlAndUpdateIfNeeded(application.getId());
 
     try {
       return new RepositorySyncExecutor().execute(

@@ -16,7 +16,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.DependencyTypeFilter;
+import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.MatchStateFilter;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
@@ -25,6 +25,8 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentIn
 import com.sonatype.clm.testing.functional.elements.componentdetails.OccurrencesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
+import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
+import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
@@ -65,11 +67,11 @@ import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.exist;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentDetailsTest
@@ -83,7 +85,7 @@ public class ComponentDetailsTest
 
   private Application app;
 
-  private TestReportEvaluator evaluator; 
+  private TestReportEvaluator evaluator;
 
   @Before
   public void start() throws IOException {
@@ -569,6 +571,71 @@ public class ComponentDetailsTest
     eyesWatcher.eyesCheck("component details security tab violation table Active waiver");
   }
 
+  @Test
+  public void testSecurityTab_vulnerabilityTableEntries() {
+    mockHdsResponseForFirstComponent();
+
+    refreshOrOpen(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "1e48256a2341047e7d72"));
+    ComponentDetailsPage componentDetailsPage =  new ComponentDetailsPage();
+    componentDetailsPage.securityTabContent().shouldBe(visible);
+
+    VulnerabilitiesTable vulnerabilitiesTable = componentDetailsPage.securityTabContent().vulnerabilitiesTable();
+    vulnerabilitiesTable.shouldBe(visible);
+
+    vulnerabilitiesTable.getHeaderRow().findAll(By.tagName("th"))
+        .shouldHave(exactTexts("CVSS", "Problem Code", "Status", ""));
+
+    vulnerabilitiesTable.getRows().shouldHaveSize(3);
+    ElementsCollection rowCells = vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"));
+    rowCells.shouldHaveSize(4);
+    rowCells.shouldHave(exactTexts("9", "CVE-1234-56789", "Open", ""));
+    rowCells = vulnerabilitiesTable.getRow(2).findAll(By.tagName("td"));
+    rowCells.shouldHave(exactTexts("4", "OSVDB-1234", "Open", ""));
+    rowCells = vulnerabilitiesTable.getRows().last().findAll(By.tagName("td"));
+    rowCells.shouldHave(exactTexts("0", "OSVDB-4321", "Open", ""));
+
+    eyesWatcher.eyesCheck("component details security tab vulnerabilities table entries");
+  }
+
+  @Test
+  public void testSecurityTab_vulnerabilityDetailsPopover() {
+    mockHdsResponsesForVulnerabilityDetails();
+
+    refreshOrOpen(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "1e48256a2341047e7d72"));
+    ComponentDetailsPage componentDetailsPage =  new ComponentDetailsPage();
+
+    VulnerabilitiesTable vulnerabilitiesTable = componentDetailsPage.securityTabContent().vulnerabilitiesTable();
+    vulnerabilitiesTable.shouldBe(visible);
+
+    SelenideElement firstRow = vulnerabilitiesTable.getRows().first();
+    firstRow.click();
+
+    VulnerabilityDetailsPopover vulnerabilityDetailsPopover = new VulnerabilityDetailsPopover();
+    vulnerabilityDetailsPopover.shouldBe(visible);
+
+    vulnerabilityDetailsPopover.popoverTitle().shouldHave(text("Vulnerability Details"));
+    vulnerabilityDetailsPopover.vulnerabilityTitle().shouldHave(text("CVE-1234-56789"));
+
+    SelenideElement issueContent = vulnerabilityDetailsPopover.getSectionContentByIdx(1);
+    issueContent.shouldHave(text("CVE-1234-56789"));
+
+    SelenideElement severityContent = vulnerabilityDetailsPopover.getSectionContentByIdx(2);
+    severityContent.shouldHave(text("Sonatype CVSS 3:9.1 CVE CVSS 2.0:0.0"));
+
+    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getSectionContentByIdx(3);
+    weaknessContent.shouldHave(text("Sonatype CWE:400"));
+
+    SelenideElement sourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(4);
+    sourceContent.shouldHave(text("Sonatype Data Research"));
+
+    eyesWatcher.eyesCheck("vulnerability details popover");
+
+    SelenideElement closeButton = vulnerabilityDetailsPopover.getCloseButton();
+
+    closeButton.click();
+
+    vulnerabilityDetailsPopover.shouldNotBe(visible);
+  }
 
   /* Part of testPolicyViolationsTab_violationTableEntries. */
   private void testGrandfatheringIndicator(final ComponentDetailsPage componentDetailsPage) {
@@ -716,6 +783,13 @@ public class ComponentDetailsTest
         .atUri("rest/component/dependencies");
   }
 
+  private void mockHdsResponsesForVulnerabilityDetails() {
+    mockHdsResponseForFirstComponent();
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails_CVE-1234-56789.json"))
+        .atUri("rest/vulnerability/details/json/CVE-1234-56789");
+  }
+
   private ComponentDetailsPage openComponentDetailsPageForFirstViolation() {
     ElementsCollection violations = reportPage.resultRows();
     SelenideElement firstViolation = violations.first();
@@ -726,14 +800,14 @@ public class ComponentDetailsTest
 
   private ComponentDetailsPage openComponentDetailsPageForUnknownComponent() {
     reportPage.filterToggle().click();
-    DependencyTypeFilter dependencyTypeFilter = reportPage.filterPanel().dependencyTypeFilter();
-    dependencyTypeFilter.click();
-    dependencyTypeFilter.unknown().click();
+    MatchStateFilter matchStateFilter = reportPage.filterPanel().matchStateFilter();
+    matchStateFilter.click();
+    matchStateFilter.unknown().click();
 
     ElementsCollection violations = reportPage.resultRows();
     SelenideElement unknownViolation = violations.first();
     unknownViolation.click();
-    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
     return new ComponentDetailsPage();
   }
 

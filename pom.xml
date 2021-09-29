@@ -48,6 +48,9 @@
     <jetty.version>9.4.43.v20210629</jetty.version>
     <dropwizard.version>2.0.22</dropwizard.version>
     <!-- The jersey.version must match the jersey version used by dropwizard -->
+    <!-- dropwizard:2.0.22 uses jersey:2.33, which has a security vulnerability: CVE-2021-28168.
+         As of Sep 25, 2021, there is no dropwizard version that uses jersey > 2.33,
+         so we need to manage the jersey dependencies to a version different from what dropwizard uses --> 
     <jersey.version>2.34</jersey.version>
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
     <aether-util.version>1.13.1</aether-util.version>

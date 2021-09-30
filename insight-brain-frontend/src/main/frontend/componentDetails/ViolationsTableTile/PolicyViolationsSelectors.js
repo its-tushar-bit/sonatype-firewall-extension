@@ -63,8 +63,7 @@ const violationToWaiverOperationViolationDetailAdapter = (violation, derivedComp
 
   const { policyViolationId, policyName, policyThreatLevel, constraints } = violation;
   const { constraintName, conditions = [] } = constraints[0];
-  const violationVulnerabilityId =
-    conditions.length && conditions[0].conditionTriggerReference ? conditions[0].conditionTriggerReference.value : null;
+  const violationVulnerabilityId = conditions?.[0].conditionTriggerReference?.value ?? null;
   const reasons = conditions.map((condition) => ({ reason: condition.conditionReason }));
 
   return {

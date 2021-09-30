@@ -84,10 +84,9 @@ export default function PolicyViolationsTableRow({
       </NxTableCell>
       <NxTableCell>{firstConstraint ? firstConstraint.constraintName : null}</NxTableCell>
       <NxTableCell>
-        {reasons &&
-          reasons.map((reason, index) => {
-            return <p key={index}>{reason}</p>;
-          })}
+        {reasons?.map((reason, index) => {
+          return <p key={index}>{reason}</p>;
+        })}
       </NxTableCell>
       <NxTableCell className="iq-policy-violation-row__actions-and-indicators-cell">
         <PolicyViolationsWaiverButtons

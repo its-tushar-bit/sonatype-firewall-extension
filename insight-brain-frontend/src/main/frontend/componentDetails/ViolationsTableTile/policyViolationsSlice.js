@@ -78,15 +78,12 @@ const mapWaiversInformationToViolations = (componentWaivers, allViolations) => {
     return matchesPolicyId(waiver, violation) && matchesConstraintFacts(waiver, violation);
   };
 
-  return (
-    allViolations &&
-    allViolations.map((violation) => ({
-      ...violation,
-      applicableWaivers: componentWaivers
-        .filter((waiver) => waiverIsApplicableToViolation(waiver, violation))
-        .map((waiver) => waiver.policyWaiverId),
-    }))
-  );
+  return allViolations?.map((violation) => ({
+    ...violation,
+    applicableWaivers: componentWaivers
+      .filter((waiver) => waiverIsApplicableToViolation(waiver, violation))
+      .map((waiver) => waiver.policyWaiverId),
+  }));
 };
 
 function loadFailed(state, { payload }) {

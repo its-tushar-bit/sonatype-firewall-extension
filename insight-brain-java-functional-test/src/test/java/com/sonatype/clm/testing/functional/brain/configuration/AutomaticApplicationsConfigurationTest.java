@@ -7,13 +7,14 @@ package com.sonatype.clm.testing.functional.brain.configuration;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.AutomaticApplicationsConfigurationPage;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Organization;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.checked;
@@ -29,13 +30,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AutomaticApplicationsConfigurationTest
     extends AbstractFunctionalTest
 {
+  @BeforeClass
+  public static void startup() {
+    refreshOrOpen(AutomaticApplicationsConfigurationPage.url());
+    loginAsAdmin();
+  }
+
   @Test
   public void automaticApplicationsConfigurationTest() {
     AutomaticApplicationsConfigurationPage automaticApplicationsConfigurationPage =
         new AutomaticApplicationsConfigurationPage();
 
     refreshOrOpen(AutomaticApplicationsConfigurationPage.url());
-    loginAsAdmin();
 
     // check descriptions visibility
     automaticApplicationsConfigurationPage.explanation().shouldBe(visible).shouldNotBe(empty);
@@ -100,7 +106,8 @@ public class AutomaticApplicationsConfigurationTest
   @Test
   public void automaticApplicationsConfigurationTest_explanationSourceControl() {
     // given automatic applications are enabled
-    Organization organization = tempEntity.newOrganizationAutomaticApplicationsConfiguration();
+    Organization organization = tempEntity.newOrganization("Automatic Applications");
+    tempEntity.newOrganizationAutomaticApplicationsConfiguration(organization);
 
     // and source control is configured
     tempEntity.newSourceControl(organization.getId(), null, "token", GITHUB);
@@ -109,7 +116,6 @@ public class AutomaticApplicationsConfigurationTest
     AutomaticApplicationsConfigurationPage automaticApplicationsConfigurationPage =
         new AutomaticApplicationsConfigurationPage();
     refreshOrOpen(AutomaticApplicationsConfigurationPage.url());
-    loginAsAdmin();
 
     // then source control configuration is mentioned in the explanation
     automaticApplicationsConfigurationPage.explanation().shouldBe(visible).shouldNotBe(empty);

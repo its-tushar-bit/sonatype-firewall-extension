@@ -66,7 +66,7 @@ function routes($stateProvider, $urlRouterProvider) {
       },
     })
     .state('applicationReport.policy', {
-      url: '/policy?componentDetailsEnabled',
+      url: '/policy?componentDetailsEnabled&componentHash&tabId',
       component: 'applicationReport',
       data: {
         title: 'Application Report',

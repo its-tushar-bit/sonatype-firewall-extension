@@ -307,6 +307,57 @@ describe('applicationReportResults', function () {
       expect(vm.refreshReportUrlRemovePolicyViolationId).not.toHaveBeenCalled();
       expect(vm.openCipModal).not.toHaveBeenCalled();
     });
+
+    it('opens CIP when rendering and the appropriate index for the componentHash is found', function () {
+      vm.refreshReportUrlRemoveComponentHashAndTabId = jasmine.createSpy('refreshReportUrlRemoveComponentHashAndTabId');
+      vm.openCipModal = jasmine.createSpy('openCipModal');
+
+      // Ensure the previous displayed entries are not defined (opening the report for the first time)
+      vm.selectedReport = undefined;
+      scope.$digest();
+
+      vm.aggregate = true;
+      vm.reportParameters = {
+        componentHash: 'componentHash99',
+        tabId: 'policy',
+      };
+      const numberToHashedComponentFunction = (number) => {
+        return { hash: `componentHash${number}` };
+      };
+
+      vm.selectedReport = {
+        displayedEntries: range(0, 100).map(numberToHashedComponentFunction),
+      };
+      scope.$digest();
+      expect(vm.refreshReportUrlRemoveComponentHashAndTabId).toHaveBeenCalled();
+      expect(vm.openCipModal).toHaveBeenCalledWith(99);
+    });
+
+    it('opens CIP when rendering and the appropriate index for the componentHash is not found in displayedEntries but exists in allEntries', function () {
+      vm.refreshReportUrlRemoveComponentHashAndTabId = jasmine.createSpy('refreshReportUrlRemoveComponentHashAndTabId');
+      vm.openCipModal = jasmine.createSpy('openCipModal');
+
+      // Ensure the previous displayed entries are not defined (opening the report for the first time)
+      vm.selectedReport = undefined;
+      scope.$digest();
+
+      vm.aggregate = true;
+      vm.reportParameters = {
+        componentHash: 'componentHash150',
+        tabId: 'policy',
+      };
+      const numberToHashedComponentFunction = (number) => {
+        return { hash: `componentHash${number}` };
+      };
+
+      vm.selectedReport = {
+        displayedEntries: range(0, 100).map(numberToHashedComponentFunction),
+        allEntries: range(0, 200).map(numberToHashedComponentFunction),
+      };
+      scope.$digest();
+      expect(vm.refreshReportUrlRemoveComponentHashAndTabId).toHaveBeenCalled();
+      expect(vm.openCipModal).toHaveBeenCalledWith(150);
+    });
   });
 
   describe('$onDestroy()', function () {

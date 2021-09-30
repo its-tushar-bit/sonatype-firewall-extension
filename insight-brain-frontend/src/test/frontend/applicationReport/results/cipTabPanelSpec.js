@@ -633,4 +633,125 @@ describe('cipTabPanel', function () {
       expect(controller.closeInnerSourceProducerReportModal).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('getSelectedTab()', function () {
+    let $scope, $ngRedux, controller;
+
+    beforeEach(inject(function (_$rootScope_) {
+      $scope = _$rootScope_.$new();
+    }));
+
+    it('sets the selectedTab given the tabId query param', function () {
+      $ngRedux = {
+        connect: () => {
+          return () => {
+            return () => {};
+          };
+        },
+        getState: () => {
+          return {
+            router: {
+              currentParams: {
+                tabId: 'tabId',
+              },
+            },
+          };
+        },
+      };
+      controller = $componentController('cipTabPanel', {
+        $scope: $scope,
+        $ngRedux: $ngRedux,
+      });
+
+      expect(controller.selectedTab).toBe('tabId');
+    });
+
+    it('sets the selectedTab to the componentInfo tab if tabId is undefined', function () {
+      $ngRedux = {
+        connect: () => {
+          return () => {
+            return () => {};
+          };
+        },
+        getState: () => {
+          return {
+            router: {
+              currentParams: {
+                tabId: undefined,
+              },
+            },
+          };
+        },
+      };
+      controller = $componentController('cipTabPanel', {
+        $scope: $scope,
+        $ngRedux: $ngRedux,
+      });
+
+      expect(controller.selectedTab).toBe('componentInfo');
+    });
+
+    it('sets the selectedTab to the componentInfo tab if currentParams is undefined', function () {
+      $ngRedux = {
+        connect: () => {
+          return () => {
+            return () => {};
+          };
+        },
+        getState: () => {
+          return {
+            router: {
+              currentParams: undefined,
+            },
+          };
+        },
+      };
+      controller = $componentController('cipTabPanel', {
+        $scope: $scope,
+        $ngRedux: $ngRedux,
+      });
+
+      expect(controller.selectedTab).toBe('componentInfo');
+    });
+
+    it('sets the selectedTab to the componentInfo tab if router is undefined', function () {
+      $ngRedux = {
+        connect: () => {
+          return () => {
+            return () => {};
+          };
+        },
+        getState: () => {
+          return {
+            router: undefined,
+          };
+        },
+      };
+      controller = $componentController('cipTabPanel', {
+        $scope: $scope,
+        $ngRedux: $ngRedux,
+      });
+
+      expect(controller.selectedTab).toBe('componentInfo');
+    });
+
+    it('sets the selectedTab to the componentInfo tab if state is undefined', function () {
+      $ngRedux = {
+        connect: () => {
+          return () => {
+            return () => {};
+          };
+        },
+        getState: () => {
+          return undefined;
+        },
+      };
+      controller = $componentController('cipTabPanel', {
+        $scope: $scope,
+        $ngRedux: $ngRedux,
+      });
+
+      expect(controller.selectedTab).toBe('componentInfo');
+    });
+  });
 });

@@ -17,7 +17,7 @@ describe('applicationReportRoot', function () {
   );
 
   beforeEach(inject(function ($componentController) {
-    createController = function (publicId, scanId, unknownJs, embeddable, policyViolationId) {
+    createController = function (publicId, scanId, unknownJs, embeddable, policyViolationId, componentHash, tabId) {
       const vm = $componentController('applicationReportRoot', {
         $state: {
           params: {
@@ -26,6 +26,8 @@ describe('applicationReportRoot', function () {
             unknownJs,
             embeddable,
             policyViolationId,
+            componentHash,
+            tabId,
           },
         },
       });
@@ -44,14 +46,44 @@ describe('applicationReportRoot', function () {
     });
 
     it('calls setReportParameters with the correct parameters', function () {
-      const vm = createController('testApp', 'testReport', false, true, undefined);
-      expect(vm.setReportParameters).toHaveBeenCalledWith('testApp', 'testReport', false, true, undefined);
+      const vm = createController('testApp', 'testReport', false, true, undefined, undefined, undefined);
+      expect(vm.setReportParameters).toHaveBeenCalledWith(
+        'testApp',
+        'testReport',
+        false,
+        true,
+        undefined,
+        undefined,
+        undefined
+      );
     });
 
     it('calls setReportParameters with the correct parameters when returning from addWaiver', function () {
-      const vm = createController('testApp', 'testReport', false, true, 'policyViolationId');
+      const vm = createController('testApp', 'testReport', false, true, 'policyViolationId', undefined, undefined);
 
-      expect(vm.setReportParameters).toHaveBeenCalledWith('testApp', 'testReport', false, true, 'policyViolationId');
+      expect(vm.setReportParameters).toHaveBeenCalledWith(
+        'testApp',
+        'testReport',
+        false,
+        true,
+        'policyViolationId',
+        undefined,
+        undefined
+      );
+    });
+
+    it('calls setReportParameters with the correct parameters when returning from the transitive violations page', function () {
+      const vm = createController('testApp', 'testReport', false, true, 'policyViolationId', 'componentHash', 'tabId');
+
+      expect(vm.setReportParameters).toHaveBeenCalledWith(
+        'testApp',
+        'testReport',
+        false,
+        true,
+        'policyViolationId',
+        'componentHash',
+        'tabId'
+      );
     });
   });
 

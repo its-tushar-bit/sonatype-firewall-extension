@@ -226,7 +226,7 @@ describe('TransitiveViolationsPage', function () {
       expect(backButton).toExist();
       expect(backButton).toHaveProp(
         'href',
-        'applicationReport.policy-{"publicId":"someOwnerId","scanId":"someScanId"}'
+        'applicationReport.policy-{"publicId":"someOwnerId","scanId":"someScanId","componentHash":"someHash","tabId":"policy"}'
       );
       expect(routerContext.useRouterState().href).toHaveBeenCalled();
     });

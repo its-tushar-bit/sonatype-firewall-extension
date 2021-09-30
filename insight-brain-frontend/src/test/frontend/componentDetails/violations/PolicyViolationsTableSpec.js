@@ -3,11 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../enzymeUtils';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
 
-import PolicyViolationsTable from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationsTable';
-import PolicyViolationsTableRow from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationsTableRow';
+import PolicyViolationsTable from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsTable';
+import PolicyViolationsTableRow from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsTableRow';
 
 describe('PolicyViolationsTable', () => {
   let minimalProps, getShallow, getMounted;

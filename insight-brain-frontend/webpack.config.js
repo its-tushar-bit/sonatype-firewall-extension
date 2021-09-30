@@ -108,6 +108,10 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
 
       // sjcl tries to load the node crypto module, don't allow it
       fallback: { crypto: false },
+      alias: {
+        MainRoot: path.resolve(__dirname, 'src/main/frontend'),
+        TestRoot: path.resolve(__dirname, 'src/test/frontend'),
+      },
     },
     module: {
       rules: [

@@ -26,6 +26,10 @@ const config = {
   resolve: {
     extensions: ['.js', '.jsx'],
     fallback: { crypto: false },
+    alias: {
+      MainRoot: path.resolve(__dirname, 'src/main/frontend'),
+      TestRoot: path.resolve(__dirname, 'src/test/frontend'),
+    },
   },
   module: {
     rules: [

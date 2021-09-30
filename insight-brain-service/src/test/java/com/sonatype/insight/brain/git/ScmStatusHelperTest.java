@@ -176,7 +176,7 @@ public class ScmStatusHelperTest
     // verify gets application from the DB
     ArgumentCaptor<String> applicationId = ArgumentCaptor.forClass(String.class);
     verify(mockApplicationDAO, times(1)).getByIdNotNull(applicationId.capture());
-    assertThat(applicationId.getValue()).isEqualTo(this.APP_ID);
+    assertThat(applicationId.getValue()).isEqualTo(APP_ID);
 
     // verify creates status with proper values
     ArgumentCaptor<String> state = ArgumentCaptor.forClass(String.class);

@@ -117,13 +117,12 @@ public class AttributionReportFormTest
     AttributionReportFormPage attrReportFormPage = new AttributionReportFormPage();
     SelenideElement titleInput = attrReportFormPage.getTitleInput();
     SelenideElement submitButton = attrReportFormPage.getFormSubmitBtn();
-    Tooltip tooltip = new Tooltip();
 
     titleInput.setValue("a");
     titleInput.sendKeys(Keys.BACK_SPACE);
 
     submitButton.hover();
-    tooltip.get().getElement().shouldHave(text("Report Title cannot be empty"));
+    Tooltip.get().getElement().shouldHave(text("Report Title cannot be empty"));
   }
 
   private void testFilesUpload(AttributionReportFormPage attrReportFormPage, boolean testDelete) throws IOException {

@@ -43,9 +43,9 @@ public class ApiSourceControlDTO
 
   public Boolean pullRequestCommentingEnabled;
 
-  public Boolean sourceControlScansEnabled;
+  public Boolean internalPolicyEvaluationsEnabled;
 
-  public String sourceControlScanTarget;
+  public String scanTarget;
 
   // TODO INT-5980 remove this when ready for release
   @JsonIgnore

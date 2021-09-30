@@ -106,8 +106,7 @@ public class AutomaticApplicationsConfigurationTest
   @Test
   public void automaticApplicationsConfigurationTest_explanationSourceControl() {
     // given automatic applications are enabled
-    Organization organization = tempEntity.newOrganization("Automatic Applications");
-    tempEntity.newOrganizationAutomaticApplicationsConfiguration(organization);
+    Organization organization = tempEntity.newOrganizationAutomaticApplicationsConfiguration();
 
     // and source control is configured
     tempEntity.newSourceControl(organization.getId(), null, "token", GITHUB);

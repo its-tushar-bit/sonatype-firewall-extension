@@ -18,6 +18,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,7 +76,8 @@ public class AutomaticSourceControlConfigurationTest
   @Test
   public void automaticSourceControlConfigurationTest_explanationAutomaticApplications() {
     // given automatic applications are enabled
-    Organization organization = tempEntity.newOrganizationAutomaticApplicationsConfiguration();
+    Organization organization = tempEntity.newOrganization("automatic source control test");
+    tempEntity.newOrganizationAutomaticApplicationsConfiguration(organization);
 
     // and source control is configured
     tempEntity.newSourceControl(organization.getId(), null, "token", GITHUB);
@@ -87,7 +89,8 @@ public class AutomaticSourceControlConfigurationTest
 
     // then a description about usage of automatic applications is visible
     eyesWatcher.eyesCheck();
-    configurationPage.explanationAutomaticApplications().shouldBe(visible);
+    configurationPage.explanationAutomaticApplications().shouldBe(visible)
+        .shouldHave(text("imported into automatic source control test Organization which uses GitHub."));
   }
 
   private void verifyConfiguration(boolean enabled) {

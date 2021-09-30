@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -32,12 +31,12 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Selenide.switchTo;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
-import static com.codeborne.selenide.Condition.disabled;
 
 public class AttributionReportFormTest
     extends AbstractFunctionalTest
@@ -56,7 +55,7 @@ public class AttributionReportFormTest
   }
 
   @Before
-  public void setUp() throws IOException {
+  public void setUp() {
     app = tempEntity.newApplicationWithParent(AttributionReportFormTest.class.getSimpleName(), "app", "org");
     final ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "033e7a20b23ea284d474", componentId);

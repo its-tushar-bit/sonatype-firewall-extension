@@ -25,6 +25,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentIn
 import com.sonatype.clm.testing.functional.elements.componentdetails.OccurrencesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
+import com.sonatype.clm.testing.functional.elements.componentdetails.SimilarMatchesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
@@ -124,7 +125,7 @@ public class ComponentDetailsTest
       componentDetailsPage.header().title().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
       componentDetailsPage.tabs().shouldHaveSize(5);
 
-      SelenideElement backButton =  MainHeader.backButton();
+      SelenideElement backButton = MainHeader.backButton();
       backButton.shouldBe(visible);
       backButton.shouldHave(text("Back to Application Report"));
       backButton.click();
@@ -261,12 +262,36 @@ public class ComponentDetailsTest
   }
 
   @Test
+  public void testOverviewTab_SimilarMatchesPopover() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForSimilarComponent();
+    componentDetailsPage.overviewTab().shouldBe(visible);
+    componentDetailsPage.overviewTabContent().shouldBe(visible);
+
+    IdentificationInfoSection identificationInfoSection =
+        componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
+    identificationInfoSection.shouldBe(visible);
+    identificationInfoSection.getMatchStateItem().shouldHave(text("similar (View Similar Matches)"));
+    identificationInfoSection.getSimilarMatchesLink().click();
+
+    SimilarMatchesPopover similarMatchesPopover = new SimilarMatchesPopover();
+    similarMatchesPopover.title().shouldHave(text("Similar Matches"));
+    similarMatchesPopover.componentIdentificationInformation().shouldBe(visible);
+    similarMatchesPopover.bestMatchSubtitle().shouldHave(text("Best Match"));
+    similarMatchesPopover.bestMatchListItem().shouldHave(text("apache-httpclient : commons-httpclient : 3.1"));
+    eyesWatcher.eyesCheck("Similar Matches Popover");
+
+    similarMatchesPopover.closeButton().click();
+    similarMatchesPopover.shouldNotBe(visible);
+  }
+
+  @Test
   public void testPolicyViolationsTab_violationTableEntries() {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
     SelenideElement lastViolation = reportPage.resultRows().last();
     lastViolation.click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "bd804633b9c2cf062586"));
-    ComponentDetailsPage componentDetailsPage =  new ComponentDetailsPage();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
     componentDetailsPage.violationsTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, "bd804633b9c2cf062586"));
     componentDetailsPage.violationsTabContent().shouldBe(visible);
@@ -505,7 +530,7 @@ public class ComponentDetailsTest
   @Test
   public void testSecurityTab_securityViolationTableEntries() {
     refreshOrOpen(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "197d803ab63dd3523d9d"));
-    ComponentDetailsPage componentDetailsPage =  new ComponentDetailsPage();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
     componentDetailsPage.securityTabContent().shouldBe(visible);
 
     PolicyViolationsTable policyViolationsTable = componentDetailsPage.securityTabContent().policyViolationsTable();
@@ -514,10 +539,10 @@ public class ComponentDetailsTest
     ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
     rowCells.shouldHaveSize(6);
     rowCells.shouldHave(exactTexts("9", "Security-High", "High risk CVSS score",
-            "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
+        "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'",
-            "Add Waiver", ""));
+        "Add Waiver", ""));
 
     eyesWatcher.eyesCheck("component details security tab violation table add waiver");
 
@@ -526,7 +551,7 @@ public class ComponentDetailsTest
     Button saveButton = addWaiverPopover.saveButton();
     saveButton.shouldBe(visible).click();
 
-    componentDetailsPage =  new ComponentDetailsPage();
+    componentDetailsPage = new ComponentDetailsPage();
     componentDetailsPage.securityTabContent().shouldBe(visible);
 
     policyViolationsTable = componentDetailsPage.securityTabContent().policyViolationsTable();
@@ -535,10 +560,10 @@ public class ComponentDetailsTest
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
     rowCells.shouldHaveSize(6);
     rowCells.shouldHave(exactTexts("9", "Security-High", "High risk CVSS score",
-            "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
+        "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'",
-            "Unapplied Waiver", ""));
+        "Unapplied Waiver", ""));
 
     eyesWatcher.eyesCheck("component details security tab violation table Unapplied waiver");
 
@@ -546,14 +571,14 @@ public class ComponentDetailsTest
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reevaluateButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID,true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
     ApplicationReportPage.AppReportHeaders reportHeaders = new ApplicationReportPage.AppReportHeaders();
     reportHeaders.componentNameFilterInput()
-      .setValue("org.springframework.security : spring-security-web : 3.2.4.release");
+        .setValue("org.springframework.security : spring-security-web : 3.2.4.release");
     reportPage.resultRows().first().click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "197d803ab63dd3523d9d"));
 
-    componentDetailsPage =  new ComponentDetailsPage();
+    componentDetailsPage = new ComponentDetailsPage();
     componentDetailsPage.securityTab().click();
     componentDetailsPage.securityTabContent().shouldBe(visible);
 
@@ -563,10 +588,10 @@ public class ComponentDetailsTest
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
     rowCells.shouldHaveSize(6);
     rowCells.shouldHave(exactTexts("9", "Security-High", "High risk CVSS score",
-            "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
+        "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'",
-            "1 Active Waiver", ""));
+        "1 Active Waiver", ""));
 
     eyesWatcher.eyesCheck("component details security tab violation table Active waiver");
   }
@@ -576,7 +601,7 @@ public class ComponentDetailsTest
     mockHdsResponseForFirstComponent();
 
     refreshOrOpen(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "1e48256a2341047e7d72"));
-    ComponentDetailsPage componentDetailsPage =  new ComponentDetailsPage();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
     componentDetailsPage.securityTabContent().shouldBe(visible);
 
     VulnerabilitiesTable vulnerabilitiesTable = componentDetailsPage.securityTabContent().vulnerabilitiesTable();
@@ -811,6 +836,20 @@ public class ComponentDetailsTest
     return new ComponentDetailsPage();
   }
 
+  private ComponentDetailsPage openComponentDetailsPageForSimilarComponent() {
+    final String similarComponentHash = "f0776db1593e215146d2";
+    reportPage.filterToggle().click();
+    MatchStateFilter matchStateFilter = reportPage.filterPanel().matchStateFilter();
+    matchStateFilter.click();
+    matchStateFilter.similar().click();
+
+    ElementsCollection violations = reportPage.resultRows();
+    SelenideElement similarComponentViolation = violations.first();
+    similarComponentViolation.click();
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, similarComponentHash));
+    return new ComponentDetailsPage();
+  }
+
   private void navigateToComponentDetailsPageViolationsTab(final ComponentDetailsPage componentDetailsPage) {
     componentDetailsPage.violationsTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, HASH));
@@ -828,3 +867,4 @@ public class ComponentDetailsTest
     WaiverApplierForReport.waiveReportRow(reportPage, 0);
   }
 }
+

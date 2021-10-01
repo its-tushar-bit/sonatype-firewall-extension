@@ -18,6 +18,7 @@ import * as enzymeUtils from '../../../enzymeUtils';
 import LoadWrapper from '../../../../../main/frontend/react/LoadWrapper';
 import ManageFiltersDropdown from '../../../../../main/frontend/dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
 import DeleteFilterModalContainer from '../../../../../main/frontend/dashboard/filter/deleteFilterModal/DeleteFilterModalContainer';
+import { IqPopoverHeader } from '../../../../../main/frontend/react/IqPopover';
 
 describe('DashboardFilter', function () {
   let getShallowComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock, DashboardFilter;
@@ -118,11 +119,11 @@ describe('DashboardFilter', function () {
           showDirtyAsterisk: true,
         },
         shallowRender = getShallowComponent(props),
-        header = shallowRender.find('.dashboard-filter-header');
+        header = shallowRender.find(IqPopoverHeader);
 
-      expect(header.childAt(0).find('.dashboard-filter-header__title-text')).toHaveText('Filter');
+      expect(header).toHaveProp('headerTitle', 'Filter');
 
-      expect(header.childAt(1)).toContainReact(
+      expect(header.dive().childAt(1)).toContainReact(
         <ManageFiltersDropdown
           appliedFilterName="some filter"
           showDirtyAsterisk={true}
@@ -349,7 +350,8 @@ describe('DashboardFilter', function () {
           toggleFilterSidebar: toggleFilterSidebarSpy,
         });
 
-      const closeButton = shallowRender.find('#dashboard-filter-close-btn');
+      const header = shallowRender.find(IqPopoverHeader).dive();
+      const closeButton = header.find('#dashboard-filter-close-btn');
       expect(closeButton).not.toHaveClassName('disabled');
       closeButton.simulate('click');
       expect(toggleFilterSidebarSpy).toHaveBeenCalledWith(false);
@@ -358,7 +360,8 @@ describe('DashboardFilter', function () {
     it('sets the tooltip to "Close" when filtersAreDirty and needsAcknowledgement are false', function () {
       const shallowRender = getShallowComponent();
 
-      const btn = shallowRender.find('#dashboard-filter-close-btn');
+      const header = shallowRender.find(IqPopoverHeader).dive();
+      const btn = header.find('#dashboard-filter-close-btn');
       expect(btn).toHaveProp('title', 'Close');
     });
 
@@ -370,7 +373,8 @@ describe('DashboardFilter', function () {
             filtersAreDirty: true,
           });
 
-        const closeButton = shallowRender.find('#dashboard-filter-close-btn');
+        const header = shallowRender.find(IqPopoverHeader).dive();
+        const closeButton = header.find('#dashboard-filter-close-btn');
         expect(closeButton).toHaveClassName('disabled');
         closeButton.simulate('click');
         expect(toggleFilterSidebarSpy).not.toHaveBeenCalled();
@@ -381,7 +385,8 @@ describe('DashboardFilter', function () {
           filtersAreDirty: true,
         });
 
-        const btn = shallowRender.find('#dashboard-filter-close-btn');
+        const header = shallowRender.find(IqPopoverHeader).dive();
+        const btn = header.find('#dashboard-filter-close-btn');
         expect(btn).toHaveProp('title', 'Please apply or revert filter');
       });
     });
@@ -394,7 +399,8 @@ describe('DashboardFilter', function () {
             needsAcknowledgement: true,
           });
 
-        const closeButton = shallowRender.find('#dashboard-filter-close-btn');
+        const header = shallowRender.find(IqPopoverHeader).dive();
+        const closeButton = header.find('#dashboard-filter-close-btn');
         expect(closeButton).toHaveClassName('disabled');
         closeButton.simulate('click');
         expect(toggleFilterSidebarSpy).not.toHaveBeenCalled();
@@ -405,7 +411,8 @@ describe('DashboardFilter', function () {
           needsAcknowledgement: true,
         });
 
-        const btn = shallowRender.find('#dashboard-filter-close-btn');
+        const header = shallowRender.find(IqPopoverHeader).dive();
+        const btn = header.find('#dashboard-filter-close-btn');
         expect(btn).toHaveProp('title', 'Please apply a filter');
       });
     });
@@ -417,7 +424,8 @@ describe('DashboardFilter', function () {
           filtersAreDirty: true,
         });
 
-        const btn = shallowRender.find('#dashboard-filter-close-btn');
+        const header = shallowRender.find(IqPopoverHeader).dive();
+        const btn = header.find('#dashboard-filter-close-btn');
         expect(btn).toHaveProp('title', 'Please apply a filter');
       });
     });

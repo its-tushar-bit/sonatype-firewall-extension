@@ -11,6 +11,7 @@ import React from 'react';
 import { NxLoadError, NxStatefulTextInput, NxSubmitMask } from '@sonatype/react-shared-components';
 import { waiverExpirations } from '../../../main/frontend/util/waiverUtils';
 import TransitiveViolationsSummary from '../../../main/frontend/violation/TransitiveViolationsSummary';
+import { IqPopoverHeader } from '../../../main/frontend/react/IqPopover';
 
 describe('WaiveTransitiveViolationsPopover', function () {
   let minimalProps,
@@ -69,7 +70,8 @@ describe('WaiveTransitiveViolationsPopover', function () {
 
   it('calls toggleWaiveTransitiveViolations when the toggle is clicked', function () {
     const wrapper = getShallowComponent();
-    const toggle = wrapper.find('#waive-transitive-violations-popover-toggle');
+    const header = wrapper.find(IqPopoverHeader).dive();
+    const toggle = header.find('#waive-transitive-violations-popover-toggle');
     toggle.simulate('click');
     expect(spyToggleWaiveTransitiveViolations).toHaveBeenCalled();
   });

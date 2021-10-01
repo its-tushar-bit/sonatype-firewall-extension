@@ -10,6 +10,7 @@ import LoadWrapper from '../../../../../main/frontend/react/LoadWrapper';
 import React from 'react';
 import { NxErrorAlert } from '@sonatype/react-shared-components';
 import ManageFiltersDropdown from '../../../../../main/frontend/dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
+import { IqPopoverHeader } from '../../../../../main/frontend/react/IqPopover';
 
 describe('LegalDashboardFilter', function () {
   let getShallowComponent,
@@ -125,11 +126,11 @@ describe('LegalDashboardFilter', function () {
           showDirtyAsterisk: true,
         },
         shallowRender = getShallowComponent(props),
-        header = shallowRender.find('.legal-dashboard-filter-header');
+        header = shallowRender.find(IqPopoverHeader);
 
-      expect(header.childAt(0).find('.legal-dashboard-filter-header__title-text')).toHaveText('Filter');
+      expect(header).toHaveProp('headerTitle', 'Filter');
 
-      expect(header.childAt(1)).toContainReact(
+      expect(header.dive().childAt(1)).toContainReact(
         <ManageFiltersDropdown
           appliedFilterName="some filter"
           showDirtyAsterisk={true}

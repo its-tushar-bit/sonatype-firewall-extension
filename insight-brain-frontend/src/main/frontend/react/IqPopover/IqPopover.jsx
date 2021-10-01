@@ -6,7 +6,10 @@
 import React, { Children, forwardRef, useRef } from 'react';
 import PropTypes from 'prop-types';
 import cx from 'classnames';
+import { NxButton, NxFontAwesomeIcon, NxH1, NxH2, NxH3 } from '@sonatype/react-shared-components';
+import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 import { groupBy } from 'ramda';
+
 import useClickAway from '../useClickAway';
 import useEscapeKeyStack from '../useEscapeKeyStack';
 
@@ -36,12 +39,52 @@ IqPopover.propTypes = {
   children: PropTypes.node,
   className: PropTypes.string,
   onClose: PropTypes.func,
-  size: PropTypes.oneOf(['small', 'medium', 'large', 'automatic']),
+  size: PropTypes.oneOf(['small', 'medium', 'large', 'extra-large']),
 };
 
-export const IqPopoverHeader = ({ children, className, ...props }) => {
+export const IqPopoverHeaderTitleText = ({ headerSize = 'h2', headerTitle }) => {
+  const commonClass = 'iq-popover-header__title-text';
+
+  switch (headerSize) {
+    case 'h1':
+      return <NxH1 className={commonClass}>{headerTitle}</NxH1>;
+    case 'h3':
+      return <NxH3 className={commonClass}>{headerTitle}</NxH3>;
+    case 'h2':
+    default:
+      return <NxH2 className={commonClass}>{headerTitle}</NxH2>;
+  }
+};
+
+IqPopoverHeaderTitleText.propTypes = {
+  headerSize: PropTypes.oneOf(['h1', 'h2', 'h3']),
+  headerTitle: PropTypes.string.isRequired,
+};
+
+export const IqPopoverHeader = (props) => {
+  const {
+    children,
+    className,
+    onClose,
+    buttonId,
+    headerSize,
+    headerTitle,
+    buttonClassnames,
+    closeTitle,
+    ...otherProps
+  } = props;
+
+  const btnClasses = cx('iq-popover-header__close-btn', buttonClassnames);
+  const btnTitle = closeTitle || 'Close';
+
   return (
-    <header className={cx('iq-popover__header', className)} {...props}>
+    <header className={cx('iq-popover__header', className)} {...otherProps}>
+      <div className="iq-popover-header__title">
+        <IqPopoverHeaderTitleText headerSize={headerSize} headerTitle={headerTitle} />
+        <NxButton className={btnClasses} onClick={onClose} variant="icon-only" title={btnTitle} id={buttonId}>
+          <NxFontAwesomeIcon icon={faArrowToRight} />
+        </NxButton>
+      </div>
       {children}
       <hr className="iq-popover__divider" />
     </header>
@@ -49,7 +92,12 @@ export const IqPopoverHeader = ({ children, className, ...props }) => {
 };
 
 IqPopoverHeader.propTypes = {
+  ...IqPopoverHeaderTitleText.propTypes,
   children: PropTypes.node,
+  onClose: PropTypes.func.isRequired,
+  buttonId: PropTypes.string,
+  buttonClassnames: PropTypes.string,
+  closeTitle: PropTypes.string,
   className: PropTypes.string,
 };
 

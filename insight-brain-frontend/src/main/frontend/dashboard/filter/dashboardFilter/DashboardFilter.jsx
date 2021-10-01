@@ -8,13 +8,10 @@ import * as PropTypes from 'prop-types';
 import { map, curryN } from 'ramda';
 import classnames from 'classnames';
 import {
-  NxButton,
   NxErrorAlert,
-  NxFontAwesomeIcon,
   NxStatefulTreeViewMultiSelect,
   NxStatefulTreeViewRadioSelect,
 } from '@sonatype/react-shared-components';
-import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 
 import IqOrgAppPicker from '../../../components/iqOrgAppPicker/IqOrgAppPicker';
 import IqTreeViewPolicyThreatSlider from '../../../react/IqTreeViewPolicyThreatSlider';
@@ -118,21 +115,18 @@ export default function DashboardFilter(props) {
   return (
     <IqPopover id="dashboard-filter-container" onClose={() => toggleFilterSidebar(false)}>
       {showSaveFilterModal && <SaveFilterModalContainer />}
-      <IqPopover.Header className="dashboard-filter-header" id="dashboard-filter-header">
-        <div className="dashboard-filter-header__title">
-          <h3 className="nx-h3 dashboard-filter-header__title-text">Filter</h3>
-          <NxButton
-            id="dashboard-filter-close-btn"
-            onClick={handleCloseBtnClick}
-            variant="icon-only"
-            title={closeFilterBtnTooltip}
-            className={classnames({
-              disabled: filtersAreDirty || needsAcknowledgement,
-            })}
-          >
-            <NxFontAwesomeIcon icon={faArrowToRight} />
-          </NxButton>
-        </div>
+      <IqPopover.Header
+        className="dashboard-filter-header"
+        id="dashboard-filter-header"
+        headerSize="h3"
+        headerTitle="Filter"
+        buttonId="dashboard-filter-close-btn"
+        onClose={handleCloseBtnClick}
+        buttonClassnames={classnames({
+          disabled: filtersAreDirty || needsAcknowledgement,
+        })}
+        closeTitle={closeFilterBtnTooltip}
+      >
         {!loading && !loadError && (
           <ManageFiltersDropdown
             {...{

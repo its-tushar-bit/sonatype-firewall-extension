@@ -6,8 +6,7 @@
 import React from 'react';
 import { IqPopover } from '../react/IqPopover';
 import * as PropTypes from 'prop-types';
-import { NxButton, NxCodeSnippet, NxFontAwesomeIcon, NxInfoAlert, NxTextLink } from '@sonatype/react-shared-components';
-import { faArrowFromLeft } from '@fortawesome/pro-solid-svg-icons';
+import { NxCodeSnippet, NxInfoAlert, NxTextLink } from '@sonatype/react-shared-components';
 import { availableScopesPropType, componentTransitivePolicyViolationsPropType } from './transitiveViolationsPropTypes';
 import { getWaiveTransitiveViolationsUrl } from '../util/CLMLocation';
 import TransitiveViolationsSummary from './TransitiveViolationsSummary';
@@ -27,23 +26,15 @@ export default function RequestWaiveTransitiveViolationsPopover(props) {
   return (
     <IqPopover
       id="request-waive-transitive-violations-popover"
-      size="automatic"
+      size="large"
       onClose={toggleRequestWaiveTransitiveViolations}
     >
-      <IqPopover.Header className="transitive-violations-popover-header">
-        <div className="transitive-violations-popover-header__title">
-          <h2 className="nx-h2 transitive-violations-popover-header__title-text">
-            Request Waivers for Transitive Violations
-          </h2>
-          <NxButton
-            id="request-waive-transitive-violations-popover-toggle"
-            onClick={toggleRequestWaiveTransitiveViolations}
-            variant="icon-only"
-          >
-            <NxFontAwesomeIcon className="transitive-violations-popover-header__title-icon" icon={faArrowFromLeft} />
-          </NxButton>
-        </div>
-      </IqPopover.Header>
+      <IqPopover.Header
+        className="transitive-violations-popover-header"
+        headerTitle="Request Waivers for Transitive Violations"
+        buttonId="request-waive-transitive-violations-popover-toggle"
+        onClose={toggleRequestWaiveTransitiveViolations}
+      />
       <NxInfoAlert>
         To request transitive violation waivers, please share the application id, report id, parent component hash, and
         sample curl command (found below) with the approver.{' '}

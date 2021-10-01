@@ -4,12 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment } from 'react';
-import {
-  NxButton,
-  NxErrorAlert,
-  NxFontAwesomeIcon,
-  NxStatefulTreeViewMultiSelect,
-} from '@sonatype/react-shared-components';
+import { NxErrorAlert, NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../react/LoadWrapper';
 import IqPopover from '../../../react/IqPopover';
 import IqOrgAppPicker from '../../../components/iqOrgAppPicker/IqOrgAppPicker';
@@ -20,7 +15,6 @@ import LegalDashboardFilterFooter from './LegalDashboardFilterFooter';
 import ManageFiltersDropdown from '../../../dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
 import { filterToJson } from './legalDashboardFilterService';
 import classnames from 'classnames';
-import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 import SaveLegalFilterModalContainer from './SaveLegalFilterModalContainer';
 import DeleteLegalFilterModalContainer from './DeleteLegalFilterModalContainer';
 
@@ -87,19 +81,15 @@ export default function LegalDashboardFilter(props) {
   return (
     <IqPopover onClose={() => toggleFilterSidebar(false)}>
       {showSaveFilterModal && <SaveLegalFilterModalContainer />}
-      <IqPopover.Header className="legal-dashboard-filter-header">
-        <div className="legal-dashboard-filter-header__title">
-          <h3 className="nx-h3 legal-dashboard-filter-header__title-text">Filter</h3>
-          <NxButton
-            id="legal-dashboard-filter-close-btn"
-            onClick={handleCloseBtnClick}
-            variant="icon-only"
-            title={closeFilterBtnTooltip}
-            className={classnames({ disabled: filtersAreDirty })}
-          >
-            <NxFontAwesomeIcon icon={faArrowToRight} />
-          </NxButton>
-        </div>
+      <IqPopover.Header
+        className="legal-dashboard-filter-header"
+        buttonId="legal-dashboard-filter-close-btn"
+        onClose={handleCloseBtnClick}
+        headerSize="h3"
+        headerTitle="Filter"
+        buttonClassnames={classnames({ disabled: filtersAreDirty })}
+        closeTitle={closeFilterBtnTooltip}
+      >
         {!loading && !loadError && (
           <ManageFiltersDropdown
             {...{

@@ -4,10 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxButton, NxFontAwesomeIcon, NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
+import { NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { curryN, prop, sortBy } from 'ramda';
-import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 import { expandedProgressOptions } from '../../dashboard/legalDashboardConstants';
 import IqPopover from '../../../react/IqPopover';
 
@@ -24,19 +23,13 @@ export default function LegalApplicationDetailsFilter(props) {
 
   return (
     <IqPopover onClose={() => toggleFilterSidebar(false)}>
-      <IqPopover.Header className="legal-application-details-filter-header">
-        <div className="legal-application-details-filter-header__title">
-          <h3 className="nx-h3 legal-application-details-filter-header__title-text">Filter</h3>
-          <NxButton
-            id="legal-dashboard-filter-close-btn"
-            onClick={() => toggleFilterSidebar(false)}
-            variant="icon-only"
-            title="Close"
-          >
-            <NxFontAwesomeIcon icon={faArrowToRight} />
-          </NxButton>
-        </div>
-      </IqPopover.Header>
+      <IqPopover.Header
+        className="legal-application-details-filter-header"
+        buttonId="legal-dashboard-filter-close-btn"
+        onClose={() => toggleFilterSidebar(false)}
+        headerSize="h3"
+        headerTitle="Filter"
+      />
       <div className="legal-application-details-filter">
         <NxStatefulTreeViewMultiSelect
           options={expandedProgressOptions}

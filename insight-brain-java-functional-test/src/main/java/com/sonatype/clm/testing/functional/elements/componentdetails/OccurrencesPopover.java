@@ -19,11 +19,11 @@ public class OccurrencesPopover
   }
 
   public SelenideElement title() {
-    return child(".iq-occurrences-popover-header__title-text");
+    return child(".iq-popover-header__title-text");
   }
 
   public SelenideElement closeButton() {
-    return child(".iq-occurrences-popover-header__title-close");
+    return child("#iq-occurrences-popover-close-btn");
   }
 
   public SelenideElement infoMessage() {

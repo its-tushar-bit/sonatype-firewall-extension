@@ -7,7 +7,7 @@ import { NxList, NxButton } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../../enzymeUtils';
 import OccurrencesPopover from '../../../../../main/frontend/componentDetails/overview/occurrencesPopover/OccurrencesPopover';
-import IqPopover from '../../../../../main/frontend/react/IqPopover';
+import IqPopover, { IqPopoverHeader } from '../../../../../main/frontend/react/IqPopover';
 import * as componentDetailsUtils from '../../../../../main/frontend/componentDetails/componentDetailsUtils';
 
 describe('OccurrencesPopover', function () {
@@ -34,13 +34,15 @@ describe('OccurrencesPopover', function () {
 
     component = getShallowComponent();
     expect(component).toMatchSelector(IqPopover);
-    expect(component.find('.iq-popover-header__title-text')).toHaveText('Occurrences');
+    expect(component.find(IqPopoverHeader)).toHaveProp('headerTitle', 'Occurrences');
   });
 
-  it('renders a Popover with close button', () => {
+  it('renders a PopoverHeader with appropriate props', () => {
     const component = getShallowComponent();
     expect(component).toMatchSelector(IqPopover);
-    const closeBtn = component.find(NxButton);
+    const header = component.find(IqPopoverHeader);
+    expect(header).toHaveProp('onClose', minimalProps.onClose);
+    const closeBtn = header.dive().find(NxButton);
     expect(closeBtn).toHaveProp('onClick', minimalProps.onClose);
 
     closeBtn.simulate('click');

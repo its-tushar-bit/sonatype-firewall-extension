@@ -43,7 +43,7 @@ describe('LegalApplicationDetailsFilter', function () {
     });
 
     it('renders an IqPopover.Header', function () {
-      const popoverHeader = getShallowComponent().find(IqPopover.Header);
+      const popoverHeader = getShallowComponent().find(IqPopover.Header).dive();
       expect(popoverHeader).toExist();
       const filterCloseButton = popoverHeader.find('#legal-dashboard-filter-close-btn');
       expect(filterCloseButton).toExist();

@@ -47,8 +47,8 @@ public class ApiSourceControlAdapterTest
     assertThat(dto.statusChecksEnabled).isEqualTo(false);
     assertThat(dto.enableStatusChecks).isEqualTo(dto.statusChecksEnabled);
     assertThat(dto.pullRequestCommentingEnabled).isEqualTo(true);
-    assertThat(dto.internalPolicyEvaluationsEnabled).isEqualTo(true);
-    assertThat(dto.scanTarget).isEqualTo("/target/*");
+    assertThat(dto.sourceControlScansEnabled).isEqualTo(true);
+    assertThat(dto.sourceControlScanTarget).isEqualTo("/target/*");
     assertThat(dto.sshEnabled).isTrue();
   }
 
@@ -65,8 +65,8 @@ public class ApiSourceControlAdapterTest
     apiSourceControlDTO.remediationPullRequestsEnabled = true;
     apiSourceControlDTO.statusChecksEnabled = false;
     apiSourceControlDTO.pullRequestCommentingEnabled = true;
-    apiSourceControlDTO.internalPolicyEvaluationsEnabled = true;
-    apiSourceControlDTO.scanTarget = "/target/*";
+    apiSourceControlDTO.sourceControlScansEnabled = true;
+    apiSourceControlDTO.sourceControlScanTarget = "/target/*";
     apiSourceControlDTO.sshEnabled = true;
 
     SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);

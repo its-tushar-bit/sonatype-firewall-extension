@@ -8,7 +8,6 @@ import { IqPopover } from '../react/IqPopover';
 import * as PropTypes from 'prop-types';
 import {
   NxButton,
-  NxFontAwesomeIcon,
   NxFormGroup,
   NxInfoAlert,
   NxLoadError,
@@ -16,7 +15,6 @@ import {
   NxStatefulTextInput,
   NxSubmitMask,
 } from '@sonatype/react-shared-components';
-import { faArrowFromLeft } from '@fortawesome/pro-solid-svg-icons';
 import { availableScopesPropType, componentTransitivePolicyViolationsPropType } from './transitiveViolationsPropTypes';
 import { capitalize } from '../util/jsUtil';
 import { waiverExpirations } from '../util/waiverUtils';
@@ -78,21 +76,13 @@ export default function WaiveTransitiveViolationsPopover(props) {
   };
 
   return (
-    <IqPopover id="waive-transitive-violations-popover" size="automatic" onClose={toggleWaiveTransitiveViolations}>
-      <IqPopover.Header className="transitive-violations-popover-header">
-        <div className="transitive-violations-popover-header__title">
-          <h2 className="nx-h2 transitive-violations-popover-header__title-text">
-            Add Waivers to Transitive Violations
-          </h2>
-          <NxButton
-            id="waive-transitive-violations-popover-toggle"
-            onClick={toggleWaiveTransitiveViolations}
-            variant="icon-only"
-          >
-            <NxFontAwesomeIcon className="transitive-violations-popover-header__title-icon" icon={faArrowFromLeft} />
-          </NxButton>
-        </div>
-      </IqPopover.Header>
+    <IqPopover id="waive-transitive-violations-popover" size="large" onClose={toggleWaiveTransitiveViolations}>
+      <IqPopover.Header
+        className="transitive-violations-popover-header"
+        headerTitle="Add Waivers to Transitive Violations"
+        buttonId="waive-transitive-violations-popover-toggle"
+        onClose={toggleWaiveTransitiveViolations}
+      />
       <TransitiveViolationsSummary
         threatCounts={componentTransitivePolicyViolations.threatCounts}
         threatCountsTotal={componentTransitivePolicyViolations.threatCountsTotal}

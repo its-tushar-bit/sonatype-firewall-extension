@@ -6,7 +6,9 @@
 import { shallow } from 'enzyme';
 import React, { createRef } from 'react';
 import * as enzymeUtils from '../../enzymeUtils';
-import IqPopover from '../../../../main/frontend/react/IqPopover';
+import IqPopover, { IqPopoverHeader, IqPopoverHeaderTitleText } from '../../../../main/frontend/react/IqPopover';
+import { NxButton, NxFontAwesomeIcon, NxH1, NxH2, NxH3 } from '@sonatype/react-shared-components';
+import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 
 describe('IqPopover', function () {
   let getShallowComponent;
@@ -81,6 +83,79 @@ describe('IqPopover', function () {
 
       expect(onClose).toHaveBeenCalled();
       wrapper.unmount();
+    });
+  });
+
+  describe('IqPopoverHeader', () => {
+    let getShallowHeader, minimalHeaderProps, onCloseSpy;
+
+    beforeEach(() => {
+      onCloseSpy = jasmine.createSpy('onClose');
+      minimalHeaderProps = {
+        onClose: onCloseSpy,
+        buttonId: 'buttonId',
+        headerTitle: 'A title',
+      };
+      getShallowHeader = enzymeUtils.getShallowComponent(IqPopoverHeader, minimalHeaderProps);
+    });
+
+    describe('Header title', () => {
+      it('renders the given title', () => {
+        const header = getShallowHeader();
+        const title = header.find(IqPopoverHeaderTitleText).dive();
+        const h = title.find(NxH2).dive();
+        expect(h).toHaveText('A title');
+      });
+
+      it('renders title as h2 by default', () => {
+        const header = getShallowHeader();
+        const title = header.find(IqPopoverHeaderTitleText).dive();
+        const h = title.find(NxH2).dive();
+        expect(h).toMatchSelector('h2');
+        expect(h).toHaveClassName('nx-h2');
+      });
+
+      it('renders according to the specified size', () => {
+        let header, title, h;
+
+        header = getShallowHeader({ headerSize: 'h2' });
+        title = header.find(IqPopoverHeaderTitleText).dive();
+        h = title.find(NxH2).dive();
+        expect(h).toMatchSelector('h2');
+        expect(h).toHaveClassName('nx-h2');
+
+        header = getShallowHeader({ headerSize: 'h1' });
+        title = header.find(IqPopoverHeaderTitleText).dive();
+        h = title.find(NxH1).dive();
+        expect(h).toMatchSelector('h1');
+        expect(h).toHaveClassName('nx-h1');
+
+        header = getShallowHeader({ headerSize: 'h3' });
+        title = header.find(IqPopoverHeaderTitleText).dive();
+        h = title.find(NxH3).dive();
+        expect(h).toMatchSelector('h3');
+        expect(h).toHaveClassName('nx-h3');
+      });
+    });
+
+    it('renders a button using passed props', () => {
+      let header, btn, icon;
+
+      header = getShallowHeader();
+      btn = header.find(NxButton);
+      icon = btn.find(NxFontAwesomeIcon);
+
+      expect(btn).toHaveProp('onClick', minimalHeaderProps.onClose);
+      expect(btn).toHaveProp('id', minimalHeaderProps.buttonId);
+      expect(btn).toHaveProp('title', 'Close');
+      expect(btn).toHaveProp('variant', 'icon-only');
+      expect(icon).toHaveProp('icon', faArrowToRight);
+
+      header = getShallowHeader({ buttonClassnames: 'btn-class', closeTitle: 'Close-Title' });
+      btn = header.find(NxButton);
+
+      expect(btn).toHaveProp('title', 'Close-Title');
+      expect(btn).toHaveClassName('btn-class');
     });
   });
 

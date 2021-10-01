@@ -48,7 +48,7 @@ public class ListWaiversPage
   public SelenideElement waiverDetailsTitle() {
     return child(".nx-tile-header--hrule h2");
   }
- 
+
   public SelenideElement waiverListTitle() {
     return child(".nx-tile-header__title h2");
   }
@@ -103,7 +103,7 @@ public class ListWaiversPage
     }
 
     public SelenideElement requestWaiverHeader() {
-      return child(".request-waivers-header__title-text");
+      return child(".iq-popover-header__title-text");
     }
 
     public SelenideElement requestWaiverReadOnlyData() {

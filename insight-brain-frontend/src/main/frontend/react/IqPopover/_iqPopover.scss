@@ -80,6 +80,8 @@
 }
 
 .iq-popover-header__title {
+  @include container-horizontal;
+
   align-items: start;
   display: flex;
   justify-content: space-between;

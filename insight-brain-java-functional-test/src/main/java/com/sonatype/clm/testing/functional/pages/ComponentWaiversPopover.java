@@ -22,7 +22,7 @@ public class ComponentWaiversPopover
   }
 
   public SelenideElement title() {
-    return child(".component-waivers-header__title-text");
+    return child(".iq-popover-header__title-text");
   }
 
   public SelenideElement closePopoverButton() {

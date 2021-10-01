@@ -5,8 +5,7 @@
  */
 import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
-import { NxButton, NxFontAwesomeIcon, NxList, NxTextLink } from '@sonatype/react-shared-components';
-import { faArrowToRight } from '@fortawesome/pro-regular-svg-icons';
+import { NxList, NxTextLink } from '@sonatype/react-shared-components';
 
 import { IqPopover } from '../../../react/IqPopover';
 import ComponentDisplay from '../../../ComponentDisplay/ReactComponentDisplay';
@@ -16,7 +15,7 @@ const SimilarMatchesPopover = ({ showSimilarMatchesPopover, onClose, similarMatc
     return null;
   }
 
-  const contentText = `A similar match is found using various, proprietary matching algorithms. Best Match shows the most likely match and 
+  const contentText = `A similar match is found using various, proprietary matching algorithms. Best Match shows the most likely match and
   Other Matches shows all components found to be similar.`;
   const componentIdentificationInfoLink =
     'https://help.sonatype.com/iqserver/reporting/application-composition-report/component-identification';
@@ -45,20 +44,11 @@ const SimilarMatchesPopover = ({ showSimilarMatchesPopover, onClose, similarMatc
 
   return (
     <IqPopover id="similar-matches-popover" size="large" onClose={onClose}>
-      <IqPopover.Header>
-        <div className="iq-popover-header__title">
-          <h2 className="nx-h2 iq-popover-header__title-text">Similar Matches</h2>
-          <NxButton
-            id="iq-similar-matches-popover-close-btn"
-            onClick={onClose}
-            variant="icon-only"
-            title="Close"
-            className="iq-popover-header__close-btn"
-          >
-            <NxFontAwesomeIcon icon={faArrowToRight} />
-          </NxButton>
-        </div>
-      </IqPopover.Header>
+      <IqPopover.Header
+        buttonId="iq-similar-matches-popover-close-btn"
+        onClose={onClose}
+        headerTitle="Similar Matches"
+      />
       <div className="iq-similar-matches-popover-content">
         <p className="iq-similar-matches-popover-content__message">
           {contentText} {contentLink}

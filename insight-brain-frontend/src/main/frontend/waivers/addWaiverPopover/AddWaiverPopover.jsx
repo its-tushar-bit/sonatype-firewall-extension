@@ -5,8 +5,6 @@
  */
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { NxSubmitMask } from '@sonatype/react-shared-components';
 
 import IqPopover from '../../react/IqPopover/IqPopover';
@@ -105,19 +103,12 @@ const AddWaiversPopover = (props) => {
       {showUnsavedChangesModal && (
         <UnsavedChangesModal onContinue={closeAddWaiverPopover} onClose={closeUnsavedChangesModal} />
       )}
-      <IqPopover.Header className="add-waiver-popover-header">
-        <div className="add-waiver-popover-header__title">
-          <h2 className="nx-h2 add-waivers-popover-header__title-text">Add Waiver</h2>
-          <NxButton
-            onClick={openUnsavedChangesModal}
-            variant="icon-only"
-            title="Close"
-            id="add=waiver=popover-close-button"
-          >
-            <NxFontAwesomeIcon icon={faArrowToRight} />
-          </NxButton>
-        </div>
-      </IqPopover.Header>
+      <IqPopover.Header
+        className="add-waiver-popover-header"
+        buttonId="add-waiver-popover-close-button"
+        onClose={openUnsavedChangesModal}
+        headerTitle="Add Waiver"
+      />
       {submitMaskState !== null && (
         <NxSubmitMask success={submitMaskState} message="Creating waiver…" successMessage="Success!" />
       )}

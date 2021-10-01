@@ -8,6 +8,7 @@ import * as enzymeUtils from '../enzymeUtils';
 import RequestWaiveTransitiveViolationsPopover from '../../../main/frontend/violation/RequestWaiveTransitiveViolationsPopover';
 import { getWaiveTransitiveViolationsUrl } from '../../../main/frontend/util/CLMLocation';
 import TransitiveViolationsSummary from '../../../main/frontend/violation/TransitiveViolationsSummary';
+import { IqPopoverHeader } from '../../../main/frontend/react/IqPopover';
 
 describe('RequestWaiveTransitiveViolationsPopover', function () {
   let minimalProps, spyToggleRequestWaiveTransitiveViolations, getShallowComponent;
@@ -38,7 +39,8 @@ describe('RequestWaiveTransitiveViolationsPopover', function () {
 
   it('calls toggleRequestWaiveTransitiveViolations when the toggle is clicked', function () {
     const wrapper = getShallowComponent();
-    const toggle = wrapper.find('#request-waive-transitive-violations-popover-toggle');
+    const header = wrapper.find(IqPopoverHeader);
+    const toggle = header.dive().find('#request-waive-transitive-violations-popover-toggle');
     toggle.simulate('click');
     expect(spyToggleRequestWaiveTransitiveViolations).toHaveBeenCalled();
   });

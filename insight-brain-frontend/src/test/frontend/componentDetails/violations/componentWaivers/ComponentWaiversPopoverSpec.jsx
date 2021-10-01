@@ -7,7 +7,7 @@ import * as enzymeUtils from '../../../enzymeUtils';
 import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 
 import ComponentWaiversPopover from '../../../../../main/frontend/componentDetails/ViolationsTableTile/componentWaivers/ComponentWaiversPopover';
-import IqPopover from '../../../../../main/frontend/react/IqPopover';
+import IqPopover, { IqPopoverHeader } from '../../../../../main/frontend/react/IqPopover';
 import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import DeleteWaiverModalContainer from '../../../../../main/frontend/waivers/deleteWaiverModal/DeleteWaiverModalContainer';
 import ComponentWaiversPopoverTable from '../../../../../main/frontend/componentDetails/ViolationsTableTile/componentWaivers/ComponentWaiversPopoverTable';
@@ -32,7 +32,7 @@ describe('ComponentWaiversPopover', function () {
     expect(component).toExist();
 
     const popover = component.find(IqPopover);
-    expect(popover).toHaveProp('size', 'automatic');
+    expect(popover).toHaveProp('size', 'extra-large');
     expect(popover).toHaveProp('onClose', minimalProps.toggleComponentWaiversPopover);
   });
 
@@ -40,24 +40,25 @@ describe('ComponentWaiversPopover', function () {
     const component = getShallow();
     expect(component).toExist();
 
-    const title = component.find('.component-waivers-header__title-text');
-    expect(title).toHaveText('Component Waivers');
+    const header = component.find(IqPopoverHeader);
+    expect(header).toHaveProp('headerTitle', 'Component Waivers');
   });
 
   it('renders a component with the given title', function () {
     const component = getShallow({ title: 'some title' });
     expect(component).toExist();
 
-    const title = component.find('.component-waivers-header__title-text');
-    expect(title).toHaveText('some title');
+    const header = component.find(IqPopoverHeader);
+    expect(header).toHaveProp('headerTitle', 'some title');
   });
 
   it('renders a Header with title and close button', () => {
     const component = getShallow().dive();
-    const title = component.find('.component-waivers-header__title-text');
-    const closeButton = component.find(NxButton);
+    const header = component.find(IqPopoverHeader);
 
-    expect(title).toHaveText('Component Waivers');
+    const closeButton = header.dive().find(NxButton);
+
+    expect(header).toHaveProp('headerTitle', 'Component Waivers');
     expect(closeButton).toHaveProp('onClick', minimalProps.toggleComponentWaiversPopover);
     expect(closeButton).toHaveProp('variant', 'icon-only');
     expect(closeButton).toHaveProp('title', 'Close');

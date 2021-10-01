@@ -3,8 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { faArrowFromLeft } from '@fortawesome/pro-solid-svg-icons';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { useRouterState } from '../../react/RouterStateContext';
@@ -14,15 +12,14 @@ import ViolationPageContainer from '../../violation/ViolationPageContainer';
 export default function PolicyViolationDetailsPopover({ onClose }) {
   const uiRouterState = useRouterState();
   return (
-    <IqPopover size="automatic" onClose={onClose} id="component-details-policy-violations-popover">
-      <IqPopover.Header id="policy-violation-detail-header" className="policy-violation-detail-header">
-        <div className="policy-violation-detail-header__title">
-          <h2 className="nx-h2">Violation Detail</h2>
-          <NxButton id="policy-violation-close-btn" onClick={onClose} variant="icon-only" title="Close">
-            <NxFontAwesomeIcon icon={faArrowFromLeft} />
-          </NxButton>
-        </div>
-      </IqPopover.Header>
+    <IqPopover size="extra-large" onClose={onClose} id="component-details-policy-violations-popover">
+      <IqPopover.Header
+        id="policy-violation-detail-header"
+        className="policy-violation-detail-header"
+        buttonId="policy-violation-close-btn"
+        onClose={onClose}
+        headerTitle="Violation Detail"
+      />
       <ViolationPageContainer $state={uiRouterState} isFromPolicyViolations />
     </IqPopover>
   );

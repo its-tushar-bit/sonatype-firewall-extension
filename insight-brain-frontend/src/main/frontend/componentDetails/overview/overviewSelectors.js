@@ -11,6 +11,7 @@ import {
   selectApplicationReportMetaData,
 } from '../../applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
+import { getComponentVersionComparisonInfo } from '../componentDetailsUtils';
 
 export const selectComponentDetailsOverviewSlice = prop('componentDetailsOverview');
 
@@ -89,4 +90,22 @@ export const selectShowInsufficientPermissionsModal = createSelector(
 export const selectLatestInnerSourceComponentVersion = createSelector(
   selectInnerSourceProducerData,
   prop('latestInnerSourceComponentVersion')
+);
+
+export const selectCurrentVersionDetails = createSelector(selectVersionExplorerData, prop('currentVersionDetails'));
+
+export const selectSelectedVersionDetails = createSelector(
+  selectComponentDetailsOverviewSlice,
+  // This is just a placeholder for actual state, to be implemented as part of CLM-19434
+  prop('selectedVersionDetails')
+);
+
+export const selectCurrentVersionComparisonData = createSelector(
+  selectCurrentVersionDetails,
+  getComponentVersionComparisonInfo
+);
+
+export const selectSelectedVersionComparisonData = createSelector(
+  selectSelectedVersionDetails,
+  getComponentVersionComparisonInfo
 );

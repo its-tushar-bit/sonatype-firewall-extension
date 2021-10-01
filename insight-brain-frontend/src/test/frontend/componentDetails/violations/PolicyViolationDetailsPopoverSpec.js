@@ -6,6 +6,7 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import PolicyViolationDetailsPopover from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationDetailsPopover';
 import ViolationPageContainer from '../../../../main/frontend/violation/ViolationPageContainer';
+import { IqPopoverHeader } from '../../../../main/frontend/react/IqPopover/IqPopover';
 
 describe('PolicyViolationDetailsPopover', () => {
   let minimalProps, getShallow, onCloseSpy;
@@ -22,7 +23,10 @@ describe('PolicyViolationDetailsPopover', () => {
 
   describe('clicks the close button and calls the appropiate onClose', () => {
     it('clicks on a row outside of the button and calls the setShowViolationsDetail action', () => {
-      const closeBtn = getShallow().find('#policy-violation-close-btn');
+      const component = getShallow();
+      const header = component.find(IqPopoverHeader);
+      const closeBtn = header.dive().find('#policy-violation-close-btn');
+
       closeBtn.simulate('click');
       expect(onCloseSpy).toHaveBeenCalledTimes(1);
     });

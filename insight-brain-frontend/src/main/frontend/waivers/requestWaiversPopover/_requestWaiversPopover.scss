@@ -37,20 +37,3 @@ div.iq-request-waivers-popover__page-url {
 .iq-request-waivers-popover__curl {
   margin-top: var(--nx-spacing-8x);
 }
-
-.request-waivers-header__title {
-  @include container-horizontal;
-
-  align-items: start;
-  display: flex;
-  justify-content: space-between;
-
-  .request-waivers-header__title-text {
-    flex-grow: 1;
-  }
-
-  .nx-btn--icon-only {
-    @include nx-small-icon-btn;
-    margin-top: var(--nx-spacing-2x);
-  }
-}

@@ -3,8 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxInfoAlert, NxCodeSnippet, NxFontAwesomeIcon, NxButton, NxTextLink } from '@sonatype/react-shared-components';
-import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
+import { NxInfoAlert, NxCodeSnippet, NxTextLink } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../enzymeUtils';
 import requestWaiversPopover from '../../../../main/frontend/waivers/requestWaiversPopover/RequestWaiversPopover';
@@ -51,18 +50,14 @@ describe('requestWaiversPopover', function () {
     const el = getShallowComponent();
     const popover = el.find(IqPopover);
     expect(popover).toExist();
-    expect(popover).toHaveProp('size', 'automatic');
+    expect(popover).toHaveProp('size', 'large');
   });
 
   it('renders an IqPopover header with close button', () => {
     const el = getShallowComponent();
-    const popover = el.find(IqPopover);
-    const button = popover.find(NxButton);
-    const icon = popover.find(NxFontAwesomeIcon);
-    const h2 = popover.find('.request-waivers-header__title-text');
-    expect(button).toExist();
-    expect(icon).toHaveProp('icon', faArrowToRight);
-    expect(h2).toHaveText('Request Waiver');
+    const header = el.find(IqPopover.Header);
+    expect(header).toHaveProp('headerTitle', 'Request Waiver');
+    expect(header).toHaveProp('onClose', minimalProps.onClose);
   });
 
   it('renders a NxInfoAlert', () => {

@@ -3,7 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { isNil, join, pick, startsWith, toUpper } from 'ramda';
+import { isNil, join, map, pick, pipe, prop, sort, startsWith, toUpper } from 'ramda';
+
+import { isNilOrEmpty } from '../util/jsUtil';
+import * as PropTypes from 'prop-types';
 
 export const processAuditRecord = (record) => ({
   user: 'anonymous', // default value, usually overridden by the `pick` below
@@ -60,3 +63,74 @@ export function parseOccurrencePathname(pathname) {
 
   return { isDependency, dirname, basename };
 }
+
+const sortAlerts = sort((alertA, alertB) => alertB.trigger.threatLevel - alertA.trigger.threatLevel);
+
+const sortVulnerabilities = sort((a, b) => {
+  if (a.severity === b.severity) {
+    return 0;
+  } else if (a.severity === null) {
+    return 1;
+  } else if (b.severity === null) {
+    return -1;
+  }
+  return b.severity - a.severity;
+});
+
+/**
+ * @param componentDetails as returned by /rest/ci/componentDetails/ endpoint
+ * @returns versionComparisonInfoPropType to be populated in Compare Versions table in CompareVersions component
+ */
+export function getComponentVersionComparisonInfo(componentDetails) {
+  if (componentDetails == null) {
+    return {};
+  }
+
+  const sortedAlerts = sortAlerts(componentDetails.policyAlerts);
+
+  const highestPolicyThreat = sortedAlerts.length > 0 ? sortedAlerts[0].trigger.threatLevel : 'None';
+  const numberOfViolatedPolicies = componentDetails.policyAlerts.length;
+
+  function getHighestCVSSScore() {
+    if (componentDetails.identificationSource === 'Manual') {
+      return 'Unavailable, Claimed Component';
+    }
+
+    const sortedVulnerabilities = sortVulnerabilities(componentDetails.securityVulnerabilities);
+
+    return sortedVulnerabilities.length === 0
+      ? 'None'
+      : sortedVulnerabilities[0].severity === null
+      ? 'Unscored'
+      : sortedVulnerabilities[0].severity;
+  }
+
+  const effectiveLicenses = isNilOrEmpty(componentDetails.effectiveLicenses)
+    ? null
+    : pipe(map(prop('licenseName')), join(', '))(componentDetails.effectiveLicenses);
+
+  return {
+    version: componentDetails.version,
+    highestPolicyThreat,
+    numberOfViolatedPolicies,
+    highestCVSSScore: getHighestCVSSScore(),
+    effectiveLicenseStatus: componentDetails.effectiveLicenseStatus,
+    effectiveLicenses,
+    integrityRating: componentDetails.integrityRating,
+    hygieneRating: componentDetails.hygieneRating,
+  };
+}
+
+export const versionComparisonInfoPropType = PropTypes.shape({
+  version: PropTypes.string,
+  highestPolicyThreat: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf(['None'])]),
+  numberOfViolatedPolicies: PropTypes.number,
+  highestCVSSScore: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.oneOf(['None', 'Unscored', 'Unavailable, Claimed Component']),
+  ]),
+  effectiveLicenseStatus: PropTypes.string,
+  effectiveLicenses: PropTypes.string,
+  integrityRating: PropTypes.shape({ id: PropTypes.number, label: PropTypes.string }),
+  hygieneRating: PropTypes.shape({ id: PropTypes.number, label: PropTypes.string }),
+});

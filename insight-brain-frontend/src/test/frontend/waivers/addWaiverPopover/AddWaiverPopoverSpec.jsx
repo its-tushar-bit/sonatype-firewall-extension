@@ -3,8 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxFontAwesomeIcon, NxButton, NxSubmitMask } from '@sonatype/react-shared-components';
-import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
+import { NxSubmitMask } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../enzymeUtils';
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
@@ -57,13 +56,9 @@ describe('AddWaiverPopover', function () {
 
   it('renders an IqPopover header with close button', () => {
     const el = getShallowComponent();
-    const popover = el.find(IqPopover);
-    const button = popover.find(NxButton);
-    const icon = popover.find(NxFontAwesomeIcon);
-    const h2 = popover.find('.add-waivers-popover-header__title-text');
-    expect(button).toExist();
-    expect(icon).toHaveProp('icon', faArrowToRight);
-    expect(h2).toHaveText('Add Waiver');
+    const header = el.find(IqPopover.Header);
+    expect(header).toHaveProp('headerTitle', 'Add Waiver');
+    expect(header).toHaveProp('onClose', jasmine.any(Function));
   });
 
   it('renders a loading LoadWrapper when loading is true', function () {

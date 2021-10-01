@@ -5,8 +5,7 @@
  */
 import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
-import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
-import { NxInfoAlert, NxCodeSnippet, NxTextLink, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxInfoAlert, NxCodeSnippet, NxTextLink } from '@sonatype/react-shared-components';
 
 import IqPopover from '../../react/IqPopover/IqPopover';
 import { getRequestWaiverUrl } from '../../util/CLMLocation';
@@ -33,15 +32,13 @@ const RequestWaiversPopover = ({ onClose, violationDetails }) => {
   const urlLinkEl = useRef();
 
   return (
-    <IqPopover size="automatic" onClose={onClose} id="request-waivers">
-      <IqPopover.Header className="request-waiver-header">
-        <div className="request-waivers-header__title">
-          <h2 className="nx-h2 request-waivers-header__title-text">Request Waiver</h2>
-          <NxButton onClick={onClose} variant="icon-only" title="Close" id="request-waivers-close-button">
-            <NxFontAwesomeIcon icon={faArrowToRight} />
-          </NxButton>
-        </div>
-      </IqPopover.Header>
+    <IqPopover size="large" onClose={onClose} id="request-waivers">
+      <IqPopover.Header
+        className="request-waiver-header"
+        headerTitle="Request Waiver"
+        buttonId="request-waivers-close-button"
+        onClose={onClose}
+      />
       <NxInfoAlert>
         To request a waiver, please share the Policy Violation ID and sample curl command (found below) with the
         approver.{' '}

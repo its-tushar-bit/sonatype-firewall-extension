@@ -6,20 +6,3 @@
 .add-waiver-popover-header {
   margin-bottom: var(--nx-spacing-6x);
 }
-
-.add-waiver-popover-header__title {
-  @include container-horizontal;
-
-  align-items: start;
-  display: flex;
-  justify-content: space-between;
-
-  .add-waivers-popover-header__title-text {
-    flex-grow: 1;
-  }
-
-  .nx-btn--icon-only {
-    @include nx-small-icon-btn;
-    margin-top: var(--nx-spacing-2x);
-  }
-}

@@ -77,7 +77,7 @@ public class RootOrganizationPolicyEditorTest
     PolicyEditorPage.actionsSection().proxy().failRadio().click();
     PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldBe(visible);
 
-    ScrollUtil.awaitEndOfScrolling(PolicyEditorPage.actionsSection().quarantineWarningMessage());
+    ScrollUtil.awaitEndOfScrolling(PolicyEditorPage.actionsSection().quarantineWarningMessage().scrollIntoView(true));
     eyesWatcher.eyesCheck("testQuarantineWarningOnCreatePolicy - quarantineWarningMessage is shown");
 
     PolicyEditorPage.actionsSection().build().warnRadio().click();
@@ -113,7 +113,7 @@ public class RootOrganizationPolicyEditorTest
     PolicyEditorPage.actionsSection().proxy().failRadio().click();
     PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldBe(visible);
 
-    ScrollUtil.awaitEndOfScrolling(PolicyEditorPage.actionsSection().quarantineWarningMessage());
+    ScrollUtil.awaitEndOfScrolling(PolicyEditorPage.actionsSection().quarantineWarningMessage().scrollIntoView(true));
     eyesWatcher.eyesCheck("testQuarantineWarningOnEditPolicy - quarantineWarningMessage is shown");
 
     PolicyEditorPage.savePolicy();

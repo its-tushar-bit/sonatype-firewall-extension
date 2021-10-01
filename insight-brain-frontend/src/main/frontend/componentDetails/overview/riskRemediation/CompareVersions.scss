@@ -3,42 +3,79 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
-.iq-compare-versions.nx-tile {
-  border: 0;
-  padding: 0;
+#compare-versions-header {
+  display: flex;
+  justify-content: center;
+}
 
-  .nx-tile-header {
-    padding: 0;
-    display: flex;
-    justify-content: center;
+#compare-versions-table {
+  thead {
+    .nx-cell--header {
+      text-align: center;
+    }
 
-    .nx-tile-header__title {
-      margin: 0 0 var(--nx-spacing-3x) 0;
+    .nx-cell--header:nth-child(1) {
+      width: 220px;
     }
   }
 
-  .nx-tile-content {
-    padding: 0;
-    display: flex;
-    justify-content: center;
-
-    thead .nx-cell {
-      background-color: #bbc1de;
+  tbody {
+    .nx-cell:first-of-type {
+      @include semi-bold();
+      color: var(--nx-swatch-grey-30);
+      text-align: right;
+    }
+    .nx-cell:nth-child(2),
+    .nx-cell:nth-child(3) {
+      border-left-style: solid;
+      border-left-color: var(--nx-color-subsection-border);
+      text-align: center;
     }
 
-    tbody {
-      .nx-cell {
-        background-color: #e7eaf9;
+    .nx-cell {
+      .iq-integrity-rating-suspicious {
+        color: var(--nx-swatch-red-40);
       }
 
-      .nx-cell:first-of-type {
-        text-align: right;
+      .iq-hygiene-rating-exemplar {
+        color: var(--nx-swatch-purple-80);
       }
 
-      .nx-cell:nth-child(2),
-      .nx-cell:nth-child(3) {
-        text-align: center;
+      .iq-hygiene-rating-laggard {
+        color: var(--nx-swatch-yellow-60);
+      }
+
+      .nx-tag.iq-compare-versions__license-status {
+        margin-top: var(--nx-spacing-2x);
+      }
+
+      // temporary using custom policy threat indicator until we upgrade RSC and use NxSmallThreatCounter
+      .nx-tag.iq-compare-versions__policy-threat-indicator {
+        font-weight: bold;
+        margin-right: 0;
+
+        &.critical {
+          --nx-selectable-color-dark: var(--nx-swatch-red-40);
+          color: var(--nx-swatch-white);
+        }
+
+        &.severe {
+          --nx-selectable-color-dark: var(--nx-swatch-orange-50);
+        }
+
+        &.moderate {
+          --nx-selectable-color-dark: var(--nx-swatch-yellow-60);
+        }
+
+        &.low {
+          --nx-selectable-color-dark: var(--nx-swatch-teal-50);
+        }
+
+        &.none {
+          --nx-selectable-color-dark: var(--nx-swatch-blue-90);
+        }
       }
     }
   }

@@ -8,7 +8,12 @@ import { connect } from 'react-redux';
 import { selectComponentAncestors } from '../../componentDetailsSelectors';
 import { selectCurrentRouteName } from '../../../reduxUiRouter/routerSelectors';
 import { actions } from '../overviewSlice';
-import { selectVersionExplorerData, selectRemediationData } from '../overviewSelectors';
+import {
+  selectVersionExplorerData,
+  selectRemediationData,
+  selectCurrentVersionComparisonData,
+  selectSelectedVersionComparisonData,
+} from '../overviewSelectors';
 import { RiskRemediation } from './RiskRemediation';
 
 function mapStateToProps(state) {
@@ -19,6 +24,8 @@ function mapStateToProps(state) {
     currentVersion,
     stageId,
     versionExplorerData: selectVersionExplorerData(state),
+    currentVersionComparisonData: selectCurrentVersionComparisonData(state),
+    selectedVersionComparisonData: selectSelectedVersionComparisonData(state),
   };
 }
 

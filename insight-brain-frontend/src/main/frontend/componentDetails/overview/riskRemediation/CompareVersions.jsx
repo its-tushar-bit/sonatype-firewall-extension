@@ -3,74 +3,159 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { Fragment } from 'react';
 
-import { NxTable } from '@sonatype/react-shared-components';
+import { NxTable, NxFontAwesomeIcon, NxTag } from '@sonatype/react-shared-components';
+import { faTrophy, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
+import classnames from 'classnames';
+import { versionComparisonInfoPropType } from '../../componentDetailsUtils';
 
-export const CompareVersions = () => {
+export const CompareVersions = ({ currentVersion, selectedVersion }) => {
   return (
-    <section className="iq-compare-versions nx-tile">
-      <header className="nx-tile-header">
-        <h3 className="nx-h3 nx-tile-header__title">Compare Versions TODO</h3>
+    <Fragment>
+      <header id="compare-versions-header" className="nx-grid-header">
+        <h3 className="nx-h3 nx-grid-header__title">Compare Versions</h3>
       </header>
-      <div className="nx-tile-content">
-        <NxTable>
-          <NxTable.Head>
-            <NxTable.Row>
-              <NxTable.Cell></NxTable.Cell>
-              <NxTable.Cell>CURRENT</NxTable.Cell>
-              <NxTable.Cell>SELECTED</NxTable.Cell>
-            </NxTable.Row>
-          </NxTable.Head>
-          <NxTable.Body>
-            <NxTable.Row>
-              <NxTable.Cell>Version</NxTable.Cell>
-              <NxTable.Cell>2.1.2</NxTable.Cell>
-              <NxTable.Cell>--</NxTable.Cell>
-            </NxTable.Row>
-            <NxTable.Row>
-              <NxTable.Cell>Highest Policy Threat</NxTable.Cell>
-              <NxTable.Cell>10</NxTable.Cell>
-              <NxTable.Cell></NxTable.Cell>
-            </NxTable.Row>
-            <NxTable.Row className="iq-compare-versions__secutiry-category">
-              <NxTable.Cell>Security Violation Threat</NxTable.Cell>
-              <NxTable.Cell>10</NxTable.Cell>
-              <NxTable.Cell></NxTable.Cell>
-            </NxTable.Row>
-            <NxTable.Row className="iq-compare-versions__secutiry-category">
-              <NxTable.Cell>Highest CVSS Score</NxTable.Cell>
-              <NxTable.Cell>9</NxTable.Cell>
-              <NxTable.Cell></NxTable.Cell>
-            </NxTable.Row>
-            <NxTable.Row className="iq-compare-versions__legal-category">
-              <NxTable.Cell>Legal Violation Threat</NxTable.Cell>
-              <NxTable.Cell>10</NxTable.Cell>
-              <NxTable.Cell></NxTable.Cell>
-            </NxTable.Row>
-            <NxTable.Row className="iq-compare-versions__legal-category">
-              <NxTable.Cell>Effective License</NxTable.Cell>
-              <NxTable.Cell>CDDL-1.1, Generic-Open-Source-Clause, CDDL-2.1 or GPL-2.0-CPE</NxTable.Cell>
-              <NxTable.Cell>CDDL-1.1, Generic-Open-Source-Clause, CDDL-2.1 or GPL-2.0-CPE</NxTable.Cell>
-            </NxTable.Row>
-            <NxTable.Row className="iq-compare-versions__quality-category">
-              <NxTable.Cell>Quality Violation Threat</NxTable.Cell>
-              <NxTable.Cell>8</NxTable.Cell>
-              <NxTable.Cell></NxTable.Cell>
-            </NxTable.Row>
-            <NxTable.Row className="iq-compare-versions__quality-category">
-              <NxTable.Cell>Hygiene Rating</NxTable.Cell>
-              <NxTable.Cell>Laggard</NxTable.Cell>
-              <NxTable.Cell></NxTable.Cell>
-            </NxTable.Row>
-            <NxTable.Row>
-              <NxTable.Cell>Other Violation Threat</NxTable.Cell>
-              <NxTable.Cell>none</NxTable.Cell>
-              <NxTable.Cell></NxTable.Cell>
-            </NxTable.Row>
-          </NxTable.Body>
-        </NxTable>
-      </div>
-    </section>
+      <NxTable id="compare-versions-table" className="nx-table--fixed-layout">
+        <NxTable.Head>
+          <NxTable.Row>
+            <NxTable.Cell></NxTable.Cell>
+            <NxTable.Cell>CURRENT</NxTable.Cell>
+            <NxTable.Cell>SELECTED</NxTable.Cell>
+          </NxTable.Row>
+        </NxTable.Head>
+        <NxTable.Body>
+          <NxTable.Row id="version">
+            <NxTable.Cell>Version</NxTable.Cell>
+            <NxTable.Cell>{currentVersion.version}</NxTable.Cell>
+            <NxTable.Cell>{selectedVersion.version || '--'}</NxTable.Cell>
+          </NxTable.Row>
+          <NxTable.Row id="highestPolicyThreat">
+            <NxTable.Cell>Highest Policy Threat</NxTable.Cell>
+            <NxTable.Cell>
+              {renderHighestPolicyThreat(currentVersion.highestPolicyThreat, currentVersion.numberOfViolatedPolicies)}
+            </NxTable.Cell>
+            <NxTable.Cell>
+              {renderHighestPolicyThreat(selectedVersion.highestPolicyThreat, selectedVersion.numberOfViolatedPolicies)}
+            </NxTable.Cell>
+          </NxTable.Row>
+          <NxTable.Row>
+            <NxTable.Cell>Security Violation Threat</NxTable.Cell>
+            <NxTable.Cell></NxTable.Cell>
+            <NxTable.Cell></NxTable.Cell>
+          </NxTable.Row>
+          <NxTable.Row id="highestCvssScore">
+            <NxTable.Cell>Highest CVSS Score</NxTable.Cell>
+            <NxTable.Cell>{currentVersion.highestCVSSScore}</NxTable.Cell>
+            <NxTable.Cell>{selectedVersion.highestCVSSScore}</NxTable.Cell>
+          </NxTable.Row>
+          <NxTable.Row>
+            <NxTable.Cell>License Violation Threat</NxTable.Cell>
+            <NxTable.Cell></NxTable.Cell>
+            <NxTable.Cell></NxTable.Cell>
+          </NxTable.Row>
+          <NxTable.Row id="effectiveLicense">
+            <NxTable.Cell>Effective License</NxTable.Cell>
+            <NxTable.Cell>{renderEffectiveLicenses(currentVersion)}</NxTable.Cell>
+            <NxTable.Cell>{renderEffectiveLicenses(selectedVersion)}</NxTable.Cell>
+          </NxTable.Row>
+          <NxTable.Row>
+            <NxTable.Cell>Quality Violation Threat</NxTable.Cell>
+            <NxTable.Cell></NxTable.Cell>
+            <NxTable.Cell></NxTable.Cell>
+          </NxTable.Row>
+          <NxTable.Row>
+            <NxTable.Cell>Other Violation Threat</NxTable.Cell>
+            <NxTable.Cell></NxTable.Cell>
+            <NxTable.Cell></NxTable.Cell>
+          </NxTable.Row>
+          <NxTable.Row id="hygieneRating">
+            <NxTable.Cell>Hygiene Rating</NxTable.Cell>
+            <NxTable.Cell>{renderHygieneRating(currentVersion.hygieneRating)}</NxTable.Cell>
+            <NxTable.Cell>{renderHygieneRating(selectedVersion.hygieneRating)}</NxTable.Cell>
+          </NxTable.Row>
+          <NxTable.Row id="integrityRating">
+            <NxTable.Cell>Integrity Rating</NxTable.Cell>
+            <NxTable.Cell>{renderIntegrityRating(currentVersion.integrityRating)}</NxTable.Cell>
+            <NxTable.Cell>{renderIntegrityRating(selectedVersion.integrityRating)}</NxTable.Cell>
+          </NxTable.Row>
+        </NxTable.Body>
+      </NxTable>
+    </Fragment>
   );
 };
+
+CompareVersions.propTypes = {
+  currentVersion: versionComparisonInfoPropType.isRequired,
+  selectedVersion: versionComparisonInfoPropType.isRequired,
+};
+
+function renderIntegrityRating(integrityRating) {
+  if (integrityRating == null) {
+    return null;
+  }
+
+  const classes = classnames({ 'iq-integrity-rating-suspicious': integrityRating.id === 1 });
+  return <span className={classes}>{integrityRating.label}</span>;
+}
+
+function renderHygieneRating(hygieneRating) {
+  if (hygieneRating == null) {
+    return null;
+  }
+
+  const { id, label } = hygieneRating;
+  return (
+    <Fragment>
+      {id === 1 && <NxFontAwesomeIcon icon={faTrophy} className="iq-hygiene-rating-exemplar" />}
+      {id === 4 && <NxFontAwesomeIcon icon={faExclamationTriangle} className="iq-hygiene-rating-laggard" />}
+      <span>{label}</span>
+    </Fragment>
+  );
+}
+
+// this can be reused for Security, Legal, Quality and Other violation threat
+function renderHighestPolicyThreat(highestPolicyThreat, numberOfViolatedPolicies) {
+  if (highestPolicyThreat == null) {
+    return null;
+  }
+
+  // temporary using custom policy threat indicator until we upgrade RSC and use NxSmallThreatCounter
+  const tagClasses = classnames('iq-compare-versions__policy-threat-indicator', {
+    critical: highestPolicyThreat > 7,
+    severe: highestPolicyThreat <= 7 && highestPolicyThreat > 3,
+    moderate: highestPolicyThreat <= 3 && highestPolicyThreat > 1,
+    low: highestPolicyThreat === 1,
+    none: highestPolicyThreat === 0,
+  });
+
+  return (
+    <Fragment>
+      {highestPolicyThreat === 'None' ? (
+        <div>{highestPolicyThreat}</div>
+      ) : (
+        // use toString() because 0 value breaks jasmine
+        <NxTag className={tagClasses}>{highestPolicyThreat.toString()}</NxTag>
+      )}
+      {numberOfViolatedPolicies > 1 && <div>within {numberOfViolatedPolicies} policies</div>}
+    </Fragment>
+  );
+}
+
+function renderEffectiveLicenses({ effectiveLicenses, effectiveLicenseStatus }) {
+  if (effectiveLicenses == null) {
+    return null;
+  }
+
+  const tagColor = effectiveLicenseStatus === 'Overridden' ? 'purple' : 'indigo';
+  return (
+    <Fragment>
+      <div>{effectiveLicenses}</div>
+      {effectiveLicenseStatus && (
+        <NxTag className="iq-compare-versions__license-status" color={tagColor}>
+          {effectiveLicenseStatus}
+        </NxTag>
+      )}
+    </Fragment>
+  );
+}

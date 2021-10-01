@@ -6,12 +6,17 @@
 package com.sonatype.insight.brain.security;
 
 import java.net.HttpCookie;
+import java.util.Collections;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.test.networking.SslProperties;
 
+import io.dropwizard.jetty.HttpConnectorFactory;
+import io.dropwizard.jetty.HttpsConnectorFactory;
+import io.dropwizard.server.DefaultServerFactory;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -115,6 +120,37 @@ public class AntiCsrfFilterTest
   public void testRequestWithAnonymousWithoutCsrfCookieAndHeader() throws Exception {
     HttpResponse response = restRequest().noCsrfToken().put();
     assertLoginFailure(response);
+  }
+
+  @Test
+  public void testRequestUsingHttpInitializesCsrfCookieWithoutSecure() throws Exception {
+    HttpResponse response = super.restRequest().noCsrfToken().path("/assets/index.html").get();
+
+    HttpCookie csrfCookie = response.getCookie(AntiCsrfFilter.CSRF_COOKIE_NAME);
+    assertThat(csrfCookie).isNotNull();
+    assertThat(csrfCookie.getValue()).isNotNull();
+    assertThat(csrfCookie.getSecure()).isFalse();
+  }
+
+  @Test
+  @ManualServerInit
+  public void testRequestUsingHttpsInitializesCsrfCookieWithSecure() throws Exception {
+    initServer(config -> {
+      HttpsConnectorFactory applicationHttpsConnector = new HttpsConnectorFactory();
+      applicationHttpsConnector.setUseForwardedHeaders(true);
+      applicationHttpsConnector.setKeyStorePath(SslProperties.SERVER_STORE_FILE.getAbsolutePath());
+      applicationHttpsConnector.setKeyStorePassword(SslProperties.KEY_STORE_PASSWORD);
+      DefaultServerFactory defaultServerFactory = (DefaultServerFactory) config.getServerFactory();
+      applicationHttpsConnector
+          .setPort(((HttpConnectorFactory) defaultServerFactory.getApplicationConnectors().get(0)).getPort());
+      defaultServerFactory.setApplicationConnectors(Collections.singletonList(applicationHttpsConnector));
+    });
+    HttpResponse response = super.restRequest().noCsrfToken().path("/assets/index.html").get();
+
+    HttpCookie csrfCookie = response.getCookie(AntiCsrfFilter.CSRF_COOKIE_NAME);
+    assertThat(csrfCookie).isNotNull();
+    assertThat(csrfCookie.getValue()).isNotNull();
+    assertThat(csrfCookie.getSecure()).isTrue();
   }
 
   @Override

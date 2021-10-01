@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.telemetry;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.HdsClient.RelayResponse;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
@@ -56,19 +58,23 @@ public class PendoService
 
   private final CurrentUser currentUser;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public PendoService(
       HdsClient hdsClient,
       PendoCache pendoCache,
       TelemetryId telemetryId,
       VersionService versionService,
-      CurrentUser currentUser)
+      CurrentUser currentUser,
+      ProductLicense productLicense)
   {
     this.hdsClient = hdsClient;
     this.pendoCache = pendoCache;
     this.telemetryId = telemetryId;
     this.versionService = versionService;
     this.currentUser = currentUser;
+    this.productLicense = productLicense;
   }
 
   public PendoConfig getConfig() {
@@ -77,14 +83,14 @@ public class PendoService
 
     if (segmentInfo.disabled == null || !segmentInfo.disabled) {
       pendoConfig.account.putAll(segmentInfo.segmentAttributes);
-      pendoConfig.account.put(ID, telemetryId.getId());
+      pendoConfig.account.put(ID, getTelemetryId());
       pendoConfig.account.put(VERSION, versionService.getVersion());
 
       // add user info only if user is logged in
       UserPrincipal userPrincipal = currentUser.getUserPrincipal();
       if (userPrincipal != null) {
         pendoConfig.visitor.put(ID,
-            Hashing.sha256().hashUnencodedChars(telemetryId.getId() + userPrincipal.getUsername()).toString());
+            Hashing.sha256().hashUnencodedChars(getTelemetryId() + userPrincipal.getUsername()).toString());
       }
     }
 
@@ -112,5 +118,17 @@ public class PendoService
     public Map<String, String> visitor = new HashMap<>();
 
     public Map<String, Object> account = new HashMap<>();
+  }
+
+  private String getTelemetryId() {
+    if (productLicense.getSalesforceAccountId() != null) {
+      return productLicense.getSalesforceAccountId();
+    }
+    else if (productLicense.getContactCompany() != null) {
+      return Hashing.sha256().hashString(productLicense.getContactCompany(), StandardCharsets.UTF_8).toString();
+    }
+    else {
+      return telemetryId.getId();
+    }
   }
 }

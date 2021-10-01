@@ -9,14 +9,16 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.hds.HdsClient.RelayResponse;
+import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PendoService.PendoConfig;
 import com.sonatype.insight.brain.version.VersionService;
@@ -52,9 +54,13 @@ public class PendoServiceTest
 
   private String hashedVisitorId;
 
+  @Mock
+  private ProductLicense productLicense;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClient);
+    binder.bind(ProductLicense.class).toInstance(productLicense);
     super.configure(binder);
   }
 
@@ -68,6 +74,8 @@ public class PendoServiceTest
     CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
     segmentInfo.segmentAttributes = Collections.singletonMap("foo", "bar");
     when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
+    when(productLicense.getContactCompany()).thenReturn(null);
+    when(productLicense.getSalesforceAccountId()).thenReturn(null);
 
     PendoConfig config = pendoService.getConfig();
     assertThat(config.account).containsEntry("id", telemetryId.getId()).containsEntry("foo", "bar")
@@ -110,6 +118,25 @@ public class PendoServiceTest
 
     assertThat(config.visitor).containsEntry("id", hashedVisitorId);
     assertThat(config.account).containsEntry("id", telemetryId.getId());
+  }
+
+  @Test
+  public void testGetConfig_TelemetryId_LicenseWithoutSalesforceIdWithCompanyName() throws Exception {
+    when(productLicense.getContactCompany()).thenReturn("Company A");
+    when(productLicense.getSalesforceAccountId()).thenReturn(null);
+    String hashedCompanyName =
+        Hashing.sha256().hashString(productLicense.getContactCompany(), StandardCharsets.UTF_8).toString();
+
+    PendoConfig config = pendoService.getConfig();
+    assertThat(config.account).containsEntry("id", hashedCompanyName);
+  }
+
+  @Test
+  public void testGetConfig_TelemetryId_LicenseWithSalesforceId() throws Exception {
+    when(productLicense.getSalesforceAccountId()).thenReturn("sfAccountIdTest");
+
+    PendoConfig config = pendoService.getConfig();
+    assertThat(config.account).containsEntry("id", "sfAccountIdTest");
   }
 
   @Test

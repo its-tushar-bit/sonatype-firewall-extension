@@ -130,9 +130,10 @@ public class ApiSourceControlService
   public ApiSourceControlDTO addOrUpdateSourceControl(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicId,
       final String repositoryUrl,
+      final String sshUrl,
       final String defaultBranch)
   {
-    return addOrUpdateSourceControl(publicId, repositoryUrl, true, defaultBranch);
+    return addOrUpdateSourceControl(publicId, repositoryUrl, sshUrl, true, defaultBranch);
   }
 
   private ApiSourceControlDTO addOrUpdateSourceControl(
@@ -140,12 +141,13 @@ public class ApiSourceControlService
       final String repositoryUrl,
       final boolean bypassAutomatedSCM)
   {
-    return addOrUpdateSourceControl(publicId, repositoryUrl, bypassAutomatedSCM, null);
+    return addOrUpdateSourceControl(publicId, repositoryUrl, null, bypassAutomatedSCM, null);
   }
 
   private ApiSourceControlDTO addOrUpdateSourceControl(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicId,
       final String repositoryUrl,
+      final String sshUrl,
       final boolean bypassAutomatedSCM,
       final String defaultBranch)
   {
@@ -164,6 +166,7 @@ public class ApiSourceControlService
         sourceControl = new SourceControl.Builder()
             .setOwnerId(application.getId())
             .setRepositoryUrl(convertedRepositoryUrl)
+            .setRepositorySshUrl(sshUrl)
             .setBaseBranch(defaultBranch)
             .build();
         sourceControlDAO.insert(sourceControl);
@@ -171,6 +174,7 @@ public class ApiSourceControlService
       }
       else if (shouldUpdateSourceControlRepositoryUrl(sourceControl.getRepositoryUrl(), convertedRepositoryUrl)) {
         sourceControl.setRepositoryUrl(convertedRepositoryUrl);
+        sourceControl.setRepositorySshUrl(sshUrl);
         sourceControlDAO.update(sourceControl);
         auditAndSendTelemetry(sourceControl, application.getId());
       }

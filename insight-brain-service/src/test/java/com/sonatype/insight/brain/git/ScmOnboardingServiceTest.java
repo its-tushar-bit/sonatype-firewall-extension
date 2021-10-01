@@ -491,12 +491,15 @@ public class ScmOnboardingServiceTest
 
     // given a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", null, false, "org", "repo1", ""),
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo2", null, false, "org", "repo2", ""),
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo3", null, false, "org", "repo3", ""),
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1",
+            "git@localhost:org/repo1.git", false, "org", "repo1", ""),
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo2",
+            "git@localhost:org/repo2.git", false, "org", "repo2", ""),
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo3",
+            "git@localhost:org/repo3.git", false, "org", "repo3", ""),
         // use org & app names with IQ app name restrictions
-        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo4", null, false,
-            "--bad-__-org", "--bad_name_99--", ""),
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo4",
+            "git@localhost:org/repo4.git", false,"--bad-__-org", "--bad_name_99--", ""),
     };
     int totalRepoCount = 50;
     int prevImportedCount = 10;
@@ -512,6 +515,7 @@ public class ScmOnboardingServiceTest
       assertThat(imported.get(i).getNamespace()).isEqualTo(reposToImport[i].getNamespace());
       assertThat(imported.get(i).getProject()).isEqualTo(reposToImport[i].getProject());
       assertThat(imported.get(i).getHttpCloneUrl()).isEqualTo(reposToImport[i].getHttpCloneUrl());
+      assertThat(imported.get(i).getSshCloneUrl()).isEqualTo(reposToImport[i].getSshCloneUrl());
       assertThat(imported.get(i).getSourceControlProvider()).isEqualTo(reposToImport[i].getSourceControlProvider());
       assertThat(imported.get(i).getDescription()).isEqualTo(reposToImport[i].getDescription());
     }
@@ -532,6 +536,12 @@ public class ScmOnboardingServiceTest
         .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
         .map(SourceControl::getRepositoryUrl)).containsExactly("http://localhost/org/repo1",
         "http://localhost/org/repo2", "http://localhost/org/repo3", "http://localhost/org/repo4");
+
+    // and that all the clone URLs were added
+    assertThat(sourceControlDAO.getAll().stream()
+        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
+        .map(SourceControl::getRepositorySshUrl)).containsExactly("git@localhost:org/repo1.git",
+        "git@localhost:org/repo2.git", "git@localhost:org/repo3.git", "git@localhost:org/repo4.git");
 
     // and: source control evaluation request events were created
     verifyManifestEvaluationEventsCreated(imported.size());

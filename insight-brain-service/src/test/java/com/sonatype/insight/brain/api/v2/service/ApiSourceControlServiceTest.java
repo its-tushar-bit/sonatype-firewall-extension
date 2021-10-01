@@ -247,17 +247,25 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  public void testAddSourceControl_Create_DefaultBranch() {
-    // when new source control with default branch is added
-    ApiSourceControlDTO actual = sourceControlService
-        .addOrUpdateSourceControl(app.getPublicId(), "https://github.com/context/org/a", "branch");
+  public void testAddSourceControl_Create_Params() {
+    // when new source control with default branch ans SSH URL is added
+    String httpUrl = "https://localhost/context/org/a";
+    String sshUrl = "git@localhost:org/a.git";
+    String branch = "branch";
+    ApiSourceControlDTO actual = sourceControlService.addOrUpdateSourceControl(app.getPublicId(),
+        httpUrl, sshUrl, branch);
 
-    // then default branch is returned
-    assertThat(actual.baseBranch).isEqualTo("branch");
+    // then params are returned
+    assertThat(actual.baseBranch).isEqualTo(branch);
+    assertThat(actual.repositoryUrl).isEqualTo(httpUrl);
+    assertThat(actual.baseBranch).isEqualTo(branch);
+    // sshUrl is not exposed as a property
 
-    // and default branch is stored in database
+    // and params are stored in database
     SourceControl persisted = sourceControlDAO.getByIdNotNull(actual.id);
     assertThat(persisted.getBaseBranch()).isEqualTo("branch");
+    assertThat(persisted.getRepositoryUrl()).isEqualTo(httpUrl);
+    assertThat(persisted.getRepositorySshUrl()).isEqualTo(sshUrl);
   }
 
   @Test

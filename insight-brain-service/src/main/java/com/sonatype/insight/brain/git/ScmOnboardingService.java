@@ -395,8 +395,8 @@ public class ScmOnboardingService
 
     // get default branch value and updates SCM repository value with result
     String defaultBranch = getAndSetDefaultBranch(scmRepository, orgId);
-    ApiSourceControlDTO apiSourceControlDTO =
-        apiSourceControlService.addOrUpdateSourceControl(app.getPublicId(), cloneUrl, defaultBranch);
+    ApiSourceControlDTO apiSourceControlDTO = apiSourceControlService.addOrUpdateSourceControl(app.getPublicId(),
+        cloneUrl, scmRepository.getSshCloneUrl(), defaultBranch);
 
     if (licenseChecker.isIqForScmSupported()) {
       if (insightConfig.isFeatureEnabled(InsightConfig.Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)) {

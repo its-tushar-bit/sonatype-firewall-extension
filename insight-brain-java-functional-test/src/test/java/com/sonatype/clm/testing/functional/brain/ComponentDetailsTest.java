@@ -662,6 +662,68 @@ public class ComponentDetailsTest
     vulnerabilityDetailsPopover.shouldNotBe(visible);
   }
 
+  @Test
+  public void testLegalTab_licenseViolationTableEntries() {
+    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "fa78f54738ccf77379d1"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.legalTabContent().shouldBe(visible);
+
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.legalTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(1);
+
+    ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
+    rowCells.shouldHaveSize(6);
+
+    rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')",
+        "Add Waiver", ""));
+
+    eyesWatcher.eyesCheck("component details legal tab violation table add waiver");
+
+    rowCells.get(4).find("button").click();
+
+    AddWaiverPopover addWaiverPopover = new AddWaiverPopover();
+    Button saveButton = addWaiverPopover.saveButton();
+    saveButton.shouldBe(visible).click();
+
+    componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.legalTabContent().shouldBe(visible);
+
+    policyViolationsTable = componentDetailsPage.legalTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(1);
+    rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
+    rowCells.shouldHaveSize(6);
+    rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')",
+        "Unapplied Waiver", ""));
+
+    MainHeader.backButton().click();
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+    reportPage.reevaluateButton().click();
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ApplicationReportPage.AppReportHeaders reportHeaders = new ApplicationReportPage.AppReportHeaders();
+    reportHeaders.componentNameFilterInput().setValue("com.mycila : license-maven-plugin : 2.11");
+    reportPage.resultRows().first().click();
+
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "fa78f54738ccf77379d1"));
+
+    componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.legalTab().click();
+    componentDetailsPage.legalTabContent().shouldBe(visible);
+
+    policyViolationsTable = componentDetailsPage.legalTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(1);
+    rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
+    rowCells.shouldHaveSize(6);
+    rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')",
+        "1 Active Waiver", ""));
+  }
+
   /* Part of testPolicyViolationsTab_violationTableEntries. */
   private void testGrandfatheringIndicator(final ComponentDetailsPage componentDetailsPage) {
     // Configure grandfathering indicator for the first violation in the report and reload it

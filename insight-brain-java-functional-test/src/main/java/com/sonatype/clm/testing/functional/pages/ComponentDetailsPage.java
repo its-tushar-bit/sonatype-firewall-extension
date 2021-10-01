@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OverviewTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.SecurityTabContent;
+import com.sonatype.clm.testing.functional.elements.componentdetails.LegalTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ViolationsTabContent;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
@@ -96,6 +97,10 @@ public class ComponentDetailsPage
 
   public SecurityTabContent securityTabContent() {
     return new SecurityTabContent();
+  }
+
+  public LegalTabContent legalTabContent() {
+    return new LegalTabContent();
   }
 
   public OverviewTabContent overviewTabContent() {

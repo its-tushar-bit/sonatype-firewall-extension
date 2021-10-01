@@ -29,6 +29,7 @@ import { OverviewContainer } from './overview';
 import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
 import PolicyViolations from './PolicyViolations/PolicyViolations';
 import ComponentDetailsSecurityTab from './ComponentDetailsSecurityTab/ComponentDetailsSecurityTab';
+import ComponentDetailsLegalTab from './ComponentDetailsLegalTab/ComponentDetailsLegalTab';
 
 const tabIdPerIndex = ['overview', 'violations', 'security', 'legal', 'audit'];
 
@@ -115,8 +116,8 @@ export default function ComponentDetails({
           <NxTabPanel id="component-details-security-tab-content">
             <ComponentDetailsSecurityTab />
           </NxTabPanel>
-          <NxTabPanel>
-            <PlaceholderTabContent tabIndex={4}>Legal</PlaceholderTabContent>
+          <NxTabPanel id="component-details-legal-tab-content">
+            <ComponentDetailsLegalTab />
           </NxTabPanel>
           <NxTabPanel id="audit-log-tab-content">
             <AuditLogContainer />
@@ -153,21 +154,3 @@ ComponentDetails.propTypes = {
   loadError: PropTypes.string,
   pagination: PropTypes.shape(footerPropTypes),
 };
-
-/*
- * Placeholder component for the tab content, should be deleted after all tabs are implemented.
- */
-function PlaceholderTabContent({ tabIndex, children }) {
-  return (
-    <div>
-      <h2>{`Tab #${tabIndex + 1} (index ${tabIndex})`}</h2>
-      <span>{children}</span>
-    </div>
-  );
-}
-
-PlaceholderTabContent.propTypes = {
-  tabIndex: PropTypes.number.isRequired,
-  children: PropTypes.node.isRequired,
-};
-/* End of placeholder component */

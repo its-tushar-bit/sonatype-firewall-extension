@@ -140,7 +140,6 @@ public class AttributionReportTemplateDAOTest
     assertThat(dao.getByTemplateName("template 2")).usingRecursiveComparison()
         .ignoringFields(JPA.IGNORE_FIELDS)
         .usingOverriddenEquals().isEqualTo(attributionReportTemplate2);
-    ;
   }
 
   @Test

@@ -107,6 +107,16 @@ function ApplicationReportResultsController(
       );
     },
 
+    refreshReportUrlRemoveComponentHashAndTabId() {
+      $ngRedux.dispatch(
+        stateGo($state.current.name, {
+          ...$state.params,
+          componentHash: undefined,
+          tabId: undefined,
+        })
+      );
+    },
+
     onDerivedComponentNameFilterChange() {
       vm.setStringFieldFilter('derivedComponentName', vm.derivedComponentNameSubstringFilter);
     },
@@ -181,6 +191,7 @@ function ApplicationReportResultsController(
 
   function showCipModalIfNecessary() {
     const { policyViolationId } = vm.reportParameters || {};
+    const { componentHash } = vm.reportParameters || {};
     if (isNil(vm.selectedComponentIndex) && policyViolationId) {
       const findPredicate = propEq('policyViolationId', policyViolationId);
       let selectedComponentIndex = findIndex(findPredicate, vm.selectedReport.displayedEntries);
@@ -192,6 +203,20 @@ function ApplicationReportResultsController(
         selectedComponentIndex = findIndex(findPredicate, vm.selectedReport.allEntries);
         if (selectedComponentIndex >= 0) {
           showCipModalForIndexResolvedFromAllEntries(selectedComponentIndex);
+        }
+      }
+    } else if (isNil(vm.selectedComponentIndex) && componentHash) {
+      const findPredicate = propEq('hash', componentHash);
+      let selectedComponentIndex = findIndex(findPredicate, vm.selectedReport.displayedEntries);
+      if (selectedComponentIndex >= 0) {
+        vm.openCipModal(selectedComponentIndex);
+        vm.refreshReportUrlRemoveComponentHashAndTabId();
+      } else {
+        // attempt to find in all entries in case it's not currently displayed
+        selectedComponentIndex = findIndex(findPredicate, vm.selectedReport.allEntries);
+        if (selectedComponentIndex >= 0) {
+          vm.openCipModal(selectedComponentIndex);
+          vm.refreshReportUrlRemoveComponentHashAndTabId();
         }
       }
     }

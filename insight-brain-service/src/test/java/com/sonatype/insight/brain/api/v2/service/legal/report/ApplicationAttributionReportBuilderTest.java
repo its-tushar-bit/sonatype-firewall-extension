@@ -217,7 +217,7 @@ public class ApplicationAttributionReportBuilderTest
   }
 
   @Test
-  public void testWithHeaderAndFooter() throws IOException {
+  public void testWithHeaderAndFooter() {
     Application application = tempEntity.newApplicationWithParent("appId");
     generateReportDataAndMocks(application);
 
@@ -240,7 +240,7 @@ public class ApplicationAttributionReportBuilderTest
   }
 
   @Test
-  public void testWithNoticeFiles() throws IOException {
+  public void testWithNoticeFiles() {
     Application application = tempEntity.newApplicationWithParent("appId");
     generateReportDataAndMocks(application);
 

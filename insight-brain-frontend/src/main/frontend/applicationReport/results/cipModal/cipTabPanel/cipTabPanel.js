@@ -28,6 +28,7 @@ export default {
     scanId: '<',
     applicationPublicId: '<',
     stageId: '<',
+    tabId: '<',
     reloadReport: '&',
     closeCipModal: '&',
   },
@@ -45,11 +46,19 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages, OwnerConte
   vm.reduxUnsubscribe = $ngRedux.connect(null, actions)(vm);
 
   Object.assign(vm, {
-    selectedTab: 'componentInfo',
+    selectedTab: getSelectedTab() || 'componentInfo',
     openLatestInnerSourceReport: openLatestInnerSourceReport,
     closeInnerSourceProducerReportModal: closeInnerSourceProducerReportModal,
     closeInnerSourceProducerPermissionsModal: closeInnerSourceProducerPermissionsModal,
   });
+
+  function getSelectedTab() {
+    const state = $ngRedux.getState();
+    if (!state || !state.router || !state.router.currentParams) {
+      return undefined;
+    }
+    return state.router.currentParams.tabId;
+  }
 
   function updateTabs() {
     const { selectedComponent } = vm,

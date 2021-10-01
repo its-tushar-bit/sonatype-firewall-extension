@@ -64,10 +64,10 @@ export const SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER = 'SET_RAW_DATA_NUMERIC_FIELD
 export const SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER = 'SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER';
 export const SET_SORTING = 'SET_SORTING';
 
-export function setReportParameters(appId, scanId, isUnknownJs, embeddable, policyViolationId) {
+export function setReportParameters(appId, scanId, isUnknownJs, embeddable, policyViolationId, componentHash, tabId) {
   return {
     type: SET_REPORT_PARAMETERS,
-    payload: { appId, scanId, isUnknownJs, embeddable, policyViolationId },
+    payload: { appId, scanId, isUnknownJs, embeddable, policyViolationId, componentHash, tabId },
   };
 }
 

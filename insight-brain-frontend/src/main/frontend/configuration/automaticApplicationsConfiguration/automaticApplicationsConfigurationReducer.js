@@ -17,8 +17,11 @@ import {
   AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_SUBMIT_MASK_TIMER_DONE,
   AUTOMATIC_APPLICATION_CONFIGURATION_RESET_FORM,
   AUTOMATIC_APPLICATION_CONFIGURATION_TOGGLE_ENABLED,
-  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION,
+  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED,
+  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FULFILLED,
+  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED,
 } from './automaticApplicationsConfigurationActions';
+import { valueFromHierarchy } from '../scmOnboarding/utils/providers';
 
 export const initialState = Object.freeze({
   loading: true,
@@ -45,12 +48,13 @@ function checkIsDirty(state) {
 const clearedErrors = pick(['loadError', 'updateError'], initialState);
 
 function loadFulfilled(payload, state) {
-  const { organizations, automaticApplicationsConfiguration } = payload;
+  const { organizations, automaticApplicationsConfiguration, compositeSourceControl } = payload;
   return {
     ...state,
     loading: false,
     ...clearedErrors,
     organizations,
+    scmProvider: compositeSourceControl != null ? valueFromHierarchy(compositeSourceControl.provider) : null,
     formState: { ...automaticApplicationsConfiguration },
     serverData: { ...automaticApplicationsConfiguration },
   };
@@ -81,7 +85,7 @@ function toggleAutomaticApplicationEnabled(_, state) {
   });
 }
 
-function setParentOrganization(payload, state) {
+function setParentOrganizationRequested(payload, state) {
   return checkIsDirty({
     ...state,
     formState: {
@@ -89,6 +93,22 @@ function setParentOrganization(payload, state) {
       parentOrganizationId: payload,
     },
   });
+}
+
+function setParentOrganizationFulfilled(payload, state) {
+  const { compositeSourceControl } = payload;
+  return {
+    ...state,
+    scmProvider: compositeSourceControl != null ? valueFromHierarchy(compositeSourceControl.provider) : null,
+  };
+}
+
+function setParentOrganizationFailed(payload, state) {
+  return {
+    ...state,
+    loading: false,
+    loadError: payload,
+  };
 }
 
 const updateFulfilled = (_, state) => {
@@ -123,7 +143,9 @@ const reducerActionMap = {
   [AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FULFILLED]: loadFulfilled,
   [AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FAILED]: loadFailed,
   [AUTOMATIC_APPLICATION_CONFIGURATION_TOGGLE_ENABLED]: toggleAutomaticApplicationEnabled,
-  [AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION]: setParentOrganization,
+  [AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED]: setParentOrganizationRequested,
+  [AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FULFILLED]: setParentOrganizationFulfilled,
+  [AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED]: setParentOrganizationFailed,
   [AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_REQUESTED]: propSetConst('submitMaskState', false),
   [AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_FULFILLED]: updateFulfilled,
   [AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_FAILED]: updateFailed,

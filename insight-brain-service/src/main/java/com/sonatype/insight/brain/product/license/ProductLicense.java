@@ -35,6 +35,8 @@ public class ProductLicense
 
     private final String contactEmail;
 
+    private final String salesForceAccountId;
+
     private final Set<String> products;
 
     private final Set<LicensedFeature> features;
@@ -55,6 +57,7 @@ public class ProductLicense
         String contactName,
         String contactCompany,
         String contactEmail,
+        String salesForceAccountId,
         Set<String> products,
         Set<LicensedFeature> features,
         Set<StageType> stageTypes,
@@ -68,6 +71,7 @@ public class ProductLicense
       this.contactName = contactName;
       this.contactCompany = contactCompany;
       this.contactEmail = contactEmail;
+      this.salesForceAccountId = salesForceAccountId;
       this.products = products;
       this.features = features;
       this.stageTypes = stageTypes;
@@ -85,8 +89,9 @@ public class ProductLicense
   }
 
   void clear() {
-    productLicenseData = new ProductLicenseData(null, 0, null, null, null, Collections.emptySet(),
-        Collections.emptySet(), Collections.emptySet(), ProductLicensingModel.APP_BASED, 0, 0, 0);
+    productLicenseData =
+        new ProductLicenseData(null, 0, null, null, null, null, Collections.emptySet(), Collections.emptySet(),
+            Collections.emptySet(), ProductLicensingModel.APP_BASED, 0, 0, 0);
   }
 
   void set(
@@ -102,9 +107,9 @@ public class ProductLicense
   {
     productLicenseData = new ProductLicenseData(fingerprint, productLicenseKey.getExpirationDate().getTime(),
         productLicenseKey.getContactName(), productLicenseKey.getContactCompany(),
-        productLicenseKey.getContactEmailAddress(), Collections.unmodifiableSet(products),
-        Collections.unmodifiableSet(features), Collections.unmodifiableSet(stageTypes), licensingModel, maxApplications,
-        maxUsers, maxFirewallUsers);
+        productLicenseKey.getContactEmailAddress(), productLicenseKey.getSalesforceAccountId(),
+        Collections.unmodifiableSet(products), Collections.unmodifiableSet(features),
+        Collections.unmodifiableSet(stageTypes), licensingModel, maxApplications, maxUsers, maxFirewallUsers);
   }
 
   /**
@@ -145,6 +150,10 @@ public class ProductLicense
 
   public String getContactEmail() {
     return productLicenseData.contactEmail;
+  }
+
+  public String getSalesforceAccountId() {
+    return productLicenseData.salesForceAccountId;
   }
 
   /**

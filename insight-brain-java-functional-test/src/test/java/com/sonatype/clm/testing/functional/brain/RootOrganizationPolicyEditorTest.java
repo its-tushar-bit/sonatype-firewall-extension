@@ -17,6 +17,7 @@ import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -76,7 +77,7 @@ public class RootOrganizationPolicyEditorTest
     PolicyEditorPage.actionsSection().proxy().failRadio().click();
     PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldBe(visible);
 
-    PolicyEditorPage.actionsSection().quarantineWarningMessage().scrollIntoView(true);
+    ScrollUtil.awaitEndOfScrolling(PolicyEditorPage.actionsSection().quarantineWarningMessage().scrollIntoView(true));
     eyesWatcher.eyesCheck("testQuarantineWarningOnCreatePolicy - quarantineWarningMessage is shown");
 
     PolicyEditorPage.actionsSection().build().warnRadio().click();
@@ -112,7 +113,7 @@ public class RootOrganizationPolicyEditorTest
     PolicyEditorPage.actionsSection().proxy().failRadio().click();
     PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldBe(visible);
 
-    PolicyEditorPage.actionsSection().quarantineWarningMessage().scrollIntoView(true);
+    ScrollUtil.awaitEndOfScrolling(PolicyEditorPage.actionsSection().quarantineWarningMessage().scrollIntoView(true));
     eyesWatcher.eyesCheck("testQuarantineWarningOnEditPolicy - quarantineWarningMessage is shown");
 
     PolicyEditorPage.savePolicy();

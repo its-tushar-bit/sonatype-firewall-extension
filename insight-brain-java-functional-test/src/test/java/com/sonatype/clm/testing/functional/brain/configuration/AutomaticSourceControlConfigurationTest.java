@@ -10,28 +10,37 @@ import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.AutomaticSourceControlConfigurationPage;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
+import com.sonatype.insight.brain.model.Organization;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AutomaticSourceControlConfigurationTest
     extends AbstractFunctionalTest
 {
+  @BeforeClass
+  public static void startup() {
+    refreshOrOpen(AutomaticSourceControlConfigurationPage.url());
+    loginAsAdmin();
+  }
+
   @Test
   public void automaticSourceControlConfigurationTest() {
     AutomaticSourceControlConfigurationPage configurationPage =
         new AutomaticSourceControlConfigurationPage();
-
     refreshOrOpen(AutomaticSourceControlConfigurationPage.url());
-    loginAsAdmin();
 
-    // check description is present
+    // check descriptions visibility
     configurationPage.explanation().shouldBe(visible).shouldNotBe(empty);
+    configurationPage.explanationAutomaticApplications().shouldNotBe(visible);
 
     // check initial state
     configurationPage.toggle().input().shouldNotBe(checked);
@@ -62,6 +71,26 @@ public class AutomaticSourceControlConfigurationTest
     FormMask.seeAndWaitForDismissal();
     configurationPage.update().shouldBe(CLM.DISABLED);
     verifyConfiguration(false);
+  }
+
+  @Test
+  public void automaticSourceControlConfigurationTest_explanationAutomaticApplications() {
+    // given automatic applications are enabled
+    Organization organization = tempEntity.newOrganization("automatic source control test");
+    tempEntity.newOrganizationAutomaticApplicationsConfiguration(organization);
+
+    // and source control is configured
+    tempEntity.newSourceControl(organization.getId(), null, "token", GITHUB);
+
+    // when opening the automatic source control page
+    AutomaticSourceControlConfigurationPage configurationPage =
+        new AutomaticSourceControlConfigurationPage();
+    refreshOrOpen(AutomaticSourceControlConfigurationPage.url());
+
+    // then a description about usage of automatic applications is visible
+    eyesWatcher.eyesCheck();
+    configurationPage.explanationAutomaticApplications().shouldBe(visible)
+        .shouldHave(text("imported into automatic source control test Organization which uses GitHub."));
   }
 
   private void verifyConfiguration(boolean enabled) {

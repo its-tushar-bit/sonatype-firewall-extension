@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.By;
 
 public class ComponentInformationTile
     extends BasicElement<ComponentInformationTile>
@@ -75,6 +76,11 @@ public class ComponentInformationTile
     public SelenideElement getMatchStateItem() {
       ElementsCollection definitionPairs = getDefinitionPairs();
       return definitionPairs.get(1);
+    }
+
+    public SelenideElement getSimilarMatchesLink() {
+      SelenideElement matchStateItem = getMatchStateItem();
+      return matchStateItem.find(By.tagName("a"));
     }
 
     public SelenideElement getOccurrencesItem() {

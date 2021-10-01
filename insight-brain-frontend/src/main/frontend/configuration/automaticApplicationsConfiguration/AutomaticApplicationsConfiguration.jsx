@@ -6,6 +6,7 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxForm, NxToggle, NxFormGroup, NxButton, NxErrorAlert } from '@sonatype/react-shared-components';
+import { displayName } from '../scmOnboarding/utils/providers';
 
 const notDirtyErrorMessage = 'There are no changes to update';
 const notValidParentOrganizationErrorMessage = 'Unable to update: fields with invalid or missing data.';
@@ -13,6 +14,7 @@ const notValidParentOrganizationErrorMessage = 'Unable to update: fields with in
 export default function AutomaticApplicationsConfiguration(props) {
   const { load, update, toggleAutomaticApplicationEnabled, setParentOrganization, resetForm } = props;
   const { loading, isDirty, loadError, updateError, submitMaskState, organizations } = props;
+  const { $state, scmProvider } = props;
   const { enabled, parentOrganizationId } = props.formState;
 
   const handleParentOrganizationChange = (evt) => {
@@ -64,6 +66,23 @@ export default function AutomaticApplicationsConfiguration(props) {
               Here you can configure automatic creation of applications. You can enable or disable automatic creation of
               applications using the toggle. You will also need to specify a parent organization for any
               automatically-created applications.
+            </p>
+            <p id="auto-app-config-source-control-explanation" className="nx-p">
+              If you are using <a href={$state.href('automaticSourceControlConfiguration')}>Automatic Source Control</a>{' '}
+              with Automatic Applications, the new applications will be imported into the below Parent Organization
+              {scmProvider && (
+                <>
+                  {' '}
+                  which is configured to use <b>{displayName(scmProvider)}</b>. If you try to automatically create non-
+                  {displayName(scmProvider)} applications, the source control features will not work
+                </>
+              )}
+              .
+            </p>
+
+            <p id="auto-app-config-scm-onboarding-explanation" className="nx-p">
+              Instead, you can use <a href={$state.href('scmOnboarding')}>Easy SCM Onboarding</a> to explicitly import
+              your source control applications into IQ.
             </p>
             <NxToggle
               id="auto-app-config-toggle-checkbox"
@@ -122,4 +141,6 @@ AutomaticApplicationsConfiguration.propTypes = {
   loadError: PropTypes.string,
   updateError: PropTypes.string,
   submitMaskState: PropTypes.bool,
+  scmProvider: PropTypes.string,
+  $state: PropTypes.object.isRequired,
 };

@@ -143,6 +143,7 @@ public class AntiCsrfFilter
     csrfCookie.setValue(UUID.randomUUID().toString());
     csrfCookie.setPath("/");
     csrfCookie.setHttpOnly(false);
+    csrfCookie.setSecure(request.isSecure());
     csrfCookie.saveTo(request, response);
   }
 

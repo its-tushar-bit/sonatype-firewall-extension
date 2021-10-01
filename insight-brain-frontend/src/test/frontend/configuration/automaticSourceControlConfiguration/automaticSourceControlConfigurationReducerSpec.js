@@ -54,10 +54,48 @@ describe('AutomaticSourceControlConfigurationReducer', () => {
         },
       });
 
-      const action = { type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FULFILLED' };
+      const action = {
+        type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FULFILLED',
+        payload: {
+          automaticApplicationsConfiguration: { enabled: false },
+          automaticSourceControlConfiguration: {},
+          organizations: [],
+        },
+      };
       const newState = reduce(state, action);
       expect(newState.viewState.loading).toBe(false);
 
+      expect(newState.otherObject).toBe(otherObject);
+      expect(newState.viewState.otherObject).toBe(otherObject);
+    });
+  });
+
+  describe('AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FULFILLED action with automatic applications', function () {
+    it('updates viewState', function () {
+      const state = Object.freeze({
+        otherObject,
+        viewState: {
+          otherObject,
+          loading: true,
+        },
+      });
+
+      const action = {
+        type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FULFILLED',
+        payload: {
+          automaticApplicationsConfiguration: { enabled: true, parentOrganizationId: '1' },
+          automaticSourceControlConfiguration: {},
+          organizations: [{ id: '1', name: 'OrganizationOne' }],
+          compositeSourceControl: {
+            provider: { value: 'provider' },
+          },
+        },
+      };
+      const newState = reduce(state, action);
+      expect(newState.viewState.loading).toBe(false);
+      expect(newState.viewState.scmProvider).toBe('provider');
+      expect(newState.viewState.parentOrganization).toEqual({ id: '1', name: 'OrganizationOne' });
+      expect(newState.viewState.automaticApplicationsEnabled).toEqual(true);
       expect(newState.otherObject).toBe(otherObject);
       expect(newState.viewState.otherObject).toBe(otherObject);
     });
@@ -301,6 +339,9 @@ describe('AutomaticSourceControlConfigurationReducer', () => {
           updateError: null,
           submitMaskState: null,
           isDirty: false,
+          parentOrganization: null,
+          automaticApplicationsEnabled: false,
+          scmProvider: null,
         },
         serverData: null,
       });

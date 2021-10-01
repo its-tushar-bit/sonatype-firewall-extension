@@ -108,7 +108,7 @@ public class SourceControlSshServiceTest
   }
 
   @Test
-  public void testSshEnabledAndAlreadyHasSshUrl() throws IOException {
+  public void testSshEnabledAndAlreadyHasSshUrl() {
     // given: a source control object that has SSH enabled with an SSH url
     GitRepositoryInfo gitRepositoryInfo = createGitRepositoryInfo(SSH_URL, SSH_ENABLED);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);

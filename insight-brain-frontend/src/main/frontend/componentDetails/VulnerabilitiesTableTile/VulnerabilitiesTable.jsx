@@ -26,14 +26,13 @@ const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, setVulnera
         isLoading={vulnerabilities.loading}
         retryHandler={loadVulnerabilities}
       >
-        {vulnerabilities.data &&
-          vulnerabilities.data.map((vulnerability) => (
-            <VulnerabilitiesTableRow
-              key={vulnerability.refId}
-              vulnerability={vulnerability}
-              setVulnerabilityIdAndToggleVisibility={setVulnerabilityIdAndToggleVisibility}
-            />
-          ))}
+        {vulnerabilities.data?.map((vulnerability) => (
+          <VulnerabilitiesTableRow
+            key={vulnerability.refId}
+            vulnerability={vulnerability}
+            setVulnerabilityIdAndToggleVisibility={setVulnerabilityIdAndToggleVisibility}
+          />
+        ))}
       </NxTableBody>
     </NxTable>
   );

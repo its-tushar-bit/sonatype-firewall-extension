@@ -2514,7 +2514,10 @@ public class TemporaryEntity
   }
 
   public Organization newOrganizationAutomaticApplicationsConfiguration() {
-    Organization organization = newOrganization();
+    return newOrganizationAutomaticApplicationsConfiguration(newOrganization());
+  }
+
+  public Organization newOrganizationAutomaticApplicationsConfiguration(Organization organization) {
     automaticApplicationsConfigurationDAO.setOrganizationId(organization.getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
     return organization;

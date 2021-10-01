@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain.legal.application;
 
-import java.io.IOException;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -28,10 +26,10 @@ import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.disabled;
 
 public class AttributionReportManageTemplateTest
     extends AbstractFunctionalTest
@@ -58,7 +56,7 @@ public class AttributionReportManageTemplateTest
   }
 
   @Before
-  public void setUp() throws IOException {
+  public void setUp() {
     app = tempEntity.newApplicationWithParent(AttributionReportManageTemplateTest.class.getSimpleName(), "app", "org");
     final ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "033e7a20b23ea284d474", componentId);

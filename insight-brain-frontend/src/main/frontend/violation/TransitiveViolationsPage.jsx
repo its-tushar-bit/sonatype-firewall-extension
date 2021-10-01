@@ -68,6 +68,8 @@ export default function TransitiveViolationsPage(props) {
     return routerState.href(routerState.get('applicationReport.policy'), {
       publicId: ownerId,
       scanId: scanId,
+      componentHash: hash,
+      tabId: 'policy',
     });
   };
 

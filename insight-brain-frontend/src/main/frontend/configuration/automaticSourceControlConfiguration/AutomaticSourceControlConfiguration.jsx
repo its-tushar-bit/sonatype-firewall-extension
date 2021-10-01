@@ -7,6 +7,7 @@
 import { NxForm, NxButton, NxToggle } from '@sonatype/react-shared-components';
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
+import { displayName } from '../scmOnboarding/utils/providers';
 
 export default function AutomaticSourceControlConfiguration({
   load,
@@ -19,6 +20,10 @@ export default function AutomaticSourceControlConfiguration({
   loading,
   loadError,
   updateError,
+  parentOrganization,
+  automaticApplicationsEnabled,
+  scmProvider,
+  $state,
 }) {
   useEffect(() => {
     load();
@@ -53,7 +58,7 @@ export default function AutomaticSourceControlConfiguration({
               <h2 className="nx-h2">Automatic Source Control Configuration</h2>
             </div>
           </header>
-          <div className="nx-tile-content automatic-source-control-explanation">
+          <div className="nx-tile-content" id="automatic-source-control-explanation">
             <NxToggle
               id="automatic-source-control-toggle-checkbox"
               className="nx-toggle--no-gap"
@@ -62,6 +67,16 @@ export default function AutomaticSourceControlConfiguration({
             >
               Enable Automatic Source Control Configuration
             </NxToggle>
+            {automaticApplicationsEnabled && scmProvider && (
+              <p className="nx-p" id="automatic-source-control-automatic-applications-explanation">
+                Because you have selected{' '}
+                <a href={$state.href('automaticApplicationsConfiguration')}>Automatic Applications</a>, the applications
+                will all be imported into {parentOrganization.name} Organization which uses {displayName(scmProvider)}.
+                If you wish to use a different provider, you will need to manually create the application first. You may
+                wish to use the <a href={$state.href('scmOnboarding')}>Easy SCM Onboarding tool</a> to create the IQ
+                Applications.
+              </p>
+            )}
           </div>
         </NxForm>
       </section>
@@ -79,4 +94,12 @@ AutomaticSourceControlConfiguration.propTypes = {
   loadError: PropTypes.string,
   updateError: PropTypes.string,
   submitMaskState: PropTypes.bool,
+  parentOrganization: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+    nameLowercaseNoWhitespace: PropTypes.string,
+  }),
+  automaticApplicationsEnabled: PropTypes.bool,
+  scmProvider: PropTypes.string,
+  $state: PropTypes.object.isRequired,
 };

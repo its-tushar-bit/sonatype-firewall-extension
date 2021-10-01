@@ -18,6 +18,7 @@ import {
   AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_REQUESTED,
   SUCCESS_METRICS_CONFIGURATION_UPDATE_SUBMIT_MASK_TIMER_DONE,
 } from './automaticSourceControlConfigurationActions';
+import { valueFromHierarchy } from '../scmOnboarding/utils/providers';
 
 const initialState = Object.freeze({
   formState: {
@@ -29,6 +30,9 @@ const initialState = Object.freeze({
     updateError: null,
     submitMaskState: null,
     isDirty: false,
+    parentOrganization: null,
+    automaticApplicationsEnabled: false,
+    scmProvider: null,
   },
   serverData: null,
 });
@@ -40,15 +44,29 @@ function loadRequested() {
 }
 
 function loadFulfilled(payload, state) {
+  const {
+    automaticSourceControlConfiguration,
+    automaticApplicationsConfiguration,
+    organizations,
+    compositeSourceControl,
+  } = payload;
+  const parentOrganization = organizations.filter(
+    (org) => org.id === automaticApplicationsConfiguration.parentOrganizationId
+  );
   return {
     ...state,
     viewState: {
       ...state.viewState,
       loading: false,
+      parentOrganization:
+        parentOrganization && parentOrganization[0] ? parentOrganization[0] : initialState.viewState.parentOrganization,
+      automaticApplicationsEnabled: automaticApplicationsConfiguration.enabled,
+      compositeSourceControl,
+      scmProvider: compositeSourceControl != null ? valueFromHierarchy(compositeSourceControl.provider) : null,
       ...clearedErrors,
     },
-    formState: { ...payload },
-    serverData: { ...payload },
+    formState: { ...automaticSourceControlConfiguration },
+    serverData: { ...automaticSourceControlConfiguration },
   };
 }
 

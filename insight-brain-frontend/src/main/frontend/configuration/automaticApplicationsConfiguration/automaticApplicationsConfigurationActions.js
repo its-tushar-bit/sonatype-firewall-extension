@@ -7,7 +7,11 @@ import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
-import { getOrganizationsUrl, getAutomaticApplicationsConfigurationUrl } from '../../util/CLMLocation';
+import {
+  getOrganizationsUrl,
+  getAutomaticApplicationsConfigurationUrl,
+  getCompositeSourceControlUrl,
+} from '../../util/CLMLocation';
 import { Messages } from '../../util/CommonServices';
 import { checkPermissions } from '../../util/authorizationUtil';
 import { compose } from 'ramda';
@@ -34,11 +38,41 @@ export function load() {
           ([{ data: rawOrganizations }, { data: automaticApplicationsConfiguration }]) => {
             const organizations = rawOrganizations.filter((org) => org.id !== 'ROOT_ORGANIZATION_ID');
 
-            dispatch(loadFulfilled({ organizations, automaticApplicationsConfiguration }));
+            if (!automaticApplicationsConfiguration.parentOrganizationId) {
+              dispatch(loadFulfilled({ organizations, automaticApplicationsConfiguration }));
+              return;
+            }
+
+            const loadCompositeSourceControl = axios.get(
+              getCompositeSourceControlUrl('organization', automaticApplicationsConfiguration.parentOrganizationId)
+            );
+
+            loadCompositeSourceControl
+              .then(({ data: compositeSourceControl }) => {
+                dispatch(loadFulfilled({ organizations, automaticApplicationsConfiguration, compositeSourceControl }));
+              })
+              .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));
           }
         );
       })
       .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));
+  };
+}
+
+export function setParentOrganization(org) {
+  return function (dispatch) {
+    dispatch(setParentOrganizationRequested(org));
+    return checkPermissions(permissions)
+      .then(() => {
+        const loadCompositeSourceControl = axios.get(getCompositeSourceControlUrl('organization', org));
+
+        loadCompositeSourceControl
+          .then(({ data: compositeSourceControl }) => {
+            dispatch(setParentOrganizationFulfilled({ compositeSourceControl }));
+          })
+          .catch(compose(dispatch, setParentOrganizationFailed, Messages.getHttpErrorMessage));
+      })
+      .catch(compose(dispatch, setParentOrganizationFailed, Messages.getHttpErrorMessage));
   };
 }
 
@@ -47,10 +81,21 @@ export const toggleAutomaticApplicationEnabled = payloadParamActionCreator(
   AUTOMATIC_APPLICATION_CONFIGURATION_TOGGLE_ENABLED
 );
 
-export const AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION =
-  'AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION';
-export const setParentOrganization = payloadParamActionCreator(
-  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION
+export const AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED =
+  'AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED';
+export const AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FULFILLED =
+  'AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FULFILLED';
+export const AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED =
+  'AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED';
+
+export const setParentOrganizationRequested = payloadParamActionCreator(
+  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED
+);
+export const setParentOrganizationFulfilled = payloadParamActionCreator(
+  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FULFILLED
+);
+export const setParentOrganizationFailed = payloadParamActionCreator(
+  AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED
 );
 
 export const AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_REQUESTED =

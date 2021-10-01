@@ -229,6 +229,7 @@ public class ApplicationReportCipTest
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     CipModal cipModal = reportPage.cipModal();
     reportPage.resultRow(6).click();
+    cipModal.header().shouldHave(text("java2html : j2h : 1.3.1"));
     cipModal.tabLink(2).shouldNotHave(ACTIVE_CLASS).click();
     SelenideElement viewTransitiveViolations = WaiverCip.viewTransitiveViolations();
     viewTransitiveViolations.shouldBe(visible);
@@ -239,8 +240,11 @@ public class ApplicationReportCipTest
     transitiveViolationsPage.backButton().shouldBe(visible).click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.shouldBe(visible);
+    cipModal = reportPage.cipModal();
+    cipModal.header().shouldHave(text("java2html : j2h : 1.3.1"));
+    cipModal.tabLink(2).shouldHave(ACTIVE_CLASS);
   }
-  
+
   @Test
   public void testCip_ViewTransitiveViolations_FeatureEnabled_NonInnerSource() {
     testCLMServer.getCLMServer().getConfiguration()

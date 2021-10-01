@@ -7,10 +7,7 @@ package com.sonatype.clm.testing.functional.elements.componentdetails;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class OccurrencesPopover
     extends BasicElement<OccurrencesPopover>
@@ -39,13 +36,5 @@ public class OccurrencesPopover
 
   public SelenideElement subtitle() {
     return child(".nx-h3");
-  }
-
-  public ElementsCollection ocurrences() {
-    return children(".iq-occurrence");
-  }
-
-  public SelenideElement ocurrenceAt(int index) {
-    return child(childSelector(".iq-occurrence", nthChild(index)));
   }
 }

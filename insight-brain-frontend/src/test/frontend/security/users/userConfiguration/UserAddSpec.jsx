@@ -5,8 +5,9 @@
  */
 import { NxForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../../frontend/enzymeUtils';
-import * as routerContext from '../../../../../main/frontend/react/RouterStateContext';
-import UserFormAdd from '../../../../../main/frontend/security/users/userConfiguration/UserAdd';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
+import UserFormAdd from 'MainRoot/security/users/userConfiguration/UserAdd';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
@@ -53,6 +54,13 @@ describe('UserAdd', () => {
       get: getSpy,
     });
     getShallowComponent = enzymeUtils.getShallowComponent(UserFormAdd, minimalProps);
+  });
+
+  it('renders a MenuBarBackButton with correct stateName prop', function () {
+    const component = getShallowComponent();
+    const menuBarBackButton = component.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('stateName', 'users');
   });
 
   describe('on initial load', () => {

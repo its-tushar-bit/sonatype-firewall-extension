@@ -11,8 +11,9 @@ import {
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../enzymeUtils';
-import EditWebhook from '../../../../../main/frontend/configuration/webhook/editWebhook/EditWebhook';
-import * as routerContext from '../../../../../main/frontend/react/RouterStateContext';
+import EditWebhook from 'MainRoot/configuration/webhook/editWebhook/EditWebhook';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 const { initialState, userInput } = nxTextInputStateHelpers;
 
@@ -36,6 +37,13 @@ describe('EditWebhook', () => {
     };
 
     getShallow = enzymeUtils.getShallowComponent(EditWebhook, minProps);
+  });
+
+  it('renders a MenuBarBackButton with correct stateName prop', function () {
+    const component = getShallow();
+    const menuBarBackButton = component.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('stateName', 'listWebhooks');
   });
 
   describe('when application webhooks are not supported ', () => {

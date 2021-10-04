@@ -20,8 +20,7 @@ import {
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
 import { isNilOrEmpty } from '../../../util/jsUtil';
-import BackButton from '../../../react/BackButton';
-import { useRouterState } from '../../../react/RouterStateContext';
+import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 
 function EditWebhook({
@@ -46,7 +45,6 @@ function EditWebhook({
   inputFields,
   router,
 }) {
-  const uiRouterState = useRouterState();
   const {
     currentParams: { webhookId },
   } = router;
@@ -90,7 +88,7 @@ function EditWebhook({
   return (
     <Fragment>
       <main className="nx-page-main" id="webhook-editor">
-        <BackButton stateName="listWebhooks" $state={uiRouterState} />
+        <MenuBarBackButton stateName="listWebhooks" />
         <div className="nx-page-title">
           <h1 className="nx-h1">{createMode ? 'Create' : 'Edit'} Webhook</h1>
         </div>

@@ -7,8 +7,7 @@ import React, { Fragment, useEffect, useState } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxForm, NxButton, NxFontAwesomeIcon, useToggle } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
-import { useRouterState } from '../../react/RouterStateContext';
-import BackButton from '../../react/BackButton';
+import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import LdapTabs from './LdapTabs';
 import LdapServerNameForm from './LdapServerNameForm';
 import LdapRemoveServerModal, { ldapRemoveServerModalPropTypes } from './LdapRemoveServerModal';
@@ -58,7 +57,6 @@ export default function withLdapHeader(WrappedComponent, { formId }) {
       clearCheckLoginAlerts,
       resetCheckLoginModal,
     } = props;
-    const history = useRouterState();
     const {
       currentParams: { ldapId },
       currentState: { name: currentTab },
@@ -139,7 +137,7 @@ export default function withLdapHeader(WrappedComponent, { formId }) {
     return (
       <Fragment>
         <main className="nx-page-main" id="ldap-configuration-editor">
-          <BackButton stateName="ldap-list" $state={history} />
+          <MenuBarBackButton stateName="ldap-list" />
           <div className="nx-page-title">
             <h1 className="nx-h1" id="user-title">
               Edit Server

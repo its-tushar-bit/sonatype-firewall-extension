@@ -5,9 +5,10 @@
  */
 import { NxForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../frontend/enzymeUtils';
-import * as routerContext from '../../../../main/frontend/react/RouterStateContext';
-import CreateLdap from '../../../../main/frontend/configuration/ldap/CreateLdap';
-import LdapServerNameForm from '../../../../main/frontend/configuration/ldap/LdapServerNameForm';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
+import CreateLdap from 'MainRoot/configuration/ldap/CreateLdap';
+import LdapServerNameForm from 'MainRoot/configuration/ldap/LdapServerNameForm';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
@@ -38,6 +39,13 @@ describe('CreateLdap', () => {
     });
 
     getShallowComponent = enzymeUtils.getShallowComponent(CreateLdap, minimalProps);
+  });
+
+  it('renders a MenuBarBackButton with correct stateName prop', function () {
+    const component = getShallowComponent();
+    const menuBarBackButton = component.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('stateName', 'ldap-list');
   });
 
   describe('on initial load', () => {

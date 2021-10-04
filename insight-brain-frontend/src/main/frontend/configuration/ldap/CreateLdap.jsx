@@ -6,8 +6,7 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxForm } from '@sonatype/react-shared-components';
-import { useRouterState } from '../../react/RouterStateContext';
-import BackButton from '../../react/BackButton';
+import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import LdapServerNameForm from './LdapServerNameForm';
 
 const getValidationMessage = ({ isDirty, validationError }) => {
@@ -42,10 +41,9 @@ export default function CreateLdap({
     };
   }, []);
 
-  const history = useRouterState();
   return (
     <main className="nx-page-main" id="ldap-create-server">
-      <BackButton stateName="ldap-list" $state={history} />
+      <MenuBarBackButton stateName="ldap-list" />
       <div className="nx-page-title">
         <h1 className="nx-h1" id="user-title">
           Add a Server

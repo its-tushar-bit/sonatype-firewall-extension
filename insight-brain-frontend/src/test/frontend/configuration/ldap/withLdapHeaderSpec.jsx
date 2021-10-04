@@ -7,9 +7,10 @@ import React from 'react';
 import { NxForm } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../../frontend/enzymeUtils';
-import * as routerContext from '../../../../main/frontend/react/RouterStateContext';
-import withLdapHeader from '../../../../main/frontend/configuration/ldap/withLdapHeader';
-import LdapRemoveServerModal from '../../../../main/frontend/configuration/ldap/LdapRemoveServerModal';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
+import withLdapHeader from 'MainRoot/configuration/ldap/withLdapHeader';
+import LdapRemoveServerModal from 'MainRoot/configuration/ldap/LdapRemoveServerModal';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 describe('withLdapHeader', () => {
   function Wrapped() {
@@ -54,6 +55,13 @@ describe('withLdapHeader', () => {
       ...minimalProps,
       ...minimalWrapperProps,
     });
+  });
+
+  it('renders a MenuBarBackButton with correct stateName prop', function () {
+    const component = getShallowComponent();
+    const menuBarBackButton = component.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('stateName', 'ldap-list');
   });
 
   describe('on initial load', () => {

@@ -75,7 +75,6 @@ public class PendoServiceTest
     segmentInfo.segmentAttributes = Collections.singletonMap("foo", "bar");
     when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
     when(productLicense.getContactCompany()).thenReturn(null);
-    when(productLicense.getSalesforceAccountId()).thenReturn(null);
 
     PendoConfig config = pendoService.getConfig();
     assertThat(config.account).containsEntry("id", telemetryId.getId()).containsEntry("foo", "bar")
@@ -123,7 +122,6 @@ public class PendoServiceTest
   @Test
   public void testGetConfig_TelemetryId_LicenseWithoutSalesforceIdWithCompanyName() throws Exception {
     when(productLicense.getContactCompany()).thenReturn("Company A");
-    when(productLicense.getSalesforceAccountId()).thenReturn(null);
     String hashedCompanyName =
         Hashing.sha256().hashString(productLicense.getContactCompany(), StandardCharsets.UTF_8).toString();
 
@@ -133,7 +131,9 @@ public class PendoServiceTest
 
   @Test
   public void testGetConfig_TelemetryId_LicenseWithSalesforceId() throws Exception {
-    when(productLicense.getSalesforceAccountId()).thenReturn("sfAccountIdTest");
+    CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
+    segmentInfo.segmentAttributes = Collections.singletonMap("iq_accountId", "sfAccountIdTest");
+    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
 
     PendoConfig config = pendoService.getConfig();
     assertThat(config.account).containsEntry("id", "sfAccountIdTest");

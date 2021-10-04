@@ -533,7 +533,7 @@
       <dependency>
         <groupId>com.sonatype.licensing</groupId>
         <artifactId>license-bundle</artifactId>
-        <version>1.6.1</version>
+        <version>1.6.0</version>
         <exclusions>
           <exclusion>
             <!-- avoid clash with javax.annotation:javax.annotation-api -->

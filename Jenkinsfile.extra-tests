@@ -14,9 +14,9 @@ def testConfig(String mavenOptions, String pomFile = null, String javaVersion = 
 
 def copyRepo() {
   copyArtifacts(projectName: currentBuild.upstreamBuilds[0].fullProjectName,
-    filter: '.zion/repository/**',
-    selector: specific(currentBuild.upstreamBuilds[0].id),
-    flatten: false)
+      filter: '.zion/repository/**',
+      selector: specific(currentBuild.upstreamBuilds[0].id),
+      flatten: false)
 }
 
 def gebTests() {
@@ -111,6 +111,18 @@ def createJiraTicket() {
   }
 }
 
+def checkoutSource(params) {
+  if (params.commit_sha?.trim()) {
+    echo "Checking out commit ${params.commit_sha} from upstream build"
+    scmVars = checkout([
+        $class  : 'GitSCM',
+        branches: [[name: params.commit_sha]],
+        extensions: [[$class: 'CloneOption', shallow: true, depth: 1]]
+    ])
+  }
+  echo "GIT_COMMIT= ${env.GIT_COMMIT} GIT_BRANCH= ${env.GIT_BRANCH}"
+}
+
 pipeline {
   agent none
   options {
@@ -125,6 +137,7 @@ pipeline {
         stage('Geb Functional Tests') {
           agent { label agentLabel }
           steps {
+            checkoutSource(params)
             gebTests()
           }
           post {
@@ -140,6 +153,7 @@ pipeline {
             APPLITOOLS_BATCH_ID = "${env.GIT_COMMIT}"
           }
           steps {
+            checkoutSource(params)
             functionalTests('chrome', '.*/[A-H].*Test.class', 'chrome-A')
           }
           post {
@@ -155,6 +169,7 @@ pipeline {
             APPLITOOLS_BATCH_ID = "${env.GIT_COMMIT}"
           }
           steps {
+            checkoutSource(params)
             functionalTests('chrome', '.*/[I-R].*Test.class', 'chrome-B')
           }
           post {
@@ -170,6 +185,7 @@ pipeline {
             APPLITOOLS_BATCH_ID = "${env.GIT_COMMIT}"
           }
           steps {
+            checkoutSource(params)
             functionalTests('chrome', '.*/[S-Z].*Test.class', 'chrome-C')
           }
           post {
@@ -181,6 +197,7 @@ pipeline {
         stage('Unit and Integration Tests - Java8 A') {
           agent { label agentLabel }
           steps {
+            checkoutSource(params)
             unitTests('.*/[A-H].*Test.class')
           }
           post {
@@ -193,6 +210,7 @@ pipeline {
         stage('Unit and Integration Tests - Java8 B') {
           agent { label agentLabel }
           steps {
+            checkoutSource(params)
             unitTests('.*/[I-P].*Test.class')
           }
           post {
@@ -204,6 +222,7 @@ pipeline {
         stage('Unit and Integration Tests - Java8 C') {
           agent { label agentLabel }
           steps {
+            checkoutSource(params)
             unitTests('.*/[Q-Z].*Test.class')
           }
           post {
@@ -215,6 +234,7 @@ pipeline {
         stage('Unit and Integration Tests - Java11 A') {
           agent { label agentLabel }
           steps {
+            checkoutSource(params)
             unitTests('.*/[A-H].*Test.class','OpenJDK 11')
           }
           post {
@@ -226,6 +246,7 @@ pipeline {
         stage('Unit and Integration Tests - Java11 B') {
           agent { label agentLabel }
           steps {
+            checkoutSource(params)
             unitTests('.*/[I-P].*Test.class','OpenJDK 11')
           }
           post {
@@ -237,6 +258,7 @@ pipeline {
         stage('Unit and Integration Tests - Java11 C') {
           agent { label agentLabel }
           steps {
+            checkoutSource(params)
             unitTests('.*/[Q-Z].*Test.class','OpenJDK 11')
           }
           post {

@@ -7,6 +7,7 @@ import React, { Fragment } from 'react';
 import { ViolationsTableTileContainer } from '../ViolationsTableTile/ViolationsTableTileContainer';
 import { policyTypes } from '../../dashboard/filter/staticFilterEntries';
 import { LicenseDetectionsTileContainer } from '../LicenseDetectionsTile';
+import EditLicensesPopoverContainer from './EditLicensesPopover/EditLicensesPopoverContainer';
 
 export default function ComponentDetailsLegalTab() {
   const LEGAL = policyTypes[1].id;
@@ -14,6 +15,7 @@ export default function ComponentDetailsLegalTab() {
     <Fragment>
       <LicenseDetectionsTileContainer />
       <ViolationsTableTileContainer title="Legal Policy Violations" violationType={LEGAL} />
+      <EditLicensesPopoverContainer />
     </Fragment>
   );
 }

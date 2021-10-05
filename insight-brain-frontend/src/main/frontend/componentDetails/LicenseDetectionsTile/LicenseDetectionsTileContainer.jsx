@@ -5,12 +5,15 @@
  */
 import { connect } from 'react-redux';
 
+import { actions } from '../ComponentDetailsLegalTab/LegalSlice';
 import LicenseDetectionsTile from './LicenseDetectionsTile';
 
 function mapStateToProps() {
   return {};
 }
 
-const mapDispatchToProps = {};
+const mapDispatchToProps = {
+  toggleShowEditLicensesPopover: actions.toggleShowEditLicensesPopover,
+};
 
 export const LicenseDetectionsTileContainer = connect(mapStateToProps, mapDispatchToProps)(LicenseDetectionsTile);

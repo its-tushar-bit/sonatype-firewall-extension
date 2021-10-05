@@ -199,6 +199,7 @@ public class InsightConfigTest
     assertThat(Feature.PR_COMMENT_MONITORING.isEnabledByDefault()).isFalse();
     assertThat(Feature.PR_LINE_COMMENTING.isEnabledByDefault()).isFalse();
     assertThat(Feature.SCM_ONBOARDING.isEnabledByDefault()).isFalse();
+    assertThat(Feature.ANONYMOUS_BLOCKED_COMPONENT_VIEW.isEnabledByDefault()).isFalse();
   }
 
   /**

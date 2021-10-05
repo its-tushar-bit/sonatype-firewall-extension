@@ -121,8 +121,9 @@ public class PendoService
   }
 
   private String getTelemetryId(final CustomerTelemetryProperties segmentInfo) {
-    if (segmentInfo.segmentAttributes.get("iq_accountId") != null) {
-      return segmentInfo.segmentAttributes.get("iq_accountId").toString();
+    Object iqAccountId = segmentInfo.segmentAttributes.get("iq_accountId");
+    if (iqAccountId != null && !iqAccountId.toString().startsWith("UNKNOWN-")) {
+      return iqAccountId.toString();
     }
     else if (productLicense.getContactCompany() != null) {
       return Hashing.sha256().hashString(productLicense.getContactCompany(), StandardCharsets.UTF_8).toString();

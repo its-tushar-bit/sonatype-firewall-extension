@@ -130,6 +130,20 @@ public class PendoServiceTest
   }
 
   @Test
+  public void testGetConfig_TelemetryId_LicenseUnknownSalesforceIdWithCompanyName() throws Exception {
+    when(productLicense.getContactCompany()).thenReturn("Company A");
+    CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
+    segmentInfo.segmentAttributes = Collections.singletonMap("iq_accountId", "UNKNOWN-62ec3ededa4a5d9e453f990cac348a");
+    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
+
+    String hashedCompanyName =
+        Hashing.sha256().hashString(productLicense.getContactCompany(), StandardCharsets.UTF_8).toString();
+
+    PendoConfig config = pendoService.getConfig();
+    assertThat(config.account).containsEntry("id", hashedCompanyName);
+  }
+
+  @Test
   public void testGetConfig_TelemetryId_LicenseWithSalesforceId() throws Exception {
     CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
     segmentInfo.segmentAttributes = Collections.singletonMap("iq_accountId", "sfAccountIdTest");

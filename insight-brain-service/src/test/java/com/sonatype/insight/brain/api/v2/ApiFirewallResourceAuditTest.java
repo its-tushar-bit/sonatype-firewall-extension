@@ -3,13 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental;
+package com.sonatype.insight.brain.api.v2;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
@@ -47,9 +48,8 @@ public class ApiFirewallResourceAuditTest
     list.add(dto);
 
     //when: setting firewall auto unquarantine config
-    HttpResponse response =
-        restRequest().path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH)
-            .body(list).put();
+    HttpResponse response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
+        ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).body(list).put();
     List<ApiFirewallReleaseQuarantineConfigDTO> dtos = response.getBody(List.class);
 
     //then: expect returned dtos to be greater than zero

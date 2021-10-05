@@ -14,6 +14,8 @@ import * as fullAuditLog from '../../../main/frontend/componentDetails/auditLog/
 import * as violationsTab from '../../../main/frontend/componentDetails/ViolationsTableTile/ViolationsTableTileContainer';
 import * as overviewTab from '../../../main/frontend/componentDetails/overview/OverviewContainer';
 import * as vulnerailitiesTile from '../../../main/frontend/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTableTileContainer';
+import * as licenseDetectionsTile from 'MainRoot/componentDetails/LicenseDetectionsTile/LicenseDetectionsTileContainer';
+import * as editLicensesPopoverContainer from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesPopoverContainer';
 import MenuBarBackButton from '../../../main/frontend/mainHeader/MenuBar/MenuBarBackButton';
 
 describe('ComponentDetails', function () {
@@ -135,6 +137,8 @@ describe('ComponentDetails', function () {
       spyOn(violationsTab, 'ViolationsTableTileContainer').and.returnValue(<div>violations</div>);
       spyOn(overviewTab, 'OverviewContainer').and.returnValue(<div>overview</div>);
       spyOn(vulnerailitiesTile, 'VulnerabilitiesTableTileContainer').and.returnValue(<div>vulnerabilities</div>);
+      spyOn(licenseDetectionsTile, 'LicenseDetectionsTileContainer').and.returnValue(<div>license detections</div>);
+      spyOn(editLicensesPopoverContainer, 'default').and.returnValue(<div>edit licenses popover</div>);
 
       let component = getMountedComponent({
           componentDetails: {

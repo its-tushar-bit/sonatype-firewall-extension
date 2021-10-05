@@ -22,6 +22,8 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
+import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OccurrencesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
@@ -660,6 +662,26 @@ public class ComponentDetailsTest
     closeButton.click();
 
     vulnerabilityDetailsPopover.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testLegalTab_editLicensesPopover() {
+    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "fa78f54738ccf77379d1"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.legalTabContent().shouldBe(visible);
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+    licenseDetectionsTile.editLicenseButton().click();
+
+    EditLicensesPopover editLicensesPopover = new EditLicensesPopover();
+    editLicensesPopover.shouldBe(visible);
+    editLicensesPopover.popoverTitle().shouldHave(text("Edit Licenses"));
+
+    eyesWatcher.eyesCheck("component details legal tab edit licenses popover");
+
+    editLicensesPopover.getCloseButton().click();
+    editLicensesPopover.shouldNotBe(visible);
   }
 
   @Test

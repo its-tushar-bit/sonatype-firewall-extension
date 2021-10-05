@@ -3,11 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental.dto;
+package com.sonatype.insight.brain.api.v2.dto;
 
-public class ApiFirewallReleaseQuarantineSummaryDTO
+public class ApiFirewallReleaseQuarantineConfigDTO
 {
-  public long autoReleaseQuarantineCountMTD;
+  public String id;
 
-  public long autoReleaseQuarantineCountYTD;
+  public String name;
+
+  public Boolean autoReleaseQuarantineEnabled;
 }

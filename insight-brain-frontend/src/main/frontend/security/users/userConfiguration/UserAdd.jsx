@@ -6,8 +6,7 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxForm, NxTextInput, NxFormGroup } from '@sonatype/react-shared-components';
-import { useRouterState } from '../../../react/RouterStateContext';
-import BackButton from '../../../react/BackButton';
+import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 
 const getValidationMessage = ({ isDirty, validationError }) => {
   if (!isDirty) {
@@ -36,7 +35,6 @@ export default function UserAdd({
   resetForm,
   stateGo,
 }) {
-  const history = useRouterState();
   const { firstName, lastName, email, username, password, matchPassword } = inputFields;
 
   useEffect(() => {
@@ -49,7 +47,7 @@ export default function UserAdd({
 
   return (
     <main className="nx-page-main">
-      <BackButton stateName="users" $state={history} />
+      <MenuBarBackButton stateName="users" />
       <div className="nx-page-title">
         <h1 className="nx-h1" id="user-title">
           Add New User

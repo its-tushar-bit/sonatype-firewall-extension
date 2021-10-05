@@ -950,7 +950,8 @@ public class InsightConfig
     this.matcherConfiguration = matcherConfiguration;
   }
 
-  public enum Feature implements com.sonatype.insight.license.model.Feature
+  public enum Feature
+      implements com.sonatype.insight.license.model.Feature
   {
     CODE_INSIGHTS("codeInsights", false), //
     COMPONENT_SEARCH_API_WITH_INNERSOURCE("componentSearchApiWithInnerSource", true), //
@@ -962,10 +963,11 @@ public class InsightConfig
     PR_COMMENT_MONITORING("prCommentMonitoring", false), //
     PR_COMMENTING("prCommenting", false), //
     PR_LINE_COMMENTING("prLineCommenting", false), //
-    SCM_ONBOARDING("scmOnboarding", false);
+    SCM_ONBOARDING("scmOnboarding", false),
+    ANONYMOUS_BLOCKED_COMPONENT_VIEW("anonymousBlockedComponentView", false);
 
     private final String flag;
-    
+
     private final boolean enabledByDefault;
 
     Feature(final String flag, final boolean enabledByDefault) {

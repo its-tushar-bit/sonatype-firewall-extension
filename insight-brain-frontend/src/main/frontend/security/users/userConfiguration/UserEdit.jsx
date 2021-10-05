@@ -7,8 +7,7 @@ import React, { Fragment, useEffect, useState } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxForm, NxTextInput, NxFormGroup, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
-import BackButton from '../../../react/BackButton';
-import { useRouterState } from '../../../react/RouterStateContext';
+import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 import { MODAL_MODES } from './modals/modalModes';
 import DeleteModal from './modals/DeleteModal';
 import ResetPasswordModal from './modals/ResetPasswordModal';
@@ -48,7 +47,6 @@ export default function UserEdit({
   router,
   stateGo,
 }) {
-  const history = useRouterState();
   const {
     currentParams: { userId },
   } = router;
@@ -85,7 +83,7 @@ export default function UserEdit({
   return (
     <Fragment>
       <main className="nx-page-main">
-        <BackButton stateName="users" $state={history} />
+        <MenuBarBackButton stateName="users" />
         <div className="nx-page-title">
           <h1 className="nx-h1">Edit User</h1>
           <div className="nx-btn-bar">

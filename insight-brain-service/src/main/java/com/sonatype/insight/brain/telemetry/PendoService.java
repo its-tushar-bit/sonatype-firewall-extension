@@ -83,14 +83,14 @@ public class PendoService
 
     if (segmentInfo.disabled == null || !segmentInfo.disabled) {
       pendoConfig.account.putAll(segmentInfo.segmentAttributes);
-      pendoConfig.account.put(ID, getTelemetryId());
+      pendoConfig.account.put(ID, getTelemetryId(segmentInfo));
       pendoConfig.account.put(VERSION, versionService.getVersion());
 
       // add user info only if user is logged in
       UserPrincipal userPrincipal = currentUser.getUserPrincipal();
       if (userPrincipal != null) {
         pendoConfig.visitor.put(ID,
-            Hashing.sha256().hashUnencodedChars(getTelemetryId() + userPrincipal.getUsername()).toString());
+            Hashing.sha256().hashUnencodedChars(getTelemetryId(segmentInfo) + userPrincipal.getUsername()).toString());
       }
     }
 
@@ -120,9 +120,10 @@ public class PendoService
     public Map<String, Object> account = new HashMap<>();
   }
 
-  private String getTelemetryId() {
-    if (productLicense.getSalesforceAccountId() != null) {
-      return productLicense.getSalesforceAccountId();
+  private String getTelemetryId(final CustomerTelemetryProperties segmentInfo) {
+    Object iqAccountId = segmentInfo.segmentAttributes.get("iq_accountId");
+    if (iqAccountId != null && !iqAccountId.toString().startsWith("UNKNOWN-")) {
+      return iqAccountId.toString();
     }
     else if (productLicense.getContactCompany() != null) {
       return Hashing.sha256().hashString(productLicense.getContactCompany(), StandardCharsets.UTF_8).toString();

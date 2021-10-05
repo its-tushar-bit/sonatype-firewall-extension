@@ -421,7 +421,7 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the firewall release quarantine url with params', function () {
-    let urlStart = '/api/experimental/firewall/components/autoReleasedFromQuarantine?',
+    let urlStart = '/api/v2/firewall/components/autoReleasedFromQuarantine?',
       page = 1,
       pageSize = 12,
       sortBy = 'quarantineTime',

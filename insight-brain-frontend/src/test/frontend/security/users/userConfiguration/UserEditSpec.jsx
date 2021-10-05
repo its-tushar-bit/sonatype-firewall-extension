@@ -5,11 +5,12 @@
  */
 import { NxForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../enzymeUtils';
-import * as routerContext from '../../../../../main/frontend/react/RouterStateContext';
-import UserEdit from '../../../../../main/frontend/security/users/userConfiguration/UserEdit';
-import DeleteModal from '../../../../../main/frontend/security/users/userConfiguration/modals/DeleteModal';
-import ResetPasswordModal from '../../../../../main/frontend/security/users/userConfiguration/modals/ResetPasswordModal';
-import CopyToClipboard from '../../../../../main/frontend/security/users/userConfiguration/modals/CopyToClipboard';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
+import UserEdit from 'MainRoot/security/users/userConfiguration/UserEdit';
+import DeleteModal from 'MainRoot/security/users/userConfiguration/modals/DeleteModal';
+import ResetPasswordModal from 'MainRoot/security/users/userConfiguration/modals/ResetPasswordModal';
+import CopyToClipboard from 'MainRoot/security/users/userConfiguration/modals/CopyToClipboard';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
@@ -53,6 +54,13 @@ describe('UserEdit', () => {
     });
     getShallowComponent = enzymeUtils.getShallowComponent(UserEdit, minimalProps);
     getMountedComponent = enzymeUtils.getMountedComponent(UserEdit, minimalProps);
+  });
+
+  it('renders a MenuBarBackButton with correct stateName prop', function () {
+    const component = getShallowComponent();
+    const menuBarBackButton = component.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('stateName', 'users');
   });
 
   describe('on initial load', () => {

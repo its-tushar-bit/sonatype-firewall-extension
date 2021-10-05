@@ -19,4 +19,8 @@ public class LegalTabContent
   public PolicyViolationsTable policyViolationsTable() {
     return PolicyViolationsTable.getPolicyViolationsTableForParent(LEGAL_TAB_SELECTOR);
   }
+
+  public LicenseDetectionsTile licenseDetectionsTile() {
+    return LicenseDetectionsTile.getLicenseDetectionsTileForParent(LEGAL_TAB_SELECTOR);
+  }
 }

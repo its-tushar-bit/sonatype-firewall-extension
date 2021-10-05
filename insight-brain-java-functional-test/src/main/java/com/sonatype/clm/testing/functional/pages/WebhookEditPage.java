@@ -29,7 +29,7 @@ public class WebhookEditPage
   }
 
   public NxBackButton backButton() {
-    return new NxBackButton(ROOT_SELECTOR);
+    return new NxBackButton("#menu-bar__back-button-container");
   }
 
   public SelenideElement title() {

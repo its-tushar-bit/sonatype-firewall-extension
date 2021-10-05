@@ -32,7 +32,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.experimental.ApiFirewallService;
+import com.sonatype.insight.brain.api.v2.ApiFirewallService;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;

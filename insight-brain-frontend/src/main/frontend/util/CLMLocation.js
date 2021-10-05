@@ -217,11 +217,11 @@ export function getReportMetadataUrl(applicationPublicId, scanId) {
 }
 
 export function getFirewallConfigurationUrl() {
-  return uriTemplate`/api/experimental/firewall/releaseQuarantine/configuration`;
+  return uriTemplate`/api/v2/firewall/releaseQuarantine/configuration`;
 }
 
 export function getFirewallReleaseQuarantineSummaryUrl() {
-  return uriTemplate`/api/experimental/firewall/releaseQuarantine/summary`;
+  return uriTemplate`/api/v2/firewall/releaseQuarantine/summary`;
 }
 
 export function getSuccessMetricsConfigUrl() {
@@ -282,7 +282,7 @@ export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sort
 
   params = params.length === 0 ? '' : '?' + params;
 
-  return uriTemplate`/api/experimental/firewall/components/autoReleasedFromQuarantine` + params;
+  return uriTemplate`/api/v2/firewall/components/autoReleasedFromQuarantine` + params;
 }
 
 export function getFirewallQuarantineListUrl(page, pageSize, sortBy, sortAsc, policyId) {
@@ -296,11 +296,11 @@ export function getFirewallQuarantineListUrl(page, pageSize, sortBy, sortAsc, po
 
   params = params.length === 0 ? '' : '?' + params;
 
-  return uriTemplate`/api/experimental/firewall/components/quarantined` + params;
+  return uriTemplate`/api/v2/firewall/components/quarantined` + params;
 }
 
 export function getFirewallQuarantineSummaryUrl() {
-  return uriTemplate`/api/experimental/firewall/quarantine/summary`;
+  return uriTemplate`/api/v2/firewall/quarantine/summary`;
 }
 
 export function getProductFeaturesUrl() {

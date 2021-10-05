@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental;
+package com.sonatype.insight.brain.api.v2;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -15,14 +15,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallComponentDTO;
-import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSummaryDTO;
-import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
-import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
-import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
@@ -60,7 +59,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.api.experimental.ApiFirewallService.AUTO_RELEASE_QUARANTINE_CONFIG_TELEMETRY;
+import static com.sonatype.insight.brain.api.v2.ApiFirewallService.AUTO_RELEASE_QUARANTINE_CONFIG_TELEMETRY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

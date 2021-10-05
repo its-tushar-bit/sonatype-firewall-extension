@@ -108,4 +108,6 @@ public class PublicApiPaths
   public static final String PRODUCT_LICENSE_RESOURCE_PATH = API_VERSION_PATH_V2 + "product/license";
 
   public static final String REPOSITORIES_RESOURCE_PATH = API_VERSION_PATH_V2 + "repositories";
+
+  public static final String FIREWALL_RESOURCE_PATH = API_VERSION_PATH_V2 + "firewall";
 }

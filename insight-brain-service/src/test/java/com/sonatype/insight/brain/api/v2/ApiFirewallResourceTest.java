@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental;
+package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -13,11 +13,12 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallComponentDTO;
-import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSummaryDTO;
-import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
-import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
-import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
@@ -55,7 +56,7 @@ public class ApiFirewallResourceTest
   public void testGetFirewallUnquarantineSummary() throws Exception {
     // when GETing unquarantine summary
     HttpResponse response = restRequest().path(
-        ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.RELEASE_QUARANTINE_SUMMARY_PATH).get();
+        PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.RELEASE_QUARANTINE_SUMMARY_PATH).get();
 
     // then result is OK
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
@@ -68,7 +69,7 @@ public class ApiFirewallResourceTest
   @Test
   public void testGetFirewallAutoUnquarantineConfig() throws Exception {
     // when GETing config
-    HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
+    HttpResponse response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
         ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).get();
 
     // then result is OK
@@ -85,7 +86,7 @@ public class ApiFirewallResourceTest
     setMissingFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
     // when GETing config
-    HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
+    HttpResponse response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
         ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).get();
 
     // then result is payment required 402
@@ -98,7 +99,7 @@ public class ApiFirewallResourceTest
     setMissingFeature(LicensedFeature.RELEASE_INTEGRITY);
 
     // when GETing config
-    HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
+    HttpResponse response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
         ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).get();
 
     // then result is payment required 402
@@ -108,7 +109,7 @@ public class ApiFirewallResourceTest
   @Test
   public void testSetFirewallAutoUnquarantineConfig() throws Exception {
     // when SETing config
-    HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
+    HttpResponse response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
         ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).body(new ArrayList<>()).put();
 
     // then result is OK
@@ -125,7 +126,7 @@ public class ApiFirewallResourceTest
     setMissingFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
     // when SETing config
-    HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
+    HttpResponse response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
         ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).put();
 
     // then result is payment required 402
@@ -138,7 +139,7 @@ public class ApiFirewallResourceTest
     setMissingFeature(LicensedFeature.RELEASE_INTEGRITY);
 
     // when SETing config
-    HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
+    HttpResponse response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
         ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).put();
 
     // then result is payment required 402
@@ -153,7 +154,7 @@ public class ApiFirewallResourceTest
     tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo2", true, false);
 
     HttpResponse response =
-        restRequest().path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINE_SUMMARY_PATH).get();
+        restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINE_SUMMARY_PATH).get();
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
     ApiFirewallQuarantineSummaryDTO summary = response.getBody(ApiFirewallQuarantineSummaryDTO.class);
@@ -185,7 +186,7 @@ public class ApiFirewallResourceTest
         .createPolicyViolationFail(policy1, component1, tempEntity);
 
     HttpResponse response = restRequest()
-        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
         .query("page", 1)
         .query("pageSize", 2)
         .query("policyId", policy1.getId())
@@ -222,7 +223,7 @@ public class ApiFirewallResourceTest
         .createPolicyViolationFail(policy1, component1, tempEntity);
 
     HttpResponse response = restRequest()
-        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH).get();
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH).get();
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
     ApiPageResult<ApiFirewallComponentDTO> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
@@ -237,7 +238,7 @@ public class ApiFirewallResourceTest
   public void testGetUnquarantineList_invalid() throws Exception {
     // pageSize < MIN_PAGE
     HttpResponse response = restRequest()
-        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
         .query("page", ApiFirewallService.MIN_PAGE - 1)
         .get();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
@@ -246,7 +247,7 @@ public class ApiFirewallResourceTest
 
     // pageSize < MIN_PAGE_SIZE
     response = restRequest()
-        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
         .query("pageSize", ApiFirewallService.MIN_PAGE_SIZE - 1)
         .get();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
@@ -257,7 +258,7 @@ public class ApiFirewallResourceTest
 
     // pageSize > MAX_PAGE_SIZE
     response = restRequest()
-        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
         .query("pageSize", ApiFirewallService.MAX_PAGE_SIZE + 1)
         .get();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
@@ -271,7 +272,7 @@ public class ApiFirewallResourceTest
   public void testGetUnquarantineList_invalidSortField() throws Exception {
     // pageSize < 1
     HttpResponse response = restRequest()
-        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.UNQUARANTINE_PATH)
         .query("sortBy", "INVALID")
         .get();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
@@ -297,7 +298,7 @@ public class ApiFirewallResourceTest
         .createPolicyViolationFail(policy1, component1, tempEntity);
 
     HttpResponse response = restRequest()
-        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
         .query("page", 1)
         .query("pageSize", 2)
         .query("policyId", policy1.getId())
@@ -316,7 +317,7 @@ public class ApiFirewallResourceTest
   @Test
   public void testGetQuarantineList_InvalidSortOrder() throws Exception {
     HttpResponse response = restRequest()
-        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
         .query("sortBy", FirewallSortableField.RELEASE_QUARANTINE_TIME.getLabel())
         .get();
 
@@ -344,7 +345,7 @@ public class ApiFirewallResourceTest
         .createPolicyViolationFail(policy1, component1, tempEntity);
 
     HttpResponse response = restRequest()
-        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH).get();
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH).get();
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
     ApiPageResult<ApiFirewallComponentDTO> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
@@ -359,7 +360,7 @@ public class ApiFirewallResourceTest
   public void testGetQuarantineList_invalid() throws Exception {
     // pageSize < MIN_PAGE
     HttpResponse response = restRequest()
-        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
         .query("page", ApiFirewallService.MIN_PAGE - 1)
         .get();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
@@ -368,7 +369,7 @@ public class ApiFirewallResourceTest
 
     // pageSize < MIN_PAGE_SIZE
     response = restRequest()
-        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
         .query("pageSize", ApiFirewallService.MIN_PAGE_SIZE - 1)
         .get();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
@@ -379,7 +380,7 @@ public class ApiFirewallResourceTest
 
     // pageSize > MAX_PAGE_SIZE
     response = restRequest()
-        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
         .query("pageSize", ApiFirewallService.MAX_PAGE_SIZE + 1)
         .get();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
@@ -393,7 +394,7 @@ public class ApiFirewallResourceTest
   public void testGetQuarantineList_invalidSortField() throws Exception {
     // pageSize < 1
     HttpResponse response = restRequest()
-        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
         .query("sortBy", "INVALID")
         .get();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);

@@ -36,6 +36,8 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
 
 import com.codahale.metrics.annotation.Timed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.8
@@ -45,6 +47,8 @@ import com.codahale.metrics.annotation.Timed;
 @Path(PolicyMonitoringResource.RESOURCE_PATH)
 public class PolicyMonitoringResource
 {
+  private static final Logger log = LoggerFactory.getLogger(PolicyMonitoringResource.class);
+
   public static final String RESOURCE_PATH =
       "rest/policyMonitoring/{ownerType: application|organization|repository}/{ownerId}";
 
@@ -114,6 +118,9 @@ public class PolicyMonitoringResource
     policyMonitoringDAO.set(policyMonitoring);
     AuditData.get().setStageId(policyMonitoring.getStageTypeId());
 
+    log.debug("Configured policy monitoring for {} with ID {} for stage '{}'.", ownerType, ownerId,
+        policyMonitoring.getStageTypeId());
+
     return policyMonitoring;
   }
 
@@ -128,6 +135,9 @@ public class PolicyMonitoringResource
     PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerIdNotNull(ownerId);
     policyMonitoringDAO.delete(policyMonitoring);
     AuditData.get().setStageId(Organization.ROOT_ORGANIZATION_ID.equals(ownerId) ? "none" : "inherited");
+
+    log.debug("Deleted policy monitoring for {} with ID {} for stage '{}'.", ownerType, ownerId,
+        policyMonitoring.getStageTypeId());
   }
 
   public static class ApplicablePolicyMonitors

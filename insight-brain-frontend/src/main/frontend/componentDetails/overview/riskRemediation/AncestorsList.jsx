@@ -6,18 +6,21 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 
-import { useRouterState } from '../../../react/RouterStateContext';
 import { NxTextLink } from '@sonatype/react-shared-components';
 import { AncestorPropTypes } from '../overviewTypes';
 
-export const AncestorsList = ({ routeName, ancestors }) => {
-  const uiRouterState = useRouterState();
-
+export const AncestorsList = ({ ancestors, ancestorOnClick }) => {
   return (
     <ul className="nx-list">
       {ancestors.map(({ hash, derivedComponentName }) => (
         <li className="nx-list__item" key={hash}>
-          <NxTextLink href={uiRouterState.href(routeName, { hash })}>{derivedComponentName}</NxTextLink>
+          <NxTextLink
+            onClick={() => {
+              ancestorOnClick(hash);
+            }}
+          >
+            {derivedComponentName}
+          </NxTextLink>
         </li>
       ))}
     </ul>
@@ -25,6 +28,6 @@ export const AncestorsList = ({ routeName, ancestors }) => {
 };
 
 AncestorsList.propTypes = {
-  routeName: PropTypes.string.isRequired,
   ancestors: PropTypes.arrayOf(AncestorPropTypes).isRequired,
+  ancestorOnClick: PropTypes.func.isRequired,
 };

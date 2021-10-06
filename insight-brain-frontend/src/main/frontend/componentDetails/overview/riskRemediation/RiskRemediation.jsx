@@ -15,13 +15,13 @@ import { AncestorPropTypes, RemediationPropTypes } from '../overviewTypes';
 
 export const RiskRemediation = ({
   ancestors,
-  routeName,
   stageId,
   versionExplorerData,
   currentVersion,
   loadVersionExplorerData,
   currentVersionComparisonData,
   selectedVersionComparisonData,
+  ancestorOnClick,
 }) => {
   useEffect(() => {
     loadVersionExplorerData();
@@ -66,7 +66,7 @@ export const RiskRemediation = ({
     <Fragment>
       <div className="nx-grid-row">
         <div className="nx-grid-col nx-grid-col--50">
-          <DependencyInformation routeName={routeName} ancestors={ancestors} />
+          <DependencyInformation ancestors={ancestors} ancestorOnClick={ancestorOnClick} />
         </div>
         <div className="nx-grid-col nx-grid-col--50">
           <VersionExplorer versions={versions} currentVersion={currentVersion} />
@@ -110,9 +110,9 @@ RiskRemediation.propTypes = {
   currentVersion: PropTypes.string.isRequired,
   stageId: PropTypes.string.isRequired,
   loadVersionExplorerData: PropTypes.func,
-  routeName: PropTypes.string.isRequired,
   currentVersionComparisonData: PropTypes.object,
   selectedVersionComparisonData: PropTypes.object,
+  ancestorOnClick: PropTypes.func,
   versionExplorerData: PropTypes.shape({
     versions: PropTypes.array,
     remediation: RemediationPropTypes,

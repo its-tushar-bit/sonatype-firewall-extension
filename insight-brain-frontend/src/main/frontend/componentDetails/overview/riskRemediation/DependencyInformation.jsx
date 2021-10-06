@@ -4,9 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import * as PropTypes from 'prop-types';
+
 import { AncestorsList } from './AncestorsList';
 
-export const DependencyInformation = ({ routeName, ancestors }) => {
+export const DependencyInformation = ({ ancestors, ancestorOnClick }) => {
   return (
     <section className="iq-dependency-information nx-tile">
       <header className="nx-tile-header">
@@ -17,10 +19,13 @@ export const DependencyInformation = ({ routeName, ancestors }) => {
           This dependency was brought in by the component(s) listed below. Clicking on a component will take you to its
           Component Details Page.
         </p>
-        <AncestorsList routeName={routeName} ancestors={ancestors} />
+        <AncestorsList ancestors={ancestors} ancestorOnClick={ancestorOnClick} />
       </div>
     </section>
   );
 };
 
-DependencyInformation.propTypes = { ...AncestorsList.PropTypes };
+DependencyInformation.propTypes = {
+  ...AncestorsList.PropTypes,
+  ancestorOnClick: PropTypes.func.isRequired,
+};

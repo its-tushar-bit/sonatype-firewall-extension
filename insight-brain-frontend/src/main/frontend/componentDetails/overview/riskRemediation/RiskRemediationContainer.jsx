@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import { selectComponentAncestors } from '../../componentDetailsSelectors';
 import { selectCurrentRouteName } from '../../../reduxUiRouter/routerSelectors';
 import { actions } from '../overviewSlice';
+import { actions as componenDetailsActions } from '../../componentDetailsSlice';
 import {
   selectVersionExplorerData,
   selectRemediationData,
@@ -15,6 +16,8 @@ import {
   selectSelectedVersionComparisonData,
 } from '../overviewSelectors';
 import { RiskRemediation } from './RiskRemediation';
+
+const { visitAncestorAction } = componenDetailsActions;
 
 function mapStateToProps(state) {
   const { currentVersion, stageId } = selectRemediationData(state);
@@ -31,6 +34,7 @@ function mapStateToProps(state) {
 
 const mapDispatchToProps = {
   loadVersionExplorerData: actions.loadVersionExplorerData,
+  ancestorOnClick: visitAncestorAction,
 };
 
 export const RiskRemediationContainer = connect(mapStateToProps, mapDispatchToProps)(RiskRemediation);

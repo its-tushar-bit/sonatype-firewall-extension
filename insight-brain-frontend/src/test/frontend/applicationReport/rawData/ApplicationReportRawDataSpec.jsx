@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import BackButton from '../../../../main/frontend/react/BackButton';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { NxInfoAlert } from '@sonatype/react-shared-components';
 
-import ApplicationReportRawData from '../../../../main/frontend/applicationReport/rawData/ApplicationReportRawData';
-import ApplicationReportRawDataTable from '../../../../main/frontend/applicationReport/rawData/ApplicationReportRawDataTable';
-import ApplicationReportRawDataHeader from '../../../../main/frontend/applicationReport/rawData/ApplicationReportRawDataHeader';
+import ApplicationReportRawData from 'MainRoot/applicationReport/rawData/ApplicationReportRawData';
+import ApplicationReportRawDataTable from 'MainRoot/applicationReport/rawData/ApplicationReportRawDataTable';
+import ApplicationReportRawDataHeader from 'MainRoot/applicationReport/rawData/ApplicationReportRawDataHeader';
 
 describe('ApplicationReportRawData', () => {
   let minimalProps, getShallowComponent;
@@ -30,12 +30,12 @@ describe('ApplicationReportRawData', () => {
     getShallowComponent = enzymeUtils.getShallowComponent(ApplicationReportRawData, minimalProps);
   });
 
-  it('renders a BackButton with the applicationReport.policy state name', () => {
+  it('renders a MenuBarBackButton with correct stateName prop', function () {
     const component = getShallowComponent();
-    const backButton = component.find(BackButton);
+    const menuBarBackButton = component.find(MenuBarBackButton);
 
-    expect(backButton).toExist();
-    expect(backButton).toHaveProp('stateName', 'applicationReport.policy');
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('stateName', 'applicationReport.policy');
   });
 
   describe('header', () => {

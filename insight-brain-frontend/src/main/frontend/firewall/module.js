@@ -5,6 +5,7 @@
  */
 import { react2angular } from 'react2angular';
 import withStoreProvider from '../reactAdapter/StoreProvider';
+import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 import FirewallPageContainer from './FirewallPageContainer';
 import FirewallAutoUnqaurantinePageContainer from './autounquarantine/FirewallAutoUnquarantinePageContainer';
 import firewallCipModalModule from './firewallCipModal/module';
@@ -16,7 +17,11 @@ export default angular
   .component('firewallPage', react2angular(withStoreProvider(FirewallPageContainer), [], ['$ngRedux', '$state']))
   .component(
     'firewallAutoUnquarantinePage',
-    react2angular(withStoreProvider(FirewallAutoUnqaurantinePageContainer), [], ['$ngRedux', '$state'])
+    react2angular(
+      withStoreProvider(withRouterStateProvider(FirewallAutoUnqaurantinePageContainer)),
+      [],
+      ['$ngRedux', '$state']
+    )
   )
   .config(routes);
 

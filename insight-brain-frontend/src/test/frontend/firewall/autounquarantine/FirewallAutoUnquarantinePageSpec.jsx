@@ -5,19 +5,18 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import React from 'react';
-import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
-import BackButton from '../../../../main/frontend/react/BackButton';
-import FirewallAutoReleaseQuarantineMtd from '../../../../main/frontend/firewall/autounquarantine/FirewallAutoReleaseQuarantineMtd';
-import FirewallAutoReleaseQuarantineYtd from '../../../../main/frontend/firewall/autounquarantine/FirewallAutoReleaseQuarantineYtd';
-import FirewallAutoUnquarantineStatus from '../../../../main/frontend/firewall/FirewallAutoUnquarantineStatus';
-import FirewallUnquarantineTable from '../../../../main/frontend/firewall/autounquarantine/FirewallUnquarantineTable';
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import FirewallAutoReleaseQuarantineMtd from 'MainRoot/firewall/autounquarantine/FirewallAutoReleaseQuarantineMtd';
+import FirewallAutoReleaseQuarantineYtd from 'MainRoot/firewall/autounquarantine/FirewallAutoReleaseQuarantineYtd';
+import FirewallAutoUnquarantineStatus from 'MainRoot/firewall/FirewallAutoUnquarantineStatus';
+import FirewallUnquarantineTable from 'MainRoot/firewall/autounquarantine/FirewallUnquarantineTable';
 
 describe('FirewallAutoUnquarantinePage', function () {
   let minimalProps,
     FirewallAutoUnquarantinePage,
     loadAutoUnquarantineDataSpy,
     openConfigurationModalSpy,
-    stateMock,
     getShallowComponent,
     FirewallConfigurationModalMock;
 
@@ -34,7 +33,6 @@ describe('FirewallAutoUnquarantinePage', function () {
 
     loadAutoUnquarantineDataSpy = jasmine.createSpy('loadAutoUnquarantineData');
     openConfigurationModalSpy = jasmine.createSpy('openConfigurationModal');
-    stateMock = jasmine.createSpy('state');
 
     minimalProps = {
       loadedStatus: true,
@@ -48,7 +46,6 @@ describe('FirewallAutoUnquarantinePage', function () {
       enabledPolicyConditionTypesCount: 3,
       totalPolicyConditionTypesCount: 4,
       autoUnquarantineEnabled: false,
-      $state: stateMock,
       loadAutoUnquarantineData: loadAutoUnquarantineDataSpy,
       openConfigurationModal: openConfigurationModalSpy,
     };
@@ -60,13 +57,11 @@ describe('FirewallAutoUnquarantinePage', function () {
     expect(getShallowComponent().find('.nx-page-main')).toExist();
   });
 
-  it('renders a BackButton with correct state and text properties', function () {
+  it('renders a MenuBarBackButton with correct stateName prop', function () {
     const component = getShallowComponent();
-    const backButton = component.find(BackButton);
-    expect(backButton).toExist();
-    expect(backButton).toHaveProp('text', 'Back to Quarantine');
-    expect(backButton).toHaveProp('stateName', 'firewall.firewallPage');
-    expect(backButton).toHaveProp('$state', stateMock);
+    const menuBarBackButton = component.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('stateName', 'firewall.firewallPage');
   });
 
   it('renders a page title', function () {

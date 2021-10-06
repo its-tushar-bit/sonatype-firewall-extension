@@ -19,4 +19,8 @@ public class OverviewTabContent
   public ComponentInformationTile componentInformationTile() {
     return ComponentInformationTile.getOverviewTileForParent(OVERVIEW_TAB_SELECTOR);
   }
+
+  public RiskRemediationTile riskRemediationTile() {
+    return RiskRemediationTile.getOverviewTileForParent(OVERVIEW_TAB_SELECTOR);
+  }
 }

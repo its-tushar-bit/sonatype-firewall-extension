@@ -5,9 +5,10 @@
  */
 
 import { NxForm, NxModal } from '@sonatype/react-shared-components';
-import RoleEditor from '../../../../main/frontend/security/roleEditor/RoleEditor';
+import RoleEditor from 'MainRoot/security/roleEditor/RoleEditor';
 import * as enzymeUtils from '../../enzymeUtils';
-import * as routerContext from '../../../../main/frontend/react/RouterStateContext';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 describe('RoleEditor', () => {
   let getShallowComponent,
@@ -58,6 +59,13 @@ describe('RoleEditor', () => {
 
   it('renders a component with the nx-page-main class', function () {
     expect(getShallowComponent().find('.nx-page-main')).toExist();
+  });
+
+  it('renders a MenuBarBackButton with correct stateName prop', function () {
+    const component = getShallowComponent();
+    const menuBarBackButton = component.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('stateName', 'rolesList');
   });
 
   describe('on initial load', () => {

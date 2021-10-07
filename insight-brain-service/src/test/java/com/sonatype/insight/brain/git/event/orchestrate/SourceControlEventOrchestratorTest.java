@@ -12,12 +12,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
-import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
+import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
@@ -164,7 +164,8 @@ public class SourceControlEventOrchestratorTest
   @Test
   public void testFetchAndRouteEvents() throws Exception {
     // given: orchestrator configured to run scheduled executor and fetch events from DB
-    when(mockInsightConfig.isExperimentalFeatureEnabled(Feature.ORCHESTRATED_EVENT_PROCESSING)).thenReturn(true);
+    when(mockInsightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.ORCHESTRATED_EVENT_PROCESSING)).thenReturn(
+        true);
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo("https://azure.org/organization/project", null, "user", "token", AZURE,
@@ -196,7 +197,8 @@ public class SourceControlEventOrchestratorTest
 
   @Test
   public void testStart_featureEnabled() {
-    when(mockInsightConfig.isExperimentalFeatureEnabled(Feature.ORCHESTRATED_EVENT_PROCESSING)).thenReturn(true);
+    when(mockInsightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.ORCHESTRATED_EVENT_PROCESSING)).thenReturn(
+        true);
 
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockInsightConfig, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
@@ -224,7 +226,8 @@ public class SourceControlEventOrchestratorTest
 
   @Test
   public void testStart_unlicensed() {
-    when(mockInsightConfig.isExperimentalFeatureEnabled(Feature.ORCHESTRATED_EVENT_PROCESSING)).thenReturn(true);
+    when(mockInsightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.ORCHESTRATED_EVENT_PROCESSING)).thenReturn(
+        true);
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(false);
 
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(

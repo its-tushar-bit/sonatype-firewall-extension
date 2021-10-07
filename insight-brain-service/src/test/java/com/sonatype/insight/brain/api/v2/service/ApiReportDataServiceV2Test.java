@@ -75,7 +75,7 @@ public class ApiReportDataServiceV2Test
   @Override
   public void configure(final Binder binder) {
     config = new InsightConfig();
-    config.setExperimentalFeatures(new HashMap<>());
+    config.setFeatures(new HashMap<>());
     binder.bind(InsightConfig.class).toInstance(config);
     super.configure(binder);
   }
@@ -154,7 +154,7 @@ public class ApiReportDataServiceV2Test
 
   @Test
   public void testGetRawData_DependencyDataConfigEnabled() throws Exception {
-    config.getExperimentalFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), true);
+    config.getFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), true);
     ComponentIdentifier innerSourceId = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
     ComponentIdentifier innerSourceChildId =
@@ -229,12 +229,12 @@ public class ApiReportDataServiceV2Test
     assertThat(component.dependencyData.innerSource).isFalse();
     assertThat(component.dependencyData.innerSourceData).isNull();
 
-    config.getExperimentalFeatures().clear();
+    config.getFeatures().clear();
   }
 
   @Test
   public void testGetRawData_DependencyDataConfigEnabled_MultipleParentPurls() throws Exception {
-    config.getExperimentalFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), true);
+    config.getFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), true);
     makeReport("report-3");
 
     ApiReportRawDataDTOV2 data = reportDataService.getRawData(app.getPublicId(), scanId);
@@ -250,7 +250,7 @@ public class ApiReportDataServiceV2Test
 
   @Test
   public void testGetRawData_DependencyDataConfigDisabled() throws Exception {
-    config.getExperimentalFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false);
+    config.getFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false);
     makeReport("report-1");
     ApiReportRawDataDTOV2 data = reportDataService.getRawData(app.getPublicId(), scanId);
     assertThat(data).isNotNull();
@@ -290,7 +290,7 @@ public class ApiReportDataServiceV2Test
 
   @Test
   public void testGetPolicyViolationsData_DependencyDataConfigEnabled() throws Exception {
-    config.getExperimentalFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), true);
+    config.getFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), true);
     ComponentIdentifier innerSourceId = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
     ComponentIdentifier innerSourceChildId =
@@ -336,12 +336,12 @@ public class ApiReportDataServiceV2Test
     assertThat(component.dependencyData.innerSource).isFalse();
     assertThat(component.dependencyData.innerSourceData).isNull();
 
-    config.getExperimentalFeatures().clear();
+    config.getFeatures().clear();
   }
 
   @Test
   public void testGetPolicyViolationsData_DependencyDataConfigDisabled() throws Exception {
-    config.getExperimentalFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false);
+    config.getFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false);
     ComponentIdentifier innerSourceId = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
     ComponentIdentifier innerSourceChildId =

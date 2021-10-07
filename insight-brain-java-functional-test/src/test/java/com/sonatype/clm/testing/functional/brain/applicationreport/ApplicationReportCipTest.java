@@ -121,7 +121,7 @@ public class ApplicationReportCipTest
   @Before
   public void start() throws IOException {
     testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
+        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
     Organization org = tempEntity.newOrganization("ApplicationReportTest");
     app = tempEntity.newApplicationWithSpecificId("8bbaa746602142d9adf2de00a9ca4d4a", "ApplicationReportTest",
         "ApplicationReportTest", org.getId());
@@ -223,7 +223,7 @@ public class ApplicationReportCipTest
   @Test
   public void testCip_ViewTransitiveViolations_FeatureEnabled_InnerSource() {
     testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
+        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
     setupHdsResponses();
     mockHdsResponseForRemediation();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
@@ -248,7 +248,7 @@ public class ApplicationReportCipTest
   @Test
   public void testCip_ViewTransitiveViolations_FeatureEnabled_NonInnerSource() {
     testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
+        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
     setupHdsResponses();
     mockHdsResponseForRemediation();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));

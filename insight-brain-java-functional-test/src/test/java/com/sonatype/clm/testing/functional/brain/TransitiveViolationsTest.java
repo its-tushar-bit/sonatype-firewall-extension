@@ -98,7 +98,7 @@ public class TransitiveViolationsTest
   @Before
   public void before() throws Exception {
     testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
+        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
     rootOrganization = new OrganizationDAO().getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
     organization = tempEntity.newOrganization("Test Org 0af5aa00a2424db19b115f70b6f873d9");
     application = tempEntity.newApplication("Test App 56770d0ec3da47b0aa8eab53d874efdb",

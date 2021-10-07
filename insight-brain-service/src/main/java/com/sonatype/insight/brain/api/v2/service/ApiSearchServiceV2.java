@@ -197,7 +197,7 @@ public class ApiSearchServiceV2
   {
     ApiDependencyDataDTO dependencyData = new ApiDependencyDataDTO();
 
-    if (!insightConfig.isExperimentalFeatureEnabled(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE)) {
+    if (!insightConfig.isFeatureEnabled(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE)) {
       return null;
     }
 

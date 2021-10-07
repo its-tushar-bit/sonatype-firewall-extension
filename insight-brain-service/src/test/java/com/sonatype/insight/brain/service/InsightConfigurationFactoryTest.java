@@ -7,22 +7,15 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.configuration.ConfigurationParsingException;
 import io.dropwizard.jackson.Jackson;
@@ -443,18 +436,6 @@ public class InsightConfigurationFactoryTest
     }
     File configFile = tempDir.newFile();
     FileUtils.copyURLToFile(InsightConfigurationFactoryTest.class.getResource(configResource), configFile);
-    return build(configFile);
-  }
-
-  private static InsightConfig build(Object content) throws Exception {
-    File configFile = tempDir.newFile();
-    YAMLFactory yamlFactory = new YAMLFactory();
-    yamlFactory.configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false);
-    FileUtils.fileWrite(configFile.getAbsolutePath(), new ObjectMapper(yamlFactory).writeValueAsString(content));
-    return build(configFile);
-  }
-
-  private static InsightConfig build(File configFile) throws Exception {
     InsightBrainService insightBrainService = new InsightBrainService();
     Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(insightBrainService);
     insightBrainService.initialize(bootstrap);
@@ -594,37 +575,5 @@ public class InsightConfigurationFactoryTest
     InsightConfig insightConfig = build("config-substitution-in-environment-variable.yml");
 
     assertThat(insightConfig.getLicenseFile()).isEqualTo(licenseFile);
-  }
-
-  @Test
-  public void testBuild_NoExperimentalFeatures() throws Exception {
-    InsightConfig insightConfig = build("config-no-server.yml");
-
-    Map<String, Boolean> expected = Arrays.stream(Feature.values())
-        .filter(Feature::isEnabledByDefault)
-        .collect(Collectors.toMap(Feature::getFlag, feature -> true));
-    assertThat(insightConfig.getExperimentalFeatures()).containsExactlyInAnyOrderEntriesOf(expected);
-  }
-
-  @Test
-  public void testBuild_EmptyExperimentalFeatures() throws Exception {
-    InsightConfig insightConfig = build("config-empty-experimental-features.yml");
-
-    Map<String, Boolean> expected = Arrays.stream(Feature.values())
-        .filter(Feature::isEnabledByDefault)
-        .collect(Collectors.toMap(Feature::getFlag, feature -> true));
-    assertThat(insightConfig.getExperimentalFeatures()).containsExactlyInAnyOrderEntriesOf(expected);
-  }
-
-  @Test
-  public void testBuild_ExperimentalFeaturesAlreadyDeclared() throws Exception {
-    Map<String, Boolean> experimentalFeatures = Arrays.stream(Feature.values())
-        .filter(Feature::isEnabledByDefault)
-        .collect(Collectors.toMap(Feature::getFlag, feature -> false));
-    Map<String, Object> content = new HashMap<>();
-    content.put("experimentalFeatures", experimentalFeatures);
-
-    InsightConfig insightConfig = build(content);
-    assertThat(insightConfig.getExperimentalFeatures()).containsExactlyInAnyOrderEntriesOf(experimentalFeatures);
   }
 }

@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -61,7 +61,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.google.common.collect.ImmutableMap.of;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static com.sonatype.insight.brain.service.InsightConfig.Feature.SCM_ONBOARDING;
+import static com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature.SCM_ONBOARDING;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static java.util.Collections.singleton;
@@ -112,7 +112,8 @@ public class ScmOnboardingTest
   public void setup() {
     pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
     // given the feature flag is true
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(Feature.SCM_ONBOARDING.getFlag(), true));
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(ExperimentalFeature.SCM_ONBOARDING.getFlag(), true));
     gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
         .willReturn(aResponse()
             .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")

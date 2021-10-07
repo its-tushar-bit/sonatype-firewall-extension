@@ -192,7 +192,7 @@ public class ApiPolicyViolationServiceV2
   }
 
   public void ensureInnerSourceTransitiveWaiverEnabled() {
-    if (!insightConfig.isExperimentalFeatureEnabled(Feature.INNER_SOURCE_TRANSITIVE_WAIVER)) {
+    if (!insightConfig.isFeatureEnabled(Feature.INNER_SOURCE_TRANSITIVE_WAIVER)) {
       throw new UnauthorizedException(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag() + " feature is disabled.");
     }
   }

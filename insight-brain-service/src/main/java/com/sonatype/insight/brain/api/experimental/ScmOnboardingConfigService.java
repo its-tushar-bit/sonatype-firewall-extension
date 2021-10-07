@@ -10,7 +10,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 /**
  * This service configures source control scans.
@@ -28,6 +28,6 @@ public class ScmOnboardingConfigService
 
   @Authorize(permission = Permission.READ)
   public boolean isScmOnboardingEnabled() {
-    return insightConfig.isExperimentalFeatureEnabled(Feature.SCM_ONBOARDING);
+    return insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.SCM_ONBOARDING);
   }
 }

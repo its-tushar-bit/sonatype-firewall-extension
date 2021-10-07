@@ -35,7 +35,7 @@ public class ApiPolicyViolationResourceV2AuditTest
   @Before
   public void before() {
     getCLMServer().getConfiguration()
-        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
+        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
   }
 
   @Test

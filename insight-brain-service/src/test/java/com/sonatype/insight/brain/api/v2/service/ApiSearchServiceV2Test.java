@@ -52,8 +52,7 @@ public class ApiSearchServiceV2Test
   public void testSearchComponent_InnerSourceData_WithEnabledComponentSearchApiWithInnerSource()
       throws URISyntaxException, IOException
   {
-    insightConfig
-        .setExperimentalFeatures(ImmutableMap.of(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), true));
+    insightConfig.setFeatures(ImmutableMap.of(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), true));
     Application application = tempEntity.newApplication(ROOT_ORGANIZATION_ID);
     ApplicationComponent appComponent1 = tempEntity
         .newApplicationComponent(application.getId(), BuildStageType.ID, "2b8e230d2ab644e4ecaa",
@@ -95,8 +94,7 @@ public class ApiSearchServiceV2Test
   public void testSearchComponent_InnerSourceData_WithEnabledComponentSearchApiWithInnerSource_MultipleParentPurls()
       throws Exception
   {
-    insightConfig
-        .setExperimentalFeatures(ImmutableMap.of(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), true));
+    insightConfig.setFeatures(ImmutableMap.of(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), true));
     Application application = tempEntity.newApplicationWithParent();
     ApplicationComponent appComponent = tempEntity
         .newApplicationComponent(application.getId(), BuildStageType.ID, "0f5a654e4675769c716e",
@@ -122,8 +120,7 @@ public class ApiSearchServiceV2Test
   public void testSearchComponent_InnerSourceData_WithDisabledComponentSearchApiWithInnerSource()
       throws URISyntaxException, IOException
   {
-    insightConfig
-        .setExperimentalFeatures(ImmutableMap.of(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), false));
+    insightConfig.setFeatures(ImmutableMap.of(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), false));
     Application application = tempEntity.newApplication(ROOT_ORGANIZATION_ID);
     ApplicationComponent appComponent = tempEntity
         .newApplicationComponent(application.getId(), BuildStageType.ID, "2b8e230d2ab644e4ecaa",

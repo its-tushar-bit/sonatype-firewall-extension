@@ -359,6 +359,21 @@ describe('CLMLocation.js', function () {
     );
   });
 
+  it('should return the get component licenses url', function () {
+    expect(
+      CLMLocation.getComponentLicensesUrl({
+        clientType: 'ci',
+        componentIdentifier: JSON.stringify({ format: 'format', coordinates: 'coordinates' }),
+        ownerType: 'application',
+        ownerId: 'appPublicId',
+        identificationSource: 'identificationSource',
+        scanId: 'currentScanId',
+      })
+    ).toBe(
+      '/rest/ci/componentDetails/application/appPublicId/licenses?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D&identificationSource=identificationSource&scanId=currentScanId'
+    );
+  });
+
   it('should return the get component obligation url', function () {
     const componentIdentifier = {
       format: 'maven',

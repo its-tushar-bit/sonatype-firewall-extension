@@ -250,7 +250,7 @@ public class ApiPolicyViolationResourceV2Test
   @Test
   public void testGetTransitivePolicyViolationsByOwnerStageComponent() throws Exception {
     getCLMServer().getConfiguration()
-        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
+        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
     Application application = tempEntity.newApplicationWithParent();
     String scanId = "scanId";
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
@@ -292,7 +292,7 @@ public class ApiPolicyViolationResourceV2Test
   @Test
   public void testGetTransitivePolicyViolationsByAppScanComponent() throws Exception {
     getCLMServer().getConfiguration()
-        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
+        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
     Application application = tempEntity.newApplicationWithParent();
     String scanId = "scanId";
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
@@ -334,7 +334,7 @@ public class ApiPolicyViolationResourceV2Test
   @Test
   public void testGetTransitivePolicyViolationsByOwnerStageComponent_FeatureDisabled() throws Exception {
     getCLMServer().getConfiguration()
-        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
+        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
@@ -351,7 +351,7 @@ public class ApiPolicyViolationResourceV2Test
   @Test
   public void testGetTransitivePolicyViolationsByAppScanComponent_FeatureDisabled() throws Exception {
     getCLMServer().getConfiguration()
-        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
+        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,

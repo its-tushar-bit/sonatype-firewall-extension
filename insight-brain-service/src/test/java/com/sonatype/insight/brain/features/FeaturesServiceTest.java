@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -140,7 +141,7 @@ public class FeaturesServiceTest
     when(productLicense.isValid()).thenReturn(true);
     insightConfig.setExperimentalFeatures(null);
 
-    assertThat(featuresService.getFeatures()).doesNotContain(Feature.values());
+    assertThat(featuresService.getFeatures()).doesNotContain(ExperimentalFeature.values());
   }
 
   @Test
@@ -148,27 +149,29 @@ public class FeaturesServiceTest
     when(productLicense.isValid()).thenReturn(true);
     insightConfig.setExperimentalFeatures(Collections.emptyMap());
 
-    assertThat(featuresService.getFeatures()).doesNotContain(Feature.values());
+    assertThat(featuresService.getFeatures()).doesNotContain(ExperimentalFeature.values());
   }
 
   @Test
   public void testGetFeatures_Experimental_AllFalse() {
     when(productLicense.isValid()).thenReturn(true);
     Map<String, Boolean> experimentalFeatures =
-        Arrays.stream(Feature.values()).collect(Collectors.toMap(Feature::getFlag, feature -> false));
+        Arrays.stream(ExperimentalFeature.values())
+            .collect(Collectors.toMap(ExperimentalFeature::getFlag, feature -> false));
     insightConfig.setExperimentalFeatures(experimentalFeatures);
 
-    assertThat(featuresService.getFeatures()).doesNotContain(Feature.values());
+    assertThat(featuresService.getFeatures()).doesNotContain(ExperimentalFeature.values());
   }
 
   @Test
   public void testGetFeatures_Experimental_AllTrue() {
     when(productLicense.isValid()).thenReturn(true);
     Map<String, Boolean> experimentalFeatures =
-        Arrays.stream(Feature.values()).collect(Collectors.toMap(Feature::getFlag, feature -> true));
+        Arrays.stream(ExperimentalFeature.values())
+            .collect(Collectors.toMap(ExperimentalFeature::getFlag, feature -> true));
     insightConfig.setExperimentalFeatures(experimentalFeatures);
 
-    assertThat(featuresService.getFeatures()).contains(Feature.values());
+    assertThat(featuresService.getFeatures()).contains(ExperimentalFeature.values());
   }
 
   @Test

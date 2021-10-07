@@ -48,8 +48,7 @@ public class ApiSearchServiceV2AuthzTest
 
   @Test
   public void testSearchComponent() {
-    insightConfig
-        .setExperimentalFeatures(ImmutableMap.of(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), true));
+    insightConfig.setFeatures(ImmutableMap.of(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), true));
     String stage = Stage.ID_BUILD;
     String hash = "1249e25aebb15358bedd";
     String scanId = "search-test";

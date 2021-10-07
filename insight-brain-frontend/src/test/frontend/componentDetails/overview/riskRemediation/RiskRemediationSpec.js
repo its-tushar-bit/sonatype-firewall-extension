@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../../enzymeUtils';
-import VersionGraphExplorer from '../../../../../main/frontend/componentDetails/overview/VersionGraphExplorer/VersionGraphExplorer';
-import { RiskRemediation } from '../../../../../main/frontend/componentDetails/overview/riskRemediation/RiskRemediation';
+import VersionGraphExplorer from 'MainRoot/componentDetails/overview/VersionGraphExplorer/VersionGraphExplorer';
+import { RiskRemediation } from 'MainRoot/componentDetails/overview/riskRemediation/RiskRemediation';
 
 describe('ComponentDetailsOverviewRiskRemediation', () => {
   let minimalProps, getMounted;
@@ -219,6 +219,12 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
         versions: null,
         remediation: remediation,
       },
+      selectedVersionData: {
+        loading: false,
+        loadError: null,
+        selectedVersionDetails: null,
+        selectedVersion: null,
+      },
     };
 
     getMounted = enzymeUtils.getMountedComponent(RiskRemediation, minimalProps);
@@ -273,5 +279,36 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
     expect(recommendedVersionsList.length).toBe(1);
     const listElements = recommendedVersionsList.find('li');
     expect(listElements.length).toBe(2);
+  });
+
+  describe('selected version load error modal', () => {
+    let minProps, getShallow, cancelMock;
+
+    beforeEach(() => {
+      cancelMock = jasmine.createSpy('resetSelectedVersionData');
+      minProps = {
+        ...minimalProps,
+        selectedVersionData: {
+          loadError: 'error',
+          selectedVersion: '2.3',
+        },
+        resetSelectedVersionData: cancelMock,
+      };
+
+      getShallow = enzymeUtils.getShallowComponent(RiskRemediation, minProps);
+    });
+
+    it('renders selected version load error modal', () => {
+      const modal = getShallow().find('#selected-version-error-modal');
+      expect(modal).toExist();
+    });
+
+    it('calls resetSelectedVersionData handler on modal close action', () => {
+      const modal = getShallow().find('#selected-version-error-modal');
+
+      modal.simulate('cancel');
+
+      expect(cancelMock).toHaveBeenCalledTimes(1);
+    });
   });
 });

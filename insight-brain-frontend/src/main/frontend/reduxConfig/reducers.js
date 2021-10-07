@@ -58,7 +58,7 @@ import productLicenseReducer from '../configuration/license/productLicenseReduce
 import occurrencesPopoverReducer from '../componentDetails/overview/occurrencesPopover/occurrencesPopoverSlice';
 import ldapListReducer from '../configuration/ldap/ldapServersList/ldapListSlice';
 import overviewSlice from '../componentDetails/overview/overviewSlice';
-import legalSlice from '../componentDetails/ComponentDetailsLegalTab/LegalSlice';
+import licenseDetections from '../componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
 import vulnerabilitiesSlice from '../componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
 import componentDetailsSlice from '../componentDetails/componentDetailsSlice';
 
@@ -115,8 +115,8 @@ export default combineReducers({
   waiveTransitiveViolations: waiveTransitiveViolationsReducer,
   componentDetailsPolicyViolations: componentDetailsViolationsReducer,
   componentDetailsOverview: overviewSlice,
-  componentDetailsLegal: legalSlice,
   componentDetailsVulnerabilities: vulnerabilitiesSlice,
+  componentDetailsLicenseDetectionsTile: licenseDetections,
   successMetrics: successMetricsReportSlice,
   productLicense: productLicenseReducer,
   occurrencesPopover: occurrencesPopoverReducer,

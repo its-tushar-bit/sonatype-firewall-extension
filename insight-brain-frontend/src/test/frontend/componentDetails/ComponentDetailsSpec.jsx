@@ -7,16 +7,16 @@ import React from 'react';
 import * as enzymeUtils from '../enzymeUtils';
 import { NxLoadError, NxLoadingSpinner, NxStatefulTabs, NxTab, NxButton } from '@sonatype/react-shared-components';
 
-import ComponentDetails from '../../../main/frontend/componentDetails/ComponentDetails';
-import { ComponentDetailsFooter } from '../../../main/frontend/componentDetails/ComponentDetailsFooter';
-import * as routerContext from '../../../main/frontend/react/RouterStateContext';
-import * as fullAuditLog from '../../../main/frontend/componentDetails/auditLog/AuditLogContainer';
-import * as violationsTab from '../../../main/frontend/componentDetails/ViolationsTableTile/ViolationsTableTileContainer';
-import * as overviewTab from '../../../main/frontend/componentDetails/overview/OverviewContainer';
-import * as vulnerailitiesTile from '../../../main/frontend/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTableTileContainer';
-import * as licenseDetectionsTile from 'MainRoot/componentDetails/LicenseDetectionsTile/LicenseDetectionsTileContainer';
+import ComponentDetails from 'MainRoot/componentDetails/ComponentDetails';
+import { ComponentDetailsFooter } from 'MainRoot/componentDetails/ComponentDetailsFooter';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
+import * as fullAuditLog from 'MainRoot/componentDetails/auditLog/AuditLogContainer';
+import * as violationsTab from 'MainRoot/componentDetails/ViolationsTableTile/ViolationsTableTileContainer';
+import * as overviewTab from 'MainRoot/componentDetails/overview/OverviewContainer';
+import * as vulnerailitiesTile from 'MainRoot/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTableTileContainer';
+import * as licenseDetectionsTile from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/LicenseDetectionsTileContainer';
 import * as editLicensesPopoverContainer from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesPopoverContainer';
-import MenuBarBackButton from '../../../main/frontend/mainHeader/MenuBar/MenuBarBackButton';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 describe('ComponentDetails', function () {
   let minimalProps,

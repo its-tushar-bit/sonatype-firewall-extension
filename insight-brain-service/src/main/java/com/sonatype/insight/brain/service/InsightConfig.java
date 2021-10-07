@@ -894,7 +894,7 @@ public class InsightConfig
    * <p>If the experimental feature flag is not explicitly declared it is considered disabled by default.
    * @see InsightConfig#experimentalFeatures for details on how experimental feature flags are specified
    */
-  public boolean isExperimentalFeatureEnabled(Feature feature) {
+  public boolean isExperimentalFeatureEnabled(ExperimentalFeature feature) {
     return isExperimentalFeatureEnabled(feature.flag);
   }
 
@@ -950,37 +950,72 @@ public class InsightConfig
     this.matcherConfiguration = matcherConfiguration;
   }
 
+  /**
+   * This enumeration contains features that are enabled by default (not experimental). If nothing is specified, or
+   * the feature flag is set to {@code true}, the feature is enabled. To disable it, explicitly set it to {@code false}.
+   * <p>
+   * For example:
+   * <pre>
+   * # features are enabled by default - set to false if you want to disable them
+   * features:
+   *   prCommenting: false
+   * }
+   * </pre>
+   */
   public enum Feature
       implements com.sonatype.insight.license.model.Feature
   {
-    CODE_INSIGHTS("codeInsights", false), //
-    COMPONENT_SEARCH_API_WITH_INNERSOURCE("componentSearchApiWithInnerSource", true), //
-    DEFAULT_BRANCH_MONITORING("defaultBranchMonitoring", false), //
-    DEPENDENCY_DATA_IN_API("dependencyDataInApi", true), //
-    INNER_SOURCE_TRANSITIVE_WAIVER("innerSourceTransitiveWaiver", true), //
-    INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS("internalSourceControlPolicyEvaluations", false), //
-    ORCHESTRATED_EVENT_PROCESSING("orchestratedEventProcessing", false), //
-    PR_COMMENT_MONITORING("prCommentMonitoring", false), //
-    PR_COMMENTING("prCommenting", false), //
-    PR_LINE_COMMENTING("prLineCommenting", false), //
-    SCM_ONBOARDING("scmOnboarding", false),
-    ANONYMOUS_BLOCKED_COMPONENT_VIEW("anonymousBlockedComponentView", false);
+    CODE_INSIGHTS("codeInsights"),
+    COMPONENT_SEARCH_API_WITH_INNERSOURCE("componentSearchApiWithInnerSource"),
+    DEFAULT_BRANCH_MONITORING("defaultBranchMonitoring"),
+    DEPENDENCY_DATA_IN_API("dependencyDataInApi"),
+    INNER_SOURCE_TRANSITIVE_WAIVER("innerSourceTransitiveWaiver"),
+    INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS("internalSourceControlPolicyEvaluations"),
+    PR_COMMENT_MONITORING("prCommentMonitoring"),
+    PR_COMMENTING("prCommenting"),
+    PR_LINE_COMMENTING("prLineCommenting");
 
     private final String flag;
 
-    private final boolean enabledByDefault;
-
-    Feature(final String flag, final boolean enabledByDefault) {
+    Feature(final String flag) {
       this.flag = flag;
-      this.enabledByDefault = enabledByDefault;
     }
 
     public String getFlag() {
       return flag;
     }
+  }
 
-    public boolean isEnabledByDefault() {
-      return enabledByDefault;
+  /**
+   * This enumeration contains experimental features, which are disabled by default. If nothing is specified, or the
+   * feature flag is set to {@code false}, the feature is disabled. To enable it, explicitly set it to {@code true}.
+   * <p>
+   * For example:
+   * <pre>
+   * # experimental features are disabled by default - set to true if you want to enable them
+   * experimentalFeatures:
+   *   prLineCommenting: true
+   * }
+   * </pre>
+   * <p>
+   * To turn an experimental feature into a feature move the value from this class to {@link Feature} and
+   * use {@link #isFeatureEnabled(Feature)} to check its status.
+   */
+  public enum ExperimentalFeature
+      implements com.sonatype.insight.license.model.Feature
+  {
+    ORCHESTRATED_EVENT_PROCESSING("orchestratedEventProcessing"),
+    SCM_ONBOARDING("scmOnboarding"),
+    ANONYMOUS_BLOCKED_COMPONENT_VIEW("anonymousBlockedComponentView");
+
+    private final String flag;
+
+    ExperimentalFeature(final String flag) {
+      this.flag = flag;
+    }
+
+    public String getFlag() {
+      return flag;
     }
   }
 

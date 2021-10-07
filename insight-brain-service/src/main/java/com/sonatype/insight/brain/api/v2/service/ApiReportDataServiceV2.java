@@ -342,7 +342,7 @@ public class ApiReportDataServiceV2
   }
 
   private boolean isDependencyDataInRestApiSupported() {
-    return insightConfig.isExperimentalFeatureEnabled(Feature.DEPENDENCY_DATA_IN_API);
+    return insightConfig.isFeatureEnabled(Feature.DEPENDENCY_DATA_IN_API);
   }
 
   private void populateDependencyData(final Component comp, final ApiReportComponentDTOV2 component) {

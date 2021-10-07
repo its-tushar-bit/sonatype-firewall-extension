@@ -35,7 +35,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.google.common.collect.ImmutableMap.of;
-import static com.sonatype.insight.brain.service.InsightConfig.Feature.SCM_ONBOARDING;
+import static com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature.SCM_ONBOARDING;
 
 public class OwnerTreeViewTest
     extends AbstractFunctionalTest

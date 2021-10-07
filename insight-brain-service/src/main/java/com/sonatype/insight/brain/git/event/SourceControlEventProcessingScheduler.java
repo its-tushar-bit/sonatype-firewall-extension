@@ -17,7 +17,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -86,7 +86,7 @@ public class SourceControlEventProcessingScheduler
 
   @Override
   public void start() throws Exception {
-    if (!insightConfig.isExperimentalFeatureEnabled(Feature.ORCHESTRATED_EVENT_PROCESSING)) {
+    if (!insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.ORCHESTRATED_EVENT_PROCESSING)) {
       startSourceControlEventProcessing();
     }
   }

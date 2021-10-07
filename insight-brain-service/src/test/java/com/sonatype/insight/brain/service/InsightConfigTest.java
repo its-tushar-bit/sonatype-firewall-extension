@@ -187,21 +187,6 @@ public class InsightConfigTest
     assertThat(config.isExperimentalFeatureEnabled("featureTwo")).isFalse();
   }
 
-  @Test
-  public void testExperimentalFeatures_Defaults() {
-    assertThat(Feature.CODE_INSIGHTS.isEnabledByDefault()).isFalse();
-    assertThat(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.isEnabledByDefault()).isTrue();
-    assertThat(Feature.DEFAULT_BRANCH_MONITORING.isEnabledByDefault()).isFalse();
-    assertThat(Feature.DEPENDENCY_DATA_IN_API.isEnabledByDefault()).isTrue();
-    assertThat(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.isEnabledByDefault()).isTrue();
-    assertThat(Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS.isEnabledByDefault()).isFalse();
-    assertThat(Feature.ORCHESTRATED_EVENT_PROCESSING.isEnabledByDefault()).isFalse();
-    assertThat(Feature.PR_COMMENT_MONITORING.isEnabledByDefault()).isFalse();
-    assertThat(Feature.PR_LINE_COMMENTING.isEnabledByDefault()).isFalse();
-    assertThat(Feature.SCM_ONBOARDING.isEnabledByDefault()).isFalse();
-    assertThat(Feature.ANONYMOUS_BLOCKED_COMPONENT_VIEW.isEnabledByDefault()).isFalse();
-  }
-
   /**
    * @deprecated The tested method is deprecated.
    */

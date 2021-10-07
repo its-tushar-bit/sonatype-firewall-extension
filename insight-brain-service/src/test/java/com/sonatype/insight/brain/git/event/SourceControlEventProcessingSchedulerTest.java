@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.git.event;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,7 +49,8 @@ public class SourceControlEventProcessingSchedulerTest
         new SourceControlEventProcessingScheduler(sourceControlEventService, mockInsightConfig, licenseChecker,
             delaySeconds, intervalSeconds);
     when(licenseChecker.isIqForScmSupported()).thenReturn(true);
-    when(mockInsightConfig.isExperimentalFeatureEnabled(eq(Feature.ORCHESTRATED_EVENT_PROCESSING))).thenReturn(false);
+    when(mockInsightConfig.isExperimentalFeatureEnabled(
+        eq(ExperimentalFeature.ORCHESTRATED_EVENT_PROCESSING))).thenReturn(false);
 
     // when: start scheduler and wait (less than full initial delay)
     scheduler.start();
@@ -110,7 +111,8 @@ public class SourceControlEventProcessingSchedulerTest
             delaySeconds, intervalSeconds);
     doThrow(new RuntimeException("some runtime exception")).when(sourceControlEventService).processEvents();
     when(licenseChecker.isIqForScmSupported()).thenReturn(true);
-    when(mockInsightConfig.isExperimentalFeatureEnabled(eq(Feature.ORCHESTRATED_EVENT_PROCESSING))).thenReturn(false);
+    when(mockInsightConfig.isExperimentalFeatureEnabled(
+        eq(ExperimentalFeature.ORCHESTRATED_EVENT_PROCESSING))).thenReturn(false);
 
     // when: start scheduler, wait (delay + 1 interval)
     scheduler.start();
@@ -172,7 +174,8 @@ public class SourceControlEventProcessingSchedulerTest
     SourceControlEventProcessingScheduler scheduler =
         new SourceControlEventProcessingScheduler(sourceControlEventService, mockInsightConfig, licenseChecker,
             delaySeconds, intervalSeconds);
-    when(mockInsightConfig.isExperimentalFeatureEnabled(eq(Feature.ORCHESTRATED_EVENT_PROCESSING))).thenReturn(false);
+    when(mockInsightConfig.isExperimentalFeatureEnabled(
+        eq(ExperimentalFeature.ORCHESTRATED_EVENT_PROCESSING))).thenReturn(false);
 
     // when: start scheduler, wait (delay + 1 interval)
     scheduler.start();

@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.brain.telemetry.DatabaseTelemetryCollector;
@@ -442,9 +441,6 @@ public class InsightBrainServiceTest
     assertThat(config.isExperimentalFeatureEnabled("unspecifiedExperimentalFeature")).isFalse();
     assertThat(config.isExperimentalFeatureEnabled("enabledExperimentalFeature")).isTrue();
     assertThat(config.isExperimentalFeatureEnabled("disabledExperimentalFeature")).isFalse();
-    for (Feature feature : Feature.values()) {
-      assertThat(config.isExperimentalFeatureEnabled(feature)).isEqualTo(feature.isEnabledByDefault());
-    }
   }
 
   private void temporarilyEnableQuartzTelemetry() throws Exception {

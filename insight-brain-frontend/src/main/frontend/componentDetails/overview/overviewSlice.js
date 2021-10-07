@@ -19,6 +19,7 @@ import {
   selectInnerSourceProducerUrl,
   selectLatestInnerSourceComponentVersion,
   selectInsufficientPermission,
+  selectComponentDetailsSelectedRequestData,
 } from './overviewSelectors';
 import { comparator, path, sort } from 'ramda';
 import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
@@ -46,6 +47,12 @@ const initialState = {
     showInnerSourceProducerReportModal: false,
   },
   showSimilarMatchesPopover: false,
+  selectedVersionData: {
+    loading: false,
+    loadError: null,
+    selectedVersionDetails: null,
+    selectedVersion: null,
+  },
 };
 
 const stagesOrder = {
@@ -144,9 +151,37 @@ function loadFailed(state, { payload }) {
   };
 }
 
+function loadComponentDetailsByVerionsNumberRequested(state) {
+  state.selectedVersionData.loading = true;
+  state.selectedVersionData.loadError = null;
+}
+
+function loadComponentDetailsByVerionsNumberFulfilled(state, { payload }) {
+  state.selectedVersionData.loading = false;
+  state.selectedVersionData.loadError = null;
+  state.selectedVersionData.selectedVersionDetails = payload;
+}
+
+function loadComponentDetailsByVerionsNumberFailed(state, { payload }) {
+  state.selectedVersionData.loading = false;
+  state.selectedVersionData.loadError = Messages.getHttpErrorMessage(payload);
+  state.selectedVersionData.selectedVersionDetails = null;
+}
+
+function resetSelectedVersionData(state) {
+  state.selectedVersionData = {
+    loading: false,
+    loadError: null,
+    selectedVersion: null,
+    selectedVersionDetails: null,
+  };
+}
+
 const loadVersionExplorerData = createAsyncThunk(
   `${REDUCER_NAME}/loadVersionExplorerData`,
-  (_, { getState, rejectWithValue }) => {
+  (_, { getState, dispatch, rejectWithValue }) => {
+    dispatch(actions.resetSelectedVersionData());
+
     const promises = [
       axios.get(getVersionGraphUrl(selectVersionExplorerRequestData(getState()))),
       axios.get(getComponentDetailsUrl(selectComponentDetailsRequestData(getState()))),
@@ -158,6 +193,30 @@ const loadVersionExplorerData = createAsyncThunk(
         const currentVersionDetails = results[1].data;
         return { componentVersionsData, currentVersionDetails };
       })
+      .catch(rejectWithValue);
+  }
+);
+
+const loadSelectedVersionData = createAsyncThunk(
+  `${REDUCER_NAME}/loadSelectedVersionData`,
+  (version, { getState, dispatch }) => {
+    const selectedVersion = path(['componentDetailsOverview', 'selectedVersionData', 'selectedVersion'], getState());
+
+    if (selectedVersion === version) {
+      return;
+    }
+
+    dispatch(actions.setSelectedVersion(version));
+    dispatch(loadComponentDetailsByVerionsNumber());
+  }
+);
+
+const loadComponentDetailsByVerionsNumber = createAsyncThunk(
+  `${REDUCER_NAME}/loadComponentDetailsByVerionsNumber`,
+  (_, { getState, rejectWithValue }) => {
+    return axios
+      .get(getComponentDetailsUrl(selectComponentDetailsSelectedRequestData(getState())))
+      .then(({ data }) => data)
       .catch(rejectWithValue);
   }
 );
@@ -198,11 +257,16 @@ const componentDetailsOverviewSlice = createSlice({
     setInnerSourceProducerReportUrl: pathSet(['innerSourceProducerData', 'reportUrl']),
     setLatestInnerSourceComponentVersion: pathSet(['innerSourceProducerData', 'latestInnerSourceComponentVersion']),
     toggleShowSimilarMatches: toggleBooleanProp('showSimilarMatchesPopover'),
+    setSelectedVersion: pathSet(['selectedVersionData', 'selectedVersion']),
+    resetSelectedVersionData,
   },
   extraReducers: {
     [loadVersionExplorerData.pending]: loadRequested,
     [loadVersionExplorerData.fulfilled]: loadFulfilled,
     [loadVersionExplorerData.rejected]: loadFailed,
+    [loadComponentDetailsByVerionsNumber.pending]: loadComponentDetailsByVerionsNumberRequested,
+    [loadComponentDetailsByVerionsNumber.fulfilled]: loadComponentDetailsByVerionsNumberFulfilled,
+    [loadComponentDetailsByVerionsNumber.rejected]: loadComponentDetailsByVerionsNumberFailed,
     [loadInnerSourceProducerData.pending]: loadInnerSourceProducerDataRequested,
     [loadInnerSourceProducerData.fulfilled]: loadInnerSourceProducerDataFulfilled,
     [loadInnerSourceProducerData.rejected]: loadInnerSourceProducerDataFailed,
@@ -213,6 +277,8 @@ export default componentDetailsOverviewSlice.reducer;
 export const actions = {
   ...componentDetailsOverviewSlice.actions,
   loadVersionExplorerData,
+  loadSelectedVersionData,
   loadInnerSourceProducerData,
   openInnerSourceProducerReport,
+  loadComponentDetailsByVerionsNumber,
 };

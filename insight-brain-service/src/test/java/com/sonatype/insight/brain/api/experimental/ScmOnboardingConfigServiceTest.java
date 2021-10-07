@@ -9,7 +9,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -29,12 +29,12 @@ public class ScmOnboardingConfigServiceTest
 
   @Before
   public void setup() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.SCM_ONBOARDING.getFlag(), true));
+    config.setExperimentalFeatures(ImmutableMap.of(ExperimentalFeature.SCM_ONBOARDING.getFlag(), true));
   }
 
   @After
   public void cleanup() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.SCM_ONBOARDING.getFlag(), false));
+    config.setExperimentalFeatures(ImmutableMap.of(ExperimentalFeature.SCM_ONBOARDING.getFlag(), false));
   }
 
   @Test

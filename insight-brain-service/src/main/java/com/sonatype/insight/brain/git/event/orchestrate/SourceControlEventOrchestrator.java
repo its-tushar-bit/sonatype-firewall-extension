@@ -19,13 +19,13 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
-import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
+import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
@@ -127,7 +127,7 @@ public class SourceControlEventOrchestrator
 
   @Override
   public void start() {
-    if (insightConfig.isExperimentalFeatureEnabled(Feature.ORCHESTRATED_EVENT_PROCESSING)) {
+    if (insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.ORCHESTRATED_EVENT_PROCESSING)) {
       sourceControlEventPublisher.setSourceControlEventListener(this);
       startEventProcessingExecutorService();
     }

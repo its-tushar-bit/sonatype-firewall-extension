@@ -66,6 +66,11 @@ public class FeaturesService
 
       features.addAll(
           Arrays.stream(InsightConfig.Feature.values())
+              .filter(insightConfig::isFeatureEnabled)
+              .collect(Collectors.toSet())
+      );
+      features.addAll(
+          Arrays.stream(InsightConfig.ExperimentalFeature.values())
               .filter(insightConfig::isExperimentalFeatureEnabled)
               .collect(Collectors.toSet())
       );

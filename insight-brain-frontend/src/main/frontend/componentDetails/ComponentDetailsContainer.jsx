@@ -5,8 +5,10 @@
  */
 import { connect } from 'react-redux';
 import { selectComponentDetails, selectActiveTabId, selectComponentPagination } from './componentDetailsSelectors';
-import { onTabChange, loadComponentDetails } from './componentDetailsActions';
+import { actions } from './componentDetailsSlice';
 import ComponentDetails from './ComponentDetails';
+
+const { onTabChange, loadComponentDetails, backToOffspringAction } = actions;
 
 function mapStateToProps(state, { uiRouterState }) {
   return {
@@ -23,6 +25,7 @@ const mapDispatchToProps = {
   // but we need to load the report if there is none loaded yet
   loadComponentDetails,
   onTabChange,
+  backToOffspringOnClick: backToOffspringAction,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ComponentDetails);

@@ -33,7 +33,7 @@ public class ApplicationReportRawDataPage
   }
 
   public NxBackButton backButton() {
-    return new NxBackButton(ROOT);
+    return new NxBackButton("#menu-bar__back-button-container");
   }
 
   public SelenideElement reportTitle() {

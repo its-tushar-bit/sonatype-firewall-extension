@@ -17,8 +17,7 @@ import {
 } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/index';
 
-import BackButton from '../../react/BackButton';
-import { useRouterState } from '../../react/RouterStateContext';
+import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import RoleEditorPermissionsList from './RoleEditorPermissionsList';
 
 function RoleEditor({
@@ -44,8 +43,6 @@ function RoleEditor({
   stateGo,
 }) {
   const { name: roleName, description: roleDescription, permissionCategories } = formState;
-
-  const uiRouterState = useRouterState();
 
   const [showModal, setShowModal] = useState(false);
 
@@ -87,7 +84,7 @@ function RoleEditor({
   return (
     <Fragment>
       <main className="nx-page-main" id="role-editor">
-        <BackButton stateName="rolesList" text="Back to Roles" $state={uiRouterState} />
+        <MenuBarBackButton stateName="rolesList" />
         <div className="nx-page-title" id="role-title">
           <h1 className="nx-h1">{creationMode ? 'Create' : 'Edit'} a Role</h1>
         </div>

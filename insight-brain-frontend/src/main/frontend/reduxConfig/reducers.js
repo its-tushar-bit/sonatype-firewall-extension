@@ -30,7 +30,6 @@ import legalDashboardReducer from '../legal/dashboard/legalDashboardReducer';
 import legalDashboardFilterReducer from '../legal/dashboard/filter/legalDashboardFilterReducer';
 import firewallReducer from '../firewall/firewallReducer';
 import firewallConfigurationModalReducer from '../firewall/config/firewallConfigurationModalReducer';
-import componentDetailsReducer from '../componentDetails/componentDetailsReducer';
 import componentNoticeDetailsReducer from '../legal/files/notices/componentNoticeDetailsReducer';
 import componentLicenseFilesDetailsReducer from '../legal/files/licenses/componentLicenseFilesDetailsReducer';
 import copyrightOverrideReducer from '../legal/copyright/copyrightOverrideReducer';
@@ -61,6 +60,7 @@ import ldapListReducer from '../configuration/ldap/ldapServersList/ldapListSlice
 import overviewSlice from '../componentDetails/overview/overviewSlice';
 import legalSlice from '../componentDetails/ComponentDetailsLegalTab/LegalSlice';
 import vulnerabilitiesSlice from '../componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
+import componentDetailsSlice from '../componentDetails/componentDetailsSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -90,7 +90,7 @@ export default combineReducers({
   legalDashboard: legalDashboardReducer,
   legalDashboardFilter: legalDashboardFilterReducer,
   copyrightOverrides: copyrightOverrideReducer,
-  componentDetails: componentDetailsReducer,
+  componentDetails: componentDetailsSlice,
   componentNoticeDetails: componentNoticeDetailsReducer,
   componentLicenseFileDetails: componentLicenseFilesDetailsReducer,
   componentLicenseDetails: componentLicenseDetailsReducer,

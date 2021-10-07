@@ -6,26 +6,46 @@
 import axios from 'axios';
 
 import { getComponentLabels } from '../../../main/frontend/util/CLMLocation';
-import { actions as componentDetailsActions } from '../../../main/frontend/componentDetails/componentDetailsSlice';
+import {
+  actions as componentDetailsActions,
+  VISIT_ANCESTOR_ACTION,
+  RETURN_TO_OFFSPRING,
+} from '../../../main/frontend/componentDetails/componentDetailsSlice';
 import * as applicationReportActions from '../../../main/frontend/applicationReport/applicationReportActions';
 
-const { loadComponentDetails } = componentDetailsActions;
+const { loadComponentDetails, visitAncestorAction, backToOffspringAction } = componentDetailsActions;
+
 const LOAD_COMPONENT_LABELS_REQUESTED = 'componentDetails/loadComponentDetails/pending';
 const LOAD_COMPONENT_LABELS_FULFILLED = 'componentDetails/loadComponentDetails/fulfilled';
 const LOAD_COMPONENT_LABELS_FAILED = 'componentDetails/loadComponentDetails/rejected';
+const STATE_GO = '@@reduxUiRouter/stateGo';
 
 describe('componentDetailsActions', function () {
-  let store, state, mockAxiosCalls, url, mockAppId, mockReportId, mockComponentHash, mockComponent, mockResponse;
+  let store,
+    state,
+    mockAxiosCalls,
+    url,
+    mockAppId,
+    mockReportId,
+    mockComponentHash,
+    mockDerivedComponentName,
+    mockComponent,
+    mockRouteName;
 
-  beforeEach(function () {
+  beforeEach(() => {
     spyOn(applicationReportActions, 'loadReport').and.returnValue(Promise.resolve({}));
     mockAppId = 'appId';
     mockReportId = 'reportId';
     mockComponentHash = 'my-component-hash';
-    mockComponent = { name: 'My Component', hash: mockComponentHash };
+    mockDerivedComponentName = 'myComponent:1:2';
+    mockRouteName = 'application.componentDetails.overview';
+    mockComponent = { name: 'My Component', hash: mockComponentHash, derivedComponentName: mockDerivedComponentName };
 
     state = {
       router: {
+        currentState: {
+          name: mockRouteName,
+        },
         currentParams: {
           publicId: mockAppId,
           scanId: mockReportId,
@@ -41,11 +61,9 @@ describe('componentDetailsActions', function () {
     store = SpecUtil.mockReduxStore(state);
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
     url = getComponentLabels(mockAppId, mockComponentHash);
-
-    mockResponse = { data: { labelsByOwner: [{ labels: [{ test: 'test' }] }] } };
   });
 
-  describe('loadComponentDetails', function () {
+  describe('loadComponentLabels', () => {
     it('immediately dispatches LOAD_COMPONENT_LABELS_REQUESTED action', () => {
       store.dispatch(loadComponentDetails());
 
@@ -54,6 +72,7 @@ describe('componentDetailsActions', function () {
     });
 
     it('sends a GET request to the appropriate url', (done) => {
+      const mockResponse = { data: { labelsByOwner: [{ labels: [{ test: 'test' }] }] } };
       mockAxiosCalls({
         get: {
           [url]: Promise.resolve(mockResponse),
@@ -68,6 +87,7 @@ describe('componentDetailsActions', function () {
     });
 
     it('dispatches LOAD_COMPONENT_LABELS_FULLFILED after a succesfull response', (done) => {
+      const mockResponse = { data: { labelsByOwner: [{ labels: [{ test: 'test' }] }] } };
       mockAxiosCalls({
         get: {
           [url]: Promise.resolve(mockResponse),
@@ -101,6 +121,58 @@ describe('componentDetailsActions', function () {
         });
         done();
       });
+    });
+  });
+
+  describe('visitAncestorAction', () => {
+    it('immediately dispatches VISIT_ANCESTOR_ACTION action', () => {
+      const ancestorHash = 'ancestor-hash-123';
+      store.dispatch(visitAncestorAction(ancestorHash));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(2);
+      expect(actions).toHaveActionsInOrder([
+        {
+          type: VISIT_ANCESTOR_ACTION,
+          payload: {
+            offspring: {
+              derivedComponentName: mockDerivedComponentName,
+              hash: mockComponentHash,
+            },
+          },
+        },
+        {
+          type: STATE_GO,
+          payload: {
+            to: 'applicationReport.componentDetails.overview',
+            params: {
+              hash: ancestorHash,
+            },
+          },
+        },
+      ]);
+    });
+  });
+
+  describe('backToOffspringAction', () => {
+    it('immediately dispatches RETURN_TO_OFFSPRING action', () => {
+      store.dispatch(backToOffspringAction(mockComponentHash));
+      const actions = store.getActions();
+      expect(actions.length).toBe(2);
+      expect(actions).toHaveActionsInOrder([
+        {
+          type: RETURN_TO_OFFSPRING,
+        },
+        {
+          type: STATE_GO,
+          payload: {
+            to: 'applicationReport.componentDetails.overview',
+            params: {
+              hash: mockComponentHash,
+            },
+          },
+        },
+      ]);
     });
   });
 });

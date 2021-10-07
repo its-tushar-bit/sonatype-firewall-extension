@@ -46,8 +46,8 @@ public class EventProcessingErrorRetryRule
       return false;
     }
     boolean shouldRetry = isRetryableException(e) && isBelowRetryThreshold(event);
-    log.debug("Will retry event '{}' for application {} = {}", event.getEventType(), event.getApplicationId(),
-        shouldRetry);
+    log.debug("Should retry event '{}' of type '{}' for application {} = {}", event.getId(), event.getEventType(),
+        event.getApplicationId(), shouldRetry);
 
     return shouldRetry;
   }

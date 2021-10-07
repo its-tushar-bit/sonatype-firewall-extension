@@ -17,6 +17,10 @@ import { selectCurrentRouteName, selectRouterCurrentParams } from '../reduxUiRou
 
 const selectDetails = prop('componentDetails');
 
+export const selectComponentDetailsIsVisitingAncestor = createSelector(selectDetails, prop('isVisitingAncestor'));
+
+export const selectComponentDetailsOffspringDetails = createSelector(selectDetails, prop('offspring'));
+
 const selectComponentMetaData = createSelector(selectApplicationReportMetaData, (metadata) =>
   metadata
     ? {
@@ -59,22 +63,31 @@ export const selectComponentPagination = createSelector(
   selectSelectedComponentIndexInAggregatedList,
   selectAggregatedComponentsList,
   selectCurrentRouteName,
+  selectComponentDetailsIsVisitingAncestor,
+  selectComponentDetailsOffspringDetails,
   // the second argument is passed to the selector and in this case is props
   // so we can access the uiRouterState instance from context
   (_state, { uiRouterState }) => uiRouterState,
-  (index, components = [], routeName, uiRouterState) => {
+  (index, components = [], routeName, isVisitingAncestor, offspring, uiRouterState) => {
     let pagination = null;
-    if (index !== -1) {
-      const nextHash = components[index + 1] ? components[index + 1].hash : null;
-      const prevHash = components[index - 1] ? components[index - 1].hash : null;
-      const nextHref = nextHash && uiRouterState.href(routeName, { hash: nextHash });
-      const prevHref = prevHash && uiRouterState.href(routeName, { hash: prevHash });
+    if (isVisitingAncestor) {
       pagination = {
-        next: nextHref,
-        prev: prevHref,
-        currentPage: index + 1,
-        pageCount: components.length,
+        prev: offspring.hash,
+        offspringComponentName: offspring.derivedComponentName,
       };
+    } else {
+      if (index !== -1) {
+        const nextHash = components[index + 1] ? components[index + 1].hash : null;
+        const prevHash = components[index - 1] ? components[index - 1].hash : null;
+        const nextHref = nextHash && uiRouterState.href(routeName, { hash: nextHash });
+        const prevHref = prevHash && uiRouterState.href(routeName, { hash: prevHash });
+        pagination = {
+          next: nextHref,
+          prev: prevHref,
+          currentPage: index + 1,
+          pageCount: components.length,
+        };
+      }
     }
     return pagination;
   }

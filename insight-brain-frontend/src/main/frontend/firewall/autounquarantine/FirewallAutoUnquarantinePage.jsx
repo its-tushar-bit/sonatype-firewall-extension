@@ -9,7 +9,7 @@ import LoadWrapper from '../../react/LoadWrapper';
 import FirewallAutoUnquarantineStatus from '../FirewallAutoUnquarantineStatus';
 import FirewallUnquarantineTable from './FirewallUnquarantineTable';
 import * as PropTypes from 'prop-types';
-import BackButton from '../../react/BackButton';
+import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import FirewallConfigurationModalContainer from '../config/FirewallConfigurationModalContainer';
 import FirewallAutoReleaseQuarantineMtd from './FirewallAutoReleaseQuarantineMtd';
 import FirewallAutoReleaseQuarantineYtd from './FirewallAutoReleaseQuarantineYtd';
@@ -29,9 +29,6 @@ export default function FirewallAutoUnquarantinePage(props) {
     loadedConfiguration,
   } = props;
 
-  // state
-  const { $state } = props;
-
   const dataLoaded = isDataLoaded(loadedReleaseQuarantineSummary, loadedConfiguration);
 
   useEffect(() => {
@@ -41,7 +38,7 @@ export default function FirewallAutoUnquarantinePage(props) {
   return (
     <main id="firewall-auto-unquarantine-page" className="nx-page-main">
       <LoadWrapper loading={!dataLoaded} error={loadError} retryHandler={loadAutoUnquarantineData}>
-        <BackButton stateName="firewall.firewallPage" $state={$state} text="Back to Quarantine" />
+        <MenuBarBackButton stateName="firewall.firewallPage" text="Back to Quarantine" />
         {isShowConfigurationModal && <FirewallConfigurationModalContainer />}
         <div className="nx-page-title">
           <h1 className="nx-h1">Auto Release from Quarantine</h1>
@@ -69,7 +66,4 @@ FirewallAutoUnquarantinePage.propTypes = {
   isShowConfigurationModal: PropTypes.bool.isRequired,
   loadedConfiguration: PropTypes.bool.isRequired,
   loadError: PropTypes.string,
-  $state: PropTypes.shape({
-    href: PropTypes.func.isRequired,
-  }).isRequired,
 };

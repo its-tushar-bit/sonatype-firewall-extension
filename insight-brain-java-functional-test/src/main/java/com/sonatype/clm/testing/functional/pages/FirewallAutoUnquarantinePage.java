@@ -36,7 +36,7 @@ public class FirewallAutoUnquarantinePage
   }
 
   public NxBackButton backToFirewallButton() {
-    return new NxBackButton(ROOT);
+    return new NxBackButton("#menu-bar__back-button-container");
   }
 
   public FirewallAutoUnquarantineStatus firewallAutoUnquarantineStatus() {

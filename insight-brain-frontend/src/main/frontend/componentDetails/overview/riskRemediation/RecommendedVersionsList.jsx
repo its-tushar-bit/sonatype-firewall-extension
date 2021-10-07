@@ -16,7 +16,7 @@ export const RecommendedVersionsList = ({ versionChanges, actualVersion }) => {
         if (!versionChange.version || actualVersion === versionChange.version) {
           return (
             <NxList.Item key={versionChange.id}>
-              <NxList.Subtext>{versionChange.text}</NxList.Subtext>
+              <NxList.Subtext className="iq-current-version-recommendation">{versionChange.text}</NxList.Subtext>
             </NxList.Item>
           );
         }

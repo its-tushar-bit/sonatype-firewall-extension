@@ -6,16 +6,13 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxInfoAlert } from '@sonatype/react-shared-components';
-import BackButton from '../../react/BackButton';
-import { useRouterState } from '../../react/RouterStateContext';
+import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import VulnerabilityDetailsModal from '../../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
 import ApplicationReportRawDataTable, { tablePropTypes } from './ApplicationReportRawDataTable';
 import ApplicationReportRawDataHeader, { metadataPropType } from './ApplicationReportRawDataHeader';
 
 export default function ApplicationReportRawData(props) {
   const { metadata, loadReportRawData, openVulnerabilityDetailsModal, scanId, ownerId } = props;
-
-  const history = useRouterState();
 
   useEffect(() => {
     loadReportRawData();
@@ -37,7 +34,7 @@ export default function ApplicationReportRawData(props) {
 
   return (
     <main id="application-report-raw-data" className="nx-page-main nx-viewport-sized">
-      <BackButton stateName="applicationReport.policy" $state={history} />
+      <MenuBarBackButton stateName="applicationReport.policy" />
       {metadata && <ApplicationReportRawDataHeader metadata={metadata} />}
       <NxInfoAlert>
         Please note that the data appearing on this page is the raw data and not the result of policy evaluation

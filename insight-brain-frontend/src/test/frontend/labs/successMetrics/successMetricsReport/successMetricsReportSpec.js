@@ -4,16 +4,30 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import moment from 'moment';
-import ApplicationCountsChart from '../../../../../main/frontend/labs/successMetrics/successMetricsReport/applicationCountsChart/ApplicationCountsChart';
-import ComponentCountsChart from '../../../../../main/frontend/labs/successMetrics/successMetricsReport/componentCountsChart/ComponentCountsChart';
-import MttrChart from '../../../../../main/frontend/labs/successMetrics/successMetricsReport/mttrChart/MttrChart';
-import SuccessMetricsReport from '../../../../../main/frontend/labs/successMetrics/successMetricsReport/SuccessMetricsReport';
-import ViolationAveragesChart from '../../../../../main/frontend/labs/successMetrics/successMetricsReport/violationAveragesChart/ViolationAveragesChart';
-import ViolationsByCategoryChart from '../../../../../main/frontend/labs/successMetrics/successMetricsReport/violationsByCategoryChart/ViolationsByCategoryChart';
-import ViolationTrendsChart from '../../../../../main/frontend/labs/successMetrics/successMetricsReport/violationTrendsChart/ViolationTrendsChart';
+import ApplicationCountsChart from 'MainRoot/labs/successMetrics/successMetricsReport/applicationCountsChart/ApplicationCountsChart';
+import ComponentCountsChart from 'MainRoot/labs/successMetrics/successMetricsReport/componentCountsChart/ComponentCountsChart';
+import MttrChart from 'MainRoot/labs/successMetrics/successMetricsReport/mttrChart/MttrChart';
+import SuccessMetricsReport from 'MainRoot/labs/successMetrics/successMetricsReport/SuccessMetricsReport';
+import ViolationAveragesChart from 'MainRoot/labs/successMetrics/successMetricsReport/violationAveragesChart/ViolationAveragesChart';
+import ViolationsByCategoryChart from 'MainRoot/labs/successMetrics/successMetricsReport/violationsByCategoryChart/ViolationsByCategoryChart';
+import ViolationTrendsChart from 'MainRoot/labs/successMetrics/successMetricsReport/violationTrendsChart/ViolationTrendsChart';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import * as enzymeUtils from '../../../enzymeUtils';
 
 describe('successMetricsReport', () => {
+  it('renders a MenuBarBackButton with correct stateName prop', function () {
+    const getShallow = enzymeUtils.getShallowComponent(SuccessMetricsReport, {
+      applicationCounts: {},
+      router: {
+        currentParams: {},
+      },
+    });
+    const component = getShallow();
+    const menuBarBackButton = component.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('stateName', 'labs.successMetrics');
+  });
+
   describe('when has no data to show', () => {
     let getShallow;
 

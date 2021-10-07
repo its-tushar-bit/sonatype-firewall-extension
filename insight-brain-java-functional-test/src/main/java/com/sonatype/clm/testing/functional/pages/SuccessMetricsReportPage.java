@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.ViolationTrendPlot;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
@@ -67,8 +68,8 @@ public class SuccessMetricsReportPage
     return this;
   }
 
-  public SelenideElement backButton() {
-    return child(".nx-back-button a");
+  public NxBackButton backButton() {
+    return new NxBackButton("#menu-bar__back-button-container");
   }
 
   public ErrorBox errorBox() {
@@ -193,7 +194,7 @@ public class SuccessMetricsReportPage
     public static SelenideElement chart() {
       return $(SelectorUtils.createSelector(ROOT, "#mttr-chart-container"));
     }
-    
+
     public static ElementsCollection mttrPoints() {
       return $$(SelectorUtils.createSelector(ROOT, "#mttr-chart-container", ".scatter-plot", "path"));
     }
@@ -203,7 +204,7 @@ public class SuccessMetricsReportPage
     }
 
     public static ElementsCollection mttrXAxisLabels() {
-      return $$(SelectorUtils.createSelector(ROOT, "#mttr-chart-container", ".x-axis", 
+      return $$(SelectorUtils.createSelector(ROOT, "#mttr-chart-container", ".x-axis",
       ".tick-label-container", "text"));
     }
   }
@@ -258,7 +259,7 @@ public class SuccessMetricsReportPage
     }
 
     public static ElementsCollection xAxisLabels() {
-      return $$(SelectorUtils.createSelector(ROOT, "#bycategory-chart-container", 
+      return $$(SelectorUtils.createSelector(ROOT, "#bycategory-chart-container",
       ".x-axis", ".tick-label-container", "text"));
     }
   }

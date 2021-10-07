@@ -21,6 +21,8 @@ import com.sonatype.nexus.git.utils.api.NativeGitApi;
 import com.sonatype.nexus.git.utils.api.NativeGitUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,19 +50,21 @@ public class GitApiFactory
   public GitApi createGitApi(final GitRepositoryInfo gitInfo) {
     String gitImplFromConfig = sourceControlConfig.getGitImplementation();
     String gitExecutable = sourceControlConfig.getGitExecutable();
+    String cloneUrl = getCloneUrl(gitInfo);
+    boolean isSsh = Boolean.TRUE.equals(gitInfo.getSshEnabled());
     if (gitImplFromConfig != null) {
       if (gitImplFromConfig.equalsIgnoreCase(JGIT)) {
-        return new JGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username);
+        return creatJGitIfAllowed(gitInfo, cloneUrl, isSsh);
       }
       else if (gitImplFromConfig.equalsIgnoreCase(NATIVE_GIT)) {
         if (!isNativeGitAvailable(gitExecutable)) {
           String messageSuffix = gitExecutable != null ? "at configured path: " + gitExecutable : "on the path";
           log.warn("System is configured to use native git, but the git executable was not found {}. Defaulting to " +
               "use {} implementation", messageSuffix, JGIT);
-          return new JGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username);
+          return creatJGitIfAllowed(gitInfo, cloneUrl, isSsh);
         }
         NativeGitApi nativeGitApi =
-            new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username, gitExecutable);
+            new NativeGitApi(cloneUrl, gitInfo.token, gitInfo.username, gitExecutable);
         nativeGitApi.setTempDirectory(insightWork.getTemporaryDirectory());
         return nativeGitApi;
       }
@@ -72,11 +76,20 @@ public class GitApiFactory
 
     if (isNativeGitAvailable(gitExecutable)) {
       NativeGitApi nativeGitApi =
-          new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username, gitExecutable);
+          new NativeGitApi(cloneUrl, gitInfo.token, gitInfo.username, gitExecutable);
       nativeGitApi.setTempDirectory(insightWork.getTemporaryDirectory());
       return nativeGitApi;
     }
-    return new JGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username);
+    return creatJGitIfAllowed(gitInfo, cloneUrl, isSsh);
+  }
+
+  private JGitApi creatJGitIfAllowed(GitRepositoryInfo gitInfo, String cloneUrl, boolean isSsh) {
+    if (isSsh) {
+      throw new IllegalArgumentException(String.format("Application with URL %s is configured to use SSH with JGit " +
+          "which is not a supported combination. Update the system to use native git or disable SSH for this " +
+          "application", cloneUrl));
+    }
+    return new JGitApi(cloneUrl, gitInfo.token, gitInfo.username);
   }
 
   /**
@@ -86,5 +99,18 @@ public class GitApiFactory
   @VisibleForTesting
   boolean isNativeGitAvailable(String gitExecutable) { 
     return NativeGitUtils.isNativeGitAvailable(gitExecutable);
+  }
+
+  private String getCloneUrl(final GitRepositoryInfo gitRepositoryInfo) {
+    if (Boolean.TRUE.equals(gitRepositoryInfo.getSshEnabled())) {
+      if (StringUtils.isEmpty(gitRepositoryInfo.getSshRepositoryUrl())) {
+        // SSH is enabled, but there is no SSH URL
+        throw new RuntimeException(String.format("SSH is enabled for repository '%s' but no SSH clone URL was " +
+              "present. Check logs for errors retreiving the SSH URL. It will be attempted to be retrieved again on " +
+              "the next SCM operation.", gitRepositoryInfo.getRepositoryUrl()));
+      }
+      return gitRepositoryInfo.getSshRepositoryUrl();
+    }
+    return gitRepositoryInfo.getRepositoryUrl();
   }
 }

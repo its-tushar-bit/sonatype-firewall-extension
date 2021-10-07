@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.sourcecontrol;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 public class ApiCompositeSourceControlDTO
 {
   public String id;
@@ -33,7 +31,5 @@ public class ApiCompositeSourceControlDTO
 
   public ApiCompositeValueDTO<String> sourceControlScanTarget = new ApiCompositeValueDTO<>();
 
-  // TODO INT-5455 remove Json Ignore when the UI is ready to be committed & released
-  @JsonIgnore
   public ApiCompositeValueDTO<Boolean> sshEnabled = new ApiCompositeValueDTO<>();
 }

@@ -403,7 +403,7 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
       doReturn(gitApi).when(gitApiFactory).createGitApi(any());
       doReturn(commonAncestorCommit).when(gitApi).getCommonAncestorCommit(any(), any(), any());
 
-      doReturn(sourceControlDir).when(mockSourceControlUtils).getCheckoutDirectory(any());
+      doReturn(sourceControlDir).when(mockSourceControlUtils).getCheckoutDirectory(any(Application.class));
 
       if (baseCommit != null) {
         doReturn(latestBaseCommitPolicyEvaluation).when(mockPolicyEvaluationDAO)

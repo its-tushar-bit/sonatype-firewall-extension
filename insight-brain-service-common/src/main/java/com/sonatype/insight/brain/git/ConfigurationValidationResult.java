@@ -18,6 +18,8 @@ public class ConfigurationValidationResult
 
   private ValidationResult tokenPermissions;
 
+  private ValidationResult sshConfiguration;
+
   public ConfigurationValidationResult() {
   }
 
@@ -43,5 +45,13 @@ public class ConfigurationValidationResult
 
   public void setTokenPermissions(final ValidationResult tokenPermissions) {
     this.tokenPermissions = tokenPermissions;
+  }
+
+  public ValidationResult getSshConfiguration() {
+    return sshConfiguration;
+  }
+
+  public void setSshConfiguration(ValidationResult sshConfiguration) {
+    this.sshConfiguration = sshConfiguration;
   }
 }

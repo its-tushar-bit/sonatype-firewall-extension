@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.pages.SourceControlRepositoryUrlUpdat
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
@@ -53,9 +54,17 @@ public class ApplicationSourceControlEditorTest
       "Is the repository private?",
       "Does the token have sufficient permissions?");
 
+  public static final CollectionCondition CONFIG_TEST_SSH_NAMES = texts(
+      "Is the configuration complete?",
+      "Is the repository private?",
+      "Does the token have sufficient permissions?",
+      "Is SSH configured fully?");
+
   private Application application;
 
   private static final String REPOSITORY_URL = "https://a.com/b/c";
+
+  private static final String REPOSITORY_SSH_URL = "git@a.com:b/c.git";
 
   private static final String BITBUCKET_REPOSITORY_URL = "https://bitbucket.org/org/repo.git";
   
@@ -300,7 +309,7 @@ public class ApplicationSourceControlEditorTest
   }
 
   @Test
-  public void testSourceControlEditor_testConfiguration() {
+  public void testSourceControlEditor_testConfiguration_noSsh() {
     // given: we go to the source control editor
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
 
@@ -345,6 +354,30 @@ public class ApplicationSourceControlEditorTest
 
     // then the test results are hidden
     SourceControlEditorPage.testResultsElement().shouldNot(exist);
+  }
+
+  @Test
+  public void testSourceControlEditor_testConfiguration_sshEnabled() {
+    // given Source Control with SSH Enabled
+    tempEntity.newSourceControl(rootOrganization.getId(), null, TOKEN, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(
+        new SourceControl.Builder()
+            .setOwnerId(application.getId())
+            .setRepositoryUrl(REPOSITORY_URL)
+            .setRepositorySshUrl(REPOSITORY_SSH_URL)
+            .setSshEnabled(true)
+            .build());
+
+    // given: we go to the source control editor
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+
+    // when: we click the test config
+    SourceControlEditorPage.testConfigButton().click();
+
+    // then: we see the test results
+    final TestResults testResults = SourceControlEditorPage.testResults();
+    testResults.title().shouldHave(text("Configuration Test Results"));
+    testResults.rows().shouldHave(CONFIG_TEST_SSH_NAMES);
   }
 
   @Test

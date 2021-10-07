@@ -6,7 +6,7 @@
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
-import { NxLoadWrapper } from '@sonatype/react-shared-components';
+import { NxLoadWrapper, NxModal, NxLoadError, NxButton } from '@sonatype/react-shared-components';
 import { CompareVersions } from './CompareVersions';
 import { DependencyInformation } from './DependencyInformation';
 import { VersionExplorer } from './VersionExplorer';
@@ -17,10 +17,13 @@ export const RiskRemediation = ({
   ancestors,
   stageId,
   versionExplorerData,
+  selectedVersionData,
   currentVersion,
   loadVersionExplorerData,
+  loadSelectedVersionData,
   currentVersionComparisonData,
   selectedVersionComparisonData,
+  resetSelectedVersionData,
   ancestorOnClick,
 }) => {
   useEffect(() => {
@@ -28,6 +31,7 @@ export const RiskRemediation = ({
   }, []);
 
   const { loading, loadError, remediation, versions } = versionExplorerData;
+  const { loading: selectedVersionLoading, loadError: selectedVersionError, selectedVersion } = selectedVersionData;
 
   const overviewComponentRiskRemediationTile_header = (
     <header className="nx-tile-header">
@@ -45,7 +49,12 @@ export const RiskRemediation = ({
       <div className="nx-grid-col nx-grid-col--50">
         <div className="nx-grid-row">
           <div className="nx-grid-col iq-grid-col--100">
-            <VersionExplorer versions={versions} currentVersion={currentVersion} />
+            <VersionExplorer
+              versions={versions}
+              currentVersion={currentVersion}
+              versionClick={loadSelectedVersionData}
+              selectedVersionError={selectedVersionError}
+            />
           </div>
         </div>
         <div className="nx-grid-row">
@@ -54,6 +63,8 @@ export const RiskRemediation = ({
               <CompareVersions
                 currentVersion={currentVersionComparisonData}
                 selectedVersion={selectedVersionComparisonData}
+                loading={selectedVersionLoading}
+                error={selectedVersionError}
               />
             )}
           </div>
@@ -69,7 +80,12 @@ export const RiskRemediation = ({
           <DependencyInformation ancestors={ancestors} ancestorOnClick={ancestorOnClick} />
         </div>
         <div className="nx-grid-col nx-grid-col--50">
-          <VersionExplorer versions={versions} currentVersion={currentVersion} />
+          <VersionExplorer
+            versions={versions}
+            currentVersion={currentVersion}
+            versionClick={loadSelectedVersionData}
+            selectedVersionError={selectedVersionError}
+          />
         </div>
       </div>
       <div className="nx-grid-row">
@@ -81,11 +97,36 @@ export const RiskRemediation = ({
             <CompareVersions
               currentVersion={currentVersionComparisonData}
               selectedVersion={selectedVersionComparisonData}
+              loading={selectedVersionLoading}
+              error={selectedVersionError}
             />
           )}
         </div>
       </div>
     </Fragment>
+  );
+
+  const selectedVersionLoadErrorModal = (
+    <NxModal
+      id="selected-version-error-modal"
+      onCancel={resetSelectedVersionData}
+      variant="narrow"
+      aria-labelledby="modal-narrow-header"
+    >
+      <header className="nx-modal-header">
+        <h2 className="nx-h2" id="modal-narrow-header">
+          <span>Error loading component details for version {selectedVersion}</span>
+        </h2>
+      </header>
+      <div className="nx-modal-content">
+        <NxLoadError error={selectedVersionError} />
+      </div>
+      <footer className="nx-footer">
+        <div className="nx-btn-bar">
+          <NxButton onClick={resetSelectedVersionData}>Close</NxButton>
+        </div>
+      </footer>
+    </NxModal>
   );
 
   const content =
@@ -96,6 +137,7 @@ export const RiskRemediation = ({
   return (
     <section id="overview-component-risk-remediation-tile" className="nx-tile iq-component-risk-remediation-tile">
       {overviewComponentRiskRemediationTile_header}
+      {selectedVersionError && selectedVersionLoadErrorModal}
       <div className="nx-tile-content">
         <NxLoadWrapper loading={loading} retryHandler={loadVersionExplorerData} error={loadError}>
           {content}
@@ -110,12 +152,19 @@ RiskRemediation.propTypes = {
   currentVersion: PropTypes.string.isRequired,
   stageId: PropTypes.string.isRequired,
   loadVersionExplorerData: PropTypes.func,
+  loadSelectedVersionData: PropTypes.func,
+  resetSelectedVersionData: PropTypes.func,
+  routeName: PropTypes.string.isRequired,
   currentVersionComparisonData: PropTypes.object,
   selectedVersionComparisonData: PropTypes.object,
   ancestorOnClick: PropTypes.func,
   versionExplorerData: PropTypes.shape({
     versions: PropTypes.array,
     remediation: RemediationPropTypes,
+    loading: PropTypes.bool,
+    loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  }),
+  selectedVersionData: PropTypes.shape({
     loading: PropTypes.bool,
     loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),

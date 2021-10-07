@@ -5,16 +5,16 @@
  */
 import axios from 'axios';
 
-import { actions } from '../../../../main/frontend/componentDetails/overview/overviewSlice';
-import * as applicationReportSelectors from '../../../../main/frontend/applicationReport/applicationReportSelectors';
-import * as componentDetailsOverviewSelectors from '../../../../main/frontend/componentDetails/overview/overviewSelectors';
+import { actions } from 'MainRoot/componentDetails/overview/overviewSlice';
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+import * as componentDetailsOverviewSelectors from 'MainRoot/componentDetails/overview/overviewSelectors';
 import {
   getApplicableWaiversUrl,
   getApplicationReportsUrl,
   getComponentDetailsUrl,
   getInnerSourceComponentLatestVersionUrl,
   getVersionGraphUrl,
-} from '../../../../main/frontend/util/CLMLocation';
+} from 'MainRoot/util/CLMLocation';
 
 describe('componentDetailsOverviewActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -205,6 +205,57 @@ describe('componentDetailsOverviewActions', () => {
     });
   });
 
+  describe('loadComponentDetailsByVerionsNumber', () => {
+    beforeEach(() => {
+      spyOn(componentDetailsOverviewSelectors, 'selectComponentDetailsSelectedRequestData').and.returnValue({});
+    });
+
+    it('loads selected version details', (done) => {
+      const componentDetailsByVersion = {};
+      mockAxiosCalls({
+        get: {
+          [getComponentDetailsUrl({})]: Promise.resolve({ data: componentDetailsByVersion }),
+        },
+      });
+
+      store.dispatch(actions.loadComponentDetailsByVerionsNumber()).then(() => {
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'componentDetailsOverview/loadComponentDetailsByVerionsNumber/pending',
+          'componentDetailsOverview/loadComponentDetailsByVerionsNumber/fulfilled',
+        ]);
+
+        expect(actions[1].payload).toBe(componentDetailsByVersion);
+
+        done();
+      });
+    });
+
+    it('dispatches rejected action if selected version details request fails', (done) => {
+      mockAxiosCalls({
+        get: {
+          [getComponentDetailsUrl({})]: () => Promise.reject('failed to load component details with given version'),
+        },
+      });
+
+      store.dispatch(actions.loadComponentDetailsByVerionsNumber()).then(() => {
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'componentDetailsOverview/loadComponentDetailsByVerionsNumber/pending',
+          'componentDetailsOverview/loadComponentDetailsByVerionsNumber/rejected',
+        ]);
+
+        expect(actions[1].payload).toBe('failed to load component details with given version');
+
+        done();
+      });
+    });
+  });
+
   describe('loadVersionExplorerData', () => {
     beforeEach(() => {
       spyOn(componentDetailsOverviewSelectors, 'selectVersionExplorerRequestData').and.returnValue({});
@@ -222,13 +273,14 @@ describe('componentDetailsOverviewActions', () => {
       });
 
       store.dispatch(actions.loadVersionExplorerData()).then(() => {
-        expect(store.getActions().length).toBe(2);
+        expect(store.getActions().length).toBe(3);
         expect(store.getActions()).toHaveActionTypesInOrder([
           'componentDetailsOverview/loadVersionExplorerData/pending',
+          'componentDetailsOverview/resetSelectedVersionData',
           'componentDetailsOverview/loadVersionExplorerData/fulfilled',
         ]);
 
-        const fulfilledPayload = store.getActions()[1].payload;
+        const fulfilledPayload = store.getActions()[2].payload;
         expect(fulfilledPayload.componentVersionsData).toBe(versionExplorerData);
         expect(fulfilledPayload.currentVersionDetails).toBe(componentDetails);
 
@@ -245,13 +297,14 @@ describe('componentDetailsOverviewActions', () => {
       });
 
       store.dispatch(actions.loadVersionExplorerData()).then(() => {
-        expect(store.getActions().length).toBe(2);
+        expect(store.getActions().length).toBe(3);
         expect(store.getActions()).toHaveActionTypesInOrder([
           'componentDetailsOverview/loadVersionExplorerData/pending',
+          'componentDetailsOverview/resetSelectedVersionData',
           'componentDetailsOverview/loadVersionExplorerData/rejected',
         ]);
 
-        expect(store.getActions()[1].payload).toBe('failed to load version explorer data');
+        expect(store.getActions()[2].payload).toBe('failed to load version explorer data');
 
         done();
       });
@@ -266,13 +319,14 @@ describe('componentDetailsOverviewActions', () => {
       });
 
       store.dispatch(actions.loadVersionExplorerData()).then(() => {
-        expect(store.getActions().length).toBe(2);
+        expect(store.getActions().length).toBe(3);
         expect(store.getActions()).toHaveActionTypesInOrder([
           'componentDetailsOverview/loadVersionExplorerData/pending',
+          'componentDetailsOverview/resetSelectedVersionData',
           'componentDetailsOverview/loadVersionExplorerData/rejected',
         ]);
 
-        expect(store.getActions()[1].payload).toBe('failed to load component details');
+        expect(store.getActions()[2].payload).toBe('failed to load component details');
 
         done();
       });

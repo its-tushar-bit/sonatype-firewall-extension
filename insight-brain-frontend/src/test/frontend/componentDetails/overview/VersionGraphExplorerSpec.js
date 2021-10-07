@@ -18,6 +18,7 @@ describe('VersionGraphExplorer', () => {
       showCurrentVersionLabel: true,
       versionClick: jasmine.createSpy('versionClick'),
       versionDblClick: jasmine.createSpy('versionDblClick'),
+      selectedVersionError: null,
     };
 
     getShallow = enzymeUtils.getShallowComponent(VersionGraphExplorer, minimalProps);
@@ -50,5 +51,13 @@ describe('VersionGraphExplorer', () => {
       versionClick: minimalProps.versionClick,
       versionDblClick: minimalProps.versionDblClick,
     });
+  });
+
+  it('calls the selectVersion method when selectedVersionError exists', () => {
+    const selectVersionGraphSpy = spyOn(versionGraph, 'selectVersion');
+    getMounted({ selectedVersionError: 'error' });
+
+    expect(selectVersionGraphSpy).toHaveBeenCalledTimes(1);
+    expect(selectVersionGraphSpy).toHaveBeenCalledWith(null);
   });
 });

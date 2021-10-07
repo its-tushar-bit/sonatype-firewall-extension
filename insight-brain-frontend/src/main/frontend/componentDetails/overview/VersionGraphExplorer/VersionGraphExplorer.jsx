@@ -5,7 +5,7 @@
  */
 import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
-import { renderVersionGraph } from '@sonatype/version-graph';
+import { renderVersionGraph, selectVersion } from '@sonatype/version-graph';
 
 const VersionGraphExplorer = ({
   versions,
@@ -15,6 +15,7 @@ const VersionGraphExplorer = ({
   showCurrentVersionLabel,
   versionClick,
   versionDblClick,
+  selectedVersionError,
 }) => {
   useEffect(() => {
     renderVersionGraph({
@@ -29,6 +30,13 @@ const VersionGraphExplorer = ({
       versionDblClick,
     });
   }, []);
+
+  useEffect(() => {
+    if (selectedVersionError) {
+      selectVersion(null);
+    }
+  }, [selectedVersionError]);
+
   return (
     <div id="aiVersionChartContainer">
       <div id="aiVersionChartLabels"></div>

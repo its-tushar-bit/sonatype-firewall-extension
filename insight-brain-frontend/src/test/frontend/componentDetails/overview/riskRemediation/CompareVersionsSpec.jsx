@@ -5,9 +5,9 @@
  */
 import React from 'react';
 import * as enzymeUtils from '../../../enzymeUtils';
-import { NxTableCell } from '@sonatype/react-shared-components';
+import { NxTableCell, NxTableBody } from '@sonatype/react-shared-components';
 import { faTrophy, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
-import { CompareVersions } from '../../../../../main/frontend/componentDetails/overview/riskRemediation/CompareVersions';
+import { CompareVersions } from 'MainRoot/componentDetails/overview/riskRemediation/CompareVersions';
 
 describe('CompareVersions', () => {
   let getShallow;
@@ -16,8 +16,14 @@ describe('CompareVersions', () => {
     const minimalProps = {
       currentVersion: {},
       selectedVersion: {},
+      loading: false,
     };
     getShallow = enzymeUtils.getShallowComponent(CompareVersions, minimalProps);
+  });
+
+  it('shows loading spinner', () => {
+    const body = getShallow({ loading: true }).find(NxTableBody);
+    expect(body).toHaveProp('isLoading', true);
   });
 
   describe('Version row', () => {

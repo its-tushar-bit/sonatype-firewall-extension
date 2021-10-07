@@ -4,13 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment } from 'react';
+import * as PropTypes from 'prop-types';
 
 import { NxTable, NxFontAwesomeIcon, NxTag } from '@sonatype/react-shared-components';
 import { faTrophy, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import { versionComparisonInfoPropType } from '../../componentDetailsUtils';
 
-export const CompareVersions = ({ currentVersion, selectedVersion }) => {
+export const CompareVersions = ({ currentVersion, selectedVersion, loading }) => {
   return (
     <Fragment>
       <header id="compare-versions-header" className="nx-grid-header">
@@ -24,7 +25,7 @@ export const CompareVersions = ({ currentVersion, selectedVersion }) => {
             <NxTable.Cell>SELECTED</NxTable.Cell>
           </NxTable.Row>
         </NxTable.Head>
-        <NxTable.Body>
+        <NxTable.Body isLoading={loading}>
           <NxTable.Row id="version">
             <NxTable.Cell>Version</NxTable.Cell>
             <NxTable.Cell>{currentVersion.version}</NxTable.Cell>
@@ -88,6 +89,7 @@ export const CompareVersions = ({ currentVersion, selectedVersion }) => {
 CompareVersions.propTypes = {
   currentVersion: versionComparisonInfoPropType.isRequired,
   selectedVersion: versionComparisonInfoPropType.isRequired,
+  loading: PropTypes.bool,
 };
 
 function renderIntegrityRating(integrityRating) {

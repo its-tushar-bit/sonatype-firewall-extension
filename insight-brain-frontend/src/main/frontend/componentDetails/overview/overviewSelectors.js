@@ -20,6 +20,11 @@ export const selectVersionExplorerData = createSelector(
   prop('versionExplorerData')
 );
 
+export const selectSelectedVersionData = createSelector(
+  selectComponentDetailsOverviewSlice,
+  prop('selectedVersionData')
+);
+
 export const selectComponentDetailsRequestData = createSelector(
   selectSelectedComponent,
   selectRouterCurrentParams,
@@ -93,10 +98,14 @@ export const selectLatestInnerSourceComponentVersion = createSelector(
 
 export const selectCurrentVersionDetails = createSelector(selectVersionExplorerData, prop('currentVersionDetails'));
 
-export const selectSelectedVersionDetails = createSelector(
-  selectComponentDetailsOverviewSlice,
-  // This is just a placeholder for actual state, to be implemented as part of CLM-19434
-  prop('selectedVersionDetails')
+export const selectSelectedVersionDetails = createSelector(selectSelectedVersionData, prop('selectedVersionDetails'));
+export const selectAvailableVersions = createSelector(selectVersionExplorerData, prop('versions'));
+export const selectSelectedVersion = createSelector(selectSelectedVersionData, prop('selectedVersion'));
+export const selectSelectedVersionDetailsByVersionId = createSelector(
+  selectAvailableVersions,
+  selectSelectedVersion,
+  (versions, selectedVersion) =>
+    versions.find((version) => version.componentIdentifier?.coordinates?.version === selectedVersion)
 );
 
 export const selectCurrentVersionComparisonData = createSelector(
@@ -107,4 +116,20 @@ export const selectCurrentVersionComparisonData = createSelector(
 export const selectSelectedVersionComparisonData = createSelector(
   selectSelectedVersionDetails,
   getComponentVersionComparisonInfo
+);
+
+export const selectComponentDetailsSelectedRequestData = createSelector(
+  selectSelectedVersionDetailsByVersionId,
+  selectRouterCurrentParams,
+  (component, params) => ({
+    clientType: 'ci',
+    ownerType: 'application',
+    ownerId: params.publicId,
+    matchState: component.matchState,
+    proprietary: component.proprietary,
+    identificationSource: component.identificationSource,
+    componentIdentifier: stringifyComponentIdentifier(component.componentIdentifier, component.matchState),
+    hash: undefined,
+    scanId: params.scanId,
+  })
 );

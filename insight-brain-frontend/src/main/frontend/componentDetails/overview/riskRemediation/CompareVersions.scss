@@ -22,7 +22,7 @@
   }
 
   tbody {
-    .nx-cell:first-of-type {
+    .nx-cell:first-of-type:not(.nx-cell--meta-info) {
       @include semi-bold();
       color: var(--nx-swatch-grey-30);
       text-align: right;

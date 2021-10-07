@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from '../../../../main/frontend/componentDetails/overview/overviewSlice';
+import reducer from 'MainRoot/componentDetails/overview/overviewSlice';
 
 describe('componentDetailsOverviewReducer', () => {
   const stateConstantObject = { value: 'test value' };
@@ -16,9 +16,15 @@ describe('componentDetailsOverviewReducer', () => {
     showInnerSourcePermissionsModal: false,
     showInnerSourceProducerReportModal: false,
   };
+  const selectedVersionData = {
+    loading: false,
+    loadError: null,
+    selectedVersionDetails: null,
+    selectedVersion: null,
+  };
 
   describe('unknown action', () => {
-    it('returns original state', function () {
+    it('returns original state', () => {
       const state = Object.freeze({
         foo: 'bar',
         versionExplorerData: {
@@ -176,7 +182,7 @@ describe('componentDetailsOverviewReducer', () => {
   });
 
   describe('componentDetailsOverview/loadInnerSourceProducerData/rejected action', () => {
-    it('sets the loadError to the payload and the loading flag to true', () => {
+    it('sets the loadError to the payload and the loading flag to false', () => {
       const state = Object.freeze({
         innerSourceProducerData: {
           ...initialInnerSourceProducerData,
@@ -313,6 +319,116 @@ describe('componentDetailsOverviewReducer', () => {
 
       newState = reducer(newState, { type: 'componentDetailsOverview/toggleShowSimilarMatches' });
       expect(newState.showSimilarMatchesPopover).toBe(true);
+    });
+  });
+
+  describe('componentDetailsOverview/setSelectedVersion', () => {
+    it('sets version value for selectedVersion', () => {
+      const state = Object.freeze({ selectedVersionData });
+
+      const {
+        selectedVersionData: { selectedVersion },
+      } = reducer(state, {
+        type: 'componentDetailsOverview/setSelectedVersion',
+        payload: '2.3',
+      });
+
+      expect(selectedVersion).toBe('2.3');
+    });
+  });
+
+  describe('componentDetailsOverview/resetSelectedVersionData', () => {
+    it('sets version value for selectedVersion', () => {
+      const state = Object.freeze({
+        selectedVersionData: {
+          ...selectedVersionData,
+          loadError: 'error',
+          selectedVersion: '2.3',
+        },
+      });
+
+      const {
+        selectedVersionData: { selectedVersion, loadError, loading, selectedVersionDetails },
+      } = reducer(state, {
+        type: 'componentDetailsOverview/resetSelectedVersionData',
+      });
+
+      expect(selectedVersion).toBeNull();
+      expect(loadError).toBeNull();
+      expect(selectedVersionDetails).toBeNull();
+      expect(loading).toBe(false);
+    });
+  });
+
+  describe('componentDetailsOverview/loadComponentDetailsByVerionsNumber/pending action', () => {
+    it('sets the loadError to null and the loading flag to true', () => {
+      const state = Object.freeze({
+        selectedVersionData: {
+          ...selectedVersionData,
+          loadError: 'error',
+          selectedVersion: '2.3',
+        },
+      });
+
+      const {
+        selectedVersionData: { loading, loadError },
+      } = reducer(state, {
+        type: 'componentDetailsOverview/loadComponentDetailsByVerionsNumber/pending',
+      });
+
+      expect(loading).toBe(true);
+      expect(loadError).toBeNull();
+    });
+  });
+
+  describe('componentDetailsOverview/loadComponentDetailsByVerionsNumber/rejected action', () => {
+    it('sets the loadError to the payload and the loading flag to false', () => {
+      const state = Object.freeze({
+        selectedVersionData: {
+          loading: true,
+          loadError: 'error',
+          selectedVersion: '2.3',
+          selectedVersionDetails: {
+            data: 'some data',
+          },
+        },
+      });
+
+      const {
+        selectedVersionData: { loading, loadError, selectedVersionDetails },
+      } = reducer(state, {
+        type: 'componentDetailsOverview/loadComponentDetailsByVerionsNumber/rejected',
+        payload: 'error',
+      });
+
+      expect(loading).toBe(false);
+      expect(loadError).toBe('error');
+      expect(selectedVersionDetails).toBeNull();
+    });
+  });
+
+  describe('componentDetailsOverview/loadComponentDetailsByVerionsNumber/fulfilled action', () => {
+    it('sets the loadError to the payload and the loading flag to true', () => {
+      const state = Object.freeze({
+        selectedVersionData: {
+          loading: true,
+          loadError: 'error',
+          selectedVersion: '2.3',
+        },
+      });
+
+      const {
+        selectedVersionData: { loading, loadError, selectedVersionDetails },
+      } = reducer(state, {
+        type: 'componentDetailsOverview/loadComponentDetailsByVerionsNumber/fulfilled',
+        payload: {
+          data: 'version data',
+        },
+      });
+
+      expect(loading).toBe(false);
+      expect(loadError).toBeNull();
+      expect(selectedVersionDetails).toEqual({ data: 'version data' });
     });
   });
 });

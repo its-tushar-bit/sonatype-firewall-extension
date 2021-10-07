@@ -11,6 +11,7 @@ import { actions } from '../overviewSlice';
 import { actions as componenDetailsActions } from '../../componentDetailsSlice';
 import {
   selectVersionExplorerData,
+  selectSelectedVersionData,
   selectRemediationData,
   selectCurrentVersionComparisonData,
   selectSelectedVersionComparisonData,
@@ -27,6 +28,7 @@ function mapStateToProps(state) {
     currentVersion,
     stageId,
     versionExplorerData: selectVersionExplorerData(state),
+    selectedVersionData: selectSelectedVersionData(state),
     currentVersionComparisonData: selectCurrentVersionComparisonData(state),
     selectedVersionComparisonData: selectSelectedVersionComparisonData(state),
   };
@@ -34,6 +36,8 @@ function mapStateToProps(state) {
 
 const mapDispatchToProps = {
   loadVersionExplorerData: actions.loadVersionExplorerData,
+  loadSelectedVersionData: actions.loadSelectedVersionData,
+  resetSelectedVersionData: actions.resetSelectedVersionData,
   ancestorOnClick: visitAncestorAction,
 };
 

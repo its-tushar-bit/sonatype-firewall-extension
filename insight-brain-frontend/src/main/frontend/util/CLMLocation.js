@@ -224,6 +224,22 @@ export function getFirewallReleaseQuarantineSummaryUrl() {
   return uriTemplate`/api/v2/firewall/releaseQuarantine/summary`;
 }
 
+export const getComponentLicensesUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  identificationSource,
+  scanId,
+}) => {
+  const params = toURIParams({
+    componentIdentifier,
+    identificationSource,
+    scanId,
+  });
+  return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${ownerId}/licenses?` + params;
+};
+
 export function getSuccessMetricsConfigUrl() {
   return uriTemplate`/rest/successMetrics`;
 }

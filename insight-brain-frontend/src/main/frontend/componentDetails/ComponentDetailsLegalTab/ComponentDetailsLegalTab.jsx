@@ -6,7 +6,7 @@
 import React, { Fragment } from 'react';
 import { ViolationsTableTileContainer } from '../ViolationsTableTile/ViolationsTableTileContainer';
 import { policyTypes } from '../../dashboard/filter/staticFilterEntries';
-import { LicenseDetectionsTileContainer } from '../LicenseDetectionsTile';
+import { LicenseDetectionsTileContainer } from './LicenseDetectionsTile';
 import EditLicensesPopoverContainer from './EditLicensesPopover/EditLicensesPopoverContainer';
 
 export default function ComponentDetailsLegalTab() {

@@ -6,8 +6,8 @@
 import { connect } from 'react-redux';
 
 import EditLicensesPopover from './EditLicensesPopover';
-import { actions } from '../LegalSlice';
-import { selectShowEditLicensesPopover } from '../LegalSelectors';
+import { actions } from '../LicenseDetectionsTile/licenseDetectionsTileSlice';
+import { selectShowEditLicensesPopover } from '../LicenseDetectionsTile/licenseDetectionsTileSelectors';
 
 function mapStateToProps(state) {
   return {

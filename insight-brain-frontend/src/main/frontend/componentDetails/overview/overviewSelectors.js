@@ -22,9 +22,8 @@ export const selectVersionExplorerData = createSelector(
 
 export const selectComponentDetailsRequestData = createSelector(
   selectSelectedComponent,
-  selectApplicationReportMetaData,
   selectRouterCurrentParams,
-  (component, metadata, params) => ({
+  (component, params) => ({
     clientType: 'ci',
     ownerType: 'application',
     ownerId: params.publicId,

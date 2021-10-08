@@ -11,6 +11,7 @@ import java.util.Collections;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
+import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.CompareVersionsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.DependencyInformationSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.RecommendationElement;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.RecommendedVersionsSection;
@@ -84,16 +85,15 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         "maven:javancss*");
 
     evaluator.evaluatePolicy();
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+
+    setupHdsResponseForVersionList();
+
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
   }
 
   @Test
   public void testRiskRemediationTile_Version_Graph_Explorer() {
-    setupHdsResponses();
-    mockHdsResponseForRemediation();
     mockHdsResponseForFirstComponent();
-
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
@@ -112,11 +112,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   @Test
   public void testRiskRemediationTile_RecommendedVersions_Multiple_Remediation() {
-    setupHdsResponses();
-    mockHdsResponseForRemediation();
     mockHdsResponseForFirstComponent();
-
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
@@ -156,11 +152,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   @Test
   public void testRiskRemediationTile_RecommendedVersions_NoRecommendation() {
-    setupHdsResponses();
-    mockHdsResponseForRemediation();
     mockHdsResponseForSecondComponent();
-
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1,SECOND_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
@@ -185,11 +177,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   @Test
   public void testRiskRemediationTile_DependencyInformation_DirectDependency() {
-    setupHdsResponses();
-    mockHdsResponseForRemediation();
     mockHdsResponseForFirstComponent();
-
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
@@ -200,7 +188,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
 
     riskRemediation.recommendedVersionsSections().shouldBe(visible);
-    riskRemediation.compareVersionsSection().shouldBe(visible);
+    riskRemediation.compareVersionsTable().shouldBe(visible);
     riskRemediation.versionExplorerSection().shouldBe(visible);
     riskRemediation.dependencyInformationSection().shouldNotBe(visible);
 
@@ -209,11 +197,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   @Test
   public void testRiskRemediationTile_DependencyInformation() {
-    setupHdsResponses();
-    mockHdsResponseForRemediation();
     mockHdsResponseForSecondComponent();
-
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1,SECOND_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
@@ -250,6 +234,29 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     eyesWatcher.eyesCheck(
         "component details overview tab risk remediation dependency information - transitive dependency");
+  }
+
+  @Test
+  public void testCompareVersionsTable() {
+    mockHdsResponseForFirstComponent();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
+    RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+    riskRemediation.compareVersionsTitle().shouldBe(visible).shouldHave(text("Compare Versions"));
+    ScrollUtil.scrollIntoView(riskRemediation.compareVersionsTitle());
+    CompareVersionsTable table = riskRemediation.compareVersionsTable();
+    table.shouldBe(visible);
+    table.versionRow().get(1).shouldHave(text("29.50"));
+    table.versionRow().get(2).shouldHave(text("--"));
+    table.highestPolicyThreatRow().get(1).shouldHave(text("10 within 3 policies"));
+    table.highestPolicyThreatRow().get(2).shouldBe(empty);
+    table.highestCvssScoreRow().get(1).shouldHave(text("9.1"));
+    table.highestCvssScoreRow().get(2).shouldBe(empty);
+    table.effectiveLicenseRow().get(1).shouldHave(text("Apache-2.0, GPL-2.0"));
+    table.effectiveLicenseRow().get(2).shouldBe(empty);
+    table.hygieneRatingRow().get(1).shouldHave(text("Exemplar"));
+    table.hygieneRatingRow().get(2).shouldBe(empty);
+    table.integrityRatingRow().get(1).shouldHave(text("Normal"));
+    table.integrityRatingRow().get(2).shouldBe(empty);
   }
 
   private ComponentDetailsPage openComponentDetailsPageForViolation(int violationIndex, String hash) {
@@ -293,14 +300,10 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         .atUri("rest/ci/componentDetails");
   }
 
-  private void setupHdsResponses() {
+  private void setupHdsResponseForVersionList() {
     testCLMServer.getHdsServer()
         .respondWith(
             getClass().getResource("/componentDetails/javancssComponentDetailsListWithNoViolationsVersion.json"))
         .atUri("rest/ci/componentDetails/list");
-  }
-
-  private void mockHdsResponseForRemediation() {
-    testCLMServer.getHdsServer().respondWith("{\"known\":true}").atUri("rest/component/summary");
   }
 }

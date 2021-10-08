@@ -35,8 +35,6 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -52,7 +50,6 @@ import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
@@ -105,6 +102,8 @@ public class ScmOnboardingServiceTest
 
   private Organization org;
 
+  private SourceControl rootOrgSourceControl;
+
   @Inject
   private SourceControlDAO sourceControlDAO;
 
@@ -116,9 +115,6 @@ public class ScmOnboardingServiceTest
 
   @Inject
   private PlexusCipher plexusCipher;
-
-  @Inject
-  private InsightConfig insightConfig;
 
   @Mock
   private SourceControlEventPublisher mockSourceControlEventPublisher;
@@ -144,8 +140,10 @@ public class ScmOnboardingServiceTest
     app = tempEntity.newApplication("tmpapp", org.getId());
     mockGetRequest(gitService, "/api/v3/user", MOCK_USER_JSON, HttpStatus.SC_OK);
     mockGetRequest(gitService, "/rest/user", MOCK_USER_JSON, HttpStatus.SC_OK);
-    tempEntity
+    rootOrgSourceControl = tempEntity
         .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
+    rootOrgSourceControl.setSourceControlScansEnabled(true);
+    sourceControlDAO.update(rootOrgSourceControl);
   }
 
   @Test
@@ -904,10 +902,22 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testImportRepositories_disabledSourceControlPolicyEvaluations() {
+  public void testImportRepositories_disabledInternalSourceControlPolicyEvaluations_null() {
+    testImportRepositories_disabledInternalSourceControlPolicyEvaluations(null);
+  }
+
+  @Test
+  public void testImportRepositories_disabledInternalSourceControlPolicyEvaluations_false() {
+    testImportRepositories_disabledInternalSourceControlPolicyEvaluations(false);
+  }
+
+  private void testImportRepositories_disabledInternalSourceControlPolicyEvaluations(
+      Boolean internalSourceControlPolicyEvaluationsEnabled)
+  {
     // given SCM imports are enabled and internal SCM policy evaluations are disabled
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
-    insightConfig.setFeatures(ImmutableMap.of(Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS.getFlag(), false));
+    rootOrgSourceControl.setSourceControlScansEnabled(internalSourceControlPolicyEvaluationsEnabled);
+    sourceControlDAO.update(rootOrgSourceControl);
 
     // given a repo to import
     SCMRepository scmRepository =

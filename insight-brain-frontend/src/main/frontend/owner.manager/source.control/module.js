@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import SourceControlService from './source.control.service';
+import inheritableEnableDisable from './inheritableEnableDisable';
 import sourceControlTile from './source.control.tile';
 import sourceControlEditor from './source.control.editor';
 import clmContextLocationModule from '../../util/CLMContextLocation';
@@ -14,6 +15,7 @@ import UpdateSourceControlModalController from './update.source.control.modal.co
 export default angular
   .module('sourceControlModule', [clmContextLocationModule.name, utilityModule.name])
   .service('SourceControlService', SourceControlService)
+  .component('inheritableEnableDisable', inheritableEnableDisable)
   .component('sourceControlTile', sourceControlTile)
   .component('sourceControlEditor', sourceControlEditor)
   .controller('UpdateSourceControlModalController', UpdateSourceControlModalController)

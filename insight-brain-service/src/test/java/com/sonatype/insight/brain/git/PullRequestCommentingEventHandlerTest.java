@@ -6,9 +6,7 @@
 package com.sonatype.insight.brain.git;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
@@ -22,7 +20,6 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
@@ -604,8 +601,6 @@ public class PullRequestCommentingEventHandlerTest
 
     private GitRepositoryInfo gitRepositoryInfo;
 
-    private boolean featureFlagEnabled = true;
-
     private String repositoryUrl;
 
     private String sshRepositoryUrl;
@@ -644,10 +639,10 @@ public class PullRequestCommentingEventHandlerTest
           mockSourceControlEventPublisher,
           mockAsyncEventBus,
           licenseChecker,
-          getInsightConfig(featureFlagEnabled),
           mockPullRequestPolicyEvaluationResolver,
           mockPolicyEvaluationDAO,
-          mockPullRequestStatusService
+          mockPullRequestStatusService,
+          new PullRequestCommentingEligibilityValidator(new InsightConfig())
       );
     }
 
@@ -674,16 +669,8 @@ public class PullRequestCommentingEventHandlerTest
     }
 
     TestablePullRequestCommentingEventHandlerBuilder withCommentingFeatureEnabled(boolean isEnabled) {
-      this.featureFlagEnabled = isEnabled;
+      this.pullRequestCommentingEnabled = isEnabled;
       return this;
-    }
-
-    private InsightConfig getInsightConfig(boolean enableFeatureFlag) {
-      InsightConfig config = new InsightConfig();
-      Map<String, Boolean> features = new HashMap<>();
-      features.put(Feature.PR_COMMENTING.getFlag(), enableFeatureFlag);
-      config.setFeatures(features);
-      return config;
     }
   }
 }

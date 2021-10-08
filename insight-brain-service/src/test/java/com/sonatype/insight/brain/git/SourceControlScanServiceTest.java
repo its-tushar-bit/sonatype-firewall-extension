@@ -24,8 +24,6 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.SourceControlConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -37,7 +35,6 @@ import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -128,8 +125,6 @@ public class SourceControlScanServiceTest
   // subject
   private SourceControlScanService service;
 
-  private final InsightConfig insightConfig = new InsightConfig();
-
   public SourceControlScanServiceTest() {
     super(SourceControlScanService.class);
   }
@@ -168,12 +163,14 @@ public class SourceControlScanServiceTest
     licenseChecker = new IqForScmLicenseChecker(testProductLicense);
 
     service = new SourceControlScanService(mockGitApiFactory, spySourceControlUtils, mockApplicationDAO, licenseChecker,
-        proprietaryConfigService, policyEvaluateService, mockInsightWork, scanner, mockAuditRecorder, insightConfig,
+        proprietaryConfigService, policyEvaluateService, mockInsightWork, scanner, mockAuditRecorder,
         sourceControlSshService);
 
     proprietaryConfig = new ProprietaryConfig();
     when(proprietaryConfigService.getProprietaryConfig(eq(OwnerType.APPLICATION), eq("public-app-id")))
         .thenReturn(proprietaryConfig);
+
+    when(mockGitRepositoryInfo.getSourceControlScansEnabled()).thenReturn(true);
   }
 
   @Test
@@ -350,9 +347,23 @@ public class SourceControlScanServiceTest
   }
 
   @Test
-  public void testDoSynchronousSourceControlScan_InternalSourceControlPolicyEvaluationsDisabled() throws Exception {
-    // given internal SCM policy evaluations are disable
-    insightConfig.setFeatures(ImmutableMap.of(Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS.getFlag(), false));
+  public void testDoSynchronousSourceControlScan_InternalSourceControlEvaluationsDisabled_null() throws Exception {
+    testDoSynchronousSourceControlScan_InternalSourceControlEvaluationsDisabled(null);
+  }
+
+  @Test
+  public void testDoSynchronousSourceControlScan_InternalSourceControlEvaluationsDisabled_false() throws Exception {
+    testDoSynchronousSourceControlScan_InternalSourceControlEvaluationsDisabled(false);
+  }
+
+  private void testDoSynchronousSourceControlScan_InternalSourceControlEvaluationsDisabled(
+      Boolean internalSourceControlPolicyEvaluationsEnabled) throws Exception
+  {
+    // given internal SCM policy evaluations are disabled
+    doReturn(mockGitRepositoryInfo).when(spySourceControlUtils)
+        .getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId());
+    when(mockGitRepositoryInfo.getSourceControlScansEnabled())
+        .thenReturn(internalSourceControlPolicyEvaluationsEnabled);
 
     // it does not evaluate the SCM repository content and it returns null
     assertThat(service.doSynchronousSourceControlScan(APP_ID, new Stage(Stage.ID_DEVELOP), "testBranchName")).isNull();

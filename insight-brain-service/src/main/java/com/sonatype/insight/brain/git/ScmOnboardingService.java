@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -106,8 +105,6 @@ public class ScmOnboardingService
 
   private final ScmApplicationNameConverter applicationNameConverter;
 
-  private final InsightConfig insightConfig;
-
   private final IqForScmLicenseChecker licenseChecker;
 
   private SourceControlUtils sourceControlUtils;
@@ -125,7 +122,6 @@ public class ScmOnboardingService
       final GitClientFactory gitClientFactory,
       final TelemetrySender telemetrySender,
       final ScmApplicationNameConverter applicationNameConverter,
-      final InsightConfig insightConfig,
       final IqForScmLicenseChecker licenseChecker,
       final SourceControlUtils sourceControlUtils)
   {
@@ -140,7 +136,6 @@ public class ScmOnboardingService
     this.gitClientFactory = gitClientFactory;
     this.telemetrySender = telemetrySender;
     this.applicationNameConverter = applicationNameConverter;
-    this.insightConfig = insightConfig;
     this.licenseChecker = licenseChecker;
     this.sourceControlUtils = sourceControlUtils;
   }
@@ -399,7 +394,9 @@ public class ScmOnboardingService
         cloneUrl, scmRepository.getSshCloneUrl(), defaultBranch);
 
     if (licenseChecker.isIqForScmSupported()) {
-      if (insightConfig.isFeatureEnabled(InsightConfig.Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)) {
+      GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
+      Boolean sourceControlScansEnable = gitRepositoryInfo.getSourceControlScansEnabled();
+      if (sourceControlScansEnable != null && sourceControlScansEnable.booleanValue()) {
         initiateSourceControlEvaluation(apiSourceControlDTO);
       }
     }

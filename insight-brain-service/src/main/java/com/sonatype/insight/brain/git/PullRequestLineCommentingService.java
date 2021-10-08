@@ -22,8 +22,6 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequ
 import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.iq.location.discovery.PositionDiscoveryExecutor;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
@@ -53,7 +51,7 @@ public class PullRequestLineCommentingService
 
   private final PositionDiscoveryExecutor positionDiscoveryExecutor;
 
-  private final InsightConfig insightConfig;
+  private final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator;
 
   @Inject
   public PullRequestLineCommentingService(
@@ -61,13 +59,13 @@ public class PullRequestLineCommentingService
       final SourceControlPullRequestCommentDAO pullRequestCommentDAO,
       final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService,
       final PositionDiscoveryExecutor positionDiscoveryExecutor,
-      final InsightConfig insightConfig)
+      final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator)
   {
     this.gitClientFactory = gitClientFactory;
     this.pullRequestCommentDAO = pullRequestCommentDAO;
     this.pullRequestFeedbackMarkupService = pullRequestFeedbackMarkupService;
     this.positionDiscoveryExecutor = positionDiscoveryExecutor;
-    this.insightConfig = insightConfig;
+    this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
   }
 
   /**
@@ -91,8 +89,7 @@ public class PullRequestLineCommentingService
     final PullRequestLineCommentCreationResult lineCommentCreationResult =
         new PullRequestLineCommentCreationResult();
 
-    if (!insightConfig.isFeatureEnabled(Feature.PR_LINE_COMMENTING) ||
-        !gitRepositoryInfo.getProvider().supportsPullRequestLineCommenting()) {
+    if (!pullRequestCommentingEligibilityValidator.isPullRequestLineCommentingEnabled(gitRepositoryInfo)) {
       return lineCommentCreationResult;
     }
 

@@ -23,17 +23,25 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchesText;
-import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 
 public class RootOrganizationSourceControlEditorTest
     extends AbstractSourceControlEditorTest
 {
+  private static final boolean PR_COMMENTING_ON = true;
+
+  private static final boolean REMEDIATION_PR_ON = true;
+
+  private static final boolean SOURCE_EVALS_ON = true;
+
+  private static final boolean STATUS_UPDATES_ON = true;
+
   @Override
   @Before
   public void init() throws PlexusCipherException {
@@ -46,6 +54,9 @@ public class RootOrganizationSourceControlEditorTest
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
     verifyStartNoSourceControl();
+    SourceControlEditorPage.saveButton().shouldHave(text("Create"), DISABLED);
+
+    eyesWatcher.eyesCheck("Source Control Editor Root Default State");
 
     SourceControlEditorPage.provider().chooseOption(new Option(2, "github"));
 
@@ -53,10 +64,11 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.provider().shouldBe(visible, enabled);
     SourceControlEditorPage.token().shouldBe(visible, enabled);
     SourceControlEditorPage.saveButton().shouldBe(visible);
-    SourceControlEditorPage.saveButton().shouldHave(text("Create"), DISABLED);
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().click();
+    SourceControlEditorPage.saveButton().shouldHave(text("Create"));
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
     SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+
+    eyesWatcher.eyesCheck("Source Control Editor Root Controls Enabled");
 
     assertSourceControlDoesNotExist(ROOT_ORGANIZATION_ID);
   }
@@ -70,13 +82,16 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.provider().chooseOption(new Option(2, "github"));
 
     SourceControlEditorPage.token().shouldBe(enabled);
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(enabled);
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(selected);
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldBe(enabled);
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(selected);
-    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
 
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().click();
+    SourceControlEditorPage.pullRequestCommentingToggle().shouldNotBeDisabled();
+    SourceControlEditorPage.pullRequestCommentingToggle().shouldBeOn();
+
+    SourceControlEditorPage.remediationPullRequestsToggle().shouldNotBeDisabled();
+    SourceControlEditorPage.remediationPullRequestsToggle().shouldBeOff();
+
+    SourceControlEditorPage.sourceControlEvaluationsToggle().shouldNotBeDisabled();
+    SourceControlEditorPage.sourceControlEvaluationsToggle().shouldBeOn();
+
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
 
     SourceControlEditorPage.saveButton().click();
@@ -86,7 +101,7 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.deleteButton().shouldBe(visible);
     SourceControlEditorPage.token().shouldHave(value(""));
 
-    assertSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+    assertSourceControl(ROOT_ORGANIZATION_ID, null, null, GITHUB);
   }
 
   @Test
@@ -96,13 +111,11 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.provider().chooseOption(new Option(2, "GitHub"));
 
     SourceControlEditorPage.token().shouldBe(enabled);
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(enabled);
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(selected);
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldBe(enabled);
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(selected);
-    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
 
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().click();
+    SourceControlEditorPage.remediationPullRequestsToggle().shouldBeOff();
+    SourceControlEditorPage.pullRequestCommentingToggle().shouldBeOn();
+    SourceControlEditorPage.sourceControlEvaluationsToggle().shouldBeOn();
+
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
 
     //Create an entry to create error condition
@@ -123,12 +136,14 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.deleteButton().shouldBe(visible);
     SourceControlEditorPage.token().shouldHave(value(""));
-    assertSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+    assertSourceControl(ROOT_ORGANIZATION_ID, null, null, GITHUB);
   }
 
   @Test
   public void testSourceControlEditor_update() {
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
+    tempEntity
+        .newSourceControl(ROOT_ORGANIZATION_ID, GITHUB, TOKEN, null, "master", PR_COMMENTING_ON, REMEDIATION_PR_ON,
+            SOURCE_EVALS_ON, STATUS_UPDATES_ON);
 
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
@@ -150,15 +165,18 @@ public class RootOrganizationSourceControlEditorTest
 
   @Test
   public void testSourceControlEditor_updateFailure() {
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
+    tempEntity
+        .newSourceControl(ROOT_ORGANIZATION_ID, GITHUB, TOKEN, null, "master", PR_COMMENTING_ON, REMEDIATION_PR_ON,
+            SOURCE_EVALS_ON, STATUS_UPDATES_ON);
 
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
     verifyStartWithSourceControl();
     SourceControlEditorPage.provider().chooseOption(new Option(3, "GitLab"));
     SourceControlEditorPage.token().shouldBe(enabled);
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible);
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldBe(visible);
+    SourceControlEditorPage.pullRequestCommentingToggle().shouldExist();
+    SourceControlEditorPage.remediationPullRequestsToggle().shouldExist();
+    SourceControlEditorPage.sourceControlEvaluationsToggle().shouldExist();
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
 
     //Delete the entry to create the failure
@@ -171,7 +189,7 @@ public class RootOrganizationSourceControlEditorTest
     assertSourceControlDoesNotExist(ROOT_ORGANIZATION_ID);
 
     //Create the entry to resolve error condition
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, GITHUB);
 
     errorBox.retryButton().click();
     FormMask.seeAndWaitForDismissal();
@@ -184,7 +202,7 @@ public class RootOrganizationSourceControlEditorTest
 
   @Test
   public void testSourceControlEditor_delete() {
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, GITHUB);
 
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
@@ -213,7 +231,7 @@ public class RootOrganizationSourceControlEditorTest
 
   @Test
   public void testSourceControlEditor_deleteFailure() {
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, GITHUB);
 
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
@@ -234,7 +252,7 @@ public class RootOrganizationSourceControlEditorTest
     DeleteModal.retryButton().shouldBe(visible, enabled);
 
     //Recreate the entry to resolve error condition
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, GITHUB);
 
     DeleteModal.retryButton().click();
 
@@ -251,7 +269,7 @@ public class RootOrganizationSourceControlEditorTest
 
   @Test
   public void testSourceControlEditor_defaultBranch() {
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, GITHUB, true, true, "master");
 
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
@@ -277,7 +295,7 @@ public class RootOrganizationSourceControlEditorTest
 
   @Test
   public void testSourceControlEditor_azureShowCredentials() {
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, GITHUB, true, true, "master");
 
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
@@ -285,9 +303,9 @@ public class RootOrganizationSourceControlEditorTest
 
     // when we select Azure as a provider
     SourceControlEditorPage.provider().chooseOption(new Option(0, "Azure DevOps"));
+    eyesWatcher.eyesCheck("Source Control Editor Azure Default State");
 
     // then credentials are shown
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible);
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.credentialsUsername().shouldBe(visible);
     SourceControlEditorPage.credentialsToken().shouldBe(visible);
@@ -306,7 +324,7 @@ public class RootOrganizationSourceControlEditorTest
 
   @Test
   public void testSourceControlEditor_bitbucketShowCredentialsFeature() {
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, GITHUB, true, true, "master");
 
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
@@ -315,12 +333,12 @@ public class RootOrganizationSourceControlEditorTest
 
     eyesWatcher.eyesCheck("Source Control Editor Bitbucket Default State");
 
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible);
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.credentialsUsername().shouldBe(visible);
     SourceControlEditorPage.credentialsToken().shouldBe(visible);
     SourceControlEditorPage.token().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+
     SourceControlEditorPage.credentialsUsername().setValue("myusername");
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
 
@@ -335,14 +353,13 @@ public class RootOrganizationSourceControlEditorTest
 
   @Test
   public void testSourceControlEditor_bitbucketRequiresCredentials() {
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, GITHUB, true, true, "master");
 
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
     verifyStartWithSourceControl();
     SourceControlEditorPage.provider().chooseOption(new Option(1, "Bitbucket"));
 
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible);
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.credentialsUsername().shouldBe(visible);
     SourceControlEditorPage.credentialsToken().shouldBe(visible);
@@ -370,36 +387,17 @@ public class RootOrganizationSourceControlEditorTest
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     refresh();
 
-    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.defaultBranchNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your license"));
-    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your license"));
-    SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
+    verifyNotificationFeaturesOnly();
+
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+
+    eyesWatcher.eyesCheck("Source Control Editor - root org configurations disabled, no license");
 
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB, true, true, "master");
 
     refresh();
-    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.defaultBranchNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your license"));
-    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your license"));
-    SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
-    SourceControlEditorPage.saveButton().shouldHave(DISABLED);
+
+    verifyNotificationFeaturesOnly();
   }
 
   @Test
@@ -440,15 +438,33 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.advancedSettingsTree().shouldNotBe(visible);
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible, disabled);
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldBe(visible, disabled);
+
+    SourceControlEditorPage.remediationPullRequestsToggle().shouldBeDisabled();
+    SourceControlEditorPage.remediationPullRequestsToggle().shouldBeOff();
+    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldNotBe(visible);
+
+    SourceControlEditorPage.pullRequestCommentingToggle().shouldBeDisabled();
+    SourceControlEditorPage.pullRequestCommentingToggle().shouldBeOn();
+    SourceControlEditorPage.pullRequestCommentingNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestCommentingDisableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestCommentingEnableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestCommentingInheritRadio().shouldNotBe(visible);
+
+    SourceControlEditorPage.sourceControlEvaluationsToggle().shouldBeDisabled();
+    SourceControlEditorPage.sourceControlEvaluationsToggle().shouldBeOn();
+    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.sourceControlEvaluationsDisableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.sourceControlEvaluationsEnableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.sourceControlEvaluationsInheritRadio().shouldNotBe(visible);
+
     SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(visible);
     SourceControlEditorPage.baseBranchInput().shouldBe(visible, disabled);
     SourceControlEditorPage.baseBranchInput().shouldHave(value("master"));
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible);
-    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.advancedSectionRule().shouldNotBe(visible);
   }
 
@@ -477,6 +493,8 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestCommentingNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.advancedSectionRule().shouldNotBe(visible);
   }
 }

@@ -66,6 +66,8 @@ public class PullRequestLineCommentingServiceTest
   @Mock
   private SourceControlPullRequestCommentDAO mockPullRequestCommentDAO;
 
+  private PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator;
+
   private final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = new HashMap<>();
 
   private final int pullRequestId = 1;
@@ -645,12 +647,15 @@ public class PullRequestLineCommentingServiceTest
         }
       }
 
+      pullRequestCommentingEligibilityValidator =
+          new PullRequestCommentingEligibilityValidator(getInsightConfig(featureFlagEnabled));
+
       return new PullRequestLineCommentingService(
           mockGitClientFactory,
           mockPullRequestCommentDAO,
           mockPullRequestFeedbackMarkupService,
           mockPositionDiscoveryExecutor,
-          getInsightConfig(featureFlagEnabled)
+          pullRequestCommentingEligibilityValidator
       );
     }
 

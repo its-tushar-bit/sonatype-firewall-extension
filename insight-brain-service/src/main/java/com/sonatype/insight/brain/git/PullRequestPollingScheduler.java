@@ -15,8 +15,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.security.SystemRunnable;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -41,8 +39,6 @@ public class PullRequestPollingScheduler
 
   private ScheduledExecutorService scheduledExecutorService;
 
-  private final InsightConfig insightConfig;
-
   private final int pullRequestMonitoringIntervalSeconds;
 
   private final int pullRequestMonitoringDelaySeconds;
@@ -52,10 +48,9 @@ public class PullRequestPollingScheduler
   @Inject
   public PullRequestPollingScheduler(
       final PullRequestPollingService pullRequestPollingService,
-      final IqForScmLicenseChecker licenseChecker,
-      final InsightConfig insightConfig)
+      final IqForScmLicenseChecker licenseChecker)
   {
-    this(pullRequestPollingService, licenseChecker, insightConfig, PULL_REQUEST_MONITORING_DELAY_SECONDS,
+    this(pullRequestPollingService, licenseChecker, PULL_REQUEST_MONITORING_DELAY_SECONDS,
         PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
   }
 
@@ -63,25 +58,18 @@ public class PullRequestPollingScheduler
   PullRequestPollingScheduler(
       PullRequestPollingService pullRequestPollingService,
       IqForScmLicenseChecker licenseChecker,
-      final InsightConfig insightConfig,
       int pullRequestMonitoringDelaySeconds,
       int pullRequestMonitoringIntervalSeconds)
   {
     this.pullRequestPollingService = pullRequestPollingService;
     this.licenseChecker = licenseChecker;
-    this.insightConfig = insightConfig;
     this.pullRequestMonitoringDelaySeconds = pullRequestMonitoringDelaySeconds;
     this.pullRequestMonitoringIntervalSeconds = pullRequestMonitoringIntervalSeconds;
   }
 
   @Override
   public void start() throws Exception {
-    if (insightConfig.isFeatureEnabled(Feature.PR_COMMENTING)) {
-      startPullRequestMonitoring();
-    }
-    else {
-      log.info("Pull request commenting feature is disabled; Pull request polling scheduler is not started.");
-    }
+    startPullRequestMonitoring();
   }
 
   @Override

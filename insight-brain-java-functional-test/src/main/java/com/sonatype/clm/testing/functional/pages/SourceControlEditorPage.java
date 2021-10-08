@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.IqRadio;
+import com.sonatype.clm.testing.functional.elements.IqToggle;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -129,15 +130,63 @@ public class SourceControlEditorPage
   }
 
   public static IqRadio remediationPullRequestsInheritRadio() {
-    return new IqRadio($("#editor-source-control-remediation-pull-request-inherit"));
+    return new IqRadio($("#editor-source-control-remediation-pull-requests-inherit"));
   }
 
   public static IqRadio remediationPullRequestsEnableRadio() {
-    return new IqRadio($("#editor-source-control-remediation-pull-request-enable"));
+    return new IqRadio($("#editor-source-control-remediation-pull-requests-enable"));
   }
 
   public static IqRadio remediationPullRequestsDisableRadio() {
-    return new IqRadio($("#editor-source-control-remediation-pull-request-disable"));
+    return new IqRadio($("#editor-source-control-remediation-pull-requests-disable"));
+  }
+
+  public static SelenideElement remediationPullRequestNotSupportedAlert() {
+    return $("#source-control-remediation-pull-requests-unavailable");
+  }
+
+  public static IqRadio pullRequestCommentingInheritRadio() {
+    return new IqRadio($("#editor-source-control-pull-request-commenting-inherit"));
+  }
+
+  public static IqRadio pullRequestCommentingEnableRadio() {
+    return new IqRadio($("#editor-source-control-pull-request-commenting-enable"));
+  }
+
+  public static IqRadio pullRequestCommentingDisableRadio() {
+    return new IqRadio($("#editor-source-control-pull-request-commenting-disable"));
+  }
+
+  public static SelenideElement pullRequestCommentingNotSupportedAlert() {
+    return $("#source-control-pull-request-commenting-unavailable");
+  }
+
+  public static IqRadio sourceControlEvaluationsInheritRadio() {
+    return new IqRadio($("#editor-source-control-evaluations-inherit"));
+  }
+
+  public static IqRadio sourceControlEvaluationsEnableRadio() {
+    return new IqRadio($("#editor-source-control-evaluations-enable"));
+  }
+
+  public static IqRadio sourceControlEvaluationsDisableRadio() {
+    return new IqRadio($("#editor-source-control-evaluations-disable"));
+  }
+
+  public static SelenideElement sourceControlEvaluationsNotSupportedAlert() {
+    return $("#source-control-evaluations-unavailable");
+  }
+
+  public static IqToggle remediationPullRequestsToggle() {
+    return new IqToggle($("#editor-source-control-remediation-pull-requests-toggle"));
+  }
+
+  public static IqToggle pullRequestCommentingToggle() {
+    return new IqToggle($("#editor-source-control-pull-request-commenting-toggle"));
+  }
+
+  public static IqToggle sourceControlEvaluationsToggle() {
+    return new IqToggle($("#editor-source-control-evaluations-toggle"));
   }
 
   public static IqRadio baseBranchInheritRadio() {
@@ -154,10 +203,6 @@ public class SourceControlEditorPage
 
   public static SelenideElement advancedElementsTrigger() {
     return $("#source-control-advanced-settings-trigger");
-  }
-
-  public static SelenideElement remediationPullRequestNotSupportedAlert() {
-    return $("#source-control-remediation-pull-request-unavailable");
   }
 
   public static SelenideElement defaultBranchNotSupportedAlert() {

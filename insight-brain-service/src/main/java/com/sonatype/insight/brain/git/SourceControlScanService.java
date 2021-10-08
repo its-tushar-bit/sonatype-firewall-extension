@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -72,8 +71,6 @@ public class SourceControlScanService
 
   private final AuditRecorder auditRecorder;
 
-  private final InsightConfig insightConfig;
-
   private final SourceControlSshService sourceControlSshService;
 
   @Inject
@@ -87,7 +84,6 @@ public class SourceControlScanService
       final InsightWork work,
       final Scanner scanner,
       final AuditRecorder auditRecorder,
-      final InsightConfig insightConfig,
       final SourceControlSshService sourceControlSshService)
   {
     this.gitApiFactory = gitApiFactory;
@@ -99,7 +95,6 @@ public class SourceControlScanService
     this.work = work;
     this.scanner = scanner;
     this.auditRecorder = auditRecorder;
-    this.insightConfig = insightConfig;
     this.sourceControlSshService = sourceControlSshService;
   }
 
@@ -156,16 +151,17 @@ public class SourceControlScanService
       return null;
     }
 
-    if (!insightConfig.isFeatureEnabled(InsightConfig.Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)) {
-      return null;
-    }
-
     PolicyEvaluation result = null;
 
     GitRepositoryInfo gitRepositoryInfo =
         sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
     if (gitRepositoryInfo != null) {
+      Boolean sourceControlScansEnable = gitRepositoryInfo.getSourceControlScansEnabled();
+      if (sourceControlScansEnable == null || !sourceControlScansEnable.booleanValue()) {
+        return null;
+      }
+
       final Application application = applicationDAO.getByIdNotNull(applicationId);
 
       try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {

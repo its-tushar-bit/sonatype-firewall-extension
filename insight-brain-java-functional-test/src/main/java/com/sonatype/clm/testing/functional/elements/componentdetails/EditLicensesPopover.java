@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.elements.componentdetails;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 public class EditLicensesPopover
@@ -21,8 +22,24 @@ public class EditLicensesPopover
   public SelenideElement getCloseButton() {
     return child("#edit-licenses-popover-close-btn");
   }
-  
+
   public SelenideElement popoverTitle() {
     return child("#edit-licenses-popover-header");
+  }
+
+  public SelenideElement effectiveLicenses() {
+    return child("#effective-licenses-container");
+  }
+
+  public SelenideElement declaredLicenses() {
+    return child("#declared-licenses-container");
+  }
+
+  public SelenideElement observedLicenses() {
+    return child("#observed-licenses-container");
+  }
+
+  public ElementsCollection getItems(SelenideElement parent) {
+    return parent.findAll(".license-list-item");
   }
 }

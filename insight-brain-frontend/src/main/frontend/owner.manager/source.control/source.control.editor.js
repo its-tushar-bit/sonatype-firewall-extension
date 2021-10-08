@@ -36,42 +36,83 @@ function SourceControlEditorController(
   vm.isApp = CLMContextLocations.isApplication();
   vm.isOrg = CLMContextLocations.isOrganization();
   vm.isRootOrg = CLMContextLocations.isRootOrg();
+
+  // source control
+  vm.originalSourceControl = {};
   vm.dirtySourceControl = undefined;
+
   vm.sourceControlEditorMask = undefined;
   vm.sourceControlEditor = undefined;
   vm.submitError = undefined;
   vm.loadError = undefined;
-  vm.originalSourceControl = {};
-  vm.providerTypes = SourceControlService.getProviderTypes();
-  vm.providerTypesMap = SourceControlService.getProviderTypesMap();
-  vm.isUsernameRequiredOnNode = isUsernameRequiredOnNode;
-  vm.isAccessTokenRequiredOnNode = isAccessTokenRequiredOnNode;
   vm.showAdvanced = undefined;
   vm.toggleShowAdvanced = toggleShowAdvanced;
-  vm.shouldShowAccessTokenWarning = undefined;
-  vm.shouldShowProviderWarning = undefined;
   vm.canCollapseAdvanced = canCollapseAdvanced;
-  vm.statusChecksInheritText = undefined;
-  vm.remediationPullRequestsInheritText = undefined;
-  vm.usernameInheritText = undefined;
-  vm.baseBranchInheritText = undefined;
-  vm.isPullRequestsSupported = isPullRequestsSupported;
-  vm.getPullRequestsNotAvailableMessage = getPullRequestsNotAvailableMessage;
-  vm.isProviderSpecifiedAndPullRequestsSupported = isProviderSpecifiedAndPullRequestsSupported;
+
+  // features
+  vm.areNotificationsSupported = undefined;
   vm.isAutomationSupported = undefined;
   vm.isSourceControlSupported = undefined;
+
+  // provider
+  vm.providerTypes = SourceControlService.getProviderTypes();
+  vm.providerTypesMap = SourceControlService.getProviderTypesMap();
+  vm.shouldShowProviderWarning = undefined;
+  vm.providerInheritText = undefined;
+  vm.effectiveProvider = effectiveProvider;
+
+  // user
+  vm.isUsernameRequiredOnNode = isUsernameRequiredOnNode;
+  vm.usernameInheritText = undefined;
+  vm.providerNeedsUsername = providerNeedsUsername;
+
+  // default branch
+  vm.baseBranchInheritText = undefined;
+
+  // token
+  vm.isAccessTokenRequiredOnNode = isAccessTokenRequiredOnNode;
+  vm.shouldShowAccessTokenWarning = undefined;
+  vm.effectiveTokenInheritFrom = effectiveTokenInheritFrom;
+
+  // url
   vm.showSshUrlInfo = false;
   vm.isSshUrl = isSshUrl;
   vm.checkUrlFormat = checkUrlFormat;
+
+  // PR commenting
+  vm.pullRequestCommentingEnabledInheritText = undefined;
+  vm.isPullRequestCommentingSupported = isPullRequestCommentingSupported;
+  vm.getPullRequestCommentingNotAvailableMessage = getPullRequestCommentingNotAvailableMessage;
+  vm.isProviderSpecifiedAndPullRequestCommentingSupported = isProviderSpecifiedAndPullRequestCommentingSupported;
+
+  // remediation PRs
+  vm.remediationPullRequestsEnabledInheritText = undefined;
+  vm.arePullRequestsSupported = arePullRequestsSupported;
+  vm.getPullRequestsNotAvailableMessage = getPullRequestsNotAvailableMessage;
+  vm.isProviderSpecifiedAndPullRequestsSupported = isProviderSpecifiedAndPullRequestsSupported;
   vm.providersSupportingPullRequests = ['azure', 'bitbucket', 'github', 'gitlab'];
+
+  // source scans/evaluations
+  vm.sourceControlEvaluationsEnabledInheritText = undefined;
+  vm.areSourceControlEvaluationsSupported = areSourceControlEvaluationsSupported;
+  vm.getSourceControlEvaluationsNotAvailableMessage = getSourceControlEvaluationsNotAvailableMessage;
+  vm.isProviderSpecifiedAndSourceControlEvaluationsSupported = isProviderSpecifiedAndSourceControlEvaluationsSupported;
+
+  // status checks
+  vm.statusChecksInheritText = undefined;
+
   // function reference to initiate the SCM Configuration validation
   vm.validateScmConfig = validateScmConfig;
+
   // result object of the SCM validation
   vm.scmConfigValidationResult = undefined;
+
   // flag to indicate SCM testing is in progress
   vm.scmConfigValidationInProgress = false;
+
   // helper function to generate the display classes
   vm.getScmValidationClass = getScmValidationClass;
+
   // pull request metrics associated with application
   vm.sourceControlMetrics = undefined;
   vm.effectiveProvider = effectiveProvider;
@@ -119,9 +160,9 @@ function SourceControlEditorController(
         .then(function (results) {
           vm.ownerName = results[0].name;
           vm.ownerId = results[0].id;
-          let isNotificationsSupported = ProductFeatures.isAvailable('notifications');
+          vm.areNotificationsSupported = ProductFeatures.isAvailable('notifications');
           vm.isAutomationSupported = ProductFeatures.isAvailable('automation');
-          vm.isSourceControlSupported = isNotificationsSupported || vm.isAutomationSupported;
+          vm.isSourceControlSupported = vm.areNotificationsSupported || vm.isAutomationSupported;
           if (vm.isSourceControlSupported) {
             return getSourceControl();
           }
@@ -162,13 +203,25 @@ function SourceControlEditorController(
       vm.shouldShowAccessTokenWarning = isAccessTokenRequiredOnNode() && vm.dirtySourceControl.token === null;
       vm.shouldShowProviderWarning = vm.isApp && !vm.effectiveProvider();
       vm.showAdvanced = !vm.isApp || !canCollapseAdvanced();
-      vm.statusChecksInheritText = getInheritText(
-        vm.dirtySourceControl.statusChecksEnabledInheritFrom,
-        vm.dirtySourceControl.statusChecksEnabledInheritedValue ? 'Enabled' : 'Disabled'
+      vm.providerInheritText = getInheritText(
+        vm.dirtySourceControl.providerInheritFrom,
+        vm.providerTypesMap[vm.dirtySourceControl.providerInheritValue]
       );
-      vm.remediationPullRequestsInheritText = getInheritText(
+      vm.pullRequestCommentingEnabledInheritText = getEnabledDisabledInheritText(
+        vm.dirtySourceControl.pullRequestCommentingEnabledInheritFrom,
+        vm.dirtySourceControl.pullRequestCommentingEnabledInheritedValue
+      );
+      vm.statusChecksInheritText = getEnabledDisabledInheritText(
+        vm.dirtySourceControl.statusChecksEnabledInheritFrom,
+        vm.dirtySourceControl.statusChecksEnabledInheritedValue
+      );
+      vm.remediationPullRequestsEnabledInheritText = getEnabledDisabledInheritText(
         vm.dirtySourceControl.remediationPullRequestsEnabledInheritFrom,
-        vm.dirtySourceControl.remediationPullRequestsEnabledInheritedValue ? 'Enabled' : 'Disabled'
+        vm.dirtySourceControl.remediationPullRequestsEnabledInheritedValue
+      );
+      vm.sourceControlEvaluationsEnabledInheritText = getEnabledDisabledInheritText(
+        vm.dirtySourceControl.sourceControlEvaluationsEnabledInheritFrom,
+        vm.dirtySourceControl.sourceControlEvaluationsEnabledInheritedValue
       );
       vm.baseBranchInheritText = getInheritText(
         vm.dirtySourceControl.baseBranchInheritFrom,
@@ -297,10 +350,30 @@ function SourceControlEditorController(
     model.baseBranchInheritFrom = compositeSourceControl.baseBranch.parentName;
     model.baseBranchInheritedValue = compositeSourceControl.baseBranch.parentValue;
 
-    model.remediationPullRequestsEnabled = compositeSourceControl.remediationPullRequestsEnabled.value;
+    model.pullRequestCommentingEnabled = setDefaultIfNull(
+      compositeSourceControl.pullRequestCommentingEnabled.value,
+      compositeSourceControl.pullRequestCommentingEnabled.parentValue,
+      true
+    );
+    model.pullRequestCommentingEnabledInheritFrom = compositeSourceControl.pullRequestCommentingEnabled.parentName;
+    model.pullRequestCommentingEnabledInheritedValue = compositeSourceControl.pullRequestCommentingEnabled.parentValue;
+
+    model.remediationPullRequestsEnabled = setDefaultIfNull(
+      compositeSourceControl.remediationPullRequestsEnabled.value,
+      compositeSourceControl.remediationPullRequestsEnabled.parentValue,
+      false
+    );
     model.remediationPullRequestsEnabledInheritFrom = compositeSourceControl.remediationPullRequestsEnabled.parentName;
     model.remediationPullRequestsEnabledInheritedValue =
       compositeSourceControl.remediationPullRequestsEnabled.parentValue;
+
+    model.sourceControlEvaluationsEnabled = setDefaultIfNull(
+      compositeSourceControl.sourceControlScansEnabled.value,
+      compositeSourceControl.sourceControlScansEnabled.parentValue,
+      true
+    );
+    model.sourceControlEvaluationsEnabledInheritFrom = compositeSourceControl.sourceControlScansEnabled.parentName;
+    model.sourceControlEvaluationsEnabledInheritedValue = compositeSourceControl.sourceControlScansEnabled.parentValue;
 
     model.statusChecksEnabled = compositeSourceControl.statusChecksEnabled.value;
     model.statusChecksEnabledInheritFrom = compositeSourceControl.statusChecksEnabled.parentName;
@@ -313,6 +386,10 @@ function SourceControlEditorController(
     return model;
   }
 
+  function setDefaultIfNull(value, parentValue, defaultValue) {
+    return null === value && null == parentValue ? defaultValue : value;
+  }
+
   function sshEnabled() {
     return vm.dirtySourceControl.sshEnabled || vm.dirtySourceControl.sshEnabledInheritValue;
   }
@@ -322,8 +399,11 @@ function SourceControlEditorController(
 
     sourceControl.ownerId = model.ownerId;
     sourceControl.id = model.id;
+    sourceControl.pullRequestCommentingEnabled = getPullRequestCommentingEnabledFlagFromModel(model);
     sourceControl.remediationPullRequestsEnabled = getRemediationPullRequestsEnabledFlagFromModel(model);
+    sourceControl.sourceControlScansEnabled = getSourceControlEvaluationsEnabledFlagFromModel(model);
     sourceControl.statusChecksEnabled = true;
+    sourceControl.repositoryUrl = null;
 
     if (vm.isApp) {
       sourceControl.repositoryUrl = model.repositoryUrl;
@@ -436,15 +516,31 @@ function SourceControlEditorController(
     }
   }
 
-  function isPullRequestsSupported() {
+  function getEnabledDisabledInheritText(parentName, parentValue) {
+    return getInheritText(parentName, parentValue ? 'Enabled' : 'Disabled');
+  }
+
+  function areSourceControlEvaluationsSupported() {
+    return vm.isAutomationSupported;
+  }
+
+  function isPullRequestCommentingSupported() {
+    return vm.isAutomationSupported;
+  }
+
+  function arePullRequestsSupported() {
     return (
       (!effectiveProvider() || vm.providersSupportingPullRequests.includes(effectiveProvider())) &&
       vm.isAutomationSupported
     );
   }
 
+  function getPullRequestCommentingNotAvailableMessage() {
+    return isPullRequestCommentingSupported() ? '' : 'This feature is not supported by your license';
+  }
+
   function getPullRequestsNotAvailableMessage() {
-    if (isPullRequestsSupported()) {
+    if (arePullRequestsSupported()) {
       return '';
     }
 
@@ -453,8 +549,22 @@ function SourceControlEditorController(
       : 'This feature is not supported by your license';
   }
 
+  function getSourceControlEvaluationsNotAvailableMessage() {
+    return vm.isAutomationSupported ? '' : 'This feature is not supported by your license';
+  }
+
+  function getPullRequestCommentingEnabledFlagFromModel(model) {
+    if (!vm.isRootOrg || isPullRequestCommentingSupported()) {
+      return model.pullRequestCommentingEnabled;
+    }
+
+    return vm.originalSourceControl.pullRequestCommentingEnabled === null
+      ? true
+      : vm.originalSourceControl.pullRequestCommentingEnabled;
+  }
+
   function getRemediationPullRequestsEnabledFlagFromModel(model) {
-    if (!vm.isRootOrg || isPullRequestsSupported()) {
+    if (!vm.isRootOrg || arePullRequestsSupported()) {
       return model.remediationPullRequestsEnabled;
     }
 
@@ -463,16 +573,34 @@ function SourceControlEditorController(
       : vm.originalSourceControl.remediationPullRequestsEnabled;
   }
 
+  function getSourceControlEvaluationsEnabledFlagFromModel(model) {
+    if (!vm.isRootOrg || areSourceControlEvaluationsSupported()) {
+      return model.sourceControlEvaluationsEnabled;
+    }
+
+    return vm.originalSourceControl.sourceControlEvaluationsEnabled === null
+      ? true
+      : vm.originalSourceControl.sourceControlEvaluationsEnabled;
+  }
+
   function getBaseBranchValueFromModel(model) {
-    if (!vm.isRootOrg || isPullRequestsSupported()) {
+    if (!vm.isRootOrg || arePullRequestsSupported()) {
       return model.baseBranch;
     }
 
     return vm.originalSourceControl.baseBranch === null ? 'master' : vm.originalSourceControl.baseBranch;
   }
 
+  function isProviderSpecifiedAndPullRequestCommentingSupported() {
+    return effectiveProvider() && isPullRequestCommentingSupported();
+  }
+
   function isProviderSpecifiedAndPullRequestsSupported() {
-    return effectiveProvider() && isPullRequestsSupported();
+    return effectiveProvider() && arePullRequestsSupported();
+  }
+
+  function isProviderSpecifiedAndSourceControlEvaluationsSupported() {
+    return effectiveProvider() && areSourceControlEvaluationsSupported();
   }
 }
 

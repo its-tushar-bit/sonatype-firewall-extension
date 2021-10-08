@@ -17,8 +17,6 @@ import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
@@ -51,13 +49,13 @@ public class PullRequestCommentingEventHandler
 
   private final IqForScmLicenseChecker licenseChecker;
 
-  private final InsightConfig insightConfig;
-
   private final PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
   private final PullRequestStatusService pullRequestStatusService;
+
+  private final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator;
 
   @Inject
   public PullRequestCommentingEventHandler(
@@ -66,20 +64,20 @@ public class PullRequestCommentingEventHandler
       final SourceControlEventPublisher sourceControlEventPublisher,
       final AsyncEventBus asyncEventBus,
       final IqForScmLicenseChecker licenseChecker,
-      final InsightConfig insightConfig,
       final PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver,
       final PolicyEvaluationDAO policyEvaluationDAO,
-      final PullRequestStatusService pullRequestStatusService)
+      final PullRequestStatusService pullRequestStatusService,
+      final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator)
   {
     this.pullRequestCommentingService = pullRequestCommentingService;
     this.sourceControlUtils = sourceControlUtils;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.asyncEventBus = asyncEventBus;
     this.licenseChecker = licenseChecker;
-    this.insightConfig = insightConfig;
     this.pullRequestPolicyEvaluationResolver = pullRequestPolicyEvaluationResolver;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.pullRequestStatusService = pullRequestStatusService;
+    this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
   }
 
   @Override
@@ -101,9 +99,6 @@ public class PullRequestCommentingEventHandler
    */
   @Subscribe
   public void onApplicationEvaluation(ApplicationEvaluationEvent event) {
-    if (!insightConfig.isFeatureEnabled(Feature.PR_COMMENTING)) {
-      return;
-    }
     if (!licenseChecker.isPullRequestCommentingSupported()) {
       log.debug("License does not support source control automation feature");
       return;
@@ -112,6 +107,10 @@ public class PullRequestCommentingEventHandler
     if (eventHasCommitHashAndScmIsEnabled(event)) {
       String applicationId = event.ownerId;
       GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
+
+      if (!pullRequestCommentingEligibilityValidator.isPullRequestCommentingEnabled(gitRepositoryInfo)) {
+        return;
+      }
 
       if (!gitRepositoryInfo.provider.supportsPullRequestCommenting() ||
           sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)) {

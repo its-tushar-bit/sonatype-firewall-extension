@@ -109,13 +109,7 @@
             <fieldset class="iq-radio-group">
               <iq-radio id="editor-source-control-provider-inherit"
                         model="vm.dirtySourceControl.providerInherit"
-                        value="true"
-                        tooltip="vm.providerInheritText"
-                        tooltip-append-to-body="true"><!--
-             -->{{vm.dirtySourceControl.providerInheritFrom
-                ? 'Inherit from ' + vm.dirtySourceControl.providerInheritFrom
-                  + ' (' + vm.providerTypesMap[vm.dirtySourceControl.providerInheritValue] + ')'
-                : 'Inherit (Not Configured)'}}
+                        value="true">{{vm.providerInheritText}}
               </iq-radio>
               <iq-radio id="editor-source-control-provider-override"
                         model="vm.dirtySourceControl.providerInherit"
@@ -244,17 +238,22 @@
                    ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"><!--
           -->Default Branch
               <div class="iq-sub-label"
+                   ng-if="vm.isRootOrg"
                    ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()">
-                The branch used for Automated PRs and as the basis for finding introduced violations in feature
+                The branch used for automated remediation pull requests and as the basis for finding introduced violations in feature
                 branches
               </div>
+              <i class="fa fa-question-circle blue iq-source-control-tooltip" iq-tooltip
+                 ng-if="!vm.isRootOrg"
+                 tooltip-text="The branch used for automated remediation pull requests and as the basis for finding introduced violations in feature
+                branches"></i>
             </label>
             <div id="source-control-base-branch-unavailable"
                  class="iq-alert iq-alert--info"
-                 ng-if="!vm.isPullRequestsSupported()">
+                 ng-if="!vm.arePullRequestsSupported()">
               <i class="fa fa-info-circle"></i>{{vm.getPullRequestsNotAvailableMessage()}}
             </div>
-            <fieldset class="iq-radio-group" ng-if="vm.isPullRequestsSupported()">
+            <fieldset class="iq-radio-group" ng-if="vm.arePullRequestsSupported()">
               <iq-radio id="editor-source-control-branch-inherit"
                         model="vm.dirtySourceControl.baseBranchInherit"
                         value="true"
@@ -283,52 +282,47 @@
                    ng-required="vm.isRootOrg || !vm.dirtySourceControl.baseBranchInherit"
                    messages="{required: vm.isRootOrg ? 'A valid branch name is required for the ' + vm.ownerName
                    : 'When override is selected a valid branch name is required' }"
-                   ng-if="vm.isPullRequestsSupported()">
+                   ng-if="vm.arePullRequestsSupported()">
           </div>
         </div>
 
         <!-- remediation pull requests -->
-        <div class="iq-form-row">
-          <div class="iq-form-group">
-            <label for="editor-source-control-enable-remediation-pull-requests"
-                   class="iq-label"
-                   ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"><!--
-          -->Automated Remediation Pull Requests
-            </label>
-            <div class="iq-form-group" id="editor-source-control-enable-remediation-pull-requests">
-              <div id="source-control-remediation-pull-request-unavailable"
-                   class="iq-alert iq-alert--info"
-                   ng-if="!vm.isPullRequestsSupported()">
-                   <i class="fa fa-info-circle"></i>{{vm.getPullRequestsNotAvailableMessage()}}
-              </div>
-              <fieldset class="iq-radio-group" ng-if="vm.isPullRequestsSupported()">
-                <iq-radio id="editor-source-control-remediation-pull-request-inherit"
-                          name="enableRemediationPullRequests"
-                          model="vm.dirtySourceControl.remediationPullRequestsEnabled"
-                          value="null"
-                          is-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"
-                          ng-if="!vm.isRootOrg"
-                          is-required="vm.isRootOrg && vm.isPullRequestsSupported()"><!--
-                       -->{{vm.remediationPullRequestsInheritText}}
-                </iq-radio>
-                <iq-radio id="editor-source-control-remediation-pull-request-enable"
-                          name="enableRemediationPullRequests"
-                          model="vm.dirtySourceControl.remediationPullRequestsEnabled"
-                          value="true"
-                          is-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"
-                          is-required="vm.isRootOrg && vm.isPullRequestsSupported()">Enabled
-                </iq-radio>
-                <iq-radio id="editor-source-control-remediation-pull-request-disable"
-                          name="enableRemediationPullRequests"
-                          model="vm.dirtySourceControl.remediationPullRequestsEnabled"
-                          value="false"
-                          is-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"
-                          is-required="vm.isRootOrg && vm.isPullRequestsSupported()">Disabled
-                </iq-radio>
-              </fieldset>
-            </div>
-          </div>
-        </div>
+        <inheritable-enable-disable
+                id="source-control-remediation-pull-requests"
+                title="Automated Remediation Pull Requests"
+                description="Create pull requests with remediation suggestions for policy violations discovered on the default branch."
+                model="vm.dirtySourceControl.remediationPullRequestsEnabled"
+                is-available="vm.arePullRequestsSupported()"
+                is-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"
+                is-required="vm.isRootOrg && vm.isPullRequestsSupported()"
+                can-inherit="!vm.isRootOrg"
+                inherit-label="vm.remediationPullRequestsEnabledInheritText"
+                unavailable-msg="vm.getPullRequestsNotAvailableMessage()"></inheritable-enable-disable>
+
+        <inheritable-enable-disable
+                id="source-control-pull-request-commenting"
+                title="Pull Request Commenting"
+                description="Comment on pull requests when policy violations are introduced and/or remediated."
+                model="vm.dirtySourceControl.pullRequestCommentingEnabled"
+                is-available="vm.isPullRequestCommentingSupported()"
+                is-disabled="!vm.isProviderSpecifiedAndPullRequestCommentingSupported()"
+                is-required="vm.isRootOrg && vm.isPullRequestCommentingSupported()"
+                can-inherit="!vm.isRootOrg"
+                inherit-label="vm.pullRequestCommentingEnabledInheritText"
+                unavailable-msg="vm.getPullRequestCommentingNotAvailableMessage()"></inheritable-enable-disable>
+
+        <!-- source control evaluations -->
+        <inheritable-enable-disable
+                id="source-control-evaluations"
+                title="Source Control Evaluations"
+                description="Allow IQ server to scan and evaluate the contents of the configured repository when needed."
+                model="vm.dirtySourceControl.sourceControlEvaluationsEnabled"
+                is-available="vm.areSourceControlEvaluationsSupported()"
+                is-disabled="!vm.isProviderSpecifiedAndSourceControlEvaluationsSupported()"
+                is-required="vm.isRootOrg && vm.areSourceControlEvaluationsSupported()"
+                can-inherit="!vm.isRootOrg"
+                inherit-label="vm.sourceControlEvaluationsEnabledInheritText"
+                unavailable-msg="vm.getSourceControlEvaluationsNotAvailableMessage()"></inheritable-enable-disable>
 
       </div>
 

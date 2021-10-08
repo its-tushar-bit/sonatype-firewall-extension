@@ -87,6 +87,8 @@ public class PullRequestMonitor
 
   private ExecutorService executorService;
 
+  private final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator;
+
   public boolean disableForTesting;
 
   @Inject
@@ -99,7 +101,8 @@ public class PullRequestMonitor
       IqForScmLicenseChecker licenseChecker,
       ApplicationDAO applicationDAO,
       SourceControlEventDAO sourceControlEventDAO,
-      SourceControlPullRequestDAO sourceControlPullRequestDAO)
+      SourceControlPullRequestDAO sourceControlPullRequestDAO,
+      PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator)
   {
     this.insightConfig = insightConfig;
     this.taskScheduler = taskScheduler;
@@ -110,6 +113,7 @@ public class PullRequestMonitor
     this.applicationDAO = applicationDAO;
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
+    this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
   }
 
   private ExecutorService getExecutorService() {
@@ -127,11 +131,6 @@ public class PullRequestMonitor
   @Override
   public void start() throws Exception {
     if (disableForTesting) {
-      return;
-    }
-
-    if (!insightConfig.isFeatureEnabled(InsightConfig.Feature.PR_COMMENT_MONITORING)) {
-      taskScheduler.unscheduleTask(TASK_NAME);
       return;
     }
 
@@ -188,7 +187,9 @@ public class PullRequestMonitor
 
   @Override
   public void stop() {
-    // no-op
+    if (!disableForTesting) {
+      taskScheduler.unscheduleTask(TASK_NAME);
+    }
   }
 
   private class PullRequestMonitorTask
@@ -255,10 +256,17 @@ public class PullRequestMonitor
               sourceControlPullRequestDAO.update(pullRequest);
 
               for (Application application : applications) {
-                log.debug("Detected change for PR# {} for repository {} and application '{}' with ID {}.",
-                    pullRequest.getPullRequestId(), pullRequest.getRepositoryUrl(), application.getName(),
-                    application.getId());
-                sendUpdatedPullRequestEvent(application, pullRequest);
+                gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
+                if (pullRequestCommentingEligibilityValidator.isPullRequestCommentingEnabled(gitRepositoryInfo)) {
+                  sendUpdatedPullRequestEvent(application, pullRequest);
+                  log.trace("Detected change for PR# {} for repository {} and application '{}' with ID {}.",
+                      pullRequest.getPullRequestId(), pullRequest.getRepositoryUrl(), application.getName(),
+                      application.getId());
+                }
+                else {
+                  log.trace("Pull request commenting is disabled for application '{}'. We will not comment on it.",
+                      application.getName());
+                }
               }
             }
             else {

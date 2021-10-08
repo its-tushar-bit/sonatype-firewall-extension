@@ -89,7 +89,7 @@ public class ApplicationSourceControlEditorTest
 
     verifyStartNoSourceControl();
 
-    eyesWatcher.eyesCheck("Source Control Editor Default State");
+    eyesWatcher.eyesCheck("Source Control Editor Application Default State");
 
     assertSourceControlDoesNotExist(rootOrganization.getId());
     assertSourceControlDoesNotExist(organization.getId());
@@ -238,6 +238,7 @@ public class ApplicationSourceControlEditorTest
   public void testSourceControlEditor_bitbucketEmptySourceControlRootWithProviderOrgWithToken() {
     final String rootUsername = "rootusername";
     final String orgUsername = "orguser";
+    final String baseBranch = null;
 
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
 
@@ -250,7 +251,7 @@ public class ApplicationSourceControlEditorTest
     tempEntity
         .newSourceControl(rootOrganization.getId(), null, rootUsername, TOKEN, SourceControlProvider.BITBUCKET, true,
             false, "master", null);
-    tempEntity.newSourceControl(organization.getId(), null, orgUsername, TOKEN, null, true, false, null, null);
+    tempEntity.newSourceControl(organization.getId(), null, orgUsername, TOKEN, null, true, false, baseBranch, null);
 
     refresh();
 
@@ -489,7 +490,8 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.repositoryUrl().shouldHave(value(BITBUCKET_REPOSITORY_URL_SANITIZED));
     SourceControlEditorPage.credentialsToken().shouldHave(value(FAKE_SECRET_KEY));
 
-    tempEntity.newSourceControl(organization.getId(), null, "orgUser", TOKEN, null, null, null, null, null);
+    final String baseBranch = null;
+    tempEntity.newSourceControl(organization.getId(), null, "orgUser", TOKEN, null, null, null, baseBranch, null);
 
     refresh();
 
@@ -777,38 +779,18 @@ public class ApplicationSourceControlEditorTest
     refresh();
 
     SourceControlEditorPage.advancedElementsTrigger().click();
-    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.defaultBranchNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your license"));
-    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your license"));
-    SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
+
+    verifyNotificationFeaturesOnly();
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
 
-    eyesWatcher.eyesCheck("Source Control Editor - Pull requests disabled no license");
+    eyesWatcher.eyesCheck("Source Control Editor - application configurations disabled, no automation");
 
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB, true, true, "master");
 
     refresh();
     SourceControlEditorPage.advancedElementsTrigger().click();
-    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.defaultBranchNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your license"));
-    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
-        .shouldHave(text("This feature is not supported by your license"));
-    SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
+
+    verifyNotificationFeaturesOnly();
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
   }
 
@@ -1030,21 +1012,41 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");
     SourceControlEditorPage.testConfigButton().shouldBe(visible, enabled);
+
     SourceControlEditorPage.tokenInheritRadio().label().shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.tokenInheritRadio().shouldBe(visible, disabled);
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
     SourceControlEditorPage.tokenOverrideRadio().label().shouldHave(text("Override"));
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, disabled);
-    SourceControlEditorPage.providerWarning().shouldBe(visible);
     SourceControlEditorPage.tokenWarning().shouldBe(visible);
+
+    SourceControlEditorPage.providerWarning().shouldBe(visible);
     SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
     SourceControlEditorPage.repositoryUrl().shouldBe(visible, disabled);
     SourceControlEditorPage.advancedSettingsTree().shouldBe(visible);
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
-    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible, disabled);
+
+    SourceControlEditorPage.remediationPullRequestsToggle().shouldNotExist();
+    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible, disabled, selected);
     SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldBe(visible, disabled);
-    SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldBe(visible, disabled, selected);
+    SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldBe(visible, disabled);
     SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible);
+
+    SourceControlEditorPage.pullRequestCommentingToggle().shouldNotExist();
+    SourceControlEditorPage.pullRequestCommentingDisableRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.pullRequestCommentingEnableRadio().shouldBe(visible, disabled, selected);
+    SourceControlEditorPage.pullRequestCommentingInheritRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.pullRequestCommentingInheritRadio().shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.pullRequestCommentingNotSupportedAlert().shouldNotBe(visible);
+
+    SourceControlEditorPage.sourceControlEvaluationsToggle().shouldNotExist();
+    SourceControlEditorPage.sourceControlEvaluationsDisableRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.sourceControlEvaluationsEnableRadio().shouldBe(visible, disabled, selected);
+    SourceControlEditorPage.sourceControlEvaluationsInheritRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.sourceControlEvaluationsInheritRadio().shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible);
+
     SourceControlEditorPage.baseBranchInheritRadio().shouldBe(visible, disabled, selected);
     SourceControlEditorPage.baseBranchInheritRadio().shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.baseBranchOverrideRadio().shouldBe(visible, disabled);
@@ -1052,7 +1054,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.baseBranchInput().shouldBe(visible, disabled);
     SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible);
-    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.advancedSectionRule().shouldBe(visible);
   }
 
@@ -1074,6 +1075,8 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.repositoryUrl().shouldBe(visible, enabled);
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestCommentingNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.advancedSectionRule().shouldNotBe(visible);
   }
   

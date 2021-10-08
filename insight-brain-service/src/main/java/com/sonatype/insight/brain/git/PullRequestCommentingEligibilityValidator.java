@@ -13,16 +13,17 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 @Named
 @Singleton
-public class PullRequestLocationDiscoveryEligibilityValidator
+public class PullRequestCommentingEligibilityValidator
 {
   private final InsightConfig insightConfig;
 
   @Inject
-  public PullRequestLocationDiscoveryEligibilityValidator(final InsightConfig insightConfig) {
+  public PullRequestCommentingEligibilityValidator(final InsightConfig insightConfig) {
     this.insightConfig = insightConfig;
   }
 
@@ -34,5 +35,16 @@ public class PullRequestLocationDiscoveryEligibilityValidator
         || (insightConfig.isFeatureEnabled(Feature.PR_LINE_COMMENTING)
                 && sourceControlProvider.supportsPullRequestLineCommenting());
     return isEligibleForLineCommenting && policyViolationDiff.hasAppeared();
+  }
+
+  public boolean isPullRequestLineCommentingEnabled(final GitRepositoryInfo gitRepositoryInfo) {
+    return insightConfig.isFeatureEnabled(Feature.PR_LINE_COMMENTING) &&
+        gitRepositoryInfo != null && gitRepositoryInfo.getProvider() != null &&
+        gitRepositoryInfo.getProvider().supportsPullRequestLineCommenting();
+  }
+
+  public boolean isPullRequestCommentingEnabled(final GitRepositoryInfo gitRepositoryInfo) {
+    return gitRepositoryInfo != null && gitRepositoryInfo.pullRequestCommentingEnabled != null &&
+        gitRepositoryInfo.pullRequestCommentingEnabled;
   }
 }

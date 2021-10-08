@@ -40,7 +40,7 @@ public class PullRequestCommentCreator
 
   private final SourceControlPullRequestCommentDAO pullRequestCommentDAO;
 
-  private final PullRequestLocationDiscoveryEligibilityValidator locationDiscoveryEligibilityValidator;
+  private final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator;
 
   private final PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService;
 
@@ -67,7 +67,7 @@ public class PullRequestCommentCreator
       final PullRequestLineCommentingService pullRequestLineCommentingService,
       final List<PullRequestPostCommentAction> pullRequestPostCommentActionList,
       final PullRequestLocationDiscoveryService locationDiscoveryService,
-      final PullRequestLocationDiscoveryEligibilityValidator locationDiscoveryEligibilityValidator,
+      final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator,
       final SourceControlComponentLoader sourceControlComponentLoader)
   {
     this.gitClientFactory = gitClientFactory;
@@ -78,7 +78,7 @@ public class PullRequestCommentCreator
     this.pullRequestLineCommentingService = pullRequestLineCommentingService;
     this.pullRequestPostCommentActionList = pullRequestPostCommentActionList;
     this.locationDiscoveryService = locationDiscoveryService;
-    this.locationDiscoveryEligibilityValidator = locationDiscoveryEligibilityValidator;
+    this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
     this.sourceControlComponentLoader = sourceControlComponentLoader;
   }
 
@@ -236,7 +236,7 @@ public class PullRequestCommentCreator
       PolicyViolationDiff<PolicyViolation> policyViolationDiff)
   {
     LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
-    if (locationDiscoveryEligibilityValidator.isLocationDiscoveryNeededAndAllowed(
+    if (pullRequestCommentingEligibilityValidator.isLocationDiscoveryNeededAndAllowed(
         pullRequestPolicyEvaluationsDTO.getSourceControlProvider(), policyViolationDiff)) {
       locationDiscoveryResult = locationDiscoveryService.doLocationDiscovery(
           policyViolationDiff.getAppeared(),

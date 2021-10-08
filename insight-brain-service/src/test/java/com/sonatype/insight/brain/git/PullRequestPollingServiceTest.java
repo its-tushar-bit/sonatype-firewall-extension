@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -149,6 +150,29 @@ public class PullRequestPollingServiceTest
             "'feature-commit-xyz-1'"),
         debug("Pull request polling time updated for 'https://domain.com/org7/repo7'")
     );
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_prCommentingDisabled() throws IOException {
+    // given: necessary ingredients to emit a discovered pull request event, but PR commenting is disabled for app
+    final Date pullRequestCreateDate = new Date();
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
+    final boolean prCommentingEnabled = false;
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("org7/repo7", SourceControlProvider.GITHUB)
+        .withApplication("appPost", "main-branch", prCommentingEnabled)
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
+            "feature-commit-xyz-1", "base-commit")
+        .withPolicyEvaluation()
+        .build();
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: pull request is not persisted and no event emitted
+    verify(mockSourceControlPullRequestDAO, never()).insert(any());
+    verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
   }
 
   @Test
@@ -689,7 +713,8 @@ public class PullRequestPollingServiceTest
 
       return new PullRequestPollingService(mockApplicationDAO, mockSourceControlDAO,
           mockSourceControlPullRequestDAO, sourceControlEventPublisher, mockSourceControlUtils, mockGitClientFactory,
-          mockPullRequestRepositoryValidator, mockSourceControlInstanceManager, mockLicenseChecker);
+          mockPullRequestRepositoryValidator, mockSourceControlInstanceManager, mockLicenseChecker,
+          new PullRequestCommentingEligibilityValidator(new InsightConfig()));
     }
 
     private List<SourceControl> buildSourceControlList(MockRepo mockRepo) {
@@ -718,6 +743,14 @@ public class PullRequestPollingServiceTest
     }
 
     TestablePullRequestPollingServiceBuilder withApplication(String applicationId, String defaultBranch) {
+      return withApplication(applicationId, defaultBranch, true);
+    }
+
+    TestablePullRequestPollingServiceBuilder withApplication(
+        String applicationId,
+        String defaultBranch,
+        boolean prCommentingEnabled)
+    {
       currentMockRepo.applicationId = applicationId;
       List<Application> repoApps =
           repoApplications.computeIfAbsent(currentMockRepo.repositoryUrl, appList -> new ArrayList<>());
@@ -731,7 +764,7 @@ public class PullRequestPollingServiceTest
               currentMockRepo.sourceControlProvider, true, true, defaultBranch, false, false, null, false);
       currentMockRepo.sourceControl.setId(UUID.randomUUID().toString());
       currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(currentMockRepo.repositoryUrl, null, username, "token",
-          currentMockRepo.sourceControlProvider, defaultBranch, true, true, true, true, false, null);
+          currentMockRepo.sourceControlProvider, defaultBranch, true, true, prCommentingEnabled, true, false, null);
       return this;
     }
 

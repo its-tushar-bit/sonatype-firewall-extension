@@ -1,0 +1,76 @@
+<!-- this section is for the toggle at the root org level -->
+<div class="iq-form-group" ng-if="!vm.canInherit">
+  <div ng-if="!vm.isAvailable">
+    <label for="{{vm.id}}-unavailable"
+           class="iq-label"
+           ng-disabled="vm.isDisabled"><!--
+          -->{{vm.title}}
+      <i class="fa fa-question-circle blue iq-source-control-tooltip" iq-tooltip
+         tooltip-text="{{vm.description}}"></i>
+    </label>
+    <div id="{{vm.id + ''}}-unavailable"
+         class="iq-alert iq-alert--info">
+      <i class="fa fa-info-circle"></i>{{vm.unavailableMsg}}
+    </div>
+  </div>
+
+  <div ng-if="vm.isAvailable">
+    <iq-toggle-switch id="editor-{{vm.id}}-toggle"
+                      ng-if="!vm.canInherit"
+                      label="{{vm.title}}"
+                      class="iq-source-control-toggle"
+                      label-class="iq-label"
+                      is-checked="vm.model"
+                      is-disabled="vm.isDisabled"></iq-toggle-switch>
+
+    <div class="iq-sub-label iq-toggle-description" ng-disabled="vm.isDisabled">
+      {{vm.description}}
+    </div>
+  </div>
+</div>
+
+<!-- this section is for the multi-radios for inheritance/enable/disable at the sub-org and application level -->
+<div class="iq-form-row" ng-if="vm.canInherit">
+  <div class="iq-form-group">
+    <label for="editor-{{vm.id}}"
+           class="iq-label"
+           ng-disabled="vm.isDisabled"><!--
+          -->{{vm.title}}
+      <i class="fa fa-question-circle blue iq-source-control-tooltip" iq-tooltip
+         tooltip-text="{{vm.description}}"></i>
+    </label>
+
+    <div class="iq-form-group" id="editor-{{vm.id}}">
+      <div id="{{vm.id}}-unavailable"
+           class="iq-alert iq-alert--info"
+           ng-if="!vm.isAvailable">
+        <i class="fa fa-info-circle"></i>{{vm.unavailableMsg}}
+      </div>
+      <fieldset class="iq-radio-group" ng-if="vm.isAvailable">
+        <iq-radio id="editor-{{vm.id}}-inherit"
+                  name="editor-{{vm.id}}-radio"
+                  model="vm.model"
+                  value="null"
+                  is-disabled="vm.isDisabled"
+                  ng-if="vm.canInherit"
+                  is-required="vm.isRequired"><!--
+                       -->{{vm.inheritLabel}}
+        </iq-radio>
+        <iq-radio id="editor-{{vm.id}}-enable"
+                  name="editor-{{vm.id}}-radio"
+                  model="vm.model"
+                  value="true"
+                  is-disabled="vm.isDisabled"
+                  is-required="vm.isRequired">Enabled
+        </iq-radio>
+        <iq-radio id="editor-{{vm.id}}-disable"
+                  name="editor-{{vm.id}}-radio"
+                  model="vm.model"
+                  value="false"
+                  is-disabled="vm.isDisabled"
+                  is-required="vm.isRequired">Disabled
+        </iq-radio>
+      </fieldset>
+    </div>
+  </div>
+</div>

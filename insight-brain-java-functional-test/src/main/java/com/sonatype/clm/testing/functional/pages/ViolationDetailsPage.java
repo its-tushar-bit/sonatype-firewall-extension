@@ -39,7 +39,7 @@ public class ViolationDetailsPage
   }
 
   public NxBackButton backButton() {
-    return new NxBackButton(".nx-page-sidebar");
+    return new NxBackButton("#menu-bar__back-button-container");
   }
 
   public SidebarNav sidebarNav() {

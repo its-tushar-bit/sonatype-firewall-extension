@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.elements;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.exist;
 
 public class IqToggle
 {
@@ -43,5 +44,23 @@ public class IqToggle
 
   public void click() {
     this.element.click();
+  }
+
+  public SelenideElement shouldExist() {
+    return element.should(exist);
+  }
+
+  public SelenideElement shouldNotExist() {
+    return element.shouldNot(exist);
+  }
+
+  public SelenideElement shouldBeDisabled() {
+    checkedElement().shouldHave(cssClass("nx-toggle--disabled"));
+    return element;
+  }
+
+  public SelenideElement shouldNotBeDisabled() {
+    checkedElement().shouldNotHave(cssClass("nx-toggle--disabled"));
+    return element;
   }
 }

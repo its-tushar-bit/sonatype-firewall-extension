@@ -71,6 +71,8 @@ public class PullRequestPollingService
 
   private final IqForScmLicenseChecker licenseChecker;
 
+  private final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator;
+
   @Inject
   public PullRequestPollingService(
       ApplicationDAO applicationDAO,
@@ -81,7 +83,8 @@ public class PullRequestPollingService
       GitClientFactory gitClientFactory,
       PullRequestRepositoryValidator pullRequestRepositoryValidator,
       SourceControlInstanceManager sourceControlInstanceManager,
-      IqForScmLicenseChecker licenseChecker)
+      IqForScmLicenseChecker licenseChecker,
+      PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator)
   {
     this.applicationDAO = applicationDAO;
     this.sourceControlDAO = sourceControlDAO;
@@ -92,6 +95,7 @@ public class PullRequestPollingService
     this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
     this.sourceControlInstanceManager = sourceControlInstanceManager;
     this.licenseChecker = licenseChecker;
+    this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
   }
 
   public void fetchAndSendPullRequestsForCommenting() {
@@ -118,7 +122,11 @@ public class PullRequestPollingService
       for (Application app : applications) {
         GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
 
-        if (isRemediationPullRequest(pullRequest, app)) {
+        if (!pullRequestCommentingEligibilityValidator.isPullRequestCommentingEnabled(gitRepositoryInfo)) {
+          log.trace("Pull request commenting is disabled for application '{}'. We will not comment on it.",
+              app.getName());
+        }
+        else if (isRemediationPullRequest(pullRequest, app)) {
           log.debug("Pull request {} for branch {} is determined to be an IQ Server generated remediation PR." +
                   "  We will not comment on it.",
               pullRequest.getNumber(), pullRequest.getHead());
@@ -215,6 +223,11 @@ public class PullRequestPollingService
 
       GitRepositoryInfo gitRepositoryInfo =
           sourceControlUtils.getGitRepositoryInfoForApplication(sourceControl.getOwnerId());
+
+      // skip repositories for which PR commenting is disabled
+      if (!pullRequestCommentingEligibilityValidator.isPullRequestCommentingEnabled(gitRepositoryInfo)) {
+        continue;
+      }
 
       if (canPoll(gitRepositoryInfo)) {
         GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);

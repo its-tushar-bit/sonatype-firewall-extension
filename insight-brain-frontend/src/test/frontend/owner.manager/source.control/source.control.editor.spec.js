@@ -98,6 +98,22 @@ describe('source.control.editor.spec', function () {
     $scope.$digest();
   };
 
+  let getSourceControl = function (scOwnerId, scProvider, scBaseBranch, scRepositoryUrl) {
+    return {
+      username: null,
+      token: null,
+      provider: scProvider ? scProvider : null,
+      repositoryUrl: scRepositoryUrl ? scRepositoryUrl : null,
+      baseBranch: scBaseBranch ? scBaseBranch : null,
+      ownerId: scOwnerId ? scOwnerId : null,
+      id: null,
+      pullRequestCommentingEnabled: null,
+      remediationPullRequestsEnabled: null,
+      sourceControlScansEnabled: null,
+      statusChecksEnabled: true,
+    };
+  };
+
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
       $provide.value('$cookies', {
@@ -143,6 +159,13 @@ describe('source.control.editor.spec', function () {
     mockProductFeatures.isAvailable.and.callFake(function (feature) {
       return feature === NOTIFICATIONS || feature === AUTOMATION;
     });
+
+    mockSourceControlService.getProviderTypesMap.and.returnValue({
+      azure: 'Azure DevOps',
+      bitbucket: 'Bitbucket',
+      github: 'GitHub',
+      gitlab: 'GitLab',
+    });
   }));
 
   describe('root organization', function () {
@@ -170,12 +193,22 @@ describe('source.control.editor.spec', function () {
         parentName: null,
         parentValue: null,
       },
+      pullRequestCommentingEnabled: {
+        value: null,
+        parentName: null,
+        parentValue: null,
+      },
       statusChecksEnabled: {
         value: true,
         parentName: null,
         parentValue: null,
       },
       remediationPullRequestsEnabled: {
+        value: null,
+        parentName: null,
+        parentValue: null,
+      },
+      sourceControlScansEnabled: {
         value: null,
         parentName: null,
         parentValue: null,
@@ -206,10 +239,16 @@ describe('source.control.editor.spec', function () {
       providerInherit: false,
       providerInheritFrom: null,
       providerInheritValue: null,
+      pullRequestCommentingEnabled: true,
+      pullRequestCommentingEnabledInheritFrom: null,
+      pullRequestCommentingEnabledInheritedValue: null,
       repositoryUrl: null,
-      remediationPullRequestsEnabled: null,
+      remediationPullRequestsEnabled: false,
       remediationPullRequestsEnabledInheritedValue: null,
       remediationPullRequestsEnabledInheritFrom: null,
+      sourceControlEvaluationsEnabled: true,
+      sourceControlEvaluationsEnabledInheritedValue: null,
+      sourceControlEvaluationsEnabledInheritFrom: null,
       statusChecksEnabled: true,
       statusChecksEnabledInheritedValue: null,
       statusChecksEnabledInheritFrom: null,
@@ -225,12 +264,7 @@ describe('source.control.editor.spec', function () {
       mockCLMContextLocations.getEntityId.and.returnValue(ROOT_ORG_ID);
       mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
-      mockSourceControlService.getProviderTypesMap.and.returnValue({
-        github: 'GitHub',
-        gitlab: 'GitLab',
-        bitbucket: 'Bitbucket',
-        azure: 'Azure',
-      });
+
       mockOrganizationStore.getById.and.callFake(function (id) {
         return id === ROOT_ORG_ID ? getByIdDeferred.promise : null;
       });
@@ -355,14 +389,12 @@ describe('source.control.editor.spec', function () {
     describe('save', function () {
       it('creates a new entry if source control is not configured', function () {
         const expectedSourceControlForSave = {
-          provider: 'github',
-          username: null,
-          token: null,
-          ownerId: ROOT_ORG_ID,
-          id: null,
-          baseBranch: 'BASE_BRANCH',
-          remediationPullRequestsEnabled: null,
-          statusChecksEnabled: true,
+          ...getSourceControl(ROOT_ORG_ID, 'github', 'BASE_BRANCH'),
+          ...{
+            pullRequestCommentingEnabled: true,
+            remediationPullRequestsEnabled: false,
+            sourceControlScansEnabled: true,
+          },
         };
 
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
@@ -394,14 +426,13 @@ describe('source.control.editor.spec', function () {
 
       it('updates the existing entry if source control is configured', function () {
         const expectedSourceControlForSave = {
-          provider: 'gitlab',
-          username: null,
-          token: null,
-          ownerId: ROOT_ORG_ID,
-          id: 'ID',
-          baseBranch: 'BASE_BRANCH',
-          remediationPullRequestsEnabled: null,
-          statusChecksEnabled: true,
+          ...getSourceControl(ROOT_ORG_ID, 'gitlab', 'BASE_BRANCH'),
+          ...{
+            id: 'ID',
+            pullRequestCommentingEnabled: true,
+            remediationPullRequestsEnabled: false,
+            sourceControlScansEnabled: true,
+          },
         };
 
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
@@ -443,14 +474,13 @@ describe('source.control.editor.spec', function () {
 
       it('returns an error for unsuccessful save', function () {
         const expectedSourceControlForSave = {
-          provider: 'gitlab',
-          username: null,
-          token: null,
-          ownerId: ROOT_ORG_ID,
-          id: 'ID',
-          baseBranch: 'BASE_BRANCH',
-          remediationPullRequestsEnabled: null,
-          statusChecksEnabled: true,
+          ...getSourceControl(ROOT_ORG_ID, 'gitlab', 'BASE_BRANCH'),
+          ...{
+            id: 'ID',
+            pullRequestCommentingEnabled: true,
+            remediationPullRequestsEnabled: false,
+            sourceControlScansEnabled: true,
+          },
         };
 
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
@@ -621,7 +651,7 @@ describe('source.control.editor.spec', function () {
       });
     });
 
-    describe('isPullRequestsSupported', function () {
+    describe('arePullRequestsSupported', function () {
       const testData = [
         { provider: 'bitbucket', isPrSupported: true },
         { provider: 'azure', isPrSupported: true },
@@ -633,15 +663,15 @@ describe('source.control.editor.spec', function () {
         it(`should return ${currentTest.isPrSupported} if license supports automation and provider is ${currentTest.provider}`, function () {
           digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
           vm.dirtySourceControl.provider = currentTest.provider;
-          expect(vm.isPullRequestsSupported()).toBe(currentTest.isPrSupported);
+          expect(vm.arePullRequestsSupported()).toBe(currentTest.isPrSupported);
         });
       }
       it('should return false if license does not support automation', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl, NOTIFICATIONS);
-        expect(vm.isPullRequestsSupported()).toBeFalsy();
+        expect(vm.arePullRequestsSupported()).toBeFalsy();
 
         vm.dirtySourceControl.provider = 'gitlab';
-        expect(vm.isPullRequestsSupported()).toBeFalsy();
+        expect(vm.arePullRequestsSupported()).toBeFalsy();
       });
     });
 
@@ -804,12 +834,22 @@ describe('source.control.editor.spec', function () {
         parentName: 'Root Organization',
         parentValue: 'PARENT_BRANCH',
       },
+      pullRequestCommentingEnabled: {
+        value: null,
+        parentName: 'Root Organization',
+        parentValue: true,
+      },
       statusChecksEnabled: {
         value: true,
         parentName: null,
         parentValue: null,
       },
       remediationPullRequestsEnabled: {
+        value: null,
+        parentName: 'Root Organization',
+        parentValue: true,
+      },
+      sourceControlScansEnabled: {
         value: null,
         parentName: 'Root Organization',
         parentValue: true,
@@ -841,9 +881,15 @@ describe('source.control.editor.spec', function () {
       providerInheritFrom: 'Root Organization',
       providerInheritValue: 'gitlab',
       repositoryUrl: null,
+      pullRequestCommentingEnabled: null,
+      pullRequestCommentingEnabledInheritedValue: true,
+      pullRequestCommentingEnabledInheritFrom: 'Root Organization',
       remediationPullRequestsEnabled: null,
       remediationPullRequestsEnabledInheritedValue: true,
       remediationPullRequestsEnabledInheritFrom: 'Root Organization',
+      sourceControlEvaluationsEnabled: null,
+      sourceControlEvaluationsEnabledInheritedValue: true,
+      sourceControlEvaluationsEnabledInheritFrom: 'Root Organization',
       statusChecksEnabled: true,
       statusChecksEnabledInheritedValue: null,
       statusChecksEnabledInheritFrom: null,
@@ -1006,9 +1052,15 @@ describe('source.control.editor.spec', function () {
           providerInheritFrom: 'Root Organization',
           providerInheritValue: 'gitlab',
           repositoryUrl: null,
+          pullRequestCommentingEnabled: null,
+          pullRequestCommentingEnabledInheritedValue: true,
+          pullRequestCommentingEnabledInheritFrom: 'Root Organization',
           remediationPullRequestsEnabled: null,
           remediationPullRequestsEnabledInheritedValue: true,
           remediationPullRequestsEnabledInheritFrom: 'Root Organization',
+          sourceControlEvaluationsEnabled: null,
+          sourceControlEvaluationsEnabledInheritedValue: true,
+          sourceControlEvaluationsEnabledInheritFrom: 'Root Organization',
           statusChecksEnabled: null,
           statusChecksEnabledInheritedValue: null,
           statusChecksEnabledInheritFrom: null,
@@ -1041,12 +1093,22 @@ describe('source.control.editor.spec', function () {
             parentName: 'Root Organization',
             parentValue: 'PARENT_BRANCH',
           },
+          pullRequestCommentingEnabled: {
+            value: null,
+            parentName: 'Root Organization',
+            parentValue: true,
+          },
           statusChecksEnabled: {
             value: null,
             parentName: null,
             parentValue: null,
           },
           remediationPullRequestsEnabled: {
+            value: null,
+            parentName: 'Root Organization',
+            parentValue: true,
+          },
+          sourceControlScansEnabled: {
             value: null,
             parentName: 'Root Organization',
             parentValue: true,
@@ -1059,14 +1121,8 @@ describe('source.control.editor.spec', function () {
         };
 
         const savedSourceControl = {
-          username: null,
-          token: null,
-          provider: null,
-          baseBranch: null,
-          ownerId: SUB_ORG_ID,
-          id: null,
-          remediationPullRequestsEnabled: true,
-          statusChecksEnabled: true,
+          ...getSourceControl(SUB_ORG_ID),
+          ...{ remediationPullRequestsEnabled: true },
         };
 
         digest(SUB_ORG_NAME, SUB_ORG_ID, retrievedCompositeSourceControl);
@@ -1098,14 +1154,8 @@ describe('source.control.editor.spec', function () {
 
       it('updates the existing entry if source control is configured', function () {
         const savedSourceControl = {
-          username: null,
-          token: null,
-          provider: null,
-          ownerId: SUB_ORG_ID,
-          id: 'ID',
-          baseBranch: 'BASE_BRANCH',
-          remediationPullRequestsEnabled: true,
-          statusChecksEnabled: true,
+          ...getSourceControl(SUB_ORG_ID, null, 'BASE_BRANCH'),
+          ...{ id: 'ID', remediationPullRequestsEnabled: true },
         };
 
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
@@ -1141,14 +1191,8 @@ describe('source.control.editor.spec', function () {
 
       it('returns an error for unsuccessful save', function () {
         const savedSourceControl = {
-          username: null,
-          token: null,
-          provider: null,
-          ownerId: SUB_ORG_ID,
-          id: 'ID',
-          baseBranch: 'BASE_BRANCH',
-          remediationPullRequestsEnabled: true,
-          statusChecksEnabled: true,
+          ...getSourceControl(SUB_ORG_ID, null, 'BASE_BRANCH'),
+          ...{ id: 'ID', remediationPullRequestsEnabled: true },
         };
 
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
@@ -1392,7 +1436,7 @@ describe('source.control.editor.spec', function () {
         compositeSourceControlCopy.remediationPullRequestsEnabled.parentValue = null;
 
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
-        expect(vm.remediationPullRequestsInheritText).toEqual('Inherit (Not Configured)');
+        expect(vm.remediationPullRequestsEnabledInheritText).toEqual('Inherit (Not Configured)');
       });
 
       it('should return "Inherit from Org (Enabled)" if enabled on org', function () {
@@ -1401,7 +1445,7 @@ describe('source.control.editor.spec', function () {
         compositeSourceControlCopy.remediationPullRequestsEnabled.parentValue = true;
 
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
-        expect(vm.remediationPullRequestsInheritText).toEqual('Inherit from Org (Enabled)');
+        expect(vm.remediationPullRequestsEnabledInheritText).toEqual('Inherit from Org (Enabled)');
       });
 
       it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
@@ -1410,7 +1454,36 @@ describe('source.control.editor.spec', function () {
         compositeSourceControlCopy.remediationPullRequestsEnabled.parentValue = false;
 
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
-        expect(vm.remediationPullRequestsInheritText).toEqual('Inherit from Org (Disabled)');
+        expect(vm.remediationPullRequestsEnabledInheritText).toEqual('Inherit from Org (Disabled)');
+      });
+    });
+
+    describe('sourceControlEvaluationsInheritText', function () {
+      it('should return "Inherit (Not Configured)" if not defined elsewhere', function () {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.sourceControlScansEnabled.parentName = null;
+        compositeSourceControlCopy.sourceControlScansEnabled.parentValue = null;
+
+        digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
+        expect(vm.sourceControlEvaluationsEnabledInheritText).toEqual('Inherit (Not Configured)');
+      });
+
+      it('should return "Inherit from Org (Enabled)" if enabled on org', function () {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.sourceControlScansEnabled.parentName = 'Org';
+        compositeSourceControlCopy.sourceControlScansEnabled.parentValue = true;
+
+        digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
+        expect(vm.sourceControlEvaluationsEnabledInheritText).toEqual('Inherit from Org (Enabled)');
+      });
+
+      it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.sourceControlScansEnabled.parentName = 'Org';
+        compositeSourceControlCopy.sourceControlScansEnabled.parentValue = false;
+
+        digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
+        expect(vm.sourceControlEvaluationsEnabledInheritText).toEqual('Inherit from Org (Disabled)');
       });
     });
 
@@ -1469,12 +1542,22 @@ describe('source.control.editor.spec', function () {
         parentName: 'Root Organization',
         parentValue: 'PARENT_BRANCH',
       },
+      pullRequestCommentingEnabled: {
+        value: null,
+        parentName: 'Root Organization',
+        parentValue: true,
+      },
       statusChecksEnabled: {
         value: true,
         parentName: null,
         parentValue: null,
       },
       remediationPullRequestsEnabled: {
+        value: null,
+        parentName: 'Root Organization',
+        parentValue: true,
+      },
+      sourceControlScansEnabled: {
         value: null,
         parentName: 'Root Organization',
         parentValue: true,
@@ -1506,9 +1589,15 @@ describe('source.control.editor.spec', function () {
       providerInherit: true,
       providerInheritValue: 'gitlab',
       repositoryUrl: null,
+      pullRequestCommentingEnabled: null,
+      pullRequestCommentingEnabledInheritedValue: true,
+      pullRequestCommentingEnabledInheritFrom: 'Root Organization',
       remediationPullRequestsEnabled: null,
       remediationPullRequestsEnabledInheritedValue: true,
       remediationPullRequestsEnabledInheritFrom: 'Root Organization',
+      sourceControlEvaluationsEnabled: null,
+      sourceControlEvaluationsEnabledInheritedValue: true,
+      sourceControlEvaluationsEnabledInheritFrom: 'Root Organization',
       statusChecksEnabled: true,
       statusChecksEnabledInheritedValue: null,
       statusChecksEnabledInheritFrom: null,
@@ -1673,9 +1762,15 @@ describe('source.control.editor.spec', function () {
           providerInherit: true,
           providerInheritValue: 'gitlab',
           repositoryUrl: null,
+          pullRequestCommentingEnabled: null,
+          pullRequestCommentingEnabledInheritedValue: true,
+          pullRequestCommentingEnabledInheritFrom: 'Sub Organization',
           remediationPullRequestsEnabled: null,
           remediationPullRequestsEnabledInheritedValue: true,
           remediationPullRequestsEnabledInheritFrom: 'Sub Organization',
+          sourceControlEvaluationsEnabled: null,
+          sourceControlEvaluationsEnabledInheritedValue: true,
+          sourceControlEvaluationsEnabledInheritFrom: 'Sub Organization',
           statusChecksEnabled: null,
           statusChecksEnabledInheritedValue: null,
           statusChecksEnabledInheritFrom: null,
@@ -1708,12 +1803,22 @@ describe('source.control.editor.spec', function () {
             parentName: 'Root Organization',
             parentValue: 'PARENT_BRANCH',
           },
+          pullRequestCommentingEnabled: {
+            value: null,
+            parentName: 'Sub Organization',
+            parentValue: true,
+          },
           statusChecksEnabled: {
             value: null,
             parentName: null,
             parentValue: null,
           },
           remediationPullRequestsEnabled: {
+            value: null,
+            parentName: 'Sub Organization',
+            parentValue: true,
+          },
+          sourceControlScansEnabled: {
             value: null,
             parentName: 'Sub Organization',
             parentValue: true,
@@ -1726,15 +1831,8 @@ describe('source.control.editor.spec', function () {
         };
 
         const savedSourceControl = {
-          username: null,
-          token: null,
-          provider: null,
-          repositoryUrl: REPOSITORY_URL,
-          baseBranch: null,
-          ownerId: APPLICATION_ID,
-          id: null,
-          remediationPullRequestsEnabled: true,
-          statusChecksEnabled: true,
+          ...getSourceControl(APPLICATION_ID, null, null, REPOSITORY_URL),
+          ...{ remediationPullRequestsEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, retrievedCompositeSourceControl);
@@ -1767,15 +1865,8 @@ describe('source.control.editor.spec', function () {
 
       it('updates the existing entry if source control is configured', function () {
         const savedSourceControl = {
-          username: null,
-          token: null,
-          provider: null,
-          ownerId: APPLICATION_ID,
-          id: 'ID',
-          baseBranch: 'BASE_BRANCH',
-          remediationPullRequestsEnabled: true,
-          statusChecksEnabled: true,
-          repositoryUrl: REPOSITORY_URL,
+          ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', REPOSITORY_URL),
+          ...{ id: 'ID', remediationPullRequestsEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
@@ -1813,15 +1904,8 @@ describe('source.control.editor.spec', function () {
 
       it('updates the existing entry if source control is configured - ssh url', function () {
         const saveSourceControl = {
-          username: null,
-          token: null,
-          provider: null,
-          ownerId: APPLICATION_ID,
-          id: 'ID',
-          baseBranch: 'BASE_BRANCH',
-          remediationPullRequestsEnabled: true,
-          statusChecksEnabled: true,
-          repositoryUrl: SSH_REPOSITORY_URL,
+          ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', SSH_REPOSITORY_URL),
+          ...{ id: 'ID', remediationPullRequestsEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
@@ -1859,15 +1943,8 @@ describe('source.control.editor.spec', function () {
 
       it('returns an error for unsuccessful save', function () {
         const savedSourceControl = {
-          username: null,
-          token: null,
-          provider: null,
-          ownerId: APPLICATION_ID,
-          id: 'ID',
-          baseBranch: 'BASE_BRANCH',
-          remediationPullRequestsEnabled: true,
-          statusChecksEnabled: true,
-          repositoryUrl: REPOSITORY_URL,
+          ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', REPOSITORY_URL),
+          ...{ id: 'ID', remediationPullRequestsEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
@@ -1918,15 +1995,8 @@ describe('source.control.editor.spec', function () {
 
       it('requires confirmation when URL is updated', function () {
         const savedSourceControl = {
-          username: null,
-          token: null,
-          provider: null,
-          ownerId: APPLICATION_ID,
-          id: 'ID',
-          baseBranch: 'BASE_BRANCH',
-          remediationPullRequestsEnabled: true,
-          statusChecksEnabled: true,
-          repositoryUrl: REPOSITORY_URL,
+          ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', REPOSITORY_URL),
+          ...{ id: 'ID', remediationPullRequestsEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
@@ -1964,15 +2034,8 @@ describe('source.control.editor.spec', function () {
 
       it('does not require confirmation when URL is not updated', function () {
         const savedSourceControl = {
-          username: null,
-          token: null,
-          provider: null,
-          ownerId: APPLICATION_ID,
-          id: 'ID',
-          baseBranch: 'BASE_BRANCH',
-          remediationPullRequestsEnabled: true,
-          statusChecksEnabled: true,
-          repositoryUrl: REPOSITORY_URL,
+          ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', REPOSITORY_URL),
+          ...{ id: 'ID', remediationPullRequestsEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
@@ -2546,7 +2609,7 @@ describe('source.control.editor.spec', function () {
         compositeSourceControlCopy.remediationPullRequestsEnabled.parentValue = null;
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
-        expect(vm.remediationPullRequestsInheritText).toEqual('Inherit (Not Configured)');
+        expect(vm.remediationPullRequestsEnabledInheritText).toEqual('Inherit (Not Configured)');
       });
 
       it('should return "Inherit from Org (Enabled)" if enabled on org', function () {
@@ -2555,7 +2618,7 @@ describe('source.control.editor.spec', function () {
         compositeSourceControlCopy.remediationPullRequestsEnabled.parentValue = true;
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
-        expect(vm.remediationPullRequestsInheritText).toEqual('Inherit from Org (Enabled)');
+        expect(vm.remediationPullRequestsEnabledInheritText).toEqual('Inherit from Org (Enabled)');
       });
 
       it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
@@ -2564,7 +2627,36 @@ describe('source.control.editor.spec', function () {
         compositeSourceControlCopy.remediationPullRequestsEnabled.parentValue = false;
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
-        expect(vm.remediationPullRequestsInheritText).toEqual('Inherit from Org (Disabled)');
+        expect(vm.remediationPullRequestsEnabledInheritText).toEqual('Inherit from Org (Disabled)');
+      });
+    });
+
+    describe('pullRequestCommentingInheritText', function () {
+      it('should return "Inherit (Not Configured)" if not defined elsewhere', function () {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.pullRequestCommentingEnabled.parentName = null;
+        compositeSourceControlCopy.pullRequestCommentingEnabled.parentValue = null;
+
+        digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
+        expect(vm.pullRequestCommentingEnabledInheritText).toEqual('Inherit (Not Configured)');
+      });
+
+      it('should return "Inherit from Org (Enabled)" if enabled on org', function () {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.pullRequestCommentingEnabled.parentName = 'Org';
+        compositeSourceControlCopy.pullRequestCommentingEnabled.parentValue = true;
+
+        digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
+        expect(vm.pullRequestCommentingEnabledInheritText).toEqual('Inherit from Org (Enabled)');
+      });
+
+      it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.pullRequestCommentingEnabled.parentName = 'Org';
+        compositeSourceControlCopy.pullRequestCommentingEnabled.parentValue = false;
+
+        digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
+        expect(vm.pullRequestCommentingEnabledInheritText).toEqual('Inherit from Org (Disabled)');
       });
     });
 
@@ -2585,6 +2677,57 @@ describe('source.control.editor.spec', function () {
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
         expect(vm.baseBranchInheritText).toEqual('Inherit from Org (value)');
+      });
+    });
+
+    describe('getFeatureNotAvailableMessage', function () {
+      it('should not return message for provider if license supports automation', function () {
+        digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('');
+        expect(vm.getPullRequestCommentingNotAvailableMessage()).toEqual('');
+        expect(vm.getSourceControlEvaluationsNotAvailableMessage()).toEqual('');
+
+        vm.dirtySourceControl.provider = 'gitlab';
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('');
+        expect(vm.getPullRequestCommentingNotAvailableMessage()).toEqual('');
+        expect(vm.getSourceControlEvaluationsNotAvailableMessage()).toEqual('');
+
+        vm.dirtySourceControl.provider = 'bitbucket';
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('');
+        expect(vm.getPullRequestCommentingNotAvailableMessage()).toEqual('');
+        expect(vm.getSourceControlEvaluationsNotAvailableMessage()).toEqual('');
+      });
+
+      it('should return message if license does not support automation', function () {
+        digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl, NOTIFICATIONS);
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not supported by your license');
+        expect(vm.getSourceControlEvaluationsNotAvailableMessage()).toEqual(
+          'This feature is not supported by your license'
+        );
+        expect(vm.getPullRequestCommentingNotAvailableMessage()).toEqual(
+          'This feature is not supported by your license'
+        );
+
+        vm.dirtySourceControl.provider = 'gitlab';
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not supported by your license');
+        expect(vm.getSourceControlEvaluationsNotAvailableMessage()).toEqual(
+          'This feature is not supported by your license'
+        );
+        expect(vm.getPullRequestCommentingNotAvailableMessage()).toEqual(
+          'This feature is not supported by your license'
+        );
+      });
+
+      it('should return message if license does not support notifications', function () {
+        digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl, AUTOMATION);
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('');
+        expect(vm.getSourceControlEvaluationsNotAvailableMessage()).toEqual('');
+        expect(vm.getPullRequestCommentingNotAvailableMessage()).toEqual('');
+
+        vm.dirtySourceControl.provider = 'gitlab';
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('');
+        expect(vm.getSourceControlEvaluationsNotAvailableMessage()).toEqual('');
+        expect(vm.getPullRequestCommentingNotAvailableMessage()).toEqual('');
       });
     });
 

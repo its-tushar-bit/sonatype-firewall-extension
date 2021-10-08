@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -97,4 +98,37 @@ public abstract class AbstractSourceControlEditorTest
   abstract void verifyStartNoSourceControl();
 
   abstract void verifyStartWithSourceControl();
+
+  protected void verifyNotificationFeaturesOnly() {
+    SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
+    SourceControlEditorPage.defaultBranchNotSupportedAlert()
+        .shouldHave(text("This feature is not supported by your license"));
+    SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(visible);
+    SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
+
+    SourceControlEditorPage.pullRequestCommentingNotSupportedAlert().shouldBe(visible);
+    SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
+        .shouldHave(text("This feature is not supported by your license"));
+    SourceControlEditorPage.pullRequestCommentingToggle().shouldNotExist();
+    SourceControlEditorPage.pullRequestCommentingInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestCommentingEnableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.pullRequestCommentingDisableRadio().shouldNotBe(visible);
+
+    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldBe(visible);
+    SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
+        .shouldHave(text("This feature is not supported by your license"));
+    SourceControlEditorPage.remediationPullRequestsToggle().shouldNotExist();
+    SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(visible);
+
+    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldBe(visible);
+    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert()
+        .shouldHave(text("This feature is not supported by your license"));
+    SourceControlEditorPage.sourceControlEvaluationsToggle().shouldNotExist();
+    SourceControlEditorPage.sourceControlEvaluationsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.sourceControlEvaluationsEnableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.sourceControlEvaluationsDisableRadio().shouldNotBe(visible);
+  }
 }

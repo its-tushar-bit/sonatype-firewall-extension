@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,12 +23,11 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,9 +54,6 @@ public class PullRequestMonitorTest
   @Inject
   private PullRequestMonitor pullRequestMonitor;
 
-  @Inject
-  private InsightConfig insightConfig;
-
   private SourceControlPullRequestDAO pullRequestDAO = new SourceControlPullRequestDAO();
 
   @Mock
@@ -76,12 +71,16 @@ public class PullRequestMonitorTest
   @Mock
   private IqForScmLicenseChecker mockLicenseChecker;
 
+  @Mock
+  private SourceControlUtils mockSourceControlUtils;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     binder.bind(GitApiFactory.class).toInstance(gitApiFactoryMock);
     binder.bind(SourceControlEventPublisher.class).toInstance(sourceControlEventPublisherMock);
     binder.bind(IqForScmLicenseChecker.class).toInstance(mockLicenseChecker);
+    binder.bind(SourceControlUtils.class).toInstance(mockSourceControlUtils);
     super.configure(binder);
   }
 
@@ -93,24 +92,6 @@ public class PullRequestMonitorTest
   @Test
   public void testDisallowConcurrentExecution() {
     assertThat(JobBuilder.newJob(PullRequestMonitor.class).build().isConcurrentExectionDisallowed()).isTrue();
-  }
-
-  @Test
-  public void testStart_FeatureEnabled() throws Exception {
-    pullRequestMonitor.start();
-
-    verify(taskSchedulerMock).schedulePeriodicTask(PullRequestMonitor.class, PullRequestMonitor.TASK_NAME,
-        Duration.ofSeconds(insightConfig.getPullRequestMonitoringIntervalInSeconds()));
-  }
-
-  @Test
-  public void testStart_FeatureDisabled() throws Exception {
-    insightConfig.setFeatures(ImmutableMap.of(Feature.PR_COMMENT_MONITORING.getFlag(), false));
-
-    pullRequestMonitor.start();
-
-    verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any());
-    verify(taskSchedulerMock).unscheduleTask(PullRequestMonitor.TASK_NAME);
   }
 
   @Test
@@ -186,6 +167,10 @@ public class PullRequestMonitorTest
         "testHeadCommitHash2", "testBaseCommitHash2", "testBranchName2", "baseBranchName",
         createTime, lastUpdateTime, lastUpdateTime);
 
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
+    gitRepositoryInfo.pullRequestCommentingEnabled = true;
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
+
     // First branch is updated
     Map<String, String> headCommitsByBranch = new HashMap<>();
     headCommitsByBranch.put("testBranchName1", "testHeadCommitHash1Updated");
@@ -228,6 +213,10 @@ public class PullRequestMonitorTest
         "testHeadCommitHash", "testBaseCommitHash1", "testBranchName", "baseBranchName",
         createTime, lastUpdateTime, lastUpdateTime);
 
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
+    gitRepositoryInfo.pullRequestCommentingEnabled = true;
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
+
     // First branch is updated
     when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl))
         .thenReturn(Collections.singletonMap("testBranchName", "testHeadCommitHashUpdated"));
@@ -258,6 +247,45 @@ public class PullRequestMonitorTest
   }
 
   @Test
+  public void testUpdatePullRequestDetails_PrCommentingDisabledForApplication() throws Exception {
+    createSourceControlForRootOrg();
+
+    // Given a pull request for an app for which PR commenting is disabled
+    Application app1 = tempEntity.newApplicationWithParent();
+    String repositoryUrl = "http://example.com/testorg/testproject";
+    tempEntity.newSourceControl(app1.getId(), repositoryUrl);
+
+    Date createTime = new Date(System.currentTimeMillis() - 2000);
+    Date lastUpdateTime = new Date(System.currentTimeMillis() - 1000);
+    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(repositoryUrl, 1,
+        "testHeadCommitHash", "testBaseCommitHash1", "testBranchName", "baseBranchName",
+        createTime, lastUpdateTime, lastUpdateTime);
+
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
+    gitRepositoryInfo.pullRequestCommentingEnabled = false;
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
+
+    // the PR source branch is updated
+    when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl))
+        .thenReturn(Collections.singletonMap("testBranchName", "testHeadCommitHashUpdated"));
+
+    // When update pull request details
+    Date before = new Date();
+    pullRequestMonitor.updatePullRequestDetails();
+    Date after = new Date();
+
+    // Then the PR is updated
+    pullRequest = pullRequestDAO.getById(pullRequest.getId());
+    assertPullRequest(pullRequest, repositoryUrl, 1, "testHeadCommitHashUpdated", "testBaseCommitHash1",
+        "testBranchName", createTime);
+    assertThat(pullRequest.getLastCheckTime()).isBetween(before, after, true, true);
+    assertThat(pullRequest.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
+
+    // But no events are sent
+    verify(sourceControlEventPublisherMock, never()).publishEvent(any());
+  }
+
+  @Test
   public void testUpdatePullRequestDetails_UntrackedBranch() throws Exception {
     createSourceControlForRootOrg();
 
@@ -270,6 +298,10 @@ public class PullRequestMonitorTest
     SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(repositoryUrl, 1,
         "testHeadCommitHash1", "testBaseCommitHash1", "testBranchName1", "baseBranchName",
         createTime, lastUpdateTime, lastUpdateTime);
+
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
+    gitRepositoryInfo.pullRequestCommentingEnabled = true;
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     // First branch is updated and one branch is not tracked (i.e. no corresponding PR)
     Map<String, String> headCommitsByBranch = new HashMap<>();

@@ -2563,6 +2563,20 @@ public class TemporaryEntity
   }
 
   public SourceControl newSourceControl(String applicationId,
+                                        SourceControlProvider provider,
+                                        String token,
+                                        String repositoryUrl,
+                                        String baseBranch,
+                                        Boolean pullRequestCommentingEnabled,
+                                        Boolean remediationPullRequestsEnabled,
+                                        Boolean sourceControlScansEnabled,
+                                        Boolean statusChecksEnabled)
+  {
+    return newSourceControl(applicationId, repositoryUrl, null, token, provider, remediationPullRequestsEnabled,
+        statusChecksEnabled, baseBranch, null, pullRequestCommentingEnabled, sourceControlScansEnabled, null);
+  }
+
+  public SourceControl newSourceControl(String applicationId,
                                         String repositoryUrl,
                                         String username,
                                         String token,

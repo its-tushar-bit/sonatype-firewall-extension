@@ -247,7 +247,7 @@ public class PullRequestCommentCreatorTest
     private PullRequestLocationDiscoveryService mockLocationDiscoveryService;
 
     @Mock
-    private PullRequestLocationDiscoveryEligibilityValidator mockLocationDiscoveryEligibilityValidator;
+    private PullRequestCommentingEligibilityValidator mockPullRequestCommentingEligibilityValidator;
 
     @Mock
     private SourceControlComponentLoader mockComponentLoader;
@@ -282,7 +282,7 @@ public class PullRequestCommentCreatorTest
           mockLineCommentingService,
           postCommentActionList,
           mockLocationDiscoveryService,
-          mockLocationDiscoveryEligibilityValidator,
+          mockPullRequestCommentingEligibilityValidator,
           mockComponentLoader
       );
     }

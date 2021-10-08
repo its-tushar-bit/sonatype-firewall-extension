@@ -1,0 +1,12 @@
+<label class="nx-toggle iq-toggle-short nx-toggle--no-gap"
+       ng-class="{'nx-toggle--disabled' : vm.isDisabled, 'tm-checked': vm.isChecked, 'tm-unchecked': !vm.isChecked}">
+  <!--readOnly={!onChange}-->
+  <span class="nx-toggle__content {{vm.labelClass}}">{{vm.label}}</span>
+  <input type="checkbox"
+         class="nx-toggle__input"
+         ng-disabled="vm.isDisabled"
+         ng-checked="vm.isChecked"
+         ng-required="vm.isRequired"
+         ng-click="vm.onClick()">
+  <div class="nx-toggle__control"><div class="nx-toggle__indicator"></div></div>
+</label>

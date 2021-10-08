@@ -16,6 +16,7 @@ import iqOrgAppPickerAngular from './iqOrgAppPicker/iqOrgAppPickerAngular';
 import iqRenderPlottable from './iqRenderPlottable/iqRenderPlottable';
 import coverageDonut from './coverageDonut';
 import externalLink from './externalLink/externalLink';
+import iqToggleSwitch from './iqToggleSwitch/iqToggleSwitch';
 
 export default angular
   .module('components', [utilityModule.name, utilityDirectivesModule.name])
@@ -28,5 +29,6 @@ export default angular
   .component('iqTreeViewPolicyThreatLevelSlider', iqTreeViewPolicyThreatLevelSlider)
   .component('iqOrgAppPickerAngular', iqOrgAppPickerAngular)
   .component('externalLink', externalLink)
+  .component('iqToggleSwitch', iqToggleSwitch)
   .directive('iqRenderPlottable', iqRenderPlottable)
   .directive('coverageDonut', coverageDonut);

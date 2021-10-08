@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.jira.JiraConfig;
 import com.sonatype.insight.brain.migration.MailConfigurationMigrator;
 import com.sonatype.insight.brain.migration.ProxyServerConfigurationMigrator;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -970,8 +971,11 @@ public class InsightConfig
     DEFAULT_BRANCH_MONITORING("defaultBranchMonitoring"),
     DEPENDENCY_DATA_IN_API("dependencyDataInApi"),
     INNER_SOURCE_TRANSITIVE_WAIVER("innerSourceTransitiveWaiver"),
+    /**
+     * @deprecated Use {@link SourceControl#getSourceControlScansEnabled() instead}
+     */
+    @Deprecated
     INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS("internalSourceControlPolicyEvaluations"),
-    PR_COMMENT_MONITORING("prCommentMonitoring"),
     PR_COMMENTING("prCommenting"),
     PR_LINE_COMMENTING("prLineCommenting");
 

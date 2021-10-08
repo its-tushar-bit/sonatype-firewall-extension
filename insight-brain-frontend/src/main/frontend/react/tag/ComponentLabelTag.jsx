@@ -9,7 +9,20 @@ import * as PropTypes from 'prop-types';
 import { NxFontAwesomeIcon, NxTag } from '@sonatype/react-shared-components';
 import { faTag } from '@fortawesome/pro-solid-svg-icons';
 
-function TagWithFontAwesomeIcon({ faIcon, color, children }) {
+const rscColorMap = {
+  'light-purple': 'purple',
+  'dark-purple': 'indigo',
+  'dark-red': 'red',
+  'light-red': 'pink',
+  'dark-blue': 'blue',
+  'light-blue': 'light-blue',
+  'dark-green': 'green',
+  orange: 'orange',
+  yellow: 'yellow',
+  'light-green': 'lime',
+};
+
+export function TagWithFontAwesomeIcon({ faIcon, color, children }) {
   return (
     <NxTag color={color}>
       <NxFontAwesomeIcon icon={faIcon} />
@@ -19,8 +32,9 @@ function TagWithFontAwesomeIcon({ faIcon, color, children }) {
 }
 
 export default function ComponentLabelTag({ children, color }) {
+  const mappedColor = rscColorMap[color];
   return (
-    <TagWithFontAwesomeIcon faIcon={faTag} color={color}>
+    <TagWithFontAwesomeIcon faIcon={faTag} color={mappedColor}>
       {children}
     </TagWithFontAwesomeIcon>
   );

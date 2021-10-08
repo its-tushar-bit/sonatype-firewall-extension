@@ -176,6 +176,18 @@ public class UserInterfaceLinksResource
     return redirect(uriBuilder, applicationId, scanId);
   }
 
+  /**
+   * @since 1.125
+   */
+  @GET
+  @Path(QUARANTINED_COMPONENT_REPORT_PATH)
+  public Response linkToQuarantinedComponentReport(@PathParam("token") String token) {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/" +
+        QUARANTINED_COMPONENT_REPORT_PATH);
+    return redirect(uriBuilder, token);
+  }
+
   private void sendSourceTelemetryData(final String applicationId, final String scanId, final String source) {
     if (source == null) {
       return;

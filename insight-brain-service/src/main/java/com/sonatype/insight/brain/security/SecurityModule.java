@@ -95,8 +95,12 @@ public class SecurityModule
     manager.createChain("/rest/config/systemNotice/fetch", anonFilters);
     manager.createChain("/api/v2/vulnerabilities/*",
         anonFilters + ", noSessionCreation, " +
-        "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
-        "authcBasic[permissive]");
+            "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
+            "authcBasic[permissive]");
+    manager.createChain("/rest/repositories/quarantinedComponent/*",
+        anonFilters + ", noSessionCreation, " +
+            "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
+            "authcBasic[permissive]");
     manager.createChain("/ping", anonFilters);
 
     // Legal attribution report doesn't need CSRF check as it doesn't update server state (despite being POST form)

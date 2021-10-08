@@ -20,6 +20,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -41,6 +42,8 @@ import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogg
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
+import com.sonatype.insight.brain.repository.component.QuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -48,6 +51,7 @@ import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.Reposit
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.lqa.LqaComponentIdentifier;
 
@@ -77,6 +81,8 @@ public abstract class AbstractRepositoryService
 
   private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
 
+  private final QuarantinedComponentAccessManager quarantinedComponentAccessManager;
+
   // Visible for tests
   final LicensedFeature requiredFeature;
 
@@ -87,7 +93,8 @@ public abstract class AbstractRepositoryService
       ProductLicense productLicense,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
       LicensedFeature requiredFeature,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      DbQuarantinedComponentAccessManager quarantinedComponentAccessManager)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
@@ -95,6 +102,7 @@ public abstract class AbstractRepositoryService
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.requiredFeature = requiredFeature;
     this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
+    this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
   }
 
   private void checkLicenseFeature() {
@@ -544,5 +552,46 @@ public abstract class AbstractRepositoryService
       @AuthzContext(Key.REPOSITORY) Repository repository)
   {
     proprietaryComponentNameDetector.removePatterns(repositoryManagerInstanceId, repository.getPublicId());
+  }
+
+  public QuarantinedComponentReport getQuarantinedComponentReportUrl(
+      final String repositoryManagerInstanceId,
+      final String repositoryPublicId,
+      final String pathname)
+  {
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
+        repositoryManagerInstanceId, repositoryPublicId);
+
+    if (repository == null) {
+      throw new BadRequestException(String
+          .format("Cannot find repository for repository manager %s and public id %s", repositoryManagerInstanceId,
+              repositoryPublicId));
+    }
+
+    return getQuarantinedComponentReportUrl(repository, pathname);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  public QuarantinedComponentReport getQuarantinedComponentReportUrl(
+      @AuthzContext(Key.REPOSITORY) final Repository repository,
+      final String pathname)
+  {
+    if (repository == null) {
+      throw new BadRequestException("Specified repository cannot be null");
+    }
+
+    RepositoryComponent repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), normalizePathname(pathname));
+
+    if (repositoryComponent == null) {
+      throw new NotFoundException(String
+          .format("Repository component for repository %s and pathname %s does not exist", repository.getPublicId(),
+              pathname));
+    }
+
+    final String token = quarantinedComponentAccessManager.createToken(repositoryComponent.getId());
+    final QuarantinedComponentReport quarantinedComponentReport = new QuarantinedComponentReport();
+    quarantinedComponentReport.setReportUrl(UserInterfaceLinksHelper.getQuarantinedComponentReportPath(token));
+    return quarantinedComponentReport;
   }
 }

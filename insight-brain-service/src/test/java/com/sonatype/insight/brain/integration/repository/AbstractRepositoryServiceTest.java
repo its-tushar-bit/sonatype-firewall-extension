@@ -31,6 +31,7 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -72,6 +73,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryPolicyAlertEmailer;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
@@ -145,12 +147,16 @@ public abstract class AbstractRepositoryServiceTest
 
   protected abstract AbstractRepositoryService getRepositoryService();
 
+  @Mock
+  private DbQuarantinedComponentAccessManager quarantinedComponentAccessManager;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClient);
     binder.bind(FirewallAuditHdsClient.class).toInstance(auditHdsClient);
     binder.bind(FirewallQuarantineHdsClient.class).toInstance(quarantineHdsClient);
     binder.bind(RepositoryComponentTelemetryCreator.class).toInstance(repositoryComponentTelemetryCreator);
+    binder.bind(DbQuarantinedComponentAccessManager.class).toInstance(quarantinedComponentAccessManager);
     super.configure(binder);
   }
 
@@ -2020,6 +2026,41 @@ public abstract class AbstractRepositoryServiceTest
   @Test
   public void testAddProprietaryComponentNames_FormatTranslation_Rubygems() {
     testAddProprietaryComponentNames_FormatTranslation("rubygems", "gem");
+  }
+
+  @Test
+  public void testGetQuarantinedComponentReportUrl() {
+    // setup
+    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
+    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+
+    when(quarantinedComponentAccessManager.createToken(repositoryComponent.getId())).thenReturn("token");
+
+    // when
+    final QuarantinedComponentReport quarantinedComponentReport = getRepositoryService()
+        .getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "path");
+
+    // then
+    assertThat(quarantinedComponentReport.getReportUrl()).isEqualTo("ui/links/repositories/quarantinedComponent/token");
+  }
+
+  @Test
+  public void testGetQuarantinedComponentReportUrl_ComponentNotExists() {
+    // setup
+    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
+
+    // when
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> getRepositoryService()
+        .getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), ""));
+  }
+
+  @Test
+  public void testGetQuarantinedComponentReportUrl_RepositoryNotExists() {
+    // when
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> getRepositoryService()
+        .getQuarantinedComponentReportUrl("repmanid", "repid", ""));
   }
 
   private void testAddProprietaryComponentNames_FormatTranslation(String repoFormat, String componentFormat) {

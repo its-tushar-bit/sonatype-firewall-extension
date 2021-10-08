@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -44,10 +45,11 @@ public class RepositoryService extends AbstractRepositoryService
       ProprietaryComponentNameDetector proprietaryComponentNameDetector,
       ProductLicense productLicense,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      DbQuarantinedComponentAccessManager quarantinedComponentAccessManager)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
-        LicensedFeature.FIREWALL, repositoryComponentTelemetryCreator);
+        LicensedFeature.FIREWALL, repositoryComponentTelemetryCreator, quarantinedComponentAccessManager);
   }
 
   /**

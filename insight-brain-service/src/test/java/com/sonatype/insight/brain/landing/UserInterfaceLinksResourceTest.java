@@ -187,6 +187,14 @@ public class UserInterfaceLinksResourceTest
     assertRedirect(response, "assets/index.html#/vulnerabilities/CVE-8765-4321");
   }
 
+  @Test
+  public void testLinkToQuarantinedComponentReport() throws Exception {
+    String url = UserInterfaceLinksHelper.getQuarantinedComponentReportPath("token");
+    assertThat(url).isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/repositories/quarantinedComponent/token");
+    HttpResponse response = get(UserInterfaceLinksHelper.QUARANTINED_COMPONENT_REPORT_PATH, "token");
+    assertRedirect(response, "assets/index.html#/repositories/quarantinedComponent/token");
+  }
+
   private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(
       final Map<ByteArrayDataSource, Integer> responses)
       throws MessagingException, IOException

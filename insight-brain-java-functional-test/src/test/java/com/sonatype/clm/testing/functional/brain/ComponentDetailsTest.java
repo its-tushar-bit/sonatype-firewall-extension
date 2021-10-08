@@ -678,6 +678,18 @@ public class ComponentDetailsTest
     editLicensesPopover.shouldBe(visible);
     editLicensesPopover.popoverTitle().shouldHave(text("Edit Licenses"));
 
+    ElementsCollection declaredLicenses = editLicensesPopover.getItems(editLicensesPopover.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Not Provided"));
+
+    ElementsCollection effectiveLicenses = editLicensesPopover.getItems(editLicensesPopover.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("Not Provided"));
+
+    ElementsCollection observedLicenses = editLicensesPopover.getItems(editLicensesPopover.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("Not Provided"));
+
     eyesWatcher.eyesCheck("component details legal tab edit licenses popover");
 
     editLicensesPopover.getCloseButton().click();

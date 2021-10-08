@@ -3,11 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { Fragment, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { NxButton, NxFontAwesomeIcon, NxLoadWrapper, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { faPen } from '@fortawesome/pro-solid-svg-icons';
 
+import { renderLicensesList } from '../LegalTabUtils';
 export default function LicenseDetectionsTile({
   licenseOverride,
   declaredlicenses,
@@ -20,15 +21,6 @@ export default function LicenseDetectionsTile({
   loadError,
   toggleShowEditLicensesPopover,
 }) {
-  const licenseListItem = (license) => (
-    <div key={license.license?.licenseId} className="license-list-item">
-      <NxThreatIndicator policyThreatLevel={license.threatLevel} />
-      <span>{license.license?.licenseName}</span>
-    </div>
-  );
-
-  const renderLicensesList = (list) => list?.map((license) => licenseListItem(license));
-
   const getLicenseOverrideStatus = () => {
     const status = licenseOverride
       ?.find((override) => !!override.licenseOverride?.status)
@@ -49,23 +41,24 @@ export default function LicenseDetectionsTile({
               License Detections
             </h2>
           </div>
-          <NxButton
-            id="component-details-edit-licenses"
-            className="nx-tile__actions"
-            variant="tertiary"
-            onClick={toggleShowEditLicensesPopover}
-          >
-            <NxFontAwesomeIcon icon={faPen} />
-            <span>Edit</span>
-          </NxButton>
-
           {!loading && !loadError && (
-            <h3 className="nx-tile-header__subtitle" id="status-container">
-              Status:{' '}
-              <span className="status-subtitle" id="status-subtitle">
-                {getLicenseOverrideStatus()}
-              </span>
-            </h3>
+            <Fragment>
+              <NxButton
+                id="component-details-edit-licenses"
+                className="nx-tile__actions"
+                variant="tertiary"
+                onClick={toggleShowEditLicensesPopover}
+              >
+                <NxFontAwesomeIcon icon={faPen} />
+                <span>Edit</span>
+              </NxButton>
+              <h3 className="nx-tile-header__subtitle" id="status-container">
+                Status:{' '}
+                <span className="status-subtitle" id="status-subtitle">
+                  {getLicenseOverrideStatus()}
+                </span>
+              </h3>
+            </Fragment>
           )}
         </hgroup>
       </header>

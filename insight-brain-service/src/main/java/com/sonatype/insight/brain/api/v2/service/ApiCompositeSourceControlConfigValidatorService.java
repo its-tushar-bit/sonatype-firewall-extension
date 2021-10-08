@@ -119,10 +119,17 @@ public class ApiCompositeSourceControlConfigValidatorService
     }
 
     // native git is mandatory for SSH
-    GitApi gitApi = gitApiFactory.createGitApi(gitInfo);
-    if (!(gitApi instanceof NativeGitApi)) {
-      result.setSshConfiguration(new ValidationResult(false, "SSH requires native git. It is either not configured " +
-          "or the 'git' executable has not been found"));
+    GitApi gitApi;
+    try {
+      gitApi = gitApiFactory.createGitApi(gitInfo);
+      if (!(gitApi instanceof NativeGitApi)) {
+        result.setSshConfiguration(new ValidationResult(false, "SSH requires native git. It is either not configured "
+            + "or the 'git' executable has not been found"));
+        return;
+      }
+    }
+    catch (IllegalArgumentException e) {
+      result.setSshConfiguration(new ValidationResult(false, e.getMessage()));
       return;
     }
 

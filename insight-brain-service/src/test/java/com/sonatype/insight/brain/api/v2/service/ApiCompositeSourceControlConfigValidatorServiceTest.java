@@ -333,6 +333,41 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result.getSshConfiguration().getMessage()).contains("Unable to clone a repository using SSH:");
   }
 
+  @Test
+  public void testValidateSourceControlConfig_ssh_illegalArgException() throws Exception {
+    // given a git repo with SSH configured fully
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
+    gitRepositoryInfo.sshRepositoryUrl = SSH_REPOSITORY_URL;
+    gitRepositoryInfo.sshEnabled = true;
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
+
+    // and the repo is configured successfully
+    when(pullRequestRepositoryValidator.isInternalRepository(any())).thenReturn(false);
+    when(pullRequestRepositoryValidator.isPrivateRepository(any())).thenReturn(true);
+    GitApiClient mockClient = mock(GitApiClient.class);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
+    when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(true));
+    File repoDirectory = mock(File.class);
+    when(sourceControlUtils.getCheckoutDirectory(anyString())).thenReturn(repoDirectory);
+
+    // and createGitApi fails with an Illegal Argument Exception
+    when(gitApiFactory.createGitApi(any(GitRepositoryInfo.class)))
+        .thenThrow(new IllegalArgumentException("Illegal Argument"));
+
+    // when we try to validate
+    ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
+
+    // then early config are valid
+    assertThat(result).isNotNull();
+    assertThat(result.getConfigurationComplete().isValid()).isTrue();
+    assertThat(result.getRepoPrivate().isValid()).isTrue();
+    assertThat(result.getTokenPermissions().isValid()).isTrue();
+
+    // and SSH has an error
+    assertThat(result.getSshConfiguration().isValid()).isFalse();
+    assertThat(result.getSshConfiguration().getMessage()).contains("Illegal Argument");
+  }
+
   private GitRepositoryInfo getGitRepositoryInfo(String scanTarget) {
     return new GitRepositoryInfo(null, null, null, null, SourceControlProvider.GITHUB, "main", true, true, true, true,
         false, scanTarget);

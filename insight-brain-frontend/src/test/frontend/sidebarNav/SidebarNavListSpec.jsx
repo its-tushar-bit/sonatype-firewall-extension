@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../enzymeUtils';
-import BackButton from '../../../main/frontend/react/BackButton';
-import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
 import { always } from 'ramda';
 import React from 'react';
 
@@ -68,17 +68,18 @@ describe('SidebarNavList', function () {
     expect(getShallowComponent()).toHaveProp('id', 'sidebar-nav-list');
   });
 
-  it('renders a BackButton using the supplied $state and stateName', function () {
-    const backButtonComponent = getShallowComponent({
+  it('renders a MenuBarBackButton with the supplied stateName', function () {
+    const menuBarBackButtonComponent = getShallowComponent({
       ...minimalProps,
       backButtonStateName: 'foo.bar.baz',
-    }).find(BackButton);
-    expect(backButtonComponent).toHaveProp('$state', minimalProps.$state);
-    expect(backButtonComponent).toHaveProp('stateName', 'foo.bar.baz');
+    }).find(MenuBarBackButton);
+
+    expect(menuBarBackButtonComponent).toExist();
+    expect(menuBarBackButtonComponent).toHaveProp('stateName', 'foo.bar.baz');
   });
 
-  it('does not render a BackButton if backButtonStateName is not in the props', function () {
-    const backButtonComponent = getShallowComponent().find(BackButton);
+  it('does not render a MenuBarBackButton if stateName is not in the props', function () {
+    const backButtonComponent = getShallowComponent().find(MenuBarBackButton);
     expect(backButtonComponent).not.toExist();
   });
 

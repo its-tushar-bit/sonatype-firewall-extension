@@ -14,7 +14,10 @@ import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 export default angular
   .module('violationPage', [])
   .component('sidebarView', sidebarView)
-  .component('sidebarNavList', react2angular(withStoreProvider(SidebarNavListContainer), [], ['$ngRedux', '$state']))
+  .component(
+    'sidebarNavList',
+    react2angular(withStoreProvider(withRouterStateProvider(SidebarNavListContainer)), [], ['$ngRedux', '$state'])
+  )
   .component('violationPage', react2angular(withStoreProvider(ViolationPageContainer), [], ['$ngRedux', '$state']))
   .component(
     'transitiveViolationsPageContainer',

@@ -357,6 +357,12 @@
             <span>Does the token have sufficient permissions?</span>
             <p class="iq-list__subtext">{{vm.scmConfigValidationResult.tokenPermissions.message}}</p>
           </li>
+          <li class="iq-list__item" ng-if="vm.sshEnabled()">
+            <i class="fa size-16px"
+               ng-class="vm.getScmValidationClass(vm.scmConfigValidationResult.sshConfiguration)"></i>
+            <span>Is SSH configured fully?</span>
+            <p class="iq-list__subtext">{{vm.scmConfigValidationResult.sshConfiguration.message}}</p>
+          </li>
         </ul>
       </div>
       <div submit-wrapper="vm.submitError" retry="vm.save()" class="iq-tile-footer">

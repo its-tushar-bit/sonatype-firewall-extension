@@ -6,7 +6,7 @@
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 
-import { NxTable, NxFontAwesomeIcon, NxTag } from '@sonatype/react-shared-components';
+import { NxTable, NxFontAwesomeIcon, NxTag, NxLoadingSpinner } from '@sonatype/react-shared-components';
 import { faTrophy, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import { versionComparisonInfoPropType } from '../../componentDetailsUtils';
@@ -25,11 +25,11 @@ export const CompareVersions = ({ currentVersion, selectedVersion, loading }) =>
             <NxTable.Cell>SELECTED</NxTable.Cell>
           </NxTable.Row>
         </NxTable.Head>
-        <NxTable.Body isLoading={loading}>
+        <NxTable.Body>
           <NxTable.Row id="version">
             <NxTable.Cell>Version</NxTable.Cell>
             <NxTable.Cell>{currentVersion.version}</NxTable.Cell>
-            <NxTable.Cell>{selectedVersion.version || '--'}</NxTable.Cell>
+            <NxTable.Cell>{loading ? <NxLoadingSpinner /> : selectedVersion.version || '--'}</NxTable.Cell>
           </NxTable.Row>
           <NxTable.Row id="highestPolicyThreat">
             <NxTable.Cell>Highest Policy Threat</NxTable.Cell>

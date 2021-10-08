@@ -32,8 +32,7 @@ import ViolationAveragesChart from './violationAveragesChart/ViolationAveragesCh
 import MttrChart from './mttrChart/MttrChart';
 import ApplicationCountsChart from './applicationCountsChart/ApplicationCountsChart';
 import ComponentCountsChart from './componentCountsChart/ComponentCountsChart';
-import BackButton from '../../../react/BackButton';
-import { useRouterState } from '../../../react/RouterStateContext';
+import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 
 const DATE_FORMAT_WITH_TIME = 'MMM DD, YYYY hh:mm:ss A';
 const DATE_FORMAT = 'MMM DD, YYYY';
@@ -62,7 +61,6 @@ const SuccessMetricsReport = ({
   const {
     currentParams: { successMetricsReportId },
   } = router;
-  const uiRouterState = useRouterState();
 
   const activeApplicationCount = applicationCounts.activeApplications;
   const hasData = activeApplicationCount > 0;
@@ -83,7 +81,7 @@ const SuccessMetricsReport = ({
             load(successMetricsReportId);
           }}
         >
-          <BackButton stateName="labs.successMetrics" $state={uiRouterState} />
+          <MenuBarBackButton stateName="labs.successMetrics" />
           <div className="nx-page-title" id="success-metrics-header">
             <h1 className="nx-h1">{reportName}</h1>
             <NxButtonBar>

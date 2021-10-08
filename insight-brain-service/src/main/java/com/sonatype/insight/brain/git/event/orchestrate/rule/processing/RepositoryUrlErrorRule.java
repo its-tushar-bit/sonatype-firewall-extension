@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sonatype.insight.brain.common.exception.ExceptionHelper;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -95,7 +96,7 @@ public class RepositoryUrlErrorRule
   }
 
   private boolean isUrlRelatedError(Exception e) {
-    if (e instanceof UnknownHostException) {
+    if (ExceptionHelper.hasCauseOrSuppressedOfType(e, UnknownHostException.class)) {
       return true;
     }
     return URL_ERROR_MESSAGES.stream().anyMatch(msg -> e.getMessage().contains(msg));

@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
@@ -26,7 +27,9 @@ import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePatte
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
 import static com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.ADHOC;
@@ -134,5 +137,23 @@ public class RepositoryResourceTest
     assertResponseStatus(204, response);
 
     assertThat(proprietaryComponentNamePatternDAO.getByFormat("npm")).isEmpty();
+  }
+
+  @Test
+  public void testGetQuarantinedComponentReportUrl() throws Exception {
+    getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
+        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
+
+    final RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    final Repository repository = tempEntity.newRepository(repoManager, "repo-repo");
+    tempEntity.newRepositoryComponent(repository.getId());
+
+    final HttpResponse response =
+        restRequest().path(RepositoryResource.QUARANTINED_COMPONENT_REPORT_URL_PATH)
+            .parameter(repoManager.getInstanceId(), repository.getPublicId(), "path").get();
+    assertResponseStatus(200, response);
+
+    assertThat(response.getBody(QuarantinedComponentReport.class).getReportUrl())
+        .matches("ui/links/repositories/quarantinedComponent/.+");
   }
 }

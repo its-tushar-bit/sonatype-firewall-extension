@@ -25,6 +25,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -64,8 +65,11 @@ public class RepositoryResource
 
   static final String IGNORE_PATTERNS_PATH = "evaluate/ignorePatterns";
 
+  static final String QUARANTINED_COMPONENT_REPORT_URL_PATH =
+      REPOSITORY_PATH + "components/{pathname: .+}/quarantinedComponentReportUrl";
+
   private final RepositoryService repositoryService;
-  
+
   private final FirewallIgnorePatternService firewallIgnorePatternService;
 
   @Inject
@@ -220,5 +224,20 @@ public class RepositoryResource
       @PathParam("repositoryPublicId") String repositoryPublicId)
   {
     repositoryService.removeProprietaryComponentNames(repositoryManagerInstanceId, repositoryPublicId);
+  }
+
+  /**
+   * @since 1.125
+   */
+  @GET
+  @Path(QUARANTINED_COMPONENT_REPORT_URL_PATH)
+  @Produces({MediaType.APPLICATION_JSON})
+  public QuarantinedComponentReport getQuarantinedComponentReportUrl(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      @PathParam("pathname") String pathname)
+  {
+    return repositoryService
+        .getQuarantinedComponentReportUrl(repositoryManagerInstanceId, repositoryPublicId, pathname);
   }
 }

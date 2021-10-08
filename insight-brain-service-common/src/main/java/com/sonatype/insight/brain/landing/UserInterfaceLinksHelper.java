@@ -27,6 +27,8 @@ public class UserInterfaceLinksHelper
 
   public static final String LATEST_VERSION_SBOM_REPORT_PATH = "cycloneDx/{applicationId}/reports/{scanId}";
 
+  public static final String QUARANTINED_COMPONENT_REPORT_PATH = "repositories/quarantinedComponent/{token}";
+
   private static String buildStableUrl(String path, Object... parameters) {
     return UriBuilder.fromPath(RESOURCE_PATH).path(path).build(parameters).toString();
   }
@@ -71,5 +73,14 @@ public class UserInterfaceLinksHelper
    */
   public static String getRepositoryReportUrl(String repositoryId) {
     return buildStableUrl(REPO_RESULT_PATH, repositoryId);
+  }
+
+  /**
+   * Gets the relative URL to the stable hyperlink for the quarantined component report for a given token
+   *
+   * @since 1.125
+   */
+  public static String getQuarantinedComponentReportPath(String token) {
+    return buildStableUrl(QUARANTINED_COMPONENT_REPORT_PATH, token);
   }
 }

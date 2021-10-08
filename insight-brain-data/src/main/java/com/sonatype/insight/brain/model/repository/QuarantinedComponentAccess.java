@@ -1,0 +1,68 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.model.repository;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import com.sonatype.insight.model.HasStringId;
+
+@Entity
+@Table(name = "quarantined_component_access")
+public class QuarantinedComponentAccess
+    implements HasStringId
+{
+  @Id
+  @Column(name = "quarantined_component_access_id")
+  private String id;
+
+  @Column(name = "repository_component_id")
+  private String repositoryComponentId;
+
+  @Column(name = "generate_time")
+  private Date generateTime;
+
+  public QuarantinedComponentAccess() {
+  }
+
+  public QuarantinedComponentAccess(
+      final String repositoryComponentId,
+      final Date generateTime)
+  {
+    this.generateTime = generateTime;
+    this.repositoryComponentId = repositoryComponentId;
+  }
+
+  @Override
+  public String getId() {
+    return id;
+  }
+
+  @Override
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  public String getRepositoryComponentId() {
+    return repositoryComponentId;
+  }
+
+  public void setRepositoryComponentId(final String repositoryComponentId) {
+    this.repositoryComponentId = repositoryComponentId;
+  }
+
+  public Date getGenerateTime() {
+    return generateTime;
+  }
+
+  public void setGenerateTime(final Date generateTime) {
+    this.generateTime = generateTime;
+  }
+}

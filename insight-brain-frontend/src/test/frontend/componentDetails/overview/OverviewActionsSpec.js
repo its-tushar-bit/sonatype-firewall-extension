@@ -205,6 +205,42 @@ describe('componentDetailsOverviewActions', () => {
     });
   });
 
+  describe('loadSelectedVersionData', () => {
+    beforeEach(() => {
+      spyOn(componentDetailsOverviewSelectors, 'selectSelectedVersion').and.returnValue('2.3');
+      spyOn(componentDetailsOverviewSelectors, 'selectCurrentVersion').and.returnValue('2.4');
+    });
+
+    it('does not trigger load request if newly selected version is equal to previously selected one', (done) => {
+      store.dispatch(actions.loadSelectedVersionData('2.3')).then(() => {
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'componentDetailsOverview/loadSelectedVersionData/pending',
+          'componentDetailsOverview/loadSelectedVersionData/fulfilled',
+        ]);
+
+        done();
+      });
+    });
+
+    it('resets state for selected version if it equals to current', (done) => {
+      store.dispatch(actions.loadSelectedVersionData('2.4')).then(() => {
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(3);
+        expect(actions).toHaveActionTypesInOrder([
+          'componentDetailsOverview/loadSelectedVersionData/pending',
+          'componentDetailsOverview/resetSelectedVersionData',
+          'componentDetailsOverview/loadSelectedVersionData/fulfilled',
+        ]);
+
+        done();
+      });
+    });
+  });
+
   describe('loadComponentDetailsByVerionsNumber', () => {
     beforeEach(() => {
       spyOn(componentDetailsOverviewSelectors, 'selectComponentDetailsSelectedRequestData').and.returnValue({});

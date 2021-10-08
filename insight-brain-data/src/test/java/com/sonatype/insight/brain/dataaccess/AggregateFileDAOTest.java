@@ -81,4 +81,24 @@ public class AggregateFileDAOTest
     assertThat(dao.getByApplicationComponentId(otherApplicationComponent.getId()))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(otherAggregateFile);
   }
+
+  @Test
+  public void testDeleteByApplicationComponentId() {
+    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
+        BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
+    AggregateFile aggregateFile1 = new AggregateFile(applicationComponent.getId(), "hash2", null);
+    AggregateFile aggregateFile2 = new AggregateFile(applicationComponent.getId(), "hash3", null);
+    dao.insert(aggregateFile1);
+    dao.insert(aggregateFile2);
+    ApplicationComponent applicationComponentOther = tempEntity.newApplicationComponent(application.getId(),
+        BuildStageType.ID, "hash4", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+    AggregateFile aggregateFile3 = new AggregateFile(applicationComponentOther.getId(), "hash5", null);
+    dao.insert(aggregateFile3);
+
+    dao.deleteByApplicationComponentId(applicationComponent.getId());
+
+    assertThat(dao.getByApplicationComponentId(applicationComponent.getId())).isEmpty();
+    assertThat(dao.getByApplicationComponentId(applicationComponentOther.getId())).extracting(AggregateFile::getId)
+        .containsExactly(aggregateFile3.getId());
+  }
 }

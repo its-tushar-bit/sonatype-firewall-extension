@@ -20,6 +20,8 @@ import {
   selectLatestInnerSourceComponentVersion,
   selectInsufficientPermission,
   selectComponentDetailsSelectedRequestData,
+  selectSelectedVersion,
+  selectCurrentVersion,
 } from './overviewSelectors';
 import { comparator, path, sort } from 'ramda';
 import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
@@ -154,6 +156,7 @@ function loadFailed(state, { payload }) {
 function loadComponentDetailsByVerionsNumberRequested(state) {
   state.selectedVersionData.loading = true;
   state.selectedVersionData.loadError = null;
+  state.selectedVersionData.selectedVersionDetails = null;
 }
 
 function loadComponentDetailsByVerionsNumberFulfilled(state, { payload }) {
@@ -200,10 +203,15 @@ const loadVersionExplorerData = createAsyncThunk(
 const loadSelectedVersionData = createAsyncThunk(
   `${REDUCER_NAME}/loadSelectedVersionData`,
   (version, { getState, dispatch }) => {
-    const selectedVersion = path(['componentDetailsOverview', 'selectedVersionData', 'selectedVersion'], getState());
+    const selectedVersion = selectSelectedVersion(getState());
+    const currentVersion = selectCurrentVersion(getState());
 
     if (selectedVersion === version) {
       return;
+    }
+
+    if (currentVersion === version) {
+      return dispatch(actions.resetSelectedVersionData());
     }
 
     dispatch(actions.setSelectedVersion(version));

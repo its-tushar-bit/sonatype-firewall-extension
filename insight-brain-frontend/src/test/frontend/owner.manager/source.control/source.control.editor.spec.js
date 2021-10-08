@@ -180,6 +180,11 @@ describe('source.control.editor.spec', function () {
         parentName: null,
         parentValue: null,
       },
+      sshEnabled: {
+        value: null,
+        parentName: null,
+        parentValue: null,
+      },
     };
 
     const sourceControlModel = {
@@ -208,6 +213,9 @@ describe('source.control.editor.spec', function () {
       statusChecksEnabled: true,
       statusChecksEnabledInheritedValue: null,
       statusChecksEnabledInheritFrom: null,
+      sshEnabled: null,
+      sshEnabledInheritFrom: null,
+      sshEnabledInheritedValue: null,
     };
 
     beforeEach(inject(function () {
@@ -806,6 +814,11 @@ describe('source.control.editor.spec', function () {
         parentName: 'Root Organization',
         parentValue: true,
       },
+      sshEnabled: {
+        value: null,
+        parentName: 'Root Organization',
+        parentValue: true,
+      },
     };
 
     const sourceControlModel = {
@@ -834,6 +847,9 @@ describe('source.control.editor.spec', function () {
       statusChecksEnabled: true,
       statusChecksEnabledInheritedValue: null,
       statusChecksEnabledInheritFrom: null,
+      sshEnabled: null,
+      sshEnabledInheritedValue: true,
+      sshEnabledInheritFrom: 'Root Organization',
     };
 
     beforeEach(inject(function () {
@@ -996,6 +1012,9 @@ describe('source.control.editor.spec', function () {
           statusChecksEnabled: null,
           statusChecksEnabledInheritedValue: null,
           statusChecksEnabledInheritFrom: null,
+          sshEnabled: null,
+          sshEnabledInheritedValue: null,
+          sshEnabledInheritFrom: null,
         };
 
         const retrievedCompositeSourceControl = {
@@ -1031,6 +1050,11 @@ describe('source.control.editor.spec', function () {
             value: null,
             parentName: 'Root Organization',
             parentValue: true,
+          },
+          sshEnabled: {
+            value: null,
+            parentName: null,
+            parentValue: null,
           },
         };
 
@@ -1455,6 +1479,11 @@ describe('source.control.editor.spec', function () {
         parentName: 'Root Organization',
         parentValue: true,
       },
+      sshEnabled: {
+        value: true,
+        parentName: null,
+        parentValue: null,
+      },
     };
 
     const sourceControlModel = {
@@ -1483,6 +1512,9 @@ describe('source.control.editor.spec', function () {
       statusChecksEnabled: true,
       statusChecksEnabledInheritedValue: null,
       statusChecksEnabledInheritFrom: null,
+      sshEnabled: true,
+      sshEnabledInheritFrom: null,
+      sshEnabledInheritedValue: null,
     };
 
     beforeEach(inject(function () {
@@ -1647,6 +1679,9 @@ describe('source.control.editor.spec', function () {
           statusChecksEnabled: null,
           statusChecksEnabledInheritedValue: null,
           statusChecksEnabledInheritFrom: null,
+          sshEnabled: null,
+          sshEnabledInheritedValue: true,
+          sshEnabledInheritFrom: 'Sub Organization',
         };
 
         const retrievedCompositeSourceControl = {
@@ -1679,6 +1714,11 @@ describe('source.control.editor.spec', function () {
             parentValue: null,
           },
           remediationPullRequestsEnabled: {
+            value: null,
+            parentName: 'Sub Organization',
+            parentValue: true,
+          },
+          sshEnabled: {
             value: null,
             parentName: 'Sub Organization',
             parentValue: true,

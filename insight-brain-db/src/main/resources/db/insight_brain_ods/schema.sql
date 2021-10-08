@@ -1064,3 +1064,10 @@ CREATE TABLE attribution_report_template (
   last_updated_at timestamp NOT NULL,
   CONSTRAINT template_name_uk UNIQUE (template_name)
 );
+
+-- Since 1.125
+CREATE TABLE quarantined_component_access (
+  quarantined_component_access_id varchar(50) NOT NULL PRIMARY KEY,
+  repository_component_id varchar(50) NOT NULL,
+  generate_time timestamp NOT NULL
+);

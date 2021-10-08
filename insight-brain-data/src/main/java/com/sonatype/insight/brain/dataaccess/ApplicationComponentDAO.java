@@ -15,9 +15,7 @@ import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.ApplicationComponent;
-import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -44,19 +42,10 @@ public class ApplicationComponentDAO
   @Override
   public void delete(TransactionContext tx, ApplicationComponent applicationComponent) {
     // Cascade to aggregate files
-    AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
-    List<AggregateFile> aggregateFiles = aggregateFileDAO.getByApplicationComponentId(tx, applicationComponent.getId());
-    for (AggregateFile aggregateFile : aggregateFiles) {
-      aggregateFileDAO.delete(tx, aggregateFile);
-    }
+    new AggregateFileDAO().deleteByApplicationComponentId(tx, applicationComponent.getId());
 
     // Cascade to application component licenses
-    ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
-    List<ApplicationComponentLicense> applicationComponentLicenses =
-        applicationComponentLicenseDAO.getByApplicationComponentId(tx, applicationComponent.getId());
-    for (ApplicationComponentLicense applicationComponentLicense : applicationComponentLicenses) {
-      applicationComponentLicenseDAO.delete(tx, applicationComponentLicense);
-    }
+    new ApplicationComponentLicenseDAO().deleteByApplicationComponentId(tx, applicationComponent.getId());
     super.delete(tx, applicationComponent);
   }
 

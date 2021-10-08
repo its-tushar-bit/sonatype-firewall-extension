@@ -194,7 +194,14 @@ public class SourceControlUtils
    * Checks whether the checkout directory exists. If so, it is returned; otherwise it is created.
    */
   public File getCheckoutDirectory(Application app) {
-    File checkoutDir = insightWork.getSourceControlDir(app.getId());
+    return getCheckoutDirectory(app.getId());
+  }
+
+  /**
+   * Checks whether the checkout directory exists. If so, it is returned; otherwise it is created.
+   */
+  public File getCheckoutDirectory(String appId) {
+    File checkoutDir = insightWork.getSourceControlDir(appId);
 
     if (checkoutDir.exists()) {
       log.debug("Using existing directory for pull request task: {}", checkoutDir.getAbsolutePath());

@@ -149,4 +149,46 @@ public class GitApiFactoryTest
 
     assertThat(gitApi).isInstanceOf(NativeGitApi.class);
   }
+
+  @Test
+  public void test_sshEnabledButNoSshUrl() {
+    GitRepositoryInfo sshGitRepositoryInfo = new GitRepositoryInfo("localhost", null, null, "token",
+        SourceControlProvider.GITHUB, "master", true, true, true, true, true, null);
+
+    when(sourceControlConfig.getGitImplementation()).thenReturn(NATIVE_GIT);
+
+    assertThatThrownBy(() -> {
+      gitApiFactory.createGitApi(sshGitRepositoryInfo);
+    })
+    .isInstanceOf(RuntimeException.class)
+      .hasMessageContaining("SSH is enabled for repository")
+      .hasMessageContaining("but no SSH clone URL was");
+  }
+
+  @Test
+  public void test_sshEnabledWithSshUrl() {
+    String sshUrl = "git@github.com:foo/bar.git";
+    GitRepositoryInfo sshGitRepositoryInfo = new GitRepositoryInfo("localhost", sshUrl, null,
+        "token", SourceControlProvider.GITHUB, "master", true, true, true, true, true, null);
+
+    when(sourceControlConfig.getGitImplementation()).thenReturn(NATIVE_GIT);
+
+    GitApi gitApi = gitApiFactory.createGitApi(sshGitRepositoryInfo);
+    assertThat(gitApi).hasFieldOrPropertyWithValue("repositoryUrl", sshUrl);
+  }
+
+  @Test
+  public void test_sshEnabledButJgitConfigured() {
+    String sshUrl = "git@github.com:foo/bar.git";
+    GitRepositoryInfo sshGitRepositoryInfo = new GitRepositoryInfo("localhost", sshUrl, null, "token",
+        SourceControlProvider.GITHUB, "master", true, true, true, true, true, null);
+
+    when(sourceControlConfig.getGitImplementation()).thenReturn(JGIT);
+
+    assertThatThrownBy(() -> {
+      gitApiFactory.createGitApi(sshGitRepositoryInfo);
+    })
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Application with URL " + sshUrl + " is configured to use SSH with JGit");
+  }
 }

@@ -26,7 +26,8 @@ public class ApplicationScopeEventProcessingSuspensionRuleTest
         new ApplicationScopeEventProcessingSuspensionRule();
 
     List<Exception> suspendableExceptions =
-        ImmutableList.of(new UnknownHostException(), new ExclusiveAccessRequestTimeoutException(""));
+        ImmutableList.of(new RuntimeException(new UnknownHostException()),
+            new RuntimeException(new ExclusiveAccessRequestTimeoutException("")));
 
     suspendableExceptions.forEach(e -> {
       SourceControlEvent event = createEvent();
@@ -72,14 +73,15 @@ public class ApplicationScopeEventProcessingSuspensionRuleTest
     SourceControlEvent event = createEvent();
 
     // verify unknown host timeout
-    eventProcessingSuspensionRule.onEventProcessingError(event, new UnknownHostException());
+    eventProcessingSuspensionRule.onEventProcessingError(event, new RuntimeException(new UnknownHostException()));
     assertThat(eventProcessingSuspensionRule.canPushEvent(event)).isFalse();
 
     Thread.sleep(1_100);
     assertThat(eventProcessingSuspensionRule.canPushEvent(event)).isTrue();
 
     // verify exclusive access timeout
-    eventProcessingSuspensionRule.onEventProcessingError(event, new ExclusiveAccessRequestTimeoutException(""));
+    eventProcessingSuspensionRule.onEventProcessingError(event,
+        new RuntimeException(new ExclusiveAccessRequestTimeoutException("")));
     assertThat(eventProcessingSuspensionRule.canPushEvent(event)).isFalse();
 
     Thread.sleep(1_100);

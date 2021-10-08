@@ -5,20 +5,29 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.git.ConfigurationValidationResult;
+import com.sonatype.insight.brain.git.GitApiFactory;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.PullRequestRepositoryValidator;
+import com.sonatype.insight.brain.git.SourceControlSshService;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.nexus.git.utils.api.GitApi;
+import com.sonatype.nexus.git.utils.api.GitException;
+import com.sonatype.nexus.git.utils.api.NativeGitApi;
+import com.sonatype.nexus.iq.manager.RepositorySyncCommand;
+import com.sonatype.nexus.iq.manager.RepositorySyncExecutor;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.ValidationResult;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Validates the Source Control config for a given application
@@ -29,18 +38,26 @@ public class ApiCompositeSourceControlConfigValidatorService
 
   private final GitClientFactory gitClientFactory;
 
+  private final GitApiFactory gitApiFactory;
+
   private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
+
+  private final SourceControlSshService sourceControlSshService;
 
   @Inject
   public ApiCompositeSourceControlConfigValidatorService(
       SourceControlUtils sourceControlUtils,
       GitClientFactory gitClientFactory,
-      PullRequestRepositoryValidator pullRequestRepositoryValidator
+      GitApiFactory gitApiFactory,
+      PullRequestRepositoryValidator pullRequestRepositoryValidator,
+      SourceControlSshService sourceControlSshService
   )
   {
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
+    this.gitApiFactory = gitApiFactory;
     this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
+    this.sourceControlSshService = sourceControlSshService;
   }
 
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
@@ -79,6 +96,58 @@ public class ApiCompositeSourceControlConfigValidatorService
       result.setTokenPermissions(new ValidationResult(false, "Unable to test permissions: " + e.getMessage()));
     }
 
+    validateSshConfiguration(applicationId, result, gitInfo);
+
     return result;
+  }
+
+  private void validateSshConfiguration(String applicationId, ConfigurationValidationResult result,
+                                        GitRepositoryInfo gitInfo)
+  {
+    if (!Boolean.TRUE.equals(gitInfo.sshEnabled)) {
+      // SSH disabled, no need to perform further validation
+      return;
+    }
+
+    // attempt to auto-populate SSH URL as it is not user-editable
+    if (StringUtils.isEmpty(gitInfo.sshRepositoryUrl)) {
+      sourceControlSshService.verifySshUrlAndUpdateIfNeeded(applicationId);
+    }
+    if (StringUtils.isEmpty(gitInfo.sshRepositoryUrl)) {
+      result.setSshConfiguration(new ValidationResult(false, "Unable to determine the SSH URL."));
+      return;
+    }
+
+    // native git is mandatory for SSH
+    GitApi gitApi;
+    try {
+      gitApi = gitApiFactory.createGitApi(gitInfo);
+      if (!(gitApi instanceof NativeGitApi)) {
+        result.setSshConfiguration(new ValidationResult(false, "SSH requires native git. It is either not configured "
+            + "or the 'git' executable has not been found"));
+        return;
+      }
+    }
+    catch (IllegalArgumentException e) {
+      result.setSshConfiguration(new ValidationResult(false, e.getMessage()));
+      return;
+    }
+
+    // the real test: see if we can successfully pull or clone
+    File repositoryDirectory = sourceControlUtils.getCheckoutDirectory(applicationId);
+    RepositorySyncCommand syncCommand = new RepositorySyncCommand(gitApi, gitInfo.baseBranch, null,
+        repositoryDirectory);
+    try {
+      new RepositorySyncExecutor().execute(syncCommand);
+      result.setSshConfiguration(new ValidationResult(true));
+    }
+    catch (GitException e) {
+      result.setSshConfiguration(new ValidationResult(false, "Unable to clone a repository using SSH, check that " +
+          "your SSH keys are configured properly and no passphrase is required. Full error: " + e.getMessage()));
+    }
+    catch (Exception e) {
+      result.setSshConfiguration(new ValidationResult(false,
+          "Unable to clone a repository using SSH: " + e.getMessage()));
+    }
   }
 }

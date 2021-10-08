@@ -75,6 +75,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
+import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -168,6 +169,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -399,6 +401,8 @@ public class TemporaryEntity
 
   private final AttributionReportTemplateDAO attributionReportTemplateDAO = new AttributionReportTemplateDAO();
 
+  private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = new QuarantinedComponentAccessDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -475,6 +479,8 @@ public class TemporaryEntity
 
   private Collection<InnerSourceComponent> innerSourceComponents;
 
+  private Collection<QuarantinedComponentAccess> quarantinedComponentAccesses;
+
   @Override
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -516,6 +522,7 @@ public class TemporaryEntity
     sourceControlDefaultBranchCommitHistories = new ArrayList<>();
     initializePersistedUserSessions();
     innerSourceComponents = new ArrayList<>();
+    quarantinedComponentAccesses = new ArrayList<>();
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -624,6 +631,7 @@ public class TemporaryEntity
     componentLegalFileDAO.getAll().forEach(componentLegalFileDAO::delete);
     autoUnquarantinePolicyConditionTypeDAO.getAll().forEach(autoUnquarantinePolicyConditionTypeDAO::delete);
     attributionReportTemplateDAO.getAll().forEach(attributionReportTemplateDAO::delete);
+    quarantinedComponentAccessDAO.getAll().forEach(quarantinedComponentAccessDAO::delete);
   }
 
   private <E> void detachEntity(E entity) {
@@ -3136,5 +3144,20 @@ public class TemporaryEntity
         includeStandardLicenseTexts);
     attributionReportTemplateDAO.insert(template);
     return template;
+  }
+
+  public QuarantinedComponentAccess newQuarantinedComponentAccess(final String repositoryComponentId) {
+    return newQuarantinedComponentAccess(repositoryComponentId, new Date());
+  }
+
+  public QuarantinedComponentAccess newQuarantinedComponentAccess(
+      final String repositoryComponentId,
+      final Date generateDate)
+  {
+    QuarantinedComponentAccess quarantinedComponentAccess =
+        new QuarantinedComponentAccess(repositoryComponentId, generateDate);
+    quarantinedComponentAccesses.add(quarantinedComponentAccess);
+    quarantinedComponentAccessDAO.insert(quarantinedComponentAccess);
+    return quarantinedComponentAccess;
   }
 }

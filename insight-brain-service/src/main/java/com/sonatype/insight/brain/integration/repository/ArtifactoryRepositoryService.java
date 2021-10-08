@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -24,9 +25,11 @@ public class ArtifactoryRepositoryService extends AbstractRepositoryService
       ProprietaryComponentNameDetector proprietaryComponentNameDetector,
       ProductLicense productLicense,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      DbQuarantinedComponentAccessManager quarantinedComponentAccessManager)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
-        LicensedFeature.FIREWALL_FOR_ARTIFACTORY, repositoryComponentTelemetryCreator);
+        LicensedFeature.FIREWALL_FOR_ARTIFACTORY, repositoryComponentTelemetryCreator,
+        quarantinedComponentAccessManager);
   }
 }

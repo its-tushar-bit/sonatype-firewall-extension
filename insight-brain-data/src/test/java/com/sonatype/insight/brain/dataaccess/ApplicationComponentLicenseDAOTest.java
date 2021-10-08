@@ -139,6 +139,29 @@ public class ApplicationComponentLicenseDAOTest
             newApplicationComponentLicensesDTO(applicationComponent5, "Apache-2.0"));
   }
 
+  @Test
+  public void testDeleteByApplicationComponentId() {
+    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
+        BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
+    ApplicationComponentLicense applicationComponentLicense1 =
+        new ApplicationComponentLicense(applicationComponent.getId(), "effectiveLicenseId1");
+    ApplicationComponentLicense applicationComponentLicense2 =
+        new ApplicationComponentLicense(applicationComponent.getId(), "effectiveLicenseId2");
+    dao.insert(applicationComponentLicense1);
+    dao.insert(applicationComponentLicense2);
+    ApplicationComponent applicationComponentOther = tempEntity.newApplicationComponent(application.getId(),
+        BuildStageType.ID, "hash4", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+    ApplicationComponentLicense applicationComponentLicense3 =
+        new ApplicationComponentLicense(applicationComponentOther.getId(), "effectiveLicenseId3");
+    dao.insert(applicationComponentLicense3);
+
+    dao.deleteByApplicationComponentId(applicationComponent.getId());
+
+    assertThat(dao.getByApplicationComponentId(applicationComponent.getId())).isEmpty();
+    assertThat(dao.getByApplicationComponentId(applicationComponentOther.getId())).extracting(
+        ApplicationComponentLicense::getId).containsExactly(applicationComponentLicense3.getId());
+  }
+
   private ApplicationComponentLicensesDTO newApplicationComponentLicensesDTO(
       ApplicationComponent applicationComponent,
       String... licenses)

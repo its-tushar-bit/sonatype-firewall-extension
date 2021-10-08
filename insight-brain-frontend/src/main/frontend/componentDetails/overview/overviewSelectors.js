@@ -97,6 +97,7 @@ export const selectLatestInnerSourceComponentVersion = createSelector(
 );
 
 export const selectCurrentVersionDetails = createSelector(selectVersionExplorerData, prop('currentVersionDetails'));
+export const selectCurrentVersion = createSelector(selectCurrentVersionDetails, prop('version'));
 
 export const selectSelectedVersionDetails = createSelector(selectSelectedVersionData, prop('selectedVersionDetails'));
 export const selectAvailableVersions = createSelector(selectVersionExplorerData, prop('versions'));

@@ -8,9 +8,11 @@ package com.sonatype.insight.brain.integration.repository;
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.inject.Binder;
@@ -19,6 +21,8 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mock;
+
+import static org.mockito.Mockito.when;
 
 public abstract class AbstractRepositoryServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -34,6 +38,9 @@ public abstract class AbstractRepositoryServiceAuthzTest
 
   protected abstract AbstractRepositoryService getRepositoryService();
 
+  @Mock
+  private DbQuarantinedComponentAccessManager quarantinedComponentAccessManager;
+
   @After
   public void cleanup() {
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
@@ -46,6 +53,7 @@ public abstract class AbstractRepositoryServiceAuthzTest
   public void configure(Binder binder) {
     super.configure(binder);
     binder.bind(RepositoryPolicyEvaluator.class).toInstance(repositoryPolicyEvaluator);
+    binder.bind(DbQuarantinedComponentAccessManager.class).toInstance(quarantinedComponentAccessManager);
   }
 
   @Test
@@ -216,5 +224,35 @@ public abstract class AbstractRepositoryServiceAuthzTest
   public void testRemoveProprietaryComponentNames_Authorized() {
     grantManageProprietaryPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     getRepositoryService().removeProprietaryComponentNames(MANUAL_REPO_MAN_INSTANCE_ID, "internal");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetQuarantinedComponentReportUrl_Unauthenticated() {
+    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
+    getRepositoryService()
+        .getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetQuarantinedComponentReportUrl_Unauthorized() {
+    login();
+    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
+    getRepositoryService()
+        .getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "");
+  }
+
+  @Test
+  public void testGetQuarantinedComponentReportUrl_Authorized() {
+    //setup
+    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    when(quarantinedComponentAccessManager.createToken(repositoryComponent.getId())).thenReturn("token");
+
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    getRepositoryService()
+        .getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "path");
   }
 }

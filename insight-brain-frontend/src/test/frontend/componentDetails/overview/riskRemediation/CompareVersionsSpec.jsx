@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as enzymeUtils from '../../../enzymeUtils';
-import { NxTableCell, NxTableBody } from '@sonatype/react-shared-components';
+import { NxTableCell, NxLoadingSpinner } from '@sonatype/react-shared-components';
 import { faTrophy, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import { CompareVersions } from 'MainRoot/componentDetails/overview/riskRemediation/CompareVersions';
 
@@ -22,8 +22,8 @@ describe('CompareVersions', () => {
   });
 
   it('shows loading spinner', () => {
-    const body = getShallow({ loading: true }).find(NxTableBody);
-    expect(body).toHaveProp('isLoading', true);
+    const versionRow = getShallow({ loading: true }).find('#version');
+    expect(versionRow.find(NxLoadingSpinner)).toExist();
   });
 
   describe('Version row', () => {

@@ -24,6 +24,7 @@ public class EventProcessingErrorRetryRuleTest
     EventProcessingErrorRetryRule rule = new EventProcessingErrorRetryRule();
 
     assertThat(rule.shouldRetry(createEvent(), new UnknownHostException())).isTrue();
+    assertThat(rule.shouldRetry(createEvent(), new RuntimeException(new UnknownHostException()))).isTrue();
   }
 
   @Test
@@ -31,6 +32,9 @@ public class EventProcessingErrorRetryRuleTest
     EventProcessingErrorRetryRule rule = new EventProcessingErrorRetryRule();
 
     assertThat(rule.shouldRetry(createEvent(), new ExclusiveAccessRequestTimeoutException("testing"))).isTrue();
+    assertThat(
+        rule.shouldRetry(createEvent(), new RuntimeException(new ExclusiveAccessRequestTimeoutException("testing"))))
+            .isTrue();
   }
 
   @Test

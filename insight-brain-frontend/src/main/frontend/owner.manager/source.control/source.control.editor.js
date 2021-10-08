@@ -77,6 +77,7 @@ function SourceControlEditorController(
   vm.effectiveProvider = effectiveProvider;
   vm.effectiveTokenInheritFrom = effectiveTokenInheritFrom;
   vm.providerNeedsUsername = providerNeedsUsername;
+  vm.sshEnabled = sshEnabled;
 
   /**
    * Matches any absolute HTTP(S) and SSH URL as per RFC 3986
@@ -305,7 +306,15 @@ function SourceControlEditorController(
     model.statusChecksEnabledInheritFrom = compositeSourceControl.statusChecksEnabled.parentName;
     model.statusChecksEnabledInheritedValue = compositeSourceControl.statusChecksEnabled.parentValue;
 
+    model.sshEnabled = compositeSourceControl.sshEnabled.value;
+    model.sshEnabledInheritFrom = compositeSourceControl.sshEnabled.parentName;
+    model.sshEnabledInheritedValue = compositeSourceControl.sshEnabled.parentValue;
+
     return model;
+  }
+
+  function sshEnabled() {
+    return vm.dirtySourceControl.sshEnabled || vm.dirtySourceControl.sshEnabledInheritValue;
   }
 
   function modelToSourceControl(model) {

@@ -51,8 +51,12 @@ public class RiskRemediationTile
         this.childSelector(TILE_CONTENT_SELECTOR, ".iq-recommended-version"));
   }
 
-  public CompareVersionsSection compareVersionsSection() {
-    return new CompareVersionsSection(this.childSelector(TILE_CONTENT_SELECTOR, "#compare-versions-table"));
+  public SelenideElement compareVersionsTitle() {
+    return child("#compare-versions-header .nx-grid-header__title");
+  }
+
+  public CompareVersionsTable compareVersionsTable() {
+    return new CompareVersionsTable(this.childSelector("#compare-versions-table"));
   }
 
   public static class DependencyInformationSection
@@ -147,19 +151,35 @@ public class RiskRemediationTile
     }
   }
 
-  public static class CompareVersionsSection
-      extends BasicElement<RiskRemediationTile.CompareVersionsSection>
+  public static class CompareVersionsTable
+      extends BasicElement<CompareVersionsTable>
   {
-    private CompareVersionsSection(String selector) {
+    private CompareVersionsTable(String selector) {
       super(selector);
     }
 
-    public SelenideElement getTitle() {
-      return child(TILE_HEADER_TITLE_SELECTOR);
+    public ElementsCollection versionRow() {
+      return children("#version .nx-cell");
     }
 
-    public SelenideElement content() {
-      return child(TILE_CONTENT_SELECTOR);
+    public ElementsCollection highestPolicyThreatRow() {
+      return children("#highestPolicyThreat .nx-cell");
+    }
+
+    public ElementsCollection highestCvssScoreRow() {
+      return children("#highestCvssScore .nx-cell");
+    }
+
+    public ElementsCollection effectiveLicenseRow() {
+      return children("#effectiveLicense .nx-cell");
+    }
+
+    public ElementsCollection hygieneRatingRow() {
+      return children("#hygieneRating .nx-cell");
+    }
+
+    public ElementsCollection integrityRatingRow() {
+      return children("#integrityRating .nx-cell");
     }
   }
 }

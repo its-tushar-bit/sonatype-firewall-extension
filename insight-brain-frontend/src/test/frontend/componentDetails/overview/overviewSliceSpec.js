@@ -367,17 +367,21 @@ describe('componentDetailsOverviewReducer', () => {
           ...selectedVersionData,
           loadError: 'error',
           selectedVersion: '2.3',
+          selectedVersionDetails: {
+            some: 'data',
+          },
         },
       });
 
       const {
-        selectedVersionData: { loading, loadError },
+        selectedVersionData: { loading, loadError, selectedVersionDetails },
       } = reducer(state, {
         type: 'componentDetailsOverview/loadComponentDetailsByVerionsNumber/pending',
       });
 
       expect(loading).toBe(true);
       expect(loadError).toBeNull();
+      expect(selectedVersionDetails).toBeNull();
     });
   });
 

@@ -55,7 +55,7 @@ public class RepositoryUrlErrorRuleTest
     exhaustUrlErrorsAndAssert(rule, event);
 
     // one more error to exceed the limit
-    rule.onEventProcessingError(event, new UnknownHostException("host not known"));
+    rule.onEventProcessingError(event, new RuntimeException(new UnknownHostException("host not known")));
     assertThat(rule.canPushEvent(event)).isFalse();
   }
 
@@ -122,14 +122,14 @@ public class RepositoryUrlErrorRuleTest
 
   private void exhaustUrlErrorsAndAssert(RepositoryUrlErrorRule rule, SourceControlEvent event) {
     for (int i = 1; i < RepositoryUrlErrorRule.REPO_URL_ERROR_THRESHOLD; i++) {
-      rule.onEventProcessingError(event, new UnknownHostException("host not known"));
+      rule.onEventProcessingError(event, new RuntimeException(new UnknownHostException("host not known")));
       assertThat(rule.canPushEvent(event)).isTrue();
     }
   }
 
   private void exceedUrlErrorLimit(RepositoryUrlErrorRule rule, SourceControlEvent event) {
     for (int i = 0; i < RepositoryUrlErrorRule.REPO_URL_ERROR_THRESHOLD; i++) {
-      rule.onEventProcessingError(event, new UnknownHostException("host not known"));
+      rule.onEventProcessingError(event, new RuntimeException(new UnknownHostException("host not known")));
     }
   }
 

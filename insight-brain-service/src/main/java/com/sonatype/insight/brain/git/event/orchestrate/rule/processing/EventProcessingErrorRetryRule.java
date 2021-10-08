@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sonatype.insight.brain.common.exception.ExceptionHelper;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.nexus.scm.api.access.control.ExclusiveAccessRequestTimeoutException;
 
@@ -58,8 +59,8 @@ public class EventProcessingErrorRetryRule
   }
 
   private boolean isRetryableException(Exception e) {
-    return e instanceof UnknownHostException
-        || e instanceof ExclusiveAccessRequestTimeoutException
+    return ExceptionHelper.hasCauseOrSuppressedOfType(e, UnknownHostException.class)
+        || ExceptionHelper.hasCauseOrSuppressedOfType(e, ExclusiveAccessRequestTimeoutException.class)
         || (!isBlank(e.getMessage()) && e.getMessage().contains("abuse detection"));
   }
 

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sonatype.insight.brain.common.exception.ExceptionHelper;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.nexus.scm.api.access.control.ExclusiveAccessRequestTimeoutException;
 
@@ -40,12 +41,12 @@ public class ApplicationScopeEventProcessingSuspensionRule
   }
 
   public void onEventProcessingError(SourceControlEvent event, Exception e) {
-    if (e instanceof UnknownHostException) {
+    if (ExceptionHelper.hasCauseOrSuppressedOfType(e, UnknownHostException.class)) {
       suspendApplicationEventProcessingForXSeconds(event.getApplicationId(), unknownHostSuspensionSeconds);
       log.debug("Event processing for application {} event '{}' suspended for {} seconds due to UnknownHostException",
           event.getApplicationId(), event.getEventType(), unknownHostSuspensionSeconds);
     }
-    else if (e instanceof ExclusiveAccessRequestTimeoutException) {
+    else if (ExceptionHelper.hasCauseOrSuppressedOfType(e, ExclusiveAccessRequestTimeoutException.class)) {
       suspendApplicationEventProcessingForXSeconds(event.getApplicationId(),
           exclusiveAccessRequestTimeoutSuspensionSeconds);
       log.debug(

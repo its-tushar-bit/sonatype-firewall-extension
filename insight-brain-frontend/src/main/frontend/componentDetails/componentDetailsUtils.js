@@ -109,8 +109,10 @@ export function getComponentVersionComparisonInfo(componentDetails) {
     ? null
     : pipe(map(prop('licenseName')), join(', '))(componentDetails.effectiveLicenses);
 
+  const version = componentDetails.componentIdentifier?.coordinates?.version || componentDetails.version;
+
   return {
-    version: componentDetails.version,
+    version,
     highestPolicyThreat,
     numberOfViolatedPolicies,
     highestCVSSScore: getHighestCVSSScore(),

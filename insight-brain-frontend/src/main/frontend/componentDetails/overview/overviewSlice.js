@@ -203,10 +203,10 @@ const loadVersionExplorerData = createAsyncThunk(
 const loadSelectedVersionData = createAsyncThunk(
   `${REDUCER_NAME}/loadSelectedVersionData`,
   (version, { getState, dispatch }) => {
-    const selectedVersion = selectSelectedVersion(getState());
+    const prevSelectedVersion = selectSelectedVersion(getState());
     const currentVersion = selectCurrentVersion(getState());
 
-    if (selectedVersion === version) {
+    if (prevSelectedVersion === version) {
       return;
     }
 

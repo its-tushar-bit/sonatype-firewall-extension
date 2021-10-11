@@ -9,6 +9,7 @@ properties(
   [
     parameters (
       [
+        booleanParam(name: 'hotfix', defaultValue: 'false', description: 'Check if this IQ Release is intended to be a hot fix e.g. (urgent release to address a major bug). Used for internal metrics only.'),
         string (name: 'releaseVersion', defaultValue: '',description: 'The version number for the product, like "1.118.0-01"')
       ]
     )
@@ -35,7 +36,10 @@ pipeline {
       steps {
         triggerBuildAndVerifySafeToContinuePipeline(
           'insight/insight-brain/release',
-          [string(name: 'version', value: params.releaseVersion)],
+          [
+              booleanParam(name: 'hotfix', value: params.hotfix),
+              string(name: 'version', value: params.releaseVersion)
+          ],
           true
         )
       }

@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemedia
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.VersionExplorerSection;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
+import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage.ComponentDetailsFooter;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -234,6 +235,42 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     eyesWatcher.eyesCheck(
         "component details overview tab risk remediation dependency information - transitive dependency");
+  }
+
+  @Test
+  public void testRiskRemediationTile_FooterBackButton() {
+    mockHdsResponseForFirstComponent();
+    mockHdsResponseForSecondComponent();
+
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1,SECOND_COMPONENT_HASH);
+    componentDetailsPage.overviewTab().shouldBe(visible);
+
+    RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+    riskRemediation.shouldBe(visible);
+
+    DependencyInformationSection dependencyInformationSection = riskRemediation.dependencyInformationSection();
+    dependencyInformationSection.shouldBe(visible);
+
+    ScrollUtil.scrollIntoView(dependencyInformationSection.content());
+
+    SelenideElement ancestor = dependencyInformationSection.contentClickableAncestorsList().get(0);
+    ancestor.shouldHave(text("javancss : javancss : 29.50"));
+    ancestor.click();
+
+    ComponentDetailsFooter footer = componentDetailsPage.footer();
+
+    SelenideElement footerBackButton = footer.backButton();
+
+    footerBackButton.shouldHave(text("Back to ch.qos.logback : logback-access : 0.6 component"));
+    footerBackButton.click();
+
+    footer.prevLink().shouldHave(text("Previous Component"));
+    footer.nextLink().shouldHave(text("Next Component"));
+
+    SelenideElement pageTitle = componentDetailsPage.header().title();
+    pageTitle.shouldHave(text("ch.qos.logback : logback-access : 0.6"));
   }
 
   @Test

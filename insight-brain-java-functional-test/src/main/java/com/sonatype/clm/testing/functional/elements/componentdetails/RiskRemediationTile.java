@@ -24,6 +24,8 @@ public class RiskRemediationTile
 
   private static final String LIST_ITEM_SELECTOR = ".nx-list__item";
 
+  private static final String LIST_ITEM_CLICKABLE_SELECTOR = ".nx-list__item .nx-text-link";
+
   public static RiskRemediationTile getOverviewTileForParent(String parentSelector) {
     String combinedSelector = SelectorUtils.createSelector(parentSelector, TILE_SELECTOR);
     return new RiskRemediationTile(combinedSelector);
@@ -81,6 +83,11 @@ public class RiskRemediationTile
     public ElementsCollection contentAncestorsList() {
       SelenideElement child = child(LIST_SELECTOR);
       return child.findAll(LIST_ITEM_SELECTOR);
+    }
+
+    public ElementsCollection contentClickableAncestorsList() {
+      SelenideElement child = child(LIST_SELECTOR);
+      return child.findAll(LIST_ITEM_CLICKABLE_SELECTOR);
     }
   }
 

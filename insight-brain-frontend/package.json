@@ -123,7 +123,8 @@
     "xmldom": "^0.1.27"
   },
   "resolutions": {
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "immer": "^9.0.6"
   },
   "repository": {
     "type": "git",

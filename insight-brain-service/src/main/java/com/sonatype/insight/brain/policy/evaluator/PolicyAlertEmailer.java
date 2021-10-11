@@ -84,41 +84,54 @@ public class PolicyAlertEmailer
     {
       @Override
       public void run() {
-        String applicationPublicId = app.getPublicId();
-        String mailServer = getMail().getServer();
-        Map<String, List<PolicyFact>> policyFactsByEmailAddress = getPolicyFactsByEmailAddress(app,
-            policyNotifications);
+        try {
+          String applicationPublicId = app.getPublicId();
+          String mailServer = getMail().getServer();
+          Map<String, List<PolicyFact>> policyFactsByEmailAddress = getPolicyFactsByEmailAddress(app,
+              policyNotifications);
 
-        if (policyFactsByEmailAddress.isEmpty()) {
-          log.debug("Not sending notification emails for application {} and scan {} in stage {}."
-              + " There are either no recipients configured, or no new policy violations"
-              + " for policies configured to send notifications.", applicationPublicId, scanId, stage);
-          return;
-        }
+          if (policyFactsByEmailAddress.isEmpty()) {
+            log.debug("Not sending notification emails for application {} and scan {} in stage {}."
+                + " There are either no recipients configured, or no new policy violations"
+                + " for policies configured to send notifications.", applicationPublicId, scanId, stage);
+            return;
+          }
 
-        ContactDTO appContact =
-            ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
-        for (final Entry<String, List<PolicyFact>> details : policyFactsByEmailAddress.entrySet()) {
-          try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.SEND_MAIL)) {
-            try {
-              log.debug("Sending notification email via {} to {} for application {} and scan {} in stage {}",
-                  mailServer, details.getKey(), applicationPublicId, scanId, stage);
-              AuditData.get().setApplication(app).setScanId(scanId).setStageId(stage.getStageTypeId())
-                  .setData("emailAddress", details.getKey());
-              PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
-              AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
-              StageType stageType = StageTypes.getById(stage.getStageTypeId());
-              final String subject = createPolicyMailSubject(policyAlertCounts, app.getName(), stageType);
-              final String body = createPolicyMailBody(createPolicyMailModel(app, appContact, scanId, stageType,
-                  details.getValue(), grandfatheredPolicyViolationCount));
-              getMail().sendHtml(details.getKey(), subject, body);
-            }
-            catch (final Exception e) {
-              log.error("Unable to send notification email to {} for application {} and scan {} in stage {}",
-                  details.getKey(), applicationPublicId, scanId, stage, e);
-              AuditData.get().setException(e);
+          ContactDTO appContact =
+              ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
+          for (final Entry<String, List<PolicyFact>> details : policyFactsByEmailAddress.entrySet()) {
+            try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.SEND_MAIL)) {
+              try {
+                log.debug("Sending notification email via {} to {} for application {} and scan {} in stage {}",
+                    mailServer, details.getKey(), applicationPublicId, scanId, stage);
+                AuditData.get().setApplication(app).setScanId(scanId).setStageId(stage.getStageTypeId())
+                    .setData("emailAddress", details.getKey());
+                PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
+                AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
+                StageType stageType = StageTypes.getById(stage.getStageTypeId());
+                final String subject = createPolicyMailSubject(policyAlertCounts, app.getName(), stageType);
+                final String body = createPolicyMailBody(createPolicyMailModel(app, appContact, scanId, stageType,
+                    details.getValue(), grandfatheredPolicyViolationCount));
+                getMail().sendHtml(details.getKey(), subject, body);
+              }
+              catch (final Exception e) {
+                log.error("Unable to send notification email to {} for application {} and scan {} in stage {}",
+                    details.getKey(), applicationPublicId, scanId, stage, e);
+                AuditData.get().setException(e);
+              }
             }
           }
+        }
+        catch (Exception e) {
+          log.error("Failed to send notifications for application {} and scan {} in stage {}.", app.getPublicId(),
+              scanId, stage.getStageTypeId(), e);
+        }
+        catch (Throwable t) {
+          // Try to log to stderr before trying the standard logging because the standard logging may not be
+          // operational at this point.
+          t.printStackTrace();
+          log.error(t.getMessage(), t);
+          System.exit(1);
         }
       }
     }.start();

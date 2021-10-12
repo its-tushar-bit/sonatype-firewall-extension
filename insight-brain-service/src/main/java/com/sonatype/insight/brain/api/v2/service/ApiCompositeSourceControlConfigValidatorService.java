@@ -112,6 +112,10 @@ public class ApiCompositeSourceControlConfigValidatorService
     // attempt to auto-populate SSH URL as it is not user-editable
     if (StringUtils.isEmpty(gitInfo.sshRepositoryUrl)) {
       sourceControlSshService.verifySshUrlAndUpdateIfNeeded(applicationId);
+      GitRepositoryInfo updatedGitInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
+      if (updatedGitInfo != null) {
+        gitInfo.sshRepositoryUrl = updatedGitInfo.sshRepositoryUrl;
+      }
     }
     if (StringUtils.isEmpty(gitInfo.sshRepositoryUrl)) {
       result.setSshConfiguration(new ValidationResult(false, "Unable to determine the SSH URL."));

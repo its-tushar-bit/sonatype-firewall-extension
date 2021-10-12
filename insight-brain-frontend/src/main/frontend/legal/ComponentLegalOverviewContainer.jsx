@@ -7,7 +7,7 @@
 import { connect } from 'react-redux';
 import { pick } from 'ramda';
 import ComponentLegalOverviewPage from './ComponentLegalOverviewPage';
-import { loadAvailableScopes, loadComponent } from './advancedLegalActions';
+import { loadAvailableScopes, loadComponent, loadComponentByComponentIdentifier } from './advancedLegalActions';
 import * as copyrightOverrideFormActions from './copyright/copyrightOverrideFormActions';
 import { setShowLicenseFilesModal, setShowNoticesModal, setShowLicensesModal } from './files/advancedLegalFileActions';
 import { path } from 'ramda';
@@ -26,7 +26,10 @@ function mapStateToProps({ advancedLegal, router, copyrightOverrides }) {
     showLicensesModal: component.component ? component.component.licenseLegalData.showLicensesModal : false,
     noticeFiles: component.component ? component.component.licenseLegalData.noticeFiles : null,
     licenseFiles: component.component ? component.component.licenseLegalData.licenseFiles : null,
-    ...pick(['hash', 'organizationId', 'applicationPublicId', 'stageTypeId'], router.currentParams),
+    ...pick(
+      ['hash', 'organizationId', 'applicationPublicId', 'stageTypeId', 'componentIdentifier'],
+      router.currentParams
+    ),
     ...pick(['showEditCopyrightOverrideModal'], copyrightOverrides),
     ecosystem: path(['component', 'componentIdentifier', 'format'], component),
   };
@@ -34,6 +37,7 @@ function mapStateToProps({ advancedLegal, router, copyrightOverrides }) {
 
 const mapDispatchToProps = {
   loadComponent,
+  loadComponentByComponentIdentifier,
   loadAvailableScopes,
   setShowNoticesModal,
   setShowLicenseFilesModal,

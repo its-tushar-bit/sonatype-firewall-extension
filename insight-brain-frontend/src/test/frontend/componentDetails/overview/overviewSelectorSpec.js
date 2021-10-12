@@ -14,6 +14,7 @@ import {
   selectLatestInnerSourceComponentVersion,
   selectRemediationData,
   selectComponentDetailsRequestData,
+  selectCurrentVersion,
   selectSelectedVersion,
   selectAvailableVersions,
   selectSelectedVersionDetailsByVersionId,
@@ -60,6 +61,7 @@ describe('overviewSelectors', () => {
       data: {
         someData: 'data',
       },
+      currentVersionDetails: {},
     };
 
     selectedVersionData = {
@@ -253,6 +255,28 @@ describe('overviewSelectors', () => {
     it('selects selected version', () => {
       const actualSelection = selectSelectedVersion(mockState);
       expect(actualSelection).toBe('2.3');
+    });
+  });
+
+  describe('selectCurrentVersion', () => {
+    it('selects current version from componentIdentifier object', () => {
+      mockState.componentDetailsOverview.versionExplorerData.currentVersionDetails = {
+        componentIdentifier: {
+          coordinates: {
+            version: '2.3-compIdentifier',
+          },
+        },
+      };
+
+      const actualSelection = selectCurrentVersion(mockState);
+      expect(actualSelection).toBe('2.3-compIdentifier');
+    });
+
+    it('selects current version from version prop as a fallback', () => {
+      mockState.componentDetailsOverview.versionExplorerData.currentVersionDetails.version = '2.3-from-fallback';
+
+      const actualSelection = selectCurrentVersion(mockState);
+      expect(actualSelection).toBe('2.3-from-fallback');
     });
   });
 

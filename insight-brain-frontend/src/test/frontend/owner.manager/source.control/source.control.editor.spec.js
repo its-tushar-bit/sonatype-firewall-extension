@@ -2337,6 +2337,44 @@ describe('source.control.editor.spec', function () {
       });
     });
 
+    describe('sshEnabled', () => {
+      it('returns true when SSH Enabled at the app', () => {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.sshEnabled = {
+          value: true,
+          parentName: null,
+          parentValue: null,
+        };
+
+        digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
+        expect(vm.sshEnabled()).toBeTrue();
+      });
+
+      it('returns true when SSH enabled at the org', () => {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.sshEnabled = {
+          value: null,
+          parentName: 'Org',
+          parentValue: true,
+        };
+
+        digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
+        expect(vm.sshEnabled()).toBeTrue();
+      });
+
+      it('returns false when not enabled', () => {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.sshEnabled = {
+          value: null,
+          parentName: null,
+          parentValue: null,
+        };
+
+        digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
+        expect(vm.sshEnabled()).toBeFalsy();
+      });
+    });
+
     describe('isUsernameRequiredOnNode', function () {
       const testData = [
         { provider: 'bitbucket', usernameRequired: true },

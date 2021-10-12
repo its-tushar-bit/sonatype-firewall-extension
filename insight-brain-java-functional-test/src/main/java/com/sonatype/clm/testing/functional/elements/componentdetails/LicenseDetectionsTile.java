@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.elements.componentdetails;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 public class LicenseDetectionsTile
@@ -26,5 +27,25 @@ public class LicenseDetectionsTile
 
   public SelenideElement editLicenseButton() {
     return child("#component-details-edit-licenses");
+  }
+
+  public SelenideElement status() {
+    return child("#status-container");
+  }
+
+  public SelenideElement effectiveLicenses() {
+    return child("#effective-licenses-container");
+  }
+
+  public SelenideElement declaredLicenses() {
+    return child("#declared-licenses-container");
+  }
+
+  public SelenideElement observedLicenses() {
+    return child("#observed-licenses-container");
+  }
+
+  public ElementsCollection getItems(SelenideElement parent) {
+    return parent.findAll(".license-list-item");
   }
 }

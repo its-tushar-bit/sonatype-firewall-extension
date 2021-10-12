@@ -69,6 +69,6 @@ NoticeTextsTile.propTypes = {
   ownerId: PropTypes.string.isRequired,
   stageTypeId: PropTypes.string,
   availableScopes: availableScopesPropType,
-  hash: PropTypes.string.isRequired,
+  hash: PropTypes.string,
   $state: PropTypes.object.isRequired,
 };

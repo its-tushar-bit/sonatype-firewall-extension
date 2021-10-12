@@ -14,7 +14,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.naming.NamingException;
 
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
@@ -122,7 +121,7 @@ public class PolicyAlertEmailResolver
               emailAddresses.add(ldapUser.getEmail());
             }
           }
-          catch (NamingException e) {
+          catch (Exception e) {
             log.error("Cannot send notifications to members of group {} using ldap server {}", member.getInternalName(),
                 ldapServer.getName(), e);
           }

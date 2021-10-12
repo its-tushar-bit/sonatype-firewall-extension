@@ -298,6 +298,36 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
   }
 
   @Test
+  public void testValidateSourceControlConfig_ssh_populatesSsh() throws Exception {
+    // given a git repo with SSH enabled but no SSH URL, and returns SSH URL when called a second time
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
+    gitRepositoryInfo.sshRepositoryUrl = null;
+    gitRepositoryInfo.sshEnabled = true;
+    GitRepositoryInfo updatedRepoInfo = getGitRepositoryInfo(null);
+    updatedRepoInfo.sshRepositoryUrl = SSH_REPOSITORY_URL;
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString()))
+        .thenReturn(gitRepositoryInfo)
+        .thenReturn(updatedRepoInfo);
+
+    // and the repo is configured successfully
+    when(pullRequestRepositoryValidator.isInternalRepository(any())).thenReturn(false);
+    when(pullRequestRepositoryValidator.isPrivateRepository(any())).thenReturn(true);
+    GitApiClient mockClient = mock(GitApiClient.class);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
+    when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(true));
+
+    // when we try to validate
+    ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
+
+    // then it attempted to retrieve the SSH URL
+    verify(sourceControlSshService, times(1)).verifySshUrlAndUpdateIfNeeded(anyString());
+
+    // then SSH has an error which indicates that it moved on to the next error state
+    assertThat(result.getSshConfiguration().isValid()).isFalse();
+    assertThat(result.getSshConfiguration().getMessage()).contains("SSH requires native git");
+  }
+
+  @Test
   public void testValidateSourceControlConfig_ssh_unknownError() throws Exception {
     // given a git repo with SSH configured fully
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);

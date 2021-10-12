@@ -4,7 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { getLicenseLegalComponentUrl, getOwnerHierarchyUrl } from '../util/CLMLocation';
+import {
+  getLicenseLegalComponentByComponentIdentifierUrl,
+  getLicenseLegalComponentUrl,
+  getOwnerHierarchyUrl,
+} from '../util/CLMLocation';
 import { payloadParamActionCreator } from '../util/reduxUtil';
 import { processOwnerHierarchy } from '../util/hierarchyUtil';
 
@@ -24,6 +28,18 @@ export function loadComponent(orgOrApp, ownerId, hash) {
   return (dispatch) => {
     return axios
       .get(getLicenseLegalComponentUrl(orgOrApp, ownerId, hash))
+      .then(({ data }) => {
+        dispatch(loadComponentFulfilled(data));
+      })
+      .catch((error) => {
+        dispatch(loadComponentFailed(error));
+      });
+  };
+}
+export function loadComponentByComponentIdentifier(componentIdentifier) {
+  return (dispatch) => {
+    return axios
+      .get(getLicenseLegalComponentByComponentIdentifierUrl(componentIdentifier))
       .then(({ data }) => {
         dispatch(loadComponentFulfilled(data));
       })

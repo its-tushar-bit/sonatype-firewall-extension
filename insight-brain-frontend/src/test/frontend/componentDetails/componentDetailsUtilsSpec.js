@@ -83,6 +83,9 @@ describe('componentDetailsUtils', function () {
       componentDetails = {
         policyAlerts: [],
         securityVulnerabilities: [],
+        componentIdentifier: {
+          coordinates: {},
+        },
       };
     });
 
@@ -94,9 +97,18 @@ describe('componentDetailsUtils', function () {
       expect(getComponentVersionComparisonInfo(undefined)).toEqual({});
     });
 
-    it('sets version', () => {
-      componentDetails.version = 'test version 123';
-      expect(getComponentVersionComparisonInfo(componentDetails).version).toBe('test version 123');
+    describe('version', () => {
+      it('is set from componentIdentifier object', () => {
+        componentDetails.componentIdentifier.coordinates.version = 'version-123-componentIdentifier';
+        componentDetails.version = 'version-123-fallback';
+        expect(getComponentVersionComparisonInfo(componentDetails).version).toBe('version-123-componentIdentifier');
+      });
+
+      it('is set from version property if componentIdentifier object is unavailable', () => {
+        componentDetails.componentIdentifier.coordinates.version = null;
+        componentDetails.version = 'version-123-from-version-prop';
+        expect(getComponentVersionComparisonInfo(componentDetails).version).toBe('version-123-from-version-prop');
+      });
     });
 
     describe('highestPolicyThreat', () => {

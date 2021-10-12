@@ -136,6 +136,8 @@ public class ComponentDetailsPage
   public static class ComponentDetailsFooter
       extends BasicElement<ComponentDetailsPage.ComponentDetailsFooter>
   {
+    private static final String FOOTER_CLICKABLE_SELECTOR = ".nx-text-link";
+
     private ComponentDetailsFooter(String selector) {
       super(selector);
     }
@@ -150,6 +152,10 @@ public class ComponentDetailsPage
 
     public SelenideElement paginationCounter() {
       return child(".iq-page-counter");
+    }
+
+    public SelenideElement backButton() {
+      return child(FOOTER_CLICKABLE_SELECTOR);
     }
   }
 }

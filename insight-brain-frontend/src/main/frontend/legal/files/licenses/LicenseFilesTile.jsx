@@ -80,6 +80,6 @@ LicenseFilesTile.propTypes = {
   ownerId: PropTypes.string.isRequired,
   availableScopes: availableScopesPropType,
   stageTypeId: PropTypes.string,
-  hash: PropTypes.string.isRequired,
+  hash: PropTypes.string,
   $state: PropTypes.object.isRequired,
 };

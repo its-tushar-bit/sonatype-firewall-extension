@@ -16,8 +16,10 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemedia
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.RecommendationElement;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.RecommendedVersionsSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.VersionExplorerSection;
+import com.sonatype.clm.testing.functional.elements.componentdetails.VersionGraph;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
+import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage.ComponentDetailsFooter;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -237,6 +239,42 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   }
 
   @Test
+  public void testRiskRemediationTile_FooterBackButton() {
+    mockHdsResponseForFirstComponent();
+    mockHdsResponseForSecondComponent();
+
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1,SECOND_COMPONENT_HASH);
+    componentDetailsPage.overviewTab().shouldBe(visible);
+
+    RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+    riskRemediation.shouldBe(visible);
+
+    DependencyInformationSection dependencyInformationSection = riskRemediation.dependencyInformationSection();
+    dependencyInformationSection.shouldBe(visible);
+
+    ScrollUtil.scrollIntoView(dependencyInformationSection.content());
+
+    SelenideElement ancestor = dependencyInformationSection.contentClickableAncestorsList().get(0);
+    ancestor.shouldHave(text("javancss : javancss : 29.50"));
+    ancestor.click();
+
+    ComponentDetailsFooter footer = componentDetailsPage.footer();
+
+    SelenideElement footerBackButton = footer.backButton();
+
+    footerBackButton.shouldHave(text("Back to ch.qos.logback : logback-access : 0.6 component"));
+    footerBackButton.click();
+
+    footer.prevLink().shouldHave(text("Previous Component"));
+    footer.nextLink().shouldHave(text("Next Component"));
+
+    SelenideElement pageTitle = componentDetailsPage.header().title();
+    pageTitle.shouldHave(text("ch.qos.logback : logback-access : 0.6"));
+  }
+
+  @Test
   public void testCompareVersionsTable() {
     mockHdsResponseForFirstComponent();
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
@@ -256,6 +294,78 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     table.hygieneRatingRow().get(1).shouldHave(text("Exemplar"));
     table.hygieneRatingRow().get(2).shouldBe(empty);
     table.integrityRatingRow().get(1).shouldHave(text("Normal"));
+    table.integrityRatingRow().get(2).shouldBe(empty);
+  }
+
+  @Test
+  public void testCompareVersionsTable_Selected() {
+    mockHdsResponseForFirstComponent();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
+    RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+
+    VersionGraph versionGraph = new VersionGraph();
+    SelenideElement graph = versionGraph.getGraph();
+
+    ScrollUtil.awaitEndOfScrolling(graph.scrollIntoView(true));
+
+    mockHdsResponseForFirstComponentWithSelectedVersion();
+    versionGraph.selectVersion(6).click();
+
+    ScrollUtil.awaitEndOfScrolling(riskRemediation.compareVersionsTitle().scrollIntoView(true));
+
+    CompareVersionsTable table = riskRemediation.compareVersionsTable();
+
+    table.shouldBe(visible);
+    table.versionRow().get(1).shouldHave(text("29.50"));
+    table.versionRow().get(2).shouldHave(text("31.52"));
+    table.highestPolicyThreatRow().get(2).shouldHave(text("None"));
+    table.highestCvssScoreRow().get(2).shouldHave(text("None"));
+    table.effectiveLicenseRow().get(2).shouldHave(text("BSD-3-Clause"));
+    table.hygieneRatingRow().get(2).shouldBe(empty);
+    table.integrityRatingRow().get(2).shouldBe(empty);
+
+    versionGraph.selectVersion(4).click();
+
+    table.versionRow().get(1).shouldHave(text("29.50"));
+    table.versionRow().get(2).shouldHave(text("--"));
+    table.highestPolicyThreatRow().get(2).shouldBe(empty);
+    table.highestCvssScoreRow().get(2).shouldBe(empty);
+    table.effectiveLicenseRow().get(2).shouldBe(empty);
+    table.hygieneRatingRow().get(2).shouldBe(empty);
+    table.integrityRatingRow().get(2).shouldBe(empty);
+  }
+
+  @Test
+  public void testRiskRemediationTile_Compare() {
+    mockHdsResponseForFirstComponent();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
+    RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+
+    riskRemediation.shouldBe(visible);
+
+    RecommendedVersionsSection recommendedVersionsSection = riskRemediation.recommendedVersionsSections();
+    recommendedVersionsSection.shouldBe(visible);
+    ScrollUtil.awaitEndOfScrolling(recommendedVersionsSection.content().scrollIntoView(true));
+
+    RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
+
+    recommendation.shouldBe(visible);
+    recommendation.text().shouldHave(text("Upgrade to 31.52"));
+
+    SelenideElement compareButton = recommendedVersionsSection.getRecommendation(0).actions().first();
+
+    mockHdsResponseForFirstComponentWithSelectedVersion();
+    compareButton.click();
+
+    CompareVersionsTable table = riskRemediation.compareVersionsTable();
+
+    table.shouldBe(visible);
+    table.versionRow().get(1).shouldHave(text("29.50"));
+    table.versionRow().get(2).shouldHave(text("31.52"));
+    table.highestPolicyThreatRow().get(2).shouldHave(text("None"));
+    table.highestCvssScoreRow().get(2).shouldHave(text("None"));
+    table.effectiveLicenseRow().get(2).shouldHave(text("BSD-3-Clause"));
+    table.hygieneRatingRow().get(2).shouldBe(empty);
     table.integrityRatingRow().get(2).shouldBe(empty);
   }
 
@@ -292,6 +402,12 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     testCLMServer.getHdsServer()
         .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
         .atUri("rest/component/dependencies");
+  }
+
+  private void mockHdsResponseForFirstComponentWithSelectedVersion() {
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-31.52.json"))
+        .atUri("rest/ci/componentDetails");
   }
 
   private void mockHdsResponseForSecondComponent() {

@@ -107,6 +107,13 @@ function routes($stateProvider) {
         title: 'Component - Legal Overview',
       },
     })
+    .state('legal.componentOverviewByComponentIdentifier', {
+      url: '/legal/component/componentIdentifier/{componentIdentifier}',
+      component: 'componentLegalOverview',
+      data: {
+        title: 'Component - Legal Overview',
+      },
+    })
     .state('legal.organizationComponentOverview', {
       url: '/legal/organization/{organizationId}/component/{hash}',
       component: 'componentLegalOverview',

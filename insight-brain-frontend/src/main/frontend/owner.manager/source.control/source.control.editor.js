@@ -391,7 +391,7 @@ function SourceControlEditorController(
   }
 
   function sshEnabled() {
-    return vm.dirtySourceControl.sshEnabled || vm.dirtySourceControl.sshEnabledInheritValue;
+    return vm.dirtySourceControl.sshEnabled || vm.dirtySourceControl.sshEnabledInheritedValue;
   }
 
   function modelToSourceControl(model) {

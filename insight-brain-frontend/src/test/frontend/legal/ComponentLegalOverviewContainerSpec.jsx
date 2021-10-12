@@ -33,6 +33,7 @@ describe('ComponentLegalOverviewContainer', function () {
       },
       router: {
         currentParams: {
+          componentIdentifier: 'fooComponentIdentifier',
           hash: 'fooHash',
           organizationId: 'organizationId',
           applicationPublicId: 'applicationPublicId',
@@ -72,6 +73,7 @@ describe('ComponentLegalOverviewContainer', function () {
     expect(wrapper).toHaveProp('loading', 'loading');
     expect(wrapper).toHaveProp('error', 'error');
     expect(wrapper).toHaveProp('hash', 'fooHash');
+    expect(wrapper).toHaveProp('componentIdentifier', 'fooComponentIdentifier');
     expect(wrapper).toHaveProp('organizationId', 'organizationId');
     expect(wrapper).toHaveProp('applicationPublicId', 'applicationPublicId');
     expect(wrapper).toHaveProp('stageTypeId', 'stage-type-id');

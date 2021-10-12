@@ -16,10 +16,16 @@ import NoticeTextsTile from '../../../main/frontend/legal/files/notices/NoticeTe
 import LicenseFilesTile from '../../../main/frontend/legal/files/licenses/LicenseFilesTile';
 
 describe('ComponentLegalOverviewPage', function () {
-  let minimalProps, loadComponentSpy, loadAvailableScopesSpy, getShallowComponent, spy$State;
+  let minimalProps,
+    loadComponentSpy,
+    loadComponentByComponentIdentifierSpy,
+    loadAvailableScopesSpy,
+    getShallowComponent,
+    spy$State;
 
   beforeEach(function () {
     loadComponentSpy = jasmine.createSpy('loadComponent');
+    loadComponentByComponentIdentifierSpy = jasmine.createSpy('loadComponentByComponentIdentifier');
     loadAvailableScopesSpy = jasmine.createSpy('loadAvailableScopes');
     spy$State = jasmine.createSpyObj('$state', ['get', 'href']);
     spy$State.get.and.callFake((stateName) => stateName);
@@ -102,6 +108,7 @@ describe('ComponentLegalOverviewPage', function () {
 
     minimalProps = {
       loadComponent: loadComponentSpy,
+      loadComponentByComponentIdentifier: loadComponentByComponentIdentifierSpy,
       loadAvailableScopes: loadAvailableScopesSpy,
       $state: spy$State,
       licenseLegalMetadata,
@@ -146,6 +153,29 @@ describe('ComponentLegalOverviewPage', function () {
     );
     expect(loadComponentSpy).not.toHaveBeenCalled();
     expect(loadAvailableScopesSpy).not.toHaveBeenCalled();
+    component.unmount();
+  });
+
+  it('loads the data if there is a component identifier', function () {
+    const component = mount(
+      <ComponentLegalOverviewPage
+        {...{ ...minimalProps, hash: undefined, componentIdentifier: 'componentIdentifier' }}
+        loading={true}
+      />
+    );
+    expect(loadComponentSpy).not.toHaveBeenCalled();
+    expect(loadComponentByComponentIdentifierSpy).toHaveBeenCalled();
+    expect(loadAvailableScopesSpy).toHaveBeenCalled();
+    component.unmount();
+  });
+
+  it('loads the data by hash if there is both a hash and a component identifier', function () {
+    const component = mount(
+      <ComponentLegalOverviewPage {...{ ...minimalProps, componentIdentifier: 'componentIdentifier' }} loading={true} />
+    );
+    expect(loadComponentSpy).toHaveBeenCalledWith('organization', 'ROOT_ORGANIZATION_ID', '1e48256a2341047e7d72');
+    expect(loadComponentByComponentIdentifierSpy).not.toHaveBeenCalled();
+    expect(loadAvailableScopesSpy).toHaveBeenCalled();
     component.unmount();
   });
 

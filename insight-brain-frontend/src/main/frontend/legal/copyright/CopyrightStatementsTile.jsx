@@ -100,7 +100,7 @@ CopyrightStatementsTile.propTypes = {
   setDisplayCopyrightOverrideModal: PropTypes.func.isRequired,
   ownerType: PropTypes.string.isRequired,
   ownerId: PropTypes.string.isRequired,
-  hash: PropTypes.string.isRequired,
+  hash: PropTypes.string,
   stageTypeId: PropTypes.string,
   $state: PropTypes.object.isRequired,
 };

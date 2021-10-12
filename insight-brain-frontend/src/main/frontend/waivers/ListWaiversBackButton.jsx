@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxBackButton } from '@sonatype/react-shared-components';
+import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
 
 import { useRouterState } from '../react/RouterStateContext';
 
@@ -16,13 +16,13 @@ export default function ListWaiversBackButton(props) {
 
   const uiRouterState = useRouterState();
 
-  const backButtonTitle = componentDetailsPropsPresent ? 'Component Details' : 'Violation Details';
+  const backButtonTitle = componentDetailsPropsPresent ? 'Back to Component Details' : 'Back to Violation Details';
 
   const backButtonHref = componentDetailsPropsPresent
     ? uiRouterState.href('applicationReport.componentDetails.violations', { hash, scanId, publicId })
     : uiRouterState.href('sidebarView.violation', { id: violationId, type, sidebarReference });
 
-  return <NxBackButton targetPageTitle={backButtonTitle} href={backButtonHref} />;
+  return <MenuBarBackButton text={backButtonTitle} href={backButtonHref} />;
 }
 
 ListWaiversBackButton.propTypes = {

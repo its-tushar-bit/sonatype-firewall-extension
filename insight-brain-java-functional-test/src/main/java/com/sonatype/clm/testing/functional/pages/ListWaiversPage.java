@@ -38,7 +38,7 @@ public class ListWaiversPage
   }
 
   public NxBackButton backButton() {
-    return new NxBackButton(ROOT);
+    return new NxBackButton("#menu-bar__back-button-container");
   }
 
   public SelenideElement title() {

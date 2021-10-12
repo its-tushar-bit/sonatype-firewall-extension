@@ -4,17 +4,27 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../../enzymeUtils';
-import { RecommendedVersionsList } from '../../../../../main/frontend/componentDetails/overview/riskRemediation/RecommendedVersionsList';
+import { NxButton } from '@sonatype/react-shared-components';
+import { RecommendedVersionsList } from 'MainRoot/componentDetails/overview/riskRemediation/RecommendedVersionsList';
 
 describe('RecommendedVersionsList', () => {
-  let minimalProps, getMounted;
+  let minimalProps, mountedComponent, getMounted, getShallow, handleCompareMock;
 
   beforeEach(function () {
+    handleCompareMock = jasmine.createSpy('handleCompare');
     minimalProps = {
       actualVersion: '2.4.9',
+      handleCompare: handleCompareMock,
     };
 
     getMounted = enzymeUtils.getMountedComponent(RecommendedVersionsList, minimalProps);
+    getShallow = enzymeUtils.getShallowComponent(RecommendedVersionsList, minimalProps);
+  });
+
+  afterEach(() => {
+    if (mountedComponent) {
+      mountedComponent.unmount();
+    }
   });
 
   it('renders a component', () => {
@@ -24,10 +34,25 @@ describe('RecommendedVersionsList', () => {
         text: 'No recommended versions are available for the current component',
       },
     ];
-    const component = getMounted({
-      versionChanges: versionChanges,
-    });
+    const component = getShallow({ versionChanges });
     expect(component).toExist();
+  });
+
+  it('calls handleCompare on Compare button click', () => {
+    const versionChanges = [
+      {
+        id: 'next-no-violation-version-link',
+        text: 'Next version with no policy violation',
+        type: 'next-no-violations',
+        version: '2.4.10',
+      },
+    ];
+    const getShallow = enzymeUtils.getShallowComponent(RecommendedVersionsList, minimalProps);
+    const compareBtn = getShallow({ versionChanges }).find(NxButton);
+
+    compareBtn.simulate('click');
+
+    expect(handleCompareMock).toHaveBeenCalledWith('2.4.10');
   });
 
   it('with one component list if no remediation array is sent', () => {
@@ -37,13 +62,11 @@ describe('RecommendedVersionsList', () => {
         text: 'No recommended versions are available for the current component',
       },
     ];
-    const component = getMounted({
-      versionChanges: versionChanges,
-    });
-    expect(component).toHaveProp('versionChanges', versionChanges);
-    expect(component).toHaveProp('actualVersion', '2.4.9');
+    mountedComponent = getMounted({ versionChanges });
+    expect(mountedComponent).toHaveProp('versionChanges', versionChanges);
+    expect(mountedComponent).toHaveProp('actualVersion', '2.4.9');
 
-    const listElements = component.find('.nx-list__item');
+    const listElements = mountedComponent.find('.nx-list__item');
     expect(listElements.length).toBe(1);
     const element = listElements.at(0);
     expect(element).not.toBeNull();
@@ -66,13 +89,11 @@ describe('RecommendedVersionsList', () => {
         version: '2.4.9',
       },
     ];
-    const component = getMounted({
-      versionChanges: versionChanges,
-    });
-    expect(component).toHaveProp('versionChanges', versionChanges);
-    expect(component).toHaveProp('actualVersion', '2.4.9');
+    mountedComponent = getMounted({ versionChanges });
+    expect(mountedComponent).toHaveProp('versionChanges', versionChanges);
+    expect(mountedComponent).toHaveProp('actualVersion', '2.4.9');
 
-    const listElements = component.find('.nx-list__item');
+    const listElements = mountedComponent.find('.nx-list__item');
     expect(listElements.length).toBe(2);
 
     let element = listElements.at(0);

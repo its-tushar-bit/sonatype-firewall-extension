@@ -4,19 +4,26 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../../enzymeUtils';
-import { RecommendedVersions } from '../../../../../main/frontend/componentDetails/overview/riskRemediation/RecommendedVersions';
+import { RecommendedVersions } from 'MainRoot/componentDetails/overview/riskRemediation/RecommendedVersions';
 
 describe('RecommendedVersionsComponent', () => {
-  let minimalProps, getMounted;
+  let minimalProps, component, getMounted;
 
   beforeEach(function () {
     minimalProps = {
       actualVersion: '2.4.9',
       stageId: 'build',
       remediation: [],
+      handleCompare: () => {},
     };
 
     getMounted = enzymeUtils.getMountedComponent(RecommendedVersions, minimalProps);
+  });
+
+  afterEach(() => {
+    if (component) {
+      component.unmount();
+    }
   });
 
   it('renders a component', () => {
@@ -25,9 +32,7 @@ describe('RecommendedVersionsComponent', () => {
 
   it("Title is 'Recommended Versions'", () => {
     const remediation = [];
-    const component = getMounted({
-      remediation: remediation,
-    });
+    component = getMounted({ remediation });
 
     expect(component).toHaveProp('remediation', remediation);
     expect(component).toHaveProp('actualVersion', '2.4.9');
@@ -40,9 +45,7 @@ describe('RecommendedVersionsComponent', () => {
 
   it('with one component list if no remediation array is sent', () => {
     const remediation = [];
-    const component = getMounted({
-      remediation: remediation,
-    });
+    component = getMounted({ remediation });
     const content = component.find('.nx-tile-content');
     expect(content).not.toBeNull();
 
@@ -119,9 +122,7 @@ describe('RecommendedVersionsComponent', () => {
         },
       ],
     };
-    const component = getMounted({
-      remediation: remediation,
-    });
+    component = getMounted({ remediation });
     expect(component).toHaveProp('remediation', remediation);
     expect(component).toHaveProp('actualVersion', '2.4.9');
     expect(component).toHaveProp('stageId', 'build');

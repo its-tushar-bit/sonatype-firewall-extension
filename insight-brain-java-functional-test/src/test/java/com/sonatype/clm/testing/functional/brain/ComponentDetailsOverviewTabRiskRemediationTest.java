@@ -335,6 +335,40 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     table.integrityRatingRow().get(2).shouldBe(empty);
   }
 
+  @Test
+  public void testRiskRemediationTile_Compare() {
+    mockHdsResponseForFirstComponent();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0,FIRST_COMPONENT_HASH);
+    RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+
+    riskRemediation.shouldBe(visible);
+
+    RecommendedVersionsSection recommendedVersionsSection = riskRemediation.recommendedVersionsSections();
+    recommendedVersionsSection.shouldBe(visible);
+    ScrollUtil.awaitEndOfScrolling(recommendedVersionsSection.content().scrollIntoView(true));
+
+    RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
+
+    recommendation.shouldBe(visible);
+    recommendation.text().shouldHave(text("Upgrade to 31.52"));
+
+    SelenideElement compareButton = recommendedVersionsSection.getRecommendation(0).actions().first();
+
+    mockHdsResponseForFirstComponentWithSelectedVersion();
+    compareButton.click();
+
+    CompareVersionsTable table = riskRemediation.compareVersionsTable();
+
+    table.shouldBe(visible);
+    table.versionRow().get(1).shouldHave(text("29.50"));
+    table.versionRow().get(2).shouldHave(text("31.52"));
+    table.highestPolicyThreatRow().get(2).shouldHave(text("None"));
+    table.highestCvssScoreRow().get(2).shouldHave(text("None"));
+    table.effectiveLicenseRow().get(2).shouldHave(text("BSD-3-Clause"));
+    table.hygieneRatingRow().get(2).shouldBe(empty);
+    table.integrityRatingRow().get(2).shouldBe(empty);
+  }
+
   private ComponentDetailsPage openComponentDetailsPageForViolation(int violationIndex, String hash) {
     ElementsCollection violations = reportPage.resultRows();
     SelenideElement firstViolation = violations.get(violationIndex);

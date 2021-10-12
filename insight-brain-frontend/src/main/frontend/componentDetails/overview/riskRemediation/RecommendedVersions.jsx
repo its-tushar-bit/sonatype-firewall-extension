@@ -10,7 +10,7 @@ import { setRemediations } from './recommendedVersionsUtils';
 import { RecommendedVersionsList } from './RecommendedVersionsList';
 import { RemediationPropTypes } from '../overviewTypes';
 
-export const RecommendedVersions = ({ actualVersion, stageId, remediation }) => {
+export const RecommendedVersions = ({ actualVersion, stageId, remediation, handleCompare }) => {
   const versionChanges = setRemediations(remediation, actualVersion, stageId);
 
   return (
@@ -19,7 +19,11 @@ export const RecommendedVersions = ({ actualVersion, stageId, remediation }) => 
         <h3 className="nx-h3 nx-tile-header__title">Recommended Versions</h3>
       </header>
       <div className="nx-tile-content">
-        <RecommendedVersionsList versionChanges={versionChanges} actualVersion={actualVersion} />
+        <RecommendedVersionsList
+          versionChanges={versionChanges}
+          actualVersion={actualVersion}
+          handleCompare={handleCompare}
+        />
       </div>
     </section>
   );
@@ -29,4 +33,5 @@ RecommendedVersions.propTypes = {
   actualVersion: PropTypes.string.isRequired,
   stageId: PropTypes.string.isRequired,
   remediation: RemediationPropTypes,
+  handleCompare: PropTypes.func.isRequired,
 };

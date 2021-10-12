@@ -9,7 +9,7 @@ import * as PropTypes from 'prop-types';
 import { NxButton, NxList } from '@sonatype/react-shared-components';
 import { VersionChangePropTypes } from '../overviewTypes';
 
-export const RecommendedVersionsList = ({ versionChanges, actualVersion }) => {
+export const RecommendedVersionsList = ({ versionChanges, actualVersion, handleCompare }) => {
   return (
     <NxList>
       {versionChanges.map((versionChange) => {
@@ -25,7 +25,7 @@ export const RecommendedVersionsList = ({ versionChanges, actualVersion }) => {
             <NxList.Text>Upgrade to {versionChange.version}</NxList.Text>
             <NxList.Subtext>{versionChange.text}</NxList.Subtext>
             <NxList.Actions>
-              <NxButton title="Compare" variant="tertiary">
+              <NxButton title="Compare" variant="tertiary" onClick={() => handleCompare(versionChange.version)}>
                 Compare
               </NxButton>
             </NxList.Actions>
@@ -39,4 +39,5 @@ export const RecommendedVersionsList = ({ versionChanges, actualVersion }) => {
 RecommendedVersionsList.propTypes = {
   versionChanges: PropTypes.arrayOf(VersionChangePropTypes).isRequired,
   actualVersion: PropTypes.string.isRequired,
+  handleCompare: PropTypes.func.isRequired,
 };

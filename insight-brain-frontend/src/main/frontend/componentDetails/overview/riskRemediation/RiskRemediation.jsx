@@ -6,6 +6,8 @@
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
+import { findIndex } from 'ramda';
+import { selectVersion } from '@sonatype/version-graph';
 import { NxLoadWrapper, NxModal, NxLoadError, NxButton } from '@sonatype/react-shared-components';
 import { CompareVersions } from './CompareVersions';
 import { DependencyInformation } from './DependencyInformation';
@@ -41,10 +43,23 @@ export const RiskRemediation = ({
     </header>
   );
 
+  const handleCompare = (version) => {
+    const idx = findIndex((v) => v?.componentIdentifier?.coordinates?.version === version, versions);
+    if (idx !== -1) {
+      selectVersion(idx);
+      loadSelectedVersionData(version);
+    }
+  };
+
   const overviewComponentRiskRemediationTile_contentDirectDependency = () => (
     <div className="nx-grid-row">
       <div className="nx-grid-col nx-grid-col--50">
-        <RecommendedVersions actualVersion={currentVersion} stageId={stageId} remediation={remediation} />
+        <RecommendedVersions
+          actualVersion={currentVersion}
+          stageId={stageId}
+          remediation={remediation}
+          handleCompare={handleCompare}
+        />
       </div>
       <div className="nx-grid-col nx-grid-col--50">
         <div className="nx-grid-row">
@@ -90,7 +105,12 @@ export const RiskRemediation = ({
       </div>
       <div className="nx-grid-row">
         <div className="nx-grid-col nx-grid-col--50">
-          <RecommendedVersions actualVersion={currentVersion} stageId={stageId} remediation={remediation} />
+          <RecommendedVersions
+            actualVersion={currentVersion}
+            stageId={stageId}
+            remediation={remediation}
+            handleCompare={handleCompare}
+          />
         </div>
         <div className="nx-grid-col nx-grid-col--50">
           {currentVersionComparisonData && (

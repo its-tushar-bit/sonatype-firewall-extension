@@ -18,8 +18,9 @@ import { faCheck, faHistory } from '@fortawesome/free-solid-svg-icons';
 
 import ComponentDisplay, { componentPropTypes } from '../../ComponentDisplay/ReactComponentDisplay';
 import { getBaseUrl } from '../../util/urlUtil';
+import { useRouterState } from '../../react/RouterStateContext';
 
-function createRow(data, $state) {
+function createRow(data, uiRouterState) {
   const { securityCode, cvssScore, key, policyThreatLevel } = data;
   const linkUrl = getBaseUrl(window.location.href) + '/ui/links/vln/' + encodeURIComponent(securityCode);
 
@@ -32,7 +33,7 @@ function createRow(data, $state) {
       <NxTableCell>
         <a
           className="iq-vulnerability-refid-link"
-          href={$state.href('vulnerabilitySearchDetail', { id: securityCode })}
+          href={uiRouterState.href('vulnerabilitySearchDetail', { id: securityCode })}
         >
           {securityCode}
         </a>
@@ -62,8 +63,9 @@ function createRow(data, $state) {
   );
 }
 
-export default function ApplicationReportVulnerabilitiesTable({ vulnerabilities, $state }) {
-  const rows = vulnerabilities.map((vuln) => createRow(vuln, $state));
+export default function ApplicationReportVulnerabilitiesTable({ vulnerabilities }) {
+  const uiRouterState = useRouterState();
+  const rows = vulnerabilities.map((vuln) => createRow(vuln, uiRouterState));
 
   return (
     <div className="nx-tile-content nx-viewport-sized__container">
@@ -94,7 +96,4 @@ export const vulnerabilitiesPropType = PropTypes.arrayOf(
 
 ApplicationReportVulnerabilitiesTable.propTypes = {
   vulnerabilities: vulnerabilitiesPropType.isRequired,
-  $state: PropTypes.shape({
-    href: PropTypes.func.isRequired,
-  }).isRequired,
 };

@@ -3,147 +3,75 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import * as PropTypes from 'prop-types';
-import configureStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
-import { mount, shallow } from 'enzyme';
-import { omit, lensPath, set } from 'ramda';
+import * as enzymeUtils from '../../enzymeUtils';
+
+import ApplicationReportVulnerabilitiesPage from 'MainRoot/applicationReport/vulnerabilities/ApplicationReportVulnerabilitiesPage';
+import ApplicationReportVulnerabilitiesTable from 'MainRoot/applicationReport/vulnerabilities/ApplicationReportVulnerabilitiesTable';
+import ApplicationReportVulnerabilitiesHeader from 'MainRoot/applicationReport/vulnerabilities/ApplicationReportVulnerabilitiesHeader';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
 
 describe('ApplicationReportVulnerabilities', function () {
-  let MockApplicationReportVulnerabiltiesPage,
-    ApplicationReportVulnerabilities,
-    mockNgRedux,
-    mockActions,
-    mock$State,
-    vdom,
-    state,
-    mountedComponent;
+  let getShallowComponent, minimalProps;
+  const loadReportAllDataSpy = jasmine.createSpy('loadReportAllData');
 
   beforeEach(function () {
-    state = {
-      applicationReport: {
-        pendingLoads: new Set(),
-        vulnerabilities: ['foo-1234', 'bar-qwerty'],
-        metadata: { foo: 'bar' },
-        loadError: 'Error!',
+    minimalProps = {
+      loadError: 'Error',
+      loading: false,
+      vulnerabilitiesPageEnabled: true,
+      metadata: {
+        reportTitle: 'Test Title',
+        reportTime: '2021-01-01',
+        application: {
+          name: 'Sample Application Name',
+        },
       },
+      vulnerabilities: ['foo-1234', 'bar-qwerty'],
+      loadReportAllData: loadReportAllDataSpy,
     };
 
-    MockApplicationReportVulnerabiltiesPage = jasmine
-      .createSpy('MockApplicationReportVulnerabiltiesPage')
-      .and.returnValue(<div>Page</div>);
-
-    mock$State = jasmine.createSpyObj('$state', ['get', 'href']);
-    MockApplicationReportVulnerabiltiesPage.propTypes = {
-      $state: PropTypes.any,
-    };
-
-    ApplicationReportVulnerabilities = require('inject-loader!../../../../main/frontend/applicationReport/vulnerabilities/ApplicationReportVulnerabilities')(
-      {
-        './ApplicationReportVulnerabilitiesPage': MockApplicationReportVulnerabiltiesPage,
-      }
-    ).default;
-
-    mockNgRedux = configureStore()(() => state);
-    mockActions = {
-      loadReportAllData: jasmine.createSpy('loadReportAllData').and.returnValue({ type: 'FOO' }),
-    };
-
-    vdom = (
-      <ApplicationReportVulnerabilities
-        $ngRedux={mockNgRedux}
-        applicationReportActions={mockActions}
-        $state={mock$State}
-      />
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ApplicationReportVulnerabilitiesPage, minimalProps);
   });
 
-  afterEach(function () {
-    if (mountedComponent) {
-      mountedComponent.unmount();
-    }
-
-    mountedComponent = null;
+  it('renders a MenuBarBackButton with correct stateName prop', function () {
+    const component = getShallowComponent();
+    const menuBarBackButton = component.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('stateName', 'applicationReport.policy');
   });
 
-  it('renders a provider with $ngRedux as the store', function () {
-    const component = shallow(vdom);
+  describe('metadata', () => {
+    it('shows header and table if metadata exists', () => {
+      const component = getShallowComponent();
+      const loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(component);
+      const tile = loadWrapperChildren.find('.nx-tile');
+      expect(tile.childAt(0)).toMatchSelector(ApplicationReportVulnerabilitiesHeader);
+      expect(tile.childAt(1)).toMatchSelector(ApplicationReportVulnerabilitiesTable);
+    });
 
-    expect(component).toMatchSelector(Provider);
-    expect(component).toHaveProp('store', mockNgRedux);
+    it('does not show header if no metadata exist', () => {
+      const component = getShallowComponent({ metadata: null });
+      const header = component.find(ApplicationReportVulnerabilitiesHeader);
+      const table = component.find(ApplicationReportVulnerabilitiesTable);
+      expect(header).not.toExist();
+      expect(table).not.toExist();
+    });
   });
 
-  it('correctly maps the redux state to the ApplicationReportVulnerabilitiesPage props', function () {
-    mountedComponent = mount(vdom);
+  describe('LoadWrapper', () => {
+    it('shows LoadWrapper when loading', () => {
+      const component = getShallowComponent({ loading: true });
+      const loadWrapper = component.find(LoadWrapper);
+      expect(loadWrapper).toExist();
+    });
 
-    const pageWrapper = mountedComponent.find(MockApplicationReportVulnerabiltiesPage);
-
-    expect(pageWrapper).toHaveProp('vulnerabilities', state.applicationReport.vulnerabilities);
-    expect(pageWrapper).toHaveProp('metadata', state.applicationReport.metadata);
-    expect(pageWrapper).toHaveProp('loadError', state.applicationReport.loadError);
-  });
-
-  it('sets the ApplicationReportVulnerabilitiesPage loading prop based on the pendingLoads in the redux state', function () {
-    mountedComponent = mount(vdom);
-
-    let pageWrapper = mountedComponent.find(MockApplicationReportVulnerabiltiesPage);
-
-    expect(pageWrapper).toHaveProp('loading', false);
-
-    // update state
-    state = set(lensPath(['applicationReport', 'pendingLoads']), new Set(['foo']), state);
-    mockNgRedux.dispatch({ type: 'ANY_ACTION' });
-    mountedComponent.update();
-    pageWrapper = mountedComponent.find(MockApplicationReportVulnerabiltiesPage);
-
-    expect(pageWrapper).toHaveProp('loading', true);
-  });
-
-  it("maps the vulnerabilities as an empty list if they aren't defined in the state", function () {
-    const mockNgRedux = configureStore()({
-        ...state,
-        applicationReport: omit(['vulnerabilities'], state.applicationReport),
-      }),
-      vdom = <ApplicationReportVulnerabilities $ngRedux={mockNgRedux} applicationReportActions={mockActions} />;
-
-    mountedComponent = mount(vdom);
-
-    const pageWrapper = mountedComponent.find(MockApplicationReportVulnerabiltiesPage);
-
-    expect(pageWrapper).toHaveProp('vulnerabilities', []);
-  });
-
-  it('correctly maps the loadReportAllData action into the ApplicationReportVulnerabilitiesPage props', function () {
-    mountedComponent = mount(vdom);
-
-    const loadReportAllDataDispatch = mountedComponent
-      .find(MockApplicationReportVulnerabiltiesPage)
-      .prop('loadReportAllData');
-
-    expect(loadReportAllDataDispatch).toEqual(jasmine.any(Function));
-
-    expect(mockNgRedux.getActions()).toEqual([]);
-
-    loadReportAllDataDispatch();
-
-    expect(mockNgRedux.getActions()).toEqual([{ type: 'FOO' }]);
-  });
-
-  it('passes the $state prop on to the ApplicationReportVulnerabilitiesPage', function () {
-    mountedComponent = mount(vdom);
-
-    const pageWrapper = mountedComponent.find(MockApplicationReportVulnerabiltiesPage);
-
-    expect(pageWrapper).toHaveProp('$state', mock$State);
-  });
-
-  it('renders the output of ApplicationReportVulnerabilitiesPage', function () {
-    mountedComponent = mount(vdom);
-
-    const renderedComponent = mountedComponent.render();
-
-    expect(renderedComponent.is('div')).toBe(true);
-    expect(renderedComponent.text()).toBe('Page');
+    it('does not show header or table loading', () => {
+      const component = getShallowComponent({ loading: true });
+      const header = component.find(ApplicationReportVulnerabilitiesHeader);
+      const table = component.find(ApplicationReportVulnerabilitiesTable);
+      expect(header).not.toExist();
+      expect(table).not.toExist();
+    });
   });
 });

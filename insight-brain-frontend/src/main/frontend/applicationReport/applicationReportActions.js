@@ -214,7 +214,7 @@ function loadReportRawData() {
   };
 }
 
-function loadReportAllData() {
+export function loadReportAllData() {
   return (dispatch) => {
     dispatch({
       type: LOAD_REPORT_ALL_DATA_REQUESTED,

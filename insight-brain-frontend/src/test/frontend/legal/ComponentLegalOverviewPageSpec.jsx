@@ -3,17 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../enzymeUtils';
 import React from 'react';
-import { NxBackButton, NxWarningAlert } from '@sonatype/react-shared-components';
-import ComponentOverviewTile from '../../../main/frontend/legal/ComponentOverviewTile';
-import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile';
-import CopyrightStatementsTile from '../../../main/frontend/legal/copyright/CopyrightStatementsTile';
-import ComponentLegalOverviewPage from '../../../main/frontend/legal/ComponentLegalOverviewPage';
+import * as enzymeUtils from '../enzymeUtils';
 import { mount } from 'enzyme/build';
-import LicenseObligationsTileContainer from '../../../main/frontend/legal/obligation/LicenseObligationsTileContainer';
-import NoticeTextsTile from '../../../main/frontend/legal/files/notices/NoticeTextsTile';
-import LicenseFilesTile from '../../../main/frontend/legal/files/licenses/LicenseFilesTile';
+import { NxWarningAlert } from '@sonatype/react-shared-components';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import ComponentOverviewTile from 'MainRoot/legal/ComponentOverviewTile';
+import LicenseDetailsTile from 'MainRoot/legal/LicenseDetailsTile';
+import CopyrightStatementsTile from 'MainRoot/legal/copyright/CopyrightStatementsTile';
+import ComponentLegalOverviewPage from 'MainRoot/legal/ComponentLegalOverviewPage';
+import LicenseObligationsTileContainer from 'MainRoot/legal/obligation/LicenseObligationsTileContainer';
+import NoticeTextsTile from 'MainRoot/legal/files/notices/NoticeTextsTile';
+import LicenseFilesTile from 'MainRoot/legal/files/licenses/LicenseFilesTile';
 
 describe('ComponentLegalOverviewPage', function () {
   let minimalProps,
@@ -179,55 +180,55 @@ describe('ComponentLegalOverviewPage', function () {
     component.unmount();
   });
 
-  it('renders a NxBackButton to go to the app details page when using app public id and stage type id', function () {
+  it('renders a MenuBarBackButton to go to the app details page when using app public id and stage type id', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
       applicationPublicId: 'appId',
       stageTypeId: 'stage',
     });
 
-    const backButton = wrapper.find(NxBackButton);
-    expect(backButton).toExist();
-    expect(backButton).toHaveProp(
+    const menuBarBackButton = wrapper.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp(
       'href',
       'legal.applicationDetails-{"applicationPublicId":"appId","stageTypeId":"stage"}'
     );
     expect(spy$State.href).toHaveBeenCalled();
   });
 
-  it('renders a NxBackButton to go to the dashboard page when using app public id but no stage type id', function () {
+  it('renders a MenuBarBackButton to go to the dashboard page when using app public id but no stage type id', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
       applicationPublicId: 'appId',
     });
 
-    const backButton = wrapper.find(NxBackButton);
-    expect(backButton).toExist();
-    expect(backButton).toHaveProp('href', 'legal.dashboard');
+    const menuBarBackButton = wrapper.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', 'legal.dashboard');
     expect(spy$State.href).toHaveBeenCalled();
   });
 
-  it('renders a NxBackButton to go to the dashboard page when using stage type id but no app public id', function () {
+  it('renders a MenuBarBackButton to go to the dashboard page when using stage type id but no app public id', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
       stageTypeId: 'stage',
     });
 
-    const backButton = wrapper.find(NxBackButton);
-    expect(backButton).toExist();
-    expect(backButton).toHaveProp('href', 'legal.dashboard');
+    const menuBarBackButton = wrapper.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', 'legal.dashboard');
     expect(spy$State.href).toHaveBeenCalled();
   });
 
-  it('renders a NxBackButton to go to the dashboard page when not using stage type id and app public id', function () {
+  it('renders a MenuBarBackButton to go to the dashboard page when not using stage type id and app public id', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
       organizationId: 'orgId',
     });
 
-    const backButton = wrapper.find(NxBackButton);
-    expect(backButton).toExist();
-    expect(backButton).toHaveProp('href', 'legal.dashboard');
+    const menuBarBackButton = wrapper.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', 'legal.dashboard');
     expect(spy$State.href).toHaveBeenCalled();
   });
 

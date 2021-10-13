@@ -5,7 +5,8 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxBackButton, NxWarningAlert, useToggle } from '@sonatype/react-shared-components';
+import { NxWarningAlert, useToggle } from '@sonatype/react-shared-components';
+import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
 import ComponentOverviewTile from './ComponentOverviewTile';
 import LicenseDetailsTile from './LicenseDetailsTile';
 import CopyrightStatementsTile from './copyright/CopyrightStatementsTile';
@@ -103,7 +104,7 @@ export default function ComponentLegalOverviewPage(props) {
   return (
     <main className="nx-page-main">
       <LoadWrapper loading={loading} error={error} retryHandler={load}>
-        <NxBackButton href={backHref} text="Back" />
+        <MenuBarBackButton href={backHref} text="Back" />
         {component && (
           <React.Fragment>
             <div className="nx-page-title">

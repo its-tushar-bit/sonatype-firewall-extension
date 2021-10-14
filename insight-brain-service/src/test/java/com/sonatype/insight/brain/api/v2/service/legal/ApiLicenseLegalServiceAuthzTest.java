@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardResultDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -96,21 +97,33 @@ public class ApiLicenseLegalServiceAuthzTest
   @Test
   public void testGetLicenseLegalComponentsDashboard_Unauthenticated() {
     setupResultForDashboard();
-    assertThat(apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null)).isEmpty();
+    ApiLicenseLegalComponentDashboardResultDTO resultDto =
+        apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null, 1, 1);
+    assertThat(resultDto).isNotNull();
+    assertThat(resultDto.totalResultsCount).isZero();
+    assertThat(resultDto.results).isEmpty();
   }
 
   @Test
   public void testGetLicenseLegalComponentsDashboard_Unauthorized() {
     setupResultForDashboard();
     login();
-    assertThat(apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null)).isEmpty();
+    ApiLicenseLegalComponentDashboardResultDTO resultDto =
+        apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null, 1, 1);
+    assertThat(resultDto).isNotNull();
+    assertThat(resultDto.totalResultsCount).isZero();
+    assertThat(resultDto.results).isEmpty();
   }
 
   @Test
   public void testGetLicenseLegalComponentsDashboard_Authorized() {
     setupResultForDashboard();
     grantLegalReviewerPermission(app.getId());
-    assertThat(apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null)).isNotEmpty();
+    ApiLicenseLegalComponentDashboardResultDTO resultDto =
+        apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null, 1, 1);
+    assertThat(resultDto).isNotNull();
+    assertThat(resultDto.totalResultsCount).isPositive();
+    assertThat(resultDto.results).isNotEmpty();
   }
 
   private void setupResultForDashboard() {

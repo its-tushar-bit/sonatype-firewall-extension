@@ -139,7 +139,28 @@ public class ApplicationComponentDAOTest
     }
   }
 
-  public void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering(boolean isDatabaseEmbedded) {
+  @Test
+  public void testGetByApplicationIdsAndStageTypeIds_AppFiltering_H2() {
+    testGetByApplicationIdsAndStageTypeIds_AppFiltering(true, null);
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndStageTypeIds_AppFiltering_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testGetByApplicationIdsAndStageTypeIds_AppFiltering(false, null);
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering(boolean isDatabaseEmbedded) {
+    testGetByApplicationIdsAndStageTypeIds_AppFiltering(isDatabaseEmbedded, new Date());
+  }
+
+  private void testGetByApplicationIdsAndStageTypeIds_AppFiltering(boolean isDatabaseEmbedded, Date date) {
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
     String appId1 = application.getId();
@@ -155,38 +176,61 @@ public class ApplicationComponentDAOTest
       largeIdList.add(new Integer(i).toString());
     }
 
-    Date date = new Date();
+    Date currentDate = date != null ? date : new Date();
     String componentId1 = tempEntity.newApplicationComponent(appId1, ReleaseStageType.ID, "hash-1",
         ComponentIdentifier.createMavenCoordinates("g", "a", "1"), null, MatchState.EXACT, false,
-        new Date(date.getTime() + 1000)).getId();
+        new Date(currentDate.getTime() + 1000)).getId();
     String componentId2 = tempEntity.newApplicationComponent(appId1, ReleaseStageType.ID, "hash-2",
         ComponentIdentifier.createMavenCoordinates("g", "a", "2"), null, MatchState.EXACT, false,
-        new Date(date.getTime() + 2000)).getId();
+        new Date(currentDate.getTime() + 2000)).getId();
     String componentId3 = tempEntity.newApplicationComponent(appId2, ReleaseStageType.ID, "hash-3",
         ComponentIdentifier.createMavenCoordinates("g", "a", "3"), null, MatchState.EXACT, false,
-        new Date(date.getTime() + 3000)).getId();
+        new Date(currentDate.getTime() + 3000)).getId();
     tempEntity
         .newApplicationComponent(tempEntity.newApplication(organization.getId()).getId(), ReleaseStageType.ID, "hash-4",
-            ComponentIdentifier.createMavenCoordinates("g", "a", "4"), null, MatchState.EXACT, false, date).getId();
+            ComponentIdentifier.createMavenCoordinates("g", "a", "4"), null, MatchState.EXACT, false, currentDate)
+        .getId();
 
     Set<String> stageTypeIds = Collections.singleton(ReleaseStageType.ID);
-    List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(null, stageTypeIds, date);
-    assertThat(components).isEmpty();
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.emptySet(), stageTypeIds, date);
-    assertThat(components).isEmpty();
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton("missing"), stageTypeIds, date);
-    assertThat(components).isEmpty();
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds, date);
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2);
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId2), stageTypeIds, date);
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId3);
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(new HashSet<>(Arrays.asList(appId1, appId2)), stageTypeIds,
-        date);
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
-        componentId3);
-    components = dao.getByApplicationIdsAndStageTypeIdsSince(largeIdList, stageTypeIds, date);
-    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
-        componentId3);
+
+    if (date != null) {
+      List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(null, stageTypeIds, date);
+      assertThat(components).isEmpty();
+      components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.emptySet(), stageTypeIds, date);
+      assertThat(components).isEmpty();
+      components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton("missing"), stageTypeIds, date);
+      assertThat(components).isEmpty();
+      components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId1), stageTypeIds, date);
+      assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2);
+      components = dao.getByApplicationIdsAndStageTypeIdsSince(Collections.singleton(appId2), stageTypeIds, date);
+      assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId3);
+      components =
+          dao.getByApplicationIdsAndStageTypeIdsSince(new HashSet<>(Arrays.asList(appId1, appId2)), stageTypeIds, date);
+      assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
+          componentId3);
+      components = dao.getByApplicationIdsAndStageTypeIdsSince(largeIdList, stageTypeIds, date);
+      assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
+          componentId3);
+    }
+    else {
+      List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIds(null, stageTypeIds);
+      assertThat(components).isEmpty();
+      components = dao.getByApplicationIdsAndStageTypeIds(Collections.emptySet(), stageTypeIds);
+      assertThat(components).isEmpty();
+      components = dao.getByApplicationIdsAndStageTypeIds(Collections.singleton("missing"), stageTypeIds);
+      assertThat(components).isEmpty();
+      components = dao.getByApplicationIdsAndStageTypeIds(Collections.singleton(appId1), stageTypeIds);
+      assertThat(components).extracting(ApplicationComponent::getId).containsExactlyInAnyOrder(componentId1,
+          componentId2);
+      components = dao.getByApplicationIdsAndStageTypeIds(Collections.singleton(appId2), stageTypeIds);
+      assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId3);
+      components = dao.getByApplicationIdsAndStageTypeIds(new HashSet<>(Arrays.asList(appId1, appId2)), stageTypeIds);
+      assertThat(components).extracting(ApplicationComponent::getId).containsExactlyInAnyOrder(componentId1,
+          componentId2, componentId3);
+      components = dao.getByApplicationIdsAndStageTypeIds(largeIdList, stageTypeIds);
+      assertThat(components).extracting(ApplicationComponent::getId).containsExactlyInAnyOrder(componentId1,
+          componentId2, componentId3);
+    }
   }
 
   @Test
@@ -225,6 +269,45 @@ public class ApplicationComponentDAOTest
     components = dao.getByApplicationIdsAndStageTypeIdsSince(new HashSet<>(Arrays.asList(appId1, appId2)),
         new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)), date);
     assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
+        componentId3);
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndStageTypeIds_StageFiltering() {
+    String appId1 = application.getId();
+    String appId2 = tempEntity.newApplication(organization.getId()).getId();
+
+    Date date = new Date();
+    String componentId1 = tempEntity.newApplicationComponent(appId1, BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 1000)).getId();
+    String componentId2 = tempEntity.newApplicationComponent(appId1, ReleaseStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "2"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 2000)).getId();
+    String componentId3 = tempEntity.newApplicationComponent(appId2, ReleaseStageType.ID, "hash-3",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "3"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 3000)).getId();
+    tempEntity.newApplicationComponent(tempEntity.newApplication(organization.getId()).getId(), ReleaseStageType.ID,
+        "hash-4", ComponentIdentifier.createMavenCoordinates("g", "a", "4"), null, MatchState.EXACT, false, date)
+        .getId();
+
+    Set<String> appIds = Collections.singleton(application.getId());
+    List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIds(appIds, null);
+    assertThat(components).isEmpty();
+    components = dao.getByApplicationIdsAndStageTypeIds(Collections.emptySet(), Collections.emptySet());
+    assertThat(components).isEmpty();
+    components =
+        dao.getByApplicationIdsAndStageTypeIds(Collections.singleton("missing"), Collections.singleton("missing"));
+    assertThat(components).isEmpty();
+    components =
+        dao.getByApplicationIdsAndStageTypeIds(Collections.singleton(appId1), Collections.singleton(BuildStageType.ID));
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1);
+    components = dao.getByApplicationIdsAndStageTypeIds(Collections.singleton(appId1),
+        Collections.singleton(ReleaseStageType.ID));
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId2);
+    components = dao.getByApplicationIdsAndStageTypeIds(new HashSet<>(Arrays.asList(appId1, appId2)),
+        new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID)));
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactlyInAnyOrder(componentId1, componentId2,
         componentId3);
   }
 
@@ -275,6 +358,30 @@ public class ApplicationComponentDAOTest
     Set<String> stageIds = new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID));
     List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIdsSince(appIds, stageIds, date);
     assertThat(components).extracting(ApplicationComponent::getId).containsExactly(componentId1, componentId2,
+        componentId3);
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndStageTypeIds_MultipleStages() {
+    String appId1 = application.getId();
+    String appId2 = tempEntity.newApplication(organization.getId()).getId();
+
+    Date date = new Date();
+
+    String componentId1 = tempEntity.newApplicationComponent(appId1, BuildStageType.ID, "hash-1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 1000)).getId();
+    String componentId2 = tempEntity.newApplicationComponent(appId1, ReleaseStageType.ID, "hash-2",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "2"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 2000)).getId();
+    String componentId3 = tempEntity.newApplicationComponent(appId2, BuildStageType.ID, "hash-3",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "3"), null, MatchState.EXACT, false,
+        new Date(date.getTime() + 3000)).getId();
+
+    Set<String> appIds = new HashSet<>(Arrays.asList(appId1, appId2));
+    Set<String> stageIds = new HashSet<>(Arrays.asList(BuildStageType.ID, ReleaseStageType.ID));
+    List<ApplicationComponent> components = dao.getByApplicationIdsAndStageTypeIds(appIds, stageIds);
+    assertThat(components).extracting(ApplicationComponent::getId).containsExactlyInAnyOrder(componentId1, componentId2,
         componentId3);
   }
 

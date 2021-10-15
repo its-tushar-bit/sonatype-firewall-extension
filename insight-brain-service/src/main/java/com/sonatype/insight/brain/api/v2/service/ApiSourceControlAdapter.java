@@ -34,7 +34,7 @@ public class ApiSourceControlAdapter
     apiSourceControlDTO.statusChecksEnabled = sourceControl.getStatusChecksEnabled();
     apiSourceControlDTO.enableStatusChecks = apiSourceControlDTO.statusChecksEnabled;
     apiSourceControlDTO.pullRequestCommentingEnabled = sourceControl.getPullRequestCommentingEnabled();
-    apiSourceControlDTO.sourceControlScansEnabled = sourceControl.getSourceControlScansEnabled();
+    apiSourceControlDTO.sourceControlEvaluationsEnabled = sourceControl.getSourceControlEvaluationsEnabled();
     apiSourceControlDTO.sourceControlScanTarget = sourceControl.getSourceControlScanTarget();
     apiSourceControlDTO.sshEnabled = sourceControl.getSshEnabled();
 
@@ -69,7 +69,7 @@ public class ApiSourceControlAdapter
         .setStatusChecksEnabled(dto.statusChecksEnabled != null ? dto.statusChecksEnabled : dto.enableStatusChecks)
         .setBaseBranch(dto.baseBranch)
         .setPullRequestCommentingEnabled(dto.pullRequestCommentingEnabled)
-        .setSourceControlScansEnabled(dto.sourceControlScansEnabled)
+        .setSourceControlEvaluationsEnabled(dto.sourceControlEvaluationsEnabled)
         .setSourceControlScanTarget(dto.sourceControlScanTarget)
         .setSshEnabled(dto.sshEnabled)
         .build();

@@ -73,8 +73,8 @@ public class SourceControl
   @Column(name = "pull_request_commenting_enabled")
   private Boolean pullRequestCommentingEnabled;
 
-  @Column(name = "source_control_scans_enabled")
-  private Boolean sourceControlScansEnabled;
+  @Column(name = "source_control_evaluations_enabled")
+  private Boolean sourceControlEvaluationsEnabled;
 
   @Column(name = "source_control_scan_target")
   private String sourceControlScanTarget;
@@ -96,7 +96,7 @@ public class SourceControl
       final Boolean statusChecksEnabled,
       final String baseBranch,
       final Boolean pullRequestCommentingEnabled,
-      final Boolean sourceControlScansEnabled,
+      final Boolean sourceControlEvaluationsEnabled,
       final String sourceControlScanTarget,
       final Boolean sshEnabled)
   {
@@ -110,7 +110,7 @@ public class SourceControl
     this.statusChecksEnabled = statusChecksEnabled;
     this.baseBranch = baseBranch;
     this.pullRequestCommentingEnabled = pullRequestCommentingEnabled;
-    this.sourceControlScansEnabled = sourceControlScansEnabled;
+    this.sourceControlEvaluationsEnabled = sourceControlEvaluationsEnabled;
     this.sourceControlScanTarget = sourceControlScanTarget;
     this.sshEnabled = sshEnabled;
   }
@@ -220,12 +220,12 @@ public class SourceControl
     this.pullRequestCommentingEnabled = pullRequestCommentingEnabled;
   }
 
-  public Boolean getSourceControlScansEnabled() {
-    return sourceControlScansEnabled;
+  public Boolean getSourceControlEvaluationsEnabled() {
+    return sourceControlEvaluationsEnabled;
   }
 
-  public void setSourceControlScansEnabled(final Boolean sourceControlScansEnabled) {
-    this.sourceControlScansEnabled = sourceControlScansEnabled;
+  public void setSourceControlEvaluationsEnabled(final Boolean sourceControlEvaluationsEnabled) {
+    this.sourceControlEvaluationsEnabled = sourceControlEvaluationsEnabled;
   }
 
   public String getSourceControlScanTarget() {
@@ -276,7 +276,7 @@ public class SourceControl
 
     private Boolean pullRequestCommentingEnabled;
 
-    private Boolean sourceControlScansEnabled;
+    private Boolean sourceControlEvaluationsEnabled;
 
     private String sourceControlScanTarget;
 
@@ -337,8 +337,8 @@ public class SourceControl
       return this;
     }
 
-    public Builder setSourceControlScansEnabled(final Boolean sourceControlScansEnabled) {
-      this.sourceControlScansEnabled = sourceControlScansEnabled;
+    public Builder setSourceControlEvaluationsEnabled(final Boolean sourceControlEvaluationsEnabled) {
+      this.sourceControlEvaluationsEnabled = sourceControlEvaluationsEnabled;
       return this;
     }
 
@@ -356,7 +356,7 @@ public class SourceControl
       SourceControl sourceControl =
           new SourceControl(ownerId, repositoryUrl, repositorySshUrl, username, token, provider,
               remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestCommentingEnabled,
-              sourceControlScansEnabled, sourceControlScanTarget, sshEnabled);
+              sourceControlEvaluationsEnabled, sourceControlScanTarget, sshEnabled);
       sourceControl.setPullRequestPollTime(pullRequestPollTime);
       return sourceControl;
     }
@@ -378,7 +378,7 @@ public class SourceControl
         ", pullRequestPollTime=" + pullRequestPollTime +
         ", pullRequestErrorCount=" + pullRequestErrorCount +
         ", pullRequestCommentingEnabled=" + pullRequestCommentingEnabled +
-        ", sourceControlScansEnabled=" + sourceControlScansEnabled +
+        ", sourceControlEvaluationsEnabled=" + sourceControlEvaluationsEnabled +
         ", sourceControlScanTarget=" + sourceControlScanTarget +
         ", sshEnabled=" + sshEnabled +
         '}';

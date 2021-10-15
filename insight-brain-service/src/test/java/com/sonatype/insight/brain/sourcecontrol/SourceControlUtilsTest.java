@@ -88,7 +88,7 @@ public class SourceControlUtilsTest
         .setRemediationPullRequestsEnabled(false)
         .setStatusChecksEnabled(false)
         .setPullRequestCommentingEnabled(true)
-        .setSourceControlScansEnabled(true)
+        .setSourceControlEvaluationsEnabled(true)
         .setSshEnabled(true)
         .setSourceControlScanTarget("/target/*")
         .build();
@@ -124,7 +124,7 @@ public class SourceControlUtilsTest
         .setStatusChecksEnabled(true)
         .setPullRequestCommentingEnabled(true)
         .setSshEnabled(true)
-        .setSourceControlScansEnabled(true)
+        .setSourceControlEvaluationsEnabled(true)
         .setSourceControlScanTarget("/target/*")
         .build();
 
@@ -164,7 +164,7 @@ public class SourceControlUtilsTest
         .setRemediationPullRequestsEnabled(true)
         .setStatusChecksEnabled(true)
         .setPullRequestCommentingEnabled(true)
-        .setSourceControlScansEnabled(true)
+        .setSourceControlEvaluationsEnabled(true)
         .setSourceControlScanTarget("/target/*")
         .build();
 
@@ -187,7 +187,7 @@ public class SourceControlUtilsTest
     assertThat(gitRepositoryInfo.token).isEqualTo(TOKEN);
     assertThat(gitRepositoryInfo.provider).isEqualTo(SourceControlProvider.GITHUB);
     assertThat(gitRepositoryInfo.pullRequestCommentingEnabled).isTrue();
-    assertThat(gitRepositoryInfo.sourceControlScansEnabled).isTrue();
+    assertThat(gitRepositoryInfo.sourceControlEvaluationsEnabled).isTrue();
     assertThat(gitRepositoryInfo.sourceControlScanTarget).isEqualTo("/target/*");
     assertThat(gitRepositoryInfo.baseBranch).isEqualTo("base-branch");
 
@@ -383,7 +383,7 @@ public class SourceControlUtilsTest
         .setRemediationPullRequestsEnabled(true)
         .setStatusChecksEnabled(true)
         .setPullRequestCommentingEnabled(true)
-        .setSourceControlScansEnabled(true)
+        .setSourceControlEvaluationsEnabled(true)
         .setSshEnabled(true)
         .setSourceControlScanTarget("/target/*")
         .build();
@@ -411,7 +411,7 @@ public class SourceControlUtilsTest
         .setRemediationPullRequestsEnabled(true)
         .setStatusChecksEnabled(true)
         .setPullRequestCommentingEnabled(true)
-        .setSourceControlScansEnabled(true)
+        .setSourceControlEvaluationsEnabled(true)
         .setSourceControlScanTarget("/target/*")
         .build();
 
@@ -434,7 +434,7 @@ public class SourceControlUtilsTest
     assertThat(gitRepositoryInfo.token).isEqualTo(TOKEN);
     assertThat(gitRepositoryInfo.username).isEqualTo(USERNAME);
     assertThat(gitRepositoryInfo.pullRequestCommentingEnabled).isTrue();
-    assertThat(gitRepositoryInfo.sourceControlScansEnabled).isTrue();
+    assertThat(gitRepositoryInfo.sourceControlEvaluationsEnabled).isTrue();
     assertThat(gitRepositoryInfo.sourceControlScanTarget).isEqualTo("/target/*");
     assertThat(gitRepositoryInfo.baseBranch).isEqualTo("base-branch");
   }

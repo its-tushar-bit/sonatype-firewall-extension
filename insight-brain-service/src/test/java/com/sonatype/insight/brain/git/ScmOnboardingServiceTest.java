@@ -142,7 +142,7 @@ public class ScmOnboardingServiceTest
     mockGetRequest(gitService, "/rest/user", MOCK_USER_JSON, HttpStatus.SC_OK);
     rootOrgSourceControl = tempEntity
         .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
-    rootOrgSourceControl.setSourceControlScansEnabled(true);
+    rootOrgSourceControl.setSourceControlEvaluationsEnabled(true);
     sourceControlDAO.update(rootOrgSourceControl);
   }
 
@@ -916,7 +916,7 @@ public class ScmOnboardingServiceTest
   {
     // given SCM imports are enabled and internal SCM policy evaluations are disabled
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
-    rootOrgSourceControl.setSourceControlScansEnabled(internalSourceControlPolicyEvaluationsEnabled);
+    rootOrgSourceControl.setSourceControlEvaluationsEnabled(internalSourceControlPolicyEvaluationsEnabled);
     sourceControlDAO.update(rootOrgSourceControl);
 
     // given a repo to import

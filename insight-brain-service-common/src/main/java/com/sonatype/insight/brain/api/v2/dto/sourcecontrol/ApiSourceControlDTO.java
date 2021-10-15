@@ -43,7 +43,7 @@ public class ApiSourceControlDTO
 
   public Boolean pullRequestCommentingEnabled;
 
-  public Boolean sourceControlScansEnabled;
+  public Boolean sourceControlEvaluationsEnabled;
 
   public String sourceControlScanTarget;
 

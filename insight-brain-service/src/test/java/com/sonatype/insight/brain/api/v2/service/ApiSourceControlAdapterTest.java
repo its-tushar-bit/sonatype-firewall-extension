@@ -29,7 +29,7 @@ public class ApiSourceControlAdapterTest
     sourceControl.setRemediationPullRequestsEnabled(true);
     sourceControl.setStatusChecksEnabled(false);
     sourceControl.setPullRequestCommentingEnabled(true);
-    sourceControl.setSourceControlScansEnabled(true);
+    sourceControl.setSourceControlEvaluationsEnabled(true);
     sourceControl.setSourceControlScanTarget("/target/*");
     sourceControl.setSshEnabled(true);
 
@@ -47,7 +47,7 @@ public class ApiSourceControlAdapterTest
     assertThat(dto.statusChecksEnabled).isEqualTo(false);
     assertThat(dto.enableStatusChecks).isEqualTo(dto.statusChecksEnabled);
     assertThat(dto.pullRequestCommentingEnabled).isEqualTo(true);
-    assertThat(dto.sourceControlScansEnabled).isEqualTo(true);
+    assertThat(dto.sourceControlEvaluationsEnabled).isEqualTo(true);
     assertThat(dto.sourceControlScanTarget).isEqualTo("/target/*");
     assertThat(dto.sshEnabled).isTrue();
   }
@@ -65,7 +65,7 @@ public class ApiSourceControlAdapterTest
     apiSourceControlDTO.remediationPullRequestsEnabled = true;
     apiSourceControlDTO.statusChecksEnabled = false;
     apiSourceControlDTO.pullRequestCommentingEnabled = true;
-    apiSourceControlDTO.sourceControlScansEnabled = true;
+    apiSourceControlDTO.sourceControlEvaluationsEnabled = true;
     apiSourceControlDTO.sourceControlScanTarget = "/target/*";
     apiSourceControlDTO.sshEnabled = true;
 
@@ -81,7 +81,7 @@ public class ApiSourceControlAdapterTest
     assertThat(sourceControl.getRemediationPullRequestsEnabled()).isEqualTo(true);
     assertThat(sourceControl.getStatusChecksEnabled()).isEqualTo(false);
     assertThat(sourceControl.getPullRequestCommentingEnabled()).isEqualTo(true);
-    assertThat(sourceControl.getSourceControlScansEnabled()).isEqualTo(true);
+    assertThat(sourceControl.getSourceControlEvaluationsEnabled()).isEqualTo(true);
     assertThat(sourceControl.getSourceControlScanTarget()).isEqualTo("/target/*");
     assertThat(sourceControl.getSshEnabled()).isTrue();
   }

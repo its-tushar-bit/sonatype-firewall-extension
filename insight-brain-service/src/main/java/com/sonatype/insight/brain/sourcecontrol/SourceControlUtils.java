@@ -84,7 +84,7 @@ public class SourceControlUtils
         sourceControl.getRepositorySshUrl(), sourceControl.getUsername(), sourceControl.getToken(),
         sourceControl.getProvider(), sourceControl.getBaseBranch(), sourceControl.getRemediationPullRequestsEnabled(),
         sourceControl.getStatusChecksEnabled(),
-        sourceControl.getPullRequestCommentingEnabled(), sourceControl.getSourceControlScansEnabled(),
+        sourceControl.getPullRequestCommentingEnabled(), sourceControl.getSourceControlEvaluationsEnabled(),
         sourceControl.getSshEnabled(), sourceControl.getSourceControlScanTarget());
 
     if (!gitRepositoryInfo.isDataComplete()) {
@@ -168,8 +168,8 @@ public class SourceControlUtils
       gitRepositoryInfo.pullRequestCommentingEnabled = orgSourceControl.getPullRequestCommentingEnabled();
     }
 
-    if (gitRepositoryInfo.sourceControlScansEnabled == null) {
-      gitRepositoryInfo.sourceControlScansEnabled = orgSourceControl.getSourceControlScansEnabled();
+    if (gitRepositoryInfo.sourceControlEvaluationsEnabled == null) {
+      gitRepositoryInfo.sourceControlEvaluationsEnabled = orgSourceControl.getSourceControlEvaluationsEnabled();
     }
 
     if (gitRepositoryInfo.sshEnabled == null) {

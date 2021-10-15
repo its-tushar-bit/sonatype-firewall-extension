@@ -60,7 +60,7 @@ public class InternalSourceControlPolicyEvaluationsConfigMigratorTest
     assertThat(existingTracker).isNull();
 
     SourceControl rootSourceControl = sourceControlDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    assertThat(rootSourceControl.getSourceControlScansEnabled()).isNull();
+    assertThat(rootSourceControl.getSourceControlEvaluationsEnabled()).isNull();
 
     // by default, insightConfig will return true for any 'feature' that is not otherwise defined;
     // disable internal source control policy evaluations explicitly
@@ -76,7 +76,7 @@ public class InternalSourceControlPolicyEvaluationsConfigMigratorTest
 
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
     assertThat(sourceControl).isNotNull();
-    assertThat(sourceControl.getSourceControlScansEnabled()).isFalse();
+    assertThat(sourceControl.getSourceControlEvaluationsEnabled()).isFalse();
 
     // when: migrate is called again AFTER "config was flipped"
     insightConfig.setFeatures(ImmutableMap.of(Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS.getFlag(), true));
@@ -85,6 +85,6 @@ public class InternalSourceControlPolicyEvaluationsConfigMigratorTest
 
     // then: flipped value was not re-migrated
     sourceControl = sourceControlDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    assertThat(sourceControl.getSourceControlScansEnabled()).isFalse();
+    assertThat(sourceControl.getSourceControlEvaluationsEnabled()).isFalse();
   }
 }

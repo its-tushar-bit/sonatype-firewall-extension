@@ -1232,7 +1232,7 @@ public class SourceControlDAOTest
     expectedSourceControl.setRemediationPullRequestsEnabled(scOrg.getRemediationPullRequestsEnabled());
     expectedSourceControl.setStatusChecksEnabled(scOrg.getStatusChecksEnabled());
     expectedSourceControl.setPullRequestCommentingEnabled(true);
-    expectedSourceControl.setSourceControlScansEnabled(true);
+    expectedSourceControl.setSourceControlEvaluationsEnabled(true);
     expectedSourceControl.setSourceControlScanTarget("/target/*");
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
         "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST);
@@ -1262,7 +1262,7 @@ public class SourceControlDAOTest
     expectedSourceControl.setRemediationPullRequestsEnabled(scRoot.getRemediationPullRequestsEnabled());
     expectedSourceControl.setStatusChecksEnabled(scRoot.getStatusChecksEnabled());
     expectedSourceControl.setPullRequestCommentingEnabled(true);
-    expectedSourceControl.setSourceControlScansEnabled(true);
+    expectedSourceControl.setSourceControlEvaluationsEnabled(true);
     expectedSourceControl.setSourceControlScanTarget("/target/*");
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
         "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);

@@ -65,7 +65,7 @@ public class InternalSourceControlPolicyEvaluationsConfigMigrator
       @SuppressWarnings("deprecation")
       boolean internalSourceControlPolicyEvaluationsEnabled =
           insightConfig.isFeatureEnabled(Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
-      rootOrgSourceControl.setSourceControlScansEnabled(internalSourceControlPolicyEvaluationsEnabled);
+      rootOrgSourceControl.setSourceControlEvaluationsEnabled(internalSourceControlPolicyEvaluationsEnabled);
       sourceControlDAO.update(txn, rootOrgSourceControl);
       migrationTrackerDAO.insert(txn, new MigrationTracker(MIGRATION_ID));
 

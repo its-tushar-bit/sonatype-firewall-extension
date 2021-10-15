@@ -657,7 +657,7 @@ CREATE TABLE source_control (
   remediation_pull_requests_enabled boolean,
   status_checks_enabled boolean,
   pull_request_commenting_enabled boolean,
-  source_control_scans_enabled boolean,
+  source_control_evaluations_enabled boolean,
   source_control_scan_target varchar(1000),
   pull_request_poll_time timestamp NULL,
   pull_request_error_count INT NOT NULL DEFAULT 0,

@@ -109,7 +109,7 @@ describe('source.control.editor.spec', function () {
       id: null,
       pullRequestCommentingEnabled: null,
       remediationPullRequestsEnabled: null,
-      sourceControlScansEnabled: null,
+      sourceControlEvaluationsEnabled: null,
       statusChecksEnabled: true,
     };
   };
@@ -208,7 +208,7 @@ describe('source.control.editor.spec', function () {
         parentName: null,
         parentValue: null,
       },
-      sourceControlScansEnabled: {
+      sourceControlEvaluationsEnabled: {
         value: null,
         parentName: null,
         parentValue: null,
@@ -393,7 +393,7 @@ describe('source.control.editor.spec', function () {
           ...{
             pullRequestCommentingEnabled: true,
             remediationPullRequestsEnabled: false,
-            sourceControlScansEnabled: true,
+            sourceControlEvaluationsEnabled: true,
           },
         };
 
@@ -431,7 +431,7 @@ describe('source.control.editor.spec', function () {
             id: 'ID',
             pullRequestCommentingEnabled: true,
             remediationPullRequestsEnabled: false,
-            sourceControlScansEnabled: true,
+            sourceControlEvaluationsEnabled: true,
           },
         };
 
@@ -479,7 +479,7 @@ describe('source.control.editor.spec', function () {
             id: 'ID',
             pullRequestCommentingEnabled: true,
             remediationPullRequestsEnabled: false,
-            sourceControlScansEnabled: true,
+            sourceControlEvaluationsEnabled: true,
           },
         };
 
@@ -849,7 +849,7 @@ describe('source.control.editor.spec', function () {
         parentName: 'Root Organization',
         parentValue: true,
       },
-      sourceControlScansEnabled: {
+      sourceControlEvaluationsEnabled: {
         value: null,
         parentName: 'Root Organization',
         parentValue: true,
@@ -1108,7 +1108,7 @@ describe('source.control.editor.spec', function () {
             parentName: 'Root Organization',
             parentValue: true,
           },
-          sourceControlScansEnabled: {
+          sourceControlEvaluationsEnabled: {
             value: null,
             parentName: 'Root Organization',
             parentValue: true,
@@ -1461,8 +1461,8 @@ describe('source.control.editor.spec', function () {
     describe('sourceControlEvaluationsInheritText', function () {
       it('should return "Inherit (Not Configured)" if not defined elsewhere', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.sourceControlScansEnabled.parentName = null;
-        compositeSourceControlCopy.sourceControlScansEnabled.parentValue = null;
+        compositeSourceControlCopy.sourceControlEvaluationsEnabled.parentName = null;
+        compositeSourceControlCopy.sourceControlEvaluationsEnabled.parentValue = null;
 
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
         expect(vm.sourceControlEvaluationsEnabledInheritText).toEqual('Inherit (Not Configured)');
@@ -1470,8 +1470,8 @@ describe('source.control.editor.spec', function () {
 
       it('should return "Inherit from Org (Enabled)" if enabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.sourceControlScansEnabled.parentName = 'Org';
-        compositeSourceControlCopy.sourceControlScansEnabled.parentValue = true;
+        compositeSourceControlCopy.sourceControlEvaluationsEnabled.parentName = 'Org';
+        compositeSourceControlCopy.sourceControlEvaluationsEnabled.parentValue = true;
 
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
         expect(vm.sourceControlEvaluationsEnabledInheritText).toEqual('Inherit from Org (Enabled)');
@@ -1479,8 +1479,8 @@ describe('source.control.editor.spec', function () {
 
       it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.sourceControlScansEnabled.parentName = 'Org';
-        compositeSourceControlCopy.sourceControlScansEnabled.parentValue = false;
+        compositeSourceControlCopy.sourceControlEvaluationsEnabled.parentName = 'Org';
+        compositeSourceControlCopy.sourceControlEvaluationsEnabled.parentValue = false;
 
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
         expect(vm.sourceControlEvaluationsEnabledInheritText).toEqual('Inherit from Org (Disabled)');
@@ -1557,7 +1557,7 @@ describe('source.control.editor.spec', function () {
         parentName: 'Root Organization',
         parentValue: true,
       },
-      sourceControlScansEnabled: {
+      sourceControlEvaluationsEnabled: {
         value: null,
         parentName: 'Root Organization',
         parentValue: true,
@@ -1818,7 +1818,7 @@ describe('source.control.editor.spec', function () {
             parentName: 'Sub Organization',
             parentValue: true,
           },
-          sourceControlScansEnabled: {
+          sourceControlEvaluationsEnabled: {
             value: null,
             parentName: 'Sub Organization',
             parentValue: true,

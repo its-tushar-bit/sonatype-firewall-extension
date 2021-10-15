@@ -972,7 +972,7 @@ public class InsightConfig
     DEPENDENCY_DATA_IN_API("dependencyDataInApi"),
     INNER_SOURCE_TRANSITIVE_WAIVER("innerSourceTransitiveWaiver"),
     /**
-     * @deprecated Use {@link SourceControl#getSourceControlScansEnabled() instead}
+     * @deprecated Use {@link SourceControl#getSourceControlEvaluationsEnabled() instead}
      */
     @Deprecated
     INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS("internalSourceControlPolicyEvaluations"),

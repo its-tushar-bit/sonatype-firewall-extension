@@ -14,8 +14,6 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,7 +42,7 @@ public class RootOrganizationSourceControlEditorTest
 
   @Override
   @Before
-  public void init() throws PlexusCipherException {
+  public void init() {
     super.init();
     organization = rootOrganization;
   }

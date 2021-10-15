@@ -39,20 +39,20 @@ public class SourceControlConfig
 
   /**
    * Hidden config to customize the commit username for SCM features
-   * @since 1.TBD TODO
+   * @since 1.121
    */
   private String commitUsername;
 
   /**
    * Hidden config to customize the commit email address for SCM features
-   * @since 1.TBD TODO
+   * @since 1.121
    */
   private String commitEmail;
 
   /**
    * Hidden config to add the username to the repository clone URL.
    * Used in conjunction with `commitEmail` to support Bitbucket Server 'Verified Committer' feature. See INT-4453.
-   * @since 1.TBD TODO
+   * @since 1.121
    */
   private boolean useUsernameInRepositoryCloneUrl;
 

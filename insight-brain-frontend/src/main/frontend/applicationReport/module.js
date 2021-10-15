@@ -50,7 +50,11 @@ export default angular
   )
   .component(
     'applicationReportVulnerabilities',
-    react2angular(applicationReportVulnerabilities, [], ['$ngRedux', '$state', 'applicationReportActions'])
+    react2angular(
+      withStoreProvider(withRouterStateProvider(applicationReportVulnerabilities)),
+      [],
+      ['$ngRedux', '$state']
+    )
   )
   .factory('applicationReportActions', applicationReportActions)
   .config(routes);

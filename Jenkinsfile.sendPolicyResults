@@ -5,26 +5,6 @@
  */
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 
-def downloadLatestReleasePdfReport(String applicationId, String reportName) {
-  def iq_base_url = 'https://policy.ci.sonatype.dev'
-  def iq_latest_reports_url = iq_base_url + '/api/v2/reports/applications'
-  def iq_application_latest_reports_url = iq_latest_reports_url + '/' + applicationId
-  def iq_application_latest_reports_response
-  withCredentials([usernameColonPassword(credentialsId: 'policy.s integration account', variable: 'CREDS')]) {
-    iq_application_latest_reports_response = sh(script: 'curl -u $CREDS ' + iq_application_latest_reports_url, returnStdout: true)
-  }
-  def iq_application_latest_reports_json = readJSON text: iq_application_latest_reports_response
-  def iq_application_latest_release_pdf_report_url
-  iq_application_latest_reports_json.each { report ->
-    if (report['stage'] == 'release') {
-      iq_application_latest_release_pdf_report_url = iq_base_url + '/' + report['reportPdfUrl'];
-    }
-  }
-  withCredentials([usernameColonPassword(credentialsId: 'policy.s integration account', variable: 'CREDS')]) {
-    sh 'curl -u $CREDS -L ' + iq_application_latest_release_pdf_report_url + ' -o \'' + reportName + '\''
-  }
-}
-
 properties(
   [
     parameters (
@@ -48,14 +28,7 @@ pipeline {
   stages {
     stage('Send Policy Results to Corporate Legal and Security Teams') {
       steps {
-        downloadLatestReleasePdfReport('34530ad4a5be49508a22c08feb1778cb', 'IQ Server Report.pdf')
-        emailext(
-          attachmentsPattern: '**/*.pdf',
-          mimeType: 'text/html',
-          subject: "BoM for IQ server release ${params.releaseVersion}",
-          body: "<p>Here are the BoMs for the latest release, see the attached PDF files.</p>",
-          to: "legal@sonatype.com, security-advisory-group@sonatype.com"
-        )
+        sendPolicyResults(params.releaseVersion)
       }
     }
   }

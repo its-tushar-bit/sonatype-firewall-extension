@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -48,7 +47,7 @@ public abstract class AbstractSourceControlEditorTest
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
   @Before
-  public void init() throws PlexusCipherException {
+  public void init() {
     TOKEN = new String(new PasswordHandler(new DefaultPlexusCipher()).encryptPassword("secret_key".toCharArray()));
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
   }

@@ -104,13 +104,17 @@ export default function FirewallUnquarantineTable(props) {
                       <div className="nx-truncate-ellipsis">{row.componentDisplayText}</div>
                     </NxOverflowTooltip>
                   </NxTableCell>
-                  <NxTableCell>{new Date(row.quarantineDate).toLocaleDateString()}</NxTableCell>
+                  <NxTableCell className="visual-testing-ignore">
+                    {new Date(row.quarantineDate).toLocaleDateString()}
+                  </NxTableCell>
                   <NxTableCell>
                     <NxOverflowTooltip title={row.repository}>
                       <div className="nx-truncate-ellipsis">{row.repository}</div>
                     </NxOverflowTooltip>
                   </NxTableCell>
-                  <NxTableCell>{new Date(row.dateCleared).toLocaleDateString()}</NxTableCell>
+                  <NxTableCell className="visual-testing-ignore">
+                    {new Date(row.dateCleared).toLocaleDateString()}
+                  </NxTableCell>
                   <NxTableCell chevron />
                 </NxTableRow>
               );

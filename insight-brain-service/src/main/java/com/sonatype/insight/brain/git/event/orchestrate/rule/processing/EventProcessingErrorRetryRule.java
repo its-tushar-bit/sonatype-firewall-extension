@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git.event.orchestrate.rule.processing;
 
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,8 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.nexus.scm.api.access.control.ExclusiveAccessRequestTimeoutException;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +63,9 @@ public class EventProcessingErrorRetryRule
 
   private boolean isRetryableException(Exception e) {
     return ExceptionHelper.hasCauseOrSuppressedOfType(e, UnknownHostException.class)
+        || ExceptionHelper.hasCauseOrSuppressedOfType(e, SocketTimeoutException.class)
+        || (ExceptionHelper.hasCauseOrSuppressedOfType(e, HttpResponseException.class)
+            && ExceptionUtils.getStackTrace(e).contains("Bad Gateway"))
         || ExceptionHelper.hasCauseOrSuppressedOfType(e, ExclusiveAccessRequestTimeoutException.class)
         || (!isBlank(e.getMessage()) && e.getMessage().contains("abuse detection"));
   }

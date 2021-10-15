@@ -3,52 +3,52 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
-import BackButton from '../../react/BackButton';
+import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import LoadWrapper from '../../react/LoadWrapper';
 import ApplicationReportVulnerabilitiesHeader, { metadataPropType } from './ApplicationReportVulnerabilitiesHeader';
 import ApplicationReportVulnerabilitiesTable, {
   vulnerabilitiesPropType,
 } from './ApplicationReportVulnerabilitiesTable';
 
-export default class ApplicationReportVulnerabilitiesPage extends Component {
-  componentDidMount() {
-    this.props.loadReportAllData();
-  }
+const ApplicationReportVulnerabilitiesPage = ({
+  loadError,
+  loading,
+  vulnerabilitiesPageEnabled,
+  metadata,
+  vulnerabilities,
+  loadReportAllData,
+}) => {
+  useEffect(() => {
+    loadReportAllData();
+  }, []);
 
-  render() {
-    const error =
-      this.props.loadError ||
-      (!this.props.loading &&
-        !this.props.vulnerabilitiesPageEnabled &&
-        'This report has not been upgraded for the new policy-vulnerability linking introduced in release 67. ' +
-          'Re-evaluate in order to enable this page') ||
-      undefined;
+  const error =
+    loadError ||
+    (!loading &&
+      !vulnerabilitiesPageEnabled &&
+      'This report has not been upgraded for the new policy-vulnerability linking introduced in release 67. ' +
+        'Re-evaluate in order to enable this page') ||
+    undefined;
 
-    return (
-      <div id="application-report-vulnerabilities" className="nx-page-main nx-viewport-sized">
-        <BackButton stateName="applicationReport.policy" $state={this.props.$state} />
-        <LoadWrapper
-          loading={!this.props.metadata || this.props.loading}
-          error={error}
-          retryHandler={this.props.loadReportAllData}
-        >
-          {() => (
-            <div className="nx-tile nx-viewport-sized__container">
-              <ApplicationReportVulnerabilitiesHeader metadata={this.props.metadata} />
-              <ApplicationReportVulnerabilitiesTable
-                vulnerabilities={this.props.vulnerabilities}
-                $state={this.props.$state}
-              />
-            </div>
-          )}
-        </LoadWrapper>
-      </div>
-    );
-  }
-}
+  return (
+    <div id="application-report-vulnerabilities" className="nx-page-main nx-viewport-sized">
+      <MenuBarBackButton stateName="applicationReport.policy" />
+      <LoadWrapper loading={!metadata || loading} error={error} retryHandler={loadReportAllData}>
+        {() => (
+          <div className="nx-tile nx-viewport-sized__container">
+            <ApplicationReportVulnerabilitiesHeader metadata={metadata} />
+            <ApplicationReportVulnerabilitiesTable vulnerabilities={vulnerabilities} />
+          </div>
+        )}
+      </LoadWrapper>
+    </div>
+  );
+};
+
+export default ApplicationReportVulnerabilitiesPage;
 
 ApplicationReportVulnerabilitiesPage.propTypes = {
   loadReportAllData: PropTypes.func.isRequired,
@@ -57,5 +57,4 @@ ApplicationReportVulnerabilitiesPage.propTypes = {
   loading: PropTypes.bool.isRequired,
   loadError: PropTypes.string,
   vulnerabilitiesPageEnabled: PropTypes.bool.isRequired,
-  $state: BackButton.propTypes.$state,
 };

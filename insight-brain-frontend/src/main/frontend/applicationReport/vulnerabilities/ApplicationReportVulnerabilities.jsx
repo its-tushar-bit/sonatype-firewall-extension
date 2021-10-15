@@ -3,11 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import { Provider, connect } from 'react-redux';
-import * as PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import { pick } from 'ramda';
-
+import { loadReportAllData } from '../applicationReportActions';
 import ApplicationReportVulnerabilitiesPage from './ApplicationReportVulnerabilitiesPage';
 
 function mapStateToProps({ applicationReport }) {
@@ -18,29 +16,6 @@ function mapStateToProps({ applicationReport }) {
   };
 }
 
-export default function ApplicationReportVulnerabilities({ $ngRedux, $state, applicationReportActions }) {
-  const mapDispatchToProps = pick(['loadReportAllData'], applicationReportActions);
+const mapDispatchToProps = { loadReportAllData };
 
-  const ConnectedApplicationReportVulnerabilitiesPage = connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(ApplicationReportVulnerabilitiesPage);
-
-  return (
-    <Provider store={$ngRedux}>
-      <ConnectedApplicationReportVulnerabilitiesPage $state={$state} />
-    </Provider>
-  );
-}
-
-ApplicationReportVulnerabilities.propTypes = {
-  $ngRedux: PropTypes.shape({
-    subscribe: PropTypes.func.isRequired,
-    dispatch: PropTypes.func.isRequired,
-    getState: PropTypes.func.isRequired,
-  }),
-  $state: ApplicationReportVulnerabilitiesPage.propTypes.$state,
-  applicationReportActions: PropTypes.shape({
-    loadReportAllData: PropTypes.func.isRequired,
-  }),
-};
+export default connect(mapStateToProps, mapDispatchToProps)(ApplicationReportVulnerabilitiesPage);

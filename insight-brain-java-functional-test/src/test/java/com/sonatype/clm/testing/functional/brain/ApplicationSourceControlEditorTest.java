@@ -24,8 +24,6 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
 import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,7 +74,7 @@ public class ApplicationSourceControlEditorTest
 
   @Override
   @Before
-  public void init() throws PlexusCipherException {
+  public void init() {
     super.init();
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
         YE_OLE_ORGANIZATION);

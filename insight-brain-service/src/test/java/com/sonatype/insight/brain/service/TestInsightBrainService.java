@@ -38,7 +38,6 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import io.dropwizard.configuration.ConfigurationException;
 import io.dropwizard.configuration.ConfigurationFactory;
@@ -118,13 +117,8 @@ public class TestInsightBrainService
     testProxyServerConfiguration.setHostname(host);
     testProxyServerConfiguration.setPort(port);
     testProxyServerConfiguration.setUsername(user);
-    try {
-      testProxyServerConfiguration
-          .setPassword(new PasswordHandler(new DefaultPlexusCipher()).encryptPassword(pass.toCharArray()));
-    }
-    catch (PlexusCipherException e) {
-      throw new RuntimeException(e);
-    }
+    testProxyServerConfiguration
+        .setPassword(new PasswordHandler(new DefaultPlexusCipher()).encryptPassword(pass.toCharArray()));
   }
 
   public void setConfigurator(Configurator configurator) {

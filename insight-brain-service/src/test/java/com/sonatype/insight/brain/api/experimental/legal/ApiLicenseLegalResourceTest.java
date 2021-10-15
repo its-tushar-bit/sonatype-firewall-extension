@@ -23,6 +23,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
@@ -128,6 +130,54 @@ public class ApiLicenseLegalResourceTest
     assertThat(dto.lastScanTime).isEqualTo(policyEvaluation.getTime().getTime());
     assertThat(dto.componentsReviewedCount).isZero();
     assertThat(dto.componentsTotalCount).isZero();
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentsDashboard_NoResults() throws Exception {
+    LicenseLegalFilterDTO filter = new LicenseLegalFilterDTO();
+    filter.page = 1;
+    filter.pageSize = 10;
+
+    HttpResponse response =
+        restRequest().path(ApiLicenseLegalResource.DASHBOARD_COMPONENTS_PATH).body(filter).auth().post();
+
+    assertResponseStatus(200, response);
+    ApiLicenseLegalComponentDashboardResultDTO resultDto =
+        response.getBody(ApiLicenseLegalComponentDashboardResultDTO.class);
+    assertThat(resultDto).isNotNull();
+    assertThat(resultDto.results).isEmpty();
+    assertThat(resultDto.totalResultsCount).isZero();
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentsDashboard() throws Exception {
+    LicenseLegalFilterDTO filter = new LicenseLegalFilterDTO();
+    filter.page = 1;
+    filter.pageSize = 10;
+
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ApplicationComponent applicationComponent =
+        tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash1", componentIdentifier);
+    tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");
+
+    HttpResponse response =
+        restRequest().path(ApiLicenseLegalResource.DASHBOARD_COMPONENTS_PATH).body(filter).auth().post();
+
+    assertResponseStatus(200, response);
+    ApiLicenseLegalComponentDashboardResultDTO resultDto =
+        response.getBody(ApiLicenseLegalComponentDashboardResultDTO.class);
+    assertThat(resultDto).isNotNull();
+    assertThat(resultDto.results).isNotEmpty();
+    assertThat(resultDto.totalResultsCount).isEqualTo(1);
+
+    ApiLicenseLegalComponentDashboardDTO dto = resultDto.results.get(0);
+    assertThat(dto.applicationOccurrences).isEqualTo(1);
+    assertThat(dto.displayName).isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
+    assertThat(dto.hash).isEqualTo("hash1");
+    assertThat(dto.licenseNames).containsExactly("MIT");
+    assertThat(dto.reviewCompletedCount).isZero();
+    assertThat(dto.reviewTotalCount).isZero();
   }
 
   @Test

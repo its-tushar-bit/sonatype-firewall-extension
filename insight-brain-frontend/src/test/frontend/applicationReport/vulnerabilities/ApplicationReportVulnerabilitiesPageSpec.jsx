@@ -4,15 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import ApplicationReportVulnerabilitiesHeader from '../../../../main/frontend/applicationReport/vulnerabilities/ApplicationReportVulnerabilitiesHeader';
-import ApplicationReportVulnerabilitiesTable from '../../../../main/frontend/applicationReport/vulnerabilities/ApplicationReportVulnerabilitiesTable';
-import ApplicationReportVulnerabilitiesPage from '../../../../main/frontend/applicationReport/vulnerabilities/ApplicationReportVulnerabilitiesPage';
+import ApplicationReportVulnerabilitiesHeader from 'MainRoot/applicationReport/vulnerabilities/ApplicationReportVulnerabilitiesHeader';
+import ApplicationReportVulnerabilitiesTable from 'MainRoot/applicationReport/vulnerabilities/ApplicationReportVulnerabilitiesTable';
+import ApplicationReportVulnerabilitiesPage from 'MainRoot/applicationReport/vulnerabilities/ApplicationReportVulnerabilitiesPage';
+import * as routerContext from '../../../../main/frontend/react/RouterStateContext';
 
-import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
-import BackButton from '../../../../main/frontend/react/BackButton';
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 describe('ApplicationReportVulnerabilitiesPage', function () {
-  let loadReportAllDataSpy, getShallowComponent, mock$State;
+  let loadReportAllDataSpy, getShallowComponent, getMountedComponent, stateGetSpy, stateHrefSpy, mockState;
 
   const minimalMetadata = {
     reportTitle: 'fooReport',
@@ -22,35 +23,43 @@ describe('ApplicationReportVulnerabilitiesPage', function () {
 
   beforeEach(function () {
     loadReportAllDataSpy = jasmine.createSpy('loadReportAllData');
-    mock$State = jasmine.createSpyObj('$state', ['get', 'href']);
 
     const minimalProps = {
       loading: false,
       loadReportAllData: loadReportAllDataSpy,
       vulnerabilities: [],
       vulnerabilitiesPageEnabled: true,
-      $state: mock$State,
     };
 
+    stateGetSpy = jasmine.createSpy('$state.get').and.returnValue({ data: { title: 'some page' } });
+    stateHrefSpy = jasmine.createSpy('$state.href').and.returnValue('/noop');
+
+    mockState = {
+      get: stateGetSpy,
+      href: stateHrefSpy,
+    };
+    spyOn(routerContext, 'useRouterState').and.returnValue(mockState);
+
     getShallowComponent = enzymeUtils.getShallowComponent(ApplicationReportVulnerabilitiesPage, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(ApplicationReportVulnerabilitiesPage, minimalProps);
   });
 
-  it('renders a BackButton with the applicationReport.policy state name and the provided $state object, ', function () {
-    const backButton = getShallowComponent().find(BackButton);
+  it('renders a MenuBarBackButton with the correct stateName, ', function () {
+    const menuBarBackButton = getShallowComponent().find(MenuBarBackButton);
 
-    expect(backButton).toExist();
-    expect(backButton).toHaveProp('stateName', 'applicationReport.policy');
-    expect(backButton).toHaveProp('$state', mock$State);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('stateName', 'applicationReport.policy');
   });
 
   it('renders a tile with the header and table, within a LoadWrapper', function () {
-    expect(getShallowComponent()).toContainMatchingElement(LoadWrapper);
-    expect(getShallowComponent().find(LoadWrapper).prop('children')).toEqual(jasmine.any(Function));
+    const component = getShallowComponent({ metadata: minimalMetadata });
+    const loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(component);
+    const tile = loadWrapperChildren.find('.nx-tile');
 
-    const loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(getShallowComponent({ metadata: minimalMetadata })),
-      tile = loadWrapperChildren.find('.nx-tile');
-
-    expect(tile.childAt(0)).toMatchSelector(ApplicationReportVulnerabilitiesHeader);
+    expect(component).toExist();
+    expect(component).toContainMatchingElement(LoadWrapper);
+    expect(component.find(LoadWrapper).prop('children')).toEqual(jasmine.any(Function));
+    expect(tile.childAt(0)).toContainMatchingElement(ApplicationReportVulnerabilitiesHeader);
     expect(tile.childAt(1)).toMatchSelector(ApplicationReportVulnerabilitiesTable);
   });
 
@@ -87,40 +96,39 @@ describe('ApplicationReportVulnerabilitiesPage', function () {
   });
 
   it('passes the metadata prop on to the header', function () {
-    const getHeader = (additionalProps) =>
-      enzymeUtils
-        .getLoadWrapperChildren(getShallowComponent(additionalProps))
-        .find(ApplicationReportVulnerabilitiesHeader);
-
-    expect(getHeader({ metadata: minimalMetadata })).toHaveProp('metadata', minimalMetadata);
+    const component = getShallowComponent({ metadata: minimalMetadata });
+    const loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(component);
+    expect(loadWrapperChildren.find(ApplicationReportVulnerabilitiesHeader)).toExist();
+    expect(loadWrapperChildren.find(ApplicationReportVulnerabilitiesHeader)).toHaveProp('metadata', minimalMetadata);
   });
 
   it('passes the vulnerabilities to the table', function () {
     const vulnerabilities = [
-        {
-          displayName: {
-            parts: [
-              {
-                value: 'Foo',
-              },
-            ],
-          },
-          securityCode: 'CVE-12345',
-          cvssScore: 8.0,
+      {
+        displayName: {
+          parts: [
+            {
+              value: 'Foo',
+            },
+          ],
         },
-      ],
-      getTable = (additionalProps) =>
-        enzymeUtils
-          .getLoadWrapperChildren(getShallowComponent(additionalProps))
-          .find(ApplicationReportVulnerabilitiesTable);
+        securityCode: 'CVE-12345',
+        cvssScore: 8.0,
+      },
+    ];
+    const getTable = (additionalProps) =>
+      enzymeUtils
+        .getLoadWrapperChildren(getShallowComponent(additionalProps))
+        .find(ApplicationReportVulnerabilitiesTable);
 
     expect(getTable({ metadata: minimalMetadata })).toHaveProp('vulnerabilities', []);
     expect(getTable({ metadata: minimalMetadata, vulnerabilities })).toHaveProp('vulnerabilities', vulnerabilities);
   });
 
   it('calls loadReportAllData on mount', function () {
-    getShallowComponent();
+    const component = getMountedComponent();
 
     expect(loadReportAllDataSpy).toHaveBeenCalled();
+    component.unmount();
   });
 });

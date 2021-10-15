@@ -90,7 +90,7 @@ export default function FirewallQuarantineTable(props) {
     <section id="firewall-quarantine-table">
       <header className="iq-firewall-table-header nx-page-title">
         <h2 className="nx-h2 iq-firewall-table-label">Quarantine</h2>
-        <div className="iq-firewall-table__time">
+        <div className="iq-firewall-table__time visual-testing-ignore">
           {lastUpdated && 'Updated ' + lastUpdated.toLocaleTimeString() + ' ' + lastUpdated.toLocaleDateString()}
         </div>
         <div className="nx-btn-bar">
@@ -176,7 +176,9 @@ export default function FirewallQuarantineTable(props) {
                         </div>
                       </NxOverflowTooltip>
                     </NxTableCell>
-                    <NxTableCell>{new Date(row.quarantineDate).toLocaleDateString()}</NxTableCell>
+                    <NxTableCell className="visual-testing-ignore">
+                      {new Date(row.quarantineDate).toLocaleDateString()}
+                    </NxTableCell>
                     <NxTableCell>
                       <NxOverflowTooltip title={row.componentDisplayText}>
                         <div className="nx-truncate-ellipsis">{row.componentDisplayText}</div>

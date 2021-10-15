@@ -6,7 +6,7 @@
 import * as enzymeUtils from '../enzymeUtils';
 // import React from 'react';
 import ListWaiversBackButton from '../../../main/frontend/waivers/ListWaiversBackButton';
-import { NxBackButton } from '@sonatype/react-shared-components';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import * as routerContext from '../../../main/frontend/react/RouterStateContext';
 
 describe('ListWaiversBackButton', function () {
@@ -27,7 +27,7 @@ describe('ListWaiversBackButton', function () {
     getShallowComponent = enzymeUtils.getShallowComponent(ListWaiversBackButton, minimalProps);
   });
 
-  it('renders an NxBackButton with title `Violation Details` if only violationId is supplied as props', () => {
+  it('renders an MenuBarBackButton with title `Back to Violation Details` if only violationId is supplied as props', () => {
     const component = getShallowComponent();
 
     expect(routerContext.useRouterState).toHaveBeenCalled();
@@ -36,12 +36,12 @@ describe('ListWaiversBackButton', function () {
       type: undefined,
       sidebarReference: undefined,
     });
-    expect(component).toMatchSelector(NxBackButton);
-    expect(component).toHaveProp('targetPageTitle', 'Violation Details');
+    expect(component).toMatchSelector(MenuBarBackButton);
+    expect(component).toHaveProp('text', 'Back to Violation Details');
     expect(component).toHaveProp('href', 'violationDetailsHref');
   });
 
-  it('renders an NxBackButton with title `Violation Details` with type and sidebarReference props', () => {
+  it('renders an MenuBarBackButton with title `Back to Violation Details` with type and sidebarReference props', () => {
     const component = getShallowComponent({ type: 'type', sidebarReference: 'ref1' });
 
     expect(routerContext.useRouterState).toHaveBeenCalled();
@@ -50,12 +50,12 @@ describe('ListWaiversBackButton', function () {
       type: 'type',
       sidebarReference: 'ref1',
     });
-    expect(component).toMatchSelector(NxBackButton);
-    expect(component).toHaveProp('targetPageTitle', 'Violation Details');
+    expect(component).toMatchSelector(MenuBarBackButton);
+    expect(component).toHaveProp('text', 'Back to Violation Details');
     expect(component).toHaveProp('href', 'violationDetailsHref');
   });
 
-  it('renders an NxBackButton with title `Violation Details` if hash is not present', () => {
+  it('renders an MenuBarBackButton with title `Back to Violation Details` if hash is not present', () => {
     const component = getShallowComponent({
       scanId: 'scanId',
       publicId: 'publicId',
@@ -67,12 +67,12 @@ describe('ListWaiversBackButton', function () {
       type: undefined,
       sidebarReference: undefined,
     });
-    expect(component).toMatchSelector(NxBackButton);
-    expect(component).toHaveProp('targetPageTitle', 'Violation Details');
+    expect(component).toMatchSelector(MenuBarBackButton);
+    expect(component).toHaveProp('text', 'Back to Violation Details');
     expect(component).toHaveProp('href', 'violationDetailsHref');
   });
 
-  it('renders an NxBackButton with title `Violation Details` if scanId is not present', () => {
+  it('renders an MenuBarBackButton with title `Back to Violation Details` if scanId is not present', () => {
     const component = getShallowComponent({
       hash: 'hash',
       publicId: 'publicId',
@@ -84,12 +84,12 @@ describe('ListWaiversBackButton', function () {
       type: undefined,
       sidebarReference: undefined,
     });
-    expect(component).toMatchSelector(NxBackButton);
-    expect(component).toHaveProp('targetPageTitle', 'Violation Details');
+    expect(component).toMatchSelector(MenuBarBackButton);
+    expect(component).toHaveProp('text', 'Back to Violation Details');
     expect(component).toHaveProp('href', 'violationDetailsHref');
   });
 
-  it('renders an NxBackButton with title `Violation Details` if publicId is not present', () => {
+  it('renders an MenuBarBackButton with title `Back to Violation Details` if publicId is not present', () => {
     const component = getShallowComponent({
       hash: 'hash',
       scanId: 'scanId',
@@ -101,12 +101,12 @@ describe('ListWaiversBackButton', function () {
       type: undefined,
       sidebarReference: undefined,
     });
-    expect(component).toMatchSelector(NxBackButton);
-    expect(component).toHaveProp('targetPageTitle', 'Violation Details');
+    expect(component).toMatchSelector(MenuBarBackButton);
+    expect(component).toHaveProp('text', 'Back to Violation Details');
     expect(component).toHaveProp('href', 'violationDetailsHref');
   });
 
-  it('renders an NxBackButton with title `Component Details` if hash & scanId & publicId are provided as props', () => {
+  it('renders an MenuBarBackButton with title `Component Details` if hash & scanId & publicId are provided as props', () => {
     const component = getShallowComponent({
       hash: 'hash',
       scanId: 'scanId',
@@ -119,8 +119,8 @@ describe('ListWaiversBackButton', function () {
       scanId: 'scanId',
       publicId: 'publicId',
     });
-    expect(component).toMatchSelector(NxBackButton);
-    expect(component).toHaveProp('targetPageTitle', 'Component Details');
+    expect(component).toMatchSelector(MenuBarBackButton);
+    expect(component).toHaveProp('text', 'Back to Component Details');
     expect(component).toHaveProp('href', 'componentDetailsHref');
   });
 });

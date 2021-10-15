@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git.event.orchestrate.rule.processing;
 
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -15,6 +16,8 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.nexus.scm.api.access.control.ExclusiveAccessRequestTimeoutException;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +31,7 @@ public class ApplicationScopeEventProcessingSuspensionRule
 {
   private static final Logger log = LoggerFactory.getLogger(ApplicationScopeEventProcessingSuspensionRule.class);
 
-  private int unknownHostSuspensionSeconds = 60;
+  private int networkingErrorSuspensionSeconds = 60;
 
   private int exclusiveAccessRequestTimeoutSuspensionSeconds = 30;
 
@@ -41,19 +44,33 @@ public class ApplicationScopeEventProcessingSuspensionRule
   }
 
   public void onEventProcessingError(SourceControlEvent event, Exception e) {
+    int suspensionSeconds;
+    String errorType;
+
     if (ExceptionHelper.hasCauseOrSuppressedOfType(e, UnknownHostException.class)) {
-      suspendApplicationEventProcessingForXSeconds(event.getApplicationId(), unknownHostSuspensionSeconds);
-      log.debug("Event processing for application {} event '{}' suspended for {} seconds due to UnknownHostException",
-          event.getApplicationId(), event.getEventType(), unknownHostSuspensionSeconds);
+      suspensionSeconds = networkingErrorSuspensionSeconds;
+      errorType = "UnknownHostException";
+    }
+    else if (ExceptionHelper.hasCauseOrSuppressedOfType(e, SocketTimeoutException.class)) {
+      suspensionSeconds = networkingErrorSuspensionSeconds;
+      errorType = "SocketTimeoutException";
+    }
+    else if (ExceptionHelper.hasCauseOrSuppressedOfType(e, HttpResponseException.class)
+        && ExceptionUtils.getStackTrace(e).contains("Bad Gateway")) {
+      suspensionSeconds = networkingErrorSuspensionSeconds;
+      errorType = "BadGateway";
     }
     else if (ExceptionHelper.hasCauseOrSuppressedOfType(e, ExclusiveAccessRequestTimeoutException.class)) {
-      suspendApplicationEventProcessingForXSeconds(event.getApplicationId(),
-          exclusiveAccessRequestTimeoutSuspensionSeconds);
-      log.debug(
-          "Event processing for application {} event '{}' suspended for {} seconds due to " +
-              "ExclusiveAccessRequestTimeoutException",
-          event.getApplicationId(), event.getEventType(), exclusiveAccessRequestTimeoutSuspensionSeconds);
+      suspensionSeconds = exclusiveAccessRequestTimeoutSuspensionSeconds;
+      errorType = "ExclusiveAccessRequestTimeoutException";
     }
+    else {
+      return;
+    }
+
+    suspendApplicationEventProcessingForXSeconds(event.getApplicationId(), suspensionSeconds);
+    log.debug("Event processing for application {} event '{}' suspended for {} seconds due to {}.",
+        event.getApplicationId(), event.getEventType(), suspensionSeconds, errorType);
   }
 
   @Override
@@ -74,7 +91,7 @@ public class ApplicationScopeEventProcessingSuspensionRule
 
   @VisibleForTesting
   public ApplicationScopeEventProcessingSuspensionRule setTimeoutsForTesting(int timeoutInSeconds) {
-    unknownHostSuspensionSeconds = timeoutInSeconds;
+    networkingErrorSuspensionSeconds = timeoutInSeconds;
     exclusiveAccessRequestTimeoutSuspensionSeconds = timeoutInSeconds;
     return this;
   }

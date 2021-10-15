@@ -14,18 +14,11 @@ import {
 import { faCheck, faHistory } from '@fortawesome/free-solid-svg-icons';
 
 import * as enzymeUtils from '../../enzymeUtils';
-
 import ComponentDisplay from '../../../../main/frontend/ComponentDisplay/ReactComponentDisplay';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
 
 describe('ApplicationReportVulnerabilitiesTable', function () {
-  const minimalProps = {
-    vulnerabilities: [],
-    $state: {
-      href: jasmine.createSpy().and.callFake(function (stateName, params) {
-        return 'http://localhost/vulnerabilities/' + params.id;
-      }),
-    },
-  };
+  let hrefSpy, minimalProps, getShallowComponent;
 
   const ApplicationReportVulnerabilitiesTable = require('inject-loader!' +
     '../../../../main/frontend/applicationReport/vulnerabilities/ApplicationReportVulnerabilitiesTable')({
@@ -34,7 +27,19 @@ describe('ApplicationReportVulnerabilitiesTable', function () {
     },
   }).default;
 
-  const getShallowComponent = enzymeUtils.getShallowComponent(ApplicationReportVulnerabilitiesTable, minimalProps);
+  beforeEach(() => {
+    hrefSpy = jasmine.createSpy('href');
+
+    spyOn(routerContext, 'useRouterState').and.returnValue({
+      href: hrefSpy,
+    });
+
+    minimalProps = {
+      vulnerabilities: [],
+    };
+
+    getShallowComponent = enzymeUtils.getShallowComponent(ApplicationReportVulnerabilitiesTable, minimalProps);
+  });
 
   it('renders an nx-tile-content containing a scrollable NxTable', function () {
     expect(getShallowComponent()).toMatchSelector('.nx-tile-content');
@@ -186,8 +191,9 @@ describe('ApplicationReportVulnerabilitiesTable', function () {
     expect(firstRowLinks.first()).not.toHaveClassName('iq-vulnerability-printable-link');
     expect(firstRowLinks.first()).toHaveClassName('iq-vulnerability-refid-link');
     expect(firstRowLinks.first()).toHaveText('CVE-1234');
-    expect(firstRowLinks.first()).toHaveProp('href', 'http://localhost/vulnerabilities/CVE-1234');
-
+    expect(hrefSpy).toHaveBeenCalledWith('vulnerabilitySearchDetail', {
+      id: 'CVE-1234',
+    });
     expect(firstRowLinks.last()).toHaveClassName('iq-vulnerability-printable-link');
     expect(firstRowLinks.last()).toHaveText('http://localhost/ui/links/vln/CVE-1234');
     expect(firstRowLinks.last()).toHaveProp('href', 'http://localhost/ui/links/vln/CVE-1234');
@@ -195,7 +201,9 @@ describe('ApplicationReportVulnerabilitiesTable', function () {
     expect(secondRowLinks.first()).not.toHaveClassName('iq-vulnerability-printable-link');
     expect(secondRowLinks.first()).toHaveClassName('iq-vulnerability-refid-link');
     expect(secondRowLinks.first()).toHaveText('CVE-1235');
-    expect(secondRowLinks.first()).toHaveProp('href', 'http://localhost/vulnerabilities/CVE-1235');
+    expect(hrefSpy).toHaveBeenCalledWith('vulnerabilitySearchDetail', {
+      id: 'CVE-1235',
+    });
 
     expect(secondRowLinks.last()).toHaveClassName('iq-vulnerability-printable-link');
     expect(secondRowLinks.last()).toHaveText('http://localhost/ui/links/vln/CVE-1235');

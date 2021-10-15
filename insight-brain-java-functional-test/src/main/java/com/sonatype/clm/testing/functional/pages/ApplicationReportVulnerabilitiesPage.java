@@ -38,7 +38,7 @@ public class ApplicationReportVulnerabilitiesPage
   }
 
   public NxBackButton backButton() {
-    return new NxBackButton(ROOT);
+    return new NxBackButton("#menu-bar__back-button-container");
   }
 
   public VulnerabilityTable table() {

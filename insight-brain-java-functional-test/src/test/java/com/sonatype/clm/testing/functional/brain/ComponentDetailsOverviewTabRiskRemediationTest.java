@@ -264,7 +264,10 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     SelenideElement footerBackButton = footer.backButton();
 
+    RecommendedVersionsSection recommendedVersionsSection = riskRemediation.recommendedVersionsSections();
+    recommendedVersionsSection.shouldBe(visible);
     footerBackButton.shouldHave(text("Back to ch.qos.logback : logback-access : 0.6 component"));
+    eyesWatcher.eyesCheck();
     footerBackButton.click();
 
     footer.prevLink().shouldHave(text("Previous Component"));

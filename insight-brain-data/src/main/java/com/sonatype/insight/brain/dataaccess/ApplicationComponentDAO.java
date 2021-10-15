@@ -157,6 +157,32 @@ public class ApplicationComponentDAO
     }
   }
 
+  public List<ApplicationComponent> getByApplicationIdsAndStageTypeIds(
+      Set<String> applicationIds,
+      Set<String> stageTypeIds)
+  {
+    if (applicationIds != null && applicationIds.size() >= getInOperatorThreshold()) {
+      String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
+          " WHERE entity.stageTypeId IN (?1)";
+
+      List<ApplicationComponent> applicationComponents = getList(sQuery, stageTypeIds);
+      List<ApplicationComponent> retval = new ArrayList<>();
+
+      for (ApplicationComponent applicationComponent : applicationComponents) {
+        if (applicationIds.contains(applicationComponent.getApplicationId())) {
+          retval.add(applicationComponent);
+        }
+      }
+
+      return retval;
+    }
+    else {
+      String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
+          " WHERE entity.applicationId IN (?1) AND entity.stageTypeId IN (?2)";
+      return getList(sQuery, applicationIds, stageTypeIds);
+    }
+  }
+
   public long getCount() {
     String sQuery = "SELECT COUNT(entity) FROM ApplicationComponent entity";
     return getSingle(Long.class, sQuery);

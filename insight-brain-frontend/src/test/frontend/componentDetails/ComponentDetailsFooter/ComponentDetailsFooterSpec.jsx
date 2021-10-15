@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import * as enzymeUtils from '../../enzymeUtils';
+import { NxTextLink } from '@sonatype/react-shared-components';
 
 import {
   ComponentDetailsFooter,
@@ -41,5 +42,33 @@ describe('ComponentDetailsFooter', () => {
     const component = getShallowComponent({ next: '/next-url', prev: 'prev-url' });
     expect(component).toContainReact(<PaginationLink href="prev-url" text="Previous Component" direction="prev" />);
     expect(component).toContainReact(<PaginationLink href="/next-url" text="Next Component" />);
+  });
+
+  describe('when offspringComponentName is provided', () => {
+    let component, backToOffspringOnClick;
+    beforeEach(() => {
+      backToOffspringOnClick = jasmine.createSpy('backToOffspringOnClick');
+
+      component = getShallowComponent({
+        currentPage: 2,
+        pageCount: 5,
+        next: '/next-url',
+        prev: 'test-offspring-hash',
+        offspringComponentName: 'test : offspring : component : name',
+        backToOffspringOnClick,
+      });
+    });
+
+    it('renders back to offspring component button and does not render counter and next button', () => {
+      expect(component.find(PaginationLink)).not.toExist();
+      expect(component.find(PaginationCounter)).not.toExist();
+      expect(component.find(NxTextLink)).toExist();
+      expect(component.find(NxTextLink)).toIncludeText('Back to test : offspring : component : name component');
+    });
+
+    it('handles back to offspring component button click', () => {
+      component.find(NxTextLink).simulate('click');
+      expect(backToOffspringOnClick).toHaveBeenCalledOnceWith('test-offspring-hash');
+    });
   });
 });

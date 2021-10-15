@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { IqPageFooter } from '../../react/IqPageFooter';
 import { PaginationLink } from './PaginationLink';
@@ -19,25 +19,22 @@ export const ComponentDetailsFooter = ({
   backToOffspringOnClick,
   ...props
 }) => {
-  if (offspringComponentName) {
-    return (
-      <IqPageFooter {...props}>
-        <NxTextLink
-          onClick={() => {
-            backToOffspringOnClick(prev);
-          }}
-        >
-          <NxFontAwesomeIcon icon={faChevronLeft} />
-          <span>{'Back to ' + offspringComponentName + ' component'}</span>
-        </NxTextLink>
-      </IqPageFooter>
-    );
-  }
-  return (
-    <IqPageFooter {...props}>
+  const footerContent = offspringComponentName ? (
+    <NxTextLink onClick={() => backToOffspringOnClick(prev)}>
+      <NxFontAwesomeIcon icon={faChevronLeft} />
+      <span>{'Back to ' + offspringComponentName + ' component'}</span>
+    </NxTextLink>
+  ) : (
+    <Fragment>
       <PaginationLink href={prev} text="Previous Component" direction="prev" />
       {currentPage && pageCount && <PaginationCounter currentPage={currentPage} pageCount={pageCount} />}
       <PaginationLink href={next} text="Next Component" />
+    </Fragment>
+  );
+
+  return (
+    <IqPageFooter id="component-details-footer" {...props}>
+      {footerContent}
     </IqPageFooter>
   );
 };

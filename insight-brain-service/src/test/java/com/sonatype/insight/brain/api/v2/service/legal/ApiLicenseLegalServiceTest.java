@@ -1987,7 +1987,7 @@ public class ApiLicenseLegalServiceTest
     Owner owner = tempEntity.newApplicationWithParent();
 
     LicenseThreatGroup licenseThreatGroup =
-        licenseThreatGroup = tempEntity.newLicenseThreatGroup(Organization.ROOT_ORGANIZATION_ID, "Very Bad", 10);
+        tempEntity.newLicenseThreatGroup(Organization.ROOT_ORGANIZATION_ID, "Very Bad", 10);
     tempEntity.newLicenseThreatGroupLicense(Organization.ROOT_ORGANIZATION_ID, licenseThreatGroup.getId(),
         "CDDL-1.1");
 

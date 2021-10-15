@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git.event.orchestrate.rule.processing;
 
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.nexus.scm.api.access.control.ExclusiveAccessRequestTimeoutException;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +27,26 @@ public class EventProcessingErrorRetryRuleTest
 
     assertThat(rule.shouldRetry(createEvent(), new UnknownHostException())).isTrue();
     assertThat(rule.shouldRetry(createEvent(), new RuntimeException(new UnknownHostException()))).isTrue();
+  }
+
+  @Test
+  public void testShouldRetry_socketTimeout() {
+    EventProcessingErrorRetryRule rule = new EventProcessingErrorRetryRule();
+
+    assertThat(rule.shouldRetry(createEvent(), new SocketTimeoutException())).isTrue();
+    assertThat(rule.shouldRetry(createEvent(), new RuntimeException(new SocketTimeoutException()))).isTrue();
+  }
+
+  @Test
+  public void testShouldRetry_badGateway() {
+    EventProcessingErrorRetryRule rule = new EventProcessingErrorRetryRule();
+
+    assertThat(rule.shouldRetry(createEvent(), new HttpResponseException(0, "foo Bad Gateway bar"))).isTrue();
+    assertThat(
+        rule.shouldRetry(createEvent(), new RuntimeException(new HttpResponseException(0, "foo Bad Gateway bar"))))
+            .isTrue();
+
+    assertThat(rule.shouldRetry(createEvent(), new HttpResponseException(0, "test"))).isFalse();
   }
 
   @Test

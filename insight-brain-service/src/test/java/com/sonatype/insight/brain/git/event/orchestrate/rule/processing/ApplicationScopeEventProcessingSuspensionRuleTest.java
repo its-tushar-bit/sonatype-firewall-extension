@@ -5,13 +5,13 @@
  */
 package com.sonatype.insight.brain.git.event.orchestrate.rule.processing;
 
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.List;
 
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.nexus.scm.api.access.control.ExclusiveAccessRequestTimeoutException;
 
-import com.google.common.collect.ImmutableList;
+import org.apache.http.client.HttpResponseException;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.git.event.EventTestUtils.createEvent;
@@ -21,35 +21,61 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationScopeEventProcessingSuspensionRuleTest
 {
   @Test
-  public void testCanPushEvent_eventProcessingSuspended() {
+  public void testCanPushEvent_eventProcessingSuspended_UnknownHostException() {
+    assertEventProcessingSuspended(new RuntimeException(new UnknownHostException()));
+  }
+
+  @Test
+  public void testCanPushEvent_eventProcessingSuspended_SocketTimeoutException() {
+    assertEventProcessingSuspended(new RuntimeException(new SocketTimeoutException()));
+  }
+
+  @Test
+  public void testCanPushEvent_eventProcessingSuspended_HttpResponseException_BadGateway() {
+    assertEventProcessingSuspended(new RuntimeException(new HttpResponseException(0, "foo Bad Gateway bar")));
+  }
+
+  @Test
+  public void testCanPushEvent_eventProcessingSuspended_ExclusiveAccessRequestTimeoutException() {
+    assertEventProcessingSuspended(new RuntimeException(new ExclusiveAccessRequestTimeoutException("")));
+  }
+
+  private void assertEventProcessingSuspended(Exception exception) {
     ApplicationScopeEventProcessingSuspensionRule eventProcessingSuspensionRule =
         new ApplicationScopeEventProcessingSuspensionRule();
 
-    List<Exception> suspendableExceptions =
-        ImmutableList.of(new RuntimeException(new UnknownHostException()),
-            new RuntimeException(new ExclusiveAccessRequestTimeoutException("")));
+    SourceControlEvent event = createEvent();
 
-    suspendableExceptions.forEach(e -> {
-      SourceControlEvent event = createEvent();
+    // set an error that causes suspension of all events for a given application
+    eventProcessingSuspensionRule.onEventProcessingError(event, exception);
+    assertThat(eventProcessingSuspensionRule.canPushEvent(event)).isFalse();
 
-      // set an error that causes suspension of all events for a given application
-      eventProcessingSuspensionRule.onEventProcessingError(event, e);
-      assertThat(eventProcessingSuspensionRule.canPushEvent(event)).isFalse();
-
-      // verify any event for same app cannot be pushed
-      SourceControlEvent eventSameApp = createEventForApp(event.getApplicationId());
-      SourceControlEvent.EVENT_TYPES.forEach(eventType -> {
-        eventSameApp.setEventType(eventType);
-        assertThat(eventProcessingSuspensionRule.canPushEvent(eventSameApp)).isFalse();
-      });
-
-      // verify any event for a different app can still be pushed
-      SourceControlEvent eventDifferentApp = createEvent();
-      SourceControlEvent.EVENT_TYPES.forEach(eventType -> {
-        eventDifferentApp.setEventType(eventType);
-        assertThat(eventProcessingSuspensionRule.canPushEvent(eventDifferentApp)).isTrue();
-      });
+    // verify any event for same app cannot be pushed
+    SourceControlEvent eventSameApp = createEventForApp(event.getApplicationId());
+    SourceControlEvent.EVENT_TYPES.forEach(eventType -> {
+      eventSameApp.setEventType(eventType);
+      assertThat(eventProcessingSuspensionRule.canPushEvent(eventSameApp)).isFalse();
     });
+
+    // verify any event for a different app can still be pushed
+    SourceControlEvent eventDifferentApp = createEvent();
+    SourceControlEvent.EVENT_TYPES.forEach(eventType -> {
+      eventDifferentApp.setEventType(eventType);
+      assertThat(eventProcessingSuspensionRule.canPushEvent(eventDifferentApp)).isTrue();
+    });
+  }
+
+  @Test
+  public void testCanPushEvent_eventProcessingSuspended_HttpResponseException_NotBadGateway() {
+    ApplicationScopeEventProcessingSuspensionRule eventProcessingSuspensionRule =
+        new ApplicationScopeEventProcessingSuspensionRule();
+
+    SourceControlEvent event = createEvent();
+
+    // HttpResponseException other than "Bad Gateway" should not suspend event processing
+    eventProcessingSuspensionRule.onEventProcessingError(event,
+        new RuntimeException(new HttpResponseException(0, "test")));
+    assertThat(eventProcessingSuspensionRule.canPushEvent(event)).isTrue();
   }
 
   @Test

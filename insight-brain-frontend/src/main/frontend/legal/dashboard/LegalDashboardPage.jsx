@@ -13,6 +13,7 @@ import {
   NxTabPanel,
 } from '@sonatype/react-shared-components';
 import LegalDashboardApplicationsTab from './LegalDashboardApplicationsTab';
+import LegalDashboardComponentsTab from './LegalDashboardComponentsTab';
 import * as PropTypes from 'prop-types';
 import LegalDashboardFilterContainer from './filter/LegalDashboardFilterContainer';
 import LoadWrapper from '../../react/LoadWrapper';
@@ -24,6 +25,7 @@ export default function LegalDashboardPage(props) {
   const {
     appliedFilterName,
     applications,
+    components,
     filtersAreDirty,
     loadFilter,
     loadResults,
@@ -36,7 +38,11 @@ export default function LegalDashboardPage(props) {
     filterSidebarOpen,
     showDirtyAsterisk,
     filterLoading,
+    router,
   } = props;
+
+  const tabIndexes = ['applications', 'components'];
+  const componentTabEnabled = router.currentParams.legalComponentsTabEnabled;
 
   useEffect(() => {
     loadFilter();
@@ -48,6 +54,8 @@ export default function LegalDashboardPage(props) {
     }
   }, [filterLoading]);
 
+  const loadTabContents = (index) => loadResults(tabIndexes[index]);
+
   return (
     <main id="legal-dashboard-container" className="nx-page-main">
       <LoadWrapper loading={loading} error={loadError} retryHandler={loadResults}>
@@ -55,9 +63,10 @@ export default function LegalDashboardPage(props) {
         <div className="nx-page-title nx-page-title__actions">
           <h1 className="nx-h1">Legal Obligations</h1>
         </div>
-        <NxStatefulTabs className="nx-viewport-sized__container" defaultActiveTab={0} onTabSelect={() => {}}>
+        <NxStatefulTabs className="nx-viewport-sized__container" defaultActiveTab={0} onTabSelect={loadTabContents}>
           <NxTabList>
             <NxTab>Applications</NxTab>
+            {componentTabEnabled && <NxTab>Components</NxTab>}
           </NxTabList>
           <NxTabPanel className="nx-viewport-sized__container">
             <div className="nx-tile nx-viewport-sized__container">
@@ -81,6 +90,19 @@ export default function LegalDashboardPage(props) {
               </div>
             </div>
           </NxTabPanel>
+          {componentTabEnabled && (
+            <NxTabPanel className="nx-viewport-sized__container">
+              <div className="  nx-tile nx-viewport-sized__container">
+                <div className="nx-tile-content nx-viewport-sized__container">
+                  <LegalDashboardComponentsTab
+                    components={components}
+                    fetchBackendPage={fetchBackendPage}
+                    stateGo={stateGo}
+                  />
+                </div>
+              </div>
+            </NxTabPanel>
+          )}
         </NxStatefulTabs>
       </LoadWrapper>
     </main>
@@ -104,4 +126,7 @@ LegalDashboardPage.propTypes = {
   toggleFilterSidebar: PropTypes.func.isRequired,
   filterSidebarOpen: PropTypes.bool,
   showDirtyAsterisk: PropTypes.bool,
+  router: PropTypes.shape({
+    currentParams: PropTypes.object,
+  }),
 };

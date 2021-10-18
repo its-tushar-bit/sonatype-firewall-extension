@@ -405,6 +405,10 @@ export function getLegalDashboardApplicationsUrl() {
   return uriTemplate`/api/experimental/licenseLegalMetadata/dashboard/applications`;
 }
 
+export function getLegalDashboardComponentsUrl() {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/dashboard/components`;
+}
+
 export function getLegalDashboardApplicationUrl(applicationPublicId) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/dashboard/application/${applicationPublicId}`;
 }

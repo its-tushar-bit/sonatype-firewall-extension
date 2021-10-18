@@ -94,7 +94,7 @@ function routes($stateProvider) {
       abstract: true,
     })
     .state('legal.dashboard', {
-      url: '/legal/dashboard',
+      url: '/legal/dashboard?legalComponentsTabEnabled',
       component: 'legalDashboard',
       data: {
         title: 'Legal Dashboard',

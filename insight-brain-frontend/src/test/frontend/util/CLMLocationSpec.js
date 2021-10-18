@@ -256,6 +256,12 @@ describe('CLMLocation.js', function () {
     );
   });
 
+  it('should return the legal dashboard componentsUrl url', function () {
+    expect(CLMLocation.getLegalDashboardComponentsUrl()).toBe(
+      '/api/experimental/licenseLegalMetadata/dashboard/components'
+    );
+  });
+
   it('should return the legal dashboard get filters url', function () {
     expect(CLMLocation.getLegalDashboardFilters()).toBe('/rest/userFilter/active?type=ADVANCED_LEGAL_PACK_DASHBOARD');
   });

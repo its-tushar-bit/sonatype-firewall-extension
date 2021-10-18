@@ -6,6 +6,7 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import React from 'react';
 import LegalDashboardApplicationsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationsTab';
+import LegalDashboardComponentsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardComponentsTab';
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 
 describe('LegalDashboardPage', function () {
@@ -17,6 +18,9 @@ describe('LegalDashboardPage', function () {
     getShallowComponent,
     getMountedComponent;
   const mockApplications = {
+    results: [],
+  };
+  const mockComponents = {
     results: [],
   };
 
@@ -33,13 +37,18 @@ describe('LegalDashboardPage', function () {
     loadFilterSpy = jasmine.createSpy('loadFilter');
     minimalProps = {
       applications: mockApplications,
-      components: [],
+      components: mockComponents,
       loadResults: loadResultsSpy,
       loadFilter: loadFilterSpy,
       isAuthorized: true,
       loading: 'loading',
       loadError: 'loadError',
       filtersAreDirty: 'filtersAreDirty',
+      router: {
+        currentParams: {
+          legalComponentsTabEnabled: 'true',
+        },
+      },
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardPage, minimalProps);
@@ -81,5 +90,12 @@ describe('LegalDashboardPage', function () {
     expect(applicationsTab).toExist();
     expect(applicationsTab).toHaveProp('applications', mockApplications);
     expect(applicationsTab).toHaveProp('filtersAreDirty', 'filtersAreDirty');
+  });
+
+  it('renders an LegalDashboardComponentsTab', function () {
+    const wrapper = getShallowComponent();
+    let componentsTab = wrapper.find(LegalDashboardComponentsTab);
+    expect(componentsTab).toExist();
+    expect(componentsTab).toHaveProp('components', mockComponents);
   });
 });

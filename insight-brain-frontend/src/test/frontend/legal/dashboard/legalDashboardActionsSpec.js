@@ -9,16 +9,24 @@ import {
   changeSortField,
 } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
 import axios from 'axios';
-import { getLegalDashboardApplicationsUrl } from '../../../../main/frontend/util/CLMLocation';
+import {
+  getLegalDashboardApplicationsUrl,
+  getLegalDashboardComponentsUrl,
+} from '../../../../main/frontend/util/CLMLocation';
 
 describe('legalDashboardActions', function () {
   describe('loadResults', function () {
     const legalDashboardApplicationsUrlSpy = jasmine.createSpy('getLegalDashboardApplicationsUrl');
+    const legalDashboardComponentsUrlSpy = jasmine.createSpy('getLegalDashboardComponentsUrl');
     const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
     const tabs = [
       {
         resultsType: 'applications',
         serviceMethod: legalDashboardApplicationsUrlSpy,
+      },
+      {
+        resultsType: 'components',
+        serviceMethod: legalDashboardComponentsUrlSpy,
       },
     ];
     const initialState = {
@@ -33,6 +41,7 @@ describe('legalDashboardActions', function () {
       },
       legalDashboard: {
         applications: {},
+        components: {},
       },
     };
 
@@ -43,6 +52,9 @@ describe('legalDashboardActions', function () {
           mockAxiosCalls({
             post: {
               [getLegalDashboardApplicationsUrl()]: Promise.resolve({
+                data: 'results',
+              }),
+              [getLegalDashboardComponentsUrl()]: Promise.resolve({
                 data: 'results',
               }),
             },
@@ -73,6 +85,7 @@ describe('legalDashboardActions', function () {
           mockAxiosCalls({
             post: {
               [getLegalDashboardApplicationsUrl()]: () => Promise.reject(errorTest),
+              [getLegalDashboardComponentsUrl()]: Promise.reject(errorTest),
             },
           });
 
@@ -108,20 +121,23 @@ describe('legalDashboardActions', function () {
                 data: 'results',
               }),
             },
+            [getLegalDashboardComponentsUrl()]: Promise.resolve({
+              data: 'results',
+            }),
           });
 
-          store.dispatch(fetchBackendPage(tab.resultsType, 3)).then(() => {
+          store.dispatch(fetchBackendPage(tab.resultsType, 1)).then(() => {
             expect(store.getActions().length).toBe(3);
             expect(store.getActions()[0]).toEqual({
               type: 'LEGAL_DASHBOARD_FETCH_BACKEND_PAGE',
               payload: {
                 resultsType: tab.resultsType,
-                page: 3,
+                page: 1,
               },
             });
             expect(store.getActions()[1]).toEqual({
               type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
-              payload: 'applications',
+              payload: tab.resultsType,
             });
             expect(store.getActions()[2]).toEqual({
               type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED',
@@ -183,7 +199,7 @@ describe('legalDashboardActions', function () {
     }
 
     tabs.forEach(testLoadResultsAction);
-    tabs.forEach(testFetchBackendPageAction);
-    tabs.forEach(testChangeSortFieldAction);
+    testFetchBackendPageAction(tabs[0]);
+    testChangeSortFieldAction(tabs[0]);
   });
 });

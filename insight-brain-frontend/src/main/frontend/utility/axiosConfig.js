@@ -22,7 +22,7 @@ export const attachAxiosInterceptors = (setServerDate, rootScope, window, showMo
       return response;
     },
     (error) => {
-      const isUnauthorized = error.response.status === 401;
+      const isUnauthorized = error.response?.status === 401;
       if (isUnauthorized) {
         // rootScope.username will be present if this is the top frame and login had already succeeded previously.
         // If we are in a child frame (for a report), the username won't be available but we can still detect that

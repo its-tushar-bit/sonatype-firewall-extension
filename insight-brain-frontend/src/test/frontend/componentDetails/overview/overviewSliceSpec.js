@@ -409,6 +409,30 @@ describe('componentDetailsOverviewReducer', () => {
       expect(loadError).toBe('error');
       expect(selectedVersionDetails).toBeNull();
     });
+
+    it('sets selectedVersionDetails to null if request was aborted by client', () => {
+      const state = Object.freeze({
+        selectedVersionData: {
+          loading: true,
+          loadError: null,
+          selectedVersion: '2.3',
+          selectedVersionDetails: {
+            data: 'some data',
+          },
+        },
+      });
+
+      const {
+        selectedVersionData: { loading, loadError, selectedVersionDetails },
+      } = reducer(state, {
+        type: 'componentDetailsOverview/loadComponentDetailsByVerionsNumber/rejected',
+        payload: { message: 499 },
+      });
+
+      expect(loading).toBe(true);
+      expect(loadError).toBeNull();
+      expect(selectedVersionDetails).toBeNull();
+    });
   });
 
   describe('componentDetailsOverview/loadComponentDetailsByVerionsNumber/fulfilled action', () => {

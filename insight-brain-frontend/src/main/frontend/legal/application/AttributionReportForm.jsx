@@ -14,12 +14,12 @@ import {
   nxTextInputStateHelpers,
   useToggle,
   NxButton,
-  NxBackButton,
   NxDropdown,
 } from '@sonatype/react-shared-components';
 import { getAttributionReportUrl } from '../../util/CLMLocation';
 import AttributionAdditionalFiles from './AttributionAdditionalFiles';
 import ConfirmationModal from './ConfirmationModal';
+import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 
 export default function AttributionReportForm(props) {
   const {
@@ -220,7 +220,7 @@ export default function AttributionReportForm(props) {
 
   return (
     <main id="attribution-report-form-container" className="nx-page-main">
-      <NxBackButton href={backHref} text="Back" />
+      <MenuBarBackButton href={backHref} text="Back" />
       <div className="nx-page-title">
         <h1 className="nx-h1">Create Attribution Report</h1>
         <div className="nx-btn-bar">

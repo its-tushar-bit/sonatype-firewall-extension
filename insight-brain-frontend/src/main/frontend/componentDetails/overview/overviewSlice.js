@@ -29,6 +29,8 @@ import { pathSet } from '../../util/reduxToolkitUtil';
 import { togglePath } from '../../util/jsUtil';
 import { toggleBooleanProp } from '../../util/reduxUtil';
 
+const HTTP_CLIENT_CLOSED_REQUEST = 499;
+
 const REDUCER_NAME = 'componentDetailsOverview';
 
 const initialState = {
@@ -166,9 +168,13 @@ function loadComponentDetailsByVerionsNumberFulfilled(state, { payload }) {
 }
 
 function loadComponentDetailsByVerionsNumberFailed(state, { payload }) {
-  state.selectedVersionData.loading = false;
-  state.selectedVersionData.loadError = Messages.getHttpErrorMessage(payload);
-  state.selectedVersionData.selectedVersionDetails = null;
+  if (payload.message === HTTP_CLIENT_CLOSED_REQUEST) {
+    state.selectedVersionData.selectedVersionDetails = null;
+  } else {
+    state.selectedVersionData.loading = false;
+    state.selectedVersionData.loadError = Messages.getHttpErrorMessage(payload);
+    state.selectedVersionData.selectedVersionDetails = null;
+  }
 }
 
 function resetSelectedVersionData(state) {
@@ -200,6 +206,7 @@ const loadVersionExplorerData = createAsyncThunk(
   }
 );
 
+let loadSelectedVersionCancelToken = null;
 const loadSelectedVersionData = createAsyncThunk(
   `${REDUCER_NAME}/loadSelectedVersionData`,
   (version, { getState, dispatch }) => {
@@ -210,20 +217,24 @@ const loadSelectedVersionData = createAsyncThunk(
       return;
     }
 
+    loadSelectedVersionCancelToken?.cancel(HTTP_CLIENT_CLOSED_REQUEST);
+
     if (currentVersion === version) {
       return dispatch(actions.resetSelectedVersionData());
     }
 
+    loadSelectedVersionCancelToken = axios.CancelToken.source();
+
     dispatch(actions.setSelectedVersion(version));
-    dispatch(loadComponentDetailsByVerionsNumber());
+    dispatch(loadComponentDetailsByVerionsNumber(loadSelectedVersionCancelToken.token));
   }
 );
 
 const loadComponentDetailsByVerionsNumber = createAsyncThunk(
   `${REDUCER_NAME}/loadComponentDetailsByVerionsNumber`,
-  (_, { getState, rejectWithValue }) => {
+  (cancelToken, { getState, rejectWithValue }) => {
     return axios
-      .get(getComponentDetailsUrl(selectComponentDetailsSelectedRequestData(getState())))
+      .get(getComponentDetailsUrl(selectComponentDetailsSelectedRequestData(getState())), { cancelToken })
       .then(({ data }) => data)
       .catch(rejectWithValue);
   }

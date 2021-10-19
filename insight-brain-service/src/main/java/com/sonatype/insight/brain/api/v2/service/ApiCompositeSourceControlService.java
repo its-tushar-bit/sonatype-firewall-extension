@@ -228,12 +228,12 @@ public class ApiCompositeSourceControlService
         grandParentSourceControl.getPullRequestCommentingEnabled()
     );
 
-    dto.sourceControlScansEnabled = collateCompositeDTO(
-        sourceControl.getSourceControlScansEnabled(),
+    dto.sourceControlEvaluationsEnabled = collateCompositeDTO(
+        sourceControl.getSourceControlEvaluationsEnabled(),
         parentName,
-        parentSourceControl.getSourceControlScansEnabled(),
+        parentSourceControl.getSourceControlEvaluationsEnabled(),
         grandParentName,
-        grandParentSourceControl.getSourceControlScansEnabled()
+        grandParentSourceControl.getSourceControlEvaluationsEnabled()
     );
 
     dto.sourceControlScanTarget = collateCompositeDTO(

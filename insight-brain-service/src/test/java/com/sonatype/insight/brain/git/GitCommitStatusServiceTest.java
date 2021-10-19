@@ -484,7 +484,7 @@ public class GitCommitStatusServiceTest
 
     private boolean pullRequestCommentingEnabled = true;
 
-    private boolean sourceControlScansEnabled = true;
+    private boolean sourceControlEvaluationsEnabled = true;
 
     private String sourceControlScanTarget = null;
 
@@ -534,7 +534,7 @@ public class GitCommitStatusServiceTest
         String repositoryUrl = format("http://%s.com/%s/%s", null != provider ? provider.toString() : null, org, repo);
         gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, null, username, token, provider, baseBranch,
             remediationPullRequestsEnabled, statusChecksEnabled, pullRequestCommentingEnabled,
-            sourceControlScansEnabled, sshEnabled, sourceControlScanTarget);
+            sourceControlEvaluationsEnabled, sshEnabled, sourceControlScanTarget);
         doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
       }
 

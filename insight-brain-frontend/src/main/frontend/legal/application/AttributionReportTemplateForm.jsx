@@ -8,7 +8,6 @@ import * as PropTypes from 'prop-types';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import ConfirmationModal from './ConfirmationModal';
 import {
-  NxBackButton,
   NxButton,
   NxCheckbox,
   NxFieldset,
@@ -21,6 +20,7 @@ import {
   NxFontAwesomeIcon,
   combineValidationErrors,
 } from '@sonatype/react-shared-components';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 export default function AttributionReportTemplateForm(props) {
   const {
@@ -476,7 +476,7 @@ export default function AttributionReportTemplateForm(props) {
 
   return (
     <main id="attribution-report-template-form-container" className="nx-page-main">
-      <NxBackButton href={backHref} text="Back" />
+      <MenuBarBackButton href={backHref} text="Back" />
       {getComponentContent()}
     </main>
   );

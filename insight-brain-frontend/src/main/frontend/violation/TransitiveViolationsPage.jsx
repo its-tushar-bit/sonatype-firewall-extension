@@ -5,7 +5,7 @@
  */
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxBackButton, NxButton } from '@sonatype/react-shared-components';
+import { NxButton } from '@sonatype/react-shared-components';
 import {
   availableScopesPropType,
   componentTransitivePolicyViolationsPropType,
@@ -22,6 +22,7 @@ import PolicyViolationDetailsPopover from '../componentDetails/ViolationsTableTi
 import { useRouterState } from '../react/RouterStateContext';
 import { waiverType } from '../util/waiverUtils';
 import ComponentWaiversPopover from '../componentDetails/ViolationsTableTile/componentWaivers/ComponentWaiversPopover';
+import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
 
 export default function TransitiveViolationsPage(props) {
   const {
@@ -82,7 +83,7 @@ export default function TransitiveViolationsPage(props) {
       >
         {availableScopes.data && reportMetadata.data && componentTransitivePolicyViolations.data && (
           <Fragment>
-            {ownerId && scanId && <NxBackButton href={getBackHref()} />}
+            {ownerId && scanId && <MenuBarBackButton href={getBackHref()} />}
             <ComponentDetailsHeader>
               <Title id="transitive-violations-page-title">
                 {componentTransitivePolicyViolations.data.displayName}

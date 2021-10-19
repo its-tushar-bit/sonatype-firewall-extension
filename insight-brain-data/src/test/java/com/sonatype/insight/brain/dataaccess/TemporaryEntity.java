@@ -2569,11 +2569,11 @@ public class TemporaryEntity
                                         String baseBranch,
                                         Boolean pullRequestCommentingEnabled,
                                         Boolean remediationPullRequestsEnabled,
-                                        Boolean sourceControlScansEnabled,
+                                        Boolean sourceControlEvaluationsEnabled,
                                         Boolean statusChecksEnabled)
   {
     return newSourceControl(applicationId, repositoryUrl, null, token, provider, remediationPullRequestsEnabled,
-        statusChecksEnabled, baseBranch, null, pullRequestCommentingEnabled, sourceControlScansEnabled, null);
+        statusChecksEnabled, baseBranch, null, pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, null);
   }
 
   public SourceControl newSourceControl(String applicationId,
@@ -2602,13 +2602,13 @@ public class TemporaryEntity
                                         String baseBranch,
                                         Date pullRequestPollTime,
                                         Boolean pullRequestCommentingEnabled,
-                                        Boolean sourceControlScansEnabled,
+                                        Boolean sourceControlEvaluationsEnabled,
                                         String sourceControlScanTarget
                                         )
   {
     return newSourceControl(applicationId, repositoryUrl, null, username, token, provider,
         remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestPollTime,
-        pullRequestCommentingEnabled, sourceControlScansEnabled, sourceControlScanTarget, null);
+        pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, sourceControlScanTarget, null);
   }
 
   public SourceControl newSourceControl(String applicationId,
@@ -2622,7 +2622,7 @@ public class TemporaryEntity
                                         String baseBranch,
                                         Date pullRequestPollTime,
                                         Boolean pullRequestCommentingEnabled,
-                                        Boolean sourceControlScansEnabled,
+                                        Boolean sourceControlEvaluationsEnabled,
                                         String sourceControlScanTarget,
                                         Boolean sshEnabled
   )
@@ -2640,7 +2640,7 @@ public class TemporaryEntity
             .setBaseBranch(baseBranch)
             .setPullRequestPollTime(pullRequestPollTime)
             .setPullRequestCommentingEnabled(pullRequestCommentingEnabled)
-            .setSourceControlScansEnabled(sourceControlScansEnabled)
+            .setSourceControlEvaluationsEnabled(sourceControlEvaluationsEnabled)
             .setSourceControlScanTarget(sourceControlScanTarget)
             .setSshEnabled(sshEnabled)
             .build();

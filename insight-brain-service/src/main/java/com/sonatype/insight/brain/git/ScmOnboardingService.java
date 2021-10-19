@@ -395,8 +395,8 @@ public class ScmOnboardingService
 
     if (licenseChecker.isIqForScmSupported()) {
       GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
-      Boolean sourceControlScansEnable = gitRepositoryInfo.getSourceControlScansEnabled();
-      if (sourceControlScansEnable != null && sourceControlScansEnable.booleanValue()) {
+      Boolean sourceControlEvaluationsEnabled = gitRepositoryInfo.getSourceControlEvaluationsEnabled();
+      if (sourceControlEvaluationsEnabled != null && sourceControlEvaluationsEnabled.booleanValue()) {
         initiateSourceControlEvaluation(apiSourceControlDTO);
       }
     }

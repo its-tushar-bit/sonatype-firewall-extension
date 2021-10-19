@@ -11,12 +11,14 @@ import LegalDashboardPage from './LegalDashboardPage';
 import * as legalDashboardActions from './legalDashboardActions';
 import * as legalDashboardFilterActions from './filter/legalDashboardFilterActions';
 
-function mapStateToProps({ legalDashboard, legalDashboardFilter, manageLegalFilters }) {
+function mapStateToProps(state) {
+  const { legalDashboard, legalDashboardFilter, manageLegalFilters, router } = state;
   return {
     ...pick(['applications', 'components', 'loading', 'loadError'], legalDashboard),
     ...pick(['filtersAreDirty', 'filterSidebarOpen'], legalDashboardFilter),
     ...pick(['appliedFilterName', 'showDirtyAsterisk'], manageLegalFilters),
     filterLoading: legalDashboardFilter.loading,
+    router,
   };
 }
 

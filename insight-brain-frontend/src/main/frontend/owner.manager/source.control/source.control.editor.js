@@ -368,12 +368,14 @@ function SourceControlEditorController(
       compositeSourceControl.remediationPullRequestsEnabled.parentValue;
 
     model.sourceControlEvaluationsEnabled = setDefaultIfNull(
-      compositeSourceControl.sourceControlScansEnabled.value,
-      compositeSourceControl.sourceControlScansEnabled.parentValue,
+      compositeSourceControl.sourceControlEvaluationsEnabled.value,
+      compositeSourceControl.sourceControlEvaluationsEnabled.parentValue,
       true
     );
-    model.sourceControlEvaluationsEnabledInheritFrom = compositeSourceControl.sourceControlScansEnabled.parentName;
-    model.sourceControlEvaluationsEnabledInheritedValue = compositeSourceControl.sourceControlScansEnabled.parentValue;
+    model.sourceControlEvaluationsEnabledInheritFrom =
+      compositeSourceControl.sourceControlEvaluationsEnabled.parentName;
+    model.sourceControlEvaluationsEnabledInheritedValue =
+      compositeSourceControl.sourceControlEvaluationsEnabled.parentValue;
 
     model.statusChecksEnabled = compositeSourceControl.statusChecksEnabled.value;
     model.statusChecksEnabledInheritFrom = compositeSourceControl.statusChecksEnabled.parentName;
@@ -401,7 +403,7 @@ function SourceControlEditorController(
     sourceControl.id = model.id;
     sourceControl.pullRequestCommentingEnabled = getPullRequestCommentingEnabledFlagFromModel(model);
     sourceControl.remediationPullRequestsEnabled = getRemediationPullRequestsEnabledFlagFromModel(model);
-    sourceControl.sourceControlScansEnabled = getSourceControlEvaluationsEnabledFlagFromModel(model);
+    sourceControl.sourceControlEvaluationsEnabled = getSourceControlEvaluationsEnabledFlagFromModel(model);
     sourceControl.statusChecksEnabled = true;
     sourceControl.repositoryUrl = null;
 

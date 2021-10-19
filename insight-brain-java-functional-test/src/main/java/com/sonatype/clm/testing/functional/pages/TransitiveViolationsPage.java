@@ -29,7 +29,7 @@ public class TransitiveViolationsPage
   }
 
   public NxBackButton backButton() {
-    return new NxBackButton(ROOT);
+    return new NxBackButton("#menu-bar__back-button-container");
   }
 
   public ComponentDetailsHeader title() {

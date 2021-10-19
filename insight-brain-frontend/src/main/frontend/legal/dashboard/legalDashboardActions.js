@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 
-import { getLegalDashboardApplicationsUrl } from '../../util/CLMLocation';
+import { getLegalDashboardApplicationsUrl, getLegalDashboardComponentsUrl } from '../../util/CLMLocation';
 import { payloadParamActionCreator } from '../../util/reduxUtil';
 import { DASHBOARD } from '../advancedLegalConstants';
 
@@ -72,6 +72,8 @@ function getServiceMethod(resultsType) {
   switch (resultsType) {
     case 'applications':
       return getLegalDashboardApplicationsUrl;
+    case 'components':
+      return getLegalDashboardComponentsUrl;
 
     default:
       throw new Error('retrieving legal dashboard results is not supported for ' + resultsType);

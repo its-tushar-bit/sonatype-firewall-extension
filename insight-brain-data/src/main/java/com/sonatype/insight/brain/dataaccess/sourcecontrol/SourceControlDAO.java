@@ -68,8 +68,8 @@ public class SourceControlDAO
           "  sc_app.pull_request_error_count, " +
           "  COALESCE(sc_app.pull_request_commenting_enabled, sc_p.pull_request_commenting_enabled, " +
           "     sc_gp.pull_request_commenting_enabled) AS pull_request_commenting_enabled, " +
-          "  COALESCE(sc_app.source_control_scans_enabled, sc_p.source_control_scans_enabled, " +
-          "     sc_gp.source_control_scans_enabled) AS source_control_scans_enabled, " +
+          "  COALESCE(sc_app.source_control_evaluations_enabled, sc_p.source_control_evaluations_enabled, " +
+          "     sc_gp.source_control_evaluations_enabled) AS source_control_evaluations_enabled, " +
           "  COALESCE(sc_app.source_control_scan_target, sc_p.source_control_scan_target, " +
           "     sc_gp.source_control_scan_target) AS source_control_scan_target " +
           "FROM insight_brain_ods.application app " +

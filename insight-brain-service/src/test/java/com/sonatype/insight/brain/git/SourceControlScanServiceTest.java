@@ -170,7 +170,7 @@ public class SourceControlScanServiceTest
     when(proprietaryConfigService.getProprietaryConfig(eq(OwnerType.APPLICATION), eq("public-app-id")))
         .thenReturn(proprietaryConfig);
 
-    when(mockGitRepositoryInfo.getSourceControlScansEnabled()).thenReturn(true);
+    when(mockGitRepositoryInfo.getSourceControlEvaluationsEnabled()).thenReturn(true);
   }
 
   @Test
@@ -362,7 +362,7 @@ public class SourceControlScanServiceTest
     // given internal SCM policy evaluations are disabled
     doReturn(mockGitRepositoryInfo).when(spySourceControlUtils)
         .getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId());
-    when(mockGitRepositoryInfo.getSourceControlScansEnabled())
+    when(mockGitRepositoryInfo.getSourceControlEvaluationsEnabled())
         .thenReturn(internalSourceControlPolicyEvaluationsEnabled);
 
     // it does not evaluate the SCM repository content and it returns null

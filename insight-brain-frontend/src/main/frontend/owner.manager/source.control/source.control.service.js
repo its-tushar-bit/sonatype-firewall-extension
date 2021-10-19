@@ -102,7 +102,7 @@ function getDataFromSourceControl(ownerType, ownerId, sourceControl) {
     remediationPullRequestsEnabled: sourceControl.remediationPullRequestsEnabled,
     statusChecksEnabled: sourceControl.statusChecksEnabled,
     pullRequestCommentingEnabled: sourceControl.pullRequestCommentingEnabled,
-    sourceControlScansEnabled: sourceControl.sourceControlScansEnabled,
+    sourceControlEvaluationsEnabled: sourceControl.sourceControlEvaluationsEnabled,
     sourceControlScanTarget: sourceControl.sourceControlScanTarget,
   };
   if (ownerType === 'application') {

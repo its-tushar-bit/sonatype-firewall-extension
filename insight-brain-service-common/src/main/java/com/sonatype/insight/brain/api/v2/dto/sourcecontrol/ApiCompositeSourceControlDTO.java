@@ -27,7 +27,7 @@ public class ApiCompositeSourceControlDTO
 
   public ApiCompositeValueDTO<Boolean> pullRequestCommentingEnabled = new ApiCompositeValueDTO<>();
 
-  public ApiCompositeValueDTO<Boolean> sourceControlScansEnabled = new ApiCompositeValueDTO<>();
+  public ApiCompositeValueDTO<Boolean> sourceControlEvaluationsEnabled = new ApiCompositeValueDTO<>();
 
   public ApiCompositeValueDTO<String> sourceControlScanTarget = new ApiCompositeValueDTO<>();
 

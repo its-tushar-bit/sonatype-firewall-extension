@@ -157,8 +157,8 @@ public class SourceControlScanService
         sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
 
     if (gitRepositoryInfo != null) {
-      Boolean sourceControlScansEnable = gitRepositoryInfo.getSourceControlScansEnabled();
-      if (sourceControlScansEnable == null || !sourceControlScansEnable.booleanValue()) {
+      Boolean sourceControlEvaluationsEnabled = gitRepositoryInfo.getSourceControlEvaluationsEnabled();
+      if (sourceControlEvaluationsEnabled == null || !sourceControlEvaluationsEnabled.booleanValue()) {
         return null;
       }
 

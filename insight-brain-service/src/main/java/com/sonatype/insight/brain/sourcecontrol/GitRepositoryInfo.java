@@ -23,7 +23,7 @@ public class GitRepositoryInfo
                            final Boolean remediationPullRequestsEnabled,
                            final Boolean statusChecksEnabled,
                            final Boolean pullRequestCommentingEnabled,
-                           final Boolean sourceControlScansEnabled,
+                           final Boolean sourceControlEvaluationsEnabled,
                            final Boolean sshEnabled,
                            final String sourceControlScanTarget)
   {
@@ -36,7 +36,7 @@ public class GitRepositoryInfo
     this.remediationPullRequestsEnabled = remediationPullRequestsEnabled;
     this.statusChecksEnabled = statusChecksEnabled;
     this.pullRequestCommentingEnabled = pullRequestCommentingEnabled;
-    this.sourceControlScansEnabled = sourceControlScansEnabled;
+    this.sourceControlEvaluationsEnabled = sourceControlEvaluationsEnabled;
     this.sshEnabled = sshEnabled;
     this.sourceControlScanTarget = sourceControlScanTarget;
   }
@@ -59,7 +59,7 @@ public class GitRepositoryInfo
 
   public Boolean pullRequestCommentingEnabled;
 
-  public Boolean sourceControlScansEnabled;
+  public Boolean sourceControlEvaluationsEnabled;
 
   public Boolean sshEnabled;
 
@@ -101,8 +101,8 @@ public class GitRepositoryInfo
     return pullRequestCommentingEnabled;
   }
 
-  public Boolean getSourceControlScansEnabled() {
-    return sourceControlScansEnabled;
+  public Boolean getSourceControlEvaluationsEnabled() {
+    return sourceControlEvaluationsEnabled;
   }
 
   public Boolean getSshEnabled() {
@@ -125,7 +125,7 @@ public class GitRepositoryInfo
         || remediationPullRequestsEnabled == null
         || statusChecksEnabled == null
         || pullRequestCommentingEnabled == null
-        || sourceControlScansEnabled == null
+        || sourceControlEvaluationsEnabled == null
         || sshEnabled == null
         || sourceControlScanTarget == null);
   }

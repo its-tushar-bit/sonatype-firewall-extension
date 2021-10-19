@@ -4,10 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import AttributionReportTemplateForm from '../../../../main/frontend/legal/application/AttributionReportTemplateForm';
+import AttributionReportTemplateForm from 'MainRoot/legal/application/AttributionReportTemplateForm';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 describe('AttributionReportTemplateForm component', function () {
-  let getMountedComponent, minimalProps, spy$State, spyGetAttributionReportTemplates;
+  let getShallowComponent, getMountedComponent, minimalProps, spy$State, spyGetAttributionReportTemplates;
 
   beforeEach(function () {
     spy$State = jasmine.createSpyObj('$state', ['get', 'href']);
@@ -58,7 +59,22 @@ describe('AttributionReportTemplateForm component', function () {
       getAttributionReportTemplates: spyGetAttributionReportTemplates,
     };
 
+    getShallowComponent = enzymeUtils.getShallowComponent(AttributionReportTemplateForm, minimalProps);
     getMountedComponent = enzymeUtils.getMountedComponent(AttributionReportTemplateForm, minimalProps);
+  });
+
+  it('renders a MenuBarBackButton with correct href prop', function () {
+    const component = getShallowComponent({
+      ...minimalProps,
+      applicationPublicId: 'appId',
+      stageTypeId: 'stage',
+    });
+    const menuBarBackButton = component.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp(
+      'href',
+      'legal.attributionReport-{"applicationPublicId":"appId","stageTypeId":"stage"}'
+    );
   });
 
   it('renders an empty form with default values', function () {

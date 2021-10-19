@@ -5,15 +5,15 @@
  */
 
 import * as enzymeUtils from '../enzymeUtils';
-import TransitiveViolationsPage from '../../../main/frontend/violation/TransitiveViolationsPage';
+import TransitiveViolationsPage from 'MainRoot/violation/TransitiveViolationsPage';
 import { mount } from 'enzyme';
 import React from 'react';
-import { NxBackButton } from '@sonatype/react-shared-components';
-import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
-import WaiveTransitiveViolationsPopoverContainer from '../../../main/frontend/violation/WaiveTransitiveViolationsPopoverContainer';
-import RequestWaiveTransitiveViolationsPopoverContainer from '../../../main/frontend/violation/RequestWaiveTransitiveViolationsPopoverContainer';
-import * as routerContext from '../../../main/frontend/react/RouterStateContext';
-import PolicyViolationDetailsPopover from '../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationDetailsPopover';
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
+import WaiveTransitiveViolationsPopoverContainer from 'MainRoot/violation/WaiveTransitiveViolationsPopoverContainer';
+import RequestWaiveTransitiveViolationsPopoverContainer from 'MainRoot/violation/RequestWaiveTransitiveViolationsPopoverContainer';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
+import PolicyViolationDetailsPopover from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationDetailsPopover';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 describe('TransitiveViolationsPage', function () {
   let minimalProps,
@@ -222,13 +222,12 @@ describe('TransitiveViolationsPage', function () {
   describe('the back button', function () {
     it('links to the app report if ownerId with scanId is requested', function () {
       const wrapper = getShallowComponent();
-      const backButton = wrapper.find(NxBackButton);
-      expect(backButton).toExist();
-      expect(backButton).toHaveProp(
+      const menuBarBackButton = wrapper.find(MenuBarBackButton);
+      expect(menuBarBackButton).toExist();
+      expect(menuBarBackButton).toHaveProp(
         'href',
         'applicationReport.policy-{"publicId":"someOwnerId","scanId":"someScanId","componentHash":"someHash","tabId":"policy"}'
       );
-      expect(routerContext.useRouterState().href).toHaveBeenCalled();
     });
   });
 

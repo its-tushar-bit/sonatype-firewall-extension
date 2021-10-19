@@ -11,7 +11,7 @@
 @import './overview/riskRemediation/RiskRemediation';
 @import './overview/VersionGraphExplorer/VersionGraphExplorer';
 @import './VulnerabilitiesTableTile/vulnerabilities';
-@import './ComponentDetailsLegalTab/LicenseDetectionsTile/LicenseDetectionsTile';
+@import './ComponentDetailsLegalTab/ComponentDetailsLegalTab.scss';
 
 .nx-page-main.iq-component-details-page {
   padding: 0;

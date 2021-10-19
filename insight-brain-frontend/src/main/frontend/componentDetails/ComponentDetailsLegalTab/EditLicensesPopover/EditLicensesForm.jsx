@@ -1,0 +1,185 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import * as PropTypes from 'prop-types';
+import { find, propEq, compose, toLower, findIndex, __ } from 'ramda';
+import { NxForm, NxFieldset, NxTextInput, NxRadio } from '@sonatype/react-shared-components';
+
+import { capitalize } from 'MainRoot/util/jsUtil';
+
+import { renderLicensesList } from '../LegalTabUtils';
+import { licensesPropTypes, licenseOverridePropTypes } from '../LicenseDetectionsTile/LicenseDetectionsTile';
+
+const NOT_DIRTY_ERROR_MESSAGE = 'There are no changes to update';
+
+const licenseStatuses = [
+  { name: 'Open', value: 'OPEN' },
+  { name: 'Acknowledged', value: 'ACKNOWLEDGED' },
+  { name: 'Confirmed', value: 'CONFIRMED' },
+];
+
+export default function EditLicensesForm({
+  onClose,
+  resetFormFields,
+  status,
+  scope,
+  comment,
+  isDirty,
+  setLicenseComment,
+  setLicenseStatus,
+  setLicenseScope,
+  saveForm,
+  deleteLicenseOverride,
+  declaredlicenses,
+  effectiveLicenses,
+  observedlicenses,
+  availableLicenseScopes,
+  submitError,
+  submitMaskState,
+}) {
+  const handleScopeChange = (selectedId) => {
+    const target = find(propEq('ownerId', selectedId), availableLicenseScopes);
+    setLicenseStatus(target.licenseOverride?.status ?? 'OPEN');
+    setLicenseScope(target);
+  };
+  const getValidationErrors = () => (!isDirty ? NOT_DIRTY_ERROR_MESSAGE : null);
+
+  const onStatusChange = (event) => {
+    setLicenseStatus(event.currentTarget.value);
+  };
+
+  const handleOnCancel = () => {
+    onClose();
+    resetFormFields();
+  };
+
+  const handleOnSubmit = () => {
+    if (status === 'DELETE') {
+      deleteLicenseOverride();
+    } else {
+      saveForm();
+    }
+  };
+
+  const getAvailableScopeIndexById = compose(findIndex(__, availableLicenseScopes), propEq('ownerId'));
+
+  const canInheritStatus = () => scope && getAvailableScopeIndexById(scope.ownerId) < availableLicenseScopes.length - 1;
+
+  const getInheritableStatus = () => {
+    const index = getAvailableScopeIndexById(scope.ownerId) + 1;
+    for (let i = index; i < availableLicenseScopes.length; i++) {
+      if (availableLicenseScopes[i].licenseOverride) {
+        return compose(capitalize, toLower)(availableLicenseScopes[i].licenseOverride.status);
+      }
+    }
+
+    return 'Open';
+  };
+
+  const inheritStatusOption = () =>
+    !!availableLicenseScopes.length &&
+    canInheritStatus() && <option value="DELETE">Inherit Status ({getInheritableStatus()})</option>;
+
+  const statusField = (
+    <NxFieldset className="iq-edit-licenses-form__status" label="Status" isRequired>
+      <select id="status-select" className="nx-form-select" onChange={onStatusChange} value={status || ''}>
+        {licenseStatuses.map(({ name, value }, index) => (
+          <option key={index} value={value}>
+            {name}
+          </option>
+        ))}
+        {inheritStatusOption()}
+      </select>
+    </NxFieldset>
+  );
+
+  const renderLicenseInfoSection = () => (
+    <section id="license-info-section">
+      <dl className="nx-read-only">
+        <dt className="nx-read-only__label">Declared Licenses</dt>
+        <dd className="nx-read-only__data" id="declared-licenses-container">
+          {renderLicensesList(declaredlicenses)}
+        </dd>
+        <dt className="nx-read-only__label">Observed Licenses</dt>
+        <dd className="nx-read-only__data " id="observed-licenses-container">
+          {renderLicensesList(observedlicenses)}
+        </dd>
+        <dt className="nx-read-only__label">Effective Licenses</dt>
+        <dd className="nx-read-only__data" id="effective-licenses-container">
+          {renderLicensesList(effectiveLicenses)}
+        </dd>
+      </dl>
+    </section>
+  );
+
+  const commentField = (
+    <div className="nx-form-group iq-edit-licenses-form__comment">
+      <label className="nx-label">
+        <span className="nx-label__text">Comment</span>
+        <NxTextInput type="textarea" maxLength={1000} {...comment} onChange={setLicenseComment} />
+      </label>
+    </div>
+  );
+
+  const scopeField = (
+    <NxFieldset className="iq-edit-licenses-form__scope" label="Scope" isRequired>
+      {availableLicenseScopes?.map(({ ownerId, ownerName, ownerType }) => (
+        <NxRadio
+          name="license-scope-target"
+          value={ownerId}
+          isChecked={scope.ownerId === ownerId}
+          key={ownerId}
+          onChange={handleScopeChange}
+        >
+          {capitalize(ownerType)} - {ownerName}
+        </NxRadio>
+      ))}
+    </NxFieldset>
+  );
+  return (
+    <NxForm
+      onSubmit={handleOnSubmit}
+      submitBtnText="Save"
+      submitError={submitError}
+      submitMaskState={submitMaskState}
+      submitMaskMessage="Saving..."
+      validationErrors={getValidationErrors()}
+      onCancel={handleOnCancel}
+    >
+      <div className="nx-grid-row">
+        <div className="nx-grid-col nx-grid-col--25">{renderLicenseInfoSection()}</div>
+        <div className="nx-grid-col">
+          {scopeField}
+          {statusField}
+          {commentField}
+        </div>
+      </div>
+    </NxForm>
+  );
+}
+
+EditLicensesForm.propTypes = {
+  declaredlicenses: PropTypes.arrayOf(licensesPropTypes),
+  effectiveLicenses: PropTypes.arrayOf(licensesPropTypes),
+  observedlicenses: PropTypes.arrayOf(licensesPropTypes),
+  availableLicenseScopes: PropTypes.arrayOf(licenseOverridePropTypes),
+  scope: licenseOverridePropTypes,
+  comment: PropTypes.shape({
+    value: PropTypes.string,
+    isPristine: PropTypes.bool,
+  }),
+  status: PropTypes.string,
+  setLicenseComment: PropTypes.func.isRequired,
+  setLicenseStatus: PropTypes.func.isRequired,
+  setLicenseScope: PropTypes.func.isRequired,
+  isDirty: PropTypes.bool,
+  onClose: PropTypes.func.isRequired,
+  resetFormFields: PropTypes.func.isRequired,
+  saveForm: PropTypes.func.isRequired,
+  deleteLicenseOverride: PropTypes.func.isRequired,
+  submitError: PropTypes.string,
+  submitMaskState: PropTypes.bool,
+};

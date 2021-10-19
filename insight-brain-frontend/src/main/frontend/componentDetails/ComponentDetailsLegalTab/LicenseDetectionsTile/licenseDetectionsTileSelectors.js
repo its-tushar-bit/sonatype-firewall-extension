@@ -31,3 +31,8 @@ export const selectShowEditLicensesPopover = createSelector(
   selectComponentDetailsLicenseDetectionsTileSlice,
   prop('showEditLicensesPopover')
 );
+
+export const selectEditLicensesForm = createSelector(
+  selectComponentDetailsLicenseDetectionsTileSlice,
+  prop('editLicensesForm')
+);

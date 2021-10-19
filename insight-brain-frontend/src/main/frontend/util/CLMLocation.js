@@ -570,6 +570,14 @@ export function getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier) {
   return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}` + componentIdentifierProp;
 }
 
+export function getBaseLicenseOverrideUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}`;
+}
+
+export function getDeleteLicenseOverrideUrl(ownerType, ownerId, licenseOverrideId) {
+  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}/${licenseOverrideId}`;
+}
+
 export function getLicensesWithSyntheticFilterUrl() {
   return uriTemplate`/rest/license?filterSynthetic=true`;
 }

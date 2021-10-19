@@ -517,6 +517,18 @@ describe('CLMLocation.js', function () {
       );
     });
 
+    it('getBaseLicenseOverrideUrl should return the URL', () => {
+      expect(CLMLocation.getBaseLicenseOverrideUrl('ownerType', 'ownerId')).toBe(
+        '/rest/licenseOverride/ownerType/ownerId'
+      );
+    });
+
+    it('getDeleteLicenseOverrideUrl should return the URL', () => {
+      expect(CLMLocation.getDeleteLicenseOverrideUrl('ownerType', 'ownerId', 'licenseOverrideId')).toBe(
+        '/rest/licenseOverride/ownerType/ownerId/licenseOverrideId'
+      );
+    });
+
     it('getLicenseOverrideUrl should return the URL with no component identifier', function () {
       expect(CLMLocation.getLicenseOverrideUrl('ownerType', 'ownerId')).toBe('/rest/licenseOverride/ownerType/ownerId');
     });

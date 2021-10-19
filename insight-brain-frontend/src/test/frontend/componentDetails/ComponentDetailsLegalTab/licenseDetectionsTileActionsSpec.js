@@ -8,10 +8,15 @@ import { omit } from 'ramda';
 
 import { actions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
 import {
+  getBaseLicenseOverrideUrl,
   getComponentLicensesUrl,
+  getDeleteLicenseOverrideUrl,
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
 } from 'MainRoot/util/CLMLocation';
+import * as licenseDetectionTileSelectors from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSelectors';
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 describe('componentDetailsLicenseDetectionsTileActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -296,6 +301,132 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
           expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFailedAction]);
           done();
         });
+      });
+    });
+  });
+
+  describe('saveEditLicensesForm', () => {
+    const { saveEditLicensesForm } = actions,
+      ownerType = 'ownerType',
+      ownerId = 'ownerId',
+      editLicenseForm = {
+        status: 'status',
+        comment: { value: 'some comment' },
+        scope: { ownerType, ownerId },
+      },
+      selectedComponent = {
+        componentIdentifier: { format: 'some format' },
+      };
+
+    beforeEach(() => {
+      spyOn(licenseDetectionTileSelectors, 'selectEditLicensesForm').and.returnValue(editLicenseForm);
+      spyOn(applicationReportSelectors, 'selectSelectedComponent').and.returnValue(selectedComponent);
+      store = SpecUtil.mockReduxStore({});
+      jasmine.clock().install();
+    });
+
+    afterEach(() => {
+      jasmine.clock().uninstall();
+    });
+
+    it('sends a post request to the BaseLicenseOverrideUrl with a payload', (done) => {
+      mockAxiosCalls({
+        post: {
+          [getBaseLicenseOverrideUrl(ownerType, ownerId)]: Promise.resolve(),
+        },
+      });
+
+      store.dispatch(saveEditLicensesForm()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+        expect(axios.post).toHaveBeenCalledTimes(1);
+        expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/ownerType/ownerId', {
+          id: null,
+          licenseIds: [],
+          componentIdentifier: Object({ format: 'some format' }),
+          status: 'status',
+          comment: 'some comment',
+          ownerId: 'ownerId',
+        });
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(5);
+        expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/saveEditLicensesForm/fulfilled');
+        expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/resetSubmitMaskState');
+        expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/load/pending');
+
+        done();
+      });
+    });
+  });
+
+  describe('deleteLicenseOverride', () => {
+    const { deleteLicenseOverride } = actions,
+      ownerType = 'ownerType',
+      ownerId = 'ownerId',
+      licenseOverrideId = 'licenseOverrideId',
+      editLicenseForm = {
+        status: 'status',
+        comment: { value: 'some comment' },
+        scope: { ownerType, ownerId },
+      };
+
+    beforeEach(() => {
+      store = SpecUtil.mockReduxStore({});
+      jasmine.clock().install();
+    });
+
+    afterEach(() => {
+      jasmine.clock().uninstall();
+    });
+
+    it('does not send a delete request to the DeleteLicenseOverrideUrl', (done) => {
+      spyOn(licenseDetectionTileSelectors, 'selectEditLicensesForm').and.returnValue(editLicenseForm);
+      mockAxiosCalls({
+        del: {
+          [getDeleteLicenseOverrideUrl(ownerType, ownerId, licenseOverrideId)]: Promise.resolve(),
+        },
+      });
+
+      store.dispatch(deleteLicenseOverride()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+        expect(axios.delete).toHaveBeenCalledTimes(0);
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(5);
+        expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/deleteLicenseOverride/fulfilled');
+        expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/resetSubmitMaskState');
+        expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/load/pending');
+
+        done();
+      });
+    });
+
+    it('sends a delete request to the DeleteLicenseOverrideUrl when licenseOverride exist', (done) => {
+      spyOn(licenseDetectionTileSelectors, 'selectEditLicensesForm').and.returnValue({
+        ...editLicenseForm,
+        scope: { ...editLicenseForm.scope, licenseOverride: { id: licenseOverrideId } },
+      });
+      mockAxiosCalls({
+        del: {
+          [getDeleteLicenseOverrideUrl(ownerType, ownerId, licenseOverrideId)]: Promise.resolve(),
+        },
+      });
+
+      store.dispatch(deleteLicenseOverride()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+        expect(axios.delete).toHaveBeenCalledTimes(1);
+        expect(axios.delete).toHaveBeenCalledWith('/rest/licenseOverride/ownerType/ownerId/licenseOverrideId');
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(5);
+        expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/deleteLicenseOverride/fulfilled');
+        expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/resetSubmitMaskState');
+        expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/load/pending');
+
+        done();
       });
     });
   });

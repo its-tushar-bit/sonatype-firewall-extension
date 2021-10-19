@@ -7,11 +7,19 @@ import {
   selectComponentDetailsLicenseDetectionsTileSlice,
   selectShowEditLicensesPopover,
   selectLicenseDetectionsTileDataSlice,
+  selectEditLicensesForm,
 } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSelectors';
 
 describe('LicenseDetectionsTile Selectors', () => {
-  let mockState, componentDetailsLicenseDetectionsTile, LicenseDetectionsTileData;
+  let mockState, componentDetailsLicenseDetectionsTile, LicenseDetectionsTileData, editLicensesForm;
   beforeEach(() => {
+    editLicensesForm = {
+      status: 'ACKNOWLEDGED',
+      isDirty: false,
+      submitError: null,
+      submitMaskState: null,
+    };
+
     LicenseDetectionsTileData = {
       licenseOverride: null,
       declaredlicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
@@ -24,6 +32,7 @@ describe('LicenseDetectionsTile Selectors', () => {
     };
     componentDetailsLicenseDetectionsTile = {
       ...LicenseDetectionsTileData,
+      editLicensesForm,
       showEditLicensesPopover: false,
     };
     mockState = {
@@ -58,6 +67,16 @@ describe('LicenseDetectionsTile Selectors', () => {
       const actualSelection = selectShowEditLicensesPopover(mockState);
 
       expect(actualSelection).toBe(expectedSelection);
+    });
+  });
+
+  describe('selectEditLicensesForm', () => {
+    it('selects editLicensesForm', () => {
+      const expectedSelection = editLicensesForm;
+
+      const actualSelection = selectEditLicensesForm(mockState);
+
+      expect(actualSelection).toEqual(expectedSelection);
     });
   });
 });

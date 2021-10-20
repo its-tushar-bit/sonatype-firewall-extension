@@ -7,10 +7,11 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { availableScopesPropType, componentPropType } from '../advancedLegalPropTypes';
 import LoadWrapper from '../../react/LoadWrapper';
-import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
 import { backToComponentOverviewUrl, createSubtitle } from '../legalUtility';
 import CopyrightOverrideFormContainer from './CopyrightOverrideFormContainer';
+import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 
 export default function CopyrightDetailsHeader(props) {
   const {
@@ -38,9 +39,9 @@ export default function CopyrightDetailsHeader(props) {
 
   return (
     <LoadWrapper loading={loading} error={error} retryHandler={load}>
-      <NxBackButton
+      <MenuBarBackButton
         href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash)}
-        targetPageTitle="Component Obligations"
+        text="Back to Component Obligations"
       />
       <div className="nx-page-title">
         <h1 className="nx-h1">Copyright Notices</h1>

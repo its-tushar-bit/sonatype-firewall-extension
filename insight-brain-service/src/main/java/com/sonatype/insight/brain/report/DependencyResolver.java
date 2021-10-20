@@ -371,21 +371,27 @@ public class DependencyResolver
 
       if (MatchState.UNKNOWN.getId().equals(bomObjectNode.get(MATCH_STATE).asText())) {
         markComponentAsKnown(bomObjectNode, innerSourceComponentIdentifier);
+        log.debug(isInnerSourceDependency ? "InnerSource component" : "Component" +
+            "'{}' was updated in bom.json as a known component", innerSourceComponentIdentifier);
       }
-      log.debug(isInnerSourceDependency ? "InnerSource component" : "Component" +
-          "'{}' was updated in bom.json as a known component", innerSourceComponentIdentifier);
     }
     else {
-      //In some scenarios (for example during MJA matching) the IS component is not identified
-      // and not present in the bom.json. However we are certain at this point this is
-      // an IS component so add a new identified component here.
+      //In some scenarios (for example during MJA matching) the component is not identified
+      // and not present in the bom.json. However, we are certain at this point this is
+      // an IS component so add a new identified component here and only marked as IS if the application is different,
+      // otherwise is only marked as direct.
       ObjectNode isNode = newNodeForISComponent(innerSourceComponentIdentifier);
       bomComponentNodes.put(innerSourceComponentIdentifier, isNode);
-      InnerSourceData innerSourceData =
-            new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), null);
+      InnerSourceData innerSourceData = null;
+      if (isInnerSourceDependency) {
+        innerSourceData = new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), null);
+      }
       totalArtifactCount.getAndIncrement();
       markComponentAsKnown(isNode, innerSourceComponentIdentifier);
-      updateBomNodeDependencyInformation(true, true, innerSourceComponentIdentifier, null, innerSourceData);
+      updateBomNodeDependencyInformation(true, isInnerSourceDependency, innerSourceComponentIdentifier, null,
+          innerSourceData);
+      log.debug(isInnerSourceDependency ? "InnerSource component" : "Component" + "'{}' was created in bom.json",
+          innerSourceComponentIdentifier);
     }
     return isInnerSourceDependency;
   }

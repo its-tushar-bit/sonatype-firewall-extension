@@ -33,11 +33,13 @@ import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Ignore
 public class AllObligationsTest
     extends AbstractFunctionalTest
 {

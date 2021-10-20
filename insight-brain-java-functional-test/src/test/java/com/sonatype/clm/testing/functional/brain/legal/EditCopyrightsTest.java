@@ -27,6 +27,7 @@ import com.codeborne.selenide.Condition;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.enabled;
@@ -214,6 +215,7 @@ public class EditCopyrightsTest
   }
 
   @Test
+  @Ignore
   public void modifyObligationStatus() {
     refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
     ComponentLegalOverviewPage.editCopyrightButton().shouldBe(Condition.visible).click();

@@ -65,7 +65,7 @@ public class ApplicationSourceControlEditorTest
   private static final String REPOSITORY_SSH_URL = "git@a.com:b/c.git";
 
   private static final String BITBUCKET_REPOSITORY_URL = "https://bitbucket.org/org/repo.git";
-  
+
   private static final String BITBUCKET_REPOSITORY_URL_SANITIZED = "https://bitbucket.org/org/repo";
 
   private static final String AZURE_REPO_URL = "https://dev.azure.com/org/prj/_git/app";
@@ -807,7 +807,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.notSupported().shouldHave(text("Source Control is not supported by your license"));
     eyesWatcher.eyesCheck("Source Control Editor - No License");
   }
-  
+
   @Test
   public void testSourceControlEditor_metricsTable() {
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, "token", SourceControlProvider.GITHUB);
@@ -815,10 +815,10 @@ public class ApplicationSourceControlEditorTest
     addSourceControlPullRequestResults();
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
     SourceControlEditorPage.advancedSettingsTree().click();
-    
+
     metricsTable().scrollIntoView();
     metricsTable().shouldBe(visible);
-    
+
     assertThat(metricsTable().rowCount()).isEqualTo(2);
 
     MetricsTableRow row1 = metricsTable().getRow(0);
@@ -1024,6 +1024,12 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.advancedSettingsTree().shouldBe(visible);
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
 
+    SourceControlEditorPage.sshEnabledToggle().shouldNotExist();
+    SourceControlEditorPage.sshEnabledDisableRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.sshEnabledEnableRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.sshEnabledInheritRadio().shouldBe(visible, disabled, selected);
+    SourceControlEditorPage.sshEnabledInheritRadio().shouldHave(text("Inherit (Not Configured)"));
+
     SourceControlEditorPage.remediationPullRequestsToggle().shouldNotExist();
     SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible, disabled, selected);
     SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldBe(visible, disabled);
@@ -1077,7 +1083,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.advancedSectionRule().shouldNotBe(visible);
   }
-  
+
   private void addSourceControlPullRequestResults() {
     SourceControlPullRequestMetrics metrics =
         testCLMServer.getCLMServer().getInstance(SourceControlPullRequestMetrics.class);

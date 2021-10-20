@@ -437,6 +437,12 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
 
+    SourceControlEditorPage.sshEnabledToggle().shouldBeDisabled();
+    SourceControlEditorPage.sshEnabledToggle().shouldBeOff();
+    SourceControlEditorPage.sshEnabledDisableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.sshEnabledEnableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.sshEnabledInheritRadio().shouldNotBe(visible);
+
     SourceControlEditorPage.remediationPullRequestsToggle().shouldBeDisabled();
     SourceControlEditorPage.remediationPullRequestsToggle().shouldBeOff();
     SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible);

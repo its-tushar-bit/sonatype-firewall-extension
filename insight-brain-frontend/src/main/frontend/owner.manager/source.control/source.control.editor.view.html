@@ -286,6 +286,18 @@
           </div>
         </div>
 
+        <!-- SSH Support -->
+        <inheritable-enable-disable
+                id="source-control-ssh-enabled"
+                title="Use SSH for Git Operations"
+                description="Clone and push changes to repositories via Secure Shell Protocol (SSH)"
+                model="vm.dirtySourceControl.sshEnabled"
+                is-available="true"
+                is-disabled="!vm.effectiveProvider()"
+                is-required="vm.isRootOrg && vm.effectiveProvider()"
+                can-inherit="!vm.isRootOrg"
+                inherit-label="vm.sshEnabledInheritText"></inheritable-enable-disable>
+
         <!-- remediation pull requests -->
         <inheritable-enable-disable
                 id="source-control-remediation-pull-requests"
@@ -323,7 +335,6 @@
                 can-inherit="!vm.isRootOrg"
                 inherit-label="vm.sourceControlEvaluationsEnabledInheritText"
                 unavailable-msg="vm.getSourceControlEvaluationsNotAvailableMessage()"></inheritable-enable-disable>
-
       </div>
 
       <div id="scm-config-results"
@@ -385,7 +396,7 @@
           Test Configuration
         </button>
       </div>
-      
+
     </form>
   </div>
 </div>

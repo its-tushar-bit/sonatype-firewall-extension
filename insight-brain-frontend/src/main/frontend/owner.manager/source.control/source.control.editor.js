@@ -98,6 +98,9 @@ function SourceControlEditorController(
   vm.getSourceControlEvaluationsNotAvailableMessage = getSourceControlEvaluationsNotAvailableMessage;
   vm.isProviderSpecifiedAndSourceControlEvaluationsSupported = isProviderSpecifiedAndSourceControlEvaluationsSupported;
 
+  // ssh
+  vm.sshEnabledInheritText = undefined;
+
   // status checks
   vm.statusChecksInheritText = undefined;
 
@@ -226,6 +229,10 @@ function SourceControlEditorController(
       vm.baseBranchInheritText = getInheritText(
         vm.dirtySourceControl.baseBranchInheritFrom,
         vm.dirtySourceControl.baseBranchInheritedValue
+      );
+      vm.sshEnabledInheritText = getEnabledDisabledInheritText(
+        vm.dirtySourceControl.sshEnabledInheritFrom,
+        vm.dirtySourceControl.sshEnabledInheritedValue
       );
 
       vm.sourceControlMetrics = result[1];
@@ -406,6 +413,7 @@ function SourceControlEditorController(
     sourceControl.sourceControlEvaluationsEnabled = getSourceControlEvaluationsEnabledFlagFromModel(model);
     sourceControl.statusChecksEnabled = true;
     sourceControl.repositoryUrl = null;
+    sourceControl.sshEnabled = model.sshEnabled;
 
     if (vm.isApp) {
       sourceControl.repositoryUrl = model.repositoryUrl;
@@ -439,6 +447,7 @@ function SourceControlEditorController(
     } else {
       sourceControl.baseBranch = null;
     }
+
     return sourceControl;
   }
 

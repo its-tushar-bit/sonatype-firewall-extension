@@ -129,6 +129,22 @@ public class SourceControlEditorPage
     return $("#source-control-advanced-section");
   }
 
+  public static IqToggle sshEnabledToggle() {
+    return new IqToggle($("#editor-source-control-ssh-enabled-toggle"));
+  }
+
+  public static IqRadio sshEnabledInheritRadio() {
+    return new IqRadio($("#editor-source-control-ssh-enabled-inherit"));
+  }
+
+  public static IqRadio sshEnabledEnableRadio() {
+    return new IqRadio($("#editor-source-control-ssh-enabled-enable"));
+  }
+
+  public static IqRadio sshEnabledDisableRadio() {
+    return new IqRadio($("#editor-source-control-ssh-enabled-disable"));
+  }
+
   public static IqRadio remediationPullRequestsInheritRadio() {
     return new IqRadio($("#editor-source-control-remediation-pull-requests-inherit"));
   }

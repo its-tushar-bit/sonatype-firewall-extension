@@ -111,6 +111,7 @@ describe('source.control.editor.spec', function () {
       remediationPullRequestsEnabled: null,
       sourceControlEvaluationsEnabled: null,
       statusChecksEnabled: true,
+      sshEnabled: null,
     };
   };
 
@@ -1866,7 +1867,7 @@ describe('source.control.editor.spec', function () {
       it('updates the existing entry if source control is configured', function () {
         const savedSourceControl = {
           ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', REPOSITORY_URL),
-          ...{ id: 'ID', remediationPullRequestsEnabled: true },
+          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
@@ -1905,7 +1906,7 @@ describe('source.control.editor.spec', function () {
       it('updates the existing entry if source control is configured - ssh url', function () {
         const saveSourceControl = {
           ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', SSH_REPOSITORY_URL),
-          ...{ id: 'ID', remediationPullRequestsEnabled: true },
+          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
@@ -1944,7 +1945,7 @@ describe('source.control.editor.spec', function () {
       it('returns an error for unsuccessful save', function () {
         const savedSourceControl = {
           ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', REPOSITORY_URL),
-          ...{ id: 'ID', remediationPullRequestsEnabled: true },
+          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
@@ -1996,7 +1997,7 @@ describe('source.control.editor.spec', function () {
       it('requires confirmation when URL is updated', function () {
         const savedSourceControl = {
           ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', REPOSITORY_URL),
-          ...{ id: 'ID', remediationPullRequestsEnabled: true },
+          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
@@ -2035,7 +2036,7 @@ describe('source.control.editor.spec', function () {
       it('does not require confirmation when URL is not updated', function () {
         const savedSourceControl = {
           ...getSourceControl(APPLICATION_ID, null, 'BASE_BRANCH', REPOSITORY_URL),
-          ...{ id: 'ID', remediationPullRequestsEnabled: true },
+          ...{ id: 'ID', remediationPullRequestsEnabled: true, sshEnabled: true },
         };
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);

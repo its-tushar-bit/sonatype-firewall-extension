@@ -6,11 +6,12 @@
 import React, { useEffect } from 'react';
 import { availableScopesPropType, componentPropType } from '../../advancedLegalPropTypes';
 import LoadWrapper from '../../../react/LoadWrapper';
-import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { backToComponentOverviewUrl, createSubtitle } from '../../legalUtility';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
 import LicenseFilesModalContainer from './LicenseFilesModalContainer';
+import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 
 export default function LicenseFilesDetailsHeader(props) {
   const {
@@ -37,9 +38,9 @@ export default function LicenseFilesDetailsHeader(props) {
 
   return (
     <LoadWrapper loading={loading} error={error} retryHandler={load}>
-      <NxBackButton
+      <MenuBarBackButton
         href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash)}
-        targetPageTitle="Component Obligations"
+        text="Back to Component Obligations"
       />
       <div className="nx-page-title">
         <h1 className="nx-h1">License Files</h1>

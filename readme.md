@@ -55,9 +55,9 @@ This project requires the following local installs:
 1. Java 8 (if you use a version of Maven that has a newer JDK, you'll want to point JAVA_HOME to your Java 8 install)
 2. Maven 3.6.x (note: it is possible newer versions may not work though 3.8.1 seems to work)
 
-Be sure to configure both Maven and npm to use RSO (https://repository.sonatype.org) as the source for packages. You will need to use your own personal user credentials for RSO (instructions for how to do this are included in the following Maven RSO instructions):
+Be sure to configure both Maven and npm to use repo.s.c (https://repo.sonatype.com) as the source for packages. You will need to use your own personal user credentials for repo.s.c (instructions for how to do this are included in the following Maven repo.s.c instructions):
 
-* [**Maven** instructions](https://docs.sonatype.com/display/INSIGHT/Development+environment#Developmentenvironment-Maven)
+* [**Maven** instructions](https://docs.sonatype.com/x/AYlCCg)
 * [**npm** instructions](https://docs.sonatype.com/display/CDI/Setting+up+npm+to+use+repo.sonatype.com)
 
 ## Building ##

@@ -9,6 +9,11 @@ import {
   selectComponentPagination,
   selectComponentSimilarMatches,
   selectComponentViolations,
+  selectApplicableLabels,
+  selectLabels,
+  selectLoadError,
+  selectIsApplicableLabelsLoading,
+  selectIsLabelsLoading,
 } from '../../../main/frontend/componentDetails/componentDetailsSelectors';
 
 describe('componentDetailsSelectors', () => {
@@ -89,6 +94,7 @@ describe('componentDetailsSelectors', () => {
       },
     },
     componentDetails: {
+      applicableLabels: [],
       labels: [],
       loadError: false,
       pendingLoads: new Set(['test']),
@@ -310,6 +316,56 @@ describe('componentDetailsSelectors', () => {
 
       const selection = selectComponentSimilarMatches(mockStateForMatchState);
       expect(selection).toEqual(['bestMatch', 'otherMatch']);
+    });
+  });
+
+  describe('selectApplicableLabels', () => {
+    it('returns state applicableLabels', () => {
+      expect(selectApplicableLabels(mockState)).toEqual([]);
+    });
+  });
+
+  describe('selectLabels', () => {
+    it('returns state labels', () => {
+      expect(selectLabels(mockState)).toEqual([]);
+    });
+  });
+
+  describe('selectLoadError', () => {
+    it('returns state load error', () => {
+      expect(selectLoadError(mockState)).toEqual(false);
+    });
+  });
+
+  describe('selectIsApplicableLabelsLoading', () => {
+    it('returns boolean flag searching if applicableLabels is in pending loads set', () => {
+      expect(
+        selectIsApplicableLabelsLoading({
+          ...mockState,
+          componentDetails: {
+            applicableLabels: [],
+            labels: [],
+            loadError: false,
+            pendingLoads: new Set(['applicableLabels']),
+          },
+        })
+      ).toEqual(true);
+    });
+  });
+
+  describe('selectIsLabelsLoading', () => {
+    it('returns boolean flag searching if applicableLabels is in pending loads set', () => {
+      expect(
+        selectIsLabelsLoading({
+          ...mockState,
+          componentDetails: {
+            applicableLabels: [],
+            labels: [],
+            loadError: false,
+            pendingLoads: new Set(['labels']),
+          },
+        })
+      ).toEqual(true);
     });
   });
 });

@@ -124,7 +124,7 @@ public class ComponentDetailsTest
       waitUntilUrl(ComponentDetailsPage.url(app, SCAN_ID, HASH));
       ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
       componentDetailsPage.header().title().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
-      componentDetailsPage.tabs().shouldHaveSize(5);
+      componentDetailsPage.tabs().shouldHaveSize(6);
 
       SelenideElement backButton = MainHeader.backButton();
       backButton.shouldBe(visible);
@@ -200,6 +200,9 @@ public class ComponentDetailsTest
 
     componentDetailsPage.overviewTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
+
+    componentDetailsPage.labelsTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToLabels(app, SCAN_ID, HASH));
   }
 
   @Test
@@ -860,6 +863,13 @@ public class ComponentDetailsTest
     // Sorted by comment, descending
     auditLog.rowWithoutDate(0).shouldHave(texts("admin", "Reopened", "License Analysis", "BBBB"));
     auditLog.rowWithoutDate(1).shouldHave(texts("admin", "Acknowledged", "License Analysis", "AAAA"));
+  }
+
+  @Test
+  public void testLabelsTab_manageLabels() {
+    refreshOrOpen(ComponentDetailsPage.urlToLabels(app, SCAN_ID, "fa78f54738ccf77379d1"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.labelsContent().shouldBe(visible);
   }
 
   private void createAuditLogEntries() {

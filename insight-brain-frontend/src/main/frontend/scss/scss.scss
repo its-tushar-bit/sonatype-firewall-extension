@@ -108,6 +108,8 @@
 @import '../dashboard/results/applications/dashboard-applications';
 @import '../componentDetails/ComponentDetails';
 @import '../componentDetails/ViolationsTableTile/componentWaivers/componentWaiversPopover';
+@import '../componentDetails/TransferList/TransferList';
+@import '../componentDetails/TransferList/TransferListHalf';
 @import '../../frontend/react/tag/tag';
 @import '../security/roleEditor/roleEditor';
 @import '../violation/transitiveViolationsPage';

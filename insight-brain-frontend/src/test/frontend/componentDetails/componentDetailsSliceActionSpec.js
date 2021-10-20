@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 
-import { getComponentLabels } from '../../../main/frontend/util/CLMLocation';
+import { getComponentLabels, getApplicableLabels } from '../../../main/frontend/util/CLMLocation';
 import {
   actions as componentDetailsActions,
   VISIT_ANCESTOR_ACTION,
@@ -13,11 +13,19 @@ import {
 } from '../../../main/frontend/componentDetails/componentDetailsSlice';
 import * as applicationReportActions from '../../../main/frontend/applicationReport/applicationReportActions';
 
-const { loadComponentDetails, visitAncestorAction, backToOffspringAction } = componentDetailsActions;
+const {
+  loadComponentDetails,
+  visitAncestorAction,
+  backToOffspringAction,
+  loadApplicableLabels,
+} = componentDetailsActions;
 
 const LOAD_COMPONENT_LABELS_REQUESTED = 'componentDetails/loadComponentDetails/pending';
 const LOAD_COMPONENT_LABELS_FULFILLED = 'componentDetails/loadComponentDetails/fulfilled';
 const LOAD_COMPONENT_LABELS_FAILED = 'componentDetails/loadComponentDetails/rejected';
+const LOAD_APPLICABLE_LABELS_REQUESTED = 'componentDetails/loadApplicableLabels/pending';
+const LOAD_APPLICABLE_LABELS_FULFILLED = 'componentDetails/loadApplicableLabels/fulfilled';
+const LOAD_APPLICABLE_LABELS_FAILED = 'componentDetails/loadApplicableLabels/rejected';
 const STATE_GO = '@@reduxUiRouter/stateGo';
 
 describe('componentDetailsActions', function () {
@@ -25,6 +33,7 @@ describe('componentDetailsActions', function () {
     state,
     mockAxiosCalls,
     url,
+    applicableLabelsUrl,
     mockAppId,
     mockReportId,
     mockComponentHash,
@@ -61,6 +70,7 @@ describe('componentDetailsActions', function () {
     store = SpecUtil.mockReduxStore(state);
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
     url = getComponentLabels(mockAppId, mockComponentHash);
+    applicableLabelsUrl = getApplicableLabels('application', mockAppId);
   });
 
   describe('loadComponentLabels', () => {
@@ -173,6 +183,67 @@ describe('componentDetailsActions', function () {
           },
         },
       ]);
+    });
+  });
+
+  describe('loadApplicableLabels', () => {
+    it('immediately dispatches LOAD_APPLICABLE_LABELS_REQUESTED action', () => {
+      store.dispatch(loadApplicableLabels());
+
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()).toHaveActionType(LOAD_APPLICABLE_LABELS_REQUESTED);
+    });
+
+    it('sends a GET request to the appropriate url', (done) => {
+      const mockResponse = { data: { labelsByOwner: [{ labels: [{ test: 'test' }] }] } };
+      mockAxiosCalls({
+        get: {
+          [applicableLabelsUrl]: Promise.resolve(mockResponse),
+        },
+      });
+      store.dispatch(loadApplicableLabels()).then(() => {
+        expect(axios.get).toHaveBeenCalledWith(applicableLabelsUrl);
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()).toHaveActionType(LOAD_APPLICABLE_LABELS_FULFILLED);
+        done();
+      });
+    });
+
+    it('dispatches LOAD_APPLICABLE_LABELS_FULFILLED after a succesfull response', (done) => {
+      const mockResponse = { data: { labelsByOwner: [{ labels: [{ test: 'test' }] }] } };
+      mockAxiosCalls({
+        get: {
+          [applicableLabelsUrl]: Promise.resolve(mockResponse),
+        },
+      });
+
+      const expectedPayload = mockResponse;
+
+      store.dispatch(loadApplicableLabels()).then(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()).toHaveAction({
+          type: LOAD_APPLICABLE_LABELS_FULFILLED,
+          payload: expectedPayload,
+        });
+        done();
+      });
+    });
+
+    it('dispatches LOAD_APPLICABLE_LABELS_FAILED after a failed reponse', (done) => {
+      mockAxiosCalls({
+        get: {
+          [applicableLabelsUrl]: () => Promise.reject('error'),
+        },
+      });
+      store.dispatch(loadApplicableLabels()).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(store.getActions()).toHaveAction({
+          type: LOAD_APPLICABLE_LABELS_FAILED,
+          payload: 'error',
+        });
+        done();
+      });
     });
   });
 });

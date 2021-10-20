@@ -30,8 +30,9 @@ import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
 import PolicyViolations from './PolicyViolations/PolicyViolations';
 import ComponentDetailsSecurityTab from './ComponentDetailsSecurityTab/ComponentDetailsSecurityTab';
 import ComponentDetailsLegalTab from './ComponentDetailsLegalTab/ComponentDetailsLegalTab';
+import ManageComponentLabelsContainer from './ManageComponentLabels/ManageComponentLabelsContainer';
 
-const tabIdPerIndex = ['overview', 'violations', 'security', 'legal', 'audit'];
+const tabIdPerIndex = ['overview', 'violations', 'security', 'legal', 'labels', 'audit'];
 
 export default function ComponentDetails({
   componentDetails,
@@ -106,6 +107,7 @@ export default function ComponentDetails({
             <NxTab>Policy Violations</NxTab>
             <NxTab>Security</NxTab>
             <NxTab>Legal</NxTab>
+            <NxTab>Labels</NxTab>
             <NxTab>Audit Log</NxTab>
           </NxTabList>
           <NxTabPanel id="component-details-overview-tab-content">
@@ -119,6 +121,9 @@ export default function ComponentDetails({
           </NxTabPanel>
           <NxTabPanel id="component-details-legal-tab-content">
             <ComponentDetailsLegalTab />
+          </NxTabPanel>
+          <NxTabPanel id="manage-component-labels">
+            <ManageComponentLabelsContainer />
           </NxTabPanel>
           <NxTabPanel id="audit-log-tab-content">
             <AuditLogContainer />

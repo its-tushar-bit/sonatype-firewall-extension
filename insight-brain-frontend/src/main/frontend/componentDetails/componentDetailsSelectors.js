@@ -137,3 +137,15 @@ export const selectComponentSimilarMatches = createSelector(selectSelectedCompon
   const { matchState, matchDetails } = componentInformation;
   return matchState === 'similar' ? matchDetails : [];
 });
+
+export const selectApplicableLabels = createSelector(selectDetails, ({ applicableLabels }) => applicableLabels);
+
+export const selectLabels = createSelector(selectDetails, ({ labels }) => labels);
+
+export const selectLoadError = createSelector(selectDetails, ({ loadError }) => loadError);
+
+export const selectIsApplicableLabelsLoading = createSelector(selectDetails, ({ pendingLoads }) =>
+  pendingLoads.has('applicableLabels')
+);
+
+export const selectIsLabelsLoading = createSelector(selectDetails, ({ pendingLoads }) => pendingLoads.has('labels'));

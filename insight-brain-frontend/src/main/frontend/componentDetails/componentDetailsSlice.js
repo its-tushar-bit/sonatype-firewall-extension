@@ -12,7 +12,7 @@ import { stateGo } from '../reduxUiRouter/routerActions';
 import { loadReport } from '../applicationReport/applicationReportActions';
 import { selectComponentDetails } from './componentDetailsSelectors';
 import { selectSelectedComponent } from '../applicationReport/applicationReportSelectors';
-import { getComponentLabels } from '../util/CLMLocation';
+import { getComponentLabels, getApplicableLabels } from '../util/CLMLocation';
 import { Messages } from '../util/CommonServices';
 
 const REDUCER_NAME = 'componentDetails';
@@ -26,6 +26,7 @@ const initialState = Object.freeze({
   isVisitingAncestor: false,
   offspring: null,
   labels: [],
+  applicableLabels: [],
   loadError: null,
 });
 
@@ -40,6 +41,9 @@ const mutatePendingLoads = curryN(3, function mutatePendingLoads(setMutator, loa
 
 const setPendingLoads = mutatePendingLoads((set) => (val) => set.add(val));
 const unsetPendingLoads = mutatePendingLoads((set) => (val) => set.delete(val));
+
+const flattenLabelsToSingleArray = (labels) =>
+  reduce((accumulator, currentValue) => [...accumulator, ...currentValue.labels], [], labels);
 
 const onTabChange = (tabId) => {
   return (dispatch, getState) => {
@@ -118,6 +122,33 @@ const loadComponentDetails = createAsyncThunk(
   }
 );
 
+const loadApplicableLabelsRequested = (state) => {
+  return setPendingLoads(['applicableLabels'], state);
+};
+
+const loadApplicableLabelsFulfilled = (state, { payload }) => {
+  return unsetPendingLoads(['applicableLabels'], {
+    ...state,
+    applicableLabels: flattenLabelsToSingleArray(payload.data.labelsByOwner),
+    loadError: null,
+  });
+};
+
+const loadApplicableLabelsFailed = (state, { payload }) => {
+  return unsetPendingLoads(['applicableLabels'], { ...state, loadError: Messages.getHttpErrorMessage(payload) });
+};
+
+const loadApplicableLabels = createAsyncThunk(
+  `${REDUCER_NAME}/loadApplicableLabels`,
+  (_, { getState, rejectWithValue }) => {
+    const { publicId } = getState().router.currentParams;
+    return axios
+      .get(getApplicableLabels('application', publicId))
+      .then((result) => result)
+      .catch(rejectWithValue);
+  }
+);
+
 const componentDetailsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -129,6 +160,9 @@ const componentDetailsSlice = createSlice({
     [loadComponentDetails.pending]: loadComponentDetailsRequested,
     [loadComponentDetails.fulfilled]: loadComponentDetailsFulfilled,
     [loadComponentDetails.rejected]: loadComponentDetailsFailed,
+    [loadApplicableLabels.pending]: loadApplicableLabelsRequested,
+    [loadApplicableLabels.fulfilled]: loadApplicableLabelsFulfilled,
+    [loadApplicableLabels.rejected]: loadApplicableLabelsFailed,
   },
 });
 
@@ -139,4 +173,5 @@ export const actions = {
   onTabChange,
   visitAncestorAction,
   backToOffspringAction,
+  loadApplicableLabels,
 };

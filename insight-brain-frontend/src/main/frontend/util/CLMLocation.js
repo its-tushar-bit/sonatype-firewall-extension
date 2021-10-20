@@ -553,6 +553,10 @@ export function getComponentLabels(ownerId, componentHash) {
   return uriTemplate`/rest/label/component/application/${ownerId}/${componentHash}`;
 }
 
+export function getApplicableLabels(ownerType, ownerId) {
+  return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}/applicable`;
+}
+
 export function getUserByIdUrl(userId) {
   return uriTemplate`/rest/user/${userId}`;
 }

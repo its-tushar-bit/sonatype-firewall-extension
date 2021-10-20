@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.OverviewTab
 import com.sonatype.clm.testing.functional.elements.componentdetails.SecurityTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LegalTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ViolationsTabContent;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ManageLabelsContent;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
@@ -41,6 +42,10 @@ public class ComponentDetailsPage
 
   public static String urlToLegal(Application app, String scanId, String hash) {
     return BaseUrl.resolvePageUrl(BASE_URL + "/legal", app.getPublicId(), scanId, hash);
+  }
+
+  public static String urlToLabels(Application app, String scanId, String hash) {
+    return BaseUrl.resolvePageUrl(BASE_URL + "/labels", app.getPublicId(), scanId, hash);
   }
 
   public static String urlToAudit(Application app, String scanId, String hash) {
@@ -87,8 +92,12 @@ public class ComponentDetailsPage
     return this.tabs().get(3);
   }
 
-  public SelenideElement auditTab() {
+  public SelenideElement labelsTab() {
     return this.tabs().get(4);
+  }
+
+  public SelenideElement auditTab() {
+    return this.tabs().get(5);
   }
 
   public ViolationsTabContent violationsTabContent() {
@@ -105,6 +114,10 @@ public class ComponentDetailsPage
 
   public OverviewTabContent overviewTabContent() {
     return new OverviewTabContent();
+  }
+
+  public ManageLabelsContent labelsContent() {
+    return new ManageLabelsContent("#manage-component-labels");
   }
 
   public AuditLogContent auditLogContent() {

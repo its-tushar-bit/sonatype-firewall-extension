@@ -4,7 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import { selectComponentDetails, selectActiveTabId, selectComponentPagination } from './componentDetailsSelectors';
+import {
+  selectComponentDetails,
+  selectActiveTabId,
+  selectComponentPagination,
+  selectIsLabelsLoading,
+} from './componentDetailsSelectors';
 import { actions } from './componentDetailsSlice';
 import ComponentDetails from './ComponentDetails';
 
@@ -16,7 +21,7 @@ function mapStateToProps(state, { uiRouterState }) {
     activeTabId: selectActiveTabId(state),
     pagination: selectComponentPagination(state, { uiRouterState }),
     loadError: state.applicationReport.loadError || state.componentDetails.loadError,
-    loading: !!(state.applicationReport.pendingLoads.size + state.componentDetails.pendingLoads.size),
+    loading: state.applicationReport.pendingLoads.size > 0 || selectIsLabelsLoading(state),
   };
 }
 

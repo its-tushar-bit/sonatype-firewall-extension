@@ -16,6 +16,7 @@ import * as overviewTab from 'MainRoot/componentDetails/overview/OverviewContain
 import * as vulnerailitiesTile from 'MainRoot/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTableTileContainer';
 import * as licenseDetectionsTile from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/LicenseDetectionsTileContainer';
 import * as editLicensesPopoverContainer from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesPopoverContainer';
+import * as ManageComponentLabels from 'MainRoot/componentDetails/ManageComponentLabels/ManageComponentLabelsContainer';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 describe('ComponentDetails', function () {
@@ -128,7 +129,8 @@ describe('ComponentDetails', function () {
       expect(tabs.at(1)).toHaveProp('children', 'Policy Violations');
       expect(tabs.at(2)).toHaveProp('children', 'Security');
       expect(tabs.at(3)).toHaveProp('children', 'Legal');
-      expect(tabs.at(4)).toHaveProp('children', 'Audit Log');
+      expect(tabs.at(4)).toHaveProp('children', 'Labels');
+      expect(tabs.at(5)).toHaveProp('children', 'Audit Log');
     });
 
     it('calls onTabChange action with the appropriate activeTabId when clicking on a tab', function () {
@@ -139,6 +141,7 @@ describe('ComponentDetails', function () {
       spyOn(vulnerailitiesTile, 'VulnerabilitiesTableTileContainer').and.returnValue(<div>vulnerabilities</div>);
       spyOn(licenseDetectionsTile, 'LicenseDetectionsTileContainer').and.returnValue(<div>license detections</div>);
       spyOn(editLicensesPopoverContainer, 'default').and.returnValue(<div>edit licenses popover</div>);
+      spyOn(ManageComponentLabels, 'default').and.returnValue(<div>Manage Labels</div>);
 
       let component = getMountedComponent({
           componentDetails: {
@@ -160,6 +163,9 @@ describe('ComponentDetails', function () {
       expect(onTabChangeSpy).toHaveBeenCalledWith('legal');
 
       tabs.at(4).simulate('click');
+      expect(onTabChangeSpy).toHaveBeenCalledWith('labels');
+
+      tabs.at(5).simulate('click');
       expect(onTabChangeSpy).toHaveBeenCalledWith('audit');
 
       /** Starting on another tab to be able to check the listener on the default 0 tab */

@@ -13,6 +13,9 @@ import {
 const LOAD_COMPONENT_LABELS_REQUESTED = 'componentDetails/loadComponentDetails/pending';
 const LOAD_COMPONENT_LABELS_FULFILLED = 'componentDetails/loadComponentDetails/fulfilled';
 const LOAD_COMPONENT_LABELS_FAILED = 'componentDetails/loadComponentDetails/rejected';
+const LOAD_APPLICABLE_LABELS_REQUESTED = 'componentDetails/loadApplicableLabels/pending';
+const LOAD_APPLICABLE_LABELS_FULFILLED = 'componentDetails/loadApplicableLabels/fulfilled';
+const LOAD_APPLICABLE_LABELS_FAILED = 'componentDetails/loadApplicableLabels/rejected';
 
 describe('componentDetailsReducer', () => {
   describe('VISIT_ANCESTOR_ACTION action', () => {
@@ -148,6 +151,87 @@ describe('componentDetailsReducer', () => {
           },
           {},
         ],
+      });
+      expect(retryState.loadError).toBeNull();
+    });
+  });
+
+  describe('LOAD_APPLICABLE_LABELS_REQUESTED action', function () {
+    it('adds "applicableLabels" pending load', function () {
+      const state = {
+        pendingLoads: new Set(),
+        isVisitingAncestor: false,
+        offspring: null,
+        labels: [],
+        applicableLabels: [],
+        loadError: null,
+      };
+      const newState = reducer(state, {
+        type: LOAD_APPLICABLE_LABELS_REQUESTED,
+      });
+      expect(newState.pendingLoads.has('applicableLabels')).toBe(true);
+    });
+  });
+
+  describe('LOAD_APPLICABLE_LABELS_FULFILLED action', function () {
+    it('adds applicableLabels value and removes "applicableLabels" pending load', function () {
+      const state = {
+        pendingLoads: new Set(),
+        isVisitingAncestor: false,
+        offspring: null,
+        labels: [],
+        applicableLabels: [],
+        loadError: null,
+      };
+      const newState = reducer(state, {
+        type: LOAD_APPLICABLE_LABELS_FULFILLED,
+        payload: {
+          data: {
+            labelsByOwner: [],
+          },
+        },
+      });
+      expect(newState.pendingLoads.size).toEqual(0);
+      expect(newState.labels).toEqual([]);
+      expect(newState.loadError).toBeNull();
+    });
+  });
+
+  describe('LOAD_APPLICABLE_LABELS_FAILED action', function () {
+    it('adds loadError value and removes "applicableLabels" pending load', function () {
+      const state = {
+        pendingLoads: new Set(),
+        isVisitingAncestor: false,
+        offspring: null,
+        labels: [],
+        applicableLabels: [],
+        loadError: null,
+      };
+      const newState = reducer(state, {
+        type: LOAD_APPLICABLE_LABELS_FAILED,
+        payload: {},
+      });
+
+      expect(newState.pendingLoads.size).toEqual(0);
+      expect(newState.loadError).toEqual('Error');
+    });
+
+    it('clears error state on retry', function () {
+      const state = { pendingLoads: new Set(), labels: [], applicableLabels: [], loadError: null };
+      const newState = reducer(state, {
+        type: LOAD_APPLICABLE_LABELS_FAILED,
+        payload: {},
+      });
+      expect(newState.pendingLoads.size).toEqual(0);
+      expect(newState.loadError).toEqual('Error');
+
+      const retryState = reducer(newState, {
+        type: LOAD_APPLICABLE_LABELS_FULFILLED,
+        payload: {
+          data: {
+            labelsByOwner: [],
+          },
+        },
       });
       expect(retryState.loadError).toBeNull();
     });

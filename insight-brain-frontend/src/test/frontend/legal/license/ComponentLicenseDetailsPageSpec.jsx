@@ -3,16 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../enzymeUtils';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import React from 'react';
-import { NxBackButton } from '@sonatype/react-shared-components';
-import ComponentLicenseDetailsPage from '../../../../main/frontend/legal/license/ComponentLicenseDetailsPage';
-import ComponentLicenseOverviewTile from '../../../../main/frontend/legal/license/ComponentLicenseOverviewTile';
-import LicenseFullDetailsTile from '../../../../main/frontend/legal/license/LicenseFullDetailsTile';
-import LicenseList from '../../../../main/frontend/legal/license/LicenseList';
+import ComponentLicenseDetailsPage from 'MainRoot/legal/license/ComponentLicenseDetailsPage';
+import ComponentLicenseOverviewTile from 'MainRoot/legal/license/ComponentLicenseOverviewTile';
+import LicenseFullDetailsTile from 'MainRoot/legal/license/LicenseFullDetailsTile';
+import LicenseList from 'MainRoot/legal/license/LicenseList';
 import { mount } from 'enzyme/build';
 import { licenseState } from './licenseCommonState';
-import LicensesModalContainer from '../../../../main/frontend/legal/license/LicensesModalContainer';
+import LicensesModalContainer from 'MainRoot/legal/license/LicensesModalContainer';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import * as legalUtilities from 'MainRoot/legal/legalUtility';
 
 describe('ComponentLicenseDetailsPage', function () {
   let minimalProps, loadComponentAndLicenseDetailsSpy, setShowLicensesModalSpy, getShallowComponent, $state;
@@ -57,20 +58,19 @@ describe('ComponentLicenseDetailsPage', function () {
     component.unmount();
   });
 
-  it('renders a NxBackButton to go to the component overview  page', function () {
-    const wrapper = getShallowComponent({
-      ...minimalProps,
-      applicationPublicId: 'appId',
-      stageTypeId: 'stage',
-    });
-
-    const backButton = wrapper.find(NxBackButton);
-    expect(backButton).toExist();
-    expect(backButton).toHaveProp(
-      'href',
-      'legal.organizationComponentOverview-{"organizationId":"org","hash":"fooHash"}'
+  it('renders a MenuBarBackButton with correct href prop', function () {
+    spyOn(legalUtilities, 'backToComponentOverviewUrl').and.returnValue('some-href');
+    const wrapper = getShallowComponent();
+    const menuBarBackButton = wrapper.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', 'some-href');
+    expect(legalUtilities.backToComponentOverviewUrl).toHaveBeenCalledWith(
+      minimalProps.$state,
+      minimalProps.ownerType,
+      minimalProps.ownerId,
+      minimalProps.stageTypeId,
+      minimalProps.hash
     );
-    expect($state.href).toHaveBeenCalled();
   });
 
   it('renders a component with the "nx-page-main" class', function () {

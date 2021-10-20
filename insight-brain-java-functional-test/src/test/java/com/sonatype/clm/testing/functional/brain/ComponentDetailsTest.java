@@ -22,7 +22,6 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
-import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OccurrencesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
@@ -662,38 +661,6 @@ public class ComponentDetailsTest
     closeButton.click();
 
     vulnerabilityDetailsPopover.shouldNotBe(visible);
-  }
-
-  @Test
-  public void testLegalTab_editLicensesPopover() {
-    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "fa78f54738ccf77379d1"));
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    componentDetailsPage.legalTabContent().shouldBe(visible);
-
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
-    licenseDetectionsTile.shouldBe(visible);
-    licenseDetectionsTile.editLicenseButton().click();
-
-    EditLicensesPopover editLicensesPopover = new EditLicensesPopover();
-    editLicensesPopover.shouldBe(visible);
-    editLicensesPopover.popoverTitle().shouldHave(text("Edit Licenses"));
-
-    ElementsCollection declaredLicenses = editLicensesPopover.getItems(editLicensesPopover.declaredLicenses());
-    declaredLicenses.shouldHaveSize(1);
-    declaredLicenses.first().shouldHave(text("Not Provided"));
-
-    ElementsCollection effectiveLicenses = editLicensesPopover.getItems(editLicensesPopover.effectiveLicenses());
-    effectiveLicenses.shouldHaveSize(1);
-    effectiveLicenses.first().shouldHave(text("Not Provided"));
-
-    ElementsCollection observedLicenses = editLicensesPopover.getItems(editLicensesPopover.observedLicenses());
-    observedLicenses.shouldHaveSize(1);
-    observedLicenses.first().shouldHave(text("Not Provided"));
-
-    eyesWatcher.eyesCheck("component details legal tab edit licenses popover");
-
-    editLicensesPopover.getCloseButton().click();
-    editLicensesPopover.shouldNotBe(visible);
   }
 
   @Test

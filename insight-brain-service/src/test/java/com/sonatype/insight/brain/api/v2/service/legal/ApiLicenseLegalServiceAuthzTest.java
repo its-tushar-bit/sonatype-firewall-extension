@@ -98,7 +98,7 @@ public class ApiLicenseLegalServiceAuthzTest
   public void testGetLicenseLegalComponentsDashboard_Unauthenticated() {
     setupResultForDashboard();
     ApiLicenseLegalComponentDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null, 1, 1);
+        apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null, null, 1, 1);
     assertThat(resultDto).isNotNull();
     assertThat(resultDto.totalResultsCount).isZero();
     assertThat(resultDto.results).isEmpty();
@@ -109,7 +109,7 @@ public class ApiLicenseLegalServiceAuthzTest
     setupResultForDashboard();
     login();
     ApiLicenseLegalComponentDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null, 1, 1);
+        apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null, null, 1, 1);
     assertThat(resultDto).isNotNull();
     assertThat(resultDto.totalResultsCount).isZero();
     assertThat(resultDto.results).isEmpty();
@@ -120,7 +120,7 @@ public class ApiLicenseLegalServiceAuthzTest
     setupResultForDashboard();
     grantLegalReviewerPermission(app.getId());
     ApiLicenseLegalComponentDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null, 1, 1);
+        apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null, null, 1, 1);
     assertThat(resultDto).isNotNull();
     assertThat(resultDto.totalResultsCount).isPositive();
     assertThat(resultDto.results).isNotEmpty();

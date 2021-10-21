@@ -130,6 +130,12 @@ function routes($stateProvider, $urlRouterProvider) {
         tabId: 'audit',
       },
     })
+    .state('applicationReport.componentDetails.claim', {
+      url: '/claim',
+      params: {
+        tabId: 'claim',
+      },
+    })
     .state('applicationReport.componentDetails.labels', {
       url: '/labels',
       params: {

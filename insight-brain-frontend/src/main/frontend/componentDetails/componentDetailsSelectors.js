@@ -50,6 +50,7 @@ export const selectComponentDetails = createSelector(
           metadata,
           labels: details.labels,
           matchState: component.matchState,
+          identificationSource: component.identificationSource,
         }
       : null
 );

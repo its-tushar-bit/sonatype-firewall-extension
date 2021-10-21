@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as enzymeUtils from '../enzymeUtils';
-import { NxLoadError, NxLoadingSpinner, NxStatefulTabs, NxTab, NxButton } from '@sonatype/react-shared-components';
+import { NxLoadError, NxLoadingSpinner, NxTabs, NxTab, NxButton } from '@sonatype/react-shared-components';
 
 import ComponentDetails from 'MainRoot/componentDetails/ComponentDetails';
 import { ComponentDetailsFooter } from 'MainRoot/componentDetails/ComponentDetailsFooter';
@@ -98,28 +98,44 @@ describe('ComponentDetails', function () {
       expect(claimButton.text()).toEqual('Claim Component');
 
       expect(addButton).toExist();
-      expect(addButton).toHaveProp('title', 'Add Propietary Component Matchers');
-      expect(addButton.text()).toEqual('Add Propietary Component Matchers');
+      expect(addButton).toHaveProp('title', 'Add Proprietary Component Matchers');
+      expect(addButton.text()).toEqual('Add Proprietary Component Matchers');
+    });
+
+    it('calls onTabChange when Claim button was clicked', () => {
+      const component = getShallowComponent({
+        componentDetails: {
+          name: 'Mock Component Name',
+          hash: 'some-crazy-hash',
+          matchState: 'unknown',
+        },
+      });
+      const alertEl = component.find('.iq-component-details-unknown-component-alert');
+      const claimButton = alertEl.find(NxButton).at(0);
+      claimButton.simulate('click');
+
+      expect(onTabChangeSpy).toHaveBeenCalledWith('claim');
     });
   });
 
   describe('renders tabs', function () {
     it('does not render tabs if there is no selected component', function () {
       const component = getShallowComponent(),
-        tabBar = component.find(NxStatefulTabs);
+        tabBar = component.find(NxTabs);
 
       expect(tabBar).not.toExist();
     });
 
-    it('renders 5 tabs with the appropriate names when there is componentDetails prop', function () {
+    it('renders 6 tabs with the appropriate names when there is componentDetails prop', function () {
       const component = getShallowComponent({
           componentDetails: {
             name: 'Mock Component Name',
             hash: 'some-crazy-hash',
             matchState: 'exact',
+            identificationSource: 'Sonatype',
           },
         }),
-        tabBar = component.find(NxStatefulTabs);
+        tabBar = component.find(NxTabs);
 
       expect(tabBar).toExist();
 
@@ -133,7 +149,50 @@ describe('ComponentDetails', function () {
       expect(tabs.at(5)).toHaveProp('children', 'Audit Log');
     });
 
-    it('calls onTabChange action with the appropriate activeTabId when clicking on a tab', function () {
+    it('renders 7 tabs with the appropriate names when there is componentDetails prop and component was claimed', function () {
+      const component = getShallowComponent({
+          componentDetails: {
+            name: 'Mock Component Name',
+            hash: 'some-crazy-hash',
+            matchState: 'exact',
+            identificationSource: 'Manual',
+          },
+        }),
+        tabBar = component.find(NxTabs);
+
+      expect(tabBar).toExist();
+
+      const tabs = tabBar.find(NxTab);
+
+      expect(tabs.at(0)).toHaveProp('children', 'Overview');
+      expect(tabs.at(1)).toHaveProp('children', 'Policy Violations');
+      expect(tabs.at(2)).toHaveProp('children', 'Security');
+      expect(tabs.at(3)).toHaveProp('children', 'Legal');
+      expect(tabs.at(4)).toHaveProp('children', 'Labels');
+      expect(tabs.at(5)).toHaveProp('children', 'Claim');
+      expect(tabs.at(6)).toHaveProp('children', 'Audit Log');
+    });
+
+    it('renders 3 tabs with the appropriate names when there is an unknown component', function () {
+      const component = getShallowComponent({
+          componentDetails: {
+            name: 'Mock Component Name',
+            hash: 'some-crazy-hash',
+            matchState: 'unknown',
+          },
+        }),
+        tabBar = component.find(NxTabs);
+
+      expect(tabBar).toExist();
+
+      const tabs = tabBar.find(NxTab);
+
+      expect(tabs.at(0)).toHaveProp('children', 'Overview');
+      expect(tabs.at(1)).toHaveProp('children', 'Policy Violations');
+      expect(tabs.at(2)).toHaveProp('children', 'Claim');
+    });
+
+    it('calls onTabChange action with the appropriate activeTabId when clicking on a tab for component', function () {
       // Mock containers so that `getMountedComponent` doesn't complain.
       spyOn(fullAuditLog, 'default').and.returnValue(<div>auditLog</div>);
       spyOn(violationsTab, 'ViolationsTableTileContainer').and.returnValue(<div>violations</div>);
@@ -150,7 +209,7 @@ describe('ComponentDetails', function () {
             matchState: 'exact',
           },
         }),
-        tabBar = component.find(NxStatefulTabs),
+        tabBar = component.find(NxTabs),
         tabs = tabBar.find(NxTab);
 
       tabs.at(1).simulate('click');
@@ -179,7 +238,47 @@ describe('ComponentDetails', function () {
         activeTabId: 'security',
         onTabChange: onTabChangeInInfoSpy,
       })),
-        (tabBar = component.find(NxStatefulTabs)),
+        (tabBar = component.find(NxTabs)),
+        (tabs = tabBar.find(NxTab));
+
+      tabs.at(0).simulate('click');
+      expect(onTabChangeInInfoSpy).toHaveBeenCalledWith('overview');
+    });
+
+    it('calls onTabChange action with the appropriate activeTabId when clicking on a tab for unknown component', function () {
+      // Mock containers so that `getMountedComponent` doesn't complain.
+      spyOn(fullAuditLog, 'default').and.returnValue(<div>auditLog</div>);
+      spyOn(violationsTab, 'ViolationsTableTileContainer').and.returnValue(<div>violations</div>);
+      spyOn(overviewTab, 'OverviewContainer').and.returnValue(<div>overview</div>);
+
+      let component = getMountedComponent({
+          componentDetails: {
+            name: 'Mock Component Name',
+            hash: 'some-crazy-hash',
+            matchState: 'unknown',
+          },
+        }),
+        tabBar = component.find(NxTabs),
+        tabs = tabBar.find(NxTab);
+
+      tabs.at(1).simulate('click');
+      expect(onTabChangeSpy).toHaveBeenCalledWith('violations');
+
+      tabs.at(2).simulate('click');
+      expect(onTabChangeSpy).toHaveBeenCalledWith('claim');
+
+      /** Starting on another tab to be able to check the listener on the default 0 tab */
+      const onTabChangeInInfoSpy = jasmine.createSpy('onTabChange');
+      (component = getMountedComponent({
+        componentDetails: {
+          name: 'Mock Component Name',
+          hash: 'some-crazy-hash',
+          matchState: 'unknown',
+        },
+        activeTabId: 'violations',
+        onTabChange: onTabChangeInInfoSpy,
+      })),
+        (tabBar = component.find(NxTabs)),
         (tabs = tabBar.find(NxTab));
 
       tabs.at(0).simulate('click');
@@ -199,7 +298,7 @@ describe('ComponentDetails', function () {
             matchState: 'exact',
           },
         }),
-        tabBar = component.find(NxStatefulTabs),
+        tabBar = component.find(NxTabs),
         tabs = tabBar.find(NxTab),
         defaultTab = tabs.at(0);
 

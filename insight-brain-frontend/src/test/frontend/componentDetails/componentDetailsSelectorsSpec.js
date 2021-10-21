@@ -74,6 +74,7 @@ describe('componentDetailsSelectors', () => {
             componentIdentifier: { format: 'maven' },
             derivedDependencyType: 'transitive',
             matchState: 'unknown',
+            identificationSource: null,
           },
           {
             hash: 'another-component-hash',
@@ -117,6 +118,7 @@ describe('componentDetailsSelectors', () => {
         },
         labels: [],
         matchState: 'unknown',
+        identificationSource: null,
       };
       const actual = selectComponentDetails(mockState);
       expect(actual).toEqual(expected);

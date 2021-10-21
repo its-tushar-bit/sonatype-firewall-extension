@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OverviewTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.SecurityTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LegalTabContent;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ViolationsTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ManageLabelsContent;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -52,6 +53,10 @@ public class ComponentDetailsPage
     return BaseUrl.resolvePageUrl(BASE_URL + "/audit", app.getPublicId(), scanId, hash);
   }
 
+  public static String urlToClaim(Application app, String scanId, String hash) {
+    return BaseUrl.resolvePageUrl(BASE_URL + "/claim", app.getPublicId(), scanId, hash);
+  }
+
   public ComponentDetailsPage() {
     super(ROOT);
   }
@@ -62,6 +67,10 @@ public class ComponentDetailsPage
 
   public SelenideElement unknownComponentAlert() {
     return child(".iq-component-details-unknown-component-alert");
+  }
+
+  public SelenideElement unknownComponentClaim() {
+    return child("#iq-component-details-unknown-component-claim");
   }
 
   public ComponentDetailsHeader header() {
@@ -110,6 +119,10 @@ public class ComponentDetailsPage
 
   public LegalTabContent legalTabContent() {
     return new LegalTabContent();
+  }
+
+  public ClaimTabContent claimTabContent() {
+    return new ClaimTabContent();
   }
 
   public OverviewTabContent overviewTabContent() {

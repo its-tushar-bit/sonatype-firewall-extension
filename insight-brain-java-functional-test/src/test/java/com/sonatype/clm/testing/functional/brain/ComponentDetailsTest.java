@@ -215,6 +215,31 @@ public class ComponentDetailsTest
   }
 
   @Test
+  public void testComponentDetails_UnknownComponentAlert_ClaimButton() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForUnknownComponent();
+
+    SelenideElement claimButton = componentDetailsPage.unknownComponentClaim();
+    claimButton.click();
+
+    componentDetailsPage.claimTabContent().shouldBe(visible);
+  }
+
+  @Test
+  public void testComponentDetails_ClaimTab() {
+    refreshOrOpen(ComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    componentDetailsPage.claimTabContent().shouldBe(visible);
+
+    componentDetailsPage.violationsTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+
+    componentDetailsPage.overviewTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+  }
+
+  @Test
   public void testOverviewTab_componentInformationTile() {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();

@@ -103,7 +103,7 @@ function getLicenseWithThreats(declared, observed, selected, effective) {
 describe('CIP License Editor', function () {
   beforeEach(angular.mock.module(cipLicenseEditorModule.name, testComponentProviderModule.name));
 
-  var scope;
+  let scope;
 
   beforeEach(inject(function ($rootScope) {
     scope = $rootScope.$new();
@@ -156,6 +156,7 @@ describe('CIP License Editor', function () {
         .respond(getAppliedLicenseOverrides(null, null, 'OVERRIDDEN', 'AFL-1.2'));
       $controller('LicenseEditorController as vm', {
         $scope: scope,
+        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
       });
       $httpBackend.flush();
     }));
@@ -221,6 +222,7 @@ describe('CIP License Editor', function () {
 
       $controller('LicenseEditorController as vm', {
         $scope: scope,
+        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
       });
       $httpBackend.flush();
     }));
@@ -339,6 +341,7 @@ describe('CIP License Editor', function () {
 
       $controller('LicenseEditorController', {
         $scope: scope,
+        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
       });
       $httpBackend.flush();
     }));
@@ -429,7 +432,10 @@ describe('CIP License Editor', function () {
 
   describe('onOverrideStatusChange', function () {
     it('clears License IDs', inject(function ($controller) {
-      $controller('LicenseEditorController', { $scope: scope });
+      $controller('LicenseEditorController', {
+        $scope: scope,
+        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
+      });
       scope.override = { licenseIds: ['AFL-1.2'] };
       scope.onOverrideStatusChange();
       expect(scope.override.licenseIds.length).toBe(0);
@@ -464,6 +470,7 @@ describe('CIP License Editor', function () {
 
       $controller('LicenseEditorController', {
         $scope: scope,
+        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
       });
       $httpBackend.flush();
     }));
@@ -583,6 +590,7 @@ describe('CIP License Editor', function () {
 
       $controller('LicenseEditorController', {
         $scope: scope,
+        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
       });
       $httpBackend.flush();
     }));
@@ -621,6 +629,7 @@ describe('CIP License Editor', function () {
 
       $controller('LicenseEditorController', {
         $scope: scope,
+        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
       });
       $httpBackend.flush();
     }));
@@ -716,6 +725,7 @@ describe('CIP License Editor', function () {
 
       $controller('LicenseEditorController', {
         $scope: scope,
+        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
       });
       $httpBackend.flush();
     }));
@@ -815,6 +825,7 @@ describe('CIP License Editor', function () {
 
       $controller('LicenseEditorController', {
         $scope: scope,
+        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
       });
       $httpBackend.flush();
     }));
@@ -900,6 +911,7 @@ describe('CIP License Editor', function () {
 
         $controller('LicenseEditorController', {
           $scope: scope,
+          ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
         });
         $httpBackend.flush();
       });
@@ -920,7 +932,10 @@ describe('CIP License Editor', function () {
 
     beforeEach(inject(function ($controller, _SelectedComponent_, $httpBackend) {
       SelectedComponent = _SelectedComponent_;
-      $controller('LicenseEditorController', { $scope: scope });
+      $controller('LicenseEditorController', {
+        $scope: scope,
+        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
+      });
 
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true'))
@@ -973,7 +988,10 @@ describe('CIP License Editor', function () {
 
   describe('doLoad()', function () {
     it('resets licenses', inject(function ($controller) {
-      $controller('LicenseEditorController', { $scope: scope });
+      $controller('LicenseEditorController', {
+        $scope: scope,
+        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
+      });
       scope.licenses = ['AFL-1.2'];
       scope.doLoad();
       expect(scope.licenses).toBeNull();
@@ -985,7 +1003,10 @@ describe('CIP License Editor', function () {
 
     beforeEach(inject(function ($controller, _SelectedComponent_) {
       SelectedComponent = _SelectedComponent_;
-      $controller('LicenseEditorController', { $scope: scope });
+      $controller('LicenseEditorController', {
+        $scope: scope,
+        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
+      });
     }));
 
     it('returns false if no component selected', function () {

@@ -38,6 +38,14 @@ public class LicenseCIP
     return $$("#effectiveLicenseBlock > li > div");
   }
 
+  public static ElementsCollection linkToALP() {
+    return $$("#link-to-alp");
+  }
+
+  public static SelenideElement linkALP() {
+    return $("#link-to-alp").find("a");
+  }
+
   public static SelenideElement scope() {
     return $(createSelector(ROOT_ID, "select[name=scope]"));
   }

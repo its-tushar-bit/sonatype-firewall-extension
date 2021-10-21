@@ -103,5 +103,9 @@
         </div>
       </div>
     </div>
+    <div id="link-to-alp" ng-if="vm.isAdvancedLegalPackSupported">
+      <span>To view the extended legal details, </span>
+      <a ng-click="this.jumpToALP()" target="_parent" href="{{this.legalURL}}">click here</a>
+    </div>
   </form>
 </div>

@@ -26,6 +26,7 @@ import AdvancedSearchContainer from './advancedSearch/AdvancedSearchContainer';
 import waiversModule from './waivers/module';
 import reportModule from './applicationReport/react/module';
 import firewallModule from './firewall/module';
+import quarantinedComponentReportModule from './quarantinedComponentReport/module';
 import SystemNoticeContainer from './systemNotice/SystemNoticeContainer';
 
 export default angular
@@ -50,6 +51,7 @@ export default angular
     reportModule.name,
     firewallModule.name,
     componentDetailsModule.name,
+    quarantinedComponentReportModule.name,
   ])
   .component('advancedSearch', react2angular(withStoreProvider(AdvancedSearchContainer), [], ['$ngRedux', '$state']))
   .component('systemNotice', react2angular(withStoreProvider(SystemNoticeContainer), [], ['$ngRedux']))

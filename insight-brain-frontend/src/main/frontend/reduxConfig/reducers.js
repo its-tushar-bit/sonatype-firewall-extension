@@ -62,6 +62,7 @@ import licenseDetections from '../componentDetails/ComponentDetailsLegalTab/Lice
 import vulnerabilitiesSlice from '../componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
 import componentDetailsSlice from '../componentDetails/componentDetailsSlice';
 import claimSlice from '../componentDetails/claim/claimSlice';
+import quarantinedComponentReportReducer from 'MainRoot/quarantinedComponentReport/quarantinedComponentReportReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -122,4 +123,5 @@ export default combineReducers({
   successMetrics: successMetricsReportSlice,
   productLicense: productLicenseReducer,
   occurrencesPopover: occurrencesPopoverReducer,
+  quarantinedComponentReport: quarantinedComponentReportReducer,
 });

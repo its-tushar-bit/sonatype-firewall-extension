@@ -61,6 +61,7 @@ import overviewSlice from '../componentDetails/overview/overviewSlice';
 import licenseDetections from '../componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
 import vulnerabilitiesSlice from '../componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
 import componentDetailsSlice from '../componentDetails/componentDetailsSlice';
+import claimSlice from '../componentDetails/claim/claimSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -117,6 +118,7 @@ export default combineReducers({
   componentDetailsOverview: overviewSlice,
   componentDetailsVulnerabilities: vulnerabilitiesSlice,
   componentDetailsLicenseDetectionsTile: licenseDetections,
+  componentDetailsClaim: claimSlice,
   successMetrics: successMetricsReportSlice,
   productLicense: productLicenseReducer,
   occurrencesPopover: occurrencesPopoverReducer,

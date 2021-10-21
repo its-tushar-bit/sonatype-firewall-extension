@@ -16,6 +16,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.MatchStateFilter;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
@@ -29,6 +30,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViola
 import com.sonatype.clm.testing.functional.elements.componentdetails.SimilarMatchesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
@@ -64,10 +66,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.disappear;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
@@ -237,6 +241,43 @@ public class ComponentDetailsTest
 
     componentDetailsPage.overviewTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+  }
+
+  @Test
+  public void testComponentDetails_UnknownComponentTabContent() {
+    mockHdsResponseForClaimedComponent();
+    refreshOrOpen(ComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    ClaimTabContent claimTabContent = componentDetailsPage.claimTabContent();
+    claimTabContent.shouldBe(visible);
+
+    claimTabContent.title().shouldHave(text("Claim Component"));
+
+    claimTabContent.cancel().scrollIntoView(true).shouldBe(disabled);
+    claimTabContent.claim().shouldBe(CLM.DISABLED);
+
+    testRequiredFormFields(claimTabContent);
+    fillAllFields(claimTabContent);
+
+    eyesWatcher.eyesCheck("component details claim tab: claim component form");
+
+    claimTabContent.cancel().scrollIntoView(true).shouldBe(enabled);
+    claimTabContent.claim().shouldBe(enabled).click();
+
+    // Reevaluate to apply the claim
+    MainHeader.backButton().click();
+
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+
+    reportPage.reevaluateButton().click();
+
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+
+    reportPage.headers().componentNameFilterInput().setValue("claimed");
+    reportPage.resultRow(1).shouldHave(text("claimed : claimed : claimed : claimed : claimed"));
   }
 
   @Test
@@ -987,6 +1028,26 @@ public class ComponentDetailsTest
   private void waiveFirstReportRow() {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     WaiverApplierForReport.waiveReportRow(reportPage, 0);
+  }
+
+  private void testRequiredFormFields(ClaimTabContent claimTabContent) {
+    for (SelenideElement element : claimTabContent.requiredFields()) {
+      element.sendKeys("a");
+      element.sendKeys(Keys.BACK_SPACE);
+      ClaimTabContent.getInputValidationElement(element).shouldHave(text("Must be non-empty"));
+    }
+  }
+
+  private void fillAllFields(ClaimTabContent claimTabContent) {
+    for (SelenideElement element : claimTabContent.allTextFields()) {
+      element.sendKeys("claimed");
+    }
+
+    claimTabContent.createdTime().setValue("20102021"); //20.10.2021
+  }
+
+  private void mockHdsResponseForClaimedComponent() {
+    testCLMServer.getHdsServer().respondWith("{\"known\":false}").atUri("rest/component/summary");
   }
 }
 

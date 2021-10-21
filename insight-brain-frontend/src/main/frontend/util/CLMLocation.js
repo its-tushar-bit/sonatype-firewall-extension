@@ -698,6 +698,12 @@ export function getLicenseUploadUrl() {
 export const getInnerSourceComponentLatestVersionUrl = (componentIdentifier) =>
   uriTemplate`/rest/innerSource/component/latestVersion?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
 
+export function getClaimComponentUrl(hash) {
+  const base = uriTemplate`/rest/component/identified`;
+
+  return hash ? `${base}/${encodeURIComponent(hash)}` : base;
+}
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',
@@ -991,11 +997,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       getViewSbomUrl: (applicationId, scanId) =>
         `${baseUrl.get()}/ui/links/cycloneDx/${applicationId}/reports/${scanId}`,
 
-      getClaimComponentUrl: (hash) => {
-        const base = `${baseUrl.get()}/rest/component/identified`;
-
-        return hash ? `${base}/${encodeURIComponent(hash)}` : base;
-      },
+      getClaimComponentUrl,
 
       getVulnerabilityJsonDetailUrl,
 

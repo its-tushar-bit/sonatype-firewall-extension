@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import {
   NxLoadError,
@@ -30,6 +30,7 @@ import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
 import PolicyViolations from './PolicyViolations/PolicyViolations';
 import ComponentDetailsSecurityTab from './ComponentDetailsSecurityTab/ComponentDetailsSecurityTab';
 import ComponentDetailsLegalTab from './ComponentDetailsLegalTab/ComponentDetailsLegalTab';
+import { ClaimContainer } from './claim/ClaimContainer';
 import ManageComponentLabelsContainer from './ManageComponentLabels/ManageComponentLabelsContainer';
 
 export default function ComponentDetails({
@@ -149,7 +150,7 @@ export default function ComponentDetails({
           )}
           {(isClaimed || isUnknown) && (
             <NxTabPanel id="component-details-claim-unknown-component">
-              <h2>TODO</h2>
+              <ClaimContainer />
             </NxTabPanel>
           )}
           {!isUnknown && (

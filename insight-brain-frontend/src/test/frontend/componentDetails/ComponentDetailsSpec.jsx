@@ -13,6 +13,7 @@ import * as routerContext from 'MainRoot/react/RouterStateContext';
 import * as fullAuditLog from 'MainRoot/componentDetails/auditLog/AuditLogContainer';
 import * as violationsTab from 'MainRoot/componentDetails/ViolationsTableTile/ViolationsTableTileContainer';
 import * as overviewTab from 'MainRoot/componentDetails/overview/OverviewContainer';
+import * as claimTab from 'MainRoot/componentDetails/claim/ClaimContainer';
 import * as vulnerailitiesTile from 'MainRoot/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTableTileContainer';
 import * as licenseDetectionsTile from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/LicenseDetectionsTileContainer';
 import * as editLicensesPopoverContainer from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesPopoverContainer';
@@ -250,6 +251,7 @@ describe('ComponentDetails', function () {
       spyOn(fullAuditLog, 'default').and.returnValue(<div>auditLog</div>);
       spyOn(violationsTab, 'ViolationsTableTileContainer').and.returnValue(<div>violations</div>);
       spyOn(overviewTab, 'OverviewContainer').and.returnValue(<div>overview</div>);
+      spyOn(claimTab, 'ClaimContainer').and.returnValue(<div>claim</div>);
 
       let component = getMountedComponent({
           componentDetails: {

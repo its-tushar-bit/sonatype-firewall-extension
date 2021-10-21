@@ -67,6 +67,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -652,6 +653,159 @@ public class ComponentInfoServiceTest
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     assertThat(policyAlerts).hasSize(1);
     assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo("Policy1");
+
+    Map<String, Integer> policyMaxThreatLevel = componentDetails.getPolicyMaxThreatLevelsByCategory();
+    assertThat(policyMaxThreatLevel).isNotNull();
+    assertThat(policyMaxThreatLevel).hasSize(1);
+    assertThat(policyMaxThreatLevel.get("security")).isEqualTo(8);
+  }
+
+  @Test
+  public void testGetComponentDetails_policyMaxThreatLevel() throws Exception {
+    String hash = "01234567890123456789";
+
+    Label label1 = tempEntity.newLabel(application.getId(), "red");
+    Label label2 = tempEntity.newLabel(application.getId(), "blue");
+    tempEntity.newComponentLabel(application.getId(), label1.getId(), hash);
+    tempEntity.newComponentLabel(application.getId(), label2.getId(), hash);
+    tempEntity.newLicenseOverride(application.getId(), MAVEN_A1_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
+        "GPL-2.0", null /* comment */);
+
+    Constraint securityConstrain1 = new Constraint("SC1", "SecurityConstraint 1", LogicalOperator.AND);
+    Condition securityCondition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, "<=", "3");
+    securityConstrain1.addCondition(securityCondition1);
+    Policy securityPolicy1 = new Policy("SecurityPolicyId1", "SecurityPolicy1");
+    securityPolicy1.setThreatLevel(2);
+    securityPolicy1.addConstraint(securityConstrain1);
+    securityPolicy1.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, securityPolicy1);
+
+    Constraint securityConstrain2 = new Constraint("SC1", "SecurityConstraint 1", LogicalOperator.AND);
+    Condition securityCondition2 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, "<=", "7");
+    securityConstrain2.addCondition(securityCondition2);
+    Policy securityPolicy2 = new Policy("SecurityPolicyId2", "SecurityPolicy2");
+    securityPolicy2.setThreatLevel(8);
+    securityPolicy2.addConstraint(securityConstrain2);
+    securityPolicy2.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, securityPolicy2);
+    
+    Constraint qualityConstrain1 = new Constraint("QC1", "QualityConstraint 1", LogicalOperator.AND);
+    Condition qualityCondition1 = new Condition(RelativePopularityConditionType.ID, "<=", "10");
+    qualityConstrain1.addCondition(qualityCondition1);
+    Policy qualityPolicy1 = new Policy("QualityPolicyId1", "QualityPolicy1");
+    qualityPolicy1.setThreatLevel(2);
+    qualityPolicy1.addConstraint(qualityConstrain1);
+    qualityPolicy1.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, qualityPolicy1);
+
+    Constraint qualityConstrain2 = new Constraint("QC2", "QualityConstraint 2", LogicalOperator.AND);
+    Condition qualityCondition2 = new Condition(RelativePopularityConditionType.ID, "<=", "5");
+    qualityConstrain2.addCondition(qualityCondition2);
+    Policy qualityPolicy2 = new Policy("QualityPolicyId2", "QualityPolicy2");
+    qualityPolicy2.setThreatLevel(6);
+    qualityPolicy2.addConstraint(qualityConstrain2);
+    qualityPolicy2.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, qualityPolicy2);
+
+    Constraint licenseContraint1 = new Constraint("LC1", "LicenseConstraint1",LogicalOperator.AND);
+    Condition licenseCondition1 = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
+    licenseContraint1.addCondition(licenseCondition1);
+    Policy licensePolicy1 = new Policy("LicensePolicyId1", "LicensePolicy1");
+    licensePolicy1.setThreatLevel(3);
+    licensePolicy1.addConstraint(licenseContraint1);
+    licensePolicy1.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, licensePolicy1);
+
+    Constraint otherConstraint1 = new Constraint("OC1", "Other Constraint 1", LogicalOperator.AND);
+    otherConstraint1.addCondition(new Condition(LabelConditionType.ID, "is", label1.getId()));
+    Policy otherPolicy1 = new Policy("OtherPolicyId1", "Other Policy Name 1");
+    otherPolicy1.setThreatLevel(5);
+    otherPolicy1.addConstraint(otherConstraint1);
+    otherPolicy1.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, otherPolicy1);
+
+    Constraint otherConstraint2 = new Constraint("OC2", "Other Constraint 2", LogicalOperator.AND);
+    otherConstraint2.addCondition(new Condition(LabelConditionType.ID, "is", label2.getId()));
+    Policy otherPolicy2 = new Policy("OtherPolicyId2", "Other Policy Name 2");
+    otherPolicy2.setThreatLevel(2);
+    otherPolicy2.addConstraint(otherConstraint2);
+    otherPolicy2.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, otherPolicy2);
+
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setHash(hash);
+    hdsComponentDetails.addSecurityVulnerability(new SecurityVulnerability("Test Ref Id", "Test Source", 2.5F));
+    hdsComponentDetails.addSecurityVulnerability(new SecurityVulnerability("Test Ref Id 2", "Test Source 2", 7.5F));
+    hdsComponentDetails.setRelativePopularity(2);
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_A1_COORDINATES,
+        MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
+    assertCategories(componentDetails);
+    List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
+    assertThat(policyAlerts).isNotNull();
+    assertThat(policyAlerts).hasSize(7);
+    assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo("LicensePolicy1");
+    assertThat(policyAlerts.get(1).getTrigger().getPolicyName()).isEqualTo("Other Policy Name 1");
+    assertThat(policyAlerts.get(2).getTrigger().getPolicyName()).isEqualTo("Other Policy Name 2");
+    assertThat(policyAlerts.get(3).getTrigger().getPolicyName()).isEqualTo("QualityPolicy1");
+    assertThat(policyAlerts.get(4).getTrigger().getPolicyName()).isEqualTo("QualityPolicy2");
+    assertThat(policyAlerts.get(5).getTrigger().getPolicyName()).isEqualTo("SecurityPolicy1");
+    assertThat(policyAlerts.get(6).getTrigger().getPolicyName()).isEqualTo("SecurityPolicy2");
+
+    Map<String, Integer> policyMaxThreatLevel = componentDetails.getPolicyMaxThreatLevelsByCategory();
+    assertThat(policyMaxThreatLevel).isNotNull();
+    assertThat(policyMaxThreatLevel).hasSize(4);
+    assertThat(policyMaxThreatLevel.get("security")).isEqualTo(8);
+    assertThat(policyMaxThreatLevel.get("other")).isEqualTo(5);
+    assertThat(policyMaxThreatLevel.get("license")).isEqualTo(3);
+    assertThat(policyMaxThreatLevel.get("quality")).isEqualTo(6);
+  }
+  
+  @Test
+  public void testGetComponentDetails_policyMaxThreatLevel_oneElement() throws Exception {
+    String hash = "01234567890123456789";
+
+    Label label1 = tempEntity.newLabel(application.getId(), "red");
+    Label label2 = tempEntity.newLabel(application.getId(), "blue");
+    tempEntity.newComponentLabel(application.getId(), label1.getId(), hash);
+    tempEntity.newComponentLabel(application.getId(), label2.getId(), hash);
+
+    Constraint otherConstraint1 = new Constraint("OC1", "Other Constraint 1", LogicalOperator.AND);
+    otherConstraint1.addCondition(new Condition(LabelConditionType.ID, "is", label1.getId()));
+    Policy otherPolicy1 = new Policy("OtherPolicyId1", "Other Policy Name 1");
+    otherPolicy1.setThreatLevel(5);
+    otherPolicy1.addConstraint(otherConstraint1);
+    otherPolicy1.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, otherPolicy1);
+
+    Constraint otherConstraint2 = new Constraint("OC2", "Other Constraint 2", LogicalOperator.AND);
+    otherConstraint2.addCondition(new Condition(LabelConditionType.ID, "is", label2.getId()));
+    Policy otherPolicy2 = new Policy("OtherPolicyId2", "Other Policy Name 2");
+    otherPolicy2.setThreatLevel(2);
+    otherPolicy2.addConstraint(otherConstraint2);
+    otherPolicy2.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, otherPolicy2);
+
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setHash(hash);
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_A1_COORDINATES,
+        MatchState.SIMILAR.getId(), hash, false /* proprietary */, httpRequestMock);
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
+    assertCategories(componentDetails);
+    List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
+    assertThat(policyAlerts).isNotNull();
+    assertThat(policyAlerts).hasSize(2);
+    assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo("Other Policy Name 1");
+    assertThat(policyAlerts.get(1).getTrigger().getPolicyName()).isEqualTo("Other Policy Name 2");
+
+    Map<String, Integer> policyMaxThreatLevel = componentDetails.getPolicyMaxThreatLevelsByCategory();
+    assertThat(policyMaxThreatLevel).isNotNull();
+    assertThat(policyMaxThreatLevel).hasSize(1);
+    assertThat(policyMaxThreatLevel.get("other")).isEqualTo(5);
   }
 
   @Test
@@ -690,6 +844,11 @@ public class ComponentInfoServiceTest
     assertCategories(componentDetails);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     assertThat(policyAlerts).extracting(alert -> alert.getTrigger().getPolicyName()).containsExactly("Policy1");
+
+    Map<String, Integer> policyMaxThreatLevel = componentDetails.getPolicyMaxThreatLevelsByCategory();
+    assertThat(policyMaxThreatLevel).isNotNull();
+    assertThat(policyMaxThreatLevel).hasSize(1);
+    assertThat(policyMaxThreatLevel.get("security")).isEqualTo(8);
   }
 
   @Test
@@ -722,6 +881,11 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     assertThat(policyAlerts).extracting(alert -> alert.getTrigger().getPolicyName()).containsExactly(policy.getName());
+
+    Map<String, Integer> policyMaxThreatLevel = componentDetails.getPolicyMaxThreatLevelsByCategory();
+    assertThat(policyMaxThreatLevel).isNotNull();
+    assertThat(policyMaxThreatLevel).hasSize(1);
+    assertThat(policyMaxThreatLevel.get("security")).isEqualTo(8);
   }
 
   @Test
@@ -969,6 +1133,11 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
     List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
     assertThat(policyAlerts).hasSize(1);
+    
+    Map<String, Integer> policyMaxThreatLevel = componentDetails.getPolicyMaxThreatLevelsByCategory();
+    assertThat(policyMaxThreatLevel).isNotNull();
+    assertThat(policyMaxThreatLevel).hasSize(1);
+    assertThat(policyMaxThreatLevel.get("other")).isEqualTo(8);
   }
 
   private void addPolicy(String applicationPublicId, Policy policy) throws Exception {

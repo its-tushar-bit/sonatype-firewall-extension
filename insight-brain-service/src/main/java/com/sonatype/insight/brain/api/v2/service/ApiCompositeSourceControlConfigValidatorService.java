@@ -147,7 +147,8 @@ public class ApiCompositeSourceControlConfigValidatorService
     }
     catch (GitException e) {
       result.setSshConfiguration(new ValidationResult(false, "Unable to clone a repository using SSH, check that " +
-          "your SSH keys are configured properly and no passphrase is required. Full error: " + e.getMessage()));
+          "your SSH keys are configured properly and available to IQ. Full error: " +
+          e.getMessage()));
     }
     catch (Exception e) {
       result.setSshConfiguration(new ValidationResult(false,

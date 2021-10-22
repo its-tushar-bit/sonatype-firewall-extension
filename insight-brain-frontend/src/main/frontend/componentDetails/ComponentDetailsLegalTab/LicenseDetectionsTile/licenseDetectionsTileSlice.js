@@ -42,12 +42,23 @@ const initialState = {
   editLicensesForm: {
     scope: null,
     comment: Object.freeze(initialStateHelper('')),
+    licenseIds: [],
     status: null,
     isDirty: false,
     submitError: null,
     submitMaskState: null,
     fieldsPristineState: null,
   },
+};
+
+const getInitialFormFieldsFromLicenseOverride = (licenseOverride) => {
+  const scope = getScopeWithLicenseOverride(licenseOverride) ?? licenseOverride[0] ?? null;
+  return {
+    scope,
+    status: scope?.licenseOverride?.status ?? null,
+    licenseIds: scope?.licenseOverride?.status === 'SELECTED' ? scope?.licenseOverride.licenseIds : [],
+    comment: initialStateHelper(''),
+  };
 };
 
 const startTimerToResetMaskAndReloadTileData = (dispatch) => {
@@ -77,16 +88,17 @@ const loadFulfilled = (state, { payload }) => {
   state.loading = false;
   state.loadError = null;
 
-  const initialScope = getScopeWithLicenseOverride(licenseOverride) ?? licenseOverride[0] ?? null,
-    initialStatus = initialScope?.licenseOverride?.status ?? null;
+  const { scope, licenseIds, status, comment } = getInitialFormFieldsFromLicenseOverride(licenseOverride);
+  state.editLicensesForm.licenseIds = licenseIds;
   state.editLicensesForm.isDirty = false;
-  state.editLicensesForm.scope = initialScope;
-  state.editLicensesForm.status = initialStatus;
-  state.editLicensesForm.comment = Object.freeze(initialStateHelper(''));
+  state.editLicensesForm.scope = scope;
+  state.editLicensesForm.status = status;
+  state.editLicensesForm.comment = comment;
   state.editLicensesForm.fieldsPristineState = {
     comment: '',
-    scope: initialScope,
-    status: initialStatus,
+    scope,
+    status,
+    licenseIds,
   };
 };
 
@@ -141,12 +153,13 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWith
  * @param {State} state the state to check if it's dirty
  */
 const isFormDirty = (editLicensesFormState) => {
-  const { comment, status, scope, fieldsPristineState } = editLicensesFormState;
+  const { comment, status, scope, licenseIds, fieldsPristineState } = editLicensesFormState;
 
   const currentFields = {
     status,
     scope,
     comment: comment.value,
+    licenseIds,
   };
 
   return !equals(fieldsPristineState, currentFields);
@@ -187,16 +200,26 @@ const setLicenseFormStatus = (state, { payload }) =>
     },
   });
 
+const setLicenseFormLicenseIds = (state, { payload }) =>
+  setIsDirtyFlag({
+    ...state,
+    editLicensesForm: {
+      ...state.editLicensesForm,
+      licenseIds: payload,
+    },
+  });
+
 const saveEditLicensesForm = createAsyncThunk(
   `${REDUCER_NAME}/saveEditLicensesForm`,
   (_, { getState, dispatch, rejectWithValue }) => {
-    const { status, comment, scope } = selectEditLicensesForm(getState());
+    const { status, comment, scope, licenseIds } = selectEditLicensesForm(getState());
     const { componentIdentifier } = selectSelectedComponent(getState());
     const { ownerType, ownerId } = scope;
+    const payloadLicenseIds = status === 'SELECTED' ? licenseIds : [];
     const url = getBaseLicenseOverrideUrl(ownerType, ownerId),
       payload = {
         id: null,
-        licenseIds: [],
+        licenseIds: payloadLicenseIds,
         componentIdentifier,
         status: status,
         comment: comment.value || '',
@@ -249,12 +272,13 @@ const saveEditLicensesFormFailed = (state, { payload }) => {
 
 const resetEditLicensesFormFields = (state) => {
   const { licenseOverride } = state;
-  const initialScope = getScopeWithLicenseOverride(licenseOverride) ?? licenseOverride[0];
-  state.editLicensesForm.isDirty = false;
-  state.editLicensesForm.submitError = null;
-  state.editLicensesForm.scope = initialScope ?? null;
-  state.editLicensesForm.status = initialScope?.licenseOverride?.status ?? null;
-  state.editLicensesForm.comment = Object.freeze(initialStateHelper(''));
+
+  state.editLicensesForm = {
+    ...state.editLicensesForm,
+    ...getInitialFormFieldsFromLicenseOverride(licenseOverride),
+    isDirty: false,
+    submitError: null,
+  };
 };
 
 const componentDetailsLicenseDetectionsTileSlice = createSlice({
@@ -265,6 +289,7 @@ const componentDetailsLicenseDetectionsTileSlice = createSlice({
     setLicenseFormStatus,
     setLicenseFormScope,
     setLicenseFormComment,
+    setLicenseFormLicenseIds,
     resetEditLicensesFormFields,
     resetSubmitMaskState: pathSetConst(['editLicensesForm', 'submitMaskState'], null),
   },

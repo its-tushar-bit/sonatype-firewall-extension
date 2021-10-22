@@ -5,8 +5,12 @@
  */
 package com.sonatype.clm.testing.functional.elements.componentdetails;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -63,6 +67,15 @@ public class EditLicensesPopover
 
   public SelenideElement status() {
     return child("#status-select");
+  }
+
+  public List<NxCheckbox> selectedLicensesCheckbox() {
+    List<NxCheckbox> checkboxes = new ArrayList<>();
+    ElementsCollection selenideCheckboxes = children(".iq-edit-licenses-form__selected-licenses .nx-checkbox");
+    for (SelenideElement checkbox : selenideCheckboxes) {
+      checkboxes.add(new NxCheckbox(checkbox));
+    }
+    return checkboxes;
   }
 
   public SelenideElement comment() {

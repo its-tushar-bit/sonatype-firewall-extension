@@ -13,22 +13,25 @@ import {
 } from '../LicenseDetectionsTile/licenseDetectionsTileSelectors';
 
 function mapStateToProps(state) {
-  const { status, comment, isDirty, scope, submitError, submitMaskState } = selectEditLicensesForm(state);
+  const { status, comment, licenseIds, isDirty, scope, submitError, submitMaskState } = selectEditLicensesForm(state);
   const {
     declaredlicenses,
     effectiveLicenses,
     observedlicenses,
     licenseOverride,
+    selectableLicenses,
   } = selectLicenseDetectionsTileDataSlice(state);
 
   return {
     status,
     comment,
+    licenseIds,
     isDirty,
     scope,
     declaredlicenses,
     effectiveLicenses,
     observedlicenses,
+    selectableLicenses,
     availableLicenseScopes: licenseOverride,
     submitMaskState,
     submitError,
@@ -42,6 +45,7 @@ const mapDispatchToProps = {
   setLicenseStatus: actions.setLicenseFormStatus,
   setLicenseComment: actions.setLicenseFormComment,
   setLicenseScope: actions.setLicenseFormScope,
+  setSelectedLicenses: actions.setLicenseFormLicenseIds,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditLicensesForm);

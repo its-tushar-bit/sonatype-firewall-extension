@@ -11,12 +11,14 @@ import EditLicensesForm from 'MainRoot/componentDetails/ComponentDetailsLegalTab
 describe('EditLicensesForm', () => {
   let minimalProps,
     getShallowComponent,
+    getMountedComponent,
     saveFormSpy,
     deleteLicenseOverrideSpy,
     setLicenseStatusSpy,
     setLicenseScopeSpy,
     setLicenseCommentSpy,
     resetFormFieldsSpy,
+    setSelectedLicensesSpy,
     onCloseSpy;
 
   beforeEach(() => {
@@ -25,6 +27,7 @@ describe('EditLicensesForm', () => {
     setLicenseScopeSpy = jasmine.createSpy('setLicenseScope');
     setLicenseStatusSpy = jasmine.createSpy('setLicenseStatus');
     setLicenseCommentSpy = jasmine.createSpy('setLicenseComment');
+    setSelectedLicensesSpy = jasmine.createSpy('setSelectedLicenses');
     saveFormSpy = jasmine.createSpy('saveForm');
     deleteLicenseOverrideSpy = jasmine.createSpy('deleteLicenseOverride');
     minimalProps = {
@@ -35,6 +38,7 @@ describe('EditLicensesForm', () => {
       setLicenseStatus: setLicenseStatusSpy,
       setLicenseScope: setLicenseScopeSpy,
       setLicenseComment: setLicenseCommentSpy,
+      setSelectedLicenses: setSelectedLicensesSpy,
       status: 'ACKNOWLEDGED',
       comment: {
         isPristine: true,
@@ -42,6 +46,7 @@ describe('EditLicensesForm', () => {
         trimmedValue: '',
         validationErrors: null,
       },
+      licenseIds: [],
       isDirty: false,
       scope: {
         ownerId: 'owf',
@@ -111,10 +116,12 @@ describe('EditLicensesForm', () => {
           },
         },
       ],
+      selectableLicenses: [],
       submitMaskState: null,
       submitError: null,
     };
     getShallowComponent = enzymeUtils.getShallowComponent(EditLicensesForm, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(EditLicensesForm, minimalProps);
   });
 
   it('renders a NxForm', () => {
@@ -234,7 +241,7 @@ describe('EditLicensesForm', () => {
     expect(setLicenseStatusSpy).toHaveBeenCalledWith('OPEN');
   });
 
-  it('calls setLicenseScope and setLicenseStatus when changing to scope with a licenseOverride', () => {
+  it('calls setLicenseScope, setLicenseStatus, setSelectedLicenses when changing to scope with a licenseOverride', () => {
     const component = getShallowComponent(),
       waiverTargetsSection = component.find('.iq-edit-licenses-form__scope'),
       targetRadios = waiverTargetsSection.find(NxRadio),
@@ -267,6 +274,7 @@ describe('EditLicensesForm', () => {
       },
     });
     expect(setLicenseStatusSpy).toHaveBeenCalledWith('ACKNOWLEDGED');
+    expect(setSelectedLicensesSpy).toHaveBeenCalledWith([]);
   });
 
   it('renders default status options with inherited option', () => {
@@ -305,14 +313,97 @@ describe('EditLicensesForm', () => {
     expect(options.at(2).text()).not.toContain('Inherit Status');
   });
 
-  it('calls setLicenseStatus when changing status', () => {
-    const component = getShallowComponent(),
+  it('calls setLicenseStatus and setSelectedLicenses when changing status when scope has licenseOverride', () => {
+    const component = getShallowComponent({
+        scope: { licenseOverride: { licenseIds: ['id'] } },
+      }),
       selectComponent = component.find('select'),
       mockEvent = { currentTarget: { value: 'ACKNOWLEDGED' } };
 
     selectComponent.simulate('change', mockEvent);
 
     expect(setLicenseStatusSpy).toHaveBeenCalledWith('ACKNOWLEDGED');
+    expect(setSelectedLicensesSpy).toHaveBeenCalledWith(['id']);
+  });
+
+  it('calls setLicenseStatus and setSelectedLicenses(with default value) when changing status and scope has no licenseOverride', () => {
+    const component = getShallowComponent({
+        scope: {},
+      }),
+      selectComponent = component.find('select'),
+      mockEvent = { currentTarget: { value: 'ACKNOWLEDGED' } };
+
+    selectComponent.simulate('change', mockEvent);
+
+    expect(setLicenseStatusSpy).toHaveBeenCalledWith('ACKNOWLEDGED');
+    expect(setSelectedLicensesSpy).toHaveBeenCalledWith([]);
+  });
+
+  it('does not render checkboxes for selectedLicenses when status is not SELECTED', () => {
+    const component = getShallowComponent({
+        status: 'Confirmed',
+        selectableLicenses: [
+          { licenseId: 'id', licenseName: 'value' },
+          { licenseId: 'id2', licenseName: 'value2' },
+        ],
+      }),
+      checkBoxContainer = component.find('.iq-edit-licenses-form__selected-licenses'),
+      checkboxes = checkBoxContainer.find('input');
+
+    expect(checkboxes.length).toBe(0);
+  });
+
+  it('renders SELECTED status option', () => {
+    const component = getShallowComponent({
+        status: 'SELECTED',
+      }),
+      statusSection = component.find('.iq-edit-licenses-form__status'),
+      selectComponent = statusSection.find('select'),
+      options = selectComponent.find('option');
+
+    expect(options.at(1)).toHaveText('Acknowledged');
+    expect(options.at(1)).toHaveProp('value', 'ACKNOWLEDGED');
+  });
+
+  it('renders checkbox for each selectableLicense', () => {
+    const component = getMountedComponent({
+        status: 'SELECTED',
+        selectableLicenses: [
+          { licenseId: 'id', licenseName: 'value' },
+          { licenseId: 'id2', licenseName: 'value2' },
+        ],
+      }),
+      checkBoxContainer = component.find('.iq-edit-licenses-form__selected-licenses'),
+      checkboxes = checkBoxContainer.find('input');
+
+    expect(checkboxes.length).toBe(2);
+  });
+
+  it('calls setSelectedLicenses with new id when selected license does not exist in licenseIds', () => {
+    const component = getMountedComponent({
+        status: 'SELECTED',
+        selectableLicenses: [{ licenseId: 'id', licenseName: 'value' }],
+      }),
+      checkBoxContainer = component.find('.iq-edit-licenses-form__selected-licenses'),
+      checkboxes = checkBoxContainer.find('input');
+
+    checkboxes.at(0).simulate('change', { target: { checked: true } });
+
+    expect(setSelectedLicensesSpy).toHaveBeenCalledWith(['id']);
+  });
+
+  it('calls setSelectedLicenses to remove id when selected license exist in licenseIds', () => {
+    const component = getMountedComponent({
+        status: 'SELECTED',
+        selectableLicenses: [{ licenseId: 'id', licenseName: 'value' }],
+        licenseIds: ['id'],
+      }),
+      checkBoxContainer = component.find('.iq-edit-licenses-form__selected-licenses'),
+      checkboxes = checkBoxContainer.find('input');
+
+    checkboxes.at(0).simulate('change', { target: { checked: true } });
+
+    expect(setSelectedLicensesSpy).toHaveBeenCalledWith([]);
   });
 
   it('calls saveForm ', () => {

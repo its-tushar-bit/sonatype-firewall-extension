@@ -6,7 +6,7 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { find, propEq, compose, toLower, findIndex, __ } from 'ramda';
-import { NxForm, NxFieldset, NxTextInput, NxRadio } from '@sonatype/react-shared-components';
+import { NxForm, NxFieldset, NxTextInput, NxRadio, NxCheckbox } from '@sonatype/react-shared-components';
 
 import { capitalize } from 'MainRoot/util/jsUtil';
 
@@ -14,12 +14,16 @@ import { renderLicensesList } from '../LegalTabUtils';
 import { licensesPropTypes, licenseOverridePropTypes } from '../LicenseDetectionsTile/LicenseDetectionsTile';
 
 const NOT_DIRTY_ERROR_MESSAGE = 'There are no changes to update';
+const NO_SELECTED_LICENSES_ERROR_MESSAGE = 'There must be at least one selected license';
 
-const licenseStatuses = [
+const getLicenseStatuses = (hasSelectableLicenses) => [
   { name: 'Open', value: 'OPEN' },
   { name: 'Acknowledged', value: 'ACKNOWLEDGED' },
+  ...(hasSelectableLicenses ? [{ name: 'Selected', value: 'SELECTED' }] : []),
   { name: 'Confirmed', value: 'CONFIRMED' },
 ];
+
+const getLicenseIdsFromOverride = (scope) => scope?.licenseOverride?.licenseIds || [];
 
 export default function EditLicensesForm({
   onClose,
@@ -27,28 +31,54 @@ export default function EditLicensesForm({
   status,
   scope,
   comment,
+  licenseIds,
   isDirty,
   setLicenseComment,
   setLicenseStatus,
   setLicenseScope,
+  setSelectedLicenses,
   saveForm,
   deleteLicenseOverride,
   declaredlicenses,
   effectiveLicenses,
   observedlicenses,
+  selectableLicenses,
   availableLicenseScopes,
   submitError,
   submitMaskState,
 }) {
   const handleScopeChange = (selectedId) => {
-    const target = find(propEq('ownerId', selectedId), availableLicenseScopes);
-    setLicenseStatus(target.licenseOverride?.status ?? 'OPEN');
-    setLicenseScope(target);
+    const targetScope = find(propEq('ownerId', selectedId), availableLicenseScopes);
+
+    setSelectedLicenses(getLicenseIdsFromOverride(targetScope));
+    setLicenseStatus(targetScope.licenseOverride?.status ?? 'OPEN');
+    setLicenseScope(targetScope);
   };
-  const getValidationErrors = () => (!isDirty ? NOT_DIRTY_ERROR_MESSAGE : null);
 
   const onStatusChange = (event) => {
+    setSelectedLicenses(getLicenseIdsFromOverride(scope));
     setLicenseStatus(event.currentTarget.value);
+  };
+
+  const toggleSelectedLicense = ({ licenseId }) => {
+    if (licenseIds.includes(licenseId)) {
+      setSelectedLicenses(licenseIds.filter((id) => id !== licenseId));
+    } else {
+      setSelectedLicenses([...licenseIds, licenseId]);
+    }
+  };
+
+  const getValidationErrors = () => {
+    if (!isDirty) {
+      return NOT_DIRTY_ERROR_MESSAGE;
+    }
+
+    const noSelectedLicenses = status === 'SELECTED' && !licenseIds.length;
+    if (noSelectedLicenses) {
+      return NO_SELECTED_LICENSES_ERROR_MESSAGE;
+    }
+
+    return null;
   };
 
   const handleOnCancel = () => {
@@ -83,16 +113,32 @@ export default function EditLicensesForm({
     !!availableLicenseScopes.length &&
     canInheritStatus() && <option value="DELETE">Inherit Status ({getInheritableStatus()})</option>;
 
+  const licenseStatuses = getLicenseStatuses(!!selectableLicenses.length);
   const statusField = (
     <NxFieldset className="iq-edit-licenses-form__status" label="Status" isRequired>
       <select id="status-select" className="nx-form-select" onChange={onStatusChange} value={status || ''}>
-        {licenseStatuses.map(({ name, value }, index) => (
-          <option key={index} value={value}>
+        {licenseStatuses.map(({ name, value }) => (
+          <option key={name} value={value}>
             {name}
           </option>
         ))}
         {inheritStatusOption()}
       </select>
+    </NxFieldset>
+  );
+
+  const selectedLicensesField = (
+    <NxFieldset className="iq-edit-licenses-form__selected-licenses" label="Selected Licenses" isRequired>
+      {selectableLicenses.map((license, index) => (
+        <NxCheckbox
+          key={license + index}
+          id={license.LicenseId}
+          isChecked={licenseIds.includes(license.licenseId)}
+          onChange={() => toggleSelectedLicense(license)}
+        >
+          {license.licenseName}
+        </NxCheckbox>
+      ))}
     </NxFieldset>
   );
 
@@ -154,6 +200,7 @@ export default function EditLicensesForm({
         <div className="nx-grid-col">
           {scopeField}
           {statusField}
+          {status === 'SELECTED' && selectedLicensesField}
           {commentField}
         </div>
       </div>
@@ -165,7 +212,9 @@ EditLicensesForm.propTypes = {
   declaredlicenses: PropTypes.arrayOf(licensesPropTypes),
   effectiveLicenses: PropTypes.arrayOf(licensesPropTypes),
   observedlicenses: PropTypes.arrayOf(licensesPropTypes),
+  selectableLicenses: PropTypes.arrayOf(licensesPropTypes),
   availableLicenseScopes: PropTypes.arrayOf(licenseOverridePropTypes),
+  licenseIds: PropTypes.arrayOf(PropTypes.string),
   scope: licenseOverridePropTypes,
   comment: PropTypes.shape({
     value: PropTypes.string,
@@ -175,6 +224,7 @@ EditLicensesForm.propTypes = {
   setLicenseComment: PropTypes.func.isRequired,
   setLicenseStatus: PropTypes.func.isRequired,
   setLicenseScope: PropTypes.func.isRequired,
+  setSelectedLicenses: PropTypes.func.isRequired,
   isDirty: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
   resetFormFields: PropTypes.func.isRequired,

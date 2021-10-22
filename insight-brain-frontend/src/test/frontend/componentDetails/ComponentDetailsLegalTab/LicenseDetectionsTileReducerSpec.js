@@ -64,6 +64,7 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
             isPristine: true,
           },
           status: null,
+          licenseIds: [],
           isDirty: false,
           submitError: null,
           submitMaskState: null,
@@ -103,6 +104,7 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
         comment: '',
         scope: firstLicenseOverride,
         status: null,
+        licenseIds: [],
       });
       expect(expectedState.otherState).toEqual(otherState);
     });
@@ -145,6 +147,7 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
       licenseOverride: [],
       editLicensesForm: {
         isDirty: true,
+        licenseIds: ['old id'],
         scope: 'some scope',
         status: 'some status',
         comment: {
@@ -164,6 +167,7 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
       expect(newState.editLicensesForm.submitError).toBe(null);
       expect(newState.editLicensesForm.scope).toBe(null);
       expect(newState.editLicensesForm.status).toBe(null);
+      expect(newState.editLicensesForm.licenseIds).toEqual([]);
       expect(newState.editLicensesForm.comment.value).toBe('');
       expect(newState.editLicensesForm.comment.isPristine).toBe(true);
     });
@@ -181,9 +185,9 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
         licenseOverride: {
           id: '82823b22b17d4925a358763058b82184',
           ownerId: 'ROOT_ORGANIZATION_ID',
-          status: 'ACKNOWLEDGED',
+          status: 'SELECTED',
           comment: '',
-          licenseIds: [],
+          licenseIds: ['apache'],
           componentIdentifier: {
             format: 'a-name',
             coordinates: {
@@ -214,8 +218,9 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
       const newState = reducer(state, { type: 'componentDetailsLicenseDetectionsTile/resetEditLicensesFormFields' });
 
       expect(newState.editLicensesForm.scope).toBe(thirdOverrideScope);
-      expect(newState.editLicensesForm.status).toBe('ACKNOWLEDGED');
-      expect(newState.editLicensesForm.comment.value).toBe('');
+      expect(newState.editLicensesForm.status).toBe('SELECTED');
+      expect(newState.editLicensesForm.comment.value).toEqual('');
+      expect(newState.editLicensesForm.licenseIds).toEqual(['apache']);
       expect(newState.editLicensesForm.comment.isPristine).toBe(true);
     });
 
@@ -229,6 +234,7 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
 
       expect(newState.editLicensesForm.scope).toBe(firstOverrideScope);
       expect(newState.editLicensesForm.status).toBe(null);
+      expect(newState.editLicensesForm.licenseIds).toEqual([]);
       expect(newState.editLicensesForm.comment.value).toBe('');
       expect(newState.editLicensesForm.comment.isPristine).toBe(true);
     });
@@ -306,6 +312,30 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
       });
 
       expect(newState.editLicensesForm.comment.value).toBe('new value');
+      expect(newState.editLicensesForm.isDirty).toBe(true);
+    });
+  });
+
+  describe('componentDetailsLicenseDetectionsTile/setLicenseFormLicenseIds action', () => {
+    it('sets licenseIds and isDirty', () => {
+      const state = Object.freeze({
+        editLicensesForm: {
+          isDirty: false,
+          licenseIds: [],
+          comment: { value: '' },
+          fieldsPristineState: {
+            licenseIds: [],
+            comment: { value: '' },
+          },
+        },
+      });
+
+      const newState = reducer(state, {
+        type: 'componentDetailsLicenseDetectionsTile/setLicenseFormLicenseIds',
+        payload: ['apache'],
+      });
+
+      expect(newState.editLicensesForm.licenseIds).toEqual(['apache']);
       expect(newState.editLicensesForm.isDirty).toBe(true);
     });
   });

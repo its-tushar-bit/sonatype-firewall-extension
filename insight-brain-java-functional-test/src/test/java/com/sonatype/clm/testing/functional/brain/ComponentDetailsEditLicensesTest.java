@@ -9,10 +9,12 @@ package com.sonatype.clm.testing.functional.brain;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.CLM;
+import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
@@ -120,8 +122,9 @@ public class ComponentDetailsEditLicensesTest
             "Organization - Root Organization"));
     thirdScope.label().shouldHave(text("Organization - Root Organization"));
     editLicensesPopover.statuses().shouldHave(
-        texts("Open", "Acknowledged", "Confirmed", "Inherit Status (Open)"));
+        texts("Open", "Acknowledged", "Selected", "Confirmed", "Inherit Status (Open)"));
     statusSelect.getSelectedOption().shouldHave(value("Open"));
+    assertThat(editLicensesPopover.selectedLicensesCheckbox().isEmpty()).isTrue();
     saveButton.shouldBe(CLM.DISABLED);
 
     // Update to 'Acknowledged' status for Root Organization
@@ -131,21 +134,41 @@ public class ComponentDetailsEditLicensesTest
     saveButton.shouldBe(enabled).click();
     NxSubmitMask.seeAndWaitForDismissal();
 
-    // Update to 'Confirmed' status for Application
+    // update to 'Selected' status for Application
     firstScope.click();
-    statusSelect.selectOptionContainingText("Confirmed");
+    statusSelect.selectOptionContainingText("Selected");
+    List<NxCheckbox> selectedLicensesCheckboxes = editLicensesPopover.selectedLicensesCheckbox();
+    assertThat(editLicensesPopover.selectedLicensesCheckbox().size()).isEqualTo(2);
+
+    NxCheckbox firstCheckbox = selectedLicensesCheckboxes.get(0);
+    firstCheckbox.label().shouldBe(visible).shouldHave(text("Apache-2.0"));
+    firstCheckbox.shouldNotBe(selected);
+
+    NxCheckbox secondCheckbox = selectedLicensesCheckboxes.get(1);
+    secondCheckbox.label().shouldBe(visible).shouldHave(text("GPL-2.0"));
+    secondCheckbox.shouldNotBe(selected);
+
+    firstCheckbox.label().click();
+    firstCheckbox.shouldBe(selected);
+
     saveButton.shouldBe(enabled).click();
     NxSubmitMask.seeAndWaitForDismissal();
 
-    // Check UI for Application Override
+    // Check UI for Application 'Selected' Override
     firstScope.shouldBe(selected);
-    statusSelect.getSelectedOption().shouldHave(value("Confirmed"));
+    statusSelect.getSelectedOption().shouldHave(value("Selected"));
+    assertThat(editLicensesPopover.selectedLicensesCheckbox().size()).isEqualTo(2);
+    firstCheckbox.shouldBe(selected);
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("Apache-2.0"));
 
-    // Check backend for Application override
+    // Check backend for Application 'SELECTED' override
     final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
     LicenseOverride override =
         licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), JAVANCSS_IDENTIFIER);
-    assertThat(override.getStatus()).isEqualTo(LicenseOverrideStatus.CONFIRMED);
+    assertThat(override.getStatus()).isEqualTo(LicenseOverrideStatus.SELECTED);
+    assertThat(override.getLicenseIds().size()).isEqualTo(1);
+    assertThat(override.getLicenseIds()).contains("Apache-2.0");
 
     // Remove Override from Application
     firstScope.click();

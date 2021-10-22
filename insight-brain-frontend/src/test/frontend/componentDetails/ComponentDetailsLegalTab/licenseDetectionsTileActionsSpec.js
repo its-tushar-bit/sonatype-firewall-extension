@@ -313,13 +313,13 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         status: 'status',
         comment: { value: 'some comment' },
         scope: { ownerType, ownerId },
+        licenseIds: ['apache 2.0'],
       },
       selectedComponent = {
         componentIdentifier: { format: 'some format' },
       };
 
     beforeEach(() => {
-      spyOn(licenseDetectionTileSelectors, 'selectEditLicensesForm').and.returnValue(editLicenseForm);
       spyOn(applicationReportSelectors, 'selectSelectedComponent').and.returnValue(selectedComponent);
       store = SpecUtil.mockReduxStore({});
       jasmine.clock().install();
@@ -329,7 +329,8 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
       jasmine.clock().uninstall();
     });
 
-    it('sends a post request to the BaseLicenseOverrideUrl with a payload', (done) => {
+    it('sends a post request to the BaseLicenseOverrideUrl with a payload using default licenseIds', (done) => {
+      spyOn(licenseDetectionTileSelectors, 'selectEditLicensesForm').and.returnValue(editLicenseForm);
       mockAxiosCalls({
         post: {
           [getBaseLicenseOverrideUrl(ownerType, ownerId)]: Promise.resolve(),
@@ -345,6 +346,40 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
           licenseIds: [],
           componentIdentifier: Object({ format: 'some format' }),
           status: 'status',
+          comment: 'some comment',
+          ownerId: 'ownerId',
+        });
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(5);
+        expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/saveEditLicensesForm/fulfilled');
+        expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/resetSubmitMaskState');
+        expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/load/pending');
+
+        done();
+      });
+    });
+
+    it('sends a post request to the BaseLicenseOverrideUrl with a payload and form`s licenseIds if status is SELECTED', (done) => {
+      spyOn(licenseDetectionTileSelectors, 'selectEditLicensesForm').and.returnValue({
+        ...editLicenseForm,
+        status: 'SELECTED',
+      });
+      mockAxiosCalls({
+        post: {
+          [getBaseLicenseOverrideUrl(ownerType, ownerId)]: Promise.resolve(),
+        },
+      });
+
+      store.dispatch(saveEditLicensesForm()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+        expect(axios.post).toHaveBeenCalledTimes(1);
+        expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/ownerType/ownerId', {
+          id: null,
+          licenseIds: ['apache 2.0'],
+          componentIdentifier: Object({ format: 'some format' }),
+          status: 'SELECTED',
           comment: 'some comment',
           ownerId: 'ownerId',
         });

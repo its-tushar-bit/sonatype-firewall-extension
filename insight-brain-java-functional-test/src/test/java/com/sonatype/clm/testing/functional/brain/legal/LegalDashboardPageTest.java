@@ -5,16 +5,15 @@
  */
 package com.sonatype.clm.testing.functional.brain.legal;
 
-import java.io.IOException;
-
 import java.time.Duration;
 import java.util.Arrays;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.pages.*;
+import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage;
+import com.sonatype.clm.testing.functional.pages.LegalDashboardPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -59,7 +58,7 @@ public class LegalDashboardPageTest
   }
 
   @Before
-  public void start() throws IOException {
+  public void start() {
     app = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName(), "app", "org");
 
     addComponentAndLicenses("org.package", "component1", "1.0", "hash1", "Apache-2.0");

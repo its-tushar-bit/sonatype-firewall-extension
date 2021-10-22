@@ -7,52 +7,13 @@ import axios from 'axios';
 import { omit } from 'ramda';
 
 import { actions } from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
+import * as overviewSelectors from 'MainRoot/componentDetails/overview/overviewSelectors';
+import * as vulnerabilitiesSelectors from 'MainRoot/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSelectors';
 import { getVulnerabilitiesUrl, getVulnerabilityJsonDetailUrl } from '../../../../main/frontend/util/CLMLocation';
 
 describe('vulnerabilitiesSliceActions', () => {
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-  let store, state;
-
-  beforeEach(function () {
-    state = {
-      router: {
-        currentParams: {
-          publicId: 'appPublicId',
-          scanId: 'currentScanId',
-          hash: 'currentComponentHash',
-        },
-      },
-      applicationReport: {
-        selectedReport: {
-          displayedEntries: [
-            {
-              hash: 'currentComponentHash',
-              matchState: 'exact',
-              proprietary: false,
-              identificationSource: 'identificationSource',
-              stageId: 'internalAppId',
-              derivedDependencyType: 'derivedDependencyType',
-              componentIdentifier: {
-                componentType: 'componentType',
-                format: 'format',
-                coordinates: 'coordinates',
-              },
-            },
-          ],
-        },
-        metadata: {
-          application: {
-            id: 'internalAppId',
-            stageId: 'internalAppId',
-          },
-        },
-      },
-      componentDetailsVulnerabilities: {
-        selectedRefId: '2',
-      },
-    };
-    store = SpecUtil.mockReduxStore(state);
-  });
+  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
+    store = SpecUtil.mockReduxStore({});
 
   describe('loadVulnerabilities', () => {
     const { loadVulnerabilities } = actions;
@@ -65,6 +26,18 @@ describe('vulnerabilitiesSliceActions', () => {
       hash: 'currentComponentHash',
       identificationSource: 'identificationSource',
       scanId: 'currentScanId',
+    });
+
+    beforeEach(() => {
+      spyOn(overviewSelectors, 'selectVersionExplorerRequestData').and.returnValue({
+        clientType: 'ci',
+        componentIdentifier: '{"format":"format","coordinates":"coordinates"}',
+        hash: 'currentComponentHash',
+        identificationSource: 'identificationSource',
+        ownerId: 'appPublicId',
+        ownerType: 'application',
+        scanId: 'currentScanId',
+      });
     });
 
     it('immediately dispatches a componentDetailsVulnerabilities/loadVulnerabilities/pending action and appropriate requests', () => {
@@ -150,6 +123,9 @@ describe('vulnerabilitiesSliceActions', () => {
 
   describe('loadVulnerabilityDetails', () => {
     const { loadVulnerabilityDetails } = actions;
+    beforeEach(() => {
+      spyOn(vulnerabilitiesSelectors, 'selectVulnerabityRefId').and.returnValue('2');
+    });
 
     it('dispatches a componentDetailsVulnerabilities/loadVulnerabilities/fulfilled action after successful requests', (done) => {
       const vulnerabilityDetails = {

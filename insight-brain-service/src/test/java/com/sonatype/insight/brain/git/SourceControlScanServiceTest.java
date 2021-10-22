@@ -7,6 +7,10 @@ package com.sonatype.insight.brain.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -50,7 +54,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -212,7 +215,7 @@ public class SourceControlScanServiceTest
     File scanDir = mock(File.class);
     scanResult.setScanFile(mock(File.class));
     when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
-    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+    when(scanner.scan(any(List.class), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
         any(ScanMetadata.class))).thenReturn(scanResult);
 
     // when we receive a source control scan event
@@ -223,6 +226,10 @@ public class SourceControlScanServiceTest
 
     // and it calls the repository sync
     verify(mockGitApi).cloneOrPullRepository(isA(File.class), eq(sourceControlEvent.getBranchName()));
+
+    // and it calls the scanner
+    verify(scanner).scan(eq(Collections.singletonList(mockInsightWork.getSourceControlDir(APP_ID))), eq(scanDir),
+        eq(proprietaryConfig), any(ScanConfiguration.class), any(ScanMetadata.class));
 
     // and it evaluates a policy
     verify(policyEvaluateService).evaluateWithPolling(eq("statusId"),
@@ -253,7 +260,7 @@ public class SourceControlScanServiceTest
     File scanDir = mock(File.class);
     scanResult.setScanFile(mock(File.class));
     when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
-    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+    when(scanner.scan(any(List.class), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
         any(ScanMetadata.class))).thenReturn(scanResult);
 
     // Sparse checkout leaves no entry on working directory - exception thrown
@@ -293,7 +300,7 @@ public class SourceControlScanServiceTest
     scanResult.setScanFile(mock(File.class));
     when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
     ArgumentCaptor<ScanConfiguration> scanConfigurationArgCaptor = ArgumentCaptor.forClass(ScanConfiguration.class);
-    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+    when(scanner.scan(any(List.class), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
         any(ScanMetadata.class))).thenReturn(scanResult);
 
     // and a policy evaluation
@@ -305,7 +312,7 @@ public class SourceControlScanServiceTest
 
     // it evaluates the SCM repository content and it returns the expected policy evaluation
     assertThat(service.doSynchronousSourceControlScan(APP_ID, stage, "testBranchName")).isEqualTo(policyEvaluation);
-    verify(scanner, times(1)).scan(any(), any(), any(), any(), scanConfigurationArgCaptor.capture(), any());
+    verify(scanner, times(1)).scan(any(), any(), any(), scanConfigurationArgCaptor.capture(), any());
     assertThat(scanConfigurationArgCaptor.getValue().getProperties().get("dirExcludes")).isEqualTo("**/src/test");
 
     verifySshServiceInvoked();
@@ -324,7 +331,7 @@ public class SourceControlScanServiceTest
     scanResult.setScanFile(mock(File.class));
     when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
     ArgumentCaptor<ScanConfiguration> scanConfigurationArgCaptor = ArgumentCaptor.forClass(ScanConfiguration.class);
-    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+    when(scanner.scan(any(List.class), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
         any(ScanMetadata.class))).thenReturn(scanResult);
 
     // and a policy evaluation
@@ -340,7 +347,7 @@ public class SourceControlScanServiceTest
 
     // then: it returns the expected policy evaluation
     assertThat(returnedPolicyEvaluation).isEqualTo(policyEvaluation);
-    verify(scanner, times(1)).scan(any(), any(), any(), any(), scanConfigurationArgCaptor.capture(), any());
+    verify(scanner, times(1)).scan(any(), any(), any(), scanConfigurationArgCaptor.capture(), any());
     assertThat(scanConfigurationArgCaptor.getValue().getProperties().get("dirExcludes")).isEqualTo("**/src/test");
 
     verifySshServiceInvoked();
@@ -383,6 +390,55 @@ public class SourceControlScanServiceTest
 
     // and it never interacts with the SSH service
     verifyNoInteractions(sourceControlSshService);
+  }
+
+  @Test
+  public void testOnSourceControlScan_WithScanTargets() throws Exception {
+    // given an event
+    List<String> scanTargets = Arrays.asList("testScanTarget1", "testScanTarget2");
+    sourceControlEvent.setBranchName("branch");
+    sourceControlEvent.setScanTargets(scanTargets);
+    sourceControlEvent.setStatusId("statusId");
+    sourceControlEvent.setApplicationId(APP_ID);
+    sourceControlEvent.setStageTypeId(Stage.ID_DEVELOP);
+    sourceControlEvent.setUserAgent("userAgent");
+    sourceControlEvent.setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_API);
+
+    // and a source control configuration
+    doReturn(mockGitRepositoryInfo).when(spySourceControlUtils)
+        .getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId());
+    when(mockGitApiFactory.createGitApi(mockGitRepositoryInfo)).thenReturn(mockGitApi);
+
+    // and a scan result
+    scanResult = new ScanResult();
+    File scanDir = mock(File.class);
+    scanResult.setScanFile(mock(File.class));
+    when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
+    when(scanner.scan(any(List.class), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+        any(ScanMetadata.class))).thenReturn(scanResult);
+
+    // when we receive a source control scan event
+    service.onSourceControlScan(sourceControlEvent);
+
+    // then it creates the target directory
+    assertThat(new File(sourceControlDir, APP_ID)).isDirectory();
+
+    // and it calls the repository sync
+    verify(mockGitApi).cloneOrPullRepository(isA(File.class), eq(sourceControlEvent.getBranchName()));
+
+    // and it calls the scanner with the specified scan targets
+    File sourceControlDir = mockInsightWork.getSourceControlDir(APP_ID);
+    List<File> expectedScanTargets =
+        scanTargets.stream().map(scanTarget -> new File(sourceControlDir, scanTarget)).collect(Collectors.toList());
+    verify(scanner).scan(eq(expectedScanTargets), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+        any(ScanMetadata.class));
+
+    // and it evaluates a policy
+    verify(policyEvaluateService).evaluateWithPolling(eq("statusId"), isA(Application.class),
+        eq(ClientScanType.SONATYPE), argThat(s -> s.getStageTypeId().equals(Stage.ID_DEVELOP)),
+        eq(ScanTriggerType.SOURCE_CONTROL_API), isA(File.class), eq("api"), eq("userAgent"));
+
+    verifySshServiceInvoked();
   }
 
   private void verifySshServiceInvoked() {

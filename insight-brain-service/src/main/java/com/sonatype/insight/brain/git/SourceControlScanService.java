@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -120,7 +122,7 @@ public class SourceControlScanService
           AuditData.get().setStageId(event.getStageTypeId());
 
           RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, event.getBranchName());
-          ScanResult scanResult = scan(application, repoSyncResult.getHeadRef());
+          ScanResult scanResult = scan(application, event.getScanTargets(), repoSyncResult.getHeadRef());
           evaluate(event, application, scanResult);
 
           log.trace("Source control scan completed for application '{}': {}", event.getApplicationId(), repoSyncResult);
@@ -170,7 +172,7 @@ public class SourceControlScanService
           AuditData.get().setStageId(stage.getStageTypeId());
 
           RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, branchName, commitHash);
-          ScanResult scanResult = scan(application, repoSyncResult.getHeadRef());
+          ScanResult scanResult = scan(application, null /* scanTarget */, repoSyncResult.getHeadRef());
           ClientScanType clientScanType =
               scanResult.hasThirdPartyScanContent() ? ClientScanType.SONATYPE_THIRD_PARTY : ClientScanType.SONATYPE;
           result = policyEvaluateService.evaluateSynchronousNoAuth(application, clientScanType,
@@ -230,7 +232,7 @@ public class SourceControlScanService
     }
   }
 
-  private ScanResult scan(Application application, String commitHash) throws IOException {
+  private ScanResult scan(Application application, List<String> scanTargets, String commitHash) throws IOException {
     File repositoryDirectory = sourceControlUtils.getCheckoutDirectory(application);
     ProprietaryConfig proprietaryConfig = proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION,
         application.getPublicId());
@@ -239,9 +241,18 @@ public class SourceControlScanService
     scanConfiguration.setProperty("dirExcludes", "**/src/test");
 
     ScanMetadata scanMetadata = new ScanMetadata().withCommitHash(commitHash);
+    List<File> absoluteScanTargets = new ArrayList<>();
+    if (scanTargets == null || scanTargets.isEmpty()) {
+      absoluteScanTargets.add(repositoryDirectory);
+    }
+    else {
+      for (String scanTarget : scanTargets) {
+        absoluteScanTargets.add(new File(repositoryDirectory, scanTarget));
+      }
+    }
 
-    return scanner.scan(repositoryDirectory, null, work.getScanDir(application.getId()), proprietaryConfig,
-        scanConfiguration, scanMetadata);
+    return scanner.scan(absoluteScanTargets, work.getScanDir(application.getId()), proprietaryConfig, scanConfiguration,
+        scanMetadata);
   }
 
   private void evaluate(SourceControlEvent event, Application application, ScanResult scanResult) {

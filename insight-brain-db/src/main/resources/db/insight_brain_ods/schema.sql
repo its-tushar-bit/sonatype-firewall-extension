@@ -799,6 +799,7 @@ CREATE TABLE source_control_event (
   component_id_format varchar(50),
   component_id_coordinates_json varchar(1000),
   branch_name varchar(512),
+  scan_targets_json text NULL, -- list of scan targets stored in json format
   base_branch_name varchar(512),
   remediation_version varchar(100),
   pull_request_contents text,

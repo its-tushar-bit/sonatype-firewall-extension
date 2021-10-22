@@ -31,11 +31,12 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static com.sonatype.insight.license.model.LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK;
-import static java.nio.charset.StandardCharsets.*;
-import static org.apache.commons.io.FileUtils.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ScannerTest extends InjectedTest
 {
@@ -149,7 +150,8 @@ public class ScannerTest extends InjectedTest
     ScanMetadata scanMetadata = new ScanMetadata().withCommitHash("commit-xyz");
 
     // when: perform the scan
-    ScanResult scanResult = scanner.scan(scanDir, null, tempDir.getRoot(), proprietaryConfig, null, scanMetadata);
+    ScanResult scanResult =
+        scanner.scan(Collections.singletonList(scanDir), tempDir.getRoot(), proprietaryConfig, null, scanMetadata);
 
     // then: scan contains expected results
     assertThat(scanResult.getScanFile()).isFile();
@@ -188,7 +190,8 @@ public class ScannerTest extends InjectedTest
     scanConfiguration.setProperty("dirExcludes", "**/src/test");
 
     // when: perform the scan
-    ScanResult scanResult = scanner.scan(scanDir, null, tempDir.getRoot(), null /* proprietaryConfig */,
+    ScanResult scanResult = scanner.scan(Collections.singletonList(scanDir), tempDir.getRoot(),
+        null /* proprietaryConfig */,
         scanConfiguration, null /* scanMetadata */);
 
     // then: scan contains expected results
@@ -206,7 +209,7 @@ public class ScannerTest extends InjectedTest
     when(featuresService.getFeatures()).thenReturn(ImmutableSet.of(INFRASTRUCTURE_AS_CODE_PACK));
     File terraformFile = new File("src/test/resources/ScannerTest/sample-terraform.tfplan");
 
-    ScanResult scanResult = scanner.scan(terraformFile, "sample-terraform.tfplan", tempDir.getRoot(), null, null, null);
+    ScanResult scanResult = scanner.scan(terraformFile, "sample-terraform.tfplan", tempDir.getRoot(), null);
 
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan.getItems()).hasSize(1);
@@ -221,7 +224,7 @@ public class ScannerTest extends InjectedTest
     when(featuresService.getFeatures()).thenReturn(ImmutableSet.of());
     File terraformFile = new File("src/test/resources/ScannerTest/sample-terraform.tfplan");
 
-    ScanResult scanResult = scanner.scan(terraformFile, "sample-terraform.tfplan", tempDir.getRoot(), null, null, null);
+    ScanResult scanResult = scanner.scan(terraformFile, "sample-terraform.tfplan", tempDir.getRoot(), null);
 
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan.getItems()).hasSize(1);
@@ -238,7 +241,7 @@ public class ScannerTest extends InjectedTest
     // This is a zip I created with macOS archive utility that includes the unwanted __MACOS folder in the archive
     File terraformFile = new File("src/test/resources/ScannerTest/aws.large.tfplan.zip");
 
-    ScanResult scanResult = scanner.scan(terraformFile, "aws.large.tfplan.zip", tempDir.getRoot(), null, null, null);
+    ScanResult scanResult = scanner.scan(terraformFile, "aws.large.tfplan.zip", tempDir.getRoot(), null);
 
     Scan scan = scanReader.read(scanResult.getScanFile());
     //noinspection unchecked

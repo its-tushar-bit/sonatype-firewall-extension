@@ -14,6 +14,8 @@ import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
@@ -31,8 +33,10 @@ public class QuarantinedComponentResourceTest
     // setup
     getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
         ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
+    final Repository repository = tempEntity.newRepository("repo");
+    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess("componentId");
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
@@ -45,7 +49,7 @@ public class QuarantinedComponentResourceTest
     QuarantinedComponentDto quarantinedComponentDto = response.getBody(QuarantinedComponentDto.class);
     assertThat(quarantinedComponentDto).isNotNull();
     assertThat(quarantinedComponentDto.success).isTrue();
-    assertThat(quarantinedComponentDto.repositoryComponentId).isEqualTo("componentId");
+    assertThat(quarantinedComponentDto.repositoryComponentId).isEqualTo(repositoryComponent.getId());
   }
 
   @Test
@@ -78,10 +82,13 @@ public class QuarantinedComponentResourceTest
   @Test
   public void testGetQuarantinedComponent_expiredToken() throws Exception {
     // setup
+    final Repository repository = tempEntity.newRepository("repo");
+    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
         ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess("componentId", DateUtils.addDays(new Date(), -3));
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(),
+            DateUtils.addDays(new Date(), -3));
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 

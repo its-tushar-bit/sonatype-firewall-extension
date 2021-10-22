@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.repository.component;
 
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+
 public interface QuarantinedComponentAccessManager
 {
-  String createToken(final String repositoryComponentId);
+  String createToken(final RepositoryComponent repositoryComponent);
 
   String getRepositoryComponentIdFromToken(final String token);
 }

@@ -13,6 +13,8 @@ import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -51,11 +53,15 @@ public class QuarantinedComponentAccessPurgerTest
 
   @Test
   public void testPurgeObsoleteRecords() {
+    // Setup
+    final Repository repository = tempEntity.newRepository("repo");
+    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+
     for (int i = 0; i < 201; i++) {
-      tempEntity.newQuarantinedComponentAccess("compId" + i, daysAgo(63));
+      tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), daysAgo(63));
     }
     for (int i = 0; i < 10; i++) {
-      tempEntity.newQuarantinedComponentAccess("compId" + i);
+      tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
     }
     quarantinedComponentAccessPurger.purgeObsoleteRecords();
     assertThat(quarantinedComponentAccessDAO.getAll()).hasSize(10);

@@ -2135,6 +2135,7 @@ public class TemporaryEntity
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), matchState.getId(),
         IdentificationSource.SONATYPE.getId(), new Date());
     repositoryComponentDAO.insert(repositoryComponent);
+
     return repositoryComponent;
   }
 
@@ -3160,16 +3161,20 @@ public class TemporaryEntity
     return template;
   }
 
-  public QuarantinedComponentAccess newQuarantinedComponentAccess(final String repositoryComponentId) {
-    return newQuarantinedComponentAccess(repositoryComponentId, new Date());
+  public QuarantinedComponentAccess newQuarantinedComponentAccess(
+      final String repositoryId,
+      final String repositoryComponentId)
+  {
+    return newQuarantinedComponentAccess(repositoryId, repositoryComponentId, new Date());
   }
 
   public QuarantinedComponentAccess newQuarantinedComponentAccess(
+      final String repositoryId,
       final String repositoryComponentId,
       final Date generateDate)
   {
     QuarantinedComponentAccess quarantinedComponentAccess =
-        new QuarantinedComponentAccess(repositoryComponentId, generateDate);
+        new QuarantinedComponentAccess(repositoryId, repositoryComponentId, generateDate);
     quarantinedComponentAccesses.add(quarantinedComponentAccess);
     quarantinedComponentAccessDAO.insert(quarantinedComponentAccess);
     return quarantinedComponentAccess;

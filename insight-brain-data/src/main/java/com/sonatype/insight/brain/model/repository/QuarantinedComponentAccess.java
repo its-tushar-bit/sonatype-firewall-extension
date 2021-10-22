@@ -23,6 +23,9 @@ public class QuarantinedComponentAccess
   @Column(name = "quarantined_component_access_id")
   private String id;
 
+  @Column(name = "repository_id")
+  private String repositoryId;
+
   @Column(name = "repository_component_id")
   private String repositoryComponentId;
 
@@ -33,9 +36,11 @@ public class QuarantinedComponentAccess
   }
 
   public QuarantinedComponentAccess(
+      final String repositoryId,
       final String repositoryComponentId,
       final Date generateTime)
   {
+    this.repositoryId = repositoryId;
     this.generateTime = generateTime;
     this.repositoryComponentId = repositoryComponentId;
   }
@@ -48,6 +53,14 @@ public class QuarantinedComponentAccess
   @Override
   public void setId(String id) {
     this.id = id;
+  }
+
+  public String getRepositoryId() {
+    return repositoryId;
+  }
+
+  public void setRepositoryId(final String repositoryId) {
+    this.repositoryId = repositoryId;
   }
 
   public String getRepositoryComponentId() {

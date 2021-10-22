@@ -63,6 +63,8 @@ public class RepositoryComponentDAOTest
 
   private RepositoryComponentDAO dao = new RepositoryComponentDAO();
 
+  private QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = new QuarantinedComponentAccessDAO();
+
   private Repository repositoryTwo;
 
   @Before
@@ -105,11 +107,13 @@ public class RepositoryComponentDAOTest
         analyzerFeatures);
 
     // Delete
+    tempEntity.newQuarantinedComponentAccess(repositoryComponent.getRepositoryId(), repositoryComponent.getId());
     dao.delete(repositoryComponent);
 
     // Get
     repositoryComponent = dao.getById(repositoryComponent.getId());
     assertThat(repositoryComponent).isNull();
+    assertThat(quarantinedComponentAccessDAO.getAll()).isEmpty();
   }
 
   @Test
@@ -211,6 +215,8 @@ public class RepositoryComponentDAOTest
     RepositoryComponent repositoryComponent2 =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
+    tempEntity.newQuarantinedComponentAccess(repositoryComponent1.getRepositoryId(), repositoryComponent1.getId());
+    tempEntity.newQuarantinedComponentAccess(repositoryComponent2.getRepositoryId(), repositoryComponent2.getId());
     ClusterLock.createForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()).close();
     ClusterLock.createForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()).close();
     assertThat(ClusterLock.lockExists(ClusterLock
@@ -225,6 +231,7 @@ public class RepositoryComponentDAOTest
     assertThat(ClusterLock.lockExists(ClusterLock
         .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isFalse();
     assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
+    assertThat(quarantinedComponentAccessDAO.getAll()).isEmpty();
   }
 
   @Test
@@ -243,6 +250,8 @@ public class RepositoryComponentDAOTest
       RepositoryComponent repositoryComponent2 =
           tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
       tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, null);
+      tempEntity.newQuarantinedComponentAccess(repositoryComponent1.getRepositoryId(), repositoryComponent1.getId());
+      tempEntity.newQuarantinedComponentAccess(repositoryComponent2.getRepositoryId(), repositoryComponent2.getId());
       assertThat(dao.getByRepositoryId(repository.getId())).hasSize(3);
       ClusterLock.createForRepositoryComponent(repository.getId(), repositoryComponent1.getPathname()).close();
       ClusterLock.createForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()).close();
@@ -262,6 +271,7 @@ public class RepositoryComponentDAOTest
       assertThat(ClusterLock.lockExists(ClusterLock
           .getLockIdForRepositoryComponent(repository.getId(), repositoryComponent2.getPathname()))).isFalse();
       assertThat(dao.getByRepositoryId(repository.getId())).isEmpty();
+      assertThat(quarantinedComponentAccessDAO.getAll()).isEmpty();
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();

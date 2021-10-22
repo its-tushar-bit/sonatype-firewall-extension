@@ -97,7 +97,7 @@ public class SecurityModule
         anonFilters + ", noSessionCreation, " +
             "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
             "authcBasic[permissive]");
-    manager.createChain("/rest/repositories/quarantinedComponent/*",
+    manager.createChain("/rest/repositories/quarantinedComponent/**",
         anonFilters + ", noSessionCreation, " +
             "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
             "authcBasic[permissive]");

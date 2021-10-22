@@ -9,6 +9,9 @@ import java.util.Date;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.lang.time.DateUtils;
 import org.junit.Test;
@@ -22,20 +25,25 @@ public class QuarantinedComponentAccessDAOTest
 
   @Test
   public void testCRUD() throws Exception {
-    // Create
+    // Setup
     Date date = new Date();
+    final Repository repository = tempEntity.newRepository("repo");
+    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    final RepositoryComponent repositoryComponent2 = tempEntity.newRepositoryComponent(repository.getId(), "path2");
+
+    // Create
     QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess("repoComponentId", date);
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
     String id = quarantinedComponentAccess.getId();
     quarantinedComponentAccess = dao.getById(id);
-    assertThat(quarantinedComponentAccess.getRepositoryComponentId()).isEqualTo("repoComponentId");
+    assertThat(quarantinedComponentAccess.getRepositoryComponentId()).isEqualTo(repositoryComponent.getId());
     assertThat(quarantinedComponentAccess.getGenerateTime()).isEqualTo(date);
 
     // Update
-    quarantinedComponentAccess.setRepositoryComponentId("repoComponentId2");
+    quarantinedComponentAccess.setRepositoryComponentId(repositoryComponent2.getId());
     dao.update(quarantinedComponentAccess);
     quarantinedComponentAccess = dao.getById(id);
-    assertThat(quarantinedComponentAccess.getRepositoryComponentId()).isEqualTo("repoComponentId2");
+    assertThat(quarantinedComponentAccess.getRepositoryComponentId()).isEqualTo(repositoryComponent2.getId());
 
     // Delete
     dao.delete(quarantinedComponentAccess);
@@ -45,16 +53,68 @@ public class QuarantinedComponentAccessDAOTest
 
   @Test
   public void testDeleteAllBeforeDate() {
+    // Setup
+    final Repository repository = tempEntity.newRepository("repo");
+    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final Date cutoffDate = DateUtils.addDays(new Date(), -2);
 
     for (int i = 0; i < 201; i++) {
-      tempEntity.newQuarantinedComponentAccess("beforeComp" + i, DateUtils.addDays(cutoffDate, -1));
+      tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(),
+          DateUtils.addDays(cutoffDate, -1));
     }
     for (int i = 0; i < 10; i++) {
-      tempEntity.newQuarantinedComponentAccess("afterComp" + i);
+      tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
     }
 
     dao.deleteAllBeforeDate(cutoffDate);
+    assertThat(dao.getAll()).hasSize(10);
+  }
+
+  @Test
+  public void testDeleteByRepositoryId() {
+    // Setup
+    final Repository repository = tempEntity.newRepository("repo");
+    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    final RepositoryComponent repositoryComponent2 = tempEntity.newRepositoryComponent(this.repository.getId());
+
+    for (int i = 0; i < 10; i++) {
+      tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+    }
+    for (int i = 0; i < 10; i++) {
+      tempEntity.newQuarantinedComponentAccess(this.repository.getId(), repositoryComponent2.getId());
+    }
+
+    assertThat(dao.getAll()).hasSize(20);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByRepositoryId(tx, repository.getId());
+      tx.commit();
+    }
+    assertThat(dao.getAll()).hasSize(10);
+  }
+
+  @Test
+  public void testDeleteByRepositoryComponentId() {
+    // Setup
+    final Repository repository = tempEntity.newRepository("repo");
+    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    final RepositoryComponent repositoryComponent2 = tempEntity.newRepositoryComponent(repository.getId(), "path2");
+
+    for (int i = 0; i < 10; i++) {
+      tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+    }
+    for (int i = 0; i < 10; i++) {
+      tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent2.getId());
+    }
+
+    assertThat(dao.getAll()).hasSize(20);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByRepositoryComponentId(tx, repositoryComponent.getId());
+      tx.commit();
+    }
     assertThat(dao.getAll()).hasSize(10);
   }
 }

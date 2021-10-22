@@ -1068,6 +1068,11 @@ CREATE TABLE attribution_report_template (
 -- Since 1.125
 CREATE TABLE quarantined_component_access (
   quarantined_component_access_id varchar(50) NOT NULL PRIMARY KEY,
+  repository_id varchar(50) NOT NULL,
   repository_component_id varchar(50) NOT NULL,
-  generate_time timestamp NOT NULL
+  generate_time timestamp NOT NULL,
+  CONSTRAINT quarantined_component_access_repository_fk FOREIGN KEY (repository_id) REFERENCES repository (repository_id),
+  CONSTRAINT quarantined_component_access_repository_component_fk FOREIGN KEY (repository_component_id) REFERENCES repository_component (repository_component_id)
 );
+CREATE INDEX quarantined_component_access_repository_id_idx ON quarantined_component_access(repository_id);
+CREATE INDEX quarantined_component_access_repository_component_id_idx ON quarantined_component_access(repository_component_id);

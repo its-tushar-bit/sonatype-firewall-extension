@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.integration.repository;
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
@@ -22,6 +21,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public abstract class AbstractRepositoryServiceAuthzTest
@@ -248,8 +248,8 @@ public abstract class AbstractRepositoryServiceAuthzTest
     //setup
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
-    when(quarantinedComponentAccessManager.createToken(repositoryComponent.getId())).thenReturn("token");
+    tempEntity.newRepositoryComponent(repository.getId());
+    when(quarantinedComponentAccessManager.createToken(any())).thenReturn("token");
 
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     getRepositoryService()

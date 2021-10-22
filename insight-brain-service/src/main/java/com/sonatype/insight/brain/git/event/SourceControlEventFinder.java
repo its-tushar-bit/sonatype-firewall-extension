@@ -27,7 +27,7 @@ public class SourceControlEventFinder
     this.sourceControlEventDAO = sourceControlEventDAO;
   }
 
-  public Map<String, SourceControlEvent> getPendingOrInProgressManifestEvaluationEvents() {
+  public Map<String, SourceControlEvent> getPendingOrInProgressSourceControlEvaluationEvents() {
     Map<String, SourceControlEvent> applicationEventMap = new HashMap<>();
     List<SourceControlEvent> events = sourceControlEventDAO.getPendingOrInProgressSourceControlEvaluationEvents();
     events.forEach(event -> applicationEventMap.put(event.getApplicationId(), event));

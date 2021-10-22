@@ -244,8 +244,8 @@ public class SourceControlEventServiceTest
   }
 
   @Test
-  public void testProcessEvents_onManifestScanEvent() throws Exception {
-    // given: an event DAO setup to return a source control scan event
+  public void testProcessEvents_onSourceControlEvaluationEvent() throws Exception {
+    // given: an event DAO setup to return a source control evaluation event
     List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
     when(mockSourceControlEventDAO
         .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
@@ -256,11 +256,11 @@ public class SourceControlEventServiceTest
     // when: process the events
     eventService.processEvents();
 
-    // then: source control scan invoked for the given event
+    // then: source control evaluation invoked for the given event
     verifyUnlatched(eventsProcessedLatch);
     verifyProcessEventsActions(events.get(0),
         EventProcessAction.markedInProgress,
-        EventProcessAction.onManifestScan,
+        EventProcessAction.onSourceControlEvaluation,
         EventProcessAction.markedComplete);
 
     assertThatLogMessagesEqual(
@@ -787,7 +787,7 @@ public class SourceControlEventServiceTest
   private enum EventProcessAction
   {
     noPropagation, markedInProgress, markedComplete, markedHasError, onAppEval, onPrDiscovered, onPrUpdated, //
-    markedPartiallyComplete, onComponentRemediation, onManifestScan, onStatusUpdate, onRepositoryUrlUpdated
+    markedPartiallyComplete, onComponentRemediation, onSourceControlEvaluation, onStatusUpdate, onRepositoryUrlUpdated
   }
 
   private void verifyProcessEventsActions(SourceControlEvent event, EventProcessAction... conditions)
@@ -880,7 +880,7 @@ public class SourceControlEventServiceTest
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
       verify(mockSourceControlService, never()).onRepositoryUrlUpdated(eq(event));
     }
-    else if (actionSet.contains(EventProcessAction.onManifestScan)) {
+    else if (actionSet.contains(EventProcessAction.onSourceControlEvaluation)) {
       verify(mockSourceControlScanService, times(1)).onSourceControlScan(eq(event));
       verifyNoMoreInteractions(mockPullRequestCommentingEventHandler, mockPullRequestRemediationService,
           mockGitCommitStatusService, mockSourceControlService);

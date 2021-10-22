@@ -18,8 +18,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
@@ -152,18 +152,47 @@ public class ApiEvaluationResourceV2AuditTest
   }
 
   @Test
-  public void testDoManifestEvaluation() throws Exception {
-    assertResponseStatus(200, doManifestEvaluation(null /* user */, app.getId(), Stage.ID_DEVELOP));
-    assertManifestEvaluationAuditLog(null, app.getId(), app.getPublicId(), app.getName());
+  public void testDeprecatedManifestEvaluation() throws Exception {
+    assertResponseStatus(200, doDeprecatedManifestEvaluation(null /* user */, app.getId(), Stage.ID_DEVELOP));
+    assertSourceControlEvaluationAuditLog(null, app.getId(), app.getPublicId(), app.getName());
   }
 
   @Test
-  public void testDoManifestEvaluation_Unauthorized() throws Exception {
-    assertResponseStatus(403, doManifestEvaluation(unauthorizedUser(), app.getId(), Stage.ID_DEVELOP));
-    assertManifestEvaluationAuditLog("unauthorized", app.getId(), app.getPublicId(), app.getName());
+  public void testDeprecatedManifestEvaluation_Unauthorized() throws Exception {
+    assertResponseStatus(403, doDeprecatedManifestEvaluation(unauthorizedUser(), app.getId(), Stage.ID_DEVELOP));
+    assertSourceControlEvaluationAuditLog("unauthorized", app.getId(), app.getPublicId(), app.getName());
   }
 
-  private HttpResponse doManifestEvaluation(
+  @SuppressWarnings("deprecation")
+  private HttpResponse doDeprecatedManifestEvaluation(
+      Consumer<HttpRequest> user,
+      String applicationId,
+      String stageId) throws Exception
+  {
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+    PasswordHandler pwHandler = getCLMServer().getInstance(PasswordHandler.class);
+    tempEntity.newSourceControl(app.getId(), "http://example.com/my/repo.git", null,
+        new String(pwHandler.encryptPassword("TOKEN".toCharArray())), null, null, true, "TestBaseBranchName", null);
+
+    return restRequest().with(user)
+        .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2,
+            DefaultApiEvaluationResourceV2.DEPRECATED_MANIFEST_EVALUATION_PATH)
+        .parameter(applicationId).body(new ApiSourceControlEvaluationRequestDTO(stageId, "TestBranchName")).post();
+  }
+
+  @Test
+  public void testEvaluateSourceControl() throws Exception {
+    assertResponseStatus(200, evaluateSourceControl(null /* user */, app.getId(), Stage.ID_DEVELOP));
+    assertSourceControlEvaluationAuditLog(null, app.getId(), app.getPublicId(), app.getName());
+  }
+
+  @Test
+  public void testEvaluateSourceControl_Unauthorized() throws Exception {
+    assertResponseStatus(403, evaluateSourceControl(unauthorizedUser(), app.getId(), Stage.ID_DEVELOP));
+    assertSourceControlEvaluationAuditLog("unauthorized", app.getId(), app.getPublicId(), app.getName());
+  }
+
+  private HttpResponse evaluateSourceControl(
       Consumer<HttpRequest> user,
       String applicationId,
       String stageId) throws Exception
@@ -215,7 +244,7 @@ public class ApiEvaluationResourceV2AuditTest
     return request;
   }
 
-  private void assertManifestEvaluationAuditLog(
+  private void assertSourceControlEvaluationAuditLog(
       String error,
       String applicationId,
       String applicationPublicId,

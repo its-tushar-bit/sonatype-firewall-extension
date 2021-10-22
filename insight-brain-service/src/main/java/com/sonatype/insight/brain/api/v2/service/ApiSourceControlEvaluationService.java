@@ -61,7 +61,7 @@ public class ApiSourceControlEvaluationService
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public ApiApplicationEvaluationStatusDTOV2 doSourceControlEvaluation(
+  public ApiApplicationEvaluationStatusDTOV2 evaluateSourceControl(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
       ApiSourceControlEvaluationRequestDTO sourceControlEvaluationRequest,
       final String userAgent)
@@ -79,7 +79,7 @@ public class ApiSourceControlEvaluationService
     Application application = applicationDAO.getByIdNotNull(applicationId);
     String statusId = UUID.randomUUID().toString().replace("-", "");
     log.debug(
-        "Received request to do source control evaluation for application {}, stage {} and branch {}."
+        "Received request to evaluate source control for application {}, stage {} and branch {}."
             + " The status ID of the operation is {}.",
         application.getName(), sourceControlEvaluationRequest.stageId, sourceControlEvaluationRequest.branchName,
         statusId);

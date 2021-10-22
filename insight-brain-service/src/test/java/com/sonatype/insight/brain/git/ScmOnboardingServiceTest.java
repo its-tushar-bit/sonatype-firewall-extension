@@ -166,7 +166,7 @@ public class ScmOnboardingServiceTest
     assertThat(repositories.availableRepositories.size()).isEqualTo(13);
 
     // and: no source control evaluation events
-    verifyNoManifestEvaluationEventsCreated();
+    verifyNoSourceControlEvaluationEventsCreated();
   }
 
   @Test
@@ -186,7 +186,7 @@ public class ScmOnboardingServiceTest
     }).withMessageContaining("'token' must not be null");
 
     // and: no source control evaluation events
-    verifyNoManifestEvaluationEventsCreated();
+    verifyNoSourceControlEvaluationEventsCreated();
   }
 
   @Test
@@ -200,7 +200,7 @@ public class ScmOnboardingServiceTest
     assertThat(repositories.totalRepositories).isEqualTo(13);
 
     // and: no source control evaluation events
-    verifyNoManifestEvaluationEventsCreated();
+    verifyNoSourceControlEvaluationEventsCreated();
   }
 
   @Test
@@ -235,7 +235,7 @@ public class ScmOnboardingServiceTest
     assertThat(repositories.totalRepositories).isEqualTo(13);
 
     // and: no source control evaluation events
-    verifyNoManifestEvaluationEventsCreated();
+    verifyNoSourceControlEvaluationEventsCreated();
   }
 
   @Test
@@ -262,7 +262,7 @@ public class ScmOnboardingServiceTest
             .isFalse();
 
     // and: no source control evaluation events
-    verifyNoManifestEvaluationEventsCreated();
+    verifyNoSourceControlEvaluationEventsCreated();
   }
 
   @Test
@@ -286,7 +286,7 @@ public class ScmOnboardingServiceTest
         .isEqualTo("https://localhost/sonatype-nexus-community/nexus-repository-p2");
 
     // and: no source control evaluation events
-    verifyNoManifestEvaluationEventsCreated();
+    verifyNoSourceControlEvaluationEventsCreated();
   }
 
   @Test
@@ -314,7 +314,7 @@ public class ScmOnboardingServiceTest
     }).withMessageContaining("Cannot find organization with ID organizationThatDoesntExist.");
 
     // and: no source control evaluation events
-    verifyNoManifestEvaluationEventsCreated();
+    verifyNoSourceControlEvaluationEventsCreated();
   }
 
   private String getResourceAsString(String filename) throws IOException {
@@ -542,7 +542,7 @@ public class ScmOnboardingServiceTest
         "git@localhost:org/repo2.git", "git@localhost:org/repo3.git", "git@localhost:org/repo4.git");
 
     // and: source control evaluation request events were created
-    verifyManifestEvaluationEventsCreated(imported.size());
+    verifySourceControlEvaluationEventsCreated(imported.size());
 
     // and the telemetry was sent properly
     int batchPercent = 8;
@@ -664,7 +664,7 @@ public class ScmOnboardingServiceTest
         .containsExactlyInAnyOrder("repo1__org_2");
 
     // and: a source control evaluation event was created
-    verifyManifestEvaluationEventsCreated(1);
+    verifySourceControlEvaluationEventsCreated(1);
 
     // and the telemetry was sent properly indicating no items were imported
     int batchPercent = reposToImport.length * 2;
@@ -693,7 +693,7 @@ public class ScmOnboardingServiceTest
         new ImportRepositoriesRequest(Arrays.asList(reposToImport), 50, 8));
 
     // then no source control evaluation event was created
-    verifyNoManifestEvaluationEventsCreated();
+    verifyNoSourceControlEvaluationEventsCreated();
   }
 
   @Test
@@ -743,7 +743,7 @@ public class ScmOnboardingServiceTest
         .containsExactlyInAnyOrder("repo1__org");
 
     // and: a source control evaluation event was created for each imported repository
-    verifyManifestEvaluationEventsCreated(imported.size());
+    verifySourceControlEvaluationEventsCreated(imported.size());
 
     // and the telemetry was sent properly indicating no items were imported
     int batchPercent = reposToImport.length * 2;
@@ -954,7 +954,7 @@ public class ScmOnboardingServiceTest
         .map(SourceControl::getRepositoryUrl)).containsExactly("http://localhost/org/repo");
 
     // and source control evaluation request events were not created
-    verifyNoManifestEvaluationEventsCreated();
+    verifyNoSourceControlEvaluationEventsCreated();
 
     // and the telemetry was sent properly
     int batchPercent = 10;
@@ -963,11 +963,11 @@ public class ScmOnboardingServiceTest
     assertTelemetry(batchPercent, batchCount, totalPercent, batchCount);
   }
 
-  private void verifyNoManifestEvaluationEventsCreated() {
-    verifyManifestEvaluationEventsCreated(0);
+  private void verifyNoSourceControlEvaluationEventsCreated() {
+    verifySourceControlEvaluationEventsCreated(0);
   }
 
-  private void verifyManifestEvaluationEventsCreated(int count) {
+  private void verifySourceControlEvaluationEventsCreated(int count) {
     if (count > 0) {
       ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
       verify(mockSourceControlEventPublisher, times(count)).publishEvent(eventCaptor.capture());

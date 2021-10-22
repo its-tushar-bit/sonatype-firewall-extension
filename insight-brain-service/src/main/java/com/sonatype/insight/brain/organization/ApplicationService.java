@@ -331,7 +331,7 @@ public class ApplicationService
       List<ApplicationManagementSummaryDTO> applicationManagementSummaries)
   {
     Map<String, SourceControlEvent> applicationEventMap =
-        sourceControlEventFinder.getPendingOrInProgressManifestEvaluationEvents();
+        sourceControlEventFinder.getPendingOrInProgressSourceControlEvaluationEvents();
     for (ApplicationManagementSummaryDTO summaryDTO : applicationManagementSummaries) {
       summaryDTO.setHasPendingSourceControlPolicyEvaluation(applicationEventMap.containsKey(summaryDTO.getId()));
     }

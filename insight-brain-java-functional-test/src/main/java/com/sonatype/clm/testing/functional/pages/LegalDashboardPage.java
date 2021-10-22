@@ -37,4 +37,8 @@ public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
   public ElementsCollection componentItems() {
     return children(".nx-table-row.nx-clickable");
   }
+
+  public ElementsCollection pageButtons() {
+    return children(".nx-btn--pagination");
+  }
 }

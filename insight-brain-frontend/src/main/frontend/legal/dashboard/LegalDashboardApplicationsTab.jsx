@@ -28,7 +28,7 @@ export default function LegalDashboardApplicationsTab({
   changeSortField,
   stateGo,
 }) {
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(applications.backendPage - 1 || 0);
   const { itemsPerPage, pagesToFill } = DASHBOARD.applications;
   const previousResultsBackend = (applications.backendPage - 1) * pagesToFill * itemsPerPage;
   const rows = slice(

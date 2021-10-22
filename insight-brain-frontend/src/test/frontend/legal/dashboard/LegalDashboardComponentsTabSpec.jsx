@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxTable } from '@sonatype/react-shared-components';
+import { NxTable, NxPagination } from '@sonatype/react-shared-components';
 import LegalDashboardComponentsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardComponentsTab';
 import LegalDashboardComponentRow from '../../../../main/frontend/legal/dashboard/LegalDashboardComponentRow';
 import { DASHBOARD } from '../../../../main/frontend/legal/advancedLegalConstants';
@@ -122,7 +122,7 @@ describe('LegalDashboardComponentsTab component', function () {
     expect(table).toHaveClassName('legal-dashboard-table');
   });
 
-  it('renders LegalDashboardComponentRow components for each application passed in', function () {
+  it('renders LegalDashboardComponentRow components for each component passed in', function () {
     const wrapper = getShallowComponent();
     let table = wrapper.find(NxTable);
     let rows = table.find(LegalDashboardComponentRow);
@@ -146,5 +146,48 @@ describe('LegalDashboardComponentsTab component', function () {
     expect(wrapper.find('.nx-cell--meta-info').text()).toEqual(
       'No components found given the applied filters and permissions.'
     );
+  });
+
+  it('paginates locally without calling backend until reaching end of pages loaded', function () {
+    const { itemsPerPage, pagesToFill } = DASHBOARD.components;
+    const items = [];
+    for (let index = 0; index < itemsPerPage * pagesToFill; index++) {
+      items.push({
+        applicationId: `app${index}`,
+        applicationName: `app${index}`,
+        lastScanTime: 1000,
+        applicationTagNames: ['tag'],
+        componentsReviewedCount: 1,
+        componentsTotalCount: 2,
+      });
+    }
+
+    const appProps = {
+      components: {
+        results: items,
+        totalResultsCount: items.length * 3,
+        backendPage: 1,
+      },
+      fetchBackendPage: () => {},
+    };
+
+    spyOn(appProps, 'fetchBackendPage');
+
+    const wrapper = enzymeUtils.getShallowComponent(LegalDashboardComponentsTab, appProps)();
+    let pagination = wrapper.find(NxPagination);
+    expect(pagination).toExist();
+
+    const onChangePage = pagination.prop('onChange');
+    for (let index = 0; index < pagesToFill; index++) {
+      onChangePage(index);
+    }
+
+    expect(appProps.fetchBackendPage).not.toHaveBeenCalled();
+
+    onChangePage(pagesToFill);
+    expect(appProps.fetchBackendPage).toHaveBeenCalledWith('components', 2);
+
+    onChangePage(pagesToFill * 2);
+    expect(appProps.fetchBackendPage).toHaveBeenCalledWith('components', 3);
   });
 });

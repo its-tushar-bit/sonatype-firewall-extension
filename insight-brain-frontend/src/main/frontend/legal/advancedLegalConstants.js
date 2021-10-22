@@ -38,7 +38,7 @@ export const DASHBOARD = {
   },
   components: {
     itemsPerPage: 10,
-    pagesToFill: 1,
+    pagesToFill: 5,
   },
 };
 

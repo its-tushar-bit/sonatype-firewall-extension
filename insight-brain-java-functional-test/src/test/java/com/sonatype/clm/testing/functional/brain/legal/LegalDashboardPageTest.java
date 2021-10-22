@@ -61,21 +61,18 @@ public class LegalDashboardPageTest
   public void start() {
     app = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName(), "app", "org");
 
-    addComponentAndLicenses("org.package", "component1", "1.0", "hash1", "Apache-2.0");
-    addComponentAndLicenses("org.package", "component2", "2.0", "hash2", "BSD-3-Clause");
-    addComponentAndLicenses("com.package", "component1", "3.0", "hash3", "BSD-2-Clause");
-    tempEntity.newComponentObligation(ComponentIdentifier.createMavenCoordinates("org.package", "component1", "1.0"),
-            app.getId(), "Inclusion of Notice", "comment", ObligationStatus.FULFILLED, "hash1");
-    tempEntity.newComponentObligation(ComponentIdentifier.createMavenCoordinates("org.package", "component2", "2.0"),
-            app.getId(), "Inclusion of Notice", "comment", ObligationStatus.FULFILLED, "hash2");
-    tempEntity.newComponentObligation(ComponentIdentifier.createMavenCoordinates("com.package", "component1", "3.0"),
-            app.getId(), "Inclusion of Notice", "comment", ObligationStatus.FLAGGED, "hash3");
+    for (int i = 1; i < 12; i++) {
+      addComponentAndLicenses("org.package", "component" + i, i + ".0", "hash" + i, "Apache-2.0");
+      tempEntity.newComponentObligation(ComponentIdentifier
+                      .createMavenCoordinates("org.package", "component" + i, i + ".0"),
+              app.getId(), "Inclusion of Notice", "comment", ObligationStatus.FULFILLED, "hash" + i);
+    }
   }
 
   private Wait<WebDriver> getWebDriverAwait() {
     return new FluentWait<>(getWebDriver())
             .withTimeout(Duration.ofSeconds(240))
-            .pollingEvery(Duration.ofSeconds(5))
+            .pollingEvery(Duration.ofSeconds(2))
             .ignoring(NoSuchElementException.class);
   }
 
@@ -87,27 +84,45 @@ public class LegalDashboardPageTest
     ldp.componentsTab().shouldHave(Condition.cssClass("active"));
   }
 
-  @Test
-  public void testDisplayedComponents() {
+  private void changeToComponentsTab(LegalDashboardPage ldp) {
     refreshOrOpen(LegalDashboardPage.url(true));
-    LegalDashboardPage ldp = new LegalDashboardPage();
     ldp.componentsTab().click();
     ldp.componentsTab().shouldHave(Condition.cssClass("active"));
     Wait<WebDriver> wait = getWebDriverAwait();
     wait.until(ExpectedConditions.visibilityOf(ldp.componentItems().get(0)));
-    ldp.componentItems().shouldHaveSize(3);
+  }
+
+  @Test
+  public void testDisplayedComponents() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.componentItems().shouldHaveSize(10);
   }
 
   @Test
   public void testComponentsLinks() {
     refreshOrOpen(LegalDashboardPage.url(true));
     LegalDashboardPage ldp = new LegalDashboardPage();
-    ldp.componentsTab().click();
-    ldp.componentsTab().shouldHave(Condition.cssClass("active"));
-    Wait<WebDriver> wait = getWebDriverAwait();
-    wait.until(ExpectedConditions.visibilityOf(ldp.componentItems().get(0)));
-    ldp.componentItems().shouldHaveSize(3);
+    this.changeToComponentsTab(ldp);
+    ldp.componentItems().shouldHaveSize(10);
     ldp.componentItems().get(0).click();
-    waitUntilUrl(BaseUrl.resolvePageUrl("/legal/component/hash3"));
+    waitUntilUrl(BaseUrl.resolvePageUrl("/legal/component/hash1"));
+  }
+
+  @Test public void testPaginationIsPresent() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.pageButtons().shouldHaveSize(2);
+  }
+
+  @Test public void testPaginationNextPage() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.pageButtons().get(1).should(Condition.exist);
+    ldp.pageButtons().get(1).click();
+    ldp.componentItems().shouldHaveSize(1);
   }
 }

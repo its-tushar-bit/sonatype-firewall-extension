@@ -323,7 +323,17 @@ describe('componentDetailsSelectors', () => {
 
   describe('selectApplicableLabels', () => {
     it('returns state applicableLabels', () => {
-      expect(selectApplicableLabels(mockState)).toEqual([]);
+      expect(
+        selectApplicableLabels({
+          ...mockState,
+          componentDetails: {
+            applicableLabels: [{ label: 'Test z' }, { label: 'Test f' }, { label: 'Test a' }],
+            labels: [],
+            loadError: false,
+            pendingLoads: new Set(),
+          },
+        })
+      ).toEqual([{ label: 'Test z' }, { label: 'Test f' }, { label: 'Test a' }]);
     });
   });
 

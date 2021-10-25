@@ -5,7 +5,7 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { curryN, reduce } from 'ramda';
+import { curryN, reduce, prop, sortWith, ascend } from 'ramda';
 import { enableMapSet } from 'immer';
 
 import { stateGo } from '../reduxUiRouter/routerActions';
@@ -127,9 +127,10 @@ const loadApplicableLabelsRequested = (state) => {
 };
 
 const loadApplicableLabelsFulfilled = (state, { payload }) => {
+  const sortAlphabetically = sortWith([ascend(prop('label'))]);
   return unsetPendingLoads(['applicableLabels'], {
     ...state,
-    applicableLabels: flattenLabelsToSingleArray(payload.data.labelsByOwner),
+    applicableLabels: sortAlphabetically(flattenLabelsToSingleArray(payload.data.labelsByOwner)),
     loadError: null,
   });
 };

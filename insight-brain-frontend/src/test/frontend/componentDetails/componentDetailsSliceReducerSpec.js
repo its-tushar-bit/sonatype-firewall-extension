@@ -174,7 +174,7 @@ describe('componentDetailsReducer', () => {
   });
 
   describe('LOAD_APPLICABLE_LABELS_FULFILLED action', function () {
-    it('adds applicableLabels value and removes "applicableLabels" pending load', function () {
+    it('adds ORDERED applicableLabels value and removes "applicableLabels" pending load', function () {
       const state = {
         pendingLoads: new Set(),
         isVisitingAncestor: false,
@@ -187,12 +187,12 @@ describe('componentDetailsReducer', () => {
         type: LOAD_APPLICABLE_LABELS_FULFILLED,
         payload: {
           data: {
-            labelsByOwner: [],
+            labelsByOwner: [{ labels: [{ label: 'Test z' }, { label: 'Test f' }, { label: 'Test a' }] }],
           },
         },
       });
       expect(newState.pendingLoads.size).toEqual(0);
-      expect(newState.labels).toEqual([]);
+      expect(newState.applicableLabels).toEqual([{ label: 'Test a' }, { label: 'Test f' }, { label: 'Test z' }]);
       expect(newState.loadError).toBeNull();
     });
   });

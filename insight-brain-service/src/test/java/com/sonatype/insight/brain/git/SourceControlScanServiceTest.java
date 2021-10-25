@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultUtils;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
@@ -50,12 +51,15 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.zeroturnaround.exec.InvalidExitValueException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -90,6 +94,9 @@ public class SourceControlScanServiceTest
 
   @Mock
   private PolicyEvaluateService policyEvaluateService;
+
+  @Mock
+  private PolicyEvaluationPollingResultUtils mockPolicyEvaluationPollingResultUtils;
 
   @Mock
   private ProprietaryConfigService proprietaryConfigService;
@@ -166,8 +173,8 @@ public class SourceControlScanServiceTest
     licenseChecker = new IqForScmLicenseChecker(testProductLicense);
 
     service = new SourceControlScanService(mockGitApiFactory, spySourceControlUtils, mockApplicationDAO, licenseChecker,
-        proprietaryConfigService, policyEvaluateService, mockInsightWork, scanner, mockAuditRecorder,
-        sourceControlSshService);
+        proprietaryConfigService, policyEvaluateService, mockPolicyEvaluationPollingResultUtils, mockInsightWork,
+        scanner, mockAuditRecorder, sourceControlSshService);
 
     proprietaryConfig = new ProprietaryConfig();
     when(proprietaryConfigService.getProprietaryConfig(eq(OwnerType.APPLICATION), eq("public-app-id")))
@@ -238,6 +245,35 @@ public class SourceControlScanServiceTest
         eq("userAgent"));
 
     verifySshServiceInvoked();
+  }
+
+  @Test
+  public void testOnSourceControlScan_ExceptionBeforePolicyEvaluation() throws Exception {
+    // given an event
+    String statusId = "testStatusId";
+    sourceControlEvent.setBranchName("branch");
+    sourceControlEvent.setStatusId(statusId);
+    sourceControlEvent.setApplicationId(APP_ID);
+    sourceControlEvent.setStageTypeId(Stage.ID_DEVELOP);
+    sourceControlEvent.setUserAgent("userAgent");
+    sourceControlEvent.setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_API);
+
+    // and a source control configuration
+    doReturn(mockGitRepositoryInfo).when(spySourceControlUtils)
+        .getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId());
+
+    // and an exception is thrown when we process a source control scan event before the policy evaluation is called
+    Exception testException = new RuntimeException("test exception");
+    doThrow(testException).when(spySourceControlUtils)
+        .getCheckoutDirectory(any(Application.class));
+    assertThatThrownBy(() -> {
+      service.onSourceControlScan(sourceControlEvent);
+    }).isInstanceOf(RuntimeException.class).hasMessage(testException.getMessage());
+
+    // and there was no policy evaluation
+    verify(policyEvaluateService, never()).evaluateWithPolling(any(), any(), any(), any(), any(), any(), any(), any());
+
+    verify(mockPolicyEvaluationPollingResultUtils).handleException(eq(APP_ID), eq(statusId), eq(testException));
   }
 
   @Test

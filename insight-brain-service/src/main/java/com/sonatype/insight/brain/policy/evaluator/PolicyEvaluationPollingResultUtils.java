@@ -1,0 +1,57 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.policy.evaluator;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
+import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+
+@Named
+public class PolicyEvaluationPollingResultUtils
+{
+  private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
+
+  private final ErrorResponseGenerator errorResponseGenerator;
+
+  @Inject
+  public PolicyEvaluationPollingResultUtils(
+      PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
+      ErrorResponseGenerator errorResponseGenerator)
+  {
+    this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
+    this.errorResponseGenerator = errorResponseGenerator;
+  }
+
+  public PolicyEvaluationPollingResult handleException(String appId, String statusId, Exception e) {
+    try {
+      String errorMessage = errorResponseGenerator.mapExceptionAndLog(e).getMessageBody();
+
+      PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+          persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(appId, statusId);
+      PolicyEvaluationPollingResult policyEvaluationPollingResult =
+          persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
+
+      // Don't overwrite failed status
+      if (!PolicyEvaluationStatus.FAILED.equals(policyEvaluationPollingResult.getStatus())) {
+        policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.FAILED);
+        policyEvaluationPollingResult.setReason(errorMessage);
+        persistedPolicyEvaluationPollingResult.setPolicyEvaluationPollingResult(policyEvaluationPollingResult);
+        persistedPolicyEvaluationPollingResultDAO.update(persistedPolicyEvaluationPollingResult);
+      }
+
+      return policyEvaluationPollingResult;
+    }
+    catch (Exception e1) {
+      e.addSuppressed(e1);
+      throw new RuntimeException(e);
+    }
+  }
+}

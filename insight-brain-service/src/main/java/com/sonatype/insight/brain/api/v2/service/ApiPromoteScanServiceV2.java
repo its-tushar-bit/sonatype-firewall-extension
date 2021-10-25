@@ -18,23 +18,20 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -57,26 +54,22 @@ public class ApiPromoteScanServiceV2
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
-
   private final InsightWork work;
   
-  private final ErrorResponseGenerator errorResponseGenerator;
+  private final PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils;
 
   @Inject
   public ApiPromoteScanServiceV2(
       ApplicationDAO applicationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
-      PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
       DefaultPolicyEvaluateService policyEvaluateService,
       InsightWork work,
-      ErrorResponseGenerator errorResponseGenerator)
+      PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils)
   {
     super(applicationDAO, policyEvaluateService);
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
     this.work = work;
-    this.errorResponseGenerator = errorResponseGenerator;
+    this.policyEvaluationPollingResultUtils = policyEvaluationPollingResultUtils;
 
     executor = new ThreadPoolExecutor(100, 100, 5L, TimeUnit.SECONDS,
         new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("ApiPromoteScanServiceV2-%d").build());
@@ -210,18 +203,10 @@ public class ApiPromoteScanServiceV2
       catch (Exception e) {
         log.error("Failed to promote scan of app {} to stage {}. The status ID of the operation is {}.", applicationId,
             targetStageId, statusId);
-        String errorMessage = errorResponseGenerator.mapExceptionAndLog(e).getMessageBody();
-
-        PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
-            persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(applicationId, statusId);
         PolicyEvaluationPollingResult policyEvaluationPollingResult =
-            persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
-        policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.FAILED);
-        policyEvaluationPollingResult.setReason(errorMessage);
-        persistedPolicyEvaluationPollingResult.setPolicyEvaluationPollingResult(policyEvaluationPollingResult);
-        persistedPolicyEvaluationPollingResultDAO.update(persistedPolicyEvaluationPollingResult);
+            policyEvaluationPollingResultUtils.handleException(applicationId, statusId, e);
 
-        throw new RuntimeException(errorMessage, e);
+        throw new RuntimeException(policyEvaluationPollingResult.getReason(), e);
       }
     }
 

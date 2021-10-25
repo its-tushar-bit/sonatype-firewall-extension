@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultUtils;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
@@ -63,6 +64,8 @@ public class SourceControlScanService
 
   private final PolicyEvaluateService policyEvaluateService;
 
+  private final PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils;
+
   private final IqForScmLicenseChecker licenseChecker;
 
   private ProprietaryConfigService proprietaryConfigService;
@@ -83,6 +86,7 @@ public class SourceControlScanService
       final IqForScmLicenseChecker licenseChecker,
       final ProprietaryConfigService proprietaryConfigService,
       final PolicyEvaluateService policyEvaluateService,
+      final PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils,
       final InsightWork work,
       final Scanner scanner,
       final AuditRecorder auditRecorder,
@@ -94,6 +98,7 @@ public class SourceControlScanService
     this.licenseChecker = licenseChecker;
     this.proprietaryConfigService = proprietaryConfigService;
     this.policyEvaluateService = policyEvaluateService;
+    this.policyEvaluationPollingResultUtils = policyEvaluationPollingResultUtils;
     this.work = work;
     this.scanner = scanner;
     this.auditRecorder = auditRecorder;
@@ -110,28 +115,35 @@ public class SourceControlScanService
     log.trace("Source control scan initiated for application '{}' on branch '{}'", event.getApplicationId(),
         event.getBranchName());
 
-    GitRepositoryInfo gitRepositoryInfo =
-        sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
+    try {
+      GitRepositoryInfo gitRepositoryInfo =
+          sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
 
-    if (gitRepositoryInfo != null) {
-      final Application application = applicationDAO.getByIdNotNull(event.getApplicationId());
+      if (gitRepositoryInfo != null) {
+        final Application application = applicationDAO.getByIdNotNull(event.getApplicationId());
 
-      try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
-        try {
-          AuditData.get().setApplication(application);
-          AuditData.get().setStageId(event.getStageTypeId());
+        try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
+          try {
+            AuditData.get().setApplication(application);
+            AuditData.get().setStageId(event.getStageTypeId());
 
-          RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, event.getBranchName());
-          ScanResult scanResult = scan(application, event.getScanTargets(), repoSyncResult.getHeadRef());
-          evaluate(event, application, scanResult);
+            RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, event.getBranchName());
+            ScanResult scanResult = scan(application, event.getScanTargets(), repoSyncResult.getHeadRef());
+            evaluate(event, application, scanResult);
 
-          log.trace("Source control scan completed for application '{}': {}", event.getApplicationId(), repoSyncResult);
-        }
-        catch (Exception e) {
-          AuditData.get().setException(e);
-          throw e;
+            log.trace("Source control scan completed for application '{}': {}", event.getApplicationId(),
+                repoSyncResult);
+          }
+          catch (Exception e) {
+            AuditData.get().setException(e);
+            throw e;
+          }
         }
       }
+    }
+    catch (Exception e) {
+      policyEvaluationPollingResultUtils.handleException(event.getApplicationId(), event.getStatusId(), e);
+      throw e;
     }
   }
 

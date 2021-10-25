@@ -10,6 +10,7 @@ import { NxTable, NxFontAwesomeIcon, NxTag, NxLoadingSpinner } from '@sonatype/r
 import { faTrophy, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import { versionComparisonInfoPropType } from '../../componentDetailsUtils';
+import { SECURITY, LICENSE, QUALITY, OTHER } from './policyThreatCategory';
 
 export const CompareVersions = ({ currentVersion, selectedVersion, loading }) => {
   return (
@@ -40,35 +41,51 @@ export const CompareVersions = ({ currentVersion, selectedVersion, loading }) =>
               {renderHighestPolicyThreat(selectedVersion.highestPolicyThreat, selectedVersion.numberOfViolatedPolicies)}
             </NxTable.Cell>
           </NxTable.Row>
-          <NxTable.Row>
+          <NxTable.Row id="highestSecurityThreat">
             <NxTable.Cell>Security Violation Threat</NxTable.Cell>
-            <NxTable.Cell></NxTable.Cell>
-            <NxTable.Cell></NxTable.Cell>
+            <NxTable.Cell>
+              {renderHighestPolicyThreatByCategory(currentVersion.policyMaxThreatLevelsByCategory, SECURITY)}
+            </NxTable.Cell>
+            <NxTable.Cell>
+              {renderHighestPolicyThreatByCategory(selectedVersion.policyMaxThreatLevelsByCategory, SECURITY)}
+            </NxTable.Cell>
           </NxTable.Row>
           <NxTable.Row id="highestCvssScore">
             <NxTable.Cell>Highest CVSS Score</NxTable.Cell>
             <NxTable.Cell>{currentVersion.highestCVSSScore}</NxTable.Cell>
             <NxTable.Cell>{selectedVersion.highestCVSSScore}</NxTable.Cell>
           </NxTable.Row>
-          <NxTable.Row>
+          <NxTable.Row id="highestLicenseThreat">
             <NxTable.Cell>License Violation Threat</NxTable.Cell>
-            <NxTable.Cell></NxTable.Cell>
-            <NxTable.Cell></NxTable.Cell>
+            <NxTable.Cell>
+              {renderHighestPolicyThreatByCategory(currentVersion.policyMaxThreatLevelsByCategory, LICENSE)}
+            </NxTable.Cell>
+            <NxTable.Cell>
+              {renderHighestPolicyThreatByCategory(selectedVersion.policyMaxThreatLevelsByCategory, LICENSE)}
+            </NxTable.Cell>
           </NxTable.Row>
           <NxTable.Row id="effectiveLicense">
             <NxTable.Cell>Effective License</NxTable.Cell>
             <NxTable.Cell>{renderEffectiveLicenses(currentVersion)}</NxTable.Cell>
             <NxTable.Cell>{renderEffectiveLicenses(selectedVersion)}</NxTable.Cell>
           </NxTable.Row>
-          <NxTable.Row>
+          <NxTable.Row id="highestQualityThreat">
             <NxTable.Cell>Quality Violation Threat</NxTable.Cell>
-            <NxTable.Cell></NxTable.Cell>
-            <NxTable.Cell></NxTable.Cell>
+            <NxTable.Cell>
+              {renderHighestPolicyThreatByCategory(currentVersion.policyMaxThreatLevelsByCategory, QUALITY)}
+            </NxTable.Cell>
+            <NxTable.Cell>
+              {renderHighestPolicyThreatByCategory(selectedVersion.policyMaxThreatLevelsByCategory, QUALITY)}
+            </NxTable.Cell>
           </NxTable.Row>
-          <NxTable.Row>
+          <NxTable.Row id="highestOtherThreat">
             <NxTable.Cell>Other Violation Threat</NxTable.Cell>
-            <NxTable.Cell></NxTable.Cell>
-            <NxTable.Cell></NxTable.Cell>
+            <NxTable.Cell>
+              {renderHighestPolicyThreatByCategory(currentVersion.policyMaxThreatLevelsByCategory, OTHER)}
+            </NxTable.Cell>
+            <NxTable.Cell>
+              {renderHighestPolicyThreatByCategory(selectedVersion.policyMaxThreatLevelsByCategory, OTHER)}
+            </NxTable.Cell>
           </NxTable.Row>
           <NxTable.Row id="hygieneRating">
             <NxTable.Cell>Hygiene Rating</NxTable.Cell>
@@ -122,6 +139,10 @@ function renderHighestPolicyThreat(highestPolicyThreat, numberOfViolatedPolicies
     return null;
   }
 
+  if (highestPolicyThreat === 'None') {
+    return 'None';
+  }
+
   // temporary using custom policy threat indicator until we upgrade RSC and use NxSmallThreatCounter
   const tagClasses = classnames('iq-compare-versions__policy-threat-indicator', {
     critical: highestPolicyThreat > 7,
@@ -133,15 +154,21 @@ function renderHighestPolicyThreat(highestPolicyThreat, numberOfViolatedPolicies
 
   return (
     <Fragment>
-      {highestPolicyThreat === 'None' ? (
-        <div>{highestPolicyThreat}</div>
-      ) : (
-        // use toString() because 0 value breaks jasmine
-        <NxTag className={tagClasses}>{highestPolicyThreat.toString()}</NxTag>
-      )}
+      {/*use toString() because 0 value breaks enzyme*/}
+      <NxTag className={tagClasses}>{highestPolicyThreat.toString()}</NxTag>
       {numberOfViolatedPolicies > 1 && <div>within {numberOfViolatedPolicies} policies</div>}
     </Fragment>
   );
+}
+
+function renderHighestPolicyThreatByCategory(threatByCategory, category) {
+  if (threatByCategory == null) {
+    return null;
+  }
+
+  const maxThreat = threatByCategory[category];
+
+  return renderHighestPolicyThreat(maxThreat ?? 'None');
 }
 
 function renderEffectiveLicenses({ effectiveLicenses, effectiveLicenseStatus }) {

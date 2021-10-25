@@ -120,6 +120,7 @@ export function getComponentVersionComparisonInfo(componentDetails) {
     effectiveLicenses,
     integrityRating: componentDetails.integrityRating,
     hygieneRating: componentDetails.hygieneRating,
+    policyMaxThreatLevelsByCategory: componentDetails.policyMaxThreatLevelsByCategory,
   };
 }
 

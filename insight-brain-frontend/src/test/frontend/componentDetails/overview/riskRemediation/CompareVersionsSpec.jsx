@@ -8,6 +8,12 @@ import * as enzymeUtils from '../../../enzymeUtils';
 import { NxTableCell, NxLoadingSpinner } from '@sonatype/react-shared-components';
 import { faTrophy, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import { CompareVersions } from 'MainRoot/componentDetails/overview/riskRemediation/CompareVersions';
+import {
+  SECURITY,
+  LICENSE,
+  QUALITY,
+  OTHER,
+} from 'MainRoot/componentDetails/overview/riskRemediation/policyThreatCategory';
 
 describe('CompareVersions', () => {
   let getShallow;
@@ -52,18 +58,18 @@ describe('CompareVersions', () => {
 
   describe('Highest Policy Threat row', () => {
     it('renders empty cell if highestPolicyThreat is undefined', () => {
-      const versionRow = getShallow().find('#highestPolicyThreat');
-      expect(versionRow.childAt(1)).toContainReact(<NxTableCell />);
-      expect(versionRow.childAt(2)).toContainReact(<NxTableCell />);
+      const highestPolicyThreatRow = getShallow().find('#highestPolicyThreat');
+      expect(highestPolicyThreatRow.childAt(1)).toContainReact(<NxTableCell />);
+      expect(highestPolicyThreatRow.childAt(2)).toContainReact(<NxTableCell />);
     });
 
-    it('renders div with "None" text if highestPolicyThreat is None', () => {
+    it('renders "None" text if highestPolicyThreat is None', () => {
       const highestPolicyThreatRow = getShallow({
         currentVersion: { highestPolicyThreat: 'None' },
         selectedVersion: { highestPolicyThreat: 'None' },
       }).find('#highestPolicyThreat');
-      expect(highestPolicyThreatRow.childAt(1).childAt(0)).toHaveText('None');
-      expect(highestPolicyThreatRow.childAt(2).childAt(0)).toHaveText('None');
+      expect(highestPolicyThreatRow.childAt(1)).toContainReact(<NxTableCell>None</NxTableCell>);
+      expect(highestPolicyThreatRow.childAt(2)).toContainReact(<NxTableCell>None</NxTableCell>);
     });
 
     it('renders threat-indicator styled as critical if policy threat is 8-10', () => {
@@ -254,6 +260,102 @@ describe('CompareVersions', () => {
       expect(selectedCell.children().length).toBe(1);
       expect(selectedCell.childAt(0)).toHaveClassName('iq-compare-versions__policy-threat-indicator');
     });
+  });
+
+  describe('violation threat per policy type', () => {
+    it('renders empty cell if policyMaxThreatLevelsByCategory is undefined', () => {
+      const row = getShallow().find('#highestSecurityThreat');
+      expect(row.childAt(1)).toContainReact(<NxTableCell />);
+      expect(row.childAt(2)).toContainReact(<NxTableCell />);
+    });
+
+    testThreatByCategoryRow(SECURITY, '#highestSecurityThreat');
+    testThreatByCategoryRow(LICENSE, '#highestLicenseThreat');
+    testThreatByCategoryRow(QUALITY, '#highestQualityThreat');
+    testThreatByCategoryRow(OTHER, '#highestOtherThreat');
+
+    function testThreatByCategoryRow(category, rowSelector) {
+      describe(`${category} row`, () => {
+        it('renders "None" if category is undefined in policyMaxThreatLevelsByCategory', () => {
+          const row = getShallow({
+            currentVersion: { policyMaxThreatLevelsByCategory: {} },
+            selectedVersion: { policyMaxThreatLevelsByCategory: {} },
+          }).find(rowSelector);
+          expect(row.childAt(1)).toContainReact(<NxTableCell>None</NxTableCell>);
+          expect(row.childAt(2)).toContainReact(<NxTableCell>None</NxTableCell>);
+        });
+
+        it('renders threat-indicator styled as critical if policy threat is 8-10', () => {
+          const row = getShallow({
+            currentVersion: { policyMaxThreatLevelsByCategory: { [category]: 10 } },
+            selectedVersion: { policyMaxThreatLevelsByCategory: { [category]: 8 } },
+          }).find(rowSelector);
+
+          const currentThreat = row.childAt(1).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
+          const selectedThreat = row.childAt(2).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
+          expect(currentThreat).toHaveClassName('critical');
+          expect(currentThreat.childAt(0)).toHaveText('10');
+          expect(selectedThreat).toHaveClassName('critical');
+          expect(selectedThreat.childAt(0)).toHaveText('8');
+        });
+
+        it('renders threat-indicator styled as severe if policy threat is 4-7', () => {
+          const row = getShallow({
+            currentVersion: { policyMaxThreatLevelsByCategory: { [category]: 7 } },
+            selectedVersion: { policyMaxThreatLevelsByCategory: { [category]: 4 } },
+          }).find(rowSelector);
+
+          const currentThreat = row.childAt(1).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
+          const selectedThreat = row.childAt(2).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
+          expect(currentThreat).toHaveClassName('severe');
+          expect(currentThreat.childAt(0)).toHaveText('7');
+          expect(selectedThreat).toHaveClassName('severe');
+          expect(selectedThreat.childAt(0)).toHaveText('4');
+        });
+
+        it('renders threat-indicator styled as moderate if policy threat is 2-3', () => {
+          const row = getShallow({
+            currentVersion: { policyMaxThreatLevelsByCategory: { [category]: 3 } },
+            selectedVersion: { policyMaxThreatLevelsByCategory: { [category]: 2 } },
+          }).find(rowSelector);
+
+          const currentThreat = row.childAt(1).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
+          const selectedThreat = row.childAt(2).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
+          expect(currentThreat).toHaveClassName('moderate');
+          expect(currentThreat.childAt(0)).toHaveText('3');
+          expect(selectedThreat).toHaveClassName('moderate');
+          expect(selectedThreat.childAt(0)).toHaveText('2');
+        });
+
+        it('renders threat-indicator styled as low if policy threat is 1', () => {
+          const row = getShallow({
+            currentVersion: { policyMaxThreatLevelsByCategory: { [category]: 1 } },
+            selectedVersion: { policyMaxThreatLevelsByCategory: { [category]: 1 } },
+          }).find(rowSelector);
+
+          const currentThreat = row.childAt(1).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
+          const selectedThreat = row.childAt(2).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
+          expect(currentThreat).toHaveClassName('low');
+          expect(currentThreat.childAt(0)).toHaveText('1');
+          expect(selectedThreat).toHaveClassName('low');
+          expect(selectedThreat.childAt(0)).toHaveText('1');
+        });
+
+        it('renders threat-indicator styled as none if policy threat is 0', () => {
+          const row = getShallow({
+            currentVersion: { policyMaxThreatLevelsByCategory: { [category]: 0 } },
+            selectedVersion: { policyMaxThreatLevelsByCategory: { [category]: 0 } },
+          }).find(rowSelector);
+
+          const currentThreat = row.childAt(1).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
+          const selectedThreat = row.childAt(2).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
+          expect(currentThreat).toHaveClassName('none');
+          expect(currentThreat.childAt(0)).toHaveText('0');
+          expect(selectedThreat).toHaveClassName('none');
+          expect(selectedThreat.childAt(0)).toHaveText('0');
+        });
+      });
+    }
   });
 
   describe('Highest CVSS Score row', () => {

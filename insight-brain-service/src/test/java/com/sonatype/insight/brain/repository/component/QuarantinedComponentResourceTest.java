@@ -177,7 +177,7 @@ public class QuarantinedComponentResourceTest
         repositoryComponent.getPathname(), false, "fail", "policyId", "policyName",
         repositoryComponent.getComponentIdentifier(), date);
     final QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repositoryComponent.getId());
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
     return Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
   }

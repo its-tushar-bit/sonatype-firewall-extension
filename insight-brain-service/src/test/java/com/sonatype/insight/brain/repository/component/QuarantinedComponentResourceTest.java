@@ -12,10 +12,13 @@ import java.util.Date;
 
 import javax.ws.rs.core.Response.Status;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
@@ -42,7 +45,8 @@ public class QuarantinedComponentResourceTest
 
     // when
     final HttpResponse response =
-        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH).parameter(encodedToken).get();
+        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_PATH).parameter(encodedToken).get();
 
     // then
     assertThat(response.getStatusCode()).isEqualTo(Status.OK.getStatusCode());
@@ -59,7 +63,8 @@ public class QuarantinedComponentResourceTest
 
     // when
     final HttpResponse response =
-        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH).parameter("token").get();
+        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_PATH).parameter("token").get();
 
     // then
     assertThat(response.getStatusCode()).isEqualTo(Status.FORBIDDEN.getStatusCode());
@@ -73,7 +78,8 @@ public class QuarantinedComponentResourceTest
 
     // when
     final HttpResponse response =
-        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH).parameter("token").get();
+        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_PATH).parameter("token").get();
 
     // then
     assertThat(response.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
@@ -94,7 +100,8 @@ public class QuarantinedComponentResourceTest
 
     // when
     final HttpResponse response =
-        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH).parameter(encodedToken).get();
+        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_PATH).parameter(encodedToken).get();
 
     // then
     assertThat(response.getStatusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
@@ -110,9 +117,69 @@ public class QuarantinedComponentResourceTest
 
     // when
     final HttpResponse response =
-        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH).parameter(encodedToken).get();
+        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_PATH).parameter(encodedToken).get();
 
     // then
     assertThat(response.getStatusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
   }
+
+  @Test
+  public void testGetQuarantinedComponentOverview() throws Exception {
+    // setup
+    Date date = new Date();
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    final String encodedToken = setupTestData(componentIdentifier, date);
+
+    // when
+    final HttpResponse response =
+        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_OVERVIEW_PATH).parameter(encodedToken).get();
+
+    // then
+    assertThat(response.getStatusCode()).isEqualTo(Status.OK.getStatusCode());
+    QuarantinedComponentOverviewDto quarantinedComponentOverviewDto =
+        response.getBody(QuarantinedComponentOverviewDto.class);
+    assertThat(quarantinedComponentOverviewDto).isNotNull();
+    assertThat(quarantinedComponentOverviewDto.componentDisplayName).isEqualTo("g : a : v");
+    assertThat(quarantinedComponentOverviewDto.isQuarantined).isEqualTo(true);
+    assertThat(quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount).isEqualTo(1);
+    assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo("repositoryPublicId");
+    assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
+    assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
+  }
+
+  @Test
+  public void testGetQuarantinedComponentOverview_componentIdentifierDoesNotExist() throws Exception {
+    // setup
+    Date date = new Date();
+    final String encodedToken = setupTestData(null, date);
+
+    // when
+    final HttpResponse response =
+        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_OVERVIEW_PATH).parameter(encodedToken).get();
+
+    // then
+    assertThat(response.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+  }
+
+  private String setupTestData(ComponentIdentifier componentIdentifier, Date date) {
+    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
+        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
+    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    final Repository repository = tempEntity.newRepository(repositoryManager, "repositoryPublicId");
+    final RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path",
+            "hash", componentIdentifier, date, date);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 6,
+        repositoryComponent.getPathname(), false, "fail", "policyId", "policyName",
+        repositoryComponent.getComponentIdentifier(), date);
+    final QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity.newQuarantinedComponentAccess(repositoryComponent.getId());
+    return Base64.getUrlEncoder().withoutPadding()
+        .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
+  }
 }
+

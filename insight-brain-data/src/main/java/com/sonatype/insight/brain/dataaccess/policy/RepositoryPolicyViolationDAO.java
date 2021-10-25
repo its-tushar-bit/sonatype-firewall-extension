@@ -172,4 +172,20 @@ public class RepositoryPolicyViolationDAO
     String sQuery = "SELECT COUNT(entity) FROM RepositoryPolicyViolation entity";
     return getSingle(Long.class, sQuery);
   }
+
+  /**
+   * @since 1.126
+   */
+  public int getQuarantinedPolicyViolationsCountByRepositoryIdAndPathname(
+      String repositoryId,
+      String pathname)
+  {
+    String sQuery = "SELECT COUNT(entity) FROM RepositoryPolicyViolation entity" + //
+        " WHERE entity.repositoryId=?1" + //
+        " AND entity.pathname=?2" + //
+        " AND entity.actionTypeId='fail'" + //
+        " AND entity.isWaived=false" + //
+        " AND entity.active=true";
+    return getSingle(Number.class, sQuery, repositoryId, pathname).intValue();
+  }
 }

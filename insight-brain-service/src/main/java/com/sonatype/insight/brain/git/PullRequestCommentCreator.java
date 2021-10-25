@@ -187,7 +187,7 @@ public class PullRequestCommentCreator
     }
     catch (Exception e) {
       SourceControlException sourceControlException =
-          new SourceControlException("Failed to create or update PR comments", e);
+          new SourceControlException("Failed to create or update PR comments: " + e.getMessage(), e);
       addLineCommentsCreationException(lineCommentsCreationResult, sourceControlException);
       throw sourceControlException;
     }

@@ -11,6 +11,7 @@ import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@s
 
 import { propSetConst } from '../../util/reduxToolkitUtil';
 import { isNilOrEmpty, pathSet } from '../../util/jsUtil';
+import { toggleBooleanProp } from '../../util/reduxUtil';
 import { Messages } from '../../util/CommonServices';
 import { validateForm, validateNonEmpty, validatePatternMatch } from '../../util/validationUtil';
 import { getClaimComponentUrl } from '../../util/CLMLocation';
@@ -37,8 +38,11 @@ export const initialState = {
   serverData: null,
   isDirty: false,
   claimMaskState: null,
+  revokeMaskState: null,
   claimError: null,
+  revokeError: null,
   validationError: null,
+  showRevokeModal: false,
 };
 
 const loadComponentIdentified = createAsyncThunk(
@@ -63,6 +67,15 @@ const claim = createAsyncThunk(`${REDUCER_NAME}/claim`, (_, { getState, dispatch
       startClaimMaskSuccessTimer(dispatch);
       return data;
     })
+    .catch(rejectWithValue);
+});
+
+const revoke = createAsyncThunk(`${REDUCER_NAME}/revoke`, (_, { getState, dispatch, rejectWithValue }) => {
+  const hash = selectSelectedComponentHash(getState());
+
+  return axios
+    .delete(getClaimComponentUrl(hash))
+    .then(() => startRevokeMaskSuccessTimer(dispatch))
     .catch(rejectWithValue);
 });
 
@@ -110,6 +123,26 @@ const claimFailed = (state, { payload }) => {
   state.claimMaskState = null;
   state.loading = false;
   state.claimError = Messages.getHttpErrorMessage(payload);
+};
+
+const revokePending = (state) => {
+  state.revokeMaskState = false;
+  state.revokeError = null;
+};
+
+const revokeFulfilled = (state) => {
+  state.revokeMaskState = true;
+  state.revokeError = null;
+  state.inputFields = initialState.inputFields;
+  state.serverData = null;
+  state.loading = false;
+  state.isDirty = false;
+};
+
+const revokeFailed = (state, { payload }) => {
+  state.revokeMaskState = null;
+  state.loading = false;
+  state.revokeError = Messages.getHttpErrorMessage(payload);
 };
 
 function computeValidationError(state) {
@@ -171,6 +204,13 @@ function startClaimMaskSuccessTimer(dispatch) {
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 }
 
+function startRevokeMaskSuccessTimer(dispatch) {
+  setTimeout(() => {
+    dispatch(actions.revokeMaskTimerDone());
+    dispatch(actions.toggleShowRevokeModal());
+  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+}
+
 const resetForm = (state) => {
   state.inputFields = isNilOrEmpty(state.serverData)
     ? initialState.inputFields
@@ -201,6 +241,9 @@ const componentDetailsClaimSlice = createSlice({
     setClassifier: setTextInput('classifier', null),
     setComment: setTextInput('comment', null),
     claimMaskTimerDone: propSetConst('claimMaskState', null),
+    revokeMaskTimerDone: propSetConst('revokeMaskState', null),
+    resetRevokeError: propSetConst('revokeError', null),
+    toggleShowRevokeModal: toggleBooleanProp('showRevokeModal'),
   },
   extraReducers: {
     [loadComponentIdentified.pending]: propSetConst('loading', true),
@@ -209,6 +252,9 @@ const componentDetailsClaimSlice = createSlice({
     [claim.pending]: claimPending,
     [claim.fulfilled]: claimFulfilled,
     [claim.rejected]: claimFailed,
+    [revoke.pending]: revokePending,
+    [revoke.fulfilled]: revokeFulfilled,
+    [revoke.rejected]: revokeFailed,
   },
 });
 
@@ -217,4 +263,5 @@ export const actions = {
   ...componentDetailsClaimSlice.actions,
   loadComponentIdentified,
   claim,
+  revoke,
 };

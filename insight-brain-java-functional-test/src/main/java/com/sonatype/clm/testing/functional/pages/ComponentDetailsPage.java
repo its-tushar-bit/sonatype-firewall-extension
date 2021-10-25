@@ -109,6 +109,10 @@ public class ComponentDetailsPage
     return this.tabs().get(5);
   }
 
+  public SelenideElement claimTabForClaimedComponent() {
+    return this.tabs().get(5);
+  }
+
   public ViolationsTabContent violationsTabContent() {
     return new ViolationsTabContent();
   }

@@ -456,20 +456,123 @@ describe('claim reducer', () => {
         expect(inputFields.createTime.validationErrors).toBeTruthy();
       });
     });
+  });
 
-    describe('componentDetailsClaim/claimMaskTimerDone', () => {
-      it('updates claimMaskState to null', () => {
-        const state = Object.freeze({
-          ...defaultState,
-          claimMaskState: true,
-        });
-
-        const { claimMaskState } = reducer(state, {
-          type: 'componentDetailsClaim/claimMaskTimerDone',
-        });
-
-        expect(claimMaskState).toBeNull();
+  describe('componentDetailsClaim/claimMaskTimerDone', () => {
+    it('updates claimMaskState to null', () => {
+      const state = Object.freeze({
+        claimMaskState: true,
       });
+
+      const { claimMaskState } = reducer(state, {
+        type: 'componentDetailsClaim/claimMaskTimerDone',
+      });
+
+      expect(claimMaskState).toBeNull();
+    });
+  });
+
+  describe('componentDetailsClaim/revokeMaskTimerDone', () => {
+    it('updates revokeMaskState to null', () => {
+      const state = Object.freeze({
+        revokeMaskState: true,
+      });
+
+      const { revokeMaskState } = reducer(state, {
+        type: 'componentDetailsClaim/revokeMaskTimerDone',
+      });
+
+      expect(revokeMaskState).toBeNull();
+    });
+  });
+
+  describe('componentDetailsClaim/resetRevokeError', () => {
+    it('updates revokeError to null', () => {
+      const state = Object.freeze({
+        revokeError: 'error',
+      });
+
+      const { revokeError } = reducer(state, {
+        type: 'componentDetailsClaim/resetRevokeError',
+      });
+
+      expect(revokeError).toBeNull();
+    });
+  });
+
+  describe('componentDetailsClaim/revoke/pending', () => {
+    it('sets revokeMaskState property to false, revokeError to null', () => {
+      const state = Object.freeze({
+        revokeError: 'error',
+        revokeMaskState: null,
+      });
+
+      const { revokeError, revokeMaskState } = reducer(state, {
+        type: 'componentDetailsClaim/revoke/pending',
+      });
+
+      expect(revokeError).toBeNull();
+      expect(revokeMaskState).toBe(false);
+    });
+  });
+
+  describe('componentDetailsClaim/revoke/fulfilled', () => {
+    it('sets revokeMaskState, revokeError, serverData, loading, isDirty, inputFields and loadError', () => {
+      const state = Object.freeze({
+        loading: true,
+        loadError: 'error',
+        serverData: {
+          data: 42,
+        },
+        inputFields: {},
+        revokeError: 'error',
+        revokeMaskState: false,
+      });
+
+      const { revokeMaskState, revokeError, serverData, loading, isDirty, inputFields } = reducer(state, {
+        type: 'componentDetailsClaim/revoke/fulfilled',
+      });
+
+      expect(loading).toBe(false);
+      expect(revokeMaskState).toBe(true);
+      expect(revokeError).toBeNull();
+      expect(serverData).toBeNull();
+      expect(isDirty).toEqual(false);
+
+      expect(inputFields).toEqual(initialState.inputFields);
+    });
+  });
+
+  describe('componentDetailsClaim/revoke/rejected', () => {
+    it('sets revokeMaskState, loading and revokeError', () => {
+      const state = Object.freeze({
+        revokeMaskState: true,
+        loading: true,
+        revokeError: null,
+      });
+
+      const { revokeMaskState, loading, revokeError } = reducer(state, {
+        type: 'componentDetailsClaim/revoke/rejected',
+        payload: 'some error',
+      });
+
+      expect(loading).toBe(false);
+      expect(revokeError).toBe('some error');
+      expect(revokeMaskState).toBeNull();
+    });
+  });
+
+  describe('componentDetailsClaim/toggleShowRevokeModal', () => {
+    it('toggles showRevokeModal value', () => {
+      const state = Object.freeze({
+        showRevokeModal: false,
+      });
+
+      const { showRevokeModal } = reducer(state, {
+        type: 'componentDetailsClaim/toggleShowRevokeModal',
+      });
+
+      expect(showRevokeModal).toBe(true);
     });
   });
 });

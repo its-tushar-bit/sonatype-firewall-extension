@@ -17,6 +17,12 @@ describe('claimActions', () => {
   beforeEach(function () {
     state = {};
     store = SpecUtil.mockReduxStore(state);
+
+    jasmine.clock().install();
+  });
+
+  afterEach(() => {
+    jasmine.clock().uninstall();
   });
 
   describe('claim', () => {
@@ -39,12 +45,6 @@ describe('claimActions', () => {
     beforeEach(() => {
       spyOn(claimSelectors, 'selectClaimRequestData').and.returnValue(requestData);
       spyOn(claimSelectors, 'selectClaimId').and.returnValue('300');
-
-      jasmine.clock().install();
-    });
-
-    afterEach(() => {
-      jasmine.clock().uninstall();
     });
 
     const { claim } = actions;
@@ -97,6 +97,60 @@ describe('claimActions', () => {
         ]);
 
         expect(actions[1].payload).toBe('something went wrong');
+
+        done();
+      });
+    });
+  });
+
+  describe('revoke', () => {
+    beforeEach(() => {
+      spyOn(claimSelectors, 'selectSelectedComponentHash').and.returnValue('200');
+    });
+
+    const { revoke } = actions;
+
+    it('revokes component claim successfully', (done) => {
+      mockAxiosCalls({
+        del: {
+          [getClaimComponentUrl('200')]: Promise.resolve({ data: '' }),
+        },
+      });
+
+      store.dispatch(revoke()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(4);
+
+        expect(actions).toHaveActionTypesInOrder([
+          'componentDetailsClaim/revoke/pending',
+          'componentDetailsClaim/revoke/fulfilled',
+          'componentDetailsClaim/revokeMaskTimerDone',
+          'componentDetailsClaim/toggleShowRevokeModal',
+        ]);
+
+        done();
+      });
+    });
+
+    it('dispatches rejected action if revoke request fails', (done) => {
+      mockAxiosCalls({
+        del: {
+          [getClaimComponentUrl('200')]: () => Promise.reject('could not revoke claim for the given component'),
+        },
+      });
+
+      store.dispatch(revoke()).then(() => {
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'componentDetailsClaim/revoke/pending',
+          'componentDetailsClaim/revoke/rejected',
+        ]);
+
+        expect(actions[1].payload).toBe('could not revoke claim for the given component');
 
         done();
       });

@@ -20,6 +20,8 @@ import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.MatchStateFilter;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
@@ -77,6 +79,7 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -226,6 +229,7 @@ public class ComponentDetailsTest
     SelenideElement claimButton = componentDetailsPage.unknownComponentClaim();
     claimButton.click();
 
+    waitUntilUrl(ComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
     componentDetailsPage.claimTabContent().shouldBe(visible);
   }
 
@@ -244,7 +248,7 @@ public class ComponentDetailsTest
   }
 
   @Test
-  public void testComponentDetails_UnknownComponentTabContent() {
+  public void testComponentDetails_ClaimTabContent() {
     mockHdsResponseForClaimedComponent();
     refreshOrOpen(ComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
@@ -255,7 +259,8 @@ public class ComponentDetailsTest
     claimTabContent.title().shouldHave(text("Claim Component"));
 
     claimTabContent.cancel().scrollIntoView(true).shouldBe(disabled);
-    claimTabContent.claim().shouldBe(CLM.DISABLED);
+    claimTabContent.claim().shouldHave(text("Claim")).shouldBe(CLM.DISABLED);
+    claimTabContent.revoke().shouldBe(hidden);
 
     testRequiredFormFields(claimTabContent);
     fillAllFields(claimTabContent);
@@ -264,20 +269,47 @@ public class ComponentDetailsTest
 
     claimTabContent.cancel().scrollIntoView(true).shouldBe(enabled);
     claimTabContent.claim().shouldBe(enabled).click();
+    FormMask.seeAndWaitForDismissal();
+    claimTabContent.revoke().shouldBe(enabled);
 
     // Reevaluate to apply the claim
     MainHeader.backButton().click();
-
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
-
     reportPage.reevaluateButton().click();
 
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
-
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
 
     reportPage.headers().componentNameFilterInput().setValue("claimed");
-    reportPage.resultRow(1).shouldHave(text("claimed : claimed : claimed : claimed : claimed"));
+    reportPage.resultRow(1).shouldHave(text("claimed : claimed : claimed : claimed : claimed")).click();
+
+    componentDetailsPage.claimTabForClaimedComponent().click();
+    waitUntilUrl(ComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+
+    claimTabContent.shouldBe(visible);
+
+    checkFieldsValue(claimTabContent);
+    claimTabContent.revoke().shouldBe(enabled).click();
+
+    NxDeleteModal deleteModal = claimTabContent.getDeleteModal();
+    deleteModal.submitButton().click();
+    FormMask.seeAndWaitForDismissal();
+    deleteModal.alertContent().shouldBe(hidden);
+
+    // Reevaluate to revoke the claim
+    MainHeader.backButton().click();
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+    reportPage.reevaluateButton().click();
+
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+
+    reportPage.headers().componentNameFilterInput().setValue("claimed");
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).shouldHave(text("No Results"));
+
+    reportPage.headers().componentNameFilterInput().setValue("regexmatch.dll");
+    reportPage.resultRow(1).shouldHave(text("regexmatch.dll"));
   }
 
   @Test
@@ -1044,6 +1076,12 @@ public class ComponentDetailsTest
     }
 
     claimTabContent.createdTime().setValue("20102021"); //20.10.2021
+  }
+
+  private void checkFieldsValue(ClaimTabContent claimTabContent) {
+    for (SelenideElement element : claimTabContent.allTextFields()) {
+      element.shouldHave(value("claimed"));
+    }
   }
 
   private void mockHdsResponseForClaimedComponent() {

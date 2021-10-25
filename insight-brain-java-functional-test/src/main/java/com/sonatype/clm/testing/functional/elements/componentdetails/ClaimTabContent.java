@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 
 import com.codeborne.selenide.SelenideElement;
 
@@ -57,6 +58,10 @@ public class ClaimTabContent
     return child("#component-details-claim-cancel");
   }
 
+  public SelenideElement revoke() {
+    return child("#component-details-claim-revoke");
+  }
+
   public SelenideElement claim() {
     return child(".nx-form__submit-btn");
   }
@@ -71,5 +76,9 @@ public class ClaimTabContent
 
   public List<SelenideElement> allTextFields() {
     return Arrays.asList(groupId(), extension(), artifactId(), version(), classifier(), comment());
+  }
+
+  public NxDeleteModal getDeleteModal() {
+    return new NxDeleteModal("#component-details-revoke-claim-modal");
   }
 }

@@ -23,6 +23,7 @@ describe('Claim', () => {
   const setVersionMock = jasmine.createSpy('setVersion');
   const setClassifierMock = jasmine.createSpy('setClassifier');
   const setCommentMock = jasmine.createSpy('setComment');
+  const toggleShowRevokeModalMock = jasmine.createSpy('toggleShowRevokeModal');
 
   const minimalProps = {
     loadComponentIdentified: loadComponentIdentifiedMock,
@@ -35,6 +36,7 @@ describe('Claim', () => {
     setVersion: setVersionMock,
     setClassifier: setClassifierMock,
     setComment: setCommentMock,
+    toggleShowRevokeModal: toggleShowRevokeModalMock,
     inputFields: {
       artifactId: initUserInput(''),
       classifier: initUserInput(''),
@@ -50,6 +52,7 @@ describe('Claim', () => {
     claimError: null,
     isDirty: false,
     validationError: null,
+    showRevokeModal: false,
   };
 
   beforeEach(() => {
@@ -88,6 +91,24 @@ describe('Claim', () => {
       component = getMounted();
       expect(resetTabMock).toHaveBeenCalled();
     });
+
+    it('calls resetForm when the form is canceled if it is dirty', () => {
+      component = getMounted({ isDirty: true, validationError: null });
+      const button = component.find(NxForm).find('#component-details-claim-cancel.nx-btn');
+
+      button.simulate('click');
+
+      expect(resetFormMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls toggleShowRevokeModal when revoke button is clicked', () => {
+      component = getMounted({ isDirty: true, validationError: null });
+      const button = component.find(NxForm).find('#component-details-claim-revoke.nx-btn');
+
+      button.simulate('click');
+
+      expect(toggleShowRevokeModalMock).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('on load error', () => {
@@ -102,21 +123,21 @@ describe('Claim', () => {
 
   describe('on render', () => {
     describe('validationErrors', () => {
-      it('is null if form was changed and changes are valid', function () {
+      it('is null if form was changed and changes are valid', () => {
         const component = getShallow({ isDirty: true, validationError: null });
         const form = component.find(NxForm);
 
         expect(form).toHaveProp('validationErrors', null);
       });
 
-      it('has "There are no changes to save" error if form was not changed', function () {
+      it('has "There are no changes to save" error if form was not changed', () => {
         const component = getShallow({ isDirty: false });
         const form = component.find(NxForm);
 
         expect(form).toHaveProp('validationErrors', 'There are no changes to save');
       });
 
-      it('has "Unable to save" error if form was not changed', function () {
+      it('has "Unable to save" error if form was not changed', () => {
         const component = getShallow({
           isDirty: true,
           validationError: 'Unable to save: fields with invalid or missing data',
@@ -128,7 +149,7 @@ describe('Claim', () => {
     });
 
     describe('on form submit', () => {
-      it('calls claim when the form is submitted if it is dirty', function () {
+      it('calls claim when the form is submitted if it is dirty', () => {
         const component = getShallow({ isDirty: true, validationError: null });
         const form = component.find(NxForm);
 

@@ -18,7 +18,7 @@ export default function PolicyViolationDetailsPopover({ onClose }) {
         className="policy-violation-detail-header"
         buttonId="policy-violation-close-btn"
         onClose={onClose}
-        headerTitle="Violation Detail"
+        headerTitle="Violation Details"
       />
       <ViolationPageContainer $state={uiRouterState} isFromPolicyViolations />
     </IqPopover>

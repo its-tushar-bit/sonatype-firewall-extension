@@ -134,6 +134,8 @@ public class ComponentDetailsEditLicensesTest
     saveButton.shouldBe(enabled).click();
     NxSubmitMask.seeAndWaitForDismissal();
 
+    thirdScope.label().shouldHave(text("Organization - Root Organization (Acknowledged)"));
+
     // update to 'Selected' status for Application
     firstScope.click();
     statusSelect.selectOptionContainingText("Selected");
@@ -156,6 +158,8 @@ public class ComponentDetailsEditLicensesTest
 
     // Check UI for Application 'Selected' Override
     firstScope.shouldBe(selected);
+
+    firstScope.label().shouldHave(text("Application - ApplicationReportTest (Selected)"));
     statusSelect.getSelectedOption().shouldHave(value("Selected"));
     assertThat(editLicensesPopover.selectedLicensesCheckbox().size()).isEqualTo(2);
     firstCheckbox.shouldBe(selected);

@@ -8,8 +8,8 @@ import * as PropTypes from 'prop-types';
 import { find, propEq, compose, toLower, findIndex, __ } from 'ramda';
 import { NxForm, NxFieldset, NxTextInput, NxRadio, NxCheckbox } from '@sonatype/react-shared-components';
 
-import { capitalize } from 'MainRoot/util/jsUtil';
-
+import { capitalize, isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { getStatusName } from 'MainRoot/legal/legalUtility';
 import { renderLicensesList } from '../LegalTabUtils';
 import { licensesPropTypes, licenseOverridePropTypes } from '../LicenseDetectionsTile/LicenseDetections';
 
@@ -172,7 +172,7 @@ export default function EditLicensesForm({
 
   const scopeField = (
     <NxFieldset className="iq-edit-licenses-form__scope" label="Scope" isRequired>
-      {availableLicenseScopes?.map(({ ownerId, ownerName, ownerType }) => (
+      {availableLicenseScopes?.map(({ ownerId, ownerName, ownerType, licenseOverride }) => (
         <NxRadio
           name="license-scope-target"
           value={ownerId}
@@ -181,6 +181,9 @@ export default function EditLicensesForm({
           onChange={handleScopeChange}
         >
           {capitalize(ownerType)} - {ownerName}
+          {!isNilOrEmpty(licenseOverride) && (
+            <span className="iq-edit-licenses-form__scope-status"> ({getStatusName(licenseOverride.status)})</span>
+          )}
         </NxRadio>
       ))}
     </NxFieldset>

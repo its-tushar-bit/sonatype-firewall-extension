@@ -197,17 +197,41 @@ describe('EditLicensesForm', () => {
   });
 
   it('renders license scopes', () => {
-    const component = getShallowComponent(),
+    const component = getShallowComponent({
+        availableLicenseScopes: [
+          ...minimalProps.availableLicenseScopes,
+          {
+            ownerId: 'sdc',
+            ownerName: 'SDC',
+            ownerType: 'application',
+            licenseOverride: {
+              id: 'b6c0724bb1812f3a9b0e77232e555214',
+              ownerId: '77e76d350f3d4203b81468dd696209f3',
+              status: 'SELECTED',
+              comment: '',
+              licenseIds: [],
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'bson',
+                  qualifier: '',
+                  version: '0.0.4',
+                },
+              },
+            },
+          },
+        ],
+      }),
       licenseScopeSection = component.find('.iq-edit-licenses-form__scope'),
       targetRadios = licenseScopeSection.find(NxRadio);
 
     expect(licenseScopeSection).toHaveProp('label', 'Scope');
-    expect(targetRadios.length).toBe(3);
+    expect(targetRadios.length).toBe(4);
 
     expect(targetRadios.at(0)).toHaveProp('name', 'license-scope-target');
     expect(targetRadios.at(0)).toHaveProp('value', 'owf');
     expect(targetRadios.at(0)).toHaveProp('isChecked', true);
-    expect(targetRadios.at(0)).toHaveText('Application - OWF');
+    expect(targetRadios.at(0)).toHaveText('Application - OWF (Acknowledged)');
 
     expect(targetRadios.at(1)).toHaveProp('name', 'license-scope-target');
     expect(targetRadios.at(1)).toHaveProp('value', 'asdf');
@@ -217,7 +241,12 @@ describe('EditLicensesForm', () => {
     expect(targetRadios.at(2)).toHaveProp('name', 'license-scope-target');
     expect(targetRadios.at(2)).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
     expect(targetRadios.at(2)).toHaveProp('isChecked', false);
-    expect(targetRadios.at(2)).toHaveText('Organization - Root Organization');
+    expect(targetRadios.at(2)).toHaveText('Organization - Root Organization (Acknowledged)');
+
+    expect(targetRadios.at(3)).toHaveProp('name', 'license-scope-target');
+    expect(targetRadios.at(3)).toHaveProp('value', 'sdc');
+    expect(targetRadios.at(3)).toHaveProp('isChecked', false);
+    expect(targetRadios.at(3)).toHaveText('Application - SDC (Selected)');
   });
 
   it('calls setLicenseScope and setLicenseStatus when changing to scope without a licenseOverride', () => {

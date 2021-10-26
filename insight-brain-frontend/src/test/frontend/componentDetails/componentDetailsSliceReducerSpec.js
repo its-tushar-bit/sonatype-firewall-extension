@@ -99,14 +99,11 @@ describe('componentDetailsReducer', () => {
       };
       const newState = reducer(state, {
         type: LOAD_COMPONENT_LABELS_FULFILLED,
-        payload: [
-          {
-            data: {
-              labelsByOwner: [],
-            },
+        payload: {
+          data: {
+            labelsByOwner: [],
           },
-          {},
-        ],
+        },
       });
       expect(newState.pendingLoads.size).toEqual(0);
       expect(newState.labels).toEqual([]);
@@ -143,14 +140,11 @@ describe('componentDetailsReducer', () => {
 
       const retryState = reducer(newState, {
         type: LOAD_COMPONENT_LABELS_FULFILLED,
-        payload: [
-          {
-            data: {
-              labelsByOwner: [],
-            },
+        payload: {
+          data: {
+            labelsByOwner: [],
           },
-          {},
-        ],
+        },
       });
       expect(retryState.loadError).toBeNull();
     });

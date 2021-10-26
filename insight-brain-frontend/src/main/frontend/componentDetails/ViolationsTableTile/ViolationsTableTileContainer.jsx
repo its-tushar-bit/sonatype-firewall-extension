@@ -14,29 +14,36 @@ import {
   selectComponentWaivers,
   selectSelectedViolationDetail,
 } from './PolicyViolationsSelectors';
-import { selectComponentName } from '../componentDetailsSelectors';
+import {
+  selectComponentName,
+  selectComponentDetailsLoading,
+  selectComponentDetailsLoadErrors,
+} from '../componentDetailsSelectors';
+import { actions as componentDetailsActions } from '../componentDetailsSlice';
 import { setWaiverToDelete } from '../../waivers/waiverActions';
 
 function mapStateToProps(state) {
   const {
     loading,
     loadError,
-    setSelectedPolicyViolationId,
     showComponentWaiversPopover,
     showViolationsDetailPopover,
     showAddWaiverPopover,
     showRequestWaiverPopover,
     hasPermissionToAddWaivers,
   } = selectComponentDetailsViolationsSlice(state);
+  const isLoadingComponentDetails = selectComponentDetailsLoading(state);
+  const componentDetailsLoadError = selectComponentDetailsLoadErrors(state);
 
   return {
+    isLoadingComponentDetails,
+    componentDetailsLoadError,
     violations: selectComponentViolations(state),
     waivers: selectComponentWaivers(state),
     componentName: selectComponentName(state),
     selectedViolationDetail: selectSelectedViolationDetail(state),
     loading,
-    loadError,
-    setSelectedPolicyViolationId,
+    error: loadError,
     ...pick(['waiverToDelete'], state.deleteWaiver),
     showComponentWaiversPopover,
     showViolationsDetailPopover,
@@ -47,9 +54,9 @@ function mapStateToProps(state) {
 }
 
 const mapDispatchToProps = {
+  loadComponentDetails: componentDetailsActions.loadComponentDetails,
   loadPolicyViolationsInformation: actions.load,
   toggleComponentWaiversPopover: actions.toggleComponentWaiversPopover,
-  setShowViolationsDetail: actions.setShowViolationsDetail,
   toggleShowViolationsDetailPopover: actions.toggleShowViolationsDetailPopover,
   toggleAddWaiverPopover: actions.toggleAddWaiverPopover,
   toggleRequestWaiverPopover: actions.toggleRequestWaiverPopover,

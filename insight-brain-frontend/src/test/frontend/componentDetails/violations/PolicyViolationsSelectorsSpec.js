@@ -7,6 +7,7 @@
 import {
   selectComponentDetailsViolationsSlice,
   selectComponentViolations,
+  selectIsPolicyViolationsLoading,
   selectSelectedViolationDetail,
 } from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 
@@ -155,6 +156,30 @@ describe('policyViolationsSelectors', () => {
       };
       const actualSelection = selectSelectedViolationDetail(mockState);
       expect(actualSelection).toEqual(expectedSelection);
+    });
+  });
+
+  describe('selectIsPolicyViolationsLoading', () => {
+    it('selects the `loading` prop from the state', () => {
+      const state = {
+        ...mockState,
+        componentDetailsPolicyViolations: {
+          ...mockState.componentDetailsPolicyViolations,
+          loading: true,
+        },
+      };
+      const actual = selectIsPolicyViolationsLoading(state);
+      expect(actual).toEqual(true);
+
+      const state2 = {
+        ...mockState,
+        componentDetailsPolicyViolations: {
+          ...mockState.componentDetailsPolicyViolations,
+          loading: false,
+        },
+      };
+      const actual2 = selectIsPolicyViolationsLoading(state2);
+      expect(actual2).toEqual(false);
     });
   });
 });

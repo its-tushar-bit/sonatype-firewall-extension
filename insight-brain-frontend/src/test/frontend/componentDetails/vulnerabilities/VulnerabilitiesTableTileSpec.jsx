@@ -3,63 +3,63 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import { NxLoadWrapper } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
-import VulnerabilitiesTableTile from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTableTile';
-import VulnerabilitiesTable from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTable';
-import * as popover from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/VulnerabilityDetailsPopoverContainer';
+
+import VulnerabilitiesTableTile from 'MainRoot/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTableTile';
+import VulnerabilitiesTable from 'MainRoot/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTable';
+import { VulnerabilityDetailsPopoverContainer } from 'MainRoot/componentDetails/VulnerabilitiesTableTile/VulnerabilityDetailsPopoverContainer';
 
 describe('VulnerabilitiesTableTile', () => {
-  let minimalProps, getShallow, getMounted;
-  const loadVulnerabilities = jasmine.createSpy('loadVulnerabilities');
-  const setVulnerabilityIdAndToggleVisibility = jasmine.createSpy('setVulnerabilityIdAndToggleVisibility');
+  let minimalProps, tableProps, getShallow;
 
   beforeEach(() => {
-    minimalProps = {
+    tableProps = {
       vulnerabilities: {
-        data: null,
-        loading: false,
-        error: null,
-      },
-      loadVulnerabilities,
-      setVulnerabilityIdAndToggleVisibility,
-    };
-    getShallow = enzymeUtils.getShallowComponent(VulnerabilitiesTableTile, minimalProps);
-    getMounted = enzymeUtils.getMountedComponent(VulnerabilitiesTableTile, minimalProps);
-  });
-
-  describe('renders the title correctly', () => {
-    it('renders the title correctly', () => {
-      const component = getShallow();
-      const title = component.find('#component-details-vulnerabilities-title');
-      expect(title).toHaveText('Vulnerabilities');
-    });
-  });
-
-  describe('loadVulnerabilities action', () => {
-    it('calls loadVulnerabilities when the component renders', () => {
-      spyOn(popover, 'VulnerabilityDetailsPopoverContainer').and.returnValue(<div>vulnerabilities popover</div>);
-
-      getMounted();
-      expect(minimalProps.loadVulnerabilities).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('renders a VulnerabilitiesTable', () => {
-    it('renders the table correctly', () => {
-      const vulnerabilities = {
         data: ['item1', 'item2'],
         loading: false,
         error: null,
-      };
-      const component = getShallow({
-        vulnerabilities,
-      });
-      const table = component.find(VulnerabilitiesTable);
+      },
+      loadVulnerabilities: () => {},
+      setVulnerabilityIdAndToggleVisibility: () => {},
+    };
+    minimalProps = {
+      ...tableProps,
+      isLoadingComponentDetails: false,
+      componentDetailsLoadError: null,
+      loadComponentDetails: () => {},
+    };
+    getShallow = enzymeUtils.getShallowComponent(VulnerabilitiesTableTile, minimalProps);
+  });
 
-      expect(table).toExist();
-      expect(table).toHaveProp('loadVulnerabilities', loadVulnerabilities);
-      expect(table).toHaveProp('vulnerabilities', vulnerabilities);
-    });
+  it('renders the title correctly', () => {
+    const component = getShallow();
+    const title = component.find('#component-details-vulnerabilities-title');
+    expect(title).toHaveText('Vulnerabilities');
+  });
+
+  it('renders a loading indicator if component details are loading', () => {
+    const component = getShallow({ isLoadingComponentDetails: true });
+    const loadWrapper = component.find(NxLoadWrapper);
+
+    expect(loadWrapper).toHaveProp('loading', true);
+    expect(loadWrapper).toHaveProp('error', minimalProps.componentDetailsLoadError);
+    expect(loadWrapper).toHaveProp('retryHandler', minimalProps.loadComponentDetails);
+  });
+
+  it('renders a VulnerabilityDetailsPopoverContainer', () => {
+    const component = getShallow();
+    const popover = component.find(VulnerabilityDetailsPopoverContainer);
+
+    expect(popover).toExist();
+  });
+
+  it('renders the VulnerabilitiesTable if component details are not loading', () => {
+    const component = getShallow();
+    const loadWrapper = component.find(NxLoadWrapper);
+    const table = loadWrapper.dive().find(VulnerabilitiesTable);
+
+    expect(table).toExist();
+    expect(table).toHaveProp(tableProps);
   });
 });

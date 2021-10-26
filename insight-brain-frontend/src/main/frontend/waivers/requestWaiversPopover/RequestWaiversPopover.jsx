@@ -9,7 +9,7 @@ import { NxInfoAlert, NxCodeSnippet, NxTextLink } from '@sonatype/react-shared-c
 
 import IqPopover from '../../react/IqPopover/IqPopover';
 import { getRequestWaiverUrl } from '../../util/CLMLocation';
-import { extractViolationDetails } from '../../util/violationDetailsUtil';
+import { extractViolationDetails, violationDetailsPropTypes } from '../../util/violationDetailsUtil';
 import { uriTemplate } from '../../util/urlUtil';
 
 const RequestWaiversPopover = ({ onClose, violationDetails }) => {
@@ -89,17 +89,7 @@ const RequestWaiversPopover = ({ onClose, violationDetails }) => {
 };
 
 RequestWaiversPopover.propTypes = {
-  violationDetails: PropTypes.shape({
-    policyViolationId: PropTypes.string,
-    policyName: PropTypes.string,
-    componentName: PropTypes.string,
-    constraintName: PropTypes.string,
-    reasons: PropTypes.arrayOf(
-      PropTypes.shape({
-        reason: PropTypes.string,
-      })
-    ),
-  }),
+  violationDetails: violationDetailsPropTypes,
   onClose: PropTypes.func.isRequired,
 };
 

@@ -11,7 +11,7 @@ import { NxForm, NxFieldset, NxTextInput, NxRadio, NxCheckbox } from '@sonatype/
 import { capitalize } from 'MainRoot/util/jsUtil';
 
 import { renderLicensesList } from '../LegalTabUtils';
-import { licensesPropTypes, licenseOverridePropTypes } from '../LicenseDetectionsTile/LicenseDetectionsTile';
+import { licensesPropTypes, licenseOverridePropTypes } from '../LicenseDetectionsTile/LicenseDetections';
 
 const NOT_DIRTY_ERROR_MESSAGE = 'There are no changes to update';
 const NO_SELECTED_LICENSES_ERROR_MESSAGE = 'There must be at least one selected license';

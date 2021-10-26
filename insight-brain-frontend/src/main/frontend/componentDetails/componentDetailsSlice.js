@@ -9,7 +9,7 @@ import { curryN, reduce, prop, sortWith, ascend } from 'ramda';
 import { enableMapSet } from 'immer';
 
 import { stateGo } from '../reduxUiRouter/routerActions';
-import { loadReport } from '../applicationReport/applicationReportActions';
+import { loadReportIfNeeded } from '../applicationReport/applicationReportActions';
 import { selectComponentDetails } from './componentDetailsSelectors';
 import { selectSelectedComponent } from '../applicationReport/applicationReportSelectors';
 import { getComponentLabels, getApplicableLabels } from '../util/CLMLocation';
@@ -97,7 +97,7 @@ const loadComponentDetailsRequested = (state) => {
 };
 
 const loadComponentDetailsFulfilled = (state, { payload }) => {
-  const labelsByOwner = payload[0].data.labelsByOwner;
+  const labelsByOwner = payload.data.labelsByOwner;
   const labels = reduce((accumulator, currentValue) => [...accumulator, ...currentValue.labels], [], labelsByOwner);
   return unsetPendingLoads(['labels'], {
     ...state,
@@ -113,10 +113,11 @@ function loadComponentDetailsFailed(state, { payload }) {
 const loadComponentDetails = createAsyncThunk(
   `${REDUCER_NAME}/loadComponentDetails`,
   (_, { dispatch, getState, rejectWithValue }) => {
-    const { publicId, hash } = getState().router.currentParams;
-    const promises = [axios.get(getComponentLabels(publicId, hash)), dispatch(loadReport(true))];
-
-    return Promise.all(promises)
+    return dispatch(loadReportIfNeeded())
+      .then(() => {
+        const { publicId, hash } = getState().router.currentParams;
+        return axios.get(getComponentLabels(publicId, hash));
+      })
       .then((results) => results)
       .catch(rejectWithValue);
   }

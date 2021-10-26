@@ -7,12 +7,27 @@ import { connect } from 'react-redux';
 
 import AuditLog from './AuditLog';
 import { loadAuditLogForComponent, sortAuditLog } from './auditLogActions';
+import { selectComponentDetailsLoading, selectComponentDetailsLoadErrors } from '../componentDetailsSelectors';
+import { actions as componentDetailsActions } from '../componentDetailsSlice';
 
-function mapStateToProps({ auditLog }) {
-  return { ...auditLog };
+function mapStateToProps(state) {
+  const { auditLog } = state;
+  const isLoadingComponentDetails = selectComponentDetailsLoading(state);
+  const componentDetailsLoadError = selectComponentDetailsLoadErrors(state);
+  return {
+    isLoadingComponentDetails,
+    componentDetailsLoadError,
+    ...auditLog,
+  };
 }
 
-const mapDispatchToProps = { loadAuditLogForComponent, sortAuditLog };
+const { loadComponentDetails } = componentDetailsActions;
+
+const mapDispatchToProps = {
+  loadAuditLogForComponent,
+  sortAuditLog,
+  loadComponentDetails,
+};
 
 const AuditLogContainer = connect(mapStateToProps, mapDispatchToProps)(AuditLog);
 export default AuditLogContainer;

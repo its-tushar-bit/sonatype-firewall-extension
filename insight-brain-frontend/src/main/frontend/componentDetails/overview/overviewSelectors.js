@@ -12,6 +12,7 @@ import {
 } from '../../applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
 import { getComponentVersionComparisonInfo } from '../componentDetailsUtils';
+import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
 
 export const selectComponentDetailsOverviewSlice = prop('componentDetailsOverview');
 
@@ -40,11 +41,6 @@ export const selectComponentDetailsRequestData = createSelector(
     scanId: params.scanId,
   })
 );
-
-function stringifyComponentIdentifier(componentIdentifier, matchState) {
-  const coordinates = !matchState || matchState === 'unknown' ? null : componentIdentifier.coordinates;
-  return coordinates ? JSON.stringify({ format: componentIdentifier.format, coordinates }) : null;
-}
 
 export const selectVersionExplorerRequestData = createSelector(
   selectSelectedComponent,

@@ -7,7 +7,6 @@ import axios from 'axios';
 import { omit } from 'ramda';
 
 import { actions } from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
-import * as overviewSelectors from 'MainRoot/componentDetails/overview/overviewSelectors';
 import * as vulnerabilitiesSelectors from 'MainRoot/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSelectors';
 import { getVulnerabilitiesUrl, getVulnerabilityJsonDetailUrl } from '../../../../main/frontend/util/CLMLocation';
 
@@ -29,7 +28,7 @@ describe('vulnerabilitiesSliceActions', () => {
     });
 
     beforeEach(() => {
-      spyOn(overviewSelectors, 'selectVersionExplorerRequestData').and.returnValue({
+      spyOn(vulnerabilitiesSelectors, 'selectVulnerabilitiesRequestData').and.returnValue({
         clientType: 'ci',
         componentIdentifier: '{"format":"format","coordinates":"coordinates"}',
         hash: 'currentComponentHash',

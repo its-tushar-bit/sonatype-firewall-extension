@@ -25,6 +25,8 @@ import {
   getReportSecurityUrl,
   getReportUnknownJsUrl,
 } from '../util/CLMLocation';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectSelectedReport, selectReportParameters } from './applicationReportSelectors';
 
 export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
@@ -85,7 +87,7 @@ export function setRawSortingParameters(key, sortFields, dir) {
   };
 }
 
-function fetchCommonData(forceClearMetadata = false) {
+export function fetchCommonData(forceClearMetadata = false) {
   return (dispatch, getState) => {
     const { bomData, unknownJsData, metadata, reportParameters } = getState().applicationReport;
     const { appId, scanId, isUnknownJs } = reportParameters;
@@ -124,7 +126,7 @@ function fetchCommonData(forceClearMetadata = false) {
   };
 }
 
-function fetchReportData(forceReload = true) {
+export function fetchReportData(forceReload = true) {
   return (dispatch, getState) => {
     const { bomData, unknownJsData, reportParameters, selectedReport } = getState().applicationReport;
     const { appId, scanId } = reportParameters;
@@ -164,7 +166,7 @@ function fetchReportData(forceReload = true) {
   };
 }
 
-function fetchReportRawData(forceReload = true) {
+export function fetchReportRawData(forceReload = true) {
   return (dispatch, getState) => {
     const { bomData, unknownJsData, reportParameters, reportRawData } = getState().applicationReport;
     const { appId, scanId } = reportParameters;
@@ -195,12 +197,12 @@ export function loadReport(forceClearMetadata = false) {
     });
 
     return dispatch(fetchCommonData(forceClearMetadata))
-      .then(() => dispatch(fetchReportData()))
+      .then(() => dispatch(fetchReportData(forceClearMetadata)))
       .catch((error) => dispatch(loadReportFailed(error)));
   };
 }
 
-function loadReportRawData() {
+export function loadReportRawData() {
   return (dispatch) => {
     dispatch({
       type: LOAD_REPORT_RAW_DATA_REQUESTED,
@@ -226,7 +228,7 @@ export function loadReportAllData() {
   };
 }
 
-function selectComponent(componentIndex) {
+export function selectComponent(componentIndex) {
   return (dispatch, getState) => {
     const { selectedReport } = getState().applicationReport;
     const component = selectedReport && selectedReport.displayedEntries[componentIndex];
@@ -261,21 +263,21 @@ export function setStringFieldFilter(fieldName, filterString) {
   };
 }
 
-function setRawDataStringFieldFilter(fieldName, filterString) {
+export function setRawDataStringFieldFilter(fieldName, filterString) {
   return {
     type: SET_RAW_DATA_SUBSTRING_FIELD_FILTER,
     payload: { fieldName, filterString },
   };
 }
 
-function setRawDataNumericMaxFilter(fieldName, filterValue) {
+export function setRawDataNumericMaxFilter(fieldName, filterValue) {
   return {
     type: SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER,
     payload: { fieldName, filterValue },
   };
 }
 
-function setRawDataNumericMinFilter(fieldName, filterValue) {
+export function setRawDataNumericMinFilter(fieldName, filterValue) {
   return {
     type: SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER,
     payload: { fieldName, filterValue },
@@ -289,8 +291,8 @@ export function setExactValueFilter(fieldName, allowedValues) {
   };
 }
 
-const selectRootAncestor = payloadParamActionCreator(SELECT_ROOT_ANCESTOR);
-const unselectRootAncestor = noPayloadActionCreator(UNSELECT_ROOT_ANCESTOR);
+export const selectRootAncestor = payloadParamActionCreator(SELECT_ROOT_ANCESTOR);
+export const unselectRootAncestor = noPayloadActionCreator(UNSELECT_ROOT_ANCESTOR);
 
 export function reevaluateReport() {
   return (dispatch, getState) => {
@@ -314,7 +316,7 @@ export function reevaluateReport() {
 
 const reevaluateReportFulfilled = noPayloadActionCreator(REEVALUATE_REPORT_FULFILLED);
 const reevaluateReportFailed = httpErrorMessageActionCreator(REEVALUATE_REPORT_FAILED);
-const reevaluateReportCancelled = noPayloadActionCreator(REEVALUATE_REPORT_CANCELLED);
+export const reevaluateReportCancelled = noPayloadActionCreator(REEVALUATE_REPORT_CANCELLED);
 
 export const openInnerSourceProducerReportModal = noPayloadActionCreator(OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL);
 export const closeInnerSourceProducerReportModal = noPayloadActionCreator(CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL);
@@ -324,6 +326,23 @@ export const openInnerSourceProducerPermissionsModal = noPayloadActionCreator(
 export const closeInnerSourceProducerPermissionsModal = noPayloadActionCreator(
   CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL
 );
+
+export function loadReportIfNeeded() {
+  return (dispatch, getState) => {
+    const state = getState();
+    const currentParams = selectRouterCurrentParams(state);
+    const selectedReport = selectSelectedReport(state);
+    const reportParameters = selectReportParameters(state);
+    const isReportInMemory = selectedReport && !!(currentParams?.scanId === reportParameters?.scanId);
+
+    if (isReportInMemory) {
+      // if report is in memory resolve promise with it
+      return Promise.resolve(dispatch(loadReportUnnecessary()));
+    }
+    // if report is not in memory, send request
+    return dispatch(loadReport());
+  };
+}
 
 export default function applicationReportActions() {
   return {
@@ -350,5 +369,6 @@ export default function applicationReportActions() {
     closeInnerSourceProducerReportModal,
     openInnerSourceProducerPermissionsModal,
     closeInnerSourceProducerPermissionsModal,
+    loadReportIfNeeded,
   };
 }

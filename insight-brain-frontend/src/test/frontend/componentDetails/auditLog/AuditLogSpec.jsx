@@ -6,38 +6,47 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import AuditLogTable from '../../../../main/frontend/componentDetails/auditLog/AuditLogTable';
 import AuditLog from '../../../../main/frontend/componentDetails/auditLog/AuditLog';
+import { NxLoadWrapper } from '@sonatype/react-shared-components';
 
 describe('AuditLog', function () {
-  let minimalProps, getShallow, getMounted, loadAuditLogSpy, sortAuditLogSpy;
+  let minimalProps, getShallow;
 
   beforeEach(function () {
-    loadAuditLogSpy = jasmine.createSpy('loadAuditLogForComponent');
-    sortAuditLogSpy = jasmine.createSpy('sortAuditLog');
     minimalProps = {
+      isLoadingComponentDetails: true,
+      componentDetailsLoadError: null,
+      loadComponentDetails: () => {},
       auditRecords: [],
       isLoading: false,
       error: null,
       appliedSort: null,
-      loadAuditLogForComponent: loadAuditLogSpy,
-      sortAuditLog: sortAuditLogSpy,
+      loadAuditLogForComponent: () => {},
+      sortAuditLog: () => {},
     };
 
     getShallow = enzymeUtils.getShallowComponent(AuditLog, minimalProps);
-    getMounted = enzymeUtils.getMountedComponent(AuditLog, minimalProps);
   });
 
   it('renders a component', () => {
     expect(getShallow()).toExist();
   });
 
-  it('calls loadAuditLogForComponent', () => {
-    getMounted();
-    expect(loadAuditLogSpy).toHaveBeenCalled();
+  it('renders a loading indicator if component details are loading', () => {
+    const component = getShallow();
+    const loadWrapper = component.find(NxLoadWrapper);
+
+    expect(loadWrapper).toHaveProp('loading', minimalProps.isLoadingComponentDetails);
+    expect(loadWrapper).toHaveProp('error', minimalProps.componentDetailsLoadError);
+    expect(loadWrapper).toHaveProp('retryHandler', minimalProps.loadComponentDetails);
   });
 
   it('renders an AuditLogTable component with all props passed', () => {
+    const getTable = (el) => {
+      return el.find(NxLoadWrapper).dive().find(AuditLogTable);
+    };
+
     let auditLogTable;
-    auditLogTable = getShallow().find(AuditLogTable);
+    auditLogTable = getTable(getShallow({ isLoadingComponentDetails: false }));
 
     expect(auditLogTable).toExist();
     expect(auditLogTable).toHaveProp('auditRecords', minimalProps.auditRecords);
@@ -46,13 +55,13 @@ describe('AuditLog', function () {
     expect(auditLogTable).toHaveProp('appliedSort', null);
     expect(auditLogTable).toHaveProp('sortAuditLog', minimalProps.sortAuditLog);
 
-    auditLogTable = getShallow({ isLoading: true }).find(AuditLogTable);
+    auditLogTable = getTable(getShallow({ isLoadingComponentDetails: false, isLoading: true }));
     expect(auditLogTable).toHaveProp('isLoading', true);
 
-    auditLogTable = getShallow({ error: 'some error' }).find(AuditLogTable);
+    auditLogTable = getTable(getShallow({ isLoadingComponentDetails: false, error: 'some error' }));
     expect(auditLogTable).toHaveProp('error', 'some error');
 
-    auditLogTable = getShallow({ appliedSort: '-time' }).find(AuditLogTable);
+    auditLogTable = getTable(getShallow({ isLoadingComponentDetails: false, appliedSort: '-time' }));
     expect(auditLogTable).toHaveProp('appliedSort', '-time');
 
     const auditRecords = [
@@ -64,7 +73,7 @@ describe('AuditLog', function () {
         comment: 'comment',
       },
     ];
-    auditLogTable = getShallow({ auditRecords }).find(AuditLogTable);
+    auditLogTable = getTable(getShallow({ isLoadingComponentDetails: false, auditRecords }));
     expect(auditLogTable).toHaveProp('auditRecords', auditRecords);
   });
 });

@@ -3,20 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import {
-  NxLoadError,
-  NxLoadingSpinner,
-  NxTabs,
-  NxTab,
-  NxTabList,
-  NxTabPanel,
-  NxWarningAlert,
-  NxButton,
-} from '@sonatype/react-shared-components';
+import cx from 'classnames';
+import { NxLoadWrapper } from '@sonatype/react-shared-components';
 
-import AuditLogContainer from './auditLog/AuditLogContainer';
 import {
   ComponentDetailsHeader,
   ComponentDetailsReportInfo,
@@ -25,13 +16,20 @@ import {
   Title,
 } from './ComponentDetailsHeader';
 import { ComponentDetailsFooter, ComponentDetailsFooterPropTypes as footerPropTypes } from './ComponentDetailsFooter';
-import { OverviewContainer } from './overview';
+
 import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
-import PolicyViolations from './PolicyViolations/PolicyViolations';
-import ComponentDetailsSecurityTab from './ComponentDetailsSecurityTab/ComponentDetailsSecurityTab';
-import ComponentDetailsLegalTab from './ComponentDetailsLegalTab/ComponentDetailsLegalTab';
-import { ClaimContainer } from './claim/ClaimContainer';
-import ManageComponentLabelsContainer from './ManageComponentLabels/ManageComponentLabelsContainer';
+import ComponentDetailsTabs from './ComponentDetailsTabs';
+import UnknownComponentAlert from './UnknownComponentAlert';
+
+export const getTabIdPerIndex = (isUnknown, isClaimed) => {
+  if (isUnknown) {
+    return ['overview', 'violations', 'claim'];
+  }
+
+  return isClaimed
+    ? ['overview', 'violations', 'security', 'legal', 'labels', 'claim', 'audit']
+    : ['overview', 'violations', 'security', 'legal', 'labels', 'audit'];
+};
 
 export default function ComponentDetails({
   componentDetails,
@@ -43,48 +41,19 @@ export default function ComponentDetails({
   loadError,
   loading,
 }) {
-  const customError = loadError || 'Error getting component details.';
-
   useEffect(() => {
     loadComponentDetails();
   }, []);
 
-  // bail out early if no component details (still show back button)
-  if (loadError || loading || !componentDetails) {
-    return (
-      <main className="nx-page-main nx-viewport-sized iq-component-details-page iq-component-details-page--loading">
-        <MenuBarBackButton stateName="applicationReport.policy" />
-        <div className="iq-component-details-page__error">
-          {loading ? <NxLoadingSpinner /> : <NxLoadError error={customError} retryHandler={loadComponentDetails} />}
-        </div>
-      </main>
-    );
-  }
+  const classes = cx('nx-page-main nx-viewport-sized iq-component-details-page', {
+    'iq-component-details-page--loading': loading,
+    'iq-component-details-page--error': loadError,
+  });
 
-  const {
-    name,
-    metadata,
-    format,
-    dependencyType,
-    isInnerSource,
-    labels,
-    matchState,
-    identificationSource,
-  } = componentDetails;
-  const isUnknown = !matchState || matchState === 'unknown';
-  const isClaimed = identificationSource === 'Manual';
+  const isUnknown = componentDetails?.matchState === 'unknown';
+  const isClaimed = componentDetails?.identificationSource === 'Manual';
 
-  const getTabIdPerIndex = () => {
-    if (isUnknown) {
-      return ['overview', 'violations', 'claim'];
-    }
-
-    return isClaimed
-      ? ['overview', 'violations', 'security', 'legal', 'labels', 'claim', 'audit']
-      : ['overview', 'violations', 'security', 'legal', 'labels', 'audit'];
-  };
-
-  const tabIdPerIndex = getTabIdPerIndex();
+  const tabIdPerIndex = getTabIdPerIndex(isUnknown, isClaimed);
 
   const handleTabChange = (tabIndex) => {
     const tabIdToMoveTo = tabIdPerIndex[tabIndex];
@@ -94,90 +63,37 @@ export default function ComponentDetails({
     onTabChange(tabIdToMoveTo);
   };
 
-  const unknownComponentAlert = (
-    <NxWarningAlert className="iq-component-details-unknown-component-alert">
-      The component is unknown.
-      <NxButton
-        id="iq-component-details-unknown-component-claim"
-        onClick={() => {
-          handleTabChange(tabIdPerIndex.indexOf('claim'));
-        }}
-        variant="secondary"
-        title="Claim Component"
-      >
-        Claim Component
-      </NxButton>
-      <NxButton onClick={() => {}} variant="primary" title="Add Proprietary Component Matchers">
-        Add Proprietary Component Matchers
-      </NxButton>
-    </NxWarningAlert>
-  );
-
-  const generateContent = (isUnknown, isClaimed) => {
-    return (
-      <div>
-        {isUnknown && unknownComponentAlert}
-        <NxTabs activeTab={tabIdPerIndex.indexOf(activeTabId)} onTabSelect={handleTabChange}>
-          <NxTabList aria-label="Component detail tabs">
-            <NxTab>Overview</NxTab>
-            <NxTab>Policy Violations</NxTab>
-            {!isUnknown && <NxTab>Security</NxTab>}
-            {!isUnknown && <NxTab>Legal</NxTab>}
-            {!isUnknown && <NxTab>Labels</NxTab>}
-            {(isClaimed || isUnknown) && <NxTab>Claim</NxTab>}
-            {!isUnknown && <NxTab>Audit Log</NxTab>}
-          </NxTabList>
-          <NxTabPanel id="component-details-overview-tab-content">
-            <OverviewContainer />
-          </NxTabPanel>
-          <NxTabPanel id="component-details-policy-violations">
-            <PolicyViolations />
-          </NxTabPanel>
-          {!isUnknown && (
-            <NxTabPanel id="component-details-security-tab-content">
-              <ComponentDetailsSecurityTab />
-            </NxTabPanel>
-          )}
-          {!isUnknown && (
-            <NxTabPanel id="component-details-legal-tab-content">
-              <ComponentDetailsLegalTab />
-            </NxTabPanel>
-          )}
-          {!isUnknown && (
-            <NxTabPanel id="manage-component-labels">
-              <ManageComponentLabelsContainer />
-            </NxTabPanel>
-          )}
-          {(isClaimed || isUnknown) && (
-            <NxTabPanel id="component-details-claim-unknown-component">
-              <ClaimContainer />
-            </NxTabPanel>
-          )}
-          {!isUnknown && (
-            <NxTabPanel id="audit-log-tab-content">
-              <AuditLogContainer />
-            </NxTabPanel>
-          )}
-        </NxTabs>
-      </div>
-    );
+  const goToClaim = () => {
+    handleTabChange(tabIdPerIndex.indexOf('claim'));
   };
 
   return (
-    <main className="nx-page-main nx-viewport-sized iq-component-details-page">
+    <main className={classes}>
+      <MenuBarBackButton stateName="applicationReport.policy" />
       <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-details-page__content">
-        <MenuBarBackButton stateName="applicationReport.policy" />
-        <ComponentDetailsHeader>
-          <Title id="component-details-title">{name}</Title>
-          <ComponentDetailsReportInfo {...metadata} />
-          <ComponentDetailsTags
-            format={format}
-            dependencyType={dependencyType}
-            isInnerSource={isInnerSource}
-            labels={labels}
-          />
-        </ComponentDetailsHeader>
-        {generateContent(isUnknown, isClaimed)}
+        <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadComponentDetails}>
+          {() => (
+            <Fragment>
+              <ComponentDetailsHeader>
+                <Title id="component-details-title">{componentDetails.name}</Title>
+                <ComponentDetailsReportInfo {...componentDetails.metadata} />
+                <ComponentDetailsTags
+                  format={componentDetails.format}
+                  dependencyType={componentDetails.dependencyType}
+                  isInnerSource={componentDetails.isInnerSource}
+                  labels={componentDetails.labels}
+                />
+              </ComponentDetailsHeader>
+              {isUnknown && <UnknownComponentAlert onClaimClick={goToClaim} />}
+            </Fragment>
+          )}
+        </NxLoadWrapper>
+        <ComponentDetailsTabs
+          activeTab={tabIdPerIndex.indexOf(activeTabId)}
+          onTabChange={handleTabChange}
+          isUnknown={isUnknown}
+          isClaimed={isClaimed}
+        />
       </div>
       {pagination && <ComponentDetailsFooter {...pagination} backToOffspringOnClick={backToOffspringOnClick} />}
     </main>

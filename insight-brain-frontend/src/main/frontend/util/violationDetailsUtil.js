@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import * as PropTypes from 'prop-types';
 import { map, path, prop } from 'ramda';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
 import { getArtifactName, getComponentName } from './componentNameUtils';
@@ -40,3 +41,15 @@ export const extractViolationDetails = (violationDetails) => {
     vulnerabilityId,
   };
 };
+
+export const violationDetailsPropTypes = PropTypes.shape({
+  policyViolationId: PropTypes.string,
+  policyName: PropTypes.string,
+  componentName: PropTypes.string,
+  constraintName: PropTypes.string,
+  reasons: PropTypes.arrayOf(
+    PropTypes.shape({
+      reason: PropTypes.string,
+    })
+  ),
+});

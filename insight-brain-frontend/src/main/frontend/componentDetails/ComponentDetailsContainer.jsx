@@ -8,7 +8,8 @@ import {
   selectComponentDetails,
   selectActiveTabId,
   selectComponentPagination,
-  selectIsLabelsLoading,
+  selectComponentDetailsLoadErrors,
+  selectComponentDetailsLoading,
 } from './componentDetailsSelectors';
 import { actions } from './componentDetailsSlice';
 import ComponentDetails from './ComponentDetails';
@@ -20,8 +21,8 @@ function mapStateToProps(state, { uiRouterState }) {
     componentDetails: selectComponentDetails(state),
     activeTabId: selectActiveTabId(state),
     pagination: selectComponentPagination(state, { uiRouterState }),
-    loadError: state.applicationReport.loadError || state.componentDetails.loadError,
-    loading: state.applicationReport.pendingLoads.size > 0 || selectIsLabelsLoading(state),
+    loadError: selectComponentDetailsLoadErrors(state),
+    loading: selectComponentDetailsLoading(state),
   };
 }
 

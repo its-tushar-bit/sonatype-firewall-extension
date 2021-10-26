@@ -42,7 +42,7 @@ describe('componentDetailsActions', function () {
     mockRouteName;
 
   beforeEach(() => {
-    spyOn(applicationReportActions, 'loadReport').and.returnValue(Promise.resolve({}));
+    spyOn(applicationReportActions, 'loadReportIfNeeded').and.returnValue(Promise.resolve({}));
     mockAppId = 'appId';
     mockReportId = 'reportId';
     mockComponentHash = 'my-component-hash';
@@ -104,7 +104,7 @@ describe('componentDetailsActions', function () {
         },
       });
 
-      const expectedPayload = [mockResponse, {}];
+      const expectedPayload = mockResponse;
 
       store.dispatch(loadComponentDetails()).then(() => {
         expect(store.getActions().length).toBe(3);

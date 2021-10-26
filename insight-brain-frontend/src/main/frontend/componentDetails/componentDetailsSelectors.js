@@ -6,6 +6,7 @@
 import { equals, path, prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 import {
+  selectApplicationReportSlice,
   selectAggregatedComponentsList,
   selectAllComponentsList,
   selectApplicationReportMetaData,
@@ -15,7 +16,7 @@ import {
 } from '../applicationReport/applicationReportSelectors';
 import { selectCurrentRouteName, selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
 
-const selectDetails = prop('componentDetails');
+export const selectDetails = prop('componentDetails');
 
 export const selectComponentDetailsIsVisitingAncestor = createSelector(selectDetails, prop('isVisitingAncestor'));
 
@@ -106,7 +107,7 @@ export const selectComponentAncestors = createSelector(
   selectSelectedComponent,
   selectDisplayedComponentList,
   (componentInformation, components) => {
-    if (componentInformation.directDependency || !componentInformation.dependencyInfo) {
+    if (componentInformation?.directDependency || !componentInformation?.dependencyInfo) {
       return [];
     }
 
@@ -135,8 +136,7 @@ export const selectComponentAncestors = createSelector(
 );
 
 export const selectComponentSimilarMatches = createSelector(selectSelectedComponent, (componentInformation) => {
-  const { matchState, matchDetails } = componentInformation;
-  return matchState === 'similar' ? matchDetails : [];
+  return componentInformation?.matchState === 'similar' ? componentInformation.matchDetails : [];
 });
 
 export const selectApplicableLabels = createSelector(selectDetails, ({ applicableLabels }) => applicableLabels);
@@ -150,3 +150,24 @@ export const selectIsApplicableLabelsLoading = createSelector(selectDetails, ({ 
 );
 
 export const selectIsLabelsLoading = createSelector(selectDetails, ({ pendingLoads }) => pendingLoads.has('labels'));
+
+export const selectComponentDetailsLoadErrors = createSelector(
+  selectDetails,
+  selectApplicationReportSlice,
+  (componentDetailsSlice, applicationReportSlice) => {
+    const loadErrorComponentDetails = componentDetailsSlice.loadError;
+    const loadErrorApplicationReport = applicationReportSlice.loadError;
+    return loadErrorApplicationReport || loadErrorComponentDetails;
+  }
+);
+
+export const selectComponentDetailsLoading = createSelector(
+  selectApplicationReportSlice,
+  selectIsLabelsLoading,
+  selectComponentDetails,
+  (applicationReportSlice, isLabelsLoading, componentDetails) => {
+    const isLoadingApplicationReport = !!applicationReportSlice.pendingLoads.size;
+    const loadingStatus = isLabelsLoading || isLoadingApplicationReport || !componentDetails;
+    return loadingStatus;
+  }
+);

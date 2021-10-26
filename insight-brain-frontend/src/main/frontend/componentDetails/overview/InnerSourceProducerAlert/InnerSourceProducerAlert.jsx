@@ -32,7 +32,7 @@ InnerSourceProducerAlert.propTypes = {
   ownerApplicationName: PropTypes.string,
   innerSourceProducerData: PropTypes.shape({
     loading: PropTypes.bool.isRequired,
-    loadError: PropTypes.bool,
+    loadError: PropTypes.string,
     reportUrl: PropTypes.string,
     insufficientPermission: PropTypes.bool,
     latestInnerSourceComponentVersion: PropTypes.string,

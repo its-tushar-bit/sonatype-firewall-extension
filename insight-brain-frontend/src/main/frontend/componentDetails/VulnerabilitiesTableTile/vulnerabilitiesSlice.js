@@ -9,8 +9,7 @@ import { pathSet } from '../../util/jsUtil';
 
 import { getVulnerabilitiesUrl, getVulnerabilityJsonDetailUrl } from '../../util/CLMLocation';
 import { Messages } from '../../util/CommonServices';
-import { selectVersionExplorerRequestData } from '../overview/overviewSelectors';
-import { selectVulnerabityRefId } from './vulnerabilitiesSelectors';
+import { selectVulnerabityRefId, selectVulnerabilitiesRequestData } from './vulnerabilitiesSelectors';
 
 const REDUCER_NAME = 'componentDetailsVulnerabilities';
 
@@ -32,8 +31,12 @@ const initialState = {
 const loadVulnerabilities = createAsyncThunk(
   `${REDUCER_NAME}/loadVulnerabilities`,
   (_, { getState, rejectWithValue }) => {
+    const state = getState();
+    const urlData = selectVulnerabilitiesRequestData(state);
+    const url = getVulnerabilitiesUrl(urlData);
+
     return axios
-      .get(getVulnerabilitiesUrl(selectVersionExplorerRequestData(getState())))
+      .get(url)
       .then((result) => result)
       .catch(rejectWithValue);
   }

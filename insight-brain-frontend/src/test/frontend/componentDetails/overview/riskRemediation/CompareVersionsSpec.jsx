@@ -495,6 +495,28 @@ describe('CompareVersions', () => {
     });
   });
 
+  describe('Cataloged row', () => {
+    beforeAll(() => jasmine.clock().install());
+    afterAll(() => jasmine.clock().uninstall());
+
+    it('renders empty cell if catalogDate is null', () => {
+      const catalogedRow = getShallow().find('#catalogDate');
+      expect(catalogedRow.childAt(1)).toContainReact(<NxTableCell />);
+      expect(catalogedRow.childAt(2)).toContainReact(<NxTableCell />);
+    });
+
+    it('renders time passed since component version was added', () => {
+      jasmine.clock().mockDate(new Date(1635245371294));
+      const catalogRow = getShallow({
+        currentVersion: { catalogDate: 1462894745000 },
+        selectedVersion: { catalogDate: 1635159876000 },
+      }).find('#catalogDate');
+
+      expect(catalogRow.childAt(1)).toContainReact(<NxTableCell>5 years ago</NxTableCell>);
+      expect(catalogRow.childAt(2)).toContainReact(<NxTableCell>Less than a day ago</NxTableCell>);
+    });
+  });
+
   describe('Integrity Rating row', () => {
     it('renders empty cell if integrityRating is undefined', () => {
       const integrityRatingRow = getShallow().find('#integrityRating');

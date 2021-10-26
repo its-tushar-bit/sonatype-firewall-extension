@@ -307,6 +307,8 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     table.hygieneRatingRow().get(2).shouldBe(empty);
     table.integrityRatingRow().get(1).shouldHave(text("Normal"));
     table.integrityRatingRow().get(2).shouldBe(empty);
+    table.catalogDateRow().get(1).shouldNotBe(empty);
+    table.catalogDateRow().get(2).shouldBe(empty);
   }
 
   @Test
@@ -339,6 +341,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     table.highestOtherThreatRow().get(2).shouldHave(text("1"));
     table.hygieneRatingRow().get(2).shouldHave(text("Laggard"));
     table.integrityRatingRow().get(2).shouldHave(text("Normal"));
+    table.catalogDateRow().get(2).shouldNotBe(empty);
 
     eyesWatcher.eyesCheck();
 
@@ -351,6 +354,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     table.effectiveLicenseRow().get(2).shouldBe(empty);
     table.hygieneRatingRow().get(2).shouldBe(empty);
     table.integrityRatingRow().get(2).shouldBe(empty);
+    table.catalogDateRow().get(2).shouldBe(empty);
   }
 
   @Test
@@ -389,6 +393,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     table.highestOtherThreatRow().get(2).shouldHave(text("None"));
     table.hygieneRatingRow().get(2).shouldBe(empty);
     table.integrityRatingRow().get(2).shouldBe(empty);
+    table.catalogDateRow().get(2).shouldNotBe(empty);
   }
 
   private ComponentDetailsPage openComponentDetailsPageForViolation(int violationIndex, String hash) {

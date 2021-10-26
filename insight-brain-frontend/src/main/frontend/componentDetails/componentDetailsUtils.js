@@ -121,6 +121,7 @@ export function getComponentVersionComparisonInfo(componentDetails) {
     integrityRating: componentDetails.integrityRating,
     hygieneRating: componentDetails.hygieneRating,
     policyMaxThreatLevelsByCategory: componentDetails.policyMaxThreatLevelsByCategory,
+    catalogDate: componentDetails.catalogDate,
   };
 }
 

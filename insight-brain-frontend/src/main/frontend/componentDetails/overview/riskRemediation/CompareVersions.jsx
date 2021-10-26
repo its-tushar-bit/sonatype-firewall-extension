@@ -10,6 +10,7 @@ import { NxTable, NxFontAwesomeIcon, NxTag, NxLoadingSpinner } from '@sonatype/r
 import { faTrophy, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import { versionComparisonInfoPropType } from '../../componentDetailsUtils';
+import { formatTimeAgoUpToDay } from 'MainRoot/util/dateUtils';
 import { SECURITY, LICENSE, QUALITY, OTHER } from './policyThreatCategory';
 
 export const CompareVersions = ({ currentVersion, selectedVersion, loading }) => {
@@ -96,6 +97,15 @@ export const CompareVersions = ({ currentVersion, selectedVersion, loading }) =>
             <NxTable.Cell>Integrity Rating</NxTable.Cell>
             <NxTable.Cell>{renderIntegrityRating(currentVersion.integrityRating)}</NxTable.Cell>
             <NxTable.Cell>{renderIntegrityRating(selectedVersion.integrityRating)}</NxTable.Cell>
+          </NxTable.Row>
+          <NxTable.Row id="catalogDate" className="visual-testing-ignore">
+            <NxTable.Cell>Cataloged</NxTable.Cell>
+            <NxTable.Cell>
+              {currentVersion.catalogDate && formatTimeAgoUpToDay(currentVersion.catalogDate)}
+            </NxTable.Cell>
+            <NxTable.Cell>
+              {selectedVersion.catalogDate && formatTimeAgoUpToDay(selectedVersion.catalogDate)}
+            </NxTable.Cell>
           </NxTable.Row>
         </NxTable.Body>
       </NxTable>

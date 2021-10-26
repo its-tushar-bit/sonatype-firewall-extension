@@ -204,5 +204,9 @@ public class RiskRemediationTile
     public ElementsCollection integrityRatingRow() {
       return children("#integrityRating .nx-cell");
     }
+
+    public ElementsCollection catalogDateRow() {
+      return children("#catalogDate .nx-cell");
+    }
   }
 }

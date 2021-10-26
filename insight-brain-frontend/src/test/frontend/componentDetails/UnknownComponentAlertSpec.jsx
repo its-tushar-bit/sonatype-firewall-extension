@@ -9,11 +9,12 @@ import { NxButton } from '@sonatype/react-shared-components';
 import UnkownComponentAlert from 'MainRoot/componentDetails/UnknownComponentAlert';
 
 describe('UnkownComponentAlert', function () {
-  let minimalProps, getShallowComponent, clickHandlerSpy;
+  let minimalProps, getShallowComponent, clickHandlerSpy, toggleShowMatchersPopoverSpy;
 
   beforeEach(function () {
     clickHandlerSpy = jasmine.createSpy('clickHandler');
-    minimalProps = { onClaimClick: clickHandlerSpy };
+    toggleShowMatchersPopoverSpy = jasmine.createSpy('toggleShowMatchersPopover');
+    minimalProps = { onClaimClick: clickHandlerSpy, toggleShowMatchersPopover: toggleShowMatchersPopoverSpy };
 
     getShallowComponent = enzymeUtils.getShallowComponent(UnkownComponentAlert, minimalProps);
   });
@@ -24,7 +25,7 @@ describe('UnkownComponentAlert', function () {
     const addButton = alertEl.find(NxButton).at(1);
 
     expect(alertEl).toExist();
-    expect(alertEl.children().first().text()).toEqual('The component is unknown.');
+    expect(alertEl.find('span').text()).toEqual('The component is unknown.');
 
     expect(claimButton).toExist();
     expect(claimButton).toHaveProp('title', 'Claim Component');
@@ -33,6 +34,14 @@ describe('UnkownComponentAlert', function () {
     expect(addButton).toExist();
     expect(addButton).toHaveProp('title', 'Add Proprietary Component Matchers');
     expect(addButton.text()).toEqual('Add Proprietary Component Matchers');
+  });
+
+  it('calls toggleShowMatchersPopover when the Add Proprietary Component Matchers button is clicked', function () {
+    const component = getShallowComponent();
+    const addButton = component.find(NxButton).at(1);
+
+    addButton.simulate('click');
+    expect(toggleShowMatchersPopoverSpy).toHaveBeenCalledTimes(1);
   });
 
   describe('Claim button', () => {

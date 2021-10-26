@@ -365,6 +365,10 @@ describe('CLMLocation.js', function () {
     );
   });
 
+  it('should return the set component proprietary matchers url', function () {
+    expect(CLMLocation.setProprietaryMatchers('ownerId')).toBe('/rest/proprietary/application/ownerId/add');
+  });
+
   it('should return the get component licenses url', function () {
     expect(
       CLMLocation.getComponentLicensesUrl({

@@ -16,9 +16,13 @@ import {
   selectLoadError,
   selectIsApplicableLabelsLoading,
   selectIsLabelsLoading,
+  selectShowMatchersPopover,
+  selectSetProprietaryMatchers,
+  selectPathnames,
+  selectApplicationInfo,
   selectComponentDetailsLoading,
   selectComponentDetailsLoadErrors,
-} from '../../../main/frontend/componentDetails/componentDetailsSelectors';
+} from 'MainRoot/componentDetails/componentDetailsSelectors';
 
 describe('componentDetailsSelectors', () => {
   const mockState = {
@@ -34,6 +38,7 @@ describe('componentDetailsSelectors', () => {
       metadata: {
         application: {
           name: 'The App',
+          publicId: 'TheApp',
           organization: {
             name: 'The Org',
           },
@@ -78,6 +83,7 @@ describe('componentDetailsSelectors', () => {
             componentIdentifier: { format: 'maven' },
             derivedDependencyType: 'transitive',
             matchState: 'unknown',
+            pathnames: ['pathname 1', 'pathname 2'],
             identificationSource: null,
           },
           {
@@ -104,8 +110,15 @@ describe('componentDetailsSelectors', () => {
       labels: [],
       loadError: false,
       pendingLoads: new Set(['test']),
+      showMatchersPopover: null,
+      setProprietaryMatchers: {
+        submitMaskState: true,
+        submitError: 'Some crazy error',
+        data: { pathnames: ['pathname 1', 'pathname 2'], regex: 'OMG' },
+      },
     },
   };
+
   describe('selectComponentDetails', () => {
     it('derives componentDetails from the componentDetails, selectedReport metadata, and the selectedComponent', () => {
       const expected = {
@@ -127,6 +140,41 @@ describe('componentDetailsSelectors', () => {
       };
       const actual = selectComponentDetails(mockState);
       expect(actual).toEqual(expected);
+    });
+  });
+
+  describe('selectShowMatchersPopover', () => {
+    it('selects the slice of state for showMatchersPopover', () => {
+      const actual = selectShowMatchersPopover(mockState);
+      expect(actual).toBe(null);
+    });
+  });
+
+  describe('selectSetProprietaryMatchers', () => {
+    it('selects the slice of state for setProprietaryMatchers', () => {
+      const actual = selectSetProprietaryMatchers(mockState);
+      expect(actual).toEqual({
+        submitMaskState: true,
+        submitError: 'Some crazy error',
+        data: { pathnames: ['pathname 1', 'pathname 2'], regex: 'OMG' },
+      });
+    });
+  });
+
+  describe('selectPathnames', () => {
+    it('selects the slice of state for the pathnames for the selected component', () => {
+      const actual = selectPathnames(mockState);
+      expect(actual).toEqual(['pathname 1', 'pathname 2']);
+    });
+  });
+
+  describe('selectApplicationInfo', () => {
+    it('selects the slice of state for the application stored in the metadata', () => {
+      const actual = selectApplicationInfo(mockState);
+      expect(actual).toEqual({
+        applicationName: 'The App',
+        applicationId: 'TheApp',
+      });
     });
   });
 

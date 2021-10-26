@@ -20,6 +20,12 @@ export const selectDetails = prop('componentDetails');
 
 export const selectComponentDetailsIsVisitingAncestor = createSelector(selectDetails, prop('isVisitingAncestor'));
 
+export const selectShowMatchersPopover = createSelector(selectDetails, prop('showMatchersPopover'));
+
+export const selectSetProprietaryMatchers = createSelector(selectDetails, prop('setProprietaryMatchers'));
+
+export const selectPathnames = createSelector(selectSelectedComponent, (component) => component?.pathnames ?? []);
+
 export const selectComponentDetailsOffspringDetails = createSelector(selectDetails, prop('offspring'));
 
 const selectComponentMetaData = createSelector(selectApplicationReportMetaData, (metadata) =>
@@ -29,6 +35,15 @@ const selectComponentMetaData = createSelector(selectApplicationReportMetaData, 
         organizationName: metadata.application.organization.name,
         reportTime: metadata.reportTime,
         reportTitle: metadata.reportTitle,
+      }
+    : null
+);
+
+export const selectApplicationInfo = createSelector(selectApplicationReportMetaData, (metadata) =>
+  metadata
+    ? {
+        applicationName: metadata.application.name,
+        applicationId: metadata.application.publicId,
       }
     : null
 );

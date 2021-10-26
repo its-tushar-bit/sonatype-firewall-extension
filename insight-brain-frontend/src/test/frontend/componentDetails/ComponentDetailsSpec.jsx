@@ -29,11 +29,19 @@ const assertTabs = (component, activeTabId, isUnknown, isClaimed) => {
 };
 
 describe('ComponentDetails', function () {
-  let minimalProps, getShallowComponent, getMountedComponent, loadComponentDetailsSpy, stateMock, stateGetSpy;
+  let minimalProps,
+    getShallowComponent,
+    getMountedComponent,
+    loadComponentDetailsSpy,
+    stateMock,
+    stateGetSpy,
+    onTabChangeSpy,
+    toggleShowMatchersPopoverSpy;
 
   beforeEach(function () {
-    const onTabChangeSpy = jasmine.createSpy('onTabChange');
     loadComponentDetailsSpy = jasmine.createSpy('loadComponentDetails');
+    onTabChangeSpy = jasmine.createSpy('onTabChange');
+    toggleShowMatchersPopoverSpy = jasmine.createSpy('toggleShowMatchersPopover');
 
     stateGetSpy = jasmine.createSpy('$state.get').and.returnValue({ data: { title: 'some title' } });
     stateMock = {
@@ -51,6 +59,7 @@ describe('ComponentDetails', function () {
       pagination: null,
       loadError: null,
       loading: false,
+      toggleShowMatchersPopover: toggleShowMatchersPopoverSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentDetails, minimalProps);

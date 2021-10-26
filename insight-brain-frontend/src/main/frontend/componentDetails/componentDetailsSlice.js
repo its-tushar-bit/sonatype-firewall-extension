@@ -12,8 +12,12 @@ import { stateGo } from '../reduxUiRouter/routerActions';
 import { loadReportIfNeeded } from '../applicationReport/applicationReportActions';
 import { selectComponentDetails } from './componentDetailsSelectors';
 import { selectSelectedComponent } from '../applicationReport/applicationReportSelectors';
-import { getComponentLabels, getApplicableLabels } from '../util/CLMLocation';
+import { selectComponentDetailsRequestData } from './overview/overviewSelectors';
+import { getComponentLabels, setProprietaryMatchers, getApplicableLabels } from '../util/CLMLocation';
 import { Messages } from '../util/CommonServices';
+import { toggleBooleanProp } from '../util/reduxUtil';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import { pathSet, pathSetConst } from 'MainRoot/util/reduxToolkitUtil';
 
 const REDUCER_NAME = 'componentDetails';
 export const VISIT_ANCESTOR_ACTION = REDUCER_NAME + '/visitAncestors';
@@ -28,6 +32,12 @@ const initialState = Object.freeze({
   labels: [],
   applicableLabels: [],
   loadError: null,
+  showMatchersPopover: false,
+  setProprietaryMatchers: {
+    submitMaskState: null,
+    submitError: null,
+    data: { pathnames: [], regex: '' },
+  },
 });
 
 const mutatePendingLoads = curryN(3, function mutatePendingLoads(setMutator, loads, state) {
@@ -123,6 +133,42 @@ const loadComponentDetails = createAsyncThunk(
   }
 );
 
+function startSubmitMaskSuccessTimer(dispatch) {
+  setTimeout(() => {
+    dispatch(actions.resetSubmitMaskState());
+    dispatch(actions.toggleShowMatchersPopover());
+  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+}
+
+const addProprietaryMatchersRequested = (state) => {
+  state.setProprietaryMatchers.submitMaskState = false;
+  state.setProprietaryMatchers.submitError = null;
+};
+
+const addProprietaryMatchersFulfilled = (state) => {
+  state.setProprietaryMatchers.submitMaskState = true;
+  state.setProprietaryMatchers.submitError = null;
+};
+
+const addProprietaryMatchersFailed = (state, { payload }) => {
+  state.setProprietaryMatchers.submitMaskState = null;
+  state.setProprietaryMatchers.submitError = Messages.getHttpErrorMessage(payload);
+};
+
+const addProprietaryMatchers = createAsyncThunk(
+  `${REDUCER_NAME}/addProprietaryMatchers`,
+  (data = { paths: [] }, { dispatch, getState, rejectWithValue }) => {
+    const { ownerId } = selectComponentDetailsRequestData(getState());
+    return axios
+      .post(setProprietaryMatchers(ownerId), data)
+      .then((results) => {
+        startSubmitMaskSuccessTimer(dispatch);
+        return results;
+      })
+      .catch(rejectWithValue);
+  }
+);
+
 const loadApplicableLabelsRequested = (state) => {
   return setPendingLoads(['applicableLabels'], state);
 };
@@ -157,11 +203,18 @@ const componentDetailsSlice = createSlice({
   reducers: {
     visitAncestors,
     backToOffspring,
+    toggleShowMatchersPopover: toggleBooleanProp('showMatchersPopover'),
+    resetSubmitMaskState: pathSetConst(['setProprietaryMatchers', 'submitMaskState'], null),
+    resetSubmitError: pathSetConst(['setProprietaryMatchers', 'submitError'], null),
+    setComponentMatchersData: pathSet(['setProprietaryMatchers', 'data']),
   },
   extraReducers: {
     [loadComponentDetails.pending]: loadComponentDetailsRequested,
     [loadComponentDetails.fulfilled]: loadComponentDetailsFulfilled,
     [loadComponentDetails.rejected]: loadComponentDetailsFailed,
+    [addProprietaryMatchers.pending]: addProprietaryMatchersRequested,
+    [addProprietaryMatchers.fulfilled]: addProprietaryMatchersFulfilled,
+    [addProprietaryMatchers.rejected]: addProprietaryMatchersFailed,
     [loadApplicableLabels.pending]: loadApplicableLabelsRequested,
     [loadApplicableLabels.fulfilled]: loadApplicableLabelsFulfilled,
     [loadApplicableLabels.rejected]: loadApplicableLabelsFailed,
@@ -171,6 +224,7 @@ const componentDetailsSlice = createSlice({
 export default componentDetailsSlice.reducer;
 export const actions = {
   ...componentDetailsSlice.actions,
+  addProprietaryMatchers,
   loadComponentDetails,
   onTabChange,
   visitAncestorAction,

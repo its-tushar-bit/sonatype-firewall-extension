@@ -34,16 +34,10 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.Vulnerabili
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
+import com.sonatype.clm.testing.functional.pages.*;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
-import com.sonatype.clm.testing.functional.pages.AuditLogContent;
-import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
-import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
-import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.RequestWaiversPopover;
-import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -81,6 +75,7 @@ import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentDetailsTest
@@ -222,6 +217,39 @@ public class ComponentDetailsTest
   }
 
   @Test
+  public void testComponentDetailsAddProprietaryComponentMatchersPopover() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForUnknownComponent();
+
+    SelenideElement addProprietarypComponentMatchersBtn = componentDetailsPage.addProprietarypComponentMatchersBtn();
+
+    AddProprietaryComponentMatchersPopover addProprietaryComponentMatchersPopover = 
+        new AddProprietaryComponentMatchersPopover();
+
+    addProprietarypComponentMatchersBtn.click();
+    addProprietaryComponentMatchersPopover.shouldBe(visible);
+    addProprietaryComponentMatchersPopover.cancelBtn().click();
+    addProprietaryComponentMatchersPopover.shouldNotBe(visible);
+
+    addProprietarypComponentMatchersBtn.click();
+    addProprietaryComponentMatchersPopover.shouldBe(visible);
+
+    eyesWatcher.eyesCheck("component details Add Proprietary Component Matchers");
+
+    addProprietaryComponentMatchersPopover.alerts().first()
+        .shouldHave(text("The following matchers will be added to the ApplicationReportTest Configuration (duplicates"
+        + " will be ignored). The new matchers will be in effect for the next application analysis."));
+    addProprietaryComponentMatchersPopover.matchers().shouldHaveSize(1);
+    addProprietaryComponentMatchersPopover.addBtn().shouldNotHave(DISABLED);
+    addProprietaryComponentMatchersPopover.matchers().get(0)
+        .shouldHave(text("full.jar/WebGoat-6.0.1/WEB-INF/classes/org/owasp/webgoat/lessons/instr"));
+    addProprietaryComponentMatchersPopover.matchers().get(0).click();
+    addProprietaryComponentMatchersPopover.addBtn().shouldHave(DISABLED);
+    addProprietaryComponentMatchersPopover.matchers().get(0).click();
+    addProprietaryComponentMatchersPopover.addBtn().click();
+    addProprietaryComponentMatchersPopover.shouldNotBe(visible);
+  }
+
   public void testComponentDetails_UnknownComponentAlert_ClaimButton() {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForUnknownComponent();

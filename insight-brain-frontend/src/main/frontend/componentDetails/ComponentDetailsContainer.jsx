@@ -14,7 +14,7 @@ import {
 import { actions } from './componentDetailsSlice';
 import ComponentDetails from './ComponentDetails';
 
-const { onTabChange, loadComponentDetails, backToOffspringAction } = actions;
+const { onTabChange, loadComponentDetails, backToOffspringAction, toggleShowMatchersPopover } = actions;
 
 function mapStateToProps(state, { uiRouterState }) {
   return {
@@ -32,6 +32,7 @@ const mapDispatchToProps = {
   loadComponentDetails,
   onTabChange,
   backToOffspringOnClick: backToOffspringAction,
+  toggleShowMatchersPopover,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ComponentDetails);

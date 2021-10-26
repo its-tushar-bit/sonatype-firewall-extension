@@ -40,6 +40,7 @@ export default function ComponentDetails({
   loadComponentDetails,
   loadError,
   loading,
+  toggleShowMatchersPopover,
 }) {
   useEffect(() => {
     loadComponentDetails();
@@ -84,7 +85,9 @@ export default function ComponentDetails({
                   labels={componentDetails.labels}
                 />
               </ComponentDetailsHeader>
-              {isUnknown && <UnknownComponentAlert onClaimClick={goToClaim} />}
+              {isUnknown && (
+                <UnknownComponentAlert onClaimClick={goToClaim} toggleShowMatchersPopover={toggleShowMatchersPopover} />
+              )}
             </Fragment>
           )}
         </NxLoadWrapper>
@@ -126,4 +129,5 @@ ComponentDetails.propTypes = {
   loading: PropTypes.bool.isRequired,
   loadError: PropTypes.string,
   pagination: PropTypes.shape(footerPropTypes),
+  toggleShowMatchersPopover: PropTypes.func.isRequired,
 };

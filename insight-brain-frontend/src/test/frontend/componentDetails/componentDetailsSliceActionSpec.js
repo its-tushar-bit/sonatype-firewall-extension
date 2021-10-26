@@ -5,19 +5,21 @@
  */
 import axios from 'axios';
 
-import { getComponentLabels, getApplicableLabels } from '../../../main/frontend/util/CLMLocation';
+import { getComponentLabels, getApplicableLabels, setProprietaryMatchers } from 'MainRoot/util/CLMLocation';
 import {
   actions as componentDetailsActions,
   VISIT_ANCESTOR_ACTION,
   RETURN_TO_OFFSPRING,
-} from '../../../main/frontend/componentDetails/componentDetailsSlice';
-import * as applicationReportActions from '../../../main/frontend/applicationReport/applicationReportActions';
+} from 'MainRoot/componentDetails/componentDetailsSlice';
+import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 const {
   loadComponentDetails,
   visitAncestorAction,
   backToOffspringAction,
   loadApplicableLabels,
+  addProprietaryMatchers,
 } = componentDetailsActions;
 
 const LOAD_COMPONENT_LABELS_REQUESTED = 'componentDetails/loadComponentDetails/pending';
@@ -26,6 +28,11 @@ const LOAD_COMPONENT_LABELS_FAILED = 'componentDetails/loadComponentDetails/reje
 const LOAD_APPLICABLE_LABELS_REQUESTED = 'componentDetails/loadApplicableLabels/pending';
 const LOAD_APPLICABLE_LABELS_FULFILLED = 'componentDetails/loadApplicableLabels/fulfilled';
 const LOAD_APPLICABLE_LABELS_FAILED = 'componentDetails/loadApplicableLabels/rejected';
+const ADD_PROPRIETARY_MATCHERS_REQUESTED = 'componentDetails/addProprietaryMatchers/pending';
+const ADD_PROPRIETARY_MATCHERS_FULFILLED = 'componentDetails/addProprietaryMatchers/fulfilled';
+const ADD_PROPRIETARY_MATCHERS_FAILED = 'componentDetails/addProprietaryMatchers/rejected';
+const RESET_SUBMIT_MASK_STATE = 'componentDetails/resetSubmitMaskState';
+const TOGGLE_SHOW_MATCHERS_POPOVER = 'componentDetails/toggleShowMatchersPopover';
 const STATE_GO = '@@reduxUiRouter/stateGo';
 
 describe('componentDetailsActions', function () {
@@ -34,11 +41,13 @@ describe('componentDetailsActions', function () {
     mockAxiosCalls,
     url,
     applicableLabelsUrl,
+    addProprietaryMatchersUrl,
     mockAppId,
     mockReportId,
     mockComponentHash,
     mockDerivedComponentName,
     mockComponent,
+    mockAddProprietaryMatchersData,
     mockRouteName;
 
   beforeEach(() => {
@@ -49,7 +58,6 @@ describe('componentDetailsActions', function () {
     mockDerivedComponentName = 'myComponent:1:2';
     mockRouteName = 'application.componentDetails.overview';
     mockComponent = { name: 'My Component', hash: mockComponentHash, derivedComponentName: mockDerivedComponentName };
-
     state = {
       router: {
         currentState: {
@@ -67,10 +75,19 @@ describe('componentDetailsActions', function () {
         },
       },
     };
+    mockAddProprietaryMatchersData = {
+      paths: [],
+    };
     store = SpecUtil.mockReduxStore(state);
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
     url = getComponentLabels(mockAppId, mockComponentHash);
     applicableLabelsUrl = getApplicableLabels('application', mockAppId);
+    addProprietaryMatchersUrl = setProprietaryMatchers(mockAppId);
+    jasmine.clock().install();
+  });
+
+  afterEach(() => {
+    jasmine.clock().uninstall();
   });
 
   describe('loadComponentLabels', () => {
@@ -127,6 +144,70 @@ describe('componentDetailsActions', function () {
         expect(actions.length).toBe(3);
         expect(store.getActions()).toHaveAction({
           type: LOAD_COMPONENT_LABELS_FAILED,
+          payload: 'error',
+        });
+        done();
+      });
+    });
+  });
+
+  describe('addProprietaryMatchers', () => {
+    it('immediately dispatches ADD_PROPRIETARY_MATCHERS_REQUESTED action', () => {
+      store.dispatch(addProprietaryMatchers());
+
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()).toHaveActionType(ADD_PROPRIETARY_MATCHERS_REQUESTED);
+    });
+
+    it('sends a POST request to the appropriate url', (done) => {
+      const mockResponse = { data: { someData: 'Some data' } };
+      mockAxiosCalls({
+        post: {
+          [addProprietaryMatchersUrl]: Promise.resolve(mockResponse),
+        },
+      });
+      store.dispatch(addProprietaryMatchers()).then(() => {
+        expect(axios.post).toHaveBeenCalledWith(addProprietaryMatchersUrl, mockAddProprietaryMatchersData);
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()).toHaveActionType(ADD_PROPRIETARY_MATCHERS_FULFILLED);
+        done();
+      });
+    });
+
+    it('dispatches ADD_PROPRIETARY_MATCHERS_FULFILLED after a succesfull response', (done) => {
+      const mockResponse = { data: { someData: 'Some data' } };
+      mockAxiosCalls({
+        post: {
+          [addProprietaryMatchersUrl]: Promise.resolve(mockResponse),
+        },
+      });
+
+      store.dispatch(addProprietaryMatchers()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        expect(store.getActions().length).toBe(4);
+        expect(store.getActions()).toHaveAction({
+          type: ADD_PROPRIETARY_MATCHERS_FULFILLED,
+          payload: mockResponse,
+        });
+        expect(store.getActions()).toHaveActionType(ADD_PROPRIETARY_MATCHERS_REQUESTED);
+        expect(store.getActions()).toHaveActionType(RESET_SUBMIT_MASK_STATE);
+        expect(store.getActions()).toHaveActionType(TOGGLE_SHOW_MATCHERS_POPOVER);
+        done();
+      });
+    });
+
+    it('dispatches ADD_PROPRIETARY_MATCHERS_FAILED after a failed reponse', (done) => {
+      mockAxiosCalls({
+        post: {
+          [addProprietaryMatchersUrl]: () => Promise.reject('error'),
+        },
+      });
+      store.dispatch(addProprietaryMatchers()).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(store.getActions()).toHaveActionType(ADD_PROPRIETARY_MATCHERS_REQUESTED);
+        expect(store.getActions()).toHaveAction({
+          type: ADD_PROPRIETARY_MATCHERS_FAILED,
           payload: 'error',
         });
         done();

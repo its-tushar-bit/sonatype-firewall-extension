@@ -47,7 +47,7 @@ export const ComponentDetailsTags = ({ format, dependencyType, isInnerSource, la
           <dt>Labels</dt>
           {labels.map(({ id, color, label, description }) => (
             <NxTooltip key={id} title={description}>
-              <dd>
+              <dd className="iq-component-details-tags__labels">
                 <ComponentLabelTag color={color}>{label}</ComponentLabelTag>
               </dd>
             </NxTooltip>

@@ -160,6 +160,11 @@ export const selectLabels = createSelector(selectDetails, ({ labels }) => labels
 
 export const selectLoadError = createSelector(selectDetails, ({ loadError }) => loadError);
 
+export const selectApplicableLabelsLoadError = createSelector(
+  selectDetails,
+  ({ applicableLabelsLoadError }) => applicableLabelsLoadError
+);
+
 export const selectIsApplicableLabelsLoading = createSelector(selectDetails, ({ pendingLoads }) =>
   pendingLoads.has('applicableLabels')
 );

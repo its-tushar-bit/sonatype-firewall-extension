@@ -32,6 +32,7 @@ const initialState = Object.freeze({
   labels: [],
   applicableLabels: [],
   loadError: null,
+  applicableLabelsLoadError: null,
   showMatchersPopover: false,
   setProprietaryMatchers: {
     submitMaskState: null,
@@ -178,12 +179,15 @@ const loadApplicableLabelsFulfilled = (state, { payload }) => {
   return unsetPendingLoads(['applicableLabels'], {
     ...state,
     applicableLabels: sortAlphabetically(flattenLabelsToSingleArray(payload.data.labelsByOwner)),
-    loadError: null,
+    applicableLabelsLoadError: null,
   });
 };
 
 const loadApplicableLabelsFailed = (state, { payload }) => {
-  return unsetPendingLoads(['applicableLabels'], { ...state, loadError: Messages.getHttpErrorMessage(payload) });
+  return unsetPendingLoads(['applicableLabels'], {
+    ...state,
+    applicableLabelsLoadError: Messages.getHttpErrorMessage(payload),
+  });
 };
 
 const loadApplicableLabels = createAsyncThunk(

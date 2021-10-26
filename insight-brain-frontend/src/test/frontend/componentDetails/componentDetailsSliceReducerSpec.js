@@ -25,6 +25,20 @@ const SET_COMPONENT_MATCHERS_DATA = 'componentDetails/setComponentMatchersData';
 const TOGGLE_SHOW_MATCHERS_POPOVER = 'componentDetails/toggleShowMatchersPopover';
 
 describe('componentDetailsReducer', () => {
+  let mockState;
+
+  beforeEach(() => {
+    mockState = {
+      pendingLoads: new Set(),
+      isVisitingAncestor: false,
+      offspring: null,
+      labels: [],
+      applicableLabels: [],
+      loadError: null,
+      applicableLabelsLoadError: null,
+    };
+  });
+
   describe('VISIT_ANCESTOR_ACTION action', () => {
     it('adds "offspring" information', () => {
       const state = {
@@ -66,29 +80,15 @@ describe('componentDetailsReducer', () => {
 
   describe('unknown action', () => {
     it('returns original state', () => {
-      const state = {
-        pendingLoads: new Set(),
-        isVisitingAncestor: false,
-        offspring: null,
-        labels: [],
-        loadError: null,
-      };
       const action = { type: 'UNKNOWN' };
-      const newState = reducer(state, action);
-      expect(newState).toBe(state);
+      const newState = reducer(mockState, action);
+      expect(newState).toBe(mockState);
     });
   });
 
   describe('LOAD_COMPONENT_LABELS_REQUESTED action', function () {
     it('adds "labels" pending load', function () {
-      const state = {
-        pendingLoads: new Set(),
-        isVisitingAncestor: false,
-        offspring: null,
-        labels: [],
-        loadError: null,
-      };
-      const newState = reducer(state, {
+      const newState = reducer(mockState, {
         type: LOAD_COMPONENT_LABELS_REQUESTED,
       });
       expect(newState.pendingLoads.has('labels')).toBe(true);
@@ -97,14 +97,7 @@ describe('componentDetailsReducer', () => {
 
   describe('LOAD_COMPONENT_LABELS_FULFILLED action', function () {
     it('adds labels value and removes "labels" pending load', function () {
-      const state = {
-        pendingLoads: new Set(),
-        isVisitingAncestor: false,
-        offspring: null,
-        labels: [],
-        loadError: null,
-      };
-      const newState = reducer(state, {
+      const newState = reducer(mockState, {
         type: LOAD_COMPONENT_LABELS_FULFILLED,
         payload: {
           data: {
@@ -120,14 +113,7 @@ describe('componentDetailsReducer', () => {
 
   describe('LOAD_COMPONENT_LABELS_FAILED action', function () {
     it('adds loadError value and removes "labels" pending load', function () {
-      const state = {
-        pendingLoads: new Set(),
-        isVisitingAncestor: false,
-        offspring: null,
-        labels: [],
-        loadError: null,
-      };
-      const newState = reducer(state, {
+      const newState = reducer(mockState, {
         type: LOAD_COMPONENT_LABELS_FAILED,
         payload: {},
       });
@@ -137,8 +123,7 @@ describe('componentDetailsReducer', () => {
     });
 
     it('clears error state on retry', function () {
-      const state = { pendingLoads: new Set(), labels: [], loadError: null };
-      const newState = reducer(state, {
+      const newState = reducer(mockState, {
         type: LOAD_COMPONENT_LABELS_FAILED,
         payload: {},
       });
@@ -159,15 +144,7 @@ describe('componentDetailsReducer', () => {
 
   describe('LOAD_APPLICABLE_LABELS_REQUESTED action', function () {
     it('adds "applicableLabels" pending load', function () {
-      const state = {
-        pendingLoads: new Set(),
-        isVisitingAncestor: false,
-        offspring: null,
-        labels: [],
-        applicableLabels: [],
-        loadError: null,
-      };
-      const newState = reducer(state, {
+      const newState = reducer(mockState, {
         type: LOAD_APPLICABLE_LABELS_REQUESTED,
       });
       expect(newState.pendingLoads.has('applicableLabels')).toBe(true);
@@ -176,15 +153,7 @@ describe('componentDetailsReducer', () => {
 
   describe('LOAD_APPLICABLE_LABELS_FULFILLED action', function () {
     it('adds ORDERED applicableLabels value and removes "applicableLabels" pending load', function () {
-      const state = {
-        pendingLoads: new Set(),
-        isVisitingAncestor: false,
-        offspring: null,
-        labels: [],
-        applicableLabels: [],
-        loadError: null,
-      };
-      const newState = reducer(state, {
+      const newState = reducer(mockState, {
         type: LOAD_APPLICABLE_LABELS_FULFILLED,
         payload: {
           data: {
@@ -200,31 +169,22 @@ describe('componentDetailsReducer', () => {
 
   describe('LOAD_APPLICABLE_LABELS_FAILED action', function () {
     it('adds loadError value and removes "applicableLabels" pending load', function () {
-      const state = {
-        pendingLoads: new Set(),
-        isVisitingAncestor: false,
-        offspring: null,
-        labels: [],
-        applicableLabels: [],
-        loadError: null,
-      };
-      const newState = reducer(state, {
+      const newState = reducer(mockState, {
         type: LOAD_APPLICABLE_LABELS_FAILED,
         payload: {},
       });
 
       expect(newState.pendingLoads.size).toEqual(0);
-      expect(newState.loadError).toEqual('Error');
+      expect(newState.applicableLabelsLoadError).toEqual('Error');
     });
 
     it('clears error state on retry', function () {
-      const state = { pendingLoads: new Set(), labels: [], applicableLabels: [], loadError: null };
-      const newState = reducer(state, {
+      const newState = reducer(mockState, {
         type: LOAD_APPLICABLE_LABELS_FAILED,
         payload: {},
       });
       expect(newState.pendingLoads.size).toEqual(0);
-      expect(newState.loadError).toEqual('Error');
+      expect(newState.applicableLabelsLoadError).toEqual('Error');
 
       const retryState = reducer(newState, {
         type: LOAD_APPLICABLE_LABELS_FULFILLED,

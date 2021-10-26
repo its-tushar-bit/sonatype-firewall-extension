@@ -16,13 +16,15 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.MatchStateFilter;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
@@ -32,7 +34,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViola
 import com.sonatype.clm.testing.functional.elements.componentdetails.SimilarMatchesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
-import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
+import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover.VulnerabilityOverrideForm;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.*;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
@@ -66,8 +68,8 @@ import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
@@ -757,7 +759,7 @@ public class ComponentDetailsTest
     mockHdsResponsesForVulnerabilityDetails();
 
     refreshOrOpen(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "1e48256a2341047e7d72"));
-    ComponentDetailsPage componentDetailsPage =  new ComponentDetailsPage();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
 
     VulnerabilitiesTable vulnerabilitiesTable = componentDetailsPage.securityTabContent().vulnerabilitiesTable();
     vulnerabilitiesTable.shouldBe(visible);
@@ -783,6 +785,18 @@ public class ComponentDetailsTest
     SelenideElement sourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(4);
     sourceContent.shouldHave(text("Sonatype Data Research"));
 
+    VulnerabilityOverrideForm vulnerabilityOverrideForm = vulnerabilityDetailsPopover.getVulnerabilityOverrideForm();
+    vulnerabilityOverrideForm.shouldBe(visible);
+    vulnerabilityOverrideForm.comment().shouldBe(disabled);
+    vulnerabilityOverrideForm.submitButton().shouldBe(CLM.DISABLED);
+
+    vulnerabilityOverrideForm.status().chooseOption(new Option(3, "CONFIRMED"));
+    vulnerabilityOverrideForm.comment().setValue("vulnerability confirmed in the current code");
+    vulnerabilityOverrideForm.submitButton().shouldBe(enabled).click();
+    // Conditions after submitting
+    vulnerabilityOverrideForm.submitButton().shouldBe(CLM.DISABLED);
+    vulnerabilityOverrideForm.comment().shouldBe(enabled);
+
     eyesWatcher.eyesCheck("vulnerability details popover");
 
     SelenideElement closeButton = vulnerabilityDetailsPopover.getCloseButton();
@@ -790,6 +804,9 @@ public class ComponentDetailsTest
     closeButton.click();
 
     vulnerabilityDetailsPopover.shouldNotBe(visible);
+
+    vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"))
+        .shouldHave(exactTexts("9", "CVE-1234-56789", "Confirmed", ""));
   }
 
   @Test

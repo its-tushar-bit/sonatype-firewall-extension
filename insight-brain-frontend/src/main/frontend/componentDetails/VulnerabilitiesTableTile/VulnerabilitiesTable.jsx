@@ -9,7 +9,7 @@ import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@son
 import VulnerabilitiesTableRow from './VulnerabilitiesTableRow';
 import { vulnerabilitiyPropTypes } from './VulnerabilitiesTableRow';
 
-const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, setVulnerabilityIdAndToggleVisibility }) => {
+const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, toggleVulnerabilityPopoverWithEffects }) => {
   useEffect(() => {
     loadVulnerabilities();
   }, []);
@@ -34,7 +34,7 @@ const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, setVulnera
           <VulnerabilitiesTableRow
             key={vulnerability.refId}
             vulnerability={vulnerability}
-            setVulnerabilityIdAndToggleVisibility={setVulnerabilityIdAndToggleVisibility}
+            toggleVulnerabilityPopoverWithEffects={toggleVulnerabilityPopoverWithEffects}
           />
         ))}
       </NxTableBody>
@@ -50,7 +50,7 @@ export const vulnerabilitiesPropTypes = {
 VulnerabilitiesTable.propTypes = {
   loadVulnerabilities: PropTypes.func.isRequired,
   vulnerabilities: PropTypes.shape(vulnerabilitiesPropTypes),
-  setVulnerabilityIdAndToggleVisibility: PropTypes.func.isRequired,
+  toggleVulnerabilityPopoverWithEffects: PropTypes.func.isRequired,
 };
 
 export default VulnerabilitiesTable;

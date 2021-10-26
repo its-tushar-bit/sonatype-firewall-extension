@@ -22,7 +22,7 @@ function mapStateToProps(state) {
 const mapDispatchToProps = {
   loadComponentDetails: componentDetailsActions.loadComponentDetails,
   loadVulnerabilities: actions.loadVulnerabilities,
-  setVulnerabilityIdAndToggleVisibility: actions.setVulnerabilityIdAndToggleVisibility,
+  toggleVulnerabilityPopoverWithEffects: actions.toggleVulnerabilityPopoverWithEffects,
 };
 
 export const VulnerabilitiesTableTileContainer = connect(mapStateToProps, mapDispatchToProps)(VulnerabilitiesTableTile);

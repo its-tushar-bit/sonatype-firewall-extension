@@ -12,6 +12,8 @@ import { VulnerabilityDetailsPopoverContainer } from 'MainRoot/componentDetails/
 
 describe('VulnerabilitiesTableTile', () => {
   let minimalProps, tableProps, getShallow;
+  jasmine.createSpy('loadVulnerabilities');
+  const toggleVulnerabilityPopoverWithEffects = jasmine.createSpy('toggleVulnerabilityPopoverWithEffects');
 
   beforeEach(() => {
     tableProps = {
@@ -21,7 +23,7 @@ describe('VulnerabilitiesTableTile', () => {
         error: null,
       },
       loadVulnerabilities: () => {},
-      setVulnerabilityIdAndToggleVisibility: () => {},
+      toggleVulnerabilityPopoverWithEffects,
     };
     minimalProps = {
       ...tableProps,

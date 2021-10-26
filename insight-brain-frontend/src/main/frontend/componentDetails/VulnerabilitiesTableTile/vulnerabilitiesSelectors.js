@@ -42,3 +42,15 @@ export const selectVulnerabilitiesRequestData = createSelector(
     scanId: params.scanId,
   })
 );
+
+export const selectSelectedVulnerability = createSelector(
+  selectVulnerabilitiesSortedSlice,
+  selectVulnerabityRefId,
+  (vulnerabilities, selectedRefId) =>
+    !selectedRefId ? null : vulnerabilities.data.find((vulnerability) => vulnerability.refId === selectedRefId)
+);
+
+export const selectVulnerabilityOverrideFormData = createSelector(
+  selectVulnerabilitiesSlice,
+  prop('vulnerabilitySecurityOverride')
+);

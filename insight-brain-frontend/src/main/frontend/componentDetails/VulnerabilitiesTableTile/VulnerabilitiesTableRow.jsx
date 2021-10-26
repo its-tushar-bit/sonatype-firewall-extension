@@ -8,12 +8,12 @@ import PropTypes from 'prop-types';
 
 import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 
-const VulnerabilitiesTableRow = ({ vulnerability, setVulnerabilityIdAndToggleVisibility }) => {
+const VulnerabilitiesTableRow = ({ vulnerability, toggleVulnerabilityPopoverWithEffects }) => {
   return (
     <NxTableRow
       className="iq-policy-violation-row"
       isClickable
-      onClick={() => setVulnerabilityIdAndToggleVisibility(vulnerability.refId)}
+      onClick={() => toggleVulnerabilityPopoverWithEffects(vulnerability.refId)}
     >
       <NxTableCell>
         <span>{Math.floor(vulnerability.severity)}</span>
@@ -37,7 +37,7 @@ export const vulnerabilitiyPropTypes = PropTypes.shape({
 
 VulnerabilitiesTableRow.propTypes = {
   vulnerability: vulnerabilitiyPropTypes,
-  setVulnerabilityIdAndToggleVisibility: PropTypes.func.isRequired,
+  toggleVulnerabilityPopoverWithEffects: PropTypes.func.isRequired,
 };
 
 export default VulnerabilitiesTableRow;

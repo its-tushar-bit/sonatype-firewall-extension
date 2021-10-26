@@ -41,5 +41,5 @@ VulnerabilitiesTableTile.propTypes = {
   loadComponentDetails: PropTypes.func.isRequired,
   loadVulnerabilities: PropTypes.func.isRequired,
   vulnerabilities: PropTypes.shape(vulnerabilitiesPropTypes),
-  setVulnerabilityIdAndToggleVisibility: PropTypes.func.isRequired,
+  toggleVulnerabilityPopoverWithEffects: PropTypes.func.isRequired,
 };

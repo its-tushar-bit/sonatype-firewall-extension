@@ -6,12 +6,13 @@
 import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
+  selectSelectedVulnerability,
   selectVulnerabilitiesSlice,
   selectVulnerabilitiesSortedSlice,
-  selectVulnerabityRefId,
   selectVulnerabilityDetailsSlice,
   selectVulnerabilitiesRequestData,
-} from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSelectors';
+  selectVulnerabityRefId,
+} from 'MainRoot/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSelectors';
 
 describe('vulnerabilitiesSelectors', () => {
   const mockState = {
@@ -134,7 +135,7 @@ describe('vulnerabilitiesSelectors', () => {
   });
 
   describe('selectVulnerabilitiesSortedSlice', () => {
-    it('returns the vulnerabilities currently contained in the selectVulnerabilitiesSortedSlice sorted by sevrity', () => {
+    it('returns the vulnerabilities currently contained in the selectVulnerabilitiesSortedSlice sorted by severity', () => {
       const expectedSelection = {
         data: [
           {
@@ -203,6 +204,29 @@ describe('vulnerabilitiesSelectors', () => {
         applicationReport,
       });
       expect(actual).toEqual(expectedData);
+    });
+  });
+  describe('selectSelectedVulnerability', () => {
+    it('returns null if there is no selectedRefId', () => {
+      const expectedSelection = null;
+      const noSelectedRefState = {
+        ...mockState,
+        componentDetailsVulnerabilities: { ...mockState.componentDetailsVulnerabilities, selectedRefId: null },
+      };
+
+      const actualSelection = selectSelectedVulnerability(noSelectedRefState);
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+
+    it('returns the vulnerability information that matches the selectedRefId', () => {
+      const expectedSelection = {
+        refId: '2',
+        severity: 9.2,
+        status: 'status 2',
+      };
+
+      const actualSelection = selectSelectedVulnerability(mockState);
+      expect(actualSelection).toEqual(expectedSelection);
     });
   });
 });

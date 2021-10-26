@@ -120,6 +120,7 @@ export function getIsHdsReachable() {
 export function getTelemetryUrl() {
   return uriTemplate`/rest/environment/stats`;
 }
+
 export function getScmOrganizationsUrl() {
   return uriTemplate`/rest/onboarding/organizations`;
 }
@@ -521,6 +522,7 @@ export function getWebhookEventTypesUrl() {
 export function getWebhooksUrl() {
   return uriTemplate`/rest/config/webhook`;
 }
+
 export function deleteWebhooksUrl(webhookId) {
   return uriTemplate`/rest/config/webhook/${webhookId}`;
 }
@@ -711,6 +713,14 @@ export function getClaimComponentUrl(hash) {
 export function getQuarantinedComponentUrl(token) {
   return uriTemplate`/rest/repositories/quarantinedComponent/${token}`;
 }
+
+export const getVulnerabilityOverrideUrl = (ownerType, ownerId, hash, vulnerability) => {
+  if (hash && vulnerability) {
+    const { source, refId } = vulnerability;
+    return uriTemplate`/rest/securityVulnerabilityOverride/${ownerType}/${ownerId}/${hash}/${source}/${refId}`;
+  }
+  return uriTemplate`/rest/securityVulnerabilityOverride/${ownerType}/${ownerId}`;
+};
 
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 
 import org.slf4j.Logger;
@@ -50,10 +52,17 @@ public class PolicyViolationLoader
 
   private final PolicyViolationDAO policyViolationDAO;
 
+  private final InsightConfig insightConfig;
+
   @Inject
-  public PolicyViolationLoader(PolicyEvaluationDAO policyEvaluationDAO, PolicyViolationDAO policyViolationDAO) {
+  public PolicyViolationLoader(
+      PolicyEvaluationDAO policyEvaluationDAO,
+      PolicyViolationDAO policyViolationDAO,
+      InsightConfig insightConfig)
+  {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationDAO = policyViolationDAO;
+    this.insightConfig = insightConfig;
   }
 
   public Collection<ApplicationView> getViolations(Collection<Application> applications,
@@ -73,12 +82,22 @@ public class PolicyViolationLoader
     long start = System.currentTimeMillis();
 
     Set<String> applicationIds = applications.stream().map(Application::getId).collect(toSet());
+
     Set<String> stageTypeIds = stageTypes == null ? Collections.emptySet()
         : stageTypes.stream().map(StageType::getId).collect(toSet());
 
     Collection<PolicyEvaluation> evaluations = loadEvaluations(applicationIds, stageTypeIds, minDate);
 
-    applicationIds = evaluations.stream().map(e -> e.getApplicationId()).collect(toSet());
+    final int maxApplications = insightConfig.getMaxApplicationsToQueryOnDashboard();
+    if (maxApplications > 0) {
+      // find most recent evaluations and put out appIds until limit
+      applicationIds = evaluations.stream().sorted(Comparator.comparing(PolicyEvaluation::getTime).reversed())
+          .map(PolicyEvaluation::getApplicationId).distinct().limit(maxApplications)
+          .collect(toSet());
+    }
+    else {
+      applicationIds = evaluations.stream().map(PolicyEvaluation::getApplicationId).collect(toSet());
+    }
 
     CompletableFuture<Map<String, ApplicationView>> appViewsByAppIdFuture = CompletableFuture.supplyAsync(() -> {
       Collection<StageType> stageTypesToFill = stageTypes == null || stageTypes.isEmpty() ? StageTypes.getAll()

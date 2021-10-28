@@ -59,12 +59,17 @@ export function setScopeIcon(availableScope) {
   return faCaretSquareRight;
 }
 
-export function backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash) {
-  let state =
-    ownerType === 'organization' ? 'legal.organizationComponentOverview' : 'legal.applicationComponentOverview';
+export function backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash, componentIdentifier) {
+  let state = '';
+  if (componentIdentifier && !hash) {
+    state = 'legal.componentOverviewByComponentIdentifier';
+  } else {
+    state = ownerType === 'organization' ? 'legal.organizationComponentOverview' : 'legal.applicationComponentOverview';
+  }
   const params = {
     [ownerType === 'organization' ? 'organizationId' : 'applicationPublicId']: ownerId,
-    hash: hash,
+    ...(hash && { hash }),
+    ...(componentIdentifier && { componentIdentifier }),
   };
   if (stageTypeId && ownerType === 'application') {
     state = 'legal.applicationStageTypeComponentOverview';

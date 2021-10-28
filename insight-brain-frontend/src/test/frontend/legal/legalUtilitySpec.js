@@ -215,7 +215,7 @@ describe('legalUtility', function () {
       get: (state) => state,
     };
 
-    it('returns a state for org component overview', function () {
+    it('returns a state for org component overview by hash', function () {
       const url = backToComponentOverviewUrl(state, 'organization', 'org', undefined, 'hash');
       expect(url).toEqual({
         name: 'legal.organizationComponentOverview',
@@ -226,7 +226,18 @@ describe('legalUtility', function () {
       });
     });
 
-    it('returns a state for application component overview', function () {
+    it('returns a state for org component overview by component identifier', function () {
+      const url = backToComponentOverviewUrl(state, 'organization', 'org', undefined, undefined, 'compIdentifier');
+      expect(url).toEqual({
+        name: 'legal.componentOverviewByComponentIdentifier',
+        params: {
+          organizationId: 'org',
+          componentIdentifier: 'compIdentifier',
+        },
+      });
+    });
+
+    it('returns a state for application component overview by hash', function () {
       const url = backToComponentOverviewUrl(state, 'application', 'app', undefined, 'hash');
       expect(url).toEqual({
         name: 'legal.applicationComponentOverview',
@@ -237,13 +248,36 @@ describe('legalUtility', function () {
       });
     });
 
-    it('returns a state for application component overview for a given stage', function () {
+    it('returns a state for application component overview by component identifier', function () {
+      const url = backToComponentOverviewUrl(state, 'application', 'app', undefined, undefined, 'componentIdentifier');
+      expect(url).toEqual({
+        name: 'legal.componentOverviewByComponentIdentifier',
+        params: {
+          applicationPublicId: 'app',
+          componentIdentifier: 'componentIdentifier',
+        },
+      });
+    });
+
+    it('returns a state for application component overview for a given stage by hash', function () {
       const url = backToComponentOverviewUrl(state, 'application', 'app', 'build', 'hash');
       expect(url).toEqual({
         name: 'legal.applicationStageTypeComponentOverview',
         params: {
           applicationPublicId: 'app',
           hash: 'hash',
+          stageTypeId: 'build',
+        },
+      });
+    });
+
+    it('returns a state for application component overview for a given stage by component identifier', function () {
+      const url = backToComponentOverviewUrl(state, 'application', 'app', 'build', undefined, 'componentIdentifier');
+      expect(url).toEqual({
+        name: 'legal.applicationStageTypeComponentOverview',
+        params: {
+          applicationPublicId: 'app',
+          componentIdentifier: 'componentIdentifier',
           stageTypeId: 'build',
         },
       });

@@ -14,8 +14,10 @@ import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.EditLicensesModal;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
@@ -23,7 +25,6 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.StringUtils;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -34,7 +35,7 @@ public class EditLicensesTest
 {
   private Application app;
 
-  private final ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   @BeforeClass
   public static void boot() {
@@ -42,12 +43,11 @@ public class EditLicensesTest
     loginAsAdmin();
   }
 
-  @Before
-  public void init() throws IOException {
+  private void init(String hash, ComponentIdentifier componentIdentifier, String testFileSuffix) throws IOException {
     app = tempEntity.newApplicationWithParent(EditLicensesTest.class.getSimpleName(), "app", "org");
 
-    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
-        "033e7a20b23ea284d474", componentId);
+    ApplicationComponent applicationComponent =
+        tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, componentIdentifier);
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");
 
     testCLMServer.getHdsServer()
@@ -57,7 +57,7 @@ public class EditLicensesTest
         .atUri("/rest/license/metadata");
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
-            .toString(this.getClass().getResourceAsStream("/legal/legalCommentHdsResponse.json"),
+            .toString(this.getClass().getResourceAsStream("/legal/legalCommentHdsResponse" + testFileSuffix + ".json"),
                 StandardCharsets.UTF_8))
         .atUri("/rest/legal/comment");
     testCLMServer.getHdsServer()
@@ -65,26 +65,40 @@ public class EditLicensesTest
         .atUri("/rest/legal/file");
 
     testCLMServer.getHdsServer()
-        .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetails.json"),
+        .respondWith(
+            IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetails" + testFileSuffix + ".json"),
             StandardCharsets.UTF_8))
         .atUri("rest/ci/componentDetails");
     testCLMServer.getHdsServer()
         .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetailsList.json"),
             StandardCharsets.UTF_8))
         .atUri("rest/ci/componentDetails/list");
-
-    refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
   }
 
   @Test
-  public void testEditLicense() {
+  public void testEditLicenseByHash() throws IOException {
+    ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
+    init("033e7a20b23ea284d474", componentId, "");
+    refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
+    doTestEditLicense(app);
+  }
+
+  @Test
+  public void testEditLicenseByComponentIdentifier() throws IOException {
+    ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "jar");
+    init("02744a3ac66344569f0b", componentId, "2");
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId));
+    doTestEditLicense(organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID));
+  }
+
+  private void doTestEditLicense(Owner owner) {
     ComponentLegalOverviewPage.editLicensesButton().click();
     EditLicensesModal licensesModal = new EditLicensesModal();
     licensesModal.should(Condition.appear);
     assertThat(licensesModal.header().getText()).isEqualTo("Edit Licenses");
     assertThat(licensesModal.statusDropdown().getText()).isEqualTo("Open");
     assertThat(licensesModal.commentTextInput().getText()).isEmpty();
-    assertOption(licensesModal.scopeDropdown().getSelectedOption(), app);
+    assertOption(licensesModal.scopeDropdown().getSelectedOption(), owner);
 
     licensesModal.save().hover();
     Tooltip.get().shouldBe(Condition.visible).shouldBe(Condition.exactText("There are no changes to save."));

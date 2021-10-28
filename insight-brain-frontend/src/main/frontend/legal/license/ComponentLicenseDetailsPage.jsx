@@ -25,6 +25,7 @@ export default function ComponentLicenseDetailsPage(props) {
     ownerType,
     ownerId,
     hash,
+    componentIdentifier,
     stageTypeId,
     licenseIndex,
     component,
@@ -35,19 +36,19 @@ export default function ComponentLicenseDetailsPage(props) {
   } = props;
 
   function load() {
-    loadComponentAndLicenseDetails(ownerType, ownerId, hash, licenseIndex);
+    loadComponentAndLicenseDetails(ownerType, ownerId, hash, licenseIndex, componentIdentifier);
   }
 
   const showLicensesModal = component && component.licenseLegalData.showLicensesModal;
 
-  useEffect(load, [ownerType, ownerId, hash, licenseIndex]);
+  useEffect(load, [ownerType, ownerId, hash, licenseIndex, componentIdentifier]);
 
   return (
     <main className="nx-page-main nx-viewport-sized">
       {showLicensesModal && <LicensesModalContainer />}
       <LoadWrapper loading={loading} error={error} retryHandler={load}>
         <MenuBarBackButton
-          href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash)}
+          href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash, componentIdentifier)}
           text="Back to Component Obligations"
         />
         <div className="nx-page-title">
@@ -89,6 +90,7 @@ ComponentLicenseDetailsPage.propTypes = {
   ownerType: PropTypes.string.isRequired,
   ownerId: PropTypes.string.isRequired,
   hash: PropTypes.string,
+  componentIdentifier: PropTypes.string,
   stageTypeId: PropTypes.string,
   licenseIndex: PropTypes.string,
   component: componentPropType,

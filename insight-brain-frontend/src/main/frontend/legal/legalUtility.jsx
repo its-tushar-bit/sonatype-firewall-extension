@@ -185,19 +185,18 @@ export function formatLicenseMeta(licenseType, component, licenseLegalMetadata) 
   return [];
 }
 
+const statusMap = new Map([
+  ['OPEN', 'Open'],
+  ['SELECTED', 'Selected'],
+  ['OVERRIDDEN', 'Overridden'],
+  ['ACKNOWLEDGED', 'Acknowledged'],
+  ['CONFIRMED', 'Confirmed'],
+]);
+
 export const getStatusName = (id) => {
-  if (id === 'OPEN') {
-    return 'Open';
-  } else if (id === 'SELECTED') {
-    return 'Selected';
-  } else if (id === 'OVERRIDDEN') {
-    return 'Overridden';
-  } else if (id === 'ACKNOWLEDGED') {
-    return 'Acknowledged';
-  } else if (id === 'CONFIRMED') {
-    return 'Confirmed';
-  } else {
-    //you send me junk, i send you junk back ;)
-    return id;
+  if (statusMap.has(id)) {
+    return statusMap.get(id);
   }
+  //you send me junk, i send you junk back ;)
+  return id;
 };

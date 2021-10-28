@@ -551,6 +551,12 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
 
+    SourceControlEditorPage.sshEnabledToggle().shouldNotExist();
+    SourceControlEditorPage.sshEnabledDisableRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.sshEnabledEnableRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.sshEnabledInheritRadio().shouldBe(visible, disabled, selected);
+    SourceControlEditorPage.sshEnabledInheritRadio().shouldHave(text("Inherit (Not Configured)"));
+
     SourceControlEditorPage.remediationPullRequestsToggle().shouldNotExist();
     SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible, disabled, selected);
     SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldBe(visible, disabled);

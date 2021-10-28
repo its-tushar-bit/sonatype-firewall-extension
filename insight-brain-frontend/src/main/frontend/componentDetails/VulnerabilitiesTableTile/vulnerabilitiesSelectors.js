@@ -3,8 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createSelector } from '@reduxjs/toolkit';
 import { prop } from 'ramda';
+import { createSelector } from '@reduxjs/toolkit';
+import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
 
 export const selectVulnerabilitiesSlice = prop('componentDetailsVulnerabilities');
 
@@ -25,3 +28,29 @@ export const selectShowVulnerabilityDetailPopover = createSelector(
 export const selectVulnerabilityDetailsSlice = createSelector(selectVulnerabilitiesSlice, prop('vulnerabilityDetails'));
 
 export const selectVulnerabityRefId = createSelector(selectVulnerabilitiesSlice, prop('selectedRefId'));
+
+export const selectVulnerabilitiesRequestData = createSelector(
+  selectSelectedComponent,
+  selectRouterCurrentParams,
+  (component, params) => ({
+    clientType: 'ci',
+    ownerType: 'application',
+    ownerId: params.publicId,
+    componentIdentifier: stringifyComponentIdentifier(component.componentIdentifier, component.matchState),
+    hash: component.hash,
+    identificationSource: component.identificationSource,
+    scanId: params.scanId,
+  })
+);
+
+export const selectSelectedVulnerability = createSelector(
+  selectVulnerabilitiesSortedSlice,
+  selectVulnerabityRefId,
+  (vulnerabilities, selectedRefId) =>
+    !selectedRefId ? null : vulnerabilities.data.find((vulnerability) => vulnerability.refId === selectedRefId)
+);
+
+export const selectVulnerabilityOverrideFormData = createSelector(
+  selectVulnerabilitiesSlice,
+  prop('vulnerabilitySecurityOverride')
+);

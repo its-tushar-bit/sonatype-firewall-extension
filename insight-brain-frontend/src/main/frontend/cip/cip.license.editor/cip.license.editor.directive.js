@@ -6,10 +6,13 @@
 import template from './cip-license-editor.html';
 
 /*global CLM */
-export default function CIPLicenseEditor() {
+export default function cipLicenseEditorDirective() {
   return {
     template,
     controllerAs: 'vm',
     controller: 'LicenseEditorController',
+    scope: {
+      closeCipModal: '&',
+    },
   };
 }

@@ -12,6 +12,7 @@ import {
   selectSelectedComponentIndexInAggregatedList,
   selectLoadError,
   selectIsLoading,
+  selectReportParameters,
 } from '../../../main/frontend/applicationReport/applicationReportSelectors';
 
 describe('applicationReportSelectors', () => {
@@ -258,6 +259,26 @@ describe('applicationReportSelectors', () => {
     it('selects isLoading getting the size of the pending loads in the state', () => {
       const actual = selectIsLoading(mockState);
       expect(actual).toEqual(true);
+    });
+  });
+
+  describe('selectReportParameters', () => {
+    it('selectes the `reportParameters` prop from the state', () => {
+      const state = {
+        ...mockState,
+        applicationReport: {
+          ...mockState.applicationReport,
+          reportParameters: {
+            appId: 'appId',
+            scanId: 'scanId',
+          },
+        },
+      };
+      const actual = selectReportParameters(state);
+      expect(actual).toEqual({
+        appId: 'appId',
+        scanId: 'scanId',
+      });
     });
   });
 });

@@ -5,9 +5,15 @@
  */
 import axios from 'axios';
 import { omit } from 'ramda';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-import { actions } from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
-import { getVulnerabilitiesUrl, getVulnerabilityJsonDetailUrl } from '../../../../main/frontend/util/CLMLocation';
+import { actions } from 'MainRoot/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
+import * as vulnerabilitiesSelectors from 'MainRoot/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSelectors';
+import {
+  getVulnerabilitiesUrl,
+  getVulnerabilityJsonDetailUrl,
+  getVulnerabilityOverrideUrl,
+} from 'MainRoot/util/CLMLocation';
 
 describe('vulnerabilitiesSliceActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -49,6 +55,13 @@ describe('vulnerabilitiesSliceActions', () => {
       },
       componentDetailsVulnerabilities: {
         selectedRefId: '2',
+        vulnerabilities: {
+          data: [{ refId: '2', source: 'cve' }],
+        },
+        vulnerabilitySecurityOverride: {
+          status: 'ACKNOWLEDGED',
+          comments: { trimmedValue: 'Vulnerability Acknowledged' },
+        },
       },
     };
     store = SpecUtil.mockReduxStore(state);
@@ -65,6 +78,18 @@ describe('vulnerabilitiesSliceActions', () => {
       hash: 'currentComponentHash',
       identificationSource: 'identificationSource',
       scanId: 'currentScanId',
+    });
+
+    beforeEach(() => {
+      spyOn(vulnerabilitiesSelectors, 'selectVulnerabilitiesRequestData').and.returnValue({
+        clientType: 'ci',
+        componentIdentifier: '{"format":"format","coordinates":"coordinates"}',
+        hash: 'currentComponentHash',
+        identificationSource: 'identificationSource',
+        ownerId: 'appPublicId',
+        ownerType: 'application',
+        scanId: 'currentScanId',
+      });
     });
 
     it('immediately dispatches a componentDetailsVulnerabilities/loadVulnerabilities/pending action and appropriate requests', () => {
@@ -150,6 +175,9 @@ describe('vulnerabilitiesSliceActions', () => {
 
   describe('loadVulnerabilityDetails', () => {
     const { loadVulnerabilityDetails } = actions;
+    beforeEach(() => {
+      spyOn(vulnerabilitiesSelectors, 'selectVulnerabityRefId').and.returnValue('2');
+    });
 
     it('dispatches a componentDetailsVulnerabilities/loadVulnerabilities/fulfilled action after successful requests', (done) => {
       const vulnerabilityDetails = {
@@ -202,6 +230,114 @@ describe('vulnerabilitiesSliceActions', () => {
       store.dispatch(loadVulnerabilityDetails()).then(() => {
         const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
 
+        expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFailedAction]);
+        done();
+      });
+    });
+  });
+
+  describe('saveVulnerabilityOverride', () => {
+    const { saveVulnerabilityOverride } = actions;
+    const url = getVulnerabilityOverrideUrl('application', 'appPublicId');
+
+    it('immediately dispatches a componentDetailsVulnerabilities/saveVulnerabilityOverride/pending action and appropriate requests', () => {
+      const expectedPutPayload = {
+        status: 'ACKNOWLEDGED',
+        comment: 'Vulnerability Acknowledged',
+        referenceId: '2',
+        hash: 'currentComponentHash',
+        source: 'cve',
+      };
+
+      mockAxiosCalls({
+        put: {
+          [url]: Promise.resolve({}),
+        },
+      });
+
+      store.dispatch(saveVulnerabilityOverride());
+
+      const actions = store.getActions();
+      expect(actions).toHaveAction({
+        type: 'componentDetailsVulnerabilities/saveVulnerabilityOverride/pending',
+      });
+      expect(axios.put).toHaveBeenCalledTimes(1);
+      expect(axios.put).toHaveBeenCalledWith(
+        '/rest/securityVulnerabilityOverride/application/appPublicId',
+        expectedPutPayload
+      );
+    });
+
+    it('dispatches a componentDetailsVulnerabilities/saveVulnerabilityOverride/fulfilled action after successful requests', (done) => {
+      const vulnerabilityOverrideSaveResponseData = {
+        referenceId: 'refId',
+      };
+      mockAxiosCalls({
+        put: {
+          [url]: Promise.resolve({
+            data: { vulnerabilityOverrideSaveResponseData },
+          }),
+        },
+      });
+
+      const expectedPendingAction = {
+        type: 'componentDetailsVulnerabilities/saveVulnerabilityOverride/pending',
+      };
+      const expectedFulfilledAction = {
+        type: 'componentDetailsVulnerabilities/saveVulnerabilityOverride/fulfilled',
+        payload: {
+          vulnerabilityOverrideSaveResponseData,
+        },
+      };
+      store.dispatch(saveVulnerabilityOverride()).then(() => {
+        // Remove metadata and custom error information from redux toolkit before comparisons
+        const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
+        expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFulfilledAction]);
+        done();
+      });
+    });
+
+    it('dispatches componentDetailsVulnerabilities/saveVulnerabilityOverrideMaskDone after timeout after a successful request', function (done) {
+      mockAxiosCalls({
+        put: {
+          [url]: Promise.resolve({
+            data: { referenceId: 'refId' },
+          }),
+        },
+      });
+
+      store.dispatch(saveVulnerabilityOverride()).then(() => {
+        setTimeout(function () {
+          const actions = store.getActions();
+          expect(actions).toHaveActionTypesInOrder([
+            'componentDetailsVulnerabilities/saveVulnerabilityOverride/pending',
+            'componentDetailsVulnerabilities/saveVulnerabilityOverride/fulfilled',
+            'componentDetailsVulnerabilities/saveVulnerabilityOverrideMaskDone',
+          ]);
+
+          done();
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+      });
+    });
+
+    it('dispatches a componentDetailsVulnerabilities/saveVulnerabilityOverride/rejected action after an error occurs in the requests', (done) => {
+      mockAxiosCalls({
+        put: {
+          [url]: () => Promise.reject('errorMessage'),
+        },
+      });
+
+      const expectedPendingAction = {
+        type: 'componentDetailsVulnerabilities/saveVulnerabilityOverride/pending',
+      };
+      const expectedFailedAction = {
+        type: 'componentDetailsVulnerabilities/saveVulnerabilityOverride/rejected',
+        payload: 'errorMessage',
+      };
+
+      store.dispatch(saveVulnerabilityOverride()).then(() => {
+        // Remove metadata and custom error information from redux toolkit before comparisons
+        const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
         expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFailedAction]);
         done();
       });

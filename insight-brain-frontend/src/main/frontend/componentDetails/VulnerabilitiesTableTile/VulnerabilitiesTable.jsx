@@ -3,13 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
 import VulnerabilitiesTableRow from './VulnerabilitiesTableRow';
 import { vulnerabilitiyPropTypes } from './VulnerabilitiesTableRow';
 
-const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, setVulnerabilityIdAndToggleVisibility }) => {
+const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, toggleVulnerabilityPopoverWithEffects }) => {
+  useEffect(() => {
+    loadVulnerabilities();
+  }, []);
+
   return (
     <NxTable className="iq-policy-vulnerability-table">
       <NxTableHead>
@@ -30,7 +34,7 @@ const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, setVulnera
           <VulnerabilitiesTableRow
             key={vulnerability.refId}
             vulnerability={vulnerability}
-            setVulnerabilityIdAndToggleVisibility={setVulnerabilityIdAndToggleVisibility}
+            toggleVulnerabilityPopoverWithEffects={toggleVulnerabilityPopoverWithEffects}
           />
         ))}
       </NxTableBody>
@@ -46,7 +50,7 @@ export const vulnerabilitiesPropTypes = {
 VulnerabilitiesTable.propTypes = {
   loadVulnerabilities: PropTypes.func.isRequired,
   vulnerabilities: PropTypes.shape(vulnerabilitiesPropTypes),
-  setVulnerabilityIdAndToggleVisibility: PropTypes.func.isRequired,
+  toggleVulnerabilityPopoverWithEffects: PropTypes.func.isRequired,
 };
 
 export default VulnerabilitiesTable;

@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.model.sourcecontrol;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -14,13 +17,16 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.95
@@ -139,6 +145,15 @@ public class  SourceControlEvent
 
   @Column(name = "branch_name")
   private String branchName;
+
+  /**
+   * @since 1.126
+   */
+  @Column(name = "scan_targets_json")
+  private String scanTargetsJson;
+
+  @Transient
+  private List<String> scanTargets;
 
   @Column(name = "base_branch_name")
   private String baseBranchName;
@@ -501,6 +516,7 @@ public class  SourceControlEvent
     SourceControlEvent event = new SourceControlEvent()
         .setApplicationId(applicationId)
         .setBranchName(branchName)
+        .setScanTargets(scanTargets)
         .setCommitHash(commitHash)
         .setBaseCommitHash(baseCommitHash)
         .setBaseBranchName(baseBranchName)
@@ -525,5 +541,41 @@ public class  SourceControlEvent
         .setUserAgent(userAgent);
     event.setComponentIdentifier(getComponentIdentifier());
     return event;
+  }
+
+  public String getScanTargetsJson() {
+    return scanTargetsJson;
+  }
+
+  public void setScanTargetsJson(String scanTargetsJson) {
+    if (StringUtils.isBlank(scanTargetsJson)) {
+      scanTargetsJson = null;
+    }
+    this.scanTargetsJson = scanTargetsJson;
+    scanTargets = null;
+  }
+
+  public SourceControlEvent setScanTargets(List<String> scanTargets) {
+    if (scanTargets == null || scanTargets.isEmpty()) {
+      this.scanTargets = null;
+      scanTargetsJson = null;
+    }
+    else {
+      this.scanTargets = scanTargets;
+      scanTargetsJson = JsonUtils.writeUnformatted(scanTargets);
+    }
+    return this;
+  }
+
+  public List<String> getScanTargets() {
+    if (scanTargets == null && !StringUtils.isBlank(scanTargetsJson)) {
+      try {
+        scanTargets = Arrays.asList(JsonUtils.parse(scanTargetsJson, String[].class));
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException("Failed to read scan targets for scource control event " + id, e);
+      }
+    }
+    return scanTargets;
   }
 }

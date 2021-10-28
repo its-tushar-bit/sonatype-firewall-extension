@@ -43,4 +43,14 @@ public class QuarantinedComponentAccessDAO
     final String sQuery = "SELECT entity FROM QuarantinedComponentAccess entity";
     return getList(sQuery);
   }
+
+  public void deleteByRepositoryComponentId(final TransactionContext tx, final String repositoryComponentId) {
+    String sQuery = "DELETE FROM QuarantinedComponentAccess entity WHERE entity.repositoryComponentId=?1";
+    createQuery(sQuery, repositoryComponentId).executeUpdate(tx);
+  }
+
+  public void deleteByRepositoryId(final TransactionContext tx, final String repositoryId) {
+    String sQuery = "DELETE FROM QuarantinedComponentAccess entity WHERE entity.repositoryId=?1";
+    createQuery(sQuery, repositoryId).executeUpdate(tx);
+  }
 }

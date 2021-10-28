@@ -26,6 +26,14 @@ public class LegalApplicationDetailsPage
         publicAppId, stage));
   }
 
+  public static String urlToComponentAtRootScopeByHash(String componentHash) {
+    return BaseUrl.resolvePageUrl(String.format("/legal/component/%s", componentHash));
+  }
+
+  public static String urlToComponentAtRootScopeByComponentIdentifier(String componentIdentifier) {
+    return BaseUrl.resolvePageUrl(String.format("/legal/component/componentIdentifier/%s", componentIdentifier));
+  }
+
   public static SelenideElement title() {
     return $("h1");
   }

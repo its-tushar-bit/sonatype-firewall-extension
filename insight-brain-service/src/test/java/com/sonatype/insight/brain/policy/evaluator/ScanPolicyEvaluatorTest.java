@@ -722,6 +722,61 @@ public class ScanPolicyEvaluatorTest
     assertThat(new PolicyViolationDAO().getByApplicationId(application.getId())).hasSize(39);
   }
 
+  /**
+   * If waiver is deleted and new waiver is created before re-evaluation (CLM-19768),
+   * the violation should be updated with new waiver ID and comment, but waiveTime should remain the same
+   */
+  @Test
+  public void testEvaluate_UpdateWaivedViolations_waiverIdHasChanged() throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+    Policy policy = newSecurityPolicy();
+
+    ScanPolicyEvaluatorResults results1 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI);
+    Date openTime = results1.evaluation.getTime();
+
+    assertThat(results1.activeViolations).hasSize(36);
+
+    PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", policy.getId(), application.getId(), "waiver1");
+
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI);
+
+    assertThat(results2.activeViolations).hasSize(33);
+    List<PolicyViolation> waivedViolations = new PolicyViolationDAO()
+        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId()).stream()
+        .filter(PolicyViolation::isWaived).collect(toList());
+    assertThat(waivedViolations).hasSize(3).allSatisfy(waivedViolation -> {
+      assertThat(waivedViolation.getHash()).isEqualTo(waiver.getHash());
+      assertThat(waivedViolation.getOpenTime()).isEqualTo(openTime);
+      assertThat(waivedViolation.getFixTime()).isNull();
+      assertThat(waivedViolation.getWaiveTime()).isEqualTo(results2.evaluation.getTime());
+      assertThat(waivedViolation.getPolicyWaiverId()).isEqualTo(waiver.getId());
+      assertThat(waivedViolation.getPolicyWaiverComment()).isEqualTo("waiver1");
+    });
+
+    new PolicyWaiverDAO().delete(waiver);
+    PolicyWaiver waiver2 = tempEntity.newWaiver("f0776db1593e215146d2", policy.getId(), application.getId(), "waiver2");
+
+    ScanPolicyEvaluatorResults results3 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI);
+
+    assertThat(results3.activeViolations).hasSize(33);
+    waivedViolations = new PolicyViolationDAO()
+        .getUnfixedByApplicationIdAndStageId(application.getId(), stage.getStageTypeId()).stream()
+        .filter(PolicyViolation::isWaived).collect(toList());
+    assertThat(waivedViolations).hasSize(3).allSatisfy(waivedViolation -> {
+      assertThat(waivedViolation.getHash()).isEqualTo(waiver2.getHash());
+      assertThat(waivedViolation.getOpenTime()).isEqualTo(openTime);
+      assertThat(waivedViolation.getFixTime()).isNull();
+      // waiveTime should still hold the original waive time
+      assertThat(waivedViolation.getWaiveTime()).isEqualTo(results2.evaluation.getTime());
+      assertThat(waivedViolation.getPolicyWaiverId()).isEqualTo(waiver2.getId());
+      assertThat(waivedViolation.getPolicyWaiverComment()).isEqualTo("waiver2");
+    });
+  }
+
   @Test
   public void testEvaluate_SendsEvaluationTelemetry() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);

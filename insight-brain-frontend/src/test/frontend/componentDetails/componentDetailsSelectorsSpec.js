@@ -3,13 +3,26 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { selectApplicationReportSlice } from 'MainRoot/applicationReport/applicationReportSelectors';
 import {
+  selectDetails,
   selectComponentDetails,
   selectComponentName,
   selectComponentPagination,
   selectComponentSimilarMatches,
   selectComponentViolations,
-} from '../../../main/frontend/componentDetails/componentDetailsSelectors';
+  selectApplicableLabels,
+  selectLabels,
+  selectLoadError,
+  selectIsApplicableLabelsLoading,
+  selectIsLabelsLoading,
+  selectShowMatchersPopover,
+  selectSetProprietaryMatchers,
+  selectPathnames,
+  selectApplicationInfo,
+  selectComponentDetailsLoading,
+  selectComponentDetailsLoadErrors,
+} from 'MainRoot/componentDetails/componentDetailsSelectors';
 
 describe('componentDetailsSelectors', () => {
   const mockState = {
@@ -25,6 +38,7 @@ describe('componentDetailsSelectors', () => {
       metadata: {
         application: {
           name: 'The App',
+          publicId: 'TheApp',
           organization: {
             name: 'The Org',
           },
@@ -69,6 +83,8 @@ describe('componentDetailsSelectors', () => {
             componentIdentifier: { format: 'maven' },
             derivedDependencyType: 'transitive',
             matchState: 'unknown',
+            pathnames: ['pathname 1', 'pathname 2'],
+            identificationSource: null,
           },
           {
             hash: 'another-component-hash',
@@ -87,13 +103,22 @@ describe('componentDetailsSelectors', () => {
           },
         ],
       },
+      pendingLoads: new Set([]),
     },
     componentDetails: {
+      applicableLabels: [],
       labels: [],
       loadError: false,
       pendingLoads: new Set(['test']),
+      showMatchersPopover: null,
+      setProprietaryMatchers: {
+        submitMaskState: true,
+        submitError: 'Some crazy error',
+        data: { pathnames: ['pathname 1', 'pathname 2'], regex: 'OMG' },
+      },
     },
   };
+
   describe('selectComponentDetails', () => {
     it('derives componentDetails from the componentDetails, selectedReport metadata, and the selectedComponent', () => {
       const expected = {
@@ -111,9 +136,45 @@ describe('componentDetailsSelectors', () => {
         },
         labels: [],
         matchState: 'unknown',
+        identificationSource: null,
       };
       const actual = selectComponentDetails(mockState);
       expect(actual).toEqual(expected);
+    });
+  });
+
+  describe('selectShowMatchersPopover', () => {
+    it('selects the slice of state for showMatchersPopover', () => {
+      const actual = selectShowMatchersPopover(mockState);
+      expect(actual).toBe(null);
+    });
+  });
+
+  describe('selectSetProprietaryMatchers', () => {
+    it('selects the slice of state for setProprietaryMatchers', () => {
+      const actual = selectSetProprietaryMatchers(mockState);
+      expect(actual).toEqual({
+        submitMaskState: true,
+        submitError: 'Some crazy error',
+        data: { pathnames: ['pathname 1', 'pathname 2'], regex: 'OMG' },
+      });
+    });
+  });
+
+  describe('selectPathnames', () => {
+    it('selects the slice of state for the pathnames for the selected component', () => {
+      const actual = selectPathnames(mockState);
+      expect(actual).toEqual(['pathname 1', 'pathname 2']);
+    });
+  });
+
+  describe('selectApplicationInfo', () => {
+    it('selects the slice of state for the application stored in the metadata', () => {
+      const actual = selectApplicationInfo(mockState);
+      expect(actual).toEqual({
+        applicationName: 'The App',
+        applicationId: 'TheApp',
+      });
     });
   });
 
@@ -310,6 +371,154 @@ describe('componentDetailsSelectors', () => {
 
       const selection = selectComponentSimilarMatches(mockStateForMatchState);
       expect(selection).toEqual(['bestMatch', 'otherMatch']);
+    });
+  });
+
+  describe('selectApplicableLabels', () => {
+    it('returns state applicableLabels', () => {
+      expect(
+        selectApplicableLabels({
+          ...mockState,
+          componentDetails: {
+            applicableLabels: [{ label: 'Test z' }, { label: 'Test f' }, { label: 'Test a' }],
+            labels: [],
+            loadError: false,
+            pendingLoads: new Set(),
+          },
+        })
+      ).toEqual([{ label: 'Test z' }, { label: 'Test f' }, { label: 'Test a' }]);
+    });
+  });
+
+  describe('selectLabels', () => {
+    it('returns state labels', () => {
+      expect(selectLabels(mockState)).toEqual([]);
+    });
+  });
+
+  describe('selectLoadError', () => {
+    it('returns state load error', () => {
+      expect(selectLoadError(mockState)).toEqual(false);
+    });
+  });
+
+  describe('selectIsApplicableLabelsLoading', () => {
+    it('returns boolean flag searching if applicableLabels is in pending loads set', () => {
+      expect(
+        selectIsApplicableLabelsLoading({
+          ...mockState,
+          componentDetails: {
+            applicableLabels: [],
+            labels: [],
+            loadError: false,
+            pendingLoads: new Set(['applicableLabels']),
+          },
+        })
+      ).toEqual(true);
+    });
+  });
+
+  describe('selectIsLabelsLoading', () => {
+    it('returns boolean flag searching if applicableLabels is in pending loads set', () => {
+      expect(
+        selectIsLabelsLoading({
+          ...mockState,
+          componentDetails: {
+            applicableLabels: [],
+            labels: [],
+            loadError: false,
+            pendingLoads: new Set(['labels']),
+          },
+        })
+      ).toEqual(true);
+    });
+  });
+
+  describe('selectComponentDetailsLoading', () => {
+    it('is composed of the following selectors', () => {
+      expect(selectComponentDetailsLoading.dependencies).toEqual([
+        selectApplicationReportSlice,
+        selectIsLabelsLoading,
+        selectComponentDetails,
+      ]);
+    });
+    it('returns true if the application report is loading', () => {
+      const state = {
+        ...mockState,
+        applicationReport: {
+          ...mockState.applicationReport,
+          pendingLoads: new Set(['common']),
+        },
+      };
+      const actual = selectComponentDetailsLoading(state);
+      expect(actual).toEqual(true);
+    });
+    it('returns true if the labels are loading', () => {
+      const state = {
+        ...mockState,
+        componentDetails: {
+          pendingLoads: new Set(['labels']),
+        },
+      };
+      const actual = selectComponentDetailsLoading(state);
+      expect(actual).toEqual(true);
+    });
+    it('returns true if there are no component details in the state', () => {
+      const state = {
+        ...mockState,
+        router: {
+          ...mockState.router,
+          currentParams: {
+            hash: 'new-hash',
+          },
+        },
+      };
+      const actual = selectComponentDetailsLoading(state);
+      expect(actual).toEqual(true);
+    });
+    it('returns false if app report & labels & component details are loaded', () => {
+      const state = {
+        ...mockState,
+        componentDetails: {
+          pendingLoads: new Set([]),
+        },
+        applicationReport: {
+          ...mockState.applicationReport,
+          pendingLoads: new Set([]),
+        },
+      };
+      const actual = selectComponentDetailsLoading(state);
+      expect(actual).toEqual(false);
+    });
+  });
+
+  describe('selectComponentDetailsLoadErrors', () => {
+    it('is composed of the following selectors', () => {
+      expect(selectComponentDetailsLoadErrors.dependencies).toEqual([selectDetails, selectApplicationReportSlice]);
+    });
+    it('returns the error present in the applicationReport slice', () => {
+      const state = {
+        componentDetails: { loadError: null },
+        applicationReport: { loadError: 'app-report-error' },
+      };
+      const actual = selectComponentDetailsLoadErrors(state);
+      expect(actual).toEqual('app-report-error');
+    });
+    it('returns the error present in the componentDetails slice', () => {
+      const state = {
+        componentDetails: { loadError: 'component-details-error' },
+        applicationReport: { loadError: null },
+      };
+      const actual = selectComponentDetailsLoadErrors(state);
+      expect(actual).toEqual('component-details-error');
+    });
+    it('returns null if there are no errors in the state slices', () => {
+      const state = {
+        componentDetails: { loadError: null },
+        applicationReport: { loadError: null },
+      };
+      const actual = selectComponentDetailsLoadErrors(state);
+      expect(actual).toBeNull();
     });
   });
 });

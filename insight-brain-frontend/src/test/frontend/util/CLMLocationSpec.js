@@ -205,18 +205,12 @@ describe('CLMLocation.js', function () {
   });
 
   describe('getClaimComponentUrl', function () {
-    beforeEach(inject(function (BaseUrl) {
-      spyOn(BaseUrl, 'get').and.returnValue('http://localhost');
-    }));
-
     it('returns the base claim URL when called with no argument', function () {
-      expect(CLMLocationsService.getClaimComponentUrl()).toBe('http://localhost/rest/component/identified');
+      expect(CLMLocationsService.getClaimComponentUrl()).toBe('/rest/component/identified');
     });
 
     it('returns the claim URL of the hash specified via an argument', function () {
-      expect(CLMLocationsService.getClaimComponentUrl('foo bar')).toBe(
-        'http://localhost/rest/component/identified/foo%20bar'
-      );
+      expect(CLMLocationsService.getClaimComponentUrl('foo bar')).toBe('/rest/component/identified/foo%20bar');
     });
   });
 
@@ -371,6 +365,10 @@ describe('CLMLocation.js', function () {
     );
   });
 
+  it('should return the set component proprietary matchers url', function () {
+    expect(CLMLocation.setProprietaryMatchers('ownerId')).toBe('/rest/proprietary/application/ownerId/add');
+  });
+
   it('should return the get component licenses url', function () {
     expect(
       CLMLocation.getComponentLicensesUrl({
@@ -514,6 +512,18 @@ describe('CLMLocation.js', function () {
     it('getLicenseOverrideUrl should return the URL with params', function () {
       expect(CLMLocation.getLicenseOverrideUrl('ownerType', 'ownerId', 'componentIdentifier')).toBe(
         '/rest/licenseOverride/ownerType/ownerId?componentIdentifier=componentIdentifier'
+      );
+    });
+
+    it('getBaseLicenseOverrideUrl should return the URL', () => {
+      expect(CLMLocation.getBaseLicenseOverrideUrl('ownerType', 'ownerId')).toBe(
+        '/rest/licenseOverride/ownerType/ownerId'
+      );
+    });
+
+    it('getDeleteLicenseOverrideUrl should return the URL', () => {
+      expect(CLMLocation.getDeleteLicenseOverrideUrl('ownerType', 'ownerId', 'licenseOverrideId')).toBe(
+        '/rest/licenseOverride/ownerType/ownerId/licenseOverrideId'
       );
     });
 

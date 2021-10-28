@@ -6,7 +6,7 @@
 import {
   parseOccurrencePathname,
   getComponentVersionComparisonInfo,
-} from '../../../main/frontend/componentDetails/componentDetailsUtils';
+} from 'MainRoot/componentDetails/componentDetailsUtils';
 
 describe('componentDetailsUtils', function () {
   describe('parseOccurrencePathname', function () {
@@ -207,6 +207,18 @@ describe('componentDetailsUtils', function () {
     it('sets hygieneRating object', () => {
       componentDetails.hygieneRating = {};
       expect(getComponentVersionComparisonInfo(componentDetails).hygieneRating).toBe(componentDetails.hygieneRating);
+    });
+
+    it('sets catalogDate value', () => {
+      componentDetails.catalogDate = 1635245371294;
+      expect(getComponentVersionComparisonInfo(componentDetails).catalogDate).toBe(componentDetails.catalogDate);
+    });
+
+    it('sets policyMaxThreatLevelsByCategory', () => {
+      componentDetails.policyMaxThreatLevelsByCategory = {};
+      expect(getComponentVersionComparisonInfo(componentDetails).policyMaxThreatLevelsByCategory).toBe(
+        componentDetails.policyMaxThreatLevelsByCategory
+      );
     });
   });
 });

@@ -23,7 +23,7 @@ public class ScmOnboardingConfigServiceAuthzTest
   public ScmOnboardingConfigService scmOnboardingConfigService;
 
   @Test
-  public void testPerformManifestScan_Authorized() {
+  public void testIsScmOnboardingEnabled_Authorized() {
     grantGlobalPermission(Permission.READ);
 
     boolean actual = scmOnboardingConfigService.isScmOnboardingEnabled();
@@ -32,12 +32,12 @@ public class ScmOnboardingConfigServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testPerformManifestScan_Unauthenticated() {
+  public void testIsScmOnboardingEnabled_Unauthenticated() {
     scmOnboardingConfigService.isScmOnboardingEnabled();
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testPerformManifestScan_Unauthorized() {
+  public void testIsScmOnboardingEnabled_Unauthorized() {
     login();
     scmOnboardingConfigService.isScmOnboardingEnabled();
   }

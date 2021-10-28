@@ -24,7 +24,11 @@ import com.codahale.metrics.annotation.Timed;
 @Produces(MediaType.APPLICATION_JSON)
 public class QuarantinedComponentResource
 {
-  public static final String RESOURCE_PATH = "rest/repositories/quarantinedComponent/{token}";
+  public static final String RESOURCE_PATH = "rest/repositories/quarantinedComponent/";
+
+  public static final String QUARANTINED_COMPONENT_PATH = "{token}";
+
+  public static final String QUARANTINED_COMPONENT_OVERVIEW_PATH = "{token}/overview";
 
   private final QuarantinedComponentService quarantinedComponentService;
 
@@ -34,8 +38,16 @@ public class QuarantinedComponentResource
   }
 
   @GET
+  @Path(QUARANTINED_COMPONENT_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   public QuarantinedComponentDto getQuarantinedComponent(@PathParam("token") String token) {
     return quarantinedComponentService.getQuarantinedComponent(token);
+  }
+
+  @GET
+  @Path(QUARANTINED_COMPONENT_OVERVIEW_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public QuarantinedComponentOverviewDto getQuarantinedComponentOverview(@PathParam("token") String token) {
+    return quarantinedComponentService.getQuarantinedComponentOverview(token);
   }
 }

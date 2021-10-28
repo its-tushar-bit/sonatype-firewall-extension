@@ -164,3 +164,18 @@
     cursor: text;
   }
 }
+
+// These styles appear in the CDP Claim tab and are required because of Bootstrap input[type="date"] styles
+.nx-text-input__input[type='date'] {
+  background-color: transparent;
+  border: none;
+  color: var(--nx-color-text);
+  flex-grow: 1;
+  line-height: var(--nx-line-height);
+  box-shadow: none;
+  transition: none;
+  margin-bottom: 0;
+  &:focus {
+    box-shadow: none;
+  }
+}

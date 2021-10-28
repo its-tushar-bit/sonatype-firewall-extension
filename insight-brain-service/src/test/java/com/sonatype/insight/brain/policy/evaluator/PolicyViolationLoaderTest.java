@@ -10,6 +10,8 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import javax.inject.Inject;
 
@@ -22,7 +24,9 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 
+import com.google.inject.Binder;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,6 +36,16 @@ public class PolicyViolationLoaderTest
 {
   @Inject
   private PolicyViolationLoader loader;
+
+  private InsightConfig config;
+
+  @Override
+  public void configure(final Binder binder) {
+    config = new InsightConfig();
+    config.setFeatures(new HashMap<>());
+    binder.bind(InsightConfig.class).toInstance(config);
+    super.configure(binder);
+  }
 
   private Application createApplication(StageType... stageTypes) {
     Application app = tempEntity.newApplicationWithParent();
@@ -83,6 +97,61 @@ public class PolicyViolationLoaderTest
   }
 
   @Test
+  public void testGetViolations_FilterByApplications_WithLimit() {
+    final int currentMaxApplicationConfiguration = config.getMaxApplicationsToQueryOnDashboard();
+    try {
+      config.setMaxApplicationsToQueryOnDashboard(2);
+      Application app1 = createApplication(StageTypes.BUILD, StageTypes.RELEASE);
+      Application app2 = createApplication(StageTypes.BUILD);
+      Application app3 = createApplication(StageTypes.BUILD, StageTypes.RELEASE);
+
+      Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app1, app2, app3),
+          Arrays.asList(StageTypes.BUILD, StageTypes.RELEASE), false, violation -> true);
+
+      Iterator<ApplicationView> appViewsIterator = appViews.iterator();
+
+      // Since it's limited this app should not have filtered violations since it has the oldest evaluations
+      ApplicationView appView = appViewsIterator.next();
+      assertThat(appView.getApplication()).isEqualTo(app1);
+      assertThat(appView.getStageViews()).hasSize(2);
+      Iterator<ApplicationStageView> iterator = appView.getStageViews().iterator();
+      ApplicationStageView appStageView = iterator.next();
+      assertThat(appStageView.getStageType()).isEqualTo(StageTypes.BUILD);
+      assertThat(appStageView.getFilteredViolations()).isEmpty();
+      appStageView = iterator.next();
+      assertThat(appStageView.getStageType()).isEqualTo(StageTypes.RELEASE);
+      assertThat(appStageView.getFilteredViolations()).isEmpty();
+
+      //Since it's limited to 2 applications, this app should have violations in the stage that has an evaluation
+      appView = appViewsIterator.next();
+      assertThat(appView.getApplication()).isEqualTo(app2);
+      assertThat(appView.getStageViews()).hasSize(2);
+      iterator = appView.getStageViews().iterator();
+      appStageView = iterator.next();
+      assertThat(appStageView.getStageType()).isEqualTo(StageTypes.BUILD);
+      assertThat(appStageView.getFilteredViolations()).hasSize(2);
+      appStageView = iterator.next();
+      assertThat(appStageView.getStageType()).isEqualTo(StageTypes.RELEASE);
+      assertThat(appStageView.getFilteredViolations()).isEmpty();
+
+      // App3 has the latest evaluation for both stages, so it should have the filtered violations
+      appView = appViewsIterator.next();
+      assertThat(appView.getApplication()).isEqualTo(app3);
+      assertThat(appView.getStageViews()).hasSize(2);
+      iterator = appView.getStageViews().iterator();
+      appStageView = iterator.next();
+      assertThat(appStageView.getStageType()).isEqualTo(StageTypes.BUILD);
+      assertThat(appStageView.getFilteredViolations()).hasSize(2);
+      appStageView = iterator.next();
+      assertThat(appStageView.getStageType()).isEqualTo(StageTypes.RELEASE);
+      assertThat(appStageView.getFilteredViolations()).hasSize(2);
+    }
+    finally {
+      config.setMaxApplicationsToQueryOnDashboard(currentMaxApplicationConfiguration);
+    }
+  }
+
+  @Test
   public void testGetViolations_FilterByStageTypes() {
     Application app = createApplication(StageTypes.BUILD, StageTypes.RELEASE, StageTypes.OPERATE);
 
@@ -107,8 +176,10 @@ public class PolicyViolationLoaderTest
   }
 
   private void testGetViolations_AllStageTypes(Collection<StageType> stageTypes) {
-    StageType[] evaluatedStageTypes = { StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
-        StageTypes.OPERATE };
+    StageType[] evaluatedStageTypes = {
+        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE,
+        StageTypes.OPERATE
+    };
     Application app = createApplication(evaluatedStageTypes);
 
     Collection<ApplicationView> appViews =

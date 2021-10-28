@@ -37,6 +37,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipSimila
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.InnerSourceProducerPermissionsModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.InnerSourceProducerReportModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
@@ -75,9 +76,11 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
@@ -213,11 +216,24 @@ public class ApplicationReportCipTest
     testComponentInfoTab();
     testPolicyTab();
     testLicensesTab();
+    testLinkToALP();
     testLabelsTab();
     testVulnerabilitiesTab();
     testOccurrencesTab();
     testSimilarTab();
     testAuditTab();
+  }
+
+  @Test
+  public void testCip_ALPLink_ALPDisabled() {
+    setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
+    setupHdsResponses();
+    mockHdsResponseForRemediation();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    reportPage.resultRow(1).click();
+    CipModal cipModal = reportPage.cipModal();
+    cipModal.shouldBe(visible);
+    LicenseCIP.linkALP().shouldNot(exist);
   }
 
   @Test
@@ -613,6 +629,8 @@ public class ApplicationReportCipTest
     LicenseCIP.licenseSelector().shouldNot(exist);
     LicenseCIP.updateButton().shouldNotBe(enabled);
 
+    LicenseCIP.linkToALP().shouldHave(texts("To view the extended legal details, click here"));
+
     // Update to Overridden for Root Organization
     LicenseCIP.scope().selectOption("Root Organization");
     LicenseCIP.status().selectOption("Overridden");
@@ -676,8 +694,19 @@ public class ApplicationReportCipTest
     mockHdsResponseForSecondComponent();
     cipModal.nextButton().shouldBe(enabled).click();
     LicenseCIP.declaredLicenses().shouldHave(LicenseCIP.licenseThreats(5), texts("Not Declared"));
+  }
 
-    cipModal.closeButton().click();
+  private void testLinkToALP() {
+    mockHdsResponseForFirstComponent();
+
+    LicenseCIP.linkALP().shouldHave(text("click here"));
+    LicenseCIP.linkALP().click();
+    LicenseCIP.linkALP().shouldNot(exist);
+    String componentIdentifier = "%7B%22format%22:%22maven%22,%22coordinates%22:%7B%22artifactId%22:%22logback-access" +
+        "%22,%22groupId%22:%22ch.qos.logback%22,%22version%22:%220.6%22,%22extension%22:%22jar%22,%22classifier%22:" +
+        "%22%22%7D%7D";
+    assertThat(WebDriverRunner.getWebDriver().getCurrentUrl()).isEqualTo(
+        LegalApplicationDetailsPage.urlToComponentAtRootScopeByComponentIdentifier(componentIdentifier));
   }
 
   private void testAuditTab() {
@@ -754,6 +783,7 @@ public class ApplicationReportCipTest
   }
 
   private void testLabelsTab() throws Exception {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     mockHdsResponseForFirstComponent();
 
     Label elMagnifico = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, "El Magnifico", Color.dark_blue);
@@ -795,8 +825,8 @@ public class ApplicationReportCipTest
     WaiverCip.row(1).shouldBe(
         "cip-policy-yellow",
         "Bad Label",
-        new String[] { "Bad Label constraint" },
-        new String[] { "Found label 'El Junko'" });
+        new String[]{"Bad Label constraint"},
+        new String[]{"Found label 'El Junko'"});
 
     cipModal.tabLink(7).click();
     LabelsCIP.appliedLabel(1).shouldHave(text("El Junko")).action().click();
@@ -964,7 +994,7 @@ public class ApplicationReportCipTest
     occurrencesTab.occurrences().shouldHaveSize(3);
     occurrencesTab.occurrences().shouldHave(exactTexts(
         "Dependency ch.qos.logback:logback-access:jar:0.6 located at Module " +
-        "com.sonatype.insight.example:sample-small-application:jar:1.0.0",
+            "com.sonatype.insight.example:sample-small-application:jar:1.0.0",
         "logback-access-0.6.jar located at deps",
         "logback-access-0.6.jar"
     ));

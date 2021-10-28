@@ -4,9 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import applicationReportModule from '../../../main/frontend/applicationReport/module';
-import { serializeComponentIdentifier } from '../../../main/frontend/util/componentIdentifierUtils';
-import * as CLMLocation from '../../../main/frontend/util/CLMLocation';
+import { serializeComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
+import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
+import * as CLMLocation from 'MainRoot/util/CLMLocation';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 
 const createMockState = (isUnknownJs, bomData, unknownJsData, metadata, embeddable) => ({
   applicationReport: {
@@ -42,17 +44,11 @@ const mockLicenseData = {
 const mockReportData = { fooReport: 'barReport' };
 
 describe('applicationReportActions', function () {
-  let applicationReportActions, mockAxiosCalls;
+  let mockAxiosCalls;
 
-  beforeEach(
-    angular.mock.module(applicationReportModule.name, function () {
-      mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-    })
-  );
-
-  beforeEach(inject(function (_applicationReportActions_) {
-    applicationReportActions = _applicationReportActions_;
-  }));
+  beforeEach(function () {
+    mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  });
 
   describe('setReportParameters', () => {
     it('dispatches SET_REPORT_PARAMETERS action', () => {
@@ -809,6 +805,40 @@ describe('applicationReportActions', function () {
 
       expect(action.type).toBe('CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL');
       expect(action.payload).not.toBeDefined();
+    });
+  });
+
+  describe('loadReportIfNeeded', function () {
+    it('calls `loadReport` if there is no selected report in the state', function () {
+      const store = SpecUtil.mockReduxStore({ applicationReport: { reportParameters: {} } });
+      spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({ scanId: 'scanId-1' });
+      spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue(null);
+      spyOn(applicationReportSelectors, 'selectReportParameters').and.returnValue(null);
+
+      store.dispatch(applicationReportActions.loadReportIfNeeded());
+
+      expect(store.getActions()).toHaveActionType('LOAD_REPORT_REQUESTED');
+    });
+    it('calls `loadReport` if the report in memory is different to the `scanId` parameter in the url', function () {
+      const store = SpecUtil.mockReduxStore({ applicationReport: { reportParameters: { scanId: 'report-id' } } });
+      spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({ scanId: 'scanId-1' });
+      spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue({ id: 'report-id' });
+      spyOn(applicationReportSelectors, 'selectReportParameters').and.returnValue({ scanId: 'report-id' });
+
+      store.dispatch(applicationReportActions.loadReportIfNeeded());
+
+      expect(store.getActions()).toHaveActionType('LOAD_REPORT_REQUESTED');
+    });
+    it('does not calls `loadReport` if the report is already in the state', function () {
+      const store = SpecUtil.mockReduxStore({ applicationReport: { reportParameters: { scanId: 'report-id' } } });
+      spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({ scanId: 'report-id' });
+      spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue({ id: 'report-id' });
+      spyOn(applicationReportSelectors, 'selectReportParameters').and.returnValue({ scanId: 'report-id' });
+
+      store.dispatch(applicationReportActions.loadReportIfNeeded());
+
+      expect(store.getActions()).not.toHaveActionType('LOAD_REPORT_REQUESTED');
+      expect(store.getActions()).toHaveActionType('LOAD_REPORT_UNNECESSARY');
     });
   });
 

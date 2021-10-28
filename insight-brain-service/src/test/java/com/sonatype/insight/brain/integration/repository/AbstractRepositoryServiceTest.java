@@ -2033,9 +2033,9 @@ public abstract class AbstractRepositoryServiceTest
     // setup
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
-    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    tempEntity.newRepositoryComponent(repository.getId());
 
-    when(quarantinedComponentAccessManager.createToken(repositoryComponent.getId())).thenReturn("token");
+    when(quarantinedComponentAccessManager.createToken(any())).thenReturn("token");
 
     // when
     final QuarantinedComponentReport quarantinedComponentReport = getRepositoryService()

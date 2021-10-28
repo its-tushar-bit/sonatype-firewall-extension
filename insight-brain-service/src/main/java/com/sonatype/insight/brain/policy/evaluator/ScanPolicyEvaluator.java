@@ -491,15 +491,18 @@ public class ScanPolicyEvaluator
             Component component =
                 findComponentByComponentIdentifier(components, oldPolicyViolation.getComponentIdentifier());
 
-            if (!oldPolicyViolation.isWaived() && newPolicyViolation.isWaived()) {
-              // The policy violation was waived.
-              oldPolicyViolation.setWaiveTime(newPolicyViolation.getWaiveTime());
+            if (newPolicyViolation.isWaived() &&
+                !newPolicyViolation.getPolicyWaiverId().equals(oldPolicyViolation.getPolicyWaiverId())) {
+              // The policy violation was waived, or waiverID has changed (CLM-19768)
               oldPolicyViolation.setPolicyWaiverId(newPolicyViolation.getPolicyWaiverId());
               oldPolicyViolation.setPolicyWaiverComment(newPolicyViolation.getPolicyWaiverComment());
 
-              policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, oldPolicyViolation);
-              telemetryCollector.addTelemetryForWaivedViolation(oldPolicyViolation, component);
-              results.waivedViolations.add(oldPolicyViolation);
+              if (!oldPolicyViolation.isWaived()) {
+                oldPolicyViolation.setWaiveTime(newPolicyViolation.getWaiveTime());
+                policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, oldPolicyViolation);
+                telemetryCollector.addTelemetryForWaivedViolation(oldPolicyViolation, component);
+                results.waivedViolations.add(oldPolicyViolation);
+              }
             }
             if (oldPolicyViolation.isGrandfathered() && !oldPolicyViolation.isGrandfatherApplied()) {
               oldPolicyViolation.setGrandfatherApplied(true);

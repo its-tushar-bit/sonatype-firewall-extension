@@ -78,6 +78,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     TestReportEvaluator evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
     // add Security policy
     createPolicy(app.getId(), 10, "SecurityPolicy", SecurityVulnerabilitySeverityConditionType.ID, "=", "9.1");
+    createPolicy(app.getId(), 3, "Security-Low", SecurityVulnerabilitySeverityConditionType.ID, "=", "4.3");
     // add License policy
     createPolicy(app.getId(), 5, "LicensePolicy", LicenseThreatGroupLevelConditionType.ID, ">=", "9");
     // add Quality policy
@@ -288,16 +289,26 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     table.shouldBe(visible);
     table.versionRow().get(1).shouldHave(text("29.50"));
     table.versionRow().get(2).shouldHave(text("--"));
-    table.highestPolicyThreatRow().get(1).shouldHave(text("10 within 3 policies"));
+    table.highestPolicyThreatRow().get(1).shouldHave(text("10 within 4 policies"));
     table.highestPolicyThreatRow().get(2).shouldBe(empty);
+    table.highestSecurityThreatRow().get(1).shouldHave(text("10"));
+    table.highestSecurityThreatRow().get(2).shouldBe(empty);
     table.highestCvssScoreRow().get(1).shouldHave(text("9.1"));
     table.highestCvssScoreRow().get(2).shouldBe(empty);
+    table.highestLicenseThreatRow().get(1).shouldHave(text("5"));
+    table.highestLicenseThreatRow().get(2).shouldBe(empty);
     table.effectiveLicenseRow().get(1).shouldHave(text("Apache-2.0, GPL-2.0"));
     table.effectiveLicenseRow().get(2).shouldBe(empty);
+    table.highestQualityThreatRow().get(1).shouldHave(text("None"));
+    table.highestQualityThreatRow().get(2).shouldBe(empty);
+    table.highestOtherThreatRow().get(1).shouldHave(text("1"));
+    table.highestOtherThreatRow().get(2).shouldBe(empty);
     table.hygieneRatingRow().get(1).shouldHave(text("Exemplar"));
     table.hygieneRatingRow().get(2).shouldBe(empty);
     table.integrityRatingRow().get(1).shouldHave(text("Normal"));
     table.integrityRatingRow().get(2).shouldBe(empty);
+    table.catalogDateRow().get(1).shouldNotBe(empty);
+    table.catalogDateRow().get(2).shouldBe(empty);
   }
 
   @Test
@@ -312,7 +323,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     ScrollUtil.awaitEndOfScrolling(graph.scrollIntoView(true));
 
     mockHdsResponseForFirstComponentWithSelectedVersion();
-    versionGraph.selectVersion(6).click();
+    versionGraph.selectVersion(3).click();
 
     ScrollUtil.awaitEndOfScrolling(riskRemediation.compareVersionsTitle().scrollIntoView(true));
 
@@ -320,12 +331,19 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     table.shouldBe(visible);
     table.versionRow().get(1).shouldHave(text("29.50"));
-    table.versionRow().get(2).shouldHave(text("31.52"));
-    table.highestPolicyThreatRow().get(2).shouldHave(text("None"));
-    table.highestCvssScoreRow().get(2).shouldHave(text("None"));
-    table.effectiveLicenseRow().get(2).shouldHave(text("BSD-3-Clause"));
-    table.hygieneRatingRow().get(2).shouldBe(empty);
-    table.integrityRatingRow().get(2).shouldBe(empty);
+    table.versionRow().get(2).shouldHave(text("28.49"));
+    table.highestPolicyThreatRow().get(2).shouldHave(text("5 within 5 policies"));
+    table.highestSecurityThreatRow().get(2).shouldHave(text("3"));
+    table.highestCvssScoreRow().get(2).shouldHave(text("4.3"));
+    table.highestLicenseThreatRow().get(2).shouldHave(text("5"));
+    table.effectiveLicenseRow().get(2).shouldHave(text("Apache-2.0, GPL-2.0"));
+    table.highestQualityThreatRow().get(2).shouldHave(text("2"));
+    table.highestOtherThreatRow().get(2).shouldHave(text("1"));
+    table.hygieneRatingRow().get(2).shouldHave(text("Laggard"));
+    table.integrityRatingRow().get(2).shouldHave(text("Normal"));
+    table.catalogDateRow().get(2).shouldNotBe(empty);
+
+    eyesWatcher.eyesCheck();
 
     versionGraph.selectVersion(4).click();
 
@@ -336,6 +354,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     table.effectiveLicenseRow().get(2).shouldBe(empty);
     table.hygieneRatingRow().get(2).shouldBe(empty);
     table.integrityRatingRow().get(2).shouldBe(empty);
+    table.catalogDateRow().get(2).shouldBe(empty);
   }
 
   @Test
@@ -357,7 +376,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     SelenideElement compareButton = recommendedVersionsSection.getRecommendation(0).actions().first();
 
-    mockHdsResponseForFirstComponentWithSelectedVersion();
+    mockHdsResponseForFirstComponentWithRecommendedVersion();
     compareButton.click();
 
     CompareVersionsTable table = riskRemediation.compareVersionsTable();
@@ -366,10 +385,15 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     table.versionRow().get(1).shouldHave(text("29.50"));
     table.versionRow().get(2).shouldHave(text("31.52"));
     table.highestPolicyThreatRow().get(2).shouldHave(text("None"));
+    table.highestSecurityThreatRow().get(2).shouldHave(text("None"));
     table.highestCvssScoreRow().get(2).shouldHave(text("None"));
+    table.highestLicenseThreatRow().get(2).shouldHave(text("None"));
     table.effectiveLicenseRow().get(2).shouldHave(text("BSD-3-Clause"));
+    table.highestQualityThreatRow().get(2).shouldHave(text("None"));
+    table.highestOtherThreatRow().get(2).shouldHave(text("None"));
     table.hygieneRatingRow().get(2).shouldBe(empty);
     table.integrityRatingRow().get(2).shouldBe(empty);
+    table.catalogDateRow().get(2).shouldNotBe(empty);
   }
 
   private ComponentDetailsPage openComponentDetailsPageForViolation(int violationIndex, String hash) {
@@ -407,9 +431,15 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         .atUri("rest/component/dependencies");
   }
 
-  private void mockHdsResponseForFirstComponentWithSelectedVersion() {
+  private void mockHdsResponseForFirstComponentWithRecommendedVersion() {
     testCLMServer.getHdsServer()
         .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-31.52.json"))
+        .atUri("rest/ci/componentDetails");
+  }
+
+  private void mockHdsResponseForFirstComponentWithSelectedVersion() {
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-28.49.json"))
         .atUri("rest/ci/componentDetails");
   }
 

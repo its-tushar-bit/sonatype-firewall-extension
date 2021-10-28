@@ -61,7 +61,7 @@ public class ApiSourceControlEvaluationService
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  public ApiApplicationEvaluationStatusDTOV2 doSourceControlEvaluation(
+  public ApiApplicationEvaluationStatusDTOV2 evaluateSourceControl(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) final String applicationId,
       ApiSourceControlEvaluationRequestDTO sourceControlEvaluationRequest,
       final String userAgent)
@@ -79,7 +79,7 @@ public class ApiSourceControlEvaluationService
     Application application = applicationDAO.getByIdNotNull(applicationId);
     String statusId = UUID.randomUUID().toString().replace("-", "");
     log.debug(
-        "Received request to do source control evaluation for application {}, stage {} and branch {}."
+        "Received request to evaluate source control for application {}, stage {} and branch {}."
             + " The status ID of the operation is {}.",
         application.getName(), sourceControlEvaluationRequest.stageId, sourceControlEvaluationRequest.branchName,
         statusId);
@@ -101,6 +101,7 @@ public class ApiSourceControlEvaluationService
         .setStageTypeId(sourceControlEvaluationRequest.stageId) //
         .setStatusId(statusId) //
         .setBranchName(branchName) //
+        .setScanTargets(sourceControlEvaluationRequest.scanTargets) //
         .setUserAgent(userAgent) //
         .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_API);
 
@@ -118,6 +119,19 @@ public class ApiSourceControlEvaluationService
 
     if (!Stage.isValidStageTypeId(sourceControlEvaluationRequest.stageId)) {
       throw new BadRequestException("Stage " + sourceControlEvaluationRequest.stageId + " is invalid.");
+    }
+
+    validateScanTargets(sourceControlEvaluationRequest);
+  }
+
+  private void validateScanTargets(ApiSourceControlEvaluationRequestDTO sourceControlEvaluationRequest) {
+    if (sourceControlEvaluationRequest.scanTargets != null) {
+      for (String scanTarget : sourceControlEvaluationRequest.scanTargets) {
+        if (scanTarget.contains("../") || scanTarget.contains("..\\")) {
+          // legit callers use normalized paths, no directory traversal into restricted areas
+          throw new BadRequestException("Scan targets cannot contain ../ or ..\\");
+        }
+      }
     }
   }
 

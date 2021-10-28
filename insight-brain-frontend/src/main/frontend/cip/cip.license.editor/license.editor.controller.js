@@ -5,7 +5,15 @@
  */
 /*global angular, CLM, clmEndpoint */
 
-export default function LicenseEditorController($scope, $q, $http, Messages, SelectedComponent, OwnerContext) {
+export default function LicenseEditorController(
+  $scope,
+  $q,
+  $http,
+  Messages,
+  SelectedComponent,
+  OwnerContext,
+  ProductFeatures
+) {
   var vm = this;
 
   function getHierarchyById(id) {
@@ -138,6 +146,20 @@ export default function LicenseEditorController($scope, $q, $http, Messages, Sel
     return 'Open';
   };
 
+  function buildLegalURL() {
+    let base = window.top.location.href;
+    base = base.substring(0, base.indexOf('#'));
+    return (
+      base +
+      '#/legal/component/componentIdentifier/' +
+      encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
+    );
+  }
+
+  $scope.jumpToALP = function () {
+    $scope.closeCipModal();
+  };
+
   $scope.doLoad = function () {
     $scope.error = null;
     $scope.licenses = null; // trigger loading indicator
@@ -162,6 +184,8 @@ export default function LicenseEditorController($scope, $q, $http, Messages, Sel
       )
     );
 
+    promises.push(ProductFeatures.load());
+
     $q.all(promises).then(
       function (results) {
         var licenses = results[0].data,
@@ -185,6 +209,8 @@ export default function LicenseEditorController($scope, $q, $http, Messages, Sel
         angular.forEach($scope.component.selectableLicenses, function (license) {
           $scope.selectableLicenses.push($scope.licenses[license.licenseId]);
         });
+
+        vm.isAdvancedLegalPackSupported = ProductFeatures.isAvailable('advanced-legal-pack');
       },
       function () {
         $scope.error = arguments[0];
@@ -269,6 +295,8 @@ export default function LicenseEditorController($scope, $q, $http, Messages, Sel
   };
 
   $scope.reset = function () {
+    $scope.componentHash = SelectedComponent.get().hash;
+    $scope.legalURL = buildLegalURL();
     $scope.override = {
       status: null,
       ownerId: null,
@@ -349,4 +377,12 @@ export default function LicenseEditorController($scope, $q, $http, Messages, Sel
 
   $scope.doLoad();
 }
-LicenseEditorController.$inject = ['$scope', '$q', '$http', 'Messages', 'SelectedComponent', 'OwnerContext'];
+LicenseEditorController.$inject = [
+  '$scope',
+  '$q',
+  '$http',
+  'Messages',
+  'SelectedComponent',
+  'OwnerContext',
+  'ProductFeatures',
+];

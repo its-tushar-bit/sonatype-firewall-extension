@@ -189,6 +189,54 @@ public class DependencyResolverTest
   }
 
   @Test
+  public void processInnerSource_multiModule_component_not_in_bom() throws Exception {
+    Application appInnerSource = tempEntity.newApplicationWithParent();
+    tempEntity
+        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60", appInnerSource);
+    InnerSourceComponent innerSourceComponent = tempEntity
+        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing", appInnerSource);
+
+    ComponentIdentifier knownModule1 = ComponentIdentifier
+        .createMavenCoordinates("com.sonatype.insight.scan", "insight-test-reverse-proxy", "2.23.5-SNAPSHOT", "",
+            "jar");
+    ComponentIdentifier knownModule2 = ComponentIdentifier
+        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-model", "2.23.5-SNAPSHOT", "", "jar");
+    ComponentIdentifier knownModule3 = ComponentIdentifier
+        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-model-io", "2.23.5-SNAPSHOT", "",
+            "jar");
+    ComponentIdentifier knownModule4 = ComponentIdentifier
+        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-core", "2.23.5-SNAPSHOT", "", "jar");
+
+    JsonNode dependenciesJson =
+        getJsonNodeInformation("report-innersource-multi-module-component-not-in-bom/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-multi-module-component-not-in-bom/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-multi-module-component-not-in-bom/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-multi-module-component-not-in-bom/data.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+
+    List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
+    assertThat(innerSourceComponents).hasSize(8);
+
+    List<JsonNode> bomInnerSourceParent = new ArrayList<>();
+    List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
+    List<JsonNode> knownDependencies = new ArrayList<>();
+    assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
+    assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies, knownDependencies);
+    assertSummaryCounters(summaryJson, dataJson, 19);
+
+    assertKnownComponents(knownDependencies, Arrays.asList(knownModule1, knownModule2, knownModule3, knownModule4));
+
+    ComponentIdentifier innerSourceParent = ComponentIdentifier
+        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-hashing", "1.12.0-01", "", "jar");
+
+    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource, innerSourceParent);
+
+    assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
+    assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
+  }
+
+  @Test
   public void processInnerSource_multiModule() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
     tempEntity

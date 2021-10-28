@@ -219,7 +219,11 @@ public class SourceControlUtils
   }
 
   public void deleteCheckoutDirectory(Application app) {
-    File checkoutDir = insightWork.getSourceControlDir(app.getId());
+    deleteCheckoutDirectory(app.getId());
+  }
+
+  public void deleteCheckoutDirectory(String appId) {
+    File checkoutDir = insightWork.getSourceControlDir(appId);
     try {
       fileCleaner.delete(checkoutDir);
     }

@@ -118,7 +118,7 @@ public class ApiLicenseLegalResource
   @Produces(MediaType.APPLICATION_JSON)
   public ApiLicenseLegalComponentDashboardResultDTO getLicenseLegalComponentsDashboard(LicenseLegalFilterDTO filter) {
     return apiLicenseLegalService.getLicenseLegalComponentsDashboard(filter.organizationIds, filter.applicationIds,
-        filter.tagIds, filter.stageTypeIds, filter.licenseIds, filter.page, filter.pageSize);
+        filter.tagIds, filter.stageTypeIds, filter.licenseIds, filter.order, filter.page, filter.pageSize);
   }
 
   @POST

@@ -21,7 +21,6 @@ import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
-import com.sonatype.nexus.git.utils.Environment.BambooCI;
 import com.sonatype.nexus.git.utils.Environment.GitLabCI;
 import com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderBuilder;
 
@@ -178,7 +177,6 @@ public class PolicyClient
       Optional<String> optional = new RepositoryUrlFinderBuilder()
           .withEnvironmentVariableDefault()
           .withEnvironmentVariableNamed(GitLabCI.REPOSITORY_URL_ENV_VARIABLE)
-          .withEnvironmentVariableNamed(BambooCI.REPOSITORY_URL_ENV_VARIABLE)
           .withGitRepo()
           .build()
           .tryGetRepositoryUrl();

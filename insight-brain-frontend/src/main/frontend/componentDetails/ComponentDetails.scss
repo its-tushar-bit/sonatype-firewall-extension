@@ -5,19 +5,21 @@
  */
 @import './ComponentDetailsHeader/ComponentDetailsHeader';
 @import './ComponentDetailsFooter/ComponentDetailsFooter';
+@import './ComponentDetailsHeader/ComponentDetailsTags';
 @import './auditLog/auditLog';
 @import './ViolationsTableTile/policyViolations';
 @import './overview/Overview';
 @import './overview/riskRemediation/RiskRemediation';
 @import './overview/VersionGraphExplorer/VersionGraphExplorer';
 @import './VulnerabilitiesTableTile/vulnerabilities';
-@import './ComponentDetailsLegalTab/LicenseDetectionsTile/LicenseDetectionsTile';
+@import './ComponentDetailsLegalTab/ComponentDetailsLegalTab.scss';
 
 .nx-page-main.iq-component-details-page {
   padding: 0;
 
   // returns the padding to the page in the loading state
-  &.iq-component-details-page--loading {
+  &.iq-component-details-page--loading,
+  &.iq-component-details-page--error {
     padding: var(--nx-spacing-8x) var(--nx-spacing-6x);
   }
 }

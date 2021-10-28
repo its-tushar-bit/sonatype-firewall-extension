@@ -130,6 +130,18 @@ function routes($stateProvider, $urlRouterProvider) {
         tabId: 'audit',
       },
     })
+    .state('applicationReport.componentDetails.claim', {
+      url: '/claim',
+      params: {
+        tabId: 'claim',
+      },
+    })
+    .state('applicationReport.componentDetails.labels', {
+      url: '/labels',
+      params: {
+        tabId: 'labels',
+      },
+    })
     .state('applicationReport.violationWaivers', {
       url: '/{hash}/waivers/{violationId}',
       component: 'listWaiversPage',

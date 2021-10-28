@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -25,6 +27,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultUtils;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
@@ -61,6 +64,8 @@ public class SourceControlScanService
 
   private final PolicyEvaluateService policyEvaluateService;
 
+  private final PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils;
+
   private final IqForScmLicenseChecker licenseChecker;
 
   private ProprietaryConfigService proprietaryConfigService;
@@ -81,6 +86,7 @@ public class SourceControlScanService
       final IqForScmLicenseChecker licenseChecker,
       final ProprietaryConfigService proprietaryConfigService,
       final PolicyEvaluateService policyEvaluateService,
+      final PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils,
       final InsightWork work,
       final Scanner scanner,
       final AuditRecorder auditRecorder,
@@ -92,6 +98,7 @@ public class SourceControlScanService
     this.licenseChecker = licenseChecker;
     this.proprietaryConfigService = proprietaryConfigService;
     this.policyEvaluateService = policyEvaluateService;
+    this.policyEvaluationPollingResultUtils = policyEvaluationPollingResultUtils;
     this.work = work;
     this.scanner = scanner;
     this.auditRecorder = auditRecorder;
@@ -108,28 +115,35 @@ public class SourceControlScanService
     log.trace("Source control scan initiated for application '{}' on branch '{}'", event.getApplicationId(),
         event.getBranchName());
 
-    GitRepositoryInfo gitRepositoryInfo =
-        sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
+    try {
+      GitRepositoryInfo gitRepositoryInfo =
+          sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
 
-    if (gitRepositoryInfo != null) {
-      final Application application = applicationDAO.getByIdNotNull(event.getApplicationId());
+      if (gitRepositoryInfo != null) {
+        final Application application = applicationDAO.getByIdNotNull(event.getApplicationId());
 
-      try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
-        try {
-          AuditData.get().setApplication(application);
-          AuditData.get().setStageId(event.getStageTypeId());
+        try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
+          try {
+            AuditData.get().setApplication(application);
+            AuditData.get().setStageId(event.getStageTypeId());
 
-          RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, event.getBranchName());
-          ScanResult scanResult = scan(application, repoSyncResult.getHeadRef());
-          evaluate(event, application, scanResult);
+            RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, event.getBranchName());
+            ScanResult scanResult = scan(application, event.getScanTargets(), repoSyncResult.getHeadRef());
+            evaluate(event, application, scanResult);
 
-          log.trace("Source control scan completed for application '{}': {}", event.getApplicationId(), repoSyncResult);
-        }
-        catch (Exception e) {
-          AuditData.get().setException(e);
-          throw e;
+            log.trace("Source control scan completed for application '{}': {}", event.getApplicationId(),
+                repoSyncResult);
+          }
+          catch (Exception e) {
+            AuditData.get().setException(e);
+            throw e;
+          }
         }
       }
+    }
+    catch (Exception e) {
+      policyEvaluationPollingResultUtils.handleException(event.getApplicationId(), event.getStatusId(), e);
+      throw e;
     }
   }
 
@@ -170,7 +184,7 @@ public class SourceControlScanService
           AuditData.get().setStageId(stage.getStageTypeId());
 
           RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, branchName, commitHash);
-          ScanResult scanResult = scan(application, repoSyncResult.getHeadRef());
+          ScanResult scanResult = scan(application, null /* scanTarget */, repoSyncResult.getHeadRef());
           ClientScanType clientScanType =
               scanResult.hasThirdPartyScanContent() ? ClientScanType.SONATYPE_THIRD_PARTY : ClientScanType.SONATYPE;
           result = policyEvaluateService.evaluateSynchronousNoAuth(application, clientScanType,
@@ -230,7 +244,7 @@ public class SourceControlScanService
     }
   }
 
-  private ScanResult scan(Application application, String commitHash) throws IOException {
+  private ScanResult scan(Application application, List<String> scanTargets, String commitHash) throws IOException {
     File repositoryDirectory = sourceControlUtils.getCheckoutDirectory(application);
     ProprietaryConfig proprietaryConfig = proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION,
         application.getPublicId());
@@ -239,9 +253,18 @@ public class SourceControlScanService
     scanConfiguration.setProperty("dirExcludes", "**/src/test");
 
     ScanMetadata scanMetadata = new ScanMetadata().withCommitHash(commitHash);
+    List<File> absoluteScanTargets = new ArrayList<>();
+    if (scanTargets == null || scanTargets.isEmpty()) {
+      absoluteScanTargets.add(repositoryDirectory);
+    }
+    else {
+      for (String scanTarget : scanTargets) {
+        absoluteScanTargets.add(new File(repositoryDirectory, scanTarget));
+      }
+    }
 
-    return scanner.scan(repositoryDirectory, null, work.getScanDir(application.getId()), proprietaryConfig,
-        scanConfiguration, scanMetadata);
+    return scanner.scan(absoluteScanTargets, work.getScanDir(application.getId()), proprietaryConfig, scanConfiguration,
+        scanMetadata);
   }
 
   private void evaluate(SourceControlEvent event, Application application, ScanResult scanResult) {

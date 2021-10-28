@@ -6,11 +6,12 @@
 import React, { useEffect } from 'react';
 import { availableScopesPropType, componentPropType } from '../../advancedLegalPropTypes';
 import LoadWrapper from '../../../react/LoadWrapper';
-import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { backToComponentOverviewUrl, createSubtitle } from '../../legalUtility';
 import { faPen } from '@fortawesome/pro-solid-svg-icons';
 import NoticesModalContainer from './NoticesModalContainer';
+import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 
 export default function NoticeDetailsHeader(props) {
   const {
@@ -36,9 +37,9 @@ export default function NoticeDetailsHeader(props) {
   useEffect(load, [ownerType, ownerId, hash, noticeIndex]);
   return (
     <LoadWrapper loading={loading} error={error} retryHandler={load}>
-      <NxBackButton
+      <MenuBarBackButton
         href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash)}
-        targetPageTitle="Component Obligations"
+        text="Back to Component Obligations"
       />
       <div className="nx-page-title">
         <h1 className="nx-h1">Notice Files</h1>

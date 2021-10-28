@@ -32,3 +32,5 @@ export const selectSelectedComponentIndexInAggregatedList = createSelector(
 );
 export const selectLoadError = createSelector(selectApplicationReportSlice, prop('loadError'));
 export const selectIsLoading = createSelector(selectApplicationReportSlice, ({ pendingLoads }) => !!pendingLoads.size);
+
+export const selectReportParameters = createSelector(selectApplicationReportSlice, prop('reportParameters'));

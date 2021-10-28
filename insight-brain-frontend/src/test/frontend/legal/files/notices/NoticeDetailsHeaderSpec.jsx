@@ -4,9 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import * as enzymeUtils from '../../../enzymeUtils';
-import NoticeDetailsHeader from '../../../../../main/frontend/legal/files/notices/NoticeDetailsHeader';
-import NoticesModalContainer from '../../../../../main/frontend/legal/files/notices/NoticesModalContainer';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import NoticeDetailsHeader from 'MainRoot/legal/files/notices/NoticeDetailsHeader';
+import NoticesModalContainer from 'MainRoot/legal/files/notices/NoticesModalContainer';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import * as legalUtilities from 'MainRoot/legal/legalUtility';
 
 describe('NoticeDetailsHeader component', function () {
   let getShallowComponent, setShowNoticesModalMock;
@@ -46,11 +48,30 @@ describe('NoticeDetailsHeader component', function () {
         content: 'you must include notice for this fake notice file',
       },
     },
+    ownerType: 'testOwner',
+    ownerId: 'testId',
+    stageTypeId: 'testStage',
+    hash: 'testHash',
     setShowNoticesModal: setShowNoticesModalMock,
   };
 
   beforeEach(function () {
     getShallowComponent = enzymeUtils.getShallowComponent(NoticeDetailsHeader, minimalProps);
+  });
+
+  it('renders a MenuBarBackButton with correct href prop', function () {
+    spyOn(legalUtilities, 'backToComponentOverviewUrl').and.returnValue('some-href');
+    const wrapper = getShallowComponent();
+    const menuBarBackButton = wrapper.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', 'some-href');
+    expect(legalUtilities.backToComponentOverviewUrl).toHaveBeenCalledWith(
+      minimalProps.$state,
+      minimalProps.ownerType,
+      minimalProps.ownerId,
+      minimalProps.stageTypeId,
+      minimalProps.hash
+    );
   });
 
   it('renders the given notice header', function () {

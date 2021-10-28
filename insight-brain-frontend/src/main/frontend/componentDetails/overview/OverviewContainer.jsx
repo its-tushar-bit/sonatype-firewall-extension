@@ -8,11 +8,18 @@ import { connect } from 'react-redux';
 import Overview from './Overview';
 import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
 import { actions } from './overviewSlice';
+import { loadReportIfNeeded } from '../../applicationReport/applicationReportActions';
 import { occurrencesPopoverActions } from './occurrencesPopover/occurrencesPopoverSlice';
-import { selectComponentSimilarMatches } from '../componentDetailsSelectors';
+import {
+  selectComponentSimilarMatches,
+  selectComponentDetailsLoading,
+  selectComponentDetailsLoadErrors,
+} from '../componentDetailsSelectors';
 
 function mapStateToProps(state) {
   return {
+    loading: selectComponentDetailsLoading(state),
+    loadError: selectComponentDetailsLoadErrors(state),
     componentInformation: selectSelectedComponent(state),
     similarMatches: selectComponentSimilarMatches(state),
   };
@@ -22,6 +29,7 @@ const mapDispatchToProps = {
   toggleShowOccurrencesPopover: occurrencesPopoverActions.toggleShowOccurrencesPopover,
   toggleShowSimilarMatches: actions.toggleShowSimilarMatches,
   loadInnerSourceProducerData: actions.loadInnerSourceProducerData,
+  loadReport: loadReportIfNeeded,
 };
 
 export const OverviewContainer = connect(mapStateToProps, mapDispatchToProps)(Overview);

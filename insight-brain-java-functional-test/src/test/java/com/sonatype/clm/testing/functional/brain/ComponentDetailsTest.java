@@ -18,11 +18,15 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.MatchStateFilter;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
-import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OccurrencesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
@@ -30,17 +34,12 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViola
 import com.sonatype.clm.testing.functional.elements.componentdetails.SimilarMatchesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover.VulnerabilityOverrideForm;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
+import com.sonatype.clm.testing.functional.pages.*;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
-import com.sonatype.clm.testing.functional.pages.AuditLogContent;
-import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
-import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
-import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.RequestWaiversPopover;
-import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -65,16 +64,20 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentDetailsTest
@@ -125,7 +128,7 @@ public class ComponentDetailsTest
       waitUntilUrl(ComponentDetailsPage.url(app, SCAN_ID, HASH));
       ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
       componentDetailsPage.header().title().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
-      componentDetailsPage.tabs().shouldHaveSize(5);
+      componentDetailsPage.tabs().shouldHaveSize(6);
 
       SelenideElement backButton = MainHeader.backButton();
       backButton.shouldBe(visible);
@@ -201,6 +204,9 @@ public class ComponentDetailsTest
 
     componentDetailsPage.overviewTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
+
+    componentDetailsPage.labelsTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToLabels(app, SCAN_ID, HASH));
   }
 
   @Test
@@ -210,6 +216,130 @@ public class ComponentDetailsTest
 
     SelenideElement unknownComponentAlert = componentDetailsPage.unknownComponentAlert();
     unknownComponentAlert.shouldBe(visible);
+  }
+
+  @Test
+  public void testComponentDetailsAddProprietaryComponentMatchersPopover() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForUnknownComponent();
+
+    SelenideElement addProprietarypComponentMatchersBtn = componentDetailsPage.addProprietarypComponentMatchersBtn();
+
+    AddProprietaryComponentMatchersPopover addProprietaryComponentMatchersPopover = 
+        new AddProprietaryComponentMatchersPopover();
+
+    addProprietarypComponentMatchersBtn.click();
+    addProprietaryComponentMatchersPopover.shouldBe(visible);
+    addProprietaryComponentMatchersPopover.cancelBtn().click();
+    addProprietaryComponentMatchersPopover.shouldNotBe(visible);
+
+    addProprietarypComponentMatchersBtn.click();
+    addProprietaryComponentMatchersPopover.shouldBe(visible);
+
+    eyesWatcher.eyesCheck("component details Add Proprietary Component Matchers");
+
+    addProprietaryComponentMatchersPopover.alerts().first()
+        .shouldHave(text("The following matchers will be added to the ApplicationReportTest Configuration (duplicates"
+        + " will be ignored). The new matchers will be in effect for the next application analysis."));
+    addProprietaryComponentMatchersPopover.matchers().shouldHaveSize(1);
+    addProprietaryComponentMatchersPopover.addBtn().shouldNotHave(DISABLED);
+    addProprietaryComponentMatchersPopover.matchers().get(0)
+        .shouldHave(text("full.jar/WebGoat-6.0.1/WEB-INF/classes/org/owasp/webgoat/lessons/instr"));
+    addProprietaryComponentMatchersPopover.matchers().get(0).click();
+    addProprietaryComponentMatchersPopover.addBtn().shouldHave(DISABLED);
+    addProprietaryComponentMatchersPopover.matchers().get(0).click();
+    addProprietaryComponentMatchersPopover.addBtn().click();
+    addProprietaryComponentMatchersPopover.shouldNotBe(visible);
+  }
+
+  public void testComponentDetails_UnknownComponentAlert_ClaimButton() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForUnknownComponent();
+
+    SelenideElement claimButton = componentDetailsPage.unknownComponentClaim();
+    claimButton.click();
+
+    waitUntilUrl(ComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+    componentDetailsPage.claimTabContent().shouldBe(visible);
+  }
+
+  @Test
+  public void testComponentDetails_ClaimTab() {
+    refreshOrOpen(ComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    componentDetailsPage.claimTabContent().shouldBe(visible);
+
+    componentDetailsPage.violationsTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+
+    componentDetailsPage.overviewTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+  }
+
+  @Test
+  public void testComponentDetails_ClaimTabContent() {
+    mockHdsResponseForClaimedComponent();
+    refreshOrOpen(ComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    ClaimTabContent claimTabContent = componentDetailsPage.claimTabContent();
+    claimTabContent.shouldBe(visible);
+
+    claimTabContent.title().shouldHave(text("Claim Component"));
+
+    claimTabContent.cancel().scrollIntoView(true).shouldBe(disabled);
+    claimTabContent.claim().shouldHave(text("Claim")).shouldBe(CLM.DISABLED);
+    claimTabContent.revoke().shouldBe(hidden);
+
+    testRequiredFormFields(claimTabContent);
+    fillAllFields(claimTabContent);
+
+    eyesWatcher.eyesCheck("component details claim tab: claim component form");
+
+    claimTabContent.cancel().scrollIntoView(true).shouldBe(enabled);
+    claimTabContent.claim().shouldBe(enabled).click();
+    FormMask.seeAndWaitForDismissal();
+    claimTabContent.revoke().shouldBe(enabled);
+
+    // Reevaluate to apply the claim
+    MainHeader.backButton().click();
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+    reportPage.reevaluateButton().click();
+
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+
+    reportPage.headers().componentNameFilterInput().setValue("claimed");
+    reportPage.resultRow(1).shouldHave(text("claimed : claimed : claimed : claimed : claimed")).click();
+
+    componentDetailsPage.claimTabForClaimedComponent().click();
+    waitUntilUrl(ComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+
+    claimTabContent.shouldBe(visible);
+
+    checkFieldsValue(claimTabContent);
+    claimTabContent.revoke().shouldBe(enabled).click();
+
+    NxDeleteModal deleteModal = claimTabContent.getDeleteModal();
+    deleteModal.submitButton().click();
+    FormMask.seeAndWaitForDismissal();
+    deleteModal.alertContent().shouldBe(hidden);
+
+    // Reevaluate to revoke the claim
+    MainHeader.backButton().click();
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+    reportPage.reevaluateButton().click();
+
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+
+    reportPage.headers().componentNameFilterInput().setValue("claimed");
+    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRow(1).shouldHave(text("No Results"));
+
+    reportPage.headers().componentNameFilterInput().setValue("regexmatch.dll");
+    reportPage.resultRow(1).shouldHave(text("regexmatch.dll"));
   }
 
   @Test
@@ -629,7 +759,7 @@ public class ComponentDetailsTest
     mockHdsResponsesForVulnerabilityDetails();
 
     refreshOrOpen(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "1e48256a2341047e7d72"));
-    ComponentDetailsPage componentDetailsPage =  new ComponentDetailsPage();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
 
     VulnerabilitiesTable vulnerabilitiesTable = componentDetailsPage.securityTabContent().vulnerabilitiesTable();
     vulnerabilitiesTable.shouldBe(visible);
@@ -655,6 +785,18 @@ public class ComponentDetailsTest
     SelenideElement sourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(4);
     sourceContent.shouldHave(text("Sonatype Data Research"));
 
+    VulnerabilityOverrideForm vulnerabilityOverrideForm = vulnerabilityDetailsPopover.getVulnerabilityOverrideForm();
+    vulnerabilityOverrideForm.shouldBe(visible);
+    vulnerabilityOverrideForm.comment().shouldBe(disabled);
+    vulnerabilityOverrideForm.submitButton().shouldBe(CLM.DISABLED);
+
+    vulnerabilityOverrideForm.status().chooseOption(new Option(3, "CONFIRMED"));
+    vulnerabilityOverrideForm.comment().setValue("vulnerability confirmed in the current code");
+    vulnerabilityOverrideForm.submitButton().shouldBe(enabled).click();
+    // Conditions after submitting
+    vulnerabilityOverrideForm.submitButton().shouldBe(CLM.DISABLED);
+    vulnerabilityOverrideForm.comment().shouldBe(enabled);
+
     eyesWatcher.eyesCheck("vulnerability details popover");
 
     SelenideElement closeButton = vulnerabilityDetailsPopover.getCloseButton();
@@ -662,38 +804,9 @@ public class ComponentDetailsTest
     closeButton.click();
 
     vulnerabilityDetailsPopover.shouldNotBe(visible);
-  }
 
-  @Test
-  public void testLegalTab_editLicensesPopover() {
-    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "fa78f54738ccf77379d1"));
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    componentDetailsPage.legalTabContent().shouldBe(visible);
-
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
-    licenseDetectionsTile.shouldBe(visible);
-    licenseDetectionsTile.editLicenseButton().click();
-
-    EditLicensesPopover editLicensesPopover = new EditLicensesPopover();
-    editLicensesPopover.shouldBe(visible);
-    editLicensesPopover.popoverTitle().shouldHave(text("Edit Licenses"));
-
-    ElementsCollection declaredLicenses = editLicensesPopover.getItems(editLicensesPopover.declaredLicenses());
-    declaredLicenses.shouldHaveSize(1);
-    declaredLicenses.first().shouldHave(text("Not Provided"));
-
-    ElementsCollection effectiveLicenses = editLicensesPopover.getItems(editLicensesPopover.effectiveLicenses());
-    effectiveLicenses.shouldHaveSize(1);
-    effectiveLicenses.first().shouldHave(text("Not Provided"));
-
-    ElementsCollection observedLicenses = editLicensesPopover.getItems(editLicensesPopover.observedLicenses());
-    observedLicenses.shouldHaveSize(1);
-    observedLicenses.first().shouldHave(text("Not Provided"));
-
-    eyesWatcher.eyesCheck("component details legal tab edit licenses popover");
-
-    editLicensesPopover.getCloseButton().click();
-    editLicensesPopover.shouldNotBe(visible);
+    vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"))
+        .shouldHave(exactTexts("9", "CVE-1234-56789", "Confirmed", ""));
   }
 
   @Test
@@ -895,6 +1008,13 @@ public class ComponentDetailsTest
     auditLog.rowWithoutDate(1).shouldHave(texts("admin", "Acknowledged", "License Analysis", "AAAA"));
   }
 
+  @Test
+  public void testLabelsTab_manageLabels() {
+    refreshOrOpen(ComponentDetailsPage.urlToLabels(app, SCAN_ID, "fa78f54738ccf77379d1"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.labelsContent().shouldBe(visible);
+  }
+
   private void createAuditLogEntries() {
     // Using the CIP to create log entries.
     // Would need to change this to the form in the Component Details Page once the license tab is implemented.
@@ -985,6 +1105,32 @@ public class ComponentDetailsTest
   private void waiveFirstReportRow() {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     WaiverApplierForReport.waiveReportRow(reportPage, 0);
+  }
+
+  private void testRequiredFormFields(ClaimTabContent claimTabContent) {
+    for (SelenideElement element : claimTabContent.requiredFields()) {
+      element.sendKeys("a");
+      element.sendKeys(Keys.BACK_SPACE);
+      ClaimTabContent.getInputValidationElement(element).shouldHave(text("Must be non-empty"));
+    }
+  }
+
+  private void fillAllFields(ClaimTabContent claimTabContent) {
+    for (SelenideElement element : claimTabContent.allTextFields()) {
+      element.sendKeys("claimed");
+    }
+
+    claimTabContent.createdTime().setValue("20102021"); //20.10.2021
+  }
+
+  private void checkFieldsValue(ClaimTabContent claimTabContent) {
+    for (SelenideElement element : claimTabContent.allTextFields()) {
+      element.shouldHave(value("claimed"));
+    }
+  }
+
+  private void mockHdsResponseForClaimedComponent() {
+    testCLMServer.getHdsServer().respondWith("{\"known\":false}").atUri("rest/component/summary");
   }
 }
 

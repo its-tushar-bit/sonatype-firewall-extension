@@ -47,6 +47,12 @@ describe('AuditLogTable', function () {
     expect(getShallow()).toExist();
   });
 
+  it('calls loadAuditLogForComponent', () => {
+    const component = getMounted();
+    expect(minimalProps.loadAuditLogForComponent).toHaveBeenCalled();
+    component.unmount();
+  });
+
   describe('Table headers', () => {
     function getTableHeaders(props) {
       const component = getShallow(props);
@@ -185,6 +191,7 @@ describe('AuditLogTable', function () {
       const tRow = body.find(NxTableRow);
       const tCell = tRow.find(NxTableCell);
       expect(tCell).toHaveText('No changes were found for this component.');
+      component.unmount();
     });
 
     it('sets isLoading in the table body', () => {

@@ -19,7 +19,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -119,6 +121,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.newApplicationDashboardComparator;
+import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.newComponentDashboardComparator;
 import static java.util.stream.Collectors.groupingBy;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -316,7 +320,7 @@ public class ApiLicenseLegalService
       result.add(dto);
     }
 
-    result.sort(newDashboardComparator(order));
+    result.sort(newApplicationDashboardComparator(order));
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto = new ApiLicenseLegalApplicationDashboardResultDTO();
     resultDto.totalResultsCount = result.size();
@@ -334,6 +338,7 @@ public class ApiLicenseLegalService
       Set<String> tagIds,
       Set<String> stageTypeIds,
       Set<String> licenseIds,
+      LicenseLegalResultsOrder order,
       int page,
       int pageSize)
   {
@@ -423,14 +428,11 @@ public class ApiLicenseLegalService
 
     List<ApiLicenseLegalComponentDashboardDTO> components = mapHashComponent.values().stream()
         .filter(dto -> isEmpty(licenseIds) || !Collections.disjoint(mapHashLicenseIds.get(dto.hash), licenseIds))
+        .map(fillLicenseNames(mapHashLicenseIds))
+        .sorted(newComponentDashboardComparator(order))
         .skip(startIndex)
         .limit(pageSize)
-        .map(dto -> {
-          dto.licenseNames.addAll(mapHashLicenseIds.get(dto.hash).stream()
-              .map(licenseId -> multiLicenseDAO.getById(licenseId).getShortDisplayName())
-              .collect(Collectors.toSet()));
-          return dto;
-        }).collect(Collectors.toList());
+        .collect(Collectors.toList());
 
     resultDto.results = components;
     return resultDto;
@@ -1033,38 +1035,6 @@ public class ApiLicenseLegalService
     return mapApplicationIdTagNames;
   }
 
-  private Comparator<ApiLicenseLegalApplicationDashboardDTO> newDashboardComparator(LicenseLegalResultsOrder order) {
-    Comparator<ApiLicenseLegalApplicationDashboardDTO> comparator;
-    switch (order != null ? order : LicenseLegalResultsOrder.APPLICATION_NAME_ASC) {
-      case APPLICATION_NAME_ASC:
-        comparator = Comparator.comparing(dto -> dto.applicationName, String.CASE_INSENSITIVE_ORDER);
-        break;
-      case APPLICATION_NAME_DESC:
-        comparator = Comparator.comparing(dto -> dto.applicationName, String.CASE_INSENSITIVE_ORDER);
-        comparator = comparator.reversed();
-        break;
-      case LAST_SCAN_TIME_ASC:
-        comparator = Comparator.comparing(dto -> dto.lastScanTime);
-        break;
-      case LAST_SCAN_TIME_DESC:
-        comparator = Comparator.comparing(dto -> dto.lastScanTime);
-        comparator = comparator.reversed();
-        break;
-      case TAG_NAMES_ASC:
-        comparator =
-            Comparator.comparing(dto -> StringUtils.join(dto.applicationTagNames, ','), String.CASE_INSENSITIVE_ORDER);
-        break;
-      case TAG_NAMES_DESC:
-        comparator =
-            Comparator.comparing(dto -> StringUtils.join(dto.applicationTagNames, ','), String.CASE_INSENSITIVE_ORDER);
-        comparator = comparator.reversed();
-        break;
-      default:
-        throw new IllegalArgumentException("Unknown ordering: " + order);
-    }
-    return comparator.thenComparing(dto -> dto.stageTypeName);
-  }
-
   private void recalculateApplicationIdsAndStateTypeIds(
       List<Object[]> applicationIdsAndStageTypeIds,
       Set<String> applicationIdsToCheck,
@@ -1231,5 +1201,16 @@ public class ApiLicenseLegalService
       }
     }
     return componentIdentifierLegalDataMap;
+  }
+
+  private UnaryOperator<ApiLicenseLegalComponentDashboardDTO> fillLicenseNames(
+      Map<String, Set<String>> mapHashLicenseIds)
+  {
+    return dto -> {
+      dto.licenseNames.addAll(mapHashLicenseIds.get(dto.hash).stream()
+          .map(licenseId -> multiLicenseDAO.getById(licenseId).getShortDisplayName())
+          .collect(Collectors.toCollection(TreeSet::new)));
+      return dto;
+    };
   }
 }

@@ -3,27 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 
 import VulnerabilitiesTable, { vulnerabilitiesPropTypes } from './VulnerabilitiesTable';
 import { VulnerabilityDetailsPopoverContainer } from './VulnerabilityDetailsPopoverContainer';
+import { NxLoadWrapper } from '@sonatype/react-shared-components';
 
-export default function VulnerabilitiesTableTile({
-  vulnerabilities,
-  loadVulnerabilities,
-  setVulnerabilityIdAndToggleVisibility,
-}) {
-  useEffect(() => {
-    loadVulnerabilities();
-  }, []);
-
-  const tableProps = {
-    vulnerabilities,
-    loadVulnerabilities,
-    setVulnerabilityIdAndToggleVisibility,
-  };
-
+export default function VulnerabilitiesTableTile(props) {
+  const { isLoadingComponentDetails, componentDetailsLoadError, loadComponentDetails, ...tableProps } = props;
   return (
     <section className="nx-tile">
       <VulnerabilityDetailsPopoverContainer />
@@ -35,14 +23,23 @@ export default function VulnerabilitiesTableTile({
         </div>
       </header>
       <div className="nx-tile-content">
-        <VulnerabilitiesTable {...tableProps} />
+        <NxLoadWrapper
+          loading={isLoadingComponentDetails}
+          error={componentDetailsLoadError}
+          retryHandler={loadComponentDetails}
+        >
+          {() => <VulnerabilitiesTable {...tableProps} />}
+        </NxLoadWrapper>
       </div>
     </section>
   );
 }
 
 VulnerabilitiesTableTile.propTypes = {
+  isLoadingComponentDetails: PropTypes.bool.isRequired,
+  componentDetailsLoadError: PropTypes.string,
+  loadComponentDetails: PropTypes.func.isRequired,
   loadVulnerabilities: PropTypes.func.isRequired,
   vulnerabilities: PropTypes.shape(vulnerabilitiesPropTypes),
-  setVulnerabilityIdAndToggleVisibility: PropTypes.func.isRequired,
+  toggleVulnerabilityPopoverWithEffects: PropTypes.func.isRequired,
 };

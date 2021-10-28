@@ -45,7 +45,7 @@ export const selectSelectedViolationDetail = createSelector(
   selectSelectedComponent,
   selectComponentViolations,
   (selectedPolicyViolationId, selectedComponent, violations = []) => {
-    if (!selectedPolicyViolationId) {
+    if (!selectedPolicyViolationId || !selectedComponent) {
       return null;
     }
 
@@ -75,3 +75,5 @@ const violationToWaiverOperationViolationDetailAdapter = (violation, derivedComp
     violationVulnerabilityId,
   };
 };
+
+export const selectIsPolicyViolationsLoading = createSelector(selectComponentDetailsViolationsSlice, prop('loading'));

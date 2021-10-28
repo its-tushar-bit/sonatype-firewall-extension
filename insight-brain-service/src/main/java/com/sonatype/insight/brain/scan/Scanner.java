@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.scan;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -90,32 +92,46 @@ public class Scanner
 
   /**
    * Scans the specified target file and returns the resulting scan file, using the given directory as parent.
-   * If scanning manifests, `target` is the repository directory
+   * 
+   * @param scanTarget The binary to be scanned
+   * @param filename The name of the binary to be scanned. This is not necessarily the same as the target's file name.
+   *          When the binary to be scanned is uploaded via the UI, it is saved in a temporary file (this is the target
+   *          that will be scanned). The filename parameter holds the name of the file that was uploaded via the UI.
+   * @param scanDir The directory where to store the scan file.
    */
-  public ScanResult scan(File target, String filename, File scanDir, ProprietaryConfig proprietaryConfig)
+  public ScanResult scan(File scanTarget, String filename, File scanDir, ProprietaryConfig proprietaryConfig)
       throws IOException
   {
-    return scan(target, filename, scanDir, proprietaryConfig, null /* scanConfiguration */, null /* scanMetadata */);
+    return scan(Collections.singletonList(scanTarget), filename, scanDir, proprietaryConfig,
+        null /* scanConfiguration */, null /* scanMetadata */);
   }
 
   /**
-   *
-   * This scan variant includes the addition of the {@link ScanMetadata} param which allows the caller to provide the
-   * commit hash that should be associated with the scan, if it's available (as should be the case for source
-   * control scanning, for example)
+   * @param scanMetadata Allows the caller to provide the commit hash that should be associated with the scan, if it's
+   *          available (as should be the case for source control scanning, for example)
    */
   public ScanResult scan(
-      File target,
-      String filename,
+      List<File> scanTargets,
       File scanDir,
       ProprietaryConfig proprietaryConfig,
       ScanConfiguration inputScanConfiguration,
       ScanMetadata scanMetadata)
       throws IOException
   {
+    return scan(scanTargets, null /* filename */, scanDir, proprietaryConfig, inputScanConfiguration, scanMetadata);
+  }
+
+  private ScanResult scan(
+      List<File> scanTargets,
+      String filename,
+      File scanDir,
+      ProprietaryConfig proprietaryConfig,
+      ScanConfiguration inputScanConfiguration,
+      ScanMetadata scanMetadata) throws IOException
+  {
     Files.createDirectories(scanDir.toPath());
     File scanFile = Files.createTempFile(scanDir.toPath(), TEMP_SCAN_PREFIX, SCAN_SUFFIX).toFile();
-    log.debug("Saving scan of {} to {}", target, scanFile);
+    log.debug("Saving scan of {} to {}", scanTargets, scanFile);
     ScanResult scanResult = new ScanResult();
     scanResult.setScanFile(scanFile);
     try {
@@ -134,12 +150,11 @@ public class Scanner
         Set<Feature> features = featuresService.getFeatures();
         scanSession.setLicensedFeatures(features.stream().map(Feature::getId).collect(Collectors.toSet()));
         clientScanner.scan(new ClientScanRequest(scan));
-        if (filename == null || target.isDirectory()) {
-          // for source control scan: use all files in the folder
-          fileScanner.scan(new FileScanRequest(scanSession).addFiles(target));
+        if (filename != null && scanTargets.size() == 1) {
+          fileScanner.scan(new FileScanRequest(scanSession).addFile(scanTargets.get(0), filename, null));
         }
         else {
-          fileScanner.scan(new FileScanRequest(scanSession).addFile(target, filename, null));
+          fileScanner.scan(new FileScanRequest(scanSession).addFiles(scanTargets));
         }
         scan.getSummary().setEndTime();
         writer.writeSummary(scan.getSummary());

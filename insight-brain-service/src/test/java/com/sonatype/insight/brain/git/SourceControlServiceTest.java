@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.io.File;
 import java.time.ZonedDateTime;
 import java.util.Date;
 
@@ -19,6 +20,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
@@ -45,6 +47,9 @@ public class SourceControlServiceTest
   @Inject
   private SourceControlService sourceControlService;
 
+  @Inject
+  private InsightWork insightWork;
+
   @Before
   public void setup() {
     org = tempEntity.newOrganization();
@@ -65,15 +70,22 @@ public class SourceControlServiceTest
     appSourceControl.setPullRequestPollTime(pollDate);
     sourceControlDAO.update(appSourceControl);
 
+    File sourceControlDir = insightWork.getSourceControlDir(app.getId());
+    sourceControlDir.mkdirs();
+    // Sanity check
+    assertThat(sourceControlDir).exists();
+
     // when : repo url updated event is processed
     SourceControlEvent sourceControlEvent = new SourceControlEvent()
         .setApplicationId(app.getId())
         .setEventType(SourceControlEvent.REPOSITORY_URL_UPDATED_EVENT);
     sourceControlService.onRepositoryUrlUpdated(sourceControlEvent);
 
-    // then : comments and history is deleted and poll time updated
+    // then : verify git directory referenced, comments, history and app source control dir are deleted and poll time
+    // updated
     assertThat(commitHistoryDAO.getByApplicationIdSortedByDateDesc(app.getId())).isEmpty();
     assertThat(sourceControlPullRequestCommentDAO.getByApplicationId(app.getId())).isEmpty();
+    assertThat(sourceControlDir).doesNotExist();
     assertThat(sourceControlDAO.getByOwnerId(app.getId()).getPullRequestPollTime()).isBefore(pollDate);
   }
 }

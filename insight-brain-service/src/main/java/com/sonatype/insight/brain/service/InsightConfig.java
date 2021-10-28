@@ -337,6 +337,14 @@ public class InsightConfig
   @JsonProperty
   private DefaultBranchMonitoringConfig defaultBranchMonitoring;
 
+  /**
+   * This configuration limits the number of applications that can be queried by the dashboard services
+   *
+   * @since 1.126
+   */
+  @JsonProperty
+  private int maxApplicationsToQueryOnDashboard = 0;
+
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -1010,7 +1018,7 @@ public class InsightConfig
   {
     ORCHESTRATED_EVENT_PROCESSING("orchestratedEventProcessing"),
     SCM_ONBOARDING("scmOnboarding"),
-    ANONYMOUS_QUARANTINED_COMPONENT_VIEW("anonymousBlockedComponentView");
+    ANONYMOUS_QUARANTINED_COMPONENT_VIEW("anonymousQuarantinedComponentView");
 
     private final String flag;
 
@@ -1029,5 +1037,13 @@ public class InsightConfig
 
   public void setPullRequestMonitoringIntervalInSeconds(int pullRequestMonitoringIntervalInSeconds) {
     this.pullRequestMonitoringIntervalInSeconds = pullRequestMonitoringIntervalInSeconds;
+  }
+
+  public int getMaxApplicationsToQueryOnDashboard() {
+    return maxApplicationsToQueryOnDashboard;
+  }
+
+  public void setMaxApplicationsToQueryOnDashboard(int maxApplicationsToQueryOnDashboard) {
+    this.maxApplicationsToQueryOnDashboard = maxApplicationsToQueryOnDashboard;
   }
 }

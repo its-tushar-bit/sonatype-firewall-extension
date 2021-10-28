@@ -25,11 +25,11 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
-import com.sonatype.insight.brain.api.v2.service.ApiSourceControlEvaluationService;
 import com.sonatype.insight.brain.api.v2.service.ApiPromoteScanServiceV2;
+import com.sonatype.insight.brain.api.v2.service.ApiSourceControlEvaluationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
@@ -46,7 +46,13 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
 {
   public static final String PROMOTE_SCAN_PATH = "{applicationId}/promoteScan";
 
-  public static final String SOURCE_CONTROL_EVALUATION_PATH = "{applicationId}/manifestEvaluation";
+  /**
+   * @deprecated Use EVALUATE_SOURCE_CONTROL_PATH instead. Scheduled for removal in April 2022.
+   */
+  @Deprecated
+  public static final String DEPRECATED_MANIFEST_EVALUATION_PATH = "{applicationId}/manifestEvaluation";
+
+  public static final String SOURCE_CONTROL_EVALUATION_PATH = "{applicationId}/sourceControlEvaluation";
 
   private final ApiComponentEvaluationServiceV2 componentEvaluationService;
 
@@ -106,18 +112,36 @@ public class DefaultApiEvaluationResourceV2 implements ApiEvaluationResourceV2
         DefaultHdsClient.getClientUserAgent(request));
   }
 
+  /**
+   * @deprecated Use evaluateSourceControl instead. Scheduled for removal in April 2022.
+   */
+  @Deprecated
+  @Path(DEPRECATED_MANIFEST_EVALUATION_PATH)
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(value = AuditEvent.EVALUATE_APPLICATION)
+  public ApiApplicationEvaluationStatusDTOV2 deprecatedManifestEvaluation(
+      @PathParam("applicationId") String applicationId,
+      ApiSourceControlEvaluationRequestDTO sourceControlEvaluationRequest,
+      @Context HttpServletRequest request)
+  {
+    return sourceControlEvaluationService.evaluateSourceControl(applicationId, sourceControlEvaluationRequest,
+        DefaultHdsClient.getClientUserAgent(request));
+  }
+
   @Override
   @Path(SOURCE_CONTROL_EVALUATION_PATH)
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(value = AuditEvent.EVALUATE_APPLICATION)
-  public ApiApplicationEvaluationStatusDTOV2 doSourceControlEvaluation(
+  public ApiApplicationEvaluationStatusDTOV2 evaluateSourceControl(
       @PathParam("applicationId") String applicationId,
       ApiSourceControlEvaluationRequestDTO sourceControlEvaluationRequest,
       @Context HttpServletRequest request)
   {
-    return sourceControlEvaluationService.doSourceControlEvaluation(applicationId, sourceControlEvaluationRequest,
+    return sourceControlEvaluationService.evaluateSourceControl(applicationId, sourceControlEvaluationRequest,
         DefaultHdsClient.getClientUserAgent(request));
   }
 

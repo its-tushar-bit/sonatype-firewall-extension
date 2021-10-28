@@ -14,6 +14,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -53,14 +54,14 @@ public class DbQuarantinedComponentAccessManager
    * repository component id. The token is the generated UUID value for the quarantined_component_access database entry.
    * The token is valid for the default / configured validity time from the time the token is generated.
    *
-   * @param repositoryComponentId The repository component id for which the token should provide read access
+   * @param repositoryComponent The repository component for which the token should provide read access
    * @return the base64 url encoded token
    */
   @Override
-  public String createToken(final String repositoryComponentId) {
+  public String createToken(final RepositoryComponent repositoryComponent) {
     checkFeatureFlag();
     final QuarantinedComponentAccess quarantinedComponentAccess =
-        new QuarantinedComponentAccess(repositoryComponentId, new Date());
+        new QuarantinedComponentAccess(repositoryComponent.getRepositoryId(), repositoryComponent.getId(), new Date());
     quarantinedComponentAccessDAO.insert(quarantinedComponentAccess);
     return Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));

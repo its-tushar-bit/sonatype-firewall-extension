@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -45,7 +47,7 @@ public class ApiSourceControlEvaluationServiceTest
   private TestProductLicense testProductLicense;
 
   @Test
-  public void testDoManifestEvaluation() {
+  public void testEvaluateSourceControl_NoScanTarget() {
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     tempEntity.newSourceControl(app.getId(), "http://example.com/my/repo.git", null,
@@ -56,7 +58,7 @@ public class ApiSourceControlEvaluationServiceTest
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(stageId, branchName);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = apiSourceControlEvaluationService
-        .doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */);
+        .evaluateSourceControl(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */);
     assertThat(apiApplicationEvaluationStatusDTOV2.statusUrl)
         .startsWith("api/v2/evaluation/applications/" + app.getId() + "/status/");
 
@@ -71,16 +73,44 @@ public class ApiSourceControlEvaluationServiceTest
         .isEqualTo(ScanTriggerType.SOURCE_CONTROL_API);
   }
 
+  @Test
+  public void testEvaluateSourceControl_WithScanTarget() {
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(app.getId(), "http://example.com/my/repo.git", null,
+        new String(passwordHandler.encryptPassword("TOKEN".toCharArray())), null, null, true, null, null);
+
+    String stageId = Stage.ID_DEVELOP;
+    String branchName = "a-branch";
+    List<String> scanTargets = Arrays.asList("testScanTarget");
+    ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
+        new ApiSourceControlEvaluationRequestDTO(stageId, branchName, scanTargets);
+    ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = apiSourceControlEvaluationService
+        .evaluateSourceControl(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */);
+    assertThat(apiApplicationEvaluationStatusDTOV2.statusUrl)
+        .startsWith("api/v2/evaluation/applications/" + app.getId() + "/status/");
+
+    List<SourceControlEvent> sourceControlEvents = new SourceControlEventDAO().getAll();
+    assertThat(sourceControlEvents).hasSize(1);
+    SourceControlEvent sourceControlEvent = sourceControlEvents.get(0);
+    assertThat(sourceControlEvent.getApplicationId()).isEqualTo(app.getId());
+    assertThat(sourceControlEvent.getStageTypeId()).isEqualTo(stageId);
+    assertThat(sourceControlEvent.getBranchName()).isEqualTo(branchName);
+    assertThat(sourceControlEvent.getScanTargets()).isEqualTo(scanTargets);
+    assertThat(sourceControlEvent.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
+    assertThat(sourceControlEvent.getScanTriggerType()).isEqualTo(ScanTriggerType.SOURCE_CONTROL_API);
+  }
+
   @Test(expected = InvalidLicenseException.class)
-  public void testDoManifestEvaluation_Unlicensed() {
+  public void testEvaluateSourceControl_Unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.AUTOMATION, LicensedFeature.NOTIFICATIONS);
 
-    apiSourceControlEvaluationService.doSourceControlEvaluation("appId",
+    apiSourceControlEvaluationService.evaluateSourceControl("appId",
         new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch"), null /* userAgent */);
   }
 
   @Test
-  public void testDoManifestEvaluation_InvalidStage() {
+  public void testEvaluateSourceControl_InvalidStage() {
     Application app = tempEntity.newApplicationWithParent();
 
     String stageId = "InvalidStageId";
@@ -88,28 +118,47 @@ public class ApiSourceControlEvaluationServiceTest
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(stageId, branchName);
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSourceControlEvaluationService
-        .doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */))
+        .evaluateSourceControl(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */))
         .withMessage("Stage " + stageId + " is invalid.");
   }
 
   @Test
-  public void testDoManifestEvaluation_NullRequestDTO() {
+  public void testEvaluateSourceControl_ScanTargetContainsPathTraversal() {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
+        new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
+
+    apiSourceControlEvaluationRequestDTO.scanTargets = Collections.singletonList("a/../b");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiSourceControlEvaluationService.evaluateSourceControl(app.getId(),
+            apiSourceControlEvaluationRequestDTO, null /* userAgent */))
+        .withMessage("Scan targets cannot contain ../ or ..\\");
+
+    apiSourceControlEvaluationRequestDTO.scanTargets = Collections.singletonList("a/..\\b");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiSourceControlEvaluationService.evaluateSourceControl(app.getId(),
+            apiSourceControlEvaluationRequestDTO, null /* userAgent */))
+        .withMessage("Scan targets cannot contain ../ or ..\\");
+  }
+
+  @Test
+  public void testEvaluateSourceControl_NullRequestDTO() {
     Application app = tempEntity.newApplicationWithParent();
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO = null;
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSourceControlEvaluationService
-        .doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */))
+        .evaluateSourceControl(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */))
         .withMessage("Missing parameters.");
   }
 
   @Test
-  public void testDoManifestEvaluation_NoGitRepoInfo() {
+  public void testEvaluateSourceControl_NoGitRepoInfo() {
     Application app = tempEntity.newApplicationWithParent();
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSourceControlEvaluationService
-        .doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent"))
+        .evaluateSourceControl(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent"))
         .withMessage("No SCM configuration defined for application ID " + app.getId());
   }
 
@@ -123,7 +172,7 @@ public class ApiSourceControlEvaluationServiceTest
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = apiSourceControlEvaluationService
-        .doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */);
+        .evaluateSourceControl(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */);
     String statusId = getStatusId(apiApplicationEvaluationStatusDTOV2.statusUrl);
 
     ApiApplicationEvaluationResultDTOV2 apiApplicationEvaluationResultDTOV2 =

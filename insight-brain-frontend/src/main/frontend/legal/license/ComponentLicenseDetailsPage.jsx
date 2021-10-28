@@ -6,7 +6,7 @@
 import React, { useEffect } from 'react';
 import { availableScopesPropType, componentPropType, licenseLegalMetadataPropType } from '../advancedLegalPropTypes';
 import LoadWrapper from '../../react/LoadWrapper';
-import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { backToComponentOverviewUrl, createSubtitle } from '../legalUtility';
 import LicenseList from './LicenseList';
@@ -14,6 +14,7 @@ import ComponentLicenseOverviewTile from './ComponentLicenseOverviewTile';
 import LicenseFullDetailsTile from './LicenseFullDetailsTile';
 import { faPen } from '@fortawesome/pro-solid-svg-icons';
 import LicensesModalContainer from './LicensesModalContainer';
+import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 
 export default function ComponentLicenseDetailsPage(props) {
   const {
@@ -45,9 +46,9 @@ export default function ComponentLicenseDetailsPage(props) {
     <main className="nx-page-main nx-viewport-sized">
       {showLicensesModal && <LicensesModalContainer />}
       <LoadWrapper loading={loading} error={error} retryHandler={load}>
-        <NxBackButton
+        <MenuBarBackButton
           href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash)}
-          targetPageTitle="Component Obligations"
+          text="Back to Component Obligations"
         />
         <div className="nx-page-title">
           <h1 className="nx-h1">Licenses</h1>

@@ -9,6 +9,7 @@ import {
   selectVersionExplorerRequestData,
   selectInnerSourceProducerUrl,
   selectShowInnerSourceProducerReportModal,
+  selectComponentDetailsOverviewSlice,
   selectInsufficientPermission,
   selectShowInsufficientPermissionsModal,
   selectLatestInnerSourceComponentVersion,
@@ -19,151 +20,203 @@ import {
   selectAvailableVersions,
   selectSelectedVersionDetailsByVersionId,
   selectComponentDetailsSelectedRequestData,
+  selectSelectedVersionData,
+  selectCurrentVersionDetails,
 } from '../../../../main/frontend/componentDetails/overview/overviewSelectors';
 
+import {
+  selectSelectedComponent,
+  selectApplicationReportMetaData,
+} from '../../../../main/frontend/applicationReport/applicationReportSelectors';
+import { selectRouterCurrentParams } from '../../../../main/frontend/reduxUiRouter/routerSelectors';
+
 describe('overviewSelectors', () => {
-  let versionExplorerData, selectedVersionData, innerSourceProducerData, mockState;
-
-  beforeEach(() => {
-    versionExplorerData = {
-      loading: false,
-      loadError: null,
-      versions: [
-        {
-          componentIdentifier: {
-            coordinates: {
-              artifactId: 'commons-io',
-              classifier: '',
-              extension: 'jar',
-              groupId: 'commons-io',
-              version: '2.3',
-            },
-            format: 'maven',
+  const versionExplorerData = {
+    versions: [
+      {
+        componentIdentifier: {
+          coordinates: {
+            artifactId: 'commons-io',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'commons-io',
+            version: '2.3',
           },
-          matchState: 'exact',
-          identificationSource: 'Sonatype',
+          format: 'maven',
         },
-        {
-          componentIdentifier: {
-            coordinates: {
-              artifactId: 'commons-io',
-              classifier: '',
-              extension: 'jar',
-              groupId: 'commons-io',
-              version: '2.4.9',
-            },
-            format: 'maven',
+        matchState: 'exact',
+        identificationSource: 'Sonatype',
+      },
+      {
+        componentIdentifier: {
+          coordinates: {
+            artifactId: 'commons-io',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'commons-io',
+            version: '2.4.9',
           },
-          matchState: 'exact',
-          identificationSource: 'Sonatype',
+          format: 'maven',
         },
-      ],
-      data: {
-        someData: 'data',
+        matchState: 'exact',
+        identificationSource: 'Sonatype',
       },
-      currentVersionDetails: {},
-    };
+    ],
+    data: {
+      someData: 'data',
+    },
+  };
 
-    selectedVersionData = {
-      loading: false,
-      loadError: null,
-      selectedVersionDetails: null,
-      selectedVersion: '2.3',
-    };
+  const innerSourceProducerData = {
+    reportUrl: 'http://localhost:8070/ui/links/application/appProducer/latestReport/build',
+    latestInnerSourceComponentVersion: '2.0.0',
+    insufficientPermission: false,
+    loading: false,
+    loadError: null,
+    showInnerSourcePermissionsModal: false,
+    showInnerSourceProducerReportModal: false,
+  };
 
-    innerSourceProducerData = {
-      reportUrl: 'http://localhost:8070/ui/links/application/appProducer/latestReport/build',
-      latestInnerSourceComponentVersion: '2.0.0',
-      insufficientPermission: false,
-      loading: false,
-      loadError: null,
-      showInnerSourcePermissionsModal: false,
-      showInnerSourceProducerReportModal: false,
-    };
+  const applicationReportMetaData = {
+    stageId: 'build',
+  };
 
-    mockState = {
-      router: {
-        currentParams: {
-          hash: 'some-component-hash',
-          publicId: 'publicId',
-          scanId: 'scanId',
-        },
+  const routerCurrentParams = {
+    hash: 'some-component-hash',
+    publicId: 'publicId',
+    scanId: 'scanId',
+  };
+
+  const partialSelectedComponent = {
+    hash: 'some-component-hash',
+    proprietary: false,
+    matchState: 'exact',
+    identificationSource: 'is',
+  };
+
+  const selectedComponent = {
+    ...partialSelectedComponent,
+    componentIdentifier: {
+      format: 'format',
+      coordinates: {
+        version: '2.4.9',
       },
-      applicationReport: {
-        selectedReport: {
-          displayedEntries: [
-            {
-              hash: 'some-component-hash',
-              matchState: 'exact',
-              proprietary: false,
-              identificationSource: 'is',
-              derivedDependencyType: 'transitive',
-              componentIdentifier: {
-                format: 'format',
-                coordinates: {
-                  version: '2.4.9',
-                },
-              },
-            },
-          ],
-        },
-        metadata: {
-          stageId: 'build',
-        },
-      },
-      componentDetailsOverview: {
-        versionExplorerData,
-        innerSourceProducerData,
-        selectedVersionData,
-      },
-    };
-  });
+    },
+  };
+
+  const componentDetailsRequestData = {
+    ...partialSelectedComponent,
+    clientType: 'ci',
+    ownerType: 'application',
+    ownerId: 'publicId',
+    componentIdentifier: '{"format":"format","coordinates":{"version":"2.4.9"}}',
+    scanId: 'scanId',
+  };
+
+  const selectedVersionData = {
+    loading: false,
+    loadError: null,
+    selectedVersionDetails: null,
+    selectedVersion: '2.3',
+  };
+
+  const componentDetailsOverview = {
+    versionExplorerData,
+    innerSourceProducerData,
+    selectedVersionData,
+  };
 
   describe('selectVersionExplorerData', () => {
+    it('is composed from the following selector', () => {
+      expect(selectVersionExplorerData.dependencies).toEqual([selectComponentDetailsOverviewSlice]);
+    });
+
     it('selects the versionExplorerData slice of the state', () => {
-      const actualSelection = selectVersionExplorerData(mockState);
-      expect(actualSelection).toBe(versionExplorerData);
+      const componentDetailsOverviewSlice = {
+        versionExplorerData,
+        innerSourceProducerData,
+      };
+      const expectedSelection = versionExplorerData;
+
+      const actualSelection = selectVersionExplorerData.resultFunc(componentDetailsOverviewSlice);
+
+      expect(actualSelection).toBe(expectedSelection);
     });
   });
 
   describe('selectComponentDetailsRequestData', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectComponentDetailsRequestData.dependencies).toEqual([
+        selectSelectedComponent,
+        selectRouterCurrentParams,
+      ]);
+    });
+
     it('selects the data for Component Details request', () => {
-      const expectedSelection = {
-        clientType: 'ci',
-        ownerType: 'application',
-        ownerId: 'publicId',
-        matchState: 'exact',
-        proprietary: false,
-        identificationSource: 'is',
-        componentIdentifier: '{"format":"format","coordinates":{"version":"2.4.9"}}',
-        hash: 'some-component-hash',
-        scanId: 'scanId',
-      };
-      const actualSelection = selectComponentDetailsRequestData(mockState);
+      const expectedSelection = componentDetailsRequestData;
+
+      const actualSelection = selectComponentDetailsRequestData.resultFunc(selectedComponent, routerCurrentParams);
+
       expect(actualSelection).toEqual(expectedSelection);
     });
 
     it('sets componentIdentifier to null if matchState is null', () => {
-      mockState.applicationReport.selectedReport.displayedEntries[0].matchState = null;
-      const actualSelection = selectComponentDetailsRequestData(mockState);
+      const localSelectedComponent = {
+        ...selectedComponent,
+        matchState: null,
+      };
+
+      const actualSelection = selectComponentDetailsRequestData.resultFunc(
+        localSelectedComponent,
+        applicationReportMetaData,
+        routerCurrentParams
+      );
+
       expect(actualSelection.componentIdentifier).toBeNull();
     });
 
     it('sets componentIdentifier to null if matchState is "unknown"', () => {
-      mockState.applicationReport.selectedReport.displayedEntries[0].matchState = 'unknown';
-      const actualSelection = selectComponentDetailsRequestData(mockState);
+      const localSelectedComponent = {
+        ...selectedComponent,
+        matchState: 'unknown',
+      };
+
+      const actualSelection = selectComponentDetailsRequestData.resultFunc(
+        localSelectedComponent,
+        applicationReportMetaData,
+        routerCurrentParams
+      );
+
       expect(actualSelection.componentIdentifier).toBeNull();
     });
 
     it('sets componentIdentifier to null if coordinates is null', () => {
-      mockState.applicationReport.selectedReport.displayedEntries[0].componentIdentifier.coordinates = null;
-      const actualSelection = selectComponentDetailsRequestData(mockState);
+      const localSelectedComponent = {
+        ...selectedComponent,
+        componentIdentifier: { ...selectedComponent.componentIdentifier, coordinates: null },
+      };
+
+      const actualSelection = selectComponentDetailsRequestData.resultFunc(
+        localSelectedComponent,
+        applicationReportMetaData,
+        routerCurrentParams
+      );
+
       expect(actualSelection.componentIdentifier).toBeNull();
     });
   });
 
   describe('selectComponentDetailsRequestData', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectVersionExplorerRequestData.dependencies).toEqual([
+        selectSelectedComponent,
+        selectApplicationReportMetaData,
+        selectComponentDetailsRequestData,
+      ]);
+    });
+
     it('selects the data for allVersions request', () => {
+      const localSelectedComponent = { derivedDependencyType: 'transitive' };
       const expectedSelection = {
         clientType: 'ci',
         ownerType: 'application',
@@ -177,131 +230,208 @@ describe('overviewSelectors', () => {
         stageId: 'build',
         dependencyType: 'transitive',
       };
-      const actualSelection = selectVersionExplorerRequestData(mockState);
+
+      const actualSelection = selectVersionExplorerRequestData.resultFunc(
+        localSelectedComponent,
+        applicationReportMetaData,
+        componentDetailsRequestData
+      );
+
       expect(actualSelection).toEqual(expectedSelection);
     });
+  });
 
-    it('sets componentIdentifier to null if matchState is null', () => {
-      mockState.applicationReport.selectedReport.displayedEntries[0].matchState = null;
-      const actualSelection = selectVersionExplorerRequestData(mockState);
-      expect(actualSelection.componentIdentifier).toBeNull();
+  describe('selectInnerSourceProducerData', () => {
+    it('is composed from the following selector', () => {
+      expect(selectInnerSourceProducerData.dependencies).toEqual([selectComponentDetailsOverviewSlice]);
     });
 
-    it('sets componentIdentifier to null if matchState is "unknown"', () => {
-      mockState.applicationReport.selectedReport.displayedEntries[0].matchState = 'unknown';
-      const actualSelection = selectVersionExplorerRequestData(mockState);
-      expect(actualSelection.componentIdentifier).toBeNull();
-    });
+    it('selects innerSourceProducerData', () => {
+      const expectedSelection = innerSourceProducerData;
 
-    it('sets componentIdentifier to null if coordinates is null', () => {
-      mockState.applicationReport.selectedReport.displayedEntries[0].componentIdentifier.coordinates = null;
-      const actualSelection = selectVersionExplorerRequestData(mockState);
-      expect(actualSelection.componentIdentifier).toBeNull();
+      const actualSelection = selectInnerSourceProducerData.resultFunc(componentDetailsOverview);
+
+      expect(actualSelection).toEqual(expectedSelection);
     });
   });
 
-  it('selects innerSourceProducerData', () => {
-    const expectedSelection = innerSourceProducerData;
-    const actualSelection = selectInnerSourceProducerData(mockState);
+  describe('selectInnerSourceProducerUrl', () => {
+    it('is composed from the following selector', () => {
+      expect(selectInnerSourceProducerUrl.dependencies).toEqual([selectInnerSourceProducerData]);
+    });
 
-    expect(actualSelection).toEqual(expectedSelection);
+    it('selects innerSourceProducerUrl', () => {
+      const expectedSelection = 'http://localhost:8070/ui/links/application/appProducer/latestReport/build';
+
+      const actualSelection = selectInnerSourceProducerUrl.resultFunc(innerSourceProducerData);
+
+      expect(actualSelection).toEqual(expectedSelection);
+    });
   });
 
-  it('selects selectInnerSourceProducerUrl', () => {
-    const expectedSelection = 'http://localhost:8070/ui/links/application/appProducer/latestReport/build';
-    const actualSelection = selectInnerSourceProducerUrl(mockState);
+  describe('selectShowInnerSourceProducerReportModal', () => {
+    it('is composed from the following selector', () => {
+      expect(selectShowInnerSourceProducerReportModal.dependencies).toEqual([selectInnerSourceProducerData]);
+    });
 
-    expect(actualSelection).toEqual(expectedSelection);
+    it('selects innerSourceProducerReportModal', () => {
+      const expectedSelection = false;
+
+      const actualSelection = selectShowInnerSourceProducerReportModal.resultFunc(innerSourceProducerData);
+
+      expect(actualSelection).toEqual(expectedSelection);
+    });
   });
 
-  it('selects selectShowInnerSourceProducerReportModal', () => {
-    const expectedSelection = false;
-    const actualSelection = selectShowInnerSourceProducerReportModal(mockState);
+  describe('selectInsufficientPermission', () => {
+    it('is composed from the following selector', () => {
+      expect(selectInsufficientPermission.dependencies).toEqual([selectInnerSourceProducerData]);
+    });
 
-    expect(actualSelection).toEqual(expectedSelection);
+    it('selects insufficientPermission', () => {
+      const expectedSelection = false;
+
+      const actualSelection = selectInsufficientPermission.resultFunc(innerSourceProducerData);
+
+      expect(actualSelection).toEqual(expectedSelection);
+    });
   });
 
-  it('selects selectInsufficientPermission', () => {
-    const expectedSelection = false;
-    const actualSelection = selectInsufficientPermission(mockState);
+  describe('selectShowInsufficientPermissionsModal', () => {
+    it('is composed from the following selector', () => {
+      expect(selectShowInsufficientPermissionsModal.dependencies).toEqual([selectInnerSourceProducerData]);
+    });
 
-    expect(actualSelection).toEqual(expectedSelection);
+    it('selects showInsufficientPermissionsModal', () => {
+      const expectedSelection = false;
+
+      const actualSelection = selectShowInsufficientPermissionsModal.resultFunc(innerSourceProducerData);
+
+      expect(actualSelection).toEqual(expectedSelection);
+    });
   });
 
-  it('selects selectShowInsufficientPermissionsModal', () => {
-    const expectedSelection = false;
-    const actualSelection = selectShowInsufficientPermissionsModal(mockState);
+  describe('selectLatestInnerSourceComponentVersion', () => {
+    it('is composed from the following selector', () => {
+      expect(selectLatestInnerSourceComponentVersion.dependencies).toEqual([selectInnerSourceProducerData]);
+    });
 
-    expect(actualSelection).toEqual(expectedSelection);
+    it('selects innerSourceComponentVersion', () => {
+      const expectedSelection = '2.0.0';
+
+      const actualSelection = selectLatestInnerSourceComponentVersion.resultFunc(innerSourceProducerData);
+
+      expect(actualSelection).toEqual(expectedSelection);
+    });
   });
 
-  it('selects selectLatestInnerSourceComponentVersion', () => {
-    const expectedSelection = '2.0.0';
-    const actualSelection = selectLatestInnerSourceComponentVersion(mockState);
+  describe('selectRemediationData', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectRemediationData.dependencies).toEqual([selectSelectedComponent, selectApplicationReportMetaData]);
+    });
 
-    expect(actualSelection).toEqual(expectedSelection);
-  });
+    it('selects the remediationData slice of the state', () => {
+      const expectedSelection = {
+        currentVersion: '2.4.9',
+        stageId: 'build',
+      };
 
-  it('selects the selectRemediationData slice of the state', () => {
-    const expectedSelection = {
-      currentVersion: '2.4.9',
-      stageId: 'build',
-    };
-    const actualSelection = selectRemediationData(mockState);
-    expect(actualSelection).toEqual(expectedSelection);
+      const actualSelection = selectRemediationData.resultFunc(selectedComponent, applicationReportMetaData);
+
+      expect(actualSelection).toEqual(expectedSelection);
+    });
   });
 
   describe('selectSelectedVersion', () => {
+    it('is composed from the following selector', () => {
+      expect(selectSelectedVersion.dependencies).toEqual([selectSelectedVersionData]);
+    });
+
     it('selects selected version', () => {
-      const actualSelection = selectSelectedVersion(mockState);
+      const actualSelection = selectSelectedVersion.resultFunc(selectedVersionData);
+
       expect(actualSelection).toBe('2.3');
     });
   });
 
   describe('selectCurrentVersion', () => {
-    it('selects current version from componentIdentifier object', () => {
-      mockState.componentDetailsOverview.versionExplorerData.currentVersionDetails = {
-        componentIdentifier: {
-          coordinates: {
-            version: '2.3-compIdentifier',
-          },
+    const currentVersionDetails = {
+      componentIdentifier: {
+        coordinates: {
+          version: '2.3-compIdentifier',
         },
-      };
+      },
+      version: '2.3-from-fallback',
+    };
 
-      const actualSelection = selectCurrentVersion(mockState);
+    it('is composed from the following selectors', () => {
+      expect(selectCurrentVersion.dependencies).toEqual([selectCurrentVersionDetails]);
+    });
+
+    it('selects current version from componentIdentifier object', () => {
+      const actualSelection = selectCurrentVersion.resultFunc(currentVersionDetails);
+
       expect(actualSelection).toBe('2.3-compIdentifier');
     });
 
     it('selects current version from version prop as a fallback', () => {
-      mockState.componentDetailsOverview.versionExplorerData.currentVersionDetails.version = '2.3-from-fallback';
+      const actualSelection = selectCurrentVersion.resultFunc({
+        version: '2.3-from-fallback',
+      });
 
-      const actualSelection = selectCurrentVersion(mockState);
       expect(actualSelection).toBe('2.3-from-fallback');
     });
   });
 
   describe('selectAvailableVersions', () => {
+    it('is composed from the following selector', () => {
+      expect(selectAvailableVersions.dependencies).toEqual([selectVersionExplorerData]);
+    });
+
     it('selects all available versions array', () => {
-      const actualSelection = selectAvailableVersions(mockState);
+      const actualSelection = selectAvailableVersions.resultFunc(versionExplorerData);
+
       expect(actualSelection).toEqual(versionExplorerData.versions);
     });
   });
 
   describe('selectSelectedVersionDetailsByVersionId', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectSelectedVersionDetailsByVersionId.dependencies).toEqual([
+        selectAvailableVersions,
+        selectSelectedVersion,
+      ]);
+    });
+
     it('selects matching version from available array of versions', () => {
-      const actualSelection = selectSelectedVersionDetailsByVersionId(mockState);
+      const actualSelection = selectSelectedVersionDetailsByVersionId.resultFunc(
+        versionExplorerData.versions,
+        selectedVersionData.selectedVersion
+      );
+
       expect(actualSelection).toEqual(versionExplorerData.versions[0]);
     });
 
     it('selects undefined if selected version does not match any from available array of versions', () => {
-      selectedVersionData.selectedVersion = '2.4';
+      const mockSelectedVersion = '2.4';
 
-      const actualSelection = selectSelectedVersionDetailsByVersionId(mockState);
+      const actualSelection = selectSelectedVersionDetailsByVersionId.resultFunc(
+        versionExplorerData.versions,
+        mockSelectedVersion
+      );
+
       expect(actualSelection).toBe(undefined);
     });
   });
 
   describe('selectComponentDetailsSelectedRequestData', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectComponentDetailsSelectedRequestData.dependencies).toEqual([
+        selectSelectedVersionDetailsByVersionId,
+        selectRouterCurrentParams,
+      ]);
+    });
+
     it('selects the data for Component Details request ', () => {
       const expectedSelection = {
         clientType: 'ci',
@@ -316,19 +446,28 @@ describe('overviewSelectors', () => {
         scanId: 'scanId',
       };
 
-      const actualSelection = selectComponentDetailsSelectedRequestData(mockState);
+      const actualSelection = selectComponentDetailsSelectedRequestData.resultFunc(
+        versionExplorerData.versions[0],
+        routerCurrentParams
+      );
       expect(actualSelection).toEqual(expectedSelection);
     });
 
     it('sets componentIdentifier to null if matchState is null', () => {
-      versionExplorerData.versions[0].matchState = null;
-      const actualSelection = selectComponentDetailsSelectedRequestData(mockState);
+      const mockVersions = [...versionExplorerData.versions];
+      mockVersions[0].matchState = null;
+
+      const actualSelection = selectComponentDetailsSelectedRequestData.resultFunc(mockVersions, routerCurrentParams);
+
       expect(actualSelection.componentIdentifier).toBeNull();
     });
 
     it('sets componentIdentifier to null if matchState is "unknown"', () => {
-      versionExplorerData.versions[0].matchState = 'unknown';
-      const actualSelection = selectComponentDetailsSelectedRequestData(mockState);
+      const mockVersions = [...versionExplorerData.versions];
+      mockVersions[0].matchState = 'unknown';
+
+      const actualSelection = selectComponentDetailsSelectedRequestData.resultFunc(mockVersions, routerCurrentParams);
+
       expect(actualSelection.componentIdentifier).toBeNull();
     });
   });

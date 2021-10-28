@@ -3,18 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
+  selectSelectedVulnerability,
   selectVulnerabilitiesSlice,
   selectVulnerabilitiesSortedSlice,
-  selectVulnerabityRefId,
   selectVulnerabilityDetailsSlice,
-} from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSelectors';
+  selectVulnerabilitiesRequestData,
+  selectVulnerabityRefId,
+} from 'MainRoot/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSelectors';
 
 describe('vulnerabilitiesSelectors', () => {
   const mockState = {
     router: {
       currentParams: {
         hash: 'some-component-hash',
+        scanId: 'scanId',
+        publicId: 'publicId',
       },
     },
     componentDetailsVulnerabilities: {
@@ -44,6 +50,51 @@ describe('vulnerabilitiesSelectors', () => {
           categories: ['data', 'operational'],
         },
       },
+    },
+  };
+
+  const applicationReport = {
+    selectedReport: {
+      allEntries: [
+        {
+          hash: 'some-component-hash',
+          componentIdentifier: {
+            format: 'format',
+            coordinates: {
+              version: '2.4.9',
+            },
+          },
+          proprietary: false,
+          matchState: 'exact',
+          identificationSource: 'is',
+        },
+        {
+          hash: 'some-component-hash-2',
+          componentIdentifier: {
+            format: 'format',
+            coordinates: {
+              version: '2.5.9',
+            },
+          },
+          proprietary: false,
+          matchState: 'exact',
+          identificationSource: 'is',
+        },
+      ],
+      displayedEntries: [
+        {
+          hash: 'some-component-hash',
+          componentIdentifier: {
+            format: 'format',
+            coordinates: {
+              version: '2.4.9',
+            },
+          },
+          proprietary: false,
+          matchState: 'exact',
+          identificationSource: 'is',
+        },
+      ],
     },
   };
 
@@ -84,7 +135,7 @@ describe('vulnerabilitiesSelectors', () => {
   });
 
   describe('selectVulnerabilitiesSortedSlice', () => {
-    it('returns the vulnerabilities currently contained in the selectVulnerabilitiesSortedSlice sorted by sevrity', () => {
+    it('returns the vulnerabilities currently contained in the selectVulnerabilitiesSortedSlice sorted by severity', () => {
       const expectedSelection = {
         data: [
           {
@@ -127,6 +178,54 @@ describe('vulnerabilitiesSelectors', () => {
       };
 
       const actualSelection = selectVulnerabilityDetailsSlice(mockState);
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+  });
+
+  describe('selectVulnerabilitiesRequestData', () => {
+    it('calls `selectSelectedComponent` and `selectRouterCurrentParams`', () => {
+      expect(selectVulnerabilitiesRequestData.dependencies).toEqual([
+        selectSelectedComponent,
+        selectRouterCurrentParams,
+      ]);
+    });
+    it('returns an object with the request data based on the selected component and the current route', () => {
+      const expectedData = {
+        clientType: 'ci',
+        ownerType: 'application',
+        ownerId: 'publicId',
+        componentIdentifier: '{"format":"format","coordinates":{"version":"2.4.9"}}',
+        hash: 'some-component-hash',
+        identificationSource: 'is',
+        scanId: 'scanId',
+      };
+      const actual = selectVulnerabilitiesRequestData({
+        ...mockState,
+        applicationReport,
+      });
+      expect(actual).toEqual(expectedData);
+    });
+  });
+  describe('selectSelectedVulnerability', () => {
+    it('returns null if there is no selectedRefId', () => {
+      const expectedSelection = null;
+      const noSelectedRefState = {
+        ...mockState,
+        componentDetailsVulnerabilities: { ...mockState.componentDetailsVulnerabilities, selectedRefId: null },
+      };
+
+      const actualSelection = selectSelectedVulnerability(noSelectedRefState);
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+
+    it('returns the vulnerability information that matches the selectedRefId', () => {
+      const expectedSelection = {
+        refId: '2',
+        severity: 9.2,
+        status: 'status 2',
+      };
+
+      const actualSelection = selectSelectedVulnerability(mockState);
       expect(actualSelection).toEqual(expectedSelection);
     });
   });

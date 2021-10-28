@@ -212,8 +212,13 @@ public class ComponentInfoService
         Collections.singletonList(component));
     componentDetails.setPolicyAlerts(policyAlerts);
 
+    Map<PolicyThreatCategory, Integer> policyMaxThreatLevelsByCategory;
+    policyMaxThreatLevelsByCategory = getMaxPolicyThreatLevelsByCategory(owner,policyAlerts);
+    componentDetails.setPolicyMaxThreatLevelsByCategory(maxPolicyThreatLevelToString(policyMaxThreatLevelsByCategory));
+
     log.debug("Loaded component details for {}, hash {}, in {} ms.", identifier, hash, System.currentTimeMillis()
         - start);
+
     return componentDetails;
   }
 
@@ -461,10 +466,6 @@ public class ComponentInfoService
       }
     }
 
-    // All policies that were part of this evaluation, indexed by id
-    Map<String, Policy> policiesById = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(owner.getId()).stream()
-        .collect(Collectors.toMap(Policy::getId, Function.identity()));
-
     List<ComponentDetailsDTO> componentDetailsDTOs = new ArrayList<>(componentDetailsList.size());
     for (ComponentDetails componentDetails : componentDetailsList) {
       ComponentDetailsDTO dto = new ComponentDetailsDTO();
@@ -485,12 +486,7 @@ public class ComponentInfoService
           .getOrDefault(componentDetails.getComponentIdentifier(), Collections.emptyList());
 
       dto.policyAlerts = policyAlerts;
-      dto.policyMaxThreatLevelsByCategory = new HashMap<>();
-      for (PolicyAlert policyAlert : policyAlerts) {
-        PolicyFact policyFact = policyAlert.getTrigger();
-        PolicyThreatCategory threatCategory = policiesById.get(policyFact.getPolicyId()).getThreatCategory();
-        dto.policyMaxThreatLevelsByCategory.merge(threatCategory, policyFact.getThreatLevel(), Math::max);
-      }
+      dto.policyMaxThreatLevelsByCategory = getMaxPolicyThreatLevelsByCategory(owner, policyAlerts);
 
       dto.violatedPolicyCount = policyAlerts.stream().map(PolicyAlert::getTrigger).map(PolicyFact::getPolicyId)
           .collect(Collectors.toSet()).size();
@@ -509,6 +505,33 @@ public class ComponentInfoService
     }
 
     return componentDetailsDTOs;
+  }
+
+  private Map<PolicyThreatCategory, Integer> getMaxPolicyThreatLevelsByCategory(
+      Owner owner,
+      List<PolicyAlert> policyAlerts)
+  {
+    HashMap<PolicyThreatCategory, Integer> policyMaxThreatLevelsByCategory;
+
+    Map<String, Policy> policiesById = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(owner.getId()).stream()
+        .collect(Collectors.toMap(Policy::getId, Function.identity()));
+
+    policyMaxThreatLevelsByCategory = new HashMap<>();
+    for (PolicyAlert policyAlert : policyAlerts) {
+      PolicyFact policyFact = policyAlert.getTrigger();
+      PolicyThreatCategory threatCategory = policiesById.get(policyFact.getPolicyId()).getThreatCategory();
+      policyMaxThreatLevelsByCategory.merge(threatCategory, policyFact.getThreatLevel(), Math::max);
+    }
+
+    return policyMaxThreatLevelsByCategory;
+  }
+  
+  private Map<String,Integer> maxPolicyThreatLevelToString(Map<PolicyThreatCategory, Integer> maxPolicyThreat) {
+    Map<String,Integer> result = new HashMap<String, Integer>();
+    maxPolicyThreat.forEach((k, v) -> {
+      result.put(k.getName(), v);
+    });
+    return result;
   }
 
   private NamedComponentDetails getComponentDetails(

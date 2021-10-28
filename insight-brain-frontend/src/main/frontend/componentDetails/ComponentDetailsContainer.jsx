@@ -4,19 +4,25 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import { selectComponentDetails, selectActiveTabId, selectComponentPagination } from './componentDetailsSelectors';
+import {
+  selectComponentDetails,
+  selectActiveTabId,
+  selectComponentPagination,
+  selectComponentDetailsLoadErrors,
+  selectComponentDetailsLoading,
+} from './componentDetailsSelectors';
 import { actions } from './componentDetailsSlice';
 import ComponentDetails from './ComponentDetails';
 
-const { onTabChange, loadComponentDetails, backToOffspringAction } = actions;
+const { onTabChange, loadComponentDetails, backToOffspringAction, toggleShowMatchersPopover } = actions;
 
 function mapStateToProps(state, { uiRouterState }) {
   return {
     componentDetails: selectComponentDetails(state),
     activeTabId: selectActiveTabId(state),
     pagination: selectComponentPagination(state, { uiRouterState }),
-    loadError: state.applicationReport.loadError || state.componentDetails.loadError,
-    loading: !!(state.applicationReport.pendingLoads.size + state.componentDetails.pendingLoads.size),
+    loadError: selectComponentDetailsLoadErrors(state),
+    loading: selectComponentDetailsLoading(state),
   };
 }
 
@@ -26,6 +32,7 @@ const mapDispatchToProps = {
   loadComponentDetails,
   onTabChange,
   backToOffspringOnClick: backToOffspringAction,
+  toggleShowMatchersPopover,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ComponentDetails);

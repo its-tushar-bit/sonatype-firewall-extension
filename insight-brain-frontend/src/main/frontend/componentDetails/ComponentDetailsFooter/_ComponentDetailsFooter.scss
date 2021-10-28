@@ -4,7 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 @import './PaginationLink/PaginationLink';
+@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 #component-details-footer {
   font-size: var(--nx-font-size-s);
+}
+
+.component-details-footer__back-to-component {
+  @include bold();
 }

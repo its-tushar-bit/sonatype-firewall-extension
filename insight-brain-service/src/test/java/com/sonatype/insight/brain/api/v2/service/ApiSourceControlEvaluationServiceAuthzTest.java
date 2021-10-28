@@ -26,29 +26,29 @@ public class ApiSourceControlEvaluationServiceAuthzTest
   private ApiSourceControlEvaluationService service;
 
   @Test
-  public void testDoManifestEvaluation_Authorized() {
+  public void testEvaluateSourceControl_Authorized() {
     grantEvaluateApplicationPermission(app.getId());
 
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent"))
+        () -> service.evaluateSourceControl(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent"))
         .withMessage("No SCM configuration defined for application ID " + app.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testDoManifestEvaluation_Unauthenticated() {
+  public void testEvaluateSourceControl_Unauthenticated() {
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
-    service.doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent");
+    service.evaluateSourceControl(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testDoManifestEvaluation_Unauthorized() {
+  public void testEvaluateSourceControl_Unauthorized() {
     login();
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
-    service.doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent");
+    service.evaluateSourceControl(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent");
   }
 
   @Test(expected = UnauthenticatedException.class)

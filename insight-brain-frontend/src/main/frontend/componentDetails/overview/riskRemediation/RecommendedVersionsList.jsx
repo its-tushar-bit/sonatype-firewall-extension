@@ -25,7 +25,7 @@ export const RecommendedVersionsList = ({ versionChanges, actualVersion, handleC
             <NxList.Text>Upgrade to {versionChange.version}</NxList.Text>
             <NxList.Subtext>{versionChange.text}</NxList.Subtext>
             <NxList.Actions>
-              <NxButton title="Compare" variant="tertiary" onClick={() => handleCompare(versionChange.version)}>
+              <NxButton variant="tertiary" onClick={() => handleCompare(versionChange.version)}>
                 Compare
               </NxButton>
             </NxList.Actions>

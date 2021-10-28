@@ -9,7 +9,7 @@ import * as PropTypes from 'prop-types';
 import { NxFontAwesomeIcon, NxTag } from '@sonatype/react-shared-components';
 import { faTag } from '@fortawesome/pro-solid-svg-icons';
 
-const rscColorMap = {
+export const rscColorMap = {
   'light-purple': 'purple',
   'dark-purple': 'indigo',
   'dark-red': 'red',

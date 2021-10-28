@@ -110,7 +110,7 @@ class SystemInfo
     this.samlDeploymentManager = samlDeploymentManager;
   }
 
-  boolean isSensitiveKey(final String key) {
+  static boolean isSensitiveKey(final String key) {
     final String lowercaseKey = key.toLowerCase(Locale.ENGLISH);
     return lowercaseKey.contains("password") || lowercaseKey.contains("passphrase");
   }

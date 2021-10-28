@@ -4,10 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import * as enzymeUtils from '../../../enzymeUtils';
-import LicenseFileDetailsHeader from '../../../../../main/frontend/legal/files/licenses/LicenseFilesDetailsHeader';
-import LicenseFilesModalContainer from '../../../../../main/frontend/legal/files/licenses/LicenseFilesModalContainer';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import LicenseFileDetailsHeader from 'MainRoot/legal/files/licenses/LicenseFilesDetailsHeader';
+import LicenseFilesModalContainer from 'MainRoot/legal/files/licenses/LicenseFilesModalContainer';
 import { licenseFilesState } from './licenseCommonState';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import * as legalUtilities from 'MainRoot/legal/legalUtility';
 
 describe('LicenseDetailsHeader', function () {
   let getShallowComponent, setShowLicenseFilesModalMock;
@@ -20,9 +22,28 @@ describe('LicenseDetailsHeader', function () {
       get: () => '',
       href: () => '',
     },
+    ownerType: 'testOwner',
+    ownerId: 'testId',
+    stageTypeId: 'testStage',
+    hash: 'testHash',
     setShowLicenseFilesModal: setShowLicenseFilesModalMock,
   };
   getShallowComponent = enzymeUtils.getShallowComponent(LicenseFileDetailsHeader, minimalProps);
+
+  it('renders a MenuBarBackButton with correct href prop', function () {
+    spyOn(legalUtilities, 'backToComponentOverviewUrl').and.returnValue('some-href');
+    const wrapper = getShallowComponent();
+    const menuBarBackButton = wrapper.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', 'some-href');
+    expect(legalUtilities.backToComponentOverviewUrl).toHaveBeenCalledWith(
+      minimalProps.$state,
+      minimalProps.ownerType,
+      minimalProps.ownerId,
+      minimalProps.stageTypeId,
+      minimalProps.hash
+    );
+  });
 
   it('renders the given license file header', function () {
     const wrapper = getShallowComponent();

@@ -1,0 +1,77 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.policy.evaluator;
+
+import javax.inject.Inject;
+
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class PolicyEvaluationPollingResultUtilsTest
+    extends AbstractComponentTest
+{
+  @Inject
+  private PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils;
+
+  private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO =
+      new PersistedPolicyEvaluationPollingResultDAO();
+
+  @Test
+  public void testHandleException() {
+    Application app = tempEntity.newApplicationWithParent();
+    String statusId = "testStatusId";
+    Exception exception = new Exception("test exception");
+    createPersistedPolicyEvaluationPollingResult(app.getId(), statusId, PolicyEvaluationStatus.PENDING, null);
+    policyEvaluationPollingResultUtils.handleException(app.getId(), statusId, exception);
+
+    PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+        persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(), statusId);
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
+    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.FAILED);
+    assertThat(policyEvaluationPollingResult.getReason()).startsWith("Internal Server Error (ID ");
+  }
+
+  @Test
+  public void testHandleException_DoesNotChangeIfAlreadyFailed() {
+    Application app = tempEntity.newApplicationWithParent();
+    String statusId = "testStatusId";
+    Exception exception = new Exception("test exception");
+    String reason = "test reason";
+    createPersistedPolicyEvaluationPollingResult(app.getId(), statusId, PolicyEvaluationStatus.FAILED, reason);
+    policyEvaluationPollingResultUtils.handleException(app.getId(), statusId, exception);
+
+    PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+        persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(), statusId);
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
+    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.FAILED);
+    assertThat(policyEvaluationPollingResult.getReason()).isEqualTo(reason);
+  }
+
+  private PersistedPolicyEvaluationPollingResult createPersistedPolicyEvaluationPollingResult(
+      String appId,
+      String statusId,
+      PolicyEvaluationStatus policyEvaluationStatus,
+      String reason)
+  {
+    PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
+    policyEvaluationPollingResult.setStatus(policyEvaluationStatus);
+    policyEvaluationPollingResult.setReason(reason);
+    PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+        new PersistedPolicyEvaluationPollingResult(appId, statusId, policyEvaluationPollingResult);
+    persistedPolicyEvaluationPollingResultDAO.insert(persistedPolicyEvaluationPollingResult);
+    return persistedPolicyEvaluationPollingResult;
+  }
+}

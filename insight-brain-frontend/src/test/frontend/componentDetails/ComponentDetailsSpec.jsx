@@ -5,18 +5,28 @@
  */
 import React from 'react';
 import * as enzymeUtils from '../enzymeUtils';
-import { NxLoadError, NxLoadingSpinner, NxStatefulTabs, NxTab, NxButton } from '@sonatype/react-shared-components';
+import { NxLoadError, NxLoadWrapper } from '@sonatype/react-shared-components';
 
-import ComponentDetails from 'MainRoot/componentDetails/ComponentDetails';
+import ComponentDetails, { getTabIdPerIndex } from 'MainRoot/componentDetails/ComponentDetails';
 import { ComponentDetailsFooter } from 'MainRoot/componentDetails/ComponentDetailsFooter';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
-import * as fullAuditLog from 'MainRoot/componentDetails/auditLog/AuditLogContainer';
-import * as violationsTab from 'MainRoot/componentDetails/ViolationsTableTile/ViolationsTableTileContainer';
-import * as overviewTab from 'MainRoot/componentDetails/overview/OverviewContainer';
-import * as vulnerailitiesTile from 'MainRoot/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTableTileContainer';
-import * as licenseDetectionsTile from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/LicenseDetectionsTileContainer';
-import * as editLicensesPopoverContainer from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesPopoverContainer';
+import * as ComponentDetailsTabsFile from 'MainRoot/componentDetails/ComponentDetailsTabs';
+import ComponentDetailsTabs from 'MainRoot/componentDetails/ComponentDetailsTabs';
+import UnknownComponentAlert from 'MainRoot/componentDetails/UnknownComponentAlert';
+
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+
+const assertTabs = (component, activeTabId, isUnknown, isClaimed) => {
+  let tabs;
+
+  tabs = component.find(ComponentDetailsTabs);
+  const tabIdPerIndex = getTabIdPerIndex(isUnknown, isClaimed);
+
+  expect(tabs).toHaveProp('activeTab', tabIdPerIndex.indexOf(activeTabId));
+  expect(tabs).toHaveProp('onTabChange', jasmine.any(Function));
+  expect(tabs).toHaveProp('isUnknown', isUnknown);
+  expect(tabs).toHaveProp('isClaimed', isClaimed);
+};
 
 describe('ComponentDetails', function () {
   let minimalProps,
@@ -25,11 +35,13 @@ describe('ComponentDetails', function () {
     loadComponentDetailsSpy,
     stateMock,
     stateGetSpy,
-    onTabChangeSpy;
+    onTabChangeSpy,
+    toggleShowMatchersPopoverSpy;
 
   beforeEach(function () {
     loadComponentDetailsSpy = jasmine.createSpy('loadComponentDetails');
     onTabChangeSpy = jasmine.createSpy('onTabChange');
+    toggleShowMatchersPopoverSpy = jasmine.createSpy('toggleShowMatchersPopover');
 
     stateGetSpy = jasmine.createSpy('$state.get').and.returnValue({ data: { title: 'some title' } });
     stateMock = {
@@ -37,6 +49,7 @@ describe('ComponentDetails', function () {
       href: () => {},
     };
     spyOn(routerContext, 'useRouterState').and.returnValue(stateMock);
+    spyOn(ComponentDetailsTabsFile, 'default').and.returnValue(<div>Tabs</div>);
 
     minimalProps = {
       componentDetails: null,
@@ -46,6 +59,7 @@ describe('ComponentDetails', function () {
       pagination: null,
       loadError: null,
       loading: false,
+      toggleShowMatchersPopover: toggleShowMatchersPopoverSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentDetails, minimalProps);
@@ -63,16 +77,36 @@ describe('ComponentDetails', function () {
     expect(backBtn).toHaveProp('stateName', 'applicationReport.policy');
   });
 
-  it('calls loadComponentDetails if there is NO componentDetails in the state', () => {
-    const component = getMountedComponent();
-    expect(loadComponentDetailsSpy).toHaveBeenCalled();
+  it('renders the tabs at all times', () => {
+    let component = getShallowComponent({ loading: false });
+    assertTabs(component, minimalProps.activeTabId, false, false);
+
+    component = getShallowComponent({ loading: true });
+    assertTabs(component, minimalProps.activeTabId, false, false);
+  });
+
+  it('calls loadComponentDetails only when mounted', () => {
+    // mount component loading to avoid having to supply a `componentDetailsProp`.
+    const component = getMountedComponent({ loading: true });
+    expect(loadComponentDetailsSpy).toHaveBeenCalledTimes(1);
+
+    component.update();
+
+    expect(loadComponentDetailsSpy).toHaveBeenCalledTimes(1);
     component.unmount();
   });
 
   describe('renders unknown component alert', function () {
+    it('does not render if the page is loading', () => {
+      const component = getShallowComponent({ loading: true });
+      const alertEl = component.find(UnknownComponentAlert);
+
+      expect(alertEl).not.toExist();
+    });
+
     it('does not render if there is no unknown match state', function () {
       const component = getShallowComponent();
-      const alertEl = component.find('.iq-component-details-unknown-component-alert');
+      const alertEl = component.find(UnknownComponentAlert);
 
       expect(alertEl).not.toExist();
     });
@@ -84,121 +118,104 @@ describe('ComponentDetails', function () {
           hash: 'some-crazy-hash',
           matchState: 'unknown',
         },
+        loading: false,
       });
-      const alertEl = component.find('.iq-component-details-unknown-component-alert');
-      const claimButton = alertEl.find(NxButton).at(0);
-      const addButton = alertEl.find(NxButton).at(1);
+      const loadWrapper = component.find(NxLoadWrapper);
+      const alertEl = loadWrapper.dive().find(UnknownComponentAlert);
 
-      expect(alertEl).toExist();
-      expect(alertEl.children().first().text()).toEqual('The component is unknown.');
-
-      expect(claimButton).toExist();
-      expect(claimButton).toHaveProp('title', 'Claim Component');
-      expect(claimButton.text()).toEqual('Claim Component');
-
-      expect(addButton).toExist();
-      expect(addButton).toHaveProp('title', 'Add Propietary Component Matchers');
-      expect(addButton.text()).toEqual('Add Propietary Component Matchers');
+      expect(alertEl).toHaveProp('onClaimClick');
     });
   });
 
-  describe('renders tabs', function () {
-    it('does not render tabs if there is no selected component', function () {
-      const component = getShallowComponent(),
-        tabBar = component.find(NxStatefulTabs);
+  describe('goToClaim', () => {
+    it('calls onTabChange with the proper `claim` id', () => {
+      const componentDetails = {
+        name: 'Mock Component Name',
+        hash: 'some-crazy-hash',
+        matchState: 'unknown',
+      };
+      const component = getShallowComponent({ componentDetails });
+      const loadWrapper = component.find(NxLoadWrapper);
+      const alertEl = loadWrapper.dive().find(UnknownComponentAlert);
 
-      expect(tabBar).not.toExist();
+      alertEl.invoke('onClaimClick')();
+
+      expect(minimalProps.onTabChange).toHaveBeenCalledWith('claim');
+    });
+  });
+
+  describe('getTabIdPerIndex', () => {
+    it('returns an array with 3 tab ids if component is unknown', () => {
+      const result = getTabIdPerIndex(true, false);
+      expect(result).toEqual(['overview', 'violations', 'claim']);
     });
 
-    it('renders 5 tabs with the appropriate names when there is componentDetails prop', function () {
-      const component = getShallowComponent({
-          componentDetails: {
-            name: 'Mock Component Name',
-            hash: 'some-crazy-hash',
-            matchState: 'exact',
-          },
-        }),
-        tabBar = component.find(NxStatefulTabs);
-
-      expect(tabBar).toExist();
-
-      const tabs = tabBar.find(NxTab);
-
-      expect(tabs.at(0)).toHaveProp('children', 'Overview');
-      expect(tabs.at(1)).toHaveProp('children', 'Policy Violations');
-      expect(tabs.at(2)).toHaveProp('children', 'Security');
-      expect(tabs.at(3)).toHaveProp('children', 'Legal');
-      expect(tabs.at(4)).toHaveProp('children', 'Audit Log');
+    it('returns an array with 7 tab ids if component is not unknown and is claimed', () => {
+      const result = getTabIdPerIndex(false, true);
+      expect(result).toEqual(['overview', 'violations', 'security', 'legal', 'labels', 'claim', 'audit']);
     });
 
-    it('calls onTabChange action with the appropriate activeTabId when clicking on a tab', function () {
-      // Mock containers so that `getMountedComponent` doesn't complain.
-      spyOn(fullAuditLog, 'default').and.returnValue(<div>auditLog</div>);
-      spyOn(violationsTab, 'ViolationsTableTileContainer').and.returnValue(<div>violations</div>);
-      spyOn(overviewTab, 'OverviewContainer').and.returnValue(<div>overview</div>);
-      spyOn(vulnerailitiesTile, 'VulnerabilitiesTableTileContainer').and.returnValue(<div>vulnerabilities</div>);
-      spyOn(licenseDetectionsTile, 'LicenseDetectionsTileContainer').and.returnValue(<div>license detections</div>);
-      spyOn(editLicensesPopoverContainer, 'default').and.returnValue(<div>edit licenses popover</div>);
+    it('returns an array with 6 tab ids if component is not unknown and is not claimed', () => {
+      const result = getTabIdPerIndex(false, false);
+      expect(result).toEqual(['overview', 'violations', 'security', 'legal', 'labels', 'audit']);
+    });
+  });
 
-      let component = getMountedComponent({
-          componentDetails: {
-            name: 'Mock Component Name',
-            hash: 'some-crazy-hash',
-            matchState: 'exact',
-          },
-        }),
-        tabBar = component.find(NxStatefulTabs),
-        tabs = tabBar.find(NxTab);
+  describe('handleTabChange', () => {
+    const getOnTabChangeProp = (element) => {
+      const tabs = element.find(ComponentDetailsTabs);
+      return tabs.invoke('onTabChange');
+    };
 
-      tabs.at(1).simulate('click');
-      expect(onTabChangeSpy).toHaveBeenCalledWith('violations');
+    it('calls onTabChange with the appropriate tab id', () => {
+      let component, changeFn;
 
-      tabs.at(2).simulate('click');
-      expect(onTabChangeSpy).toHaveBeenCalledWith('security');
+      const componentDetails = {
+        name: 'Mock Component Name',
+        hash: 'some-crazy-hash',
+        matchState: 'exact',
+      };
 
-      tabs.at(3).simulate('click');
-      expect(onTabChangeSpy).toHaveBeenCalledWith('legal');
+      component = getShallowComponent({ componentDetails, activeTabId: 'overview' });
+      changeFn = getOnTabChangeProp(component);
 
-      tabs.at(4).simulate('click');
-      expect(onTabChangeSpy).toHaveBeenCalledWith('audit');
+      changeFn(1);
+      expect(minimalProps.onTabChange).toHaveBeenCalledWith('violations');
 
-      /** Starting on another tab to be able to check the listener on the default 0 tab */
-      const onTabChangeInInfoSpy = jasmine.createSpy('onTabChange');
-      (component = getMountedComponent({
-        componentDetails: {
-          name: 'Mock Component Name',
-          hash: 'some-crazy-hash',
-          matchState: 'exact',
-        },
-        activeTabId: 'security',
-        onTabChange: onTabChangeInInfoSpy,
-      })),
-        (tabBar = component.find(NxStatefulTabs)),
-        (tabs = tabBar.find(NxTab));
+      changeFn(2);
+      expect(minimalProps.onTabChange).toHaveBeenCalledWith('security');
 
-      tabs.at(0).simulate('click');
-      expect(onTabChangeInInfoSpy).toHaveBeenCalledWith('overview');
+      changeFn(3);
+      expect(minimalProps.onTabChange).toHaveBeenCalledWith('legal');
+
+      changeFn(4);
+      expect(minimalProps.onTabChange).toHaveBeenCalledWith('labels');
+
+      changeFn(5);
+      expect(minimalProps.onTabChange).toHaveBeenCalledWith('audit');
+
+      // Starting on another tab to be able to check the listener on the default 0 tab
+      component = getMountedComponent({ componentDetails, activeTabId: 'violations' });
+      changeFn = getOnTabChangeProp(component);
+
+      changeFn(0);
+      expect(minimalProps.onTabChange).toHaveBeenCalledWith('overview');
     });
 
     it('does not call onTabChange when clicking on the same tab twice', function () {
-      // Mock `AuditLogContainer` so that `getMountedComponent` doesn't complain.
-      spyOn(fullAuditLog, 'default').and.returnValue(<div>hello</div>);
-      spyOn(violationsTab, 'ViolationsTableTileContainer').and.returnValue(<div>violations</div>);
-      spyOn(overviewTab, 'OverviewContainer').and.returnValue(<div>overview</div>);
+      let component, changeFn;
 
-      const component = getMountedComponent({
-          componentDetails: {
-            name: 'Mock Component Name',
-            hash: 'some-crazy-hash',
-            matchState: 'exact',
-          },
-        }),
-        tabBar = component.find(NxStatefulTabs),
-        tabs = tabBar.find(NxTab),
-        defaultTab = tabs.at(0);
+      const componentDetails = {
+        name: 'Mock Component Name',
+        hash: 'some-crazy-hash',
+        matchState: 'exact',
+      };
 
-      defaultTab.simulate('click');
-      expect(onTabChangeSpy).not.toHaveBeenCalled();
+      component = getShallowComponent({ componentDetails, activeTabId: 'overview' });
+      changeFn = getOnTabChangeProp(component);
+
+      changeFn(0);
+      expect(minimalProps.onTabChange).not.toHaveBeenCalled();
     });
   });
 
@@ -221,31 +238,38 @@ describe('ComponentDetails', function () {
 
   describe('when there is an error loading the report', () => {
     it('renders a NxLoadError component', () => {
-      const el = getShallowComponent({ loadError: 'Mock message' }).find(NxLoadError);
-      expect(el).toExist();
-      expect(el).toHaveProp('error', 'Mock message');
+      const el = getShallowComponent({ loadError: 'Mock message' });
+      const loadWrapper = el.find(NxLoadWrapper);
+      const error = loadWrapper.dive().find(NxLoadError);
+
+      expect(error).toExist();
+      expect(error).toHaveProp('error', 'Mock message');
     });
 
     it('calls loadComponentDetails when the user clicks the retry button', () => {
-      const component = getMountedComponent({ loadError: 'Mock message' });
-      component.find(NxLoadError).props().retryHandler();
+      const el = getShallowComponent({ loadError: 'Mock message' });
+      const loadWrapper = el.find(NxLoadWrapper);
+      const error = loadWrapper.dive().find(NxLoadError);
+
+      error.props().retryHandler();
       expect(loadComponentDetailsSpy).toHaveBeenCalled();
-      component.unmount();
     });
 
-    describe('when app fails to get componentDetails and there is no loadError', () => {
-      it('renders a componentDetails error', () => {
-        const el = getShallowComponent(minimalProps).find(NxLoadError);
-        expect(el).toExist();
-        expect(el).toHaveProp('error', 'Error getting component details.');
-      });
+    it('renders the tabs', () => {
+      const el = getShallowComponent({ loadError: 'Mock message' });
+      assertTabs(el, minimalProps.activeTabId, false, false);
     });
   });
 
-  describe('when there are pending loads', () => {
-    it('renders a NxLoadingSpinner component', () => {
-      const el = getShallowComponent({ loading: true }).find(NxLoadingSpinner);
+  describe('when there page is loading ', () => {
+    it('renders a NxLoadWrapper component', () => {
+      const el = getShallowComponent({ loading: true }).find(NxLoadWrapper);
       expect(el).toExist();
+    });
+
+    it('renders the tabs', () => {
+      const el = getShallowComponent({ loadError: 'Mock message' });
+      assertTabs(el, minimalProps.activeTabId, false, false);
     });
   });
 });

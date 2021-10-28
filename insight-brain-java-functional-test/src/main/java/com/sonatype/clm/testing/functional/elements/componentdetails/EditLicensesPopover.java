@@ -5,7 +5,13 @@
  */
 package com.sonatype.clm.testing.functional.elements.componentdetails;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.NxCheckbox;
+import com.sonatype.clm.testing.functional.elements.NxRadio;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -21,6 +27,10 @@ public class EditLicensesPopover
 
   public SelenideElement getCloseButton() {
     return child("#edit-licenses-popover-close-btn");
+  }
+
+  public Button saveButton() {
+    return new Button(".nx-form__submit-btn");
   }
 
   public SelenideElement popoverTitle() {
@@ -41,5 +51,34 @@ public class EditLicensesPopover
 
   public ElementsCollection getItems(SelenideElement parent) {
     return parent.findAll(".license-list-item");
+  }
+
+  public ElementsCollection availableScopes() {
+    return children(".iq-edit-licenses-form__scope .nx-radio");
+  }
+
+  public NxRadio scope(int index) {
+    return new NxRadio(this.availableScopes().get(index));
+  }
+
+  public ElementsCollection statuses() {
+    return children("#status-select option");
+  }
+
+  public SelenideElement status() {
+    return child("#status-select");
+  }
+
+  public List<NxCheckbox> selectedLicensesCheckbox() {
+    List<NxCheckbox> checkboxes = new ArrayList<>();
+    ElementsCollection selenideCheckboxes = children(".iq-edit-licenses-form__selected-licenses .nx-checkbox");
+    for (SelenideElement checkbox : selenideCheckboxes) {
+      checkboxes.add(new NxCheckbox(checkbox));
+    }
+    return checkboxes;
+  }
+
+  public SelenideElement comment() {
+    return child(".iq-edit-licenses-form__comment .nx-text-input textarea");
   }
 }

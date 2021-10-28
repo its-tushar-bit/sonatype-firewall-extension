@@ -19,3 +19,8 @@ export function serializeComponentIdentifier(componentIdentifier) {
 
   return `${format}:${coordinatesString}`;
 }
+
+export function stringifyComponentIdentifier(componentIdentifier, matchState) {
+  const coordinates = !matchState || matchState === 'unknown' ? null : componentIdentifier.coordinates;
+  return coordinates ? JSON.stringify({ format: componentIdentifier.format, coordinates }) : null;
+}

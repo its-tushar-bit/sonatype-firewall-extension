@@ -9,7 +9,9 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OverviewTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.SecurityTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LegalTabContent;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ViolationsTabContent;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ManageLabelsContent;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
@@ -43,8 +45,16 @@ public class ComponentDetailsPage
     return BaseUrl.resolvePageUrl(BASE_URL + "/legal", app.getPublicId(), scanId, hash);
   }
 
+  public static String urlToLabels(Application app, String scanId, String hash) {
+    return BaseUrl.resolvePageUrl(BASE_URL + "/labels", app.getPublicId(), scanId, hash);
+  }
+
   public static String urlToAudit(Application app, String scanId, String hash) {
     return BaseUrl.resolvePageUrl(BASE_URL + "/audit", app.getPublicId(), scanId, hash);
+  }
+
+  public static String urlToClaim(Application app, String scanId, String hash) {
+    return BaseUrl.resolvePageUrl(BASE_URL + "/claim", app.getPublicId(), scanId, hash);
   }
 
   public ComponentDetailsPage() {
@@ -57,6 +67,14 @@ public class ComponentDetailsPage
 
   public SelenideElement unknownComponentAlert() {
     return child(".iq-component-details-unknown-component-alert");
+  }
+
+  public SelenideElement addProprietarypComponentMatchersBtn() {
+    return child("#iq-component-details-add-proprietary-component-matchers-btn");
+  }
+  
+  public SelenideElement unknownComponentClaim() {
+    return child("#iq-component-details-unknown-component-claim");
   }
 
   public ComponentDetailsHeader header() {
@@ -87,8 +105,16 @@ public class ComponentDetailsPage
     return this.tabs().get(3);
   }
 
-  public SelenideElement auditTab() {
+  public SelenideElement labelsTab() {
     return this.tabs().get(4);
+  }
+
+  public SelenideElement auditTab() {
+    return this.tabs().get(5);
+  }
+
+  public SelenideElement claimTabForClaimedComponent() {
+    return this.tabs().get(5);
   }
 
   public ViolationsTabContent violationsTabContent() {
@@ -103,8 +129,16 @@ public class ComponentDetailsPage
     return new LegalTabContent();
   }
 
+  public ClaimTabContent claimTabContent() {
+    return new ClaimTabContent();
+  }
+
   public OverviewTabContent overviewTabContent() {
     return new OverviewTabContent();
+  }
+
+  public ManageLabelsContent labelsContent() {
+    return new ManageLabelsContent("#manage-component-labels");
   }
 
   public AuditLogContent auditLogContent() {

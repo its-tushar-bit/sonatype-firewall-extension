@@ -177,6 +177,22 @@ public class RiskRemediationTile
       return children("#highestCvssScore .nx-cell");
     }
 
+    public ElementsCollection highestSecurityThreatRow() {
+      return children("#highestSecurityThreat .nx-cell");
+    }
+
+    public ElementsCollection highestLicenseThreatRow() {
+      return children("#highestLicenseThreat .nx-cell");
+    }
+
+    public ElementsCollection highestQualityThreatRow() {
+      return children("#highestQualityThreat .nx-cell");
+    }
+
+    public ElementsCollection highestOtherThreatRow() {
+      return children("#highestOtherThreat .nx-cell");
+    }
+
     public ElementsCollection effectiveLicenseRow() {
       return children("#effectiveLicense .nx-cell");
     }
@@ -187,6 +203,10 @@ public class RiskRemediationTile
 
     public ElementsCollection integrityRatingRow() {
       return children("#integrityRating .nx-cell");
+    }
+
+    public ElementsCollection catalogDateRow() {
+      return children("#catalogDate .nx-cell");
     }
   }
 }

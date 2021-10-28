@@ -9,6 +9,7 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -52,8 +53,8 @@ public class JmxInfo
     return JsonUtils.format(getJmxInfo());
   }
 
-  SortedMap<String, Object> getJmxInfo() {
-    final SortedMap<String, Object> entries = new TreeMap<>();
+  SortedMap<String, SortedMap<String, Object>> getJmxInfo() {
+    final SortedMap<String, SortedMap<String, Object>> entries = new TreeMap<>();
 
     log.trace("Querying mbeans");
     final Set<ObjectName> objectNames;
@@ -97,8 +98,53 @@ public class JmxInfo
 
       entries.put(name, attrs);
     }
-
+    obfuscatePasswords(entries);
     return entries;
+  }
+
+  // Visible for testing
+  @SuppressWarnings("unchecked")
+  void obfuscatePasswords(Map<String, SortedMap<String, Object>> entries) {
+    SortedMap<String, Object> runtime = entries.get("java.lang:type=Runtime");
+    Object inputArguments = runtime.get("InputArguments");
+    if (inputArguments instanceof List) {
+      obfuscateInputArgumentsPasswords((List<Object>) inputArguments);
+    }
+    Object systemProperties = runtime.get("SystemProperties");
+    if (systemProperties instanceof Collection) {
+      obfuscateSystemProperties((Collection<Object>) systemProperties);
+    }
+  }
+
+  private void obfuscateInputArgumentsPasswords(List<Object> inputArguments) {
+    for (int i = 0; i < inputArguments.size(); i++) {
+      if (!(inputArguments.get(i) instanceof String)) {
+        continue;
+      }
+      String[] inputArgumentKeyValue = inputArguments.get(i).toString().split("=");
+      if (!SystemInfo.isSensitiveKey(inputArgumentKeyValue[0])) {
+        continue;
+      }
+      inputArguments.set(i, inputArgumentKeyValue[0] + "=" + SystemInfo.MASK);
+    }
+  }
+
+  private void obfuscateSystemProperties(Collection<Object> systemProperties) {
+    for (Object object : systemProperties) {
+      if (!(object instanceof Map)) {
+        continue;
+      }
+      @SuppressWarnings("unchecked")
+      Map<Object, Object> systemProperty = (Map<Object, Object>) object;
+      Object key = systemProperty.get("key");
+      if (!(key instanceof String)) {
+        continue;
+      }
+      if (!SystemInfo.isSensitiveKey((String) key)) {
+        continue;
+      }
+      systemProperty.put("value", SystemInfo.MASK);
+    }
   }
 
   private Object render(final Object value) {

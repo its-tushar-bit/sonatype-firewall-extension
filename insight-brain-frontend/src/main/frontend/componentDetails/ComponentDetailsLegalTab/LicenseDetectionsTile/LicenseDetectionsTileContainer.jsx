@@ -8,6 +8,8 @@ import { connect } from 'react-redux';
 import LicenseDetectionsTile from './LicenseDetectionsTile';
 import { selectLicenseDetectionsTileDataSlice } from './licenseDetectionsTileSelectors';
 import { actions } from './licenseDetectionsTileSlice';
+import { actions as componentDetailsActions } from '../../componentDetailsSlice';
+import { selectComponentDetailsLoading, selectComponentDetailsLoadErrors } from '../../componentDetailsSelectors';
 
 function mapStateToProps(state) {
   const {
@@ -20,7 +22,13 @@ function mapStateToProps(state) {
     loading,
     loadError,
   } = selectLicenseDetectionsTileDataSlice(state);
+
+  const isLoadingComponentDetails = selectComponentDetailsLoading(state);
+  const componentDetailsLoadError = selectComponentDetailsLoadErrors(state);
+
   return {
+    isLoadingComponentDetails,
+    componentDetailsLoadError,
     licenseOverride,
     declaredlicenses,
     effectiveLicenses,
@@ -33,6 +41,7 @@ function mapStateToProps(state) {
 }
 
 const mapDispatchToProps = {
+  loadComponentDetails: componentDetailsActions.loadComponentDetails,
   loadLicenses: actions.load,
   toggleShowEditLicensesPopover: actions.toggleShowEditLicensesPopover,
 };

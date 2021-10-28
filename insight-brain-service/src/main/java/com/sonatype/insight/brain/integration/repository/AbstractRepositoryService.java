@@ -589,7 +589,7 @@ public abstract class AbstractRepositoryService
               pathname));
     }
 
-    final String token = quarantinedComponentAccessManager.createToken(repositoryComponent.getId());
+    final String token = quarantinedComponentAccessManager.createToken(repositoryComponent);
     final QuarantinedComponentReport quarantinedComponentReport = new QuarantinedComponentReport();
     quarantinedComponentReport.setReportUrl(UserInterfaceLinksHelper.getQuarantinedComponentReportPath(token));
     return quarantinedComponentReport;

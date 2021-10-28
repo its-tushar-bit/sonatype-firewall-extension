@@ -1,0 +1,82 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.model.sourcecontrol;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import com.sonatype.insight.json.store.JsonUtils;
+
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class SourceControlEventTest
+{
+  @Test
+  public void testSetScanTargetsJson() throws Exception {
+    SourceControlEvent sourceControlEvent = new SourceControlEvent();
+
+    List<String> scanTargets = Arrays.asList("scanTarget1", "scanTarget2");
+    String scanTargetsJson = JsonUtils.writeUnformatted(scanTargets);
+    sourceControlEvent.setScanTargetsJson(scanTargetsJson);
+    assertThat(sourceControlEvent.getScanTargetsJson()).isEqualTo(scanTargetsJson);
+    assertThat(sourceControlEvent.getScanTargets()).isEqualTo(scanTargets);
+  }
+
+  @Test
+  public void testSetScanTargetsJson_Null() throws Exception {
+    SourceControlEvent sourceControlEvent = new SourceControlEvent();
+
+    sourceControlEvent.setScanTargetsJson(null);
+
+    assertThat(sourceControlEvent.getScanTargetsJson()).isNull();
+    assertThat(sourceControlEvent.getScanTargets()).isNull();
+  }
+
+  @Test
+  public void testSetScanTargetsJson_Empty() throws Exception {
+    SourceControlEvent sourceControlEvent = new SourceControlEvent();
+
+    sourceControlEvent.setScanTargetsJson(" ");
+
+    assertThat(sourceControlEvent.getScanTargetsJson()).isNull();
+    assertThat(sourceControlEvent.getScanTargets()).isNull();
+  }
+
+  @Test
+  public void testSetScanTargets() throws Exception {
+    SourceControlEvent sourceControlEvent = new SourceControlEvent();
+
+    List<String> scanTargets = Arrays.asList("scanTarget1", "scanTarget2");
+    String scanTargetsJson = JsonUtils.writeUnformatted(scanTargets);
+    sourceControlEvent.setScanTargets(scanTargets);
+    assertThat(sourceControlEvent.getScanTargetsJson()).isEqualTo(scanTargetsJson).doesNotContain("\n", "\r", "\\n",
+        "\\r");
+    assertThat(sourceControlEvent.getScanTargets()).isEqualTo(scanTargets);
+  }
+
+  @Test
+  public void testSetScanTargets_Null() throws Exception {
+    SourceControlEvent sourceControlEvent = new SourceControlEvent();
+
+    sourceControlEvent.setScanTargets(null);
+
+    assertThat(sourceControlEvent.getScanTargetsJson()).isNull();
+    assertThat(sourceControlEvent.getScanTargets()).isNull();
+  }
+
+  @Test
+  public void testSetScanTargets_Empty() throws Exception {
+    SourceControlEvent sourceControlEvent = new SourceControlEvent();
+
+    sourceControlEvent.setScanTargets(Collections.emptyList());
+
+    assertThat(sourceControlEvent.getScanTargetsJson()).isNull();
+    assertThat(sourceControlEvent.getScanTargets()).isNull();
+  }
+}

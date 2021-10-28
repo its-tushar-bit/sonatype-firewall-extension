@@ -9,17 +9,17 @@ import VulnerabilitiesTableRow from '../../../../main/frontend/componentDetails/
 import * as enzymeUtils from '../../enzymeUtils';
 
 describe('VulnerabilitiesTableRow', () => {
-  let minimalProps, getShallow, setVulnerabilityIdAndToggleVisibilityMock;
+  let minimalProps, getShallow, toggleVulnerabilityPopoverWithEffectsMock;
 
   beforeEach(function () {
-    setVulnerabilityIdAndToggleVisibilityMock = jasmine.createSpy('setVulnerabilityIdAndToggleVisibility');
+    toggleVulnerabilityPopoverWithEffectsMock = jasmine.createSpy('toggleVulnerabilityPopoverWithEffects');
     minimalProps = {
       vulnerability: {
         refId: '1',
         severity: 8.8,
         status: 'status 1',
       },
-      setVulnerabilityIdAndToggleVisibility: setVulnerabilityIdAndToggleVisibilityMock,
+      toggleVulnerabilityPopoverWithEffects: toggleVulnerabilityPopoverWithEffectsMock,
     };
 
     getShallow = enzymeUtils.getShallowComponent(VulnerabilitiesTableRow, minimalProps);
@@ -59,12 +59,12 @@ describe('VulnerabilitiesTableRow', () => {
       expect(statusCell).toHaveProp('chevron');
     });
 
-    it('calls setVulnerabilityIdAndToggleVisibility with proper refId on row click ', () => {
+    it('calls toggleVulnerabilityPopoverWithEffects with proper refId on row click ', () => {
       const component = getShallow();
       const rows = component.find(NxTableRow);
       rows.at(0).simulate('click');
 
-      expect(setVulnerabilityIdAndToggleVisibilityMock).toHaveBeenCalledWith('1');
+      expect(toggleVulnerabilityPopoverWithEffectsMock).toHaveBeenCalledWith('1');
     });
   });
 });

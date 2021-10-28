@@ -22,7 +22,8 @@ export const ComponentDetailsFooter = ({
   const footerContent = offspringComponentName ? (
     <NxTextLink onClick={() => backToOffspringOnClick(prev)}>
       <NxFontAwesomeIcon icon={faChevronLeft} />
-      <span>{'Back to ' + offspringComponentName + ' component'}</span>
+      <span className="component-details-footer__back-to-component">Back to </span>
+      <span>{`${offspringComponentName} component`}</span>
     </NxTextLink>
   ) : (
     <Fragment>

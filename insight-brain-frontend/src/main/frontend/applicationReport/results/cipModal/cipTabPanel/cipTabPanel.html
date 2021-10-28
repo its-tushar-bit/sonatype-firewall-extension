@@ -38,7 +38,9 @@
     </div>
     <cip-similar ng-switch-when="similar" similar-components="vm.selectedComponent.matchDetails"></cip-similar>
     <cip-occurrences ng-switch-when="occurrences" pathnames="vm.selectedComponent.pathnames"></cip-occurrences>
-    <div ng-switch-when="licenses" cip-license-editor></div>
+    <div ng-switch-when="licenses" cip-license-editor
+        close-cip-modal="vm.closeCipModal()">
+    </div>
     <div ng-switch-when="vulnerabilities" cip-vulnerability-editor></div>
     <div ng-switch-when="labels" cip-label-editor></div>
     <cip-claim-component ng-switch-when="claimComponent"

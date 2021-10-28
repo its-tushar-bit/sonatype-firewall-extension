@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxTable, NxTableBody, NxTableHead, NxTableRow, NxTableCell } from '@sonatype/react-shared-components';
 import { equals } from 'ramda';
@@ -24,6 +24,10 @@ export default function AuditLogTable({
   appliedSort,
   sortAuditLog,
 }) {
+  useEffect(() => {
+    loadAuditLogForComponent();
+  }, []);
+
   const sortedColumn = extractSortFieldName(appliedSort),
     isSortReversed = appliedSort && appliedSort.includes('-');
 

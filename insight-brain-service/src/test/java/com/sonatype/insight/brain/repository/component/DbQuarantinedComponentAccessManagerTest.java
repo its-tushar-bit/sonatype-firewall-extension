@@ -13,6 +13,8 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
@@ -41,11 +43,14 @@ public class DbQuarantinedComponentAccessManagerTest
 
   @Test
   public void testCreateToken() {
+    // Setup
+    final Repository repository = tempEntity.newRepository("repo");
+    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     insightConfig
         .setExperimentalFeatures(
             ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
 
-    final String token = quarantinedComponentAccessManager.createToken("id");
+    final String token = quarantinedComponentAccessManager.createToken(repositoryComponent);
 
     assertThat(token).isNotNull().isNotEmpty();
 
@@ -54,24 +59,29 @@ public class DbQuarantinedComponentAccessManagerTest
 
     final QuarantinedComponentAccess quarantinedComponentAccess = quarantinedComponentAccessDAO.getById(decodedInput);
     assertThat(quarantinedComponentAccess).isNotNull();
-    assertThat(quarantinedComponentAccess.getRepositoryComponentId()).isEqualTo("id");
+    assertThat(quarantinedComponentAccess.getRepositoryComponentId()).isEqualTo(repositoryComponent.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testCreateToken_featureNotEnabled() {
-    quarantinedComponentAccessManager.createToken("id");
+    quarantinedComponentAccessManager.createToken(new RepositoryComponent());
   }
 
   @Test
   public void testGetRepositoryComponentIdFromToken() {
+    // Setup
+    final Repository repository = tempEntity.newRepository("repo");
+    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     insightConfig
         .setExperimentalFeatures(
             ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
-    final QuarantinedComponentAccess quarantinedComponentAccess = tempEntity.newQuarantinedComponentAccess("repComId");
+    final QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
-    assertThat(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(encodedToken)).isEqualTo("repComId");
+    assertThat(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(encodedToken))
+        .isEqualTo(repositoryComponent.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -93,11 +103,15 @@ public class DbQuarantinedComponentAccessManagerTest
 
   @Test
   public void testGetRepositoryComponentIdFromToken_tokenExpired() {
+    // Setup
+    final Repository repository = tempEntity.newRepository("repo");
+    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     insightConfig
         .setExperimentalFeatures(
             ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
-    final QuarantinedComponentAccess quarantinedComponentAccess = tempEntity.newQuarantinedComponentAccess("repComId",
-        DateUtils.addDays(new Date(), -3));
+    final QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(),
+            DateUtils.addDays(new Date(), -3));
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 

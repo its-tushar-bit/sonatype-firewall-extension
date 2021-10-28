@@ -120,6 +120,7 @@ export function getIsHdsReachable() {
 export function getTelemetryUrl() {
   return uriTemplate`/rest/environment/stats`;
 }
+
 export function getScmOrganizationsUrl() {
   return uriTemplate`/rest/onboarding/organizations`;
 }
@@ -521,6 +522,7 @@ export function getWebhookEventTypesUrl() {
 export function getWebhooksUrl() {
   return uriTemplate`/rest/config/webhook`;
 }
+
 export function deleteWebhooksUrl(webhookId) {
   return uriTemplate`/rest/config/webhook/${webhookId}`;
 }
@@ -553,6 +555,14 @@ export function getComponentLabels(ownerId, componentHash) {
   return uriTemplate`/rest/label/component/application/${ownerId}/${componentHash}`;
 }
 
+export function setProprietaryMatchers(ownerId) {
+  return uriTemplate`/rest/proprietary/application/${ownerId}/add`;
+}
+
+export function getApplicableLabels(ownerType, ownerId) {
+  return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}/applicable`;
+}
+
 export function getUserByIdUrl(userId) {
   return uriTemplate`/rest/user/${userId}`;
 }
@@ -568,6 +578,14 @@ export function getRequestWaiverUrl(policyViolationId) {
 export function getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier) {
   const componentIdentifierProp = componentIdentifier ? `?componentIdentifier=${componentIdentifier}` : '';
   return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}` + componentIdentifierProp;
+}
+
+export function getBaseLicenseOverrideUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}`;
+}
+
+export function getDeleteLicenseOverrideUrl(ownerType, ownerId, licenseOverrideId) {
+  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}/${licenseOverrideId}`;
 }
 
 export function getLicensesWithSyntheticFilterUrl() {
@@ -685,6 +703,24 @@ export function getLicenseUploadUrl() {
 
 export const getInnerSourceComponentLatestVersionUrl = (componentIdentifier) =>
   uriTemplate`/rest/innerSource/component/latestVersion?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
+
+export function getClaimComponentUrl(hash) {
+  const base = uriTemplate`/rest/component/identified`;
+
+  return hash ? `${base}/${encodeURIComponent(hash)}` : base;
+}
+
+export function getQuarantinedComponentUrl(token) {
+  return uriTemplate`/rest/repositories/quarantinedComponent/${token}`;
+}
+
+export const getVulnerabilityOverrideUrl = (ownerType, ownerId, hash, vulnerability) => {
+  if (hash && vulnerability) {
+    const { source, refId } = vulnerability;
+    return uriTemplate`/rest/securityVulnerabilityOverride/${ownerType}/${ownerId}/${hash}/${source}/${refId}`;
+  }
+  return uriTemplate`/rest/securityVulnerabilityOverride/${ownerType}/${ownerId}`;
+};
 
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
@@ -979,11 +1015,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       getViewSbomUrl: (applicationId, scanId) =>
         `${baseUrl.get()}/ui/links/cycloneDx/${applicationId}/reports/${scanId}`,
 
-      getClaimComponentUrl: (hash) => {
-        const base = `${baseUrl.get()}/rest/component/identified`;
-
-        return hash ? `${base}/${encodeURIComponent(hash)}` : base;
-      },
+      getClaimComponentUrl,
 
       getVulnerabilityJsonDetailUrl,
 

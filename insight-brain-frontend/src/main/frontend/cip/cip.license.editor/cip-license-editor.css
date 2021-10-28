@@ -99,3 +99,11 @@
 .nx-clm-square.unspecified {
   border-left-color: #9d9d9d;
 }
+
+#link-to-alp {
+  margin: auto auto auto 27%;
+  width: 50%;
+  padding: 10px;
+  font-size: var(--nx-font-size);
+  font-family: Open Sans, sans-serif;
+}

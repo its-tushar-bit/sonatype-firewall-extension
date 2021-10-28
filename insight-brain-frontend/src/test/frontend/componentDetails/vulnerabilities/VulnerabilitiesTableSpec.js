@@ -6,11 +6,11 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
 
-import VulnerabilitiesTable from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTable';
-import VulnerabilitiesTableRow from '../../../../main/frontend/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTableRow';
+import VulnerabilitiesTable from 'MainRoot/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTable';
+import VulnerabilitiesTableRow from 'MainRoot/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTableRow';
 
 describe('VulnerabilitiesTable', () => {
-  let minimalProps, getShallow;
+  let minimalProps, getShallow, getMounted;
 
   beforeEach(function () {
     const loadVulnerabilities = jasmine.createSpy('loadVulnerabilities');
@@ -23,6 +23,13 @@ describe('VulnerabilitiesTable', () => {
       loadVulnerabilities,
     };
     getShallow = enzymeUtils.getShallowComponent(VulnerabilitiesTable, minimalProps);
+    getMounted = enzymeUtils.getMountedComponent(VulnerabilitiesTable, minimalProps);
+  });
+
+  it('calls loadVulnerabilities when the component renders', () => {
+    const component = getMounted();
+    expect(minimalProps.loadVulnerabilities).toHaveBeenCalledTimes(1);
+    component.unmount();
   });
 
   it('renders an NxTable with headers', () => {

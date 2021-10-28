@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.inject.Inject;
 
@@ -34,14 +35,13 @@ public class JmxInfoTest
       System.setProperty("dw.some.passPhrase", "pass2");
       System.setProperty("dw.some.other", "other");
 
-      final SortedMap<String, Object> entries = jmxInfo.getJmxInfo();
+      final SortedMap<String, SortedMap<String, Object>> entries = jmxInfo.getJmxInfo();
 
       assertThat(entries.size()).isGreaterThan(1);
-      @SuppressWarnings("unchecked") final SortedMap<String, Object> mapOS =
-          (SortedMap<String, Object>) entries.get("java.lang:type=OperatingSystem");
+      final SortedMap<String, Object> mapOS = entries.get("java.lang:type=OperatingSystem");
       assertThat(mapOS.get("TotalPhysicalMemorySize")).isNotNull();
       assertThat(mapOS.get("FreePhysicalMemorySize")).isNotNull();
-      Map<String, Object> mapRuntime = (Map<String, Object>) entries.get("java.lang:type=Runtime");
+      Map<String, Object> mapRuntime = entries.get("java.lang:type=Runtime");
       Set<Map<String, Object>> systemProperties = (Set<Map<String, Object>>) mapRuntime.get("SystemProperties");
       assertThat(systemProperties)
           .extracting(systemProperty -> systemProperty.get("key") + "=" + systemProperty.get("value"))
@@ -56,15 +56,15 @@ public class JmxInfoTest
 
   @Test
   public void testObfuscatePasswords() {
-    Map<String, Object> runtime = new HashMap<>();
+    SortedMap<String, Object> runtime = new TreeMap<>();
     runtime.put("InputArguments",
         Arrays.asList("-Ddw.some.passWord=pass1", "-Ddw.some.passPhrase=pass2", "-Ddw.some.other=other"));
-    runtime.put("SystemProperties", new HashSet(Arrays.asList(
+    runtime.put("SystemProperties", new HashSet<>(Arrays.asList(
         Maps.of("key", "dw.some.passWord", "value", "pass1"),
         Maps.of("key", "dw.some.passPhrase", "value", "pass2"),
         Maps.of("key", "dw.some.other", "value", "other")
     )));
-    Map<String, Object> entries = new HashMap<>();
+    Map<String, SortedMap<String, Object>> entries = new HashMap<>();
     entries.put("java.lang:type=Runtime", runtime);
 
     jmxInfo.obfuscatePasswords(entries);

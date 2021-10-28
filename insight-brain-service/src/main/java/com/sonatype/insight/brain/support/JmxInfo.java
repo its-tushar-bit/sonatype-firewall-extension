@@ -53,8 +53,8 @@ public class JmxInfo
     return JsonUtils.format(getJmxInfo());
   }
 
-  SortedMap<String, Object> getJmxInfo() {
-    final SortedMap<String, Object> entries = new TreeMap<>();
+  SortedMap<String, SortedMap<String, Object>> getJmxInfo() {
+    final SortedMap<String, SortedMap<String, Object>> entries = new TreeMap<>();
 
     log.trace("Querying mbeans");
     final Set<ObjectName> objectNames;
@@ -103,22 +103,20 @@ public class JmxInfo
   }
 
   // Visible for testing
-  void obfuscatePasswords(Map<String, Object> entries) {
-    Object runtime = entries.get("java.lang:type=Runtime");
-    if (!(runtime instanceof Map)) {
-      return;
-    }
-    Object inputArguments = ((Map) runtime).get("InputArguments");
+  @SuppressWarnings("unchecked")
+  void obfuscatePasswords(Map<String, SortedMap<String, Object>> entries) {
+    SortedMap<String, Object> runtime = entries.get("java.lang:type=Runtime");
+    Object inputArguments = runtime.get("InputArguments");
     if (inputArguments instanceof List) {
-      obfuscateInputArgumentsPasswords((List) inputArguments);
+      obfuscateInputArgumentsPasswords((List<Object>) inputArguments);
     }
-    Object systemProperties = ((Map) runtime).get("SystemProperties");
+    Object systemProperties = runtime.get("SystemProperties");
     if (systemProperties instanceof Collection) {
-      obfuscateSystemProperties((Collection) systemProperties);
+      obfuscateSystemProperties((Collection<Object>) systemProperties);
     }
   }
 
-  private void obfuscateInputArgumentsPasswords(List inputArguments) {
+  private void obfuscateInputArgumentsPasswords(List<Object> inputArguments) {
     for (int i = 0; i < inputArguments.size(); i++) {
       if (!(inputArguments.get(i) instanceof String)) {
         continue;
@@ -131,12 +129,13 @@ public class JmxInfo
     }
   }
 
-  private void obfuscateSystemProperties(Collection systemProperties) {
+  private void obfuscateSystemProperties(Collection<Object> systemProperties) {
     for (Object object : systemProperties) {
       if (!(object instanceof Map)) {
         continue;
       }
-      Map systemProperty = (Map) object;
+      @SuppressWarnings("unchecked")
+      Map<Object, Object> systemProperty = (Map<Object, Object>) object;
       Object key = systemProperty.get("key");
       if (!(key instanceof String)) {
         continue;

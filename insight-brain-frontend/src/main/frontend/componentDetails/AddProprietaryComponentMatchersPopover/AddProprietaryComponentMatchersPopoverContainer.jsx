@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 
 import { actions } from '../componentDetailsSlice';
 import {
-  selectPathnames,
+  selectFilteredPathnames,
   selectShowMatchersPopover,
   selectApplicationInfo,
   selectSetProprietaryMatchers,
@@ -17,7 +17,7 @@ import AddProprietaryComponentMatchersPopover from './AddProprietaryComponentMat
 function mapStateToProps(state) {
   return {
     showPopover: selectShowMatchersPopover(state),
-    pathnames: selectPathnames(state),
+    pathnames: selectFilteredPathnames(state),
     appInfo: selectApplicationInfo(state),
     ...selectSetProprietaryMatchers(state),
   };

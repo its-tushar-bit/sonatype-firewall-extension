@@ -18,7 +18,7 @@ import {
   selectIsLabelsLoading,
   selectShowMatchersPopover,
   selectSetProprietaryMatchers,
-  selectPathnames,
+  selectFilteredPathnames,
   selectApplicationInfo,
   selectComponentDetailsLoading,
   selectComponentDetailsLoadErrors,
@@ -83,7 +83,7 @@ describe('componentDetailsSelectors', () => {
             componentIdentifier: { format: 'maven' },
             derivedDependencyType: 'transitive',
             matchState: 'unknown',
-            pathnames: ['pathname 1', 'pathname 2'],
+            pathnames: ['dependency:/this.is.a.dependency', 'pathname 1', 'pathname 2'],
             identificationSource: null,
           },
           {
@@ -161,9 +161,9 @@ describe('componentDetailsSelectors', () => {
     });
   });
 
-  describe('selectPathnames', () => {
+  describe('selectFilteredPathnames', () => {
     it('selects the slice of state for the pathnames for the selected component', () => {
-      const actual = selectPathnames(mockState);
+      const actual = selectFilteredPathnames(mockState);
       expect(actual).toEqual(['pathname 1', 'pathname 2']);
     });
   });

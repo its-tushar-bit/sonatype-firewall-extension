@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -129,9 +128,32 @@ class SidebarService
       sidebarApplicationDTO.publicId = application.getPublicId();
       sidebarApplicationDTO.name = application.getName();
       sidebarApplicationDTO.organizationId = application.getOrganizationId();
+
       sidebarOrganizationDTO.applications.add(sidebarApplicationDTO);
     }
 
+    // TODO INT-6135 add this code back after emergency release is done
+    /*
+    try {
+      for (SidebarOrganizationDTO sidebarOrganizationDTO : organizationMap.values()) {
+        for (SidebarApplicationDTO sidebarApplicationDTO : sidebarOrganizationDTO.applications) {
+          ApiCompositeSourceControlDTO scDto =
+              compositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION,
+                  sidebarApplicationDTO.id);
+          if (scDto != null) {
+            sidebarApplicationDTO.provider = scDto.provider.value != null ? scDto.provider.value
+              : scDto.provider.parentValue;
+            sidebarApplicationDTO.repositoryUrl = scDto.repositoryUrl;
+          }
+        }
+      }
+    } catch (UnauthorizedException | InvalidLicenseException e) {
+      // the Source Control service has different permissions so may throw Auth exceptions. We don't want to fail the
+      // entire call, instead we can just leave the SC values as null
+      log.debug("Unable to retrieve source control details for the Sidebar, leaving the values as default: {}",
+          e.getMessage());
+    }
+    */
     return ownerListDTO;
   }
 }

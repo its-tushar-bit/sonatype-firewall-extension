@@ -7,14 +7,7 @@ import ownerManagerModule from '../../main/frontend/owner.manager/owner.manager.
 import legacyConfigurationModule from '../../main/frontend/LegacyConfigurationModule';
 
 describe('owner.tree.view.directive.spec.js', function () {
-  let scope,
-    $httpBackend,
-    $state,
-    $timeout,
-    CLMLocations,
-    CLMContextLocations,
-    EventNameConstant,
-    mockSourceControlService;
+  let scope, $httpBackend, $state, $timeout, CLMLocations, CLMContextLocations, EventNameConstant;
 
   beforeEach(
     angular.mock.module(function ($provide) {
@@ -28,8 +21,6 @@ describe('owner.tree.view.directive.spec.js', function () {
   );
   beforeEach(
     angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name, function ($provide) {
-      mockSourceControlService = jasmine.createSpyObj('SourceControlService', ['getCompositeSourceControlRecord']);
-      $provide.value('SourceControlService', mockSourceControlService);
       SpecUtil.mockNgRedux($provide);
       $provide.factory('scmOnboardingActions', function () {
         return {
@@ -48,7 +39,9 @@ describe('owner.tree.view.directive.spec.js', function () {
     }
   }));
 
-  describe('populates SCM icon', function () {
+  // Ignore tests due to temporary disabling it
+  // TODO: INT-6135
+  xdescribe('populates SCM icon', function () {
     [
       // providers with repos
       { scmProvider: 'azure', repoUrl: 'http://azure/repo', expectedIcon: 'git' },
@@ -84,10 +77,16 @@ describe('owner.tree.view.directive.spec.js', function () {
           CLMContextLocations = _CLMContextLocations_;
           EventNameConstant = $injector.get('event.name.constant');
 
+          // given owner list with expected provider & url
+          let ownerList = SidebarResourceMockData.getOwnerListUrl_onlySynthetic();
+          ownerList.organizations.forEach((org) => {
+            org.applications.forEach((app) => {
+              app.provider = scmProvider;
+              app.repositoryUrl = repoUrl;
+            });
+          });
+          $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
           // given connected backends
-          $httpBackend
-            .expectGET(CLMLocations.getOwnerListUrl())
-            .respond(SidebarResourceMockData.getOwnerListUrl_onlySynthetic());
           $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond([]);
           $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
 
@@ -98,15 +97,6 @@ describe('owner.tree.view.directive.spec.js', function () {
           scope.$digest();
 
           spyOn($state, 'includes').and.returnValue(false);
-
-          // given value of the provider to be based on the test input
-          mockSourceControlService.getCompositeSourceControlRecord.and.returnValue(
-            _$q_.resolve({
-              provider: { value: scmProvider },
-              token: { value: 'TOKEN' },
-              repositoryUrl: repoUrl,
-            })
-          );
 
           // when the state gets resolved
           scope.$apply();
@@ -152,10 +142,6 @@ describe('owner.tree.view.directive.spec.js', function () {
           .respond(permissions);
 
         $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
-
-        mockSourceControlService.getCompositeSourceControlRecord.and.returnValue(
-          Promise.resolve({ provider: { value: 'github' }, token: { value: 'TOKEN' } })
-        );
 
         scope = _$rootScope_.$new();
         var ownerTreeView = angular.element('<div owner-tree-view></div>');
@@ -649,10 +635,6 @@ describe('owner.tree.view.directive.spec.js', function () {
       $timeout = _$timeout_;
       CLMLocations = _CLMLocations_;
       CLMContextLocations = _CLMContextLocations_;
-
-      mockSourceControlService.getCompositeSourceControlRecord.and.returnValue(
-        Promise.resolve({ provider: { value: 'github' }, token: { value: 'TOKEN' } })
-      );
 
       spyOn($state, 'is').and.returnValue(true);
       scope = _$rootScope_.$new();

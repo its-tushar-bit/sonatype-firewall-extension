@@ -114,6 +114,8 @@ public class SidebarServiceTest
             assertThat(application.publicId).isEqualTo(appOne.getPublicId());
             assertThat(application.organizationId).isEqualTo(appOne.getOrganizationId());
             assertThat(application.name).isEqualTo(appOne.getName());
+            assertThat(application.provider).isNull();
+            assertThat(application.repositoryUrl).isNull();
           }
           else if (application.id.equals(appTwo.getId())) {
             if (application.id.equals(appTwo.getId())) {

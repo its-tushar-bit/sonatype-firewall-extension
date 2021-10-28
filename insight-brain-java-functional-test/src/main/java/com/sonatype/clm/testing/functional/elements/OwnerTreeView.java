@@ -93,10 +93,5 @@ public class OwnerTreeView
       int cssNum = num + 1;
       return child(".iq-tree-view__child", nthChild(cssNum));
     }
-
-    public SelenideElement applicationIcon(int num) {
-      int cssNum = num + 1;
-      return child(".iq-tree-view__child i", nthChild(cssNum));
-    }
   }
 }

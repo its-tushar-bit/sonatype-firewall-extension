@@ -50,7 +50,7 @@
     <!-- The jersey.version must match the jersey version used by dropwizard -->
     <!-- dropwizard:2.0.25 uses jersey:2.33, which has a security vulnerability: CVE-2021-28168.
          As of Sep 25, 2021, there is no dropwizard version that uses jersey > 2.33,
-         so we need to manage the jersey dependencies to a version different from what dropwizard uses --> 
+         so we need to manage the jersey dependencies to a version different from what dropwizard uses -->
     <jersey.version>2.34</jersey.version>
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
     <aether-util.version>1.13.1</aether-util.version>
@@ -58,7 +58,7 @@
     <geb.version>2.3.1</geb.version>
     <selenium.version>3.141.59</selenium.version>
     <httpcomponents.version>4.5.13</httpcomponents.version>
-    <nexus-scm-client.version>1.43.1-SNAPSHOT</nexus-scm-client.version>
+    <nexus-scm-client.version>1.44.0-02</nexus-scm-client.version>
     <nexus-dependency-management.version>1.22.0-01</nexus-dependency-management.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
 
@@ -648,7 +648,7 @@
         <artifactId>drools-compiler</artifactId>
         <version>${drools.version}</version>
       </dependency>
-      
+
       <dependency>
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-artifact</artifactId>

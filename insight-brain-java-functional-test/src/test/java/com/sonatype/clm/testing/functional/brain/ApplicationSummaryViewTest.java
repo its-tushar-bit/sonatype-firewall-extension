@@ -636,16 +636,6 @@ public class ApplicationSummaryViewTest
 
     OwnerSummaryPage.repositoryUrlAnchor().shouldHave(text(repoUrl));
     OwnerSummaryPage.repositoryUrlIcon().shouldHave(cssClass(expectedIcon));
-
-    // check that sidebar icon is updated
-    OrganizationNode organizationNode = OwnerTreeView.organization(0);
-    organizationNode.treeViewElement().click();
-    waitUntilNotUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
-    organizationNode.applicationIcon(0).shouldHave(cssClass(expectedIcon));
-
-    if (provider == SourceControlProvider.GITHUB) {
-      eyesWatcher.eyesCheck("Orgs & Apps: Github repo added to an application");
-    }
   }
 
   @Test
@@ -654,11 +644,5 @@ public class ApplicationSummaryViewTest
 
     OwnerSummaryPage.repositoryUrlAnchor().shouldNotBe(visible);
     OwnerSummaryPage.repositoryUrlIcon().shouldNotBe(visible);
-
-    // check that sidebar icon is updated
-    OrganizationNode organizationNode = OwnerTreeView.organization(0);
-    organizationNode.treeViewElement().click();
-    waitUntilNotUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
-    organizationNode.applicationIcon(0).shouldHave(cssClass("fa-terminal"));
   }
 }

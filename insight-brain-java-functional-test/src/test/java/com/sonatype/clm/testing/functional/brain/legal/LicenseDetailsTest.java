@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.brain.legal;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -33,8 +32,6 @@ public class LicenseDetailsTest
 {
   private Application app;
 
-  private ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
-
   @BeforeClass
   public static void boot() {
     refreshOrOpen(ReportListPage.url());
@@ -44,6 +41,7 @@ public class LicenseDetailsTest
   @Before
   public void init() throws IOException {
     app = tempEntity.newApplicationWithParent(LicenseDetailsTest.class.getSimpleName(), "app", "org");
+    final ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
     final ApplicationComponent applicationComponent =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "033e7a20b23ea284d474", componentId);
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");
@@ -70,23 +68,14 @@ public class LicenseDetailsTest
         .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetailsList.json"),
             StandardCharsets.UTF_8))
         .atUri("rest/ci/componentDetails/list");
+
+    refreshOrOpen(ComponentLicensesDetailsPage.urlToApplicationScope(
+        app.getPublicId(), "033e7a20b23ea284d474", 0));
   }
 
   @Test
-  public void testComponentLicenseOverview_ByHash() {
-    refreshOrOpen(
-        ComponentLicensesDetailsPage.urlToApplicationScopeByHash(app.getPublicId(), "033e7a20b23ea284d474", 0));
-    doTestComponentLicenseOverview();
-  }
-
-  @Test
-  public void testComponentLicenseOverview_ByComponentIdentifier() throws UnsupportedEncodingException {
-    refreshOrOpen(
-        ComponentLicensesDetailsPage.urlToApplicationScopeByComponentIdentifier(app.getPublicId(), componentId, 0));
-    doTestComponentLicenseOverview();
-  }
-
-  private void doTestComponentLicenseOverview() {
+  public void testComponentLicenseOverview() {
+    refreshOrOpen(ComponentLicensesDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
     final ComponentLicenseOverview overview = ComponentLicensesDetailsPage.componentLicenseOverview();
 
     overview.getDeclaredLicense().shouldHave(text("Apache-2.0"));
@@ -96,20 +85,9 @@ public class LicenseDetailsTest
   }
 
   @Test
-  public void testSelectDifferentLicense_ByHash() {
-    refreshOrOpen(
-        ComponentLicensesDetailsPage.urlToApplicationScopeByHash(app.getPublicId(), "033e7a20b23ea284d474", 0));
-    doTestSelectDifferentLicense();
-  }
+  public void testSelectDifferentLicense() {
+    refreshOrOpen(ComponentLicensesDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
 
-  @Test
-  public void testSelectDifferentLicense_ByComponentIdentifier() throws UnsupportedEncodingException {
-    refreshOrOpen(
-        ComponentLicensesDetailsPage.urlToApplicationScopeByComponentIdentifier(app.getPublicId(), componentId, 0));
-    doTestSelectDifferentLicense();
-  }
-
-  private void doTestSelectDifferentLicense() {
     final LicenseList licenseList = ComponentLicensesDetailsPage.licenseList();
 
     licenseList.licenseItem(1).shouldHave(text("Apache-2.0"));
@@ -121,8 +99,7 @@ public class LicenseDetailsTest
    */
   @Test
   public void testLicenseObligationsScrollIntoView() {
-    refreshOrOpen(
-        ComponentLicensesDetailsPage.urlToApplicationScopeByHash(app.getPublicId(), "033e7a20b23ea284d474", 0));
+    refreshOrOpen(ComponentLicensesDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
     final LicenseObligations obligations = ComponentLicensesDetailsPage.licenseObligations();
     eyesWatcher.eyesCheck("Before obligation snippet scrolled into view");
 

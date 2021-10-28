@@ -5,15 +5,10 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
-import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.Owner;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -31,14 +26,6 @@ public class ComponentLegalOverviewPage
 
   public static String urlToApplicationScope(String publicAppId, String componentHash) {
     return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/component/%s", publicAppId, componentHash));
-  }
-
-  public static String urlByComponentIdentifier(
-      ComponentIdentifier componentIdentifier) throws UnsupportedEncodingException
-  {
-    String componentIdentifierString =
-        URLEncoder.encode(ComponentIdentifierAdapter.toJson(componentIdentifier), StandardCharsets.UTF_8.name());
-    return BaseUrl.resolvePageUrl(String.format("/legal/component/componentIdentifier/%s", componentIdentifierString));
   }
 
   public static String url(Owner owner, String componentHash) {

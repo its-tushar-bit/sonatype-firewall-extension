@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { payloadParamActionCreator } from '../../util/reduxUtil';
-import { loadAvailableScopes, loadComponent, loadComponentByComponentIdentifier } from '../advancedLegalActions';
+import { loadAvailableScopes, loadComponent } from '../advancedLegalActions';
 
 export const LICENSE_DETAILS_REQUEST = 'LICENSE_DETAILS_REQUEST';
 export const LICENSE_DETAILS_FULFILLED = 'LICENSE_DETAILS_FULFILLED';
@@ -14,15 +14,14 @@ export const licenseDetailsRequest = payloadParamActionCreator(LICENSE_DETAILS_R
 export const licenseDetailsFulfilled = payloadParamActionCreator(LICENSE_DETAILS_FULFILLED);
 export const licenseDetailsFailed = payloadParamActionCreator(LICENSE_DETAILS_FAILED);
 
-export function loadComponentAndLicenseDetails(ownerType, ownerId, hash, licenseIndex, componentIdentifier) {
+export function loadComponentAndLicenseDetails(ownerType, ownerId, hash, licenseIndex) {
   return (dispatch, getState) => {
     const component = getState().advancedLegal.component.component;
     if (!component) {
       dispatch(loadAvailableScopes(ownerType, ownerId));
-      const promise = hash
-        ? loadComponent(ownerType, ownerId, hash)
-        : loadComponentByComponentIdentifier(componentIdentifier);
-      return dispatch(promise).then(() => requestLoadLicenseDetails(dispatch, licenseIndex));
+      return dispatch(loadComponent(ownerType, ownerId, hash)).then(() =>
+        requestLoadLicenseDetails(dispatch, licenseIndex)
+      );
     } else {
       return requestLoadLicenseDetails(dispatch, licenseIndex);
     }

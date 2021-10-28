@@ -317,24 +317,22 @@ describe('LicensesModal', function () {
   });
 
   it('calls saveLicensesSpy with the correct information when you save', () => {
-    const componentIdentifier = Object({
-      coordinates: Object({ name: 'jquery-form', qualifier: '', version: '3.50.0' }),
-      format: 'a-name',
-      displayName: 'jquery-form 3.50.0',
-      hash: '9c06887e03feb6c996ab',
-    });
     const expectedPostBody = {
       ownerType: 'application',
       ownerId: 'appPublicId',
       postBody: Object({
-        componentIdentifier,
+        componentIdentifier: Object({
+          coordinates: Object({ name: 'jquery-form', qualifier: '', version: '3.50.0' }),
+          format: 'a-name',
+          displayName: 'jquery-form 3.50.0',
+          hash: '9c06887e03feb6c996ab',
+        }),
         comment: '',
         status: 'ACKNOWLEDGED',
         ownerId: 'appPublicId',
         licenseIds: [],
       }),
       hash: 'hash123',
-      componentIdentifier: JSON.stringify(componentIdentifier),
     };
     const wrapper = getMountedComponent();
     const form = wrapper.find(NxForm);
@@ -347,24 +345,22 @@ describe('LicensesModal', function () {
   });
 
   it('calls saveLicensesSpy with the correct information when you save an inherited status', () => {
-    const componentIdentifier = Object({
-      coordinates: Object({ name: 'jquery-form', qualifier: '', version: '3.50.0' }),
-      format: 'a-name',
-      displayName: 'jquery-form 3.50.0',
-      hash: '9c06887e03feb6c996ab',
-    });
     const expectedPostBody = {
       ownerType: undefined,
       ownerId: 'ROOT_ORGANIZATION_ID',
       postBody: Object({
-        componentIdentifier,
+        componentIdentifier: Object({
+          coordinates: Object({ name: 'jquery-form', qualifier: '', version: '3.50.0' }),
+          format: 'a-name',
+          displayName: 'jquery-form 3.50.0',
+          hash: '9c06887e03feb6c996ab',
+        }),
         comment: '',
         status: 'SELECTED',
         ownerId: 'ROOT_ORGANIZATION_ID',
         licenseIds: ['overriddenLicense'],
       }),
       hash: 'hash123',
-      componentIdentifier: JSON.stringify(componentIdentifier),
     };
     const wrapper = getMountedComponent({
       ownerId: 'orgPublicId',

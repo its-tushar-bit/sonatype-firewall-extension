@@ -18,7 +18,7 @@ import { isScopeOverride } from '../legalUtility';
 import { saveObligation } from '../obligation/advancedLegalObligationActions';
 import { refreshNoticeFilesDetails } from './notices/componentNoticeDetailsActions';
 import { refreshLicenseFilesDetails } from './licenses/componentLicenseFilesDetailsActions';
-import { loadAvailableScopes, loadComponent, loadComponentByComponentIdentifier } from '../advancedLegalActions';
+import { loadAvailableScopes, loadComponent } from '../advancedLegalActions';
 
 export const ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL = 'ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL';
 export const ADVANCED_LEGAL_CANCEL_NOTICES_MODAL = 'ADVANCED_LEGAL_CANCEL_NOTICES_MODAL';
@@ -86,20 +86,17 @@ export function loadLicenseModalInformation({ ownerType, ownerId, componentIdent
   };
 }
 
-export function saveLicenses({ ownerType, ownerId, postBody, hash, componentIdentifier }) {
+export function saveLicenses({ ownerType, ownerId, postBody, hash }) {
   return (dispatch, getState) => {
     dispatch(saveLicensesRequested());
     const advancedLegalState = getState().advancedLegal;
     const { availableScopes } = advancedLegalState;
     const visitedScope = availableScopes.values[0];
-    const componentPromise = hash
-      ? loadComponent(visitedScope.type, visitedScope.publicId, hash)
-      : loadComponentByComponentIdentifier(componentIdentifier);
     return axios
       .post(getLicenseOverrideUrl(ownerType, ownerId), postBody)
       .then(() => {
         dispatch(loadAvailableScopes(visitedScope.type, visitedScope.publicId));
-        dispatch(componentPromise);
+        dispatch(loadComponent(visitedScope.type, visitedScope.publicId, hash));
         dispatch(saveLicensesSucceeded());
       })
       .catch((error) => {

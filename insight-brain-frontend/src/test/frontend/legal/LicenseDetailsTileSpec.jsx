@@ -56,7 +56,6 @@ describe('LicenseDetailsTile component', function () {
       licenseLegalMetadata,
       setShowLicensesModal: setShowLicensesModalMock,
       $state,
-      hash: 'hash-test',
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(LicenseDetailsTile, minimalProps);
@@ -106,100 +105,25 @@ describe('LicenseDetailsTile component', function () {
     expect(licenseLinks.at(1)).toHaveText('License-2.0');
   });
 
-  it('renders the links to the licenses details pages by hash', function () {
+  it('renders the links to the licenses details pages', function () {
     const wrapper = getMountedComponent();
     let licenseLinks = wrapper.find('.license-details-tile__effective-licenses a.nx-text-link');
     expect(licenseLinks.length).toBe(4);
-    expect(licenseLinks.at(0)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetails-{"hash":"hash-test","licenseIndex":0}'
-    );
-    expect(licenseLinks.at(1)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetails-{"hash":"hash-test","licenseIndex":0}'
-    );
-    expect(licenseLinks.at(2)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetails-{"hash":"hash-test","licenseIndex":1}'
-    );
-    expect(licenseLinks.at(3)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetails-{"hash":"hash-test","licenseIndex":1}'
-    );
+    expect(licenseLinks.at(0)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    expect(licenseLinks.at(1)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    expect(licenseLinks.at(2)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
+    expect(licenseLinks.at(3)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
 
     licenseLinks = wrapper.find('.license-details-tile__observed-licenses a.nx-text-link');
     expect(licenseLinks.length).toBe(3);
-    expect(licenseLinks.at(0)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetails-{"hash":"hash-test","licenseIndex":0}'
-    );
-    expect(licenseLinks.at(1)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetails-{"hash":"hash-test","licenseIndex":1}'
-    );
-    expect(licenseLinks.at(2)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetails-{"hash":"hash-test","licenseIndex":1}'
-    );
+    expect(licenseLinks.at(0)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    expect(licenseLinks.at(1)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
+    expect(licenseLinks.at(2)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
 
     licenseLinks = wrapper.find('.license-details-tile__declared-licenses a.nx-text-link');
     expect(licenseLinks.length).toBe(2);
-    expect(licenseLinks.at(0)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetails-{"hash":"hash-test","licenseIndex":0}'
-    );
-    expect(licenseLinks.at(1)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetails-{"hash":"hash-test","licenseIndex":1}'
-    );
-  });
-
-  it('renders the links to the licenses details pages by component identifier', function () {
-    const wrapper = getMountedComponent({ ...minimalProps, hash: undefined, componentIdentifier: 'ci' });
-    let licenseLinks = wrapper.find('.license-details-tile__effective-licenses a.nx-text-link');
-    expect(licenseLinks.length).toBe(4);
-    expect(licenseLinks.at(0)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetailsByComponentIdentifier-{"componentIdentifier":"ci","licenseIndex":0}'
-    );
-    expect(licenseLinks.at(1)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetailsByComponentIdentifier-{"componentIdentifier":"ci","licenseIndex":0}'
-    );
-    expect(licenseLinks.at(2)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetailsByComponentIdentifier-{"componentIdentifier":"ci","licenseIndex":1}'
-    );
-    expect(licenseLinks.at(3)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetailsByComponentIdentifier-{"componentIdentifier":"ci","licenseIndex":1}'
-    );
-
-    licenseLinks = wrapper.find('.license-details-tile__observed-licenses a.nx-text-link');
-    expect(licenseLinks.length).toBe(3);
-    expect(licenseLinks.at(0)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetailsByComponentIdentifier-{"componentIdentifier":"ci","licenseIndex":0}'
-    );
-    expect(licenseLinks.at(1)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetailsByComponentIdentifier-{"componentIdentifier":"ci","licenseIndex":1}'
-    );
-    expect(licenseLinks.at(2)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetailsByComponentIdentifier-{"componentIdentifier":"ci","licenseIndex":1}'
-    );
-
-    licenseLinks = wrapper.find('.license-details-tile__declared-licenses a.nx-text-link');
-    expect(licenseLinks.length).toBe(2);
-    expect(licenseLinks.at(0)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetailsByComponentIdentifier-{"componentIdentifier":"ci","licenseIndex":0}'
-    );
-    expect(licenseLinks.at(1)).toHaveProp(
-      'href',
-      'legal.componentLicenseDetailsByComponentIdentifier-{"componentIdentifier":"ci","licenseIndex":1}'
-    );
+    expect(licenseLinks.at(0)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    expect(licenseLinks.at(1)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
   });
 
   it('renders None found if there are no licenses', function () {

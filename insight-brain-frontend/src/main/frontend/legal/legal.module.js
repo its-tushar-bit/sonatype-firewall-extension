@@ -235,13 +235,6 @@ function routes($stateProvider) {
         title: 'Component - License Details',
       },
     })
-    .state('legal.componentLicenseDetailsByComponentIdentifier', {
-      url: '/legal/{ownerType}/{ownerId}/componentIdentifier/{componentIdentifier}/licenses/{licenseIndex}',
-      component: 'componentLicenseDetails',
-      data: {
-        title: 'Component - License Details',
-      },
-    })
     .state('legal.stageTypeComponentLicenseDetails', {
       url: '/legal/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/licenses/{licenseIndex}',
       component: 'componentLicenseDetails',

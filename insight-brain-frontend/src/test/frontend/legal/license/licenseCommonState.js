@@ -14,7 +14,6 @@ export const licenseState = {
     },
   },
   hash: 'fooHash',
-  componentIdentifier: 'fooComponentIdentifier',
   ownerType: 'organization',
   ownerId: 'org',
   licenseLegalMetadata: [

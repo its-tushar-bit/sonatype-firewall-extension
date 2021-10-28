@@ -54,7 +54,13 @@ describe('ComponentLicenseDetailsPage', function () {
 
   it('loads the expected data', function () {
     const component = mount(<ComponentLicenseDetailsPage {...minimalProps} loading={true} />);
-    expect(loadComponentAndLicenseDetailsSpy).toHaveBeenCalledWith('organization', 'org', 'fooHash', 1);
+    expect(loadComponentAndLicenseDetailsSpy).toHaveBeenCalledWith(
+      'organization',
+      'org',
+      'fooHash',
+      1,
+      'fooComponentIdentifier'
+    );
     component.unmount();
   });
 
@@ -69,7 +75,8 @@ describe('ComponentLicenseDetailsPage', function () {
       minimalProps.ownerType,
       minimalProps.ownerId,
       minimalProps.stageTypeId,
-      minimalProps.hash
+      minimalProps.hash,
+      'fooComponentIdentifier'
     );
   });
 

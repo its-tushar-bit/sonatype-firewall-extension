@@ -27,6 +27,7 @@ import {
 import {
   getLegalFileUrl,
   getLicenseLegalComponentUrl,
+  getLicenseLegalComponentByComponentIdentifierUrl,
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
   getOwnerHierarchyUrl,
@@ -136,7 +137,7 @@ describe('advancedLegalFileActions', function () {
       };
     });
 
-    it('dispatches ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED actions on success', function (done) {
+    it('dispatches ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED actions on success for hash', function (done) {
       store = SpecUtil.mockReduxStore(initialState);
       mockAxiosCalls({
         post: {
@@ -160,6 +161,63 @@ describe('advancedLegalFileActions', function () {
           done();
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
       });
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
+    });
+
+    it('dispatches ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED actions on success for ComponentIdentifier', function (done) {
+      const componentIdentifier = 'componentIdentifier-123';
+      initialState.advancedLegal.availableScopes = {
+        values: [
+          {
+            id: 'ROOT_ORGANIZATION_ID',
+            publicId: 'ROOT_ORGANIZATION_ID',
+            type: 'organization',
+          },
+        ],
+      };
+      store = SpecUtil.mockReduxStore(initialState);
+      mockAxiosCalls({
+        post: {
+          [getLicenseOverrideUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({ data: 'postData' }),
+        },
+        get: {
+          [getOwnerHierarchyUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({ data: 'getData' }),
+          [getLicenseLegalComponentByComponentIdentifierUrl(componentIdentifier)]: Promise.resolve({
+            data: 'getData2',
+          }),
+        },
+      });
+      store
+        .dispatch(
+          saveLicenses({
+            ownerType: 'organization',
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            postBody,
+            componentIdentifier,
+            closeModalFn,
+          })
+        )
+        .then(() => {
+          setTimeout(() => {
+            const actions = store.getActions();
+            expect(axios.post).toHaveBeenCalledWith(
+              '/rest/licenseOverride/organization/ROOT_ORGANIZATION_ID',
+              postBody
+            );
+            expect(axios.get).toHaveBeenCalledWith(
+              '/api/v2/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component?componentIdentifier=componentIdentifier-123'
+            );
+            expect(axios.get).toHaveBeenCalledWith('/rest/owner/organization/ROOT_ORGANIZATION_ID/hierarchy');
+            expect(actions.length).toBe(4);
+            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
+            expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
+            expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+            done();
+          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        });
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);

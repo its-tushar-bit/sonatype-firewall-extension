@@ -15,8 +15,12 @@ export default function LicenseList(props) {
 
   const selectedLicense = parseInt(componentLicenseDetails.licenseIndex);
 
-  const licenseDetailsTargetState = () =>
-    stageTypeId ? 'legal.stageTypeComponentLicenseDetails' : 'legal.componentLicenseDetails';
+  const licenseDetailsTargetState = () => {
+    if (stageTypeId) {
+      return 'legal.stageTypeComponentLicenseDetails';
+    }
+    return hash ? 'legal.componentLicenseDetails' : 'legal.componentLicenseDetailsByComponentIdentifier';
+  };
 
   const licenseRef = React.useRef(new Map());
 

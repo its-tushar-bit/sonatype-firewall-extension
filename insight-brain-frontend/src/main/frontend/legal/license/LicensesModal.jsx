@@ -244,6 +244,7 @@ export default function LicensesModal(props) {
       ownerId: ownerInformation.publicId,
       postBody,
       hash,
+      componentIdentifier: JSON.stringify(component.componentIdentifier),
     });
   };
 

@@ -5,8 +5,14 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.Owner;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -18,9 +24,20 @@ public final class ComponentLicensesDetailsPage
 {
   private ComponentLicensesDetailsPage() {}
 
-  public static String urlToApplicationScope(String publicAppId, String componentHash, int licenseIndex) {
+  public static String urlToApplicationScopeByHash(String publicAppId, String componentHash, int licenseIndex) {
     return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/component/%s/licenses/%d",
         publicAppId, componentHash, licenseIndex));
+  }
+
+  public static String urlToApplicationScopeByComponentIdentifier(
+      String publicAppId,
+      ComponentIdentifier componentIdentifier,
+      int licenseIndex) throws UnsupportedEncodingException
+  {
+    String componentIdentifierString =
+        URLEncoder.encode(ComponentIdentifierAdapter.toJson(componentIdentifier), StandardCharsets.UTF_8.name());
+    return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/componentIdentifier/%s/licenses/%d", publicAppId,
+        componentIdentifierString, licenseIndex));
   }
 
   public static String url(Owner owner, String componentHash, int licenseIndex) {

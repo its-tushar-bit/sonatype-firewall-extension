@@ -4,25 +4,31 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
-
-.iq-dependency-information.nx-grid-col__section {
+.iq-version-explorer.nx-grid-col__section {
   border: 0;
   padding: 0;
 
   .nx-grid-header {
     padding: 0;
+    display: flex;
+    justify-content: center;
 
     .nx-grid-header__title {
       margin: 0;
     }
   }
 
-  .nx-p {
-    margin: var(--nx-spacing-3x) 0;
+  .iq-grid-content {
+    display: flex;
+    justify-content: center;
+
+    h3 {
+      margin: var(--nx-spacing-3x) 0;
+    }
   }
 
-  .nx-list {
-    margin-top: var(--nx-spacing-2x);
+  .nx-footer {
+    margin: var(--nx-spacing-2x) 0 0 0;
+    padding: var(--nx-spacing-3x) 0 0 0;
   }
 }

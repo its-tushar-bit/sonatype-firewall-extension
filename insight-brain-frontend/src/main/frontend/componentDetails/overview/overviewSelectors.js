@@ -16,6 +16,8 @@ import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierU
 
 export const selectComponentDetailsOverviewSlice = prop('componentDetailsOverview');
 
+export const selectExpanded = createSelector(selectComponentDetailsOverviewSlice, prop('expanded'));
+
 export const selectVersionExplorerData = createSelector(
   selectComponentDetailsOverviewSlice,
   prop('versionExplorerData')

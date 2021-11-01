@@ -11,11 +11,11 @@ import VersionGraphExplorer from '../VersionGraphExplorer/VersionGraphExplorer';
 export const VersionExplorer = (props) => {
   const { versions, currentVersion } = props;
   return (
-    <section className="iq-version-explorer nx-tile">
-      <header className="nx-tile-header">
-        <h3 className="nx-h3 nx-tile-header__title">Version Explorer</h3>
+    <section className="iq-version-explorer nx-grid-col__section">
+      <header className="nx-grid-header">
+        <h3 className="nx-h3 nx-grid-header__title">Version Explorer</h3>
       </header>
-      <div className="nx-tile-content">{currentVersion && versions && <VersionGraphExplorer {...props} />}</div>
+      <div className="iq-grid-content">{currentVersion && versions && <VersionGraphExplorer {...props} />}</div>
     </section>
   );
 };

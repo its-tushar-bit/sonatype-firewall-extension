@@ -14,17 +14,15 @@ export const RecommendedVersions = ({ actualVersion, stageId, remediation, handl
   const versionChanges = setRemediations(remediation, actualVersion, stageId);
 
   return (
-    <section className="iq-recommended-version nx-tile">
-      <header className="nx-tile-header">
-        <h3 className="nx-h3 nx-tile-header__title">Recommended Versions</h3>
+    <section className="iq-recommended-version nx-grid-col__section">
+      <header className="nx-grid-header">
+        <h3 className="nx-h3 nx-grid-header__title">Recommended Versions</h3>
       </header>
-      <div className="nx-tile-content">
-        <RecommendedVersionsList
-          versionChanges={versionChanges}
-          actualVersion={actualVersion}
-          handleCompare={handleCompare}
-        />
-      </div>
+      <RecommendedVersionsList
+        versionChanges={versionChanges}
+        actualVersion={actualVersion}
+        handleCompare={handleCompare}
+      />
     </section>
   );
 };

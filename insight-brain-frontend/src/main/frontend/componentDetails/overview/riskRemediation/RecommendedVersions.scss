@@ -6,28 +6,19 @@
 
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
-.iq-recommended-version.nx-tile {
+.iq-recommended-version.nx-grid-col__section {
   border: 0;
   padding: 0;
 
-  .nx-tile-header {
+  .nx-grid-header {
     padding: 0;
 
-    .nx-tile-header__title {
+    .nx-tile-grid__title {
       margin: 0 0 var(--nx-spacing-3x) 0;
     }
   }
 
-  .nx-tile-content {
-    padding: 0;
-
-    .iq-current-version-recommendation {
-      margin: 0;
-    }
-  }
-
-  .nx-footer {
-    margin: var(--nx-spacing-2x) 0 0 0;
-    padding: var(--nx-spacing-3x) 0 0 0;
+  .iq-current-version-recommendation {
+    margin: 0;
   }
 }

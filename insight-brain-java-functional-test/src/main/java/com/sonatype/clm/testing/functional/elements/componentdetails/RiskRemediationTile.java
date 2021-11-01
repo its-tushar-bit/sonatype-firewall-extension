@@ -20,6 +20,10 @@ public class RiskRemediationTile
 
   private static final String TILE_HEADER_TITLE_SELECTOR = ".nx-tile-header__title";
 
+  private static final String GRID_COL_HEADER_TITLE_SELECTOR = ".nx-grid-header__title";
+
+  private static final String GRID_COL_CONTENT_SELECTOR = ".iq-grid-content";
+
   private static final String LIST_SELECTOR = ".nx-list";
 
   private static final String LIST_ITEM_SELECTOR = ".nx-list__item";
@@ -69,15 +73,15 @@ public class RiskRemediationTile
     }
 
     public SelenideElement getTitle() {
-      return child(TILE_HEADER_TITLE_SELECTOR);
+      return child(GRID_COL_HEADER_TITLE_SELECTOR);
     }
 
     public SelenideElement content() {
-      return child(TILE_CONTENT_SELECTOR);
+      return child(GRID_COL_CONTENT_SELECTOR);
     }
 
     public SelenideElement contentParagraph() {
-      return child(".nx-tile-content>.nx-p");
+      return child(".nx-p");
     }
 
     public ElementsCollection contentAncestorsList() {
@@ -89,6 +93,10 @@ public class RiskRemediationTile
       SelenideElement child = child(LIST_SELECTOR);
       return child.findAll(LIST_ITEM_CLICKABLE_SELECTOR);
     }
+
+    public SelenideElement toggleListLink() {
+      return child(".nx-text-link.iq-toggle-list");
+    }
   }
 
   public static class VersionExplorerSection
@@ -99,11 +107,11 @@ public class RiskRemediationTile
     }
 
     public SelenideElement getTitle() {
-      return child(TILE_HEADER_TITLE_SELECTOR);
+      return child(GRID_COL_HEADER_TITLE_SELECTOR);
     }
 
     public SelenideElement content() {
-      return child(TILE_CONTENT_SELECTOR);
+      return child("#aiVersionChartContainer");
     }
   }
 
@@ -115,11 +123,11 @@ public class RiskRemediationTile
     }
 
     public SelenideElement getTitle() {
-      return child(TILE_HEADER_TITLE_SELECTOR);
+      return child(GRID_COL_HEADER_TITLE_SELECTOR);
     }
 
     public SelenideElement content() {
-      return child(TILE_CONTENT_SELECTOR);
+      return child(LIST_SELECTOR);
     }
 
     public ElementsCollection contentRecommendedVersionsList() {

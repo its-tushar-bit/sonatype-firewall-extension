@@ -8,6 +8,7 @@
 @import './CompareVersions.scss';
 @import './DependencyInformation.scss';
 @import './RecommendedVersions.scss';
+@import './VersionExplorer.scss';
 
 .iq-component-risk-remediation-tile {
   margin: 0;
@@ -28,35 +29,5 @@
   .nx-grid-col--50:last-of-type {
     border-left: 0;
     padding: 0;
-  }
-
-  .iq-version-explorer.nx-tile {
-    border: 0;
-    padding: 0;
-
-    .nx-tile-header {
-      padding: 0;
-      display: flex;
-      justify-content: center;
-
-      .nx-tile-header__title {
-        margin: 0;
-      }
-    }
-
-    .nx-tile-content {
-      padding: 0;
-      display: flex;
-      justify-content: center;
-
-      h3 {
-        margin: var(--nx-spacing-3x) 0;
-      }
-    }
-
-    .nx-footer {
-      margin: var(--nx-spacing-2x) 0 0 0;
-      padding: var(--nx-spacing-3x) 0 0 0;
-    }
   }
 }

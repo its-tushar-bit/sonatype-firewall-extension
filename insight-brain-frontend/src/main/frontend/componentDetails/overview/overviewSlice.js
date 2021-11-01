@@ -57,6 +57,7 @@ const initialState = {
     selectedVersionDetails: null,
     selectedVersion: null,
   },
+  expanded: false,
 };
 
 const stagesOrder = {
@@ -278,6 +279,7 @@ const componentDetailsOverviewSlice = createSlice({
     toggleShowSimilarMatches: toggleBooleanProp('showSimilarMatchesPopover'),
     setSelectedVersion: pathSet(['selectedVersionData', 'selectedVersion']),
     resetSelectedVersionData,
+    toggleAncestorsList: toggleBooleanProp('expanded'),
   },
   extraReducers: {
     [loadVersionExplorerData.pending]: loadRequested,

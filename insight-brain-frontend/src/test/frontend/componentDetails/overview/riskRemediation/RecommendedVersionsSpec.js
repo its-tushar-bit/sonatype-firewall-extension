@@ -38,7 +38,7 @@ describe('RecommendedVersionsComponent', () => {
     expect(component).toHaveProp('actualVersion', '2.4.9');
     expect(component).toHaveProp('stageId', 'build');
 
-    const title = component.find('.nx-tile-header__title');
+    const title = component.find('.nx-grid-header__title');
     expect(title).not.toBeNull();
     expect(title).toHaveText('Recommended Versions');
   });
@@ -46,7 +46,7 @@ describe('RecommendedVersionsComponent', () => {
   it('with one component list if no remediation array is sent', () => {
     const remediation = [];
     component = getMounted({ remediation });
-    const content = component.find('.nx-tile-content');
+    const content = component.find('RecommendedVersionsList');
     expect(content).not.toBeNull();
 
     const listElements = content.find('.nx-list__item');
@@ -127,7 +127,7 @@ describe('RecommendedVersionsComponent', () => {
     expect(component).toHaveProp('actualVersion', '2.4.9');
     expect(component).toHaveProp('stageId', 'build');
 
-    const content = component.find('.nx-tile-content');
+    const content = component.find('RecommendedVersionsList');
     expect(content).not.toBeNull();
 
     const listElements = content.find('.nx-list__item');

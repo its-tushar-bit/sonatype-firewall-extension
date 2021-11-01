@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxTable, NxPagination } from '@sonatype/react-shared-components';
+import { NxPagination, NxTable, NxTableCell, NxTableHead } from '@sonatype/react-shared-components';
 import LegalDashboardComponentsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardComponentsTab';
 import LegalDashboardComponentRow from '../../../../main/frontend/legal/dashboard/LegalDashboardComponentRow';
 import { DASHBOARD } from '../../../../main/frontend/legal/advancedLegalConstants';
@@ -108,6 +108,7 @@ describe('LegalDashboardComponentsTab component', function () {
       backendPage: 1,
     },
     fetchBackendPage: () => {},
+    changeSortField: () => {},
     stateGo: () => {},
   };
 
@@ -189,5 +190,35 @@ describe('LegalDashboardComponentsTab component', function () {
 
     onChangePage(pagesToFill * 2);
     expect(appProps.fetchBackendPage).toHaveBeenCalledWith('components', 3);
+  });
+
+  it('changes the sortField properly', function () {
+    spyOn(minimalProps, 'changeSortField');
+    const wrapper = getShallowComponent();
+    const table = wrapper.find(NxTable);
+    const tableHeadCells = table.find(NxTableHead).find(NxTableCell);
+
+    expect(tableHeadCells).toExist();
+    expect(tableHeadCells.length).toBe(5);
+
+    const expectedResults = ['COMPONENT_NAME', 'LICENSE_NAME', 'APPLICATION_COUNT'];
+
+    for (let index = 0; index < 3; index++) {
+      const onClickSort = tableHeadCells.at(index).prop('onClick');
+
+      onClickSort();
+      let expectedResult = `${expectedResults[index]}_ASC`;
+      expect(minimalProps.changeSortField).toHaveBeenCalledWith('components', expectedResult);
+      minimalProps.components.sortField = expectedResult;
+
+      onClickSort();
+      expectedResult = `${expectedResults[index]}_DESC`;
+      expect(minimalProps.changeSortField).toHaveBeenCalledWith('components', expectedResult);
+      minimalProps.components.sortField = expectedResult;
+
+      onClickSort();
+      expectedResult = null;
+      expect(minimalProps.changeSortField).toHaveBeenCalledWith('components', expectedResult);
+    }
   });
 });

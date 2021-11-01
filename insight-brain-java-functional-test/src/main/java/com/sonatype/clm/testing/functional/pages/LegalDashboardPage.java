@@ -34,11 +34,47 @@ public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
     return child("#nx-tabs-0-tab-1");
   }
 
-  public ElementsCollection componentItems() {
+  public ElementsCollection tableRows() {
     return children(".nx-table-row.nx-clickable");
+  }
+
+  public ElementsCollection componentsTableComponentNameCols() {
+    return children(".legal-dashboard-components-component-name");
+  }
+
+  public ElementsCollection componentsTableLicenseNameCols() {
+    return children(".legal-dashboard-components-licenses");
+  }
+
+  public ElementsCollection componentsTableApplicationCountCols() {
+    return children(".legal-dashboard-components-occurrences");
   }
 
   public ElementsCollection pageButtons() {
     return children(".nx-btn--pagination");
+  }
+
+  public SelenideElement componentsTableComponentNameHeaderSortBtn() {
+    return child("#component-component-name-header .nx-cell__sort-btn");
+  }
+
+  public SelenideElement componentsTableLicenseNameHeaderSortBtn() {
+    return child("#component-license-name-header .nx-cell__sort-btn");
+  }
+
+  public SelenideElement componentsTableApplicationCountHeaderSortBtn() {
+    return child("#component-application-count-header .nx-cell__sort-btn");
+  }
+
+  public SelenideElement componentsTableComponentNameHeader() {
+    return child("#component-component-name-header");
+  }
+
+  public SelenideElement componentsTableLicenseNameHeader() {
+    return child("#component-license-name-header");
+  }
+
+  public SelenideElement componentsTableApplicationCountHeader() {
+    return child("#component-application-count-header");
   }
 }

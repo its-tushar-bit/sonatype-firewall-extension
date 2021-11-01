@@ -18,7 +18,7 @@ import LegalDashboardComponentRow from './LegalDashboardComponentRow';
 import { DASHBOARD } from '../advancedLegalConstants';
 import { isNilOrEmpty } from '../../util/jsUtil';
 
-export default function LegalDashboardComponentsTab({ components, fetchBackendPage, stateGo }) {
+export default function LegalDashboardComponentsTab({ components, fetchBackendPage, changeSortField, stateGo }) {
   const [page, setPage] = useState(components.backendPage - 1 || 0);
   const { itemsPerPage, pagesToFill } = DASHBOARD.components;
   const previousResultsBackend = (components.backendPage - 1) * pagesToFill * itemsPerPage;
@@ -27,6 +27,31 @@ export default function LegalDashboardComponentsTab({ components, fetchBackendPa
     (page + 1) * itemsPerPage - previousResultsBackend,
     components.results
   );
+
+  function getSortDir(fieldName) {
+    const { sortField } = components;
+    if (sortField && sortField.startsWith(fieldName)) {
+      return sortField.endsWith('ASC') ? 'asc' : 'desc';
+    }
+    return null;
+  }
+
+  function sort(fieldName) {
+    let newSortField = '';
+    switch (getSortDir(fieldName)) {
+      case 'asc':
+        newSortField = `${fieldName}_DESC`;
+        break;
+      case 'desc':
+        newSortField = null;
+        break;
+      default:
+        newSortField = `${fieldName}_ASC`;
+        break;
+    }
+    changeSortField('components', newSortField);
+    setPage(0);
+  }
 
   const emptyMessage = 'No components found given the applied filters and permissions.';
 
@@ -43,9 +68,30 @@ export default function LegalDashboardComponentsTab({ components, fetchBackendPa
       <NxTable id="legal-dashboard-components-table" className="legal-dashboard-table">
         <NxTableHead>
           <NxTableRow>
-            <NxTableCell>Component</NxTableCell>
-            <NxTableCell>Licenses</NxTableCell>
-            <NxTableCell>Applications</NxTableCell>
+            <NxTableCell
+              id="component-component-name-header"
+              isSortable
+              sortDir={getSortDir('COMPONENT_NAME')}
+              onClick={() => sort('COMPONENT_NAME')}
+            >
+              Component
+            </NxTableCell>
+            <NxTableCell
+              id="component-license-name-header"
+              isSortable
+              sortDir={getSortDir('LICENSE_NAME')}
+              onClick={() => sort('LICENSE_NAME')}
+            >
+              Licenses
+            </NxTableCell>
+            <NxTableCell
+              id="component-application-count-header"
+              isSortable
+              sortDir={getSortDir('APPLICATION_COUNT')}
+              onClick={() => sort('APPLICATION_COUNT')}
+            >
+              Applications
+            </NxTableCell>
             <NxTableCell>Component Obligations</NxTableCell>
             <NxTableCell></NxTableCell>
           </NxTableRow>
@@ -72,5 +118,6 @@ export default function LegalDashboardComponentsTab({ components, fetchBackendPa
 LegalDashboardComponentsTab.propTypes = {
   components: PropTypes.any,
   fetchBackendPage: PropTypes.func.isRequired,
+  changeSortField: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
 };

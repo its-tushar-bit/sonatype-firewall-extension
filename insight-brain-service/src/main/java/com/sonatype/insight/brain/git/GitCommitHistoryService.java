@@ -70,7 +70,6 @@ public class GitCommitHistoryService
         .getByApplicationIdAndCommitHash(policyEvaluation.getApplicationId(), policyEvaluation.getCommitHash());
     if (null != commitHistory) {
       recordCommitHistoryUpdate(commitHistory, policyEvaluation.getId());
-      purgeOldCommitHistory(policyEvaluation.getApplicationId(), commitHistory.getCommitTime());
     }
   }
 
@@ -101,11 +100,6 @@ public class GitCommitHistoryService
           mostRecentHistoryWithPolicyEval = moreRecentHistoryWithPolicyEval;
         }
       }
-    }
-
-    // clean out old, unneeded commit history entries
-    if (null != mostRecentHistoryWithPolicyEval) {
-      purgeOldCommitHistory(applicationId, mostRecentHistoryWithPolicyEval.getCommitTime());
     }
   }
 
@@ -149,10 +143,6 @@ public class GitCommitHistoryService
     }
 
     return moreRecentCommitHistory;
-  }
-
-  private void purgeOldCommitHistory(String applicationId, Date cutoffDate) {
-    commitHistoryDAO.deleteByApplicationIdBeforeCommitTime(applicationId, cutoffDate);
   }
 
   private void recordCommitHistoryUpdate(

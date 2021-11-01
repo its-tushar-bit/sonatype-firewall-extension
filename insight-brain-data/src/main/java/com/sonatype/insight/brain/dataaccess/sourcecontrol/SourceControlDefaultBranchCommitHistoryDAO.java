@@ -124,32 +124,6 @@ public class SourceControlDefaultBranchCommitHistoryDAO
     return createQuery(sQuery, applicationId, ScanTriggerType.internalScanTypes).forceSingleResult().get();
   }
 
-  public void deleteByApplicationIdBeforeCommitTime(
-      final String applicationId,
-      final Date commitTime)
-  {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      deleteByApplicationIdBeforeCommitTime(tx, applicationId, commitTime);
-      tx.commit();
-    }
-  }
-
-  private void deleteByApplicationIdBeforeCommitTime(
-      final TransactionContext tx,
-      final String applicationId,
-      final Date commitTime)
-  {
-    log.debug("Deleting SourceControlDefaultBranchCommitHistory for application id {} before {}.", applicationId,
-        commitTime);
-
-    List<SourceControlDefaultBranchCommitHistory> commitHistoryList = getList(
-        tx, SELECT_ENTITY + "WHERE entity.applicationId=?1 AND entity.commitTime < ?2", applicationId, commitTime);
-    for (SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory : commitHistoryList) {
-      delete(tx, defaultBranchCommitHistory);
-    }
-  }
-
   public void deleteByApplicationId(String applicationId) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();

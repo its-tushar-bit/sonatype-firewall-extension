@@ -425,7 +425,7 @@ public class GitCommitHistoryServiceTest
 
     // then
     assertThat(sourceControlDefaultBranchCommitHistories).isNotNull();
-    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(3);
+    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(5);
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getCommitHash()).isEqualTo("EXISTING_HASH_1");
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getPolicyEvaluationId()).isNull();
     assertThat(sourceControlDefaultBranchCommitHistories.get(1).getCommitHash()).isEqualTo("EXISTING_HASH_2");
@@ -456,7 +456,7 @@ public class GitCommitHistoryServiceTest
 
     // then
     assertThat(sourceControlDefaultBranchCommitHistories).isNotNull();
-    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(4);
+    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(6);
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getCommitHash()).isEqualTo("EXISTING_HASH_1");
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getPolicyEvaluationId()).isNull();
     assertThat(sourceControlDefaultBranchCommitHistories.get(1).getCommitHash()).isEqualTo("ANOTHER_COMMIT_HASH");
@@ -484,7 +484,7 @@ public class GitCommitHistoryServiceTest
 
     // then
     assertThat(sourceControlDefaultBranchCommitHistories).isNotNull();
-    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(4);
+    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(5);
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getCommitHash()).isEqualTo("EXISTING_HASH_1");
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getPolicyEvaluationId()).isNull();
     assertThat(sourceControlDefaultBranchCommitHistories.get(2).getCommitHash()).isEqualTo("ANOTHER_COMMIT_HASH");
@@ -514,7 +514,7 @@ public class GitCommitHistoryServiceTest
 
     // then
     assertThat(sourceControlDefaultBranchCommitHistories).isNotNull();
-    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(5);
+    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(6);
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getCommitHash()).isEqualTo("EXISTING_HASH_1");
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getPolicyEvaluationId()).isNull();
     assertThat(sourceControlDefaultBranchCommitHistories.get(1).getCommitHash()).isEqualTo("ANOTHER_COMMIT_HASH");
@@ -545,7 +545,7 @@ public class GitCommitHistoryServiceTest
 
     // then
     assertThat(sourceControlDefaultBranchCommitHistories).isNotNull();
-    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(3);
+    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(5);
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getCommitHash()).isEqualTo("EXISTING_HASH_1");
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getPolicyEvaluationId()).isNull();
     assertThat(sourceControlDefaultBranchCommitHistories.get(1).getCommitHash()).isEqualTo("EXISTING_HASH_2");
@@ -577,7 +577,7 @@ public class GitCommitHistoryServiceTest
 
     // then
     assertThat(sourceControlDefaultBranchCommitHistories).isNotNull();
-    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(4);
+    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(6);
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getCommitHash()).isEqualTo("EXISTING_HASH_1");
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getPolicyEvaluationId()).isNull();
     assertThat(sourceControlDefaultBranchCommitHistories.get(1).getCommitHash()).isEqualTo("ANOTHER_COMMIT_HASH");
@@ -606,7 +606,7 @@ public class GitCommitHistoryServiceTest
 
     // then
     assertThat(sourceControlDefaultBranchCommitHistories).isNotNull();
-    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(2);
+    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(4);
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getCommitHash()).isEqualTo("EXISTING_HASH_1");
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getPolicyEvaluationId()).isNull();
     assertThat(sourceControlDefaultBranchCommitHistories.get(1).getCommitHash()).isEqualTo("EXISTING_HASH_2");
@@ -635,7 +635,7 @@ public class GitCommitHistoryServiceTest
 
     // then
     assertThat(sourceControlDefaultBranchCommitHistories).isNotNull();
-    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(5);
+    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(6);
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getCommitHash()).isEqualTo("EXISTING_HASH_1");
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getPolicyEvaluationId()).isNull();
     assertThat(sourceControlDefaultBranchCommitHistories.get(1).getCommitHash()).isEqualTo("ANOTHER_COMMIT_HASH");
@@ -682,7 +682,7 @@ public class GitCommitHistoryServiceTest
 
     // then: commit 3 is latest with policy eval and that's the only one
     assertThat(historyList).isNotNull();
-    assertThat(historyList).hasSize(1);
+    assertThat(historyList).hasSize(3);
     assertHistoryIsForCommit(historyList.get(0), orderedCommits.get("commit3"), policyEvalForCommit3);
     assertHistoryIsForCommit(newestCommitHistoryWithPolicyEval, orderedCommits.get("commit3"),
         policyEvalForCommit3);
@@ -711,7 +711,7 @@ public class GitCommitHistoryServiceTest
 
     // then
     assertThat(sourceControlDefaultBranchCommitHistories).isNotNull();
-    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(5);
+    assertThat(sourceControlDefaultBranchCommitHistories).hasSize(7);
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getCommitHash()).isEqualTo("EXISTING_HASH_1");
     assertThat(sourceControlDefaultBranchCommitHistories.get(0).getPolicyEvaluationId()).isNull();
     assertThat(sourceControlDefaultBranchCommitHistories.get(1).getCommitHash()).isEqualTo("ANOTHER_COMMIT_HASH");
@@ -759,7 +759,7 @@ public class GitCommitHistoryServiceTest
 
     // then: commit history older than commit 5 is gone and commit 5 is our most recent with a policy eval
     assertThat(historyList).isNotEmpty();
-    assertThat(historyList).hasSize(2);
+    assertThat(historyList).hasSize(6);
     assertHistoryIsForCommit(historyList.get(0), orderedCommits.get("commit6"));
     assertHistoryIsForCommit(historyList.get(1), orderedCommits.get("policyEvalCommit5"), policyEvalForCommit5);
     assertHistoryIsForCommit(newestCommitHistoryWithPolicyEval, orderedCommits.get("policyEvalCommit5"),

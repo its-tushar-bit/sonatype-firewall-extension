@@ -11,7 +11,7 @@ import PolicyViolationsTable from './PolicyViolationsTable';
 
 export const ViewAllComponentWaiversButton = ({ toggleComponentWaiversPopover }) => (
   <NxButton id="component-details-view-waivers" variant="tertiary" onClick={toggleComponentWaiversPopover}>
-    <span>View All Component Waivers</span>
+    <span>View Existing Waivers</span>
   </NxButton>
 );
 ViewAllComponentWaiversButton.propTypes = {

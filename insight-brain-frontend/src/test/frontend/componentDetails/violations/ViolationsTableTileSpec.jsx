@@ -110,7 +110,7 @@ describe('ViolationsTableTile', () => {
     });
   });
 
-  describe('View All Component Waivers button', () => {
+  describe('View Existing Waivers button', () => {
     it('is rendered if `showViewAllComponents` is true', () => {
       const component = getShallow();
       const button = component.find(ViewAllComponentWaiversButton).dive().find(NxButton);
@@ -118,7 +118,7 @@ describe('ViolationsTableTile', () => {
       expect(button).toHaveProp('id', 'component-details-view-waivers');
       expect(button).toHaveProp('variant', 'tertiary');
       expect(button).toHaveProp('onClick', minimalProps.toggleComponentWaiversPopover);
-      expect(button).toHaveText('View All Component Waivers');
+      expect(button).toHaveText('View Existing Waivers');
     });
 
     it('is not rendered if `showViewAllComponents` is false', () => {

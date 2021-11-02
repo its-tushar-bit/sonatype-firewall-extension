@@ -26,7 +26,9 @@ export const RiskRemediation = ({
   currentVersionComparisonData,
   selectedVersionComparisonData,
   resetSelectedVersionData,
+  expanded,
   ancestorOnClick,
+  toggleAncestorsList,
 }) => {
   useEffect(() => {
     loadVersionExplorerData();
@@ -51,60 +53,18 @@ export const RiskRemediation = ({
     }
   };
 
-  const overviewComponentRiskRemediationTile_contentDirectDependency = () => (
-    <div className="nx-grid-row">
-      <div className="nx-grid-col nx-grid-col--50">
-        <RecommendedVersions
-          actualVersion={currentVersion}
-          stageId={stageId}
-          remediation={remediation}
-          handleCompare={handleCompare}
-        />
-      </div>
-      <div className="nx-grid-col nx-grid-col--50">
-        <div className="nx-grid-row">
-          <div className="nx-grid-col iq-grid-col--100">
-            <VersionExplorer
-              versions={versions}
-              currentVersion={currentVersion}
-              versionClick={loadSelectedVersionData}
-              selectedVersionError={selectedVersionError}
-            />
-          </div>
-        </div>
-        <div className="nx-grid-row">
-          <div className="nx-grid-col iq-grid-col--100">
-            {currentVersionComparisonData && (
-              <CompareVersions
-                currentVersion={currentVersionComparisonData}
-                selectedVersion={selectedVersionComparisonData}
-                loading={selectedVersionLoading}
-                error={selectedVersionError}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const overviewComponentRiskRemediationTile_contentTransitiveDependency = () => (
+  const content = (
     <Fragment>
       <div className="nx-grid-row">
         <div className="nx-grid-col nx-grid-col--50">
-          <DependencyInformation ancestors={ancestors} ancestorOnClick={ancestorOnClick} />
-        </div>
-        <div className="nx-grid-col nx-grid-col--50">
-          <VersionExplorer
-            versions={versions}
-            currentVersion={currentVersion}
-            versionClick={loadSelectedVersionData}
-            selectedVersionError={selectedVersionError}
-          />
-        </div>
-      </div>
-      <div className="nx-grid-row">
-        <div className="nx-grid-col nx-grid-col--50">
+          {ancestors?.length > 0 && (
+            <DependencyInformation
+              ancestors={ancestors}
+              ancestorOnClick={ancestorOnClick}
+              toggleAncestorsList={toggleAncestorsList}
+              expanded={expanded}
+            />
+          )}
           <RecommendedVersions
             actualVersion={currentVersion}
             stageId={stageId}
@@ -113,6 +73,12 @@ export const RiskRemediation = ({
           />
         </div>
         <div className="nx-grid-col nx-grid-col--50">
+          <VersionExplorer
+            versions={versions}
+            currentVersion={currentVersion}
+            versionClick={loadSelectedVersionData}
+            selectedVersionError={selectedVersionError}
+          />
           {currentVersionComparisonData && (
             <CompareVersions
               currentVersion={currentVersionComparisonData}
@@ -149,11 +115,6 @@ export const RiskRemediation = ({
     </NxModal>
   );
 
-  const content =
-    ancestors && ancestors.length
-      ? overviewComponentRiskRemediationTile_contentTransitiveDependency()
-      : overviewComponentRiskRemediationTile_contentDirectDependency();
-
   return (
     <section id="overview-component-risk-remediation-tile" className="nx-tile iq-component-risk-remediation-tile">
       {overviewComponentRiskRemediationTile_header}
@@ -178,6 +139,8 @@ RiskRemediation.propTypes = {
   currentVersionComparisonData: PropTypes.object,
   selectedVersionComparisonData: PropTypes.object,
   ancestorOnClick: PropTypes.func,
+  toggleAncestorsList: PropTypes.func,
+  expanded: PropTypes.bool,
   versionExplorerData: PropTypes.shape({
     versions: PropTypes.array,
     remediation: RemediationPropTypes,

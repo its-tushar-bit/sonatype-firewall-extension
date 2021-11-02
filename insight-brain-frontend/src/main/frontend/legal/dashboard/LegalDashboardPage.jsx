@@ -97,6 +97,7 @@ export default function LegalDashboardPage(props) {
                   <LegalDashboardComponentsTab
                     components={components}
                     fetchBackendPage={fetchBackendPage}
+                    changeSortField={changeSortField}
                     stateGo={stateGo}
                   />
                 </div>

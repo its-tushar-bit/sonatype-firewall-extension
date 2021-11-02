@@ -22,8 +22,7 @@ function OwnerTreeViewController(
   LastSelectedOrganization,
   fuzzyFilter,
   scmOnboardingActions,
-  ProductFeatures,
-  SourceControlService
+  ProductFeatures
 ) {
   var vm = this;
 
@@ -155,17 +154,15 @@ function OwnerTreeViewController(
   }
 
   function calculateApplicationIcon(application) {
-    SourceControlService.getCompositeSourceControlRecord('application', application.id).then(function (result) {
-      if (result && result.provider && result.repositoryUrl) {
-        let icon = result.provider.value ? result.provider.value : result.provider.parentValue;
-        if (icon === 'azure') {
-          // no Font Awesome icon for Azure, use Microsoft once FA v5 is available (eg: React migration)
-          // see: https://github.com/FortAwesome/Font-Awesome/issues/14058
-          icon = 'git';
-        }
-        application.icon = icon;
+    if (application && application.provider && application.repositoryUrl) {
+      let icon = application.provider;
+      if (icon === 'azure') {
+        // no Font Awesome icon for Azure, use Microsoft once FA v5 is available (eg: React migration)
+        // see: https://github.com/FortAwesome/Font-Awesome/issues/14058
+        icon = 'git';
       }
-    });
+      application.icon = icon;
+    }
   }
 
   function redirectIfNecessary(replaceLastHistoryRecord) {

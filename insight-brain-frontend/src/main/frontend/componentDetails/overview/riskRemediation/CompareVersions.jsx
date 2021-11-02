@@ -15,7 +15,7 @@ import { SECURITY, LICENSE, QUALITY, OTHER } from './policyThreatCategory';
 
 export const CompareVersions = ({ currentVersion, selectedVersion, loading }) => {
   return (
-    <Fragment>
+    <section className="iq-compare-versions nx-grid-col__section">
       <header id="compare-versions-header" className="nx-grid-header">
         <h3 className="nx-h3 nx-grid-header__title">Compare Versions</h3>
       </header>
@@ -109,7 +109,7 @@ export const CompareVersions = ({ currentVersion, selectedVersion, loading }) =>
           </NxTable.Row>
         </NxTable.Body>
       </NxTable>
-    </Fragment>
+    </section>
   );
 };
 

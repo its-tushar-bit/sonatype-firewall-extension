@@ -1608,7 +1608,7 @@ public class ComponentInfoServiceTest
   @Test
   public void testGetComponentDetailsList_Terraform() {
     String scanId = "test";
-    String identificationSource = "Sonatype-IaC";
+    String identificationSource = "IaC";
 
     Map<String, String> coordinates = new HashMap<>();
     coordinates.put("plan", "plan.tfplan");
@@ -1634,7 +1634,7 @@ public class ComponentInfoServiceTest
 
     assertThat(componentDetailsList).isNotNull();
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
-    assertThat(componentDetails.getIdentificationSource()).isEqualTo("Sonatype-IaC");
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo("IaC");
     ComponentIdentifier componentIdentifier = componentDetails.getComponentIdentifier();
     assertThat(componentIdentifier.getFormat()).isEqualTo(ComponentIdentifier.FORMAT_TERRAFORM);
     assertThat(componentIdentifier.get("plan")).isEqualTo("plan.tfplan");

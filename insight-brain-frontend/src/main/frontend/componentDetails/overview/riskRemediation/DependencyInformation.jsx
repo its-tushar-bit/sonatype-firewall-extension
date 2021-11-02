@@ -8,18 +8,24 @@ import * as PropTypes from 'prop-types';
 
 import { AncestorsList } from './AncestorsList';
 
-export const DependencyInformation = ({ ancestors, ancestorOnClick }) => {
+export const DependencyInformation = ({ ancestors, ancestorOnClick, expanded, toggleAncestorsList }) => {
   return (
-    <section className="iq-dependency-information nx-tile">
-      <header className="nx-tile-header">
-        <h3 className="nx-h3 nx-tile-header__title">Dependency Information</h3>
+    <section className="iq-dependency-information nx-grid-col__section">
+      <header className="nx-grid-header">
+        <h3 className="nx-h3 nx-grid-header__title">Dependency Information</h3>
       </header>
-      <div className="nx-tile-content">
+      <div className="iq-grid-content">
         <p className="nx-p">
           This dependency was brought in by the component(s) listed below. Clicking on a component will take you to its
           Component Details Page.
         </p>
-        <AncestorsList ancestors={ancestors} ancestorOnClick={ancestorOnClick} />
+        <AncestorsList
+          ancestors={ancestors}
+          ancestorOnClick={ancestorOnClick}
+          toggleAncestorsList={toggleAncestorsList}
+          itemsToShow={3}
+          expanded={expanded}
+        />
       </div>
     </section>
   );

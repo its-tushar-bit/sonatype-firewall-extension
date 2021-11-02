@@ -24,7 +24,10 @@ export const selectShowMatchersPopover = createSelector(selectDetails, prop('sho
 
 export const selectSetProprietaryMatchers = createSelector(selectDetails, prop('setProprietaryMatchers'));
 
-export const selectPathnames = createSelector(selectSelectedComponent, (component) => component?.pathnames ?? []);
+export const selectFilteredPathnames = createSelector(
+  selectSelectedComponent,
+  (component) => component?.pathnames?.filter((pathname) => !/^dependency:\//.test(pathname)) ?? []
+);
 
 export const selectComponentDetailsOffspringDetails = createSelector(selectDetails, prop('offspring'));
 
@@ -70,6 +73,8 @@ export const selectComponentDetails = createSelector(
         }
       : null
 );
+
+export const selectComponentIdentificationSource = createSelector(selectComponentDetails, prop('identificationSource'));
 
 export const selectComponentName = createSelector(selectComponentDetails, prop('name'));
 

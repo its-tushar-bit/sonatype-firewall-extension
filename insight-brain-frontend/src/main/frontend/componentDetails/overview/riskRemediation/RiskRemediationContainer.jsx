@@ -10,6 +10,7 @@ import { selectCurrentRouteName } from '../../../reduxUiRouter/routerSelectors';
 import { actions } from '../overviewSlice';
 import { actions as componenDetailsActions } from '../../componentDetailsSlice';
 import {
+  selectExpanded,
   selectVersionExplorerData,
   selectSelectedVersionData,
   selectRemediationData,
@@ -31,6 +32,7 @@ function mapStateToProps(state) {
     selectedVersionData: selectSelectedVersionData(state),
     currentVersionComparisonData: selectCurrentVersionComparisonData(state),
     selectedVersionComparisonData: selectSelectedVersionComparisonData(state),
+    expanded: selectExpanded(state),
   };
 }
 
@@ -39,6 +41,7 @@ const mapDispatchToProps = {
   loadSelectedVersionData: actions.loadSelectedVersionData,
   resetSelectedVersionData: actions.resetSelectedVersionData,
   ancestorOnClick: visitAncestorAction,
+  toggleAncestorsList: actions.toggleAncestorsList,
 };
 
 export const RiskRemediationContainer = connect(mapStateToProps, mapDispatchToProps)(RiskRemediation);

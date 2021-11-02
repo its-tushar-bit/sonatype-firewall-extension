@@ -35,6 +35,9 @@ describe('TransitiveViolationsPageContainer', function () {
           scanId: 'someScanId',
           hash: 'someHash',
         },
+        prevState: {
+          name: 'somePreviousState',
+        },
       },
       transitiveViolations: {
         availableScopes: 'someAvailableScopes',
@@ -127,6 +130,23 @@ describe('TransitiveViolationsPageContainer', function () {
     expect(wrapper).toHaveProp('isViewTransitiveViolationWaiversOpen', 'someIsViewTransitiveViolationWaiversOpen');
     expect(wrapper).toHaveProp('showViolationsDetailPopover', 'someValueToShowThePopover');
     expect(wrapper).toHaveProp('waiverToDelete', 'someWaiverToDelete');
+    expect(wrapper).toHaveProp('shouldGoBackToComponentDetails', true);
+  });
+
+  it('sets shouldGoBackToComponentDetails to false if the previous state was an application report', () => {
+    const newState = {
+      ...state,
+      router: {
+        ...state.router,
+        prevState: {
+          name: 'applicationReport.policy',
+        },
+      },
+    };
+    store = configureStore()(() => newState);
+    vdom = <TransitiveViolationsPageContainer store={store} />;
+    const wrapper = shallow(vdom).dive();
+    expect(wrapper).toHaveProp('shouldGoBackToComponentDetails', false);
   });
 
   it('correctly maps the action creators to the TransitiveViolationsPageContainer props', function () {

@@ -22,7 +22,6 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
-import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -264,12 +263,14 @@ public class ThirdPartyDataService
     }
     Set<ThirdPartyVulnerability> vulnerabilities = new HashSet<>();
     for (ThirdPartyReportComponentDTO componentDTO : data.values()) {
-      if (IdentificationSource.SONATYPE_IAC.getName().equals(componentDTO.bomRow.identificationSource))  {
+      if ("Sonatype-IaC".equals(componentDTO.bomRow.identificationSource)
+          || "IaC".equals(componentDTO.bomRow.identificationSource)) {
         for (ThirdPartyHealthCheckReportSecurityRowDTO securityRow : componentDTO.securityRows) {
           ThirdPartyVulnerability thirdPartyVulnerability = new ThirdPartyVulnerability();
           thirdPartyVulnerability.setRefId(securityRow.reference);
           thirdPartyVulnerability.setDescription(securityRow.description);
           thirdPartyVulnerability.setSeverity(securityRow.score);
+          thirdPartyVulnerability.setAdvisories(securityRow.advisories);
           thirdPartyVulnerability.setVulnerabilitySource(componentDTO.bomRow.identificationSource);
           vulnerabilities.add(thirdPartyVulnerability);
         }

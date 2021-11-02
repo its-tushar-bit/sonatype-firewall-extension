@@ -3,19 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  NxButton,
-  NxFontAwesomeIcon,
-  NxStatefulSegmentedButton,
-  NxTableCell,
-  NxThreatIndicator,
-} from '@sonatype/react-shared-components';
-import { omit } from 'ramda';
+import { NxFontAwesomeIcon, NxTableCell, NxThreatIndicator } from '@sonatype/react-shared-components';
 
-import * as enzymeUtils from '../../enzymeUtils';
-import PolicyViolationsTableRow from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationsTableRow';
-import ViolationExclamation from '../../../../main/frontend/react/ViolationExclamation';
-import ActiveWaiversIndicator from '../../../../main/frontend/violation/ActiveWaiversIndicator';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import PolicyViolationsTableRow from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsTableRow';
+import ViolationExclamation from 'MainRoot/react/ViolationExclamation';
+import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
 
 describe('PolicyViolationsTableRow', () => {
   let minimalProps, getShallow, getMounted;
@@ -42,8 +35,6 @@ describe('PolicyViolationsTableRow', () => {
         applicableWaivers: [],
       },
       toggleShowViolationsDetailPopover: jasmine.createSpy('toggleShowViolationsDetailPopover'),
-      toggleAddWaiverPopover: jasmine.createSpy('toggleAddWaiverPopover'),
-      toggleRequestWaiverPopover: jasmine.createSpy('toggleRequestWaiverPopover'),
       hasPermissionToAddWaivers: true,
       setSelectedPolicyViolationId: jasmine.createSpy('setSelectedPolicyViolationId'),
     };
@@ -53,66 +44,16 @@ describe('PolicyViolationsTableRow', () => {
   });
 
   describe('clicking on a row', () => {
-    describe('makes sure the waiver button still works', () => {
-      it('clicks on a row outside of the button and calls the toggleShowViolationsDetailPopover action', () => {
-        const component = getMounted();
-        component.simulate('click');
-        expect(minimalProps.toggleShowViolationsDetailPopover).toHaveBeenCalledTimes(1);
-      });
-
-      it('clicks on the request waiver button inside of a row and the toggleShowViolationsDetailPopover action is not called', () => {
-        const component = getShallow({ hasPermissionToAddWaivers: false }),
-          buttonComponent = component.find(PolicyViolationsTableRow.waiverButtons),
-          btn = buttonComponent.dive().find(NxButton);
-        btn.simulate('click');
-        expect(minimalProps.toggleShowViolationsDetailPopover).not.toHaveBeenCalled();
-      });
-
-      it('clicks on the add waiver combo button inside of a row and the toggleShowViolationsDetailPopover action is not called', () => {
-        const component = getShallow(),
-          buttonComponent = component.find(PolicyViolationsTableRow.waiverButtons),
-          btn = buttonComponent.dive().find(NxStatefulSegmentedButton);
-        btn.simulate('click');
-        expect(minimalProps.toggleShowViolationsDetailPopover).not.toHaveBeenCalled();
-      });
+    it('calls toggleShowViolationsDetailPopover action', () => {
+      const component = getMounted();
+      component.simulate('click');
+      expect(minimalProps.toggleShowViolationsDetailPopover).toHaveBeenCalledTimes(1);
     });
 
-    describe('calls setSelectedPolicyViolationId action', () => {
-      it('when clicking outside a button', () => {
-        const component = getMounted();
-        component.simulate('click');
-        expect(minimalProps.setSelectedPolicyViolationId).toHaveBeenCalled();
-      });
-
-      it('when clicking on the add waiver combo button', () => {
-        const component = getMounted(),
-          buttonComponent = component.find(PolicyViolationsTableRow.waiverButtons),
-          btn = buttonComponent.find(NxStatefulSegmentedButton);
-        btn.simulate('click');
-        expect(minimalProps.setSelectedPolicyViolationId).toHaveBeenCalled();
-      });
-
-      it('when clicking on the request waiver button', () => {
-        const component = getMounted({ hasPermissionToAddWaivers: false }),
-          buttonComponent = component.find(PolicyViolationsTableRow.waiverButtons),
-          btn = buttonComponent.find(NxButton);
-        btn.simulate('click');
-        expect(minimalProps.setSelectedPolicyViolationId).toHaveBeenCalled();
-      });
-
-      it('when clicking on the trigger button of the actions combo', () => {
-        let component = getMounted(),
-          buttonComponent = component.find(PolicyViolationsTableRow.waiverButtons),
-          btn = buttonComponent.find(NxStatefulSegmentedButton),
-          dropdownTrigger = btn.find(NxFontAwesomeIcon); // trigger for the segmented button
-        dropdownTrigger.simulate('click');
-
-        component.update();
-        buttonComponent = component.find(PolicyViolationsTableRow.waiverButtons);
-        const requestWaiverOption = buttonComponent.find('.nx-dropdown-button');
-        requestWaiverOption.simulate('click');
-        expect(minimalProps.setSelectedPolicyViolationId).toHaveBeenCalled();
-      });
+    it('calls setSelectedPolicyViolationId action', () => {
+      const component = getMounted();
+      component.simulate('click');
+      expect(minimalProps.setSelectedPolicyViolationId).toHaveBeenCalled();
     });
   });
 
@@ -220,83 +161,6 @@ describe('PolicyViolationsTableRow', () => {
   });
 
   describe('renders a cell for the waivers actions buttons and relevant indicators', () => {
-    describe('renders buttons to apply waiver actions', () => {
-      const getShallowButtons = (additionalProps) => {
-        const component = getShallow(additionalProps),
-          rowCells = component.find(NxTableCell),
-          waiversAndGrandfatheringCell = rowCells.at(4);
-
-        return waiversAndGrandfatheringCell.find(PolicyViolationsTableRow.waiverButtons);
-      };
-
-      it('does not render an add waiver btn if the violation is grandfathered', () => {
-        const shallowButtonsComponent = getShallowButtons({
-          violation: { ...minimalProps.violation, grandfathered: true },
-        });
-        expect(shallowButtonsComponent.dive().children().length).toEqual(0);
-      });
-
-      it('does not render an add waiver btn if the violation is waived', () => {
-        const shallowButtonsComponent = getShallowButtons({ violation: { ...minimalProps.violation, waived: true } });
-        expect(shallowButtonsComponent.dive().children().length).toEqual(0);
-      });
-
-      it('does not render an add waiver btn if the violation has unapplied waivers', () => {
-        const shallowButtonsComponent = getShallowButtons({
-          violation: { ...minimalProps.violation, waived: false, applicableWaivers: ['waiver1'] },
-        });
-        expect(shallowButtonsComponent.dive().children().length).toEqual(0);
-      });
-
-      it('renders a request waiver button if the violation is not remediated but the user has no permission to add waivers', () => {
-        const shallowButtonsComponent = getShallowButtons({
-          hasPermissionToAddWaivers: false,
-        });
-        const requestWaiverButton = shallowButtonsComponent.dive().find(NxButton);
-        expect(requestWaiverButton).toExist();
-        expect(requestWaiverButton).toHaveText('Request Waiver');
-        requestWaiverButton.simulate('click');
-        expect(minimalProps.toggleRequestWaiverPopover).toHaveBeenCalled();
-      });
-
-      it('renders an add waiver segmented button if the violation is not remediated and the user has permission to add waivers', () => {
-        const shallowButtonsComponent = getShallowButtons();
-        const addWaiverSegmentedButton = shallowButtonsComponent.dive().find(NxStatefulSegmentedButton);
-        expect(addWaiverSegmentedButton).toExist();
-        expect(addWaiverSegmentedButton).toHaveProp('buttonContent', 'Add Waiver');
-        expect(addWaiverSegmentedButton).toHaveProp('disabled', false);
-
-        addWaiverSegmentedButton.simulate('click');
-        expect(minimalProps.toggleAddWaiverPopover).toHaveBeenCalled();
-
-        const secondaryOption = addWaiverSegmentedButton.find('button');
-        expect(secondaryOption).toHaveText('Request Waiver');
-        secondaryOption.simulate('click');
-        expect(minimalProps.toggleRequestWaiverPopover).toHaveBeenCalled();
-      });
-
-      it('renders a disabled add waiver segmented button if the violation is missing policyViolationId', () => {
-        const shallowButtonsComponent = getShallowButtons({
-            violation: omit(['policyViolationId'], minimalProps.violation),
-          }),
-          addWaiverSegmentedButton = shallowButtonsComponent.dive().find(NxStatefulSegmentedButton);
-
-        expect(addWaiverSegmentedButton).toExist();
-        expect(addWaiverSegmentedButton).toHaveProp('disabled', true);
-      });
-
-      it('renders a tooltip when hovering over the disabled add waivers button if the violation is missing policyViolationId', () => {
-        const shallowButtonsComponent = getShallowButtons({
-            violation: omit(['policyViolationId'], minimalProps.violation),
-          }),
-          addWaiverSegmentedButton = shallowButtonsComponent.dive().find(NxStatefulSegmentedButton);
-
-        // Since we have a wrapper div to help display the tooltip with need the parent above it
-        const upperTooltip = addWaiverSegmentedButton.parents().at(1);
-        expect(upperTooltip).toHaveProp('title', 'Re-evaluate this report to enable waivers functionality.');
-      });
-    });
-
     describe('renders indicators according to grandfathering and waivers', () => {
       const getShallowIndicators = (additionalProps) => {
         const component = getShallow(additionalProps),

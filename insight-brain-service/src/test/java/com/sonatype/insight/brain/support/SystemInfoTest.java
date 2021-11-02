@@ -121,10 +121,10 @@ public class SystemInfoTest
 
   @Test
   public void testIsSensitiveKey() {
-    assertThat(systemInfo.isSensitiveKey("myPasswordLikePropertyName")).isTrue();
-    assertThat(systemInfo.isSensitiveKey("myPassPhrasePropertyName")).isTrue();
-    assertThat(systemInfo.isSensitiveKey("normalProp")).isFalse();
-    assertThat(systemInfo.isSensitiveKey("")).isFalse();
+    assertThat(SystemInfo.isSensitiveKey("myPasswordLikePropertyName")).isTrue();
+    assertThat(SystemInfo.isSensitiveKey("myPassPhrasePropertyName")).isTrue();
+    assertThat(SystemInfo.isSensitiveKey("normalProp")).isFalse();
+    assertThat(SystemInfo.isSensitiveKey("")).isFalse();
   }
 
   @Test

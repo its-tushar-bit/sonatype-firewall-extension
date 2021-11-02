@@ -39,6 +39,7 @@ export default function TransitiveViolationsPage(props) {
     isWaiveTransitiveViolationsOpen,
     isViewTransitiveViolationWaiversOpen,
     showViolationsDetailPopover,
+    shouldGoBackToComponentDetails,
     loadAvailableScopes,
     loadTransitiveViolations,
     setSortingParameters,
@@ -66,6 +67,13 @@ export default function TransitiveViolationsPage(props) {
   const routerState = useRouterState();
 
   const getBackHref = () => {
+    if (shouldGoBackToComponentDetails) {
+      return routerState.href(routerState.get('applicationReport.componentDetails.violations'), {
+        publicId: ownerId,
+        scanId: scanId,
+        hash: hash,
+      });
+    }
     return routerState.href(routerState.get('applicationReport.policy'), {
       publicId: ownerId,
       scanId: scanId,
@@ -175,6 +183,7 @@ TransitiveViolationsPage.propTypes = {
   isWaiveTransitiveViolationsOpen: PropTypes.bool.isRequired,
   isViewTransitiveViolationWaiversOpen: PropTypes.bool.isRequired,
   showViolationsDetailPopover: PropTypes.bool.isRequired,
+  shouldGoBackToComponentDetails: PropTypes.bool.isRequired,
   loadAvailableScopes: PropTypes.func.isRequired,
   loadTransitiveViolations: PropTypes.func.isRequired,
   setSortingParameters: PropTypes.func.isRequired,

@@ -70,6 +70,7 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
             comments: {},
             loading: true,
             loadError: '',
+            saveError: 'save error',
           },
         });
 
@@ -97,6 +98,7 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
           comments: {},
           loading: false,
           loadError: null,
+          saveError: null,
         });
       }
     );
@@ -240,6 +242,7 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
         showVulnerabilityDetailPopover: false,
         vulnerabilitySecurityOverride: {
           status: 'status 2',
+          saveError: 'save error',
           comments: { value: 'associated comment', trimmedValue: 'associated comment', isPristine: false },
         },
       });
@@ -252,6 +255,7 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
       expect(newState.showVulnerabilityDetailPopover).toBe(true);
       expect(newState.selectedRefId).toBe('1');
       expect(newState.vulnerabilitySecurityOverride.status).toEqual('');
+      expect(newState.vulnerabilitySecurityOverride.saveError).toBe(null);
       expect(newState.vulnerabilitySecurityOverride.comments).toEqual({
         value: '',
         trimmedValue: '',
@@ -382,6 +386,7 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
           selectedRefId: '4',
           vulnerabilitySecurityOverride: {
             submitMaskState: false,
+            saveError: 'save error',
             comments: { value: 'some previous value', trimmedValue: 'some previous value' },
           },
           vulnerabilities: {
@@ -400,6 +405,7 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
         });
         expect(newState.vulnerabilities.data).toEqual([{ refId: '4', status: 'Not Applicable' }]);
         expect(newState.vulnerabilitySecurityOverride.submitMaskState).toBe(true);
+        expect(newState.vulnerabilitySecurityOverride.saveError).toBe(null);
         expect(newState.vulnerabilitySecurityOverride.comments).toEqual({
           value: 'This comment comes from the server',
           trimmedValue: 'This comment comes from the server',

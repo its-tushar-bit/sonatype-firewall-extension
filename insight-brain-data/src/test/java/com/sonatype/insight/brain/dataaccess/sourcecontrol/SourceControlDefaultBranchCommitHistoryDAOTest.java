@@ -199,50 +199,6 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
   }
 
   @Test
-  public void testDeleteByApplicationIdBeforeCommitTime() {
-    // given : a set of commit history entries, some linked to a policy evaluation, some not, and some for a different
-    //         application
-    String policyEvaluationId =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan", "commit1")
-        .getId();
-    tempEntity.newSourceControlDefaultBranchCommitHistory(
-        application.getId(), "commit1", createTime(-75), policyEvaluationId);
-    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit2", createTime(-70), null);
-    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit3", createTime(-90), null);
-    Date cutoffDateTime = createTime(-30);
-    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit4", cutoffDateTime, null);
-    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit5", createTime(-20), null);
-    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit6", createTime(-220), null);
-    Application app2 = tempEntity.newApplication("app2", organization.getId());
-    tempEntity.newSourceControlDefaultBranchCommitHistory(app2.getId(), "commit7", createTime(-180), null);
-    tempEntity.newSourceControlDefaultBranchCommitHistory(app2.getId(), "commit8", createTime(-120), null);
-
-    // when : fetch all entries for first application
-    List<SourceControlDefaultBranchCommitHistory> commitHistoryList =
-        defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
-
-    // then : all entries for given app and count is correct
-    assertThat(commitHistoryList.size()).isEqualTo(6);
-    commitHistoryList.forEach(entry -> assertThat(entry.getApplicationId()).isEqualTo(application.getId()));
-
-    // when : delete entries for first application older than cutoff date
-    defaultBranchCommitHistoryDAO.deleteByApplicationIdBeforeCommitTime(application.getId(), cutoffDateTime);
-
-    // then : history older than cutoff time not in results for first application
-    commitHistoryList = defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
-    assertThat(commitHistoryList.size()).isEqualTo(2);
-    commitHistoryList.forEach(entry -> {
-      assertThat(entry.getApplicationId()).isEqualTo(application.getId());
-      assertThat(entry.getCommitTime()).isAfterOrEqualTo(cutoffDateTime);
-    });
-
-    // and : history for app2 not affected
-    commitHistoryList = defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(app2.getId());
-    assertThat(commitHistoryList.size()).isEqualTo(2);
-    commitHistoryList.forEach(entry -> assertThat(entry.getApplicationId()).isEqualTo(app2.getId()));
-  }
-
-  @Test
   public void testInsert_invalidInputs() {
     // when : try to insert with invalid app
     Throwable thrown = catchThrowable(() -> tempEntity.newSourceControlDefaultBranchCommitHistory(

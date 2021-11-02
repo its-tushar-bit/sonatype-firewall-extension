@@ -23,7 +23,7 @@
     "lastModifiedTime" : null,
     "lastModifiedEntryTime" : null,
     "website" : null,
-    "identificationSource" : "Sonatype-IaC",
+    "identificationSource" : "IaC",
     "componentCategories" : [ {
       "componentCategoryId" : 113,
       "path" : "Other"
@@ -79,7 +79,7 @@
     "lastModifiedTime" : null,
     "lastModifiedEntryTime" : null,
     "website" : null,
-    "identificationSource" : "Sonatype-IaC",
+    "identificationSource" : "IaC",
     "componentCategories" : [ {
       "componentCategoryId" : 113,
       "path" : "Other"

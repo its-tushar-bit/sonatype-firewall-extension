@@ -34,5 +34,9 @@ public class OwnerListDTO
     public String organizationId;
 
     public String name;
+
+    public String provider;
+
+    public String repositoryUrl;
   }
 }

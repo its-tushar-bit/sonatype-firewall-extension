@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import * as enzymeUtils from '../../enzymeUtils';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import { NxFieldset, NxForm, NxRadio, NxTextInput, NxThreatIndicator } from '@sonatype/react-shared-components';
 import EditLicensesForm from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesForm';
 
@@ -39,6 +39,7 @@ describe('EditLicensesForm', () => {
       setLicenseScope: setLicenseScopeSpy,
       setLicenseComment: setLicenseCommentSpy,
       setSelectedLicenses: setSelectedLicensesSpy,
+      identificationSource: 'Sonatype',
       status: 'ACKNOWLEDGED',
       comment: {
         isPristine: true,
@@ -149,6 +150,24 @@ describe('EditLicensesForm', () => {
       expect(declaredlicenses.text()).toContain('Apache-2.0');
       expect(observedlicenses.text()).toContain('No Sources');
       expect(effectiveLicenses.text()).toContain('Apache-2.0');
+    });
+
+    it('renders Not Provided as license name if component was claimed', () => {
+      const component = getShallowComponent({
+        effectiveLicenses: [{ license: { licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' }, threatLevel: 5 }],
+        declaredlicenses: [{ license: { licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' }, threatLevel: 5 }],
+        observedlicenses: [{ license: { licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' }, threatLevel: 5 }],
+        identificationSource: 'Manual',
+      });
+      const ddList = component.find('dd'),
+        declaredlicenses = ddList.at(0),
+        observedlicenses = ddList.at(1),
+        effectiveLicenses = ddList.at(2);
+
+      expect(ddList.length).toBe(3);
+      expect(declaredlicenses.text()).toContain('Not Provided (Claimed Component)');
+      expect(observedlicenses.text()).toContain('Not Provided (Claimed Component)');
+      expect(effectiveLicenses.text()).toContain('Not Provided');
     });
 
     it('renders license <NxThreatIndicator/>', () => {

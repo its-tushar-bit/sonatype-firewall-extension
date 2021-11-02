@@ -42,6 +42,7 @@ public class LegalDashboardPageTest
   }
 
   private void addComponentAndLicenses(
+          Application application,
           String groupId,
           String artifactId,
           String version,
@@ -51,7 +52,7 @@ public class LegalDashboardPageTest
     final ComponentIdentifier componentIdentifier =
             ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
     final ApplicationComponent applicationComponent =
-            tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash,
+            tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, hash,
                     componentIdentifier);
     Arrays.stream(licenseIds)
             .forEach(licenseId -> tempEntity.newApplicationComponentLicense(applicationComponent.getId(), licenseId));
@@ -60,12 +61,27 @@ public class LegalDashboardPageTest
   @Before
   public void start() {
     app = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName(), "app", "org");
+    Application app1 = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName() + "1",
+            "app1", "org1");
+    Application app2 = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName() + "2",
+            "app2", "org2");
+    Application[] apps = {app, app1, app2};
+    String[] licenses = {"Apache-1.0", "MIT", "Apache-2.0", "Better-Cms-LA", "BSL-1.0", "CC-BY-NC-3.0", "CMRL-1.0",
+        "GPL-2.0+-LGPL-3.0+", "GreenSock-Commercial-License", "Gridifier-Developer-LA", 
+        "Grammatica-BSD-3-Clause-Variant"};
+    ComponentIdentifier[] componentIdentifiers = new ComponentIdentifier[licenses.length];
 
-    for (int i = 1; i < 12; i++) {
-      addComponentAndLicenses("org.package", "component" + i, i + ".0", "hash" + i, "Apache-2.0");
-      tempEntity.newComponentObligation(ComponentIdentifier
-                      .createMavenCoordinates("org.package", "component" + i, i + ".0"),
-              app.getId(), "Inclusion of Notice", "comment", ObligationStatus.FULFILLED, "hash" + i);
+    for (int i = 1; i < 21; i++) {
+      addComponentAndLicenses(apps[ i % apps.length ], "org.package", "component",
+              (i % licenses.length + 1 ) + ".0", "hash" + (i % licenses.length + 1), licenses[ i % licenses.length ]);
+
+      componentIdentifiers[ i % licenses.length ] = componentIdentifiers[ i % licenses.length ] != null ?
+              componentIdentifiers[ i % licenses.length ] : ComponentIdentifier
+                .createMavenCoordinates("org.package", "component", (i % licenses.length + 1) + ".0");
+
+      tempEntity.newComponentObligation(
+              componentIdentifiers[ i % licenses.length ], apps[ i % apps.length ].getId(),
+              "Inclusion of Notice", "comment", ObligationStatus.FULFILLED, "hash" + i);
     }
   }
 
@@ -89,7 +105,7 @@ public class LegalDashboardPageTest
     ldp.componentsTab().click();
     ldp.componentsTab().shouldHave(Condition.cssClass("active"));
     Wait<WebDriver> wait = getWebDriverAwait();
-    wait.until(ExpectedConditions.visibilityOf(ldp.componentItems().get(0)));
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
   }
 
   @Test
@@ -97,7 +113,7 @@ public class LegalDashboardPageTest
     refreshOrOpen(LegalDashboardPage.url(true));
     LegalDashboardPage ldp = new LegalDashboardPage();
     this.changeToComponentsTab(ldp);
-    ldp.componentItems().shouldHaveSize(10);
+    ldp.tableRows().shouldHaveSize(10);
   }
 
   @Test
@@ -105,24 +121,74 @@ public class LegalDashboardPageTest
     refreshOrOpen(LegalDashboardPage.url(true));
     LegalDashboardPage ldp = new LegalDashboardPage();
     this.changeToComponentsTab(ldp);
-    ldp.componentItems().shouldHaveSize(10);
-    ldp.componentItems().get(0).click();
+    ldp.tableRows().shouldHaveSize(10);
+    ldp.tableRows().get(0).click();
     waitUntilUrl(BaseUrl.resolvePageUrl("/legal/component/hash1"));
   }
 
-  @Test public void testPaginationIsPresent() {
+  @Test
+  public void testComponentsPaginationIsPresent() {
     refreshOrOpen(LegalDashboardPage.url(true));
     LegalDashboardPage ldp = new LegalDashboardPage();
     this.changeToComponentsTab(ldp);
     ldp.pageButtons().shouldHaveSize(2);
   }
 
-  @Test public void testPaginationNextPage() {
+  @Test
+  public void testComponentsPaginationNextPage() {
     refreshOrOpen(LegalDashboardPage.url(true));
     LegalDashboardPage ldp = new LegalDashboardPage();
     this.changeToComponentsTab(ldp);
     ldp.pageButtons().get(1).should(Condition.exist);
     ldp.pageButtons().get(1).click();
-    ldp.componentItems().shouldHaveSize(1);
+    ldp.tableRows().shouldHaveSize(1);
+  }
+
+  @Test
+  public void testComponentsTableSortingByComponentName() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+
+    ldp.componentsTableComponentNameCols().get(0).shouldHave(Condition.text("org.package : component : 1.0"));
+    ldp.componentsTableComponentNameHeader().shouldHave(Condition.attribute("aria-sort", "none"));
+    ldp.componentsTableComponentNameHeaderSortBtn().click();
+    ldp.componentsTableComponentNameCols().get(0).shouldHave(Condition.text("org.package : component : 1.0"));
+    ldp.componentsTableComponentNameHeader().shouldHave(Condition.attribute("aria-sort", "ascending"));
+    ldp.componentsTableComponentNameHeaderSortBtn().click();
+    ldp.componentsTableComponentNameCols().get(0).shouldHave(Condition.text("org.package : component : 9.0"));
+    ldp.componentsTableComponentNameHeader().shouldHave(Condition.attribute("aria-sort", "descending"));
+  }
+
+  @Test
+  public void testComponentsTableSortingByLicenseName() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+
+    ldp.componentsTableLicenseNameCols().get(0).shouldHave(Condition.text("Apache-1.0"));
+    ldp.componentsTableLicenseNameHeader().shouldHave(Condition.attribute("aria-sort", "none"));
+    ldp.componentsTableLicenseNameHeaderSortBtn().click();
+    ldp.componentsTableLicenseNameCols().get(0).shouldHave(Condition.text("Apache-1.0"));
+    ldp.componentsTableLicenseNameHeader().shouldHave(Condition.attribute("aria-sort", "ascending"));
+    ldp.componentsTableLicenseNameHeaderSortBtn().click();
+    ldp.componentsTableLicenseNameCols().get(0).shouldHave(Condition.text("MIT"));
+    ldp.componentsTableLicenseNameHeader().shouldHave(Condition.attribute("aria-sort", "descending"));
+  }
+
+  @Test
+  public void testComponentsTableSortingByApplicationCount() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+
+    ldp.componentsTableApplicationCountCols().get(0).shouldHave(Condition.text("1"));
+    ldp.componentsTableApplicationCountHeader().shouldHave(Condition.attribute("aria-sort", "none"));
+    ldp.componentsTableApplicationCountHeaderSortBtn().click();
+    ldp.componentsTableApplicationCountCols().get(0).shouldHave(Condition.text("1"));
+    ldp.componentsTableApplicationCountHeader().shouldHave(Condition.attribute("aria-sort", "ascending"));
+    ldp.componentsTableApplicationCountHeaderSortBtn().click();
+    ldp.componentsTableApplicationCountCols().get(0).shouldHave(Condition.text("2"));
+    ldp.componentsTableApplicationCountHeader().shouldHave(Condition.attribute("aria-sort", "descending"));
   }
 }

@@ -46,7 +46,10 @@ export default function EditLicensesForm({
   availableLicenseScopes,
   submitError,
   submitMaskState,
+  identificationSource,
 }) {
+  const isClaimed = identificationSource === 'Manual';
+
   const handleScopeChange = (selectedId) => {
     const targetScope = find(propEq('ownerId', selectedId), availableLicenseScopes);
 
@@ -147,15 +150,15 @@ export default function EditLicensesForm({
       <dl className="nx-read-only">
         <dt className="nx-read-only__label">Declared Licenses</dt>
         <dd className="nx-read-only__data" id="declared-licenses-container">
-          {renderLicensesList(declaredlicenses)}
+          {renderLicensesList(declaredlicenses, isClaimed)}
         </dd>
         <dt className="nx-read-only__label">Observed Licenses</dt>
         <dd className="nx-read-only__data " id="observed-licenses-container">
-          {renderLicensesList(observedlicenses)}
+          {renderLicensesList(observedlicenses, isClaimed)}
         </dd>
         <dt className="nx-read-only__label">Effective Licenses</dt>
         <dd className="nx-read-only__data" id="effective-licenses-container">
-          {renderLicensesList(effectiveLicenses)}
+          {renderLicensesList(effectiveLicenses, isClaimed, true)}
         </dd>
       </dl>
     </section>

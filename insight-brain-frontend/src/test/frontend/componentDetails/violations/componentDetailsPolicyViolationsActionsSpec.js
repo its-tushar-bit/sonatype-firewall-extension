@@ -6,7 +6,11 @@
 import axios from 'axios';
 
 import { actions } from '../../../../main/frontend/componentDetails/ViolationsTableTile/policyViolationsSlice';
-import { getComponentWaivers, getReportPolicyThreatsUrl } from '../../../../main/frontend/util/CLMLocation';
+import {
+  getComponentWaivers,
+  getProductFeaturesUrl,
+  getReportPolicyThreatsUrl,
+} from '../../../../main/frontend/util/CLMLocation';
 import { omit } from 'ramda';
 import { getPermissionContextTestUrl } from '../../../../main/frontend/util/CLMContextLocation';
 
@@ -36,6 +40,7 @@ describe('componentDetailsPolicyViolationsActions', () => {
         get: {
           [getReportPolicyThreatsUrl('appPublicId', 'currentScanId')]: Promise.resolve({}),
           [getComponentWaivers('application', 'appPublicId', 'currentComponentHash')]: Promise.resolve({}),
+          [getProductFeaturesUrl()]: Promise.resolve({ data: [] }),
         },
         put: {
           [getPermissionContextTestUrl('application', 'internalAppId')]: Promise.resolve({
@@ -50,11 +55,12 @@ describe('componentDetailsPolicyViolationsActions', () => {
       expect(actions).toHaveAction({
         type: 'componentDetailsPolicyViolations/load/pending',
       });
-      expect(axios.get).toHaveBeenCalledTimes(2);
+      expect(axios.get).toHaveBeenCalledTimes(3);
       expect(axios.get).toHaveBeenCalledWith('/rest/report/appPublicId/currentScanId/browseReport/policythreats.json');
       expect(axios.get).toHaveBeenCalledWith(
         '/rest/policyWaiver/application/appPublicId/component/currentComponentHash'
       );
+      expect(axios.get).toHaveBeenCalledWith('/rest/product/features');
     });
 
     it('dispatches a componentDetailsPolicyViolations/load/fulfilled action after successful requests', (done) => {
@@ -66,6 +72,7 @@ describe('componentDetailsPolicyViolationsActions', () => {
           [getComponentWaivers('application', 'appPublicId', 'currentComponentHash')]: Promise.resolve({
             data: waiversData,
           }),
+          [getProductFeaturesUrl()]: Promise.resolve({ data: [] }),
         },
         put: {
           [getPermissionContextTestUrl('application', 'internalAppId')]: Promise.resolve({
@@ -83,6 +90,47 @@ describe('componentDetailsPolicyViolationsActions', () => {
           violationsResult: violationData,
           waiversResult: waiversData,
           permissionResult: false,
+          innerSourceTransitiveWaiver: false,
+          hash: 'currentComponentHash',
+        },
+      };
+
+      store.dispatch(load()).then(() => {
+        // Remove metadata and custom error information from redux toolkit before comparisons
+        const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
+        expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFulfilledAction]);
+        done();
+      });
+    });
+
+    it('sets innerSourceTransitiveWaiver to true if the features includes it', (done) => {
+      const violationData = [{ policyViolationId: 'violation1' }];
+      const waiversData = [{ id: 'waiver1' }];
+      mockAxiosCalls({
+        get: {
+          [getReportPolicyThreatsUrl('appPublicId', 'currentScanId')]: Promise.resolve({ data: violationData }),
+          [getComponentWaivers('application', 'appPublicId', 'currentComponentHash')]: Promise.resolve({
+            data: waiversData,
+          }),
+          [getProductFeaturesUrl()]: Promise.resolve({ data: ['inner-source-transitive-waiver'] }),
+        },
+        put: {
+          [getPermissionContextTestUrl('application', 'internalAppId')]: Promise.resolve({
+            data: [],
+          }),
+        },
+      });
+
+      const expectedPendingAction = {
+        type: 'componentDetailsPolicyViolations/load/pending',
+      };
+      const expectedFulfilledAction = {
+        type: 'componentDetailsPolicyViolations/load/fulfilled',
+        payload: {
+          violationsResult: violationData,
+          waiversResult: waiversData,
+          permissionResult: false,
+          innerSourceTransitiveWaiver: true,
           hash: 'currentComponentHash',
         },
       };
@@ -102,6 +150,7 @@ describe('componentDetailsPolicyViolationsActions', () => {
           [getComponentWaivers('application', 'appPublicId', 'currentComponentHash')]: Promise.resolve({
             data: [{ id: 'waiver1' }],
           }),
+          [getProductFeaturesUrl()]: Promise.resolve({ data: [] }),
         },
         put: {
           [getPermissionContextTestUrl('application', 'internalAppId')]: Promise.resolve({

@@ -12,7 +12,6 @@ import {
   selectComponentDetailsViolationsSlice,
   selectComponentViolations,
   selectComponentWaivers,
-  selectSelectedViolationDetail,
 } from './PolicyViolationsSelectors';
 import {
   selectComponentName,
@@ -21,6 +20,8 @@ import {
 } from '../componentDetailsSelectors';
 import { actions as componentDetailsActions } from '../componentDetailsSlice';
 import { setWaiverToDelete } from '../../waivers/waiverActions';
+import { stateGo } from '../../reduxUiRouter/routerActions';
+import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 function mapStateToProps(state) {
   const {
@@ -28,12 +29,17 @@ function mapStateToProps(state) {
     loadError,
     showComponentWaiversPopover,
     showViolationsDetailPopover,
-    showAddWaiverPopover,
-    showRequestWaiverPopover,
-    hasPermissionToAddWaivers,
+    innerSourceTransitiveWaiver,
   } = selectComponentDetailsViolationsSlice(state);
   const isLoadingComponentDetails = selectComponentDetailsLoading(state);
   const componentDetailsLoadError = selectComponentDetailsLoadErrors(state);
+  const component = selectSelectedComponent(state);
+  const showViewTransitiveViolations = !!(
+    innerSourceTransitiveWaiver &&
+    component &&
+    component.componentIdentifier &&
+    component.innerSource
+  );
 
   return {
     isLoadingComponentDetails,
@@ -41,15 +47,15 @@ function mapStateToProps(state) {
     violations: selectComponentViolations(state),
     waivers: selectComponentWaivers(state),
     componentName: selectComponentName(state),
-    selectedViolationDetail: selectSelectedViolationDetail(state),
     loading,
     error: loadError,
     ...pick(['waiverToDelete'], state.deleteWaiver),
     showComponentWaiversPopover,
     showViolationsDetailPopover,
-    showAddWaiverPopover,
-    showRequestWaiverPopover,
-    hasPermissionToAddWaivers,
+    showViewTransitiveViolations,
+    ownerType: 'application',
+    ownerId: state.router.currentParams.publicId,
+    ...pick(['scanId', 'hash'], state.router.currentParams),
   };
 }
 
@@ -58,11 +64,10 @@ const mapDispatchToProps = {
   loadPolicyViolationsInformation: actions.load,
   toggleComponentWaiversPopover: actions.toggleComponentWaiversPopover,
   toggleShowViolationsDetailPopover: actions.toggleShowViolationsDetailPopover,
-  toggleAddWaiverPopover: actions.toggleAddWaiverPopover,
-  toggleRequestWaiverPopover: actions.toggleRequestWaiverPopover,
   setSelectedPolicyViolationId: actions.setSelectedPolicyViolationId,
   setViolationType: actions.setViolationType,
   setWaiverToDelete,
+  stateGo,
 };
 
 export const ViolationsTableTileContainer = connect(mapStateToProps, mapDispatchToProps)(ViolationsTableTile);

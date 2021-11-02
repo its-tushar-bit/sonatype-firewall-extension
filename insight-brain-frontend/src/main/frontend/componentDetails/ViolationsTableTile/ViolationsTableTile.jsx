@@ -11,11 +11,35 @@ import PolicyViolationsTable from './PolicyViolationsTable';
 
 export const ViewAllComponentWaiversButton = ({ toggleComponentWaiversPopover }) => (
   <NxButton id="component-details-view-waivers" variant="tertiary" onClick={toggleComponentWaiversPopover}>
-    <span>View All Component Waivers</span>
+    <span>View Existing Waivers</span>
   </NxButton>
 );
 ViewAllComponentWaiversButton.propTypes = {
   toggleComponentWaiversPopover: PropTypes.func.isRequired,
+};
+
+export const ViewTransitiveViolationsButton = ({ stateGo, ownerType, ownerId, scanId, hash }) => (
+  <NxButton
+    id="component-details-view-transitive-violations"
+    variant="tertiary"
+    onClick={() => {
+      stateGo('transitiveViolations', {
+        ownerType: ownerType,
+        ownerId: ownerId,
+        scanId: scanId,
+        hash: hash,
+      });
+    }}
+  >
+    <span>View Transitive Violations</span>
+  </NxButton>
+);
+ViewTransitiveViolationsButton.propTypes = {
+  stateGo: PropTypes.func.isRequired,
+  ownerType: PropTypes.string.isRequired,
+  ownerId: PropTypes.string.isRequired,
+  scanId: PropTypes.string.isRequired,
+  hash: PropTypes.string.isRequired,
 };
 
 export default function ViolationsTableTile({
@@ -26,6 +50,12 @@ export default function ViolationsTableTile({
   setViolationType,
   title,
   showViewAllComponents,
+  showViewTransitiveViolations,
+  stateGo,
+  ownerType,
+  ownerId,
+  scanId,
+  hash,
   ...tableProps
 }) {
   useEffect(() => {
@@ -40,9 +70,20 @@ export default function ViolationsTableTile({
             {title}
           </h2>
         </div>
-        {showViewAllComponents && (
+        {(showViewAllComponents || showViewTransitiveViolations) && (
           <div className="nx-tile__actions">
-            <ViewAllComponentWaiversButton toggleComponentWaiversPopover={tableProps.toggleComponentWaiversPopover} />
+            {showViewTransitiveViolations && (
+              <ViewTransitiveViolationsButton
+                stateGo={stateGo}
+                ownerType={ownerType}
+                ownerId={ownerId}
+                scanId={scanId}
+                hash={hash}
+              />
+            )}
+            {showViewAllComponents && (
+              <ViewAllComponentWaiversButton toggleComponentWaiversPopover={tableProps.toggleComponentWaiversPopover} />
+            )}
           </div>
         )}
       </header>
@@ -66,6 +107,12 @@ ViolationsTableTile.propTypes = {
   violationType: PropTypes.string,
   setViolationType: PropTypes.func.isRequired,
   showViewAllComponents: PropTypes.bool,
+  showViewTransitiveViolations: PropTypes.bool.isRequired,
+  stateGo: PropTypes.func.isRequired,
+  ownerType: PropTypes.string.isRequired,
+  ownerId: PropTypes.string.isRequired,
+  scanId: PropTypes.string.isRequired,
+  hash: PropTypes.string.isRequired,
   title: PropTypes.string,
   ...PolicyViolationsTable.propTypes,
 };

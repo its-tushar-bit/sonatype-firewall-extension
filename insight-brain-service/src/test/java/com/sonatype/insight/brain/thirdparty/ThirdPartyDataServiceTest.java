@@ -233,6 +233,7 @@ public class ThirdPartyDataServiceTest
     ThirdPartyVulnerability vulnerability =
         new ThirdPartyVulnerabilityDAO().getByRefId(dto.securityRows.get(0).reference);
     assertThat(vulnerability).isNotNull();
+    assertThat(vulnerability.getAdvisories()).isEqualTo("https://docs.fugue.co/FG_R00229.html");
   }
 
   @Test

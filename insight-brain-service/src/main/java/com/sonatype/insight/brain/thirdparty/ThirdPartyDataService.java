@@ -270,6 +270,7 @@ public class ThirdPartyDataService
           thirdPartyVulnerability.setRefId(securityRow.reference);
           thirdPartyVulnerability.setDescription(securityRow.description);
           thirdPartyVulnerability.setSeverity(securityRow.score);
+          thirdPartyVulnerability.setAdvisories(securityRow.advisories);
           thirdPartyVulnerability.setVulnerabilitySource(componentDTO.bomRow.identificationSource);
           vulnerabilities.add(thirdPartyVulnerability);
         }

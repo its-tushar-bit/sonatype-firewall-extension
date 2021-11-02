@@ -27,7 +27,7 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null
+    "advisories" : "https://docs.fugue.co/FG_R00229.html"
   }, {
     "componentIdentifier" : {
       "format" : "terraform",
@@ -56,7 +56,7 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null
+    "advisories" : "https://docs.fugue.co/FG_R00229.html"
   }, {
     "componentIdentifier" : {
       "format" : "terraform",

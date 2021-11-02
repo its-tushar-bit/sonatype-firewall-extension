@@ -27,7 +27,7 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null,
+    "advisories" : "https://docs.fugue.co/FG_R00229.html",
     "displayName" : {
       "parts" : [ {
         "field" : "Name",
@@ -73,7 +73,7 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null,
+    "advisories" : "https://docs.fugue.co/FG_R00229.html",
     "displayName" : {
       "parts" : [ {
         "field" : "Name",

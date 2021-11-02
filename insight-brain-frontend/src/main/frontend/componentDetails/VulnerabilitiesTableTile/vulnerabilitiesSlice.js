@@ -135,6 +135,7 @@ function loadVulnerabilityDetailsFulfilled(state, { payload }) {
   state.vulnerabilitySecurityOverride.loading = false;
   state.vulnerabilitySecurityOverride.loadError = null;
   state.vulnerabilitySecurityOverride.status = AVAILABLE_STATUS[currentVulnerability.status];
+  state.vulnerabilitySecurityOverride.saveError = null;
 }
 
 function loadVulnerabilityDetailsFailed(state, { payload }) {
@@ -149,6 +150,7 @@ function toggleVulnerabilityPopoverWithEffects(state, { payload }) {
   state.selectedRefId = payload;
   state.showVulnerabilityDetailPopover = !state.showVulnerabilityDetailPopover;
   state.vulnerabilitySecurityOverride.status = '';
+  state.vulnerabilitySecurityOverride.saveError = null;
   state.vulnerabilitySecurityOverride.comments = initUserInput('');
 }
 
@@ -188,6 +190,7 @@ const componentDetailsVulnerabilitiesSlice = createSlice({
       state.vulnerabilitySecurityOverride.comments = payload.comment
         ? userInput(() => {}, payload.comment)
         : state.vulnerabilitySecurityOverride.comments;
+      state.vulnerabilitySecurityOverride.saveError = null;
       state.vulnerabilitySecurityOverride.comments.isPristine = true;
 
       const currentVulnerability = state.vulnerabilities.data.find(

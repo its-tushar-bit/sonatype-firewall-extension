@@ -88,14 +88,25 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
         ],
       }),
     ].concat(cssOutputPath ? getCssPlugins() : [], productionPlugins),
-    // Babel is used to transpile JSX only. All ES6 syntax is passed on to browsers at this point
+    // Babel is used to transpile JSX and to convert to ES5-compatible syntax. We'll probabably have to output
+    // ES5 until the end of time due to the IDE plugins. As of 2021, Visual Studio and Eclipse on Windows are known
+    // to not work with modern syntax.
     reactLoaderBaseRule = {
-      test: /\.jsx$/,
-      use: { loader: 'babel-loader' },
+      test: /\.jsx?$/,
+      use: {
+        loader: 'babel-loader',
+        options: {
+          presets: ['@babel/preset-react', '@babel/preset-env'],
+        },
+      },
     };
 
   return {
     mode: 'development', // overridden by --mode flag
+
+    // Tell webpack to produce its own runtime code in ES5-compatible syntax. Otherwise webpack modules output as
+    // arrow functions
+    target: ['web', 'es5'],
     context: path.resolve(__dirname, 'src/main/frontend'),
     entry: entryPath,
     output: {

@@ -20,6 +20,10 @@ import PolicyViolationDetailsPopover from './PolicyViolationDetailsPopover';
 import ComponentWaiversPopover from './componentWaivers/ComponentWaiversPopover';
 import PolicyViolationsTableRow, { violationPropTypes } from './PolicyViolationsTableRow';
 
+const sortByThreatLevelAndWaiverStatus = sort(
+  (threatA, threatB) => threatA.waived - threatB.waived || threatB.policyThreatLevel - threatA.policyThreatLevel
+);
+
 export default function PolicyViolationsTable({
   violations,
   error,
@@ -39,9 +43,7 @@ export default function PolicyViolationsTable({
     loadPolicyViolationsInformation();
   }, []);
 
-  const orderedViolations = violations
-    ? sort((threatA, threatB) => threatB.policyThreatLevel - threatA.policyThreatLevel, violations)
-    : [];
+  const orderedViolations = violations ? sortByThreatLevelAndWaiverStatus(violations) : [];
 
   const containsOldViolations = orderedViolations.some((violation) => isNil(violation.policyViolationId));
 

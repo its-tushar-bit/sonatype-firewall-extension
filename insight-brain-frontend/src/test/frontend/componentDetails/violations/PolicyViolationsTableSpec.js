@@ -109,6 +109,23 @@ describe('PolicyViolationsTable', () => {
           policyName: 'Security-Low',
           actions: [],
           constraints: [],
+          waived: false,
+        },
+        {
+          policyViolationId: 'waivedPolicyViolationId3',
+          policyThreatLevel: 3,
+          policyName: 'Security-Low',
+          actions: [],
+          constraints: [],
+          waived: true,
+        },
+        {
+          policyViolationId: 'waivedPolicyViolationId10',
+          policyThreatLevel: 10,
+          policyName: 'Security-Low',
+          actions: [],
+          constraints: [],
+          waived: true,
         },
         {
           policyViolationId: 'policyViolationId',
@@ -116,6 +133,7 @@ describe('PolicyViolationsTable', () => {
           policyName: 'Security-Blocker',
           actions: [],
           constraints: [],
+          waived: false,
         },
         {
           policyViolationId: 'policyViolationId7',
@@ -123,6 +141,7 @@ describe('PolicyViolationsTable', () => {
           policyName: 'Security-Critical',
           actions: [],
           constraints: [],
+          waived: false,
         },
       ];
       const component = getShallow({ violations: multipleViolations });
@@ -130,11 +149,13 @@ describe('PolicyViolationsTable', () => {
       const tBody = table.find(NxTableBody);
       const rows = tBody.find(PolicyViolationsTableRow);
 
-      expect(rows.length).toEqual(3);
+      expect(rows.length).toEqual(5);
       // violations are sorted by threat level
       expect(rows.at(0).key()).toBe('policyViolationId');
       expect(rows.at(1).key()).toBe('policyViolationId7');
       expect(rows.at(2).key()).toBe('policyViolationId3');
+      expect(rows.at(3).key()).toBe('waivedPolicyViolationId10');
+      expect(rows.at(4).key()).toBe('waivedPolicyViolationId3');
     });
   });
 

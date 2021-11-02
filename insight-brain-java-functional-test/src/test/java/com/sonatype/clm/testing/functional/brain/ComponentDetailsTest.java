@@ -659,7 +659,7 @@ public class ComponentDetailsTest
     policyViolationsTable = componentDetailsPage.securityTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHaveSize(3);
-    rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
+    rowCells = policyViolationsTable.getRows().last().findAll(By.tagName("td"));
     rowCells.shouldHaveSize(6);
     rowCells.shouldHave(exactTexts("9", "Security-High", "High risk CVSS score",
         "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "

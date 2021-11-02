@@ -131,6 +131,7 @@ const loadRequested = (state) => {
       loading: true,
       loadError: null,
     },
+    expanded: false,
   };
 };
 

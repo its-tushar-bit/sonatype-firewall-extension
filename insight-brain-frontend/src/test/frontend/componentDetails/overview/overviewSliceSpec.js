@@ -50,6 +50,7 @@ describe('componentDetailsOverviewReducer', () => {
           loadError: 'There is an error',
           data: null,
         },
+        expanded: true,
       });
 
       const newState = reducer(state, {
@@ -59,6 +60,7 @@ describe('componentDetailsOverviewReducer', () => {
       expect(newState.versionExplorerData.loading).toBe(true);
       expect(newState.versionExplorerData.loadError).toBe(null);
       expect(newState.other).toBe(stateConstantObject);
+      expect(newState.expanded).toBe(false);
     });
   });
 
@@ -71,6 +73,7 @@ describe('componentDetailsOverviewReducer', () => {
           loadError: 'error',
           data: null,
         },
+        expanded: false,
       });
       const allVersions = ['list'];
       const remediation = {
@@ -137,6 +140,7 @@ describe('componentDetailsOverviewReducer', () => {
       expect(newState.versionExplorerData.remediation).toBe(remediation);
       expect(newState.versionExplorerData.currentVersionDetails).toBe(currentVersionDetails);
       expect(newState.other).toBe(stateConstantObject);
+      expect(newState.expanded).toBe(false);
     });
   });
 

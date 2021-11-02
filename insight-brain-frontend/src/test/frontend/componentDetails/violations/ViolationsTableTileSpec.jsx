@@ -8,6 +8,7 @@ import { NxButton, NxLoadWrapper } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 import ViolationsTableTile, {
   ViewAllComponentWaiversButton,
+  ViewTransitiveViolationsButton,
 } from 'MainRoot/componentDetails/ViolationsTableTile/ViolationsTableTile';
 import PolicyViolationsTable from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsTable';
 
@@ -51,8 +52,14 @@ describe('ViolationsTableTile', () => {
       loadComponentDetails: () => {},
       title: 'Title',
       showViewAllComponents: true,
+      showViewTransitiveViolations: true,
       violationType: null,
       setViolationType: jasmine.createSpy('setViolationType'),
+      stateGo: jasmine.createSpy('stateGo'),
+      ownerType: 'someOwnerType',
+      ownerId: 'someOwnerId',
+      scanId: 'someScanId',
+      hash: 'someHash',
     };
 
     getShallow = enzymeUtils.getShallowComponent(ViolationsTableTile, minimalProps);
@@ -69,6 +76,38 @@ describe('ViolationsTableTile', () => {
     const component = getMounted({ violationType: 'test' });
     expect(minimalProps.setViolationType).toHaveBeenCalledWith('test');
     component.unmount();
+  });
+
+  describe('View Transitive Violations button', () => {
+    it('is rendered if `showViewTransitiveViolations` is true', () => {
+      const component = getShallow();
+      const button = component.find(ViewTransitiveViolationsButton).dive().find(NxButton);
+
+      expect(button).toHaveProp('id', 'component-details-view-transitive-violations');
+      expect(button).toHaveProp('variant', 'tertiary');
+      expect(button).toHaveProp('onClick');
+      expect(button).toHaveText('View Transitive Violations');
+    });
+
+    it('is not rendered if `showViewTransitiveViolations` is false', () => {
+      const component = getShallow({ showViewTransitiveViolations: false });
+      const button = component.find(ViewTransitiveViolationsButton);
+
+      expect(button).not.toExist();
+    });
+
+    it('calls `stateGo` with the correct arguments when clicked', () => {
+      const component = getShallow();
+      const button = component.find(ViewTransitiveViolationsButton).dive().find(NxButton);
+
+      button.simulate('click');
+      expect(minimalProps.stateGo).toHaveBeenCalledWith('transitiveViolations', {
+        ownerType: 'someOwnerType',
+        ownerId: 'someOwnerId',
+        scanId: 'someScanId',
+        hash: 'someHash',
+      });
+    });
   });
 
   describe('View All Component Waivers button', () => {

@@ -13,6 +13,7 @@ import {
   getApplicationSummaryUrl,
   getComponentWaivers,
   getOwnerContextHierarchyUrl,
+  getProductFeaturesUrl,
   getReportPolicyThreatsUrl,
   getViolationDetailsUrl,
   getWaiveTransitiveViolationsUrl,
@@ -1011,6 +1012,7 @@ describe('waiverActions', function () {
           get: {
             [getReportPolicyThreatsUrl('publicId', 'scanId')]: Promise.resolve({ data: 'reportPolicyThreats' }),
             [getComponentWaivers('application', 'publicId', 'a-hash')]: Promise.resolve({ data: 'componentWaivers' }),
+            [getProductFeaturesUrl()]: Promise.resolve({ data: [] }),
           },
           del: {
             [requestUrl]: Promise.resolve(),
@@ -1039,6 +1041,7 @@ describe('waiverActions', function () {
                 violationsResult: 'reportPolicyThreats',
                 waiversResult: 'componentWaivers',
                 permissionResult: true,
+                innerSourceTransitiveWaiver: false,
                 hash: 'a-hash',
               },
             });

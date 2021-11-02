@@ -38,6 +38,7 @@ function mapStateToProps({ router, transitiveViolations, componentDetailsPolicyV
     ),
     showViolationsDetailPopover: componentDetailsPolicyViolations.showViolationsDetailPopover,
     ...pick(['waiverToDelete'], deleteWaiver),
+    shouldGoBackToComponentDetails: 'applicationReport.policy' !== router.prevState.name,
   };
 }
 

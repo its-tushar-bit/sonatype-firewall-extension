@@ -8,7 +8,7 @@ import axios from 'axios';
 import { equals, flatten } from 'ramda';
 
 import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
-import { getComponentWaivers, getReportPolicyThreatsUrl } from '../../util/CLMLocation';
+import { getComponentWaivers, getProductFeaturesUrl, getReportPolicyThreatsUrl } from '../../util/CLMLocation';
 import { Messages } from '../../util/CommonServices';
 import { stateGo } from '../../reduxUiRouter/routerActions';
 import { propSet } from '../../util/reduxToolkitUtil';
@@ -29,6 +29,7 @@ const initialState = {
   showAddWaiverPopover: false,
   showRequestWaiverPopover: false,
   hasPermissionToAddWaivers: false,
+  innerSourceTransitiveWaiver: false,
   selectedPolicyViolationId: null,
   violationType: null,
 };
@@ -41,7 +42,13 @@ const loadRequested = (state) => {
 };
 
 const loadFulfilled = (state, { payload }) => {
-  const { violationsResult = { aaData: [] }, waiversResult = { waiversByOwner: [] }, permissionResult, hash } = payload;
+  const {
+    violationsResult = { aaData: [] },
+    waiversResult = { waiversByOwner: [] },
+    permissionResult,
+    innerSourceTransitiveWaiver,
+    hash,
+  } = payload;
 
   const componentViolationInformation = violationsResult.aaData.find((violation) => violation.hash === hash) || {};
   const componentWaivers = flatten(
@@ -65,6 +72,7 @@ const loadFulfilled = (state, { payload }) => {
     loading: false,
     loadError: null,
     hasPermissionToAddWaivers: permissionResult,
+    innerSourceTransitiveWaiver,
   };
 };
 
@@ -114,6 +122,7 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWith
     axios.get(getReportPolicyThreatsUrl(publicId, scanId)),
     axios.get(getComponentWaivers(applicationOwnerType, publicId, hash)),
     getAddWaiverPermissionForApplicationPromiseBuilder(id),
+    axios.get(getProductFeaturesUrl()),
   ];
 
   return Promise.all(promises)
@@ -121,7 +130,8 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWith
       const violationsResult = results[0].data;
       const waiversResult = results[1].data;
       const permissionResult = results[2].data.length === 1;
-      return { violationsResult, waiversResult, permissionResult, hash };
+      const innerSourceTransitiveWaiver = results[3].data.includes('inner-source-transitive-waiver');
+      return { violationsResult, waiversResult, permissionResult, innerSourceTransitiveWaiver, hash };
     })
     .catch(rejectWithValue);
 });

@@ -25,4 +25,8 @@ public class ViolationsTabContent
   public SelenideElement componentWaiversButton() {
     return child("#component-details-view-waivers");
   }
+
+  public SelenideElement componentTransitiveViolationsButton() {
+    return child("#component-details-view-transitive-violations");
+  }
 }

@@ -19,8 +19,8 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.MatchStateFilter;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
@@ -36,10 +36,18 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.Vulnerabili
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover.VulnerabilityOverrideForm;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
-import com.sonatype.clm.testing.functional.pages.*;
+import com.sonatype.clm.testing.functional.pages.AddProprietaryComponentMatchersPopover;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
+import com.sonatype.clm.testing.functional.pages.AuditLogContent;
+import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
+import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.RequestWaiversPopover;
+import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -52,6 +60,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
@@ -60,6 +69,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -586,6 +596,28 @@ public class ComponentDetailsTest
 
     componentWaiversTable.emptyTableMessage().shouldBe(visible);
     componentWaiversTable.emptyTableMessage().shouldHave(text("No existing component waivers"));
+  }
+
+  @Test
+  public void testPolicyViolationsTab_viewTransitiveViolations() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ElementsCollection violations = reportPage.resultRows();
+    SelenideElement violation = violations.get(15);
+    violation.click();
+    String innerSourceComponentHash = "952da051fc959b215c8e";
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, innerSourceComponentHash));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.violationsTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, innerSourceComponentHash));
+    componentDetailsPage.violationsTabContent().shouldBe(visible);
+    componentDetailsPage.violationsTabContent().componentTransitiveViolationsButton().click();
+    waitUntilUrl(TransitiveViolationsPage.url(app.getPublicId(), SCAN_ID, innerSourceComponentHash));
+    TransitiveViolationsPage transitiveViolationsPage = new TransitiveViolationsPage();
+    transitiveViolationsPage.shouldBe(visible);
+    transitiveViolationsPage.backButton().shouldBe(visible).click();
+    waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, innerSourceComponentHash));
   }
 
   @Test

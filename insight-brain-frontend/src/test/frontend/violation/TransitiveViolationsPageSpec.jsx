@@ -220,13 +220,25 @@ describe('TransitiveViolationsPage', function () {
   );
 
   describe('the back button', function () {
-    it('links to the app report if ownerId with scanId is requested', function () {
+    it('links to the app report if needed', function () {
       const wrapper = getShallowComponent();
       const menuBarBackButton = wrapper.find(MenuBarBackButton);
       expect(menuBarBackButton).toExist();
       expect(menuBarBackButton).toHaveProp(
         'href',
         'applicationReport.policy-{"publicId":"someOwnerId","scanId":"someScanId","componentHash":"someHash","tabId":"policy"}'
+      );
+    });
+    it('links to the component details if needed', function () {
+      const wrapper = getShallowComponent({
+        ...minimalProps,
+        shouldGoBackToComponentDetails: true,
+      });
+      const menuBarBackButton = wrapper.find(MenuBarBackButton);
+      expect(menuBarBackButton).toExist();
+      expect(menuBarBackButton).toHaveProp(
+        'href',
+        'applicationReport.componentDetails.violations-{"publicId":"someOwnerId","scanId":"someScanId","hash":"someHash"}'
       );
     });
   });

@@ -165,6 +165,39 @@ describe('componentDetailspolicyViolationsSlice', () => {
       expect(newState.other).toBe(stateConstantObject);
     });
 
+    it('sets innerSourceTransitiveWaiver to the innerSourceTransitiveWaiver property in the payload', () => {
+      let state = Object.freeze({
+        other: stateConstantObject,
+        innerSourceTransitiveWaiver: false,
+      });
+
+      let payload = {
+        innerSourceTransitiveWaiver: true,
+      };
+
+      let newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/load/fulfilled',
+        payload,
+      });
+      expect(newState.innerSourceTransitiveWaiver).toBe(true);
+      expect(newState.other).toBe(stateConstantObject);
+
+      state = Object.freeze({
+        other: stateConstantObject,
+        innerSourceTransitiveWaiver: true,
+      });
+
+      payload = {
+        innerSourceTransitiveWaiver: false,
+      };
+      newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/load/fulfilled',
+        payload,
+      });
+      expect(newState.innerSourceTransitiveWaiver).toBe(false);
+      expect(newState.other).toBe(stateConstantObject);
+    });
+
     it('extracts the violations information only for the specific component hash in the payload', () => {
       const state = Object.freeze({
         other: stateConstantObject,

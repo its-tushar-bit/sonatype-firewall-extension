@@ -9,7 +9,11 @@ import LicenseDetectionsTile from './LicenseDetectionsTile';
 import { selectLicenseDetectionsTileDataSlice } from './licenseDetectionsTileSelectors';
 import { actions } from './licenseDetectionsTileSlice';
 import { actions as componentDetailsActions } from '../../componentDetailsSlice';
-import { selectComponentDetailsLoading, selectComponentDetailsLoadErrors } from '../../componentDetailsSelectors';
+import {
+  selectComponentDetailsLoading,
+  selectComponentDetailsLoadErrors,
+  selectComponentIdentificationSource,
+} from '../../componentDetailsSelectors';
 
 function mapStateToProps(state) {
   const {
@@ -25,6 +29,7 @@ function mapStateToProps(state) {
 
   const isLoadingComponentDetails = selectComponentDetailsLoading(state);
   const componentDetailsLoadError = selectComponentDetailsLoadErrors(state);
+  const identificationSource = selectComponentIdentificationSource(state);
 
   return {
     isLoadingComponentDetails,
@@ -37,6 +42,7 @@ function mapStateToProps(state) {
     allLicenses,
     loading,
     loadError,
+    identificationSource,
   };
 }
 

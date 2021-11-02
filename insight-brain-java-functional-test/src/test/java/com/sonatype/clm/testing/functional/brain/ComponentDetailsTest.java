@@ -225,7 +225,7 @@ public class ComponentDetailsTest
 
     SelenideElement addProprietarypComponentMatchersBtn = componentDetailsPage.addProprietarypComponentMatchersBtn();
 
-    AddProprietaryComponentMatchersPopover addProprietaryComponentMatchersPopover = 
+    AddProprietaryComponentMatchersPopover addProprietaryComponentMatchersPopover =
         new AddProprietaryComponentMatchersPopover();
 
     addProprietarypComponentMatchersBtn.click();
@@ -315,7 +315,12 @@ public class ComponentDetailsTest
 
     componentDetailsPage.claimTabForClaimedComponent().click();
     waitUntilUrl(ComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+    claimTabContent.shouldBe(visible);
 
+    checkLegalLicencesForClaimedComponent(componentDetailsPage);
+
+    componentDetailsPage.claimTabForClaimedComponent().click();
+    waitUntilUrl(ComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
     claimTabContent.shouldBe(visible);
 
     checkFieldsValue(claimTabContent);
@@ -1131,6 +1136,28 @@ public class ComponentDetailsTest
 
   private void mockHdsResponseForClaimedComponent() {
     testCLMServer.getHdsServer().respondWith("{\"known\":false}").atUri("rest/component/summary");
+  }
+
+  private void checkLegalLicencesForClaimedComponent(ComponentDetailsPage componentDetailsPage) {
+    componentDetailsPage.legalTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+
+    componentDetailsPage.legalTabContent().shouldBe(visible);
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Not Provided (Claimed Component)"));
+
+    ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("Not Provided"));
+
+    ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("Not Provided (Claimed Component)"));
   }
 }
 

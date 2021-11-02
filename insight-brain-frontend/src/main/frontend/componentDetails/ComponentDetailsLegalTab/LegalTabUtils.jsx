@@ -6,11 +6,19 @@
 import React from 'react';
 import { NxThreatIndicator } from '@sonatype/react-shared-components';
 
-const licenseListItem = (license) => (
-  <div key={license.license?.licenseId} className="license-list-item">
-    <NxThreatIndicator policyThreatLevel={license.threatLevel} />
-    <span>{license.license?.licenseName}</span>
-  </div>
-);
+const claimedComponentAlert = (isEffective, len) => {
+  if (isEffective) {
+    return !len && <span> (Claimed Component)</span>;
+  }
 
-export const renderLicensesList = (list) => list?.map((license) => licenseListItem(license));
+  return <span> (Claimed Component)</span>;
+};
+
+export const renderLicensesList = (list, claimed, isEffective = false) =>
+  list?.map((license) => (
+    <div key={license.license?.licenseId} className="license-list-item">
+      <NxThreatIndicator policyThreatLevel={license.threatLevel} />
+      <span>{license.license?.licenseName}</span>
+      {claimed && claimedComponentAlert(isEffective, list.length)}
+    </div>
+  ));

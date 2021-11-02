@@ -74,6 +74,8 @@ export const selectComponentDetails = createSelector(
       : null
 );
 
+export const selectComponentIdentificationSource = createSelector(selectComponentDetails, prop('identificationSource'));
+
 export const selectComponentName = createSelector(selectComponentDetails, prop('name'));
 
 export const selectActiveTabId = createSelector(selectRouterCurrentParams, prop('tabId'));

@@ -11,6 +11,7 @@ import {
   selectEditLicensesForm,
   selectLicenseDetectionsTileDataSlice,
 } from '../LicenseDetectionsTile/licenseDetectionsTileSelectors';
+import { selectComponentIdentificationSource } from '../../componentDetailsSelectors';
 
 function mapStateToProps(state) {
   const { status, comment, licenseIds, isDirty, scope, submitError, submitMaskState } = selectEditLicensesForm(state);
@@ -21,6 +22,7 @@ function mapStateToProps(state) {
     licenseOverride,
     selectableLicenses,
   } = selectLicenseDetectionsTileDataSlice(state);
+  const identificationSource = selectComponentIdentificationSource(state);
 
   return {
     status,
@@ -35,6 +37,7 @@ function mapStateToProps(state) {
     availableLicenseScopes: licenseOverride,
     submitMaskState,
     submitError,
+    identificationSource,
   };
 }
 const mapDispatchToProps = {

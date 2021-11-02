@@ -18,10 +18,13 @@ export default function LicenseDetections({
   loading,
   loadError,
   toggleShowEditLicensesPopover,
+  identificationSource,
 }) {
   useEffect(() => {
     loadLicenses();
   }, []);
+
+  const isClaimed = identificationSource === 'Manual';
 
   const getLicenseOverrideStatus = () => {
     const status = licenseOverride
@@ -65,7 +68,7 @@ export default function LicenseDetections({
                   <div>
                     <dt className="nx-read-only__label">Effective Licenses</dt>
                     <dd className="nx-read-only__data" id="effective-licenses-container">
-                      {renderLicensesList(effectiveLicenses)}
+                      {renderLicensesList(effectiveLicenses, isClaimed, true)}
                     </dd>
                   </div>
                 </dl>
@@ -75,7 +78,7 @@ export default function LicenseDetections({
                   <div>
                     <dt className="nx-read-only__label">Declared Licenses</dt>
                     <dd className="nx-read-only__data" id="declared-licenses-container">
-                      {renderLicensesList(declaredlicenses)}
+                      {renderLicensesList(declaredlicenses, isClaimed)}
                     </dd>
                   </div>
                 </dl>
@@ -85,7 +88,7 @@ export default function LicenseDetections({
                   <div>
                     <dt className="nx-read-only__label">Observed Licenses</dt>
                     <dd className="nx-read-only__data" id="observed-licenses-container">
-                      {renderLicensesList(observedlicenses)}
+                      {renderLicensesList(observedlicenses, isClaimed)}
                     </dd>
                   </div>
                 </dl>
@@ -147,4 +150,5 @@ LicenseDetections.propTypes = {
   loading: PropTypes.bool,
   loadError: PropTypes.string,
   toggleShowEditLicensesPopover: PropTypes.func.isRequired,
+  identificationSource: PropTypes.string,
 };

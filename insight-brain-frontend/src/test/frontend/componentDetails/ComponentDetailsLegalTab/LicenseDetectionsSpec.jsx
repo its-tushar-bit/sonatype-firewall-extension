@@ -21,6 +21,7 @@ describe('LicenseDetections', function () {
       loading: false,
       loadError: null,
       toggleShowEditLicensesPopover: toggleShowEditLicensesPopoverSpy,
+      identificationSource: 'Sonatype',
     };
     getShallow = enzymeUtils.getShallowComponent(LicenseDetections, minimalProps);
     getMounted = enzymeUtils.getMountedComponent(LicenseDetections, minimalProps);
@@ -210,6 +211,34 @@ describe('LicenseDetections', function () {
 
       expect(observedlicenses.at(2).find(NxThreatIndicator)).toHaveProp('policyThreatLevel', 6);
       expect(observedlicenses.at(2).find('span')).toHaveText('OLicense 3');
+    });
+
+    it('renders licences for claimed component', () => {
+      const component = getShallow({
+        effectiveLicenses: [{ license: { licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' }, threatLevel: 5 }],
+        declaredlicenses: [{ license: { licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' }, threatLevel: 5 }],
+        observedlicenses: [{ license: { licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' }, threatLevel: 5 }],
+        identificationSource: 'Manual',
+      });
+
+      const loadWrapperContents = component.find(NxLoadWrapper).dive();
+      const effectiveLicensesList = loadWrapperContents.find('#effective-licenses-container .license-list-item'),
+        declaredlicenses = loadWrapperContents.find('#declared-licenses-container .license-list-item'),
+        observedlicenses = loadWrapperContents.find('#observed-licenses-container .license-list-item');
+
+      expect(effectiveLicensesList.length).toBe(1);
+
+      expect(effectiveLicensesList.find('span')).toHaveText('Not Provided');
+
+      expect(declaredlicenses.length).toBe(1);
+
+      expect(declaredlicenses.find('span').at(0)).toHaveText('Not Provided');
+      expect(declaredlicenses.find('span').at(1)).toHaveText(' (Claimed Component)');
+
+      expect(observedlicenses.length).toBe(1);
+
+      expect(observedlicenses.find('span').at(0)).toHaveText('Not Provided');
+      expect(observedlicenses.find('span').at(1)).toHaveText(' (Claimed Component)');
     });
   });
 });

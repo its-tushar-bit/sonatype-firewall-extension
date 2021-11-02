@@ -22,6 +22,7 @@ import {
   selectApplicationInfo,
   selectComponentDetailsLoading,
   selectComponentDetailsLoadErrors,
+  selectComponentIdentificationSource,
 } from 'MainRoot/componentDetails/componentDetailsSelectors';
 
 describe('componentDetailsSelectors', () => {
@@ -84,7 +85,7 @@ describe('componentDetailsSelectors', () => {
             derivedDependencyType: 'transitive',
             matchState: 'unknown',
             pathnames: ['dependency:/this.is.a.dependency', 'pathname 1', 'pathname 2'],
-            identificationSource: null,
+            identificationSource: 'Sonatype',
           },
           {
             hash: 'another-component-hash',
@@ -136,7 +137,7 @@ describe('componentDetailsSelectors', () => {
         },
         labels: [],
         matchState: 'unknown',
-        identificationSource: null,
+        identificationSource: 'Sonatype',
       };
       const actual = selectComponentDetails(mockState);
       expect(actual).toEqual(expected);
@@ -519,6 +520,13 @@ describe('componentDetailsSelectors', () => {
       };
       const actual = selectComponentDetailsLoadErrors(state);
       expect(actual).toBeNull();
+    });
+  });
+
+  describe('selectComponentIdentificationSource', () => {
+    it('derives identificationSource', () => {
+      const actual = selectComponentIdentificationSource(mockState);
+      expect(actual).toEqual('Sonatype');
     });
   });
 });

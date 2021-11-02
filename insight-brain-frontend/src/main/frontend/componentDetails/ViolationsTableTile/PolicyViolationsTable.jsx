@@ -16,11 +16,8 @@ import {
 } from '@sonatype/react-shared-components';
 
 import { waiverType } from '../../util/waiverUtils';
-import { violationDetailsPropTypes } from 'MainRoot/util/violationDetailsUtil';
 import PolicyViolationDetailsPopover from './PolicyViolationDetailsPopover';
 import ComponentWaiversPopover from './componentWaivers/ComponentWaiversPopover';
-import RequestWaiversPopover from '../../waivers/requestWaiversPopover/RequestWaiversPopover';
-import AddWaiverPopover from '../../waivers/addWaiverPopover/AddWaiverPopoverContainer';
 import PolicyViolationsTableRow, { violationPropTypes } from './PolicyViolationsTableRow';
 
 export default function PolicyViolationsTable({
@@ -29,9 +26,6 @@ export default function PolicyViolationsTable({
   loading,
   loadPolicyViolationsInformation,
   toggleShowViolationsDetailPopover,
-  toggleAddWaiverPopover,
-  toggleRequestWaiverPopover,
-  hasPermissionToAddWaivers,
   setSelectedPolicyViolationId,
   showViolationsDetailPopover,
   showComponentWaiversPopover,
@@ -40,9 +34,6 @@ export default function PolicyViolationsTable({
   toggleComponentWaiversPopover,
   waiverToDelete,
   setWaiverToDelete,
-  showAddWaiverPopover,
-  showRequestWaiverPopover,
-  selectedViolationDetail,
 }) {
   useEffect(() => {
     loadPolicyViolationsInformation();
@@ -83,9 +74,6 @@ export default function PolicyViolationsTable({
               key={violation.policyViolationId}
               violation={violation}
               toggleShowViolationsDetailPopover={toggleShowViolationsDetailPopover}
-              toggleAddWaiverPopover={toggleAddWaiverPopover}
-              toggleRequestWaiverPopover={toggleRequestWaiverPopover}
-              hasPermissionToAddWaivers={hasPermissionToAddWaivers}
               setSelectedPolicyViolationId={setSelectedPolicyViolationId}
             />
           ))}
@@ -103,15 +91,6 @@ export default function PolicyViolationsTable({
               waiverToDelete={waiverToDelete}
             />
           )}
-          {showAddWaiverPopover && (
-            <AddWaiverPopover
-              onClose={toggleAddWaiverPopover}
-              violationId={selectedViolationDetail.policyViolationId}
-            />
-          )}
-          {showRequestWaiverPopover && (
-            <RequestWaiversPopover onClose={toggleRequestWaiverPopover} violationDetails={selectedViolationDetail} />
-          )}
         </Fragment>
       )}
     </Fragment>
@@ -119,22 +98,16 @@ export default function PolicyViolationsTable({
 }
 
 PolicyViolationsTable.propTypes = {
-  selectedViolationDetail: violationDetailsPropTypes,
   waivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   componentName: PropTypes.string,
   showViolationsDetailPopover: PropTypes.bool.isRequired,
-  showAddWaiverPopover: PropTypes.bool.isRequired,
-  showRequestWaiverPopover: PropTypes.bool.isRequired,
   toggleShowViolationsDetailPopover: PropTypes.func.isRequired,
-  toggleAddWaiverPopover: PropTypes.func.isRequired,
-  toggleRequestWaiverPopover: PropTypes.func.isRequired,
   loadPolicyViolationsInformation: PropTypes.func.isRequired,
   violations: PropTypes.arrayOf(PropTypes.shape(violationPropTypes)),
   error: PropTypes.string,
   loading: PropTypes.bool,
   showComponentWaiversPopover: PropTypes.bool.isRequired,
   toggleComponentWaiversPopover: PropTypes.func.isRequired,
-  hasPermissionToAddWaivers: PropTypes.bool.isRequired,
   setSelectedPolicyViolationId: PropTypes.func.isRequired,
   setWaiverToDelete: PropTypes.func.isRequired,
   waiverToDelete: PropTypes.shape(waiverType),

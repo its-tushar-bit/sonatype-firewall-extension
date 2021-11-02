@@ -37,13 +37,8 @@ describe('ViolationsTableTile', () => {
       setWaiverToDelete: jasmine.createSpy('setWaiverToDelete'),
       showViolationsDetailPopover: false,
       toggleShowViolationsDetailPopover: jasmine.createSpy('toggleShowViolationsDetailPopover'),
-      showAddWaiverPopover: false,
-      toggleAddWaiverPopover: jasmine.createSpy('toggleAddWaiverPopover'),
-      showRequestWaiverPopover: false,
-      toggleRequestWaiverPopover: jasmine.createSpy('toggleRequestWaiverPopover'),
       hasPermissionToAddWaivers: true,
       setSelectedPolicyViolationId: jasmine.createSpy('setSelectedPolicyViolationId'),
-      selectedViolationDetail: { policyViolationId: 'selectedViolationId' },
     };
     minimalProps = {
       ...tableProps,

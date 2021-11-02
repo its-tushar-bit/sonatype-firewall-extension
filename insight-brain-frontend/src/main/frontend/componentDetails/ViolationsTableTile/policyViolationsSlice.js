@@ -26,8 +26,6 @@ const initialState = {
   showComponentWaiversPopover: false,
   reloadComponentWaivers: false,
   showViolationsDetailPopover: false,
-  showAddWaiverPopover: false,
-  showRequestWaiverPopover: false,
   hasPermissionToAddWaivers: false,
   innerSourceTransitiveWaiver: false,
   selectedPolicyViolationId: null,
@@ -151,8 +149,6 @@ const componentDetailsViolationsSlice = createSlice({
     setSelectedPolicyViolationId: propSet('selectedPolicyViolationId'),
     setViolationType: propSet('violationType'),
     toggleShowViolationsDetailPopover: toggleBooleanProp('showViolationsDetailPopover'),
-    toggleAddWaiverPopover: toggleBooleanProp('showAddWaiverPopover'),
-    toggleRequestWaiverPopover: toggleBooleanProp('showRequestWaiverPopover'),
   },
   extraReducers: {
     [load.pending]: loadRequested,

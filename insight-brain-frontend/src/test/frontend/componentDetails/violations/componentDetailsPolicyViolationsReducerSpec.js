@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from '../../../../main/frontend/componentDetails/ViolationsTableTile/policyViolationsSlice';
+import reducer from 'MainRoot/componentDetails/ViolationsTableTile/policyViolationsSlice';
 
 describe('componentDetailspolicyViolationsSlice', () => {
   const stateConstantObject = { value: 'test value' };
@@ -426,62 +426,6 @@ describe('componentDetailspolicyViolationsSlice', () => {
 
       expect(newState.loading).toBe(false);
       expect(newState.loadError).toBe('loadError');
-      expect(newState.other).toBe(stateConstantObject);
-    });
-  });
-
-  describe('toggleAddWaiverPopover', () => {
-    it('toggles the showAddWaiverPopover between true to false', () => {
-      const state = Object.freeze({
-        other: stateConstantObject,
-        showAddWaiverPopover: true,
-      });
-
-      const newState = reducer(state, {
-        type: 'componentDetailsPolicyViolations/toggleAddWaiverPopover',
-      });
-      expect(newState.showAddWaiverPopover).toBe(false);
-      expect(newState.other).toBe(stateConstantObject);
-    });
-
-    it('toggles the showAddWaiverPopover between false to true', () => {
-      const state = Object.freeze({
-        other: stateConstantObject,
-        showAddWaiverPopover: false,
-      });
-
-      const newState = reducer(state, {
-        type: 'componentDetailsPolicyViolations/toggleAddWaiverPopover',
-      });
-      expect(newState.showAddWaiverPopover).toBe(true);
-      expect(newState.other).toBe(stateConstantObject);
-    });
-  });
-
-  describe('toggleRequestWaiverPopover', () => {
-    it('toggles the showRequestWaiverPopover between true to false', () => {
-      const state = Object.freeze({
-        other: stateConstantObject,
-        showRequestWaiverPopover: true,
-      });
-
-      const newState = reducer(state, {
-        type: 'componentDetailsPolicyViolations/toggleRequestWaiverPopover',
-      });
-      expect(newState.showRequestWaiverPopover).toBe(false);
-      expect(newState.other).toBe(stateConstantObject);
-    });
-
-    it('toggles the showRequestWaiverPopover between false to true', () => {
-      const state = Object.freeze({
-        other: stateConstantObject,
-        showRequestWaiverPopover: false,
-      });
-
-      const newState = reducer(state, {
-        type: 'componentDetailsPolicyViolations/toggleRequestWaiverPopover',
-      });
-      expect(newState.showRequestWaiverPopover).toBe(true);
       expect(newState.other).toBe(stateConstantObject);
     });
   });

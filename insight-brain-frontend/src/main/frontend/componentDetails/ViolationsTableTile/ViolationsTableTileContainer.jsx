@@ -12,7 +12,6 @@ import {
   selectComponentDetailsViolationsSlice,
   selectComponentViolations,
   selectComponentWaivers,
-  selectSelectedViolationDetail,
 } from './PolicyViolationsSelectors';
 import {
   selectComponentName,
@@ -30,9 +29,6 @@ function mapStateToProps(state) {
     loadError,
     showComponentWaiversPopover,
     showViolationsDetailPopover,
-    showAddWaiverPopover,
-    showRequestWaiverPopover,
-    hasPermissionToAddWaivers,
     innerSourceTransitiveWaiver,
   } = selectComponentDetailsViolationsSlice(state);
   const isLoadingComponentDetails = selectComponentDetailsLoading(state);
@@ -51,15 +47,11 @@ function mapStateToProps(state) {
     violations: selectComponentViolations(state),
     waivers: selectComponentWaivers(state),
     componentName: selectComponentName(state),
-    selectedViolationDetail: selectSelectedViolationDetail(state),
     loading,
     error: loadError,
     ...pick(['waiverToDelete'], state.deleteWaiver),
     showComponentWaiversPopover,
     showViolationsDetailPopover,
-    showAddWaiverPopover,
-    showRequestWaiverPopover,
-    hasPermissionToAddWaivers,
     showViewTransitiveViolations,
     ownerType: 'application',
     ownerId: state.router.currentParams.publicId,
@@ -72,8 +64,6 @@ const mapDispatchToProps = {
   loadPolicyViolationsInformation: actions.load,
   toggleComponentWaiversPopover: actions.toggleComponentWaiversPopover,
   toggleShowViolationsDetailPopover: actions.toggleShowViolationsDetailPopover,
-  toggleAddWaiverPopover: actions.toggleAddWaiverPopover,
-  toggleRequestWaiverPopover: actions.toggleRequestWaiverPopover,
   setSelectedPolicyViolationId: actions.setSelectedPolicyViolationId,
   setViolationType: actions.setViolationType,
   setWaiverToDelete,

@@ -28,10 +28,7 @@ export const AncestorsList = ({ ancestors, ancestorOnClick, itemsToShow, expande
         ))}
       </ul>
       {ancestors.length > itemsToShow && (
-        <NxTextLink
-          className="iq-toggle-list"
-          onClick={toggleAncestorsList}
-        >
+        <NxTextLink className="iq-toggle-list" onClick={toggleAncestorsList}>
           {expanded ? 'Show less' : 'Show more'}
         </NxTextLink>
       )}

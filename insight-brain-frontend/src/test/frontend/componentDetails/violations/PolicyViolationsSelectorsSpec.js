@@ -8,7 +8,6 @@ import {
   selectComponentDetailsViolationsSlice,
   selectComponentViolations,
   selectIsPolicyViolationsLoading,
-  selectSelectedViolationDetail,
 } from '../../../../main/frontend/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 
 describe('policyViolationsSelectors', () => {
@@ -108,53 +107,6 @@ describe('policyViolationsSelectors', () => {
           violationType: 'SECURITY',
         },
       });
-      expect(actualSelection).toEqual(expectedSelection);
-    });
-  });
-
-  describe('selectSelectedViolationDetail', () => {
-    it('returns null when there is no selectedPolicyViolationId in the componentDetailsViolations slice', () => {
-      const stateWithNoSelectedViolation = {
-        ...mockState,
-        componentDetailsPolicyViolations: {
-          ...mockState.componentDetailsPolicyViolations,
-          selectedPolicyViolationId: null,
-        },
-      };
-      const actualSelection = selectSelectedViolationDetail(stateWithNoSelectedViolation);
-      expect(actualSelection).toBeNull();
-    });
-
-    it('returns null when there is no match for the selected PolicyViolationId in the componentDetailsViolations slice', () => {
-      const stateWithNoSelectedViolation = {
-        ...mockState,
-        componentDetailsPolicyViolations: {
-          ...mockState.componentDetailsPolicyViolations,
-          selectedPolicyViolationId: 'randomViolation',
-        },
-      };
-      const actualSelection = selectSelectedViolationDetail(stateWithNoSelectedViolation);
-      expect(actualSelection).toBeNull();
-    });
-
-    it('returns the expected structure of a violationDetails for the selectedPolicyViolationId  in the componentDetailsViolations slice', () => {
-      const expectedSelection = {
-        policyViolationId: 'violation2',
-        policyName: 'Security-High',
-        derivedComponentName: 'a-name-componentname : v1.0.0',
-        violationVulnerabilityId: 'CVE-0001-0002',
-        threatLevel: 10,
-        constraintViolations: [
-          {
-            constraintName: 'High risk CVSS score',
-            reasons: [
-              { reason: 'Found security vulnerability CVE-0001-0002 with severity >= 7 (severity = 8.6)' },
-              { reason: 'Found security vulnerability CVE-0001-0002 with severity < 9 (severity = 8.6)' },
-            ],
-          },
-        ],
-      };
-      const actualSelection = selectSelectedViolationDetail(mockState);
       expect(actualSelection).toEqual(expectedSelection);
     });
   });

@@ -11,19 +11,14 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.MatchStateFilter;
-import com.sonatype.clm.testing.functional.elements.Button;
-import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
-import com.sonatype.clm.testing.functional.elements.componentdetails.AddWaiverPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
@@ -36,27 +31,16 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.Vulnerabili
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover.VulnerabilityOverrideForm;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
-import com.sonatype.clm.testing.functional.pages.AddProprietaryComponentMatchersPopover;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
+import com.sonatype.clm.testing.functional.pages.*;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
-import com.sonatype.clm.testing.functional.pages.AuditLogContent;
-import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
-import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
-import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage.RequestWaiversPopover;
-import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
-import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
@@ -88,7 +72,6 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentDetailsTest
     extends AbstractFunctionalTest
@@ -621,82 +604,6 @@ public class ComponentDetailsTest
   }
 
   @Test
-  public void testPolicyViolationsTab_openAddWaiverPopover() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
-    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
-
-    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
-
-    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
-    policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(1);
-    policyViolationsTable.addWaiverButton(0).shouldBe(visible);
-    policyViolationsTable.addWaiverButton(0).click();
-
-    AddWaiverPopover addWaiver = new AddWaiverPopover();
-
-    List<PolicyViolation> violations =
-        new PolicyViolationDAO().getActiveByApplicationIdAndStageIdAndHash(app.getId(), "build", HASH);
-    assertThat(violations).hasSize(1);
-
-    ComponentIdentifier componentIdentifier = violations.get(0).getComponentIdentifier();
-    assertThat(componentIdentifier.isMaven()).isTrue();
-    String artifactId = componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID);
-
-    addWaiver.artifactName().shouldHave(text(artifactId));
-
-    addWaiver.policyName().shouldHave(text(violations.get(0).getPolicyName()));
-    assertThat(violations.get(0).getConstraintFacts()).hasSize(1);
-    ConstraintFact constraintFact = violations.get(0).getConstraintFacts().get(0);
-    addWaiver.constraintName().shouldHave(text(constraintFact.getConstraintName()));
-    addWaiver.conditions().get(0).shouldHave(text(constraintFact.getConditionFacts().get(0).getReason()));
-
-    addWaiver.saveButton().shouldBe(visible, enabled).click();
-    policyViolationsTable.shouldBe(visible);
-  }
-
-  @Test
-  public void testPolicyViolationsTab_openRequestWaiverPopover() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
-    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
-
-    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
-
-    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
-    policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(1);
-    policyViolationsTable.waiversDropdownButton(1).shouldBe(visible);
-    policyViolationsTable.waiversDropdownArrow(1).click();
-    policyViolationsTable.requestWaiverDropdownButton(1).shouldBe(visible).click();
-    eyesWatcher.eyesCheck("component details violations tab request waivers popover");
-
-    List<PolicyViolation> violations =
-        new PolicyViolationDAO().getActiveByApplicationIdAndStageIdAndHash(app.getId(), "build", HASH);
-    assertThat(violations).hasSize(1);
-
-    RequestWaiversPopover requestWaiver = new ListWaiversPage().requestWaiversPopover();
-    requestWaiver.requestWaiverHeader().shouldHave(text("Request Waiver"));
-    requestWaiver.requestWaiverPolicyViolationId().shouldHave(text(violations.get(0).getId()));
-
-    ComponentIdentifier componentIdentifier = violations.get(0).getComponentIdentifier();
-    assertThat(componentIdentifier.isMaven()).isTrue();
-    String groupId = componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID);
-    String artifactId = componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID);
-    String version = componentIdentifier.get(ComponentIdentifier.VERSION);
-
-    requestWaiver.requestWaiverReadOnlyData().shouldHave(text(groupId + " : " + artifactId + " : " + version));
-
-    requestWaiver.requestWaiverReadOnlyData().shouldHave(text(violations.get(0).getPolicyName()));
-    assertThat(violations.get(0).getConstraintFacts()).hasSize(1);
-    ConstraintFact constraintFact = violations.get(0).getConstraintFacts().get(0);
-    requestWaiver.requestWaiverReadOnlyData().shouldHave(text(constraintFact.getConstraintName()));
-    requestWaiver.requestWaiverReadOnlyData().shouldHave(text(constraintFact.getConditionFacts().get(0).getReason()));
-
-    requestWaiver.requestWaiverCancelButton().click();
-    policyViolationsTable.shouldBe(visible);
-  }
-
-  @Test
   public void testSecurityTab_securityViolationTableEntries() {
     refreshOrOpen(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "197d803ab63dd3523d9d"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
@@ -711,16 +618,14 @@ public class ComponentDetailsTest
         "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'",
-        "Add Waiver", ""));
+        "", ""));
 
-    eyesWatcher.eyesCheck("component details security tab violation table add waiver");
+    eyesWatcher.eyesCheck("component details security tab violation table no waiver");
 
-    rowCells.get(4).find("button").click();
-    AddWaiverPopover addWaiverPopover = new AddWaiverPopover();
-    Button saveButton = addWaiverPopover.saveButton();
-    saveButton.shouldBe(visible).click();
+    addWaiver(policyViolationsTable);
 
     componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.securityTab().click();
     componentDetailsPage.securityTabContent().shouldBe(visible);
 
     policyViolationsTable = componentDetailsPage.securityTabContent().policyViolationsTable();
@@ -861,17 +766,14 @@ public class ComponentDetailsTest
 
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
         "Found licenses in the 'Banned' license threat group ('AGPL-3.0')",
-        "Add Waiver", ""));
+        "", ""));
 
-    eyesWatcher.eyesCheck("component details legal tab violation table add waiver");
+    eyesWatcher.eyesCheck("component details legal tab violation table no waiver");
 
-    rowCells.get(4).find("button").click();
-
-    AddWaiverPopover addWaiverPopover = new AddWaiverPopover();
-    Button saveButton = addWaiverPopover.saveButton();
-    saveButton.shouldBe(visible).click();
+    addWaiver(policyViolationsTable);
 
     componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.legalTab().click();
     componentDetailsPage.legalTabContent().shouldBe(visible);
 
     policyViolationsTable = componentDetailsPage.legalTabContent().policyViolationsTable();
@@ -1191,5 +1093,31 @@ public class ComponentDetailsTest
     observedLicenses.shouldHaveSize(1);
     observedLicenses.first().shouldHave(text("Not Provided (Claimed Component)"));
   }
-}
 
+  /**
+   * This method is a convenience method to click on a policy violation row,
+   * click on manage waivers, go to the list waivers page, click on add waiver,
+   * submit and return to the policy violation table page.
+   * @param policyViolationsTable instance of the PolicyViolationsTable whose row needs to be clicked
+   */
+  private void addWaiver(PolicyViolationsTable policyViolationsTable) {
+    SelenideElement row = policyViolationsTable.getRows().first();
+    row.click();
+    PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
+    violationDetailPopover.shouldBe(visible);
+
+    SelenideElement manageWaiversButton = violationDetailPopover.getManageWaiversButton();
+    manageWaiversButton.click();
+
+    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
+    waiversForViolationPage.shouldBe(visible);
+    waiversForViolationPage.addWaiverButton().click();
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.shouldBe(visible);
+    addWaiverPage.saveButton().shouldBe(visible).click();
+
+    waiversForViolationPage.backButton().shouldBe(visible).click();
+    violationDetailPopover.getCloseButton().click();
+  }
+}

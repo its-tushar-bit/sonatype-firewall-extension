@@ -7,8 +7,6 @@ import { createSelector } from '@reduxjs/toolkit';
 import { prop } from 'ramda';
 import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
 
-import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
-
 export const selectComponentDetailsViolationsSlice = prop('componentDetailsPolicyViolations');
 
 const violationsSlice = createSelector(selectComponentDetailsViolationsSlice, prop('violations'));
@@ -39,41 +37,5 @@ export const selectSelectedComponentPolicyViolationId = createSelector(
   selectComponentDetailsViolationsSlice,
   prop('selectedPolicyViolationId')
 );
-
-export const selectSelectedViolationDetail = createSelector(
-  selectSelectedComponentPolicyViolationId,
-  selectSelectedComponent,
-  selectComponentViolations,
-  (selectedPolicyViolationId, selectedComponent, violations = []) => {
-    if (!selectedPolicyViolationId || !selectedComponent) {
-      return null;
-    }
-
-    return violationToWaiverOperationViolationDetailAdapter(
-      violations.find((violation) => violation.policyViolationId === selectedPolicyViolationId),
-      selectedComponent.derivedComponentName
-    );
-  }
-);
-
-const violationToWaiverOperationViolationDetailAdapter = (violation, derivedComponentName) => {
-  if (!violation) {
-    return null;
-  }
-
-  const { policyViolationId, policyName, policyThreatLevel, constraints } = violation;
-  const { constraintName, conditions = [] } = constraints[0];
-  const violationVulnerabilityId = conditions?.[0].conditionTriggerReference?.value ?? null;
-  const reasons = conditions.map((condition) => ({ reason: condition.conditionReason }));
-
-  return {
-    threatLevel: policyThreatLevel,
-    constraintViolations: [{ constraintName, reasons }],
-    policyViolationId,
-    policyName,
-    derivedComponentName,
-    violationVulnerabilityId,
-  };
-};
 
 export const selectIsPolicyViolationsLoading = createSelector(selectComponentDetailsViolationsSlice, prop('loading'));

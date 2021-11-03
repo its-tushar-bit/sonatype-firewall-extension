@@ -55,8 +55,6 @@ describe('OverviewComponentInformation', () => {
       sections = content.find('section');
 
     expect(sections.length).toBe(2);
-    expect(sections.at(0).find('header')).toHaveText('General Info');
-    expect(sections.at(1).find('header')).toHaveText('Identification Info');
   });
 
   it('renders the inner source containers', () => {

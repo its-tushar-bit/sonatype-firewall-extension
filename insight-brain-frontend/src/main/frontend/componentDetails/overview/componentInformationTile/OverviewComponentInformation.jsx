@@ -118,18 +118,8 @@ export default function OverviewComponentInformation({
       </header>
       <div className="nx-tile-content">
         <div className="nx-grid-row">
-          <section className="nx-grid-col iq-component-data-col">
-            <header className="nx-grid-header">
-              <h3 className="nx-h3 nx-grid-header__title">General Info</h3>
-            </header>
-            {generalInfoSectionContent}
-          </section>
-          <section className="nx-grid-col iq-component-data-col">
-            <header className="nx-grid-header">
-              <h3 className="nx-h3 nx-grid-header__title">Identification Info</h3>
-            </header>
-            {identificationInfoSectionContent}
-          </section>
+          <section className="nx-grid-col iq-component-data-col">{generalInfoSectionContent}</section>
+          <section className="nx-grid-col iq-component-data-col">{identificationInfoSectionContent}</section>
         </div>
       </div>
     </section>

@@ -6,9 +6,9 @@
 import axios from 'axios';
 import { compose } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { stateGo } from '../../../reduxUiRouter/routerActions';
-import { Messages } from '../../../util/CommonServices';
-import { noPayloadActionCreator, payloadParamActionCreator } from '../../../util/reduxUtil';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { Messages } from 'MainRoot/util/CommonServices';
+import { noPayloadActionCreator, payloadParamActionCreator } from 'MainRoot/util/reduxUtil';
 import {
   getApplicationsUrl,
   getSuccessMetricsChartDataUrl,
@@ -16,8 +16,7 @@ import {
   getSuccessMetricsConfigUrl,
   getSuccessMetricsReportsUrl,
   getSuccessMetricsReportUrl,
-} from '../../../util/CLMLocation';
-import { checkPermissions } from '../../../util/authorizationUtil';
+} from 'MainRoot/util/CLMLocation';
 
 export const SUCCESS_METRICS_REPORT_LOAD_REQUESTED = 'SUCCESS_METRICS_REPORT_LOAD_REQUESTED';
 export const SUCCESS_METRICS_REPORT_LOAD_FAILED = 'SUCCESS_METRICS_REPORT_LOAD_FAILED';
@@ -89,16 +88,12 @@ export const load = (successMetricsReportId) => {
         })
         .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));
     };
-    return checkPermissions(['CONFIGURE_SYSTEM'])
-      .then(() =>
-        axios
-          .get(getSuccessMetricsConfigUrl())
-          .then(({ data }) => {
-            if (data.enabled) return loadChartData();
-            else return dispatch(loadFailed(SUCCESS_METRICS_DISABLED_MESSAGE));
-          })
-          .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage))
-      )
+    return axios
+      .get(getSuccessMetricsConfigUrl())
+      .then(({ data }) => {
+        if (data.enabled) return loadChartData();
+        else return dispatch(loadFailed(SUCCESS_METRICS_DISABLED_MESSAGE));
+      })
       .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));
   };
 };

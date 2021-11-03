@@ -11,7 +11,7 @@ import {
   getSuccessMetricsConfigUrl,
   getSuccessMetricsReportsUrl,
   getSuccessMetricsReportUrl,
-} from '../../../../../main/frontend/util/CLMLocation';
+} from 'MainRoot/util/CLMLocation';
 import {
   SUCCESS_METRICS_REPORT_LOAD_REQUESTED,
   SUCCESS_METRICS_REPORT_LOAD_FAILED,
@@ -21,33 +21,16 @@ import {
   SUCCESS_METRICS_REPORT_DELETE_FULFILLED,
   SUCCESS_METRICS_REPORT_DELETE_FAILED,
   SUCCESS_METRICS_DELETE_MASK_TIMER_DONE,
-} from '../../../../../main/frontend/labs/successMetrics/successMetricsReport/SuccessMetricsReportActions';
-import { STATE_GO } from '../../../../../main/frontend/reduxUiRouter/routerActions';
+  load,
+  deleteReport,
+} from 'MainRoot/labs/successMetrics/successMetricsReport/SuccessMetricsReportActions';
+import { STATE_GO } from 'MainRoot/reduxUiRouter/routerActions';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 describe('successMetricsReportActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-  let checkPermissionsSpy, load, deleteReport;
-
-  beforeEach(() => {
-    checkPermissionsSpy = jasmine.createSpy('checkPermissions');
-
-    const actionsModule = require('inject-loader!../../../../../main/frontend/labs/successMetrics/successMetricsReport/SuccessMetricsReportActions')(
-      {
-        '../../../util/authorizationUtil': {
-          checkPermissions: checkPermissionsSpy,
-        },
-      }
-    );
-    load = actionsModule.load;
-    deleteReport = actionsModule.deleteReport;
-  });
 
   describe('load', () => {
-    beforeEach(() => {
-      checkPermissionsSpy.and.returnValue(Promise.resolve());
-    });
-
     describe('when success metrics is disabled', () => {
       it('dispatch SUCCESS_METRICS_REPORT_LOAD_REQUESTED and SUCCESS_METRICS_REPORT_LOAD_FAILED ', (done) => {
         mockAxiosCalls({
@@ -55,6 +38,7 @@ describe('successMetricsReportActions', () => {
             [getSuccessMetricsConfigUrl()]: Promise.resolve({ data: { enabled: false } }),
           },
         });
+
         const store = SpecUtil.mockReduxStore();
         store.dispatch(load('101')).then(() => {
           const actions = store.getActions();
@@ -66,6 +50,7 @@ describe('successMetricsReportActions', () => {
         });
       });
     });
+
     describe('when success metrics is enabled', () => {
       it('dispatch SUCCESS_METRICS_REPORT_LOAD_REQUESTED and SUCCESS_METRICS_REPORT_LOAD_FULFILLED ', (done) => {
         const reportId = '101';
@@ -105,6 +90,7 @@ describe('successMetricsReportActions', () => {
         });
       });
     });
+
     describe('fires SUCCESS_METRICS_REPORT_LOAD_FAILED', () => {
       const errorMessage = 'fetch failed';
       const reportId = '101';
@@ -132,6 +118,7 @@ describe('successMetricsReportActions', () => {
           done();
         });
       });
+
       it('when getSuccessMetricsChartDataUrl fetch fails', (done) => {
         mockAxiosCalls({
           get: {
@@ -151,6 +138,7 @@ describe('successMetricsReportActions', () => {
           done();
         });
       });
+
       it('when getSuccessMetricsReportsUrl fetch fails', (done) => {
         mockAxiosCalls({
           get: {
@@ -170,6 +158,7 @@ describe('successMetricsReportActions', () => {
           done();
         });
       });
+
       it('when getSuccessMetricsComponentCountsUrl fetch fails', (done) => {
         mockAxiosCalls({
           get: {

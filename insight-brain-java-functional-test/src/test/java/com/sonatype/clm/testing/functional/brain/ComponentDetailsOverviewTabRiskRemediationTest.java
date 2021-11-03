@@ -12,7 +12,7 @@ import java.util.Collections;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.CompareVersionsTable;
-import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.DependencyInformationSection;
+import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.RecommendedRemediationSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.RecommendationElement;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.RecommendedVersionsSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.VersionExplorerSection;
@@ -209,16 +209,16 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     riskRemediation.shouldBe(visible);
     riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
 
-    DependencyInformationSection dependencyInformationSection = riskRemediation.dependencyInformationSection();
-    dependencyInformationSection.shouldBe(visible);
-    ScrollUtil.scrollIntoView(dependencyInformationSection.content());
-    dependencyInformationSection.getTitle().shouldHave(text("Dependency Information"));
-    dependencyInformationSection.contentParagraph().shouldHave(
+    RecommendedRemediationSection recommendedRemediationSection = riskRemediation.dependencyInformationSection();
+    recommendedRemediationSection.shouldBe(visible);
+    ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
+    recommendedRemediationSection.getTitle().shouldHave(text("Recommended Remediation"));
+    recommendedRemediationSection.contentParagraph().shouldHave(
         text("This dependency was brought in by the component(s) listed below. Clicking on a component" +
             " will take you to its Component Details Page.")
     );
 
-    ElementsCollection ancestors = dependencyInformationSection.contentAncestorsList();
+    ElementsCollection ancestors = recommendedRemediationSection.contentAncestorsList();
     ancestors.shouldHaveSize(3);
     SelenideElement ancestor = ancestors.get(0);
     ancestor.shouldHave(text("javancss : javancss : 29.50"));
@@ -229,7 +229,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     ancestor = ancestors.get(2);
     ancestor.shouldHave(text("java2html : j2h : 1.3.1"));
 
-    SelenideElement showMore = dependencyInformationSection.toggleListLink();
+    SelenideElement showMore = recommendedRemediationSection.toggleListLink();
     showMore.shouldHave(text("Show more"));
 
     eyesWatcher.eyesCheck(
@@ -247,25 +247,25 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     riskRemediation.shouldBe(visible);
     riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
 
-    DependencyInformationSection dependencyInformationSection = riskRemediation.dependencyInformationSection();
-    dependencyInformationSection.shouldBe(visible);
-    ScrollUtil.scrollIntoView(dependencyInformationSection.content());
-    dependencyInformationSection.getTitle().shouldHave(text("Dependency Information"));
-    dependencyInformationSection.contentParagraph().shouldHave(
+    RecommendedRemediationSection recommendedRemediationSection = riskRemediation.dependencyInformationSection();
+    recommendedRemediationSection.shouldBe(visible);
+    ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
+    recommendedRemediationSection.getTitle().shouldHave(text("Recommended Remediation"));
+    recommendedRemediationSection.contentParagraph().shouldHave(
         text("This dependency was brought in by the component(s) listed below. Clicking on a component" +
             " will take you to its Component Details Page.")
     );
 
-    ElementsCollection ancestors = dependencyInformationSection.contentAncestorsList();
+    ElementsCollection ancestors = recommendedRemediationSection.contentAncestorsList();
     ancestors.shouldHaveSize(3);
-    SelenideElement showMore = dependencyInformationSection.toggleListLink();
+    SelenideElement showMore = recommendedRemediationSection.toggleListLink();
     showMore.click();
 
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, SECOND_COMPONENT_HASH));
-    dependencyInformationSection = riskRemediation.dependencyInformationSection();
-    dependencyInformationSection.shouldBe(visible);
-    ScrollUtil.scrollIntoView(dependencyInformationSection.content());
-    ancestors = dependencyInformationSection.contentAncestorsList();
+    recommendedRemediationSection = riskRemediation.dependencyInformationSection();
+    recommendedRemediationSection.shouldBe(visible);
+    ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
+    ancestors = recommendedRemediationSection.contentAncestorsList();
     ancestors.shouldHaveSize(5);
     SelenideElement ancestor = ancestors.get(0);
     ancestor.shouldHave(text("javancss : javancss : 29.50"));
@@ -282,7 +282,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     ancestor = ancestors.get(4);
     ancestor.shouldHave(text("org.example : test-business : 1.0-snapshot"));
 
-    showMore = dependencyInformationSection.toggleListLink();
+    showMore = recommendedRemediationSection.toggleListLink();
     showMore.shouldHave(text("Show less"));
 
     eyesWatcher.eyesCheck(
@@ -303,12 +303,12 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
     riskRemediation.shouldBe(visible);
 
-    DependencyInformationSection dependencyInformationSection = riskRemediation.dependencyInformationSection();
-    dependencyInformationSection.shouldBe(visible);
+    RecommendedRemediationSection recommendedRemediationSection = riskRemediation.dependencyInformationSection();
+    recommendedRemediationSection.shouldBe(visible);
 
-    ScrollUtil.scrollIntoView(dependencyInformationSection.content());
+    ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
 
-    SelenideElement ancestor = dependencyInformationSection.contentClickableAncestorsList().get(0);
+    SelenideElement ancestor = recommendedRemediationSection.contentClickableAncestorsList().get(0);
     ancestor.shouldHave(text("javancss : javancss : 29.50"));
     ancestor.click();
 

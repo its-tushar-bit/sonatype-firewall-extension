@@ -10,7 +10,7 @@ import { findIndex } from 'ramda';
 import { selectVersion } from '@sonatype/version-graph';
 import { NxLoadWrapper, NxModal, NxLoadError, NxButton } from '@sonatype/react-shared-components';
 import { CompareVersions } from './CompareVersions';
-import { DependencyInformation } from './DependencyInformation';
+import { RecommendedRemediation } from './RecommendedRemediation';
 import { VersionExplorer } from './VersionExplorer';
 import { RecommendedVersions } from './RecommendedVersions';
 import { AncestorPropTypes, RemediationPropTypes } from '../overviewTypes';
@@ -58,7 +58,7 @@ export const RiskRemediation = ({
       <div className="nx-grid-row">
         <div className="nx-grid-col nx-grid-col--50">
           {ancestors?.length > 0 && (
-            <DependencyInformation
+            <RecommendedRemediation
               ancestors={ancestors}
               ancestorOnClick={ancestorOnClick}
               toggleAncestorsList={toggleAncestorsList}

@@ -77,6 +77,7 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
@@ -172,6 +173,7 @@ import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -403,6 +405,8 @@ public class TemporaryEntity
 
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = new QuarantinedComponentAccessDAO();
 
+  private final RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -481,6 +485,8 @@ public class TemporaryEntity
 
   private Collection<QuarantinedComponentAccess> quarantinedComponentAccesses;
 
+  private Collection<RepositoryConnection> repositoryConnections;
+
   @Override
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -523,6 +529,7 @@ public class TemporaryEntity
     initializePersistedUserSessions();
     innerSourceComponents = new ArrayList<>();
     quarantinedComponentAccesses = new ArrayList<>();
+    repositoryConnections = new ArrayList<>();
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -577,6 +584,7 @@ public class TemporaryEntity
     delete(thirdPartyVulnerabilities, thirdPartyVulnerabilityDAO);
     delete(componentLabels, componentLabelDAO);
     delete(sourceControlDefaultBranchCommitHistories, sourceControlDefaultBranchCommitHistoryDAO);
+    delete(repositoryConnections, repositoryConnectionDAO);
     productLicenseDAO.delete();
     firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
     persistedPolicyEvaluationPollingResultDAO.deleteAll();
@@ -3178,5 +3186,21 @@ public class TemporaryEntity
     quarantinedComponentAccesses.add(quarantinedComponentAccess);
     quarantinedComponentAccessDAO.insert(quarantinedComponentAccess);
     return quarantinedComponentAccess;
+  }
+
+  public RepositoryConnection newRepositoryConnection() {
+    return newRepositoryConnection("ownerId", "baseUrl", "username", "password".toCharArray());
+  }
+
+  public RepositoryConnection newRepositoryConnection(
+      final String ownerId,
+      final String baseUrl,
+      final String username,
+      final char[] password)
+  {
+    RepositoryConnection connection = new RepositoryConnection(ownerId, baseUrl, username, password);
+    repositoryConnectionDAO.insert(connection);
+    repositoryConnections.add(connection);
+    return connection;
   }
 }

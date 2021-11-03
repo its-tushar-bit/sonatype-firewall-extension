@@ -140,10 +140,11 @@ export const selectComponentAncestors = createSelector(
 
     const allComponents = components
       .filter((component) => component.componentIdentifier != null)
-      .flatMap(({ componentIdentifier, hash, derivedComponentName }) => ({
+      .flatMap(({ componentIdentifier, hash, derivedComponentName, innerSource = false }) => ({
         componentIdentifier,
         hash,
         derivedComponentName,
+        innerSource,
       }));
 
     return allComponents.filter(({ componentIdentifier }) =>

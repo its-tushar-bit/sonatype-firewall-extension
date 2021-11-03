@@ -98,7 +98,7 @@ describe('AddProprietaryComponentMatchersPopover', () => {
     });
   });
 
-  fit('makes sure that the add button disables when there are none matchers selected and no regex', () => {
+  it('makes sure that the add button disables when there are none matchers selected and no regex', () => {
     mountedComponent = getMountedComponent();
 
     let submitBtn = mountedComponent.find('.nx-form__submit-btn').at(0).find('button');

@@ -5,6 +5,8 @@
  */
 import * as enzymeUtils from '../../../enzymeUtils';
 import { AncestorsList } from '../../../../../main/frontend/componentDetails/overview/riskRemediation/AncestorsList';
+import { NxTextLink } from '@sonatype/react-shared-components';
+import { DependencyTypeTag } from 'MainRoot/react/tag';
 
 describe('AncestorsList', () => {
   let minimalProps, getMounted;
@@ -44,6 +46,41 @@ describe('AncestorsList', () => {
     const listElements = component.find('li');
     expect(listElements.length).toBe(1);
     const element = listElements.at(0);
-    expect(element).toHaveText('org.springframework.data : spring-data-rest-hal-explorer : 3.4.11');
+    const links = element.find(NxTextLink);
+    expect(links.length).toBe(1);
+    expect(links.at(0)).toHaveText('org.springframework.data : spring-data-rest-hal-explorer : 3.4.11');
+    const tags = element.find(DependencyTypeTag);
+    expect(tags.length).toBe(0);
+  });
+
+  it('returns a list with one ancestor link with an InnerSource label', () => {
+    const ancestors = [
+      {
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'some-innersource-parent',
+          },
+        },
+        hash: 'some-innersource-parent-hash',
+        derivedComponentName: 'innersource-parent',
+        innerSource: true,
+      },
+    ];
+    const component = getMounted({
+      ancestors: ancestors,
+    });
+    expect(component).not.toBeNull();
+    expect(component).toHaveProp('ancestors', ancestors);
+    expect(component).toHaveProp('routeName', 'applicationReport.componentDetails.overview');
+    const listElements = component.find('li');
+    expect(listElements.length).toBe(1);
+    const element = listElements.at(0);
+    const links = element.find(NxTextLink);
+    expect(links.length).toBe(1);
+    expect(links.at(0)).toHaveText('innersource-parent');
+    const tags = element.find(DependencyTypeTag);
+    expect(tags.length).toBe(1);
+    expect(tags.at(0)).toHaveText('InnerSource');
   });
 });

@@ -268,19 +268,24 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     ancestors = recommendedRemediationSection.contentAncestorsList();
     ancestors.shouldHaveSize(5);
     SelenideElement ancestor = ancestors.get(0);
-    ancestor.shouldHave(text("javancss : javancss : 29.50"));
+    ancestor.find(".nx-text-link").shouldHave(text("javancss : javancss : 29.50"));
+    ancestor.find(".nx-tag").shouldNot(exist);
 
     ancestor = ancestors.get(1);
-    ancestor.shouldHave(text("aopalliance : aopalliance : 1.0"));
+    ancestor.find(".nx-text-link").shouldHave(text("aopalliance : aopalliance : 1.0"));
+    ancestor.find(".nx-tag").shouldNot(exist);
 
     ancestor = ancestors.get(2);
-    ancestor.shouldHave(text("java2html : j2h : 1.3.1"));
+    ancestor.find(".nx-text-link").shouldHave(text("java2html : j2h : 1.3.1"));
+    ancestor.find(".nx-tag").shouldHave(text("InnerSource"));
 
     ancestor = ancestors.get(3);
-    ancestor.shouldHave(text("org.apache.tiles : tiles-core : 2.2.2"));
+    ancestor.find(".nx-text-link").shouldHave(text("org.apache.tiles : tiles-core : 2.2.2"));
+    ancestor.find(".nx-tag").shouldNot(exist);
 
     ancestor = ancestors.get(4);
-    ancestor.shouldHave(text("org.example : test-business : 1.0-snapshot"));
+    ancestor.find(".nx-text-link").shouldHave(text("org.example : test-business : 1.0-snapshot"));
+    ancestor.find(".nx-tag").shouldHave(text("InnerSource"));
 
     showMore = recommendedRemediationSection.toggleListLink();
     showMore.shouldHave(text("Show less"));

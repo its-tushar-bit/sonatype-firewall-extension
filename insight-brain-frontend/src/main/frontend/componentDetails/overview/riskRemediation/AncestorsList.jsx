@@ -8,6 +8,7 @@ import * as PropTypes from 'prop-types';
 
 import { NxTextLink } from '@sonatype/react-shared-components';
 import { AncestorPropTypes } from '../overviewTypes';
+import { DependencyTypeTag } from 'MainRoot/react/tag';
 
 export const AncestorsList = ({ ancestors, ancestorOnClick, itemsToShow, expanded, toggleAncestorsList }) => {
   const ancestorsElements = !expanded && ancestors.length > itemsToShow ? ancestors.slice(0, itemsToShow) : ancestors;
@@ -15,15 +16,18 @@ export const AncestorsList = ({ ancestors, ancestorOnClick, itemsToShow, expande
   return (
     <Fragment>
       <ul className="nx-list">
-        {ancestorsElements.map(({ hash, derivedComponentName }) => (
+        {ancestorsElements.map(({ hash, derivedComponentName, innerSource }) => (
           <li className="nx-list__item" key={hash}>
-            <NxTextLink
-              onClick={() => {
-                ancestorOnClick(hash);
-              }}
-            >
-              {derivedComponentName}
-            </NxTextLink>
+            <span>
+              <NxTextLink
+                onClick={() => {
+                  ancestorOnClick(hash);
+                }}
+              >
+                {derivedComponentName}
+              </NxTextLink>
+              {innerSource && <DependencyTypeTag type="innerSource" />}
+            </span>
           </li>
         ))}
       </ul>

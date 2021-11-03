@@ -24,5 +24,9 @@
 
   .nx-list {
     margin-top: var(--nx-spacing-2x);
+
+    .nx-tag {
+      margin-left: var(--nx-spacing-2x);
+    }
   }
 }

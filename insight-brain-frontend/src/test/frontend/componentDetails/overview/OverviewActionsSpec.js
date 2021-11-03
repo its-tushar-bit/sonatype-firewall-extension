@@ -292,7 +292,7 @@ describe('componentDetailsOverviewActions', () => {
     });
   });
 
-  describe('loadVersionExplorerData', () => {
+  describe('loadVersionExplorerDataWithCancelToken', () => {
     beforeEach(() => {
       spyOn(componentDetailsOverviewSelectors, 'selectVersionExplorerRequestData').and.returnValue({});
       spyOn(componentDetailsOverviewSelectors, 'selectComponentDetailsRequestData').and.returnValue({});
@@ -308,15 +308,15 @@ describe('componentDetailsOverviewActions', () => {
         },
       });
 
-      store.dispatch(actions.loadVersionExplorerData()).then(() => {
-        expect(store.getActions().length).toBe(3);
-        expect(store.getActions()).toHaveActionTypesInOrder([
-          'componentDetailsOverview/loadVersionExplorerData/pending',
-          'componentDetailsOverview/resetSelectedVersionData',
-          'componentDetailsOverview/loadVersionExplorerData/fulfilled',
+      store.dispatch(actions.loadVersionExplorerDataWithCancelToken()).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'componentDetailsOverview/loadVersionExplorerDataWithCancelToken/pending',
+          'componentDetailsOverview/loadVersionExplorerDataWithCancelToken/fulfilled',
         ]);
 
-        const fulfilledPayload = store.getActions()[2].payload;
+        const fulfilledPayload = actions[1].payload;
         expect(fulfilledPayload.componentVersionsData).toBe(versionExplorerData);
         expect(fulfilledPayload.currentVersionDetails).toBe(componentDetails);
 
@@ -332,15 +332,15 @@ describe('componentDetailsOverviewActions', () => {
         },
       });
 
-      store.dispatch(actions.loadVersionExplorerData()).then(() => {
-        expect(store.getActions().length).toBe(3);
-        expect(store.getActions()).toHaveActionTypesInOrder([
-          'componentDetailsOverview/loadVersionExplorerData/pending',
-          'componentDetailsOverview/resetSelectedVersionData',
-          'componentDetailsOverview/loadVersionExplorerData/rejected',
+      store.dispatch(actions.loadVersionExplorerDataWithCancelToken()).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'componentDetailsOverview/loadVersionExplorerDataWithCancelToken/pending',
+          'componentDetailsOverview/loadVersionExplorerDataWithCancelToken/rejected',
         ]);
 
-        expect(store.getActions()[2].payload).toBe('failed to load version explorer data');
+        expect(actions[1].payload).toBe('failed to load version explorer data');
 
         done();
       });
@@ -354,15 +354,15 @@ describe('componentDetailsOverviewActions', () => {
         },
       });
 
-      store.dispatch(actions.loadVersionExplorerData()).then(() => {
-        expect(store.getActions().length).toBe(3);
-        expect(store.getActions()).toHaveActionTypesInOrder([
-          'componentDetailsOverview/loadVersionExplorerData/pending',
-          'componentDetailsOverview/resetSelectedVersionData',
-          'componentDetailsOverview/loadVersionExplorerData/rejected',
+      store.dispatch(actions.loadVersionExplorerDataWithCancelToken()).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'componentDetailsOverview/loadVersionExplorerDataWithCancelToken/pending',
+          'componentDetailsOverview/loadVersionExplorerDataWithCancelToken/rejected',
         ]);
 
-        expect(store.getActions()[2].payload).toBe('failed to load component details');
+        expect(actions[1].payload).toBe('failed to load component details');
 
         done();
       });

@@ -147,14 +147,14 @@ const loadFulfilled = (state, { payload }) => ({
 });
 
 function loadFailed(state, { payload }) {
-  return {
-    ...state,
-    versionExplorerData: {
-      ...state.versionExplorerData,
-      loading: false,
-      loadError: Messages.getHttpErrorMessage(payload),
-    },
-  };
+  if (payload.message === HTTP_CLIENT_CLOSED_REQUEST) {
+    state.versionExplorerData.versions = null;
+    state.versionExplorerData.remediation = null;
+    state.versionExplorerData.currentVersionDetails = null;
+  } else {
+    state.versionExplorerData.loading = false;
+    state.versionExplorerData.loadError = Messages.getHttpErrorMessage(payload);
+  }
 }
 
 function loadComponentDetailsByVerionsNumberRequested(state) {
@@ -188,14 +188,28 @@ function resetSelectedVersionData(state) {
   };
 }
 
+let loadVersionExplorerDataCancelToken = null;
 const loadVersionExplorerData = createAsyncThunk(
   `${REDUCER_NAME}/loadVersionExplorerData`,
-  (_, { getState, dispatch, rejectWithValue }) => {
+  (_, { getState, dispatch }) => {
     dispatch(actions.resetSelectedVersionData());
+    const { currentParams, prevParams } = getState().router;
 
+    if (prevParams.hash && prevParams.hash !== currentParams.hash) {
+      loadVersionExplorerDataCancelToken?.cancel(HTTP_CLIENT_CLOSED_REQUEST);
+    }
+
+    loadVersionExplorerDataCancelToken = axios.CancelToken.source();
+    dispatch(loadVersionExplorerDataWithCancelToken(loadVersionExplorerDataCancelToken.token));
+  }
+);
+
+const loadVersionExplorerDataWithCancelToken = createAsyncThunk(
+  `${REDUCER_NAME}/loadVersionExplorerDataWithCancelToken`,
+  (cancelToken, { getState, rejectWithValue }) => {
     const promises = [
-      axios.get(getVersionGraphUrl(selectVersionExplorerRequestData(getState()))),
-      axios.get(getComponentDetailsUrl(selectComponentDetailsRequestData(getState()))),
+      axios.get(getVersionGraphUrl(selectVersionExplorerRequestData(getState())), { cancelToken }),
+      axios.get(getComponentDetailsUrl(selectComponentDetailsRequestData(getState())), { cancelToken }),
     ];
 
     return Promise.all(promises)
@@ -283,9 +297,9 @@ const componentDetailsOverviewSlice = createSlice({
     toggleAncestorsList: toggleBooleanProp('expanded'),
   },
   extraReducers: {
-    [loadVersionExplorerData.pending]: loadRequested,
-    [loadVersionExplorerData.fulfilled]: loadFulfilled,
-    [loadVersionExplorerData.rejected]: loadFailed,
+    [loadVersionExplorerDataWithCancelToken.pending]: loadRequested,
+    [loadVersionExplorerDataWithCancelToken.fulfilled]: loadFulfilled,
+    [loadVersionExplorerDataWithCancelToken.rejected]: loadFailed,
     [loadComponentDetailsByVerionsNumber.pending]: loadComponentDetailsByVerionsNumberRequested,
     [loadComponentDetailsByVerionsNumber.fulfilled]: loadComponentDetailsByVerionsNumberFulfilled,
     [loadComponentDetailsByVerionsNumber.rejected]: loadComponentDetailsByVerionsNumberFailed,
@@ -299,6 +313,7 @@ export default componentDetailsOverviewSlice.reducer;
 export const actions = {
   ...componentDetailsOverviewSlice.actions,
   loadVersionExplorerData,
+  loadVersionExplorerDataWithCancelToken,
   loadSelectedVersionData,
   loadInnerSourceProducerData,
   openInnerSourceProducerReport,

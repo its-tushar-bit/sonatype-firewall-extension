@@ -98,12 +98,19 @@ describe('AddProprietaryComponentMatchersPopover', () => {
     });
   });
 
-  it('makes sure that the add button disables when there are none matchers selected', () => {
+  fit('makes sure that the add button disables when there are none matchers selected and no regex', () => {
     mountedComponent = getMountedComponent();
 
     let submitBtn = mountedComponent.find('.nx-form__submit-btn').at(0).find('button');
-    mountedComponent.unmount();
     expect(submitBtn).toHaveProp('aria-disabled', false);
+
+    mountedComponent.unmount();
+    mountedComponent = getMountedComponent({ data: { paths: [], regex: 'some regex' } });
+
+    submitBtn = mountedComponent.find('.nx-form__submit-btn').at(0).find('button');
+    expect(submitBtn).toHaveProp('aria-disabled', false);
+
+    mountedComponent.unmount();
     mountedComponent = getMountedComponent({ data: { paths: [], regex: '' } });
 
     submitBtn = mountedComponent.find('.nx-form__submit-btn').at(0).find('button');

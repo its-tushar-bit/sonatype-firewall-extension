@@ -30,6 +30,8 @@ export default function AddProprietaryComponentMatchersPopover({
 }) {
   const [isPristine, setIsPristine] = useState(true);
 
+  const isFormValid = !!data.paths?.length || !!data.regex;
+
   const isPathnameChecked = (pathname) => {
     return includes(pathname, data.paths);
   };
@@ -89,7 +91,7 @@ export default function AddProprietaryComponentMatchersPopover({
           submitMaskState={submitMaskState}
           onCancel={closePopover}
           submitBtnText="Add"
-          validationErrors={data.paths?.length > 0 ? undefined : 'Unable to add: Fields with invalid or missing data.'}
+          validationErrors={isFormValid ? undefined : 'Unable to add: Fields with invalid or missing data.'}
         >
           <NxFieldset label="Matchers" isRequired>
             {pathnames.map((pathname) => (

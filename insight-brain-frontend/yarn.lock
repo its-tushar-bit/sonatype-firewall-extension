@@ -1180,10 +1180,10 @@
     in-publish "^2.0.0"
     prop-types "^15.5.10"
 
-"@sonatype/react-shared-components@^7.4.7":
-  version "7.4.7"
-  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/react-shared-components/-/react-shared-components-7.4.7.tgz#e7f5d1d6224fa917a06b59dd859a3ff7f2491896"
-  integrity sha512-+c6STNxcP7ugnSiBrM6ZyGi1iT0W0w0/SOVx44wmbS3EX1R4h50FvlBpxgqEaMUL2g627l53ZXE5hDdtKuGnkw==
+"@sonatype/react-shared-components@7.6.0":
+  version "7.6.0"
+  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/react-shared-components/-/react-shared-components-7.6.0.tgz#2989300c1de9000918d9070cf8075a1fc17f2cd7"
+  integrity sha512-KbNHxkzqQO+8oQBtkX034TwExi2BIkJXiW7tGKsR70iTV5O3t9OnnvS0UArTHbII6oVpd0ygFiy5yX3dTQwVDg==
   dependencies:
     "@fortawesome/fontawesome-svg-core" "^1.2.32"
     "@fortawesome/free-solid-svg-icons" "^5.15.1"

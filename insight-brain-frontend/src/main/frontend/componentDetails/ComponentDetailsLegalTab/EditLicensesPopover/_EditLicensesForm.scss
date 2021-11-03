@@ -13,3 +13,12 @@
     @include semi-bold();
   }
 }
+
+#iq-edit-licenses-form {
+  .iq-license-info-section {
+    max-width: 200px;
+  }
+  .iq-license-form-fields {
+    padding-left: var(--nx-spacing-6x);
+  }
+}

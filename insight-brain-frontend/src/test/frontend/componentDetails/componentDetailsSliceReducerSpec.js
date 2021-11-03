@@ -225,6 +225,7 @@ describe('componentDetailsReducer', () => {
         setProprietaryMatchers: {
           submitMaskState: false,
           submitError: 'someError',
+          data: { regex: 'some regex' },
         },
       });
       const newState = reducer(state, {
@@ -232,6 +233,7 @@ describe('componentDetailsReducer', () => {
       });
       expect(newState.setProprietaryMatchers.submitMaskState).toBe(true);
       expect(newState.setProprietaryMatchers.submitError).toBeNull();
+      expect(newState.setProprietaryMatchers.data.regex).toBe('');
       expect(newState.otherState).toBe(otherState);
     });
   });

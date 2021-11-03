@@ -60,6 +60,7 @@ describe('ComponentDetails', function () {
       loadError: null,
       loading: false,
       toggleShowMatchersPopover: toggleShowMatchersPopoverSpy,
+      isProprietary: false,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentDetails, minimalProps);
@@ -122,8 +123,28 @@ describe('ComponentDetails', function () {
       });
       const loadWrapper = component.find(NxLoadWrapper);
       const alertEl = loadWrapper.dive().find(UnknownComponentAlert);
+      const proprietaryAlert = loadWrapper.dive().find('#proprietary-component-matched-alert');
 
       expect(alertEl).toHaveProp('onClaimClick');
+      expect(proprietaryAlert).not.toExist();
+    });
+
+    it('renders proprietary-component-matched-alert when there is an unknown match state but claimed as proprietary', function () {
+      const component = getShallowComponent({
+        componentDetails: {
+          name: 'Mock Component Name',
+          hash: 'some-crazy-hash',
+          matchState: 'unknown',
+        },
+        loading: false,
+        isProprietary: true,
+      });
+      const loadWrapper = component.find(NxLoadWrapper);
+      const alertEl = loadWrapper.dive().find(UnknownComponentAlert);
+      const proprietaryAlert = loadWrapper.dive().find('#proprietary-component-matched-alert');
+
+      expect(alertEl).not.toExist();
+      expect(proprietaryAlert).toExist();
     });
   });
 

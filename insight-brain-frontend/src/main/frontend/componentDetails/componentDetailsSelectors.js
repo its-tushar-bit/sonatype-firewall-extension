@@ -29,6 +29,8 @@ export const selectFilteredPathnames = createSelector(
   (component) => component?.pathnames?.filter((pathname) => !/^dependency:\//.test(pathname)) ?? []
 );
 
+export const selectIsProprietary = createSelector(selectSelectedComponent, (component) => !!component?.proprietary);
+
 export const selectComponentDetailsOffspringDetails = createSelector(selectDetails, prop('offspring'));
 
 const selectComponentMetaData = createSelector(selectApplicationReportMetaData, (metadata) =>

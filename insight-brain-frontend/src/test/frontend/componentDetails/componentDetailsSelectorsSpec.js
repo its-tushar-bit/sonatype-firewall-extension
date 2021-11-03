@@ -23,6 +23,7 @@ import {
   selectComponentDetailsLoading,
   selectComponentDetailsLoadErrors,
   selectComponentIdentificationSource,
+  selectIsProprietary,
 } from 'MainRoot/componentDetails/componentDetailsSelectors';
 
 describe('componentDetailsSelectors', () => {
@@ -85,6 +86,7 @@ describe('componentDetailsSelectors', () => {
             derivedDependencyType: 'transitive',
             matchState: 'unknown',
             pathnames: ['dependency:/this.is.a.dependency', 'pathname 1', 'pathname 2'],
+            proprietary: true,
             identificationSource: 'Sonatype',
           },
           {
@@ -176,6 +178,13 @@ describe('componentDetailsSelectors', () => {
         applicationName: 'The App',
         applicationId: 'TheApp',
       });
+    });
+  });
+
+  describe('selectIsProprietary', () => {
+    it('selects the slice of state for the application stored in the metadata', () => {
+      const actual = selectIsProprietary(mockState);
+      expect(actual).toBe(true);
     });
   });
 

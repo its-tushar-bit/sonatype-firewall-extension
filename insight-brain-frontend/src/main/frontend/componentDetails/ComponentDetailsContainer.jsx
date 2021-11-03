@@ -10,6 +10,7 @@ import {
   selectComponentPagination,
   selectComponentDetailsLoadErrors,
   selectComponentDetailsLoading,
+  selectIsProprietary,
 } from './componentDetailsSelectors';
 import { actions } from './componentDetailsSlice';
 import ComponentDetails from './ComponentDetails';
@@ -23,6 +24,7 @@ function mapStateToProps(state, { uiRouterState }) {
     pagination: selectComponentPagination(state, { uiRouterState }),
     loadError: selectComponentDetailsLoadErrors(state),
     loading: selectComponentDetailsLoading(state),
+    isProprietary: selectIsProprietary(state),
   };
 }
 

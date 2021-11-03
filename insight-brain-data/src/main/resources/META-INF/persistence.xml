@@ -82,6 +82,7 @@
     <class>com.sonatype.insight.brain.model.filter.UserFilter</class>
     <class>com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType</class>
     <class>com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess</class>
+    <class>com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

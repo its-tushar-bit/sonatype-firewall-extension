@@ -41,6 +41,7 @@ function loadAuditLogFulfilled(payload, state) {
 
   return {
     ...state,
+    error: null,
     isLoading: false,
     auditRecords,
   };

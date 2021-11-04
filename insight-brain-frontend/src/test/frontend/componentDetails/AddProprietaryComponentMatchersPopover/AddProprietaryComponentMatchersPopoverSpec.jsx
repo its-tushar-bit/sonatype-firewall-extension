@@ -3,9 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxAlert, NxCheckbox, NxForm, NxInfoAlert, NxSubmitMask, NxTextInput } from '@sonatype/react-shared-components';
+import {
+  NxAlert,
+  NxCheckbox,
+  NxForm,
+  NxInfoAlert,
+  NxSubmitMask,
+  NxTextInput,
+  NxTextLink,
+} from '@sonatype/react-shared-components';
 import AddProprietaryComponentMatchersPopover from 'MainRoot/componentDetails/AddProprietaryComponentMatchersPopover/AddProprietaryComponentMatchersPopover';
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
 
 describe('AddProprietaryComponentMatchersPopover', () => {
   let minimalProps,
@@ -15,13 +24,19 @@ describe('AddProprietaryComponentMatchersPopover', () => {
     addProprietaryMatchersSpy,
     mountedComponent,
     resetSubmitErrorSpy,
-    setComponentMatchersDataSpy;
+    setComponentMatchersDataSpy,
+    hrefSpy;
 
   beforeEach(() => {
+    hrefSpy = jasmine.createSpy('href').and.returnValue('http://some-href');
     onCloseSpy = jasmine.createSpy('onClose');
     addProprietaryMatchersSpy = jasmine.createSpy('addProprietaryMatchers');
     resetSubmitErrorSpy = jasmine.createSpy('resetSubmitError');
     setComponentMatchersDataSpy = jasmine.createSpy('setComponentMatchersData');
+
+    spyOn(routerContext, 'useRouterState').and.returnValue({
+      href: hrefSpy,
+    });
 
     minimalProps = {
       onClose: onCloseSpy,
@@ -61,6 +76,18 @@ describe('AddProprietaryComponentMatchersPopover', () => {
     expect(alert).toHaveText(
       'The following matchers will be added to the app name Configuration (duplicates will be ignored). The new matchers will be in effect for the next application analysis.'
     );
+  });
+
+  it('renders the link to config', () => {
+    const popover = getShallowComponent().find('#component-details-add-proprietary-component-matchers-popover'),
+      alert = popover.find(NxInfoAlert),
+      link = alert.find(NxTextLink);
+
+    expect(link).toHaveProp('newTab');
+    expect(link).toHaveProp('href', 'http://some-href');
+    expect(hrefSpy).toHaveBeenCalledWith('management.edit.application.proprietary-config-policy', {
+      applicationPublicId: 'appId',
+    });
   });
 
   it('renders the matchers list', () => {

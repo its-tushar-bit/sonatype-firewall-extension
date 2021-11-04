@@ -10,11 +10,14 @@ import {
   NxFormGroup,
   NxInfoAlert,
   NxTextInput,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import PropTypes from 'prop-types';
 import { includes, indexOf, remove } from 'ramda';
 import React, { useEffect, useState } from 'react';
-import IqPopover from '../../react/IqPopover/IqPopover';
+
+import IqPopover from 'MainRoot/react/IqPopover/IqPopover';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function AddProprietaryComponentMatchersPopover({
   onClose,
@@ -28,6 +31,8 @@ export default function AddProprietaryComponentMatchersPopover({
   resetSubmitError,
   setComponentMatchersData,
 }) {
+  const uiRouterState = useRouterState();
+
   const [isPristine, setIsPristine] = useState(true);
 
   const isFormValid = !!data.paths?.length || !!data.regex;
@@ -76,13 +81,14 @@ export default function AddProprietaryComponentMatchersPopover({
         />
         <NxInfoAlert>
           The following matchers will be added to the{' '}
-          <a
-            href={`/assets/index.html#/management/edit/application/${appInfo.applicationId}/proprietary`}
-            target="_blank"
-            rel="noreferrer"
+          <NxTextLink
+            href={uiRouterState.href('management.edit.application.proprietary-config-policy', {
+              applicationPublicId: appInfo.applicationId,
+            })}
+            newTab
           >
             {appInfo.applicationName} Configuration
-          </a>{' '}
+          </NxTextLink>{' '}
           (duplicates will be ignored). The new matchers will be in effect for the next application analysis.
         </NxInfoAlert>
         <NxForm

@@ -22,6 +22,7 @@ export default function CopyrightDetailsHeader(props) {
     ownerType,
     ownerId,
     hash,
+    componentIdentifier,
     stageTypeId,
     copyrightIndex,
     $state,
@@ -32,15 +33,15 @@ export default function CopyrightDetailsHeader(props) {
   } = props;
 
   function load() {
-    loadComponentAndCopyrightDetails(ownerType, ownerId, hash, copyrightIndex);
+    loadComponentAndCopyrightDetails(ownerType, ownerId, hash, copyrightIndex, componentIdentifier);
   }
 
-  useEffect(load, [ownerType, ownerId, hash, copyrightIndex]);
+  useEffect(load, [ownerType, ownerId, hash, copyrightIndex, componentIdentifier]);
 
   return (
     <LoadWrapper loading={loading} error={error} retryHandler={load}>
       <MenuBarBackButton
-        href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash)}
+        href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash, componentIdentifier)}
         text="Back to Component Obligations"
       />
       <div className="nx-page-title">
@@ -65,6 +66,7 @@ CopyrightDetailsHeader.propTypes = {
   ownerType: PropTypes.string.isRequired,
   ownerId: PropTypes.string.isRequired,
   hash: PropTypes.string,
+  componentIdentifier: PropTypes.string,
   stageTypeId: PropTypes.string,
   copyrightIndex: PropTypes.string,
   availableScopes: availableScopesPropType,

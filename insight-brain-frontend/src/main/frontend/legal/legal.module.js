@@ -168,6 +168,18 @@ function routes($stateProvider) {
         title: 'Copyright Details',
       },
     })
+    .state('legal.componentCopyrightDetailsByComponentIdentifier', {
+      url: '/legal/{ownerType}/{ownerId}/componentIdentifier/{componentIdentifier}/copyrights',
+      component: 'componentCopyrightDetails',
+      abstract: true,
+    })
+    .state('legal.componentCopyrightDetailsByComponentIdentifier.copyrightDetails', {
+      url: '/{copyrightIndex}',
+      component: 'copyrightDetailsContents',
+      data: {
+        title: 'Copyright Details',
+      },
+    })
     .state('legal.stageTypeComponentCopyrightDetails', {
       url: '/legal/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/copyrights',
       component: 'componentCopyrightDetails',

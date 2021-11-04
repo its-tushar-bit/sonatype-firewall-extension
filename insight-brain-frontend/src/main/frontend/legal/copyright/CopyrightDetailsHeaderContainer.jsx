@@ -23,7 +23,7 @@ function mapStateToProps({ advancedLegal, componentCopyrightDetails, copyrightOv
     error: component.error || availableScopes.error || componentCopyrightDetails.errorCopyrightFileCounts,
     availableScopes,
     ...pick(['component'], component),
-    ...pick(['hash', 'ownerType', 'ownerId', 'copyrightIndex', 'stageTypeId'], routerParams),
+    ...pick(['hash', 'componentIdentifier', 'ownerType', 'ownerId', 'copyrightIndex', 'stageTypeId'], routerParams),
     ...pick(['showEditCopyrightOverrideModal'], copyrightOverrides),
   };
 }

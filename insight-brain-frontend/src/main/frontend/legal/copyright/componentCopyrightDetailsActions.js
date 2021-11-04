@@ -8,7 +8,7 @@ import axios from 'axios';
 import { getCopyrightContextUrl, getCopyrightFileCountUrl, getCopyrightFilePathsUrl } from '../../util/CLMLocation';
 import { Messages } from '../../util/CommonServices';
 import { FILE_PATH_PAGE_SIZE, pageOffset } from './copyrightDetailsUtils';
-import { loadAvailableScopes, loadComponent } from '../advancedLegalActions';
+import { loadAvailableScopes, loadComponent, loadComponentByComponentIdentifier } from '../advancedLegalActions';
 
 export const COPYRIGHT_DETAILS_REQUEST = 'COPYRIGHT_DETAILS_REQUEST';
 export const COPYRIGHT_DETAILS_FULFILLED = 'COPYRIGHT_DETAILS_FULFILLED';
@@ -54,14 +54,15 @@ function getFirstFileCopyrightContexts(getState, dispatch, copyrightIndex) {
   });
 }
 
-export function loadComponentAndCopyrightDetails(ownerType, ownerId, hash, copyrightIndex) {
+export function loadComponentAndCopyrightDetails(ownerType, ownerId, hash, copyrightIndex, componentIdentifier) {
   return (dispatch, getState) => {
     const component = getState().advancedLegal.component.component;
     if (!component) {
       dispatch(loadAvailableScopes(ownerType, ownerId));
-      return dispatch(loadComponent(ownerType, ownerId, hash)).then(() =>
-        getFirstFileCopyrightContexts(getState, dispatch, copyrightIndex)
-      );
+      const componentPromise = hash
+        ? loadComponent(ownerType, ownerId, hash)
+        : loadComponentByComponentIdentifier(componentIdentifier);
+      return dispatch(componentPromise).then(() => getFirstFileCopyrightContexts(getState, dispatch, copyrightIndex));
     } else {
       return getFirstFileCopyrightContexts(getState, dispatch, copyrightIndex);
     }
@@ -185,7 +186,6 @@ function loadFilePathsPromise(ownerType, ownerId, component, copyright, pageNumb
   if (copyright === undefined) {
     return Promise.reject('Invalid copyright index');
   }
-  console.log('cd', copyright);
   if (copyright.originalContentHash) {
     const copyrightFilePathsUrl = getCopyrightFilePathsUrl(
       ownerType,

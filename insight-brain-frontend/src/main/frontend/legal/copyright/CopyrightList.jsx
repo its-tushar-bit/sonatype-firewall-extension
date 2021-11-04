@@ -17,6 +17,7 @@ export default function CopyrightList(props) {
     ownerType,
     ownerId,
     hash,
+    componentIdentifier,
     stageTypeId,
     componentCopyrightDetails,
     $state,
@@ -44,10 +45,14 @@ export default function CopyrightList(props) {
   const copyrightSource = (item) =>
     item.originalContentHash ? getCopyrightFileCount(item.originalContentHash) : 'Manually added';
 
-  const copyrightDetailsTargetState = () =>
-    stageTypeId
-      ? 'legal.stageTypeComponentCopyrightDetails.copyrightDetails'
-      : 'legal.componentCopyrightDetails.copyrightDetails';
+  const copyrightDetailsTargetState = () => {
+    if (stageTypeId) {
+      return 'legal.stageTypeComponentCopyrightDetails.copyrightDetails';
+    }
+    return hash
+      ? 'legal.componentCopyrightDetails.copyrightDetails'
+      : 'legal.componentCopyrightDetailsByComponentIdentifier.copyrightDetails';
+  };
 
   const listItems =
     component && component.licenseLegalData
@@ -58,6 +63,7 @@ export default function CopyrightList(props) {
                 ownerType,
                 ownerId,
                 hash,
+                componentIdentifier,
                 stageTypeId,
                 copyrightIndex: index,
               })}
@@ -104,6 +110,7 @@ CopyrightList.propTypes = {
   ownerType: PropTypes.string,
   ownerId: PropTypes.string,
   hash: PropTypes.string,
+  componentIdentifier: PropTypes.string,
   stageTypeId: PropTypes.string,
   $state: PropTypes.object.isRequired,
   copyrightIndex: PropTypes.string.isRequired,

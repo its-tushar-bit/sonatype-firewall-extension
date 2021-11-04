@@ -5,6 +5,7 @@
  */
 
 import axios from 'axios';
+import { pathSet } from 'MainRoot/util/jsUtil';
 import {
   COPYRIGHT_CONTEXT_FAILED,
   COPYRIGHT_CONTEXT_FULFILLED,
@@ -24,6 +25,9 @@ import {
   getCopyrightContextUrl,
   getCopyrightFileCountUrl,
   getCopyrightFilePathsUrl,
+  getLicenseLegalComponentByComponentIdentifierUrl,
+  getLicenseLegalComponentUrl,
+  getOwnerHierarchyUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 
 describe('ComponentCopyrightDetailsAction', function () {
@@ -60,6 +64,7 @@ describe('ComponentCopyrightDetailsAction', function () {
         ownerType: 'organization',
         ownerId: 'org',
         hash: 'componentHash',
+        componentIdentifier: 'componentIdentifier',
         copyrightIndex: '0',
       },
     },
@@ -77,6 +82,48 @@ describe('ComponentCopyrightDetailsAction', function () {
   };
 
   describe('load copyright details', function () {
+    it('fetches component details by hash2 when not loaded', function () {
+      store = SpecUtil.mockReduxStore(pathSet(['advancedLegal', 'component', 'component'], undefined, initialState));
+
+      mockAxiosCalls({
+        get: {
+          [getOwnerHierarchyUrl('organization', 'org')]: Promise.resolve({ data: 'getData' }),
+          [getLicenseLegalComponentUrl('organization', 'org', 'componentHash')]: Promise.resolve({ data: 'getData2' }),
+        },
+      });
+
+      store.dispatch(loadComponentAndCopyrightDetails('organization', 'org', 'componentHash', 1)).then(() => {
+        expect(axios.get).toHaveBeenCalledWith('/rest/owner/organization/hierarchy');
+        expect(axios.get).toHaveBeenCalledWith(
+          '/api/v2/licenseLegalMetadata/organization/component?hash=componentHash'
+        );
+      });
+    });
+
+    it('fetches component details by component identifier when not loaded', function () {
+      let state = pathSet(['advancedLegal', 'component', 'component'], undefined, initialState);
+      state = pathSet(['router', 'currentParams', 'hash'], undefined, state);
+      store = SpecUtil.mockReduxStore(state);
+
+      mockAxiosCalls({
+        get: {
+          [getOwnerHierarchyUrl('organization', 'org')]: Promise.resolve({ data: 'getData' }),
+          [getLicenseLegalComponentByComponentIdentifierUrl('componentIdentifier')]: Promise.resolve({
+            data: 'getData2',
+          }),
+        },
+      });
+
+      store
+        .dispatch(loadComponentAndCopyrightDetails('organization', 'org', undefined, 1, 'componentIdentifier'))
+        .then(() => {
+          expect(axios.get).toHaveBeenCalledWith('/rest/owner/organization/hierarchy');
+          expect(axios.get).toHaveBeenCalledWith(
+            '/api/v2/licenseLegalMetadata/organization/component?component?componentIdentifier=componentIdentifier'
+          );
+        });
+    });
+
     it('immediately dispatches a COPYRIGHT_DETAILS_REQUEST action', function () {
       store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(loadComponentAndCopyrightDetails('organization', 'org', 'componentHash', 1));

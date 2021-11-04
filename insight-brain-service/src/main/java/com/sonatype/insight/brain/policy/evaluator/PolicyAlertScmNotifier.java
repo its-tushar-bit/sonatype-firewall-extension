@@ -160,7 +160,7 @@ public class PolicyAlertScmNotifier
               new PullRequestRemediationDetails(entry.getKey(), nextVersion,
                   remediationVersion.get().getBreakingChangesCount(), branchName, entry.getValue(), app,
                   scanId, stage.getStageTypeId(), baseUrl.getConfigured(), gitRepositoryInfo.provider,
-                  gitRepositoryInfo.repositoryUrl);
+                  gitRepositoryInfo.normalizedRepositoryUrl);
           publishRemediationPullRequestEvent(pullRequestRemediationDetails);
         }
       }

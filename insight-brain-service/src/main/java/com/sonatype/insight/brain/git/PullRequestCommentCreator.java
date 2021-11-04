@@ -176,7 +176,7 @@ public class PullRequestCommentCreator
               ? AuditEvent.CREATE_PULL_REQUEST_COMMENT : AuditEvent.UPDATE_PULL_REQUEST_COMMENT;
           prCommentingMetricsService.addAuditRecord(
               auditEvent, prPolicyEvaluationsDTO.getApplicationId(),
-              prPolicyEvaluationsDTO.getGitRepositoryInfo().repositoryUrl,
+              prPolicyEvaluationsDTO.getGitRepositoryInfo().normalizedRepositoryUrl,
               prPolicyEvaluationsDTO.getPullRequestNumber());
         }
       }

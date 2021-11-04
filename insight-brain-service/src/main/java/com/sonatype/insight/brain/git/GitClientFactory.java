@@ -34,21 +34,21 @@ public class GitClientFactory
 
   public GitApiClient createApiClient(GitRepositoryInfo gitRepositoryInfo) {
     Configuration configuration = gitApiClientFactory.createConfiguration();
-    String apiUrl = getClientUtils(gitRepositoryInfo.provider).getApiUrl(gitRepositoryInfo.repositoryUrl);
+    String apiUrl = getClientUtils(gitRepositoryInfo.provider).getApiUrl(gitRepositoryInfo.normalizedRepositoryUrl);
     insightProxy.contextualize(configuration, apiUrl);
     return gitApiClientFactory.getGitApiClient(gitRepositoryInfo.provider, configuration,
-        gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.username, gitRepositoryInfo.token);
+        gitRepositoryInfo.normalizedRepositoryUrl, gitRepositoryInfo.username, gitRepositoryInfo.token);
   }
 
   public PullRequestInfoProvider createPullRequestInfoClient(GitRepositoryInfo gitRepositoryInfo) {
     Configuration configuration = gitApiClientFactory.createConfiguration();
 
     String graphqlApiUrl = getClientUtils(gitRepositoryInfo.provider).getPullRequestInfoProviderUrl(
-        gitRepositoryInfo.repositoryUrl);
+        gitRepositoryInfo.normalizedRepositoryUrl);
     insightProxy.contextualize(configuration, graphqlApiUrl);
 
     return gitApiClientFactory.getPullRequestInfoClient(gitRepositoryInfo.provider, configuration,
-        gitRepositoryInfo.username, gitRepositoryInfo.token, gitRepositoryInfo.repositoryUrl);
+        gitRepositoryInfo.username, gitRepositoryInfo.token, gitRepositoryInfo.normalizedRepositoryUrl);
   }
 
   public GeneralSCMApiClient createGeneralApiClient(

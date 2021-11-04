@@ -95,7 +95,7 @@ public class BitbucketCodeInsightsService
     try {
       Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
       PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
-          gitRepositoryInfo.repositoryUrl,
+          gitRepositoryInfo.normalizedRepositoryUrl,
           application,
           sourceControlComponentDetails,
           sourceCommitPolicyEvaluation,

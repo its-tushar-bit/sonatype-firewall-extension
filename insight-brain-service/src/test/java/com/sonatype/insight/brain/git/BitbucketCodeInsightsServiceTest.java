@@ -174,8 +174,8 @@ public class BitbucketCodeInsightsServiceTest
         .put("Severe", 4)
         .put("Stage", "release")
         .put("Moderate", 3)
-        .put("Details",
-            new BitbucketLinkDataParameter(gitRepositoryInfo.repositoryUrl, "Application Report", reportUri))
+        .put("Details", new BitbucketLinkDataParameter(
+            gitRepositoryInfo.normalizedRepositoryUrl, "Application Report", reportUri))
         .build();
 
     // verify the proper API calls are made

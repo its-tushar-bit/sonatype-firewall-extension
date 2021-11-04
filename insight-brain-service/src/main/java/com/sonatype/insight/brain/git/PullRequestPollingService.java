@@ -285,13 +285,13 @@ public class PullRequestPollingService
               log.warn(
                   "Could not fetch pull requests for org '{}' repo '{}'; will retry in {}.  Please check that the" +
                       " configured project url {} is correct, that it is for '{}' and that the API token is valid",
-                  org, repo, retryDelay, gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.provider, e);
+                  org, repo, retryDelay, gitRepositoryInfo.normalizedRepositoryUrl, gitRepositoryInfo.provider, e);
             }
             else {
               log.warn(
                   "Could not fetch pull requests for org '{}'; will retry in {}.  Please check that the" +
                       " configured project url {} is correct, that it is for '{}' and that the API token is valid",
-                  org, retryDelay, gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.provider, e);
+                  org, retryDelay, gitRepositoryInfo.normalizedRepositoryUrl, gitRepositoryInfo.provider, e);
             }
           }
         }
@@ -312,7 +312,7 @@ public class PullRequestPollingService
         sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)) {
       if (log.isDebugEnabled()) {
         log.debug("{} is not currently supported for pull request commenting on repository {}",
-            gitRepositoryInfo.provider.toString().toUpperCase(), gitRepositoryInfo.repositoryUrl);
+            gitRepositoryInfo.provider.toString().toUpperCase(), gitRepositoryInfo.normalizedRepositoryUrl);
       }
       return false;
     }

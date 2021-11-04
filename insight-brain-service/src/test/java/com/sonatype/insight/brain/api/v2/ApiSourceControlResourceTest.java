@@ -110,7 +110,7 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testAddSourceControlByOwner_ByApplication_SshUrl() throws Exception {
-    testAddSourceControlByOwner_ByApplication(VALID_SSH_URL, VALID_URL);
+    testAddSourceControlByOwner_ByApplication(VALID_SSH_URL, VALID_SSH_URL);
   }
 
   private void testAddSourceControlByOwner_ByApplication(String givenUrl, String expectedUrl) throws Exception {
@@ -157,7 +157,7 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testUpdateSourceControlByOwner_ByApplication_SshUrl() throws Exception {
-    testUpdateSourceControlByOwner_ByApplication(VALID_SSH_URL, VALID_URL);
+    testUpdateSourceControlByOwner_ByApplication(VALID_SSH_URL, VALID_SSH_URL);
   }
 
   private void testUpdateSourceControlByOwner_ByApplication(String givenUrl, String expectedUrl) throws Exception {
@@ -248,7 +248,7 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testAddOrUpdateSourceControl_AutomaticScmEnabled_SshUrl() throws Exception {
-    testAddOrUpdateSourceControl_AutomaticScmEnabled(VALID_SSH_URL, VALID_URL);
+    testAddOrUpdateSourceControl_AutomaticScmEnabled(VALID_SSH_URL, VALID_SSH_URL);
   }
 
   private void testAddOrUpdateSourceControl_AutomaticScmEnabled(String givenUrl, String expectedUrl) throws Exception {

@@ -72,7 +72,7 @@ public class RemediationPullRequestFeatureCheck
     
     if (!pullRequestRepositoryValidator.isRepoValidForPRs(gitRepoInfo)) {
       log.debug("Pull requests are not supported for application '{}' and repository '{}'",
-          app.getId(), gitRepoInfo.repositoryUrl);
+          app.getId(), gitRepoInfo.normalizedRepositoryUrl);
       return false;
     }
 

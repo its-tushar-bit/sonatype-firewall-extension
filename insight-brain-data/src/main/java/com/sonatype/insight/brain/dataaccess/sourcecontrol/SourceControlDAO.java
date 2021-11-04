@@ -201,7 +201,7 @@ public class SourceControlDAO
   }
 
   public List<SourceControl> getByRepositoryOwnerAndName(String repositoryOwnerAndName) {
-    return getList("SELECT entity FROM SourceControl entity WHERE entity.repositoryUrl LIKE ?1",
+    return getList("SELECT entity FROM SourceControl entity WHERE entity.normalizedRepositoryUrl LIKE ?1",
         "%/" + repositoryOwnerAndName.toLowerCase(Locale.ENGLISH) + '%');
   }
 
@@ -386,7 +386,7 @@ public class SourceControlDAO
     }
 
     repositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl);
-    String sQuery = "SELECT entity FROM SourceControl entity WHERE entity.repositoryUrl=?1";
+    String sQuery = "SELECT entity FROM SourceControl entity WHERE entity.normalizedRepositoryUrl=?1";
     if (tx == null) {
       return getList(sQuery, repositoryUrl);
     }
@@ -472,7 +472,7 @@ public class SourceControlDAO
     }
     try {
       gitApiClientFactory.getGitApiClientUtils(getProvider(tx, sourceControl))
-          .createProjectUri(sourceControl.getRepositoryUrl());
+          .createProjectUri(sourceControl.getNormalizedRepositoryUrl());
     }
     catch (IllegalArgumentException e) {
       throw new BadRequestException("SourceControl repositoryUrl is invalid: " + e.getMessage(), e);

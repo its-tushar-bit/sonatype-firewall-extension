@@ -615,7 +615,7 @@ public class ApplicationSourceControlEditorTest
     FormMask.seeAndWaitForDismissal();
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
-    SourceControlEditorPage.repositoryUrl().shouldHave(value(REPOSITORY_URL));
+    SourceControlEditorPage.repositoryUrl().shouldHave(value(SSH_REPOSITORY_URL));
     SourceControlEditorPage.repositoryUrlInfo().shouldNotBe(visible);
   }
 

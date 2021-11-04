@@ -238,7 +238,7 @@ public class SourceControlUtils
    */
   public boolean isBitbucketCloud(GitRepositoryInfo gitRepositoryInfo) {
     return gitRepositoryInfo.provider.equals(BITBUCKET) &&
-        BitbucketApiClientUtils.isCloudHosted(gitRepositoryInfo.repositoryUrl);
+        BitbucketApiClientUtils.isCloudHosted(gitRepositoryInfo.normalizedRepositoryUrl);
   }
 
   public String getScmUserIdForApplication(String applicationId) {
@@ -263,6 +263,7 @@ public class SourceControlUtils
   {
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
     gitRepositoryInfo.repositoryUrl = repoUrl;
+    gitRepositoryInfo.normalizedRepositoryUrl = SourceControl.normalizeRepositoryUrl(repoUrl);
     gitRepositoryInfo.provider = provider;
 
     // check at sub-organization level for missing fields

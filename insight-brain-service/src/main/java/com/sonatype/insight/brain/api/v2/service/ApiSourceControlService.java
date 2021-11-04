@@ -53,11 +53,8 @@ import org.slf4j.LoggerFactory;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_PRIORITY_HIGHER;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.REPOSITORY_URL_UPDATED_EVENT;
-import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.sanitizeUrl;
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.trim;
 
 @Named
 @Singleton
@@ -158,29 +155,29 @@ public class ApiSourceControlService
       throw new NotFoundException("Cannot find application with public ID: '" + publicId + "'");
     }
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(application.getId());
-    String convertedRepositoryUrl = convertUrlIfNeeded(repositoryUrl);
+    validateUrl(repositoryUrl);
 
     // check if automatic source control is enabled or bypassed
     if (bypassAutomatedSCM || automaticSourceControlConfigurationDAO.isSourceControlConfigurationEnabled()) {
       if (sourceControl == null) { // create new record
         sourceControl = new SourceControl.Builder()
             .setOwnerId(application.getId())
-            .setRepositoryUrl(convertedRepositoryUrl)
+            .setRepositoryUrl(repositoryUrl)
             .setRepositorySshUrl(sshUrl)
             .setBaseBranch(defaultBranch)
             .build();
         sourceControlDAO.insert(sourceControl);
         auditAndSendTelemetry(sourceControl, application.getId());
       }
-      else if (shouldUpdateSourceControlRepositoryUrl(sourceControl.getRepositoryUrl(), convertedRepositoryUrl)) {
-        sourceControl.setRepositoryUrl(convertedRepositoryUrl);
+      else if (shouldUpdateSourceControlRepositoryUrl(sourceControl.getRepositoryUrl())) {
+        sourceControl.setRepositoryUrl(repositoryUrl);
         sourceControl.setRepositorySshUrl(sshUrl);
         sourceControlDAO.update(sourceControl);
         auditAndSendTelemetry(sourceControl, application.getId());
       }
       else {
         log.debug("Skipping update of source control repository URL from {} to {}",
-            sourceControl.getRepositoryUrl(), convertedRepositoryUrl);
+            sourceControl.getRepositoryUrl(), repositoryUrl);
       }
     }
 
@@ -222,7 +219,6 @@ public class ApiSourceControlService
       throw new BadRequestException(String.format(
           "SourceControl already exists for %s with id: %s", ownerType, getPublicOwnerId(ownerId)));
     }
-    convertRepositoryUrlIfNeeded(sourceControl);
 
     sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
@@ -259,7 +255,9 @@ public class ApiSourceControlService
     else {
       encryptToken(sourceControl);
     }
-    convertRepositoryUrlIfNeeded(sourceControl);
+    if (isNotBlank(sourceControl.getRepositoryUrl())) {
+      validateUrl(sourceControl.getRepositoryUrl());
+    }
 
     boolean hasRepositoryUrlChanged = storedSourceControl.getRepositoryUrl() != null &&
         !storedSourceControl.getRepositoryUrl().equalsIgnoreCase(sourceControl.getRepositoryUrl());
@@ -391,29 +389,20 @@ public class ApiSourceControlService
     sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, appId);
   }
 
-  private boolean shouldUpdateSourceControlRepositoryUrl(String currentValue, String newValue) {
-    return !equalsIgnoreCase(trim(currentValue), trim(newValue)) && isBlank(currentValue);
+  private boolean shouldUpdateSourceControlRepositoryUrl(String currentValue) {
+    return isBlank(currentValue);
   }
 
   @VisibleForTesting
-  String convertUrlIfNeeded(String repositoryUrl) {
-    if (repositoryUrl.startsWith("https:") || repositoryUrl.startsWith("http:")) {
-      return sanitizeUrl(repositoryUrl);
-    }
-    if (repositoryUrl.startsWith("ssh:")) {
-      String url = repositoryUrl.replaceAll("/[^/@]+@", "/");
-      return sanitizeUrl(url.replace("ssh:", "https:"));
-    }
-    if (repositoryUrl.contains("@") && repositoryUrl.contains(":")) {
-      String url = repositoryUrl.replaceAll("[^@]+@", "");
-      return sanitizeUrl("https://" + url.replace(":", "/"));
-    }
-    throw new BadRequestException("Unsupported repository URL format: `" + repositoryUrl + "`");
-  }
-
-  private void convertRepositoryUrlIfNeeded(SourceControl sourceControl) {
-    if (isNotBlank(sourceControl.getRepositoryUrl())) {
-      sourceControl.setRepositoryUrl(convertUrlIfNeeded(sourceControl.getRepositoryUrl()));
+  void validateUrl(final String repositoryUrl) {
+    boolean validUrl =
+        repositoryUrl.startsWith("https:")                              // HTTPS URL
+        || repositoryUrl.startsWith("http:")                            // HTTP URL
+        || repositoryUrl.startsWith("ssh:")                             // explicit SSH URL
+        || repositoryUrl.contains("@") && repositoryUrl.contains(":")   // implicit SSH URL
+    ;
+    if (!validUrl) {
+      throw new BadRequestException("Unsupported repository URL format: `" + repositoryUrl + "`");
     }
   }
 

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -352,7 +353,8 @@ public class PullRequestPollingServiceTest
     // then: no events emitted
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
-        debug("BITBUCKET is not currently supported for pull request commenting on repository " + repositoryUrl)
+        debug("BITBUCKET is not currently supported for pull request commenting on repository " +
+            repositoryUrl.toLowerCase(Locale.ENGLISH))
     );
   }
 
@@ -407,7 +409,7 @@ public class PullRequestPollingServiceTest
     assertThatLogMessagesEqual(
         warn(
             "Could not fetch pull requests for org 'orgErr'; will retry in 5 minutes.  Please " +
-                "check that the configured project url https://domain.com/orgErr/repoErr is correct, that it is for " +
+                "check that the configured project url https://domain.com/orgerr/repoerr is correct, that it is for " +
                 "'github' and that the API token is valid")
     );
   }
@@ -437,7 +439,7 @@ public class PullRequestPollingServiceTest
     assertThatLogMessagesEqual(
         warn(
             "Could not fetch pull requests for org 'orgErr' repo 'repoErr'; will retry in 5 minutes.  Please " +
-                "check that the configured project url https://domain.com/orgErr/repoErr is correct, that it is for " +
+                "check that the configured project url https://domain.com/orgerr/repoerr is correct, that it is for " +
                 "'gitlab' and that the API token is valid")
     );
   }

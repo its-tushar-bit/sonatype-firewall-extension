@@ -18,6 +18,10 @@ import javax.persistence.Table;
 import com.sonatype.insight.model.HasStringId;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.google.common.annotations.VisibleForTesting;
+
+import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.sanitizeUrl;
+
 /**
  * @since 1.66
  */
@@ -41,6 +45,9 @@ public class SourceControl
 
   @Column(name = "repository_url")
   private String repositoryUrl;
+
+  @Column(name = "normalized_repository_url")
+  private String normalizedRepositoryUrl;
 
   @Column(name = "repository_ssh_url")
   private String repositorySshUrl;
@@ -138,14 +145,16 @@ public class SourceControl
   }
 
   public static String normalizeRepositoryUrl(String repositoryUrl) {
-    if (repositoryUrl != null) {
-      repositoryUrl = repositoryUrl.toLowerCase(Locale.ENGLISH);
-    }
-    return repositoryUrl;
+    return repositoryUrl != null ? convertUrlIfNeeded(repositoryUrl.toLowerCase(Locale.ENGLISH)) : null;
   }
 
   public void setRepositoryUrl(String repositoryUrl) {
-    this.repositoryUrl = normalizeRepositoryUrl(repositoryUrl);
+    this.repositoryUrl = repositoryUrl;
+    this.normalizedRepositoryUrl = normalizeRepositoryUrl(repositoryUrl);
+  }
+
+  public String getNormalizedRepositoryUrl() {
+    return normalizedRepositoryUrl;
   }
 
   public String getUsername() {
@@ -360,6 +369,19 @@ public class SourceControl
       sourceControl.setPullRequestPollTime(pullRequestPollTime);
       return sourceControl;
     }
+  }
+
+  @VisibleForTesting
+  static String convertUrlIfNeeded(String repositoryUrl) {
+    if (repositoryUrl.startsWith("ssh:")) {
+      String url = repositoryUrl.replaceAll("/[^/@]+@", "/");
+      repositoryUrl = url.replace("ssh:", "https:");
+    }
+    if (repositoryUrl.contains("@") && repositoryUrl.contains(":")) {
+      String url = repositoryUrl.replaceAll("[^@]+@", "");
+      repositoryUrl = "https://" + url.replace(":", "/");
+    }
+    return sanitizeUrl(repositoryUrl);
   }
 
   @Override

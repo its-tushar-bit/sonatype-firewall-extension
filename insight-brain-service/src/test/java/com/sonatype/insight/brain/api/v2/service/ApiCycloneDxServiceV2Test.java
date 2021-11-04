@@ -13,7 +13,9 @@ import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -32,6 +34,7 @@ import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
+import org.cyclonedx.model.Metadata;
 import org.cyclonedx.parsers.Parser;
 import org.junit.Before;
 import org.junit.Test;
@@ -121,6 +124,7 @@ public class ApiCycloneDxServiceV2Test
     Bom bom = parser.parse(bytes);
 
     assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
+    assertMetadata(bom, application, scanId, Version.VERSION_11);
     assertThat(bom.getExternalReferences()).hasSize(1);
 
     Component component = createComponent(null, "lodash", "4.17.19", "pkg:npm/lodash@4.17.19", "d60a2eb7c051d8d933df",
@@ -171,6 +175,8 @@ public class ApiCycloneDxServiceV2Test
 
     assertThat(bom.getSpecVersion()).isEqualTo(version.getVersionString());
     assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
+    assertMetadata(bom, application, scanId, version);
+
     assertThat(bom.getExternalReferences()).hasSize(1);
 
     Component component = createComponent(null, "jQuery", "3.4.1", "pkg:nuget/jQuery@3.4.1", "5408e54a94044d1f1f21",
@@ -183,6 +189,22 @@ public class ApiCycloneDxServiceV2Test
         "Apache-1.0", "LGPL-3.0", "Apache-2.0"));
     assertThat(bom.getComponents()).contains(component);
 
+  }
+
+  private void assertMetadata(Bom bom, Application application, String scanId, Version version) {
+    PolicyEvaluation policyEvaluation = null;
+    if (version.getVersion() >= 1.2) {
+      policyEvaluation =
+          new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(application.getId(), scanId);
+    }
+    Metadata metadata = bom.getMetadata();
+    if (policyEvaluation == null) {
+      assertThat(metadata).isNull();
+    }
+    else {
+      assertThat(metadata).isNotNull();
+      assertThat(metadata.getTimestamp()).isEqualToIgnoringMillis(policyEvaluation.getTime());
+    }
   }
 
   private String toUuid(final String scanId) {

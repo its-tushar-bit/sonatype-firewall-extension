@@ -10,7 +10,6 @@ import { enableMapSet } from 'immer';
 
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { loadReportIfNeeded } from '../applicationReport/applicationReportActions';
-import { selectComponentDetails } from './componentDetailsSelectors';
 import { selectSelectedComponent } from '../applicationReport/applicationReportSelectors';
 import {
   getComponentLabels,
@@ -24,6 +23,7 @@ import { Messages } from '../util/CommonServices';
 import { toggleBooleanProp } from '../util/reduxUtil';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const REDUCER_NAME = 'componentDetails';
 export const VISIT_ANCESTOR_ACTION = REDUCER_NAME + '/visitAncestors';
@@ -93,8 +93,8 @@ const flattenScopesToSingleArray = (topLevelScope) => {
 
 const onTabChange = (tabId) => {
   return (dispatch, getState) => {
-    const componentDetails = selectComponentDetails(getState());
-    return dispatch(stateGo(`applicationReport.componentDetails.${tabId}`, { hash: componentDetails.hash }));
+    const { hash } = selectRouterCurrentParams(getState());
+    return dispatch(stateGo(`applicationReport.componentDetails.${tabId}`, { hash }));
   };
 };
 

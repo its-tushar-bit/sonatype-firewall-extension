@@ -14,8 +14,8 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import {
   actions as componentDetailsActions,
-  VISIT_ANCESTOR_ACTION,
   RETURN_TO_OFFSPRING,
+  VISIT_ANCESTOR_ACTION,
 } from 'MainRoot/componentDetails/componentDetailsSlice';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
@@ -28,6 +28,7 @@ const {
   loadApplicableLabelScopes,
   addProprietaryMatchers,
   saveApplyLabelScope,
+  onTabChange,
 } = componentDetailsActions;
 
 const LOAD_COMPONENT_LABELS_REQUESTED = 'componentDetails/loadComponentDetails/pending';
@@ -513,6 +514,21 @@ describe('componentDetailsActions', function () {
           payload: 'error',
         });
         done();
+      });
+    });
+  });
+
+  describe('onTabChange', () => {
+    it('calls stateGo with the appropriate parameters', () => {
+      const expectedPayload = {
+        to: 'applicationReport.componentDetails.security',
+        params: { hash: mockComponentHash },
+        options: undefined,
+      };
+      store.dispatch(onTabChange('security'));
+      expect(store.getActions()).toHaveAction({
+        type: '@@reduxUiRouter/stateGo',
+        payload: expectedPayload,
       });
     });
   });

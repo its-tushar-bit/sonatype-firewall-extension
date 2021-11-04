@@ -131,7 +131,7 @@ describe('OverviewComponentInformation', () => {
 
       const [matchStateLabel, matchStateValue] = [definitionItems.at(1).find('dt'), definitionItems.at(1).find('dd')];
       expect(matchStateLabel).toHaveText('Match State');
-      expect(matchStateValue).toHaveText('unknown');
+      expect(matchStateValue).toHaveText('Unknown');
 
       const [OcurrencesLabel, OcurrencesValue] = [definitionItems.at(2).find('dt'), definitionItems.at(2).find('dd')];
       expect(OcurrencesLabel).toHaveText('Occurrences');
@@ -225,7 +225,7 @@ describe('OverviewComponentInformation', () => {
 
       const [matchStateLabel, matchStateValue] = [definitionItems.at(1).find('dt'), definitionItems.at(1).find('dd')];
       expect(matchStateLabel).toHaveText('Match State');
-      expect(matchStateValue).toHaveText('exact');
+      expect(matchStateValue).toHaveText('Exact');
 
       const [OcurrencesLabel, OcurrencesValue] = [definitionItems.at(2).find('dt'), definitionItems.at(2).find('dd')];
       expect(OcurrencesLabel).toHaveText('Occurrences');
@@ -273,7 +273,7 @@ describe('OverviewComponentInformation', () => {
 
       const [matchStateLabel, matchStateValue] = [definitionItems.at(1).find('dt'), definitionItems.at(1).find('dd')];
       expect(matchStateLabel).toHaveText('Match State');
-      expect(matchStateValue).toHaveText('similar (View Similar Matches)');
+      expect(matchStateValue).toHaveText('Similar (View Similar Matches)');
 
       const viewSimilarMatchesLink = matchStateValue.find('a');
       expect(viewSimilarMatchesLink).toExist();

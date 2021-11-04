@@ -7,6 +7,8 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { join } from 'ramda';
 
+import { capitalize } from 'MainRoot/util/jsUtil';
+
 import { formatTimeAgoUpToDay } from '../../../util/dateUtils';
 import OccurrencesPopoverContainer from '../occurrencesPopover/OccurrencesPopoverContainer';
 import InnerSourceProducerAlertContainer from '../InnerSourceProducerAlert/InnerSourceProducerAlertContainer';
@@ -79,7 +81,7 @@ export default function OverviewComponentInformation({
       <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Match State</dt>
         <dd className="nx-read-only__data">
-          {matchState}
+          {capitalize(matchState)}
           {viewSimilarMatchesLink}
         </dd>
       </div>

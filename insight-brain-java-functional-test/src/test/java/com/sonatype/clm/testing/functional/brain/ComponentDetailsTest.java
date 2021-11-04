@@ -426,7 +426,7 @@ public class ComponentDetailsTest
     IdentificationInfoSection identificationInfoSection =
         componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
     identificationInfoSection.shouldBe(visible);
-    identificationInfoSection.getMatchStateItem().shouldHave(text("similar (View Similar Matches)"));
+    identificationInfoSection.getMatchStateItem().shouldHave(text("Similar (View Similar Matches)"));
     identificationInfoSection.getSimilarMatchesLink().click();
 
     SimilarMatchesPopover similarMatchesPopover = new SimilarMatchesPopover();

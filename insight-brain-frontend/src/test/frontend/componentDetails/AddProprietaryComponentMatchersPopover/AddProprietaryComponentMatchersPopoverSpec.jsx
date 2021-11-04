@@ -62,22 +62,6 @@ describe('AddProprietaryComponentMatchersPopover', () => {
     mountedComponent?.unmount();
   });
 
-  it('does not render a popover when showPopover is false', () => {
-    const popover = getShallowComponent({ showPopover: false }).find(
-      '#component-details-add-proprietary-component-matchers-popover'
-    );
-    expect(popover).not.toExist();
-  });
-
-  it('renders a popover when showPopover is true with the right information', () => {
-    const popover = getShallowComponent().find('#component-details-add-proprietary-component-matchers-popover'),
-      alert = popover.find(NxInfoAlert);
-    expect(popover).toExist();
-    expect(alert).toHaveText(
-      'The following matchers will be added to the app name Configuration (duplicates will be ignored). The new matchers will be in effect for the next application analysis.'
-    );
-  });
-
   it('renders the link to config', () => {
     const popover = getShallowComponent().find('#component-details-add-proprietary-component-matchers-popover'),
       alert = popover.find(NxInfoAlert),
@@ -112,6 +96,26 @@ describe('AddProprietaryComponentMatchersPopover', () => {
     matchers.at(0).invoke('onChange')();
     matchers = component.find(NxCheckbox);
     expect(setComponentMatchersDataSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render a popover when showPopover is false', () => {
+    mountedComponent = getMountedComponent({ showPopover: false });
+    const popover = mountedComponent.find('#component-details-add-proprietary-component-matchers-popover');
+    expect(setComponentMatchersDataSpy).not.toHaveBeenCalled();
+    expect(resetSubmitErrorSpy).not.toHaveBeenCalled();
+    expect(popover).not.toExist();
+  });
+
+  it('renders a popover when showPopover is true with the right information and triggers the useEffect hook', () => {
+    mountedComponent = getMountedComponent();
+    const popover = mountedComponent.find('#component-details-add-proprietary-component-matchers-popover'),
+      alert = popover.find(NxInfoAlert);
+    expect(popover).toExist();
+    expect(setComponentMatchersDataSpy).toHaveBeenCalledTimes(1);
+    expect(resetSubmitErrorSpy).toHaveBeenCalledTimes(1);
+    expect(alert).toHaveText(
+      'The following matchers will be added to the app name Configuration (duplicates will be ignored). The new matchers will be in effect for the next application analysis.'
+    );
   });
 
   it('makes sure that the regex updates state', () => {
@@ -165,7 +169,7 @@ describe('AddProprietaryComponentMatchersPopover', () => {
     expect(closeBtn).toHaveText('Cancel');
     closeBtn.invoke('onClick')();
     expect(onCloseSpy).toHaveBeenCalledTimes(1);
-    expect(resetSubmitErrorSpy).toHaveBeenCalledTimes(2);
+    expect(resetSubmitErrorSpy).toHaveBeenCalledTimes(1);
   });
 
   it('shows an alert on error ', () => {

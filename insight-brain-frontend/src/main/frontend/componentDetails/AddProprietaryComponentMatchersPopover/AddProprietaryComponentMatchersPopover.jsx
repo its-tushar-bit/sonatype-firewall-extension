@@ -38,7 +38,7 @@ export default function AddProprietaryComponentMatchersPopover({
   const isFormValid = !!data.paths?.length || !!data.regex;
 
   const isPathnameChecked = (pathname) => {
-    return includes(pathname, data.paths);
+    return includes(pathname, data.paths || []);
   };
 
   const togglePathname = (pathname) => {
@@ -62,13 +62,12 @@ export default function AddProprietaryComponentMatchersPopover({
   };
 
   const closePopover = () => {
-    clearForm();
     onClose();
   };
 
   useEffect(() => {
-    clearForm();
-  }, []);
+    if (showPopover) clearForm();
+  }, [showPopover]);
 
   return (
     showPopover && (

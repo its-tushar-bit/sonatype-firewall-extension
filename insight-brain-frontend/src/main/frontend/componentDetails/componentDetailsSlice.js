@@ -184,7 +184,6 @@ const addProprietaryMatchersRequested = (state) => {
 const addProprietaryMatchersFulfilled = (state) => {
   state.setProprietaryMatchers.submitMaskState = true;
   state.setProprietaryMatchers.submitError = null;
-  state.setProprietaryMatchers.data.regex = '';
 };
 
 const addProprietaryMatchersFailed = (state, { payload }) => {

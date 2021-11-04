@@ -9,14 +9,21 @@ import PropTypes from 'prop-types';
 
 import { rscColorMap } from '../../react/tag/ComponentLabelTag';
 
-export default function TransferListHalf({ title, isInAvailableItems, items, onItemChange }) {
+export default function TransferListHalf({ isInAvailableItems, items, title, onItemChange }) {
   return (
     <NxFieldset className="iq-transfer-list__half" label={title}>
       <div className="iq-transfer-list__control-box">
         <div className="iq-transfer-list__item-list">
-          {items.map(({ color, id, label }) => (
+          {items.map(({ color, description, id, label, ownerType, ownerId }) => (
             <div key={id}>
-              <NxSelectableTag onSelect={onItemChange} selected={!isInAvailableItems} color={rscColorMap[color]}>
+              <NxSelectableTag
+                id={id}
+                onSelect={() => {
+                  onItemChange({ color, description, id, label, ownerId }, ownerType);
+                }}
+                selected={!isInAvailableItems}
+                color={rscColorMap[color]}
+              >
                 {label}
               </NxSelectableTag>
             </div>
@@ -28,7 +35,6 @@ export default function TransferListHalf({ title, isInAvailableItems, items, onI
 }
 
 TransferListHalf.propTypes = {
-  title: PropTypes.string.isRequired,
   isInAvailableItems: PropTypes.bool.isRequired,
   items: PropTypes.arrayOf(
     PropTypes.shape({
@@ -38,4 +44,5 @@ TransferListHalf.propTypes = {
     })
   ).isRequired,
   onItemChange: PropTypes.func.isRequired,
+  title: PropTypes.string.isRequired,
 };

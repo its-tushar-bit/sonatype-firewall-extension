@@ -9,6 +9,7 @@ import {
   selectIsApplicableLabelsLoading,
   selectLabels,
   selectApplicableLabels,
+  selectShowApplyLabelModal,
 } from '../componentDetailsSelectors';
 import { actions } from '../componentDetailsSlice';
 import ManageComponentLabels from './ManageComponentLabels';
@@ -21,11 +22,13 @@ function mapStateToProps(state) {
     selectedLabels: selectLabels(state),
     loadError: selectApplicableLabelsLoadError(state),
     loading: selectIsApplicableLabelsLoading(state),
+    showApplyLabelModal: selectShowApplyLabelModal(state),
   };
 }
 
 const mapDispatchToProps = {
   loadApplicableLabels,
+  handleAddLabelTag: actions.handleAddLabelTag,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ManageComponentLabels);

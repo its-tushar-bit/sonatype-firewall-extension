@@ -179,6 +179,26 @@ export const selectIsApplicableLabelsLoading = createSelector(selectDetails, ({ 
 
 export const selectIsLabelsLoading = createSelector(selectDetails, ({ pendingLoads }) => pendingLoads.has('labels'));
 
+export const selectShowApplyLabelModal = createSelector(selectDetails, prop('showApplyLabelModal'));
+
+export const selectSelectedLabelDetails = createSelector(selectDetails, prop('selectedLabelDetails'));
+
+export const selectLabelScopeToSave = createSelector(selectDetails, prop('labelScopeToSave'));
+
+export const selectApplicableLabelScopes = createSelector(selectDetails, prop('applicableLabelScopes'));
+
+export const selectApplicableLabelScopesLoadError = createSelector(
+  selectDetails,
+  prop('applicableLabelScopesLoadError')
+);
+
+export const selectIsApplyLabelModalLoading = createSelector(selectDetails, ({ pendingLoads }) =>
+  pendingLoads.has('applicableLabelScopes')
+);
+
+export const selectIsSavingLabelScope = createSelector(selectDetails, ({ pendingLoads }) => {
+  pendingLoads.has('isSavingLabelScope');
+});
 export const selectComponentDetailsLoadErrors = createSelector(
   selectDetails,
   selectApplicationReportSlice,

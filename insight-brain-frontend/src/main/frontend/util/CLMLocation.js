@@ -559,8 +559,16 @@ export function setProprietaryMatchers(ownerId) {
   return uriTemplate`/rest/proprietary/application/${ownerId}/add`;
 }
 
-export function getApplicableLabels(ownerType, ownerId) {
+export function getApplicableLabelsUrl(ownerType, ownerId) {
   return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}/applicable`;
+}
+
+export function getApplicableLabelScopesUrl(ownerType, ownerId, labelId) {
+  return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}/applicable/context/${labelId}`;
+}
+
+export function getSaveLabelScopeUrl(scopeType, scopeId, componentHash) {
+  return uriTemplate`/rest/label/component/${scopeType}/${scopeId}/${componentHash}`;
 }
 
 export function getUserByIdUrl(userId) {

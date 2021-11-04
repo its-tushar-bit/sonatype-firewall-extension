@@ -8,15 +8,15 @@ import TransferList from 'MainRoot/componentDetails/TransferList/TransferList';
 import TransferListHalf from 'MainRoot/componentDetails/TransferList/TransferListHalf';
 
 describe('TransferList', () => {
-  let minimalProps, getMounted, onChangeMock;
+  let minimalProps, getMounted, onAddItemMock;
 
   beforeEach(function () {
-    onChangeMock = jasmine.createSpy('onChange');
+    onAddItemMock = jasmine.createSpy('onAddItem');
 
     minimalProps = {
       selected: [],
       available: [],
-      onChange: onChangeMock,
+      onAddItem: onAddItemMock,
     };
 
     getMounted = enzymeUtils.getMountedComponent(TransferList, minimalProps);
@@ -44,6 +44,7 @@ describe('TransferList', () => {
     expect(firstHalf).toHaveProp('items', [{ id: 1 }, { id: 2 }]);
     expect(firstHalf).toHaveProp('title', 'Available Labels');
     expect(firstHalf).toHaveProp('isInAvailableItems', true);
+    expect(firstHalf).toHaveProp('onItemChange', onAddItemMock);
 
     expect(secondHalf).toExist();
     expect(secondHalf).toHaveProp('items', [{ id: 3 }]);

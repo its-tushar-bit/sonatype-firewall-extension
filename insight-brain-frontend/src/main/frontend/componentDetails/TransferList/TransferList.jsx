@@ -8,11 +8,16 @@ import PropTypes from 'prop-types';
 
 import TransferListHalf from './TransferListHalf';
 
-export default function TransferList({ available, selected, onChange }) {
+export default function TransferList({ available, selected, onAddItem, onRemoveItem }) {
   return (
     <div className="iq-transfer-list">
-      <TransferListHalf title="Available Labels" isInAvailableItems={true} items={available} onItemChange={onChange} />
-      <TransferListHalf title="Applied Labels" isInAvailableItems={false} items={selected} onItemChange={onChange} />
+      <TransferListHalf title="Available Labels" isInAvailableItems={true} items={available} onItemChange={onAddItem} />
+      <TransferListHalf
+        title="Applied Labels"
+        isInAvailableItems={false}
+        items={selected}
+        onItemChange={onRemoveItem}
+      />
     </div>
   );
 }
@@ -20,5 +25,6 @@ export default function TransferList({ available, selected, onChange }) {
 TransferList.propTypes = {
   selected: PropTypes.array.isRequired,
   available: PropTypes.array.isRequired,
-  onChange: PropTypes.func.isRequired,
+  onAddItem: PropTypes.func.isRequired,
+  onRemoveItem: PropTypes.func.isRequired,
 };

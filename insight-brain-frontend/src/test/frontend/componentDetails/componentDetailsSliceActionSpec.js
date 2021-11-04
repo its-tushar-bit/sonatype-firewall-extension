@@ -5,7 +5,13 @@
  */
 import axios from 'axios';
 
-import { getComponentLabels, getApplicableLabels, setProprietaryMatchers } from 'MainRoot/util/CLMLocation';
+import {
+  getComponentLabels,
+  getApplicableLabelsUrl,
+  setProprietaryMatchers,
+  getApplicableLabelScopesUrl,
+  getSaveLabelScopeUrl,
+} from 'MainRoot/util/CLMLocation';
 import {
   actions as componentDetailsActions,
   VISIT_ANCESTOR_ACTION,
@@ -19,7 +25,9 @@ const {
   visitAncestorAction,
   backToOffspringAction,
   loadApplicableLabels,
+  loadApplicableLabelScopes,
   addProprietaryMatchers,
+  saveApplyLabelScope,
 } = componentDetailsActions;
 
 const LOAD_COMPONENT_LABELS_REQUESTED = 'componentDetails/loadComponentDetails/pending';
@@ -28,11 +36,18 @@ const LOAD_COMPONENT_LABELS_FAILED = 'componentDetails/loadComponentDetails/reje
 const LOAD_APPLICABLE_LABELS_REQUESTED = 'componentDetails/loadApplicableLabels/pending';
 const LOAD_APPLICABLE_LABELS_FULFILLED = 'componentDetails/loadApplicableLabels/fulfilled';
 const LOAD_APPLICABLE_LABELS_FAILED = 'componentDetails/loadApplicableLabels/rejected';
+const LOAD_APPLICABLE_LABEL_SCOPES_REQUESTED = 'componentDetails/loadApplicableLabelScopes/pending';
+const LOAD_APPLICABLE_LABEL_SCOPES_FULFILLED = 'componentDetails/loadApplicableLabelScopes/fulfilled';
+const LOAD_APPLICABLE_LABEL_SCOPES_FAILED = 'componentDetails/loadApplicableLabelScopes/rejected';
+const SAVE_LABEL_SCOPE_REQUESTED = 'componentDetails/saveApplyLabelScope/pending';
+const SAVE_LABEL_SCOPE_FULFILLED = 'componentDetails/saveApplyLabelScope/fulfilled';
+const SAVE_LABEL_SCOPE_FAILED = 'componentDetails/saveApplyLabelScope/rejected';
 const ADD_PROPRIETARY_MATCHERS_REQUESTED = 'componentDetails/addProprietaryMatchers/pending';
 const ADD_PROPRIETARY_MATCHERS_FULFILLED = 'componentDetails/addProprietaryMatchers/fulfilled';
 const ADD_PROPRIETARY_MATCHERS_FAILED = 'componentDetails/addProprietaryMatchers/rejected';
 const RESET_SUBMIT_MASK_STATE = 'componentDetails/resetSubmitMaskState';
 const TOGGLE_SHOW_MATCHERS_POPOVER = 'componentDetails/toggleShowMatchersPopover';
+const CANCEL_SHOW_APPLY_MODAL = 'componentDetails/cancelApplyLabelModal';
 const STATE_GO = '@@reduxUiRouter/stateGo';
 
 describe('componentDetailsActions', function () {
@@ -41,7 +56,9 @@ describe('componentDetailsActions', function () {
     mockAxiosCalls,
     url,
     applicableLabelsUrl,
+    applicableLabelScopesUrl,
     addProprietaryMatchersUrl,
+    saveLabelScopeUrl,
     mockAppId,
     mockReportId,
     mockComponentHash,
@@ -74,6 +91,19 @@ describe('componentDetailsActions', function () {
           displayedEntries: [mockComponent],
         },
       },
+      componentDetails: {
+        selectedLabelDetails: {
+          color: 'pink',
+          description: 'testLabelDescription',
+          id: 'testLabelId',
+          label: 'testLabelText',
+          ownerId: 'testLabelOwnerId',
+        },
+        labelScopeToSave: {
+          labelScopeType: 'testScopeType',
+          labelScopeId: 'testScopeId',
+        },
+      },
     };
     mockAddProprietaryMatchersData = {
       paths: [],
@@ -81,7 +111,17 @@ describe('componentDetailsActions', function () {
     store = SpecUtil.mockReduxStore(state);
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
     url = getComponentLabels(mockAppId, mockComponentHash);
-    applicableLabelsUrl = getApplicableLabels('application', mockAppId);
+    applicableLabelsUrl = getApplicableLabelsUrl('application', mockAppId);
+    applicableLabelScopesUrl = getApplicableLabelScopesUrl(
+      'application',
+      state.router.currentParams.publicId,
+      state.componentDetails.selectedLabelDetails.id
+    );
+    saveLabelScopeUrl = getSaveLabelScopeUrl(
+      state.componentDetails.labelScopeToSave.labelScopeType,
+      state.componentDetails.labelScopeToSave.labelScopeId,
+      mockComponentHash
+    );
     addProprietaryMatchersUrl = setProprietaryMatchers(mockAppId);
     jasmine.clock().install();
   });
@@ -321,6 +361,155 @@ describe('componentDetailsActions', function () {
         expect(actions.length).toBe(2);
         expect(store.getActions()).toHaveAction({
           type: LOAD_APPLICABLE_LABELS_FAILED,
+          payload: 'error',
+        });
+        done();
+      });
+    });
+  });
+
+  describe('loadApplicableLabelScopes', () => {
+    it('immediately dispatches LOAD_APPLICABLE_LABEL_SCOPES_REQUESTED action', () => {
+      const mockResponse = { data: { children: null, id: 'testScopeId', name: 'testScopeName', type: 'application' } };
+      mockAxiosCalls({
+        get: {
+          [applicableLabelScopesUrl]: Promise.resolve(mockResponse),
+        },
+      });
+
+      store.dispatch(loadApplicableLabelScopes());
+      expect(store.getActions()).toHaveActionType(LOAD_APPLICABLE_LABEL_SCOPES_REQUESTED);
+    });
+
+    it('sends a GET request to the appropriate url', (done) => {
+      const mockResponse = { data: { children: null, id: 'testScopeId', name: 'testScopeName', type: 'application' } };
+      mockAxiosCalls({
+        get: {
+          [applicableLabelScopesUrl]: Promise.resolve(mockResponse),
+        },
+      });
+      store.dispatch(loadApplicableLabelScopes()).then(() => {
+        expect(axios.get).toHaveBeenCalledWith(applicableLabelScopesUrl);
+        done();
+      });
+    });
+
+    it('dispatches LOAD_APPLICABLE_LABEL_SCOPES_FULFILLED after a succesfull response', (done) => {
+      const mockResponse = { data: { children: null, id: 'testScopeId', name: 'testScopeName', type: 'application' } };
+      mockAxiosCalls({
+        get: {
+          [applicableLabelScopesUrl]: Promise.resolve(mockResponse),
+        },
+      });
+
+      const expectedPayload = mockResponse;
+
+      store.dispatch(loadApplicableLabelScopes()).then(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()).toHaveAction({
+          type: LOAD_APPLICABLE_LABEL_SCOPES_FULFILLED,
+          payload: expectedPayload,
+        });
+        done();
+      });
+    });
+
+    it('dispatches LOAD_APPLICABLE_LABEL_SCOPES_FAILED after a failed reponse', (done) => {
+      mockAxiosCalls({
+        get: {
+          [applicableLabelScopesUrl]: () => Promise.reject('error'),
+        },
+      });
+      store.dispatch(loadApplicableLabelScopes()).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(store.getActions()).toHaveAction({
+          type: LOAD_APPLICABLE_LABEL_SCOPES_FAILED,
+          payload: 'error',
+        });
+        done();
+      });
+    });
+  });
+
+  describe('saveApplyLabelScope', () => {
+    it('immediately dispatches SAVE_LABEL_SCOPE_REQUESTED action', () => {
+      mockAxiosCalls({
+        post: {
+          [saveLabelScopeUrl]: Promise.resolve(),
+        },
+      });
+
+      store.dispatch(saveApplyLabelScope());
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()).toHaveActionType(SAVE_LABEL_SCOPE_REQUESTED);
+    });
+
+    it('sends a POST request to the appropriate url', (done) => {
+      const mockResponse = { data: { someData: 'Some data' } };
+      mockAxiosCalls({
+        post: {
+          [saveLabelScopeUrl]: Promise.resolve(mockResponse),
+        },
+      });
+
+      store.dispatch(saveApplyLabelScope()).then(() => {
+        expect(axios.post).toHaveBeenCalledWith(saveLabelScopeUrl, state.componentDetails.selectedLabelDetails);
+        done();
+      });
+    });
+
+    it('dispatches SAVE_LABEL_SCOPE_FULFILLED after a successful response', (done) => {
+      const mockResponse = { data: { someData: 'Some data' } };
+
+      mockAxiosCalls({
+        post: {
+          [saveLabelScopeUrl]: Promise.resolve(mockResponse),
+        },
+      });
+
+      store.dispatch(saveApplyLabelScope()).then(() => {
+        expect(axios.post).toHaveBeenCalledWith(saveLabelScopeUrl, state.componentDetails.selectedLabelDetails);
+        expect(store.getActions()).toHaveAction({
+          type: SAVE_LABEL_SCOPE_FULFILLED,
+          payload: mockResponse,
+        });
+        done();
+      });
+    });
+
+    it('dispatches CANCEL_SHOW_APPLY_MODAL and LOAD_COMPONENT_LABELS_REQUESTED actions after a successful response', (done) => {
+      const mockResponse = { data: { someData: 'Some data' } };
+
+      mockAxiosCalls({
+        post: {
+          [saveLabelScopeUrl]: Promise.resolve(mockResponse),
+        },
+      });
+
+      store.dispatch(saveApplyLabelScope()).then(() => {
+        expect(axios.post).toHaveBeenCalledWith(saveLabelScopeUrl, state.componentDetails.selectedLabelDetails);
+        expect(store.getActions()).toHaveAction({
+          type: SAVE_LABEL_SCOPE_FULFILLED,
+          payload: mockResponse,
+        });
+        expect(store.getActions()).toHaveActionType(CANCEL_SHOW_APPLY_MODAL);
+        expect(store.getActions()).toHaveActionType(LOAD_COMPONENT_LABELS_REQUESTED);
+        done();
+      });
+    });
+
+    it('dispatches SAVE_LABEL_SCOPE_FAILED after a failed reponse', (done) => {
+      mockAxiosCalls({
+        post: {
+          [saveLabelScopeUrl]: () => Promise.reject('error'),
+        },
+      });
+
+      store.dispatch(saveApplyLabelScope()).then(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()).toHaveAction({
+          type: SAVE_LABEL_SCOPE_FAILED,
           payload: 'error',
         });
         done();

@@ -452,11 +452,9 @@ function SourceControlEditorController(
   }
 
   function effectiveProvider() {
-    return !vm.dirtySourceControl.providerInherit
-      ? vm.dirtySourceControl.provider
-      : vm.originalSourceControl.provider != null
-      ? vm.originalSourceControl.provider
-      : vm.originalSourceControl.providerInheritValue;
+    return vm.dirtySourceControl.providerInherit
+      ? vm.originalSourceControl.providerInheritValue
+      : vm.dirtySourceControl.provider;
   }
 
   function effectiveTokenInheritFrom() {

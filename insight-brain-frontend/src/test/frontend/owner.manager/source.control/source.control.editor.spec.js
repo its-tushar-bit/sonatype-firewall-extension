@@ -1514,6 +1514,48 @@ describe('source.control.editor.spec', function () {
         expect(vm.showScmValidator).toBeFalsy();
       });
     });
+
+    describe('effectiveProvider', function () {
+      it('should return inherited value when "inherit" is selected', function () {
+        // given gitlab at the root
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.provider = {
+          value: null,
+          parentValue: 'gitlab',
+          parentName: 'Root Organization',
+        };
+        digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
+
+        // and the form provider is different
+        vm.dirtySourceControl.provider = 'azure';
+
+        // and inherit is true
+        vm.dirtySourceControl.providerInherit = true;
+
+        // then the effective provider is the one at the root, not the one on the form
+        expect(vm.effectiveProvider()).toEqual('gitlab');
+      });
+
+      it('should return form value when "inherit" is not selected', function () {
+        // given gitlab at the root
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.provider = {
+          value: null,
+          parentValue: 'gitlab',
+          parentName: 'Root Organization',
+        };
+        digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
+
+        // and the form provider is different
+        vm.dirtySourceControl.provider = 'azure';
+
+        // and inherit is falsey
+        vm.dirtySourceControl.providerInherit = undefined;
+
+        // then the effective provider is the one on the form
+        expect(vm.effectiveProvider()).toEqual('azure');
+      });
+    });
   });
 
   describe('application', function () {

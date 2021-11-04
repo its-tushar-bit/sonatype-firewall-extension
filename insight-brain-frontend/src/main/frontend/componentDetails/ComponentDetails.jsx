@@ -42,6 +42,7 @@ export default function ComponentDetails({
   loading,
   toggleShowMatchersPopover,
   isProprietary,
+  pathnames,
 }) {
   useEffect(() => {
     loadComponentDetails();
@@ -87,7 +88,11 @@ export default function ComponentDetails({
                 />
               </ComponentDetailsHeader>
               {isUnknown && !isProprietary && (
-                <UnknownComponentAlert onClaimClick={goToClaim} toggleShowMatchersPopover={toggleShowMatchersPopover} />
+                <UnknownComponentAlert
+                  onClaimClick={goToClaim}
+                  toggleShowMatchersPopover={toggleShowMatchersPopover}
+                  pathnames={pathnames}
+                />
               )}
               {isUnknown && isProprietary && (
                 <NxInfoAlert id="proprietary-component-matched-alert">
@@ -144,4 +149,5 @@ ComponentDetails.propTypes = {
   pagination: PropTypes.shape(footerPropTypes),
   toggleShowMatchersPopover: PropTypes.func.isRequired,
   isProprietary: PropTypes.bool,
+  pathnames: PropTypes.arrayOf(PropTypes.string),
 };

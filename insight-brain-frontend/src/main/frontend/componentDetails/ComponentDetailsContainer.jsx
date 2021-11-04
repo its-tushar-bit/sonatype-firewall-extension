@@ -11,6 +11,7 @@ import {
   selectComponentDetailsLoadErrors,
   selectComponentDetailsLoading,
   selectIsProprietary,
+  selectFilteredPathnames,
 } from './componentDetailsSelectors';
 import { actions } from './componentDetailsSlice';
 import ComponentDetails from './ComponentDetails';
@@ -25,6 +26,7 @@ function mapStateToProps(state, { uiRouterState }) {
     loadError: selectComponentDetailsLoadErrors(state),
     loading: selectComponentDetailsLoading(state),
     isProprietary: selectIsProprietary(state),
+    pathnames: selectFilteredPathnames(state),
   };
 }
 

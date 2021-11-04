@@ -14,7 +14,11 @@ describe('UnkownComponentAlert', function () {
   beforeEach(function () {
     clickHandlerSpy = jasmine.createSpy('clickHandler');
     toggleShowMatchersPopoverSpy = jasmine.createSpy('toggleShowMatchersPopover');
-    minimalProps = { onClaimClick: clickHandlerSpy, toggleShowMatchersPopover: toggleShowMatchersPopoverSpy };
+    minimalProps = {
+      onClaimClick: clickHandlerSpy,
+      toggleShowMatchersPopover: toggleShowMatchersPopoverSpy,
+      pathnames: ['path'],
+    };
 
     getShallowComponent = enzymeUtils.getShallowComponent(UnkownComponentAlert, minimalProps);
   });
@@ -34,6 +38,21 @@ describe('UnkownComponentAlert', function () {
     expect(addButton).toExist();
     expect(addButton).toHaveProp('title', 'Add Proprietary Component Matchers');
     expect(addButton.text()).toEqual('Add Proprietary Component Matchers');
+  });
+
+  it('does not render addButton', () => {
+    const alertEl = getShallowComponent({ pathnames: [] });
+    const claimButton = alertEl.find(NxButton).at(0);
+    const addButton = alertEl.find(NxButton).at(1);
+
+    expect(alertEl).toExist();
+    expect(alertEl.find('span').text()).toEqual('The component is unknown.');
+
+    expect(claimButton).toExist();
+    expect(claimButton).toHaveProp('title', 'Claim Component');
+    expect(claimButton.text()).toEqual('Claim Component');
+
+    expect(addButton).not.toExist();
   });
 
   it('calls toggleShowMatchersPopover when the Add Proprietary Component Matchers button is clicked', function () {

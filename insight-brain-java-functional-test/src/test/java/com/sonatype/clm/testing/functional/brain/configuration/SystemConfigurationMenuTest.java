@@ -78,7 +78,6 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.emailConfiguration().shouldBe(visible);
     systemConfigMenu.proxyConfiguration().shouldBe(visible);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
-    systemConfigMenu.scmOnboarding().shouldBe(visible);
   }
 
   @Test
@@ -103,7 +102,6 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.emailConfiguration().shouldBe(visible);
     systemConfigMenu.proxyConfiguration().shouldBe(visible);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
-    systemConfigMenu.scmOnboarding().shouldBe(hidden);
     eyesWatcher.eyesCheck();
   }
 
@@ -129,7 +127,6 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
     systemConfigMenu.proxyConfiguration().shouldBe(hidden);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(hidden);
-    systemConfigMenu.scmOnboarding().shouldBe(hidden);
   }
 
   @Test
@@ -154,7 +151,6 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
     systemConfigMenu.proxyConfiguration().shouldBe(hidden);
     systemConfigMenu.advancedSearchConfiguration().shouldBe(hidden);
-    systemConfigMenu.scmOnboarding().shouldBe(hidden);
   }
 
   @Test
@@ -184,7 +180,6 @@ public class SystemConfigurationMenuTest
     webhookConfigurationPage.shouldNotBe(visible);
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
     systemConfigMenu.proxyConfiguration().shouldBe(hidden);
-    systemConfigMenu.scmOnboarding().shouldBe(hidden);
   }
 
   @Test
@@ -231,29 +226,5 @@ public class SystemConfigurationMenuTest
 
     systemConfigMenu.shouldBe(visible);
     systemConfigMenu.dataInsights().shouldBe(hidden);
-  }
-
-  @Test
-  public void testLicenseFeatureAwareness_scmOnboarding_enabled() {
-    setFeatures(LicensedFeature.AUTOMATION);
-
-    refreshOrOpen(ReportListPage.url());
-    loginAsAdmin();
-
-    systemConfigMenu.shouldBe(visible);
-    systemConfigMenu.dropdownToggle().click();
-    systemConfigMenu.scmOnboarding().shouldBe(visible);
-  }
-
-  @Test
-  public void testLicenseFeatureAwareness_scmOnboarding_disabled() {
-    setFeatures();
-
-    refreshOrOpen(ReportListPage.url());
-    loginAsAdmin();
-
-    systemConfigMenu.shouldBe(visible);
-    systemConfigMenu.dropdownToggle().click();
-    systemConfigMenu.scmOnboarding().shouldNotBe(visible);
   }
 }

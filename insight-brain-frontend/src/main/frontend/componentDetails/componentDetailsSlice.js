@@ -5,7 +5,7 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { curryN, reduce, prop, sortWith, ascend } from 'ramda';
+import { curryN, prop, sortWith, ascend } from 'ramda';
 import { enableMapSet } from 'immer';
 
 import { stateGo } from '../reduxUiRouter/routerActions';
@@ -17,6 +17,7 @@ import {
   getApplicableLabelsUrl,
   getApplicableLabelScopesUrl,
   getSaveLabelScopeUrl,
+  removeLabel,
 } from '../util/CLMLocation';
 import { selectComponentDetailsRequestData } from './overview/overviewSelectors';
 import { Messages } from '../util/CommonServices';
@@ -44,6 +45,8 @@ const initialState = Object.freeze({
   selectedLabelDetails: {},
   labelScopeToSave: {},
   applicableLabelsLoadError: null,
+  removeAppliedLabelError: null,
+  showRemoveLabelModal: false,
   applicableLabelScopesLoadError: null,
   saveLabelScopeError: null,
   showMatchersPopover: false,
@@ -138,13 +141,20 @@ const backToOffspring = (state) => {
   };
 };
 
+const handleRemoveLabelTag = (labelDetails, ownerType) => {
+  return (dispatch) => {
+    dispatch(actions.toggleShowRemoveLabelModal());
+    dispatch(actions.setSelectedLabelDetails({ ...labelDetails, ownerType }));
+  };
+};
+
 const loadComponentDetailsRequested = (state) => {
   return setPendingLoads(['labels'], state);
 };
 
 const loadComponentDetailsFulfilled = (state, { payload }) => {
   const labelsByOwner = payload.data.labelsByOwner;
-  const labels = reduce((accumulator, currentValue) => [...accumulator, ...currentValue.labels], [], labelsByOwner);
+  const labels = flattenLabelsToSingleArray(labelsByOwner);
   return unsetPendingLoads(['labels'], {
     ...state,
     labels: labels,
@@ -205,6 +215,8 @@ const addProprietaryMatchers = createAsyncThunk(
   }
 );
 
+const loadApplicableLabelsRequested = setPendingLoads(['applicableLabels']);
+
 const loadApplicableLabels = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicableLabels`,
   (_, { getState, rejectWithValue }) => {
@@ -212,10 +224,6 @@ const loadApplicableLabels = createAsyncThunk(
     return axios.get(getApplicableLabelsUrl('application', publicId)).catch(rejectWithValue);
   }
 );
-
-const loadApplicableLabelsRequested = (state) => {
-  return setPendingLoads(['applicableLabels'], state);
-};
 
 const loadApplicableLabelsFulfilled = (state, { payload }) => {
   const sortAlphabetically = sortWith([ascend(prop('label'))]);
@@ -276,6 +284,40 @@ const saveApplyLabelScope = createAsyncThunk(
         dispatch(actions.cancelApplyLabelModal());
         dispatch(actions.loadComponentDetails());
         return results;
+      })
+      .catch(rejectWithValue);
+  }
+);
+
+const removeAppliedLabelRequested = (state) => {
+  return setPendingLoads(['removeAppliedLabel'], state);
+};
+
+const removeAppliedLabelFulfilled = (state) => {
+  return unsetPendingLoads(['removeAppliedLabel'], {
+    ...state,
+    selectedLabelDetails: {},
+    removeAppliedLabelError: null,
+  });
+};
+
+const removeAppliedLabelFailed = (state, { payload }) => {
+  return unsetPendingLoads(['removeAppliedLabel'], {
+    ...state,
+    selectedLabelDetails: {},
+    removeAppliedLabelError: Messages.getHttpErrorMessage(payload),
+  });
+};
+
+const removeAppliedLabel = createAsyncThunk(
+  `${REDUCER_NAME}/removeLabel`,
+  ({ ownerType, ownerId, id }, { dispatch, getState, rejectWithValue }) => {
+    const { hash } = getState().router.currentParams;
+    return axios
+      .delete(removeLabel(ownerType, ownerId, hash, id))
+      .then(() => {
+        dispatch(actions.toggleShowRemoveLabelModal());
+        dispatch(loadComponentDetails());
       })
       .catch(rejectWithValue);
   }
@@ -348,6 +390,7 @@ const componentDetailsSlice = createSlice({
     resetSubmitMaskState: pathSetConst(['setProprietaryMatchers', 'submitMaskState'], null),
     resetSubmitError: pathSetConst(['setProprietaryMatchers', 'submitError'], null),
     setComponentMatchersData: pathSet(['setProprietaryMatchers', 'data']),
+    toggleShowRemoveLabelModal: toggleBooleanProp('showRemoveLabelModal'),
     setLabelScopeToSave: propSet('labelScopeToSave'),
     setSelectedLabelDetails: propSet('selectedLabelDetails'),
   },
@@ -361,6 +404,9 @@ const componentDetailsSlice = createSlice({
     [loadApplicableLabels.pending]: loadApplicableLabelsRequested,
     [loadApplicableLabels.fulfilled]: loadApplicableLabelsFulfilled,
     [loadApplicableLabels.rejected]: loadApplicableLabelsFailed,
+    [removeAppliedLabel.pending]: removeAppliedLabelRequested,
+    [removeAppliedLabel.fulfilled]: removeAppliedLabelFulfilled,
+    [removeAppliedLabel.rejected]: removeAppliedLabelFailed,
     [loadApplicableLabelScopes.pending]: loadApplicableLabelScopesRequested,
     [loadApplicableLabelScopes.fulfilled]: loadApplicableLabelScopesFulfilled,
     [loadApplicableLabelScopes.rejected]: loadApplicableLabelScopesFailed,
@@ -380,6 +426,8 @@ export const actions = {
   visitAncestorAction,
   backToOffspringAction,
   loadApplicableLabels,
+  removeAppliedLabel,
+  handleRemoveLabelTag,
   loadApplicableLabelScopes,
   saveApplyLabelScope,
   setLabelScopeToSaveAction,

@@ -16,6 +16,9 @@ const LOAD_COMPONENT_LABELS_FAILED = 'componentDetails/loadComponentDetails/reje
 const LOAD_APPLICABLE_LABELS_REQUESTED = 'componentDetails/loadApplicableLabels/pending';
 const LOAD_APPLICABLE_LABELS_FULFILLED = 'componentDetails/loadApplicableLabels/fulfilled';
 const LOAD_APPLICABLE_LABELS_FAILED = 'componentDetails/loadApplicableLabels/rejected';
+const REMOVE_APPLIED_LABEL_REQUESTED = 'componentDetails/removeLabel/pending';
+const REMOVE_APPLIED_LABEL_FULFILLED = 'componentDetails/removeLabel/fulfilled';
+const REMOVE_APPLIED_LABEL_FAILED = 'componentDetails/removeLabel/rejected';
 const LOAD_APPLICABLE_LABEL_SCOPES_REQUESTED = 'componentDetails/loadApplicableLabelScopes/pending';
 const LOAD_APPLICABLE_LABEL_SCOPES_FULFILLED = 'componentDetails/loadApplicableLabelScopes/fulfilled';
 const LOAD_APPLICABLE_LABEL_SCOPES_FAILED = 'componentDetails/loadApplicableLabelScopes/rejected';
@@ -29,6 +32,8 @@ const RESET_SUBMIT_MASK_STATE = 'componentDetails/resetSubmitMaskState';
 const RESET_SUBMIT_ERROR = 'componentDetails/resetSubmitError';
 const SET_COMPONENT_MATCHERS_DATA = 'componentDetails/setComponentMatchersData';
 const TOGGLE_SHOW_MATCHERS_POPOVER = 'componentDetails/toggleShowMatchersPopover';
+const TOGGLE_SHOW_REMOVE_LABEL_MODAL = 'componentDetails/toggleShowRemoveLabelModal';
+const SET_SELECTED_LABEL_DETAILS = 'componentDetails/setSelectedLabelDetails';
 
 describe('componentDetailsReducer', () => {
   let mockState;
@@ -43,6 +48,9 @@ describe('componentDetailsReducer', () => {
       applicableLabelScopes: [],
       loadError: null,
       applicableLabelsLoadError: null,
+      removeAppliedLabelError: null,
+      selectedLabelDetails: {},
+      showRemoveLabelModal: false,
       applicableLabelScopesLoadError: null,
       saveLabelScopeError: null,
     };
@@ -217,6 +225,36 @@ describe('componentDetailsReducer', () => {
     });
   });
 
+  describe('REMOVE_APPLIED_LABEL_REQUESTED action', function () {
+    it('adds "removeAppliedLabel" pending load', function () {
+      const newState = reducer(mockState, {
+        type: REMOVE_APPLIED_LABEL_REQUESTED,
+      });
+      expect(newState.pendingLoads.has('removeAppliedLabel')).toBe(true);
+    });
+  });
+
+  describe('REMOVE_APPLIED_LABEL_FULFILLED action', function () {
+    it('asign an empty object to selectedLabelDetails and removes "removeAppliedLabel" pending load', function () {
+      const newState = reducer(mockState, {
+        type: REMOVE_APPLIED_LABEL_FULFILLED,
+      });
+      expect(newState.pendingLoads.size).toEqual(0);
+      expect(newState.selectedLabelDetails).toEqual({});
+      expect(newState.removeAppliedLabelError).toBeNull();
+    });
+  });
+
+  describe('REMOVE_APPLIED_LABEL_FAILED action', function () {
+    it('adds removeAppliedLabelError value and removes "removeAppliedLabel" pending load', function () {
+      const newState = reducer(mockState, {
+        type: REMOVE_APPLIED_LABEL_FAILED,
+        payload: {},
+      });
+      expect(newState.pendingLoads.size).toEqual(0);
+      expect(newState.removeAppliedLabelError).toEqual('Error');
+    });
+  });
   describe('LOAD_APPLICABLE_LABEL_SCOPES_REQUESTED action', function () {
     it('adds "applicableLabelScopes" pending load', function () {
       const newState = reducer(mockState, {
@@ -467,6 +505,30 @@ describe('componentDetailsReducer', () => {
         type: TOGGLE_SHOW_MATCHERS_POPOVER,
       });
       expect(newState.showMatchersPopover).toBe(false);
+    });
+  });
+
+  describe('TOGGLE_SHOW_REMOVE_LABEL_MODAL action', () => {
+    it('toggles showRemoveLabelModal', () => {
+      let newState = reducer(mockState, {
+        type: TOGGLE_SHOW_REMOVE_LABEL_MODAL,
+      });
+      expect(newState.showRemoveLabelModal).toBe(true);
+
+      newState = reducer(newState, {
+        type: TOGGLE_SHOW_REMOVE_LABEL_MODAL,
+      });
+      expect(newState.showRemoveLabelModal).toBe(false);
+    });
+  });
+
+  describe('SET_SELECTED_LABEL_DETAILS action', () => {
+    it('set selectedLabelDetails', () => {
+      let newState = reducer(mockState, {
+        type: SET_SELECTED_LABEL_DETAILS,
+        payload: { test: 'test' },
+      });
+      expect(newState.selectedLabelDetails).toEqual({ test: 'test' });
     });
   });
 });

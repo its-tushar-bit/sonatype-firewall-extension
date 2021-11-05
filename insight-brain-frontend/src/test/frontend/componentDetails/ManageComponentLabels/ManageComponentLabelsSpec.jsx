@@ -5,14 +5,17 @@
  */
 import React from 'react';
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import { NxLoadWrapper } from '@sonatype/react-shared-components';
+import * as RemoveLabelModal from 'MainRoot/componentDetails/ManageComponentLabels/RemoveLabelModal/RemoveLabelModalContainer';
 import ManageComponentLabels from 'MainRoot/componentDetails/ManageComponentLabels/ManageComponentLabels';
 import * as ApplyLabelModalContainer from 'MainRoot/componentDetails/ManageComponentLabels/ApplyLabelModal/ApplyLabelModalContainer';
 import TransferList from 'MainRoot/componentDetails/TransferList/TransferList';
 
 describe('ManageComponentLabels', () => {
-  let minimalProps, getMounted, loadApplicableLabelsMock, handleAddLabelTagMock;
+  let minimalProps, getShallow, loadApplicableLabelsMock, getMounted, handleAddLabelTagMock;
 
   beforeEach(function () {
+    spyOn(RemoveLabelModal, 'default').and.returnValue(<div>Modal</div>);
     loadApplicableLabelsMock = jasmine.createSpy('loadApplicableLabels').and.returnValue([]);
     handleAddLabelTagMock = jasmine.createSpy('handleAddLabelTag');
     spyOn(ApplyLabelModalContainer, 'default').and.returnValue(<div>Modal</div>);
@@ -25,33 +28,45 @@ describe('ManageComponentLabels', () => {
       loadApplicableLabels: loadApplicableLabelsMock,
       loading: false,
       loadError: null,
+      handleRemoveLabelTag: () => {},
     };
 
+    getShallow = enzymeUtils.getShallowComponent(ManageComponentLabels, minimalProps);
     getMounted = enzymeUtils.getMountedComponent(ManageComponentLabels, minimalProps);
   });
 
-  it('renders a nx-h2 title', () => {
+  it('renders a component', () => {
     const component = getMounted();
-    const content = component.find('.nx-h2');
+    expect(component).toExist();
+    component.unmount();
+  });
+
+  it('renders an nx-h2 title', () => {
+    const component = getShallow();
+    const content = component.find(NxLoadWrapper).dive().find('.nx-h2');
 
     expect(content).toHaveText('Manage Labels');
   });
 
   it('calls loadApplicable action', () => {
-    getMounted();
+    const component = getMounted();
     expect(loadApplicableLabelsMock).toHaveBeenCalledTimes(1);
+    component.unmount();
   });
 
   it('renders a TransferList', () => {
-    const component = getMounted();
-    expect(component.find(TransferList)).toExist();
+    const component = getShallow();
+
+    expect(component.find(NxLoadWrapper).dive().find(TransferList)).toExist();
   });
 
   it('renders a TransferList with correct props', () => {
-    const component = getMounted({
+    const component = getShallow({
       applicableLabels: [{ id: 1 }, { id: 2 }, { id: 3 }],
       selectedLabels: [{ id: 3 }],
-    });
+    })
+      .find(NxLoadWrapper)
+      .dive();
 
     expect(component.find(TransferList)).toExist();
     expect(component.find(TransferList)).toHaveProp('available', [{ id: 1 }, { id: 2 }]);

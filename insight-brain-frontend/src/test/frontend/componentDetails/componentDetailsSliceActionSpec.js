@@ -7,8 +7,9 @@ import axios from 'axios';
 
 import {
   getComponentLabels,
-  getApplicableLabelsUrl,
   setProprietaryMatchers,
+  removeLabel,
+  getApplicableLabelsUrl,
   getApplicableLabelScopesUrl,
   getSaveLabelScopeUrl,
 } from 'MainRoot/util/CLMLocation';
@@ -27,6 +28,8 @@ const {
   loadApplicableLabels,
   loadApplicableLabelScopes,
   addProprietaryMatchers,
+  removeAppliedLabel,
+  handleRemoveLabelTag,
   saveApplyLabelScope,
   onTabChange,
 } = componentDetailsActions;
@@ -37,6 +40,9 @@ const LOAD_COMPONENT_LABELS_FAILED = 'componentDetails/loadComponentDetails/reje
 const LOAD_APPLICABLE_LABELS_REQUESTED = 'componentDetails/loadApplicableLabels/pending';
 const LOAD_APPLICABLE_LABELS_FULFILLED = 'componentDetails/loadApplicableLabels/fulfilled';
 const LOAD_APPLICABLE_LABELS_FAILED = 'componentDetails/loadApplicableLabels/rejected';
+const REMOVE_APPLIED_LABEL_REQUESTED = 'componentDetails/removeLabel/pending';
+const REMOVE_APPLIED_LABEL_FULFILLED = 'componentDetails/removeLabel/fulfilled';
+const REMOVE_APPLIED_LABEL_FAILED = 'componentDetails/removeLabel/rejected';
 const LOAD_APPLICABLE_LABEL_SCOPES_REQUESTED = 'componentDetails/loadApplicableLabelScopes/pending';
 const LOAD_APPLICABLE_LABEL_SCOPES_FULFILLED = 'componentDetails/loadApplicableLabelScopes/fulfilled';
 const LOAD_APPLICABLE_LABEL_SCOPES_FAILED = 'componentDetails/loadApplicableLabelScopes/rejected';
@@ -48,6 +54,8 @@ const ADD_PROPRIETARY_MATCHERS_FULFILLED = 'componentDetails/addProprietaryMatch
 const ADD_PROPRIETARY_MATCHERS_FAILED = 'componentDetails/addProprietaryMatchers/rejected';
 const RESET_SUBMIT_MASK_STATE = 'componentDetails/resetSubmitMaskState';
 const TOGGLE_SHOW_MATCHERS_POPOVER = 'componentDetails/toggleShowMatchersPopover';
+const TOGGLE_SHOW_REMOVE_LABEL_MODAL = 'componentDetails/toggleShowRemoveLabelModal';
+const SET_SELECTED_LABEL_DETAILS = 'componentDetails/setSelectedLabelDetails';
 const CANCEL_SHOW_APPLY_MODAL = 'componentDetails/cancelApplyLabelModal';
 const STATE_GO = '@@reduxUiRouter/stateGo';
 
@@ -57,6 +65,7 @@ describe('componentDetailsActions', function () {
     mockAxiosCalls,
     url,
     applicableLabelsUrl,
+    removeLabelUrl,
     applicableLabelScopesUrl,
     addProprietaryMatchersUrl,
     saveLabelScopeUrl,
@@ -66,12 +75,18 @@ describe('componentDetailsActions', function () {
     mockDerivedComponentName,
     mockComponent,
     mockAddProprietaryMatchersData,
-    mockRouteName;
+    mockRouteName,
+    mockOwnerType,
+    mockOwnerId,
+    mockLabelId;
 
   beforeEach(() => {
     spyOn(applicationReportActions, 'loadReportIfNeeded').and.returnValue(Promise.resolve({}));
     mockAppId = 'appId';
     mockReportId = 'reportId';
+    mockOwnerType = 'ownerType';
+    mockOwnerId = 'ownerId';
+    mockLabelId = 'labelId';
     mockComponentHash = 'my-component-hash';
     mockDerivedComponentName = 'myComponent:1:2';
     mockRouteName = 'application.componentDetails.overview';
@@ -112,6 +127,7 @@ describe('componentDetailsActions', function () {
     store = SpecUtil.mockReduxStore(state);
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
     url = getComponentLabels(mockAppId, mockComponentHash);
+    removeLabelUrl = removeLabel(mockOwnerType, mockOwnerId, mockComponentHash, mockLabelId);
     applicableLabelsUrl = getApplicableLabelsUrl('application', mockAppId);
     applicableLabelScopesUrl = getApplicableLabelScopesUrl(
       'application',
@@ -369,6 +385,70 @@ describe('componentDetailsActions', function () {
     });
   });
 
+  describe('removeAppliedLabel', () => {
+    let removeAppliedLabelPayload;
+    beforeEach(() => {
+      removeAppliedLabelPayload = { ownerType: mockOwnerType, ownerId: mockOwnerId, id: mockLabelId };
+    });
+
+    it('immediately dispatches REMOVE_APPLIED_LABEL_REQUESTED action', () => {
+      store.dispatch(removeAppliedLabel(removeAppliedLabelPayload));
+
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()).toHaveActionType(REMOVE_APPLIED_LABEL_REQUESTED);
+    });
+
+    it('sends a DELETE request to the appropriate url', (done) => {
+      const mockResponse = { data: { labelsByOwner: [{ labels: [{ test: 'test' }] }] } };
+      mockAxiosCalls({
+        get: {
+          [url]: Promise.resolve(mockResponse),
+        },
+        del: {
+          [removeLabelUrl]: Promise.resolve(),
+        },
+      });
+      store.dispatch(removeAppliedLabel(removeAppliedLabelPayload)).then(() => {
+        expect(axios.delete).toHaveBeenCalledWith('/rest/label/component/ownerType/ownerId/my-component-hash/labelId');
+        expect(store.getActions().length).toBe(5);
+        expect(store.getActions()).toHaveActionType(REMOVE_APPLIED_LABEL_REQUESTED);
+        done();
+      });
+    });
+
+    it('dispatches REMOVE_APPLIED_LABEL_FULFILLED after a succesfull response', (done) => {
+      const mockResponse = { data: { labelsByOwner: [{ labels: [{ test: 'test' }] }] } };
+      mockAxiosCalls({
+        get: {
+          [url]: Promise.resolve(mockResponse),
+        },
+        del: {
+          [removeLabelUrl]: Promise.resolve(),
+        },
+      });
+
+      store.dispatch(removeAppliedLabel(removeAppliedLabelPayload)).then(() => {
+        expect(store.getActions().length).toBe(5);
+        expect(store.getActions()).toHaveActionType(REMOVE_APPLIED_LABEL_FULFILLED);
+        done();
+      });
+    });
+
+    it('dispatches REMOVE_APPLIED_LABEL_FAILED after a failed reponse', (done) => {
+      mockAxiosCalls({
+        del: {
+          [removeLabelUrl]: () => Promise.reject('error'),
+        },
+      });
+      store.dispatch(removeAppliedLabel(removeAppliedLabelPayload)).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionType(REMOVE_APPLIED_LABEL_FAILED);
+        done();
+      });
+    });
+  });
+
   describe('loadApplicableLabelScopes', () => {
     it('immediately dispatches LOAD_APPLICABLE_LABEL_SCOPES_REQUESTED action', () => {
       const mockResponse = { data: { children: null, id: 'testScopeId', name: 'testScopeName', type: 'application' } };
@@ -430,6 +510,16 @@ describe('componentDetailsActions', function () {
         });
         done();
       });
+    });
+  });
+
+  describe('handleRemoveLabelTag', () => {
+    it('immediately dispatches TOGGLE_SHOW_REMOVE_LABEL_MODAL and SET_SELECTED_LABEL_DETAILS actions', () => {
+      store.dispatch(handleRemoveLabelTag());
+
+      expect(store.getActions().length).toBe(2);
+      expect(store.getActions()).toHaveActionType(TOGGLE_SHOW_REMOVE_LABEL_MODAL);
+      expect(store.getActions()).toHaveActionType(SET_SELECTED_LABEL_DETAILS);
     });
   });
 

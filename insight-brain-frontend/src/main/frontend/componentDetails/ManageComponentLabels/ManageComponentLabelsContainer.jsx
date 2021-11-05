@@ -9,25 +9,29 @@ import {
   selectIsApplicableLabelsLoading,
   selectLabels,
   selectApplicableLabels,
-  selectShowApplyLabelModal,
+  selectComponentDetailsLoading,
+  selectSelectedLabelDetails,
 } from '../componentDetailsSelectors';
 import { actions } from '../componentDetailsSlice';
 import ManageComponentLabels from './ManageComponentLabels';
 
-const { loadApplicableLabels } = actions;
+const { loadApplicableLabels, removeAppliedLabel, handleRemoveLabelTag, toggleShowRemoveLabelModal } = actions;
 
 function mapStateToProps(state) {
   return {
     applicableLabels: selectApplicableLabels(state),
     selectedLabels: selectLabels(state),
+    selectedLabelDetails: selectSelectedLabelDetails(state),
     loadError: selectApplicableLabelsLoadError(state),
-    loading: selectIsApplicableLabelsLoading(state),
-    showApplyLabelModal: selectShowApplyLabelModal(state),
+    loading: selectIsApplicableLabelsLoading(state) || selectComponentDetailsLoading(state),
   };
 }
 
 const mapDispatchToProps = {
+  removeLabel: removeAppliedLabel,
   loadApplicableLabels,
+  toggleShowRemoveLabelModal,
+  handleRemoveLabelTag,
   handleAddLabelTag: actions.handleAddLabelTag,
 };
 

@@ -22,6 +22,9 @@ import {
   selectApplicationInfo,
   selectComponentDetailsLoading,
   selectComponentDetailsLoadErrors,
+  selectSelectedLabelDetails,
+  selectShowRemoveLabelModal,
+  selectRemoveAppliedLabelError,
   selectComponentIdentificationSource,
   selectIsProprietary,
   selectComponentAncestors,
@@ -187,6 +190,9 @@ describe('componentDetailsSelectors', () => {
       applicableLabels: [],
       labels: [],
       loadError: false,
+      removeAppliedLabelError: null,
+      selectedLabelDetails: {},
+      showRemoveLabelModal: false,
       pendingLoads: new Set(['test']),
       showMatchersPopover: null,
       setProprietaryMatchers: {
@@ -604,6 +610,48 @@ describe('componentDetailsSelectors', () => {
       };
       const actual = selectComponentDetailsLoadErrors(state);
       expect(actual).toBeNull();
+    });
+  });
+
+  describe('selectSelectedLabelDetails', () => {
+    it('returns selectedLabelDetails', () => {
+      expect(
+        selectSelectedLabelDetails({
+          ...mockState,
+          componentDetails: { ...mockState.componentDetails, selectedLabelDetails: { test: 'test' } },
+        })
+      ).toEqual({ test: 'test' });
+    });
+  });
+
+  describe('selectShowRemoveLabelModal', () => {
+    it('returns showRemoveLabelModal (true)', () => {
+      expect(
+        selectShowRemoveLabelModal({
+          ...mockState,
+          componentDetails: { ...mockState.componentDetails, showRemoveLabelModal: true },
+        })
+      ).toEqual(true);
+    });
+
+    it('returns showRemoveLabelModal (false)', () => {
+      expect(
+        selectShowRemoveLabelModal({
+          ...mockState,
+          componentDetails: { ...mockState.componentDetails, showRemoveLabelModal: false },
+        })
+      ).toEqual(false);
+    });
+  });
+
+  describe('selectRemoveAppliedLabelError', () => {
+    it('returns removeAppliedLabelError', () => {
+      expect(
+        selectRemoveAppliedLabelError({
+          ...mockState,
+          componentDetails: { ...mockState.componentDetails, removeAppliedLabelError: 'error' },
+        })
+      ).toEqual('error');
     });
   });
 

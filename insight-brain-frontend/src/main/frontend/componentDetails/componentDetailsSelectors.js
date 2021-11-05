@@ -219,3 +219,7 @@ export const selectComponentDetailsLoading = createSelector(
     return loadingStatus;
   }
 );
+
+export const selectShowRemoveLabelModal = createSelector(selectDetails, prop('showRemoveLabelModal'));
+
+export const selectRemoveAppliedLabelError = createSelector(selectDetails, prop('removeAppliedLabelError'));

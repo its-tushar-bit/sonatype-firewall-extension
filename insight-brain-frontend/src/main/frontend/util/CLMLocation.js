@@ -555,6 +555,10 @@ export function getComponentLabels(ownerId, componentHash) {
   return uriTemplate`/rest/label/component/application/${ownerId}/${componentHash}`;
 }
 
+export function removeLabel(ownerType, ownerId, componentHash, labelId) {
+  return uriTemplate`/rest/label/component/${ownerType}/${ownerId}/${componentHash}/${labelId}`;
+}
+
 export function setProprietaryMatchers(ownerId) {
   return uriTemplate`/rest/proprietary/application/${ownerId}/add`;
 }

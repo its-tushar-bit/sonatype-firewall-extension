@@ -10,6 +10,7 @@ import { NxLoadWrapper } from '@sonatype/react-shared-components';
 
 import { componentDetailsTagsPropTypes } from '../ComponentDetailsHeader';
 import TransferList from '../TransferList/TransferList';
+import RemoveLabelModal from './RemoveLabelModal/RemoveLabelModalContainer';
 import ApplyLabelModalContainer from './ApplyLabelModal/ApplyLabelModalContainer';
 
 export default function ManageComponentLabels({
@@ -17,13 +18,13 @@ export default function ManageComponentLabels({
   loadError,
   loading,
   loadApplicableLabels,
+  handleRemoveLabelTag,
   handleAddLabelTag,
   selectedLabels = [],
 }) {
   const selectedLabelsSet = new Set(selectedLabels.map(({ id }) => id));
-  const groupedItems = groupBy((item) => (selectedLabelsSet.has(item.id) ? 'selected' : 'available'), applicableLabels);
-  const available = groupedItems.available || [];
-  const selected = groupedItems.selected || [];
+  const available = applicableLabels.filter((item) => !selectedLabelsSet.has(item.id)) || [];
+  const selected = selectedLabels || [];
 
   useEffect(() => {
     loadApplicableLabels();
@@ -42,17 +43,18 @@ export default function ManageComponentLabels({
               </div>
             </header>
             <div className="nx-tile-content">
+              <RemoveLabelModal />
+              <ApplyLabelModalContainer />
               <TransferList
                 available={available}
                 selected={selected}
                 onAddItem={handleAddLabelTag}
-                onRemoveItem={() => {}}
+                onRemoveItem={handleRemoveLabelTag}
               />
             </div>
           </div>
         )}
       </NxLoadWrapper>
-      <ApplyLabelModalContainer />
     </Fragment>
   );
 }
@@ -63,5 +65,6 @@ ManageComponentLabels.propTypes = {
   loadApplicableLabels: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
   loadError: PropTypes.string,
+  handleRemoveLabelTag: PropTypes.func.isRequired,
   handleAddLabelTag: PropTypes.func.isRequired,
 };

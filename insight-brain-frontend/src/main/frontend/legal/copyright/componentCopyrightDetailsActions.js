@@ -46,12 +46,14 @@ export function refreshCopyrightDetails() {
 }
 
 function getFirstFileCopyrightContexts(getState, dispatch, copyrightIndex) {
-  return requestLoadCopyrightDetails(dispatch, getState(), copyrightIndex).then(() => {
-    const filePaths = getState().componentCopyrightDetails.filePaths;
-    if (filePaths.length) {
-      return dispatch(loadCopyrightContexts(filePaths[0].filePath));
-    }
-  });
+  return requestLoadCopyrightDetails(dispatch, getState(), copyrightIndex)
+    .then(() => {
+      const filePaths = getState().componentCopyrightDetails.filePaths;
+      if (filePaths.length) {
+        return dispatch(loadCopyrightContexts(filePaths[0].filePath));
+      }
+    })
+    .catch((error) => dispatch(copyrightContextFailed({ value: Messages.getHttpErrorMessage(error) })));
 }
 
 export function loadComponentAndCopyrightDetails(ownerType, ownerId, hash, copyrightIndex, componentIdentifier) {
@@ -207,8 +209,8 @@ function loadCopyrightFileCountPromise(ownerType, ownerId, component) {
   const copyrightFileCountUrl = getCopyrightFileCountUrl(
     ownerType,
     ownerId,
-    component.hash,
-    component.componentIdentifier
+    component?.hash,
+    component?.componentIdentifier
   );
 
   return axios.get(copyrightFileCountUrl);
@@ -221,7 +223,7 @@ function extractRoutingParameters(state, requestedCopyrightIndex) {
   const copyrightIndex = requestedCopyrightIndex || state.componentCopyrightDetails.copyrightIndex;
 
   const component = advancedLegalState.component.component;
-  const copyright = component.licenseLegalData.copyrights[copyrightIndex];
+  const copyright = component?.licenseLegalData.copyrights[copyrightIndex];
 
   const ownerType = routerParams.ownerType;
   const ownerPublicId = routerParams.ownerId;

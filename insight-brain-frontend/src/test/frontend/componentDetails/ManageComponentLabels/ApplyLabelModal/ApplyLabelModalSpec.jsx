@@ -117,4 +117,16 @@ describe('ApplyLabelModal', () => {
     }).find(NxForm);
     expect(form).toHaveProp('validationErrors', 'Select a scope to apply');
   });
+
+  it('sets the saveLabelError prop to the NxForm submitError prop', () => {
+    let form = getShallow({
+      saveLabelError: null,
+    }).find(NxForm);
+    expect(form).toHaveProp('submitError', null);
+
+    form = getShallow({
+      saveLabelError: 'save-err',
+    }).find(NxForm);
+    expect(form).toHaveProp('submitError', 'save-err');
+  });
 });

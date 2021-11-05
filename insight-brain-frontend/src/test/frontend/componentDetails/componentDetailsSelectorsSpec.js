@@ -28,6 +28,7 @@ import {
   selectComponentIdentificationSource,
   selectIsProprietary,
   selectComponentAncestors,
+  selectSaveLabelError,
 } from 'MainRoot/componentDetails/componentDetailsSelectors';
 
 describe('componentDetailsSelectors', () => {
@@ -695,6 +696,28 @@ describe('componentDetailsSelectors', () => {
       ];
       const actual = selectComponentAncestors(state);
       expect(actual).toEqual(expected);
+    });
+  });
+
+  describe('selectSaveLabelError', () => {
+    it('is composed of the following selectors', () => {
+      expect(selectSaveLabelError.dependencies).toEqual([selectDetails]);
+    });
+
+    it('returns the selectSaveLabelError present in the componentDetails slice', () => {
+      const state = {
+        componentDetails: { saveLabelScopeError: 'save-label-error' },
+      };
+      const actual = selectSaveLabelError(state);
+      expect(actual).toEqual('save-label-error');
+    });
+
+    it('returns null if there are no errors in the state slices', () => {
+      const state = {
+        componentDetails: { saveLabelScopeError: null },
+      };
+      const actual = selectSaveLabelError(state);
+      expect(actual).toBeNull();
     });
   });
 });

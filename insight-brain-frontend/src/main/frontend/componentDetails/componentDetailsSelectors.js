@@ -173,6 +173,8 @@ export const selectApplicableLabelsLoadError = createSelector(
   ({ applicableLabelsLoadError }) => applicableLabelsLoadError
 );
 
+export const selectSaveLabelError = createSelector(selectDetails, prop('saveLabelScopeError'));
+
 export const selectIsApplicableLabelsLoading = createSelector(selectDetails, ({ pendingLoads }) =>
   pendingLoads.has('applicableLabels')
 );

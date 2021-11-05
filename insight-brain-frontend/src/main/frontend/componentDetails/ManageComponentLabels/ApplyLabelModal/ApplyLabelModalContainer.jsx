@@ -6,10 +6,11 @@
 import { connect } from 'react-redux';
 import {
   selectApplicableLabelScopes,
+  selectApplicableLabelScopesLoadError,
   selectComponentName,
+  selectSaveLabelError,
   selectIsApplyLabelModalLoading,
   selectLabelScopeToSave,
-  selectApplicableLabelScopesLoadError,
   selectSelectedLabelDetails,
   selectShowApplyLabelModal,
 } from '../../componentDetailsSelectors';
@@ -25,6 +26,7 @@ function mapStateToProps(state) {
     loading: selectIsApplyLabelModalLoading(state),
     selectedLabelDetails: selectSelectedLabelDetails(state),
     showApplyLabelModal: selectShowApplyLabelModal(state),
+    saveLabelError: selectSaveLabelError(state),
   };
 }
 

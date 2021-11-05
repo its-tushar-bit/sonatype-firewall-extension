@@ -21,6 +21,7 @@ export default function ApplyLabelModal({
   selectedLabelDetails,
   setLabelScopeToSave,
   showApplyLabelModal,
+  saveLabelError,
 }) {
   useEffect(() => {
     if (showApplyLabelModal) {
@@ -41,6 +42,7 @@ export default function ApplyLabelModal({
       <NxForm
         className="nx-form"
         onSubmit={saveApplyLabelScope}
+        submitError={saveLabelError}
         onCancel={cancelApplyLabelModal}
         loading={loading}
         loadError={loadError}
@@ -58,7 +60,7 @@ export default function ApplyLabelModal({
             <dd className="nx-read-only__data">{componentName}</dd>
             <dt className="nx-read-only__label">Label</dt>
             <dd className="nx-read-only__data">
-              <ComponentLabelTag children={selectedLabelDetails.label} color={selectedLabelDetails.color} />
+              <ComponentLabelTag color={selectedLabelDetails.color}>{selectedLabelDetails.label}</ComponentLabelTag>
             </dd>
           </dl>
           <NxFieldset label="Scope" className="nx-read-only" isRequired>
@@ -94,4 +96,5 @@ ApplyLabelModal.propTypes = {
   selectedLabelDetails: PropTypes.object.isRequired,
   setLabelScopeToSave: PropTypes.func.isRequired,
   showApplyLabelModal: PropTypes.bool.isRequired,
+  saveLabelError: PropTypes.string,
 };

@@ -185,6 +185,7 @@ export default function ComponentLegalOverviewPage(props) {
                     ownerType,
                     ownerId,
                     hash,
+                    componentIdentifier,
                   }}
                 />
                 {obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer)}

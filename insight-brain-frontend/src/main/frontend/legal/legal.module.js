@@ -228,6 +228,18 @@ function routes($stateProvider) {
         title: 'License Files Details',
       },
     })
+    .state('legal.componentLicenseFilesDetailsByComponentIdentifier', {
+      url: '/legal/{ownerType}/{ownerId}/componentIdentifier/{componentIdentifier}/licenseFiles',
+      component: 'componentLicenseFilesDetails',
+      abstract: true,
+    })
+    .state('legal.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails', {
+      url: '/{licenseIndex}',
+      component: 'licenseFilesDetailsContents',
+      data: {
+        title: 'License Files Details',
+      },
+    })
     .state('legal.stageTypeComponentLicenseFilesDetails', {
       url: '/legal/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/licenseFiles',
       component: 'componentLicenseFilesDetails',

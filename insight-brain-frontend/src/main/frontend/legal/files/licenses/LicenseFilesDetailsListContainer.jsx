@@ -25,7 +25,7 @@ function mapStateToProps({ advancedLegal, componentLicenseFileDetails, router })
     loading: component.loading || availableScopes.loading || componentLicenseFileDetails.loadingLicenseDetails,
     error: component.error || availableScopes.error,
     ...pick(['component'], component),
-    ...pick(['hash', 'ownerType', 'ownerId', 'stageTypeId', 'licenseIndex'], routerParams),
+    ...pick(['hash', 'componentIdentifier', 'ownerType', 'ownerId', 'stageTypeId', 'licenseIndex'], routerParams),
   };
 }
 

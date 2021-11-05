@@ -7,6 +7,7 @@
 package com.sonatype.clm.testing.functional.brain.legal;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -21,7 +22,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
-import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
@@ -70,27 +70,51 @@ public class LicenseFileDetailsTest
                 StandardCharsets.UTF_8))
         .atUri("/rest/legal/file");
 
-    refreshOrOpen(ComponentLicenseFileDetailsPage.urlToApplicationScope(
+    refreshOrOpen(ComponentLicenseFileDetailsPage.urlToApplicationScopeByHash(
         app.getPublicId(), "033e7a20b23ea284d474", 0));
   }
 
   @Test
-  public void testLicenseOverview() {
-    refreshOrOpen(ComponentLicenseFileDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
-    final LicenseFileOverview licenseOverview = ComponentLicenseFileDetailsPage.licenseFileOverview();
+  public void testLicenseOverviewByHash() {
+    refreshOrOpen(
+        ComponentLicenseFileDetailsPage.urlToApplicationScopeByHash(app.getPublicId(), "033e7a20b23ea284d474", 0));
+    doTestLicenseOverview();
+    eyesWatcher.eyesCheck("License File Details Overview section");
+  }
+
+  @Test
+  public void testLicenseOverviewByComponentIdenfifier() throws UnsupportedEncodingException {
+    refreshOrOpen(
+        ComponentLicenseFileDetailsPage.urlToApplicationScopeByComponentIdentifier(app.getPublicId(), componentId, 0));
+    doTestLicenseOverview();
+  }
+
+  private void doTestLicenseOverview() {
+    LicenseFileOverview licenseOverview = ComponentLicenseFileDetailsPage.licenseFileOverview();
 
     licenseOverview.getAttributionReportStatus().shouldHave(text("Included"));
     licenseOverview.getScope().shouldHave(text("Root Organization"));
     licenseOverview.getSource().shouldHave(text("Sonatype Scan"));
 
     licenseOverview.getLicenseText().shouldHave(text("Apache ServiceComb Copyright 2017-2021"));
-    eyesWatcher.eyesCheck("License File Details Overview section");
   }
 
   @Test
-  public void testLicenseList() {
-    refreshOrOpen(ComponentLicenseFileDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
-    final LicenseFileList noticeList = ComponentLicenseFileDetailsPage.licenseFileList();
+  public void testLicenseListByHash() {
+    refreshOrOpen(
+        ComponentLicenseFileDetailsPage.urlToApplicationScopeByHash(app.getPublicId(), "033e7a20b23ea284d474", 0));
+    doTestLicenseList();
+  }
+
+  @Test
+  public void testLicenseListByComponentIdentifier() throws UnsupportedEncodingException {
+    refreshOrOpen(
+        ComponentLicenseFileDetailsPage.urlToApplicationScopeByComponentIdentifier(app.getPublicId(), componentId, 0));
+    doTestLicenseList();
+  }
+
+  private void doTestLicenseList() {
+    LicenseFileList noticeList = ComponentLicenseFileDetailsPage.licenseFileList();
 
     noticeList.shouldHave(text("license"));
     noticeList.attributionInclusion(1).shouldHave(text("Included in attribution report"));
@@ -98,11 +122,22 @@ public class LicenseFileDetailsTest
   }
 
   @Test
-  public void testChangeSelectedLicense() {
-    refreshOrOpen(ComponentLicenseFileDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
+  public void testChangeSelectedLicenseByHash() {
+    refreshOrOpen(
+        ComponentLicenseFileDetailsPage.urlToApplicationScopeByHash(app.getPublicId(), "033e7a20b23ea284d474", 0));
+    doTestChangeSelectedLicense();
+  }
 
-    final LicenseFileOverview licenseOverview = ComponentLicenseFileDetailsPage.licenseFileOverview();
-    final LicenseFileList licenesList = ComponentLicenseFileDetailsPage.licenseFileList();
+  @Test
+  public void testChangeSelectedLicenseByComponentIdentifier() throws UnsupportedEncodingException {
+    refreshOrOpen(
+        ComponentLicenseFileDetailsPage.urlToApplicationScopeByComponentIdentifier(app.getPublicId(), componentId, 0));
+    doTestChangeSelectedLicense();
+  }
+
+  private void doTestChangeSelectedLicense() {
+    LicenseFileOverview licenseOverview = ComponentLicenseFileDetailsPage.licenseFileOverview();
+    LicenseFileList licenesList = ComponentLicenseFileDetailsPage.licenseFileList();
 
     licenseOverview.shouldHave(text("Apache Servicecomb"));
     licenseOverview.shouldNotHave(text("content"));
@@ -113,35 +148,68 @@ public class LicenseFileDetailsTest
   }
 
   @Test
-  public void testAddVerifyLicense() {
-    refreshOrOpen(ComponentLicenseFileDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
-    final LicenseFileOverview licenseFileOverview = ComponentLicenseFileDetailsPage.licenseFileOverview();
+  public void testAddVerifyLicenseByHash() {
+    refreshOrOpen(
+        ComponentLicenseFileDetailsPage.urlToApplicationScopeByHash(app.getPublicId(), "033e7a20b23ea284d474", 0));
+
+    String content = "added license by hash";
+    LicenseFileOverview licenseFileOverview = doTestAddVerifyLicense(content);
+
+    refreshOrOpen(
+        ComponentLicenseFileDetailsPage.urlToApplicationScopeByHash(app.getPublicId(), "033e7a20b23ea284d474", 0));
+    licenseFileOverview.shouldHave(text(content));
+  }
+
+  @Test
+  public void testAddVerifyLicenseByComponentIdentifier() throws UnsupportedEncodingException {
+    refreshOrOpen(
+        ComponentLicenseFileDetailsPage.urlToApplicationScopeByComponentIdentifier(app.getPublicId(), componentId, 0));
+
+    String content = "added license by component identifier";
+    LicenseFileOverview licenseFileOverview = doTestAddVerifyLicense(content);
+
+    refreshOrOpen(
+        ComponentLicenseFileDetailsPage.urlToApplicationScopeByComponentIdentifier(app.getPublicId(), componentId, 0));
+    licenseFileOverview.shouldHave(text(content));
+  }
+
+  private LicenseFileOverview doTestAddVerifyLicense(String content) {
+    LicenseFileOverview licenseFileOverview = ComponentLicenseFileDetailsPage.licenseFileOverview();
 
     licenseFileOverview.shouldHave(text("Apache Servicecomb"));
     licenseFileOverview.shouldNotHave(text("content"));
 
-    final ComponentLegalFile componentLicenseFile =
+    ComponentLegalFile componentLicenseFile =
         tempEntity.newComponentLegalFile(componentId, rootOrg.getId(), LegalFileType.LICENSE, "licenseContentHash");
-    final LegalFileOverride licenseFileOverride = tempEntity.newLegalFileOverride(
-        "ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4", "hash", "added license",
+    tempEntity.newLegalFileOverride("ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4", "hash", content,
         ComponentLegalPartStatus.ENABLED, componentLicenseFile.getId());
 
-    refreshOrOpen(ComponentLicenseFileDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
-    licenseFileOverview.shouldHave(text(licenseFileOverride.getContent()));
+    return licenseFileOverview;
   }
 
   @Test
-  public void testEditLicenseFiles() {
-    refreshOrOpen(ComponentLicenseFileDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
+  public void testEditLicenseFilesByHash() {
+    refreshOrOpen(
+        ComponentLicenseFileDetailsPage.urlToApplicationScopeByHash(app.getPublicId(), "033e7a20b23ea284d474", 0));
+    doTestEditLicenseFiles("MIT License by hash");
+  }
 
-    final SelenideElement licenseEditButton = ComponentLicenseFileDetailsPage.editButton();
+  @Test
+  public void testEditLicenseFilesByComponentIdentifier() throws UnsupportedEncodingException {
+    refreshOrOpen(
+        ComponentLicenseFileDetailsPage.urlToApplicationScopeByComponentIdentifier(app.getPublicId(), componentId, 0));
+    doTestEditLicenseFiles("MIT License by hash");
+  }
+
+  private void doTestEditLicenseFiles(String content) {
+    SelenideElement licenseEditButton = ComponentLicenseFileDetailsPage.editButton();
     licenseEditButton.click();
 
-    final LicenseFileEditor editorModal = ComponentLicenseFileDetailsPage.licenseFileEditor();
-    editorModal.licenseText(1).setValue("MIT License");
+    LicenseFileEditor editorModal = ComponentLicenseFileDetailsPage.licenseFileEditor();
+    editorModal.licenseText(1).setValue(content);
     editorModal.saveButton().click();
 
-    final LicenseFileOverview licenseFileOverview = ComponentLicenseFileDetailsPage.licenseFileOverview();
-    licenseFileOverview.getLicenseText().shouldHave(text("MIT License"));
+    LicenseFileOverview licenseFileOverview = ComponentLicenseFileDetailsPage.licenseFileOverview();
+    licenseFileOverview.getLicenseText().shouldHave(text(content));
   }
 }

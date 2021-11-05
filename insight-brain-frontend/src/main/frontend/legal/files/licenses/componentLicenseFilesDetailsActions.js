@@ -5,7 +5,7 @@
  */
 
 import { payloadParamActionCreator } from '../../../util/reduxUtil';
-import { loadAvailableScopes, loadComponent } from '../../advancedLegalActions';
+import { loadAvailableScopes, loadComponent, loadComponentByComponentIdentifier } from '../../advancedLegalActions';
 
 export const LICENSE_DETAILS_SELECTED_LICENSE_FILE = 'LICENSE_DETAILS_SELECTED_LICENSE_FILE';
 
@@ -22,14 +22,15 @@ export function refreshLicenseFilesDetails() {
   };
 }
 
-export function loadComponentAndLicenseDetails(ownerType, ownerId, hash, licenseIndex) {
+export function loadComponentAndLicenseDetails(ownerType, ownerId, hash, licenseIndex, componentIdentifier) {
   return (dispatch, getState) => {
     const component = getState().advancedLegal.component.component;
     if (!component) {
       dispatch(loadAvailableScopes(ownerType, ownerId));
-      return dispatch(loadComponent(ownerType, ownerId, hash)).then(() =>
-        dispatchSelectedLicense(dispatch, getState(), licenseIndex)
-      );
+      const promise = hash
+        ? loadComponent(ownerType, ownerId, hash)
+        : loadComponentByComponentIdentifier(componentIdentifier);
+      return dispatch(promise).then(() => dispatchSelectedLicense(dispatch, getState(), licenseIndex));
     } else {
       return dispatchSelectedLicense(dispatch, getState(), licenseIndex);
     }

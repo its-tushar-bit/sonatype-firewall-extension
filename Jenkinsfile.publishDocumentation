@@ -6,7 +6,7 @@
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library', 'bnr-pipeline-library']) _
 
 pipeline {
-  agent { label InsightConstants.AGENT_LABEL }
+  agent { label 'zion-small' }
   options {
     buildDiscarder(logRotator(numToKeepStr: '10'))
   }

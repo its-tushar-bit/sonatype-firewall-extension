@@ -67,45 +67,47 @@ describe('ComponentLicenseFileDetailsAction', function () {
   };
 
   describe('load license details', function () {
-    it('fetches license file details by hash when not loaded', function () {
+    it('fetches license file details by hash when not loaded', function (done) {
       store = SpecUtil.mockReduxStore(pathSet(['advancedLegal', 'component', 'component'], undefined, initialState));
+
+      const ownerHierarchyUrl = getOwnerHierarchyUrl('organization', 'org');
+      const licenseLegalComponent = getLicenseLegalComponentUrl('organization', 'org', 'componentHash');
 
       mockAxiosCalls({
         get: {
-          [getOwnerHierarchyUrl('organization', 'org')]: Promise.resolve({ data: 'getData' }),
-          [getLicenseLegalComponentUrl('organization', 'org', 'componentHash')]: Promise.resolve({ data: 'getData2' }),
+          [ownerHierarchyUrl]: Promise.resolve({ data: 'getData' }),
+          [licenseLegalComponent]: Promise.resolve({ data: 'getData2' }),
         },
       });
 
       store.dispatch(loadComponentAndLicenseDetails('organization', 'org', 'componentHash', 1)).then(() => {
-        expect(axios.get).toHaveBeenCalledWith('/rest/owner/organization/hierarchy');
-        expect(axios.get).toHaveBeenCalledWith(
-          '/api/v2/licenseLegalMetadata/organization/component?hash=componentHash'
-        );
+        expect(axios.get).toHaveBeenCalledWith(ownerHierarchyUrl);
+        expect(axios.get).toHaveBeenCalledWith(licenseLegalComponent);
+        done();
       });
     });
 
-    it('fetches license file details by component identifier when not loaded', function () {
+    it('fetches license file details by component identifier when not loaded', function (done) {
       let state = pathSet(['advancedLegal', 'component', 'component'], undefined, initialState);
       state = pathSet(['router', 'currentParams', 'hash'], undefined, state);
       store = SpecUtil.mockReduxStore(state);
 
+      const ownerHierarchyUrl = getOwnerHierarchyUrl('organization', 'org');
+      const licenseLegalCompByCompIdentifier = getLicenseLegalComponentByComponentIdentifierUrl('componentIdentifier');
+
       mockAxiosCalls({
         get: {
-          [getOwnerHierarchyUrl('organization', 'org')]: Promise.resolve({ data: 'getData' }),
-          [getLicenseLegalComponentByComponentIdentifierUrl('componentIdentifier')]: Promise.resolve({
-            data: 'getData2',
-          }),
+          [ownerHierarchyUrl]: Promise.resolve({ data: 'getData' }),
+          [licenseLegalCompByCompIdentifier]: Promise.resolve({ data: 'getData2' }),
         },
       });
 
       store
         .dispatch(loadComponentAndLicenseDetails('organization', 'org', undefined, 1, 'componentIdentifier'))
         .then(() => {
-          expect(axios.get).toHaveBeenCalledWith('/rest/owner/organization/hierarchy');
-          expect(axios.get).toHaveBeenCalledWith(
-            '/api/v2/licenseLegalMetadata/organization/component?component?componentIdentifier=componentIdentifier'
-          );
+          expect(axios.get).toHaveBeenCalledWith(ownerHierarchyUrl);
+          expect(axios.get).toHaveBeenCalledWith(licenseLegalCompByCompIdentifier);
+          done();
         });
     });
 

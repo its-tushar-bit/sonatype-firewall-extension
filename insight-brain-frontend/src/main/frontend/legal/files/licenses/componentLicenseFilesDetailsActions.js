@@ -52,7 +52,7 @@ function extractRoutingParameters(state, requestedLicenseIndex) {
   const routerParams = state.router.currentParams;
   const licenseIndex = requestedLicenseIndex || state.componentLicenseDetails.licenseIndex;
   const component = advancedLegalState.component.component;
-  const license = component.licenseLegalData.licenseFiles[licenseIndex];
+  const license = component?.licenseLegalData.licenseFiles[licenseIndex];
 
   const ownerType = routerParams.ownerType;
   const ownerPublicId = routerParams.ownerId;

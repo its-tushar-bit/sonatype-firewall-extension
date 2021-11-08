@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import { NxWarningAlert, NxButton } from '@sonatype/react-shared-components';
 import { AddProprietaryComponentMatchersPopoverContainer } from './AddProprietaryComponentMatchersPopover/AddProprietaryComponentMatchersPopoverContainer';
 
-export default function UnknownComponentAlert({ onClaimClick, toggleShowMatchersPopover }) {
+export default function UnknownComponentAlert({ onClaimClick, toggleShowMatchersPopover, pathnames }) {
   return (
     <Fragment>
       <NxWarningAlert className="iq-component-details-unknown-component-alert">
@@ -21,14 +21,16 @@ export default function UnknownComponentAlert({ onClaimClick, toggleShowMatchers
         >
           Claim Component
         </NxButton>
-        <NxButton
-          onClick={toggleShowMatchersPopover}
-          variant="primary"
-          title="Add Proprietary Component Matchers"
-          id="iq-component-details-add-proprietary-component-matchers-btn"
-        >
-          Add Proprietary Component Matchers
-        </NxButton>
+        {!!pathnames.length && (
+          <NxButton
+            onClick={toggleShowMatchersPopover}
+            variant="primary"
+            title="Add Proprietary Component Matchers"
+            id="iq-component-details-add-proprietary-component-matchers-btn"
+          >
+            Add Proprietary Component Matchers
+          </NxButton>
+        )}
       </NxWarningAlert>
       <AddProprietaryComponentMatchersPopoverContainer />
     </Fragment>
@@ -38,4 +40,5 @@ export default function UnknownComponentAlert({ onClaimClick, toggleShowMatchers
 UnknownComponentAlert.propTypes = {
   onClaimClick: PropTypes.func.isRequired,
   toggleShowMatchersPopover: PropTypes.func.isRequired,
+  pathnames: PropTypes.arrayOf(PropTypes.string),
 };

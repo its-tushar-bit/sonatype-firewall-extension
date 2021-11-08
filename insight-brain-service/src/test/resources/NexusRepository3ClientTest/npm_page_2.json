@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+      "format": "npm",
+      "npm": {
+        "name": "p1",
+        "version": "1.0.0"
+      }
+    }
+  ],
+  "continuationToken": null
+}

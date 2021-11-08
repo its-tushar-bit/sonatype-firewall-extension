@@ -440,8 +440,7 @@ describe('CompareVersions', () => {
   describe('Hygiene Rating row', () => {
     it('renders empty cell if hygieneRating is undefined', () => {
       const hygieneRatingRow = getShallow().find('#hygieneRating');
-      expect(hygieneRatingRow.childAt(1)).toContainReact(<NxTableCell />);
-      expect(hygieneRatingRow.childAt(2)).toContainReact(<NxTableCell />);
+      expect(hygieneRatingRow).not.toExist();
     });
 
     it('renders rating label and faTrophy icon with .iq-hygiene-rating-exemplar class if rating id is 1', () => {

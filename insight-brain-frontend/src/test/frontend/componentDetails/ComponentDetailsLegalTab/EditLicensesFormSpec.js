@@ -5,11 +5,20 @@
  */
 
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
-import { NxFieldset, NxForm, NxRadio, NxTextInput, NxThreatIndicator } from '@sonatype/react-shared-components';
+import {
+  NxFieldset,
+  NxForm,
+  NxLoadingSpinner,
+  NxRadio,
+  NxTextInput,
+  NxThreatIndicator,
+} from '@sonatype/react-shared-components';
 import EditLicensesForm from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesForm';
+import * as OverriddenField from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/OverriddenField';
 
 describe('EditLicensesForm', () => {
   let minimalProps,
+    mountedComponent,
     getShallowComponent,
     getMountedComponent,
     saveFormSpy,
@@ -123,6 +132,12 @@ describe('EditLicensesForm', () => {
     };
     getShallowComponent = enzymeUtils.getShallowComponent(EditLicensesForm, minimalProps);
     getMountedComponent = enzymeUtils.getMountedComponent(EditLicensesForm, minimalProps);
+  });
+
+  afterEach(() => {
+    if (mountedComponent?.exists()) {
+      mountedComponent.unmount();
+    }
   });
 
   it('renders a NxForm', () => {
@@ -334,7 +349,7 @@ describe('EditLicensesForm', () => {
     expect(statusSection.find(NxFieldset)).toExist();
     expect(statusSection).toHaveProp('label', 'Status');
     expect(selectComponent).toExist();
-    expect(options.length).toBe(4);
+    expect(options.length).toBe(5);
 
     expect(options.at(0)).toHaveText('Open');
     expect(options.at(0)).toHaveProp('value', 'OPEN');
@@ -342,11 +357,14 @@ describe('EditLicensesForm', () => {
     expect(options.at(1)).toHaveText('Acknowledged');
     expect(options.at(1)).toHaveProp('value', 'ACKNOWLEDGED');
 
-    expect(options.at(2)).toHaveText('Confirmed');
-    expect(options.at(2)).toHaveProp('value', 'CONFIRMED');
+    expect(options.at(2)).toHaveText('Overridden');
+    expect(options.at(2)).toHaveProp('value', 'OVERRIDDEN');
 
-    expect(options.at(3)).toHaveText('Inherit Status (Acknowledged)');
-    expect(options.at(3)).toHaveProp('value', 'DELETE');
+    expect(options.at(3)).toHaveText('Confirmed');
+    expect(options.at(3)).toHaveProp('value', 'CONFIRMED');
+
+    expect(options.at(4)).toHaveText('Inherit Status (Acknowledged)');
+    expect(options.at(4)).toHaveProp('value', 'DELETE');
   });
 
   it('does not render inherited status for root hierarchy', () => {
@@ -357,24 +375,11 @@ describe('EditLicensesForm', () => {
       selectComponent = statusSection.find('select'),
       options = selectComponent.find('option');
 
-    expect(options.length).toBe(3);
-    expect(options.at(2).text()).not.toContain('Inherit Status');
+    expect(options.length).toBe(4);
+    expect(options.at(3).text()).not.toContain('Inherit Status');
   });
 
-  it('calls setLicenseStatus and setSelectedLicenses when changing status when scope has licenseOverride', () => {
-    const component = getShallowComponent({
-        scope: { licenseOverride: { licenseIds: ['id'] } },
-      }),
-      selectComponent = component.find('select'),
-      mockEvent = { currentTarget: { value: 'ACKNOWLEDGED' } };
-
-    selectComponent.simulate('change', mockEvent);
-
-    expect(setLicenseStatusSpy).toHaveBeenCalledWith('ACKNOWLEDGED');
-    expect(setSelectedLicensesSpy).toHaveBeenCalledWith(['id']);
-  });
-
-  it('calls setLicenseStatus and setSelectedLicenses(with default value) when changing status and scope has no licenseOverride', () => {
+  it('calls setLicenseStatus and setSelectedLicenses when changing status', () => {
     const component = getShallowComponent({
         scope: {},
       }),
@@ -414,25 +419,25 @@ describe('EditLicensesForm', () => {
   });
 
   it('renders checkbox for each selectableLicense', () => {
-    const component = getMountedComponent({
-        status: 'SELECTED',
-        selectableLicenses: [
-          { licenseId: 'id', licenseName: 'value' },
-          { licenseId: 'id2', licenseName: 'value2' },
-        ],
-      }),
-      checkBoxContainer = component.find('.iq-edit-licenses-form__selected-licenses'),
+    mountedComponent = getMountedComponent({
+      status: 'SELECTED',
+      selectableLicenses: [
+        { licenseId: 'id', licenseName: 'value' },
+        { licenseId: 'id2', licenseName: 'value2' },
+      ],
+    });
+    const checkBoxContainer = mountedComponent.find('.iq-edit-licenses-form__selected-licenses'),
       checkboxes = checkBoxContainer.find('input');
 
     expect(checkboxes.length).toBe(2);
   });
 
   it('calls setSelectedLicenses with new id when selected license does not exist in licenseIds', () => {
-    const component = getMountedComponent({
-        status: 'SELECTED',
-        selectableLicenses: [{ licenseId: 'id', licenseName: 'value' }],
-      }),
-      checkBoxContainer = component.find('.iq-edit-licenses-form__selected-licenses'),
+    mountedComponent = getMountedComponent({
+      status: 'SELECTED',
+      selectableLicenses: [{ licenseId: 'id', licenseName: 'value' }],
+    });
+    const checkBoxContainer = mountedComponent.find('.iq-edit-licenses-form__selected-licenses'),
       checkboxes = checkBoxContainer.find('input');
 
     checkboxes.at(0).simulate('change', { target: { checked: true } });
@@ -441,17 +446,46 @@ describe('EditLicensesForm', () => {
   });
 
   it('calls setSelectedLicenses to remove id when selected license exist in licenseIds', () => {
-    const component = getMountedComponent({
-        status: 'SELECTED',
-        selectableLicenses: [{ licenseId: 'id', licenseName: 'value' }],
-        licenseIds: ['id'],
-      }),
-      checkBoxContainer = component.find('.iq-edit-licenses-form__selected-licenses'),
+    mountedComponent = getMountedComponent({
+      status: 'SELECTED',
+      selectableLicenses: [{ licenseId: 'id', licenseName: 'value' }],
+      licenseIds: ['id'],
+    });
+    const checkBoxContainer = mountedComponent.find('.iq-edit-licenses-form__selected-licenses'),
       checkboxes = checkBoxContainer.find('input');
 
     checkboxes.at(0).simulate('change', { target: { checked: true } });
 
     expect(setSelectedLicensesSpy).toHaveBeenCalledWith([]);
+  });
+
+  describe('Overridden field loading spinner', () => {
+    beforeEach(() => jasmine.clock().install());
+    afterEach(() => jasmine.clock().uninstall());
+
+    it('renders NxLoadingSpinner', () => {
+      mountedComponent = getMountedComponent({
+        status: 'OVERRIDDEN',
+      });
+      const spinner = mountedComponent.find(NxLoadingSpinner);
+
+      expect(spinner).toExist();
+    });
+
+    it('hides NxLoadingSpinner', () => {
+      spyOn(OverriddenField, 'default').and.returnValue('overridden field');
+      mountedComponent = getMountedComponent({
+        status: 'OVERRIDDEN',
+      });
+      let spinner = mountedComponent.find(NxLoadingSpinner);
+      expect(spinner).toExist();
+
+      jasmine.clock().tick(0);
+      mountedComponent.update();
+
+      spinner = mountedComponent.find(NxLoadingSpinner);
+      expect(spinner).not.toExist();
+    });
   });
 
   it('calls saveForm ', () => {

@@ -1018,7 +1018,8 @@ public class InsightConfig
   {
     ORCHESTRATED_EVENT_PROCESSING("orchestratedEventProcessing"),
     SCM_ONBOARDING("scmOnboarding"),
-    ANONYMOUS_QUARANTINED_COMPONENT_VIEW("anonymousQuarantinedComponentView");
+    ANONYMOUS_QUARANTINED_COMPONENT_VIEW("anonymousQuarantinedComponentView"),
+    INNER_SOURCE_REPOSITORY_INTEGRATION("innerSourceRepositoryIntegration");
 
     private final String flag;
 

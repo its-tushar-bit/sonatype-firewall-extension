@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.thirdparty;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -234,6 +236,7 @@ public class ThirdPartyDataServiceTest
         new ThirdPartyVulnerabilityDAO().getByRefId(dto.securityRows.get(0).reference);
     assertThat(vulnerability).isNotNull();
     assertThat(vulnerability.getAdvisories()).isEqualTo("https://docs.fugue.co/FG_R00229.html");
+    assertThat(vulnerability.getUpdateTime()).isCloseTo(new Date(), Duration.ofMinutes(1).toMillis());
   }
 
   @Test

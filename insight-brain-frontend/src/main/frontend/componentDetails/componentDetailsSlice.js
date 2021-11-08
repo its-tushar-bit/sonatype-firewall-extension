@@ -5,19 +5,26 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { curryN, reduce, prop, sortWith, ascend } from 'ramda';
+import { curryN, prop, sortWith, ascend } from 'ramda';
 import { enableMapSet } from 'immer';
 
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { loadReportIfNeeded } from '../applicationReport/applicationReportActions';
-import { selectComponentDetails } from './componentDetailsSelectors';
 import { selectSelectedComponent } from '../applicationReport/applicationReportSelectors';
+import {
+  getComponentLabels,
+  setProprietaryMatchers,
+  getApplicableLabelsUrl,
+  getApplicableLabelScopesUrl,
+  getSaveLabelScopeUrl,
+  removeLabel,
+} from '../util/CLMLocation';
 import { selectComponentDetailsRequestData } from './overview/overviewSelectors';
-import { getComponentLabels, setProprietaryMatchers, getApplicableLabels } from '../util/CLMLocation';
 import { Messages } from '../util/CommonServices';
 import { toggleBooleanProp } from '../util/reduxUtil';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { pathSet, pathSetConst } from 'MainRoot/util/reduxToolkitUtil';
+import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const REDUCER_NAME = 'componentDetails';
 export const VISIT_ANCESTOR_ACTION = REDUCER_NAME + '/visitAncestors';
@@ -28,11 +35,20 @@ enableMapSet();
 const initialState = Object.freeze({
   pendingLoads: new Set(),
   isVisitingAncestor: false,
+  isSavingLabelScope: false,
   offspring: null,
   labels: [],
   applicableLabels: [],
+  applicableLabelScopes: [],
   loadError: null,
+  showApplyLabelModal: false,
+  selectedLabelDetails: {},
+  labelScopeToSave: {},
   applicableLabelsLoadError: null,
+  removeAppliedLabelError: null,
+  showRemoveLabelModal: false,
+  applicableLabelScopesLoadError: null,
+  saveLabelScopeError: null,
   showMatchersPopover: false,
   setProprietaryMatchers: {
     submitMaskState: null,
@@ -53,13 +69,35 @@ const mutatePendingLoads = curryN(3, function mutatePendingLoads(setMutator, loa
 const setPendingLoads = mutatePendingLoads((set) => (val) => set.add(val));
 const unsetPendingLoads = mutatePendingLoads((set) => (val) => set.delete(val));
 
-const flattenLabelsToSingleArray = (labels) =>
-  reduce((accumulator, currentValue) => [...accumulator, ...currentValue.labels], [], labels);
+const flattenLabelsToSingleArray = (labelsByOwner) => {
+  let flattenedLabelsArray = [];
+  labelsByOwner.forEach(function (labelOwner) {
+    labelOwner.labels.forEach(function (label) {
+      label.ownerType = labelOwner.ownerType;
+      label.ownerId = labelOwner.ownerId;
+      flattenedLabelsArray.push(label);
+    });
+  });
+  return flattenedLabelsArray;
+};
+
+const flattenScopesToSingleArray = (topLevelScope) => {
+  let flattenedScopesArray = [topLevelScope];
+  topLevelScope.children.forEach(function (childScope) {
+    flattenedScopesArray.push(childScope);
+    if (childScope.children) {
+      childScope.children.forEach(function (nextChild) {
+        flattenedScopesArray.push(nextChild);
+      });
+    }
+  });
+  return flattenedScopesArray;
+};
 
 const onTabChange = (tabId) => {
   return (dispatch, getState) => {
-    const componentDetails = selectComponentDetails(getState());
-    return dispatch(stateGo(`applicationReport.componentDetails.${tabId}`, { hash: componentDetails.hash }));
+    const { hash } = selectRouterCurrentParams(getState());
+    return dispatch(stateGo(`applicationReport.componentDetails.${tabId}`, { hash }));
   };
 };
 
@@ -103,13 +141,20 @@ const backToOffspring = (state) => {
   };
 };
 
+const handleRemoveLabelTag = (labelDetails, ownerType) => {
+  return (dispatch) => {
+    dispatch(actions.toggleShowRemoveLabelModal());
+    dispatch(actions.setSelectedLabelDetails({ ...labelDetails, ownerType }));
+  };
+};
+
 const loadComponentDetailsRequested = (state) => {
   return setPendingLoads(['labels'], state);
 };
 
 const loadComponentDetailsFulfilled = (state, { payload }) => {
   const labelsByOwner = payload.data.labelsByOwner;
-  const labels = reduce((accumulator, currentValue) => [...accumulator, ...currentValue.labels], [], labelsByOwner);
+  const labels = flattenLabelsToSingleArray(labelsByOwner);
   return unsetPendingLoads(['labels'], {
     ...state,
     labels: labels,
@@ -170,9 +215,15 @@ const addProprietaryMatchers = createAsyncThunk(
   }
 );
 
-const loadApplicableLabelsRequested = (state) => {
-  return setPendingLoads(['applicableLabels'], state);
-};
+const loadApplicableLabelsRequested = setPendingLoads(['applicableLabels']);
+
+const loadApplicableLabels = createAsyncThunk(
+  `${REDUCER_NAME}/loadApplicableLabels`,
+  (_, { getState, rejectWithValue }) => {
+    const { publicId } = getState().router.currentParams;
+    return axios.get(getApplicableLabelsUrl('application', publicId)).catch(rejectWithValue);
+  }
+);
 
 const loadApplicableLabelsFulfilled = (state, { payload }) => {
   const sortAlphabetically = sortWith([ascend(prop('label'))]);
@@ -190,16 +241,142 @@ const loadApplicableLabelsFailed = (state, { payload }) => {
   });
 };
 
-const loadApplicableLabels = createAsyncThunk(
-  `${REDUCER_NAME}/loadApplicableLabels`,
+const loadApplicableLabelScopes = createAsyncThunk(
+  `${REDUCER_NAME}/loadApplicableLabelScopes`,
   (_, { getState, rejectWithValue }) => {
-    const { publicId } = getState().router.currentParams;
+    const { componentDetails, router } = getState();
+    const { id } = componentDetails.selectedLabelDetails;
+    const { publicId } = router.currentParams;
+    return axios.get(getApplicableLabelScopesUrl('application', publicId, id)).catch(rejectWithValue);
+  }
+);
+
+const loadApplicableLabelScopesRequested = (state) => {
+  return setPendingLoads(['applicableLabelScopes'], state);
+};
+
+const loadApplicableLabelScopesFulfilled = (state, { payload }) => {
+  return unsetPendingLoads(['applicableLabelScopes'], {
+    ...state,
+    applicableLabelScopes: flattenScopesToSingleArray(payload.data),
+    applicableLabelScopesLoadError: null,
+  });
+};
+
+const loadApplicableLabelScopesFailed = (state, { payload }) => {
+  return unsetPendingLoads(['applicableLabelScopes'], {
+    ...state,
+    applicableLabelScopesLoadError: Messages.getHttpErrorMessage(payload),
+  });
+};
+
+const saveApplyLabelScope = createAsyncThunk(
+  `${REDUCER_NAME}/saveApplyLabelScope`,
+  (_, { dispatch, getState, rejectWithValue }) => {
+    const { componentDetails, router } = getState();
+    const payload = componentDetails.selectedLabelDetails;
+    const { hash } = router.currentParams;
+    const { labelScopeType, labelScopeId } = componentDetails.labelScopeToSave;
+
     return axios
-      .get(getApplicableLabels('application', publicId))
-      .then((result) => result)
+      .post(getSaveLabelScopeUrl(labelScopeType, labelScopeId, hash), payload)
+      .then((results) => {
+        dispatch(actions.cancelApplyLabelModal());
+        dispatch(actions.loadComponentDetails());
+        return results;
+      })
       .catch(rejectWithValue);
   }
 );
+
+const removeAppliedLabelRequested = (state) => {
+  return setPendingLoads(['removeAppliedLabel'], state);
+};
+
+const removeAppliedLabelFulfilled = (state) => {
+  return unsetPendingLoads(['removeAppliedLabel'], {
+    ...state,
+    selectedLabelDetails: {},
+    removeAppliedLabelError: null,
+  });
+};
+
+const removeAppliedLabelFailed = (state, { payload }) => {
+  return unsetPendingLoads(['removeAppliedLabel'], {
+    ...state,
+    selectedLabelDetails: {},
+    removeAppliedLabelError: Messages.getHttpErrorMessage(payload),
+  });
+};
+
+const removeAppliedLabel = createAsyncThunk(
+  `${REDUCER_NAME}/removeLabel`,
+  ({ ownerType, ownerId, id }, { dispatch, getState, rejectWithValue }) => {
+    const { hash } = getState().router.currentParams;
+    return axios
+      .delete(removeLabel(ownerType, ownerId, hash, id))
+      .then(() => {
+        dispatch(actions.toggleShowRemoveLabelModal());
+        dispatch(loadComponentDetails());
+      })
+      .catch(rejectWithValue);
+  }
+);
+
+const saveApplyLabelScopeRequested = (state) => {
+  return setPendingLoads(['isSavingLabelScope'], state);
+};
+
+const saveApplyLabelScopeFulfilled = (state) => {
+  return unsetPendingLoads(['isSavingLabelScope'], {
+    ...state,
+    saveLabelScopeError: null,
+  });
+};
+
+const saveApplyLabelScopeFailed = (state, { payload }) => {
+  return unsetPendingLoads(['isSavingLabelScope'], {
+    ...state,
+    saveLabelScopeError: Messages.getHttpErrorMessage(payload),
+  });
+};
+
+const handleAddLabelTag = (labelDetails, ownerType) => {
+  return (dispatch) => {
+    dispatch(actions.setSelectedLabelDetails(labelDetails));
+    if (ownerType === 'application') {
+      dispatch(actions.setLabelScopeToSaveAction());
+      dispatch(actions.saveApplyLabelScope());
+    } else {
+      dispatch(actions.showApplyLabelModalAction());
+    }
+  };
+};
+
+const setLabelScopeToSaveAction = (labelScope) => {
+  return (dispatch, getState) => {
+    const { publicId } = getState().router.currentParams;
+    if (labelScope === undefined) {
+      labelScope = { labelScopeType: 'application', labelScopeId: publicId };
+    }
+    dispatch(actions.setLabelScopeToSave(labelScope));
+  };
+};
+
+const cancelApplyLabelModal = (state) => {
+  return {
+    ...state,
+    showApplyLabelModal: false,
+  };
+};
+
+const showApplyLabelModalAction = (state) => {
+  return {
+    ...state,
+    showApplyLabelModal: true,
+    labelScopeToSave: {},
+  };
+};
 
 const componentDetailsSlice = createSlice({
   name: REDUCER_NAME,
@@ -207,10 +384,15 @@ const componentDetailsSlice = createSlice({
   reducers: {
     visitAncestors,
     backToOffspring,
+    showApplyLabelModalAction,
+    cancelApplyLabelModal,
     toggleShowMatchersPopover: toggleBooleanProp('showMatchersPopover'),
     resetSubmitMaskState: pathSetConst(['setProprietaryMatchers', 'submitMaskState'], null),
     resetSubmitError: pathSetConst(['setProprietaryMatchers', 'submitError'], null),
     setComponentMatchersData: pathSet(['setProprietaryMatchers', 'data']),
+    toggleShowRemoveLabelModal: toggleBooleanProp('showRemoveLabelModal'),
+    setLabelScopeToSave: propSet('labelScopeToSave'),
+    setSelectedLabelDetails: propSet('selectedLabelDetails'),
   },
   extraReducers: {
     [loadComponentDetails.pending]: loadComponentDetailsRequested,
@@ -222,6 +404,15 @@ const componentDetailsSlice = createSlice({
     [loadApplicableLabels.pending]: loadApplicableLabelsRequested,
     [loadApplicableLabels.fulfilled]: loadApplicableLabelsFulfilled,
     [loadApplicableLabels.rejected]: loadApplicableLabelsFailed,
+    [removeAppliedLabel.pending]: removeAppliedLabelRequested,
+    [removeAppliedLabel.fulfilled]: removeAppliedLabelFulfilled,
+    [removeAppliedLabel.rejected]: removeAppliedLabelFailed,
+    [loadApplicableLabelScopes.pending]: loadApplicableLabelScopesRequested,
+    [loadApplicableLabelScopes.fulfilled]: loadApplicableLabelScopesFulfilled,
+    [loadApplicableLabelScopes.rejected]: loadApplicableLabelScopesFailed,
+    [saveApplyLabelScope.pending]: saveApplyLabelScopeRequested,
+    [saveApplyLabelScope.fulfilled]: saveApplyLabelScopeFulfilled,
+    [saveApplyLabelScope.rejected]: saveApplyLabelScopeFailed,
   },
 });
 
@@ -229,9 +420,15 @@ export default componentDetailsSlice.reducer;
 export const actions = {
   ...componentDetailsSlice.actions,
   addProprietaryMatchers,
+  handleAddLabelTag,
   loadComponentDetails,
   onTabChange,
   visitAncestorAction,
   backToOffspringAction,
   loadApplicableLabels,
+  removeAppliedLabel,
+  handleRemoveLabelTag,
+  loadApplicableLabelScopes,
+  saveApplyLabelScope,
+  setLabelScopeToSaveAction,
 };

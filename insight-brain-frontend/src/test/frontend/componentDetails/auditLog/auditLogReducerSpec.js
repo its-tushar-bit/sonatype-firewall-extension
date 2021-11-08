@@ -48,11 +48,11 @@ describe('auditLogReducer', function () {
   });
 
   describe('AUDIT_LOG_LOAD_AUDIT_LOG_FULFILLED action', function () {
-    it('turns off the isLoading flag and sets the auditRecords from the payload', () => {
+    it('turns off the isLoading flag, unsets the error and and sets the auditRecords from the payload', () => {
       const initialState = {
         isLoading: true,
         auditRecords: [],
-        error: null,
+        error: 'error',
         otherProp: { prop: 'foo' },
       };
 
@@ -61,6 +61,7 @@ describe('auditLogReducer', function () {
       const newState = reducer(initialState, { type: 'AUDIT_LOG_LOAD_AUDIT_LOG_FULFILLED', payload });
 
       expect(newState.isLoading).toBe(false);
+      expect(newState.error).toBe(null);
       expect(newState.auditRecords).toEqual(transformedPayload);
       expect(newState.otherProp).toEqual(initialState.otherProp);
     });

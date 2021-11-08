@@ -20,7 +20,7 @@ properties(
 )
 
 pipeline {
-  agent { label InsightConstants.AGENT_LABEL }
+  agent { label 'zion-small' }
   options {
     buildDiscarder(logRotator(numToKeepStr: '10'))
     timestamps()

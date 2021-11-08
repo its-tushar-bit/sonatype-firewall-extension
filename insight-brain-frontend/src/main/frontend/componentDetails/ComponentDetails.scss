@@ -13,6 +13,7 @@
 @import './overview/VersionGraphExplorer/VersionGraphExplorer';
 @import './VulnerabilitiesTableTile/vulnerabilities';
 @import './ComponentDetailsLegalTab/ComponentDetailsLegalTab.scss';
+@import './ManageComponentLabels/ApplyLabelModal/ApplyLabelModal';
 
 .nx-page-main.iq-component-details-page {
   padding: 0;
@@ -32,6 +33,10 @@ component-details {
   display: contents;
 }
 
-.iq-component-details-unknown-component-alert {
-  min-width: fit-content;
+.nx-alert.iq-component-details-unknown-component-alert {
+  max-width: max-content;
+
+  .nx-alert__content {
+    @include container-horizontal;
+  }
 }

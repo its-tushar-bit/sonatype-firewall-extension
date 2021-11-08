@@ -9,10 +9,10 @@ import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import TransferListHalf from 'MainRoot/componentDetails/TransferList/TransferListHalf';
 
 describe('TransferListHalf', () => {
-  let minimalProps, getMounted, onChangeMock;
+  let minimalProps, getMounted, getShallow, onChangeMock;
 
   beforeEach(function () {
-    onChangeMock = jasmine.createSpy('onChange');
+    onChangeMock = jasmine.createSpy('onItemChange');
 
     minimalProps = {
       title: 'Test',
@@ -21,6 +21,7 @@ describe('TransferListHalf', () => {
       onItemChange: onChangeMock,
     };
 
+    getShallow = enzymeUtils.getShallowComponent(TransferListHalf, minimalProps);
     getMounted = enzymeUtils.getMountedComponent(TransferListHalf, minimalProps);
   });
 
@@ -44,5 +45,17 @@ describe('TransferListHalf', () => {
     expect(second).toHaveText('test 2');
     expect(second).toHaveProp('color', 'light-blue');
     expect(second).toHaveProp('selected', false);
+  });
+
+  it('onSelect triggers add label handler', () => {
+    const component = getShallow({
+      items: [{ id: 1, color: 'dark-blue', label: 'test' }],
+    });
+
+    const labels = component.find('.iq-transfer-list__item-list');
+    const first = labels.find(NxSelectableTag).at(0);
+
+    first.invoke('onSelect')();
+    expect(onChangeMock).toHaveBeenCalledTimes(1);
   });
 });

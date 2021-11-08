@@ -153,6 +153,7 @@ export default function ComponentLegalOverviewPage(props) {
                   ownerType={ownerType}
                   ownerId={ownerId}
                   hash={hash}
+                  componentIdentifier={componentIdentifier}
                   stageTypeId={stageTypeId}
                   $state={$state}
                   showEditCopyrightOverrideModal={showEditCopyrightOverrideModal}
@@ -184,6 +185,7 @@ export default function ComponentLegalOverviewPage(props) {
                     ownerType,
                     ownerId,
                     hash,
+                    componentIdentifier,
                   }}
                 />
                 {obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer)}

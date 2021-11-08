@@ -21,6 +21,7 @@ import com.sonatype.nexus.scm.api.model.Commit;
 
 import com.google.common.base.Strings;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Named
 @Singleton
@@ -57,10 +58,20 @@ public class GitCommitHistoryService
     return Optional.empty();
   }
 
+  public void updateCommitHistoryForPolicyEvaluation(final String policyEvaluationId) {
+    if (StringUtils.isNotEmpty(policyEvaluationId)) {
+      PolicyEvaluation policyEvaluation = policyEvaluationDAO.getById(policyEvaluationId);
+      updateCommitHistoryForPolicyEvaluation(policyEvaluation);
+    }
+  }
+
   /**
    * update the commit history associated with the given policy evaluation, if one exists; this satisfies the case
    * where the policy eval against the base branch occurs after we've recorded the base branch commit history we
    * received from the SCM system for a feature branch policy eval
+   * <br/>
+   * Externally triggered policy evaluations overwrite any existing values; internally triggered ones overwrite
+   * only {@code null} or other internally triggered IDs
    */
   public void updateCommitHistoryForPolicyEvaluation(final PolicyEvaluation policyEvaluation) {
     if (null == policyEvaluation || Strings.isNullOrEmpty(policyEvaluation.getCommitHash())) {
@@ -69,7 +80,22 @@ public class GitCommitHistoryService
     SourceControlDefaultBranchCommitHistory commitHistory = commitHistoryDAO
         .getByApplicationIdAndCommitHash(policyEvaluation.getApplicationId(), policyEvaluation.getCommitHash());
     if (null != commitHistory) {
-      recordCommitHistoryUpdate(commitHistory, policyEvaluation.getId());
+      if (commitHistory.getPolicyEvaluationId() == null) { // no policy eval. associated with the commit
+        recordCommitHistoryUpdate(commitHistory, policyEvaluation.getId());
+      }
+      else { // existing policy eval. associated with the commit
+        if (policyEvaluation.wasInternallyTriggered()) {
+          // update association only if the previous eval. was internally triggered
+          PolicyEvaluation associatedPolicyEvaluation =
+              policyEvaluationDAO.getById(commitHistory.getPolicyEvaluationId());
+          if (associatedPolicyEvaluation.wasInternallyTriggered()) {
+            recordCommitHistoryUpdate(commitHistory, policyEvaluation.getId());
+          }
+        }
+        else { // externally triggered policy evaluation
+          recordCommitHistoryUpdate(commitHistory, policyEvaluation.getId());
+        }
+      }
     }
   }
 

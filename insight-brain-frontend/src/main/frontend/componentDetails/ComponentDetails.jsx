@@ -6,7 +6,7 @@
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import cx from 'classnames';
-import { NxLoadWrapper } from '@sonatype/react-shared-components';
+import { NxInfoAlert, NxLoadWrapper } from '@sonatype/react-shared-components';
 
 import {
   ComponentDetailsHeader,
@@ -41,6 +41,8 @@ export default function ComponentDetails({
   loadError,
   loading,
   toggleShowMatchersPopover,
+  isProprietary,
+  pathnames,
 }) {
   useEffect(() => {
     loadComponentDetails();
@@ -85,8 +87,24 @@ export default function ComponentDetails({
                   labels={componentDetails.labels}
                 />
               </ComponentDetailsHeader>
-              {isUnknown && (
-                <UnknownComponentAlert onClaimClick={goToClaim} toggleShowMatchersPopover={toggleShowMatchersPopover} />
+              {isUnknown && !isProprietary && (
+                <UnknownComponentAlert
+                  onClaimClick={goToClaim}
+                  toggleShowMatchersPopover={toggleShowMatchersPopover}
+                  pathnames={pathnames}
+                />
+              )}
+              {isUnknown && isProprietary && (
+                <NxInfoAlert id="proprietary-component-matched-alert">
+                  This component has been matched as a Proprietary Component.{' '}
+                  <a
+                    href="https://help.sonatype.com/iqserver/reporting/application-composition-report/component-identification#ComponentIdentification-ManagingProprietaryComponents"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Learn more here
+                  </a>
+                </NxInfoAlert>
               )}
             </Fragment>
           )}
@@ -130,4 +148,6 @@ ComponentDetails.propTypes = {
   loadError: PropTypes.string,
   pagination: PropTypes.shape(footerPropTypes),
   toggleShowMatchersPopover: PropTypes.func.isRequired,
+  isProprietary: PropTypes.bool,
+  pathnames: PropTypes.arrayOf(PropTypes.string),
 };

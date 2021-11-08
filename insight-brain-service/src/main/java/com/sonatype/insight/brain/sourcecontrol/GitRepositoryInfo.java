@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +29,7 @@ public class GitRepositoryInfo
                            final String sourceControlScanTarget)
   {
     this.repositoryUrl = repositoryUrl;
+    normalizedRepositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl);
     this.sshRepositoryUrl = sshRepositoryUrl;
     this.username = username;
     this.token = token;
@@ -42,6 +44,8 @@ public class GitRepositoryInfo
   }
 
   public String repositoryUrl;
+
+  public String normalizedRepositoryUrl;
 
   public String sshRepositoryUrl;
 

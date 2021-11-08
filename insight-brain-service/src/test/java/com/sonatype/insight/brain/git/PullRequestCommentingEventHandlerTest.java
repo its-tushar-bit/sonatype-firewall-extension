@@ -63,6 +63,9 @@ public class PullRequestCommentingEventHandlerTest
   @Mock
   private PullRequestStatusService mockPullRequestStatusService;
 
+  @Mock
+  private GitCommitHistoryService mockGitCommitHistoryService;
+
   public PullRequestCommentingEventHandlerTest() {
     super(PullRequestCommentingEventHandler.class);
   }
@@ -228,6 +231,7 @@ public class PullRequestCommentingEventHandlerTest
     final ArgumentCaptor<SourceControlEvent> sourceControlEventCaptor =
         ArgumentCaptor.forClass(SourceControlEvent.class);
     verify(mockSourceControlEventPublisher, times(1)).publishEvent(sourceControlEventCaptor.capture());
+    verify(mockGitCommitHistoryService, never()).updateCommitHistoryForPolicyEvaluation(event.policyEvaluationId);
     final SourceControlEvent sourceControlEvent = sourceControlEventCaptor.getValue();
     assertThat(sourceControlEvent.getApplicationId()).isEqualTo(event.ownerId);
     assertThat(sourceControlEvent.getCommitHash()).isEqualTo(event.commitHash);
@@ -251,6 +255,9 @@ public class PullRequestCommentingEventHandlerTest
 
     // then : event is not published
     assertEventNotCreatedBecausePolicyEvalInternallyTriggered();
+
+    // and: default branch commit history is updated
+    verify(mockGitCommitHistoryService, times(1)).updateCommitHistoryForPolicyEvaluation(event.policyEvaluationId);
   }
 
   @Test
@@ -269,6 +276,9 @@ public class PullRequestCommentingEventHandlerTest
 
     // then : event is not published
     assertEventNotCreatedBecausePolicyEvalInternallyTriggered();
+
+    // and: default branch commit history is updated
+    verify(mockGitCommitHistoryService, times(1)).updateCommitHistoryForPolicyEvaluation(event.policyEvaluationId);
   }
 
   @Test
@@ -287,6 +297,9 @@ public class PullRequestCommentingEventHandlerTest
 
     // then : event is not published
     assertEventNotCreatedBecausePolicyEvalInternallyTriggered();
+
+    // and: default branch commit history is updated
+    verify(mockGitCommitHistoryService, times(1)).updateCommitHistoryForPolicyEvaluation(event.policyEvaluationId);
   }
 
   private ApplicationEvaluationEvent createApplicationEventWithInternallyTriggeredPolicyEval(
@@ -642,7 +655,8 @@ public class PullRequestCommentingEventHandlerTest
           mockPullRequestPolicyEvaluationResolver,
           mockPolicyEvaluationDAO,
           mockPullRequestStatusService,
-          new PullRequestCommentingEligibilityValidator(new InsightConfig())
+          new PullRequestCommentingEligibilityValidator(new InsightConfig()),
+          mockGitCommitHistoryService
       );
     }
 

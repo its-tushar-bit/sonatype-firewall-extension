@@ -8,11 +8,19 @@ import LicenseFilesTile from '../../../../../main/frontend/legal/files/licenses/
 import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 
-describe('LicenseTextsTile', function () {
-  let getShallowComponent, minimalProps, setShowLicenseFilesModalSpy;
+describe('LicenseFilesTile', function () {
+  let getShallowComponent, minimalProps, setShowLicenseFilesModalSpy, $state;
 
   beforeEach(function () {
     setShowLicenseFilesModalSpy = jasmine.createSpy('setShowLicenseFilesModalSpy');
+    $state = jasmine.createSpyObj('$state', ['get', 'href']);
+    $state.get.and.callFake((stateName) => stateName);
+    $state.href.and.callFake((stateName, stateParams) => {
+      if (stateParams) {
+        return `${stateName}-${JSON.stringify(stateParams)}`;
+      }
+      return stateName;
+    });
     minimalProps = {
       setShowLicenseFilesModal: setShowLicenseFilesModalSpy,
       licenseFiles: [
@@ -34,10 +42,8 @@ describe('LicenseTextsTile', function () {
         },
       ],
       showLicenseFilesModal: false,
-      $state: {
-        get: () => '',
-        href: () => '',
-      },
+      hash: 'testHash',
+      $state: $state,
     };
     getShallowComponent = enzymeUtils.getShallowComponent(LicenseFilesTile, minimalProps);
   });
@@ -82,5 +88,45 @@ describe('LicenseTextsTile', function () {
     const button = wrapper.find(NxButton);
     button.simulate('click');
     expect(setShowLicenseFilesModalSpy).toHaveBeenCalledWith(true);
+  });
+
+  it('renders the given license file links by hash', function () {
+    const wrapper = getShallowComponent();
+    let licenseFileLinks = wrapper.find('#legal-file-section-view-more-details a');
+
+    let licenseFileLink = licenseFileLinks.at(0);
+    expect(licenseFileLink).toHaveProp(
+      'href',
+      'legal.componentLicenseFilesDetails.licenseFilesDetails-{"hash":"testHash","licenseIndex":0}'
+    );
+
+    licenseFileLink = licenseFileLinks.at(1);
+    expect(licenseFileLink).toHaveProp(
+      'href',
+      'legal.componentLicenseFilesDetails.licenseFilesDetails-{"hash":"testHash","licenseIndex":1}'
+    );
+  });
+
+  it('renders the given license file links by component identifier', function () {
+    const wrapper = getShallowComponent({
+      ...minimalProps,
+      hash: undefined,
+      componentIdentifier: 'testComponentIdentifier',
+    });
+    let licenseFileLinks = wrapper.find('#legal-file-section-view-more-details a');
+
+    let licenseFileLink = licenseFileLinks.at(0);
+    expect(licenseFileLink).toHaveProp(
+      'href',
+      'legal.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails' +
+        '-{"componentIdentifier":"testComponentIdentifier","licenseIndex":0}'
+    );
+
+    licenseFileLink = licenseFileLinks.at(1);
+    expect(licenseFileLink).toHaveProp(
+      'href',
+      'legal.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails' +
+        '-{"componentIdentifier":"testComponentIdentifier","licenseIndex":1}'
+    );
   });
 });

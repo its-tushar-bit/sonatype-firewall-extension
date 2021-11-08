@@ -133,7 +133,7 @@ public class GitCommitStatusService
       String message = String.format(
           "Failed to update status for applicationId: %s, repository: %s, commitHash: %s, " +
           "triggered by policyEvaluationId: %s, reason: %s",
-          event.getApplicationId(), gitRepositoryInfo.repositoryUrl, event.getCommitHash(),
+          event.getApplicationId(), gitRepositoryInfo.normalizedRepositoryUrl, event.getCommitHash(),
           event.getPolicyEvaluationId(), e.getMessage());
       throw new SourceControlException(message, e);
     }

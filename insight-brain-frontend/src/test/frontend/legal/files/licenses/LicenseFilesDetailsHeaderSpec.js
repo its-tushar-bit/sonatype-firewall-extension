@@ -26,6 +26,7 @@ describe('LicenseDetailsHeader', function () {
     ownerId: 'testId',
     stageTypeId: 'testStage',
     hash: 'testHash',
+    componentIdentifier: 'fooComponentIdentifier',
     setShowLicenseFilesModal: setShowLicenseFilesModalMock,
   };
   getShallowComponent = enzymeUtils.getShallowComponent(LicenseFileDetailsHeader, minimalProps);
@@ -41,7 +42,8 @@ describe('LicenseDetailsHeader', function () {
       minimalProps.ownerType,
       minimalProps.ownerId,
       minimalProps.stageTypeId,
-      minimalProps.hash
+      minimalProps.hash,
+      minimalProps.componentIdentifier
     );
   });
 

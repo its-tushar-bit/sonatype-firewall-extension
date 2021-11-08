@@ -22,7 +22,13 @@ import {
   selectApplicationInfo,
   selectComponentDetailsLoading,
   selectComponentDetailsLoadErrors,
+  selectSelectedLabelDetails,
+  selectShowRemoveLabelModal,
+  selectRemoveAppliedLabelError,
   selectComponentIdentificationSource,
+  selectIsProprietary,
+  selectComponentAncestors,
+  selectSaveLabelError,
 } from 'MainRoot/componentDetails/componentDetailsSelectors';
 
 describe('componentDetailsSelectors', () => {
@@ -73,6 +79,43 @@ describe('componentDetailsSelectors', () => {
           {
             hash: 'and-another-component-hash-bites-the-dust',
           },
+          {
+            hash: 'some-innersource-parent-hash',
+            componentIdentifier: { format: 'maven', coordinates: 'direct1' },
+            derivedComponentName: 'innersource-parent',
+            innerSource: true,
+          },
+          {
+            hash: 'some-parent-hash',
+            componentIdentifier: { format: 'maven', coordinates: 'direct2' },
+            derivedComponentName: 'parent',
+            innerSource: false,
+          },
+          {
+            hash: 'some-other-parent-hash',
+            componentIdentifier: { format: 'maven', coordinates: 'direct3' },
+            derivedComponentName: 'other-parent',
+          },
+          {
+            hash: 'some-child-hash',
+            componentIdentifier: { format: 'maven', coordinates: 'transitive' },
+            dependencyInfo: {
+              rootAncestors: [
+                {
+                  format: 'maven',
+                  coordinates: 'direct1',
+                },
+                {
+                  format: 'maven',
+                  coordinates: 'direct2',
+                },
+                {
+                  format: 'maven',
+                  coordinates: 'direct3',
+                },
+              ],
+            },
+          },
         ],
         displayedEntries: [
           {
@@ -85,11 +128,49 @@ describe('componentDetailsSelectors', () => {
             derivedDependencyType: 'transitive',
             matchState: 'unknown',
             pathnames: ['dependency:/this.is.a.dependency', 'pathname 1', 'pathname 2'],
+            proprietary: true,
             identificationSource: 'Sonatype',
           },
           {
             hash: 'another-component-hash',
             derivedComponentName: 'Component2',
+          },
+          {
+            hash: 'some-innersource-parent-hash',
+            componentIdentifier: { format: 'maven', coordinates: 'direct1' },
+            derivedComponentName: 'innersource-parent',
+            innerSource: true,
+          },
+          {
+            hash: 'some-parent-hash',
+            componentIdentifier: { format: 'maven', coordinates: 'direct2' },
+            derivedComponentName: 'parent',
+            innerSource: false,
+          },
+          {
+            hash: 'some-other-parent-hash',
+            componentIdentifier: { format: 'maven', coordinates: 'direct3' },
+            derivedComponentName: 'other-parent',
+          },
+          {
+            hash: 'some-child-hash',
+            componentIdentifier: { format: 'maven', coordinates: 'transitive' },
+            dependencyInfo: {
+              rootAncestors: [
+                {
+                  format: 'maven',
+                  coordinates: 'direct1',
+                },
+                {
+                  format: 'maven',
+                  coordinates: 'direct2',
+                },
+                {
+                  format: 'maven',
+                  coordinates: 'direct3',
+                },
+              ],
+            },
           },
         ],
         aggregatedEntries: [
@@ -110,6 +191,9 @@ describe('componentDetailsSelectors', () => {
       applicableLabels: [],
       labels: [],
       loadError: false,
+      removeAppliedLabelError: null,
+      selectedLabelDetails: {},
+      showRemoveLabelModal: false,
       pendingLoads: new Set(['test']),
       showMatchersPopover: null,
       setProprietaryMatchers: {
@@ -176,6 +260,13 @@ describe('componentDetailsSelectors', () => {
         applicationName: 'The App',
         applicationId: 'TheApp',
       });
+    });
+  });
+
+  describe('selectIsProprietary', () => {
+    it('selects the slice of state for the application stored in the metadata', () => {
+      const actual = selectIsProprietary(mockState);
+      expect(actual).toBe(true);
     });
   });
 
@@ -523,10 +614,110 @@ describe('componentDetailsSelectors', () => {
     });
   });
 
+  describe('selectSelectedLabelDetails', () => {
+    it('returns selectedLabelDetails', () => {
+      expect(
+        selectSelectedLabelDetails({
+          ...mockState,
+          componentDetails: { ...mockState.componentDetails, selectedLabelDetails: { test: 'test' } },
+        })
+      ).toEqual({ test: 'test' });
+    });
+  });
+
+  describe('selectShowRemoveLabelModal', () => {
+    it('returns showRemoveLabelModal (true)', () => {
+      expect(
+        selectShowRemoveLabelModal({
+          ...mockState,
+          componentDetails: { ...mockState.componentDetails, showRemoveLabelModal: true },
+        })
+      ).toEqual(true);
+    });
+
+    it('returns showRemoveLabelModal (false)', () => {
+      expect(
+        selectShowRemoveLabelModal({
+          ...mockState,
+          componentDetails: { ...mockState.componentDetails, showRemoveLabelModal: false },
+        })
+      ).toEqual(false);
+    });
+  });
+
+  describe('selectRemoveAppliedLabelError', () => {
+    it('returns removeAppliedLabelError', () => {
+      expect(
+        selectRemoveAppliedLabelError({
+          ...mockState,
+          componentDetails: { ...mockState.componentDetails, removeAppliedLabelError: 'error' },
+        })
+      ).toEqual('error');
+    });
+  });
+
   describe('selectComponentIdentificationSource', () => {
     it('derives identificationSource', () => {
       const actual = selectComponentIdentificationSource(mockState);
       expect(actual).toEqual('Sonatype');
+    });
+  });
+
+  describe('selectComponentAncestors', () => {
+    it('derives component ancestors', () => {
+      const state = {
+        ...mockState,
+        router: {
+          ...mockState.router,
+          currentParams: {
+            hash: 'some-child-hash',
+          },
+        },
+      };
+      const expected = [
+        {
+          hash: 'some-innersource-parent-hash',
+          componentIdentifier: { format: 'maven', coordinates: 'direct1' },
+          derivedComponentName: 'innersource-parent',
+          innerSource: true,
+        },
+        {
+          hash: 'some-parent-hash',
+          componentIdentifier: { format: 'maven', coordinates: 'direct2' },
+          derivedComponentName: 'parent',
+          innerSource: false,
+        },
+        {
+          hash: 'some-other-parent-hash',
+          componentIdentifier: { format: 'maven', coordinates: 'direct3' },
+          derivedComponentName: 'other-parent',
+          innerSource: false,
+        },
+      ];
+      const actual = selectComponentAncestors(state);
+      expect(actual).toEqual(expected);
+    });
+  });
+
+  describe('selectSaveLabelError', () => {
+    it('is composed of the following selectors', () => {
+      expect(selectSaveLabelError.dependencies).toEqual([selectDetails]);
+    });
+
+    it('returns the selectSaveLabelError present in the componentDetails slice', () => {
+      const state = {
+        componentDetails: { saveLabelScopeError: 'save-label-error' },
+      };
+      const actual = selectSaveLabelError(state);
+      expect(actual).toEqual('save-label-error');
+    });
+
+    it('returns null if there are no errors in the state slices', () => {
+      const state = {
+        componentDetails: { saveLabelScopeError: null },
+      };
+      const actual = selectSaveLabelError(state);
+      expect(actual).toBeNull();
     });
   });
 });

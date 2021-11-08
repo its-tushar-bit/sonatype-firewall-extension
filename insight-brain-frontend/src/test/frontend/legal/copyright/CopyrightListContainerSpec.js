@@ -38,6 +38,7 @@ describe('CopyrightListContainer', function () {
     expect(wrapper).toHaveProp('loading', 'loading');
     expect(wrapper).toHaveProp('error', 'error');
     expect(wrapper).toHaveProp('hash', 'fooHash');
+    expect(wrapper).toHaveProp('componentIdentifier', 'fooComponentIdentifier');
     expect(wrapper).toHaveProp('ownerType', 'organization');
     expect(wrapper).toHaveProp('ownerId', 'org');
     expect(wrapper).toHaveProp('copyrightIndex', '12');
@@ -67,9 +68,14 @@ describe('CopyrightListContainer', function () {
       ...copyrightState,
       router: {
         currentState: { name: 'ComponentOverview' },
-        currentParams: { hash: 'fooHash', applicationPublicId: 'appId' },
+        currentParams: {
+          hash: 'fooHash',
+          componentIdentifier: 'fooComponentIdentifier',
+          applicationPublicId: 'appId',
+        },
         prevParams: {
           hash: 'fooHash',
+          componentIdentifier: 'fooComponentIdentifier',
           ownerType: 'organization',
           ownerId: 'org',
           copyrightIndex: '12',
@@ -83,6 +89,7 @@ describe('CopyrightListContainer', function () {
 
     let wrapper = shallow(vdom).dive();
     expect(wrapper).toHaveProp('hash', 'fooHash');
+    expect(wrapper).toHaveProp('componentIdentifier', 'fooComponentIdentifier');
     expect(wrapper).toHaveProp('ownerType', 'organization');
     expect(wrapper).toHaveProp('ownerId', 'org');
     expect(wrapper).toHaveProp('copyrightIndex', '12');

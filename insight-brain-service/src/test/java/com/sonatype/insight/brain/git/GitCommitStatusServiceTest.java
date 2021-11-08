@@ -357,7 +357,7 @@ public class GitCommitStatusServiceTest
     // expect:
     assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
         commitStatusService.onSendCommitStatus(event)
-    ).withMessage("Failed to update status for applicationId: app-8, repository: http://gitlab.com/testOrg/testRepo," +
+    ).withMessage("Failed to update status for applicationId: app-8, repository: http://gitlab.com/testorg/testrepo," +
         " commitHash: commit-8, triggered by policyEvaluationId: eval-8, reason: gitlab API error");
 
     // and:

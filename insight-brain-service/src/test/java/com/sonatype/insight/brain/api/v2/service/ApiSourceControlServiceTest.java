@@ -54,6 +54,7 @@ import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.REPOSITORY_URL_UPDATED_EVENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
@@ -192,31 +193,31 @@ public class ApiSourceControlServiceTest
   @Test
   public void testAddOrUpdateSourceControl_DuplicateAccountNme() {
     testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
-        "https://org@github.com/org/a", "https://github.com/org/a");
+        "https://org@github.com/org/a", "https://org@github.com/org/a");
   }
 
   @Test
   public void testAddOrUpdateSourceControl_DifferentDuplicateAccountName() {
     testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
-        "ssh://git@github.com/org/a/", "https://github.com/org/a/");
+        "ssh://git@github.com/org/a/", "ssh://git@github.com/org/a/");
   }
 
   @Test
   public void testAddOrUpdateSourceControl_ImplicitSshProtocol() {
     testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
-        "git@github.com:org/a.git", "https://github.com/org/a");
+        "git@github.com:org/a.git", "git@github.com:org/a.git");
   }
 
   @Test
   public void testAddOrUpdateSourceControl_ExplicitSshProtocol() {
     testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
-        "ssh://git@github.com/org/a.git", "https://github.com/org/a");
+        "ssh://git@github.com/org/a.git", "ssh://git@github.com/org/a.git");
   }
 
   @Test
   public void testAddOrUpdateSourceControl_HttpsWithGitExtension() {
     testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
-        "https://org@github.com/org/a.git", "https://github.com/org/a");
+        "https://org@github.com/org/a.git", "https://org@github.com/org/a.git");
   }
 
   private void testAddOrUpdateSourceControl_AutomaticSourceControl(
@@ -706,56 +707,39 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  public void testConvertUrlIfNeeded_HttpUrls() {
-    String repositoryUrl = "http://server/owner/repo";
-    String convertedUrl = sourceControlService.convertUrlIfNeeded(repositoryUrl);
-    assertThat(convertedUrl).isEqualTo(repositoryUrl);
+  public void testValidateUrl_SupportedUrlFormat() {
+    // http URLs are accepted
+    assertThatNoException().isThrownBy(() -> sourceControlService.validateUrl("http://server/owner/repo"));
 
-    repositoryUrl = "https://server/owner/repo";
-    convertedUrl = sourceControlService.convertUrlIfNeeded(repositoryUrl);
-    assertThat(convertedUrl).isEqualTo(repositoryUrl);
+    // https URLs are accepted
+    assertThatNoException().isThrownBy(() -> sourceControlService.validateUrl("https://server/owner/repo"));
+
+    // explicit ssh URLs are accepted - user provided
+    assertThatNoException().isThrownBy(() -> sourceControlService.validateUrl("ssh://git@server/owner/repo.git"));
+
+    // explicit ssh URLs are accepted - no user provided
+    assertThatNoException().isThrownBy(() -> sourceControlService.validateUrl("ssh://server/owner/repo.git"));
+
+    // implicit ssh URLs are accepted
+    assertThatNoException().isThrownBy(() -> sourceControlService.validateUrl("git@server:owner/repo.git"));
   }
 
   @Test
-  public void testConvertUrlIfNeeded_SshUrlsFormatOne() {
-    String givenUrl = "ssh://git@server/owner/repo.git"; // user provided
-    String expectedUrl = "https://server/owner/repo";
-    String convertedUrl = sourceControlService.convertUrlIfNeeded(givenUrl);
-    assertThat(convertedUrl).isEqualTo(expectedUrl);
-
-    givenUrl = "ssh://server/owner/repo.git"; // no user provided
-    convertedUrl = sourceControlService.convertUrlIfNeeded(givenUrl);
-    assertThat(convertedUrl).isEqualTo(expectedUrl);
-  }
-
-  @Test
-  public void testConvertUrlIfNeeded_SshUrlsFormatTwo() {
-    String givenUrl = "git@server:owner/repo.git"; // user provided
-    String expectedUrl = "https://server/owner/repo";
-    String convertedUrl = sourceControlService.convertUrlIfNeeded(givenUrl);
-    assertThat(convertedUrl).isEqualTo(expectedUrl);
-  }
-
-  @Test
-  public void testConvertUrlIfNeeded_embeddedCredentials() {
-    String givenUrl = "git@server:owner/repo.git"; // user provided
-    String expectedUrl = "https://server/owner/repo";
-    String convertedUrl = sourceControlService.convertUrlIfNeeded(givenUrl);
-    assertThat(convertedUrl).isEqualTo(expectedUrl);
-  }
-
-  @Test
-  public void testConvertUrlIfNeeded_UnsupportedUrlFormat() {
+  public void testValidateUrl_UnsupportedUrlFormat() {
     // local protocol
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> sourceControlService.convertUrlIfNeeded("/server/owner/repo.git"));
+        .isThrownBy(() -> sourceControlService.validateUrl("/server/owner/repo.git"));
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> sourceControlService.convertUrlIfNeeded("file:///server/owner/repo.git"));
+        .isThrownBy(() -> sourceControlService.validateUrl("file:///server/owner/repo.git"));
 
     // git protocol
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> sourceControlService.convertUrlIfNeeded("git://server/owner/repo.git"));
+        .isThrownBy(() -> sourceControlService.validateUrl("git://server/owner/repo.git"));
+
+    // broken URLs
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.validateUrl("ht://host/org2/broken-url-2.git"));
   }
 
   @Test

@@ -7,6 +7,8 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { join } from 'ramda';
 
+import { capitalize } from 'MainRoot/util/jsUtil';
+
 import { formatTimeAgoUpToDay } from '../../../util/dateUtils';
 import OccurrencesPopoverContainer from '../occurrencesPopover/OccurrencesPopoverContainer';
 import InnerSourceProducerAlertContainer from '../InnerSourceProducerAlert/InnerSourceProducerAlertContainer';
@@ -79,7 +81,7 @@ export default function OverviewComponentInformation({
       <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Match State</dt>
         <dd className="nx-read-only__data">
-          {matchState}
+          {capitalize(matchState)}
           {viewSimilarMatchesLink}
         </dd>
       </div>
@@ -118,18 +120,8 @@ export default function OverviewComponentInformation({
       </header>
       <div className="nx-tile-content">
         <div className="nx-grid-row">
-          <section className="nx-grid-col iq-component-data-col">
-            <header className="nx-grid-header">
-              <h3 className="nx-h3 nx-grid-header__title">General Info</h3>
-            </header>
-            {generalInfoSectionContent}
-          </section>
-          <section className="nx-grid-col iq-component-data-col">
-            <header className="nx-grid-header">
-              <h3 className="nx-h3 nx-grid-header__title">Identification Info</h3>
-            </header>
-            {identificationInfoSectionContent}
-          </section>
+          <section className="nx-grid-col iq-component-data-col">{generalInfoSectionContent}</section>
+          <section className="nx-grid-col iq-component-data-col">{identificationInfoSectionContent}</section>
         </div>
       </div>
     </section>

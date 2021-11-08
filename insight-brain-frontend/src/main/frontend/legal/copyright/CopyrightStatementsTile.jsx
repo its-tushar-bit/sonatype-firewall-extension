@@ -17,6 +17,7 @@ export default function CopyrightStatementsTile(props) {
     ownerType,
     ownerId,
     hash,
+    componentIdentifier,
     stageTypeId,
     $state,
 
@@ -32,10 +33,14 @@ export default function CopyrightStatementsTile(props) {
     </li>
   );
 
-  const copyrightDetailsTargetState = () =>
-    stageTypeId
-      ? 'legal.stageTypeComponentCopyrightDetails.copyrightDetails'
-      : 'legal.componentCopyrightDetails.copyrightDetails';
+  const copyrightDetailsTargetState = () => {
+    if (stageTypeId) {
+      return 'legal.stageTypeComponentCopyrightDetails.copyrightDetails';
+    }
+    return hash
+      ? 'legal.componentCopyrightDetails.copyrightDetails'
+      : 'legal.componentCopyrightDetailsByComponentIdentifier.copyrightDetails';
+  };
 
   const createItem = (copyright, index) => {
     return (
@@ -46,6 +51,7 @@ export default function CopyrightStatementsTile(props) {
             ownerType,
             ownerId,
             hash,
+            componentIdentifier,
             stageTypeId,
             copyrightIndex: index,
           })}
@@ -101,6 +107,7 @@ CopyrightStatementsTile.propTypes = {
   ownerType: PropTypes.string.isRequired,
   ownerId: PropTypes.string.isRequired,
   hash: PropTypes.string,
+  componentIdentifier: PropTypes.string,
   stageTypeId: PropTypes.string,
   $state: PropTypes.object.isRequired,
 };

@@ -233,7 +233,7 @@ public class SourceControlScanService
       if (cause instanceof InvalidExitValueException && cause.getMessage() != null &&
           cause.getMessage().contains("Sparse checkout leaves no entry on working directory")) {
         log.debug("{} for application '{}': {}", cause.getMessage(), application.getPublicId(),
-            gitRepositoryInfo.repositoryUrl);
+            gitRepositoryInfo.normalizedRepositoryUrl);
         return new RepositorySyncResult();
       }
       else {

@@ -78,13 +78,6 @@ export const SystemPreferencesMenu = ({
       <NavLink stateName="automaticSourceControlConfiguration" showIf={MANAGE_AUTOMATIC_SCM_CONFIGURATION}>
         Automatic SCM Configuration
       </NavLink>
-      <NavLink
-        stateName="scmOnboarding"
-        id="system-configuration-scm-onboarding"
-        showIf={MANAGE_AUTOMATIC_SCM_CONFIGURATION && isSourceControlSupported}
-      >
-        SCM Onboarding
-      </NavLink>
       <NavLink stateName="advancedSearchConfig" id="system-configuration-advanced-search" showIf={CONFIGURE_SYSTEM}>
         Advanced Search
       </NavLink>

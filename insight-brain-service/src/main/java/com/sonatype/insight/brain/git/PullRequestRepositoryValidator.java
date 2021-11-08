@@ -46,7 +46,8 @@ public class PullRequestRepositoryValidator
    */
   public boolean isRepoValidForPRs(final GitRepositoryInfo gitRepositoryInfo) {
     if (!gitRepositoryInfo.remediationPullRequestsEnabled) {
-      log.debug("Pull requests have not been enabled for repository URL '{}'", gitRepositoryInfo.repositoryUrl);
+      log.debug("Pull requests have not been enabled for repository URL '{}'",
+          gitRepositoryInfo.normalizedRepositoryUrl);
       return false;
     }
     if (!gitRepositoryInfo.provider.supportsPullRequests()) {
@@ -61,7 +62,7 @@ public class PullRequestRepositoryValidator
    * Returns {@code true} if a repository is internal only (e.g. GitHub Enterprise)
    */
   public boolean isInternalRepository(final GitRepositoryInfo gitRepositoryInfo) {
-    return gitRepositoryInfo.provider.isScmSecured(gitRepositoryInfo.repositoryUrl);
+    return gitRepositoryInfo.provider.isScmSecured(gitRepositoryInfo.normalizedRepositoryUrl);
   }
 
   public boolean isPrivateRepository(final GitRepositoryInfo gitRepositoryInfo) {
@@ -71,7 +72,8 @@ public class PullRequestRepositoryValidator
     }
     catch (IOException e) {
       log.error("Error when checking if repository is private", e);
-      throw new UncheckedIOException("Unable to connect to the repository " + gitRepositoryInfo.repositoryUrl, e);
+      throw new UncheckedIOException("Unable to connect to the repository " + gitRepositoryInfo.normalizedRepositoryUrl,
+          e);
     }
   }
 }

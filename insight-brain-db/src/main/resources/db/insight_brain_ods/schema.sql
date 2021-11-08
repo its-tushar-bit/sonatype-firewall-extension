@@ -648,6 +648,7 @@ CREATE TABLE source_control (
   source_control_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,
   repository_url varchar(2048),
+  normalized_repository_url varchar(2048),
   repository_ssh_url varchar(2048) NULL,
   username varchar(256),
   token varchar(512),
@@ -664,6 +665,7 @@ CREATE TABLE source_control (
   CONSTRAINT source_control_pk PRIMARY KEY (source_control_id),
   CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)
 );
+CREATE INDEX source_control_normalized_repository_url_idx ON source_control(normalized_repository_url);
 
 CREATE TABLE schema_version (
   schema_version int NOT NULL
@@ -1077,3 +1079,24 @@ CREATE TABLE quarantined_component_access (
 );
 CREATE INDEX quarantined_component_access_repository_id_idx ON quarantined_component_access(repository_id);
 CREATE INDEX quarantined_component_access_repository_component_id_idx ON quarantined_component_access(repository_component_id);
+
+-- Since 1.127
+CREATE TABLE repository_client_configuration
+(
+    repository_client_configuration_id varchar(50) NOT NULL,
+    connection_timeout                 smallint, -- in seconds
+    socket_timeout                     smallint, -- in seconds
+    CONSTRAINT repository_client_configuration_pk PRIMARY KEY (repository_client_configuration_id)
+);
+
+-- Since 1.127
+CREATE TABLE repository_connection
+(
+    repository_connection_id varchar(50)   NOT NULL,
+    owner_id                 varchar(50)   NOT NULL,
+    base_url                 varchar(2048) NOT NULL,
+    username                 varchar(255),
+    password                 varchar(255),
+    CONSTRAINT repository_connection_pk PRIMARY KEY (repository_connection_id),
+    CONSTRAINT repository_connection_url_uk UNIQUE (owner_id, base_url)
+);

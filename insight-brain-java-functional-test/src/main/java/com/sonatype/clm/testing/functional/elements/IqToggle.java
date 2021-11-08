@@ -22,10 +22,6 @@ public class IqToggle
     return element.$(".nx-toggle__content").find("span");
   }
 
-  public String tooltipText() {
-    return checkedElement().find("span").find("span").attr("aria-label");
-  }
-
   private SelenideElement checkedElement() {
     return element.$("label");
   }

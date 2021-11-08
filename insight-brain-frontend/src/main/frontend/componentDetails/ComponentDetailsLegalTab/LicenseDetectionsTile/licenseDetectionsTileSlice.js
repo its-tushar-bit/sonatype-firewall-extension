@@ -5,7 +5,7 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { equals, prop, find } from 'ramda';
+import { equals, prop, find, map } from 'ramda';
 import {
   initialState as initialStateHelper,
   userInput,
@@ -26,6 +26,7 @@ import { selectEditLicensesForm } from './licenseDetectionsTileSelectors';
 import { selectSelectedComponent } from '../../../applicationReport/applicationReportSelectors';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { pathSetConst } from 'MainRoot/util/reduxToolkitUtil';
+import { isOverriddenOrSelected } from '../LegalTabUtils';
 
 const REDUCER_NAME = 'componentDetailsLicenseDetectionsTile';
 
@@ -56,7 +57,7 @@ const getInitialFormFieldsFromLicenseOverride = (licenseOverride) => {
   return {
     scope,
     status: scope?.licenseOverride?.status ?? null,
-    licenseIds: scope?.licenseOverride?.status === 'SELECTED' ? scope?.licenseOverride.licenseIds : [],
+    licenseIds: isOverriddenOrSelected(scope?.licenseOverride?.status) ? scope?.licenseOverride?.licenseIds : [],
     comment: initialStateHelper(''),
   };
 };
@@ -133,7 +134,7 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWith
 
   return Promise.all(promises)
     .then((results) => {
-      const allLicenses = results[0].data;
+      const allLicenses = map(({ id, shortDisplayName }) => ({ id, displayName: shortDisplayName }), results[0].data);
       const { declaredlicenses, effectiveLicenses, observedlicenses, selectableLicenses } = results[1].data;
       const licenseOverride = results[2].data.licenseOverridesByOwner;
       return {
@@ -215,7 +216,7 @@ const saveEditLicensesForm = createAsyncThunk(
     const { status, comment, scope, licenseIds } = selectEditLicensesForm(getState());
     const { componentIdentifier } = selectSelectedComponent(getState());
     const { ownerType, ownerId } = scope;
-    const payloadLicenseIds = status === 'SELECTED' ? licenseIds : [];
+    const payloadLicenseIds = isOverriddenOrSelected(status) ? licenseIds : [];
     const url = getBaseLicenseOverrideUrl(ownerType, ownerId),
       payload = {
         id: null,

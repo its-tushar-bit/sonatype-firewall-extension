@@ -239,6 +239,7 @@ public class PullRequestStatusServiceTest
     GitRepositoryInfo repositoryInfo = new GitRepositoryInfo();
     repositoryInfo.provider = provider;
     repositoryInfo.repositoryUrl = DEFAULT_REPO_URL;
+    repositoryInfo.normalizedRepositoryUrl = DEFAULT_REPO_URL;
     return repositoryInfo;
   }
 }

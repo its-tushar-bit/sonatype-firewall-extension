@@ -45,6 +45,7 @@ export const copyrightState = {
   router: {
     currentParams: {
       hash: 'fooHash',
+      componentIdentifier: 'fooComponentIdentifier',
       ownerType: 'organization',
       ownerId: 'org',
       copyrightIndex: '12',

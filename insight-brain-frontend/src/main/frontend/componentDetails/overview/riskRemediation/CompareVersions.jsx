@@ -14,6 +14,7 @@ import { formatTimeAgoUpToDay } from 'MainRoot/util/dateUtils';
 import { SECURITY, LICENSE, QUALITY, OTHER } from './policyThreatCategory';
 
 export const CompareVersions = ({ currentVersion, selectedVersion, loading }) => {
+  const showHygeneRating = currentVersion.hygieneRating || selectedVersion.hygieneRating;
   return (
     <section className="iq-compare-versions nx-grid-col__section">
       <header id="compare-versions-header" className="nx-grid-header">
@@ -88,11 +89,13 @@ export const CompareVersions = ({ currentVersion, selectedVersion, loading }) =>
               {renderHighestPolicyThreatByCategory(selectedVersion.policyMaxThreatLevelsByCategory, OTHER)}
             </NxTable.Cell>
           </NxTable.Row>
-          <NxTable.Row id="hygieneRating">
-            <NxTable.Cell>Hygiene Rating</NxTable.Cell>
-            <NxTable.Cell>{renderHygieneRating(currentVersion.hygieneRating)}</NxTable.Cell>
-            <NxTable.Cell>{renderHygieneRating(selectedVersion.hygieneRating)}</NxTable.Cell>
-          </NxTable.Row>
+          {showHygeneRating && (
+            <NxTable.Row id="hygieneRating">
+              <NxTable.Cell>Hygiene Rating</NxTable.Cell>
+              <NxTable.Cell>{renderHygieneRating(currentVersion.hygieneRating)}</NxTable.Cell>
+              <NxTable.Cell>{renderHygieneRating(selectedVersion.hygieneRating)}</NxTable.Cell>
+            </NxTable.Row>
+          )}
           <NxTable.Row id="integrityRating">
             <NxTable.Cell>Integrity Rating</NxTable.Cell>
             <NxTable.Cell>{renderIntegrityRating(currentVersion.integrityRating)}</NxTable.Cell>

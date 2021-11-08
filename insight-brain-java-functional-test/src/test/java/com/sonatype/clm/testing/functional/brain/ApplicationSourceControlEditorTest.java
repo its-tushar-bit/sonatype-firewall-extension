@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
@@ -146,7 +147,7 @@ public class ApplicationSourceControlEditorTest
     assertSourceControlDoesNotExist(organization.getId());
     assertSourceControlDoesNotExist(application.getId());
 
-    verifyStartWithSourceControl();
+    verifyStartWithSourceControlInherited();
     SourceControlEditorPage.advancedSettings().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettingsTree().click();
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
@@ -182,7 +183,7 @@ public class ApplicationSourceControlEditorTest
     assertSourceControlDoesNotExist(organization.getId());
     assertSourceControlDoesNotExist(application.getId());
 
-    verifyStartWithSourceControl();
+    verifyStartWithSourceControlInherited();
     SourceControlEditorPage.advancedSettings().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettingsTree().click();
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
@@ -216,7 +217,7 @@ public class ApplicationSourceControlEditorTest
 
     assertSourceControlDoesNotExist(application.getId());
 
-    verifyStartWithSourceControl();
+    verifyStartWithSourceControlInherited();
     SourceControlEditorPage.advancedSettings().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettingsTree().click();
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
@@ -229,7 +230,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
     SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
-
   }
 
   @Test
@@ -255,7 +255,7 @@ public class ApplicationSourceControlEditorTest
 
     assertSourceControlDoesNotExist(application.getId());
 
-    verifyStartWithSourceControl();
+    verifyStartWithSourceControlInherited();
     SourceControlEditorPage.advancedSettings().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettingsTree().click();
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
@@ -438,7 +438,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");
-    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(enabled);
     SourceControlEditorPage.token().shouldHave(value(""));
     SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
     SourceControlEditorPage.tokenInheritRadio().shouldBe(selected, enabled);
@@ -515,7 +515,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");
-    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(enabled);
     SourceControlEditorPage.credentialsToken().shouldHave(value(""));
     SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(selected);
     SourceControlEditorPage.credentialsInheritRadio().shouldBe(selected, enabled);
@@ -615,7 +615,7 @@ public class ApplicationSourceControlEditorTest
     FormMask.seeAndWaitForDismissal();
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
-    SourceControlEditorPage.repositoryUrl().shouldHave(value(REPOSITORY_URL));
+    SourceControlEditorPage.repositoryUrl().shouldHave(value(SSH_REPOSITORY_URL));
     SourceControlEditorPage.repositoryUrlInfo().shouldNotBe(visible);
   }
 
@@ -768,6 +768,72 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.advancedElementsTrigger().click();
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
     SourceControlEditorPage.baseBranchInput().shouldHave(value("develop"));
+  }
+
+  @Test
+  public void testSourceControlEditor_delete() {
+    tempEntity.newSourceControl(rootOrganization.getId(), null, TOKEN, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(organization.getId(), null, TOKEN, null);
+    tempEntity.newSourceControl(application.getId(), REPOSITORY_URL, TOKEN, null);
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+
+    verifyStartWithSourceControl();
+
+    SourceControlEditorPage.deleteButton().click();
+
+    DeleteModal.root().shouldBe(visible);
+    DeleteModal.header().shouldHave(text("Reset Source Control"));
+    DeleteModal.body().shouldHave(text("You are about to reset the Source Control configuration for application " +
+        "Ye Ole Application. This action cannot be undone."));
+
+    DeleteModal.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
+    DeleteModal.root().shouldBe(hidden);
+
+    SourceControlEditorPage.saveButton().shouldBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.deleteButton().shouldBe(disabled);
+    assertSourceControlDoesNotExist(application.getId());
+  }
+
+  @Test
+  public void testSourceControlEditor_deleteFailure() {
+    tempEntity.newSourceControl(rootOrganization.getId(), null, TOKEN, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(organization.getId(), null, TOKEN, null);
+    tempEntity.newSourceControl(application.getId(), REPOSITORY_URL, TOKEN, null);
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+
+    verifyStartWithSourceControl();
+    SourceControlEditorPage.deleteButton().click();
+
+    DeleteModal.root().shouldBe(visible);
+    DeleteModal.header().shouldHave(text("Reset Source Control"));
+    DeleteModal.body().shouldHave(text("You are about to reset the Source Control configuration for application " +
+        "Ye Ole Application. This action cannot be undone."));
+
+    // delete entry to create error condition
+    deleteSourceControl(application.getId());
+
+    DeleteModal.continueButton().click();
+
+    DeleteModal.error()
+        .shouldHave(text("Cannot find SourceControl for application with id: " + application.getPublicId()));
+    DeleteModal.retryButton().shouldBe(visible, enabled);
+
+    // recreate the entry to resolve error condition
+    tempEntity.newSourceControl(application.getId(), REPOSITORY_URL, TOKEN, null);
+
+    DeleteModal.retryButton().click();
+
+    FormMask.seeAndWaitForDismissal();
+    DeleteModal.root().shouldBe(hidden);
+
+    SourceControlEditorPage.saveButton().shouldBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.deleteButton().shouldBe(disabled);
+    assertSourceControlDoesNotExist(application.getId());
   }
 
   @Test
@@ -955,7 +1021,6 @@ public class ApplicationSourceControlEditorTest
 
     // then updates are enabled again
     SourceControlEditorPage.saveButton().shouldBe(enabled);
-
   }
 
   @Test
@@ -1001,12 +1066,15 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
     SourceControlEditorPage.subTitle().shouldHave(text(String
         .format("Configures the integration with an external SCM for the %s application", application.getName())));
+
+    SourceControlEditorPage.repositoryUrlControls().shouldBe(visible);
+
     SourceControlEditorPage.provider().shouldBe(visible);
     SourceControlEditorPage.token().shouldBe(visible, disabled);
-    SourceControlEditorPage.repositoryUrlControls().shouldBe(visible);
+
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(disabled);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");
     SourceControlEditorPage.testConfigButton().shouldBe(visible, enabled);
@@ -1063,6 +1131,14 @@ public class ApplicationSourceControlEditorTest
 
   @Override
   void verifyStartWithSourceControl() {
+    verifyStartWithSourceControl(false);
+  }
+
+  private void verifyStartWithSourceControlInherited() {
+    verifyStartWithSourceControl(true);
+  }
+
+  private void verifyStartWithSourceControl(boolean inherited) {
     SourceControlEditorPage.root().shouldBe(visible);
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
     SourceControlEditorPage.subTitle().shouldHave(text(String
@@ -1070,7 +1146,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.repositoryUrlControls().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(inherited ? disabled : enabled);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");
     SourceControlEditorPage.testConfigButton().shouldBe(visible);

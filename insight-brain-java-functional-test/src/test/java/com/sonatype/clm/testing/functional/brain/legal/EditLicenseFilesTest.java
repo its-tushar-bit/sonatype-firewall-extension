@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain.legal;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,8 +98,18 @@ public class EditLicenseFilesTest
   }
 
   @Test
-  public void testLicensesTile_InitialState() {
+  public void testLicensesTile_InitialStateByHash() {
     refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
+    doTestLicensesTile_InitialState();
+  }
+
+  @Test
+  public void testLicensesTile_InitialStateByComponentIdentifier() throws UnsupportedEncodingException {
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+    doTestLicensesTile_InitialState();
+  }
+
+  private void doTestLicensesTile_InitialState() {
     LicenseFiles licenseFiles = ComponentLegalOverviewPage.licenseFiles();
     licenseFiles.all().shouldHaveSize(2);
     assertLicense(licenseFiles.at(0), "META-INF/LICENSE", "\nApache ServiceComb" +
@@ -109,8 +120,19 @@ public class EditLicenseFilesTest
   }
 
   @Test
-  public void testLicensesModal_InitialState() {
+  public void testLicensesModal_InitialStateByHash() {
     refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
+    doTestLicensesModal_InitialState(3);
+    eyesWatcher.eyesCheck("Component legal edit license files modal");
+  }
+
+  @Test
+  public void doTestLicensesModal_InitialStateByComponentIdentifier() throws UnsupportedEncodingException {
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+    doTestLicensesModal_InitialState(1);
+  }
+
+  private void doTestLicensesModal_InitialState(int expectedScopeCount) {
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     EditLicenseFilesModal editLicenseFilesModal = new EditLicenseFilesModal();
     editLicenseFilesModal.shouldBe(Condition.visible);
@@ -122,20 +144,33 @@ public class EditLicenseFilesTest
     assertLicense(editLicenseFilesModal.licenseAt(1), "content", true);
     assertOption(editLicenseFilesModal.scopeDropdown().getSelectedOption(), rootOrg);
     ElementsCollection options = editLicenseFilesModal.scopeDropdown().$$("option");
-    options.shouldHaveSize(3);
-    assertOption(options.get(0), app);
-    assertOption(options.get(1), org);
-    assertOption(options.get(2), rootOrg);
+    options.shouldHaveSize(expectedScopeCount);
+    if (expectedScopeCount == 1) {
+      assertOption(options.get(0), rootOrg);
+    }
+    else {
+      assertOption(options.get(0), app);
+      assertOption(options.get(1), org);
+      assertOption(options.get(2), rootOrg);
+    }
     assertButton(editLicenseFilesModal.save(), false,
         "Must add a new license or change the content or status of a license.");
     assertButton(editLicenseFilesModal.cancel(), true, null);
-
-    eyesWatcher.eyesCheck("Component legal edit license files modal");
   }
 
   @Test
-  public void testAddLicense() {
+  public void testAddLicenseByHash() {
     refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
+    doTestAddLicense("custom license by hash");
+  }
+
+  @Test
+  public void testAddLicenseByComponentIdentifier() throws UnsupportedEncodingException {
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+    doTestAddLicense("custom license by component identifier");
+  }
+
+  public void doTestAddLicense(String content) {
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     EditLicenseFilesModal editLicenseFilesModal = new EditLicenseFilesModal();
     editLicenseFilesModal.addLicenseButton().click();
@@ -143,36 +178,60 @@ public class EditLicenseFilesTest
     assertLicense(editLicenseFilesModal.licenseAt(2), "", true);
     assertButton(editLicenseFilesModal.save(), false, "A custom license must have text.");
     assertButton(editLicenseFilesModal.cancel(), true, null);
-    editLicenseFilesModal.licenseAt(2).textInput().setValue("custom");
+    editLicenseFilesModal.licenseAt(2).textInput().setValue(content);
     assertButton(editLicenseFilesModal.save(), true, null);
     editLicenseFilesModal.save().click();
     editLicenseFilesModal.shouldNotBe(Condition.visible);
-    assertLicense(ComponentLegalOverviewPage.licenseFiles().at(2), null, "custom");
+    assertLicense(ComponentLegalOverviewPage.licenseFiles().at(2), null, content);
   }
 
   @Test
-  public void testChangeLicenseText() {
+  public void testChangeLicenseTextByHash() {
     refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
+    doTestChangeLicenseText("value by hash");
+  }
+
+  @Test
+  public void testChangeLicenseTextByComponentIdentifier() throws UnsupportedEncodingException {
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+    doTestChangeLicenseText("value by component identifier");
+  }
+
+  private void doTestChangeLicenseText(String content) {
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     EditLicenseFilesModal editLicenseFilesModal = new EditLicenseFilesModal();
     LicenseFile license = editLicenseFilesModal.licenseAt(0);
     String originalValue = license.textInput().getValue();
-    license.textInput().setValue("changed");
-    assertLicense(ComponentLegalOverviewPage.licenseFiles().at(0), "META-INF/LICENSE", originalValue);
+    license.textInput().setValue(content);
+    int index =
+        ComponentLegalOverviewPage.licenseFiles().at(0).relPath().getText().contains("META-INF/LICENSE") ? 0 : 1;
+    assertLicense(ComponentLegalOverviewPage.licenseFiles().at(index), "META-INF/LICENSE", originalValue);
     assertButton(editLicenseFilesModal.save(), true, null);
     license.textInput().setValue(originalValue);
     assertButton(editLicenseFilesModal.save(), false,
         "Must add a new license or change the content or status of a license.");
-    license.textInput().setValue("changed");
+    license.textInput().setValue(content);
     assertButton(editLicenseFilesModal.save(), true, null);
     editLicenseFilesModal.save().click();
     editLicenseFilesModal.shouldNotBe(Condition.visible);
-    assertLicense(ComponentLegalOverviewPage.licenseFiles().at(0), "META-INF/LICENSE", "changed");
+    index = ComponentLegalOverviewPage.licenseFiles().at(0).relPath().getText().contains("META-INF/LICENSE") ? 0 : 1;
+    assertLicense(ComponentLegalOverviewPage.licenseFiles().at(index), "META-INF/LICENSE", content);
   }
 
   @Test
-  public void testChangeLicenseStatus() {
+  public void testChangeLicenseStatusByHash() {
     refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
+    doTestChangeLicenseStatus();
+  }
+
+  @Test
+  public void testChangeLicenseStatusByComponentIdentifier() throws UnsupportedEncodingException {
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+    doTestChangeLicenseStatus();
+  }
+
+  private void doTestChangeLicenseStatus() {
+    int initialLicenseFiles = ComponentLegalOverviewPage.licenseFiles().all().size();
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     EditLicenseFilesModal editLicenseFilesModal = new EditLicenseFilesModal();
     LicenseFile license = editLicenseFilesModal.licenseAt(0);
@@ -193,14 +252,24 @@ public class EditLicenseFilesTest
     assertButton(editLicenseFilesModal.save(), true, null);
     editLicenseFilesModal.save().click();
     editLicenseFilesModal.shouldNotBe(Condition.visible);
-    ComponentLegalOverviewPage.licenseFiles().all().shouldHaveSize(1);
+    ComponentLegalOverviewPage.licenseFiles().all().shouldHaveSize(initialLicenseFiles - 1);
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     license.statusCheckbox().shouldNotBe(Condition.selected);
   }
 
   @Test
-  public void testCancel() {
+  public void testCancelByHash() {
     refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
+    doTestCancel();
+  }
+
+  @Test
+  public void testCancelByComponentIdentifier() throws UnsupportedEncodingException {
+    refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+    doTestCancel();
+  }
+
+  private void doTestCancel() {
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     EditLicenseFilesModal editLicenseFilesModal = new EditLicenseFilesModal();
     editLicenseFilesModal.allLicenses().shouldHaveSize(2);

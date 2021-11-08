@@ -43,6 +43,7 @@ export const DASHBOARD = {
 };
 
 export const STAGE_NAME_TO_DISPLAY = {
+  Source: 'Source',
   Build: 'Build',
   'Stage Release': 'Stage',
   Release: 'Release',
@@ -50,6 +51,7 @@ export const STAGE_NAME_TO_DISPLAY = {
 };
 
 export const STAGE_NAME_TO_ID = {
+  Source: 'source',
   Build: 'build',
   'Stage Release': 'stage-release',
   Release: 'release',

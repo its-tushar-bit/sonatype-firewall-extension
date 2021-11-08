@@ -70,9 +70,14 @@ describe('LicenseFilesDetailsHeaderContainer', function () {
       ...licenseFilesState,
       router: {
         currentState: { name: 'ComponentOverview' },
-        currentParams: { hash: 'fooHash', applicationPublicId: 'appId' },
+        currentParams: {
+          hash: 'fooHash',
+          componentIdentifier: 'fooComponentIdentifier',
+          applicationPublicId: 'appId',
+        },
         prevParams: {
           hash: 'fooHash',
+          componentIdentifier: 'fooComponentIdentifier',
           ownerType: 'organization',
           ownerId: 'org',
           licenseIndex: '0',
@@ -86,6 +91,7 @@ describe('LicenseFilesDetailsHeaderContainer', function () {
 
     let wrapper = shallow(vdom).dive();
     expect(wrapper).toHaveProp('hash', 'fooHash');
+    expect(wrapper).toHaveProp('componentIdentifier', 'fooComponentIdentifier');
     expect(wrapper).toHaveProp('ownerType', 'organization');
     expect(wrapper).toHaveProp('ownerId', 'org');
     expect(wrapper).toHaveProp('licenseIndex', '0');

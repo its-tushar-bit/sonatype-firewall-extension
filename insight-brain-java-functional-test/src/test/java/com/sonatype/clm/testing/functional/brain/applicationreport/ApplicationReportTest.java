@@ -21,6 +21,7 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.elements.NxTooltip;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
@@ -425,9 +426,12 @@ public class ApplicationReportTest
   public void testAggregation() {
     // Aggregate by Component toggle
     reportPage.aggregateByComponentToggle().label().shouldHave(text("Aggregate by component"));
-    assertThat(reportPage.aggregateByComponentToggle().tooltipText()).isEqualTo(
-        "By default the Application Report aggregates violations by component. " +
-            "To see all violations not Aggregated by Component, please switch the toggle off.");
+    reportPage.aggregateByComponentToggle().label().hover();
+    NxTooltip aggregateByComponentToggleToolTip = new NxTooltip();
+    aggregateByComponentToggleToolTip.getElement()
+        .shouldHave(text("By default the Application Report aggregates violations by component. " +
+            "To see all violations not Aggregated by Component, please switch the toggle off."));
+
     // By default the "Aggregate by Component" toggle should be ON
     reportPage.aggregateByComponentToggle().shouldBeOn();
     reportPage.resultRows().shouldHaveSize(64);

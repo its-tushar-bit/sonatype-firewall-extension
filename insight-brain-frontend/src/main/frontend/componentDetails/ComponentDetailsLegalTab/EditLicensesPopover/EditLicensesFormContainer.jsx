@@ -21,6 +21,7 @@ function mapStateToProps(state) {
     observedlicenses,
     licenseOverride,
     selectableLicenses,
+    allLicenses,
   } = selectLicenseDetectionsTileDataSlice(state);
   const identificationSource = selectComponentIdentificationSource(state);
 
@@ -30,6 +31,7 @@ function mapStateToProps(state) {
     licenseIds,
     isDirty,
     scope,
+    allLicenses,
     declaredlicenses,
     effectiveLicenses,
     observedlicenses,

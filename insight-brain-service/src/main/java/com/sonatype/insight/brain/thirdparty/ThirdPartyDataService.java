@@ -272,6 +272,7 @@ public class ThirdPartyDataService
           thirdPartyVulnerability.setSeverity(securityRow.score);
           thirdPartyVulnerability.setAdvisories(securityRow.advisories);
           thirdPartyVulnerability.setVulnerabilitySource(componentDTO.bomRow.identificationSource);
+          thirdPartyVulnerability.setUpdateTime(new Date());
           vulnerabilities.add(thirdPartyVulnerability);
         }
         thirdPartyApplicationReportDTO.billOfMaterials.add(componentDTO.bomRow);

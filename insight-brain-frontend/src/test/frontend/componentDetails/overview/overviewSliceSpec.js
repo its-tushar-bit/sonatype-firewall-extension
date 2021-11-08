@@ -41,7 +41,7 @@ describe('componentDetailsOverviewReducer', () => {
     });
   });
 
-  describe('componentDetailsOverview/loadVersionExplorerData/pending action', () => {
+  describe('componentDetailsOverview/loadVersionExplorerDataWithCancelToken/pending action', () => {
     it('sets the loading flag to true', () => {
       const state = Object.freeze({
         other: stateConstantObject,
@@ -50,19 +50,21 @@ describe('componentDetailsOverviewReducer', () => {
           loadError: 'There is an error',
           data: null,
         },
+        expanded: true,
       });
 
       const newState = reducer(state, {
-        type: 'componentDetailsOverview/loadVersionExplorerData/pending',
+        type: 'componentDetailsOverview/loadVersionExplorerDataWithCancelToken/pending',
       });
 
       expect(newState.versionExplorerData.loading).toBe(true);
       expect(newState.versionExplorerData.loadError).toBe(null);
       expect(newState.other).toBe(stateConstantObject);
+      expect(newState.expanded).toBe(false);
     });
   });
 
-  describe('componentDetailsOverview/loadVersionExplorerData/fulfilled action', () => {
+  describe('componentDetailsOverview/loadVersionExplorerDataWithCancelToken/fulfilled action', () => {
     it('sets loading flag to false, unsets the loadError and fills the data', () => {
       const state = Object.freeze({
         other: stateConstantObject,
@@ -71,6 +73,7 @@ describe('componentDetailsOverviewReducer', () => {
           loadError: 'error',
           data: null,
         },
+        expanded: false,
       });
       const allVersions = ['list'];
       const remediation = {
@@ -127,7 +130,7 @@ describe('componentDetailsOverviewReducer', () => {
       };
 
       const newState = reducer(state, {
-        type: 'componentDetailsOverview/loadVersionExplorerData/fulfilled',
+        type: 'componentDetailsOverview/loadVersionExplorerDataWithCancelToken/fulfilled',
         payload,
       });
 
@@ -137,10 +140,11 @@ describe('componentDetailsOverviewReducer', () => {
       expect(newState.versionExplorerData.remediation).toBe(remediation);
       expect(newState.versionExplorerData.currentVersionDetails).toBe(currentVersionDetails);
       expect(newState.other).toBe(stateConstantObject);
+      expect(newState.expanded).toBe(false);
     });
   });
 
-  describe('componentDetailsOverview/loadVersionExplorerData/rejected action', () => {
+  describe('componentDetailsOverview/loadVersionExplorerDataWithCancelToken/rejected action', () => {
     it('sets the loadError to the payload and the loading flag to true', () => {
       const state = Object.freeze({
         other: stateConstantObject,
@@ -152,13 +156,36 @@ describe('componentDetailsOverviewReducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'componentDetailsOverview/loadVersionExplorerData/rejected',
+        type: 'componentDetailsOverview/loadVersionExplorerDataWithCancelToken/rejected',
         payload: 'loadError',
       });
 
       expect(newState.versionExplorerData.loading).toBe(false);
       expect(newState.versionExplorerData.loadError).toBe('loadError');
       expect(newState.other).toBe(stateConstantObject);
+    });
+
+    it('sets versions, remediation and currentVersionDetails to null if request was aborted by client', () => {
+      const state = Object.freeze({
+        versionExplorerData: {
+          loading: true,
+          loadError: 'error',
+          versions: { version: 12 },
+          remediation: {},
+          currentVersionDetails: {},
+        },
+      });
+
+      const {
+        versionExplorerData: { versions, remediation, currentVersionDetails },
+      } = reducer(state, {
+        type: 'componentDetailsOverview/loadVersionExplorerDataWithCancelToken/rejected',
+        payload: { message: 499 },
+      });
+
+      expect(versions).toBeNull();
+      expect(remediation).toBeNull();
+      expect(currentVersionDetails).toBeNull();
     });
   });
 

@@ -42,7 +42,7 @@ public class PullRequestInfoClient
     CommitInformation result;
 
     GitApiClientUtils gitApiClientUtils = new GitApiClientFactory().getGitApiClientUtils(gitRepositoryInfo.provider);
-    ProjectUri projectUri = gitApiClientUtils.createProjectUri(gitRepositoryInfo.repositoryUrl);
+    ProjectUri projectUri = gitApiClientUtils.createProjectUri(gitRepositoryInfo.normalizedRepositoryUrl);
 
     try {
       PullRequestInfoProvider client = gitClientFactory.createPullRequestInfoClient(gitRepositoryInfo);

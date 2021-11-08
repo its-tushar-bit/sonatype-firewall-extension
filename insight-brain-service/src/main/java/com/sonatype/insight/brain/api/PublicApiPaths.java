@@ -64,6 +64,8 @@ public class PublicApiPaths
 
   public static final String PROXY_SERVER_CONFIG_PATH_V2 = API_VERSION_PATH_V2 + "config/httpProxyServer";
 
+  public static final String REPOSITORY_CONNECTION_CONFIG_PATH_V2 = API_VERSION_PATH_V2 + "config/repositoryConnection";
+
   public static final String SOURCE_CONTROL_PATH_V2 = API_VERSION_PATH_V2 + "sourceControl";
   
   public static final String SOURCE_CONTROL_METRICS_PATH_V2 = API_VERSION_PATH_V2 + "sourceControlMetrics";

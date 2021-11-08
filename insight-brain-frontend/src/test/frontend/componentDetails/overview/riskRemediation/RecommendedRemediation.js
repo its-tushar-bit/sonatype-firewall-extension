@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { DependencyInformation } from '../../../../../main/frontend/componentDetails/overview/riskRemediation/DependencyInformation';
+import { RecommendedRemediation } from 'MainRoot/componentDetails/overview/riskRemediation/RecommendedRemediation';
 import * as enzymeUtils from '../../../enzymeUtils';
 
-describe('DependencyInformation', () => {
+describe('RecommendedRemediation', () => {
   let minimalProps, getMounted;
 
   beforeEach(function () {
@@ -15,7 +15,7 @@ describe('DependencyInformation', () => {
       routeName: 'applicationReport.componentDetails.overview',
     };
 
-    getMounted = enzymeUtils.getMountedComponent(DependencyInformation, minimalProps);
+    getMounted = enzymeUtils.getMountedComponent(RecommendedRemediation, minimalProps);
   });
 
   it('renders a component', () => {
@@ -28,7 +28,7 @@ describe('DependencyInformation', () => {
 
     const title = component.find('.nx-grid-header__title');
     expect(title).not.toBeNull();
-    expect(title).toHaveText('Dependency Information');
+    expect(title).toHaveText('Recommended Remediation');
 
     const content = component.find('.nx-list');
     expect(content).not.toBeNull();

@@ -28,7 +28,7 @@ function mapStateToProps({ advancedLegal, router, componentLicenseFileDetails })
     showLicenseFilesModal: component.component ? component.component.licenseLegalData.showLicenseFilesModal : false,
     availableScopes,
     ...pick(['component'], component),
-    ...pick(['hash', 'ownerType', 'ownerId', 'licenseIndex', 'stageTypeId'], routerParams),
+    ...pick(['hash', 'componentIdentifier', 'ownerType', 'ownerId', 'licenseIndex', 'stageTypeId'], routerParams),
   };
 }
 

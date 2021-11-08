@@ -70,10 +70,6 @@ public class SystemConfigMenu
     return child("#system-configuration-advanced-search");
   }
 
-  public SelenideElement scmOnboarding() {
-    return child("#system-configuration-scm-onboarding");
-  }
-
   public SelenideElement dataInsights() {
     return child("#system-labs-data-insights");
   }

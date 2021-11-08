@@ -22,6 +22,7 @@ export default function LicenseFilesTile(props) {
     ownerId,
     stageTypeId,
     hash,
+    componentIdentifier,
     $state,
   } = props;
 
@@ -33,16 +34,21 @@ export default function LicenseFilesTile(props) {
     'license-no-legal-elements-text': !isLicensePresent(),
   });
 
-  const licenseFileDetailsTargetState = () =>
-    stageTypeId
-      ? 'legal.stageTypeComponentLicenseFilesDetails.licenseFilesDetails'
-      : 'legal.componentLicenseFilesDetails.licenseFilesDetails';
+  const licenseFileDetailsTargetState = () => {
+    if (stageTypeId) {
+      return 'legal.stageTypeComponentLicenseFilesDetails.licenseFilesDetails';
+    }
+    return hash
+      ? 'legal.componentLicenseFilesDetails.licenseFilesDetails'
+      : 'legal.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails';
+  };
 
   const createItem = (license, index) =>
     createLegalFileTileItem('license', license, index, $state, licenseFileDetailsTargetState(), {
       ownerType,
       ownerId,
       hash,
+      componentIdentifier,
       stageTypeId,
       licenseIndex: index,
     });
@@ -81,5 +87,6 @@ LicenseFilesTile.propTypes = {
   availableScopes: availableScopesPropType,
   stageTypeId: PropTypes.string,
   hash: PropTypes.string,
+  componentIdentifier: PropTypes.string,
   $state: PropTypes.object.isRequired,
 };

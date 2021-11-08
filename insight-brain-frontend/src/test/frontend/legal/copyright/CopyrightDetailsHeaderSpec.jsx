@@ -38,7 +38,7 @@ describe('CopyrightDetailsHeader', function () {
     spyOn(legalUtilities, 'backToComponentOverviewUrl').and.returnValue('some-href');
   });
 
-  it('renders a MenuBarBackButton with correct href prop', function () {
+  it('renders a MenuBarBackButton with correct href prop by hash', function () {
     const wrapper = getShallowComponent();
     const menuBarBackButton = wrapper.find(MenuBarBackButton);
     expect(menuBarBackButton).toExist();
@@ -48,7 +48,23 @@ describe('CopyrightDetailsHeader', function () {
       minimalProps.ownerType,
       minimalProps.ownerId,
       minimalProps.stageTypeId,
-      minimalProps.hash
+      minimalProps.hash,
+      undefined
+    );
+  });
+
+  it('renders a MenuBarBackButton with correct href prop by component identifier', function () {
+    const wrapper = getShallowComponent({ ...minimalProps, hash: undefined, componentIdentifier: 'testCi' });
+    const menuBarBackButton = wrapper.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', 'some-href');
+    expect(legalUtilities.backToComponentOverviewUrl).toHaveBeenCalledWith(
+      minimalProps.$state,
+      minimalProps.ownerType,
+      minimalProps.ownerId,
+      minimalProps.stageTypeId,
+      undefined,
+      'testCi'
     );
   });
 });

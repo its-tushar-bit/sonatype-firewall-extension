@@ -43,8 +43,8 @@ public class RiskRemediationTile
     return child(TILE_HEADER_TITLE_SELECTOR);
   }
 
-  public DependencyInformationSection dependencyInformationSection() {
-    return new DependencyInformationSection(
+  public RecommendedRemediationSection dependencyInformationSection() {
+    return new RecommendedRemediationSection(
         this.childSelector(TILE_CONTENT_SELECTOR, ".iq-dependency-information"));
   }
 
@@ -65,10 +65,10 @@ public class RiskRemediationTile
     return new CompareVersionsTable(this.childSelector("#compare-versions-table"));
   }
 
-  public static class DependencyInformationSection
-      extends BasicElement<RiskRemediationTile.DependencyInformationSection>
+  public static class RecommendedRemediationSection
+      extends BasicElement<RecommendedRemediationSection>
   {
-    private DependencyInformationSection(String selector) {
+    private RecommendedRemediationSection(String selector) {
       super(selector);
     }
 

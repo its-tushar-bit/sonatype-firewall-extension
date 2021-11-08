@@ -476,7 +476,8 @@ public class SourceControlDAOTest
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
     assertThat(sourceControl.getOwnerId()).isEqualTo(app.getId());
-    assertThat(sourceControl.getRepositoryUrl()).isEqualTo(VALID_URL.toLowerCase(Locale.ENGLISH));
+    assertThat(sourceControl.getRepositoryUrl()).isEqualTo(VALID_URL);
+    assertThat(sourceControl.getNormalizedRepositoryUrl()).isEqualTo(VALID_URL.toLowerCase(Locale.ENGLISH));
     assertThat(sourceControl.getUsername()).isNull();
     assertThat(sourceControl.getToken()).isEqualTo("bar");
     assertThat(sourceControl.getBaseBranch()).isEqualTo("base/branch");

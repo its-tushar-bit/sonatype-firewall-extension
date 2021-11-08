@@ -55,8 +55,6 @@ describe('OverviewComponentInformation', () => {
       sections = content.find('section');
 
     expect(sections.length).toBe(2);
-    expect(sections.at(0).find('header')).toHaveText('General Info');
-    expect(sections.at(1).find('header')).toHaveText('Identification Info');
   });
 
   it('renders the inner source containers', () => {
@@ -133,7 +131,7 @@ describe('OverviewComponentInformation', () => {
 
       const [matchStateLabel, matchStateValue] = [definitionItems.at(1).find('dt'), definitionItems.at(1).find('dd')];
       expect(matchStateLabel).toHaveText('Match State');
-      expect(matchStateValue).toHaveText('unknown');
+      expect(matchStateValue).toHaveText('Unknown');
 
       const [OcurrencesLabel, OcurrencesValue] = [definitionItems.at(2).find('dt'), definitionItems.at(2).find('dd')];
       expect(OcurrencesLabel).toHaveText('Occurrences');
@@ -227,7 +225,7 @@ describe('OverviewComponentInformation', () => {
 
       const [matchStateLabel, matchStateValue] = [definitionItems.at(1).find('dt'), definitionItems.at(1).find('dd')];
       expect(matchStateLabel).toHaveText('Match State');
-      expect(matchStateValue).toHaveText('exact');
+      expect(matchStateValue).toHaveText('Exact');
 
       const [OcurrencesLabel, OcurrencesValue] = [definitionItems.at(2).find('dt'), definitionItems.at(2).find('dd')];
       expect(OcurrencesLabel).toHaveText('Occurrences');
@@ -275,7 +273,7 @@ describe('OverviewComponentInformation', () => {
 
       const [matchStateLabel, matchStateValue] = [definitionItems.at(1).find('dt'), definitionItems.at(1).find('dd')];
       expect(matchStateLabel).toHaveText('Match State');
-      expect(matchStateValue).toHaveText('similar (View Similar Matches)');
+      expect(matchStateValue).toHaveText('Similar (View Similar Matches)');
 
       const viewSimilarMatchesLink = matchStateValue.find('a');
       expect(viewSimilarMatchesLink).toExist();

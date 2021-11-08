@@ -57,6 +57,8 @@ public class PullRequestCommentingEventHandler
 
   private final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator;
 
+  private final GitCommitHistoryService gitCommitHistoryService;
+
   @Inject
   public PullRequestCommentingEventHandler(
       final PullRequestCommentingService pullRequestCommentingService,
@@ -67,7 +69,8 @@ public class PullRequestCommentingEventHandler
       final PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PullRequestStatusService pullRequestStatusService,
-      final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator)
+      final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator,
+      final GitCommitHistoryService gitCommitHistoryService)
   {
     this.pullRequestCommentingService = pullRequestCommentingService;
     this.sourceControlUtils = sourceControlUtils;
@@ -78,6 +81,7 @@ public class PullRequestCommentingEventHandler
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.pullRequestStatusService = pullRequestStatusService;
     this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
+    this.gitCommitHistoryService = gitCommitHistoryService;
   }
 
   @Override
@@ -120,6 +124,8 @@ public class PullRequestCommentingEventHandler
         log.debug(
             "Ignoring ApplicationEvaluationEvent for application {} because the policy evaluation {} was " +
                 "internally triggered", applicationId, event.policyEvaluationId);
+        // but we want to update the default branch commit history with the new eval. ID, if that's the case
+        gitCommitHistoryService.updateCommitHistoryForPolicyEvaluation(event.policyEvaluationId);
       }
       else {
         SourceControlEvent sourceControlEvent = new SourceControlEvent()

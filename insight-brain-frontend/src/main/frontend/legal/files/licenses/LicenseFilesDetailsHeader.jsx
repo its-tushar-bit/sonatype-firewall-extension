@@ -23,6 +23,7 @@ export default function LicenseFilesDetailsHeader(props) {
     ownerId,
     stageTypeId,
     hash,
+    componentIdentifier,
     licenseIndex,
     $state,
     loadComponentAndLicenseDetails,
@@ -31,7 +32,7 @@ export default function LicenseFilesDetailsHeader(props) {
   } = props;
 
   function load() {
-    loadComponentAndLicenseDetails(ownerType, ownerId, hash, licenseIndex);
+    loadComponentAndLicenseDetails(ownerType, ownerId, hash, licenseIndex, componentIdentifier);
   }
 
   useEffect(load, [ownerType, ownerId, hash, licenseIndex]);
@@ -39,7 +40,7 @@ export default function LicenseFilesDetailsHeader(props) {
   return (
     <LoadWrapper loading={loading} error={error} retryHandler={load}>
       <MenuBarBackButton
-        href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash)}
+        href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash, componentIdentifier)}
         text="Back to Component Obligations"
       />
       <div className="nx-page-title">
@@ -65,6 +66,7 @@ LicenseFilesDetailsHeader.propTypes = {
   ownerId: PropTypes.string,
   stageTypeId: PropTypes.string,
   hash: PropTypes.string,
+  componentIdentifier: PropTypes.string,
   licenseIndex: PropTypes.string,
   availableScopes: availableScopesPropType,
   $state: PropTypes.object.isRequired,

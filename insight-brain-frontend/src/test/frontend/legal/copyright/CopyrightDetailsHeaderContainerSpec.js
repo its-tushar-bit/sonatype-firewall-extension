@@ -37,6 +37,7 @@ describe('CopyrightDetailsHeaderContainer', function () {
     expect(wrapper).toHaveProp('loading', 'loading');
     expect(wrapper).toHaveProp('error', 'error');
     expect(wrapper).toHaveProp('hash', 'fooHash');
+    expect(wrapper).toHaveProp('componentIdentifier', 'fooComponentIdentifier');
     expect(wrapper).toHaveProp('ownerType', 'organization');
     expect(wrapper).toHaveProp('ownerId', 'org');
     expect(wrapper).not.toHaveProp('stageTypeId');
@@ -51,6 +52,7 @@ describe('CopyrightDetailsHeaderContainer', function () {
     expect(wrapper).toHaveProp('loading', 'loading');
     expect(wrapper).toHaveProp('error', 'error');
     expect(wrapper).toHaveProp('hash', 'fooHash');
+    expect(wrapper).toHaveProp('componentIdentifier', 'fooComponentIdentifier');
     expect(wrapper).toHaveProp('ownerType', 'organization');
     expect(wrapper).toHaveProp('ownerId', 'org');
     expect(wrapper).toHaveProp('stageTypeId', 'build');

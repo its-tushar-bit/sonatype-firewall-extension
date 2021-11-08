@@ -50,7 +50,7 @@ public class RepositoryUrlErrorRule
       // does the event have an updated repo url?
       GitRepositoryInfo gitRepositoryInfo =
           sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
-      boolean urlsMatch = gitRepositoryInfo.getRepositoryUrl().equalsIgnoreCase(appRepositoryUrlError.repositoryUrl);
+      boolean urlsMatch = gitRepositoryInfo.normalizedRepositoryUrl.equals(appRepositoryUrlError.repositoryUrl);
       if (!urlsMatch) {
         appRepositoryUrlErrorMap.remove(event.getApplicationId());
       }
@@ -68,7 +68,7 @@ public class RepositoryUrlErrorRule
           sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
       if (null != gitRepositoryInfo) {
         appRepositoryUrlErrorMap.computeIfAbsent(event.getApplicationId(),
-            key -> new AppRepositoryUrlError(gitRepositoryInfo.getRepositoryUrl(), 0))
+            key -> new AppRepositoryUrlError(gitRepositoryInfo.normalizedRepositoryUrl, 0))
             .increment();
       }
     }

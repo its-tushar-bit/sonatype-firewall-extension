@@ -435,7 +435,7 @@ public class ApplicationDAO
       repositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl);
     }
     final String sQuery = "SELECT app FROM Application app, SourceControl sc " +
-        " WHERE app.id = sc.ownerId AND sc.repositoryUrl = ?1";
+        " WHERE app.id = sc.ownerId AND sc.normalizedRepositoryUrl = ?1";
     return getList(sQuery, repositoryUrl);
   }
 

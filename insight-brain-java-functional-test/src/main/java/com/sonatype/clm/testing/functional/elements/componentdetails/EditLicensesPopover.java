@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
+import com.sonatype.clm.testing.functional.elements.NxTransferList;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -69,9 +70,13 @@ public class EditLicensesPopover
     return child("#status-select");
   }
 
+  public ElementsCollection selectedLicensesCheckBoxElements() {
+    return children(".iq-edit-licenses-form__selected-licenses .nx-checkbox");
+  }
+
   public List<NxCheckbox> selectedLicensesCheckbox() {
     List<NxCheckbox> checkboxes = new ArrayList<>();
-    ElementsCollection selenideCheckboxes = children(".iq-edit-licenses-form__selected-licenses .nx-checkbox");
+    ElementsCollection selenideCheckboxes = selectedLicensesCheckBoxElements();
     for (SelenideElement checkbox : selenideCheckboxes) {
       checkboxes.add(new NxCheckbox(checkbox));
     }
@@ -80,5 +85,9 @@ public class EditLicensesPopover
 
   public SelenideElement comment() {
     return child(".iq-edit-licenses-form__comment .nx-text-input textarea");
+  }
+
+  public NxTransferList overriddenField() {
+    return new NxTransferList(".iq-edit-licenses-form__overridden");
   }
 }

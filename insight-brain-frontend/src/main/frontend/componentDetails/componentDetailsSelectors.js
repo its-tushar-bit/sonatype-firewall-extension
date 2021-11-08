@@ -29,6 +29,8 @@ export const selectFilteredPathnames = createSelector(
   (component) => component?.pathnames?.filter((pathname) => !/^dependency:\//.test(pathname)) ?? []
 );
 
+export const selectIsProprietary = createSelector(selectSelectedComponent, (component) => !!component?.proprietary);
+
 export const selectComponentDetailsOffspringDetails = createSelector(selectDetails, prop('offspring'));
 
 const selectComponentMetaData = createSelector(selectApplicationReportMetaData, (metadata) =>
@@ -138,10 +140,11 @@ export const selectComponentAncestors = createSelector(
 
     const allComponents = components
       .filter((component) => component.componentIdentifier != null)
-      .flatMap(({ componentIdentifier, hash, derivedComponentName }) => ({
+      .flatMap(({ componentIdentifier, hash, derivedComponentName, innerSource = false }) => ({
         componentIdentifier,
         hash,
         derivedComponentName,
+        innerSource,
       }));
 
     return allComponents.filter(({ componentIdentifier }) =>
@@ -170,12 +173,34 @@ export const selectApplicableLabelsLoadError = createSelector(
   ({ applicableLabelsLoadError }) => applicableLabelsLoadError
 );
 
+export const selectSaveLabelError = createSelector(selectDetails, prop('saveLabelScopeError'));
+
 export const selectIsApplicableLabelsLoading = createSelector(selectDetails, ({ pendingLoads }) =>
   pendingLoads.has('applicableLabels')
 );
 
 export const selectIsLabelsLoading = createSelector(selectDetails, ({ pendingLoads }) => pendingLoads.has('labels'));
 
+export const selectShowApplyLabelModal = createSelector(selectDetails, prop('showApplyLabelModal'));
+
+export const selectSelectedLabelDetails = createSelector(selectDetails, prop('selectedLabelDetails'));
+
+export const selectLabelScopeToSave = createSelector(selectDetails, prop('labelScopeToSave'));
+
+export const selectApplicableLabelScopes = createSelector(selectDetails, prop('applicableLabelScopes'));
+
+export const selectApplicableLabelScopesLoadError = createSelector(
+  selectDetails,
+  prop('applicableLabelScopesLoadError')
+);
+
+export const selectIsApplyLabelModalLoading = createSelector(selectDetails, ({ pendingLoads }) =>
+  pendingLoads.has('applicableLabelScopes')
+);
+
+export const selectIsSavingLabelScope = createSelector(selectDetails, ({ pendingLoads }) => {
+  pendingLoads.has('isSavingLabelScope');
+});
 export const selectComponentDetailsLoadErrors = createSelector(
   selectDetails,
   selectApplicationReportSlice,
@@ -196,3 +221,7 @@ export const selectComponentDetailsLoading = createSelector(
     return loadingStatus;
   }
 );
+
+export const selectShowRemoveLabelModal = createSelector(selectDetails, prop('showRemoveLabelModal'));
+
+export const selectRemoveAppliedLabelError = createSelector(selectDetails, prop('removeAppliedLabelError'));

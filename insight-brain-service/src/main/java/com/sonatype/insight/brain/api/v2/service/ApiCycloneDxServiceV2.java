@@ -59,6 +59,7 @@ import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
+import org.cyclonedx.model.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,6 +125,15 @@ public class ApiCycloneDxServiceV2
 
       Bom bom = new Bom();
       bom.setSerialNumber(toUuid(scanId));
+      if (version.getVersion() >= 1.2) {
+        PolicyEvaluation policyEvaluation =
+            policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
+        if (policyEvaluation != null) {
+          Metadata metadata = new Metadata();
+          metadata.setTimestamp(policyEvaluation.getTime());
+          bom.setMetadata(metadata);
+        }
+      }
 
       String url;
       try {

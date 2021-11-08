@@ -10,7 +10,18 @@ import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 
 export default function LicenseFilesDetailsList(props) {
-  const { component, licenseIndex, ownerType, ownerId, stageTypeId, hash, loading, error, $state } = props;
+  const {
+    component,
+    licenseIndex,
+    ownerType,
+    ownerId,
+    stageTypeId,
+    hash,
+    componentIdentifier,
+    loading,
+    error,
+    $state,
+  } = props;
 
   const adjustedIndex = parseInt(licenseIndex) || 0;
 
@@ -19,10 +30,14 @@ export default function LicenseFilesDetailsList(props) {
   const attributionStatus = (item) =>
     item.status === 'enabled' ? 'Included in attribution report' : 'Excluded from the report';
 
-  const licenseDetailsTargetState = () =>
-    stageTypeId
-      ? 'legal.stageTypeComponentLicenseFilesDetails.licenseFilesDetails'
-      : 'legal.componentLicenseFilesDetails.licenseFilesDetails';
+  const licenseDetailsTargetState = () => {
+    if (stageTypeId) {
+      return 'legal.stageTypeComponentLicenseFilesDetails.licenseFilesDetails';
+    }
+    return hash
+      ? 'legal.componentLicenseFilesDetails.licenseFilesDetails'
+      : 'legal.componentLicenseFilesDetailsByComponentIdentifier.licenseFilesDetails';
+  };
 
   const licenseRef = React.useRef(new Map());
 
@@ -35,6 +50,7 @@ export default function LicenseFilesDetailsList(props) {
                 ownerType,
                 ownerId,
                 hash,
+                componentIdentifier,
                 stageTypeId,
                 licenseIndex: index,
               })}
@@ -75,7 +91,8 @@ LicenseFilesDetailsList.propTypes = {
   ownerType: PropTypes.string.isRequired,
   ownerId: PropTypes.string.isRequired,
   stageTypeId: PropTypes.string,
-  hash: PropTypes.string.isRequired,
+  hash: PropTypes.string,
+  componentIdentifier: PropTypes.string,
   $state: PropTypes.object.isRequired,
   licenseIndex: PropTypes.string,
 };

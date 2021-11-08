@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -255,8 +256,8 @@ public class ScmOnboardingService
   private List<SCMRepository> trimAlreadyConfigured(final List<SCMRepository> allRepositories) {
     List<String> existing =
         sourceControlDAO.getAll().stream()
-            .filter(sourceControl -> sourceControl.getRepositoryUrl() != null)
-            .map(sourceControl -> sanitizeUrl(sourceControl.getRepositoryUrl()))
+            .map(SourceControl::getNormalizedRepositoryUrl)
+            .filter(Objects::nonNull)
             .distinct()
             .collect(Collectors.toList());
 
@@ -364,7 +365,6 @@ public class ScmOnboardingService
   {
     String publicId = applicationNameConverter.buildPublicId(scmRepository);
     String name = applicationNameConverter.buildName(scmRepository);
-    String cloneUrl = sanitizeUrl(scmRepository.getHttpCloneUrl());
     Application app = appDAO.getByPublicId(publicId);
     if (app == null) {
       log.debug("Creating Application entry, name: [{}], publicId: [{}]", name, publicId);
@@ -391,7 +391,7 @@ public class ScmOnboardingService
     // get default branch value and updates SCM repository value with result
     String defaultBranch = getAndSetDefaultBranch(scmRepository, orgId);
     ApiSourceControlDTO apiSourceControlDTO = apiSourceControlService.addOrUpdateSourceControl(app.getPublicId(),
-        cloneUrl, scmRepository.getSshCloneUrl(), defaultBranch);
+        scmRepository.getHttpCloneUrl(), scmRepository.getSshCloneUrl(), defaultBranch);
 
     if (licenseChecker.isIqForScmSupported()) {
       GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());

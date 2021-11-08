@@ -14,10 +14,11 @@ import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.MatchStateFilter;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
-import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.ProprietaryFilter;
 import com.sonatype.clm.testing.functional.elements.CLM;
+import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
@@ -31,9 +32,18 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.Vulnerabili
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover.VulnerabilityOverrideForm;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
-import com.sonatype.clm.testing.functional.pages.*;
+import com.sonatype.clm.testing.functional.pages.AddProprietaryComponentMatchersPopover;
+import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
+import com.sonatype.clm.testing.functional.pages.AuditLogContent;
+import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
+import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
+import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -209,6 +219,21 @@ public class ComponentDetailsTest
 
     SelenideElement unknownComponentAlert = componentDetailsPage.unknownComponentAlert();
     unknownComponentAlert.shouldBe(visible);
+
+    SelenideElement proprietaryComponentAlert = componentDetailsPage.proprietaryComponentAlert();
+    proprietaryComponentAlert.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testComponentDetailsProprietaryComponentAlert() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForProprietaryComponent();
+
+    SelenideElement proprietaryComponentAlert = componentDetailsPage.proprietaryComponentAlert();
+    proprietaryComponentAlert.shouldBe(visible);
+
+    SelenideElement unknownComponentAlert = componentDetailsPage.unknownComponentAlert();
+    unknownComponentAlert.shouldNotBe(visible);
   }
 
   @Test
@@ -401,7 +426,7 @@ public class ComponentDetailsTest
     IdentificationInfoSection identificationInfoSection =
         componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
     identificationInfoSection.shouldBe(visible);
-    identificationInfoSection.getMatchStateItem().shouldHave(text("similar (View Similar Matches)"));
+    identificationInfoSection.getMatchStateItem().shouldHave(text("Similar (View Similar Matches)"));
     identificationInfoSection.getSimilarMatchesLink().click();
 
     SimilarMatchesPopover similarMatchesPopover = new SimilarMatchesPopover();
@@ -1012,6 +1037,19 @@ public class ComponentDetailsTest
     SelenideElement unknownViolation = violations.first();
     unknownViolation.click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
+    return new ComponentDetailsPage();
+  }
+
+  private ComponentDetailsPage openComponentDetailsPageForProprietaryComponent() {
+    reportPage.filterToggle().click();
+    ProprietaryFilter proprietaryFilter = reportPage.filterPanel().proprietaryFilter();
+    proprietaryFilter.click();
+    proprietaryFilter.proprietary().click();
+
+    ElementsCollection violations = reportPage.resultRows();
+    SelenideElement proprietaryViolation = violations.first();
+    proprietaryViolation.click();
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "81399f9f3278d8615a7c"));
     return new ComponentDetailsPage();
   }
 

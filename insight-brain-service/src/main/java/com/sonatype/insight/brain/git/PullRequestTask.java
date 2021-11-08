@@ -146,13 +146,19 @@ public class PullRequestTask
     if (gitRepositoryInfo.getProvider().requiresUsername() &&
         sourceControlConfig.getUseUsernameInRepositoryCloneUrl()) {
       try {
-        URIBuilder builder = new URIBuilder(gitRepositoryInfo.repositoryUrl).setUserInfo(gitRepositoryInfo.username);
-        gitRepositoryInfo.repositoryUrl = builder.build().toString();
+        gitRepositoryInfo.repositoryUrl = setUserInfoToUrl(gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.username);
+        gitRepositoryInfo.normalizedRepositoryUrl =
+            setUserInfoToUrl(gitRepositoryInfo.normalizedRepositoryUrl, gitRepositoryInfo.username);
       }
       catch (URISyntaxException e) {
         log.error("Unable to add username to repository URL", e);
       }
     }
+  }
+
+  private String setUserInfoToUrl(final String repositoryUrl, final String username) throws URISyntaxException {
+    URIBuilder builder = new URIBuilder(repositoryUrl).setUserInfo(username);
+    return builder.build().toString();
   }
 
   private String getCommitterUsername() {

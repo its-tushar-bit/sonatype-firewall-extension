@@ -69,6 +69,10 @@ public class ComponentDetailsPage
     return child(".iq-component-details-unknown-component-alert");
   }
 
+  public SelenideElement proprietaryComponentAlert() {
+    return child("#proprietary-component-matched-alert");
+  }
+
   public SelenideElement addProprietarypComponentMatchersBtn() {
     return child("#iq-component-details-add-proprietary-component-matchers-btn");
   }

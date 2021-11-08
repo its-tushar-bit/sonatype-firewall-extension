@@ -3,15 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import * as PropTypes from 'prop-types';
 import { find, propEq, compose, toLower, findIndex, __ } from 'ramda';
-import { NxForm, NxFieldset, NxTextInput, NxRadio, NxCheckbox } from '@sonatype/react-shared-components';
+import {
+  NxForm,
+  NxFieldset,
+  NxTextInput,
+  NxRadio,
+  NxCheckbox,
+  NxLoadingSpinner,
+} from '@sonatype/react-shared-components';
 
 import { capitalize, isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { getStatusName } from 'MainRoot/legal/legalUtility';
-import { renderLicensesList } from '../LegalTabUtils';
+import { isOverriddenOrSelected, renderLicensesList } from '../LegalTabUtils';
 import { licensesPropTypes, licenseOverridePropTypes } from '../LicenseDetectionsTile/LicenseDetections';
+import OverriddenField from './OverriddenField';
 
 const NOT_DIRTY_ERROR_MESSAGE = 'There are no changes to update';
 const NO_SELECTED_LICENSES_ERROR_MESSAGE = 'There must be at least one selected license';
@@ -19,6 +27,7 @@ const NO_SELECTED_LICENSES_ERROR_MESSAGE = 'There must be at least one selected 
 const getLicenseStatuses = (hasSelectableLicenses) => [
   { name: 'Open', value: 'OPEN' },
   { name: 'Acknowledged', value: 'ACKNOWLEDGED' },
+  { name: 'Overridden', value: 'OVERRIDDEN' },
   ...(hasSelectableLicenses ? [{ name: 'Selected', value: 'SELECTED' }] : []),
   { name: 'Confirmed', value: 'CONFIRMED' },
 ];
@@ -39,6 +48,7 @@ export default function EditLicensesForm({
   setSelectedLicenses,
   saveForm,
   deleteLicenseOverride,
+  allLicenses,
   declaredlicenses,
   effectiveLicenses,
   observedlicenses,
@@ -48,18 +58,28 @@ export default function EditLicensesForm({
   submitMaskState,
   identificationSource,
 }) {
+  const [showLoadingSpinnerForOverrideField, setShowLoadingSpinnerForOverrideField] = useState(true);
+  useEffect(() => {
+    // showLoadingSpinnerForOverrideField is true by default, which ensures
+    // the EditLicensesPopover(parent of this form) and NxLoadingSpinner can be rendered prior to
+    // the render of OverriddenField(this component is expensive to render when the dataset is large)
+    if (status === 'OVERRIDDEN') {
+      setTimeout(() => {
+        setShowLoadingSpinnerForOverrideField(false);
+      }, 0);
+    }
+  }, [status]);
   const isClaimed = identificationSource === 'Manual';
 
   const handleScopeChange = (selectedId) => {
     const targetScope = find(propEq('ownerId', selectedId), availableLicenseScopes);
-
     setSelectedLicenses(getLicenseIdsFromOverride(targetScope));
     setLicenseStatus(targetScope.licenseOverride?.status ?? 'OPEN');
     setLicenseScope(targetScope);
   };
 
   const onStatusChange = (event) => {
-    setSelectedLicenses(getLicenseIdsFromOverride(scope));
+    setSelectedLicenses([]);
     setLicenseStatus(event.currentTarget.value);
   };
 
@@ -76,7 +96,7 @@ export default function EditLicensesForm({
       return NOT_DIRTY_ERROR_MESSAGE;
     }
 
-    const noSelectedLicenses = status === 'SELECTED' && !licenseIds.length;
+    const noSelectedLicenses = isOverriddenOrSelected(status) && !licenseIds.length;
     if (noSelectedLicenses) {
       return NO_SELECTED_LICENSES_ERROR_MESSAGE;
     }
@@ -145,23 +165,21 @@ export default function EditLicensesForm({
     </NxFieldset>
   );
 
-  const renderLicenseInfoSection = () => (
-    <section id="license-info-section">
-      <dl className="nx-read-only">
-        <dt className="nx-read-only__label">Declared Licenses</dt>
-        <dd className="nx-read-only__data" id="declared-licenses-container">
-          {renderLicensesList(declaredlicenses, isClaimed)}
-        </dd>
-        <dt className="nx-read-only__label">Observed Licenses</dt>
-        <dd className="nx-read-only__data " id="observed-licenses-container">
-          {renderLicensesList(observedlicenses, isClaimed)}
-        </dd>
-        <dt className="nx-read-only__label">Effective Licenses</dt>
-        <dd className="nx-read-only__data" id="effective-licenses-container">
-          {renderLicensesList(effectiveLicenses, isClaimed, true)}
-        </dd>
-      </dl>
-    </section>
+  const licenseInfoSection = (
+    <dl className="nx-read-only">
+      <dt className="nx-read-only__label">Declared Licenses</dt>
+      <dd className="nx-read-only__data" id="declared-licenses-container">
+        {renderLicensesList(declaredlicenses, isClaimed)}
+      </dd>
+      <dt className="nx-read-only__label">Observed Licenses</dt>
+      <dd className="nx-read-only__data " id="observed-licenses-container">
+        {renderLicensesList(observedlicenses, isClaimed)}
+      </dd>
+      <dt className="nx-read-only__label">Effective Licenses</dt>
+      <dd className="nx-read-only__data" id="effective-licenses-container">
+        {renderLicensesList(effectiveLicenses, isClaimed, true)}
+      </dd>
+    </dl>
   );
 
   const commentField = (
@@ -191,8 +209,24 @@ export default function EditLicensesForm({
       ))}
     </NxFieldset>
   );
+
+  const overriddenFormField = (
+    <Fragment>
+      {status === 'OVERRIDDEN' && showLoadingSpinnerForOverrideField && <NxLoadingSpinner />}
+      {status === 'OVERRIDDEN' && !showLoadingSpinnerForOverrideField && (
+        <OverriddenField
+          licenseIds={licenseIds}
+          allLicenses={allLicenses}
+          setSelectedLicenses={setSelectedLicenses}
+          onUnmount={() => setShowLoadingSpinnerForOverrideField(true)}
+        />
+      )}
+    </Fragment>
+  );
+
   return (
     <NxForm
+      id="iq-edit-licenses-form"
       onSubmit={handleOnSubmit}
       submitBtnText="Save"
       submitError={submitError}
@@ -202,11 +236,12 @@ export default function EditLicensesForm({
       onCancel={handleOnCancel}
     >
       <div className="nx-grid-row">
-        <div className="nx-grid-col nx-grid-col--25">{renderLicenseInfoSection()}</div>
-        <div className="nx-grid-col">
+        <div className="nx-grid-col iq-license-info-section">{licenseInfoSection}</div>
+        <div className="nx-grid-col iq-license-form-fields">
           {scopeField}
           {statusField}
           {status === 'SELECTED' && selectedLicensesField}
+          {overriddenFormField}
           {commentField}
         </div>
       </div>
@@ -215,6 +250,7 @@ export default function EditLicensesForm({
 }
 
 EditLicensesForm.propTypes = {
+  allLicenses: PropTypes.arrayOf(licensesPropTypes),
   declaredlicenses: PropTypes.arrayOf(licensesPropTypes),
   effectiveLicenses: PropTypes.arrayOf(licensesPropTypes),
   observedlicenses: PropTypes.arrayOf(licensesPropTypes),

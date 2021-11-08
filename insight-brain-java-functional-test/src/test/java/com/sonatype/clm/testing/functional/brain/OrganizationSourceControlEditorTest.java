@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
@@ -19,6 +20,7 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -26,6 +28,8 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 
 public class OrganizationSourceControlEditorTest
     extends AbstractSourceControlEditorTest
@@ -49,12 +53,12 @@ public class OrganizationSourceControlEditorTest
 
   @Test
   public void testSourceControlEditor_EmptySourceControlWithProviderOnRoot() {
+    assertSourceControlDoesNotExist(rootOrganization.getId());
+    assertSourceControlDoesNotExist(organization.getId());
+
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
     verifyStartNoSourceControl();
-
-    assertSourceControlDoesNotExist(rootOrganization.getId());
-    assertSourceControlDoesNotExist(organization.getId());
 
     tempEntity.newSourceControl(rootOrganization.getId(), null, null, SourceControlProvider.GITHUB);
 
@@ -62,7 +66,7 @@ public class OrganizationSourceControlEditorTest
 
     assertSourceControlDoesNotExist(organization.getId());
 
-    verifyStartWithSourceControl();
+    verifyStartWithSourceControlInherited();
     SourceControlEditorPage.token().shouldBe(visible, disabled);
     SourceControlEditorPage.tokenInheritRadio().label().shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.tokenInheritRadio().shouldBe(visible, enabled);
@@ -157,7 +161,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");
-    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(enabled);
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
     SourceControlEditorPage.tokenInheritRadio().shouldNotBe(selected);
@@ -423,6 +427,75 @@ public class OrganizationSourceControlEditorTest
   }
 
   @Test
+  public void testSourceControlEditor_delete() {
+    tempEntity.newSourceControl(rootOrganization.getId(), null, null, GITHUB);
+    tempEntity.newSourceControl(organization.getId(), null, null, null);
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartWithSourceControl();
+
+    SourceControlEditorPage.deleteButton().click();
+
+    eyesWatcher.eyesCheck("Source Control Editor Delete Modal");
+
+    DeleteModal.root().shouldBe(visible);
+    DeleteModal.header().shouldHave(text("Reset Source Control"));
+    DeleteModal.body().shouldHave(text("You are about to reset the Source Control configuration for organization " +
+        "Ye Ole Organization. This action cannot be undone."));
+
+    DeleteModal.continueButton().click();
+    FormMask.seeAndWaitForDismissal();
+    DeleteModal.root().shouldBe(hidden);
+
+    SourceControlEditorPage.provider().shouldBe(visible, enabled);
+    SourceControlEditorPage.token().shouldBe(visible, disabled);
+    SourceControlEditorPage.saveButton().shouldBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.deleteButton().shouldBe(disabled);
+    assertSourceControlDoesNotExist(organization.getId());
+  }
+
+  @Test
+  public void testSourceControlEditor_deleteFailure() {
+    tempEntity.newSourceControl(rootOrganization.getId(), null, null, GITHUB);
+    tempEntity.newSourceControl(organization.getId(), null, null, null);
+
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartWithSourceControl();
+    SourceControlEditorPage.deleteButton().click();
+
+    DeleteModal.root().shouldBe(visible);
+    DeleteModal.header().shouldHave(text("Reset Source Control"));
+    DeleteModal.body().shouldHave(text("You are about to reset the Source Control configuration for organization " +
+        "Ye Ole Organization. This action cannot be undone."));
+
+    // delete entry to create error condition
+    deleteSourceControl(organization.getId());
+
+    DeleteModal.continueButton().click();
+
+    DeleteModal.error().shouldHave(text("Cannot find SourceControl for organization with id: " + organization.getId()));
+    DeleteModal.retryButton().shouldBe(visible, enabled);
+
+    // recreate the entry to resolve error condition
+    tempEntity.newSourceControl(organization.getId(), null, null, null);
+
+    DeleteModal.retryButton().click();
+
+    FormMask.seeAndWaitForDismissal();
+    DeleteModal.root().shouldBe(hidden);
+
+    SourceControlEditorPage.provider().shouldBe(visible, enabled);
+    SourceControlEditorPage.token().shouldBe(visible, disabled);
+    SourceControlEditorPage.saveButton().shouldBe(visible);
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.deleteButton().shouldBe(disabled);
+    assertSourceControlDoesNotExist(organization.getId());
+  }
+
+  @Test
   public void testSourceControlEditor_LicensingAwareNotificationOnly() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
@@ -433,7 +506,7 @@ public class OrganizationSourceControlEditorTest
 
     eyesWatcher.eyesCheck("Source Control Editor - organization configurations disabled, no license");
 
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB, true, true, "master");
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, GITLAB, true, true, "master");
 
     refresh();
 
@@ -536,15 +609,18 @@ public class OrganizationSourceControlEditorTest
 
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(disabled);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");
 
     SourceControlEditorPage.tokenInheritRadio().label().shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.tokenInheritRadio().shouldBe(visible, disabled, selected);
+
     SourceControlEditorPage.tokenOverrideRadio().label().shouldHave(text("Override"));
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, disabled);
     SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
+
+    SourceControlEditorPage.token().shouldBe(disabled);
 
     SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettingsTree().shouldNotBe(visible);
@@ -590,6 +666,14 @@ public class OrganizationSourceControlEditorTest
 
   @Override
   void verifyStartWithSourceControl() {
+    verifyStartWithSourceControl(false);
+  }
+
+  private void verifyStartWithSourceControlInherited() {
+    verifyStartWithSourceControl(true);
+  }
+
+  private void verifyStartWithSourceControl(boolean inherited) {
     SourceControlEditorPage.root().shouldBe(visible);
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
     SourceControlEditorPage.subTitle().shouldHave(text(String
@@ -602,7 +686,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(inherited ? disabled : enabled);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");
     SourceControlEditorPage.providerWarning().shouldNotBe(visible);

@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { NxThreatIndicator } from '@sonatype/react-shared-components';
+import { contains } from 'ramda';
 
 const claimedComponentAlert = (isEffective, len) => {
   if (isEffective) {
@@ -22,3 +23,5 @@ export const renderLicensesList = (list, claimed, isEffective = false) =>
       {claimed && claimedComponentAlert(isEffective, list.length)}
     </div>
   ));
+
+export const isOverriddenOrSelected = (status) => contains(status, ['SELECTED', 'OVERRIDDEN']);

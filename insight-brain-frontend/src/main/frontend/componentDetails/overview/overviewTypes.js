@@ -52,6 +52,7 @@ export const AncestorPropTypes = PropTypes.shape({
   hash: PropTypes.string.isRequired,
   derivedComponentName: PropTypes.string.isRequired,
   componentIdentifier: ComponentIdentifierPropTypes.isRequired,
+  innerSource: PropTypes.bool.isRequired,
 });
 
 export const RemediationPropTypes = PropTypes.shape({

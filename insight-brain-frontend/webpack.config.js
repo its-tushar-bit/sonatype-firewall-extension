@@ -31,7 +31,7 @@ function extractFromPom(nodeName) {
  * @param env webpack environment object, expected to contain 'production' property
  * @param externals configuration object to use on the `externals` property
  */
-function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
+function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = false }) {
   function transformCopiedFile(content) {
     let contentStr = content.toString();
 
@@ -88,25 +88,38 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
         ],
       }),
     ].concat(cssOutputPath ? getCssPlugins() : [], productionPlugins),
-    // Babel is used to transpile JSX and to convert to ES5-compatible syntax. We'll probabably have to output
+    // Babel is used to to convert to ES5-compatible syntax. We'll probabably have to output
     // ES5 until the end of time due to the IDE plugins. As of 2021, Visual Studio and Eclipse on Windows are known
     // to not work with modern syntax.
-    reactLoaderBaseRule = {
+    es5LoaderBaseRule = {
       test: /\.jsx?$/,
       use: {
         loader: 'babel-loader',
         options: {
-          presets: ['@babel/preset-react', '@babel/preset-env'],
+          presets: ['@babel/preset-env'],
         },
       },
-    };
+    },
+    es5Rules = es5
+      ? [
+          {
+            ...es5LoaderBaseRule,
+            exclude: /node_modules/,
+          },
+          {
+            ...es5LoaderBaseRule,
+            // third-party modules which ship with ES6 syntax and may need to be transpiled
+            include: /node_modules[\/\\](fuse\.js|asn1.js|@uirouter|@react-hook|@rooks)/,
+          },
+        ]
+      : [];
 
   return {
     mode: 'development', // overridden by --mode flag
 
     // Tell webpack to produce its own runtime code in ES5-compatible syntax. Otherwise webpack modules output as
     // arrow functions
-    target: ['web', 'es5'],
+    target: es5 ? ['web', 'es5'] : ['web'],
     context: path.resolve(__dirname, 'src/main/frontend'),
     entry: entryPath,
     output: {
@@ -126,7 +139,15 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
     },
     module: {
       rules: [
-        reactLoaderBaseRule,
+        {
+          test: /\.jsx$/,
+          use: {
+            loader: 'babel-loader',
+            options: {
+              presets: ['@babel/preset-react'],
+            },
+          },
+        },
         {
           test: require.resolve(path.join(__dirname, 'src/main/frontend/lib/protovis/protovis.min')),
           use: {
@@ -184,7 +205,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
             filename: 'fonts/[name][ext]',
           },
         },
-      ],
+      ].concat(es5Rules),
     },
     plugins: plugins,
     externals,
@@ -225,12 +246,14 @@ module.exports = function (env) {
       outputPath: 'viewdetails.js',
       cssOutputPath: 'viewdetails.css',
       env,
+      es5: true,
     }),
     versionGraphAppConfig = config({
       entryPath: './version-graph/version-graph-app-index.js',
       outputPath: 'version.graph.app.js',
       cssOutputPath: 'version.graph.app.css',
       env,
+      es5: true,
     }),
     // to be used as the `externals` config on bundles that expect jquery to already be defined.  Prevents
     // loading of multiple copies of jquery

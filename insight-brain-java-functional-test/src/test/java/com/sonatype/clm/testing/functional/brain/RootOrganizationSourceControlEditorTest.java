@@ -64,7 +64,6 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Create"));
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
-    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
 
     eyesWatcher.eyesCheck("Source Control Editor Root Controls Enabled");
 
@@ -96,7 +95,7 @@ public class RootOrganizationSourceControlEditorTest
     FormMask.seeAndWaitForDismissal();
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(enabled);
     SourceControlEditorPage.token().shouldHave(value(""));
 
     assertSourceControl(ROOT_ORGANIZATION_ID, null, null, GITHUB);
@@ -132,7 +131,7 @@ public class RootOrganizationSourceControlEditorTest
     FormMask.seeAndWaitForDismissal();
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(enabled);
     SourceControlEditorPage.token().shouldHave(value(""));
     assertSourceControl(ROOT_ORGANIZATION_ID, null, null, GITHUB);
   }
@@ -156,7 +155,7 @@ public class RootOrganizationSourceControlEditorTest
     FormMask.seeAndWaitForDismissal();
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(enabled);
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
     assertSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB);
   }
@@ -193,7 +192,7 @@ public class RootOrganizationSourceControlEditorTest
     FormMask.seeAndWaitForDismissal();
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(enabled);
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
     assertSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB);
   }
@@ -211,9 +210,9 @@ public class RootOrganizationSourceControlEditorTest
     eyesWatcher.eyesCheck("Source Control Editor Delete Modal");
 
     DeleteModal.root().shouldBe(visible);
-    DeleteModal.header().shouldHave(DeleteModal.headerText("Source Control"));
-    DeleteModal.body().shouldHave(DeleteModal.bodyText(
-        "Source Control configuration for organization Root Organization"));
+    DeleteModal.header().shouldHave(text("Reset Source Control"));
+    DeleteModal.body().shouldHave(text("You are about to reset the Source Control configuration for organization " +
+        "Root Organization. This action cannot be undone."));
 
     DeleteModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();
@@ -223,7 +222,7 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldBe(visible, disabled);
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Create"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(disabled);
     assertSourceControlDoesNotExist(ROOT_ORGANIZATION_ID);
   }
 
@@ -237,9 +236,9 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.deleteButton().click();
 
     DeleteModal.root().shouldBe(visible);
-    DeleteModal.header().shouldHave(DeleteModal.headerText("Source Control"));
-    DeleteModal.body().shouldHave(DeleteModal.bodyText(
-        "Source Control configuration for organization Root Organization"));
+    DeleteModal.header().shouldHave(text("Reset Source Control"));
+    DeleteModal.body().shouldHave(text("You are about to reset the Source Control configuration for organization Root" +
+        " Organization. This action cannot be undone."));
 
     //Delete entry to create error condition
     deleteRootOrgSourceControl();
@@ -261,7 +260,7 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldBe(visible, disabled);
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Create"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(disabled);
     assertSourceControlDoesNotExist(ROOT_ORGANIZATION_ID);
   }
 
@@ -344,7 +343,7 @@ public class RootOrganizationSourceControlEditorTest
     FormMask.seeAndWaitForDismissal();
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(enabled);
     SourceControlEditorPage.credentialsToken().shouldHave(value(FAKE_SECRET_KEY));
     assertSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.BITBUCKET);
   }
@@ -430,7 +429,7 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Create"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldNotBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(disabled);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("Unable to create: fields with invalid or missing data.");
     SourceControlEditorPage.advancedSettingsTree().shouldNotBe(visible);
@@ -489,7 +488,7 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
-    SourceControlEditorPage.deleteButton().shouldBe(visible);
+    SourceControlEditorPage.deleteButton().shouldBe(enabled);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");
     SourceControlEditorPage.advancedSettingsTree().shouldNotBe(visible);

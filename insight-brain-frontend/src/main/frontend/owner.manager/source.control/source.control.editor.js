@@ -262,9 +262,9 @@ function SourceControlEditorController(
   }
 
   function deleteSourceControl() {
-    let message = `You are about to permanently remove Source Control configuration for ${vm.ownerType} \
+    let message = `You are about to reset the Source Control configuration for ${vm.ownerType} \
          ${vm.ownerName}. This action cannot be undone.`;
-    DeleteModalService.deleteCustom('Delete Source Control', message, 'Deleting', function () {
+    DeleteModalService.deleteCustom('Reset Source Control', message, 'Resetting', function () {
       return SourceControlService.deleteSourceControlRecord(vm.ownerType, vm.ownerId);
     }).then(function () {
       vm.dirtySourceControl = {};

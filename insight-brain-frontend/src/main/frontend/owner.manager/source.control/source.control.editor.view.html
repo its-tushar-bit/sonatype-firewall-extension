@@ -383,8 +383,8 @@
                 class="iq-btn iq-btn--tertiary"
                 type="button"
                 ng-click="vm.deleteSourceControl()"
-                ng-if="vm.isRootOrg && vm.dirtySourceControl.id">
-          <i class="fa fa-trash"></i>Delete Source Control
+                ng-disabled="!vm.dirtySourceControl.id">
+          <i class="fa fa-trash"></i>Reset
         </button><!--
      --><button type="button"
                    id="test-source-control-config-button"

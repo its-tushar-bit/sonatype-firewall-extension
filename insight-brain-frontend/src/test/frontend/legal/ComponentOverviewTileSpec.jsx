@@ -39,6 +39,7 @@ describe('ComponentOverviewTile', function () {
           attributions: [],
         },
         stageScans: [
+          { stageName: 'Source', scanId: null, scanDate: null },
           { stageName: 'Build', scanId: 'scanId', scanDate: getTimeDaysAgo(1) },
           { stageName: 'Stage Release', scanId: null, scanDate: null },
           { stageName: 'Release', scanId: null, scanDate: null },

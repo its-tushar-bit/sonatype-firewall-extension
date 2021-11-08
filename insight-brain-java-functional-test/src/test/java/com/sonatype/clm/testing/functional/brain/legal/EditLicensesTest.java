@@ -15,9 +15,9 @@ import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.EditLicensesModal;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
@@ -25,9 +25,11 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.StringUtils;
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EditLicensesTest
@@ -36,6 +38,8 @@ public class EditLicensesTest
   private Application app;
 
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
+
+  private final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
 
   @BeforeClass
   public static void boot() {
@@ -75,6 +79,11 @@ public class EditLicensesTest
         .atUri("rest/ci/componentDetails/list");
   }
 
+  @After
+  public void after() {
+    licenseOverrideDAO.getByOwnerId(ROOT_ORGANIZATION_ID).forEach(licenseOverrideDAO::delete);
+  }
+
   @Test
   public void testEditLicenseByHash() throws IOException {
     ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
@@ -88,7 +97,7 @@ public class EditLicensesTest
     ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "jar");
     init("02744a3ac66344569f0b", componentId, "2");
     refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId));
-    doTestEditLicense(organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID));
+    doTestEditLicense(organizationDAO.getById(ROOT_ORGANIZATION_ID));
   }
 
   private void doTestEditLicense(Owner owner) {

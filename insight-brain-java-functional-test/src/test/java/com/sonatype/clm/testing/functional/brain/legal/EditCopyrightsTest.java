@@ -28,7 +28,6 @@ import com.codeborne.selenide.Condition;
 import org.apache.commons.io.IOUtils;
 import org.apache.mina.core.RuntimeIoException;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.enabled;
@@ -280,7 +279,6 @@ public class EditCopyrightsTest
   }
 
   @Test
-  @Ignore
   public void modifyObligationStatusByHash() {
     init("033e7a20b23ea284d474", ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar"), "");
     refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
@@ -288,7 +286,6 @@ public class EditCopyrightsTest
   }
 
   @Test
-  @Ignore
   public void modifyObligationStatusByComponentIdentifier() throws UnsupportedEncodingException {
     init("02744a3ac66344569f0b", ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "", "jar"), "2");
     refreshOrOpen(ComponentLegalOverviewPage.urlByComponentIdentifier(componentId));

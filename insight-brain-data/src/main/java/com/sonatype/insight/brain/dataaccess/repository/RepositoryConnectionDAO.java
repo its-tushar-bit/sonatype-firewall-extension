@@ -32,4 +32,10 @@ public class RepositoryConnectionDAO
         " WHERE entity.ownerId=?1";
     return getList(tx, sQuery, ownerId);
   }
+
+  public RepositoryConnection getByOwnerIdAndBaseUrl(String ownerId, String baseUrl) {
+    String sQuery = "SELECT entity FROM RepositoryConnection entity" + //
+        " WHERE entity.ownerId=?1 AND entity.baseUrl=?2";
+    return get(sQuery, ownerId, baseUrl);
+  }
 }

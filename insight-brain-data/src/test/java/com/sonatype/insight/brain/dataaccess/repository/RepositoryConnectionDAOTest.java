@@ -57,6 +57,17 @@ public class RepositoryConnectionDAOTest
         .containsExactlyInAnyOrder("url1", "url2");
   }
 
+  @Test
+  public void testGetByOwnerIdAndBaseUrl() throws Exception {
+    tempEntity.newRepositoryConnection("owner1", "url1", "u1", "p1".toCharArray());
+
+    RepositoryConnection connection = dao.getByOwnerIdAndBaseUrl("owner1", "url1");
+    assertThat(connection).isNotNull();
+    assertThat(connection.getId()).isNotNull();
+    assertThat(connection.getUsername()).isEqualTo("u1");
+    assertThat(connection.getPassword()).isEqualTo("p1".toCharArray());
+  }
+
   private void assertRepositoryConnection(
       RepositoryConnection connection,
       String ownerId,

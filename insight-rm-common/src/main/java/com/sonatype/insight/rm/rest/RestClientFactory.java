@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
@@ -277,6 +278,12 @@ public class RestClientFactory
         }
         throw handleError(e);
       }
+    }
+
+    @Override
+    public QuarantinedComponentReport getQuarantinedComponentReport(String pathname) throws IOException {
+      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
+          .getQuarantinedComponentReport(pathname);
     }
   }
 

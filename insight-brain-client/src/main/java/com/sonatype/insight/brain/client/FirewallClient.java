@@ -12,6 +12,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -43,6 +44,8 @@ public class FirewallClient
   private static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = "evaluate/quarantine";
 
   private static final String PROPRIETARY_NAMES_PATH = "proprietary/names";
+
+  static final String QUARANTINED_COMPONENT_REPORT_URL_PATH =  "quarantinedComponentReportUrl";
 
   private final String repositoryManagerInstanceId;
 
@@ -139,5 +142,11 @@ public class FirewallClient
     Result result =
         path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, PROPRIETARY_NAMES_PATH).post(entity);
     verifyStatusCode(result);
+  }
+
+  public QuarantinedComponentReport getQuarantinedComponentReport(String pathname) throws IOException {
+    Result result = path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, COMPONENTS_PATH, pathname,
+        QUARANTINED_COMPONENT_REPORT_URL_PATH).get();
+    return parseResult(result, QuarantinedComponentReport.class);
   }
 }

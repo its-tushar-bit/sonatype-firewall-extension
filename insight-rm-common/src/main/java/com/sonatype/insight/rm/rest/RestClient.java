@@ -21,6 +21,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 
 public interface RestClient
@@ -91,6 +92,11 @@ public interface RestClient
     UnquarantinedComponentList getUnquarantinedComponents(long sinceUtcTimestamp) throws IOException;
 
     void addProprietaryComponentNames(ProprietaryComponentNames proprietaryComponentNames) throws IOException;
+
+    /**
+     * @since 1.127
+     */
+    QuarantinedComponentReport getQuarantinedComponentReport(String pathname) throws IOException;
   }
 
   interface FirewallMigration

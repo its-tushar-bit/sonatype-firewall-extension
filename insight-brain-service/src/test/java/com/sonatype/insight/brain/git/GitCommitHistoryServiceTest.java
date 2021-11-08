@@ -680,12 +680,93 @@ public class GitCommitHistoryServiceTest
     newestCommitHistoryWithPolicyEval =
         commitHistoryDAO.getByApplicationIdForLatestCommitWithPolicyEvaluation(application.getId());
 
-    // then: commit 3 is latest with policy eval and that's the only one
+    // then: commit 3 is latest with policy eval
     assertThat(historyList).isNotNull();
     assertThat(historyList).hasSize(3);
     assertHistoryIsForCommit(historyList.get(0), orderedCommits.get("commit3"), policyEvalForCommit3);
     assertHistoryIsForCommit(newestCommitHistoryWithPolicyEval, orderedCommits.get("commit3"),
         policyEvalForCommit3);
+  }
+
+  @Test
+  public void testUpdateCommitHistoryForPolicyEvaluation_UpdateCases() {
+    // given: a set of ordered commits; some with policy evals; some with commit history entries
+    Map<String, Commit> orderedCommits =
+        createOrderedCommits("commit1", "commit2", "commit3", "commit4");
+    PolicyEvaluation externalEvalForCommit1 = setupPolicyEvaluation("commit1");
+    PolicyEvaluation internalEvalForCommit2 = setupInternalPolicyEvaluation("commit2");
+
+    // existing commit history
+    createHistory(orderedCommits.get("commit1"), externalEvalForCommit1);
+    createHistory(orderedCommits.get("commit2"), internalEvalForCommit2);
+    createHistory(orderedCommits.get("commit3"));
+    createHistory(orderedCommits.get("commit4"));
+
+    // when: verify setup
+    List<SourceControlDefaultBranchCommitHistory> historyList =
+        commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
+
+    // then: as expected
+    assertThat(historyList).isNotNull();
+    assertThat(historyList).hasSize(4);
+    assertHistoryIsForCommit(historyList.get(0), orderedCommits.get("commit4"));
+    assertHistoryIsForCommit(historyList.get(1), orderedCommits.get("commit3"));
+    assertHistoryIsForCommit(historyList.get(2), orderedCommits.get("commit2"), internalEvalForCommit2);
+    assertHistoryIsForCommit(historyList.get(3), orderedCommits.get("commit1"), externalEvalForCommit1);
+
+    // when: new internal policy evaluation is executed for commit 3, and we try to update the commit history
+    PolicyEvaluation internalEvalForCommit3 = setupInternalPolicyEvaluation("commit3");
+    gitCommitHistoryService.updateCommitHistoryForPolicyEvaluation(internalEvalForCommit3);
+
+    // then: commit 3 is associated with the new policy evaluation ID - internal overwrites null value
+    assertUpdateCommitHistoryForPolicyEvaluation(orderedCommits.get("commit3"), 1, internalEvalForCommit3);
+
+    // when: new external policy evaluation is executed for commit 4, and we try to update the commit history
+    PolicyEvaluation externalEvalForCommit4 = setupPolicyEvaluation("commit4");
+    gitCommitHistoryService.updateCommitHistoryForPolicyEvaluation(externalEvalForCommit4);
+
+    // then: commit 4 is associated with the new policy evaluation ID - external overwrites null value
+    assertUpdateCommitHistoryForPolicyEvaluation(orderedCommits.get("commit4"), 0, externalEvalForCommit4);
+
+    // when: new internal policy evaluation is executed for commit 2, and we try to update the commit history
+    internalEvalForCommit2 = setupInternalPolicyEvaluation("commit2");
+    gitCommitHistoryService.updateCommitHistoryForPolicyEvaluation(internalEvalForCommit2);
+
+    // then: commit 2 is associated with the new policy evaluation ID - internal overwrites internal
+    assertUpdateCommitHistoryForPolicyEvaluation(orderedCommits.get("commit2"), 2, internalEvalForCommit2);
+
+    // when: new external policy evaluation is executed for commit 2, and we try to update the commit history
+    PolicyEvaluation externalEvalForCommit2 = setupPolicyEvaluation("commit2");
+    gitCommitHistoryService.updateCommitHistoryForPolicyEvaluation(externalEvalForCommit2);
+
+    // then: commit 2 is associated with the new policy evaluation ID - external overwrites internal
+    assertUpdateCommitHistoryForPolicyEvaluation(orderedCommits.get("commit2"), 2, externalEvalForCommit2);
+
+    // when: new internal policy evaluation is executed for commit 1, and we try to update the commit history
+    PolicyEvaluation internalEvalForCommit1 = setupInternalPolicyEvaluation("commit1");
+    gitCommitHistoryService.updateCommitHistoryForPolicyEvaluation(internalEvalForCommit1);
+
+    // then: commit 1 is associated with the old policy evaluation ID - internal doesn't overwrite external
+    assertUpdateCommitHistoryForPolicyEvaluation(orderedCommits.get("commit1"), 3, externalEvalForCommit1);
+
+    // when: new external policy evaluation is executed for commit 1, and we try to update the commit history
+    externalEvalForCommit1 = setupPolicyEvaluation("commit1");
+    gitCommitHistoryService.updateCommitHistoryForPolicyEvaluation(externalEvalForCommit1);
+
+    // then: commit 1 is associated with the new policy evaluation ID - external overwrites external
+    assertUpdateCommitHistoryForPolicyEvaluation(orderedCommits.get("commit1"), 3, externalEvalForCommit1);
+  }
+
+  private void assertUpdateCommitHistoryForPolicyEvaluation(
+      Commit commit,
+      int historyIndex,
+      PolicyEvaluation expectedEvalForCommit)
+  {
+    List<SourceControlDefaultBranchCommitHistory> historyList =
+        commitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());
+
+    // assert that the commit is associated with the expected policy evaluation ID
+    assertHistoryIsForCommit(historyList.get(historyIndex), commit, expectedEvalForCommit);
   }
 
   @Test

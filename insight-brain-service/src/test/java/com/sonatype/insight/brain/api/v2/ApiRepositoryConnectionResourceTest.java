@@ -22,10 +22,17 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.sonatype.insight.brain.repository.client.NexusRepository3Client.NXRM_STATUS_RESOURCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
@@ -33,6 +40,9 @@ public class ApiRepositoryConnectionResourceTest
     extends AbstractResourceTest
 {
   public static final String FEATURE_FLAG = ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag();
+
+  @Rule
+  public WireMockRule nxrm3MockSever = new WireMockRule(wireMockConfig().dynamicPort());
 
   private RepositoryConnectionDAO dao = new RepositoryConnectionDAO();
 
@@ -283,5 +293,69 @@ public class ApiRepositoryConnectionResourceTest
 
     RepositoryConnection stored = dao.getById(responseDto.repositoryConnectionId);
     assertThat(Arrays.equals(pwHandler.decryptPassword(stored.getPassword()), "pass".toCharArray())).isTrue();
+  }
+
+  @Test
+  public void testTestRepositoryConnection() throws Exception {
+    String appId = tempEntity.newApplicationWithParent().getId();
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+    dto.baseUrl = nxrm3MockSever.baseUrl();
+    dto.username = "user";
+    dto.password = "pass";
+
+    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE))
+        .withBasicAuth("user", "pass")
+        .willReturn(aResponse().withStatus(200)));
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.TEST_PATH)
+        .parameter(OwnerType.APPLICATION, appId)
+        .body(dto)
+        .post();
+    assertThat(response.getStatusCode()).isEqualTo(200);
+  }
+
+  @Test
+  public void testTestRepositoryConnection_Unauthorized() throws Exception {
+    String appId = tempEntity.newApplicationWithParent().getId();
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+    dto.baseUrl = nxrm3MockSever.baseUrl();
+    dto.username = "user";
+    dto.password = "pass";
+
+    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE))
+        .withBasicAuth("user", "pass")
+        .willReturn(aResponse().withStatus(401)));
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.TEST_PATH)
+        .parameter(OwnerType.APPLICATION, appId)
+        .body(dto)
+        .post();
+    assertThat(response.getStatusCode()).isEqualTo(401);
+  }
+
+  @Test
+  public void testTestRepositoryConnection_FeatureDisabled() throws Exception {
+    insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, false));
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+    dto.baseUrl = nxrm3MockSever.baseUrl();
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.TEST_PATH)
+        .parameter(OwnerType.APPLICATION, "appId")
+        .body(dto)
+        .post();
+    assertThat(response.getStatusCode()).isEqualTo(403);
+    assertThat(response.getBodyText()).isEqualTo(FEATURE_FLAG + " feature is disabled");
+  }
+
+  @Test
+  public void testTestRepositoryConnection_InvalidContent() throws Exception {
+    String appId = tempEntity.newApplicationWithParent().getId();
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.TEST_PATH)
+        .parameter(OwnerType.APPLICATION, appId)
+        .body(dto)
+        .post();
+    assertThat(response.getStatusCode()).isEqualTo(400);
   }
 }

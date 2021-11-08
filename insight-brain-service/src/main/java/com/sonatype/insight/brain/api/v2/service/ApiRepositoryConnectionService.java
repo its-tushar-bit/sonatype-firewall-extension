@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -18,6 +20,8 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.repository.RepositoryClient;
+import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -27,24 +31,32 @@ import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
 public class ApiRepositoryConnectionService
 {
+  private static final Logger log = LoggerFactory.getLogger(ApiRepositoryConnectionService.class);
+
   public static final String REPOSITORY_URL_AUDIT_KEY = "repositoryBaseUrl";
 
   private final RepositoryConnectionDAO repositoryConnectionDAO;
 
   private final PasswordHandler passwordHandler;
 
+  private final RepositoryClientFactory repositoryClientFactory;
+
   @Inject
   public ApiRepositoryConnectionService(
       final RepositoryConnectionDAO repositoryConnectionDAO,
-      final PasswordHandler passwordHandler)
+      final PasswordHandler passwordHandler,
+      final RepositoryClientFactory repositoryClientFactory)
   {
     this.repositoryConnectionDAO = repositoryConnectionDAO;
     this.passwordHandler = passwordHandler;
+    this.repositoryClientFactory = repositoryClientFactory;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -155,6 +167,28 @@ public class ApiRepositoryConnectionService
     return repositoryConnectionDAO.getByOwnerId(internalOwnerId).stream()
         .map(this::toRepositoryConnectionDTO)
         .collect(Collectors.toList());
+  }
+
+  @Authorize(permission = Permission.READ)
+  public Status testRepositoryConnection(
+      @AuthzContext(Key.TYPE) OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+      ApiRepositoryConnectionDTO repositoryConnectionDTO)
+  {
+    validateRepositoryConnection(repositoryConnectionDTO);
+    AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, repositoryConnectionDTO.baseUrl);
+    RepositoryClient client = repositoryClientFactory.create().forNexus3(
+        repositoryConnectionDTO.baseUrl,
+        repositoryConnectionDTO.username,
+        repositoryConnectionDTO.password);
+    try {
+      return client.getServerStatus();
+    }
+    catch (IOException e) {
+      log.debug(String.format("repository connection test failed for repository URL: %s",
+          repositoryConnectionDTO.baseUrl), e);
+      return Status.BAD_GATEWAY;
+    }
   }
 
   private ApiRepositoryConnectionDTO toRepositoryConnectionDTO(RepositoryConnection repositoryConnection) {

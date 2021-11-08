@@ -16,12 +16,19 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
 public class ApiRepositoryConnectionResourceAuditTest
     extends AbstractAuditTest
 {
+  @Rule
+  public WireMockRule nxrm3MockSever = new WireMockRule(wireMockConfig().dynamicPort());
+
   private Application app;
 
   @Before

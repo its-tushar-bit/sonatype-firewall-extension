@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import javax.inject.Inject;
+import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
@@ -15,21 +17,35 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.repository.RepositoryClient;
+import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
+import com.sonatype.insight.brain.repository.client.RepositoryClientFactory.RepositoryClientBuilder;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.inject.Binder;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 public class ApiRepositoryConnectionServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
+
   @Inject
   private ApiRepositoryConnectionService repositoryConnectionService;
 
@@ -38,6 +54,21 @@ public class ApiRepositoryConnectionServiceTest
 
   @Inject
   private PasswordHandler passwordHandler;
+
+  @Mock
+  private RepositoryClientFactory mockFactory;
+
+  @Mock
+  private RepositoryClientBuilder mockBuilder;
+
+  @Mock
+  private RepositoryClient client;
+
+  @Override
+  public void configure(final Binder binder) {
+    binder.bind(RepositoryClientFactory.class).toInstance(mockFactory);
+    super.configure(binder);
+  }
 
   @Test
   public void testGetRepositoryConnections_Organization() {
@@ -219,6 +250,10 @@ public class ApiRepositoryConnectionServiceTest
     ApiRepositoryConnectionDTO updated =
         repositoryConnectionService.updateRepositoryConnection(ownerType, id,
             existingConnection.getId(), dto);
+    assertThat(updated.baseUrl).isEqualTo("updated baseUrl");
+    assertThat(updated.username).isEqualTo("user2");
+    assertThat(updated.password).isNull();
+
     RepositoryConnection storedConnection = dao.getById(existingConnection.getId());
 
     assertThat(updated.baseUrl).isEqualTo(dto.baseUrl != null ? dto.baseUrl : storedConnection.getBaseUrl());
@@ -351,5 +386,75 @@ public class ApiRepositoryConnectionServiceTest
             connection.getId()))
         .withMessage("no repository connections found with connection id: " + connection.getId()
             + " for application having id: " + app2Id);
+  }
+
+  @Test
+  public void testTestRepositoryConnection_Success() throws Exception {
+    setupMocks();
+    when(client.getServerStatus()).thenReturn(Status.OK);
+    testTestRepositoryConnection(Status.OK);
+  }
+
+  @Test
+  public void testTestRepositoryConnection_Unauthorized() throws Exception {
+    setupMocks();
+    when(client.getServerStatus()).thenReturn(Status.UNAUTHORIZED);
+    testTestRepositoryConnection(Status.UNAUTHORIZED);
+  }
+
+  @Test
+  public void testTestRepositoryConnection_Exception() throws Exception {
+    setupMocks();
+    when(client.getServerStatus()).thenThrow(new IOException("error"));
+    testTestRepositoryConnection(Status.BAD_GATEWAY);
+  }
+
+  private void testTestRepositoryConnection(Status status) {
+    String appId = tempEntity.newApplicationWithParent().getId();
+
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+    dto.baseUrl = "baseUrl";
+    dto.username = "user";
+    dto.password = "pass";
+    Status response = repositoryConnectionService.testRepositoryConnection(OwnerType.APPLICATION, appId, dto);
+
+    assertThat(response).isEqualTo(status);
+  }
+
+  @Test
+  public void testTestRepositoryConnection_MissingBaseUrl() {
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+    testTestRepositoryConnection_MissingData(dto, "missing repository base URL");
+  }
+
+  @Test
+  public void testTestRepositoryConnection_MissingPassword() {
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+    dto.baseUrl = "baseUrl";
+    dto.username = "user";
+    testTestRepositoryConnection_MissingData(dto, "missing username/password for repository connection");
+  }
+
+  @Test
+  public void testTestRepositoryConnection_MissingUsername() {
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+    dto.baseUrl = "baseUrl";
+    dto.password = "pass";
+    testTestRepositoryConnection_MissingData(dto, "missing username/password for repository connection");
+  }
+
+  private void testTestRepositoryConnection_MissingData(
+      final ApiRepositoryConnectionDTO dto,
+      final String exectedMessage)
+  {
+    String appId = tempEntity.newApplicationWithParent().getId();
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryConnectionService.testRepositoryConnection(OwnerType.APPLICATION, appId, dto))
+        .withMessage(exectedMessage);
+  }
+
+  private void setupMocks() {
+    when(mockFactory.create()).thenReturn(mockBuilder);
+    when(mockBuilder.forNexus3(any(), any(), any())).thenReturn(client);
   }
 }

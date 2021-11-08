@@ -7,28 +7,65 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.List;
 import javax.inject.Inject;
+import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.repository.RepositoryClient;
+import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
+import com.sonatype.insight.brain.repository.client.RepositoryClientFactory.RepositoryClientBuilder;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
+import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 public class ApiRepositoryConnectionServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
+  @Rule
+  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
+
   @Inject
   private ApiRepositoryConnectionService repositoryConnectionService;
 
   @Inject
   private RepositoryConnectionDAO dao;
+
+  @Mock
+  private RepositoryClientFactory mockFactory;
+
+  @Mock
+  private RepositoryClientBuilder mockBuilder;
+
+  @Mock
+  private RepositoryClient client;
+
+  @Override
+  public void configure(final Binder binder) {
+    binder.bind(RepositoryClientFactory.class).toInstance(mockFactory);
+    super.configure(binder);
+  }
+
+  @Before
+  public void before() {
+    org = tempEntity.newOrganization();
+    app = tempEntity.newApplication(org.getId());
+  }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetRepositoryConnections_Unauthenticated() {
@@ -144,5 +181,43 @@ public class ApiRepositoryConnectionServiceAuthzTest
 
     repositoryConnectionService.deleteRepositoryConnection(OwnerType.APPLICATION, app.getId(), connection.getId());
     assertThat(dao.getById(connection.getId())).isNull();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testTestRepositoryConnection_Unauthenticated() {
+    testTestRepositoryConnection();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testTestRepositoryConnection_Unauthorized() {
+    login();
+    testTestRepositoryConnection();
+  }
+
+  @Test
+  public void testTestRepositoryConnection_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+    setupMocks();
+    when(client.getServerStatus()).thenReturn(Status.OK);
+
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+    dto.baseUrl = "baseUrl";
+    dto.username = "user";
+    dto.password = "pass";
+    Status status = repositoryConnectionService.testRepositoryConnection(OwnerType.APPLICATION, app.getId(), dto);
+
+    assertThat(status).isEqualTo(Status.OK);
+  }
+
+  private void testTestRepositoryConnection() {
+    String appId = tempEntity.newApplicationWithParent().getId();
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+    dto.baseUrl = "baseUrl";
+    repositoryConnectionService.testRepositoryConnection(OwnerType.APPLICATION, appId, dto);
+  }
+
+  private void setupMocks() {
+    when(mockFactory.create()).thenReturn(mockBuilder);
+    when(mockBuilder.forNexus3(any(), any(), any())).thenReturn(client);
   }
 }

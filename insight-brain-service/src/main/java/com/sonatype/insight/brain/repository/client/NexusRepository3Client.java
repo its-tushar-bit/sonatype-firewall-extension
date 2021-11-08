@@ -46,6 +46,8 @@ public class NexusRepository3Client
 
   public static final String REPO_NPM_FORMAT = "npm";
 
+  public static final String NXRM_STATUS_RESOURCE = "/service/rest/v1/status";
+
   NexusRepository3Client(final Configuration configuration) {
     super(configuration);
   }
@@ -83,7 +85,7 @@ public class NexusRepository3Client
    */
   @Override
   public Status getServerStatus() throws IOException {
-    Result result = path("/service/rest/v1/status").get();
+    Result result = path(NXRM_STATUS_RESOURCE).get();
     return Status.fromStatusCode(result.status());
   }
 

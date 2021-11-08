@@ -44,7 +44,7 @@ public class RepositoryClientFactory
     return configuration == null ? new RepositoryClientConfiguration() : configuration;
   }
 
-  static class RepositoryClientBuilder
+  public static class RepositoryClientBuilder
   {
     //visible for testing
     final Configuration config;

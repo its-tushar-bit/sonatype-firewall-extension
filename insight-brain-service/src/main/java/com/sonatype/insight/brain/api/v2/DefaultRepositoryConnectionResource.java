@@ -17,6 +17,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
@@ -48,6 +50,8 @@ public class DefaultRepositoryConnectionResource
   static final String BY_OWNER = OWNER_TYPE + "/" + OWNER_ID;
 
   static final String BY_REPOSITORY = BY_OWNER + "/" + REPOSITORY_CONNECTION_ID;
+
+  static final String TEST_PATH = BY_OWNER + "/test";
 
   private final ApiRepositoryConnectionService repositoryConnectionService;
 
@@ -117,6 +121,21 @@ public class DefaultRepositoryConnectionResource
   {
     checkInnerSourceRepositoryIntegrationEnabled();
     return repositoryConnectionService.getRepositoryConnections(ownerType, internalOwnerId);
+  }
+
+  @Override
+  @POST
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(TEST_PATH)
+  public Response testRepositoryConnection(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("internalOwnerId") String internalOwnerId,
+      ApiRepositoryConnectionDTO repositoryConnectionDTO)
+  {
+    checkInnerSourceRepositoryIntegrationEnabled();
+    Status status =
+        repositoryConnectionService.testRepositoryConnection(ownerType, internalOwnerId, repositoryConnectionDTO);
+    return Response.status(status).build();
   }
 
   private void checkInnerSourceRepositoryIntegrationEnabled() {

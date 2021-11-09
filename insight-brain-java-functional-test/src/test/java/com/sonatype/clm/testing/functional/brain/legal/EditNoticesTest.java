@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain.legal;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,45 +97,80 @@ public class EditNoticesTest
     legalFileOverrideDAO = new LegalFileOverrideDAO();
   }
 
-  @Test
-  public void testNoticesTile_InitialState() {
+  private void loadByHash() {
     refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
+  }
+
+  private void loadByHash(Owner scope) {
+    refreshOrOpen(ComponentLegalOverviewPage.url(scope, "033e7a20b23ea284d474"));
+  }
+
+  private void loadByComponentIdentifier() throws UnsupportedEncodingException {
+    refreshOrOpen(
+            ComponentLegalOverviewPage.urlByComponentIdentifier(componentIdentifier));
+  }
+
+  private void doTestNoticesTile_InitialState() {
     Notices notices = ComponentLegalOverviewPage.notices();
     notices.all().shouldHaveSize(2);
     assertNotice(notices.at(0), "META-INF/NOTICE", "\nApache ServiceComb" +
-        "\nCopyright 2017-2021 The Apache Software Foundation" +
-        "\n\nThis product includes software developed at" +
-        "\nThe Apache Software Foundation (http://www.apache.org/).\n\n\n");
+            "\nCopyright 2017-2021 The Apache Software Foundation" +
+            "\n\nThis product includes software developed at" +
+            "\nThe Apache Software Foundation (http://www.apache.org/).\n\n\n");
     assertNotice(notices.at(1), "notice", "content");
   }
 
   @Test
-  public void testNoticesModal_InitialState() {
-    refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
+  public void testNoticesTile_InitialStateByHash() {
+    loadByHash();
+    doTestNoticesTile_InitialState();
+  }
+
+  @Test
+  public void testNoticesTile_InitialStateByComponentIdentifier() throws UnsupportedEncodingException {
+    loadByComponentIdentifier();
+    doTestNoticesTile_InitialState();
+  }
+
+  private void doTestNoticesModal_InitialState(int expectedScopeCount) {
     ComponentLegalOverviewPage.editNoticesButton().click();
     EditNoticesModal editNoticesModal = new EditNoticesModal();
     editNoticesModal.shouldBe(Condition.visible);
     editNoticesModal.allNotices().shouldHaveSize(2);
     assertNotice(editNoticesModal.noticeAt(0), "\nApache ServiceComb" +
-        "\nCopyright 2017-2021 The Apache Software Foundation" +
-        "\n\nThis product includes software developed at" +
-        "\nThe Apache Software Foundation (http://www.apache.org/).\n\n\n", true);
+            "\nCopyright 2017-2021 The Apache Software Foundation" +
+            "\n\nThis product includes software developed at" +
+            "\nThe Apache Software Foundation (http://www.apache.org/).\n\n\n", true);
     assertNotice(editNoticesModal.noticeAt(1), "content", true);
     assertOption(editNoticesModal.scopeDropdown().getSelectedOption(), rootOrg);
     ElementsCollection options = editNoticesModal.scopeDropdown().$$("option");
-    options.shouldHaveSize(3);
-    assertOption(options.get(0), app);
-    assertOption(options.get(1), org);
-    assertOption(options.get(2), rootOrg);
+    options.shouldHaveSize(expectedScopeCount);
+    if (expectedScopeCount == 1) {
+      assertOption(options.get(0), rootOrg);
+    }
+    else {
+      assertOption(options.get(0), app);
+      assertOption(options.get(1), org);
+      assertOption(options.get(2), rootOrg);
+    }
     assertButton(editNoticesModal.save(), false, "Must add a new notice or change the content or status of a notice.");
     assertButton(editNoticesModal.cancel(), true, null);
+  }
 
+  @Test
+  public void testNoticesModal_InitialStateByHash() {
+    loadByHash();
+    doTestNoticesModal_InitialState(3);
     eyesWatcher.eyesCheck("Component legal edit notice files modal");
   }
 
   @Test
-  public void testAddNotice() {
-    refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
+  public void testNoticesModal_InitialStateByComponentIdentifier() throws UnsupportedEncodingException {
+    loadByComponentIdentifier();
+    doTestNoticesModal_InitialState(1);
+  }
+
+  private void doTestAddNoticeByHash() {
     ComponentLegalOverviewPage.editNoticesButton().click();
     EditNoticesModal editNoticesModal = new EditNoticesModal();
     editNoticesModal.addNoticeButton().click();
@@ -150,8 +186,18 @@ public class EditNoticesTest
   }
 
   @Test
-  public void testChangeNoticeText() {
-    refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
+  public void testAddNoticeByHash() {
+    loadByHash();
+    doTestAddNoticeByHash();
+  }
+
+  @Test
+  public void testAddNoticeByComponentIdentifier() throws UnsupportedEncodingException {
+    loadByComponentIdentifier();
+    doTestAddNoticeByHash();
+  }
+
+  private void doTestChangeNoticeTextByHash() {
     ComponentLegalOverviewPage.editNoticesButton().click();
     EditNoticesModal editNoticesModal = new EditNoticesModal();
     Notice notice = editNoticesModal.noticeAt(0);
@@ -169,8 +215,18 @@ public class EditNoticesTest
   }
 
   @Test
-  public void testChangeNoticeStatus() {
-    refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
+  public void testChangeNoticeTextByHash() {
+    loadByHash();
+    doTestChangeNoticeTextByHash();
+  }
+
+  @Test
+  public void testChangeNoticeTextByComponentIdentifier() throws UnsupportedEncodingException {
+    loadByComponentIdentifier();
+    doTestChangeNoticeTextByHash();
+  }
+
+  private void doTestChangeNoticeStatus() {
     ComponentLegalOverviewPage.editNoticesButton().click();
     EditNoticesModal editNoticesModal = new EditNoticesModal();
     Notice notice = editNoticesModal.noticeAt(0);
@@ -196,8 +252,18 @@ public class EditNoticesTest
   }
 
   @Test
-  public void testCancel() {
-    refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
+  public void testChangeNoticeStatusByHash() {
+    loadByHash();
+    doTestChangeNoticeStatus();
+  }
+
+  @Test
+  public void testChangeNoticeStatusByComponentIdentifier() throws UnsupportedEncodingException {
+    loadByComponentIdentifier();
+    doTestChangeNoticeStatus();
+  }
+
+  private void doTestCancel() {
     ComponentLegalOverviewPage.editNoticesButton().click();
     EditNoticesModal editNoticesModal = new EditNoticesModal();
     editNoticesModal.allNotices().shouldHaveSize(2);
@@ -222,42 +288,54 @@ public class EditNoticesTest
   }
 
   @Test
+  public void testCancelByHash() {
+    loadByHash();
+    doTestCancel();
+  }
+
+  @Test
+  public void testCancelByComponentIdentifier() throws UnsupportedEncodingException {
+    loadByComponentIdentifier();
+    doTestCancel();
+  }
+
+  @Test
   public void testLoadExisting_RootOrgLegalFile_AppScope() {
-    testLoadExisting(rootOrg, app);
+    testLoadExistingByHash(rootOrg, app);
   }
 
   @Test
   public void testLoadExisting_OrgLegalFile_AppScope() {
-    testLoadExisting(org, app);
+    testLoadExistingByHash(org, app);
   }
 
   @Test
   public void testLoadExisting_AppLegalFile_AppScope() {
-    testLoadExisting(app, app);
+    testLoadExistingByHash(app, app);
   }
 
   @Test
   public void testLoadExisting_RootOrgLegalFile_OrgScope() {
-    testLoadExisting(rootOrg, org);
+    testLoadExistingByHash(rootOrg, org);
   }
 
   @Test
   public void testLoadExisting_OrgLegalFile_OrgScope() {
-    testLoadExisting(org, org);
+    testLoadExistingByHash(org, org);
   }
 
   @Test
   public void testLoadExisting_RootOrgLegalFile_RootOrgScope() {
-    testLoadExisting(rootOrg, rootOrg);
+    testLoadExistingByHash(rootOrg, rootOrg);
   }
 
-  private void testLoadExisting(Owner owner, Owner scope) {
+  private void testLoadExistingByHash(Owner owner, Owner scope) {
     ComponentLegalFile componentLegalFile =
         tempEntity.newComponentLegalFile(componentIdentifier, owner.getId(), LegalFileType.NOTICE, "legalContentHash");
     LegalFileOverride legalFileOverride = tempEntity.newLegalFileOverride(
         "ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4", "hash", "content",
         ComponentLegalPartStatus.ENABLED, componentLegalFile.getId());
-    refreshOrOpen(ComponentLegalOverviewPage.url(scope, "033e7a20b23ea284d474"));
+    loadByHash(scope);
     Notices notices = ComponentLegalOverviewPage.notices();
     assertNotice(notices.at(0), "META-INF/NOTICE", legalFileOverride.getContent());
     ComponentLegalOverviewPage.editNoticesButton().click();
@@ -298,7 +376,7 @@ public class EditNoticesTest
 
   private void testSave(Owner owner, Owner scope) {
     assertThat(componentLegalFileDAO.getAll()).isEmpty();
-    refreshOrOpen(ComponentLegalOverviewPage.url(scope, "033e7a20b23ea284d474"));
+    loadByHash(scope);
     ComponentLegalOverviewPage.editNoticesButton().click();
     EditNoticesModal editNoticesModal = new EditNoticesModal();
     editNoticesModal.noticeAt(0).textInput().setValue("changed");

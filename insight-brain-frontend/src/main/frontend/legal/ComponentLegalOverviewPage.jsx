@@ -167,6 +167,7 @@ export default function ComponentLegalOverviewPage(props) {
                     stageTypeId,
                     $state,
                     component,
+                    componentIdentifier,
                     availableScopes,
                     ownerType,
                     ownerId,

@@ -14,7 +14,17 @@ import classnames from 'classnames';
 import { createLegalFileTileItem } from '../common/utils';
 
 export default function NoticeTextsTile(props) {
-  const { setShowNoticesModal, noticeFiles, showNoticesModal, ownerType, ownerId, stageTypeId, hash, $state } = props;
+  const {
+    setShowNoticesModal,
+    noticeFiles,
+    showNoticesModal,
+    ownerType,
+    ownerId,
+    stageTypeId,
+    hash,
+    $state,
+    componentIdentifier,
+  } = props;
 
   const isNoticePresent = () => noticeFiles && noticeFiles.length > 0;
 
@@ -24,17 +34,28 @@ export default function NoticeTextsTile(props) {
     'license-no-legal-elements-text': !isNoticePresent(),
   });
 
-  const noticeDetailsTargetState = () =>
-    stageTypeId ? 'legal.stageTypeComponentNoticeDetails.noticeDetails' : 'legal.componentNoticeDetails.noticeDetails';
+  const noticeDetailsTargetState = () => {
+    if (hash) {
+      return stageTypeId
+        ? 'legal.stageTypeComponentNoticeDetails.noticeDetails'
+        : 'legal.componentNoticeDetails.noticeDetails';
+    } else {
+      return 'legal.noticeFilesByComponentIdentifier.noticeDetails';
+    }
+  };
 
-  const createItem = (license, index) =>
-    createLegalFileTileItem('notice', license, index, $state, noticeDetailsTargetState(), {
+  const createItem = (license, index) => {
+    const routeParams = {
       ownerType,
       ownerId,
       hash,
       stageTypeId,
       noticeIndex: index,
-    });
+      componentIdentifier,
+    };
+
+    return createLegalFileTileItem('notice', license, index, $state, noticeDetailsTargetState(), routeParams);
+  };
 
   const [open, toggleOpen] = useToggle(true);
 
@@ -71,4 +92,5 @@ NoticeTextsTile.propTypes = {
   availableScopes: availableScopesPropType,
   hash: PropTypes.string,
   $state: PropTypes.object.isRequired,
+  componentIdentifier: PropTypes.string.isRequired,
 };

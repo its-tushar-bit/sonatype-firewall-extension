@@ -9,6 +9,7 @@ import { pick } from 'ramda';
 import NoticeDetailsHeader from './NoticeDetailsHeader';
 import { loadComponentAndNoticeDetails } from './componentNoticeDetailsActions';
 import { setShowNoticesModal } from '../advancedLegalFileActions';
+import { loadComponentByComponentIdentifier } from '../../advancedLegalActions';
 
 function mapStateToProps({ advancedLegal, router, componentNoticeDetails }) {
   const component = advancedLegal.component || {};
@@ -27,7 +28,7 @@ function mapStateToProps({ advancedLegal, router, componentNoticeDetails }) {
     error: component.error || availableScopes.error,
     availableScopes,
     ...pick(['component'], component),
-    ...pick(['hash', 'ownerType', 'ownerId', 'noticeIndex', 'stageTypeId'], routerParams),
+    ...pick(['hash', 'ownerType', 'ownerId', 'noticeIndex', 'stageTypeId', 'componentIdentifier'], routerParams),
     showNoticesModal: component.component ? component.component.licenseLegalData.showNoticesModal : false,
   };
 }

@@ -10,10 +10,19 @@ import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 
 describe('NoticeTextsTile', function () {
-  let getShallowComponent, minimalProps, setShowNoticesModalSpy;
+  let getShallowComponent, minimalProps, setShowNoticesModalSpy, $state;
 
   beforeEach(function () {
     setShowNoticesModalSpy = jasmine.createSpy('setShowNoticesModalSpy');
+    $state = jasmine.createSpyObj('$state', ['get', 'href']);
+    $state.get.and.callFake((stateName) => stateName);
+    $state.href.and.callFake((stateName, stateParams) => {
+      if (stateParams) {
+        return `${stateName}-${JSON.stringify(stateParams)}`;
+      }
+      return stateName;
+    });
+
     minimalProps = {
       setShowNoticesModal: setShowNoticesModalSpy,
       noticeFiles: [
@@ -35,10 +44,8 @@ describe('NoticeTextsTile', function () {
         },
       ],
       showNoticesModal: false,
-      $state: {
-        get: () => '',
-        href: () => '',
-      },
+      hash: 'testHash',
+      $state: $state,
     };
     getShallowComponent = enzymeUtils.getShallowComponent(NoticeTextsTile, minimalProps);
   });
@@ -83,5 +90,45 @@ describe('NoticeTextsTile', function () {
     const button = wrapper.find(NxButton);
     button.simulate('click');
     expect(setShowNoticesModalSpy).toHaveBeenCalledWith(true);
+  });
+
+  it('renders the given notice file links by hash', function () {
+    const wrapper = getShallowComponent();
+    let noticeFileLinks = wrapper.find('#legal-file-section-view-more-details a');
+
+    let noticeFileLink = noticeFileLinks.at(0);
+    expect(noticeFileLink).toHaveProp(
+      'href',
+      'legal.componentNoticeDetails.noticeDetails-{"hash":"testHash","noticeIndex":0}'
+    );
+
+    noticeFileLink = noticeFileLinks.at(1);
+    expect(noticeFileLink).toHaveProp(
+      'href',
+      'legal.componentNoticeDetails.noticeDetails-{"hash":"testHash","noticeIndex":1}'
+    );
+  });
+
+  it('renders the given notice file links by component identifier', function () {
+    const wrapper = getShallowComponent({
+      ...minimalProps,
+      hash: undefined,
+      componentIdentifier: 'testComponentIdentifier',
+    });
+    let noticeFileLinks = wrapper.find('#legal-file-section-view-more-details a');
+
+    let noticeFileLink = noticeFileLinks.at(0);
+    expect(noticeFileLink).toHaveProp(
+      'href',
+      'legal.noticeFilesByComponentIdentifier.noticeDetails' +
+        '-{"noticeIndex":0,"componentIdentifier":"testComponentIdentifier"}'
+    );
+
+    noticeFileLink = noticeFileLinks.at(1);
+    expect(noticeFileLink).toHaveProp(
+      'href',
+      'legal.noticeFilesByComponentIdentifier.noticeDetails' +
+        '-{"noticeIndex":1,"componentIdentifier":"testComponentIdentifier"}'
+    );
   });
 });

@@ -5,20 +5,26 @@
  */
 
 import { payloadParamActionCreator } from '../../../util/reduxUtil';
-import { loadAvailableScopes, loadComponent } from '../../advancedLegalActions';
+import { loadAvailableScopes, loadComponent, loadComponentByComponentIdentifier } from '../../advancedLegalActions';
 
 export const NOTICE_DETAILS_SELECTED_NOTICE = 'NOTICE_DETAILS_SELECTED_NOTICE';
 
 export const selectedNoticeDetail = payloadParamActionCreator(NOTICE_DETAILS_SELECTED_NOTICE);
 
-export function loadComponentAndNoticeDetails(ownerType, ownerId, hash, noticeIndex) {
+export function loadComponentAndNoticeDetails(ownerType, ownerId, hash, noticeIndex, componentIdentifier) {
   return (dispatch, getState) => {
     const component = getState().advancedLegal.component.component;
     if (!component) {
-      dispatch(loadAvailableScopes(ownerType, ownerId));
-      return dispatch(loadComponent(ownerType, ownerId, hash)).then(() =>
-        dispatchSelectedNotice(dispatch, getState(), noticeIndex)
-      );
+      if (componentIdentifier) {
+        return dispatch(loadComponentByComponentIdentifier(componentIdentifier)).then(() => {
+          dispatchSelectedNotice(dispatch, getState(), noticeIndex);
+        });
+      } else {
+        dispatch(loadAvailableScopes(ownerType, ownerId));
+        return dispatch(loadComponent(ownerType, ownerId, hash)).then(() =>
+          dispatchSelectedNotice(dispatch, getState(), noticeIndex)
+        );
+      }
     } else {
       return dispatchSelectedNotice(dispatch, getState(), noticeIndex);
     }

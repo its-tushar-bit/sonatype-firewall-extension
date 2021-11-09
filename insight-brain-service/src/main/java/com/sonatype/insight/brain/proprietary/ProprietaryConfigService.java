@@ -145,10 +145,17 @@ public class ProprietaryConfigService
    */
   public com.sonatype.clm.dto.model.ProprietaryConfig getProprietaryConfig(OwnerType ownerType, String ownerId) {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    return getProprietaryConfig(internalOwnerId, ownerDAO, proprietaryConfigDAO);
+  }
 
+  public static com.sonatype.clm.dto.model.ProprietaryConfig getProprietaryConfig(
+      String internalOwnerId,
+      OwnerDAO ownerDAO,
+      ProprietaryConfigDAO proprietaryConfigDAO)
+  {
     com.sonatype.clm.dto.model.ProprietaryConfig result = new com.sonatype.clm.dto.model.ProprietaryConfig();
-    result.setPackages(new ArrayList<String>());
-    result.setRegexes(new ArrayList<String>());
+    result.setPackages(new ArrayList<>());
+    result.setRegexes(new ArrayList<>());
 
     for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
       ProprietaryConfig ownerConfig = proprietaryConfigDAO.getByOwnerId(owner.getId());

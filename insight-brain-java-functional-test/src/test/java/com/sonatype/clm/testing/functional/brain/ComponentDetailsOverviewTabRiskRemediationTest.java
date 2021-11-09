@@ -214,7 +214,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
     recommendedRemediationSection.getTitle().shouldHave(text("Recommended Remediation"));
     recommendedRemediationSection.contentParagraph().shouldHave(
-        text("This dependency was brought in by the component(s) listed below. Clicking on a component" +
+        text("The direct dependencies that brought in this component are listed below. Clicking on a component" +
             " will take you to its Component Details Page.")
     );
 
@@ -252,7 +252,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
     recommendedRemediationSection.getTitle().shouldHave(text("Recommended Remediation"));
     recommendedRemediationSection.contentParagraph().shouldHave(
-        text("This dependency was brought in by the component(s) listed below. Clicking on a component" +
+        text("The direct dependencies that brought in this component are listed below. Clicking on a component" +
             " will take you to its Component Details Page.")
     );
 

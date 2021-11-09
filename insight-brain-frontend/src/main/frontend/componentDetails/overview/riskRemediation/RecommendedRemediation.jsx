@@ -16,8 +16,8 @@ export const RecommendedRemediation = ({ ancestors, ancestorOnClick, expanded, t
       </header>
       <div className="iq-grid-content">
         <p className="nx-p">
-          This dependency was brought in by the component(s) listed below. Clicking on a component will take you to its
-          Component Details Page.
+          The direct dependencies that brought in this component are listed below. Clicking on a component will take you
+          to its Component Details Page.
         </p>
         <AncestorsList
           ancestors={ancestors}

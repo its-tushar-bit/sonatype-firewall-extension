@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.File;
+import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,8 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
@@ -34,6 +38,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -82,6 +87,10 @@ public class ApiSourceControlService
 
   private final SourceControlEventDAO sourceControlEventDAO;
 
+  private final InsightWork insightWork;
+
+  private final FileCleaner fileCleaner;
+
   @Inject
   public ApiSourceControlService(
       final PlexusCipher plexusCipher,
@@ -92,7 +101,9 @@ public class ApiSourceControlService
       final IqForScmLicenseChecker licenseChecker,
       final TelemetrySender telemetrySender,
       final SourceControlPullRequestMetrics sourceControlPullRequestMetrics,
-      final SourceControlEventDAO sourceControlEventDAO)
+      final SourceControlEventDAO sourceControlEventDAO,
+      final InsightWork insightWork,
+      final FileCleaner fileCleaner)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
@@ -103,6 +114,8 @@ public class ApiSourceControlService
     this.telemetrySender = telemetrySender;
     this.sourceControlPullRequestMetrics = sourceControlPullRequestMetrics;
     this.sourceControlEventDAO = sourceControlEventDAO;
+    this.insightWork = insightWork;
+    this.fileCleaner = fileCleaner;
   }
 
   @Authorize(permission = Permission.READ)
@@ -285,9 +298,26 @@ public class ApiSourceControlService
       throw new NotFoundException(String.format(
           "Cannot find SourceControl for %s with id: %s", ownerType, getPublicOwnerId(ownerId)));
     }
+
+    if (OwnerType.APPLICATION.equals(ownerType)) {
+      deleteSourceControlDirectory(ownerId);
+    }
     sourceControlDAO.delete(sourceControl);
     auditSourceControl(sourceControl);
     sendSourceControlTelemetryData(METHOD.DELETE, ownerId, sourceControl);
+  }
+
+  private void deleteSourceControlDirectory(String appId) {
+    File sourceControlDir = insightWork.getSourceControlDir(appId);
+    try {
+      fileCleaner.delete(sourceControlDir);
+    }
+    catch (FileDeletionException e) {
+      throw new UncheckedIOException(
+          "Cannot delete source control directory '" + sourceControlDir.getAbsolutePath() + "' for application ID "
+              + appId + ": " + e.getMessage(),
+          e);
+    }
   }
 
   public SourceControl getSourceControlByOwnerDecrypted(final String ownerId) {

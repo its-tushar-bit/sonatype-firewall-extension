@@ -4,7 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import { selectSelectedLabelDetails, selectShowRemoveLabelModal } from '../../componentDetailsSelectors';
+import {
+  selectRemoveAppliedLabelError,
+  selectSelectedLabelDetails,
+  selectShowRemoveLabelModal,
+} from '../../componentDetailsSelectors';
 import { actions } from '../../componentDetailsSlice';
 import RemoveLabelModal from './RemoveLabelModal';
 
@@ -14,6 +18,7 @@ function mapStateToProps(state) {
   return {
     selectedLabelDetails: selectSelectedLabelDetails(state),
     showRemoveLabelModal: selectShowRemoveLabelModal(state),
+    removeLabelError: selectRemoveAppliedLabelError(state),
   };
 }
 

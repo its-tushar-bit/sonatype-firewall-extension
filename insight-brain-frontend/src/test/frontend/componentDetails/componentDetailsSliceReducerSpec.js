@@ -232,6 +232,16 @@ describe('componentDetailsReducer', () => {
       });
       expect(newState.pendingLoads.has('removeAppliedLabel')).toBe(true);
     });
+    it('removes any `removeAppliedLabelError` prop that may be on state', function () {
+      const state = {
+        ...mockState,
+        removeAppliedLabelError: 'Some Error',
+      };
+      const newState = reducer(state, {
+        type: REMOVE_APPLIED_LABEL_REQUESTED,
+      });
+      expect(newState.removeAppliedLabelError).toBeNull();
+    });
   });
 
   describe('REMOVE_APPLIED_LABEL_FULFILLED action', function () {
@@ -519,6 +529,16 @@ describe('componentDetailsReducer', () => {
         type: TOGGLE_SHOW_REMOVE_LABEL_MODAL,
       });
       expect(newState.showRemoveLabelModal).toBe(false);
+    });
+    it('clears the `removeAppliedLabelError` prop from state', () => {
+      const state = {
+        ...mockState,
+        removeAppliedLabelError: 'Some Error',
+      };
+      const newState = reducer(state, {
+        type: TOGGLE_SHOW_REMOVE_LABEL_MODAL,
+      });
+      expect(newState.removeAppliedLabelError).toBeNull();
     });
   });
 

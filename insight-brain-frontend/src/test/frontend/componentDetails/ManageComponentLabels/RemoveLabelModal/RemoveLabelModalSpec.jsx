@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import RemoveLabelModal from 'MainRoot/componentDetails/ManageComponentLabels/RemoveLabelModal/RemoveLabelModal';
-import { NxButton } from '@sonatype/react-shared-components';
+import { NxButton, NxLoadError } from '@sonatype/react-shared-components';
 
 describe('RemoveLabelModal', () => {
   let minimalProps, getShallow;
@@ -16,6 +16,7 @@ describe('RemoveLabelModal', () => {
       selectedLabelDetails: {},
       toggleShowRemoveLabelModal: jasmine.createSpy('toggleShowRemoveLabelModal'),
       showRemoveLabelModal: true,
+      removeLabelError: null,
     };
 
     getShallow = enzymeUtils.getShallowComponent(RemoveLabelModal, minimalProps);
@@ -47,5 +48,14 @@ describe('RemoveLabelModal', () => {
     component.simulate('click');
 
     expect(minimalProps.toggleShowRemoveLabelModal).toHaveBeenCalled();
+  });
+
+  it('displays an error message if theres any error removing the label', () => {
+    const component = getShallow({ removeLabelError: 'some err' }),
+      error = component.find(NxLoadError);
+
+    expect(error).toHaveProp('error', 'some err');
+    expect(error).toHaveProp('titleMessage', 'An error occurred removing label.');
+    expect(error).toHaveProp('retryHandler');
   });
 });

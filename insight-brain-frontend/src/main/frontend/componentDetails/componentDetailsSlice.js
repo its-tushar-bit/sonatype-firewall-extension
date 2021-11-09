@@ -290,7 +290,10 @@ const saveApplyLabelScope = createAsyncThunk(
 );
 
 const removeAppliedLabelRequested = (state) => {
-  return setPendingLoads(['removeAppliedLabel'], state);
+  return setPendingLoads(['removeAppliedLabel'], {
+    ...state,
+    removeAppliedLabelError: null,
+  });
 };
 
 const removeAppliedLabelFulfilled = (state) => {
@@ -304,7 +307,6 @@ const removeAppliedLabelFulfilled = (state) => {
 const removeAppliedLabelFailed = (state, { payload }) => {
   return unsetPendingLoads(['removeAppliedLabel'], {
     ...state,
-    selectedLabelDetails: {},
     removeAppliedLabelError: Messages.getHttpErrorMessage(payload),
   });
 };
@@ -378,6 +380,13 @@ const showApplyLabelModalAction = (state) => {
   };
 };
 
+const toggleShowRemoveLabelModal = (state) => {
+  return toggleBooleanProp('showRemoveLabelModal')({
+    ...state,
+    removeAppliedLabelError: null,
+  });
+};
+
 const componentDetailsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -390,7 +399,7 @@ const componentDetailsSlice = createSlice({
     resetSubmitMaskState: pathSetConst(['setProprietaryMatchers', 'submitMaskState'], null),
     resetSubmitError: pathSetConst(['setProprietaryMatchers', 'submitError'], null),
     setComponentMatchersData: pathSet(['setProprietaryMatchers', 'data']),
-    toggleShowRemoveLabelModal: toggleBooleanProp('showRemoveLabelModal'),
+    toggleShowRemoveLabelModal: toggleShowRemoveLabelModal,
     setLabelScopeToSave: propSet('labelScopeToSave'),
     setSelectedLabelDetails: propSet('selectedLabelDetails'),
   },

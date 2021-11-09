@@ -15,8 +15,11 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,9 +34,14 @@ public class ApiRepositoryConnectionResourceAuditTest
 
   private Application app;
 
+  private InsightConfig insightConfig;
+
   @Before
   public void setup() {
     app = tempEntity.newApplicationWithParent();
+    insightConfig = getCLMServer().getInstance(InsightConfig.class);
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
   }
 
   @Override

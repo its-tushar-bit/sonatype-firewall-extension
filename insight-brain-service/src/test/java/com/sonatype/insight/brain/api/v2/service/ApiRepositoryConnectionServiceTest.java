@@ -250,8 +250,8 @@ public class ApiRepositoryConnectionServiceTest
     ApiRepositoryConnectionDTO updated =
         repositoryConnectionService.updateRepositoryConnection(ownerType, id,
             existingConnection.getId(), dto);
-    assertThat(updated.baseUrl).isEqualTo("updated baseUrl");
-    assertThat(updated.username).isEqualTo("user2");
+    assertThat(updated.baseUrl).isEqualTo(dto.baseUrl);
+    assertThat(updated.username).isEqualTo(dto.username);
     assertThat(updated.password).isNull();
 
     RepositoryConnection storedConnection = dao.getById(existingConnection.getId());

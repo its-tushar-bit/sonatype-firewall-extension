@@ -113,7 +113,7 @@ describe('EditLicensesForm', () => {
             id: '82823b22b17d4925a358763058b82184',
             ownerId: 'ROOT_ORGANIZATION_ID',
             status: 'ACKNOWLEDGED',
-            comment: '',
+            comment: 'some comment',
             licenseIds: [],
             componentIdentifier: {
               format: 'a-name',
@@ -324,7 +324,7 @@ describe('EditLicensesForm', () => {
         id: '82823b22b17d4925a358763058b82184',
         ownerId: 'ROOT_ORGANIZATION_ID',
         status: 'ACKNOWLEDGED',
-        comment: '',
+        comment: 'some comment',
         licenseIds: [],
         componentIdentifier: {
           format: 'a-name',
@@ -338,6 +338,7 @@ describe('EditLicensesForm', () => {
     });
     expect(setLicenseStatusSpy).toHaveBeenCalledWith('ACKNOWLEDGED');
     expect(setSelectedLicensesSpy).toHaveBeenCalledWith([]);
+    expect(setLicenseCommentSpy).toHaveBeenCalledWith('some comment');
   });
 
   it('renders default status options with inherited option', () => {

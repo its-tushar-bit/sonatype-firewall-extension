@@ -76,6 +76,7 @@ export default function EditLicensesForm({
     setSelectedLicenses(getLicenseIdsFromOverride(targetScope));
     setLicenseStatus(targetScope.licenseOverride?.status ?? 'OPEN');
     setLicenseScope(targetScope);
+    setLicenseComment(targetScope.licenseOverride?.comment ?? '');
   };
 
   const onStatusChange = (event) => {
@@ -274,4 +275,5 @@ EditLicensesForm.propTypes = {
   deleteLicenseOverride: PropTypes.func.isRequired,
   submitError: PropTypes.string,
   submitMaskState: PropTypes.bool,
+  identificationSource: PropTypes.string,
 };

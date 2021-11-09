@@ -72,7 +72,7 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
         },
         otherState,
       });
-      const firstLicenseOverride = { license1: { id: 'id1' } };
+      const firstLicenseOverride = { license1: { id: 'id1' }, licenseOverride: { comment: 'some comment' } };
       const payload = {
         licenseOverride: [firstLicenseOverride, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
         declaredlicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
@@ -99,7 +99,7 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
       expect(expectedState.editLicensesForm.isDirty).toBeFalse();
       expect(expectedState.editLicensesForm.scope).toBe(firstLicenseOverride);
       expect(expectedState.editLicensesForm.status).toBe(null);
-      expect(expectedState.editLicensesForm.comment.value).toBe('');
+      expect(expectedState.editLicensesForm.comment.value).toBe('some comment');
       expect(expectedState.editLicensesForm.fieldsPristineState).toEqual({
         comment: '',
         scope: firstLicenseOverride,

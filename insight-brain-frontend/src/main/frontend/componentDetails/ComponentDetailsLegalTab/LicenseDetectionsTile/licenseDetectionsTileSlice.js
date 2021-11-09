@@ -58,7 +58,7 @@ const getInitialFormFieldsFromLicenseOverride = (licenseOverride) => {
     scope,
     status: scope?.licenseOverride?.status ?? null,
     licenseIds: isOverriddenOrSelected(scope?.licenseOverride?.status) ? scope?.licenseOverride?.licenseIds : [],
-    comment: initialStateHelper(''),
+    comment: initialStateHelper(scope?.licenseOverride?.comment ?? ''),
   };
 };
 

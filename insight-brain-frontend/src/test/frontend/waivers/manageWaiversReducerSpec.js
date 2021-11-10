@@ -199,13 +199,17 @@ describe('manageWaiversReducer', function () {
         loadingManageWaiversData: true,
         loadManageWaiversDataError: 'error',
         hasPermissionForAppWaivers: true,
+        previousRouterStateNameForComponentDetails: 'applicationReport.componentDetails.legal',
       };
 
       const newState = reducer(state, {
         type: UI_ROUTER_ON_FINISH,
       });
 
-      expect(newState).toEqual(initState);
+      expect(newState).toEqual({
+        ...initState,
+        previousRouterStateNameForComponentDetails: state.previousRouterStateNameForComponentDetails,
+      });
     });
   });
 });

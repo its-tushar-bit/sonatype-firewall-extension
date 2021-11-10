@@ -57,7 +57,8 @@ import {
   WAIVERS_SAVE_WAIVER_REQUESTED,
   WAIVERS_SET_WAIVER_TO_DELETE,
   WAIVERS_RESET_ADD_WAIVER_DATA,
-} from '../../../main/frontend/waivers/waiverActions';
+  WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME,
+} from 'MainRoot/waivers/waiverActions';
 import {
   VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED,
   VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED,
@@ -68,6 +69,7 @@ import {
   TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED,
   TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED,
 } from '../../../main/frontend/violation/transitiveViolationsActions';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('waiverActions', function () {
   let store, mockAxiosCalls;
@@ -451,10 +453,23 @@ describe('waiverActions', function () {
     });
   });
 
-  describe('loadManageWaiversData', function () {
+  describe('loadManageWaiversData ', function () {
+    let selectPreviousRouteNameSpy;
+    beforeEach(() => {
+      selectPreviousRouteNameSpy = spyOn(routerSelectors, 'selectPreviousRouteName').and.returnValue('abc');
+    });
+
     it('immediately dispatches a WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED action', function () {
       store.dispatch(loadManageWaiversData('foo'));
       expect(store.getActions()).toHaveActionType(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
+    });
+
+    it('immediately dispatches a WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME action if previous router state name contains `componentDetails`', function () {
+      selectPreviousRouteNameSpy.and.returnValue('applicationReport.componentDetails.violation');
+
+      store.dispatch(loadManageWaiversData('foo'));
+
+      expect(store.getActions()).toHaveActionType(WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME);
     });
 
     it('calls loadApplicableWaivers and fetchCrossStageViolation actionCreators', function (done) {

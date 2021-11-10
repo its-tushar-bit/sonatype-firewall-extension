@@ -16,17 +16,7 @@ function mapStateToProps(state) {
   return {
     ...pick(['activeWaivers', 'expiredWaivers', 'violationDetails'], violation),
     ...pick(['violationId', 'sidebarReference', 'type', 'hash', 'scanId', 'publicId'], router.currentParams),
-    ...pick(
-      [
-        'loadingManageWaiversData',
-        'loadManageWaiversDataError',
-        'hasPermissionForAppWaivers',
-        'loadingApplicableWaivers',
-        'loadApplicableWaiversError',
-        'isRequestWaiverPopoverShown',
-      ],
-      manageWaivers
-    ),
+    ...manageWaivers,
     ...pick(['waiverToDelete'], deleteWaiver),
   };
 }

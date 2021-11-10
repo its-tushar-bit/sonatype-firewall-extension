@@ -20,6 +20,7 @@ import { getExpiryTime } from '../util/waiverUtils';
 
 import { actions as policyViolationsActions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { loadTransitiveViolationWaivers } from '../violation/transitiveViolationsActions';
+import { selectPreviousRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
@@ -49,6 +50,8 @@ export const WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED = 'WAIVERS_LOAD_APPLICABL
 export const WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED = 'WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED';
 export const WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED = 'WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED';
 
+export const WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME = 'WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME';
+
 const saveWaiverRequested = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_REQUESTED);
 const saveWaiverFulfilled = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_FULFILLED);
 const saveWaiverFailed = payloadParamActionCreator(WAIVERS_SAVE_WAIVER_FAILED);
@@ -58,6 +61,9 @@ const loadAddWaiverDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_ADD_WA
 const loadManageWaiversDataRequested = noPayloadActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
 const loadManageWaiversDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED);
 const loadManageWaiversDataFailed = payloadParamActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED);
+const setManageWaiversBackButtonStateName = payloadParamActionCreator(
+  WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME
+);
 export const resetAddWaiverData = noPayloadActionCreator(WAIVERS_RESET_ADD_WAIVER_DATA);
 
 function startSubmitMaskTimer(dispatch) {
@@ -140,6 +146,11 @@ export function loadManageWaiversData(violationId) {
   return (dispatch, getState) => {
     dispatch(loadManageWaiversDataRequested());
     dispatch(loadApplicableWaivers(violationId));
+
+    const routerPreviousStateName = selectPreviousRouteName(getState());
+    if (routerPreviousStateName?.includes('componentDetails')) {
+      dispatch(setManageWaiversBackButtonStateName(routerPreviousStateName));
+    }
 
     return dispatch(fetchCrossStageViolation(violationId))
       .then(() => loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId))

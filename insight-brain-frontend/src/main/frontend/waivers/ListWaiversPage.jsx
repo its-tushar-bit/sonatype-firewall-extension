@@ -163,6 +163,7 @@ export default function ListWaiversPage(props) {
 }
 
 ListWaiversPage.propTypes = {
+  ...ListWaiversBackButton.propTypes,
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   expiredWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   loadingManageWaiversData: PropTypes.bool,
@@ -176,12 +177,6 @@ ListWaiversPage.propTypes = {
   setWaiverToDelete: PropTypes.func.isRequired,
   loadApplicableWaivers: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
-  sidebarReference: PropTypes.string,
-  type: PropTypes.string,
-  hash: PropTypes.string,
-  publicId: PropTypes.string,
-  scanId: PropTypes.string,
-  violationId: PropTypes.string,
   violationDetails: PropTypes.shape({
     ...violationDetailsPropTypes,
     constraintViolations: constraintViolationsPropType.isRequired,

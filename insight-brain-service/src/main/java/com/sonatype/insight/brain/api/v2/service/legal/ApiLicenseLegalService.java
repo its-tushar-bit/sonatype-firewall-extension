@@ -866,6 +866,7 @@ public class ApiLicenseLegalService
         continue;
       }
       if (apiReportComponentDTOV2.licenseData == null) {
+        apiReportComponentDTOV2.licenseData = new ApiLicenseDataDTOV2();
         componentToLicenses.put(apiReportComponentDTOV2.componentIdentifier.toComponentIdentifier(), new HashSet<>());
       }
       Set<ApiLicenseDTO> allLicenses = getAllLicenses(apiReportComponentDTOV2.licenseData);

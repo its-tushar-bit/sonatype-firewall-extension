@@ -1066,6 +1066,30 @@ public class ApiLicenseLegalServiceTest
         EXPECTED_LICENSE_IDS_FOR_MULTILICENSE, null);
   }
 
+  @Test
+  public void testGetLicenseLegalApplicationReport_NoLicenses() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiReportRawDataDTOV2 rawReport = getContent("lls-raw-report-no-license.json", ApiReportRawDataDTOV2.class);
+    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
+    doReturn(Optional.of(rawReport)).when(apiLicenseLegalServiceSpy).getLastRawApplicationReport(anyString());
+
+    ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
+        apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app);
+
+    assertThat(licenseMetadataReport).isNotNull();
+    assertThat(licenseMetadataReport.licenseLegalMetadata).isEmpty();
+    assertThat(licenseMetadataReport.components).hasSize(1);
+
+    ComponentIdentifier expectedComponentIdentifier =
+        rawReport.components.get(0).componentIdentifier.toComponentIdentifier();
+    ApiLicenseLegalComponentDTO dto = licenseMetadataReport.components.get(0);
+    assertThat(dto.componentIdentifier.toComponentIdentifier()).isEqualTo(expectedComponentIdentifier);
+    assertThat(dto.packageUrl)
+        .isEqualTo(PackageUrlIdentifier.fromComponentIdentifier(expectedComponentIdentifier).getPackageUrl());
+    assertThat(dto.displayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expectedComponentIdentifier).toString());
+  }
+
   private void testGetLicenseLegalApplicationReport(
       Application app,
       ApiReportRawDataDTOV2 rawReport,

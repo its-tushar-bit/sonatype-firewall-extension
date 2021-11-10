@@ -30,11 +30,11 @@ public class AddWaiverPage
   }
 
   public SelenideElement artifactName() {
-    return child(".iq-add-waiver-form__component .nx-h2 span");
+    return child(".iq-add-waiver-form__component .nx-read-only__label span");
   }
 
   public SelenideElement componentName() {
-    return child(".iq-add-waiver-form__component .nx-tile-header__subtitle");
+    return child(".iq-add-waiver-form__component .nx-read-only__data");
   }
 
   public SelenideElement policyName() {
@@ -42,15 +42,15 @@ public class AddWaiverPage
   }
 
   public SelenideElement constraintName() {
-    return child(".iq-add-waiver-form__constraint .iq-read-only-data");
+    return child(".iq-add-waiver-form__constraint .nx-read-only__data");
   }
 
   public ElementsCollection conditions() {
-    return children(".iq-add-waiver-form__conditions .iq-read-only-data span");
+    return children(".iq-add-waiver-form__conditions .nx-read-only__data span");
   }
 
   public SelenideElement condition(int index) {
-    return child(".iq-add-waiver-form__conditions .iq-read-only-data span", nthChild(index));
+    return child(".iq-add-waiver-form__conditions .nx-read-only__data span", nthChild(index));
   }
 
   public SelenideElement vulnerabilityDetailsLink() {

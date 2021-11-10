@@ -48,6 +48,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyCentricReportWaiverTest
@@ -166,6 +167,7 @@ public class PolicyCentricReportWaiverTest
 
     addWaiverPage.should(appear);
     addWaiverPage.comments().setValue(longComment);
+    scrollIntoView(addWaiverPage.artifactName());
     eyesWatcher.eyesCheck("Add waiver");
     addWaiverPage.saveButton().shouldBe(visible, enabled).click();
     NxSubmitMask.seeAndWaitForDismissal();

@@ -5,13 +5,21 @@
  */
 
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 add-waiver-page {
   display: contents;
 }
 
-.iq-add-waiver-form .iq-read-only-data {
-  @include container-horizontal;
+.iq-add-waiver-form {
+  .nx-read-only__data,
+  .nx-read-only__label {
+    @include container-horizontal;
+  }
+}
+
+.iq-add-waiver-form .nx-read-only__label {
+  color: var(--nx-color-text-dark);
 }
 
 .iq-add-waiver-form__component .nx-icon {
@@ -27,12 +35,13 @@ add-waiver-page {
   box-sizing: border-box;
   min-height: 200px;
   width: 100%;
+  max-width: var(--nx-width-text-wrapping);
 }
 
 .iq-add-waiver-form .nx-btn-bar {
   @include container-vertical;
 }
 
-.nx-form-group.iq-add-waiver-form__vulnerability_details_link {
+.iq-add-waiver-form__vulnerability_details_link {
   margin-bottom: var(--nx-spacing-8x);
 }

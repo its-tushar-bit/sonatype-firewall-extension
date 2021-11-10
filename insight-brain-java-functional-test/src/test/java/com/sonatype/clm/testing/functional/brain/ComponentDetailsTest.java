@@ -381,7 +381,6 @@ public class ComponentDetailsTest
     IdentificationInfoSection identificationInfoSection =
         componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
     identificationInfoSection.shouldBe(visible);
-    identificationInfoSection.getCatalogedDateItem().shouldHave(text("Cataloged 6 years ago"));
     identificationInfoSection.getMatchStateItem().shouldHave(text("Match State exact"));
     identificationInfoSection.getIdentificationSourceItem().shouldHave(text("Identification Source"));
     identificationInfoSection.getCategoryItem().shouldHave(text("Category"));

@@ -12,6 +12,7 @@ import classnames from 'classnames';
 import { versionComparisonInfoPropType } from '../../componentDetailsUtils';
 import { formatTimeAgoUpToDay } from 'MainRoot/util/dateUtils';
 import { SECURITY, LICENSE, QUALITY, OTHER } from './policyThreatCategory';
+import { isEmpty } from 'ramda';
 
 export const CompareVersions = ({ currentVersion, selectedVersion, loading }) => {
   const showHygeneRating = currentVersion.hygieneRating || selectedVersion.hygieneRating;
@@ -33,7 +34,7 @@ export const CompareVersions = ({ currentVersion, selectedVersion, loading }) =>
           <NxTable.Row id="version">
             <NxTable.Cell>Version</NxTable.Cell>
             <NxTable.Cell>{currentVersion.version}</NxTable.Cell>
-            <NxTable.Cell>{loading ? <NxLoadingSpinner /> : selectedVersion.version || '--'}</NxTable.Cell>
+            <NxTable.Cell>{loading ? <NxLoadingSpinner /> : selectedVersion.version || '-'}</NxTable.Cell>
           </NxTable.Row>
           <NxTable.Row id="highestPolicyThreat">
             <NxTable.Cell>Highest Policy Threat</NxTable.Cell>
@@ -107,10 +108,11 @@ export const CompareVersions = ({ currentVersion, selectedVersion, loading }) =>
           <NxTable.Row id="catalogDate" className="visual-testing-ignore">
             <NxTable.Cell>Cataloged</NxTable.Cell>
             <NxTable.Cell>
-              {currentVersion.catalogDate && formatTimeAgoUpToDay(currentVersion.catalogDate)}
+              {currentVersion.catalogDate ? formatTimeAgoUpToDay(currentVersion.catalogDate) : '-'}
             </NxTable.Cell>
             <NxTable.Cell>
-              {selectedVersion.catalogDate && formatTimeAgoUpToDay(selectedVersion.catalogDate)}
+              {!isEmpty(selectedVersion) &&
+                (selectedVersion.catalogDate ? formatTimeAgoUpToDay(selectedVersion.catalogDate) : '-')}
             </NxTable.Cell>
           </NxTable.Row>
         </NxTable.Body>

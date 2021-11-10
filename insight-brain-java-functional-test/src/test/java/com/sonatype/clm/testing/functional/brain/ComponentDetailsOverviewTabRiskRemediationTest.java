@@ -344,7 +344,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     CompareVersionsTable table = riskRemediation.compareVersionsTable();
     table.shouldBe(visible);
     table.versionRow().get(1).shouldHave(text("29.50"));
-    table.versionRow().get(2).shouldHave(text("--"));
+    table.versionRow().get(2).shouldHave(text("-"));
     table.highestPolicyThreatRow().get(1).shouldHave(text("10 within 4 policies"));
     table.highestPolicyThreatRow().get(2).shouldBe(empty);
     table.highestSecurityThreatRow().get(1).shouldHave(text("10"));
@@ -404,7 +404,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     versionGraph.selectVersion(4).click();
 
     table.versionRow().get(1).shouldHave(text("29.50"));
-    table.versionRow().get(2).shouldHave(text("--"));
+    table.versionRow().get(2).shouldHave(text("-"));
     table.highestPolicyThreatRow().get(2).shouldBe(empty);
     table.highestCvssScoreRow().get(2).shouldBe(empty);
     table.effectiveLicenseRow().get(2).shouldBe(empty);

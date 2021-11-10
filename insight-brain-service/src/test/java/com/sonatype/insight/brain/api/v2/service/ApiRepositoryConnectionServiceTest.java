@@ -170,7 +170,7 @@ public class ApiRepositoryConnectionServiceTest
     dto.baseUrl = "baseUrl";
     assertThatExceptionOfType(ConflictException.class)
         .isThrownBy(() -> repositoryConnectionService.addRepositoryConnection(OwnerType.ORGANIZATION, orgId, dto))
-        .withMessage("base URL configuration already exist for organization with id: " + orgId);
+        .withMessage("base URL configuration already exists for organization with id: " + orgId);
   }
 
   @Test
@@ -313,7 +313,7 @@ public class ApiRepositoryConnectionServiceTest
     assertThatExceptionOfType(ConflictException.class)
         .isThrownBy(() -> repositoryConnectionService.updateRepositoryConnection(OwnerType.ORGANIZATION, orgId,
             dto.repositoryConnectionId, dto))
-        .withMessage("repository connection URL configuration exist for organization with id: " + orgId);
+        .withMessage("repository connection URL configuration exists for organization with id: " + orgId);
   }
 
   @Test

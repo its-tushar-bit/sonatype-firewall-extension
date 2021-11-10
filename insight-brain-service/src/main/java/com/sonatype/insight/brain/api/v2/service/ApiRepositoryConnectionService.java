@@ -69,7 +69,7 @@ public class ApiRepositoryConnectionService
     AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, repositoryConnectionDTO.baseUrl);
     if (repositoryConnectionDAO.getByOwnerIdAndBaseUrl(ownerId, repositoryConnectionDTO.baseUrl) != null) {
       throw new ConflictException(
-          String.format("base URL configuration already exist for %s with id: %s", ownerType, ownerId));
+          String.format("base URL configuration already exists for %s with id: %s", ownerType, ownerId));
     }
 
     repositoryConnectionDTO.ownerId = ownerId;
@@ -92,7 +92,7 @@ public class ApiRepositoryConnectionService
       RepositoryConnection connection =
           repositoryConnectionDAO.getByOwnerIdAndBaseUrl(internalOwnerId, dto.baseUrl);
       if (connection != null && !Objects.equals(connection.getId(), repositoryConnectionId)) {
-        throw new ConflictException(String.format("repository connection URL configuration exist for %s with id: %s",
+        throw new ConflictException(String.format("repository connection URL configuration exists for %s with id: %s",
             ownerType, internalOwnerId));
       }
     }

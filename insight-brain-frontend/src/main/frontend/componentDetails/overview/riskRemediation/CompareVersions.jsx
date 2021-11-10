@@ -15,6 +15,7 @@ import { SECURITY, LICENSE, QUALITY, OTHER } from './policyThreatCategory';
 
 export const CompareVersions = ({ currentVersion, selectedVersion, loading }) => {
   const showHygeneRating = currentVersion.hygieneRating || selectedVersion.hygieneRating;
+  const showIntegrityRating = currentVersion.integrityRating || selectedVersion.integrityRating;
   return (
     <section className="iq-compare-versions nx-grid-col__section">
       <header id="compare-versions-header" className="nx-grid-header">
@@ -96,11 +97,13 @@ export const CompareVersions = ({ currentVersion, selectedVersion, loading }) =>
               <NxTable.Cell>{renderHygieneRating(selectedVersion.hygieneRating)}</NxTable.Cell>
             </NxTable.Row>
           )}
-          <NxTable.Row id="integrityRating">
-            <NxTable.Cell>Integrity Rating</NxTable.Cell>
-            <NxTable.Cell>{renderIntegrityRating(currentVersion.integrityRating)}</NxTable.Cell>
-            <NxTable.Cell>{renderIntegrityRating(selectedVersion.integrityRating)}</NxTable.Cell>
-          </NxTable.Row>
+          {showIntegrityRating && (
+            <NxTable.Row id="integrityRating">
+              <NxTable.Cell>Integrity Rating</NxTable.Cell>
+              <NxTable.Cell>{renderIntegrityRating(currentVersion.integrityRating)}</NxTable.Cell>
+              <NxTable.Cell>{renderIntegrityRating(selectedVersion.integrityRating)}</NxTable.Cell>
+            </NxTable.Row>
+          )}
           <NxTable.Row id="catalogDate" className="visual-testing-ignore">
             <NxTable.Cell>Cataloged</NxTable.Cell>
             <NxTable.Cell>

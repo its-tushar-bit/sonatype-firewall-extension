@@ -517,10 +517,9 @@ describe('CompareVersions', () => {
   });
 
   describe('Integrity Rating row', () => {
-    it('renders empty cell if integrityRating is undefined', () => {
+    it('does not renders cell if integrityRating is undefined', () => {
       const integrityRatingRow = getShallow().find('#integrityRating');
-      expect(integrityRatingRow.childAt(1)).toContainReact(<NxTableCell />);
-      expect(integrityRatingRow.childAt(2)).toContainReact(<NxTableCell />);
+      expect(integrityRatingRow).not.toExist();
     });
 
     it('renders rating label with .iq-integrity-rating-suspicious class if rating id is 1', () => {

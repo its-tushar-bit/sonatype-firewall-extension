@@ -88,7 +88,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = fa
         ],
       }),
     ].concat(cssOutputPath ? getCssPlugins() : [], productionPlugins),
-    // Babel is used to to convert to ES5-compatible syntax. We'll probabably have to output
+    // Babel is used to to convert to ES5-compatible syntax. We'll probably have to output
     // ES5 until the end of time due to the IDE plugins. As of 2021, Visual Studio and Eclipse on Windows are known
     // to not work with modern syntax.
     es5LoaderBaseRule = {

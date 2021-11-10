@@ -609,14 +609,12 @@ public class ApplicationSourceControlEditorTest
     refresh();
 
     SourceControlEditorPage.repositoryUrl().setValue(SSH_REPOSITORY_URL);
-    SourceControlEditorPage.repositoryUrlInfo().shouldBe(visible);
 
     SourceControlEditorPage.saveButton().click();
     FormMask.seeAndWaitForDismissal();
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.repositoryUrl().shouldHave(value(SSH_REPOSITORY_URL));
-    SourceControlEditorPage.repositoryUrlInfo().shouldNotBe(visible);
   }
 
   @Test

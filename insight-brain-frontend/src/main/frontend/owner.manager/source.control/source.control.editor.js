@@ -75,9 +75,7 @@ function SourceControlEditorController(
   vm.effectiveTokenInheritFrom = effectiveTokenInheritFrom;
 
   // url
-  vm.showSshUrlInfo = false;
   vm.isSshUrl = isSshUrl;
-  vm.checkUrlFormat = checkUrlFormat;
 
   // PR commenting
   vm.pullRequestCommentingEnabledInheritText = undefined;
@@ -143,7 +141,6 @@ function SourceControlEditorController(
 
   function doLoad() {
     vm.loadError = undefined;
-    vm.showSshUrlInfo = false;
     vm.loading = true;
 
     let ownerPromise;
@@ -490,10 +487,6 @@ function SourceControlEditorController(
    */
   function isSshUrl() {
     return vm.dirtySourceControl.repositoryUrl && vm.dirtySourceControl.repositoryUrl.match(sshUrlRegExp);
-  }
-
-  function checkUrlFormat() {
-    vm.showSshUrlInfo = isSshUrl();
   }
 
   function canCollapseAdvanced() {

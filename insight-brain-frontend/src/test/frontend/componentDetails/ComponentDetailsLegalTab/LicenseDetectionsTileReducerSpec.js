@@ -3,7 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
+import reducer, {
+  initialState,
+} from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
+import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 describe('componentDetailsLicenseDetectionsTile reducer', () => {
   describe('unknown action', () => {
@@ -453,6 +456,34 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
 
       expect(submitMaskState).toBe(null);
       expect(submitError).toEqual(payload);
+    });
+  });
+
+  describe('SELECT_COMPONENT', () => {
+    it('resets scurrent tate to initialState', () => {
+      const state = Object.freeze({
+        licenseOverride: {},
+        declaredlicenses: [],
+        effectiveLicenses: [],
+        observedlicenses: [],
+        selectableLicenses: [],
+        allLicenses: [],
+        loading: true,
+        loadError: 'error',
+        showEditLicensesPopover: true,
+        editLicensesForm: {
+          scope: 'scope',
+          licenseIds: ['23'],
+          status: 'status',
+          isDirty: true,
+          submitError: 'error',
+          submitMaskState: true,
+          fieldsPristineState: false,
+        },
+      });
+
+      const newState = reducer(state, { type: SELECT_COMPONENT });
+      expect(newState).toEqual(initialState);
     });
   });
 });

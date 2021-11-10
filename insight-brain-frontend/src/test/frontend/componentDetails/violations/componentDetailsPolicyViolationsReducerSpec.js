@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from 'MainRoot/componentDetails/ViolationsTableTile/policyViolationsSlice';
+import reducer, { initialState } from 'MainRoot/componentDetails/ViolationsTableTile/policyViolationsSlice';
+import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 describe('componentDetailspolicyViolationsSlice', () => {
   const stateConstantObject = { value: 'test value' };
@@ -487,6 +488,27 @@ describe('componentDetailspolicyViolationsSlice', () => {
       });
       expect(newState.violationType).toBe('test');
       expect(newState.other).toBe(stateConstantObject);
+    });
+  });
+
+  describe('SELECT_COMPONENT', () => {
+    it('resets current state to initialState', () => {
+      const state = Object.freeze({
+        violations: {},
+        waivers: [],
+        loading: true,
+        loadError: 'error',
+        showComponentWaiversPopover: true,
+        reloadComponentWaivers: true,
+        showViolationsDetailPopover: true,
+        hasPermissionToAddWaivers: true,
+        innerSourceTransitiveWaiver: true,
+        selectedPolicyViolationId: '42',
+        violationType: 'TYPE',
+      });
+
+      const newState = reducer(state, { type: SELECT_COMPONENT });
+      expect(newState).toEqual(initialState);
     });
   });
 });

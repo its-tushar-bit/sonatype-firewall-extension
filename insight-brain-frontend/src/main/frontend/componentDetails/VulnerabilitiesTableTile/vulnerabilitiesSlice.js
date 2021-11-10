@@ -6,7 +6,7 @@
 import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { invertObj } from 'ramda';
+import { always, invertObj } from 'ramda';
 
 import { pathSet } from 'MainRoot/util/jsUtil';
 import {
@@ -23,6 +23,7 @@ import {
 } from './vulnerabilitiesSelectors';
 import { validateMaxLength } from 'MainRoot/util/validationUtil';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 const { initialState: initUserInput, userInput } = nxTextInputStateHelpers;
 const AVAILABLE_STATUS = {
@@ -34,7 +35,7 @@ const AVAILABLE_STATUS = {
 
 const REDUCER_NAME = 'componentDetailsVulnerabilities';
 
-const initialState = {
+export const initialState = {
   vulnerabilities: {
     data: null,
     loading: false,
@@ -203,6 +204,7 @@ const componentDetailsVulnerabilitiesSlice = createSlice({
       state.vulnerabilitySecurityOverride.submitMaskState = null;
       state.vulnerabilitySecurityOverride.saveError = Messages.getHttpErrorMessage(payload);
     },
+    [SELECT_COMPONENT]: always(initialState),
   },
 });
 

@@ -4,11 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import reducer from '../../../main/frontend/componentDetails/componentDetailsSlice';
-import {
-  VISIT_ANCESTOR_ACTION,
-  RETURN_TO_OFFSPRING,
-} from '../../../main/frontend/componentDetails/componentDetailsSlice';
+import reducer, { initialState } from 'MainRoot/componentDetails/componentDetailsSlice';
+import { VISIT_ANCESTOR_ACTION, RETURN_TO_OFFSPRING } from 'MainRoot/componentDetails/componentDetailsSlice';
+import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 const LOAD_COMPONENT_LABELS_REQUESTED = 'componentDetails/loadComponentDetails/pending';
 const LOAD_COMPONENT_LABELS_FULFILLED = 'componentDetails/loadComponentDetails/fulfilled';
@@ -549,6 +547,37 @@ describe('componentDetailsReducer', () => {
         payload: { test: 'test' },
       });
       expect(newState.selectedLabelDetails).toEqual({ test: 'test' });
+    });
+  });
+
+  describe('SELECT_COMPONENT', () => {
+    it('resets current state to initialState', () => {
+      const state = Object.freeze({
+        isVisitingAncestor: true,
+        isSavingLabelScope: true,
+        offspring: {},
+        labels: ['label'],
+        applicableLabels: ['applicable'],
+        applicableLabelScopes: ['scope'],
+        loadError: 'error',
+        showApplyLabelModal: true,
+        selectedLabelDetails: {},
+        labelScopeToSave: {},
+        applicableLabelsLoadError: 'error',
+        removeAppliedLabelError: 'error',
+        showRemoveLabelModal: true,
+        applicableLabelScopesLoadError: 'error',
+        saveLabelScopeError: 'error',
+        showMatchersPopover: true,
+        setProprietaryMatchers: {
+          submitMaskState: false,
+          submitError: 'error',
+          data: { pathnames: [], regex: '' },
+        },
+      });
+
+      const newState = reducer(state, { type: SELECT_COMPONENT });
+      expect(newState).toEqual(initialState);
     });
   });
 });

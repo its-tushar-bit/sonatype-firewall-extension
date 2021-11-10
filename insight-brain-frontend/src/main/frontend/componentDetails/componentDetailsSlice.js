@@ -5,9 +5,9 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { curryN, prop, sortWith, ascend } from 'ramda';
+import { always, curryN, prop, sortWith, ascend } from 'ramda';
 import { enableMapSet } from 'immer';
-
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { loadReportIfNeeded } from '../applicationReport/applicationReportActions';
 import { selectSelectedComponent } from '../applicationReport/applicationReportSelectors';
@@ -22,9 +22,9 @@ import {
 import { selectComponentDetailsRequestData } from './overview/overviewSelectors';
 import { Messages } from '../util/CommonServices';
 import { toggleBooleanProp } from '../util/reduxUtil';
-import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 const REDUCER_NAME = 'componentDetails';
 export const VISIT_ANCESTOR_ACTION = REDUCER_NAME + '/visitAncestors';
@@ -32,7 +32,7 @@ export const RETURN_TO_OFFSPRING = REDUCER_NAME + '/backToOffspring';
 const COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME = 'applicationReport.componentDetails.overview';
 enableMapSet();
 
-const initialState = Object.freeze({
+export const initialState = Object.freeze({
   pendingLoads: new Set(),
   isVisitingAncestor: false,
   isSavingLabelScope: false,
@@ -422,6 +422,7 @@ const componentDetailsSlice = createSlice({
     [saveApplyLabelScope.pending]: saveApplyLabelScopeRequested,
     [saveApplyLabelScope.fulfilled]: saveApplyLabelScopeFulfilled,
     [saveApplyLabelScope.rejected]: saveApplyLabelScopeFailed,
+    [SELECT_COMPONENT]: always(initialState),
   },
 });
 

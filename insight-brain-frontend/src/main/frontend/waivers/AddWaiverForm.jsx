@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { find, propEq } from 'ramda';
 import classnames from 'classnames';
@@ -34,6 +34,7 @@ export default function AddWaiverForm(props) {
     expiryTime,
     submitError,
     openVulnerabilityDetailsModal,
+    closeVulnerabilityDetailsModal,
     setWaiverScope,
     setWaiverComment,
     setApplyToAllComponents,
@@ -42,6 +43,10 @@ export default function AddWaiverForm(props) {
     vulnerabilityId,
     cancelAction,
   } = props;
+
+  useEffect(() => {
+    return () => closeVulnerabilityDetailsModal();
+  }, []);
 
   const onSubmit = (evt) => {
     evt.preventDefault();
@@ -226,6 +231,7 @@ AddWaiverForm.propTypes = {
   setWaiverComment: PropTypes.func.isRequired,
   saveWaiver: PropTypes.func.isRequired,
   openVulnerabilityDetailsModal: PropTypes.func.isRequired,
+  closeVulnerabilityDetailsModal: PropTypes.func.isRequired,
   vulnerabilityId: PropTypes.string,
   cancelAction: PropTypes.func.isRequired,
   componentIdentifier: PropTypes.object,

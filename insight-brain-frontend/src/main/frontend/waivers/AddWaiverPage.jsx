@@ -31,6 +31,7 @@ export default function AddWaiverPage(props) {
     //actions
     loadAddWaiverData,
     openVulnerabilityDetailsModal,
+    closeVulnerabilityDetailsModal,
     saveWaiver,
     setWaiverComment,
     setWaiverScope,
@@ -57,6 +58,7 @@ export default function AddWaiverPage(props) {
       waiverComments,
       availableWaiverScopes,
       openVulnerabilityDetailsModal,
+      closeVulnerabilityDetailsModal,
       selectedWaiverScope,
       expiryTime,
       submitError,

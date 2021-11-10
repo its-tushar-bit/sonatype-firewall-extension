@@ -3,24 +3,27 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import React from 'react';
 import { NxButton, NxFieldset, NxRadio, NxTextInput } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../enzymeUtils';
 import AddWaiverForm from '../../../main/frontend/waivers/AddWaiverForm';
 import ArtifactNameDisplay from '../../../main/frontend/react/ArtifactNameDisplay';
 import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
-import VulnerabilityDetailsModalContainer from '../../../main/frontend/vulnerabilityDetails/VulnerabilityDetailsModalContainer';
+import * as VulnerabilityDetailsModalContainer from '../../../main/frontend/vulnerabilityDetails/VulnerabilityDetailsModalContainer';
 import LoadError from '../../../main/frontend/react/LoadError';
 
 describe('AddWaiverForm', function () {
   let minimalProps,
     getShallowComponent,
+    getMountedComponent,
     saveWaiverSpy,
     setWaiverCommentSpy,
     setWaiverScopeSpy,
     setApplyToAllComponentsSpy,
     setExpiryTimeSpy,
     openVulnerabilityDetailsModalSpy,
+    closeVulnerabilityDetailsModalSpy,
     cancelActionSpy;
 
   beforeEach(function () {
@@ -28,7 +31,8 @@ describe('AddWaiverForm', function () {
     setWaiverCommentSpy = jasmine.createSpy('setWaiverComment');
     setWaiverScopeSpy = jasmine.createSpy('setWaiverScope');
     setApplyToAllComponentsSpy = jasmine.createSpy('setApplyToAllComponents');
-    openVulnerabilityDetailsModalSpy = jasmine.createSpy('loadAddWaiverDataSpy');
+    openVulnerabilityDetailsModalSpy = jasmine.createSpy('openVulnerabilityDetailsModal');
+    closeVulnerabilityDetailsModalSpy = jasmine.createSpy('closeVulnerabilityDetailsModal');
     cancelActionSpy = jasmine.createSpy('cancelAction');
     setExpiryTimeSpy = jasmine.createSpy('setExpiryTime');
 
@@ -73,16 +77,29 @@ describe('AddWaiverForm', function () {
       setExpiryTime: setExpiryTimeSpy,
       saveWaiver: saveWaiverSpy,
       openVulnerabilityDetailsModal: openVulnerabilityDetailsModalSpy,
+      closeVulnerabilityDetailsModal: closeVulnerabilityDetailsModalSpy,
       vulnerabilityId: 'CVE-12345',
       cancelAction: cancelActionSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(AddWaiverForm, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(AddWaiverForm, minimalProps);
   });
 
   it('renders a form with the appropriate classes', function () {
     const component = getShallowComponent();
     expect(component).toMatchSelector('form.nx-form.iq-add-waiver-form');
+  });
+
+  it('calls closeVulnerabilityDetailsModal when unmounting', function () {
+    spyOn(VulnerabilityDetailsModalContainer, 'default').and.returnValue(
+      <div>Vulnerability Details Modal Container</div>
+    );
+
+    const component = getMountedComponent();
+    component.unmount();
+
+    expect(closeVulnerabilityDetailsModalSpy).toHaveBeenCalledTimes(1);
   });
 
   it('renders a tile with the artifact and component names', function () {
@@ -142,10 +159,10 @@ describe('AddWaiverForm', function () {
 
   it('renders a VulnerabilityDetailsModalContainer IFF vulnerabilityId is truthy', function () {
     let component = getShallowComponent();
-    expect(component.find(VulnerabilityDetailsModalContainer)).toExist();
+    expect(component.find(VulnerabilityDetailsModalContainer.default)).toExist();
 
     component = getShallowComponent({ vulnerabilityId: null });
-    expect(component.find(VulnerabilityDetailsModalContainer)).not.toExist();
+    expect(component.find(VulnerabilityDetailsModalContainer.default)).not.toExist();
     expect(component.find('.iq-add-waiver-form__vulnerability_details_link')).not.toExist();
   });
 

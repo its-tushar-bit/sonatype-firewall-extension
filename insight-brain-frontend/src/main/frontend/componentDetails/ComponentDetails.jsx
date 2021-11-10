@@ -7,7 +7,6 @@ import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import cx from 'classnames';
 import { NxInfoAlert, NxLoadWrapper } from '@sonatype/react-shared-components';
-
 import {
   ComponentDetailsHeader,
   ComponentDetailsReportInfo,
@@ -21,14 +20,14 @@ import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
 import ComponentDetailsTabs from './ComponentDetailsTabs';
 import UnknownComponentAlert from './UnknownComponentAlert';
 
-export const getTabIdPerIndex = (isUnknown, isClaimed) => {
+export const getTabIdPerIndex = (isUnknown, isClaimed, isExact) => {
   if (isUnknown) {
     return ['overview', 'violations', 'claim'];
   }
 
-  return isClaimed
-    ? ['overview', 'violations', 'security', 'legal', 'labels', 'claim', 'audit']
-    : ['overview', 'violations', 'security', 'legal', 'labels', 'audit'];
+  return isExact && !isClaimed
+    ? ['overview', 'violations', 'security', 'legal', 'labels', 'audit']
+    : ['overview', 'violations', 'security', 'legal', 'labels', 'claim', 'audit'];
 };
 
 export default function ComponentDetails({
@@ -54,9 +53,10 @@ export default function ComponentDetails({
   });
 
   const isUnknown = componentDetails?.matchState === 'unknown';
+  const isExact = componentDetails?.matchState === 'exact';
   const isClaimed = componentDetails?.identificationSource === 'Manual';
 
-  const tabIdPerIndex = getTabIdPerIndex(isUnknown, isClaimed);
+  const tabIdPerIndex = getTabIdPerIndex(isUnknown, isClaimed, isExact);
 
   const handleTabChange = (tabIndex) => {
     const tabIdToMoveTo = tabIdPerIndex[tabIndex];
@@ -114,6 +114,7 @@ export default function ComponentDetails({
           onTabChange={handleTabChange}
           isUnknown={isUnknown}
           isClaimed={isClaimed}
+          isExact={isExact}
         />
       </div>
       {pagination && <ComponentDetailsFooter {...pagination} backToOffspringOnClick={backToOffspringOnClick} />}

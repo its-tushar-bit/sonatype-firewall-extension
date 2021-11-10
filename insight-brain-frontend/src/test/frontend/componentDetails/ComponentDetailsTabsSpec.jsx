@@ -19,6 +19,7 @@ describe('ComponentDetailsTabs', function () {
       onTabChange: onTabChangeSpy,
       isUnknown: false,
       isClaimed: false,
+      isExact: true,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentDetailsTabs, minimalProps);
@@ -36,7 +37,7 @@ describe('ComponentDetailsTabs', function () {
     expect(tabs).toHaveProp('onTabSelect');
   });
 
-  it('renders 6 tabs with the appropriate names when component is not unknown', function () {
+  it('renders 6 tabs with the appropriate names when component is not unknown and matchState=exact', function () {
     const component = getShallowComponent(),
       tabBar = component.find(NxTabs);
 
@@ -53,7 +54,7 @@ describe('ComponentDetailsTabs', function () {
   });
 
   it('renders 7 tabs with the appropriate names when component is claimed but not unknown', function () {
-    const component = getShallowComponent({ isClaimed: true, isUnknown: false });
+    const component = getShallowComponent({ isClaimed: true, isUnknown: false, isExact: false });
     const tabBar = component.find(NxTabs);
 
     expect(tabBar).toExist();
@@ -70,7 +71,7 @@ describe('ComponentDetailsTabs', function () {
   });
 
   it('renders 3 tabs with the appropriate names when there is an unknown component', function () {
-    const component = getShallowComponent({ isUnknown: true });
+    const component = getShallowComponent({ isUnknown: true, isExact: false });
     const tabBar = component.find(NxTabs);
 
     expect(tabBar).toExist();

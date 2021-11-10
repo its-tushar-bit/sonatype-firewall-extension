@@ -15,7 +15,7 @@ import ComponentDetailsLegalTab from './ComponentDetailsLegalTab/ComponentDetail
 import ManageComponentLabelsContainer from './ManageComponentLabels/ManageComponentLabelsContainer';
 import { ClaimContainer } from './claim/ClaimContainer';
 
-export default function ComponentDetailsTabs({ activeTab, onTabChange, isUnknown, isClaimed }) {
+export default function ComponentDetailsTabs({ activeTab, onTabChange, isUnknown, isClaimed, isExact }) {
   return (
     <NxTabs activeTab={activeTab} onTabSelect={onTabChange}>
       <NxTabList aria-label="Component detail tabs">
@@ -24,7 +24,7 @@ export default function ComponentDetailsTabs({ activeTab, onTabChange, isUnknown
         {!isUnknown && <NxTab>Security</NxTab>}
         {!isUnknown && <NxTab>Legal</NxTab>}
         {!isUnknown && <NxTab>Labels</NxTab>}
-        {(isClaimed || isUnknown) && <NxTab>Claim</NxTab>}
+        {!(isExact && !isClaimed) && <NxTab>Claim</NxTab>}
         {!isUnknown && <NxTab>Audit Log</NxTab>}
       </NxTabList>
       <NxTabPanel id="component-details-overview-tab-content">
@@ -48,7 +48,7 @@ export default function ComponentDetailsTabs({ activeTab, onTabChange, isUnknown
           <ManageComponentLabelsContainer />
         </NxTabPanel>
       )}
-      {(isClaimed || isUnknown) && (
+      {!(isExact && !isClaimed) && (
         <NxTabPanel id="component-details-claim-unknown-component">
           <ClaimContainer />
         </NxTabPanel>
@@ -68,4 +68,5 @@ ComponentDetailsTabs.propTypes = {
   onTabChange: PropTypes.func.isRequired,
   isUnknown: PropTypes.bool.isRequired,
   isClaimed: PropTypes.bool.isRequired,
+  isExact: PropTypes.bool.isRequired,
 };

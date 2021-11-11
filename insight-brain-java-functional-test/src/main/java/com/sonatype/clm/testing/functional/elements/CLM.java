@@ -34,4 +34,6 @@ public class CLM
   public static final Condition CSS_SIDEBAR_OPEN = cssClass("open");
 
   public static final Condition CSS_SIDEBAR_CLOSED = cssClass("closed");
+
+  public static final Condition NX_RADIO_SELECTED = cssClass("tm-checked");
 }

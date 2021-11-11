@@ -91,7 +91,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     setupHdsResponseForVersionList();
 
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
   }
 
   @Test
@@ -300,7 +300,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     mockHdsResponseForFirstComponent();
     mockHdsResponseForSecondComponent();
 
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
 
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1,SECOND_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);

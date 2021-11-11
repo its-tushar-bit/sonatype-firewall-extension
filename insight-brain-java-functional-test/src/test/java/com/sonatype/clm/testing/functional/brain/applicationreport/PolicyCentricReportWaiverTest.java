@@ -12,14 +12,17 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
+import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage.DeleteWaiverModal;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListRow;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListTable;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
-import com.sonatype.clm.testing.functional.pages.WaiverCip;
-import com.sonatype.clm.testing.functional.pages.WaiverCip.ConfirmRemoveWaiverDialog;
-import com.sonatype.clm.testing.functional.pages.WaiverCip.ExistingWaiver;
-import com.sonatype.clm.testing.functional.pages.WaiverCip.ViewWaiversDialog;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -34,6 +37,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -132,32 +136,27 @@ public class PolicyCentricReportWaiverTest
     NxSubmitMask.seeAndWaitForDismissal();
     addWaiverPage.should(disappear);
 
-    waitUntilUrl(ApplicationReportPage.url(app, scanId));
-    reportPage.shouldBe(visible);
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.shouldBe(visible);
+    WaiverListTable waiverListTable = listWaiversPage.waiverListTable();
+    waiverListTable.shouldBe(visible);
+    waiverListTable.rows().shouldHaveSize(1);
+    WaiverListRow existingWaiver = waiverListTable.row(1);
 
-    CipModal cipModal = reportPage.cipModal();
-    cipModal.shouldBe(visible);
+    assertWaiver(existingWaiver, "TEST COMMENT");
 
-    switchCipToPolicyTab();
-
-    WaiverCip.viewWaivers().shouldBe(visible).click();
-
-    ViewWaiversDialog.rows().shouldHaveSize(1);
-
-    assertWaiver(ViewWaiversDialog.row(0), "TEST COMMENT");
     eyesWatcher.eyesCheck("Waivers list");
 
-    ViewWaiversDialog.row(0).removeButton().click();
-    ConfirmRemoveWaiverDialog.removeButton().should(visible).click();
+    existingWaiver.deleteButton().shouldBe(visible).click();
+    DeleteWaiverModal deleteWaiverModal = new DeleteWaiverModal();
+    deleteWaiverModal.root().shouldBe(visible);
+    deleteWaiverModal.yesButton().shouldBe(visible).click();
+    NxSubmitMask.seeAndWaitForDismissal();
 
-    ViewWaiversDialog.rows().shouldHaveSize(0);
-    ViewWaiversDialog.emptyText().shouldBe(visible);
-    ViewWaiversDialog.closeButton().click();
+    waiverListTable.rows().shouldHaveSize(1);
+    waiverListTable.noWaiversMessage().shouldBe(visible);
 
-    String longComment = StringUtils.repeat("Long text ", 101);
-    String truncatedLongComment = longComment.substring(0, 1000);
-
-    WaiverCip.row(0).waiveButton().click();
+    listWaiversPage.addWaiverButton().shouldBe(visible).click();
 
     // get policy violation id
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
@@ -166,6 +165,10 @@ public class PolicyCentricReportWaiverTest
     waitUntilUrl(AddWaiverPage.url(policyViolationId));
 
     addWaiverPage.should(appear);
+
+    String longComment = StringUtils.repeat("Long text ", 101);
+    String truncatedLongComment = longComment.substring(0, 1000);
+    addWaiverPage.shouldBe(visible);
     addWaiverPage.comments().setValue(longComment);
     scrollIntoView(addWaiverPage.artifactName());
     eyesWatcher.eyesCheck("Add waiver");
@@ -173,27 +176,16 @@ public class PolicyCentricReportWaiverTest
     NxSubmitMask.seeAndWaitForDismissal();
     addWaiverPage.should(disappear);
 
-    waitUntilUrl(ApplicationReportPage.url(app, scanId));
-    reportPage.shouldBe(visible);
+    waiverListTable.shouldBe(visible);
+    waiverListTable.rows().shouldHaveSize(1);
+    assertWaiver(waiverListTable.row(1), truncatedLongComment);
 
-    cipModal.shouldBe(visible);
-    switchCipToPolicyTab();
+    existingWaiver.deleteButton().click();
+    deleteWaiverModal.cancelButton().shouldBe(visible).click();
+    deleteWaiverModal.cancelButton().shouldBe(hidden);
 
-    WaiverCip.viewWaivers().shouldBe(visible).click();
-
-    ViewWaiversDialog.rows().shouldHaveSize(1);
-    ViewWaiversDialog.row(0).comment().shouldHave(text(truncatedLongComment));
-
-    ViewWaiversDialog.row(0).removeButton().click();
-    ConfirmRemoveWaiverDialog.cancelButton().shouldBe(visible).click();
-    ConfirmRemoveWaiverDialog.cancelButton().shouldBe(hidden);
-
-    ViewWaiversDialog.rows().shouldHaveSize(1);
-    assertWaiver(ViewWaiversDialog.row(0), truncatedLongComment);
-
-    ViewWaiversDialog.closeButton().click();
-
-    ViewWaiversDialog.closeButton().shouldBe(hidden);
+    waiverListTable.rows().shouldHaveSize(1);
+    assertWaiver(waiverListTable.row(1), truncatedLongComment);
   }
 
   @Test
@@ -280,24 +272,34 @@ public class PolicyCentricReportWaiverTest
                 "Waived", "Waived", "None"));
   }
 
-  private void assertWaiver(ExistingWaiver waiver, String comment) {
-    waiver.policy().shouldHave(text(policyName));
-    waiver.created().shouldHave(text(new SimpleDateFormat("yyyy-MM-dd").format(new Date())));
-    waiver.owner().shouldHave(text(app.getName()));
-    waiver.comment().shouldHave(text(comment));
+  private void assertWaiver(WaiverListRow waiver, String comment) {
+    waiver.dateCreated().shouldHave(text(new SimpleDateFormat("MM/dd/yyyy").format(new Date())));
+    waiver.scope().shouldHave(text(app.getName()));
+    waiver.comments().shouldHave(text(comment));
   }
 
   private void waiveComponent() {
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
 
     reportPage.shouldBe(visible);
-
-    CipModal cipModal = reportPage.cipModal();
-
     reportPage.resultRows().shouldHaveSize(13);
     reportPage.resultRow(2).click();
-    cipModal.tabLink(2).click();
-    WaiverCip.row(0).waiveButton().shouldBe(visible).click();
+
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.violationsTab().shouldBe(visible).click();
+    componentDetailsPage.violationsTabContent().shouldBe(visible);
+
+    PolicyViolationsTable violationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    violationsTable.shouldBe(visible);
+    SelenideElement row = violationsTable.getRow(1);
+    row.click();
+    PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
+    violationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = violationDetailPopover.getManageWaiversButton();
+    manageWaiversButton.click();
+    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
+    waiversForViolationPage.shouldBe(visible);
+    waiversForViolationPage.addWaiverButton().click();
 
     // get policy violation id
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(

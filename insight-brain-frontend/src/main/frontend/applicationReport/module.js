@@ -70,7 +70,7 @@ function routes($stateProvider, $urlRouterProvider) {
       },
     })
     .state('applicationReport.policy', {
-      url: '/policy?componentDetailsEnabled&componentHash&tabId',
+      url: '/policy?roarelSaysCip&componentHash&tabId',
       component: 'applicationReport',
       data: {
         title: 'Application Report',

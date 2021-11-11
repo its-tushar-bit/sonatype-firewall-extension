@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
+
 public class ComponentDetailsPage
     extends BasicElement<ComponentDetailsPage>
 {
@@ -62,7 +64,7 @@ public class ComponentDetailsPage
   }
 
   public SelenideElement backButton() {
-    return child(".nx-text-link");
+    return $("#menu-bar__back-button-container .nx-text-link");
   }
 
   public SelenideElement unknownComponentAlert() {

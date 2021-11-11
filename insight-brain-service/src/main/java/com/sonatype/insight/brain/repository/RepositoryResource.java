@@ -31,7 +31,6 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(RepositoryResource.RESOURCE_PATH)
-@Produces(MediaType.APPLICATION_JSON)
 public class RepositoryResource
 {
   public static final String RESOURCE_PATH = "rest/repositories";
@@ -68,12 +67,14 @@ public class RepositoryResource
    * @since 1.19.0
    */
   @GET
+  @Produces(MediaType.APPLICATION_JSON)
   public RepositoriesDTO getRepositories() {
     return repositoryService.getRepositories();
   }
 
   @GET
   @Path(REPOSITORY_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
   public RepositoryDTO getRepository(@PathParam("repositoryId") String repositoryId) {
     return repositoryService.getRepositoryById(repositoryId);
   }

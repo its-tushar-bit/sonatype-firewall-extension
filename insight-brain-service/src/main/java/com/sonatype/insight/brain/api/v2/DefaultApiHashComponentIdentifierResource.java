@@ -68,7 +68,6 @@ public class DefaultApiHashComponentIdentifierResource implements ApiHashCompone
 
   @Override
   @DELETE
-  @Consumes(MediaType.APPLICATION_JSON)
   @Path("{hash}")
   @Audited(AuditEvent.UNSET_COMPONENT_IDENTITY)
   public void delete(@PathParam("hash") String hash) {

@@ -12,6 +12,7 @@ import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
@@ -37,6 +38,7 @@ public class ReleaseGraphResource
   }
 
   @GET
+  @Produces(ReleaseGraphService.CONTENT_TYPE)
   public Response getImage(@PathParam("applicationId") final String applicationPublicId,
                            @PathParam("scanId") final String scanId,
                            @QueryParam("groupId") String groupId,

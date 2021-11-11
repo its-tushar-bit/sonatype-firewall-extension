@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -67,6 +68,7 @@ public class DefaultApiLegalAttributionReportTemplateResourceV2
   @Override
   @POST
   @Path(REPORT_TEMPLATE_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public AttributionReportTemplateDTO saveAttributionReportTemplate(AttributionReportTemplateDTO reportTemplateDTO) {
     if (reportTemplateDTO == null) {

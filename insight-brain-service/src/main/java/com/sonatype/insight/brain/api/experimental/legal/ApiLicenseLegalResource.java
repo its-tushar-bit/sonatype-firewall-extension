@@ -11,6 +11,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -104,6 +105,7 @@ public class ApiLicenseLegalResource
 
   @POST
   @Path(DASHBOARD_APPLICATIONS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public ApiLicenseLegalApplicationDashboardResultDTO getLicenseLegalApplicationsDashboard(
       LicenseLegalFilterDTO filter)
@@ -115,6 +117,7 @@ public class ApiLicenseLegalResource
 
   @POST
   @Path(DASHBOARD_COMPONENTS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public ApiLicenseLegalComponentDashboardResultDTO getLicenseLegalComponentsDashboard(LicenseLegalFilterDTO filter) {
     return apiLicenseLegalService.getLicenseLegalComponentsDashboard(filter.organizationIds, filter.applicationIds,
@@ -123,6 +126,7 @@ public class ApiLicenseLegalResource
 
   @POST
   @Path(DASHBOARD_APPLICATION_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApiLicenseLegalApplicationComponentDTO> getLicenseLegalApplicationDashboard(
       @PathParam("applicationPublicId") String applicationPublicId,
@@ -133,6 +137,7 @@ public class ApiLicenseLegalResource
 
   @POST
   @Path(COMPONENT_COPYRIGHT_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_COMPONENT_COPYRIGHT)
   public ComponentCopyrightDTO saveComponentCopyright(
@@ -159,6 +164,7 @@ public class ApiLicenseLegalResource
    */
   @POST
   @Path(COMPONENT_LEGAL_FILE_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_COMPONENT_LEGAL_FILE)
   public ComponentLegalFileDTO saveComponentLegalFile(
@@ -205,6 +211,7 @@ public class ApiLicenseLegalResource
    */
   @POST
   @Path(COMPONENT_OBLIGATION_ATTRIBUTION_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_COMPONENT_OBLIGATION_ATTRIBUTION)
   public ComponentObligationAttributionDTO saveComponentObligationAttribution(
@@ -224,7 +231,6 @@ public class ApiLicenseLegalResource
    */
   @DELETE
   @Path(COMPONENT_OBLIGATION_ATTRIBUTION_DELETE_PATH)
-  @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.DELETE_COMPONENT_OBLIGATION_ATTRIBUTION)
   public void deleteComponentObligationAttribution(
       @PathParam("componentObligationAttributionId") String componentObligationAttributionId)
@@ -252,6 +258,7 @@ public class ApiLicenseLegalResource
    */
   @POST
   @Path(COMPONENT_OBLIGATION_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.SAVE_COMPONENT_OBLIGATIONS)
   public ApiLicenseLegalObligationDTO saveComponentObligation(
@@ -274,6 +281,7 @@ public class ApiLicenseLegalResource
    */
   @POST
   @Path(COMPONENT_OBLIGATIONS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.SAVE_COMPONENT_OBLIGATIONS)
   public List<ApiLicenseLegalObligationDTO> saveComponentObligations(
@@ -289,7 +297,6 @@ public class ApiLicenseLegalResource
    */
   @DELETE
   @Path(COMPONENT_OBLIGATION_DELETE_PATH)
-  @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.DELETE_COMPONENT_OBLIGATION)
   public void deleteComponentObligations(@QueryParam("componentObligationId") List<String> componentObligationIds) {
     componentLegalService.deleteComponentObligations(componentObligationIds);

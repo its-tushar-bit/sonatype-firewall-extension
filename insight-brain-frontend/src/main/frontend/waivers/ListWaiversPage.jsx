@@ -65,8 +65,8 @@ export default function ListWaiversPage(props) {
   return (
     <Fragment>
       {waiverToDelete && <DeleteWaiverModalContainer />}
-      {isRequestWaiverPopoverShown && <RequestWaiversPopover onClose={() => setIsRequestWaiverPopoverShown(false)} />}
       <div id="list-waivers-page" className="nx-page-main list-waivers-page">
+        {isRequestWaiverPopoverShown && <RequestWaiversPopover onClose={() => setIsRequestWaiverPopoverShown(false)} />}
         <LoadWrapper
           loading={loadingManageWaiversData || !violationDetails}
           error={loadManageWaiversDataError}

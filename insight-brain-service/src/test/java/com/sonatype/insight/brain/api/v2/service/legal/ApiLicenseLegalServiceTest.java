@@ -830,16 +830,17 @@ public class ApiLicenseLegalServiceTest
   @Test
   public void testGetLicenseLegalComponentsDashboard_ByLicense() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    setupComponentDashboardEntities("Tag1", BuildStageType.ID, "somHash", componentIdentifier, "MIT", "AGPL-2.0");
+    setupComponentDashboardEntities("Tag1", BuildStageType.ID, "somHash", componentIdentifier, "MIT", "Apache-2.0");
     setupComponentDashboardEntities("Tag1", ReleaseStageType.ID, "somHash2", componentIdentifier, "AGPL-3.0");
 
     ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService
-        .getLicenseLegalComponentsDashboard(null, null, null, null, Sets.newHashSet("MIT"), null, 1, 1);
+        .getLicenseLegalComponentsDashboard(null, null, null, null, Sets.newHashSet("MIT", "Apache-2.0"), null, 1, 1);
 
     assertThat(resultDto.totalResultsCount).isEqualTo(1);
     assertThat(resultDto.results).hasSize(1);
     ApiLicenseLegalComponentDashboardDTO dto = resultDto.results.get(0);
-    assertLegalLicenseComponentDashboardDTO(dto, "somHash", componentIdentifier, Sets.newHashSet("MIT", "AGPL-2.0"), 1);
+    assertLegalLicenseComponentDashboardDTO(dto, "somHash", componentIdentifier,
+        Sets.newHashSet("MIT", "Apache-2.0"), 1);
   }
 
   @Test
@@ -2745,6 +2746,13 @@ public class ApiLicenseLegalServiceTest
     assertThat(dto.hash).isEqualTo(hash);
     assertThat(dto.displayName).isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
     assertThat(dto.licenseNames).containsAll(licenseNames);
+    assertThat(dto.licenses).doesNotContainNull();
+    assertThat(dto.licenses)
+        .flatExtracting(license -> license.licenseThreatGroups)
+        .extracting(group -> group.licenseThreatGroupName)
+        .containsOnly("Liberal");
+    assertThat(dto.licenseNames).containsExactlyInAnyOrderElementsOf(dto.licenses.stream().map(e -> e.licenseName)
+        .collect(Collectors.toList()));
     assertThat(dto.applicationOccurrences).isEqualTo(applicationOccurrences);
     assertThat(dto.reviewCompletedCount).isZero();
     assertThat(dto.reviewTotalCount).isZero();

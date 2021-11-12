@@ -105,7 +105,12 @@ public class ScmOnboardingPage
   }
 
   public ElementsCollection resultsTableProject() {
-    return children(".iq-scm-repository-project");
+    return children(".iq-scm-repository-project .nx-truncate-ellipsis");
+  }
+
+  public SelenideElement projectTooltip() {
+    // Note that this is not a child of the top-level container element! This is an issue with NxTooltip
+    return $(".iq-scm-repo-project-tooltip");
   }
 
   public ElementsCollection resultsTableDescription() {
@@ -118,7 +123,12 @@ public class ScmOnboardingPage
   }
 
   public ElementsCollection resultsTableNamespace() {
-    return children(".iq-scm-repository-namespace");
+    return children(".iq-scm-repository-namespace .nx-truncate-ellipsis");
+  }
+
+  public SelenideElement namespaceTooltip() {
+    // Note that this is not a child of the top-level container element! This is an issue with NxTooltip
+    return $(".iq-scm-repo-namespace-tooltip");
   }
 
   public ElementsCollection resultsTableDefaultBranch() {

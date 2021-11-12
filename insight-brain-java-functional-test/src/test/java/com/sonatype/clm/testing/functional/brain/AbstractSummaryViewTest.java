@@ -20,6 +20,7 @@ import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn;
+import com.sonatype.clm.testing.functional.elements.InnerSourceRepositoryTile;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
@@ -45,10 +46,12 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.After;
@@ -62,6 +65,7 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.google.common.collect.ImmutableMap.of;
 import static com.sonatype.clm.testing.functional.elements.CLM.IQ_DISABLED;
 import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.COLUMN_SELECTED;
 import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.DOWN_SELECTED;
@@ -141,6 +145,38 @@ public abstract class AbstractSummaryViewTest
     testLabelTile_no_labels();
     testAccessTile_no_local_access();
     testPolicyTile_no_policies();
+  }
+
+  @Test
+  public void testInnerSourceRepositoryTile_NotConfigured() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+    refresh();
+    InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
+    innerSourceRepositoryTile.should(exist);
+    innerSourceRepositoryTile.rows().shouldHaveSize(1);
+    innerSourceRepositoryTile.itemText().shouldBe(text("InnerSource Repository Connection not Configured"));
+  }
+
+  @Test
+  public void testInnerSourceRepositoryTile_Configured() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+    RepositoryConnection repositoryConnection =
+        tempEntity.newRepositoryConnection(currentOwner.getId(), "http://some.base.url", null, null);
+    refresh();
+    InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
+    innerSourceRepositoryTile.should(exist);
+    innerSourceRepositoryTile.rows().shouldHaveSize(1);
+    innerSourceRepositoryTile.itemText().shouldBe(text(repositoryConnection.getBaseUrl()));
+  }
+
+  @Test
+  public void testInnerSourceRepositoryTile_FeatureDisabled() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
+    refresh();
+    OwnerSummaryPage.innerSourceRepositoryTile().shouldNot(exist);
   }
 
   public void testLabelTile_no_labels() {

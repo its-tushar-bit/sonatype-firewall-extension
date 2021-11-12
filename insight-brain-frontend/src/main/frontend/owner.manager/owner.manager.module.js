@@ -87,6 +87,7 @@ import ltgEditorTemplate from './license.threat.group/license.threat.group.edito
 import categoryEditorTemplate from './category/category.editor.view.html';
 import appCategoryEditorTemplate from './category/application.category.editor.view.html';
 import SourceControlService from './source.control/source.control.service';
+import innerSourceRepositoryModule from './innersource.repository/module';
 
 export default angular
   .module('owner.manager.module', [
@@ -111,6 +112,7 @@ export default angular
     PolicyViolationGrandfatheringModule.name,
     retentionModule.name,
     sourceControlModule.name,
+    innerSourceRepositoryModule.name,
   ])
   .component('ownerPolicyList', ownerPolicyList)
   .controller('access.editor.controller', AccessEditorController)

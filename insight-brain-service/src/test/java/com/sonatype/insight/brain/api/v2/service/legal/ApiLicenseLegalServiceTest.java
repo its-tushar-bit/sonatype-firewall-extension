@@ -830,16 +830,17 @@ public class ApiLicenseLegalServiceTest
   @Test
   public void testGetLicenseLegalComponentsDashboard_ByLicense() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    setupComponentDashboardEntities("Tag1", BuildStageType.ID, "somHash", componentIdentifier, "MIT", "AGPL-2.0");
+    setupComponentDashboardEntities("Tag1", BuildStageType.ID, "somHash", componentIdentifier, "MIT", "Apache-2.0");
     setupComponentDashboardEntities("Tag1", ReleaseStageType.ID, "somHash2", componentIdentifier, "AGPL-3.0");
 
     ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService
-        .getLicenseLegalComponentsDashboard(null, null, null, null, Sets.newHashSet("MIT"), null, 1, 1);
+        .getLicenseLegalComponentsDashboard(null, null, null, null, Sets.newHashSet("MIT", "Apache-2.0"), null, 1, 1);
 
     assertThat(resultDto.totalResultsCount).isEqualTo(1);
     assertThat(resultDto.results).hasSize(1);
     ApiLicenseLegalComponentDashboardDTO dto = resultDto.results.get(0);
-    assertLegalLicenseComponentDashboardDTO(dto, "somHash", componentIdentifier, Sets.newHashSet("MIT", "AGPL-2.0"), 1);
+    assertLegalLicenseComponentDashboardDTO(dto, "somHash", componentIdentifier,
+        Sets.newHashSet("MIT", "Apache-2.0"), 1);
   }
 
   @Test
@@ -1064,6 +1065,30 @@ public class ApiLicenseLegalServiceTest
     doReturn(Optional.of(rawReport)).when(apiLicenseLegalServiceSpy).getLastRawApplicationReport(anyString());
     testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata-multilicense.json",
         EXPECTED_LICENSE_IDS_FOR_MULTILICENSE, null);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationReport_NoLicenses() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiReportRawDataDTOV2 rawReport = getContent("lls-raw-report-no-license.json", ApiReportRawDataDTOV2.class);
+    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
+    doReturn(Optional.of(rawReport)).when(apiLicenseLegalServiceSpy).getLastRawApplicationReport(anyString());
+
+    ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
+        apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app);
+
+    assertThat(licenseMetadataReport).isNotNull();
+    assertThat(licenseMetadataReport.licenseLegalMetadata).isEmpty();
+    assertThat(licenseMetadataReport.components).hasSize(1);
+
+    ComponentIdentifier expectedComponentIdentifier =
+        rawReport.components.get(0).componentIdentifier.toComponentIdentifier();
+    ApiLicenseLegalComponentDTO dto = licenseMetadataReport.components.get(0);
+    assertThat(dto.componentIdentifier.toComponentIdentifier()).isEqualTo(expectedComponentIdentifier);
+    assertThat(dto.packageUrl)
+        .isEqualTo(PackageUrlIdentifier.fromComponentIdentifier(expectedComponentIdentifier).getPackageUrl());
+    assertThat(dto.displayName)
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expectedComponentIdentifier).toString());
   }
 
   private void testGetLicenseLegalApplicationReport(
@@ -2721,6 +2746,13 @@ public class ApiLicenseLegalServiceTest
     assertThat(dto.hash).isEqualTo(hash);
     assertThat(dto.displayName).isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
     assertThat(dto.licenseNames).containsAll(licenseNames);
+    assertThat(dto.licenses).doesNotContainNull();
+    assertThat(dto.licenses)
+        .flatExtracting(license -> license.licenseThreatGroups)
+        .extracting(group -> group.licenseThreatGroupName)
+        .containsOnly("Liberal");
+    assertThat(dto.licenseNames).containsExactlyInAnyOrderElementsOf(dto.licenses.stream().map(e -> e.licenseName)
+        .collect(Collectors.toList()));
     assertThat(dto.applicationOccurrences).isEqualTo(applicationOccurrences);
     assertThat(dto.reviewCompletedCount).isZero();
     assertThat(dto.reviewTotalCount).isZero();

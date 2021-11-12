@@ -77,11 +77,11 @@ function ApplicationReportResultsController(
     },
 
     onRowClick(componentIndex) {
-      if ($state.params.componentDetailsEnabled) {
+      if ($state.params.roarelSaysCip) {
+        vm.openCipModal(componentIndex);
+      } else {
         vm.selectComponent(componentIndex);
         vm.goToComponentDetailsPage(vm.selectedComponent.hash);
-      } else {
-        vm.openCipModal(componentIndex);
       }
     },
 

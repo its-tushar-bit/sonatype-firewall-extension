@@ -240,6 +240,7 @@ public class PolicyResource
   @POST
   @Path("import")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
   @Audited(AuditEvent.IMPORT)
   public Response importPolicies(@PathParam("ownerType") final OwnerType ownerType,
                                  @PathParam("ownerId") final String ownerId,

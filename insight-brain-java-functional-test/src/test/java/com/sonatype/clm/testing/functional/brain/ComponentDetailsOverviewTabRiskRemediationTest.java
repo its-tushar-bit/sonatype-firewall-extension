@@ -91,7 +91,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     setupHdsResponseForVersionList();
 
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
   }
 
   @Test
@@ -214,7 +214,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
     recommendedRemediationSection.getTitle().shouldHave(text("Recommended Remediation"));
     recommendedRemediationSection.contentParagraph().shouldHave(
-        text("This dependency was brought in by the component(s) listed below. Clicking on a component" +
+        text("The direct dependencies that brought in this component are listed below. Clicking on a component" +
             " will take you to its Component Details Page.")
     );
 
@@ -252,7 +252,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
     recommendedRemediationSection.getTitle().shouldHave(text("Recommended Remediation"));
     recommendedRemediationSection.contentParagraph().shouldHave(
-        text("This dependency was brought in by the component(s) listed below. Clicking on a component" +
+        text("The direct dependencies that brought in this component are listed below. Clicking on a component" +
             " will take you to its Component Details Page.")
     );
 
@@ -300,7 +300,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     mockHdsResponseForFirstComponent();
     mockHdsResponseForSecondComponent();
 
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
 
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1,SECOND_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
@@ -344,7 +344,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     CompareVersionsTable table = riskRemediation.compareVersionsTable();
     table.shouldBe(visible);
     table.versionRow().get(1).shouldHave(text("29.50"));
-    table.versionRow().get(2).shouldHave(text("--"));
+    table.versionRow().get(2).shouldHave(text("-"));
     table.highestPolicyThreatRow().get(1).shouldHave(text("10 within 4 policies"));
     table.highestPolicyThreatRow().get(2).shouldBe(empty);
     table.highestSecurityThreatRow().get(1).shouldHave(text("10"));
@@ -404,7 +404,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     versionGraph.selectVersion(4).click();
 
     table.versionRow().get(1).shouldHave(text("29.50"));
-    table.versionRow().get(2).shouldHave(text("--"));
+    table.versionRow().get(2).shouldHave(text("-"));
     table.highestPolicyThreatRow().get(2).shouldBe(empty);
     table.highestCvssScoreRow().get(2).shouldBe(empty);
     table.effectiveLicenseRow().get(2).shouldBe(empty);

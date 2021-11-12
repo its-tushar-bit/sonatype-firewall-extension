@@ -79,7 +79,7 @@ public class ComponentDetailsInnerSourceTest
         .getPackageUrl();
     tempEntity.newInnerSourceComponent(packageUrl, app, "0.0.0");
 
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage =
         openComponentDetailsPageForViolationAtRow(5, "18d393ad345b03b49c62");
     componentDetailsPage.overviewTab().shouldBe(visible);
@@ -111,7 +111,7 @@ public class ComponentDetailsInnerSourceTest
         "ApplicationReportTest2", app.getOrganizationId());
     login(user.getUsername(), user.getPassword());
 
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage =
         openComponentDetailsPageForViolationAtRow(11, "cefa389a797ca9d030ef");
     componentDetailsPage.overviewTab().shouldBe(visible);

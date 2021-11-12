@@ -5,20 +5,21 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { equals, flatten } from 'ramda';
+import { always, equals, flatten } from 'ramda';
 
-import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
-import { getComponentWaivers, getProductFeaturesUrl, getReportPolicyThreatsUrl } from '../../util/CLMLocation';
-import { Messages } from '../../util/CommonServices';
-import { stateGo } from '../../reduxUiRouter/routerActions';
-import { propSet } from '../../util/reduxToolkitUtil';
-import { getAddWaiverPermissionForApplicationPromiseBuilder } from '../../waivers/waiverActions';
-import { selectApplicationReportMetaData } from '../../applicationReport/applicationReportSelectors';
-import { toggleBooleanProp } from '../../util/reduxUtil';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { getComponentWaivers, getProductFeaturesUrl, getReportPolicyThreatsUrl } from 'MainRoot/util/CLMLocation';
+import { Messages } from 'MainRoot/util/CommonServices';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { propSet } from 'MainRoot/util/reduxToolkitUtil';
+import { getAddWaiverPermissionForApplicationPromiseBuilder } from 'MainRoot/waivers/waiverActions';
+import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
+import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 const REDUCER_NAME = 'componentDetailsPolicyViolations';
 
-const initialState = {
+export const initialState = {
   violations: null,
   waivers: null,
   loading: false,
@@ -154,6 +155,7 @@ const componentDetailsViolationsSlice = createSlice({
     [load.pending]: loadRequested,
     [load.fulfilled]: loadFulfilled,
     [load.rejected]: loadFailed,
+    [SELECT_COMPONENT]: always(initialState),
   },
 });
 

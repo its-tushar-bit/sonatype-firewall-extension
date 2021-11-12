@@ -72,8 +72,6 @@ public class HashComponentIdentifierResource
   }
 
   @DELETE
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
   @Path("{hash}")
   @Audited(AuditEvent.UNSET_COMPONENT_IDENTITY)
   public void delete(@PathParam("hash") final String hash) {

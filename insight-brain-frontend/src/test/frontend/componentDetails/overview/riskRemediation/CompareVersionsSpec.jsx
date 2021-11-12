@@ -40,7 +40,7 @@ describe('CompareVersions', () => {
       });
       it('renders "--" for selected version', () => {
         const versionRow = getShallow().find('#version');
-        expect(versionRow.childAt(2)).toContainReact(<NxTableCell>--</NxTableCell>);
+        expect(versionRow.childAt(2)).toContainReact(<NxTableCell>-</NxTableCell>);
       });
     });
 
@@ -500,7 +500,7 @@ describe('CompareVersions', () => {
 
     it('renders empty cell if catalogDate is null', () => {
       const catalogedRow = getShallow().find('#catalogDate');
-      expect(catalogedRow.childAt(1)).toContainReact(<NxTableCell />);
+      expect(catalogedRow.childAt(1)).toContainReact(<NxTableCell>-</NxTableCell>);
       expect(catalogedRow.childAt(2)).toContainReact(<NxTableCell />);
     });
 
@@ -517,10 +517,9 @@ describe('CompareVersions', () => {
   });
 
   describe('Integrity Rating row', () => {
-    it('renders empty cell if integrityRating is undefined', () => {
+    it('does not renders cell if integrityRating is undefined', () => {
       const integrityRatingRow = getShallow().find('#integrityRating');
-      expect(integrityRatingRow.childAt(1)).toContainReact(<NxTableCell />);
-      expect(integrityRatingRow.childAt(2)).toContainReact(<NxTableCell />);
+      expect(integrityRatingRow).not.toExist();
     });
 
     it('renders rating label with .iq-integrity-rating-suspicious class if rating id is 1', () => {

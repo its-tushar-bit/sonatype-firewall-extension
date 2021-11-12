@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.AnalysisSource;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.innersource.InnerSourceReportUsageTelemetry;
 import com.sonatype.insight.brain.model.Application;
@@ -44,6 +46,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
+import io.dropwizard.util.Maps;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
@@ -777,12 +780,46 @@ public class DependencyResolverTest
     assertThat(newIsNode.get("pathnames").get(0).asText()).isEqualTo(
         "dependency:/" + PackageUrlIdentifier.fromComponentIdentifier(innerSourceId).getPackageUrl().replace("/", "\\")
     );
+    assertThat(newIsNode.get("proprietary").asBoolean()).isFalse();
     assertThat(analyzerFeatures.getAnalysisSource()).isEqualTo(AnalysisSource.THIRD_PARTY);
     assertThat(analyzerFeatures.getAnalysisType()).isEqualTo(AnalysisType.COORDINATE);
     assertThat(analyzerFeatures.getScanClient()).isEqualTo("ci");
     assertThat(analyzerFeatures.isHasIdentity()).isFalse();
     assertThat(analyzerFeatures.isHasLicense()).isFalse();
     assertThat(analyzerFeatures.isHasSecurity()).isFalse();
+  }
+
+  @Test
+  public void testResolve_NewInnerSourceNode_NotProprietary() throws Exception {
+    Application innerSourceApplication = tempEntity.newApplicationWithParent();
+    tempEntity.newInnerSourceComponent("pkg:npm/producer", innerSourceApplication);
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/bom.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/data.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/summary.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+
+    ComponentIdentifier innerSourceId = ComponentIdentifier.createNpmCoordinates("producer", "file:../producer");
+    JsonNode newIsNode = findNodeById(bomJson, innerSourceId);
+    assertThat(newIsNode.get("proprietary").asBoolean()).isFalse();
+  }
+
+  @Test
+  public void testResolve_NewInnerSourceNode_Proprietary() throws Exception {
+    Application innerSourceApplication = tempEntity.newApplicationWithParent();
+    tempEntity.newInnerSourceComponent("pkg:npm/producer", innerSourceApplication);
+    tempEntity.newProprietaryConfig(app.getId(), Collections.emptyList(), Collections.singletonList("producer"));
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/bom.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/data.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/summary.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+
+    ComponentIdentifier innerSourceId = ComponentIdentifier.createNpmCoordinates("producer", "file:../producer");
+    JsonNode newIsNode = findNodeById(bomJson, innerSourceId);
+    assertThat(newIsNode.get("proprietary").asBoolean()).isTrue();
   }
 
   @Test
@@ -851,6 +888,124 @@ public class DependencyResolverTest
     assertThat(bomNodeEmptyPathnames.get("innerSource")).isNull();
     assertThat(bomNodeBadPathnames.get("directDependency")).isNull();
     assertThat(bomNodeBadPathnames.get("innerSource")).isNull();
+  }
+
+  @Test
+  public void testGetPossibleProprietaryCoordinates_Maven() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    assertThat(DependencyResolver.getPossibleProprietaryCoordinates(componentIdentifier)).containsExactly("g", "a");
+  }
+
+  @Test
+  public void testGetPossibleProprietaryCoordinates_Npm() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
+    assertThat(DependencyResolver.getPossibleProprietaryCoordinates(componentIdentifier)).containsExactly("p");
+  }
+
+  @Test
+  public void testGetPossibleProprietaryCoordinates_Default() {
+    ComponentIdentifier componentIdentifier = new ComponentIdentifier("f", Maps.of("c1", "v1", "c2", "v2"));
+    assertThat(DependencyResolver.getPossibleProprietaryCoordinates(componentIdentifier)).isEmpty();
+  }
+
+  @Test
+  public void testCreateIsProprietary_NoProprietaryConfig() {
+    Application application = tempEntity.newApplicationWithParent();
+    assertThat(new ProprietaryConfigDAO().getByOwnerId(application.getId())).isNull();
+
+    Predicate<String> isProprietary = DependencyResolver.createIsProprietary(application.getId());
+
+    assertThat(isProprietary).rejects("any");
+  }
+
+  @Test
+  public void testCreateIsProprietary_EmptyProprietaryConfig() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newProprietaryConfig(application.getId(), Collections.emptyList(), Collections.emptyList());
+
+    Predicate<String> isProprietary = DependencyResolver.createIsProprietary(application.getId());
+
+    assertThat(isProprietary).rejects("any");
+  }
+
+  @Test
+  public void testCreateIsProprietary_WithPackages() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newProprietaryConfig(application.getId(), Arrays.asList("a1", "b1.b2"), Collections.emptyList());
+
+    Predicate<String> isProprietary = DependencyResolver.createIsProprietary(application.getId());
+
+    assertThat(isProprietary).accepts("a1");
+    assertThat(isProprietary).rejects("a2");
+    assertThat(isProprietary).accepts("a1.a2");
+    assertThat(isProprietary).rejects("b1");
+    assertThat(isProprietary).accepts("b1.b2");
+    assertThat(isProprietary).rejects("b1.b3");
+    assertThat(isProprietary).accepts("b1.b2.b3");
+  }
+
+  @Test
+  public void testCreateIsProprietary_WithRegexes() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newProprietaryConfig(application.getId(), Collections.emptyList(), Arrays.asList("a1.*", ".*b1", "c1"));
+
+    Predicate<String> isProprietary = DependencyResolver.createIsProprietary(application.getId());
+
+    assertThat(isProprietary).accepts("a1");
+    assertThat(isProprietary).accepts("a1.a2");
+    assertThat(isProprietary).accepts("a1.a2.a3");
+    assertThat(isProprietary).rejects("a2");
+    assertThat(isProprietary).rejects("a2.a1");
+    assertThat(isProprietary).rejects("a3.a2.a1");
+    assertThat(isProprietary).accepts("b1");
+    assertThat(isProprietary).rejects("b1.b2");
+    assertThat(isProprietary).rejects("b1.b2.b3");
+    assertThat(isProprietary).rejects("b2");
+    assertThat(isProprietary).accepts("b2.b1");
+    assertThat(isProprietary).accepts("b3.b2.b1");
+    assertThat(isProprietary).accepts("c1");
+    assertThat(isProprietary).rejects("c2");
+    assertThat(isProprietary).rejects("c1.c2");
+    assertThat(isProprietary).rejects("c2.c1");
+  }
+
+  @Test
+  public void testCreateIsProprietary_WithPackagesAndRegexes() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newProprietaryConfig(application.getId(), Collections.singletonList("a1"),
+        Collections.singletonList("b1"));
+
+    Predicate<String> isProprietary = DependencyResolver.createIsProprietary(application.getId());
+
+    assertThat(isProprietary).accepts("a1");
+    assertThat(isProprietary).accepts("a1.a2");
+    assertThat(isProprietary).accepts("a1.a2.a3");
+    assertThat(isProprietary).rejects("a2");
+    assertThat(isProprietary).rejects("a2.a1");
+    assertThat(isProprietary).rejects("a3.a2.a1");
+    assertThat(isProprietary).accepts("b1");
+    assertThat(isProprietary).rejects("b1.b2");
+    assertThat(isProprietary).rejects("b1.b2.b3");
+    assertThat(isProprietary).rejects("b2");
+    assertThat(isProprietary).rejects("b2.b1");
+    assertThat(isProprietary).rejects("b3.b2.b1");
+  }
+
+  @Test
+  public void testIsProprietary_InitializesIsProprietaryOnceForApplication() {
+    Application application = tempEntity.newApplicationWithParent();
+    Application other = tempEntity.newApplicationWithParent();
+    tempEntity.newProprietaryConfig(application.getId(), null, Collections.singletonList("p1"));
+    tempEntity.newProprietaryConfig(other.getId(), null, Collections.singletonList("p2"));
+    DependencyResolver dependencyResolver = DependencyResolver.getInstance(null, null, null, null, application, null);
+    assertThat(dependencyResolver.isProprietary).isNull();
+
+    assertThat(dependencyResolver.isProprietary(ComponentIdentifier.createNpmCoordinates("p1", "v"))).isTrue();
+    Predicate<String> isProprietary = dependencyResolver.isProprietary;
+    assertThat(isProprietary).isNotNull();
+
+    assertThat(dependencyResolver.isProprietary(ComponentIdentifier.createNpmCoordinates("p2", "v"))).isFalse();
+    assertThat(dependencyResolver.isProprietary).isEqualTo(isProprietary);
   }
 
   private void assertInnerSourceInformation(

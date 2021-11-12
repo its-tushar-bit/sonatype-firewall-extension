@@ -153,7 +153,7 @@ public class ApiRepositoryConnectionResourceTest
         .put();
     assertThat(response.getStatusCode()).isEqualTo(409);
     assertThat(response.getBodyText()).isEqualTo(String.format(
-        "repository connection URL configuration exist for %s with id: %s", OwnerType.APPLICATION, app.getId()));
+        "repository connection URL configuration exists for %s with id: %s", OwnerType.APPLICATION, app.getId()));
   }
 
   @Test

@@ -28,17 +28,19 @@ export default function NoticeDetailsHeader(props) {
     loadComponentAndNoticeDetails,
     setShowNoticesModal,
     showNoticesModal,
+    componentIdentifier,
   } = props;
 
   function load() {
-    loadComponentAndNoticeDetails(ownerType, ownerId, hash, noticeIndex);
+    loadComponentAndNoticeDetails(ownerType, ownerId, hash, noticeIndex, componentIdentifier);
   }
 
-  useEffect(load, [ownerType, ownerId, hash, noticeIndex]);
+  useEffect(load, [ownerType, ownerId, hash, noticeIndex, componentIdentifier]);
+
   return (
     <LoadWrapper loading={loading} error={error} retryHandler={load}>
       <MenuBarBackButton
-        href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash)}
+        href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash, componentIdentifier)}
         text="Back to Component Obligations"
       />
       <div className="nx-page-title">
@@ -69,6 +71,6 @@ NoticeDetailsHeader.propTypes = {
   $state: PropTypes.object.isRequired,
   showNoticesModal: PropTypes.bool.isRequired,
   setShowNoticesModal: PropTypes.func.isRequired,
-
   loadComponentAndNoticeDetails: PropTypes.func.isRequired,
+  componentIdentifier: PropTypes.string,
 };

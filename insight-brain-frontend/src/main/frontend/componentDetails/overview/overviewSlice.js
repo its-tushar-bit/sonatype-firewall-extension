@@ -23,11 +23,12 @@ import {
   selectSelectedVersion,
   selectCurrentVersion,
 } from './overviewSelectors';
-import { comparator, path, sort } from 'ramda';
+import { always, comparator, path, sort } from 'ramda';
 import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
 import { pathSet } from '../../util/reduxToolkitUtil';
 import { togglePath } from '../../util/jsUtil';
 import { toggleBooleanProp } from '../../util/reduxUtil';
+import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 const HTTP_CLIENT_CLOSED_REQUEST = 499;
 
@@ -306,6 +307,7 @@ const componentDetailsOverviewSlice = createSlice({
     [loadInnerSourceProducerData.pending]: loadInnerSourceProducerDataRequested,
     [loadInnerSourceProducerData.fulfilled]: loadInnerSourceProducerDataFulfilled,
     [loadInnerSourceProducerData.rejected]: loadInnerSourceProducerDataFailed,
+    [SELECT_COMPONENT]: always(initialState),
   },
 });
 

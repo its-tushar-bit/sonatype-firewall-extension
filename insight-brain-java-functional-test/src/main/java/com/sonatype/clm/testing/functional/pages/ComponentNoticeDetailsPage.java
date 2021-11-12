@@ -5,8 +5,14 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.Owner;
 
 import com.codeborne.selenide.SelenideElement;
@@ -17,7 +23,7 @@ public final class ComponentNoticeDetailsPage
 {
   private ComponentNoticeDetailsPage() {}
 
-  public static String urlToApplicationScope(String publicAppId, String componentHash, int noticeIndex) {
+  public static String urlToApplicationScopeByHash(String publicAppId, String componentHash, int noticeIndex) {
     return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/component/%s/notices/%d",
         publicAppId, componentHash, noticeIndex));
   }
@@ -26,6 +32,17 @@ public final class ComponentNoticeDetailsPage
     return BaseUrl.resolvePageUrl(
         String.format("/legal/%s/%s/component/%s/notices/%d",
             owner.getType().toString(), owner.getPublicId(), componentHash, noticeIndex));
+  }
+
+  public static String urlToApplicationScopeByComponentIdentifier(
+          String publicAppId,
+          ComponentIdentifier componentIdentifier,
+          int noticeIndex) throws UnsupportedEncodingException
+  {
+    String componentIdentifierString =
+            URLEncoder.encode(ComponentIdentifierAdapter.toJson(componentIdentifier), StandardCharsets.UTF_8.name());
+    return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/componentIdentifier/%s/notices/%d",
+            publicAppId, componentIdentifierString, noticeIndex));
   }
 
   public static NoticeOverview noticeOverview() {

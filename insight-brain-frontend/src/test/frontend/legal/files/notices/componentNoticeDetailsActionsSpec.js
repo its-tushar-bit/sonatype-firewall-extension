@@ -9,8 +9,16 @@ import {
   NOTICE_DETAILS_SELECTED_NOTICE,
   refreshNoticeFilesDetails,
 } from '../../../../../main/frontend/legal/files/notices/componentNoticeDetailsActions';
+import axios from 'axios';
+import {
+  getLicenseLegalComponentByComponentIdentifierUrl,
+  getLicenseLegalComponentUrl,
+  getOwnerHierarchyUrl,
+} from 'MainRoot/util/CLMLocation';
+import { pathSet } from 'MainRoot/util/jsUtil';
 
 describe('ComponentNoticeDetailsAction', function () {
+  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let store;
   let initialState = {
     advancedLegal: {
@@ -57,13 +65,68 @@ describe('ComponentNoticeDetailsAction', function () {
   };
 
   describe('load notice details', function () {
-    it('immediately dispatches a NOTICE_DETAILS_SELECTED_NOTICE action. Component already in state', function () {
+    it('immediately dispatches a NOTICE_DETAILS_SELECTED_NOTICE action. Component already in state by hash', function () {
       store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(loadComponentAndNoticeDetails('organization', 'org', 'componentHash', 1));
-
       const actions = store.getActions();
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(NOTICE_DETAILS_SELECTED_NOTICE);
+    });
+
+    it('immediately dispatches a NOTICE_DETAILS_SELECTED_NOTICE action. Component already in state by component identifier', function () {
+      store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(loadComponentAndNoticeDetails(undefined, undefined, undefined, 1, 'componentIdentifier'));
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(NOTICE_DETAILS_SELECTED_NOTICE);
+    });
+
+    it('fetches notice file details by hash when not loaded', function () {
+      store = SpecUtil.mockReduxStore(pathSet(['advancedLegal', 'component', 'component'], undefined, initialState));
+
+      const ownerHierarchyUrl = getOwnerHierarchyUrl('organization', 'org');
+      const licenseLegalComponentUrl = getLicenseLegalComponentUrl('organization', 'org', 'componentHash');
+
+      mockAxiosCalls({
+        get: {
+          [ownerHierarchyUrl]: Promise.resolve({ data: 'getData' }),
+          [licenseLegalComponentUrl]: Promise.resolve({ data: 'getData2' }),
+        },
+      });
+
+      store.dispatch(loadComponentAndNoticeDetails('organization', 'org', 'componentHash', 1)).then((done) => {
+        expect(axios.get).toHaveBeenCalledWith(ownerHierarchyUrl);
+        expect(axios.get).toHaveBeenCalledWith(licenseLegalComponentUrl);
+        done();
+      });
+    });
+
+    it('fetches license file details by component identifier when not loaded', function () {
+      let state = pathSet(['advancedLegal', 'component', 'component'], undefined, initialState);
+      state = pathSet(['router', 'currentParams', 'hash'], undefined, state);
+      store = SpecUtil.mockReduxStore(state);
+
+      const ownerHierarchyUrl = getOwnerHierarchyUrl('organization', 'org');
+      const licenseLegalComponentByComponentIdentifierUrl = getLicenseLegalComponentByComponentIdentifierUrl(
+        'componentIdentifier'
+      );
+
+      mockAxiosCalls({
+        get: {
+          [ownerHierarchyUrl]: Promise.resolve({ data: 'getData' }),
+          [licenseLegalComponentByComponentIdentifierUrl]: Promise.resolve({
+            data: 'getData2',
+          }),
+        },
+      });
+
+      store
+        .dispatch(loadComponentAndNoticeDetails('organization', 'org', undefined, 1, 'componentIdentifier'))
+        .then((done) => {
+          expect(axios.get).toHaveBeenCalledWith(ownerHierarchyUrl);
+          expect(axios.get).toHaveBeenCalledWith(licenseLegalComponentByComponentIdentifierUrl);
+          done();
+        });
     });
   });
 

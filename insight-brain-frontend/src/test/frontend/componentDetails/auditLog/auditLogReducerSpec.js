@@ -4,8 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { map } from 'ramda';
-import reducer from '../../../../main/frontend/componentDetails/auditLog/auditLogReducer';
-import { processAuditRecord } from '../../../../main/frontend/componentDetails/componentDetailsUtils';
+import reducer, { initState } from 'MainRoot/componentDetails/auditLog/auditLogReducer';
+import { processAuditRecord } from 'MainRoot/componentDetails/componentDetailsUtils';
+import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 describe('auditLogReducer', function () {
   describe('initial State', function () {
@@ -140,6 +141,20 @@ describe('auditLogReducer', function () {
 
       expect(newState.isLoading).toEqual(false);
       expect(newState.auditRecords).toEqual(sortedRecords);
+    });
+  });
+
+  describe('SELECT_COMPONENT', () => {
+    it('resets current state to initialState', () => {
+      const state = Object.freeze({
+        isLoading: true,
+        auditRecords: [{}],
+        error: 'error',
+        appliedSort: 'asc',
+      });
+
+      const newState = reducer(state, { type: SELECT_COMPONENT });
+      expect(newState).toEqual(initState);
     });
   });
 });

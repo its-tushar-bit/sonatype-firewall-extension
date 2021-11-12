@@ -59,7 +59,7 @@ describe('NoticeDetailsHeader component', function () {
     getShallowComponent = enzymeUtils.getShallowComponent(NoticeDetailsHeader, minimalProps);
   });
 
-  it('renders a MenuBarBackButton with correct href prop', function () {
+  it('renders a MenuBarBackButton with component hash url', function () {
     spyOn(legalUtilities, 'backToComponentOverviewUrl').and.returnValue('some-href');
     const wrapper = getShallowComponent();
     const menuBarBackButton = wrapper.find(MenuBarBackButton);
@@ -70,7 +70,26 @@ describe('NoticeDetailsHeader component', function () {
       minimalProps.ownerType,
       minimalProps.ownerId,
       minimalProps.stageTypeId,
-      minimalProps.hash
+      minimalProps.hash,
+      undefined
+    );
+  });
+
+  it('renders a MenuBarBackButton with component identifier url', function () {
+    const newMinimalProps = { ...minimalProps, componentIdentifier: '{dummyComponentIdentifier: "identifier"}' };
+    getShallowComponent = enzymeUtils.getShallowComponent(NoticeDetailsHeader, newMinimalProps);
+    spyOn(legalUtilities, 'backToComponentOverviewUrl').and.returnValue('some-href');
+    const wrapper = getShallowComponent();
+    const menuBarBackButton = wrapper.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', 'some-href');
+    expect(legalUtilities.backToComponentOverviewUrl).toHaveBeenCalledWith(
+      minimalProps.$state,
+      minimalProps.ownerType,
+      minimalProps.ownerId,
+      minimalProps.stageTypeId,
+      minimalProps.hash,
+      newMinimalProps.componentIdentifier
     );
   });
 

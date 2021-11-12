@@ -111,6 +111,7 @@ public class DefaultApiPolicyWaiverResource implements ApiPolicyWaiverResource
   @POST
   @Path(TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH)
   @Audited(AuditEvent.CREATE_TRANSITIVE_POLICY_VIOLATIONS_WAIVER)
+  @Consumes(MediaType.APPLICATION_JSON)
   public void addWaiverToTransitivePolicyViolationsByAppScanComponent(
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
@@ -128,6 +129,7 @@ public class DefaultApiPolicyWaiverResource implements ApiPolicyWaiverResource
   @POST
   @Path(TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH)
   @Audited(AuditEvent.CREATE_TRANSITIVE_POLICY_VIOLATIONS_WAIVER)
+  @Consumes(MediaType.APPLICATION_JSON)
   public void addWaiverToTransitivePolicyViolationsByOwnerStageComponent(
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,

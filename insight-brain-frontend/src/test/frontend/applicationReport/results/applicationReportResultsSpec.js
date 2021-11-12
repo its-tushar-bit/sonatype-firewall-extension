@@ -473,31 +473,15 @@ describe('applicationReportResults', function () {
       vm.selectedComponent = { hash: 'selectedHash' };
     });
 
-    it('calls vm.selectComponent with the component index if $state.params.componentDetailsEnabled is present', function () {
-      vm.$state.params.componentDetailsEnabled = true;
+    it('calls vm.selectComponent with the component index', function () {
       vm.onRowClick(0);
       expect(vm.selectComponent).toHaveBeenCalledWith(0);
       expect(vm.openCipModal).not.toHaveBeenCalled();
     });
 
-    it('calls goToComponentDetailsPage if $state.params.componentDetailsEnabled', function () {
-      vm.$state.params.componentDetailsEnabled = true;
+    it('calls goToComponentDetailsPage', function () {
       vm.onRowClick(0);
       expect(vm.goToComponentDetailsPage).toHaveBeenCalledWith('selectedHash');
-    });
-
-    it('calls openCipModal if $state.params.componentDetailsEnabled is false or not present', function () {
-      vm.$state.params = {};
-      vm.onRowClick(0);
-      expect(vm.openCipModal).toHaveBeenCalledWith(0);
-      expect(vm.selectComponent).not.toHaveBeenCalled();
-      expect(vm.goToComponentDetailsPage).not.toHaveBeenCalled();
-
-      vm.$state.params.componentDetailsEnabled = false;
-      vm.onRowClick(0);
-      expect(vm.openCipModal).toHaveBeenCalledWith(0);
-      expect(vm.selectComponent).not.toHaveBeenCalled();
-      expect(vm.goToComponentDetailsPage).not.toHaveBeenCalled();
     });
   });
 

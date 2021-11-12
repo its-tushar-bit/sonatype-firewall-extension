@@ -118,6 +118,12 @@ describe('CLMLocation.js', function () {
           '%7B%22coordinates%22%3A%22a-coordinate%22%7D'
       );
     });
+
+    it('should return the correct URL to query the InnerSource repository connections of an owner', () => {
+      expect(CLMLocationsService.getRepositoryConnections('ownerType', 'ownerId')).toBe(
+        'http://localhost/api/v2/config/repositoryConnection/ownerType/ownerId'
+      );
+    });
   });
 
   // map of user-telemetry method names and their respective unique postfixes

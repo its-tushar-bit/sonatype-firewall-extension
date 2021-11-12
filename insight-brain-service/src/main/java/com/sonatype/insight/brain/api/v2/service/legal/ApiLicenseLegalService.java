@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -25,7 +26,6 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +34,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.experimental.legal.LegalComponentIdentifierUtil;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
@@ -83,6 +84,7 @@ import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -410,6 +412,13 @@ public class ApiLicenseLegalService
               .map(ApplicationComponentLicense::getEffectiveLicenseId).collect(Collectors.toSet()));
         }
 
+        Map<String, Set<String>> multiLicenseIdToSingleLicenseIds =
+            getMultiLicensesFromLicensesSet(licensesAlreadyFound);
+
+        licensesAlreadyFound = multiLicenseIdToSingleLicenseIds.values().stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
+
         if (isNotEmpty(licensesAlreadyFound)) {
           Set<String> applicationOccurrences =
               mapHashApplicationOccurrences.getOrDefault(applicationComponent.getHash(), new HashSet<>());
@@ -418,6 +427,11 @@ public class ApiLicenseLegalService
 
           mapHashApplicationOccurrences.put(applicationComponent.getHash(), applicationOccurrences);
           mapHashLicenseIds.put(applicationComponent.getHash(), licensesAlreadyFound);
+
+          Map<String, List<LicenseThreatGroup>> threatGroupsByLicenseId = licenseThreatGroupDAO
+              .getLicenseIdThreatGroupsByOwnerIdAndLicenseIdsWithHierarchy(tx, application.getId(),
+                  licensesAlreadyFound);
+          dto.licenses = getThreadGroupsForLicencesIds(multiLicenseIdToSingleLicenseIds, threatGroupsByLicenseId);
           mapHashComponent.put(applicationComponent.getHash(), dto);
         }
       }
@@ -688,6 +702,30 @@ public class ApiLicenseLegalService
         ));
   }
 
+  /**
+   * This method takes a set of licenses ids and checks for multi licenses,
+   * it returns a Map where the key is the multi license id and value is a set
+   * with licenses that belong to the multi license, if license is not a multi license,
+   * returns the license as key and a set with the same key as value.
+   *
+   * This method uses {@link #buildMultiLicenseToSingleLicenseMap(Collection)}
+   * @param licenseIds a set with licensesIds
+   * @return map with multi license as key and set of licenses as value
+   */
+  private Map<String, Set<String>> getMultiLicensesFromLicensesSet(final Set<String> licenseIds) {
+    return buildMultiLicenseToSingleLicenseMap(
+        getLicenseNames(licenseIds).entrySet().stream()
+            .map(e -> new ApiLicenseDTO(e.getKey(), e.getValue()))
+            .collect(Collectors.toList()))
+        .entrySet().stream().collect(
+            Collectors.toMap(
+                entry -> entry.getKey().licenseId,
+                entry -> entry.getValue().stream()
+                    .map(License::getId)
+                    .collect(Collectors.toSet()),
+                (prev, next) -> next));
+  }
+
   private ApiLicenseThreatDTOV2 getHighestLicenseThreatGroupWithHierarchy(
       TransactionContext tx, String ownerId, Set<String> licenseIds)
   {
@@ -866,6 +904,7 @@ public class ApiLicenseLegalService
         continue;
       }
       if (apiReportComponentDTOV2.licenseData == null) {
+        apiReportComponentDTOV2.licenseData = new ApiLicenseDataDTOV2();
         componentToLicenses.put(apiReportComponentDTOV2.componentIdentifier.toComponentIdentifier(), new HashSet<>());
       }
       Set<ApiLicenseDTO> allLicenses = getAllLicenses(apiReportComponentDTOV2.licenseData);
@@ -898,7 +937,7 @@ public class ApiLicenseLegalService
     final Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>>
         aname = getAnameComponentLegalComments(componentIdentifiers);
 
-    // combine it all together. components in aname and nonAname do not intersect, so we can just pu them together
+    // combine it all together. components in aname and nonAname do not intersect, so we can just put them together
     // in the same map
     final Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> result = new HashMap<>();
     result.putAll(nonAname);
@@ -1212,5 +1251,41 @@ public class ApiLicenseLegalService
           .collect(Collectors.toCollection(TreeSet::new)));
       return dto;
     };
+  }
+
+  private Map<String, String> getLicenseNames(Set<String> licenseIds) {
+    try (TransactionContext tx = multiLicenseDAO.createTransactionContext()) {
+      return licenseIds.stream().collect(Collectors.toMap(Function.identity(), licenseId -> {
+        MultiLicense license = multiLicenseDAO.getById(tx, licenseId);
+        return license != null ? license.getShortDisplayName() : licenseId;
+      }));
+    }
+  }
+
+  private Set<ApiLicenseDTOV2> getThreadGroupsForLicencesIds(
+      Map<String, Set<String>> multiLicenseIdToSingleLicenseIds,
+      Map<String, List<LicenseThreatGroup>> threatGroupsByLicenseId)
+  {
+    Set<ApiLicenseDTOV2> licenses = new TreeSet<>(Comparator.comparing(dto -> dto.licenseName)); //component licenses
+    ApiLicenseDataAdapter licenseDataAdapter = new ApiLicenseDataAdapter();
+    Map<String, String> licensesNames = getLicenseNames(multiLicenseIdToSingleLicenseIds.keySet());
+
+    for (Entry<String, Set<String>> e : multiLicenseIdToSingleLicenseIds.entrySet()) {
+
+      List<ApiLicenseThreatDTOV2> licenseThreatGroups = new ArrayList<>();
+
+      for (String singleLicense : e.getValue()) {
+        final List<LicenseThreatGroup> singleLicenseThreatGroups =
+            threatGroupsByLicenseId.getOrDefault(singleLicense, Collections.emptyList());
+
+        licenseThreatGroups.addAll(
+            singleLicenseThreatGroups.stream()
+                .map(licenseDataAdapter::convert)
+                .collect(Collectors.toList())
+        );
+      }
+      licenses.add(new ApiLicenseDTOV2(e.getKey(), licensesNames.get(e.getKey()), licenseThreatGroups));
+    }
+    return licenses;
   }
 }

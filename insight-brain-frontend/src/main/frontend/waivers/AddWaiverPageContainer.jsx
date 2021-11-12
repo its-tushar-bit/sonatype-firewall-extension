@@ -17,7 +17,10 @@ import {
   setExpiryTime,
   returnToAddWaiverOriginPage,
 } from './waiverActions';
-import { openVulnerabilityDetailsModal } from '../vulnerabilityDetails/vulnerabilityDetailsModalActions';
+import {
+  openVulnerabilityDetailsModal,
+  closeVulnerabilityDetailsModal,
+} from '../vulnerabilityDetails/vulnerabilityDetailsModalActions';
 
 function mapStateToProps({ addWaiver, violation, router }) {
   return {
@@ -30,6 +33,7 @@ function mapStateToProps({ addWaiver, violation, router }) {
 const mapDispatchToProps = {
   loadAddWaiverData,
   openVulnerabilityDetailsModal,
+  closeVulnerabilityDetailsModal,
   saveWaiver: saveWaiverAndRedirect,
   setWaiverComment,
   setWaiverScope,

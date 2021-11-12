@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -87,6 +88,7 @@ public class ApiFirewallResource
 
   @PUT
   @Path(RELEASE_QUARANTINE_CONFIGURATION_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING)
   public List<ApiFirewallReleaseQuarantineConfigDTO> setFirewallAutoUnquarantineConfig(
       final List<ApiFirewallReleaseQuarantineConfigDTO> apiFirewallReleaseQuarantineConfigDTOS)

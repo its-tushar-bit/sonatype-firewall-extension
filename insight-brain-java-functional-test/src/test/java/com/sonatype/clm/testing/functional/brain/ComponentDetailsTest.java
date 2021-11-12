@@ -20,9 +20,12 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
+import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.LegalTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OccurrencesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
@@ -31,11 +34,8 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.SimilarMatc
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover.VulnerabilityOverrideForm;
-import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.AddProprietaryComponentMatchersPopover;
-import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.AuditLogContent;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
@@ -121,7 +121,7 @@ public class ComponentDetailsTest
   @Test
   public void testComponentDetailsEnabled() {
     try {
-      refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+      refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
       reportPage.reportTitle().shouldHave(text("ApplicationReportTest Build Report"));
 
       ElementsCollection violations = reportPage.resultRows();
@@ -149,7 +149,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testComponentDetailsHeaderAndFooter() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
 
     ElementsCollection violations = reportPage.resultRows();
     SelenideElement directDependencyWithViolation = violations.get(4);
@@ -176,7 +176,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testComponentDetailsRemediationDefaultTab() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reportTitle().shouldHave(text("ApplicationReportTest Build Report"));
 
     ElementsCollection violations = reportPage.resultRows();
@@ -188,7 +188,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testComponentDetailsTabNavigation() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reportTitle().shouldHave(text("ApplicationReportTest Build Report"));
 
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
@@ -214,7 +214,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testComponentDetailsUnknownComponentAlert() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForUnknownComponent();
 
     SelenideElement unknownComponentAlert = componentDetailsPage.unknownComponentAlert();
@@ -226,7 +226,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testComponentDetailsProprietaryComponentAlert() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForProprietaryComponent();
 
     SelenideElement proprietaryComponentAlert = componentDetailsPage.proprietaryComponentAlert();
@@ -238,7 +238,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testComponentDetailsAddProprietaryComponentMatchersPopover() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForUnknownComponent();
 
     SelenideElement addProprietarypComponentMatchersBtn = componentDetailsPage.addProprietarypComponentMatchersBtn();
@@ -270,8 +270,9 @@ public class ComponentDetailsTest
     addProprietaryComponentMatchersPopover.shouldNotBe(visible);
   }
 
+  @Test
   public void testComponentDetails_UnknownComponentAlert_ClaimButton() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForUnknownComponent();
 
     SelenideElement claimButton = componentDetailsPage.unknownComponentClaim();
@@ -324,9 +325,9 @@ public class ComponentDetailsTest
     MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reevaluateButton().click();
-
+    NxSubmitMask.seeAndWaitForDismissal();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
 
     reportPage.headers().componentNameFilterInput().setValue("claimed");
     reportPage.resultRow(1).shouldHave(text("claimed : claimed : claimed : claimed : claimed")).click();
@@ -353,10 +354,9 @@ public class ComponentDetailsTest
     MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reevaluateButton().click();
-
+    NxSubmitMask.seeAndWaitForDismissal();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
-
     reportPage.headers().componentNameFilterInput().setValue("claimed");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).shouldHave(text("No Results"));
@@ -367,7 +367,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testOverviewTab_componentInformationTile() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
@@ -381,20 +381,19 @@ public class ComponentDetailsTest
     IdentificationInfoSection identificationInfoSection =
         componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
     identificationInfoSection.shouldBe(visible);
-    identificationInfoSection.getCatalogedDateItem().shouldHave(text("Cataloged 6 years ago"));
     identificationInfoSection.getMatchStateItem().shouldHave(text("Match State exact"));
     identificationInfoSection.getIdentificationSourceItem().shouldHave(text("Identification Source"));
     identificationInfoSection.getCategoryItem().shouldHave(text("Category"));
 
     identificationInfoSection.getOccurrencesItem().shouldBe(visible);
-    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File Matches"));
+    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File"));
 
     eyesWatcher.eyesCheck("component details overview tab component information");
   }
 
   @Test
   public void testOverviewTab_OccurrencesPopover() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
@@ -402,7 +401,7 @@ public class ComponentDetailsTest
     IdentificationInfoSection identificationInfoSection =
         componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
     identificationInfoSection.shouldBe(visible);
-    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File Matches"));
+    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File"));
     identificationInfoSection.getOccurrencesLink().click();
 
     OccurrencesPopover occurrencesPopover = new OccurrencesPopover();
@@ -418,7 +417,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testOverviewTab_SimilarMatchesPopover() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForSimilarComponent();
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
@@ -442,7 +441,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testPolicyViolationsTab_violationTableEntries() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     SelenideElement lastViolation = reportPage.resultRows().last();
     lastViolation.click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "bd804633b9c2cf062586"));
@@ -459,7 +458,7 @@ public class ComponentDetailsTest
     rowCells.get(0).shouldHave(text("No policy violations"));
 
     waiveFirstReportRow();
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
 
     componentDetailsPage = openComponentDetailsPageForFirstViolation();
     navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
@@ -477,7 +476,9 @@ public class ComponentDetailsTest
     MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reevaluateButton().click();
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    NxSubmitMask.seeAndWaitForDismissal();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.filterToggle().click();
     reportPage.filterPanel().violationStateFilter().twisty().click();
     reportPage.filterPanel().violationStateFilter().waived().click();
@@ -501,7 +502,7 @@ public class ComponentDetailsTest
   @Test
   public void testPolicyViolationsTab_ViewDetailsPopover() {
     waiveFirstReportRow();
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
 
     navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
@@ -573,7 +574,7 @@ public class ComponentDetailsTest
     SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/YYYY");
     String dateString = dateFormat.format(Date.from(Instant.now()));
     waiveFirstReportRow();
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
 
     navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
@@ -610,7 +611,7 @@ public class ComponentDetailsTest
   public void testPolicyViolationsTab_viewTransitiveViolations() {
     testCLMServer.getCLMServer().getConfiguration()
         .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ElementsCollection violations = reportPage.resultRows();
     SelenideElement violation = violations.get(15);
     violation.click();
@@ -669,8 +670,9 @@ public class ComponentDetailsTest
     MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reevaluateButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
     ApplicationReportPage.AppReportHeaders reportHeaders = new ApplicationReportPage.AppReportHeaders();
     reportHeaders.componentNameFilterInput()
         .setValue("org.springframework.security : spring-security-web : 3.2.4.release");
@@ -813,8 +815,9 @@ public class ComponentDetailsTest
     MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reevaluateButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
     ApplicationReportPage.AppReportHeaders reportHeaders = new ApplicationReportPage.AppReportHeaders();
     reportHeaders.componentNameFilterInput().setValue("com.mycila : license-maven-plugin : 2.11");
     reportPage.resultRows().first().click();
@@ -864,7 +867,7 @@ public class ComponentDetailsTest
     // Configure grandfathering indicator for the first violation in the report and reload it
     componentDetailsPage.backButton().click();
     activateGrandfathering();
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
 
     reportPage.aggregateByComponentToggle().click();
     SelenideElement firstGrandfatheredViolation = reportPage.resultRows().first();
@@ -900,7 +903,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testAuditLogTab_emptyMessage() {
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
 
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
 
@@ -917,7 +920,7 @@ public class ComponentDetailsTest
 
     createAuditLogEntries();
 
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
 
     componentDetailsPage.auditTab().click();
@@ -934,7 +937,7 @@ public class ComponentDetailsTest
   public void testAuditLogTab_sort() {
     createAuditLogEntries();
 
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
 
     componentDetailsPage.auditTab().click();
@@ -988,19 +991,30 @@ public class ComponentDetailsTest
     firstViolation.click();
 
     mockHdsResponseForFirstComponent();
-    CipModal cipModal = reportPage.cipModal();
-    cipModal.tabLink(5).click();
+
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.legalTab().shouldBe(visible).click();
+    LegalTabContent tabContent = componentDetailsPage.legalTabContent();
+    tabContent.shouldBe(visible);
+
+    SelenideElement editLicenseButton = tabContent.licenseDetectionsTile().editLicenseButton();
+    editLicenseButton.shouldBe(visible).click();
+
+    EditLicensesPopover editLicensesPopover = new EditLicensesPopover();
+    editLicensesPopover.shouldBe(visible);
 
     //Move some licenses' status so we can have some entries in audit log
-    LicenseCIP.status().selectOption("Acknowledged");
-    LicenseCIP.comment().setValue("AAAA");
-    LicenseCIP.updateButton().shouldBe(enabled).click();
-    // Navigate away and back
-    LicenseCIP.status().selectOption("Open");
-    LicenseCIP.comment().setValue("BBBB");
-    LicenseCIP.updateButton().shouldBe(enabled).click();
+    editLicensesPopover.status().selectOption("Acknowledged");
+    editLicensesPopover.comment().setValue("AAAA");
+    editLicensesPopover.saveButton().shouldBe(enabled).click();
+    NxSubmitMask.seeAndWaitForDismissal();
 
-    cipModal.closeButton().click();
+    editLicensesPopover.status().selectOption("Open");
+    editLicensesPopover.comment().setValue("BBBB");
+    editLicensesPopover.saveButton().shouldBe(enabled).click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    editLicensesPopover.getCloseButton().click();
   }
 
   private void mockHdsResponseForFirstComponent() {
@@ -1139,23 +1153,6 @@ public class ComponentDetailsTest
    * @param policyViolationsTable instance of the PolicyViolationsTable whose row needs to be clicked
    */
   private void addWaiver(PolicyViolationsTable policyViolationsTable) {
-    SelenideElement row = policyViolationsTable.getRows().first();
-    row.click();
-    PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
-    violationDetailPopover.shouldBe(visible);
-
-    SelenideElement manageWaiversButton = violationDetailPopover.getManageWaiversButton();
-    manageWaiversButton.click();
-
-    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
-    waiversForViolationPage.shouldBe(visible);
-    waiversForViolationPage.addWaiverButton().click();
-
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.shouldBe(visible);
-    addWaiverPage.saveButton().shouldBe(visible).click();
-
-    waiversForViolationPage.backButton().shouldBe(visible).click();
-    violationDetailPopover.getCloseButton().click();
+    WaiverApplierForReport.waiveViolationFromTable(policyViolationsTable, 1);
   }
 }

@@ -65,6 +65,7 @@ public class ScanResource
   }
 
   @POST
+  @Produces({MediaType.APPLICATION_JSON, ErrorResponse.CONTENT_TYPE})
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Audited(AuditEvent.EVALUATE_APPLICATION)
   public Response uploadBinary(@PathParam("applicationPublicId") String appPublicId,

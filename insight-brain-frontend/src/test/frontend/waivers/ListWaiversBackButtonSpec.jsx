@@ -106,11 +106,12 @@ describe('ListWaiversBackButton', function () {
     expect(component).toHaveProp('href', 'violationDetailsHref');
   });
 
-  it('renders an MenuBarBackButton with title `Component Details` if hash & scanId & publicId are provided as props', () => {
+  it('renders an MenuBarBackButton with title `Back to Component Details` if hash & scanId & publicId & previousRouterStateNameForComponentDetails are provided as props', () => {
     const component = getShallowComponent({
       hash: 'hash',
       scanId: 'scanId',
       publicId: 'publicId',
+      previousRouterStateNameForComponentDetails: 'applicationReport.componentDetails.violations',
     });
 
     expect(routerContext.useRouterState).toHaveBeenCalled();

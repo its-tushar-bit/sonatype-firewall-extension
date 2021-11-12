@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { always } from 'ramda';
+import { omit } from 'ramda';
 
 import { createReducerFromActionMap, propSetConst } from '../util/reduxUtil';
 import {
@@ -14,6 +14,7 @@ import {
   WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED,
   WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED,
   WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN,
+  WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME,
 } from './waiverActions';
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
@@ -24,6 +25,7 @@ export const initState = Object.freeze({
   loadApplicableWaiversError: null,
   hasPermissionForAppWaivers: null,
   isRequestWaiverPopoverShown: false,
+  previousRouterStateNameForComponentDetails: null,
 });
 
 const setLoadError = (payload, state) => ({
@@ -62,6 +64,16 @@ const setIsRequestWaiverPopoverShown = (payload, state) => ({
   isRequestWaiverPopoverShown: payload,
 });
 
+const setPreviousRouterStateNameForComponentDetails = (payload, state) => ({
+  ...state,
+  previousRouterStateNameForComponentDetails: payload,
+});
+
+const resetState = (_, { previousRouterStateNameForComponentDetails }) => ({
+  ...omit(['previousRouterStateNameForComponentDetails'], initState),
+  previousRouterStateNameForComponentDetails,
+});
+
 const reducerActionMap = {
   [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED]: propSetConst('loadingManageWaiversData', true),
   [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED]: setLoadError,
@@ -70,7 +82,8 @@ const reducerActionMap = {
   [WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED]: loadApplicableWaiversFulfilled,
   [WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED]: loadApplicableWaiversFailed,
   [WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN]: setIsRequestWaiverPopoverShown,
-  [UI_ROUTER_ON_FINISH]: always(initState),
+  [WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME]: setPreviousRouterStateNameForComponentDetails,
+  [UI_ROUTER_ON_FINISH]: resetState,
 };
 
 const manageWaiversReducer = createReducerFromActionMap(reducerActionMap, initState);

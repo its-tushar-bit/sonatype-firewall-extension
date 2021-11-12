@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from 'MainRoot/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
+import reducer, { initialState } from 'MainRoot/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
+import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 describe('componentDetailsVulnerabilitiesSlice', () => {
   const stateConstantObject = { value: 'test value' };
@@ -456,6 +457,36 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
         expect(newState.vulnerabilitySecurityOverride.submitMaskState).toBe(null);
         expect(newState.vulnerabilitySecurityOverride.saveError).toBe('Error during save operation');
       });
+    });
+  });
+
+  describe('SELECT_COMPONENT', () => {
+    it('resets current state to initialState', () => {
+      const state = Object.freeze({
+        vulnerabilityDetails: {
+          loading: true,
+          error: 'error',
+          details: {},
+        },
+        vulnerabilities: {
+          data: {},
+          loading: true,
+          error: 'error',
+        },
+        showVulnerabilityDetailPopover: true,
+        selectedRefId: '42',
+        vulnerabilitySecurityOverride: {
+          status: 'status',
+          loading: true,
+          loadError: 'error',
+          submitMaskState: true,
+          saveError: 'error',
+        },
+      });
+
+      const newState = reducer(state, { type: SELECT_COMPONENT });
+
+      expect(newState).toEqual(initialState);
     });
   });
 });

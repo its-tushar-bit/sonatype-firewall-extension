@@ -12,3 +12,7 @@ export const selectRouterCurrentParams = createSelector(selectRouterSlice, prop(
 export const selectRouterState = createSelector(selectRouterSlice, prop('currentState'));
 
 export const selectCurrentRouteName = createSelector(selectRouterState, prop('name'));
+
+export const selectRouterPrevState = createSelector(selectRouterSlice, prop('prevState'));
+
+export const selectPreviousRouteName = createSelector(selectRouterPrevState, prop('name'));

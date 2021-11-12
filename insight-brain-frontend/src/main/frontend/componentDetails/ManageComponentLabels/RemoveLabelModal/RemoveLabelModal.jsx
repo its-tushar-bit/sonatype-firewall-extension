@@ -5,14 +5,21 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxModal, NxButton } from '@sonatype/react-shared-components';
+import { NxModal, NxButton, NxLoadError } from '@sonatype/react-shared-components';
+
+const REMOVE_LABEL_ERR = 'An error occurred removing label.';
 
 export default function RemoveLabelModal({
   removeLabel,
   toggleShowRemoveLabelModal,
   selectedLabelDetails,
   showRemoveLabelModal,
+  removeLabelError,
 }) {
+  const removeHandler = () => {
+    removeLabel(selectedLabelDetails);
+  };
+
   return (
     showRemoveLabelModal && (
       <NxModal variant="narrow" onCancel={toggleShowRemoveLabelModal} aria-labelledby="iq-remove-label">
@@ -25,16 +32,16 @@ export default function RemoveLabelModal({
           <p className="nx-p">Are you sure you want to remove this label?</p>
         </div>
         <footer className="nx-footer">
+          {removeLabelError && (
+            <NxLoadError error={removeLabelError} titleMessage={REMOVE_LABEL_ERR} retryHandler={removeHandler} />
+          )}
           <div className="nx-btn-bar">
             <NxButton onClick={toggleShowRemoveLabelModal}>Cancel</NxButton>
-            <NxButton
-              variant="primary"
-              onClick={() => {
-                removeLabel(selectedLabelDetails);
-              }}
-            >
-              Remove
-            </NxButton>
+            {!removeLabelError && (
+              <NxButton variant="primary" onClick={removeHandler}>
+                Remove
+              </NxButton>
+            )}
           </div>
         </footer>
       </NxModal>
@@ -47,4 +54,5 @@ RemoveLabelModal.propTypes = {
   removeLabel: PropTypes.func.isRequired,
   selectedLabelDetails: PropTypes.object.isRequired,
   toggleShowRemoveLabelModal: PropTypes.func.isRequired,
+  removeLabelError: PropTypes.string,
 };

@@ -7,6 +7,7 @@
 package com.sonatype.clm.testing.functional.brain.legal;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -72,13 +73,20 @@ public class NoticeDetailsTest
                 StandardCharsets.UTF_8))
         .atUri("/rest/legal/file");
 
-    refreshOrOpen(ComponentNoticeDetailsPage.urlToApplicationScope(
+    refreshOrOpen(ComponentNoticeDetailsPage.urlToApplicationScopeByHash(
         app.getPublicId(), "033e7a20b23ea284d474", 0));
   }
 
-  @Test
-  public void testNoticeOverview() {
-    refreshOrOpen(ComponentNoticeDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
+  private void loadByHash() {
+    refreshOrOpen(ComponentNoticeDetailsPage.urlToApplicationScopeByHash(app.getPublicId(), "033e7a20b23ea284d474", 0));
+  }
+
+  private void loadByComponentIdentifier() throws UnsupportedEncodingException {
+    refreshOrOpen(
+            ComponentNoticeDetailsPage.urlToApplicationScopeByComponentIdentifier(app.getPublicId(), componentId, 0));
+  }
+
+  private void doTestNoticeOverview() {
     final NoticeOverview noticeOverview = ComponentNoticeDetailsPage.noticeOverview();
 
     noticeOverview.getAttributionReportStatus().shouldHave(text("Included"));
@@ -90,19 +98,37 @@ public class NoticeDetailsTest
   }
 
   @Test
-  public void testNoticeList() {
-    refreshOrOpen(ComponentNoticeDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
-    final NoticeList noticeList = ComponentNoticeDetailsPage.noticeList();
+  public void testNoticeOverviewByHash() {
+    loadByHash();
+    doTestNoticeOverview();
+  }
 
+  @Test
+  public void testNoticeOverviewByComponentIdentifier() throws UnsupportedEncodingException {
+    loadByComponentIdentifier();
+    doTestNoticeOverview();
+  }
+
+  private void doTestNoticeList() {
+    final NoticeList noticeList = ComponentNoticeDetailsPage.noticeList();
     noticeList.shouldHave(text("notice"));
     noticeList.attributionInclusion(1).shouldHave(text("Included in attribution report"));
     noticeList.attributionInclusion(2).shouldHave(text("Included in attribution report"));
   }
 
   @Test
-  public void changeSelectedNotice() {
-    refreshOrOpen(ComponentNoticeDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
+  public void testNoticeListByHash() {
+    loadByHash();
+    doTestNoticeList();
+  }
 
+  @Test
+  public void testNoticeListByComponentIdentifier() throws UnsupportedEncodingException {
+    loadByComponentIdentifier();
+    doTestNoticeList();
+  }
+
+  private void doChangeSelectedNotice() {
     final NoticeOverview noticeOverview = ComponentNoticeDetailsPage.noticeOverview();
     final NoticeList noticeList = ComponentNoticeDetailsPage.noticeList();
 
@@ -115,27 +141,48 @@ public class NoticeDetailsTest
   }
 
   @Test
-  public void addVerifyNotice() {
-    refreshOrOpen(ComponentNoticeDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
-    final NoticeOverview noticeOverview = ComponentNoticeDetailsPage.noticeOverview();
+  public void changeSelectedNoticeByHash() {
+    loadByHash();
+    doChangeSelectedNotice();
+  }
 
+  @Test
+  public void changeSelectedNoticeByComponentIdentifier() throws UnsupportedEncodingException {
+    loadByComponentIdentifier();
+    doChangeSelectedNotice();
+  }
+
+  private LegalFileOverride doAddVerifyNoticeByHash(NoticeOverview noticeOverview) {
     noticeOverview.shouldHave(text("Apache Servicecomb"));
     noticeOverview.shouldNotHave(text("content"));
 
     componentNoticeFile =
-        tempEntity.newComponentLegalFile(componentId, rootOrg.getId(), LegalFileType.NOTICE, "noticeContentHash");
+            tempEntity.newComponentLegalFile(componentId, rootOrg.getId(), LegalFileType.NOTICE, "noticeContentHash");
     LegalFileOverride noticeFileOverride = tempEntity.newLegalFileOverride(
-        "ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4", "hash", "added notice",
-        ComponentLegalPartStatus.ENABLED, componentNoticeFile.getId());
+            "ceeb94cfb8ad27ae26ad0703a3e46babb828499fee29ff036b7eb9c80cd659e4", "hash", "added notice",
+            ComponentLegalPartStatus.ENABLED, componentNoticeFile.getId());
+    return noticeFileOverride;
+  }
 
-    refreshOrOpen(ComponentNoticeDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
+  @Test
+  public void addVerifyNoticeByHash() {
+    final NoticeOverview noticeOverview = ComponentNoticeDetailsPage.noticeOverview();
+    loadByHash();
+    LegalFileOverride noticeFileOverride = doAddVerifyNoticeByHash(noticeOverview);
+    loadByHash();
     noticeOverview.shouldHave(text(noticeFileOverride.getContent()));
   }
 
   @Test
-  public void testEditNotice() {
-    refreshOrOpen(ComponentNoticeDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
+  public void addVerifyNoticeByComponentIdentifier() throws UnsupportedEncodingException {
+    final NoticeOverview noticeOverview = ComponentNoticeDetailsPage.noticeOverview();
+    loadByComponentIdentifier();
+    LegalFileOverride noticeFileOverride = doAddVerifyNoticeByHash(noticeOverview);
+    loadByComponentIdentifier();
+    noticeOverview.shouldHave(text(noticeFileOverride.getContent()));
+  }
 
+  private void doTestEditNotice() {
     final SelenideElement noticeEditButton = ComponentNoticeDetailsPage.NoticeHeader.noticeEditButton();
     noticeEditButton.click();
 
@@ -149,5 +196,17 @@ public class NoticeDetailsTest
     SelenideElement secondNotice = noticeList.itemAt(2);
     secondNotice.lastChild().click();
     noticeOverview.shouldHave(text(noticeText));
+  }
+
+  @Test
+  public void testEditNoticeByHash() {
+    loadByHash();
+    doTestEditNotice();
+  }
+
+  @Test
+  public void testEditNoticeByComponentIdentifier() throws UnsupportedEncodingException {
+    loadByComponentIdentifier();
+    doTestEditNotice();
   }
 }

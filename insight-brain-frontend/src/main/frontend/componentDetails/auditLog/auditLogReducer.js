@@ -12,11 +12,12 @@ import {
   AUDIT_LOG_SORT_AUDIT_LOG_REQUESTED,
   AUDIT_LOG_SORT_AUDIT_LOG_FULFILLED,
 } from './auditLogActions';
-import { UI_ROUTER_ON_FINISH } from '../../reduxUiRouter/routerActions';
-import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
+import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
+import { createReducerFromActionMap, propSetConst } from 'MainRoot/util/reduxUtil';
 import { processAuditRecord } from '../componentDetailsUtils';
+import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
-const initState = Object.freeze({
+export const initState = Object.freeze({
   isLoading: false,
   auditRecords: [],
   error: null,
@@ -30,6 +31,7 @@ const reducerActionMap = {
   [AUDIT_LOG_SORT_AUDIT_LOG_REQUESTED]: sortAuditLogRequested,
   [AUDIT_LOG_SORT_AUDIT_LOG_FULFILLED]: sortAuditLogFulfilled,
   [UI_ROUTER_ON_FINISH]: always(initState),
+  [SELECT_COMPONENT]: always(initState),
 };
 
 function loadAuditLogFailed(payload, state) {

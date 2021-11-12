@@ -75,15 +75,15 @@ export default function OverviewComponentInformation({
   const identificationInfoSectionContent = (
     <dl className="nx-read-only nx-read-only--grid iq-identification-info-definition-list">
       <div className="nx-read-only__item">
-        <dt className="nx-read-only__label">Cataloged</dt>
-        <dd className="nx-read-only__data">{catalogedDateAgo}</dd>
-      </div>
-      <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Match State</dt>
         <dd className="nx-read-only__data">
           {capitalize(matchState)}
           {viewSimilarMatchesLink}
         </dd>
+      </div>
+      <div className="nx-read-only__item">
+        <dt className="nx-read-only__label">Identification Source</dt>
+        <dd className="nx-read-only__data">{identificationSource}</dd>
       </div>
       <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Occurrences</dt>
@@ -92,13 +92,9 @@ export default function OverviewComponentInformation({
             className="iq-identification-info-definition-list__occurrences-link"
             onClick={toggleShowOccurrencesPopover}
           >
-            {pathnames.length} File Matches
+            {pathnames.length + (pathnames.length > 1 ? ' Files' : ' File')}
           </a>
         </dd>
-      </div>
-      <div className="nx-read-only__item">
-        <dt className="nx-read-only__label">Identification Source</dt>
-        <dd className="nx-read-only__data">{identificationSource}</dd>
       </div>
       <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Category</dt>

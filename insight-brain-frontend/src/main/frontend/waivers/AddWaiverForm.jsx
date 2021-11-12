@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { find, propEq } from 'ramda';
 import classnames from 'classnames';
@@ -34,6 +34,7 @@ export default function AddWaiverForm(props) {
     expiryTime,
     submitError,
     openVulnerabilityDetailsModal,
+    closeVulnerabilityDetailsModal,
     setWaiverScope,
     setWaiverComment,
     setApplyToAllComponents,
@@ -42,6 +43,10 @@ export default function AddWaiverForm(props) {
     vulnerabilityId,
     cancelAction,
   } = props;
+
+  useEffect(() => {
+    return () => closeVulnerabilityDetailsModal();
+  }, []);
 
   const onSubmit = (evt) => {
     evt.preventDefault();
@@ -78,48 +83,49 @@ export default function AddWaiverForm(props) {
 
   return (
     <form className="nx-form iq-add-waiver-form" onSubmit={onSubmit}>
-      {/* Component-Info Section */}
-      <header className="nx-tile-header iq-add-waiver-form__component">
+      <header className="nx-tile-header">
         <div className="nx-tile-header__title">
-          <h2 className="nx-h2">
-            <ArtifactNameDisplay {...{ artifactName }} />
-          </h2>
+          <h2 className="nx-h2">Waiver Configuration</h2>
         </div>
-        <div className="nx-tile-header__subtitle">{componentName}</div>
       </header>
 
       <div className="nx-tile-content">
+        {/* Component Info */}
+        <div className="nx-read-only iq-add-waiver-form__component">
+          <header className="nx-read-only__label">
+            <ArtifactNameDisplay {...{ artifactName }} />
+          </header>
+          <div className="nx-read-only__data">{componentName}</div>
+        </div>
+
         {/* Policy Info */}
-        <div className="nx-form-group iq-add-waiver-form__policy iq-read-only">
-          <label className="nx-label">
-            <span className="nx-label__text">Policy</span>
-          </label>
-          <div className="iq-read-only-data">
+        <div className="nx-read-only iq-add-waiver-form__policy">
+          <header className="nx-read-only__label">Policy</header>
+          <div className="nx-read-only__data">
             <ViolationExclamation threatLevelCategory={threatLevelCategory} />
             <span className={policyClassnames}>{policyName}</span>
           </div>
         </div>
 
         {/* Constraint Info */}
-        <div className="nx-form-group iq-add-waiver-form__constraint iq-read-only">
-          <label className="nx-label">
-            <span className="nx-label__text">Constraint Name</span>
-          </label>
-          <div className="iq-read-only-data">{constraintName}</div>
+        <div className="nx-read-only iq-add-waiver-form__constraint">
+          <header className="nx-read-only__label">Constraint Name</header>
+          <div className="nx-read-only__data">{constraintName}</div>
         </div>
 
         {/* Conditions */}
-        <div className="nx-form-group nx-read-only iq-add-waiver-form__conditions iq-read-only">
-          <label className="nx-label">
-            <span className="nx-label__text">Conditions</span>
-          </label>
-          <div className="iq-read-only-data iq-read-only-data--vertical">
-            {reasons && reasons.map((reason, index) => <span key={index}>{reason}</span>)}
-          </div>
+        <div className="nx-read-only iq-add-waiver-form__conditions">
+          <header className="nx-read-only__label">Conditions</header>
+          {reasons &&
+            reasons.map((reason, index) => (
+              <div className="nx-read-only__data" key={index}>
+                <span>{reason}</span>
+              </div>
+            ))}
         </div>
 
         {vulnerabilityId && (
-          <div className="nx-form-group iq-add-waiver-form__vulnerability_details_link">
+          <div className="iq-add-waiver-form__vulnerability_details_link">
             <a onClick={onVulnerabilityDetailsClick}>See Security Vulnerability Details</a>
             <VulnerabilityDetailsModalContainer />
           </div>
@@ -173,12 +179,9 @@ export default function AddWaiverForm(props) {
         </NxFieldset>
 
         {/* Comments */}
-        <div className="nx-form-group iq-add-waiver-form__comments">
-          <label className="nx-label nx-label--optional">
-            <span className="nx-label__text">Comments</span>
-            <NxTextInput type="textarea" maxLength={1000} {...waiverComments} onChange={setWaiverComment} />
-          </label>
-        </div>
+        <NxFieldset className="iq-add-waiver-form__comments" label="Comments">
+          <NxTextInput type="textarea" maxLength={1000} {...waiverComments} onChange={setWaiverComment} />
+        </NxFieldset>
       </div>
 
       {/* Actions */}
@@ -228,6 +231,7 @@ AddWaiverForm.propTypes = {
   setWaiverComment: PropTypes.func.isRequired,
   saveWaiver: PropTypes.func.isRequired,
   openVulnerabilityDetailsModal: PropTypes.func.isRequired,
+  closeVulnerabilityDetailsModal: PropTypes.func.isRequired,
   vulnerabilityId: PropTypes.string,
   cancelAction: PropTypes.func.isRequired,
   componentIdentifier: PropTypes.object,

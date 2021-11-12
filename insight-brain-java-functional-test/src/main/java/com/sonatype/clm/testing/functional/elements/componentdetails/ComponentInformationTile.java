@@ -68,19 +68,19 @@ public class ComponentInformationTile
       super(selector);
     }
 
-    public SelenideElement getCatalogedDateItem() {
-      ElementsCollection definitionPairs = getDefinitionPairs();
-      return definitionPairs.get(0);
-    }
-
     public SelenideElement getMatchStateItem() {
       ElementsCollection definitionPairs = getDefinitionPairs();
-      return definitionPairs.get(1);
+      return definitionPairs.get(0);
     }
 
     public SelenideElement getSimilarMatchesLink() {
       SelenideElement matchStateItem = getMatchStateItem();
       return matchStateItem.find(By.tagName("a"));
+    }
+
+    public SelenideElement getIdentificationSourceItem() {
+      ElementsCollection definitionPairs = getDefinitionPairs();
+      return definitionPairs.get(1);
     }
 
     public SelenideElement getOccurrencesItem() {
@@ -92,14 +92,9 @@ public class ComponentInformationTile
       return child(".iq-identification-info-definition-list__occurrences-link");
     }
 
-    public SelenideElement getIdentificationSourceItem() {
-      ElementsCollection definitionPairs = getDefinitionPairs();
-      return definitionPairs.get(3);
-    }
-
     public SelenideElement getCategoryItem() {
       ElementsCollection definitionPairs = getDefinitionPairs();
-      return definitionPairs.get(4);
+      return definitionPairs.get(3);
     }
 
     private ElementsCollection getDefinitionPairs() {

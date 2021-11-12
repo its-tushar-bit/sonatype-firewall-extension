@@ -6,16 +6,20 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
+import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
@@ -23,19 +27,27 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.archive.CompoundSelector;
+import com.sonatype.insight.scan.archive.PathSelector;
+import com.sonatype.insight.scan.archive.RegexSelector;
+import com.sonatype.insight.scan.archive.Selector;
+import com.sonatype.insight.scan.archive.Selector.Selection;
 import com.sonatype.insight.scan.util.HashUtils;
 import com.sonatype.insight.util.ComponentIdentifierHelper;
 
@@ -87,6 +99,9 @@ public class DependencyResolver
   private final JsonNode summaryJson;
 
   private final Application application;
+
+  // Visible for testing
+  Predicate<String> isProprietary;
 
   private final TelemetrySender telemetrySender;
 
@@ -400,7 +415,7 @@ public class DependencyResolver
     ArrayNode aaNode = (ArrayNode) bomJson.get(AA_DATA_NODE);
     ObjectNode isNode = aaNode.addObject();
     isNode.put("hash", getHash(componentIdentifier));
-    isNode.put("proprietary", false);
+    isNode.put("proprietary", isProprietary(componentIdentifier));
     isNode.set(FIELD_ANALYZER_FEATURES, JsonUtils.asTree(getAnalyzerFeaturesForNewNode(aaNode)));
     isNode.put("createTime", new Date().getTime());
     isNode.put("relativePopularity", 0);
@@ -423,6 +438,54 @@ public class DependencyResolver
       isNode.set("pathnames", pathnames);
     }
     return isNode;
+  }
+
+  // Visible for testing
+  boolean isProprietary(ComponentIdentifier componentIdentifier) {
+    if (isProprietary == null) {
+      isProprietary = createIsProprietary(application.getId());
+    }
+    return getPossibleProprietaryCoordinates(componentIdentifier).stream().anyMatch(isProprietary);
+  }
+
+  // Visible for testing
+  static Predicate<String> createIsProprietary(String internalOwnerId) {
+    ProprietaryConfig proprietaryConfig =
+        ProprietaryConfigService.getProprietaryConfig(internalOwnerId, new OwnerDAO(), new ProprietaryConfigDAO());
+    List<Selector> selectors = new ArrayList<>();
+    if (!proprietaryConfig.getPackages().isEmpty()) {
+      selectors.add(PathSelector.forProprietaryPackages(
+          StringUtils.join(proprietaryConfig.getPackages().iterator(), ProprietaryConfig.PACKAGE_DELIM)));
+    }
+    if (!proprietaryConfig.getRegexes().isEmpty()) {
+      selectors.add(RegexSelector.forProprietaryRegexes(
+          StringUtils.join(proprietaryConfig.getRegexes().iterator(), ProprietaryConfig.REGEX_DELIM)));
+    }
+    if (selectors.isEmpty()) {
+      return s -> false;
+    }
+    Selector compoundSelector = new CompoundSelector(PathSelector.PROPERTY_NAME, selectors.toArray(new Selector[0]));
+    return s -> compoundSelector.isSelected(s) == Selection.EXCLUDED;
+  }
+
+  // Visible for testing
+  static Set<String> getPossibleProprietaryCoordinates(ComponentIdentifier componentIdentifier) {
+    Set<String> result = new LinkedHashSet<>();
+    switch (componentIdentifier.getFormat()) {
+      case ComponentIdentifier.FORMAT_MAVEN: {
+        result.add(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
+        result.add(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
+        break;
+      }
+      case ComponentIdentifier.FORMAT_NPM: {
+        result.add(componentIdentifier.get(ComponentIdentifier.NPM_PACKAGE_ID));
+        break;
+      }
+      default: {
+        // noop
+      }
+    }
+    return result;
   }
 
   private String getHash(ComponentIdentifier componentIdentifier) {

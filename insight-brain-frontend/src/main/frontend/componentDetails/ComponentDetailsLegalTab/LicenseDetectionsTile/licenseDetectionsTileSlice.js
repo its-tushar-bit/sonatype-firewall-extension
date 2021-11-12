@@ -5,32 +5,32 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { equals, prop, find, map } from 'ramda';
+import { always, equals, prop, find, map } from 'ramda';
 import {
   initialState as initialStateHelper,
   userInput,
 } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
-
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import {
   getBaseLicenseOverrideUrl,
   getComponentLicensesUrl,
   getDeleteLicenseOverrideUrl,
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
-} from '../../../util/CLMLocation';
-import { Messages } from '../../../util/CommonServices';
-import { propSet } from '../../../util/jsUtil';
-import { toggleBooleanProp } from '../../../util/reduxUtil';
-import { selectComponentDetailsRequestData } from '../../overview/overviewSelectors';
+} from 'MainRoot/util/CLMLocation';
+import { Messages } from 'MainRoot/util/CommonServices';
+import { propSet } from 'MainRoot/util/jsUtil';
+import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
+import { selectComponentDetailsRequestData } from 'MainRoot/componentDetails/overview/overviewSelectors';
 import { selectEditLicensesForm } from './licenseDetectionsTileSelectors';
-import { selectSelectedComponent } from '../../../applicationReport/applicationReportSelectors';
-import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { pathSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { isOverriddenOrSelected } from '../LegalTabUtils';
+import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 const REDUCER_NAME = 'componentDetailsLicenseDetectionsTile';
 
-const initialState = {
+export const initialState = {
   licenseOverride: null,
   declaredlicenses: null,
   effectiveLicenses: null,
@@ -58,7 +58,7 @@ const getInitialFormFieldsFromLicenseOverride = (licenseOverride) => {
     scope,
     status: scope?.licenseOverride?.status ?? null,
     licenseIds: isOverriddenOrSelected(scope?.licenseOverride?.status) ? scope?.licenseOverride?.licenseIds : [],
-    comment: initialStateHelper(''),
+    comment: initialStateHelper(scope?.licenseOverride?.comment ?? ''),
   };
 };
 
@@ -304,6 +304,7 @@ const componentDetailsLicenseDetectionsTileSlice = createSlice({
     [deleteLicenseOverride.pending]: saveEditLicensesFormRequested,
     [deleteLicenseOverride.fulfilled]: saveEditLicensesFormFulfilled,
     [deleteLicenseOverride.rejected]: saveEditLicensesFormFailed,
+    [SELECT_COMPONENT]: always(initialState),
   },
 });
 

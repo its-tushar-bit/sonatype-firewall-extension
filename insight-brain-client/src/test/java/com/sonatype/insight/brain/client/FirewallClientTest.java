@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -31,10 +32,13 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
+import com.sonatype.insight.brain.service.TestInsightBrainServiceRule;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
 import org.junit.Test;
@@ -348,5 +352,57 @@ public class FirewallClientTest
   public void testAddProprietaryComponentNames() throws Exception {
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     client.addProprietaryComponentNames(new ProprietaryComponentNames("npm", "internal-name"));
+  }
+
+  @Test
+  public void testGetQuarantinedComponentReport() throws Exception {
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+    tempEntity.newRepositoryComponent(repository.getId());
+
+    FirewallClient client =
+        new FirewallClient(getConfigurationWithExperimentalFeatureEnabled(), rmInstanceId, REPOSITORY_PUBLIC_ID,
+            FirewallClient.NEXUS_RESOURCE_PATH);
+    QuarantinedComponentReport quarantinedComponentReport = client.getQuarantinedComponentReport("path");
+    assertThat(quarantinedComponentReport.getReportUrl()).matches("ui/links/repositories/quarantinedComponent/.+");
+  }
+
+  @Test
+  public void testGetQuarantinedComponentReport_NoRepositoryError() throws Exception {
+    FirewallClient client =
+        new FirewallClient(getConfigurationWithExperimentalFeatureEnabled(), rmInstanceId, REPOSITORY_PUBLIC_ID,
+            FirewallClient.NEXUS_RESOURCE_PATH);
+
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> client.getQuarantinedComponentReport("path"))
+        .withMessage(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID))
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
+  }
+
+  @Test
+  public void testGetQuarantinedComponentReport_NoRepositoryComponentError() throws Exception {
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
+    String pathname = "path";
+
+    FirewallClient client =
+        new FirewallClient(getConfigurationWithExperimentalFeatureEnabled(), rmInstanceId, REPOSITORY_PUBLIC_ID,
+            FirewallClient.NEXUS_RESOURCE_PATH);
+
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> client.getQuarantinedComponentReport(pathname))
+        .withMessage(String.format("Repository component for repository %s and pathname %s does not exist",
+            repository.getPublicId(), pathname))
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
+  }
+
+  private Configuration getConfigurationWithExperimentalFeatureEnabled() {
+    TestInsightBrainServiceRule clmServer = getCLMServer();
+    clmServer.getConfiguration().setExperimentalFeatures(ImmutableMap.of(
+        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
+    Configuration config = clmServer.getClientConfiguration();
+    SimpleAuthentication auth = new SimpleAuthentication();
+    auth.setPassword("admin123");
+    auth.setUsername("admin");
+    config.setServerAuth(auth);
+    return config;
   }
 }

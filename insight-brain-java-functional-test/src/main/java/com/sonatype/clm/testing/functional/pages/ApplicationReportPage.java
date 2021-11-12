@@ -46,14 +46,6 @@ public class ApplicationReportPage
         scanId);
   }
 
-  public static String url(Application app, String scanId, boolean enableComponentDetails) {
-    if (!enableComponentDetails) {
-      return url(app, scanId);
-    }
-    return BaseUrl.resolvePageUrl("/applicationReport/{applicationPublicId}/{scanId}/policy?componentDetailsEnabled",
-        app.getPublicId(), scanId);
-  }
-
   public ApplicationReportPage() {
     super(ROOT);
   }

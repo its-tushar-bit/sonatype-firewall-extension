@@ -10,7 +10,9 @@ import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -29,6 +31,7 @@ public class EnvironmentResource
   }
 
   @GET
+  @Produces(MediaType.TEXT_PLAIN)
   public String submitClientEnvironment(@Context HttpServletRequest request) throws Exception {
     return client.relay(request, String.class, "session/environment").content;
   }

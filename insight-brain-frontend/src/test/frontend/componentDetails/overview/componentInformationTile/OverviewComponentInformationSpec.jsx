@@ -120,31 +120,24 @@ describe('OverviewComponentInformation', () => {
         identificationInfoSection = sections.at(1);
 
       const definitionItems = identificationInfoSection.find('.nx-read-only__item');
-      expect(definitionItems.length).toBe(5);
+      expect(definitionItems.length).toBe(4);
 
-      const [catalogedDateLabel, catalogedDateValue] = [
-        definitionItems.at(0).find('dt'),
-        definitionItems.at(0).find('dd'),
-      ];
-      expect(catalogedDateLabel).toHaveText('Cataloged');
-      expect(catalogedDateValue).toHaveText('');
-
-      const [matchStateLabel, matchStateValue] = [definitionItems.at(1).find('dt'), definitionItems.at(1).find('dd')];
+      const [matchStateLabel, matchStateValue] = [definitionItems.at(0).find('dt'), definitionItems.at(0).find('dd')];
       expect(matchStateLabel).toHaveText('Match State');
       expect(matchStateValue).toHaveText('Unknown');
 
-      const [OcurrencesLabel, OcurrencesValue] = [definitionItems.at(2).find('dt'), definitionItems.at(2).find('dd')];
-      expect(OcurrencesLabel).toHaveText('Occurrences');
-      expect(OcurrencesValue).toHaveText('1 File Matches');
-
       const [IdentificationSourceLabel, IdentificationSourceValue] = [
-        definitionItems.at(3).find('dt'),
-        definitionItems.at(3).find('dd'),
+        definitionItems.at(1).find('dt'),
+        definitionItems.at(1).find('dd'),
       ];
       expect(IdentificationSourceLabel).toHaveText('Identification Source');
       expect(IdentificationSourceValue).toHaveText('');
 
-      const [categoryLabel, categoryValue] = [definitionItems.at(4).find('dt'), definitionItems.at(4).find('dd')];
+      const [OcurrencesLabel, OcurrencesValue] = [definitionItems.at(2).find('dt'), definitionItems.at(2).find('dd')];
+      expect(OcurrencesLabel).toHaveText('Occurrences');
+      expect(OcurrencesValue).toHaveText('1 File');
+
+      const [categoryLabel, categoryValue] = [definitionItems.at(3).find('dt'), definitionItems.at(3).find('dd')];
       expect(categoryLabel).toHaveText('Category');
       expect(categoryValue).toHaveText('');
     });
@@ -214,31 +207,24 @@ describe('OverviewComponentInformation', () => {
         identificationInfoSection = sections.at(1);
 
       const definitionItems = identificationInfoSection.find('.nx-read-only__item');
-      expect(definitionItems.length).toBe(5);
+      expect(definitionItems.length).toBe(4);
 
-      const [catalogedDateLabel, catalogedDateValue] = [
-        definitionItems.at(0).find('dt'),
-        definitionItems.at(0).find('dd'),
-      ];
-      expect(catalogedDateLabel).toHaveText('Cataloged');
-      expect(catalogedDateValue).toHaveText('Less than a day ago');
-
-      const [matchStateLabel, matchStateValue] = [definitionItems.at(1).find('dt'), definitionItems.at(1).find('dd')];
+      const [matchStateLabel, matchStateValue] = [definitionItems.at(0).find('dt'), definitionItems.at(0).find('dd')];
       expect(matchStateLabel).toHaveText('Match State');
       expect(matchStateValue).toHaveText('Exact');
 
-      const [OcurrencesLabel, OcurrencesValue] = [definitionItems.at(2).find('dt'), definitionItems.at(2).find('dd')];
-      expect(OcurrencesLabel).toHaveText('Occurrences');
-      expect(OcurrencesValue).toHaveText('2 File Matches');
-
       const [IdentificationSourceLabel, IdentificationSourceValue] = [
-        definitionItems.at(3).find('dt'),
-        definitionItems.at(3).find('dd'),
+        definitionItems.at(1).find('dt'),
+        definitionItems.at(1).find('dd'),
       ];
       expect(IdentificationSourceLabel).toHaveText('Identification Source');
       expect(IdentificationSourceValue).toHaveText('clair');
 
-      const [categoryLabel, categoryValue] = [definitionItems.at(4).find('dt'), definitionItems.at(4).find('dd')];
+      const [OcurrencesLabel, OcurrencesValue] = [definitionItems.at(2).find('dt'), definitionItems.at(2).find('dd')];
+      expect(OcurrencesLabel).toHaveText('Occurrences');
+      expect(OcurrencesValue).toHaveText('2 Files');
+
+      const [categoryLabel, categoryValue] = [definitionItems.at(3).find('dt'), definitionItems.at(3).find('dd')];
       expect(categoryLabel).toHaveText('Category');
       expect(categoryValue).toHaveText('category1,category2');
     });
@@ -271,7 +257,7 @@ describe('OverviewComponentInformation', () => {
         identificationInfoSection = sections.at(1),
         definitionItems = identificationInfoSection.find('.nx-read-only__item');
 
-      const [matchStateLabel, matchStateValue] = [definitionItems.at(1).find('dt'), definitionItems.at(1).find('dd')];
+      const [matchStateLabel, matchStateValue] = [definitionItems.at(0).find('dt'), definitionItems.at(0).find('dd')];
       expect(matchStateLabel).toHaveText('Match State');
       expect(matchStateValue).toHaveText('Similar (View Similar Matches)');
 

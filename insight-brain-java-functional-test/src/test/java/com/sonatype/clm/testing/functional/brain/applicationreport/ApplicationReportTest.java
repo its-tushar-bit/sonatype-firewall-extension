@@ -20,14 +20,11 @@ import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.Viol
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
-import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.NxTooltip;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQGrandfatheringIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ResultRow;
@@ -35,9 +32,9 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitiesPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
-import com.sonatype.clm.testing.functional.pages.WaiverCip;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -575,25 +572,8 @@ public class ApplicationReportTest
     violations.shouldHaveSize(28);
     violations.first().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
 
-    // waive the first violation
-    violations.first().click();
-    CipModal cipModal = reportPage.cipModal();
-    cipModal.shouldBe(visible);
-    cipModal.tabLink(2).shouldHave(text("Policy")).click();
-    WaiverCip.row(0).waiveButton().shouldBe(visible, enabled).click();
+    WaiverApplierForReport.waiveReportRow(reportPage, 0);
 
-    // get policy violation id
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
-        "com.mycila", "license-maven-plugin", "2.11", "", "jar");
-    String policyViolationId = getViolationForPolicyComponent("License-Banned", componentIdentifier);
-    waitUntilUrl(AddWaiverPage.url(policyViolationId));
-
-    cipModal.shouldNotBe(visible);
-    AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.saveButton().click();
-    NxSubmitMask.seeAndWaitForDismissal();
-    cipModal.shouldBe(visible);
-    cipModal.closeButton().click();
     reportPage.shouldBe(visible);
     reportPage.reevaluateButton().click();
     FormMask.seeAndWaitForDismissal();

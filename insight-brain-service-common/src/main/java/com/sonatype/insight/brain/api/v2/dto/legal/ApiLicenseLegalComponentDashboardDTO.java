@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTOV2;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 
 public class ApiLicenseLegalComponentDashboardDTO
@@ -29,6 +30,8 @@ public class ApiLicenseLegalComponentDashboardDTO
   public String displayName;
 
   public Set<String> licenseNames = new HashSet<>();
+
+  public Set<ApiLicenseDTOV2> licenses = new HashSet<>();
 
   public int applicationOccurrences;
 

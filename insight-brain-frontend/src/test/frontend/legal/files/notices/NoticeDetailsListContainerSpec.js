@@ -63,9 +63,10 @@ describe('NoticeDetailsListContainer', function () {
       ...noticeState,
       router: {
         currentState: { name: 'ComponentOverview' },
-        currentParams: { hash: 'fooHash', applicationPublicId: 'appId' },
+        currentParams: { hash: 'fooHash', applicationPublicId: 'appId', componentIdentifier: 'fooComponentIdentifier' },
         prevParams: {
           hash: 'fooHash',
+          componentIdentifier: 'fooComponentIdentifier',
           ownerType: 'organization',
           ownerId: 'org',
           noticeIndex: '0',
@@ -79,6 +80,7 @@ describe('NoticeDetailsListContainer', function () {
 
     let wrapper = shallow(vdom).dive();
     expect(wrapper).toHaveProp('hash', 'fooHash');
+    expect(wrapper).toHaveProp('componentIdentifier', 'fooComponentIdentifier');
     expect(wrapper).toHaveProp('ownerType', 'organization');
     expect(wrapper).toHaveProp('ownerId', 'org');
     expect(wrapper).toHaveProp('noticeIndex', '0');

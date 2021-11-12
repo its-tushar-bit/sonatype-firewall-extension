@@ -61,7 +61,6 @@ public class DefaultApiUserResource implements ApiUserResource
   @Override
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_USER)
   public void add(ApiUserDTO userDTO) {
     userService.addUser(userDTO);
@@ -80,7 +79,6 @@ public class DefaultApiUserResource implements ApiUserResource
   @Override
   @DELETE
   @Path(USERNAME_PATH)
-  @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.DELETE_USER)
   public void delete(@PathParam("username") String username) {
     userService.deleteUserByUsername(username);

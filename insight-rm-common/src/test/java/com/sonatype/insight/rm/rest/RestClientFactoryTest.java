@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
 import com.sonatype.insight.brain.client.FirewallMigrationClient;
@@ -299,6 +300,28 @@ public class RestClientFactoryTest
     final Repository repository =
         client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
     assertThat(repository.getPolicyEvaluationSummary()).isSameAs(policyEvaluationSummary);
+  }
+
+  @Test
+  public void testRestClientRepository_GetQuarantinedComponentReport() throws Exception {
+    QuarantinedComponentReport quarantinedComponentReport = new QuarantinedComponentReport();
+    quarantinedComponentReport.setReportUrl("components/quarantinedComponentReportUrl");
+
+    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    final String repositoryPublicId = "repositoryPublicId";
+    final String pathname = "pathname";
+
+    final FirewallClient firewallClient = mock(FirewallClient.class);
+    when(firewallClient.getQuarantinedComponentReport(pathname)).thenReturn(quarantinedComponentReport);
+
+    final RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
+
+    final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    final Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
+    assertThat(repository.getQuarantinedComponentReport(pathname)).isSameAs(quarantinedComponentReport);
   }
 
   @Test

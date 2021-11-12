@@ -16,16 +16,17 @@ import UnknownComponentAlert from 'MainRoot/componentDetails/UnknownComponentAle
 
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
-const assertTabs = (component, activeTabId, isUnknown, isClaimed) => {
+const assertTabs = (component, activeTabId, isUnknown, isClaimed, isExact) => {
   let tabs;
 
   tabs = component.find(ComponentDetailsTabs);
-  const tabIdPerIndex = getTabIdPerIndex(isUnknown, isClaimed);
+  const tabIdPerIndex = getTabIdPerIndex(isUnknown, isClaimed, isExact);
 
   expect(tabs).toHaveProp('activeTab', tabIdPerIndex.indexOf(activeTabId));
   expect(tabs).toHaveProp('onTabChange', jasmine.any(Function));
   expect(tabs).toHaveProp('isUnknown', isUnknown);
   expect(tabs).toHaveProp('isClaimed', isClaimed);
+  expect(tabs).toHaveProp('isExact', isExact);
 };
 
 describe('ComponentDetails', function () {
@@ -80,10 +81,10 @@ describe('ComponentDetails', function () {
 
   it('renders the tabs at all times', () => {
     let component = getShallowComponent({ loading: false });
-    assertTabs(component, minimalProps.activeTabId, false, false);
+    assertTabs(component, minimalProps.activeTabId, false, false, false);
 
     component = getShallowComponent({ loading: true });
-    assertTabs(component, minimalProps.activeTabId, false, false);
+    assertTabs(component, minimalProps.activeTabId, false, false, false);
   });
 
   it('calls loadComponentDetails only when mounted', () => {
@@ -167,17 +168,17 @@ describe('ComponentDetails', function () {
 
   describe('getTabIdPerIndex', () => {
     it('returns an array with 3 tab ids if component is unknown', () => {
-      const result = getTabIdPerIndex(true, false);
+      const result = getTabIdPerIndex(true, false, false);
       expect(result).toEqual(['overview', 'violations', 'claim']);
     });
 
-    it('returns an array with 7 tab ids if component is not unknown and is claimed', () => {
-      const result = getTabIdPerIndex(false, true);
+    it('returns an array with 7 tab ids if component is either claimed or has matchState other than exact', () => {
+      const result = getTabIdPerIndex(false, true, false);
       expect(result).toEqual(['overview', 'violations', 'security', 'legal', 'labels', 'claim', 'audit']);
     });
 
-    it('returns an array with 6 tab ids if component is not unknown and is not claimed', () => {
-      const result = getTabIdPerIndex(false, false);
+    it('returns an array with 6 tab ids if component is not unknown or matchState is exact', () => {
+      const result = getTabIdPerIndex(false, false, true);
       expect(result).toEqual(['overview', 'violations', 'security', 'legal', 'labels', 'audit']);
     });
   });
@@ -278,7 +279,7 @@ describe('ComponentDetails', function () {
 
     it('renders the tabs', () => {
       const el = getShallowComponent({ loadError: 'Mock message' });
-      assertTabs(el, minimalProps.activeTabId, false, false);
+      assertTabs(el, minimalProps.activeTabId, false, false, false);
     });
   });
 
@@ -290,7 +291,7 @@ describe('ComponentDetails', function () {
 
     it('renders the tabs', () => {
       const el = getShallowComponent({ loadError: 'Mock message' });
-      assertTabs(el, minimalProps.activeTabId, false, false);
+      assertTabs(el, minimalProps.activeTabId, false, false, false);
     });
   });
 });

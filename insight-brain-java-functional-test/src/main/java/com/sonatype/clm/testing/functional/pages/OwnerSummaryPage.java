@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.DataRetentionTile;
+import com.sonatype.clm.testing.functional.elements.InnerSourceRepositoryTile;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
@@ -81,6 +82,10 @@ public class OwnerSummaryPage
 
   public static SourceControlTile sourceControlTile() {
     return new SourceControlTile();
+  }
+
+  public static InnerSourceRepositoryTile innerSourceRepositoryTile() {
+    return new InnerSourceRepositoryTile();
   }
 
   public static AccessTile accessTile() {

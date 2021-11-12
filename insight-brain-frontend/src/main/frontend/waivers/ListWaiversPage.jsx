@@ -65,8 +65,8 @@ export default function ListWaiversPage(props) {
   return (
     <Fragment>
       {waiverToDelete && <DeleteWaiverModalContainer />}
-      {isRequestWaiverPopoverShown && <RequestWaiversPopover onClose={() => setIsRequestWaiverPopoverShown(false)} />}
       <div id="list-waivers-page" className="nx-page-main list-waivers-page">
+        {isRequestWaiverPopoverShown && <RequestWaiversPopover onClose={() => setIsRequestWaiverPopoverShown(false)} />}
         <LoadWrapper
           loading={loadingManageWaiversData || !violationDetails}
           error={loadManageWaiversDataError}
@@ -163,6 +163,7 @@ export default function ListWaiversPage(props) {
 }
 
 ListWaiversPage.propTypes = {
+  ...ListWaiversBackButton.propTypes,
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   expiredWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   loadingManageWaiversData: PropTypes.bool,
@@ -176,12 +177,6 @@ ListWaiversPage.propTypes = {
   setWaiverToDelete: PropTypes.func.isRequired,
   loadApplicableWaivers: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
-  sidebarReference: PropTypes.string,
-  type: PropTypes.string,
-  hash: PropTypes.string,
-  publicId: PropTypes.string,
-  scanId: PropTypes.string,
-  violationId: PropTypes.string,
   violationDetails: PropTypes.shape({
     ...violationDetailsPropTypes,
     constraintViolations: constraintViolationsPropType.isRequired,

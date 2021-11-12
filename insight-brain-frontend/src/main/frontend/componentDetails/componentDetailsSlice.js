@@ -5,9 +5,9 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { curryN, prop, sortWith, ascend } from 'ramda';
+import { always, curryN, prop, sortWith, ascend } from 'ramda';
 import { enableMapSet } from 'immer';
-
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { loadReportIfNeeded } from '../applicationReport/applicationReportActions';
 import { selectSelectedComponent } from '../applicationReport/applicationReportSelectors';
@@ -22,9 +22,9 @@ import {
 import { selectComponentDetailsRequestData } from './overview/overviewSelectors';
 import { Messages } from '../util/CommonServices';
 import { toggleBooleanProp } from '../util/reduxUtil';
-import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 const REDUCER_NAME = 'componentDetails';
 export const VISIT_ANCESTOR_ACTION = REDUCER_NAME + '/visitAncestors';
@@ -32,7 +32,7 @@ export const RETURN_TO_OFFSPRING = REDUCER_NAME + '/backToOffspring';
 const COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME = 'applicationReport.componentDetails.overview';
 enableMapSet();
 
-const initialState = Object.freeze({
+export const initialState = Object.freeze({
   pendingLoads: new Set(),
   isVisitingAncestor: false,
   isSavingLabelScope: false,
@@ -290,7 +290,10 @@ const saveApplyLabelScope = createAsyncThunk(
 );
 
 const removeAppliedLabelRequested = (state) => {
-  return setPendingLoads(['removeAppliedLabel'], state);
+  return setPendingLoads(['removeAppliedLabel'], {
+    ...state,
+    removeAppliedLabelError: null,
+  });
 };
 
 const removeAppliedLabelFulfilled = (state) => {
@@ -304,7 +307,6 @@ const removeAppliedLabelFulfilled = (state) => {
 const removeAppliedLabelFailed = (state, { payload }) => {
   return unsetPendingLoads(['removeAppliedLabel'], {
     ...state,
-    selectedLabelDetails: {},
     removeAppliedLabelError: Messages.getHttpErrorMessage(payload),
   });
 };
@@ -378,6 +380,13 @@ const showApplyLabelModalAction = (state) => {
   };
 };
 
+const toggleShowRemoveLabelModal = (state) => {
+  return toggleBooleanProp('showRemoveLabelModal')({
+    ...state,
+    removeAppliedLabelError: null,
+  });
+};
+
 const componentDetailsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -390,7 +399,7 @@ const componentDetailsSlice = createSlice({
     resetSubmitMaskState: pathSetConst(['setProprietaryMatchers', 'submitMaskState'], null),
     resetSubmitError: pathSetConst(['setProprietaryMatchers', 'submitError'], null),
     setComponentMatchersData: pathSet(['setProprietaryMatchers', 'data']),
-    toggleShowRemoveLabelModal: toggleBooleanProp('showRemoveLabelModal'),
+    toggleShowRemoveLabelModal: toggleShowRemoveLabelModal,
     setLabelScopeToSave: propSet('labelScopeToSave'),
     setSelectedLabelDetails: propSet('selectedLabelDetails'),
   },
@@ -413,6 +422,7 @@ const componentDetailsSlice = createSlice({
     [saveApplyLabelScope.pending]: saveApplyLabelScopeRequested,
     [saveApplyLabelScope.fulfilled]: saveApplyLabelScopeFulfilled,
     [saveApplyLabelScope.rejected]: saveApplyLabelScopeFailed,
+    [SELECT_COMPONENT]: always(initialState),
   },
 });
 

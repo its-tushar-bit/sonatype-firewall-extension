@@ -190,6 +190,7 @@ public class ApplicationResource
    */
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
   @Path(SET_APPLICATION_ICON_PATH)
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.CONFIGURE_APPLICATION_ICON)

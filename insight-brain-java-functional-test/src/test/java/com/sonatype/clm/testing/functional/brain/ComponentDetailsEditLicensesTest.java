@@ -208,6 +208,10 @@ public class ComponentDetailsEditLicensesTest
     assertThat(override.getLicenseIds().size()).isEqualTo(1);
     assertThat(override.getLicenseIds()).contains("Apache-2.0");
 
+    // Check comments being rendered
+    secondScope.click();
+    editLicensesPopover.comment().shouldHave(value("Some comments"));
+
     // Remove Override from Application
     firstScope.click();
     statusSelect.selectOptionContainingText("Inherit Status (Overridden)");

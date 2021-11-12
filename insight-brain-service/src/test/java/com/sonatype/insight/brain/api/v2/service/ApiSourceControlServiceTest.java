@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -73,6 +75,9 @@ public class ApiSourceControlServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  @Inject
+  private InsightWork insightWork;
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -367,24 +372,30 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  public void testDeleteSourceControlByOwner_ForApplication_licensedByAutomation() {
+  public void testDeleteSourceControlByOwner_ForApplication_licensedByAutomation() throws Exception {
     setLicensedForSourceControlByAutomation();
     final ApiSourceControlDTO validSourceControl = ApiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
             .build());
 
     final ApiSourceControlDTO sourceControl = sourceControlService
-        .addSourceControlByOwner(OwnerType.ORGANIZATION, app.getId(), validSourceControl);
+        .addSourceControlByOwner(OwnerType.APPLICATION, app.getId(), validSourceControl);
     assertThat(sourceControlService.getAll()).hasSize(2);
     assertTelemetry(METHOD.ADD, app.getId(), sourceControl.repositoryUrl,
         sourceControl.provider, sourceControl.remediationPullRequestsEnabled, sourceControl.statusChecksEnabled,
         sourceControl.baseBranch);
 
-    sourceControlService.deleteSourceControlByOwner(OwnerType.ORGANIZATION, app.getId());
+    File sourceControlDir = insightWork.getSourceControlDir(app.getId());
+    sourceControlDir.mkdirs();
+    assertThat(sourceControlDir).isDirectory();
+
+    sourceControlService.deleteSourceControlByOwner(OwnerType.APPLICATION, app.getId());
     assertThat(sourceControlService.getAll()).hasSize(1);
     assertTelemetry(METHOD.DELETE, app.getId(), sourceControl.repositoryUrl,
         sourceControl.provider, sourceControl.remediationPullRequestsEnabled, sourceControl.statusChecksEnabled,
         sourceControl.baseBranch);
+
+    assertThat(sourceControlDir).doesNotExist();
   }
 
   @Test

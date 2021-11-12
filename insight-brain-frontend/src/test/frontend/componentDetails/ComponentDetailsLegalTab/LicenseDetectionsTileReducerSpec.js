@@ -3,7 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
+import reducer, {
+  initialState,
+} from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
+import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 describe('componentDetailsLicenseDetectionsTile reducer', () => {
   describe('unknown action', () => {
@@ -72,7 +75,7 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
         },
         otherState,
       });
-      const firstLicenseOverride = { license1: { id: 'id1' } };
+      const firstLicenseOverride = { license1: { id: 'id1' }, licenseOverride: { comment: 'some comment' } };
       const payload = {
         licenseOverride: [firstLicenseOverride, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
         declaredlicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
@@ -99,7 +102,7 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
       expect(expectedState.editLicensesForm.isDirty).toBeFalse();
       expect(expectedState.editLicensesForm.scope).toBe(firstLicenseOverride);
       expect(expectedState.editLicensesForm.status).toBe(null);
-      expect(expectedState.editLicensesForm.comment.value).toBe('');
+      expect(expectedState.editLicensesForm.comment.value).toBe('some comment');
       expect(expectedState.editLicensesForm.fieldsPristineState).toEqual({
         comment: '',
         scope: firstLicenseOverride,
@@ -453,6 +456,34 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
 
       expect(submitMaskState).toBe(null);
       expect(submitError).toEqual(payload);
+    });
+  });
+
+  describe('SELECT_COMPONENT', () => {
+    it('resets scurrent tate to initialState', () => {
+      const state = Object.freeze({
+        licenseOverride: {},
+        declaredlicenses: [],
+        effectiveLicenses: [],
+        observedlicenses: [],
+        selectableLicenses: [],
+        allLicenses: [],
+        loading: true,
+        loadError: 'error',
+        showEditLicensesPopover: true,
+        editLicensesForm: {
+          scope: 'scope',
+          licenseIds: ['23'],
+          status: 'status',
+          isDirty: true,
+          submitError: 'error',
+          submitMaskState: true,
+          fieldsPristineState: false,
+        },
+      });
+
+      const newState = reducer(state, { type: SELECT_COMPONENT });
+      expect(newState).toEqual(initialState);
     });
   });
 });

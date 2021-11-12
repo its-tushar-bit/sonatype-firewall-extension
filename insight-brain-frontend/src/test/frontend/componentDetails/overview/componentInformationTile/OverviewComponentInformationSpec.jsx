@@ -135,7 +135,7 @@ describe('OverviewComponentInformation', () => {
 
       const [OcurrencesLabel, OcurrencesValue] = [definitionItems.at(2).find('dt'), definitionItems.at(2).find('dd')];
       expect(OcurrencesLabel).toHaveText('Occurrences');
-      expect(OcurrencesValue).toHaveText('1 File Matches');
+      expect(OcurrencesValue).toHaveText('1 File');
 
       const [categoryLabel, categoryValue] = [definitionItems.at(3).find('dt'), definitionItems.at(3).find('dd')];
       expect(categoryLabel).toHaveText('Category');
@@ -222,7 +222,7 @@ describe('OverviewComponentInformation', () => {
 
       const [OcurrencesLabel, OcurrencesValue] = [definitionItems.at(2).find('dt'), definitionItems.at(2).find('dd')];
       expect(OcurrencesLabel).toHaveText('Occurrences');
-      expect(OcurrencesValue).toHaveText('2 File Matches');
+      expect(OcurrencesValue).toHaveText('2 Files');
 
       const [categoryLabel, categoryValue] = [definitionItems.at(3).find('dt'), definitionItems.at(3).find('dd')];
       expect(categoryLabel).toHaveText('Category');

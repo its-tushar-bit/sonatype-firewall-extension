@@ -386,7 +386,7 @@ public class ComponentDetailsTest
     identificationInfoSection.getCategoryItem().shouldHave(text("Category"));
 
     identificationInfoSection.getOccurrencesItem().shouldBe(visible);
-    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File Matches"));
+    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File"));
 
     eyesWatcher.eyesCheck("component details overview tab component information");
   }
@@ -401,7 +401,7 @@ public class ComponentDetailsTest
     IdentificationInfoSection identificationInfoSection =
         componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
     identificationInfoSection.shouldBe(visible);
-    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File Matches"));
+    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File"));
     identificationInfoSection.getOccurrencesLink().click();
 
     OccurrencesPopover occurrencesPopover = new OccurrencesPopover();

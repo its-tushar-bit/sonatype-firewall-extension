@@ -92,7 +92,7 @@ export default function OverviewComponentInformation({
             className="iq-identification-info-definition-list__occurrences-link"
             onClick={toggleShowOccurrencesPopover}
           >
-            {pathnames.length} File Matches
+            {pathnames.length + (pathnames.length > 1 ? ' Files' : ' File')}
           </a>
         </dd>
       </div>

@@ -78,28 +78,6 @@ pipeline {
         )
       }
     }
-    stage('Publish Integrations') {
-      parallel {
-        stage('Publish Docker Image') {
-          steps {
-            triggerBuildAndVerifySafeToContinuePipeline(
-              'insight/insight-brain/docker/docker-nexus-iq-server',
-              [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")]
-            )
-          }
-        }
-        stage('Publish CloudFormation Templates') {
-          steps {
-            build(
-              job: 'integrations/cloud/nexus-iq-ha-reference',
-              parameters: [
-                run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")
-              ]
-            )
-          }
-        }
-      }
-    }
     stage('Publish Release Notes & Documentation') {
       steps {
         build(job: 'insight/insight-brain/Publish Documentation')
@@ -127,6 +105,24 @@ pipeline {
       steps {
         build(job: 'insight/insight-brain/Send Policy Results',
           parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+      }
+    }
+    stage('Publish CloudFormation Templates') {
+      steps {
+        build(
+            job: 'integrations/cloud/nexus-iq-ha-reference',
+            parameters: [
+                run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")
+            ]
+        )
+      }
+    }
+    stage('Publish Docker Image') {
+      steps {
+        triggerBuildAndVerifySafeToContinuePipeline(
+            'insight/insight-brain/docker/docker-nexus-iq-server',
+            [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")]
+        )
       }
     }
     stage('Send Release Notifications') {

@@ -11,6 +11,7 @@ import * as OccurrencesPopoverContainer from 'MainRoot/componentDetails/overview
 import * as InnerSourceProducerAlertContainer from 'MainRoot/componentDetails/overview/InnerSourceProducerAlert/InnerSourceProducerAlertContainer';
 import * as InnerSourceProducerReportModalContainer from 'MainRoot/componentDetails/overview/InnerSourceProducerReportModal/InnerSourceProducerReportModalContainer';
 import * as InnerSourceProducerPermissionsModalContainer from 'MainRoot/componentDetails/overview/InnerSourceProducerPermissionsModal/InnerSourceProducerPermissionsModalContainer';
+import { NxTextLink } from '@sonatype/react-shared-components';
 
 describe('OverviewComponentInformation', () => {
   let minimalProps, getShallow, getMounted;
@@ -120,7 +121,7 @@ describe('OverviewComponentInformation', () => {
         identificationInfoSection = sections.at(1);
 
       const definitionItems = identificationInfoSection.find('.nx-read-only__item');
-      expect(definitionItems.length).toBe(4);
+      expect(definitionItems.length).toBe(5);
 
       const [matchStateLabel, matchStateValue] = [definitionItems.at(0).find('dt'), definitionItems.at(0).find('dd')];
       expect(matchStateLabel).toHaveText('Match State');
@@ -137,33 +138,41 @@ describe('OverviewComponentInformation', () => {
       expect(OcurrencesLabel).toHaveText('Occurrences');
       expect(OcurrencesValue).toHaveText('1 File');
 
-      const [categoryLabel, categoryValue] = [definitionItems.at(3).find('dt'), definitionItems.at(3).find('dd')];
+      const [websiteLabel, websiteValue] = [definitionItems.at(3).find('dt'), definitionItems.at(3).find('dd')];
+      expect(websiteLabel).toHaveText('Website');
+      expect(websiteValue).toHaveText('');
+
+      const [categoryLabel, categoryValue] = [definitionItems.at(4).find('dt'), definitionItems.at(4).find('dd')];
       expect(categoryLabel).toHaveText('Category');
       expect(categoryValue).toHaveText('');
     });
   });
 
   describe('when component is known', () => {
-    const knownComponentProps = {
-      componentInformation: {
-        componentIdentifier: {
-          format: 'custom',
+    let knownComponentProps;
+    beforeEach(() => {
+      knownComponentProps = {
+        componentInformation: {
+          componentIdentifier: {
+            format: 'custom',
+          },
+          displayName: {
+            parts: [
+              { field: 'Artifact Id', value: 'componentArtifactID' },
+              { value: ' , ' },
+              { field: 'Version', value: 'v1.0.1' },
+            ],
+          },
+          createTime: new Date().getTime() - 100 /* forcing a date less than a day ago */,
+          matchState: 'exact',
+          identificationSource: 'clair',
+          componentCategories: [{ path: 'category1' }, { path: 'category2' }],
+          pathnames: ['knownComponentPath', 'knownComponentPath2'],
+          similarMatches: [],
+          website: 'websitelink.com',
         },
-        displayName: {
-          parts: [
-            { field: 'Artifact Id', value: 'componentArtifactID' },
-            { value: ' , ' },
-            { field: 'Version', value: 'v1.0.1' },
-          ],
-        },
-        createTime: new Date().getTime() - 100 /* forcing a date less than a day ago */,
-        matchState: 'exact',
-        identificationSource: 'clair',
-        componentCategories: [{ path: 'category1' }, { path: 'category2' }],
-        pathnames: ['knownComponentPath', 'knownComponentPath2'],
-        similarMatches: [],
-      },
-    };
+      };
+    });
 
     it('renders an OccurrencesPopoverContainer', () => {
       const component = getShallow(knownComponentProps);
@@ -207,7 +216,7 @@ describe('OverviewComponentInformation', () => {
         identificationInfoSection = sections.at(1);
 
       const definitionItems = identificationInfoSection.find('.nx-read-only__item');
-      expect(definitionItems.length).toBe(4);
+      expect(definitionItems.length).toBe(5);
 
       const [matchStateLabel, matchStateValue] = [definitionItems.at(0).find('dt'), definitionItems.at(0).find('dd')];
       expect(matchStateLabel).toHaveText('Match State');
@@ -224,9 +233,28 @@ describe('OverviewComponentInformation', () => {
       expect(OcurrencesLabel).toHaveText('Occurrences');
       expect(OcurrencesValue).toHaveText('2 Files');
 
-      const [categoryLabel, categoryValue] = [definitionItems.at(3).find('dt'), definitionItems.at(3).find('dd')];
+      const [websiteLabel, websiteValue] = [definitionItems.at(3).find('dt'), definitionItems.at(3).find(NxTextLink)];
+      expect(websiteLabel).toHaveText('Website');
+      expect(websiteValue).toHaveText('Visit Project Website');
+      expect(websiteValue).toHaveProp('href', 'websitelink.com');
+
+      const [categoryLabel, categoryValue] = [definitionItems.at(4).find('dt'), definitionItems.at(4).find('dd')];
       expect(categoryLabel).toHaveText('Category');
       expect(categoryValue).toHaveText('category1,category2');
+    });
+
+    it('renders empty website', () => {
+      knownComponentProps.componentInformation.website = undefined;
+      const component = getShallow(knownComponentProps),
+        content = component.find('.nx-tile-content'),
+        sections = content.find('section'),
+        identificationInfoSection = sections.at(1);
+
+      const definitionItems = identificationInfoSection.find('.nx-read-only__item');
+
+      const [websiteLabel, websiteValue] = [definitionItems.at(3).find('dt'), definitionItems.at(3).find('dd')];
+      expect(websiteLabel).toHaveText('Website');
+      expect(websiteValue).toHaveText('');
     });
   });
 

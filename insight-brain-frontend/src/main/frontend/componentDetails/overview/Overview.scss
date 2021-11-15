@@ -16,6 +16,10 @@
 
     .iq-identification-info-definition-list {
       grid-template-columns: repeat(3, auto);
+
+      .iq-identification-info-definition-list__website-link {
+        white-space: nowrap;
+      }
     }
 
     .iq-component-data-col {

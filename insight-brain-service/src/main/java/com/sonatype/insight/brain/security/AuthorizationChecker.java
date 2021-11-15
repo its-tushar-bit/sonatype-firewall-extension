@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -125,17 +126,22 @@ public class AuthorizationChecker
     Collection<T> filtered = newCollection(entities);
     Set<String> roleIds = rolePermissionDAO.getRoleIdsByPermission(permission);
     Map<String, Boolean> permitsByContextId = new HashMap<>(256);
+
+    Set<String> userContextIds = membershipDAO.getByRoleIds(roleIds).stream()
+        .filter(membershipMapping -> membershipMapping.includes(user))
+        .map(MembershipMapping::getContextId)
+        .collect(Collectors.toSet());
+
     for (T entity : entities) {
       Iterable<String> contextIds = resolver.resolveContextIds(entity);
-      if (isUserHavingAnyRoleInAnyContext(user, roleIds, contextIds, permitsByContextId)) {
+      if (isUserHavingAnyRoleInAnyContext(userContextIds, contextIds, permitsByContextId)) {
         filtered.add(entity);
       }
     }
     return filtered;
   }
 
-  private boolean isUserHavingAnyRoleInAnyContext(UserPrincipal user,
-                                                  Set<String> roleIds,
+  private boolean isUserHavingAnyRoleInAnyContext(Set<String> userContextIds,
                                                   Iterable<String> contextIds,
                                                   Map<String, Boolean> permitsByContextId)
   {
@@ -161,7 +167,7 @@ public class AuthorizationChecker
     // consult the database about the uncached contexts (walking down the hierarchy)
     for (int i = uncachedContextIds.size() - 1; i >= 0; i--) {
       String contextId = uncachedContextIds.get(i);
-      boolean permit = isUserHavingAnyRoleInContext(user, roleIds, contextId);
+      boolean permit = userContextIds.contains(contextId);
       permitsByContextId.put(contextId, permit);
       if (permit) {
         // due to inheritance, the permit also implies to all child contexts

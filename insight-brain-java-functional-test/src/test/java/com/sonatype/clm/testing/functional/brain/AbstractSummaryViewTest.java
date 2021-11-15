@@ -155,7 +155,7 @@ public abstract class AbstractSummaryViewTest
     InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
     innerSourceRepositoryTile.should(exist);
     innerSourceRepositoryTile.rows().shouldHaveSize(1);
-    innerSourceRepositoryTile.itemText().shouldBe(text("InnerSource Repository Connection not Configured"));
+    innerSourceRepositoryTile.itemText().shouldBe(text("InnerSource repository connection not configured"));
   }
 
   @Test

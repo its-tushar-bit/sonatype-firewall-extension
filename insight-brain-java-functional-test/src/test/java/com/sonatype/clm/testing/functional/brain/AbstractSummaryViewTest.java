@@ -152,6 +152,9 @@ public abstract class AbstractSummaryViewTest
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     refresh();
+    MainHeader.closeNavigationSidebar();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
     innerSourceRepositoryTile.should(exist);
     innerSourceRepositoryTile.rows().shouldHaveSize(1);
@@ -165,6 +168,9 @@ public abstract class AbstractSummaryViewTest
     RepositoryConnection repositoryConnection =
         tempEntity.newRepositoryConnection(currentOwner.getId(), "http://some.base.url", null, null);
     refresh();
+    MainHeader.closeNavigationSidebar();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
     innerSourceRepositoryTile.should(exist);
     innerSourceRepositoryTile.rows().shouldHaveSize(1);
@@ -176,6 +182,9 @@ public abstract class AbstractSummaryViewTest
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
     refresh();
+    MainHeader.closeNavigationSidebar();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldNot(exist);
     OwnerSummaryPage.innerSourceRepositoryTile().shouldNot(exist);
   }
 

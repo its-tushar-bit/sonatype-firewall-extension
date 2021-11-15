@@ -62,3 +62,26 @@
 .nx-page {
   position: relative;
 }
+
+.nx-tag {
+  &.transitive,
+  &.direct,
+  &.innerSource {
+    color: var(--nx-swatch-white);
+  }
+
+  &.transitive {
+    background-color: $iq-dark-purple;
+    border: 1px solid $iq-dark-purple;
+  }
+
+  &.direct {
+    background-color: $iq-dark-blue;
+    border: 1px solid $iq-dark-blue;
+  }
+
+  &.innerSource {
+    background-color: $iq-light-turquoise;
+    border: 1px solid $iq-light-turquoise;
+  }
+}

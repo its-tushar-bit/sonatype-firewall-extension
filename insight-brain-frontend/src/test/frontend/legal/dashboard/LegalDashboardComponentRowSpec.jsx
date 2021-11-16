@@ -4,7 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxTableCell, NxTableRow, NxBinaryDonutChart, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import {
+  NxTableCell,
+  NxTableRow,
+  NxBinaryDonutChart,
+  NxFontAwesomeIcon,
+  NxThreatIndicator,
+} from '@sonatype/react-shared-components';
 import LegalDashboardComponentRow from '../../../../main/frontend/legal/dashboard/LegalDashboardComponentRow';
 import { faCheckCircle } from '@fortawesome/pro-solid-svg-icons';
 
@@ -19,6 +25,19 @@ describe('LegalDashboardComponentRow component', function () {
       licenseNames: ['Apache-2.0', 'GPL 1'],
       reviewCompletedCount: 12,
       reviewTotalCount: 20,
+      licenses: [
+        {
+          licenseId: 'Apache-2.0',
+          licenseName: 'Apache-2.0',
+          licenseThreatGroups: [
+            {
+              licenseThreatGroupName: 'Liberal',
+              licenseThreatGroupLevel: 0,
+              licenseThreatGroupCategory: 'no-threat',
+            },
+          ],
+        },
+      ],
     },
   };
 
@@ -34,6 +53,7 @@ describe('LegalDashboardComponentRow component', function () {
     expect(cells.length).toEqual(5);
     expect(cells.at(0).children().text()).toEqual('Component Name');
     expect(cells.at(1).children().text()).toEqual('Apache-2.0, GPL 1');
+    expect(cells.at(1).children().find(NxThreatIndicator).prop('policyThreatLevel')).toEqual(0);
     expect(cells.at(2).children().text()).toEqual('1');
     let donutChart = cells.at(3).find(NxBinaryDonutChart);
     expect(donutChart).toExist();

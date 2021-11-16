@@ -295,4 +295,41 @@ describe('OverviewComponentInformation', () => {
       expect(minimalProps.toggleShowSimilarMatches).toHaveBeenCalled();
     });
   });
+
+  describe('when an known component does not have categories', () => {
+    const knownComponentProps = {
+      componentInformation: {
+        componentIdentifier: {
+          format: 'custom',
+        },
+        displayName: {
+          parts: [
+            { field: 'Artifact Id', value: 'componentArtifactID' },
+            { value: ' , ' },
+            { field: 'Version', value: 'v1.0.1' },
+          ],
+        },
+        createTime: new Date().getTime() - 100 /* forcing a date less than a day ago */,
+        matchState: 'exact',
+        identificationSource: 'clair',
+        componentCategories: [],
+        pathnames: ['knownComponentPath', 'knownComponentPath2'],
+        similarMatches: [],
+      },
+    };
+
+    it('renders "Other" in category field', () => {
+      const component = getShallow(knownComponentProps),
+        content = component.find('.nx-tile-content'),
+        sections = content.find('section'),
+        identificationInfoSection = sections.at(1);
+
+      const definitionItems = identificationInfoSection.find('.nx-read-only__item');
+      expect(definitionItems.length).toBe(5);
+
+      const [categoryLabel, categoryValue] = [definitionItems.at(4).find('dt'), definitionItems.at(4).find('dd')];
+      expect(categoryLabel).toHaveText('Category');
+      expect(categoryValue).toHaveText('Other');
+    });
+  });
 });

@@ -107,7 +107,7 @@ export default function OverviewComponentInformation({
       </div>
       <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Category</dt>
-        <dd className="nx-read-only__data">{joinedComponentCategories}</dd>
+        <dd className="nx-read-only__data">{joinedComponentCategories || (isUnknown ? '' : 'Other')}</dd>
       </div>
     </dl>
   );

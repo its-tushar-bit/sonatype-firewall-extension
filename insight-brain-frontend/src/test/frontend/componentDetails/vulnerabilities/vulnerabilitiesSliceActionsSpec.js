@@ -298,6 +298,7 @@ describe('vulnerabilitiesSliceActions', () => {
     });
 
     it('dispatches componentDetailsVulnerabilities/saveVulnerabilityOverrideMaskDone after timeout after a successful request', function (done) {
+      jasmine.clock().install();
       mockAxiosCalls({
         put: {
           [url]: Promise.resolve({
@@ -307,16 +308,17 @@ describe('vulnerabilitiesSliceActions', () => {
       });
 
       store.dispatch(saveVulnerabilityOverride()).then(() => {
-        setTimeout(function () {
-          const actions = store.getActions();
-          expect(actions).toHaveActionTypesInOrder([
-            'componentDetailsVulnerabilities/saveVulnerabilityOverride/pending',
-            'componentDetailsVulnerabilities/saveVulnerabilityOverride/fulfilled',
-            'componentDetailsVulnerabilities/saveVulnerabilityOverrideMaskDone',
-          ]);
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
 
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        const actions = store.getActions();
+        expect(actions).toHaveActionTypesInOrder([
+          'componentDetailsVulnerabilities/saveVulnerabilityOverride/pending',
+          'componentDetailsVulnerabilities/saveVulnerabilityOverride/fulfilled',
+          'componentDetailsVulnerabilities/saveVulnerabilityOverrideMaskDone',
+        ]);
+
+        done();
       });
     });
 

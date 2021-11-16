@@ -163,18 +163,20 @@ describe('Eclipse View Details tests', function () {
     }));
 
     it('defers loading data until request headers are set', function (done) {
+      jasmine.clock().install();
       expect(scope.data).toBeNull();
       wnd.setClmHeaders(headers);
 
-      setTimeout(function () {
-        httpBackend.flush();
-        expect(scope.data).not.toBeUndefined();
-        expect(scope.data.observedLicenses).toEqual(['Not Provided']);
-        expect(scope.data.declaredLicenses).toEqual(['Apache-2.0 or EPL-1.0']);
-        expect(scope.data.overriddenLicenses).toEqual(['EPL-1.0']);
+      jasmine.clock().tick(10);
+      jasmine.clock().uninstall();
 
-        done();
-      }, 10);
+      httpBackend.flush();
+      expect(scope.data).not.toBeUndefined();
+      expect(scope.data.observedLicenses).toEqual(['Not Provided']);
+      expect(scope.data.declaredLicenses).toEqual(['Apache-2.0 or EPL-1.0']);
+      expect(scope.data.overriddenLicenses).toEqual(['EPL-1.0']);
+
+      done();
     });
   });
 

@@ -39,6 +39,9 @@ import {
 describe('advancedLegalObligationActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
+  beforeEach(() => jasmine.clock().install());
+  afterEach(() => jasmine.clock().uninstall());
+
   describe('saveAttribution', function () {
     let store;
     let initialState = {
@@ -132,31 +135,31 @@ describe('advancedLegalObligationActions', function () {
             })
           )
           .then(() => {
-            setTimeout(() => {
-              const actions = store.getActions();
-              expect(axios.post).toHaveBeenCalledWith(
-                '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation' +
-                  '/attribution',
-                expectedPostBody
-              );
-              expect(axios.get).toHaveBeenCalledWith(
-                '/api/experimental/licenseLegalMetadata/organization/org/component/obligation' +
-                  '/attribution?componentIdentifier=%22componentIdentifier%22&obligationName=name'
-              );
-              expect(actions.length).toBe(3);
-              expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
-              expect(actions[1].payload).toEqual({
-                name: 'name',
-                value: {
-                  id: 'id',
-                  content: 'content',
-                  ownerId: 'ROOT_ORGANIZATION_ID',
-                },
-              });
-              expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE);
-              expect(actions[2].payload).toEqual({ name: 'name' });
-              done();
-            }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+            jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+            const actions = store.getActions();
+            expect(axios.post).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation' +
+                '/attribution',
+              expectedPostBody
+            );
+            expect(axios.get).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/org/component/obligation' +
+                '/attribution?componentIdentifier=%22componentIdentifier%22&obligationName=name'
+            );
+            expect(actions.length).toBe(3);
+            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
+            expect(actions[1].payload).toEqual({
+              name: 'name',
+              value: {
+                id: 'id',
+                content: 'content',
+                ownerId: 'ROOT_ORGANIZATION_ID',
+              },
+            });
+            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE);
+            expect(actions[2].payload).toEqual({ name: 'name' });
+            done();
           });
 
         const actions = store.getActions();
@@ -292,29 +295,29 @@ describe('advancedLegalObligationActions', function () {
             })
           )
           .then(() => {
-            setTimeout(() => {
-              const actions = store.getActions();
-              expect(axios.delete).toHaveBeenCalledWith(
-                '/api/experimental/licenseLegalMetadata/component/obligation/attribution/id'
-              );
-              expect(axios.get).toHaveBeenCalledWith(
-                '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-                  'obligation/attribution?componentIdentifier=%22componentIdentifier%22&obligationName=name'
-              );
-              expect(actions.length).toBe(3);
-              expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
-              expect(actions[1].payload).toEqual({
-                name: 'name',
-                value: {
-                  id: null,
-                  content: '',
-                  ownerId: 'ROOT_ORGANIZATION_ID',
-                },
-              });
-              expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE);
-              expect(actions[2].payload).toEqual({ name: 'name' });
-              done();
-            }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+            jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+            const actions = store.getActions();
+            expect(axios.delete).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/component/obligation/attribution/id'
+            );
+            expect(axios.get).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/org/component/' +
+                'obligation/attribution?componentIdentifier=%22componentIdentifier%22&obligationName=name'
+            );
+            expect(actions.length).toBe(3);
+            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
+            expect(actions[1].payload).toEqual({
+              name: 'name',
+              value: {
+                id: null,
+                content: '',
+                ownerId: 'ROOT_ORGANIZATION_ID',
+              },
+            });
+            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE);
+            expect(actions[2].payload).toEqual({ name: 'name' });
+            done();
           });
 
         const actions = store.getActions();
@@ -362,29 +365,29 @@ describe('advancedLegalObligationActions', function () {
             })
           )
           .then(() => {
-            setTimeout(() => {
-              const actions = store.getActions();
-              expect(axios.delete).toHaveBeenCalledWith(
-                '/api/experimental/licenseLegalMetadata/component/obligation/attribution/id'
-              );
-              expect(axios.get).toHaveBeenCalledWith(
-                '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-                  'obligation/attribution?componentIdentifier=%22componentIdentifier%22&obligationName=name'
-              );
-              expect(actions.length).toBe(3);
-              expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
-              expect(actions[1].payload).toEqual({
-                name: 'name',
-                value: {
-                  id: 'id2',
-                  content: 'content2',
-                  ownerId: 'ROOT_ORGANIZATION_ID',
-                },
-              });
-              expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE);
-              expect(actions[2].payload).toEqual({ name: 'name' });
-              done();
-            }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+            jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+            const actions = store.getActions();
+            expect(axios.delete).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/component/obligation/attribution/id'
+            );
+            expect(axios.get).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/org/component/' +
+                'obligation/attribution?componentIdentifier=%22componentIdentifier%22&obligationName=name'
+            );
+            expect(actions.length).toBe(3);
+            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
+            expect(actions[1].payload).toEqual({
+              name: 'name',
+              value: {
+                id: 'id2',
+                content: 'content2',
+                ownerId: 'ROOT_ORGANIZATION_ID',
+              },
+            });
+            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE);
+            expect(actions[2].payload).toEqual({ name: 'name' });
+            done();
           });
 
         const actions = store.getActions();
@@ -498,33 +501,33 @@ describe('advancedLegalObligationActions', function () {
         });
 
         store.dispatch(saveObligation('name')).then(() => {
-          setTimeout(() => {
-            const actions = store.getActions();
-            expect(axios.post).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation',
-              expectedPostBody
-            );
-            expect(axios.get).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-                'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
-            );
-            expect(actions.length).toBe(3);
-            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
-            expect(actions[1].payload).toEqual({
-              name: 'name',
-              value: {
-                id: 'id',
-                comment: 'comment',
-                ownerId: 'ROOT_ORGANIZATION_ID',
-                status: 'OPEN',
-                lastUpdatedByUsername: 'admin',
-                lastUpdatedAt: 1618873200000,
-              },
-            });
-            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
-            expect(actions[2].payload).toEqual({ name: 'name' });
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+          const actions = store.getActions();
+          expect(axios.post).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation',
+            expectedPostBody
+          );
+          expect(axios.get).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/org/component/' +
+              'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
+          );
+          expect(actions.length).toBe(3);
+          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+          expect(actions[1].payload).toEqual({
+            name: 'name',
+            value: {
+              id: 'id',
+              comment: 'comment',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              status: 'OPEN',
+              lastUpdatedByUsername: 'admin',
+              lastUpdatedAt: 1618873200000,
+            },
+          });
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
+          expect(actions[2].payload).toEqual({ name: 'name' });
+          done();
         });
 
         const actions = store.getActions();
@@ -630,30 +633,30 @@ describe('advancedLegalObligationActions', function () {
         });
 
         store.dispatch(saveObligation('name')).then(() => {
-          setTimeout(() => {
-            const actions = store.getActions();
-            expect(axios.delete).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=id'
-            );
-            expect(axios.get).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-                'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
-            );
-            expect(actions.length).toBe(3);
-            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
-            expect(actions[1].payload).toEqual({
-              name: 'name',
-              value: {
-                id: null,
-                comment: '',
-                ownerId: 'ROOT_ORGANIZATION_ID',
-                status: 'OPEN',
-              },
-            });
-            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
-            expect(actions[2].payload).toEqual({ name: 'name' });
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+          const actions = store.getActions();
+          expect(axios.delete).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=id'
+          );
+          expect(axios.get).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/org/component/' +
+              'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
+          );
+          expect(actions.length).toBe(3);
+          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+          expect(actions[1].payload).toEqual({
+            name: 'name',
+            value: {
+              id: null,
+              comment: '',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              status: 'OPEN',
+            },
+          });
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
+          expect(actions[2].payload).toEqual({ name: 'name' });
+          done();
         });
 
         const actions = store.getActions();
@@ -691,32 +694,32 @@ describe('advancedLegalObligationActions', function () {
         });
 
         store.dispatch(saveObligation('name')).then(() => {
-          setTimeout(() => {
-            const actions = store.getActions();
-            expect(axios.delete).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=id'
-            );
-            expect(axios.get).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-                'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
-            );
-            expect(actions.length).toBe(3);
-            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
-            expect(actions[1].payload).toEqual({
-              name: 'name',
-              value: {
-                id: 'id2',
-                comment: 'comment2',
-                ownerId: 'ROOT_ORGANIZATION_ID',
-                status: 'FLAGGED',
-                lastUpdatedByUsername: 'admin',
-                lastUpdatedAt: 1618873200000,
-              },
-            });
-            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
-            expect(actions[2].payload).toEqual({ name: 'name' });
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+          const actions = store.getActions();
+          expect(axios.delete).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=id'
+          );
+          expect(axios.get).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/org/component/' +
+              'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
+          );
+          expect(actions.length).toBe(3);
+          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+          expect(actions[1].payload).toEqual({
+            name: 'name',
+            value: {
+              id: 'id2',
+              comment: 'comment2',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              status: 'FLAGGED',
+              lastUpdatedByUsername: 'admin',
+              lastUpdatedAt: 1618873200000,
+            },
+          });
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
+          expect(actions[2].payload).toEqual({ name: 'name' });
+          done();
         });
 
         const actions = store.getActions();
@@ -854,29 +857,29 @@ describe('advancedLegalObligationActions', function () {
       });
 
       store.dispatch(saveAllObligations(OBLIGATION_STATUS_FULFILLED, 'new comment', 'org')).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
-          expect(axios.post).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/organization/org/component/obligations',
-            expectedPostBody
-          );
-          expect(axios.get).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-              'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
-          );
-          expect(axios.get).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-              'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=otherName'
-          );
-          expect(actions.length).toBe(7);
-          expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUCCEEDED);
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
-          expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
-          expect(actions[1].payload.name).toEqual('name');
-          expect(actions[2].payload.name).toEqual('otherName');
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        const actions = store.getActions();
+        expect(axios.post).toHaveBeenCalledWith(
+          '/api/experimental/licenseLegalMetadata/organization/org/component/obligations',
+          expectedPostBody
+        );
+        expect(axios.get).toHaveBeenCalledWith(
+          '/api/experimental/licenseLegalMetadata/organization/org/component/' +
+            'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
+        );
+        expect(axios.get).toHaveBeenCalledWith(
+          '/api/experimental/licenseLegalMetadata/organization/org/component/' +
+            'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=otherName'
+        );
+        expect(actions.length).toBe(7);
+        expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUCCEEDED);
+
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+        expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+        expect(actions[1].payload.name).toEqual('name');
+        expect(actions[2].payload.name).toEqual('otherName');
+        done();
       });
 
       const actions = store.getActions();
@@ -1023,44 +1026,44 @@ describe('advancedLegalObligationActions', function () {
       });
 
       store.dispatch(saveAllObligations(OBLIGATION_STATUS_OPEN, '', 'ROOT_ORGANIZATION_ID')).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
-          expect(axios.delete).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=id'
-          );
-          expect(axios.get).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-              'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
-          );
-          expect(axios.get).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-              'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=otherName'
-          );
-          expect(actions.length).toBe(7);
-          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
-          expect(actions[1].payload).toEqual({
-            name: 'name',
-            value: {
-              id: null,
-              comment: '',
-              ownerId: 'ROOT_ORGANIZATION_ID',
-              status: 'OPEN',
-            },
-          });
-          expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
-          expect(actions[2].payload).toEqual({
-            name: 'otherName',
-            value: {
-              id: null,
-              comment: '',
-              ownerId: 'ROOT_ORGANIZATION_ID',
-              status: 'OPEN',
-            },
-          });
-          expect(actions[3].type).toEqual(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUCCEEDED);
-          expect(actions[6].type).toBe(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUBMIT_MASK_DONE);
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+        const actions = store.getActions();
+        expect(axios.delete).toHaveBeenCalledWith(
+          '/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=id'
+        );
+        expect(axios.get).toHaveBeenCalledWith(
+          '/api/experimental/licenseLegalMetadata/organization/org/component/' +
+            'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
+        );
+        expect(axios.get).toHaveBeenCalledWith(
+          '/api/experimental/licenseLegalMetadata/organization/org/component/' +
+            'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=otherName'
+        );
+        expect(actions.length).toBe(7);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+        expect(actions[1].payload).toEqual({
+          name: 'name',
+          value: {
+            id: null,
+            comment: '',
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            status: 'OPEN',
+          },
+        });
+        expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+        expect(actions[2].payload).toEqual({
+          name: 'otherName',
+          value: {
+            id: null,
+            comment: '',
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            status: 'OPEN',
+          },
+        });
+        expect(actions[3].type).toEqual(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUCCEEDED);
+        expect(actions[6].type).toBe(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUBMIT_MASK_DONE);
+        done();
       });
 
       const actions = store.getActions();
@@ -1104,45 +1107,45 @@ describe('advancedLegalObligationActions', function () {
       });
 
       store.dispatch(saveAllObligations(OBLIGATION_STATUS_OPEN, '', 'org')).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
-          expect(axios.delete).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=id' +
-              '&componentObligationId=id2'
-          );
-          expect(axios.get).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-              'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
-          );
-          expect(axios.get).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/organization/org/component/' +
-              'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=otherName'
-          );
-          expect(actions.length).toBe(7);
-          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
-          expect(actions[1].payload).toEqual({
-            name: 'name',
-            value: {
-              id: null,
-              comment: '',
-              ownerId: 'ROOT_ORGANIZATION_ID',
-              status: 'OPEN',
-            },
-          });
-          expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
-          expect(actions[2].payload).toEqual({
-            name: 'otherName',
-            value: {
-              id: null,
-              comment: '',
-              ownerId: 'ROOT_ORGANIZATION_ID',
-              status: 'OPEN',
-            },
-          });
-          expect(actions[3].type).toEqual(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUCCEEDED);
-          expect(actions[6].type).toBe(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUBMIT_MASK_DONE);
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+        const actions = store.getActions();
+        expect(axios.delete).toHaveBeenCalledWith(
+          '/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=id' +
+            '&componentObligationId=id2'
+        );
+        expect(axios.get).toHaveBeenCalledWith(
+          '/api/experimental/licenseLegalMetadata/organization/org/component/' +
+            'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
+        );
+        expect(axios.get).toHaveBeenCalledWith(
+          '/api/experimental/licenseLegalMetadata/organization/org/component/' +
+            'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=otherName'
+        );
+        expect(actions.length).toBe(7);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+        expect(actions[1].payload).toEqual({
+          name: 'name',
+          value: {
+            id: null,
+            comment: '',
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            status: 'OPEN',
+          },
+        });
+        expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+        expect(actions[2].payload).toEqual({
+          name: 'otherName',
+          value: {
+            id: null,
+            comment: '',
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            status: 'OPEN',
+          },
+        });
+        expect(actions[3].type).toEqual(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUCCEEDED);
+        expect(actions[6].type).toBe(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUBMIT_MASK_DONE);
+        done();
       });
 
       const actions = store.getActions();
@@ -1183,13 +1186,13 @@ describe('advancedLegalObligationActions', function () {
       });
 
       store.dispatch(saveAllObligations(OBLIGATION_STATUS_OPEN, '', 'org')).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
-          expect(actions.length).toBe(3);
-          expect(actions[1].type).toEqual(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUCCEEDED);
-          expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUBMIT_MASK_DONE);
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(3);
+        expect(actions[1].type).toEqual(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUCCEEDED);
+        expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUBMIT_MASK_DONE);
+        done();
       });
 
       const actions = store.getActions();
@@ -1303,56 +1306,56 @@ describe('advancedLegalObligationActions', function () {
           })
         )
         .then(() => {
-          setTimeout(() => {
-            const actions = store.getActions();
-            expect(axios.post).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/' +
-                'component/obligation/attribution',
-              expectedPostBody
-            );
-            expect(axios.get).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/org/component/obligation/attribution?' +
-                'componentIdentifier=%22componentIdentifier%22&obligationName=Must%20State%20Changes'
-            );
-            expect(axios.post).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/' +
-                'obligation/attribution',
-              {
-                id: 'id',
-                componentIdentifier: 'componentIdentifier',
-                obligationName: 'Must State Changes',
-                content: 'content',
-              }
-            );
-            expect(axios.get).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/org/component/obligation/attribution?' +
-                'componentIdentifier=%22componentIdentifier%22&obligationName=Must%20State%20Changes'
-            );
-            expect(actions.length).toBe(5);
-            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
-            expect(actions[1].payload).toEqual({
-              name: 'Must State Changes',
-              value: {
-                id: 'id',
-                content: 'content',
-                ownerId: 'ROOT_ORGANIZATION_ID',
-              },
-            });
-            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
-            expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
-            expect(actions[3].payload).toEqual({
-              name: 'Must State Changes',
-              value: {
-                id: 'd387da0b87a9428fbc352f437c8294cf',
-                comment: 'comment',
-                ownerId: 'ROOT_ORGANIZATION_ID',
-                status: 'FLAGGED',
-              },
-            });
-            expect(actions[4].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
-            expect(actions[4].payload).toEqual({ name: 'Must State Changes' });
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS * 2);
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS * 2);
+
+          const actions = store.getActions();
+          expect(axios.post).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/' +
+              'component/obligation/attribution',
+            expectedPostBody
+          );
+          expect(axios.get).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/org/component/obligation/attribution?' +
+              'componentIdentifier=%22componentIdentifier%22&obligationName=Must%20State%20Changes'
+          );
+          expect(axios.post).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/' +
+              'obligation/attribution',
+            {
+              id: 'id',
+              componentIdentifier: 'componentIdentifier',
+              obligationName: 'Must State Changes',
+              content: 'content',
+            }
+          );
+          expect(axios.get).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/org/component/obligation/attribution?' +
+              'componentIdentifier=%22componentIdentifier%22&obligationName=Must%20State%20Changes'
+          );
+          expect(actions.length).toBe(5);
+          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
+          expect(actions[1].payload).toEqual({
+            name: 'Must State Changes',
+            value: {
+              id: 'id',
+              content: 'content',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+            },
+          });
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
+          expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+          expect(actions[3].payload).toEqual({
+            name: 'Must State Changes',
+            value: {
+              id: 'd387da0b87a9428fbc352f437c8294cf',
+              comment: 'comment',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              status: 'FLAGGED',
+            },
+          });
+          expect(actions[4].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
+          expect(actions[4].payload).toEqual({ name: 'Must State Changes' });
+          done();
         });
 
       const actions = store.getActions();

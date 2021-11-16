@@ -168,15 +168,18 @@ describe('waiveTransitiveViolationsActions', function () {
       });
 
       it('dispatches waiveTransitiveViolationsReducer/submitMaskTimerDone and TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE after timeout', function (done) {
-        store.dispatch(save()).then(() => {
-          setTimeout(function () {
-            actions = store.getActions();
-            expect(actions.length).toBe(4);
-            expect(actions[2].type).toBe('waiveTransitiveViolationsReducer/submitMaskTimerDone');
-            expect(actions[3].type).toBe('TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE');
+        jasmine.clock().install();
 
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        store.dispatch(save()).then(() => {
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
+          actions = store.getActions();
+          expect(actions.length).toBe(4);
+          expect(actions[2].type).toBe('waiveTransitiveViolationsReducer/submitMaskTimerDone');
+          expect(actions[3].type).toBe('TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE');
+
+          done();
         });
 
         let actions = store.getActions();

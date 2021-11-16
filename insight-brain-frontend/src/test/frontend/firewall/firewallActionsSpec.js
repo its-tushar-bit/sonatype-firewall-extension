@@ -282,16 +282,18 @@ describe('firewallActions', function () {
             [firewallConfigUrl]: Promise.resolve({}),
           },
         });
+        jasmine.clock().install();
 
         store.dispatch(saveConfiguration()).then(() => {
-          setTimeout(function () {
-            actions = store.getActions();
-            expect(actions.length).toBe(4);
-            expect(actions[2].type).toBe(FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE);
-            expect(actions[3].type).toBe(FIREWALL_SET_SHOW_CONFIGURATION_MODAL);
-            expect(actions[3].payload).toBe(false);
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
+          actions = store.getActions();
+          expect(actions.length).toBe(4);
+          expect(actions[2].type).toBe(FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE);
+          expect(actions[3].type).toBe(FIREWALL_SET_SHOW_CONFIGURATION_MODAL);
+          expect(actions[3].payload).toBe(false);
+          done();
         });
 
         let actions = store.getActions();

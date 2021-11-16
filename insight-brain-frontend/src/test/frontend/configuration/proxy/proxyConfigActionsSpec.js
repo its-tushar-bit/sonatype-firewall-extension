@@ -39,7 +39,10 @@ describe('proxyConfigActions', () => {
     };
 
     store = SpecUtil.mockReduxStore(state);
+    jasmine.clock().install();
   });
+
+  afterEach(() => jasmine.clock().uninstall());
 
   describe('save', () => {
     const serverData = {
@@ -98,18 +101,18 @@ describe('proxyConfigActions', () => {
 
       it('dispatches PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE after timeout', (done) => {
         store.dispatch(save()).then(() => {
-          setTimeout(() => {
-            const actions = store.getActions();
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-            expect(actions.length).toBe(3);
-            expect(actions).toHaveActionsInOrder([
-              { type: 'PROXY_CONFIG_SAVE_REQUESTED' },
-              { type: 'PROXY_CONFIG_SAVE_FULFILLED', payload: { ...serverData } },
-              { type: 'PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE' },
-            ]);
+          const actions = store.getActions();
 
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          expect(actions.length).toBe(3);
+          expect(actions).toHaveActionsInOrder([
+            { type: 'PROXY_CONFIG_SAVE_REQUESTED' },
+            { type: 'PROXY_CONFIG_SAVE_FULFILLED', payload: { ...serverData } },
+            { type: 'PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE' },
+          ]);
+
+          done();
         });
       });
     });
@@ -188,18 +191,18 @@ describe('proxyConfigActions', () => {
 
       it('dispatches PROXY_CONFIG_DELETE_MASK_TIMER_DONE after timeout', (done) => {
         store.dispatch(del(noop)).then(() => {
-          setTimeout(() => {
-            const actions = store.getActions();
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-            expect(actions.length).toBe(3);
-            expect(actions).toHaveActionsInOrder([
-              { type: 'PROXY_CONFIG_DELETE_REQUESTED' },
-              { type: 'PROXY_CONFIG_DELETE_FULFILLED', payload: undefined },
-              { type: 'PROXY_CONFIG_DELETE_MASK_TIMER_DONE' },
-            ]);
+          const actions = store.getActions();
 
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          expect(actions.length).toBe(3);
+          expect(actions).toHaveActionsInOrder([
+            { type: 'PROXY_CONFIG_DELETE_REQUESTED' },
+            { type: 'PROXY_CONFIG_DELETE_FULFILLED', payload: undefined },
+            { type: 'PROXY_CONFIG_DELETE_MASK_TIMER_DONE' },
+          ]);
+
+          done();
         });
       });
     });

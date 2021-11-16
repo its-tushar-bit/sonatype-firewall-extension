@@ -190,13 +190,16 @@ describe('userTokenActions', function () {
             [createUserTokenUrl]: Promise.resolve({ data: {} }),
           },
         });
+        jasmine.clock().install();
+
         store.dispatch(generateUserToken()).then(() => {
-          setTimeout(() => {
-            expect(axios.post).toHaveBeenCalledWith(expectedUrl);
-            expect(store.getActions().length).toBe(3);
-            expect(store.getActions()[2].type).toBe(USER_TOKEN_MASK_TIMER_DONE);
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
+          expect(axios.post).toHaveBeenCalledWith(expectedUrl);
+          expect(store.getActions().length).toBe(3);
+          expect(store.getActions()[2].type).toBe(USER_TOKEN_MASK_TIMER_DONE);
+          done();
         });
 
         expect(store.getActions().length).toBe(1);
@@ -286,13 +289,16 @@ describe('userTokenActions', function () {
             [deleteTokenUrl]: Promise.resolve(),
           },
         });
+        jasmine.clock().install();
+
         store.dispatch(deleteUserToken()).then(() => {
-          setTimeout(() => {
-            expect(axios.delete).toHaveBeenCalledWith(expectedUrl);
-            expect(store.getActions().length).toBe(3);
-            expect(store.getActions()[2].type).toBe(USER_TOKEN_MASK_TIMER_DONE);
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
+          expect(axios.delete).toHaveBeenCalledWith(expectedUrl);
+          expect(store.getActions().length).toBe(3);
+          expect(store.getActions()[2].type).toBe(USER_TOKEN_MASK_TIMER_DONE);
+          done();
         });
 
         expect(store.getActions().length).toBe(1);

@@ -69,6 +69,13 @@ function routes($stateProvider, $urlRouterProvider) {
         policyViolationId: { dynamic: true },
       },
     })
+    .state('applicationReport.dependencyTree', {
+      url: '/dependencyTree',
+      component: 'dependencyTree',
+      data: {
+        title: 'Dependency Tree',
+      },
+    })
     .state('applicationReport.policy', {
       url: '/policy?roarelSaysCip&componentHash&tabId',
       component: 'applicationReport',

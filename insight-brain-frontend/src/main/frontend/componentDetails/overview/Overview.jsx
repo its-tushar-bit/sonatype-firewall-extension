@@ -16,7 +16,7 @@ export default function Overview(props) {
   const isUnknown = !matchState || matchState === 'unknown';
 
   return (
-    <div>
+    <Fragment>
       <OverviewComponentInformationTile {...componentInformationTileProps} />
       {!isUnknown && (
         <Fragment>
@@ -24,7 +24,7 @@ export default function Overview(props) {
           <SimilarMatchesPopoverContainer />
         </Fragment>
       )}
-    </div>
+    </Fragment>
   );
 }
 

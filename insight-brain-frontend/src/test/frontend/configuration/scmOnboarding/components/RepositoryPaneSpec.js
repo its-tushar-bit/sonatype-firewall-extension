@@ -121,21 +121,6 @@ describe('RepositoryPane', function () {
       expect(errorUrl1.props().href).toEqual('routerUrl');
       expect(errorUrl2.props().href).toEqual('routerUrl');
     });
-
-    it('displays error when root scm not configured', () => {
-      // given root scm not configured
-      const component = getShallowComponent({ isRootScmConfigured: false }),
-        loadWrapper = component.find(LoadWrapper);
-
-      // when error is rendered
-      const error = loadWrapper.props().error;
-      const errorWrapper = shallow(<div>{error}</div>);
-
-      // then error message is matches expected value
-      expect(errorWrapper.text()).toContain(
-        'We could not find a source control configuration for the Root Organization'
-      );
-    });
   });
 
   describe('footer', () => {

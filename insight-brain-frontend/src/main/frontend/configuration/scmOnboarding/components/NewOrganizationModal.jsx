@@ -6,7 +6,14 @@
 
 import React, { useEffect, useState } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxFontAwesomeIcon, NxForm, NxFormGroup, NxModal, NxTextInput } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxFontAwesomeIcon,
+  NxForm,
+  NxFormGroup,
+  NxModal,
+  NxTextInput,
+} from '@sonatype/react-shared-components';
 import { faSitemap } from '@fortawesome/pro-solid-svg-icons';
 import { initialState, userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { isNil, reject } from 'ramda';
@@ -24,7 +31,13 @@ import { Messages } from '../../../util/CommonServices';
  * This component currently lives within scmOnboarding but the intention is that i can be used as generic component in
  * IQ. See https://issues.sonatype.org/browse/INT-4524
  */
-function NewOrganizationModal({ setIsNewOrganizationModalVisible, addOrganization, addOrganizationError }) {
+function NewOrganizationModal({
+  setIsNewOrganizationModalVisible,
+  addOrganization,
+  addOrganizationError,
+  isRootScmConfigured,
+  orgsAndPoliciesRootOrgHref,
+}) {
   const ORGANIZATION_REGEX = /^[^!@#$%^&*()\\=£+|[\]{};:~`"',.<>/?]*$/;
 
   const validateOrgNameChange = (val) =>
@@ -49,43 +62,70 @@ function NewOrganizationModal({ setIsNewOrganizationModalVisible, addOrganizatio
 
   useEffect(() => setSubmitError(Messages.getHttpErrorMessage(addOrganizationError)), [addOrganizationError]);
 
-  return (
-    <NxModal onClose={closeModal} variant="narrow" id="new-organization-modal">
-      <NxForm
-        onSubmit={addOrganizationClicked}
-        onCancel={closeModal}
-        validationErrors={newOrganizationName.validationErrors}
-        submitError={submitError}
-        submitBtnText="Create"
-        submitErrorTitleMessage="Failed to create organization."
-      >
+  if (!isRootScmConfigured) {
+    return (
+      <NxModal onClose={closeModal} variant="narrow" id="new-organization-error-modal">
         <header className="nx-modal-header">
           <h2 className="nx-h2">
             <NxFontAwesomeIcon icon={faSitemap} />
             <span>New Organization</span>
           </h2>
         </header>
-        <div className="nx-modal-content">
-          <NxFormGroup label="Organization Name" isRequired>
-            <NxTextInput
-              id="new-organization-modal-org-name"
-              {...newOrganizationName}
-              aria-required={true}
-              placeholder="Organization"
-              validatable={true}
-              onChange={newOrganizationNameChanged}
-            />
-          </NxFormGroup>
+        <div id="neworg-modal-error-content" className="nx-modal-content">
+          <span>
+            We could not find a source control configuration for the Root Organization. Any new organization will need
+            to use the provider and token defined there before it can import any applications. You can configure it on
+            the <a href={orgsAndPoliciesRootOrgHref}>Root Organization's Source Control Configuration</a> page.
+          </span>
         </div>
-      </NxForm>
-    </NxModal>
-  );
+        <footer className="nx-footer">
+          <div className="nx-btn-bar">
+            <NxButton onClick={closeModal}>Close</NxButton>
+          </div>
+        </footer>
+      </NxModal>
+    );
+  } else {
+    return (
+      <NxModal onClose={closeModal} variant="narrow" id="new-organization-modal">
+        <NxForm
+          onSubmit={addOrganizationClicked}
+          onCancel={closeModal}
+          validationErrors={newOrganizationName.validationErrors}
+          submitError={submitError}
+          submitBtnText="Create"
+          submitErrorTitleMessage="Failed to create organization."
+        >
+          <header className="nx-modal-header">
+            <h2 className="nx-h2">
+              <NxFontAwesomeIcon icon={faSitemap} />
+              <span>New Organization</span>
+            </h2>
+          </header>
+          <div className="nx-modal-content">
+            <NxFormGroup label="Organization Name" isRequired>
+              <NxTextInput
+                id="new-organization-modal-org-name"
+                {...newOrganizationName}
+                aria-required={true}
+                placeholder="Organization"
+                validatable={true}
+                onChange={newOrganizationNameChanged}
+              />
+            </NxFormGroup>
+          </div>
+        </NxForm>
+      </NxModal>
+    );
+  }
 }
 
 NewOrganizationModal.propTypes = {
   setIsNewOrganizationModalVisible: PropTypes.func.isRequired,
   addOrganization: PropTypes.func.isRequired,
   addOrganizationError: LoadError.propTypes.error,
+  orgsAndPoliciesRootOrgHref: PropTypes.string,
+  isRootScmConfigured: PropTypes.bool,
 };
 
 export default NewOrganizationModal;

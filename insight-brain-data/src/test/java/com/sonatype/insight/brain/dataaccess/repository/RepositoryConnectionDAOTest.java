@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Objects;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 
 import org.junit.Test;
@@ -55,6 +57,95 @@ public class RepositoryConnectionDAOTest
     List<RepositoryConnection> connections = dao.getByOwnerId(conn1.getOwnerId());
     assertThat(connections).hasSize(2).extracting(RepositoryConnection::getBaseUrl)
         .containsExactlyInAnyOrder("url1", "url2");
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_Application() {
+    tempEntity.newRepositoryConnection("other");
+    Application application = tempEntity.newApplicationWithParent();
+    String rootOrgId = Organization.ROOT_ORGANIZATION_ID;
+    String orgId = application.getParentOwnerId();
+    String appId = application.getId();
+
+    // None
+    assertThat(dao.getByOwnerIdWithHierarchy(appId)).isEmpty();
+
+    // Only root org
+    RepositoryConnection rootOrgRepositoryConnection = tempEntity.newRepositoryConnection(rootOrgId);
+    assertThat(dao.getByOwnerIdWithHierarchy(appId)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(rootOrgRepositoryConnection);
+
+    // Root org and org
+    RepositoryConnection orgRepositoryConnection = tempEntity.newRepositoryConnection(orgId);
+    assertThat(dao.getByOwnerIdWithHierarchy(appId)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(orgRepositoryConnection);
+
+    // Root org, org, and app
+    RepositoryConnection appRepositoryConnection = tempEntity.newRepositoryConnection(appId);
+    assertThat(dao.getByOwnerIdWithHierarchy(appId)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(appRepositoryConnection);
+
+    // Org and app
+    dao.delete(rootOrgRepositoryConnection);
+    assertThat(dao.getByOwnerIdWithHierarchy(appId)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(appRepositoryConnection);
+
+    // Only app
+    dao.delete(orgRepositoryConnection);
+    assertThat(dao.getByOwnerIdWithHierarchy(appId)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(appRepositoryConnection);
+
+    // Root org and app
+    rootOrgRepositoryConnection = tempEntity.newRepositoryConnection(rootOrgId);
+    assertThat(dao.getByOwnerIdWithHierarchy(appId)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(appRepositoryConnection);
+
+    // Only org
+    dao.delete(rootOrgRepositoryConnection);
+    dao.delete(appRepositoryConnection);
+    orgRepositoryConnection = tempEntity.newRepositoryConnection(orgId);
+    assertThat(dao.getByOwnerIdWithHierarchy(appId)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(orgRepositoryConnection);
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_Organization() {
+    tempEntity.newRepositoryConnection("other");
+    Organization organization = tempEntity.newOrganization();
+    String rootOrgId = Organization.ROOT_ORGANIZATION_ID;
+    String orgId = organization.getId();
+
+    // None
+    assertThat(dao.getByOwnerIdWithHierarchy(orgId)).isEmpty();
+
+    // Only root org
+    RepositoryConnection rootOrgRepositoryConnection = tempEntity.newRepositoryConnection(rootOrgId);
+    assertThat(dao.getByOwnerIdWithHierarchy(orgId)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(rootOrgRepositoryConnection);
+
+    // Root org and org
+    RepositoryConnection orgRepositoryConnection = tempEntity.newRepositoryConnection(orgId);
+    assertThat(dao.getByOwnerIdWithHierarchy(orgId)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(orgRepositoryConnection);
+
+    // Only org
+    dao.delete(rootOrgRepositoryConnection);
+    assertThat(dao.getByOwnerIdWithHierarchy(orgId)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(orgRepositoryConnection);
+  }
+
+  @Test
+  public void testGetByOwnerIdWithHierarchy_RootOrganization() {
+    tempEntity.newRepositoryConnection("other");
+    String rootOrgId = Organization.ROOT_ORGANIZATION_ID;
+
+    // None
+    assertThat(dao.getByOwnerIdWithHierarchy(rootOrgId)).isEmpty();
+
+    // Only root org
+    RepositoryConnection rootOrgRepositoryConnection = tempEntity.newRepositoryConnection(rootOrgId);
+    assertThat(dao.getByOwnerIdWithHierarchy(rootOrgId)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(rootOrgRepositoryConnection);
   }
 
   @Test

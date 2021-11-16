@@ -3192,6 +3192,10 @@ public class TemporaryEntity
     return newRepositoryConnection("ownerId", "baseUrl", "username", "password".toCharArray());
   }
 
+  public RepositoryConnection newRepositoryConnection(String ownerId) {
+    return newRepositoryConnection(ownerId, "baseUrl", "username", "password".toCharArray());
+  }
+
   public RepositoryConnection newRepositoryConnection(
       final String ownerId,
       final String baseUrl,

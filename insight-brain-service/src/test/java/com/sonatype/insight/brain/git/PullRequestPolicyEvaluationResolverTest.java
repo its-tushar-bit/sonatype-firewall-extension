@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.model.CommitInformation;
@@ -29,9 +30,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -50,6 +53,9 @@ public class PullRequestPolicyEvaluationResolverTest
 
   @Mock
   private SourceControlScanService mockSourceControlScanService;
+
+  @Mock
+  private SourceControlUtils sourceControlUtils;
 
   private Application application;
 
@@ -386,6 +392,64 @@ public class PullRequestPolicyEvaluationResolverTest
     assertThat(policyEvaluationsDTO.getFeatureBranchPolicyEvaluationId()).isEqualTo(featureBranchPolicyEvaluationId);
   }
 
+  @Test
+  public void testResolveForPullRequest_deleteCheckoutDirectoryOnInvalidArgumentException()
+      throws GitException, IOException
+  {
+    // given: default and feature branch policy evals
+    final String message = "Error on SCM";
+    final String baseCommit = "badBaseCommit";
+    final String featureCommit = "commit123";
+    final String featureBranchName = "feature-branch";
+    GitRepositoryInfo gitRepositoryInfo = createDefaultGitRepositoryInfo();
+
+    PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver = new TestablePolicyEvaluationResolver()
+        .withTargetCommitPolicyEvaluationResolverThrowing(new IllegalArgumentException(message))
+        .build();
+
+    // when: resolve policy evaluations
+    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
+        pullRequestPolicyEvaluationResolver
+            .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4,
+                featureBranchName, "main", featureCommit, baseCommit)
+    ).withMessage(String.format(
+        "Cannot comment - unable to resolve policy evaluations for application %s repository %s " +
+            "pull request %s - reason: %s",
+        application.getPublicId(), gitRepositoryInfo.getRepositoryUrl(), 4, message));
+
+    // and: source control folder is deleted
+    verify(sourceControlUtils, times(1)).deleteCheckoutDirectory(any(Application.class));
+  }
+
+  @Test
+  public void testResolveForPullRequest_doNotDeleteCheckoutDirectoryOnRuntimeException()
+      throws GitException, IOException
+  {
+    // given: default and feature branch policy evals
+    final String message = "Error on SCM";
+    final String baseCommit = "badBaseCommit";
+    final String featureCommit = "commit123";
+    final String featureBranchName = "feature-branch";
+    GitRepositoryInfo gitRepositoryInfo = createDefaultGitRepositoryInfo();
+
+    PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver = new TestablePolicyEvaluationResolver()
+        .withTargetCommitPolicyEvaluationResolverThrowing(new RuntimeException(message))
+        .build();
+
+    // when: resolve policy evaluations
+    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
+        pullRequestPolicyEvaluationResolver
+            .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4,
+                featureBranchName, "main", featureCommit, baseCommit)
+    ).withMessage(String.format(
+        "Cannot comment - unable to resolve policy evaluations for application %s repository %s " +
+            "pull request %s - reason: %s",
+        application.getPublicId(), gitRepositoryInfo.getRepositoryUrl(), 4, message));
+
+    // and: source control folder is NOT deleted
+    verify(sourceControlUtils, never()).deleteCheckoutDirectory(any(Application.class));
+  }
+
   private GitRepositoryInfo createDefaultGitRepositoryInfo() {
     return new GitRepositoryInfo("https://gitlab.com/test/project1", null, "user", "token",
         SourceControlProvider.GITLAB, "master", true, true, true, true, false, null);
@@ -514,6 +578,14 @@ public class PullRequestPolicyEvaluationResolverTest
       return this;
     }
 
+    private TestablePolicyEvaluationResolver withTargetCommitPolicyEvaluationResolverThrowing(
+        Exception exception) throws GitException, IOException
+    {
+      doThrow(exception).when(mockTargetCommitPolicyEvaluationResolver)
+          .getOrPerformTargetCommitPolicyEvaluation(any(), any(), any(), any(), any());
+      return this;
+    }
+
     PullRequestPolicyEvaluationResolver build() {
       doReturn(commitInformation).when(mockPullRequestInfoClient).getCommitInfoFromScm(any(), any());
 
@@ -524,7 +596,8 @@ public class PullRequestPolicyEvaluationResolverTest
           mockTargetCommitPolicyEvaluationResolver,
           mockPullRequestEligibilityValidator,
           mockPullRequestInfoClient,
-          mockSourceControlScanService);
+          mockSourceControlScanService,
+          sourceControlUtils);
     }
   }
 }

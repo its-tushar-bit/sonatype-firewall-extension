@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -20,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.scm.api.model.Commit;
 import com.sonatype.nexus.scm.api.model.CommitInformation;
@@ -51,6 +51,8 @@ public class PullRequestPolicyEvaluationResolver
 
   private final SourceControlScanService sourceControlScanService;
 
+  private final SourceControlUtils sourceControlUtils;
+
   @Inject
   public PullRequestPolicyEvaluationResolver(
       GitCommitHistoryService gitCommitHistoryService,
@@ -59,7 +61,8 @@ public class PullRequestPolicyEvaluationResolver
       PullRequestTargetCommitPolicyEvaluationResolver targetCommitPolicyEvaluationResolver,
       PullRequestEligibilityValidator pullRequestEligibilityValidator,
       PullRequestInfoClient pullRequestInfoClient,
-      SourceControlScanService sourceControlScanService)
+      SourceControlScanService sourceControlScanService,
+      SourceControlUtils sourceControlUtils)
   {
     this.gitCommitHistoryService = gitCommitHistoryService;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -68,6 +71,7 @@ public class PullRequestPolicyEvaluationResolver
     this.pullRequestEligibilityValidator = pullRequestEligibilityValidator;
     this.pullRequestInfoClient = pullRequestInfoClient;
     this.sourceControlScanService = sourceControlScanService;
+    this.sourceControlUtils = sourceControlUtils;
   }
 
   /**
@@ -218,10 +222,30 @@ public class PullRequestPolicyEvaluationResolver
           "Cannot comment - unable to resolve policy evaluations for application %s repository %s " +
               "pull request %s - reason: %s",
           application.getPublicId(), gitRepositoryInfo.getRepositoryUrl(), pullRequestNumber, e.getMessage());
-      throw new SourceControlException(message, e);
+
+      throw deleteCheckoutDirectoryAndHandleException(message, application, e);
     }
 
     return pullRequestPolicyEvaluationsDTO;
+  }
+
+  private SourceControlException deleteCheckoutDirectoryAndHandleException(
+      String message,
+      Application application,
+      Exception original)
+  {
+    SourceControlException exception = new SourceControlException(message, original);
+    try {
+      // INT-6119 Only deleting checkout directory for IllegalArgumentException
+      // Removing source control directory. IQ will check out the code again later
+      if (original instanceof IllegalArgumentException) {
+        sourceControlUtils.deleteCheckoutDirectory(application);
+      }
+    }
+    catch (Exception e) {
+      exception.addSuppressed(e);
+    }
+    return exception;
   }
 
   private PolicyEvaluation getOrPerformFeatureBranchPolicyEvaluation(

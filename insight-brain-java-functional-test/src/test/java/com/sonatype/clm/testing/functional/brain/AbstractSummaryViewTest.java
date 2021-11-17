@@ -178,6 +178,24 @@ public abstract class AbstractSummaryViewTest
   }
 
   @Test
+  public void testInnerSourceRepositoryTile_Configured_Inherited() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+    RepositoryConnection repositoryConnection =
+        tempEntity.newRepositoryConnection(currentOwner.getParentOwnerId(), "http://some.base.url", null, null);
+    Owner parentOwner = new OwnerDAO().getById(currentOwner.getParentOwnerId());
+    refresh();
+    MainHeader.closeNavigationSidebar();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
+    InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
+    innerSourceRepositoryTile.should(exist);
+    innerSourceRepositoryTile.rows().shouldHaveSize(1);
+    innerSourceRepositoryTile.itemText()
+        .shouldBe(text("Inherit from " + parentOwner.getName() + " (" + repositoryConnection.getBaseUrl() + ")"));
+  }
+
+  @Test
   public void testInnerSourceRepositoryTile_FeatureDisabled() {
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));

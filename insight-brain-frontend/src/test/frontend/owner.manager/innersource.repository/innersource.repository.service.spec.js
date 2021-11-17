@@ -26,9 +26,13 @@ describe('InnerSourceRepositoryService', function () {
 
   describe('getRepositoryConnections', function () {
     it('returns the InnerSource repository connections request data for the given owner', function () {
-      InnerSourceRepositoryService.getRepositoryConnections('ownerType', 'ownerId').then(successSpy).catch(failSpy);
+      InnerSourceRepositoryService.getRepositoryConnections('ownerType', 'ownerId', 'inherit')
+        .then(successSpy)
+        .catch(failSpy);
 
-      $httpBackend.expectGET(CLMLocations.getRepositoryConnections('ownerType', 'ownerId')).respond('response');
+      $httpBackend
+        .expectGET(CLMLocations.getRepositoryConnections('ownerType', 'ownerId', 'inherit'))
+        .respond('response');
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith('response');
@@ -36,9 +40,13 @@ describe('InnerSourceRepositoryService', function () {
     });
 
     it('returns an error status and data on a failed request', function () {
-      InnerSourceRepositoryService.getRepositoryConnections('ownerType', 'ownerId').then(successSpy).catch(failSpy);
+      InnerSourceRepositoryService.getRepositoryConnections('ownerType', 'ownerId', 'inherit')
+        .then(successSpy)
+        .catch(failSpy);
 
-      $httpBackend.expectGET(CLMLocations.getRepositoryConnections('ownerType', 'ownerId')).respond(404, 'not found');
+      $httpBackend
+        .expectGET(CLMLocations.getRepositoryConnections('ownerType', 'ownerId', 'inherit'))
+        .respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();

@@ -120,8 +120,11 @@ describe('CLMLocation.js', function () {
     });
 
     it('should return the correct URL to query the InnerSource repository connections of an owner', () => {
-      expect(CLMLocationsService.getRepositoryConnections('ownerType', 'ownerId')).toBe(
-        'http://localhost/api/v2/config/repositoryConnection/ownerType/ownerId'
+      expect(CLMLocationsService.getRepositoryConnections('ownerType', 'ownerId', true)).toBe(
+        'http://localhost/api/v2/config/repositoryConnection/ownerType/ownerId?inherit=true'
+      );
+      expect(CLMLocationsService.getRepositoryConnections('ownerType', 'ownerId', false)).toBe(
+        'http://localhost/api/v2/config/repositoryConnection/ownerType/ownerId?inherit=false'
       );
     });
   });

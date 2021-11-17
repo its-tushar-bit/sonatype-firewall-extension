@@ -613,7 +613,7 @@ public class PolicyAlertEmailerTest
         .contains(policy.getName()) //
         .contains("Failed &amp; Constraint Name 1", "Failed Constraint Name 2")
         .contains("Failed Condition &lt;Reason&gt; 1", "Failed Condition Reason 2") //
-        .contains("7&nbsp;Grandfathered&nbsp;Violations");
+        .contains("7 Grandfathered Violations");
   }
 
   @Test

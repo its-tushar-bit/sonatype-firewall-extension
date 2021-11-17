@@ -1,203 +1,466 @@
 <#escape x as x?html>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>IQ Policy Alert</title>
-<style type="text/css">
-v:* {
-	behavior: url(#default#VML);
-	display: inline-block;
-	overflow: hidden;
-}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>Sonatype Policy Violation Notification</title>
 
-img {
-	display: block;
-}
+  <!-- 
+    Many email clients don't parse <style> tags and so we take care that essential styles are inline.
+    The <style> tags below contain responsive breakpoints and styles for more modern/capable email clients.
+  -->
+  
+    <!--[if mso]>
+  <style>
+    table {border-collapse:collapse;border-spacing:0;border:none;margin:0;}
+    div, td {padding:0;}
+    div {margin:0 !important;}
+  </style>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+  <style>
+    table, td, div, h1, p {
+      font-family: Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+    }
 
-table {
-	font-family: Helvetica, Arial, sans-serif;
-}
+    h1, h2 {
+      font-weight: normal;
+      margin: 0;
+    }
 
-div,p,a,li,td {
-	-webkit-text-size-adjust: none;
-}
-</style>
+    .header-col-left {
+      display: inline-block;
+      max-width: 50%;
+    }
+
+    .header-col-right {
+      border-left: 1px solid #6D7AC5;
+      display: inline-block;
+      margin-left: 24px;
+      padding-left: 24px; 
+      max-width: 50%;
+    }
+
+    .col1 {
+      border-right: 1px solid #dbdef0;
+    }
+
+    @media screen and (max-width: 450px) {
+      .header-col-left {
+        display: block;
+        text-align: left;
+        max-width: 100%;
+      }
+
+      .header-col-right {
+        border-left: none;
+        display: block;
+        margin-left: 0;
+        padding-left: 0;
+        text-align: left;
+        max-width: 100%;
+      }
+      .col1, .col2 {
+        border: none;
+        display: block !important;
+        padding-right: 0 !important;
+        padding-left: 0 !important;
+        max-width: 100% !important;
+      }
+
+      .email-logo {
+        display: block !important;
+        margin: 0 !important;
+        padding-right: 0 !important;
+        padding-left: 0 !important;
+      }
+
+      .email-header {
+        border: none !important;
+        display: block !important;
+        margin-top: 24px;
+        padding-right: 0 !important;
+        padding-left: 0 !important;
+      }
+    }
+  </style>
 </head>
-<body style="margin: 0; padding: 0;">
-	<table width="647" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
-		<tr>
-			<td colspan="3"><a href="${detailedReportUrl}"><img
-					src="${cdnUrl}clm/policy/1.3/header_bg.gif" width="647" height="68" alt="View Full Results" border="0" /></a></td>
-		</tr>
-		<tr>
-			<td width="12">&nbsp;</td>
-			<td width="623" bgcolor="#FFFFFF" style="border-left: 1px solid #BCBCBC; border-right: 1px solid #BCBCBC; border-bottom: 1px solid #E6E6E6;">
-				<table width="100%" border="0" cellspacing="0" cellpadding="0">
-					<tr>
-						<td style="padding: 15px;">
-							<table width="100%" border="0" cellspacing="0" cellpadding="2">
-								<tr>
-									<td>
-										<table cellpadding="0" cellspacing="0" border="0" bordercolor="#FFFFFF" style="border-collapse: collapse;">
-											<tr>
-												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(${cdnUrl}clm/policy/1.3/alert_red.gif); background-size: cover; background-color: #ED1C24; background-repeat: no-repeat;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatRedCount}</span></td>
-												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(${cdnUrl}clm/policy/1.3/alert_orange.gif); background-size: cover; background-color: #F7931D; background-repeat: no-repeat;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatOrangeCount}</span></td>
-												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(${cdnUrl}clm/policy/1.3/alert_yellow.gif); background-size: cover; background-color: #FFDD17; background-repeat: no-repeat;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatYellowCount}</span></td>
-												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(${cdnUrl}clm/policy/1.3/alert_dkblue.gif); background-size: cover; background-color: #006bbf; background-repeat: no-repeat;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatDarkBlueCount}</span></td>
-												<td width="60" height="30"
-													style="color: #FFFFFF; width: 60px; height: 30px; text-align: center; background-image: url(${cdnUrl}clm/policy/1.3/alert_blue.gif); background-size: cover; background-color: #6D98CF; background-repeat: no-repeat;"><span
-													style="font-family: Helvetica, Arial, sans-serif; color: #FFFFFF; font-size: 12px; font-weight: bold; -webkit-text-size-adjust: none;">${policyThreatBlueCount}</span></td>
-											</tr>
-										</table>
-									</td>
-								</tr>
-								<#if (grandfatheredPolicyViolationCount??)>
-							  	<tr>
-							    		<td style="padding: 10px;">
-									  	<span style="font-family: Helvetica, Arial, sans-serif; color: #5D5D5D; font-size: 13px; line-height: 14px;">${grandfatheredPolicyViolationCount}&nbsp;Grandfathered&nbsp;Violations</span>
-									</td>
-							  	</tr></#if>
-							</table>
-						</td>
-						<td style="padding: 15px;">
-							<table width="100%" border="0" cellspacing="2" cellpadding="0">
-								<tr>
-									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: #9E9E9E;">${ownerIdLabel}</span></td>
-									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; color: #5D5D5D; font-size: 13px;">${policyThreatApp}</span></td>
-								</tr>
-								<tr>
-									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: #9E9E9E;">STAGE</span></td>
-									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; color: #5D5D5D; font-size: 13px;">${policyThreatStage}</span></td>
-								</tr>
-								<tr>
-									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: #9E9E9E;">WHEN</span></td>
-									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; color: #5D5D5D; font-size: 13px; line-height: 14px;">${policyThreatTime}</span></td>
-								</tr>
-								<#if applicationContactName?has_content>
-								<tr>
-									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: #9E9E9E;">CONTACT</span></td>
-									<td valign="baseline"><span style="font-family: Helvetica, Arial, sans-serif; color: #5D5D5D; font-size: 13px; line-height: 14px;"><#if applicationContactEmail?has_content><a href="mailto:${applicationContactEmail}">${applicationContactName}</a><#else>${applicationContactName}</#if></span></td>
-								</tr></#if>
-							</table>
-						</td>
-					</tr>
-				</table>
-			</td>
-			<td width="12">&nbsp;</td>
-		</tr>
-		<tr>
-			<td width="12"></td>
-			<td width="623" bgcolor="#f7f7f7"
-				style="border-left: 1px solid #bcbcbc; border-right: 1px solid #bcbcbc; border-top: 1px solid #dddddd; border-bottom: 1px solid #dddddd; padding: 15px">
-				<span style="font-family: Helvetica, Arial, sans-serif; color: #5d5d5d; font-size: 13px">You&#39;re receiving this email because a policy
-					has been configured to notify you. See details below.</span>
-			</td>
-			<td width="12"></td>
-		</tr>
-		<tr>
-			<td width="12">&nbsp;</td>
-			<td width="623" bgcolor="#FFFFFF" style="border-left: 1px solid #BCBCBC; border-right: 1px solid #BCBCBC; font-size: 13px;">
-				<table border="0" cellpadding="0" cellspacing="0" style="width: 100%; font-size: 13px;">
-					<#list policyFacts as fact> <#list fact.componentFacts as component>
-					<tr>
-						<#if (fact.threatLevel > 7)>
-						<td bgcolor="#ED1C24" valign="top" height="20" nowrap="nowrap" align="center" width="20"
-						    style="vertical-align: top; width: 20px; padding: 0; height: 15px;">
-						  &nbsp;</td> <#elseif (fact.threatLevel > 3)>
-						<td bgcolor="#F7941D" valign="top" height="20" nowrap="nowrap" align="center" width="20"
-						    style="vertical-align: top; width: 20px; padding: 0; height: 15px;">
-						  &nbsp;</td> <#elseif (fact.threatLevel > 1)>
-						<td bgcolor="#FEDF15" valign="top" height="20" nowrap="nowrap" align="center" width="20"
-						    style="vertical-align: top; width: 20px; padding: 0; height: 15px;">
-						  &nbsp;</td> <#elseif (fact.threatLevel > 0)>
-						<td bgcolor="#006bbf" valign="top" height="20" nowrap="nowrap" align="center" width="20"
-							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> <#else>
-						<td bgcolor="#6D98CF" valign="top" height="20" nowrap="nowrap" align="center" width="20"
-							style="vertical-align: top; width: 20px; padding: 0; height: 15px;">&nbsp;</td> </#if>
-						<td colspan="2">&nbsp;</td>
-					</tr>
-					<tr>
-						<#if (fact.threatLevel > 7)>
-						<td bgcolor="#ED1C24" valign="top" height="1" nowrap="nowrap" align="center" width="20"
-							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
-						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
-							<div style="color: #bc012f;">
-							  <b>${fact.policyName}</b>
-							</div>
-						</td> <#elseif (fact.threatLevel > 3)>
-						<td bgcolor="#F7941D" valign="top" height="1" nowrap="nowrap" align="center" width="20"
-							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
-						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
-							<div style="color: #f4861d;">
-							  <b>${fact.policyName}</b>
-							</div>
-						</td> <#elseif (fact.threatLevel > 1)>
-						<td bgcolor="#FEDF15" valign="top" height="1" nowrap="nowrap" align="center" width="20"
-							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
-						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
-							<div style="color: #f5c648;">
-							  <b>${fact.policyName}</b>
-							</div>
-						</td> <#elseif (fact.threatLevel > 0)>
-						<td bgcolor="#006bbf" valign="top" height="1" nowrap="nowrap" align="center" width="20"
-							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
-						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
-							<div style="color: #006bbf;">
-							  <b>${fact.policyName}</b>
-							</div>
-						</td> <#else>
-						<td bgcolor="#6D98CF" valign="top" height="1" nowrap="nowrap" align="center" width="20"
-							style="vertical-align: top; width: 20px; padding: 0; height: 1;">&nbsp;</td>
-						<td align="left" valign="top" height="100%" nowrap="nowrap" style="padding-left: 15px;">
-							<div style="color: #97cbee;">
-							  <b>${fact.policyName}</b>
-							</div>
-						</td> </#if>
-						<td valign="top" align="left" style="padding-left: 10px;">
-							<div style="background-color: #FFFFFF;">
-								<#if component.displayName??>
-								<div style="border-bottom: 1px dotted #E6E6E6;">
-									${component.displayName}
-								</div>
-								<#else>
-								<div style="border-bottom: 1px dotted #E6E6E6;">
-									<b>Hash:</b> ${component.hash}
-								</div>
-								</#if>
-								<table border="0" cellpadding="0" style="font-size: 13px;">
-									<#list component.constraintFacts as constraint>
-									<tr>
-										<td align="left" height="100%">
-											<div style="padding-top: 7px; color: #555555;">
-												<b>${constraint.constraintName}</b>
-											</div> <#list constraint.conditionFacts as condition>
-											<div style="padding-top: 5px; color: #555555;">${condition.reason}</div> </#list>
-										</td>
-									</tr>
-									</#list>
-								</table>
-							</div>
-						</td>
-					</tr>
-					</#list> </#list>
-				</table>
-			</td>
-			<td width="12">&nbsp;</td>
-		</tr>
-		<tr>
-			<td colspan="3" width="647" height="54"><a href="${detailedReportUrl}"><img
-					src="${cdnUrl}clm/policy/1.3/footer_bg.gif" width="647" height="75" alt="View Full Results" border="0" /></a></td>
-		</tr>
-	</table>
+<body style="font-family: Helvetica, Arial, sans-serif; line-height: 1.5; margin:0; padding:0; word-spacing:normal; background-color: #F4F5FB;">
+  <div role="article" aria-roledescription="email" style="text-size-adjust:100%;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;background-color:#F4F5FB;">
+    <table role="presentation" style="width:100%; border:none; border-spacing:0;">
+      <tr>
+        <td align="center" style="padding:0">
+          <table role="presentation" style="max-width:1024px; border:none; border-spacing:0; text-align:left;font-family: Helvetica, Arial, sans-serif; font-size:16px; color: #4d4d4d;">
+            <!-- HEADER -->
+            <tr>
+              <td style="padding:24px;">
+                <!--[if mso]>
+                <table role="presentation">
+                  <tr>
+                    <td align="left">
+                <![endif]-->
+                      <div class="header-col-left">
+                        <img src="${cdnUrl}clm/policy/1.3/logo-sonatype-email.png" alt="Sonatype" style="width: 185px; height: auto; vertical-align: middle;">
+                      </div>
+                  <!--[if mso]>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="left">
+                  <![endif]-->
+                      <div class="header-col-right">
+                        <h1 style="font-family: Helvetica, Arial, sans-serif; font-size: 24px; font-weight: normal; line-height: 2; vertical-align: middle;">
+                          Policy Violation Notification
+                        </h1>
+                      </div>
+                <!--[if mso]>
+                    </td>
+                  </tr>
+                </table>
+                <![endif]-->
+              </td>
+            </tr>
+            <!-- CONTENT -->
+            <tr>
+              <td style="padding:0;">
+                <!-- TILE ONE -->
+                <table style="background-color: white; border-radius: 6px; width: 100%; margin-bottom: 24px;"
+                      cellpadding="0"
+                      cellspacing="0"
+                      role="presentation">
+                  <thead>
+                    <tr>
+                      <th style="text-align: left; padding: 24px;">
+                        <h2>Violation Overview</h2>
+                      </th>
+                      <th align="right" style="padding: 24px 24px 24px 0;">
+                        <a href="${detailedReportUrl}"
+                            style="background-color: #0459c8;
+                                    border: none;
+                                    border-radius: 6px;
+                                    color: white;
+                                    cursor: pointer;
+                                    display: block;
+                                    font-size: 16px;
+                                    line-height: 1.5;
+                                    margin: 0;
+                                    padding: 8px 12px;
+                                    text-align: center;
+                                    text-decoration: none;
+                                    width: 145px;">
+                          View Full Results
+                        </a>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 0 24px 0 24px;" colspan="2">
+                      <!-- LEFT COLUMN TILE ONE -->
+                        <!--[if mso]>
+                        <table role="presentation">
+                          <tr>
+                            <td style="padding-bottom: 16px;">
+                        <![endif]-->
+                              <div class="col1" style="display: inline-block; margin-bottom: 24px; padding-right: 48px; padding-bottom: 24px; min-width: 145px; max-width: 275px; vertical-align: top;">
+                                <!--[if mso]>
+                                <table role="presentation">
+                                  <tr>
+                                    <td style="padding-bottom: 16px;">
+                                <![endif]-->
+                                      <table style="border: 1px solid #cc0028;
+                                                  border-left-width: 8px;
+                                                  border-radius: 6px;
+                                                  font-size: 14px;
+                                                  margin: 0;
+                                                  margin-bottom: 16px;
+                                                  width: 145px;"
+                                            role="presentation">
+                                        <tr>
+                                          <td style="font-size: 14px; font-weight: bold; height: 32px; padding-left: 12px; vertical-align: middle;">${policyThreatRedCount}</td>
+                                          <td style="font-size: 14px; font-weight: 600; height: 32px; padding-right: 16px; padding-left: 8px; text-transform: uppercase; vertical-align: middle;">
+                                            Critical
+                                          </td>
+                                        </tr>
+                                      </table>
+                                  <!--[if mso]>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td style="padding-bottom: 16px;">
+                                  <![endif]-->
+                                      <table style="border: 1px solid #ff8600;
+                                                  border-left-width: 8px;
+                                                  border-radius: 6px;
+                                                  font-size: 14px;
+                                                  margin: 0;
+                                                  margin-bottom: 16px;
+                                                  width: 145px;"
+                                              role="presentation">
+                                        <tr>
+                                          <td style="font-size: 14px; font-weight: bold; height: 32px; padding-left: 12px; vertical-align: middle;">${policyThreatOrangeCount}</td>
+                                          <td style="font-size: 14px; font-weight: 600; height: 32px; padding-right: 16px; padding-left: 8px; text-transform: uppercase; vertical-align: middle;">
+                                            Severe
+                                          </td>
+                                        </tr>
+                                      </table>
+                                  <!--[if mso]>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td style="padding-bottom: 16px;">
+                                  <![endif]-->
+                                      <table style="border: 1px solid #ffc333;
+                                                  border-left-width: 8px;
+                                                  border-radius: 6px;
+                                                  font-size: 14px;
+                                                  margin: 0;
+                                                  margin-bottom: 16px;
+                                                  width: 145px;"
+                                            role="presentation">
+                                        <tr>
+                                          <td style="font-size: 14px; font-weight: bold; height: 32px; padding-left: 12px; vertical-align: middle;">${policyThreatYellowCount}</td>
+                                          <td style="font-size: 14px; font-weight: 600; height: 32px; padding-right: 16px; padding-left: 8px; text-transform: uppercase; vertical-align: middle;">
+                                            Moderate
+                                          </td>
+                                        </tr>
+                                      </table>
+                                  <!--[if mso]>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td style="padding-bottom: 16px;">
+                                  <![endif]-->
+                                      <table style="border: 1px solid #00b2ff;
+                                                  border-left-width: 8px;
+                                                  border-radius: 6px;
+                                                  font-size: 14px;
+                                                  margin: 0;
+                                                  margin-bottom: 16px;
+                                                  width: 145px;"
+                                              role="presentation">
+                                        <tr>
+                                          <td style="font-size: 14px; font-weight: bold; height: 32px; padding-left: 12px; vertical-align: middle;">${policyThreatDarkBlueCount}</td>
+                                          <td style="font-size: 14px; font-weight: 600; height: 32px; padding-right: 16px; padding-left: 8px; text-transform: uppercase; vertical-align: middle;">
+                                            Low
+                                          </td>
+                                        </tr>
+                                      </table>
+                                  <!--[if mso]>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td style="padding-bottom: 16px;">
+                                  <![endif]-->
+                                      <table style="border: 1px solid #cde2fe;
+                                                  border-left-width: 8px;
+                                                  border-radius: 6px;
+                                                  font-size: 14px;
+                                                  margin: 0;
+                                                  width: 145px;"
+                                              role="presentation">
+                                        <tr>
+                                          <td style="font-size: 14px; font-weight: bold; height: 32px; padding-left: 12px; vertical-align: middle;">${policyThreatBlueCount}</td>
+                                          <td style="font-size: 14px; font-weight: 600; height: 32px; padding-right: 16px; padding-left: 8px; text-transform: uppercase; vertical-align: middle;">
+                                            None
+                                          </td>
+                                        </tr>
+                                      </table>
+                                  <!--[if mso]>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td style="padding-bottom: 24px;">
+                                  <![endif]-->
+                                      <#if (grandfatheredPolicyViolationCount??)>
+                                        <p style="margin: 24px 0 0 0; color: #4d4d4d;">
+                                          ${grandfatheredPolicyViolationCount} Grandfathered Violations
+                                        </p>
+                                      </#if>
+                                <!--[if mso]>
+                                    </td>
+                                  </tr>
+                                </table>
+                                <![endif]-->
+                              </div>
+                            <!--[if mso]>
+                            </td>
+                            <![endif]-->
+
+                        <!-- / LEFT COLUMN TILE ONE -->
+                        <!-- RIGHT COLUMN TILE ONE -->
+
+                            <!--[if mso]>
+                            <td style="padding-bottom: 24px;">
+                            <![endif]-->
+                              <div class="col2" style="display: inline-block; padding-left: 48px; padding-bottom: 24px; vertical-align: top; max-width: 70%;">
+                                <table cellpadding="0" cellspacing="0" role="presentation">
+                                  <tr>
+                                    <td style="padding-bottom: 24px; width: 30%; font-weight: 600;" id="Date">
+                                      Date:
+                                    </td>
+                                    <td style="padding-bottom: 24px; padding-left: 8px; width: 70%;" aria-labelledby="Date">
+                                      ${policyThreatTime}
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td style="padding-bottom: 24px; width: 30%; font-weight: 600;" id="Owner">
+                                      ${ownerIdLabel}
+                                    </td>
+                                    <td style="padding-bottom: 24px; padding-left: 8px; width: 70%;" aria-labelledby="Owner">
+                                      ${policyThreatApp}
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td style="padding-bottom: 24px; width: 30%; font-weight: 600;" id="Stage">
+                                      Stage:
+                                    </td>
+                                    <td style="padding-bottom: 24px; padding-left: 8px; width: 70%;" aria-labelledby="Stage">
+                                      ${policyThreatStage}
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td style="width: 30%; font-weight: 600;" id="Contact">
+                                      Contact:
+                                    </td>
+                                    <td style="padding-left: 8px; width: 70%;" aria-labelledby="Contact">
+                                      <#if applicationContactName?has_content>
+                                        <#if applicationContactEmail?has_content>
+                                          <#--
+                                            Email address should be escaped for mailto URL, but the @ sign
+                                            must NOT be escaped
+                                          -->
+                                          <#assign escapedEmail = applicationContactEmail?split("@")?map(part -> part?url)?join("@")>
+                                          <a href="mailto:${escapedEmail}">${applicationContactName}</a>
+                                        <#else>
+                                          ${applicationContactName}
+                                        </#if>
+                                      </#if>
+                                    </td>
+                                  </tr>
+                                </table>
+                              </div>
+                        <!--[if mso]>
+                            </td>
+                          </tr>
+                        </table>
+                        <![endif]-->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+<!-- END TILE ONE -->
+                <!--[if mso]>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <![endif]-->
+<!-- BEGIN TILE TWO -->
+                <table style="background-color: white; border-radius: 6px; margin: 24px 0 0 0; width: 100%;"
+                      cellpadding="0"
+                      cellspacing="0"
+                      role="presentation">
+                  <thead>
+                    <tr>
+                      <th style="text-align: left; margin: 0; padding: 24px;">
+                        <h2>Policy Violations</h2>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <table cellpadding="0" cellspacing="0" style="border-top: 1px solid #dbdef0; margin-bottom: 24px;" role="presentation">
+                          <#list policyFacts as fact>
+                            <#list fact.componentFacts as component>
+                              <tr>
+                                <#if (fact.threatLevel > 7)>
+                                  <td style="padding: 24px 8px 16px 24px;">
+                                    <div style="border-radius: 16px; height: 14px; width: 14px; background-color: #cc0028;"></div>
+                                  </td>
+                                <#elseif (fact.threatLevel > 3)>
+                                  <td style="padding: 24px 8px 16px 24px;">
+                                    <div style="border-radius: 16px; height: 14px; width: 14px; background-color: #ff8600;"></div>
+                                  </td>
+                                <#elseif (fact.threatLevel > 1)>
+                                  <td style="padding: 24px 8px 16px 24px;">
+                                    <div style="border-radius: 16px; height: 14px; width: 14px; background-color: #ffc333;"></div>
+                                  </td>
+                                <#elseif (fact.threatLevel > 0)>
+                                  <td style="padding: 24px 8px 16px 24px;">
+                                    <div style="border-radius: 16px; height: 14px; width: 14px; background-color: #00b2ff;"></div>
+                                  </td>
+                                <#else>
+                                  <td style="padding: 24px 8px 16px 24px;">
+                                    <div style="border-radius: 16px; height: 14px; width: 14px; background-color: #cde2fe;"></div>
+                                  </td>
+                                </#if>
+                                <td style="padding: 24px 8px 16px 0;">
+                                  <span style="vertical-align: middle;">${fact.threatLevel}</span>
+                                </td>
+                                <td style="padding: 24px 24px 16px 0">
+                                  <span style="font-weight: 700;vertical-align: middle;">${fact.policyName}</span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td colspan="2"></td>
+                                <td style="font-size: 16px; font-weight: bold; padding: 0 24px 16px 0;">
+                                  <#if component.displayName??>
+                                    ${component.displayName}
+                                  <#else>
+                                    Hash: ${component.hash}
+                                  </#if>
+                                </td>
+                              </tr>
+                              <#list component.constraintFacts as constraint>
+                                <tr>
+                                  <td colspan="2"></td>
+                                  <td style="padding: 4px 24px 4px 0;">
+                                    <span style="vertical-align: middle;">${constraint.constraintName}</span>
+                                  </td>
+                                </tr>
+                                <#list constraint.conditionFacts as condition>
+                                  <tr>
+                                    <td colspan="2"></td>
+                                    <td style="padding: 4px 24px 4px 0;">
+                                      ${condition.reason}
+                                    </td>
+                                  </tr>
+                                </#list>
+                              </#list>
+                            </#list>
+                          </#list>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <!-- END TILE TWO -->
+              </td>
+            </tr>
+            <!-- FOOTER -->
+            <tr>
+              <td style="padding: 24px;">
+                <p style="font-size: 14px; color:#4d4d4d; margin: 0; text-align:center;">
+                  You are receiving this email because a policy has been configured to notify you.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
 </body>
 </html>
 </#escape>

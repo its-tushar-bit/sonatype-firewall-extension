@@ -143,7 +143,13 @@ export default function ResultsTable(props) {
     if (!repository || !repository[filterName]) {
       return !filterValue;
     }
-    return repository[filterName].toLowerCase().includes(filterValue.toLowerCase());
+
+    let escapedFilterValue = encodeURIComponent(filterValue);
+
+    return (
+      repository[filterName].toLowerCase().includes(filterValue.toLowerCase()) ||
+      repository[filterName].toLowerCase().includes(escapedFilterValue.toLowerCase())
+    );
   }
 
   function toggleSelectAll() {

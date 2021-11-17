@@ -246,10 +246,11 @@ describe('ResultsTable', function () {
   });
 
   describe('filters', () => {
-    const repositories = ['aaaa', 'bbbb', 'aabb', 'BBBB', 'ABBB'].map((prefix) => createRepo(prefix));
+    const repositories = ['aaaa', 'bbbb', 'aabb', 'BBBB', 'ABBB', '%C2%A7%20%C2%A3'].map((prefix) =>
+      createRepo(prefix)
+    );
     const setSelectedRepositories = jasmine.createSpy('setSelectedRepositories');
     const selectedRepositories = [];
-
     ['namespace', 'description', 'project'].forEach((filterName) => {
       it('filters repos by ' + filterName, () => {
         const component = getShallowComponent({
@@ -291,6 +292,13 @@ describe('ResultsTable', function () {
           'url-BBBB',
           'url-ABBB',
         ]);
+
+        // when the filter using special chars
+        filterInput.simulate('change', '\xa7 \xa3');
+
+        // then repository rows with the matching repos are generated
+        expect(component.find(RepositoryRow).length).toBe(1);
+        expect(component.find(RepositoryRow).prop('repo')).toEqual(repositories[5]);
       });
 
       it('deselects filtered-out components when filtering by ' + filterName, () => {

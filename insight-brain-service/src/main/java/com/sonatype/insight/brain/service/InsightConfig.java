@@ -297,7 +297,6 @@ public class InsightConfig
    *
    * @since 1.98
    */
-
   @JsonProperty
   private boolean blockBackslashInPath = true;
 
@@ -534,7 +533,6 @@ public class InsightConfig
 
   /**
    * @since 1.14.0
-   *
    * @deprecated The support for anonymous client access was removed in 1.72.
    */
   @Deprecated
@@ -627,7 +625,6 @@ public class InsightConfig
 
   /**
    * @since 1.21
-   *
    * @deprecated Removed in 1.97.
    */
   @Deprecated
@@ -799,7 +796,7 @@ public class InsightConfig
   /**
    * This uses a generous default value to account for batched component data requests that are known to occasionally
    * take ~1 minute.
-   * 
+   *
    * @since 1.101
    */
   @JsonProperty
@@ -850,6 +847,7 @@ public class InsightConfig
 
   /**
    * Returns a map of declared feature flags and their states i.e. enabled or disabled.
+   *
    * @see InsightConfig#features for details on how feature flags are specified
    */
   public Map<String, Boolean> getFeatures() {
@@ -859,6 +857,7 @@ public class InsightConfig
   /**
    * Returns {@code true} if a feature flag, identified by name, is enabled; returns {@code false} otherwise.
    * <p>If the feature flag is not explicitly declared it is considered enabled by default.
+   *
    * @see InsightConfig#features for details on how feature flags are specified
    */
   @VisibleForTesting
@@ -869,6 +868,7 @@ public class InsightConfig
   /**
    * Returns {@code true} if a feature flag is enabled; returns {@code false} otherwise.
    * <p>If the feature flag is not explicitly declared it is considered enabled by default.
+   *
    * @see InsightConfig#features for details on how feature flags are specified
    */
   public boolean isFeatureEnabled(Feature feature) {
@@ -881,6 +881,7 @@ public class InsightConfig
 
   /**
    * Returns a map of declared experimental feature flags and their states i.e. enabled or disabled.
+   *
    * @see InsightConfig#experimentalFeatures for details on how experimental feature flags are specified
    */
   public Map<String, Boolean> getExperimentalFeatures() {
@@ -891,6 +892,7 @@ public class InsightConfig
    * Returns {@code true} if an experimental feature flag, identified by name, is enabled; returns {@code false}
    * otherwise.
    * <p>If the experimental feature flag is not explicitly declared it is considered disabled by default.
+   *
    * @see InsightConfig#experimentalFeatures for details on how experimental feature flags are specified
    */
   public boolean isExperimentalFeatureEnabled(String feature) {
@@ -901,6 +903,7 @@ public class InsightConfig
   /**
    * Returns {@code true} if an experimental feature flag is enabled; returns {@code false} otherwise.
    * <p>If the experimental feature flag is not explicitly declared it is considered disabled by default.
+   *
    * @see InsightConfig#experimentalFeatures for details on how experimental feature flags are specified
    */
   public boolean isExperimentalFeatureEnabled(ExperimentalFeature feature) {
@@ -979,13 +982,15 @@ public class InsightConfig
     DEFAULT_BRANCH_MONITORING("defaultBranchMonitoring"),
     DEPENDENCY_DATA_IN_API("dependencyDataInApi"),
     INNER_SOURCE_TRANSITIVE_WAIVER("innerSourceTransitiveWaiver"),
+    ORCHESTRATED_EVENT_PROCESSING("orchestratedEventProcessing"),
+    PR_COMMENTING("prCommenting"),
+    PR_LINE_COMMENTING("prLineCommenting"),
+
     /**
      * @deprecated Use {@link SourceControl#getSourceControlEvaluationsEnabled() instead}
      */
     @Deprecated
-    INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS("internalSourceControlPolicyEvaluations"),
-    PR_COMMENTING("prCommenting"),
-    PR_LINE_COMMENTING("prLineCommenting");
+    INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS("internalSourceControlPolicyEvaluations");
 
     private final String flag;
 
@@ -1016,7 +1021,6 @@ public class InsightConfig
   public enum ExperimentalFeature
       implements com.sonatype.insight.license.model.Feature
   {
-    ORCHESTRATED_EVENT_PROCESSING("orchestratedEventProcessing"),
     SCM_ONBOARDING("scmOnboarding"),
     ANONYMOUS_QUARANTINED_COMPONENT_VIEW("anonymousQuarantinedComponentView"),
     INNER_SOURCE_REPOSITORY_INTEGRATION("innerSourceRepositoryIntegration");

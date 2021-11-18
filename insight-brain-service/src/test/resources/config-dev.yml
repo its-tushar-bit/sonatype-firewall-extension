@@ -44,8 +44,5 @@ server:
     - type: http
       port: 8070
 
-experimentalFeatures:
-  orchestratedEventProcessing: true
-
 #sourceControl:
 #  gitImplementation: java

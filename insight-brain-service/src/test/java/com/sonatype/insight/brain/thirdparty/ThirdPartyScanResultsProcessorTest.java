@@ -53,6 +53,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.xmlunit.assertj.XmlAssert;
 
+import static com.sonatype.insight.scan.model.ItemContentType.IAC_FILE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.entry;
@@ -225,6 +226,17 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   @Test
+  public void testHandle_iac_content() throws Exception {
+    TelemetryData telemetryData = buildThirdPartyScanTelemetryData();
+    File scanFile = getScanFile("iac/scan-with-iac-content.xml");
+    File tempScanFile = tempDir.newFile();
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), telemetryData);
+
+    verify(telemetrySender, times(1)).send(telemetryData);
+    assertFilteredThirdPartyScanContentFile(tempScanFile, IAC_FILE, true, 0);
+  }
+
+  @Test
   public void testHandle_ClairCorruptFile() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-data-corrupted.xml");
     assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
@@ -344,6 +356,10 @@ public class ThirdPartyScanResultsProcessorTest
               else if (ItemContentType.CONTAINER_URI == itemContentType) {
                 assertFilteredScanContentFile(contentElement.getValue(), contentType, optionalValuesPresent,
                     expectedComponentCount, ItemContentType.CONTAINER_URI);
+              }
+              else if (IAC_FILE == itemContentType) {
+                final String expectedIacXmlContent = "terraform";
+                assertThat(contentElement.getValue()).isEqualTo(expectedIacXmlContent);
               }
             }
             else {

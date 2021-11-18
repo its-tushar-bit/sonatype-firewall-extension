@@ -53,7 +53,8 @@ public class ThirdPartyScanResultsProcessor
   private static final Logger log = LoggerFactory.getLogger(ThirdPartyScanResultsProcessor.class);
 
   private static final List<String> thirdPartyItemContentTypes =
-      asList(ItemContentType.CLAIR_SCANNER.name(), ItemContentType.SBOM.name(), ItemContentType.CONTAINER_URI.name());
+      asList(ItemContentType.CLAIR_SCANNER.name(), ItemContentType.SBOM.name(), ItemContentType.CONTAINER_URI.name(),
+          ItemContentType.IAC_FILE.name());
 
   private static final XMLEventFactory EVENT_FACTORY = XMLEventFactory.newInstance();
 
@@ -166,23 +167,25 @@ public class ThirdPartyScanResultsProcessor
   {
     String contentType = parser.getAttributeValue(null, "contentType");
     if (contentType != null && thirdPartyItemContentTypes.contains(contentType)) {
-      Xpp3Dom itemElement = Xpp3Util.loadElement("item", parser);
-      Xpp3Dom contentElement = itemElement.getChild("content");
       if (thirdPartyScanTelemetryData != null) {
         // add the content type to telemetry data
         thirdPartyScanTelemetryData.getAttributes().put("content_type", contentType);
         telemetrySender.send(thirdPartyScanTelemetryData);
       }
-      if (contentElement != null) {
-        String filteredContent =
-            handleContent(itemElement, contentElement.getValue(), contentType, scanRequestId);
-        writeFilteredInformation(writer, filteredContent);
+      if (!contentType.equals(ItemContentType.IAC_FILE.name())) {
+        Xpp3Dom itemElement = Xpp3Util.loadElement("item", parser);
+        Xpp3Dom contentElement = itemElement.getChild("content");
+        if (contentElement != null) {
+          String filteredContent =
+              handleContent(itemElement, contentElement.getValue(), contentType, scanRequestId);
+          writeFilteredInformation(writer, filteredContent);
+        }
+        else {
+          log.error("scan file {} contained a third party scan item {} without any content", scanFile.getName(),
+              contentType);
+        }
+        writer.add(EVENT_FACTORY.createEndElement(new QName(parser.getName()), null));
       }
-      else {
-        log.error("scan file {} contained a third party scan item {} without any content", scanFile.getName(),
-            contentType);
-      }
-      writer.add(EVENT_FACTORY.createEndElement(new QName(parser.getName()), null));
     }
   }
 

@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashb
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalStageScanDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
+import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
@@ -334,34 +335,26 @@ public class ApiLicenseLegalService
     return resultDto;
   }
 
-  public ApiLicenseLegalComponentDashboardResultDTO getLicenseLegalComponentsDashboard(
-      Set<String> organizationIds,
-      Set<String> applicationIds,
-      Set<String> tagIds,
-      Set<String> stageTypeIds,
-      Set<String> licenseIds,
-      LicenseLegalResultsOrder order,
-      int page,
-      int pageSize)
-  {
+  public ApiLicenseLegalComponentDashboardResultDTO getLicenseLegalComponentsDashboard(LicenseLegalFilterDTO filter) {
     checkLicense();
 
-    if (page <= 0 || pageSize <= 0) {
+    if (filter.page <= 0 || filter.pageSize <= 0) {
       throw new BadRequestException("Request must include page and pageSize values greater than zero.");
     }
 
     Map<String, Application> mapApplicationIds =
-        getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds).stream()
+        getApplicationsByIdsAndOrganizationIdsAndTagIds(filter.organizationIds, filter.applicationIds, filter.tagIds)
+            .stream()
             .collect(Collectors.toMap(Application::getId, Function.identity()));
     Set<String> applicationIdsToCheck = new HashSet<>(mapApplicationIds.keySet());
 
     Set<String> stageTypeIdsToCheck =
-        isEmpty(stageTypeIds) ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
-            : stageTypeIds;
+        isEmpty(filter.stageTypeIds) ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
+            : filter.stageTypeIds;
 
-    if (isNotEmpty(applicationIdsToCheck) && isNotEmpty(licenseIds)) {
+    if (isNotEmpty(applicationIdsToCheck) && isNotEmpty(filter.licenseIds)) {
       List<Object[]> applicationIdsAndStageTypeIds = applicationComponentDAO
-          .getApplicationIdsAndStageTypeIdsByLicenses(applicationIdsToCheck, stageTypeIdsToCheck, licenseIds);
+          .getApplicationIdsAndStageTypeIdsByLicenses(applicationIdsToCheck, stageTypeIdsToCheck, filter.licenseIds);
 
       recalculateApplicationIdsAndStateTypeIds(applicationIdsAndStageTypeIds, applicationIdsToCheck,
           stageTypeIdsToCheck);
@@ -374,7 +367,7 @@ public class ApiLicenseLegalService
     List<ApplicationComponent> applicationComponents =
         applicationComponentDAO.getByApplicationIdsAndStageTypeIds(applicationIdsToCheck, stageTypeIdsToCheck);
 
-    int startIndex = (page - 1) * pageSize;
+    int startIndex = (filter.page - 1) * filter.pageSize;
     if (startIndex >= applicationComponents.size()) {
       ApiLicenseLegalComponentDashboardResultDTO resultDto = new ApiLicenseLegalComponentDashboardResultDTO();
       resultDto.totalResultsCount = applicationComponents.size();
@@ -438,17 +431,18 @@ public class ApiLicenseLegalService
     }
 
     ApiLicenseLegalComponentDashboardResultDTO resultDto = new ApiLicenseLegalComponentDashboardResultDTO();
-    resultDto.totalResultsCount = mapHashComponent.size();
 
     List<ApiLicenseLegalComponentDashboardDTO> components = mapHashComponent.values().stream()
-        .filter(dto -> isEmpty(licenseIds) || !Collections.disjoint(mapHashLicenseIds.get(dto.hash), licenseIds))
+        .filter(dto -> isEmpty(filter.licenseIds) ||
+            !Collections.disjoint(mapHashLicenseIds.get(dto.hash), filter.licenseIds))
+        .filter(dto -> !StringUtils.isNotBlank(filter.componentName) ||
+            dto.displayName.contains(filter.componentName))
         .map(fillLicenseNames(mapHashLicenseIds))
-        .sorted(newComponentDashboardComparator(order))
-        .skip(startIndex)
-        .limit(pageSize)
+        .sorted(newComponentDashboardComparator(filter.order))
         .collect(Collectors.toList());
 
-    resultDto.results = components;
+    resultDto.totalResultsCount = components.size();
+    resultDto.results = components.subList(startIndex, Math.min(filter.page * filter.pageSize, components.size()));
     return resultDto;
   }
 

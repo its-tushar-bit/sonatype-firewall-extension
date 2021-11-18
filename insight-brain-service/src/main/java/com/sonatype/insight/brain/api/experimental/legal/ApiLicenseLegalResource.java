@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.experimental.legal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -119,9 +118,10 @@ public class ApiLicenseLegalResource
   @Path(DASHBOARD_COMPONENTS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiLicenseLegalComponentDashboardResultDTO getLicenseLegalComponentsDashboard(LicenseLegalFilterDTO filter) {
-    return apiLicenseLegalService.getLicenseLegalComponentsDashboard(filter.organizationIds, filter.applicationIds,
-        filter.tagIds, filter.stageTypeIds, filter.licenseIds, filter.order, filter.page, filter.pageSize);
+  public ApiLicenseLegalComponentDashboardResultDTO getLicenseLegalComponentsDashboard(
+      LicenseLegalFilterDTO filter)
+  {
+    return apiLicenseLegalService.getLicenseLegalComponentsDashboard(filter);
   }
 
   @POST

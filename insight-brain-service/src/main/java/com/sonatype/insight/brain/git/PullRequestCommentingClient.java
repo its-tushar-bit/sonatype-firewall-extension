@@ -54,6 +54,7 @@ public class PullRequestCommentingClient
     Optional<CommentResponse> response;
 
     GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
+    telemetry.provider = getProvider(gitRepositoryInfo);
     if (existingPullRequestComment == null) {
       CommentResponse commentResponse = gitApiClient.createPullRequestComment(pullRequestNumber, commentText);
       log.info("pull request comment '{}' created for application '{}' pull request '{}'",
@@ -68,6 +69,10 @@ public class PullRequestCommentingClient
     }
     response.ifPresent(commentResponse -> telemetry.commentId = commentResponse.getId());
     return response;
+  }
+
+  private String getProvider(GitRepositoryInfo gitRepositoryInfo) {
+    return null != gitRepositoryInfo.getProvider() ? gitRepositoryInfo.getProvider().toString() : "not specified";
   }
 
   private Optional<CommentResponse> updateCommentInGitSCM(

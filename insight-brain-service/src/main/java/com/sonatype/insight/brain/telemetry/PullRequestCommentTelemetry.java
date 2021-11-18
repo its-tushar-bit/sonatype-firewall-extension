@@ -30,6 +30,8 @@ public class PullRequestCommentTelemetry
 
   public int lineCommentCount;
 
+  public String provider;
+
   public PullRequestCommentTelemetry() {
     // for deserialization
   }

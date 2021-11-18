@@ -36,8 +36,10 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.jaxrs.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,6 +58,12 @@ public class IdeResourceTest
 
   private HttpRequest enhancedScanRequest(String appId, String hash) {
     return restRequest().path("scan", "enhanced", appId, hash);
+  }
+
+  private HttpRequest coordinatesScanRequest(String appId, ComponentIdentifier identifier) {
+    return restRequest()
+        .path(IdeResource.COORDINATES_SCAN_PATH).parameter(appId)
+        .query("componentIdentifier", identifier);
   }
 
   private HttpRequest versionsRequest(String groupId, String artifactId) {
@@ -77,6 +85,9 @@ public class IdeResourceTest
   }
 
   private String convertScanUrlToHdsUrl(String brainUrl) {
+    if (brainUrl.contains("rest/ide/scan/coordinates")) {
+      return brainUrl.replaceFirst("(.*/)(rest/ide/scan/coordinates)(/[^?]+)(.*)", "$2$4");
+    }
     return brainUrl.replaceFirst("(.*/)(rest/ide/scan/[^/]+)(/[^/]+)(/.*)", "$2$4");
   }
 
@@ -131,6 +142,80 @@ public class IdeResourceTest
     assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
     assertThat(policyAlerts).hasSize(1);
+  }
+
+  @Test
+  public void testDoCoordinatesScan_ExactMatch() throws Exception {
+    String applicationPublicId = "IdeResourceTest_AppId";
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "tomcat", "tomcat-util", "5.5.23", "", "jar");
+    HttpRequest request = coordinatesScanRequest(applicationPublicId, componentIdentifier);
+    mockHdsScanResponse(request, 200, "Coordinates.json");
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    List<IdeMatchedComponent> results =
+        JsonUtils.parse(response.getBodyText(), new TypeReference<List<IdeMatchedComponent>>() { });
+    assertThat(results).hasSize(1);
+
+    IdeMatchedComponent ideMatchedComponent = results.get(0);
+    assertThat(ideMatchedComponent.getComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertGavInIdeMatchedComponent("tomcat", "tomcat-util", "5.5.23", ideMatchedComponent);
+    assertThat(ideMatchedComponent.getHash()).isEqualTo("1249e25aebb15358bedd");
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("exact");
+    assertThat(ideMatchedComponent.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
+    List<PolicyAlert> policyAlerts = ideMatchedComponent.getAlerts();
+    assertThat(policyAlerts).hasSize(4);
+  }
+
+  @Test
+  public void testDoCoordinatesScan_UnknownMatch() throws Exception {
+    String applicationPublicId = "IdeResourceTest_AppId";
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Condition condition = new Condition(MatchStateConditionType.ID, "is", "unknown");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "tom", "tom", "0.1", "", "jar");
+    HttpRequest request = coordinatesScanRequest(applicationPublicId, componentIdentifier);
+    mockHdsScanResponse(request, 200, "Coordinates_unknown.json");
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    List<IdeMatchedComponent> results =
+        JsonUtils.parse(response.getBodyText(), new TypeReference<List<IdeMatchedComponent>>() { });
+    assertThat(results).hasSize(1);
+
+    IdeMatchedComponent ideMatchedComponent = results.get(0);
+    assertThat(ideMatchedComponent.getComponentIdentifier()).isNull();
+    assertThat(ideMatchedComponent.getHash()).isNull();
+    assertThat(ideMatchedComponent.getMatchState()).isEqualTo("unknown");
+    assertThat(ideMatchedComponent.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+    assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
+    assertThat(ideMatchedComponent.getAlerts()).hasSize(1);
+  }
+
+  @Test
+  public void testDoCoordinatesScan_Unlicensed() throws Exception {
+    uninstallLicense();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "tom", "tom", "0.1", "", "jar");
+    HttpResponse response = coordinatesScanRequest("unlicensedAppId", componentIdentifier).get();
+    assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testDoCoordinatesScan_FeatureUnlicensed() throws Exception {
+    setMissingFeature(LicensedFeature.IDE_INTEGRATION);
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "tom", "tom", "0.1", "", "jar");
+    HttpResponse response = coordinatesScanRequest("unlicensedAppId", componentIdentifier).get();
+    assertResponseStatus(402, response);
   }
 
   @Test

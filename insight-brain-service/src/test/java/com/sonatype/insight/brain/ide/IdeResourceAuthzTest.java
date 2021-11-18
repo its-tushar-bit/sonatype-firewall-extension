@@ -39,4 +39,13 @@ public class IdeResourceAuthzTest
         .body("{}");
     testAuthzPost(request);
   }
+
+  @Test
+  public void testDoCoordinatesScan() throws Exception {
+    hdsRespondWith("[]").atUri("rest/ide/scan/coordinates");
+    grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
+
+    HttpRequest request = restRequest().path(IdeResource.COORDINATES_SCAN_PATH).parameter(app.getPublicId());
+    testAuthzGet(request);
+  }
 }

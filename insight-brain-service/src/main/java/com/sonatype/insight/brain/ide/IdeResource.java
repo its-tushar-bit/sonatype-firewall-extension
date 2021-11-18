@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.ide;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -33,6 +35,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
@@ -49,6 +52,8 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Named
 @Timed
@@ -58,9 +63,15 @@ public class IdeResource
 {
   public static final String RESOURCE_PATH = "rest/ide";
 
+  public static final String COORDINATES_SCAN_PATH = "scan/coordinates/{applicationPublicId}";
+
+  private static final ObjectMapper JSON = new ObjectMapper();
+
   private final HdsClient client;
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
+  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+
+  private final HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
 
   private final BaseUrl baseUrl;
 
@@ -97,13 +108,21 @@ public class IdeResource
       @Context HttpServletRequest req) throws IOException
   {
     Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
-    String applicationId = app.getId();
 
     MatchedComponent matchedComponent = client.relay(req, MatchedComponent.class, "rest/ide/scan/{scanType}/{path}",
         scanType, path).content;
+
+    return fromMatchedComponent(matchedComponent, app, proprietary, false);
+  }
+
+  private IdeMatchedComponent fromMatchedComponent(
+      MatchedComponent matchedComponent,
+      Application app,
+      boolean proprietary,
+      boolean forceEvaluation)
+  {
     // Is this a manually claimed component?
-    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifierDAO().getByHash(matchedComponent
-        .getHash());
+    HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(matchedComponent.getHash());
     if (hashComponentIdentifier != null) {
       ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
       matchedComponent.setComponentIdentifier(componentIdentifier);
@@ -120,14 +139,40 @@ public class IdeResource
 
     IdeMatchedComponent ideComponent = getComponent(matchedComponent);
     if (ideComponent.getWaitDelta() == null
-        && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch())) {
+        && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch() || forceEvaluation)) {
       Component component = new ComponentDAO(app).getComponent(matchedComponent);
       component.setProprietary(proprietary);
-      List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(applicationId, new Stage(DevelopStageType.ID),
+      List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(app.getId(), new Stage(DevelopStageType.ID),
           Collections.singletonList(component));
       ideComponent.setAlerts(policyAlerts);
     }
     return ideComponent;
+  }
+
+  /**
+   * Get the result from a coordinates-based scan request
+   */
+  @GET
+  @Path(COORDINATES_SCAN_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  @Audited(AuditEvent.EVALUATE_PROJECT)
+  public List<IdeMatchedComponent> doCoordinatesScan(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") String appPublicId,
+      @QueryParam("componentIdentifier") ComponentIdentifier identifier,
+      @QueryParam("proprietary") boolean proprietary,
+      @Context HttpServletRequest req) throws IOException
+  {
+    Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
+    Map<String, String> queryParams =
+        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier));
+
+    List<?> list = client.relay(req, List.class, "rest/ide/scan/coordinates", queryParams).content;
+    List<MatchedComponent> matchedComponents = JSON.convertValue(list, new TypeReference<List<MatchedComponent>>(){ });
+
+    return matchedComponents.stream()
+        .map(mc -> fromMatchedComponent(mc, app, proprietary, true))
+        .collect(Collectors.toList());
   }
 
   /**

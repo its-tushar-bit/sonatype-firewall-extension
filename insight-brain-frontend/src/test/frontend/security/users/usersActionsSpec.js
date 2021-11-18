@@ -187,27 +187,29 @@ describe('usersActions', () => {
           [userUrl]: Promise.resolve(),
         },
       });
+      jasmine.clock().install();
 
       store.dispatch(save()).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
 
-          expect(actions.length).toBe(4);
-          expect(actions).toHaveActionsInOrder([
-            { type: CREATE_USER_SAVE_REQUESTED },
-            { type: CREATE_USER_SAVE_FULFILLED },
-            { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
-            {
-              type: STATE_GO,
-              payload: {
-                to: 'users',
-                params: undefined,
-                options: undefined,
-              },
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(4);
+        expect(actions).toHaveActionsInOrder([
+          { type: CREATE_USER_SAVE_REQUESTED },
+          { type: CREATE_USER_SAVE_FULFILLED },
+          { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
+          {
+            type: STATE_GO,
+            payload: {
+              to: 'users',
+              params: undefined,
+              options: undefined,
             },
-          ]);
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          },
+        ]);
+        done();
       });
     });
 
@@ -346,28 +348,30 @@ describe('usersActions', () => {
           [userUrl]: Promise.resolve(),
         },
       });
+      jasmine.clock().install();
 
       store.dispatch(update()).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
 
-          expect(actions.length).toBe(4);
+        const actions = store.getActions();
 
-          expect(actions).toHaveActionsInOrder([
-            { type: EDIT_USER_UPDATE_REQUESTED },
-            { type: EDIT_USER_UPDATE_FULFILLED },
-            { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
-            {
-              type: STATE_GO,
-              payload: {
-                to: 'users',
-                params: undefined,
-                options: undefined,
-              },
+        expect(actions.length).toBe(4);
+
+        expect(actions).toHaveActionsInOrder([
+          { type: EDIT_USER_UPDATE_REQUESTED },
+          { type: EDIT_USER_UPDATE_FULFILLED },
+          { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
+          {
+            type: STATE_GO,
+            payload: {
+              to: 'users',
+              params: undefined,
+              options: undefined,
             },
-          ]);
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          },
+        ]);
+        done();
       });
     });
 
@@ -421,24 +425,26 @@ describe('usersActions', () => {
           [getUserByIdUrl('201')]: Promise.resolve({ data: 'success' }),
         },
       });
+      jasmine.clock().install();
 
       store.dispatch(deleteUser('201')).then(() => {
-        setTimeout(function () {
-          expect(store.getActions()).toHaveActionsInOrder([
-            { type: DELETE_USER_REQUESTED },
-            { type: DELETE_USER_FULFILLED },
-            { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
-            {
-              type: STATE_GO,
-              payload: {
-                to: 'users',
-                params: undefined,
-                options: undefined,
-              },
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
+
+        expect(store.getActions()).toHaveActionsInOrder([
+          { type: DELETE_USER_REQUESTED },
+          { type: DELETE_USER_FULFILLED },
+          { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
+          {
+            type: STATE_GO,
+            payload: {
+              to: 'users',
+              params: undefined,
+              options: undefined,
             },
-          ]);
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          },
+        ]);
+        done();
       });
     });
 
@@ -480,17 +486,19 @@ describe('usersActions', () => {
           }),
         },
       });
+      jasmine.clock().install();
 
       store.dispatch(resetPassword('201', state.selectedUserServerData.username)).then(() => {
-        setTimeout(function () {
-          const actions = store.getActions();
-          expect(actions).toHaveActionsInOrder([
-            { type: RESET_USER_PASSWORD_REQUESTED },
-            { type: RESET_USER_PASSWORD_FULFILLED, payload: { newPassword: 'weAreDoomed' } },
-            { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
-          ]);
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
+
+        const actions = store.getActions();
+        expect(actions).toHaveActionsInOrder([
+          { type: RESET_USER_PASSWORD_REQUESTED },
+          { type: RESET_USER_PASSWORD_FULFILLED, payload: { newPassword: 'weAreDoomed' } },
+          { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
+        ]);
+        done();
       });
     });
 

@@ -91,7 +91,7 @@ public class PullRequestCommentingClientTest
     );
     assertThat(prCommentTelemetry.action).isEqualTo(ACTION_CREATED);
     assertThat(prCommentTelemetry.commentId).isEqualTo(20);
-    assertThat(commentResponse.getId()).isEqualTo(gitApiResponse.getId());
+    assertThat(prCommentTelemetry.provider).isEqualTo("gitlab");
     assertThat(commentResponse.getVersion()).isEqualTo(gitApiResponse.getVersion());
   }
 
@@ -135,6 +135,7 @@ public class PullRequestCommentingClientTest
     );
     assertThat(prCommentTelemetry.action).isEqualTo(ACTION_UPDATED);
     assertThat(prCommentTelemetry.commentId).isEqualTo(20);
+    assertThat(prCommentTelemetry.provider).isEqualTo("gitlab");
     assertThat(commentResponse.getId()).isEqualTo(gitApiResponse.getId());
     assertThat(commentResponse.getVersion()).isEqualTo(gitApiResponse.getVersion());
   }
@@ -179,6 +180,7 @@ public class PullRequestCommentingClientTest
     );
     assertThat(prCommentTelemetry.action).isEqualTo(ACTION_UPDATED);
     assertThat(prCommentTelemetry.commentId).isEqualTo(20);
+    assertThat(prCommentTelemetry.provider).isEqualTo("gitlab");
     assertThat(commentResponse.getId()).isEqualTo(gitApiResponse.getId());
     assertThat(commentResponse.getVersion()).isEqualTo(gitApiResponse.getVersion());
   }

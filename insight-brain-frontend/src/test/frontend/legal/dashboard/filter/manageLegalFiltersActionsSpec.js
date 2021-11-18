@@ -435,7 +435,7 @@ describe('manageLegalFilterActions', function () {
 
     it('closes filters dropdown and delete filter modal after deleteSavedFilters completes', function (done) {
       const getSavedFiltersResponse = { foo: 'bar' };
-
+      jasmine.clock().install();
       mockAxiosCalls({
         del: {
           [deleteFiltersUrl]: Promise.resolve({}),
@@ -450,13 +450,13 @@ describe('manageLegalFilterActions', function () {
       store.dispatch(deleteFilter(filterToDelete)).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(3);
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
 
-        setTimeout(function () {
-          expect(actions.length).toBe(4);
-          expect(actions[3].type).toBe('LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL');
+        expect(actions.length).toBe(4);
+        expect(actions[3].type).toBe('LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL');
 
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        done();
       });
 
       expect(store.getActions().length).toBe(1);

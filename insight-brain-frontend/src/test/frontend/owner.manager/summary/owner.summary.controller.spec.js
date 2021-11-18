@@ -114,7 +114,7 @@ describe('owner.summary.controller.js', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(true);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['inner-source-repository-integration']);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveCompositeSourceControl();
       if (isApp) {
@@ -135,6 +135,7 @@ describe('owner.summary.controller.js', function () {
       }
 
       expect(vm.owner).toEqual(owner);
+      expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
     });
 
     it('Properly loads permissions when unauthorized', function () {
@@ -158,6 +159,8 @@ describe('owner.summary.controller.js', function () {
       } else {
         $httpBackend.flush();
       }
+
+      expect(vm.isInnerSourceRepositorySupported).toBeFalsy();
     });
 
     it('Properly routing to Build Report', function () {

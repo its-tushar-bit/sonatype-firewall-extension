@@ -182,6 +182,8 @@ describe('copyrightOverrideFormAction', function () {
             }),
           },
         });
+        jasmine.clock().install();
+
         store
           .dispatch(
             saveCopyrightOverride({
@@ -196,29 +198,30 @@ describe('copyrightOverrideFormAction', function () {
             })
           )
           .then(() => {
-            setTimeout(() => {
-              const actions = store.getActions();
-              expect(axios.post).toHaveBeenCalledWith(
-                '/api/experimental/licenseLegalMetadata/organization/org/component/copyright',
-                expectedPostBody
-              );
-              expect(axios.get).toHaveBeenCalledWith(
-                '/api/experimental/licenseLegalMetadata/organization/org' +
-                  '/component/copyright?componentIdentifier=%22componentIdentifier%22'
-              );
-              expect(actions.length).toBe(3);
-              expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
-              expect(actions[1].payload).toEqual({
-                data: 'dataGET',
-                lastUpdatedByUsername: 'admin',
-                lastUpdatedAt: 1618873200000,
-                componentCopyrightScopeOwnerId: 'realOwner',
-                componentCopyrightLastUpdatedByUsername: 'admin',
-                componentCopyrightLastUpdatedAt: 1618873200000,
-              });
-              expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
-              done();
-            }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+            jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+            jasmine.clock().uninstall();
+
+            const actions = store.getActions();
+            expect(axios.post).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/org/component/copyright',
+              expectedPostBody
+            );
+            expect(axios.get).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/org' +
+                '/component/copyright?componentIdentifier=%22componentIdentifier%22'
+            );
+            expect(actions.length).toBe(3);
+            expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
+            expect(actions[1].payload).toEqual({
+              data: 'dataGET',
+              lastUpdatedByUsername: 'admin',
+              lastUpdatedAt: 1618873200000,
+              componentCopyrightScopeOwnerId: 'realOwner',
+              componentCopyrightLastUpdatedByUsername: 'admin',
+              componentCopyrightLastUpdatedAt: 1618873200000,
+            });
+            expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
+            done();
           });
 
         const actions = store.getActions();
@@ -268,6 +271,8 @@ describe('copyrightOverrideFormAction', function () {
           }),
         },
       });
+      jasmine.clock().install();
+
       store
         .dispatch(
           saveCopyrightOverride({
@@ -278,29 +283,30 @@ describe('copyrightOverrideFormAction', function () {
           })
         )
         .then(() => {
-          setTimeout(() => {
-            const actions = store.getActions();
-            expect(axios.post).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/org/component/copyright',
-              expectedPostBody
-            );
-            expect(axios.get).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/org' +
-                '/component/copyright?componentIdentifier=%22componentIdentifier%22'
-            );
-            expect(actions.length).toBe(3);
-            expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
-            expect(actions[1].payload).toEqual({
-              data: 'dataGET',
-              lastUpdatedByUsername: 'admin',
-              lastUpdatedAt: 1618873200000,
-              componentCopyrightScopeOwnerId: 'realOwner',
-              componentCopyrightLastUpdatedByUsername: 'admin',
-              componentCopyrightLastUpdatedAt: 1618873200000,
-            });
-            expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
+          const actions = store.getActions();
+          expect(axios.post).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/org/component/copyright',
+            expectedPostBody
+          );
+          expect(axios.get).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/org' +
+              '/component/copyright?componentIdentifier=%22componentIdentifier%22'
+          );
+          expect(actions.length).toBe(3);
+          expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
+          expect(actions[1].payload).toEqual({
+            data: 'dataGET',
+            lastUpdatedByUsername: 'admin',
+            lastUpdatedAt: 1618873200000,
+            componentCopyrightScopeOwnerId: 'realOwner',
+            componentCopyrightLastUpdatedByUsername: 'admin',
+            componentCopyrightLastUpdatedAt: 1618873200000,
+          });
+          expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
+          done();
         });
 
       const actions = store.getActions();
@@ -687,6 +693,8 @@ describe('copyrightOverrideFormAction', function () {
           }),
         },
       });
+      jasmine.clock().install();
+
       store
         .dispatch(
           saveCopyrightOverride({
@@ -701,25 +709,27 @@ describe('copyrightOverrideFormAction', function () {
           })
         )
         .then(() => {
-          setTimeout(() => {
-            const actions = store.getActions();
-            expect(axios.post).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/' + orgOrApp + '/' + expectedScope + '/component/copyright',
-              expectedPostBody
-            );
-            expect(actions.length).toBe(3);
-            expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
-            expect(actions[1].payload).toEqual({
-              data: 'dataGET',
-              lastUpdatedByUsername: 'admin',
-              lastUpdatedAt: 1618873200000,
-              componentCopyrightScopeOwnerId: 'realOwner',
-              componentCopyrightLastUpdatedByUsername: 'admin',
-              componentCopyrightLastUpdatedAt: 1618873200000,
-            });
-            expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
+          const actions = store.getActions();
+          expect(axios.post).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/' + orgOrApp + '/' + expectedScope + '/component/copyright',
+            expectedPostBody
+          );
+          expect(actions.length).toBe(3);
+          expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
+          expect(actions[1].payload).toEqual({
+            data: 'dataGET',
+            lastUpdatedByUsername: 'admin',
+            lastUpdatedAt: 1618873200000,
+            componentCopyrightScopeOwnerId: 'realOwner',
+            componentCopyrightLastUpdatedByUsername: 'admin',
+            componentCopyrightLastUpdatedAt: 1618873200000,
+          });
+          expect(actions[2].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
+
+          done();
         });
 
       const actions = store.getActions();

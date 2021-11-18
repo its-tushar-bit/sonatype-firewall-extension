@@ -510,22 +510,24 @@ describe('webhookActions', () => {
           [getWebhooksUrl()]: Promise.resolve({ data: 'success' }),
         },
       });
+      jasmine.clock().install();
 
       store.dispatch(saveWebhook()).then(() => {
-        setTimeout(function () {
-          expect(store.getActions().length).toBe(4);
-          expect(store.getActions()[1]).toEqual({ type: EDIT_WEBHOOK_SAVE_FULFILLED });
-          expect(store.getActions()[2]).toEqual({ type: EDIT_WEBHOOK_SUBMIT_MASK_TIMER_DONE });
-          expect(store.getActions()[3]).toEqual({
-            type: STATE_GO,
-            payload: {
-              to: 'listWebhooks',
-              params: undefined,
-              options: undefined,
-            },
-          });
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
+
+        expect(store.getActions().length).toBe(4);
+        expect(store.getActions()[1]).toEqual({ type: EDIT_WEBHOOK_SAVE_FULFILLED });
+        expect(store.getActions()[2]).toEqual({ type: EDIT_WEBHOOK_SUBMIT_MASK_TIMER_DONE });
+        expect(store.getActions()[3]).toEqual({
+          type: STATE_GO,
+          payload: {
+            to: 'listWebhooks',
+            params: undefined,
+            options: undefined,
+          },
+        });
+        done();
       });
 
       expect(store.getActions()[0]).toEqual({ type: EDIT_WEBHOOK_SAVE_REQUESTED });
@@ -574,24 +576,27 @@ describe('webhookActions', () => {
           [deleteWebhooksUrl('404')]: Promise.resolve({ data: 'success' }),
         },
       });
+      jasmine.clock().install();
 
       store.dispatch(deleteWebhook('404')).then(() => {
-        setTimeout(function () {
-          expect(store.getActions()).toHaveActionsInOrder([
-            { type: EDIT_WEBHOOK_DELETE_REQUESTED },
-            { type: EDIT_WEBHOOK_DELETE_FULFILLED },
-            { type: EDIT_WEBHOOK_SUBMIT_MASK_TIMER_DONE },
-            {
-              type: STATE_GO,
-              payload: {
-                to: 'listWebhooks',
-                params: undefined,
-                options: undefined,
-              },
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
+
+        expect(store.getActions()).toHaveActionsInOrder([
+          { type: EDIT_WEBHOOK_DELETE_REQUESTED },
+          { type: EDIT_WEBHOOK_DELETE_FULFILLED },
+          { type: EDIT_WEBHOOK_SUBMIT_MASK_TIMER_DONE },
+          {
+            type: STATE_GO,
+            payload: {
+              to: 'listWebhooks',
+              params: undefined,
+              options: undefined,
             },
-          ]);
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          },
+        ]);
+
+        done();
       });
     });
 

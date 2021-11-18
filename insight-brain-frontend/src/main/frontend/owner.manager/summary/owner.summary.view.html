@@ -171,6 +171,14 @@
               Source control
             </a>
           </li>
+          <li ng-if="vm.isInnerSourceRepositorySupported && (vm.isOrg || vm.isApp)" class="iq-nav-pills__pill">
+            <a data-toggle="pill"
+               id="owner-innersource-repository-button"
+               data-target="#owner-pill-innersource-repository"
+               ng-href="">
+              InnerSource repository
+            </a>
+          </li>
           <li class="iq-nav-pills__pill">
             <a data-toggle="pill" id="owner-access-button" data-target="#owner-pill-access" ng-href="">
               Access

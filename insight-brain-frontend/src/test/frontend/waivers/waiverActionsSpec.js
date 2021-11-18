@@ -138,19 +138,21 @@ describe('waiverActions', function () {
             [url]: Promise.resolve(),
           },
         });
+        jasmine.clock().install();
 
         store.dispatch(saveWaiverAndRedirect('policyViolationId', 'application', 'ownerId', '', false, 7)).then(() => {
-          setTimeout(() => {
-            expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
-            const actions = store.getActions();
-            expect(actions.length).toBe(4);
-            expect(actions).toHaveActionTypesInOrder([
-              WAIVERS_SAVE_WAIVER_FULFILLED,
-              STATE_GO,
-              WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
-            ]);
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
+          expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
+          const actions = store.getActions();
+          expect(actions.length).toBe(4);
+          expect(actions).toHaveActionTypesInOrder([
+            WAIVERS_SAVE_WAIVER_FULFILLED,
+            STATE_GO,
+            WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
+          ]);
+          done();
         });
 
         expect(store.getActions().length).toBe(1);
@@ -261,20 +263,22 @@ describe('waiverActions', function () {
             [url]: Promise.resolve(),
           },
         });
+        jasmine.clock().install();
 
         store
           .dispatch(saveWaiverAndLoadPolicyViolationData('policyViolationId', 'application', 'ownerId', '', false, 7))
           .then(() => {
-            setTimeout(() => {
-              expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
-              const actions = store.getActions();
-              expect(actions.length).toBe(6);
-              expect(actions).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
-              expect(actions).toHaveActionType(WAIVERS_SAVE_WAIVER_FULFILLED);
-              expect(actions).toHaveActionType(WAIVERS_RESET_ADD_WAIVER_DATA);
-              expect(actions).toHaveActionType(WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE);
-              done();
-            }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+            jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+            jasmine.clock().uninstall();
+
+            expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
+            const actions = store.getActions();
+            expect(actions.length).toBe(6);
+            expect(actions).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
+            expect(actions).toHaveActionType(WAIVERS_SAVE_WAIVER_FULFILLED);
+            expect(actions).toHaveActionType(WAIVERS_RESET_ADD_WAIVER_DATA);
+            expect(actions).toHaveActionType(WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE);
+            done();
           });
 
         expect(store.getActions().length).toBe(1);
@@ -952,18 +956,20 @@ describe('waiverActions', function () {
             [requestUrl]: Promise.resolve(),
           },
         });
+        jasmine.clock().install();
 
         store.dispatch(deleteWaiver('application', 'ownerId', 'waiverId')).then(() => {
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
           expect(axios.delete).toHaveBeenCalledWith(requestUrl);
-          setTimeout(() => {
-            expect(store.getActions().length).toBe(5);
-            expect(store.getActions()[1].type).toBe(WAIVERS_DELETE_WAIVER_FULFILLED);
-            expect(store.getActions()[2].type).toEqual(TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED);
-            expect(store.getActions()[3].type).toEqual(TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED);
-            expect(store.getActions()[3].payload).toBe('transitiveComponentWaivers');
-            expect(store.getActions()[4].type).toBe(WAIVERS_DELETE_MASK_TIMER_DONE);
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          expect(store.getActions().length).toBe(5);
+          expect(store.getActions()[1].type).toBe(WAIVERS_DELETE_WAIVER_FULFILLED);
+          expect(store.getActions()[2].type).toEqual(TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED);
+          expect(store.getActions()[3].type).toEqual(TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED);
+          expect(store.getActions()[3].payload).toBe('transitiveComponentWaivers');
+          expect(store.getActions()[4].type).toBe(WAIVERS_DELETE_MASK_TIMER_DONE);
+          done();
         });
 
         expect(store.getActions().length).toBe(1);
@@ -983,19 +989,21 @@ describe('waiverActions', function () {
             [requestUrl]: Promise.resolve(),
           },
         });
+        jasmine.clock().install();
 
         store.dispatch(deleteWaiver('application', 'ownerId', 'waiverId')).then(() => {
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
           expect(axios.delete).toHaveBeenCalledWith(requestUrl);
-          setTimeout(() => {
-            expect(store.getActions().length).toBe(6);
-            expect(store.getActions()[1].type).toBe(WAIVERS_DELETE_WAIVER_FULFILLED);
-            expect(store.getActions()[2].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED);
-            expect(store.getActions()[3].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
-            expect(store.getActions()[3].payload).toBe('applicableWaivers');
-            expect(store.getActions()[4].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED);
-            expect(store.getActions()[5].type).toBe(WAIVERS_DELETE_MASK_TIMER_DONE);
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          expect(store.getActions().length).toBe(6);
+          expect(store.getActions()[1].type).toBe(WAIVERS_DELETE_WAIVER_FULFILLED);
+          expect(store.getActions()[2].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED);
+          expect(store.getActions()[3].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+          expect(store.getActions()[3].payload).toBe('applicableWaivers');
+          expect(store.getActions()[4].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED);
+          expect(store.getActions()[5].type).toBe(WAIVERS_DELETE_MASK_TIMER_DONE);
+          done();
         });
 
         expect(store.getActions().length).toBe(1);

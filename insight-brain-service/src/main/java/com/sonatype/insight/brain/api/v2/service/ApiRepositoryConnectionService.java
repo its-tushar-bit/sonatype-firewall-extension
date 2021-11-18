@@ -162,8 +162,13 @@ public class ApiRepositoryConnectionService
   @Authorize(permission = Permission.READ)
   public List<ApiRepositoryConnectionDTO> getRepositoryConnections(
       @AuthzContext(Key.TYPE) OwnerType ownerType,
-      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId)
+      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+      boolean inherit)
   {
+    if (inherit) {
+      return repositoryConnectionDAO.getByOwnerIdWithHierarchy(internalOwnerId).stream()
+          .map(this::toRepositoryConnectionDTO).collect(Collectors.toList());
+    }
     return repositoryConnectionDAO.getByOwnerId(internalOwnerId).stream()
         .map(this::toRepositoryConnectionDTO)
         .collect(Collectors.toList());

@@ -29,7 +29,10 @@ public interface ApiRepositoryConnectionResourceV2
 
   void deleteRepositoryConnection(OwnerType ownerType, String internalOwnerId, String repositoryConnectionId);
 
-  List<ApiRepositoryConnectionDTO> getRepositoryConnections(OwnerType ownerType, String internalOwnerId);
+  List<ApiRepositoryConnectionDTO> getRepositoryConnections(
+      OwnerType ownerType,
+      String internalOwnerId,
+      boolean inherit);
 
   Response testRepositoryConnection(
       OwnerType ownerType,

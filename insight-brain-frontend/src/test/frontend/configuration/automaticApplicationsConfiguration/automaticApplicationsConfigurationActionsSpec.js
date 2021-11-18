@@ -217,6 +217,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
       });
     });
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_SUBMIT_MASK_TIMER_DONE on success', function (done) {
+      jasmine.clock().install();
       mockAxiosCalls({
         put: {
           [AutomaticApplicationsConfigurationUrl]: Promise.resolve(),
@@ -224,14 +225,15 @@ describe('AutomaticApplicationConfigurationActions', function () {
       });
 
       store.dispatch(update()).then(() => {
-        setTimeout(function () {
-          const actions = store.getActions();
-          expect(actions.length).toBe(3);
-          expect(actions[0].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_REQUESTED');
-          expect(actions[1].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_FULFILLED');
-          expect(actions[2].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_SUBMIT_MASK_TIMER_DONE');
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(3);
+        expect(actions[0].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_REQUESTED');
+        expect(actions[1].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_FULFILLED');
+        expect(actions[2].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_SUBMIT_MASK_TIMER_DONE');
+        done();
       });
     });
   });

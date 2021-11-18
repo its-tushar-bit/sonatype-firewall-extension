@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
@@ -69,13 +70,13 @@ public class ApiRepositoryConnectionServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetRepositoryConnections_Unauthenticated() {
-    repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, org.getId());
+    repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, org.getId(), false);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetRepositoryConnections_Unauthorized() {
     login();
-    repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, org.getId());
+    repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, org.getId(), false);
   }
 
   @Test
@@ -93,7 +94,7 @@ public class ApiRepositoryConnectionServiceAuthzTest
   private void assertGetRepositoryConnections() {
     tempEntity.newRepositoryConnection(app.getId(), "url1", "user1", "pass1".toCharArray());
     List<ApiRepositoryConnectionDTO> connections =
-        repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, app.getId());
+        repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, app.getId(), false);
     assertThat(connections).hasSize(1);
   }
 

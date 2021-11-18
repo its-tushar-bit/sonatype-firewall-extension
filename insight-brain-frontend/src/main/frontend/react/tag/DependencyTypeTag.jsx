@@ -8,23 +8,14 @@ import * as PropTypes from 'prop-types';
 
 import { NxTag } from '@sonatype/react-shared-components';
 
-const VALUES_FOR_TYPE = {
-  direct: {
-    text: 'Direct Dependency',
-    color: 'blue',
-  },
-  transitive: {
-    text: 'Transitive Dependency',
-    color: 'purple',
-  },
-  innerSource: {
-    text: 'InnerSource',
-    color: 'green',
-  },
-};
+const dependencyMap = new Map([
+  ['direct', 'Direct Dependency'],
+  ['transitive', 'Transitive Dependency'],
+  ['innerSource', 'InnerSource'],
+]);
+
 export default function DependencyTypeTag({ type }) {
-  const { color, text } = VALUES_FOR_TYPE[type];
-  return <NxTag color={color}>{text}</NxTag>;
+  return <NxTag className={type}>{dependencyMap.get(type)}</NxTag>;
 }
 
 DependencyTypeTag.propTypes = {

@@ -4,11 +4,18 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
+import { NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import LegalBinaryDonutChart from '../shared/LegalBinaryDonutChart';
+import { isNilOrEmpty } from '../../util/jsUtil';
+import { flatten, map, pipe, prop } from 'ramda';
 
 export default function LegalDashboardComponentRow({ row, stateGo }) {
+  const { licenses } = row;
+  const threatGroupLevels = isNilOrEmpty(licenses)
+    ? []
+    : pipe(map(prop('licenseThreatGroups')), flatten, map(prop('licenseThreatGroupLevel')))(licenses);
+  const threatGroupLevel = isNilOrEmpty(threatGroupLevels) ? 0 : Math.max(...threatGroupLevels) || 0;
   function goToComponentPage() {
     stateGo('legal.componentOverview', {
       hash: row.hash,
@@ -21,7 +28,8 @@ export default function LegalDashboardComponentRow({ row, stateGo }) {
         {row.displayName}
       </NxTableCell>
       <NxTableCell className="legal-dashboard-components-licenses nx-truncate-ellipsis">
-        {row.licenseNames.join(', ')}
+        <NxThreatIndicator policyThreatLevel={threatGroupLevel} />
+        <span>{row.licenseNames.join(', ')}</span>
       </NxTableCell>
       <NxTableCell className="legal-dashboard-components-occurrences isNumeric">
         {row.applicationOccurrences}

@@ -108,22 +108,26 @@ describe('ldapListActions', () => {
           reorderedServers: [{ id: '1' }, { id: '2' }, { id: 3 }],
         },
       };
-
       const store = SpecUtil.mockReduxStore(state);
+      jasmine.clock().install();
+
       store.dispatch(saveOrder()).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions[0].type).toBe('ldapList/saveOrder/pending');
         expect(actions[1].type).toBe('ldapList/saveOrder/fulfilled');
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
 
-        setTimeout(function () {
+        SpecUtil.flushPromise().then(() => {
           expect(actions.length).toBe(5);
           expect(actions[2].type).toBe('ldapList/saveMaskTimerDone');
           expect(actions[3].type).toBe('ldapList/loadServers/pending');
           expect(actions[4].type).toBe('ldapList/loadServers/fulfilled');
           expect(checkPermissionsSpy.calls.count()).toBe(1);
+
           done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        });
       });
     });
 

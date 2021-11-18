@@ -62,6 +62,7 @@ export default function OwnerSummaryController(
   vm.isEvaluateApplicationAvailable = undefined;
   vm.repositoryUrl = undefined;
   vm.scmProvider = undefined;
+  vm.isInnerSourceRepositorySupported = undefined;
 
   var siblings,
     stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
@@ -102,6 +103,7 @@ export default function OwnerSummaryController(
         vm.owner = results[1];
         vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
         vm.isEvaluateApplicationAvailable = ProductFeatures.isEvaluateApplicationAvailable();
+        vm.isInnerSourceRepositorySupported = ProductFeatures.isAvailable('inner-source-repository-integration');
 
         if (vm.isApp) {
           vm.stages = results[3];

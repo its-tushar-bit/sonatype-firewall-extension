@@ -14,6 +14,9 @@ describe('NewOrganizationModal', function () {
     minimalProps = {
       setIsNewOrganizationModalVisible: jasmine.createSpy('setIsNewOrganizationModalVisible'),
       addOrganization: jasmine.createSpy('addOrganization'),
+      addOrganizationError: 'add organization error message',
+      isRootScmConfigured: true,
+      orgsAndPoliciesRootOrgHref: 'http://localhost/path',
     };
 
     mountPoint = document.createElement('div');
@@ -45,11 +48,35 @@ describe('NewOrganizationModal', function () {
     expect(loadError).toHaveProp('submitError', 'BOOM');
   });
 
+  it('renders an info modal if token is not available', () => {
+    // given a component without a root scm configured
+    const component = getMountedComponent({ isRootScmConfigured: false }),
+      modal = component.find(NxModal),
+      closeButton = component.find(NxButton).first();
+
+    // then expect the modal to be created with the error ID
+    expect(modal).toExist();
+    expect(modal).toHaveProp('id', 'new-organization-error-modal');
+
+    // and the modal has a link to the orgs page
+    expect(modal.find('#neworg-modal-error-content').find('span').html()).toContain('href="http://localhost/path"');
+
+    // when we click the close button
+    closeButton.simulate('click');
+
+    // then the set visible method should have been called
+    expect(minimalProps.setIsNewOrganizationModalVisible).toHaveBeenCalled();
+  });
+
   it('cancel button closes modal', () => {
     const component = getMountedComponent(),
-      cancelButton = component.find(NxButton).first();
+      cancelButton = component.find('#new-organization-modal').find('.nx-form__cancel-btn').first();
+
+    expect(component.find(NxModal)).toHaveProp('id', 'new-organization-modal');
 
     cancelButton.simulate('click');
+
+    expect(cancelButton.text()).toContain('Cancel');
 
     expect(minimalProps.setIsNewOrganizationModalVisible).toHaveBeenCalled();
   });

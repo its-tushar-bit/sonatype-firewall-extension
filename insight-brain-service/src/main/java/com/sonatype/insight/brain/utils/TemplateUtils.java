@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
 
+import freemarker.core.Environment;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
@@ -32,8 +33,11 @@ public final class TemplateUtils
 
   public static String render(final Template template, final Map<String, Object> model) throws IOException {
     final StringWriter out = new StringWriter(1024 * 64);
+
     try {
-      template.process(model, out);
+      final Environment processingEnv = template.createProcessingEnvironment(model, out);
+      processingEnv.setOutputEncoding("UTF-8");
+      processingEnv.process();
     }
     catch (final Exception e) {
       // NOTE: And yes, we want to capture all exceptions, e.g. ArithmeticException

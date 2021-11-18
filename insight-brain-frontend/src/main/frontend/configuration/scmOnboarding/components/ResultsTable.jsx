@@ -14,6 +14,7 @@ import {
   NxTooltip,
   NxPagination,
   NxFontAwesomeIcon,
+  NxOverflowTooltip,
 } from '@sonatype/react-shared-components';
 import React, { useMemo, useState } from 'react';
 import * as PropTypes from 'prop-types';
@@ -142,7 +143,13 @@ export default function ResultsTable(props) {
     if (!repository || !repository[filterName]) {
       return !filterValue;
     }
-    return repository[filterName].toLowerCase().includes(filterValue.toLowerCase());
+
+    let escapedFilterValue = encodeURIComponent(filterValue);
+
+    return (
+      repository[filterName].toLowerCase().includes(filterValue.toLowerCase()) ||
+      repository[filterName].toLowerCase().includes(escapedFilterValue.toLowerCase())
+    );
   }
 
   function toggleSelectAll() {
@@ -207,21 +214,21 @@ export default function ResultsTable(props) {
                 All
               </NxCheckbox>
             </NxTableCell>
-            <NxTableCell className="iq-scmonboarding__filter-cell">
+            <NxTableCell className="iq-scmonboarding__filter-cell iq-scmonboarding-overflow-tooltip-cell">
               <NxFilterInput
                 id="iq-scmonboarding-namespace-filter"
                 value={filters.namespace}
                 onChange={(filterValue) => changeFilter('namespace', filterValue)}
               />
             </NxTableCell>
-            <NxTableCell className="iq-scmonboarding__filter-cell">
+            <NxTableCell className="iq-scmonboarding__filter-cell iq-scmonboarding-overflow-tooltip-cell">
               <NxFilterInput
                 id="iq-scmonboarding-project-filter"
                 value={filters.project}
                 onChange={(filterValue) => changeFilter('project', filterValue)}
               />
             </NxTableCell>
-            <NxTableCell className="iq-scmonboarding__filter-cell">
+            <NxTableCell className="iq-scmonboarding__filter-cell iq-scmonboarding-overflow-tooltip-cell">
               <NxFilterInput
                 id="iq-scmonboarding-description-filter"
                 value={filters.description}
@@ -277,6 +284,9 @@ export function RepositoryRow(props) {
   const { rowKey, repo, setSelectedRepositories, selectedRepositories } = props;
   const DEFAULT_BRANCH_NOT_DEFINED = '';
   const UNKNOWN_DEFAULT_BRANCH = 'UNKNOWN_DEFAULT_BRANCH';
+  const unescapedNamespace = decodeURIComponent(repo.namespace);
+  const unescapedProject = decodeURIComponent(repo.project);
+  const unescapedDescription = decodeURIComponent(repo.description);
 
   const toggleSelection = () => {
     setSelectedRepositories(
@@ -348,14 +358,22 @@ export function RepositoryRow(props) {
       <NxTableCell>
         <NxCheckbox checkboxId={rowKey} isChecked={selectedRepositories.includes(repo)} onChange={toggleSelection} />
       </NxTableCell>
-      <NxTableCell className="iq-scm-repository-namespace">{repo.namespace}</NxTableCell>
-      <NxTableCell className="iq-scm-repository-project">
-        <NxExternalLink href={repo.httpCloneUrl}>{repo.project}</NxExternalLink>
+      <NxTableCell className="iq-scm-repository-namespace iq-scmonboarding-overflow-tooltip-cell">
+        <NxOverflowTooltip className="iq-scm-repo-namespace-tooltip">
+          <div className="nx-truncate-ellipsis">{unescapedNamespace}</div>
+        </NxOverflowTooltip>
       </NxTableCell>
-      <NxTableCell className="iq-scm-repository-description">
-        <NxTooltip title={repo.description} className="iq-scm-repo-description-tooltip">
-          <div className="nx-truncate-ellipsis">{repo.description}</div>
-        </NxTooltip>
+      <NxTableCell className="iq-scm-repository-project iq-scmonboarding-overflow-tooltip-cell">
+        <NxOverflowTooltip className="iq-scm-repo-project-tooltip">
+          <div className="nx-truncate-ellipsis">
+            <NxExternalLink href={repo.httpCloneUrl}>{unescapedProject}</NxExternalLink>
+          </div>
+        </NxOverflowTooltip>
+      </NxTableCell>
+      <NxTableCell className="iq-scm-repository-description iq-scmonboarding-overflow-tooltip-cell">
+        <NxOverflowTooltip className="iq-scm-repo-description-tooltip">
+          <div className="nx-truncate-ellipsis">{unescapedDescription}</div>
+        </NxOverflowTooltip>
       </NxTableCell>
       <NxTableCell className="iq-scm-repository-default-branch">{renderDefaultBranch()}</NxTableCell>
     </NxTableRow>

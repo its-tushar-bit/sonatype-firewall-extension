@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
@@ -87,9 +88,100 @@ public class ApiRepositoryConnectionServiceTest
     tempEntity.newRepositoryConnection(id, "url2", "user2", "pass2".toCharArray());
 
     List<ApiRepositoryConnectionDTO> connections =
-        repositoryConnectionService.getRepositoryConnections(ownerType, id);
+        repositoryConnectionService.getRepositoryConnections(ownerType, id, false);
     assertThat(connections).hasSize(2).extracting("baseUrl", "username")
         .containsExactlyInAnyOrder(tuple("url1", "user1"), tuple("url2", "user2"));
+  }
+
+  @Test
+  public void testGetRepositoryConnections_InheritTrue_Application() {
+    tempEntity.newRepositoryConnection("other");
+    Application application = tempEntity.newApplicationWithParent();
+    String rootOrgId = Organization.ROOT_ORGANIZATION_ID;
+    String orgId = application.getParentOwnerId();
+    String appId = application.getId();
+
+    // None
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true)).isEmpty();
+
+    // Only root org
+    RepositoryConnection rootOrgRepositoryConnection = tempEntity.newRepositoryConnection(rootOrgId);
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+        .extracting("ownerId").containsExactly(rootOrgId);
+
+    // Root org and org
+    RepositoryConnection orgRepositoryConnection = tempEntity.newRepositoryConnection(orgId);
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+        .extracting("ownerId").containsExactly(orgId);
+
+    // Root org, org, and app
+    RepositoryConnection appRepositoryConnection = tempEntity.newRepositoryConnection(appId);
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+        .extracting("ownerId").containsExactly(appId);
+
+    // Org and app
+    dao.delete(rootOrgRepositoryConnection);
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+        .extracting("ownerId").containsExactly(appId);
+
+    // Only app
+    dao.delete(orgRepositoryConnection);
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+        .extracting("ownerId").containsExactly(appId);
+
+    // Root org and app
+    rootOrgRepositoryConnection = tempEntity.newRepositoryConnection(rootOrgId);
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+        .extracting("ownerId").containsExactly(appId);
+
+    // Only org
+    dao.delete(rootOrgRepositoryConnection);
+    dao.delete(appRepositoryConnection);
+    tempEntity.newRepositoryConnection(orgId);
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+        .extracting("ownerId").containsExactly(orgId);
+  }
+
+  @Test
+  public void testGetRepositoryConnections_InheritTrue_Organization() {
+    tempEntity.newRepositoryConnection("other");
+    Organization organization = tempEntity.newOrganization();
+    String rootOrgId = Organization.ROOT_ORGANIZATION_ID;
+    String orgId = organization.getId();
+
+    // None
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, orgId, true))
+        .isEmpty();
+
+    // Only root org
+    RepositoryConnection rootOrgRepositoryConnection = tempEntity.newRepositoryConnection(rootOrgId);
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, orgId, true))
+        .extracting("ownerId").containsExactly(rootOrgId);
+
+    // Root org and org
+    tempEntity.newRepositoryConnection(orgId);
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, orgId, true))
+        .extracting("ownerId").containsExactly(orgId);
+
+    // Only org
+    dao.delete(rootOrgRepositoryConnection);
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, orgId, true))
+        .extracting("ownerId").containsExactly(orgId);
+  }
+
+  @Test
+  public void testGetRepositoryConnections_InheritTrue_RootOrganization() {
+    tempEntity.newRepositoryConnection("other");
+    String rootOrgId = Organization.ROOT_ORGANIZATION_ID;
+
+    // None
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, rootOrgId, true))
+        .isEmpty();
+
+    // Only root org
+    tempEntity.newRepositoryConnection(rootOrgId);
+    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, rootOrgId, true))
+        .extracting("ownerId").containsExactly(rootOrgId);
   }
 
   @Test

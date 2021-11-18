@@ -87,20 +87,23 @@ describe('advancedLegalFileActions', function () {
           [getLicensesWithSyntheticFilterUrl()]: Promise.resolve(licenseData),
         },
       });
+      jasmine.clock().install();
+
       store.dispatch(loadLicenseModalInformation({ ownerType, ownerId, componentIdentifier })).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
-          expect(axios.get).toHaveBeenCalledWith(
-            '/rest/licenseOverride/application/ownerId?componentIdentifier=componentIdentifier123'
-          );
-          expect(axios.get).toHaveBeenCalledWith('/rest/license?filterSynthetic=true');
-          expect(actions.length).toBe(2);
-          expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_LICENSE_MODAL_ALL_LICENSES_FULFILLED);
-          expect(actions[0].payload).toEqual(['id']);
-          expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED);
-          expect(actions[1].payload).toEqual('testLicenseData');
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
+
+        const actions = store.getActions();
+        expect(axios.get).toHaveBeenCalledWith(
+          '/rest/licenseOverride/application/ownerId?componentIdentifier=componentIdentifier123'
+        );
+        expect(axios.get).toHaveBeenCalledWith('/rest/license?filterSynthetic=true');
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_LICENSE_MODAL_ALL_LICENSES_FULFILLED);
+        expect(actions[0].payload).toEqual(['id']);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED);
+        expect(actions[1].payload).toEqual('testLicenseData');
+        done();
       });
     });
   });
@@ -135,7 +138,11 @@ describe('advancedLegalFileActions', function () {
           },
         },
       };
+
+      jasmine.clock().install();
     });
+
+    afterEach(() => jasmine.clock().uninstall());
 
     it('dispatches ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED actions on success for hash', function (done) {
       store = SpecUtil.mockReduxStore(initialState);
@@ -149,17 +156,17 @@ describe('advancedLegalFileActions', function () {
         },
       });
       store.dispatch(saveLicenses({ ownerType, ownerId, postBody, hash, closeModalFn })).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
-          expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId', postBody);
-          expect(axios.get).toHaveBeenCalledWith('/api/v2/licenseLegalMetadata/application/app/component?hash=hash123');
-          expect(axios.get).toHaveBeenCalledWith('/rest/owner/application/app/hierarchy');
-          expect(actions.length).toBe(4);
-          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
-          expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
-          expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+        const actions = store.getActions();
+        expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId', postBody);
+        expect(axios.get).toHaveBeenCalledWith('/api/v2/licenseLegalMetadata/application/app/component?hash=hash123');
+        expect(axios.get).toHaveBeenCalledWith('/rest/owner/application/app/hierarchy');
+        expect(actions.length).toBe(4);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
+        expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
+        expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+        done();
       });
 
       const actions = store.getActions();
@@ -201,22 +208,19 @@ describe('advancedLegalFileActions', function () {
           })
         )
         .then(() => {
-          setTimeout(() => {
-            const actions = store.getActions();
-            expect(axios.post).toHaveBeenCalledWith(
-              '/rest/licenseOverride/organization/ROOT_ORGANIZATION_ID',
-              postBody
-            );
-            expect(axios.get).toHaveBeenCalledWith(
-              '/api/v2/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component?componentIdentifier=componentIdentifier-123'
-            );
-            expect(axios.get).toHaveBeenCalledWith('/rest/owner/organization/ROOT_ORGANIZATION_ID/hierarchy');
-            expect(actions.length).toBe(4);
-            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
-            expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
-            expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+          const actions = store.getActions();
+          expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/organization/ROOT_ORGANIZATION_ID', postBody);
+          expect(axios.get).toHaveBeenCalledWith(
+            '/api/v2/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component?componentIdentifier=componentIdentifier-123'
+          );
+          expect(axios.get).toHaveBeenCalledWith('/rest/owner/organization/ROOT_ORGANIZATION_ID/hierarchy');
+          expect(actions.length).toBe(4);
+          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
+          expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+          done();
         });
 
       const actions = store.getActions();
@@ -324,23 +328,26 @@ describe('advancedLegalFileActions', function () {
           componentIdentifier: 'componentIdentifier',
           legalFileOverrides: [],
         };
+        jasmine.clock().install();
+
         store.dispatch(saveNotices({ isNoticesDirty: true })).then(() => {
-          setTimeout(() => {
-            const actions = store.getActions();
-            expect(axios.post).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/legalFile',
-              expectedPostBody
-            );
-            expect(axios.get).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/application/app/component/legalFile' +
-                '?componentIdentifier=%22componentIdentifier%22&legalFileType=notice'
-            );
-            expect(actions.length).toBe(3);
-            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED);
-            expect(actions[1].payload).toEqual('getData');
-            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE);
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
+          const actions = store.getActions();
+          expect(axios.post).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/legalFile',
+            expectedPostBody
+          );
+          expect(axios.get).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/application/app/component/legalFile' +
+              '?componentIdentifier=%22componentIdentifier%22&legalFileType=notice'
+          );
+          expect(actions.length).toBe(3);
+          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED);
+          expect(actions[1].payload).toEqual('getData');
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE);
+          done();
         });
 
         const actions = store.getActions();
@@ -631,23 +638,26 @@ describe('advancedLegalFileActions', function () {
           componentIdentifier: 'componentIdentifier',
           legalFileOverrides: [],
         };
+        jasmine.clock().install();
+
         store.dispatch(saveLicenseFiles({ isLicensesDirty: true })).then(() => {
-          setTimeout(() => {
-            const actions = store.getActions();
-            expect(axios.post).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/legalFile',
-              expectedPostBody
-            );
-            expect(axios.get).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/application/app/component/legalFile' +
-                '?componentIdentifier=%22componentIdentifier%22&legalFileType=license'
-            );
-            expect(actions.length).toBe(3);
-            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED);
-            expect(actions[1].payload).toEqual('getData');
-            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUBMIT_MASK_DONE);
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
+          const actions = store.getActions();
+          expect(axios.post).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/legalFile',
+            expectedPostBody
+          );
+          expect(axios.get).toHaveBeenCalledWith(
+            '/api/experimental/licenseLegalMetadata/application/app/component/legalFile' +
+              '?componentIdentifier=%22componentIdentifier%22&legalFileType=license'
+          );
+          expect(actions.length).toBe(3);
+          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED);
+          expect(actions[1].payload).toEqual('getData');
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUBMIT_MASK_DONE);
+          done();
         });
 
         const actions = store.getActions();

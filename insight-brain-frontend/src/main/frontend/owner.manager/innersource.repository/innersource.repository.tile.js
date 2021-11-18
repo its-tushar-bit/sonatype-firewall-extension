@@ -44,6 +44,7 @@ function InnerSourceRepositoryTileController(
     vm.loading = true;
 
     let ownerPromise;
+    let ownerId;
     let ownerType;
 
     if (vm.isOrg) {
@@ -58,9 +59,19 @@ function InnerSourceRepositoryTileController(
       const promises = [ownerPromise, ProductFeatures.load()];
       $q.all(promises)
         .then(function (results) {
+          ownerId = results[0].id;
           vm.isInnerSourceRepositorySupported = ProductFeatures.isAvailable('inner-source-repository-integration');
           if (vm.isInnerSourceRepositorySupported) {
-            return getInnerSourceRepository(ownerType, results[0].id);
+            return InnerSourceRepositoryService.getRepositoryConnections(ownerType, ownerId, true);
+          }
+        })
+        .then(function (result) {
+          vm.innerSourceRepository = Array.isArray(result) && result.length > 0 ? result[0] : undefined;
+          if (vm.innerSourceRepository !== undefined && vm.innerSourceRepository.ownerId !== ownerId) {
+            vm.innerSourceRepository.inherited = true;
+            return OrganizationStore.getById(vm.innerSourceRepository.ownerId).then(function (result) {
+              vm.innerSourceRepository.ownerName = result.name;
+            });
           }
         })
         .catch(function (e) {
@@ -72,12 +83,6 @@ function InnerSourceRepositoryTileController(
     } else {
       vm.loading = false;
     }
-  }
-
-  function getInnerSourceRepository(ownerType, ownerId) {
-    return InnerSourceRepositoryService.getRepositoryConnections(ownerType, ownerId).then(function (result) {
-      vm.innerSourceRepository = Array.isArray(result) && result.length > 0 ? result[0] : undefined;
-    });
   }
 
   function editInnerSourceRepository() {

@@ -734,8 +734,8 @@ export const getVulnerabilityOverrideUrl = (ownerType, ownerId, hash, vulnerabil
   return uriTemplate`/rest/securityVulnerabilityOverride/${ownerType}/${ownerId}`;
 };
 
-export const getRepositoryConnections = (ownerType, ownerId) =>
-  uriTemplate`/api/v2/config/repositoryConnection/${ownerType}/${ownerId}`;
+export const getRepositoryConnections = (ownerType, ownerId, inherit) =>
+  uriTemplate`/api/v2/config/repositoryConnection/${ownerType}/${ownerId}?inherit=${inherit}`;
 
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',

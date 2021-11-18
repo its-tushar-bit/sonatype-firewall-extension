@@ -80,6 +80,8 @@ window.SpecUtil = {
     ]);
   },
 
+  flushPromise: () => new Promise((resolve) => setTimeout(resolve, 0)),
+
   promiseWrapper: function ($q) {
     return function (promise) {
       var deferred = $q.defer();

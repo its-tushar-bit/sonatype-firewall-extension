@@ -247,21 +247,23 @@ describe('ldapConfigSliceActions', () => {
           [ldapUrl]: Promise.resolve({ data: { id: '200' } }),
         },
       });
+      jasmine.clock().install();
 
       store.dispatch(saveServerName()).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
 
-          expect(actions.length).toBe(5);
-          expect(actions[0].type).toBe('ldapConfig/saveServerName/pending');
-          expect(actions[1].type).toBe('ldapConfig/resetIsDirty');
-          expect(actions[3].type).toBe('ldapConfig/saveServerName/fulfilled');
-          expect(actions[3].payload).toEqual({ id: '200' });
+        const actions = store.getActions();
 
-          expect(actions[4].type).toBe('ldapConfig/saveMaskTimerDone');
+        expect(actions.length).toBe(5);
+        expect(actions[0].type).toBe('ldapConfig/saveServerName/pending');
+        expect(actions[1].type).toBe('ldapConfig/resetIsDirty');
+        expect(actions[3].type).toBe('ldapConfig/saveServerName/fulfilled');
+        expect(actions[3].payload).toEqual({ id: '200' });
 
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        expect(actions[4].type).toBe('ldapConfig/saveMaskTimerDone');
+
+        done();
       });
     });
 
@@ -319,7 +321,10 @@ describe('ldapConfigSliceActions', () => {
       };
 
       store = SpecUtil.mockReduxStore(state);
+      jasmine.clock().install();
     });
+
+    afterEach(() => jasmine.clock().uninstall());
 
     it('fires ldapConfig/saveConnection/fulfilled action on success', (done) => {
       mockAxiosCalls({
@@ -337,22 +342,22 @@ describe('ldapConfigSliceActions', () => {
       });
 
       store.dispatch(saveConnection()).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-          expect(actions.length).toBe(3);
-          expect(actions[0].type).toBe('ldapConfig/saveConnection/pending');
-          expect(actions[1].type).toBe('ldapConfig/saveConnection/fulfilled');
-          expect(actions[1].payload.server).toEqual({
-            id: '200',
-            name: 'newName1',
-            nameLowercaseNoWhitespace: 'newName1',
-            priority: 1,
-          });
-          expect(actions[2].type).toBe('ldapConfig/saveMaskTimerDone');
+        const actions = store.getActions();
 
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        expect(actions.length).toBe(3);
+        expect(actions[0].type).toBe('ldapConfig/saveConnection/pending');
+        expect(actions[1].type).toBe('ldapConfig/saveConnection/fulfilled');
+        expect(actions[1].payload.server).toEqual({
+          id: '200',
+          name: 'newName1',
+          nameLowercaseNoWhitespace: 'newName1',
+          priority: 1,
+        });
+        expect(actions[2].type).toBe('ldapConfig/saveMaskTimerDone');
+
+        done();
       });
     });
 
@@ -364,16 +369,16 @@ describe('ldapConfigSliceActions', () => {
       });
 
       store.dispatch(saveConnection()).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-          expect(actions.length).toBe(2);
-          expect(actions[0].type).toBe('ldapConfig/saveConnection/pending');
-          expect(actions[1].type).toBe('ldapConfig/saveConnection/rejected');
-          expect(actions[1].payload).toBe('newName1 is already used as a name.');
+        const actions = store.getActions();
 
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe('ldapConfig/saveConnection/pending');
+        expect(actions[1].type).toBe('ldapConfig/saveConnection/rejected');
+        expect(actions[1].payload).toBe('newName1 is already used as a name.');
+
+        done();
       });
     });
 
@@ -393,16 +398,16 @@ describe('ldapConfigSliceActions', () => {
       });
 
       store.dispatch(saveConnection()).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-          expect(actions.length).toBe(2);
-          expect(actions[0].type).toBe('ldapConfig/saveConnection/pending');
-          expect(actions[1].type).toBe('ldapConfig/saveConnection/rejected');
-          expect(actions[1].payload).toBe('not enough data');
+        const actions = store.getActions();
 
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe('ldapConfig/saveConnection/pending');
+        expect(actions[1].type).toBe('ldapConfig/saveConnection/rejected');
+        expect(actions[1].payload).toBe('not enough data');
+
+        done();
       });
     });
   });
@@ -438,7 +443,9 @@ describe('ldapConfigSliceActions', () => {
       };
 
       store = SpecUtil.mockReduxStore(state);
+      jasmine.clock().install();
     });
+    afterEach(() => jasmine.clock().uninstall());
 
     it('fires ldapConfig/testConnection/fulfilled action on success', (done) => {
       mockAxiosCalls({
@@ -448,17 +455,17 @@ describe('ldapConfigSliceActions', () => {
       });
 
       store.dispatch(testConnection()).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-          expect(actions.length).toBe(3);
-          expect(actions[0].type).toBe('ldapConfig/testConnection/pending');
-          expect(actions[1].type).toBe('ldapConfig/testConnection/fulfilled');
-          expect(actions[1].payload).toEqual({ status: 'OK' });
-          expect(actions[2].type).toBe('ldapConfig/saveMaskTimerDone');
+        const actions = store.getActions();
 
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        expect(actions.length).toBe(3);
+        expect(actions[0].type).toBe('ldapConfig/testConnection/pending');
+        expect(actions[1].type).toBe('ldapConfig/testConnection/fulfilled');
+        expect(actions[1].payload).toEqual({ status: 'OK' });
+        expect(actions[2].type).toBe('ldapConfig/saveMaskTimerDone');
+
+        done();
       });
     });
 
@@ -470,23 +477,28 @@ describe('ldapConfigSliceActions', () => {
       });
 
       store.dispatch(testConnection()).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-          expect(actions.length).toBe(3);
-          expect(actions[0].type).toBe('ldapConfig/testConnection/pending');
-          expect(actions[1].type).toBe('ldapConfig/testConnection/rejected');
-          expect(actions[1].payload).toBe('should be rejected');
-          expect(actions[2].type).toBe('ldapConfig/saveMaskTimerDone');
+        const actions = store.getActions();
 
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        expect(actions.length).toBe(3);
+        expect(actions[0].type).toBe('ldapConfig/testConnection/pending');
+        expect(actions[1].type).toBe('ldapConfig/testConnection/rejected');
+        expect(actions[1].payload).toBe('should be rejected');
+        expect(actions[2].type).toBe('ldapConfig/saveMaskTimerDone');
+
+        done();
       });
     });
   });
 
   describe('removeServer', () => {
     const removeLdapUrl = getLdapConfigUrl('200');
+
+    beforeEach(() => jasmine.clock().install());
+
+    afterEach(() => jasmine.clock().uninstall());
+
     it('fires ldapConfig/removeServer/fulfilled action on success', (done) => {
       const store = SpecUtil.mockReduxStore();
       mockAxiosCalls({
@@ -496,17 +508,17 @@ describe('ldapConfigSliceActions', () => {
       });
 
       store.dispatch(removeServer('200')).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-          expect(actions.length).toBe(4);
-          expect(actions[0].type).toBe('ldapConfig/removeServer/pending');
-          expect(actions[1].type).toBe('ldapConfig/removeServer/fulfilled');
-          expect(actions[2].type).toBe('ldapConfig/removeMaskTimerDone');
-          expect(actions[3].type).toBe('@@reduxUiRouter/stateGo');
+        const actions = store.getActions();
 
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        expect(actions.length).toBe(4);
+        expect(actions[0].type).toBe('ldapConfig/removeServer/pending');
+        expect(actions[1].type).toBe('ldapConfig/removeServer/fulfilled');
+        expect(actions[2].type).toBe('ldapConfig/removeMaskTimerDone');
+        expect(actions[3].type).toBe('@@reduxUiRouter/stateGo');
+
+        done();
       });
     });
 
@@ -519,16 +531,16 @@ describe('ldapConfigSliceActions', () => {
       });
 
       store.dispatch(removeServer('200')).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-          expect(actions.length).toBe(2);
-          expect(actions[0].type).toBe('ldapConfig/removeServer/pending');
-          expect(actions[1].type).toBe('ldapConfig/removeServer/rejected');
-          expect(actions[1].payload).toBe('Can not remove ldap server');
+        const actions = store.getActions();
 
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe('ldapConfig/removeServer/pending');
+        expect(actions[1].type).toBe('ldapConfig/removeServer/rejected');
+        expect(actions[1].payload).toBe('Can not remove ldap server');
+
+        done();
       });
     });
   });
@@ -573,7 +585,10 @@ describe('ldapConfigSliceActions', () => {
       };
 
       store = SpecUtil.mockReduxStore(state);
+      jasmine.clock().install();
     });
+
+    afterEach(() => jasmine.clock().uninstall());
 
     it('fires ldapConfig/saveUserAndGroupSettings/fulfilled action on success', (done) => {
       mockAxiosCalls({
@@ -591,22 +606,22 @@ describe('ldapConfigSliceActions', () => {
       });
 
       store.dispatch(saveUserAndGroupSettings()).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-          expect(actions.length).toBe(3);
-          expect(actions[0].type).toBe('ldapConfig/saveUserAndGroupSettings/pending');
-          expect(actions[1].type).toBe('ldapConfig/saveUserAndGroupSettings/fulfilled');
-          expect(actions[1].payload.server).toEqual({
-            id: '201',
-            name: 'newName2',
-            nameLowercaseNoWhitespace: 'newName2',
-            priority: 1,
-          });
-          expect(actions[2].type).toBe('ldapConfig/saveMaskTimerDone');
+        const actions = store.getActions();
 
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        expect(actions.length).toBe(3);
+        expect(actions[0].type).toBe('ldapConfig/saveUserAndGroupSettings/pending');
+        expect(actions[1].type).toBe('ldapConfig/saveUserAndGroupSettings/fulfilled');
+        expect(actions[1].payload.server).toEqual({
+          id: '201',
+          name: 'newName2',
+          nameLowercaseNoWhitespace: 'newName2',
+          priority: 1,
+        });
+        expect(actions[2].type).toBe('ldapConfig/saveMaskTimerDone');
+
+        done();
       });
     });
 
@@ -618,16 +633,15 @@ describe('ldapConfigSliceActions', () => {
       });
 
       store.dispatch(saveUserAndGroupSettings()).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        const actions = store.getActions();
 
-          expect(actions.length).toBe(2);
-          expect(actions[0].type).toBe('ldapConfig/saveUserAndGroupSettings/pending');
-          expect(actions[1].type).toBe('ldapConfig/saveUserAndGroupSettings/rejected');
-          expect(actions[1].payload).toBe('newName2 is already used as a name.');
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe('ldapConfig/saveUserAndGroupSettings/pending');
+        expect(actions[1].type).toBe('ldapConfig/saveUserAndGroupSettings/rejected');
+        expect(actions[1].payload).toBe('newName2 is already used as a name.');
 
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        done();
       });
     });
 
@@ -647,16 +661,16 @@ describe('ldapConfigSliceActions', () => {
       });
 
       store.dispatch(saveUserAndGroupSettings()).then(() => {
-        setTimeout(() => {
-          const actions = store.getActions();
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-          expect(actions.length).toBe(2);
-          expect(actions[0].type).toBe('ldapConfig/saveUserAndGroupSettings/pending');
-          expect(actions[1].type).toBe('ldapConfig/saveUserAndGroupSettings/rejected');
-          expect(actions[1].payload).toBe('not enough data');
+        const actions = store.getActions();
 
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe('ldapConfig/saveUserAndGroupSettings/pending');
+        expect(actions[1].type).toBe('ldapConfig/saveUserAndGroupSettings/rejected');
+        expect(actions[1].payload).toBe('not enough data');
+
+        done();
       });
     });
   });

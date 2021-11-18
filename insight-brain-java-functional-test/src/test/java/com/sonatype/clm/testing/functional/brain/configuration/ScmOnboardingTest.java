@@ -467,18 +467,33 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("0"));
 
     // the long descriptions are trimmed
-    scmOnboardingPage.resultsTableDescription().get(0).shouldHave(cssValue("text-overflow", "ellipsis"));
+    scmOnboardingPage.resultsTableDescription().get(13).shouldHave(cssValue("text-overflow", "ellipsis"));
+
+    // the long namespaces are trimmed
+    scmOnboardingPage.resultsTableNamespace().get(13).shouldHave(cssValue("text-overflow", "ellipsis"));
+
+    // the long projects are trimmed
+    scmOnboardingPage.resultsTableProject().get(13).shouldHave(cssValue("text-overflow", "ellipsis"));
 
     // and the default branches are populated
     Actions actions = new Actions(WebDriverRunner.getWebDriver());
     actions.moveToElement(scmOnboardingPage.resultsTableDefaultBranch().first());
     actions.perform();
     assertThat(scmOnboardingPage.resultsTableDefaultBranch().texts()).containsExactlyInAnyOrder("master", "main",
-        "prod", "golden", "boss", "shipit", "junk", "release", "ignition", "product", "liftoff", "top", "green");
+        "prod", "golden", "boss", "shipit", "junk", "release", "ignition", "product", "liftoff", "top", "green",
+        "master");
 
     // and there is a hover tooltip over the trimmed description
-    scmOnboardingPage.resultsTableDescription().get(0).hover();
+    scmOnboardingPage.resultsTableDescription().get(13).hover();
     scmOnboardingPage.descriptionTooltip().should(matchText(".{101,}")).shouldNotHave(text("..."));
+
+    // and there is a hover tooltip over the trimmed namespace
+    scmOnboardingPage.resultsTableNamespace().get(13).hover();
+    scmOnboardingPage.namespaceTooltip().should(matchText(".{50,}")).shouldNotHave(text("..."));
+
+    // and there is a hover tooltip over the trimmed project
+    scmOnboardingPage.resultsTableProject().get(13).hover();
+    scmOnboardingPage.projectTooltip().should(matchText(".{50,}")).shouldNotHave(text("..."));
 
     // when the application already exists in IQ
     Application application = tempEntity.newApplication(org.getId());
@@ -489,7 +504,7 @@ public class ScmOnboardingTest
     // it is no longer displayed in the table and the UI is updated
     scmOnboardingPage.resultsTableProject().shouldHave(sizeGreaterThan(0));
     assertThat(scmOnboardingPage.resultsTableProject().texts()).doesNotContain("ci-project-1");
-    scmOnboardingPage.donutChartPercentImported().shouldHave(attribute("aria-label", "8% imported"));
+    scmOnboardingPage.donutChartPercentImported().shouldHave(attribute("aria-label", "7% imported"));
     scmOnboardingPage.resultsTableAlreadyImported().shouldBe(text("1"));
   }
 
@@ -550,12 +565,12 @@ public class ScmOnboardingTest
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
     scmOnboardingPage.resultsTable().shouldBe(visible);
     scmOnboardingPage.repositoryCount().shouldBe(visible);
-    scmOnboardingPage.selectedToImportCount().shouldBe(text("0 of 13 repositories"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("0 of 14 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHave(exactTexts("ci-project-1",
         "ci-project-16", "create-react-app", "missing-description", "nexus-repository-p2", "nexus-repository-puppet",
         "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
         "nexus-webhook-example-collection", "null-description", "oysteR",
-        "prime-nexus-proxy-repos"));
+        "prime-nexus-proxy-repos", "this-is-a-repository-with-a-really-long-name-ci-project-1"));
     assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("depshield-ci",
         "sonatype-nexus-community");
   }
@@ -589,12 +604,12 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // when select all is clicked
-    scmOnboardingPage.repositoryCount().shouldBe(text("13"));
+    scmOnboardingPage.repositoryCount().shouldBe(text("14"));
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.resultsTableSelectAll().parent().click();
 
     // then selected count is updated
-    scmOnboardingPage.selectedToImportCount().shouldBe(text("13 of 13 repositories"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("14 of 14 repositories"));
 
     // when select all is clicked again (delected)
     scmOnboardingPage.resultsTableSelectAll().parent().click();
@@ -649,9 +664,9 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click();
 
     // then selected count is updated with the number of filtered repositories
-    scmOnboardingPage.selectedToImportCount().shouldBe(text("2 of 13 repositories"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("3 of 14 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHave(exactTexts("ci-project-1",
-        "ci-project-16"));
+        "ci-project-16", "this-is-a-repository-with-a-really-long-name-ci-project-1"));
 
   }
 
@@ -672,9 +687,9 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click();
 
     // then selected count is updated with the number of filtered repositories
-    scmOnboardingPage.selectedToImportCount().shouldBe(text("2  of 13 repositories"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("3  of 14 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts("ci-project-1",
-        "ci-project-16"));
+        "ci-project-16", "this-is-a-repository-with-a-really-long-name-ci-project-1"));
 
     // when we import the selected repos
     scmOnboardingPage.importRepoButton().click();
@@ -695,7 +710,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.importStatusModal().shouldBe(hidden);
 
     // and the imported count is incremented
-    scmOnboardingPage.alreadyImportedCount().shouldBe(text("2"));
+    scmOnboardingPage.alreadyImportedCount().shouldBe(text("3"));
 
     // and the initially selected elements are no longer visible
     scmOnboardingPage.selectedToImportCount().shouldBe(text("0  of 11 repositories"));
@@ -825,13 +840,13 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.projectFilter().setValue("ci-");
     scmOnboardingPage.resultsTableSelectAll().parent().click();
-    scmOnboardingPage.selectedToImportCount().shouldBe(text("2 of 13 repositories"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("3 of 14 repositories"));
 
     // when a new selection is made
     scmOnboardingPage.projectFilter().setValue("nexus");
     scmOnboardingPage.resultsTableSelectAll().parent().click(); // uncheck box
     scmOnboardingPage.resultsTableSelectAll().parent().click(); // check box
-    scmOnboardingPage.selectedToImportCount().shouldBe(text("7 of 13 repositories"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("7 of 14 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts(
         "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
         "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
@@ -853,7 +868,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().shouldBe(visible);
     scmOnboardingPage.projectFilter().setValue("nexus");
     scmOnboardingPage.resultsTableSelectAll().parent().click();
-    scmOnboardingPage.selectedToImportCount().shouldBe(text("7 of 13 repositories"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("7 of 14 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts(
         "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
         "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
@@ -863,7 +878,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.projectFilter().setValue("nexus-repository");
 
     // then the selected count is updated
-    scmOnboardingPage.selectedToImportCount().shouldBe(text("4 of 13 repositories"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("4 of 14 repositories"));
 
     // and the result table contains exactly 4 projects
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts(
@@ -889,7 +904,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).shouldNotBe(selected);
 
     // and the selected count is unchanged
-    scmOnboardingPage.selectedToImportCount().shouldBe(text("4 of 13 repositories"));
+    scmOnboardingPage.selectedToImportCount().shouldBe(text("4 of 14 repositories"));
   }
 
   @Test
@@ -1143,7 +1158,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.orgDropdownItems().find(exactText("Test Org")).click();
 
     // then it triggers a reload, repo list is unchanged
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(14);
   }
 
   @Test
@@ -1226,7 +1241,7 @@ public class ScmOnboardingTest
     // then the repository list gets populated
     scmOnboardingPage.modalDialog().shouldNotBe(visible);
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(14);
 
     // when we reset the git service responses to have 0 entries, letting us test if a requery happens
     mockRepoForPage(gitService, 0, EMPTY_JSON_ARRAY);
@@ -1236,7 +1251,7 @@ public class ScmOnboardingTest
     menuButtons.find(exactText("Test Org 2")).click();
 
     // then it doesn't trigger a reload, repo list is unchanged
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(14);
 
     // when select org with a custom token and no SC entries
     scmOnboardingPage.organizationsDropdown().click();
@@ -1283,7 +1298,7 @@ public class ScmOnboardingTest
     // then the repository list gets populated
     scmOnboardingPage.modalDialog().shouldNotBe(visible);
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(14);
 
     // when we select the custom host org
     scmOnboardingPage.organizationsDropdown().click();
@@ -1629,7 +1644,7 @@ public class ScmOnboardingTest
     // Then the new organization is created and selected
     scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Foo Organization"));
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(13);
+    scmOnboardingPage.resultsTableProject().shouldHaveSize(14);
   }
 
   @Test

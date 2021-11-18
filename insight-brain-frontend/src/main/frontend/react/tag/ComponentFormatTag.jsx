@@ -11,14 +11,11 @@ import { NxTag } from '@sonatype/react-shared-components';
 
 const formatsThatHaveIcon = {
   maven: require('../../img/tag/maven.svg'),
-  npm: require('../../img/tag/npm.svg'),
-  nuget: require('../../img/tag/nuget.svg'),
   pypi: require('../../img/tag/pypi.svg'),
   rpm: require('../../img/tag/rpm.svg'),
   gem: require('../../img/tag/gem.svg'),
   golang: require('../../img/tag/golang.svg'),
   swift: require('../../img/tag/swift.svg'),
-  cocoapods: require('../../img/tag/cocoapods.svg'),
 };
 
 export default function ComponentFormatTag({ name }) {

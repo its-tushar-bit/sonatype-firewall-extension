@@ -92,9 +92,14 @@ public class ComponentInformationTile
       return child(".iq-identification-info-definition-list__occurrences-link");
     }
 
-    public SelenideElement getCategoryItem() {
+    public SelenideElement getWebsiteItem() {
       ElementsCollection definitionPairs = getDefinitionPairs();
       return definitionPairs.get(3);
+    }
+
+    public SelenideElement getCategoryItem() {
+      ElementsCollection definitionPairs = getDefinitionPairs();
+      return definitionPairs.get(4);
     }
 
     private ElementsCollection getDefinitionPairs() {

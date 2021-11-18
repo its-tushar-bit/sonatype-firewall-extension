@@ -10,8 +10,8 @@ export default function InnerSourceRepositoryService($http, CLMLocations) {
     getRepositoryConnections: getRepositoryConnections,
   };
 
-  function getRepositoryConnections(ownerType, ownerId) {
-    return $http.get(CLMLocations.getRepositoryConnections(ownerType, ownerId)).then(prop('data'));
+  function getRepositoryConnections(ownerType, ownerId, inherit) {
+    return $http.get(CLMLocations.getRepositoryConnections(ownerType, ownerId, inherit)).then(prop('data'));
   }
 }
 

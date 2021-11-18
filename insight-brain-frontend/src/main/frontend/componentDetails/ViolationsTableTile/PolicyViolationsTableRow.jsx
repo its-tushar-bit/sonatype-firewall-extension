@@ -8,7 +8,13 @@ import * as PropTypes from 'prop-types';
 import { flatten } from 'ramda';
 
 import ViolationExclamation from '../../react/ViolationExclamation';
-import { NxFontAwesomeIcon, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
+import {
+  NxFontAwesomeIcon,
+  NxTableCell,
+  NxTableRow,
+  NxThreatIndicator,
+  NxTooltip,
+} from '@sonatype/react-shared-components';
 import { faChevronRight, faHistory, faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import ActiveWaiversIndicator from '../../violation/ActiveWaiversIndicator';
@@ -125,10 +131,12 @@ const PolicyViolationsGrandfatheringAndWaiverIndicators = ({ violation }) => {
 
   const pendingWaiversIndicator =
     !waived && numberOfWaivers > 0 ? (
-      <div>
-        <NxFontAwesomeIcon icon={faInfoCircle} />
-        <span>Unapplied Waiver</span>
-      </div>
+      <NxTooltip title="Waiver will be applied after the next report evaluation">
+        <div>
+          <NxFontAwesomeIcon icon={faInfoCircle} />
+          <span>Unapplied Waiver</span>
+        </div>
+      </NxTooltip>
     ) : null;
 
   const appliedWaiversIndicator =

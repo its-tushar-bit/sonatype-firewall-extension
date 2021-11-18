@@ -9,11 +9,11 @@ import { join } from 'ramda';
 
 import { capitalize } from 'MainRoot/util/jsUtil';
 
-import { formatTimeAgoUpToDay } from '../../../util/dateUtils';
 import OccurrencesPopoverContainer from '../occurrencesPopover/OccurrencesPopoverContainer';
 import InnerSourceProducerAlertContainer from '../InnerSourceProducerAlert/InnerSourceProducerAlertContainer';
 import InnerSourceProducerReportModalContainer from '../InnerSourceProducerReportModal/InnerSourceProducerReportModalContainer';
 import InnerSourceProducerPermissionsModalContainer from '../InnerSourceProducerPermissionsModal/InnerSourceProducerPermissionsModalContainer';
+import { NxTextLink } from '@sonatype/react-shared-components';
 
 export default function OverviewComponentInformation({
   componentInformation,
@@ -25,11 +25,11 @@ export default function OverviewComponentInformation({
   const {
     componentIdentifier,
     displayName,
-    createTime,
     matchState,
     identificationSource,
     componentCategories = [],
     pathnames = [],
+    website,
   } = componentInformation;
 
   useEffect(() => {
@@ -38,7 +38,6 @@ export default function OverviewComponentInformation({
 
   const isUnknown = !matchState || matchState === 'unknown';
   const format = isUnknown ? '' : componentIdentifier.format;
-  const catalogedDateAgo = createTime ? formatTimeAgoUpToDay(createTime) : '';
   const joinedComponentCategories = join(
     ',',
     componentCategories.map((category) => category.path)
@@ -97,8 +96,18 @@ export default function OverviewComponentInformation({
         </dd>
       </div>
       <div className="nx-read-only__item">
+        <dt className="nx-read-only__label">Website</dt>
+        <dd className="nx-read-only__data">
+          {website && (
+            <NxTextLink external href={website} className="iq-identification-info-definition-list__website-link">
+              Visit Project Website
+            </NxTextLink>
+          )}
+        </dd>
+      </div>
+      <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Category</dt>
-        <dd className="nx-read-only__data">{joinedComponentCategories}</dd>
+        <dd className="nx-read-only__data">{joinedComponentCategories || (isUnknown ? '' : 'Other')}</dd>
       </div>
     </dl>
   );
@@ -133,7 +142,6 @@ OverviewComponentInformation.propTypes = {
     displayName: PropTypes.shape({
       parts: PropTypes.array,
     }).isRequired,
-    createTime: PropTypes.number,
     matchState: PropTypes.string.isRequired,
     identificationSource: PropTypes.string,
     componentCategories: PropTypes.arrayOf(
@@ -145,6 +153,7 @@ OverviewComponentInformation.propTypes = {
     dependencyInfo: PropTypes.shape({
       isDirectDependency: PropTypes.bool.isRequired,
     }),
+    website: PropTypes.string,
   }),
   toggleShowOccurrencesPopover: PropTypes.func.isRequired,
   toggleShowSimilarMatches: PropTypes.func.isRequired,

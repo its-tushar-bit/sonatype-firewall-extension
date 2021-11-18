@@ -383,6 +383,7 @@ public class ComponentDetailsTest
     identificationInfoSection.shouldBe(visible);
     identificationInfoSection.getMatchStateItem().shouldHave(text("Match State exact"));
     identificationInfoSection.getIdentificationSourceItem().shouldHave(text("Identification Source"));
+    identificationInfoSection.getWebsiteItem().shouldHave(text("Website"));
     identificationInfoSection.getCategoryItem().shouldHave(text("Category"));
 
     identificationInfoSection.getOccurrencesItem().shouldBe(visible);

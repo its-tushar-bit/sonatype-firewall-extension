@@ -66,6 +66,10 @@ public class OwnerSummaryTile
     return new PillButton(scrollContainer(), "#owner-source-control-button");
   }
 
+  public PillButton innerSourceRepositoryButton() {
+    return new PillButton(scrollContainer(), "#owner-innersource-repository-button");
+  }
+
   public PillButton accessButton() {
     return new PillButton(scrollContainer(), "#owner-access-button");
   }

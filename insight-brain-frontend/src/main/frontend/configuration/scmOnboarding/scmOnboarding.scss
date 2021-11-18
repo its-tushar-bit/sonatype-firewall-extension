@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@import '~@sonatype/react-shared-components/scss-shared/nx-table-helpers';
+
 scm-onboarding {
   display: contents;
 }
@@ -35,18 +37,22 @@ scm-onboarding {
     margin-right: 12px;
   }
 
-  .iq-scm-repository-description {
-    .nx-truncate-ellipsis {
-      max-width: 400px;
+  .iq-scmonboarding-overflow-tooltip-cell {
+    max-width: 1px;
+    min-width: 200px;
+
+    .nx-filter-input {
+      width: auto;
+      max-width: 250px;
+    }
+
+    .nx-text-input__input {
+      width: 100%;
     }
   }
 
   #scm-repo-to-import-count {
     font-weight: bold;
-  }
-
-  .onboarding-repo-table {
-    height: pagination-table-height(15);
   }
 
   // possible bug in RSC, dropdown is showing below table header
@@ -104,4 +110,8 @@ scm-onboarding {
 
 .iq-scmonboarding__select-all-cell {
   min-width: 110px;
+}
+
+.onboarding-repo-table {
+  height: pagination-table-height(15, 1);
 }

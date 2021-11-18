@@ -70,8 +70,11 @@ describe('mailConfigSlice actions', function () {
       },
     };
 
+    jasmine.clock().install();
     store = SpecUtil.mockReduxStore(state);
   });
+
+  afterEach(() => jasmine.clock().uninstall());
 
   describe('save', function () {
     afterEach(function () {
@@ -117,13 +120,13 @@ describe('mailConfigSlice actions', function () {
 
       it('dispatches mailConfig/submitMaskTimerDone after timeout', function (done) {
         store.dispatch(save()).then(() => {
-          setTimeout(function () {
-            actions = store.getActions();
-            expect(actions.length).toBe(3);
-            expect(actions[2].type).toBe('mailConfig/submitMaskTimerDone');
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          actions = store.getActions();
+          expect(actions.length).toBe(3);
+          expect(actions[2].type).toBe('mailConfig/submitMaskTimerDone');
+
+          done();
         });
 
         let actions = store.getActions();
@@ -198,13 +201,13 @@ describe('mailConfigSlice actions', function () {
 
       it('dispatches mailConfig/submitMaskTimerDone after timeout', function (done) {
         store.dispatch(del()).then(() => {
-          setTimeout(function () {
-            actions = store.getActions();
-            expect(actions.length).toBe(3);
-            expect(actions[2].type).toBe('mailConfig/submitMaskTimerDone');
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          actions = store.getActions();
+          expect(actions.length).toBe(3);
+          expect(actions[2].type).toBe('mailConfig/submitMaskTimerDone');
+
+          done();
         });
 
         let actions = store.getActions();
@@ -281,13 +284,13 @@ describe('mailConfigSlice actions', function () {
 
       it('dispatches mailConfig/submitMaskTimerDone after timeout', function (done) {
         store.dispatch(sendTestEmail()).then(() => {
-          setTimeout(function () {
-            actions = store.getActions();
-            expect(actions.length).toBe(3);
-            expect(actions[2].type).toBe('mailConfig/submitMaskTimerDone');
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          actions = store.getActions();
+          expect(actions.length).toBe(3);
+          expect(actions[2].type).toBe('mailConfig/submitMaskTimerDone');
+
+          done();
         });
 
         let actions = store.getActions();

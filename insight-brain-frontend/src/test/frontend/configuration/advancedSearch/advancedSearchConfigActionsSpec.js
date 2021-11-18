@@ -76,14 +76,17 @@ describe('advancedSearchConfigActions', function () {
       });
 
       it('dispatches ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE after timeout', function (done) {
-        store.dispatch(save()).then(() => {
-          setTimeout(function () {
-            actions = store.getActions();
-            expect(actions.length).toBe(3);
-            expect(actions[2].type).toBe('ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE');
+        jasmine.clock().install();
 
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        store.dispatch(save()).then(() => {
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
+          actions = store.getActions();
+          expect(actions.length).toBe(3);
+          expect(actions[2].type).toBe('ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE');
+
+          done();
         });
 
         let actions = store.getActions();

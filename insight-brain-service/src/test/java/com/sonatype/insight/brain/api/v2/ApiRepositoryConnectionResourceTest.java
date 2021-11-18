@@ -238,6 +238,56 @@ public class ApiRepositoryConnectionResourceTest
             tuple(conn2.getId(), "http://baseurl2.com", "user2"));
   }
 
+  @Test
+  public void testGetRepositoryConnections_InheritTrue() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    String orgId = application.getParentOwnerId();
+    RepositoryConnection orgRepositoryConnection =
+        tempEntity.newRepositoryConnection(orgId, "http://baseurl2.com", "user2", "pass2".toCharArray());
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+        .parameter(application.getType(), application.getId())
+        .query("inherit", true)
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    List<ApiRepositoryConnectionDTO> responseDtos = response.getBody(List.class);
+    assertThat(responseDtos).hasSize(1)
+        .extracting("repositoryConnectionId", "ownerId", "baseUrl", "username")
+        .containsExactly(tuple(orgRepositoryConnection.getId(), orgId, "http://baseurl2.com", "user2"));
+  }
+
+  @Test
+  public void testGetRepositoryConnections_InheritFalse() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    String orgId = application.getParentOwnerId();
+    tempEntity.newRepositoryConnection(orgId, "http://baseurl2.com", "user2", "pass2".toCharArray());
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+        .parameter(application.getType(), application.getId())
+        .query("inherit", false)
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    List<ApiRepositoryConnectionDTO> responseDtos = response.getBody(List.class);
+    assertThat(responseDtos).isEmpty();
+  }
+  
+  @Test
+  public void testGetRepositoryConnections_InheritDefault() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    String orgId = application.getParentOwnerId();
+    tempEntity.newRepositoryConnection(orgId, "http://baseurl2.com", "user2", "pass2".toCharArray());
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+        .parameter(application.getType(), application.getId())
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    List<ApiRepositoryConnectionDTO> responseDtos = response.getBody(List.class);
+    assertThat(responseDtos).isEmpty();
+  }
+
   private void testDeleteRepositoryConnection(final String id, final OwnerType ownerType) throws Exception {
     RepositoryConnection existingConnection =
         tempEntity.newRepositoryConnection(id, "http://baseurl.com", "user", "pass".toCharArray());

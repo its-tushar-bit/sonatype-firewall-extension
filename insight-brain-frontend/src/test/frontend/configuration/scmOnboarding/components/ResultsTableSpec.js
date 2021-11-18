@@ -11,6 +11,7 @@ import ResultsTable, {
 } from '../../../../../main/frontend/configuration/scmOnboarding/components/ResultsTable';
 import {
   NxCheckbox,
+  NxOverflowTooltip,
   NxPagination,
   NxTable,
   NxTableBody,
@@ -129,7 +130,6 @@ describe('ResultsTable', function () {
           expect(projectCell.text().trim()).toEqual('project');
           expect(projectCell.find(NxExternalLink).prop('href')).toEqual('https://example.com/');
           expect(descriptionCell.text()).toEqual('description');
-          expect(descriptionCell.find(NxTooltip).prop('title')).toEqual('description');
         });
 
         it('requests selection change from: ' + checkboxData, () => {
@@ -246,10 +246,11 @@ describe('ResultsTable', function () {
   });
 
   describe('filters', () => {
-    const repositories = ['aaaa', 'bbbb', 'aabb', 'BBBB', 'ABBB'].map((prefix) => createRepo(prefix));
+    const repositories = ['aaaa', 'bbbb', 'aabb', 'BBBB', 'ABBB', '%C2%A7%20%C2%A3'].map((prefix) =>
+      createRepo(prefix)
+    );
     const setSelectedRepositories = jasmine.createSpy('setSelectedRepositories');
     const selectedRepositories = [];
-
     ['namespace', 'description', 'project'].forEach((filterName) => {
       it('filters repos by ' + filterName, () => {
         const component = getShallowComponent({
@@ -291,6 +292,13 @@ describe('ResultsTable', function () {
           'url-BBBB',
           'url-ABBB',
         ]);
+
+        // when the filter using special chars
+        filterInput.simulate('change', '\xa7 \xa3');
+
+        // then repository rows with the matching repos are generated
+        expect(component.find(RepositoryRow).length).toBe(1);
+        expect(component.find(RepositoryRow).prop('repo')).toEqual(repositories[5]);
       });
 
       it('deselects filtered-out components when filtering by ' + filterName, () => {
@@ -368,6 +376,16 @@ describe('ResultsTable', function () {
       isImported: false,
     };
 
+    const repositoryWithSpecialChars = {
+      httpCloneUrl: 'https://example.com/',
+      namespace: 'spaces%20%20and%20%C2%A7%20%C2%A3%C3%86%20glyphs%C3%A1%C3%A4/Test%20Project',
+      project: 'Test%20Project',
+      description: 'A description for spaces%20%20and%20%C2%A7%20%C2%A3%C3%86%20glyphs%C3%A1%C3%A4',
+      defaultBranch: 'defaultBranch',
+      isSelected: false,
+      isImported: false,
+    };
+
     it('Renders RepositoryRow fields', () => {
       const component = getShallowRepositoryRow({ rowKey: 'key', repo: repository });
       const row = component.find(NxTableRow),
@@ -375,13 +393,43 @@ describe('ResultsTable', function () {
         description = row.find('.iq-scm-repository-description').first(),
         project = row.find('.iq-scm-repository-project').find(NxExternalLink).first(),
         namespace = row.find('.iq-scm-repository-namespace').first(),
-        defaultBranchTooltip = defaultBranch.find(NxTooltip);
+        defaultBranchTooltip = defaultBranch.find(NxTooltip),
+        descriptionTooltip = description.find(NxOverflowTooltip),
+        projectTooltip = project.find(NxOverflowTooltip),
+        namespaceTooltip = namespace.find(NxOverflowTooltip);
 
       expect(defaultBranch.text()).toEqual('defaultBranch');
       expect(description.text()).toEqual('description');
       expect(project.text().trim()).toEqual('project');
       expect(namespace.text()).toEqual('namespace');
       expect(defaultBranchTooltip.length).toBe(0);
+      expect(defaultBranchTooltip).toBeDefined();
+      expect(descriptionTooltip).toBeDefined();
+      expect(projectTooltip).toBeDefined();
+      expect(namespaceTooltip).toBeDefined();
+    });
+
+    it('Renders RepositoryRow fields escaping special chars', () => {
+      const component = getShallowRepositoryRow({ rowKey: 'key', repo: repositoryWithSpecialChars });
+      const row = component.find(NxTableRow),
+        defaultBranch = row.find('.iq-scm-repository-default-branch').first(),
+        description = row.find('.iq-scm-repository-description').first(),
+        project = row.find('.iq-scm-repository-project').find(NxExternalLink).first(),
+        namespace = row.find('.iq-scm-repository-namespace').first(),
+        defaultBranchTooltip = defaultBranch.find(NxTooltip),
+        descriptionTooltip = description.find(NxOverflowTooltip),
+        projectTooltip = project.find(NxOverflowTooltip),
+        namespaceTooltip = namespace.find(NxOverflowTooltip);
+
+      expect(defaultBranch.text()).toEqual('defaultBranch');
+      expect(description.text()).toEqual('A description for spaces  and § £Æ glyphsáä');
+      expect(project.text().trim()).toEqual('Test Project');
+      expect(namespace.text()).toEqual('spaces  and § £Æ glyphsáä/Test Project');
+      expect(defaultBranchTooltip.length).toBe(0);
+      expect(defaultBranchTooltip).toBeDefined();
+      expect(descriptionTooltip).toBeDefined();
+      expect(projectTooltip).toBeDefined();
+      expect(namespaceTooltip).toBeDefined();
     });
 
     it('Renders tooltip for default branch when its value is Not defined', () => {

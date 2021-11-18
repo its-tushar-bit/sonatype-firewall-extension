@@ -193,24 +193,26 @@ describe('successMetricsReportActions', () => {
           [getSuccessMetricsReportUrl('101')]: Promise.resolve({ data: 'success' }),
         },
       });
+      jasmine.clock().install();
 
       store.dispatch(deleteReport('101')).then(() => {
-        setTimeout(function () {
-          expect(store.getActions()).toHaveActionsInOrder([
-            { type: SUCCESS_METRICS_REPORT_DELETE_REQUESTED },
-            { type: SUCCESS_METRICS_REPORT_DELETE_FULFILLED },
-            { type: SUCCESS_METRICS_DELETE_MASK_TIMER_DONE },
-            {
-              type: STATE_GO,
-              payload: {
-                to: 'labs.successMetrics',
-                params: undefined,
-                options: undefined,
-              },
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
+
+        expect(store.getActions()).toHaveActionsInOrder([
+          { type: SUCCESS_METRICS_REPORT_DELETE_REQUESTED },
+          { type: SUCCESS_METRICS_REPORT_DELETE_FULFILLED },
+          { type: SUCCESS_METRICS_DELETE_MASK_TIMER_DONE },
+          {
+            type: STATE_GO,
+            payload: {
+              to: 'labs.successMetrics',
+              params: undefined,
+              options: undefined,
             },
-          ]);
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          },
+        ]);
+        done();
       });
     });
 

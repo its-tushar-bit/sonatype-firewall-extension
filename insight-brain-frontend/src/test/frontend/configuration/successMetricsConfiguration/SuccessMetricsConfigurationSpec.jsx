@@ -4,127 +4,165 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxForm, NxButton } from '@sonatype/react-shared-components';
-import * as enzymeUtils from '../../enzymeUtils';
+import axios from 'axios';
 
-import SuccessMetricsConfiguration from '../../../../main/frontend/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
+import { render, waitFor, fireEvent, screen } from '../../SpecUtil';
+import SuccessMetricsConfigurationContainer from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfigurationContainer';
+import { getSuccessMetricsConfigUrl } from 'MainRoot/util/CLMLocation';
+import { getGlobalPermissionTestUrl } from 'MainRoot/util/CLMContextLocation';
 
-describe('SuccessMetricsConfiguration', function () {
-  let mockUpdate, mockLoad, mockReset, mockToggleIsEnabled, getShallowComponent, minimalProps;
+describe('SuccessMetricsConfigurationSpec', () => {
+  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  const successMetricsConfigurationUrl = getSuccessMetricsConfigUrl();
+  const globalPermissionTestUrl = getGlobalPermissionTestUrl();
 
-  beforeEach(function () {
-    mockUpdate = jasmine.createSpy('update');
-    mockLoad = jasmine.createSpy('load');
-    mockReset = jasmine.createSpy('resetForm');
-    mockToggleIsEnabled = jasmine.createSpy('toggleIsEnabled');
+  it('renders enabled toggle', async () => {
+    mockAxiosCalls({
+      get: {
+        [successMetricsConfigurationUrl]: Promise.resolve({
+          data: { enabled: true },
+        }),
+      },
+      put: {
+        [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
+      },
+    });
 
-    minimalProps = {
-      load: mockLoad,
-      update: mockUpdate,
-      resetForm: mockReset,
-      toggleIsEnabled: mockToggleIsEnabled,
-      enabled: false,
-      loading: false,
-      isDirty: false,
-    };
+    const { container } = render(<SuccessMetricsConfigurationContainer />);
+    expect(screen.getByRole('heading', { name: /success metrics/i })).toBeVisible();
+    expect(screen.queryByRole('checkbox', { name: /enable success metrics/i })).toBeNull();
+    expect(screen.queryByText('Loading…')).toBeVisible();
 
-    getShallowComponent = enzymeUtils.getShallowComponent(SuccessMetricsConfiguration, minimalProps);
+    await waitFor(() => screen.getByRole('heading', { name: /configure success metrics/i }));
+
+    expect(screen.queryByText('Loading…')).toBeNull();
+    expect(screen.getByLabelText('Enable Success Metrics')).toBeChecked();
+
+    // query whole container
+    expect(container.querySelector('.nx-toggle__input')).toBeChecked();
   });
 
-  it('renders a component with the "nx-page-main" class', function () {
-    expect(getShallowComponent().find('.nx-page-main')).toExist();
+  it('renders disabled toggle', async () => {
+    mockAxiosCalls({
+      get: {
+        [successMetricsConfigurationUrl]: Promise.resolve({
+          data: { enabled: false },
+        }),
+      },
+      put: {
+        [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
+      },
+    });
+
+    render(<SuccessMetricsConfigurationContainer />);
+    await waitFor(() => screen.getByRole('heading', { name: /configure success metrics/i }));
+
+    expect(screen.getByLabelText('Enable Success Metrics')).not.toBeChecked();
   });
 
-  describe('on initial load', function () {
-    it('calls load', function () {
-      const getMountedComponent = enzymeUtils.getMountedComponent(SuccessMetricsConfiguration, minimalProps);
-      const mountedComponent = getMountedComponent();
-
-      expect(mockLoad).toHaveBeenCalled();
-      mountedComponent.unmount();
+  it('handles load error', async () => {
+    mockAxiosCalls({
+      get: {
+        [successMetricsConfigurationUrl]: () => Promise.reject({ status: 403 }),
+      },
+      put: {
+        [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
+      },
     });
+
+    render(<SuccessMetricsConfigurationContainer />);
+    await waitFor(() => screen.getByText(/An error occurred loading data/));
+
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible();
   });
 
-  describe('additionalFooterBtns prop', function () {
-    it('contains non disabled cancel button with proper click handler if form is dirty', function () {
-      const shallowComponent = getShallowComponent({ isDirty: true });
-      const form = shallowComponent.find(NxForm);
-
-      expect(form).toHaveProp(
-        'additionalFooterBtns',
-        <NxButton type="button" id="success-metrics-cancel" onClick={mockReset} disabled={false}>
-          Cancel
-        </NxButton>
-      );
+  it('toggles and cancels', async () => {
+    mockAxiosCalls({
+      get: {
+        [successMetricsConfigurationUrl]: Promise.resolve({
+          data: { enabled: false },
+        }),
+      },
+      put: {
+        [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
+      },
     });
 
-    it('contains disabled cancel button if form is not dirty', function () {
-      const shallowComponent = getShallowComponent({ isDirty: false });
-      const form = shallowComponent.find(NxForm);
+    render(<SuccessMetricsConfigurationContainer />);
+    await waitFor(() => screen.getByRole('heading', { name: /configure success metrics/i }));
+    const toggle = screen.getByLabelText('Enable Success Metrics');
 
-      expect(form).toHaveProp(
-        'additionalFooterBtns',
-        <NxButton type="button" id="success-metrics-cancel" onClick={mockReset} disabled={true}>
-          Cancel
-        </NxButton>
-      );
-    });
+    expect(toggle).not.toBeChecked();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
+    // uses aria-label as name if provided
+    expect(screen.getByRole('button', { name: 'There are no changes to update' })).toHaveClassName('disabled');
+
+    fireEvent.click(toggle);
+
+    expect(toggle).toBeChecked();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Update' })).not.toHaveClassName('disabled');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(toggle).not.toBeChecked();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'There are no changes to update' })).toHaveClassName('disabled');
   });
 
-  describe('validationErrors', function () {
-    it('should be null if form was changed', function () {
-      const shallowComponent = getShallowComponent({ isDirty: true });
-      const form = shallowComponent.find(NxForm);
-
-      expect(form).toHaveProp('validationErrors', null);
+  it('submits updated setting', async () => {
+    mockAxiosCalls({
+      get: {
+        [successMetricsConfigurationUrl]: Promise.resolve({
+          data: { enabled: false },
+        }),
+      },
+      put: {
+        [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
+        [successMetricsConfigurationUrl]: Promise.resolve({}),
+      },
     });
 
-    it('should contain tooltip validation message if form was not changed', function () {
-      const shallowComponent = getShallowComponent({ isDirty: false });
-      const form = shallowComponent.find(NxForm);
+    render(<SuccessMetricsConfigurationContainer />);
+    await waitFor(() => screen.getByRole('heading', { name: /configure success metrics/i }));
+    fireEvent.click(screen.getByLabelText('Enable Success Metrics'));
 
-      expect(form).toHaveProp('validationErrors', 'There are no changes to update');
-    });
+    expect(screen.getByRole('button', { name: 'Update' })).not.toHaveClassName('disabled');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Update' }));
+
+    await waitFor(() => screen.getByRole('button', { name: 'There are no changes to update' }));
+
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'There are no changes to update' })).toHaveClassName('disabled');
+    expect(screen.getByLabelText('Enable Success Metrics')).toBeChecked();
   });
 
-  describe('doLoad', function () {
-    it('should have proper handler', function () {
-      const shallowComponent = getShallowComponent();
-      const form = shallowComponent.find(NxForm);
-
-      expect(form).toHaveProp('doLoad', mockLoad);
-    });
-  });
-
-  describe('on form submit', function () {
-    it('calls update when the form is submitted if it"s dirty', function () {
-      const shallowComponent = getShallowComponent({ isDirty: true });
-      const form = shallowComponent.find(NxForm);
-
-      form.simulate('submit');
-
-      expect(mockUpdate).toHaveBeenCalled();
-    });
-  });
-
-  describe('on toggle change', function () {
-    it('calls toggleIsEnabled when toggle value is changed', function () {
-      const shallowComponent = getShallowComponent();
-      const toggle = shallowComponent.find('.nx-toggle--no-gap');
-
-      toggle.simulate('change');
-
-      expect(mockToggleIsEnabled).toHaveBeenCalled();
+  it('handles submit error', async () => {
+    mockAxiosCalls({
+      get: {
+        [successMetricsConfigurationUrl]: Promise.resolve({
+          data: { enabled: false },
+        }),
+      },
+      put: {
+        [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
+        [successMetricsConfigurationUrl]: () => Promise.reject({ status: 403 }),
+      },
     });
 
-    it('calls toggleIsEnabled when toggle value is changed', function () {
-      let shallowComponent = getShallowComponent();
+    render(<SuccessMetricsConfigurationContainer />);
+    await waitFor(() => screen.getByLabelText('Enable Success Metrics'));
+    fireEvent.click(screen.getByLabelText('Enable Success Metrics'));
+    fireEvent.click(screen.getByRole('button', { name: 'Update' }));
 
-      expect(shallowComponent.find('.nx-toggle--no-gap')).toHaveProp('isChecked', false);
+    await waitFor(() => screen.getByText(/An error occurred saving data/));
 
-      shallowComponent = getShallowComponent({ enabled: true });
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled();
 
-      expect(shallowComponent.find('.nx-toggle--no-gap')).toHaveProp('isChecked', true);
-    });
+    // retry button
+    expect(axios.put.calls.count()).toBe(2);
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(axios.put.calls.count()).toBe(3);
   });
 });

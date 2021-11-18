@@ -3,6 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import React from 'react';
+import { render as rtlRender } from '@testing-library/react';
+import { configureStore } from '@reduxjs/toolkit';
+import { Provider } from 'react-redux';
+import * as PropTypes from 'prop-types';
+import reducers from '../../main/frontend/reduxConfig/reducers';
+import JasmineDOM from '@testing-library/jasmine-dom';
+
 window.CLM = {
   path: '../brain/',
 };
@@ -331,3 +339,23 @@ function isIn(as) {
 beforeEach(function () {
   jasmine.addCustomEqualityTester(customEqualityTesterForSets);
 });
+
+// render wrapper for React Testing Library
+function render(
+  ui,
+  { preloadedState, store = configureStore({ reducer: reducers, preloadedState }), ...renderOptions } = {}
+) {
+  jasmine.addMatchers(JasmineDOM);
+  function Wrapper({ children }) {
+    return <Provider store={store}>{children}</Provider>;
+  }
+  Wrapper.propTypes = {
+    children: PropTypes.any,
+  };
+  return rtlRender(ui, { wrapper: Wrapper, ...renderOptions });
+}
+
+// re-export everything
+export * from '@testing-library/react';
+// override render method
+export { render };

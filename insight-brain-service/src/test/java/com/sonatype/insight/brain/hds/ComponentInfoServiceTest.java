@@ -89,7 +89,6 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.lqa.LqaFormat;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.ImmutableMap;
@@ -1691,14 +1690,10 @@ public class ComponentInfoServiceTest
     String identificationSource = "cyclone";
 
     // Create the mocked hds response
-    Map<String, String> coordinates = new HashMap<>();
-    coordinates.put("name", "test");
-    coordinates.put("version", "2.0.0");
-    ComponentIdentifier componentIdentifier1 = new ComponentIdentifier(LqaFormat.CARGO.format, coordinates);
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createCargoCoordinates("test", "2.0.0", null);
     ComponentDetails hdsComponentDetails1 = newNamedComponentDetails(componentIdentifier1);
 
-    coordinates.put("version", "1.0.0");
-    ComponentIdentifier componentIdentifier2 = new ComponentIdentifier(LqaFormat.CARGO.format, coordinates);
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createCargoCoordinates("test", "1.0.0", null);
     ComponentDetails hdsComponentDetails2 = newNamedComponentDetails(componentIdentifier2);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
 

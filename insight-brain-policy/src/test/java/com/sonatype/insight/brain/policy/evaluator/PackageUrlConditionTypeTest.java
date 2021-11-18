@@ -462,14 +462,15 @@ public class PackageUrlConditionTypeTest
 
   @Test
   public void testEvaluate_Cran_MatchWildcard() {
-    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.CRAN.format + "/a2@v*");
-    testEvaluate_MatchExact(LqaFormat.CRAN.format, constraint, "(matches package URL pkg:cran/a2@v*)");
+    Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_CRAN + "/a2@v*");
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_CRAN, constraint, "(matches package URL pkg:cran/a2@v*?type=*)");
   }
 
   @Test
   public void testEvaluate_Cargo_MatchWildcard() {
-    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.CARGO.format + "/a2@v*");
-    testEvaluate_MatchExact(LqaFormat.CARGO.format, constraint, "(matches package URL pkg:cargo/a2@v*)");
+    Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_CARGO + "/a2@v*");
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_CARGO, constraint,
+        "(matches package URL pkg:cargo/a2@v*?type=*)");
   }
 
   @Test
@@ -795,6 +796,8 @@ public class PackageUrlConditionTypeTest
     convertIfNeededTerraform();
     convertIfNeededContainer();
     convertIfNeededConan();
+    convertIfNeededCargo();
+    convertIfNeededCran();
   }
 
   private void convertIfNeededMaven() {
@@ -897,6 +900,28 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:conan/o/N@v", "pkg:conan/o/N@v?channel=*");
     assertConvertIfNeeded("pkg:conan/O/n@V", "pkg:conan/O/n@V?channel=*");
     assertConvertIfNeeded("pkg:conan/O/N@V", "pkg:conan/O/N@V?channel=*");
+  }
+
+  private void convertIfNeededCargo() {
+    assertConvertIfNeeded("pkg:cargo/n", "pkg:cargo/n@*?type=*");
+    assertConvertIfNeeded("pkg:cargo/n?type=t", "pkg:cargo/n@*?type=t");
+    assertConvertIfNeeded("pkg:cargo/n@v?type=e", "pkg:cargo/n@v?type=e");
+    assertConvertIfNeeded("pkg:cargo/n@v?type=", "pkg:cargo/n@v?type=*");
+    assertConvertIfNeeded("pkg:cargo/n@v", "pkg:cargo/n@v?type=*");
+    assertConvertIfNeeded("pkg:cargo/N@v", "pkg:cargo/N@v?type=*");
+    assertConvertIfNeeded("pkg:cargo/n@V", "pkg:cargo/n@V?type=*");
+    assertConvertIfNeeded("pkg:cargo/N@V", "pkg:cargo/N@V?type=*");
+  }
+
+  private void convertIfNeededCran() {
+    assertConvertIfNeeded("pkg:cran/n", "pkg:cran/n@*?type=*");
+    assertConvertIfNeeded("pkg:cran/n?type=t", "pkg:cran/n@*?type=t");
+    assertConvertIfNeeded("pkg:cran/n@v?type=e", "pkg:cran/n@v?type=e");
+    assertConvertIfNeeded("pkg:cran/n@v?type=", "pkg:cran/n@v?type=*");
+    assertConvertIfNeeded("pkg:cran/n@v", "pkg:cran/n@v?type=*");
+    assertConvertIfNeeded("pkg:cran/N@v", "pkg:cran/N@v?type=*");
+    assertConvertIfNeeded("pkg:cran/n@V", "pkg:cran/n@V?type=*");
+    assertConvertIfNeeded("pkg:cran/N@V", "pkg:cran/N@V?type=*");
   }
   
   private void convertIfNeededSwift() {

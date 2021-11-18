@@ -532,7 +532,7 @@ public abstract class AbstractRepositoryService
       case "maven2":
         return ComponentIdentifier.FORMAT_MAVEN;
       case "r":
-        return LqaComponentIdentifier.FORMAT_CRAN;
+        return ComponentIdentifier.FORMAT_CRAN;
       case "rubygems":
         return ComponentIdentifier.FORMAT_RUBYGEMS;
       default:

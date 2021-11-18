@@ -252,6 +252,12 @@ public abstract class AbstractPolicyEvaluationTest
       case ComponentIdentifier.FORMAT_CONAN:
         componentIdentifier = ComponentIdentifier.createConanCoordinates(coord[1], coord[2], coord[0], coord[3]);
         break;
+      case ComponentIdentifier.FORMAT_CARGO:
+        componentIdentifier = ComponentIdentifier.createCargoCoordinates(coord[1], coord[2], coord[3]);
+        break;
+      case ComponentIdentifier.FORMAT_CRAN:
+        componentIdentifier = ComponentIdentifier.createCranCoordinates(coord[1], coord[2], coord[3]);
+        break;
       default:
         componentIdentifier = createLqaComponentIdentifier(format, coord);
     }
@@ -267,8 +273,6 @@ public abstract class AbstractPolicyEvaluationTest
       Map<String, String> coords;
       switch (lqaFormat) {
         case ALPINE:
-        case CRAN:
-        case CARGO:
         case BOWER:
         case CONDA:
         case DRUPAL:

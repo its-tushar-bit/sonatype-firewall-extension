@@ -74,7 +74,7 @@ describe('ListWaiversTable', function () {
     const emptyMessageShallowRender = shallow(tableBody.prop('emptyMessage'));
     expect(emptyMessageShallowRender.find(NxExternalLink)).toHaveProp(
       'href',
-      'https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers'
+      'http://links.sonatype.com/products/nxiq/doc/waivers'
     );
   });
 

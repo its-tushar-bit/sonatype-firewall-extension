@@ -23,7 +23,7 @@ const SuccessMetricsReportList = ({ reports, load, loadError, loading, isAddModa
 
   return (
     <Fragment>
-      <main id="success-metrics-report-list" className="nx-page-main">
+      <div id="success-metrics-report-list">
         <div className="nx-page-title">
           <h1 className="nx-h1">Success Metrics</h1>
           <div className="nx-page-title__description">
@@ -72,7 +72,7 @@ const SuccessMetricsReportList = ({ reports, load, loadError, loading, isAddModa
             </div>
           </section>
         </LoadWrapper>
-      </main>
+      </div>
       {isAddModalOpen && (
         <AddSuccessMetricsReportContainer
           close={newReport}

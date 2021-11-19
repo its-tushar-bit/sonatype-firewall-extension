@@ -73,7 +73,7 @@ const SuccessMetricsReport = ({
 
   return (
     <Fragment>
-      <main className="nx-page-main" id="success-metrics-report">
+      <div id="success-metrics-report">
         <NxLoadWrapper
           loading={loading}
           error={loadError}
@@ -155,7 +155,7 @@ const SuccessMetricsReport = ({
             </Fragment>
           )}
         </NxLoadWrapper>
-      </main>
+      </div>
       {showModal && (
         <NxModal onClose={toggleShowModal} variant="narrow" id="delete-modal">
           <NxForm

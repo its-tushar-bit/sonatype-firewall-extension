@@ -18,7 +18,7 @@ import { toURIParams, uriTemplate } from './urlUtil';
  * It is an object of shape `{identificationSource, ownerId, ownerType, scanId}`. If provided it will
  * save one request to HDS and instead will search directly in the third-party vulnerabilities table.
  */
-export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, thirdPartyScanParameters) {
+export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, thirdPartyScanParameters = {}) {
   const urlWithPath = uriTemplate`/api/v2/vulnerabilities/${refId}`;
 
   const params = toURIParams({

@@ -24,6 +24,7 @@ import {
 import { validateMaxLength } from 'MainRoot/util/validationUtil';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
+import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 const { initialState: initUserInput, userInput } = nxTextInputStateHelpers;
 const AVAILABLE_STATUS = {
@@ -76,8 +77,9 @@ const loadVulnerabilityDetails = createAsyncThunk(
   `${REDUCER_NAME}/loadVulnerabilityDetails`,
   (_, { getState, rejectWithValue }) => {
     const refId = selectVulnerabityRefId(getState());
+    const componentIdentifier = selectSelectedComponent(getState())?.componentIdentifier;
     return axios
-      .get(getVulnerabilityJsonDetailUrl(refId))
+      .get(getVulnerabilityJsonDetailUrl(refId, componentIdentifier))
       .then(({ data }) => data)
       .catch(rejectWithValue);
   }

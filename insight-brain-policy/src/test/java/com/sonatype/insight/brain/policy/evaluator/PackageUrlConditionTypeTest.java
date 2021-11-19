@@ -456,8 +456,9 @@ public class PackageUrlConditionTypeTest
 
   @Test
   public void testEvaluate_Conda_MatchWildcard() {
-    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.CONDA.format + "/a2@v*");
-    testEvaluate_MatchExact(LqaFormat.CONDA.format, constraint, "(matches package URL pkg:conda/a2@v*)");
+    Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_CONDA + "/a2@v*");
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_CONDA, constraint,
+        "(matches package URL pkg:conda/a2@v*?build=*&channel=*&subdir=*&type=*)");
   }
 
   @Test
@@ -798,6 +799,7 @@ public class PackageUrlConditionTypeTest
     convertIfNeededConan();
     convertIfNeededCargo();
     convertIfNeededCran();
+    convertIfNeededConda();
   }
 
   private void convertIfNeededMaven() {
@@ -929,6 +931,19 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:swift/n@v", "pkg:swift/n@v");
     assertConvertIfNeeded("pkg:swift/n@V", "pkg:swift/n@V");
     assertConvertIfNeeded("pkg:swift/N@V", "pkg:swift/N@V");
+  }
+
+  private void convertIfNeededConda() {
+    assertConvertIfNeeded("pkg:conda/n", "pkg:conda/n@*?build=*&channel=*&subdir=*&type=*");
+    assertConvertIfNeeded("pkg:conda/n?channel=q", "pkg:conda/n@*?build=*&channel=q&subdir=*&type=*");
+    assertConvertIfNeeded("pkg:conda/n@v?channel=q", "pkg:conda/n@v?build=*&channel=q&subdir=*&type=*");
+    assertConvertIfNeeded("pkg:conda/n@v?channel=", "pkg:conda/n@v?build=*&channel=*&subdir=*&type=*");
+    assertConvertIfNeeded("pkg:conda/n@v", "pkg:conda/n@v?build=*&channel=*&subdir=*&type=*");
+    assertConvertIfNeeded("pkg:conda/N@v?subdir=s", "pkg:conda/N@v?build=*&channel=*&subdir=s&type=*");
+    assertConvertIfNeeded("pkg:conda/n@V?type=conda", "pkg:conda/n@V?build=*&channel=*&subdir=*&type=conda");
+    assertConvertIfNeeded("pkg:conda/N@V?build=b", "pkg:conda/N@V?build=b&channel=*&subdir=*&type=*");
+    assertConvertIfNeeded("pkg:conda/N@V?build=b&channel=c&subdir=s&type=conda",
+        "pkg:conda/N@V?build=b&channel=c&subdir=s&type=conda");
   }
 
   private void convertIfNeededPecoff() {

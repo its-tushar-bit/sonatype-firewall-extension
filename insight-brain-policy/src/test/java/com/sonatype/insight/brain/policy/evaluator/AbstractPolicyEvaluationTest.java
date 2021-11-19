@@ -258,12 +258,21 @@ public abstract class AbstractPolicyEvaluationTest
       case ComponentIdentifier.FORMAT_CRAN:
         componentIdentifier = ComponentIdentifier.createCranCoordinates(coord[1], coord[2], coord[3]);
         break;
+      case ComponentIdentifier.FORMAT_CONDA:
+        componentIdentifier = createCondaIdentifier(coord);
+        break;
       default:
         componentIdentifier = createLqaComponentIdentifier(format, coord);
     }
     Component component = new Component(componentIdentifier);
     component.setMatchState(MatchState.EXACT);
     return component;
+  }
+
+  private static ComponentIdentifier createCondaIdentifier(String... coord) {
+    String[] classifierData = coord[4].split("=");
+    return ComponentIdentifier.createCondaCoordinates(coord[1], coord[2], coord[0], classifierData[0],
+        null, coord[3]);
   }
 
   private static ComponentIdentifier createLqaComponentIdentifier(String format, String... coord) {
@@ -274,7 +283,6 @@ public abstract class AbstractPolicyEvaluationTest
       switch (lqaFormat) {
         case ALPINE:
         case BOWER:
-        case CONDA:
         case DRUPAL:
           coords = ImmutableMap.of("name", coord[1], "version", coord[2]);
           return new ComponentIdentifier(format, coords);

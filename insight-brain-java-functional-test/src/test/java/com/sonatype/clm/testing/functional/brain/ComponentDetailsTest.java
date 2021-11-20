@@ -757,10 +757,12 @@ public class ComponentDetailsTest
 
     VulnerabilityOverrideForm vulnerabilityOverrideForm = vulnerabilityDetailsPopover.getVulnerabilityOverrideForm();
     vulnerabilityOverrideForm.shouldBe(visible);
-    vulnerabilityOverrideForm.comment().shouldBe(disabled);
+    vulnerabilityOverrideForm.comment().shouldNotBe(visible);
     vulnerabilityOverrideForm.submitButton().shouldBe(CLM.DISABLED);
 
     vulnerabilityOverrideForm.status().chooseOption(new Option(3, "CONFIRMED"));
+    vulnerabilityOverrideForm.comment().shouldBe(visible);
+    vulnerabilityOverrideForm.comment().shouldBe(enabled);
     vulnerabilityOverrideForm.comment().setValue("vulnerability confirmed in the current code");
     vulnerabilityOverrideForm.submitButton().shouldBe(enabled).click();
     // Conditions after submitting

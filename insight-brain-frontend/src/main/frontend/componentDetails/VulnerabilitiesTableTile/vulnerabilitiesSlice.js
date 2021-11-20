@@ -52,6 +52,7 @@ export const initialState = {
   vulnerabilitySecurityOverride: {
     status: '',
     comments: initUserInput(''),
+    showCommentField: true,
     loading: false,
     loadError: null,
     submitMaskState: null,
@@ -137,8 +138,13 @@ function loadVulnerabilityDetailsFulfilled(state, { payload }) {
   );
   state.vulnerabilitySecurityOverride.loading = false;
   state.vulnerabilitySecurityOverride.loadError = null;
-  state.vulnerabilitySecurityOverride.status = AVAILABLE_STATUS[currentVulnerability.status];
   state.vulnerabilitySecurityOverride.saveError = null;
+
+  const status = AVAILABLE_STATUS[currentVulnerability.status];
+  state.vulnerabilitySecurityOverride.status = status;
+  if (status === 'OPEN') {
+    state.vulnerabilitySecurityOverride.showCommentField = false;
+  }
 }
 
 function loadVulnerabilityDetailsFailed(state, { payload }) {
@@ -155,6 +161,7 @@ function toggleVulnerabilityPopoverWithEffects(state, { payload }) {
   state.vulnerabilitySecurityOverride.status = '';
   state.vulnerabilitySecurityOverride.saveError = null;
   state.vulnerabilitySecurityOverride.comments = initUserInput('');
+  state.vulnerabilitySecurityOverride.showCommentField = true;
 }
 
 const componentDetailsVulnerabilitiesSlice = createSlice({
@@ -166,6 +173,7 @@ const componentDetailsVulnerabilitiesSlice = createSlice({
       state.vulnerabilitySecurityOverride.status = payload;
       state.vulnerabilitySecurityOverride.comments = initUserInput('');
       state.vulnerabilitySecurityOverride.saveError = null;
+      state.vulnerabilitySecurityOverride.showCommentField = true;
     },
     setVulnerabilityOverrideComments: (state, { payload }) => {
       state.vulnerabilitySecurityOverride.comments = userInput(validateMaxLength(1000), payload);

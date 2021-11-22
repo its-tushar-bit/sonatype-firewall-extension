@@ -3,7 +3,7 @@
     {
       "format": "maven2",
       "checksum": {
-        "sha1": "g1-n1-130-sha1"
+        "sha512": "g1-n1-130-sha512"
       },
       "maven2": {
         "extension": "jar",
@@ -14,26 +14,11 @@
     },
     {
       "format": "maven2",
-      "checksum": {
-        "sha1": "g1-n1-120-sha1"
-      },
       "maven2": {
         "extension": "jar",
         "groupId": "g1",
         "artifactId": "n1",
         "version": "1.2.0"
-      }
-    },
-    {
-      "format": "maven2",
-      "checksum": {
-        "sha1": "g1-n1-110-sha1"
-      },
-      "maven2": {
-        "extension": "jar",
-        "groupId": "g1",
-        "artifactId": "n1",
-        "version": "1.1.0"
       }
     }
   ],

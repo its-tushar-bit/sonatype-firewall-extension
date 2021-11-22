@@ -7,17 +7,15 @@ package com.sonatype.insight.brain.repository;
 
 import java.util.List;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-
 public class RepositoryAllVersionsResponse
 {
-  private final List<ComponentIdentifier> versions;
+  private final List<RepositoryComponentResult> components;
 
-  public List<ComponentIdentifier> getVersions() {
-    return versions;
+  public List<RepositoryComponentResult> getComponents() {
+    return components;
   }
 
-  public RepositoryAllVersionsResponse(List<ComponentIdentifier> versions) {
-    this.versions = versions;
+  public RepositoryAllVersionsResponse(List<RepositoryComponentResult> components) {
+    this.components = components;
   }
 }

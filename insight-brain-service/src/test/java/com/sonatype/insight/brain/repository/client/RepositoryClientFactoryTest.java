@@ -37,7 +37,7 @@ public class RepositoryClientFactoryTest
     when(dao.get()).thenReturn(null);
 
     RepositoryClientBuilder clientBuilder = factory.create();
-    clientBuilder.forNexus3("baseUrl", "user", "pass");
+    clientBuilder.forNexus3("baseUrl", "user", "pass".toCharArray());
     assertClientConfiguration(clientBuilder, 30, 120);
   }
 
@@ -49,7 +49,7 @@ public class RepositoryClientFactoryTest
     when(dao.get()).thenReturn(clientConfiguration);
 
     RepositoryClientBuilder clientBuilder = factory.create();
-    clientBuilder.forNexus3("baseUrl", "user", "pass");
+    clientBuilder.forNexus3("baseUrl", "user", "pass".toCharArray());
     assertClientConfiguration(clientBuilder, 5, 15);
   }
 
@@ -69,7 +69,7 @@ public class RepositoryClientFactoryTest
 
     RepositoryClientBuilder clientBuilder = factory.create();
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() ->
-            clientBuilder.forNexus3(null, "user", "pass"))
+            clientBuilder.forNexus3(null, "user", "pass".toCharArray()))
         .withMessage("Missing repository base url");
   }
 

@@ -185,7 +185,7 @@ public class ApiRepositoryConnectionService
     RepositoryClient client = repositoryClientFactory.create().forNexus3(
         repositoryConnectionDTO.baseUrl,
         repositoryConnectionDTO.username,
-        repositoryConnectionDTO.password);
+        repositoryConnectionDTO.password == null ? null : repositoryConnectionDTO.password.toCharArray());
     try {
       return client.getServerStatus();
     }

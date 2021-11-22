@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -25,14 +27,26 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.repository.RepositoryQueryService;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.convertToHdsUrl;
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.toLicenseDTO;
 import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
@@ -42,6 +56,9 @@ import static org.assertj.core.api.Assertions.tuple;
 public class CIComponentInfoResourceTest
     extends AbstractComponentInfoResourceTest
 {
+  @Rule
+  public WireMockRule nxrm3MockSever = new WireMockRule(wireMockConfig().dynamicPort());
+
   private Repository repository;
 
   protected HttpRequest vulnerabilitiesRequest(final OwnerType ownerType,
@@ -96,6 +113,42 @@ public class CIComponentInfoResourceTest
   @Test
   public void testGetComponentDetailsList() throws Exception {
     testGetComponentDetailsList_ReadPermission();
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_FromInnerSourceRepository() throws Exception {
+    getCLMServer().getConfiguration().setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+    tempEntity.newRepositoryConnection(getOwner().getId(), nxrm3MockSever.baseUrl(), null, null);
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1.2.0", "", "jar");
+    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+        .withQueryParam(RepositoryQueryService.NEXUS3_QUERY_MAVEN_GROUP_KEY,
+            equalTo(identifier.get(ComponentIdentifier.MAVEN_GROUP_ID)))
+        .withQueryParam(RepositoryQueryService.NEXUS3_QUERY_NAME_KEY,
+            equalTo(identifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)))
+        .withQueryParam(RepositoryQueryService.NEXUS3_QUERY_MAVEN_EXTENSION_KEY,
+            equalTo(identifier.get(ComponentIdentifier.MAVEN_EXTENSION)))
+        .withQueryParam(RepositoryQueryService.NEXUS3_QUERY_MAVEN_CLASSIFIER_KEY,
+            equalTo(""))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withBody(getCannedResponse("maven_nopaging.json"))));
+
+    HttpRequest request = allVersionsRequest(getOwnerId(), identifier)
+        .query("dependencyType", DependencyType.INNER_SOURCE.getId());
+
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+
+    ComponentVersionInfoDTO responseDto = response.getBody(ComponentVersionInfoDTO.class);
+    List<ComponentDetailsDTO> resultDto = responseDto.allVersions;
+
+    assertThat(resultDto).hasSize(3);
+    assertInnerSourceRepositoryVersionInfo(resultDto.get(0), identifier.createAlternativeVersion("1.1.0"),
+        IdentificationSource.PACKAGE_MANIFEST);
+    assertInnerSourceRepositoryVersionInfo(resultDto.get(1), identifier, IdentificationSource.PACKAGE_MANIFEST);
+    assertInnerSourceRepositoryVersionInfo(resultDto.get(2), identifier.createAlternativeVersion("1.3.0"),
+        IdentificationSource.PACKAGE_MANIFEST);
   }
 
   @Test
@@ -260,5 +313,23 @@ public class CIComponentInfoResourceTest
     coords.put("name", name);
     coords.put(ComponentIdentifier.VERSION, version);
     return new ComponentIdentifier(format, coords);
+  }
+
+  private void assertInnerSourceRepositoryVersionInfo(
+      final ComponentDetailsDTO cp,
+      final ComponentIdentifier expectedId,
+      final IdentificationSource identificationSource)
+  {
+    assertThat(cp.componentIdentifier).isEqualTo(expectedId);
+    assertThat(cp.matchState).isEqualTo(MatchState.EXACT.getId());
+    assertThat(cp.identificationSource).isEqualTo(identificationSource.getId());
+    assertThat(cp.declaredLicenses).hasSize(1).extracting("licenseId").containsExactly("UNSPECIFIED");
+    assertThat(cp.observedLicenses).hasSize(1).extracting("licenseId").containsExactly("UNSPECIFIED");
+    assertThat(cp.effectiveLicenses).hasSize(1).extracting("licenseId").containsExactly("UNSPECIFIED");
+  }
+
+  private String getCannedResponse(final String path) throws IOException {
+    return IOUtils.toString(getClass().getResource("/CIComponentInfoResourceTest/repositoryResponses/" + path),
+        StandardCharsets.UTF_8);
   }
 }

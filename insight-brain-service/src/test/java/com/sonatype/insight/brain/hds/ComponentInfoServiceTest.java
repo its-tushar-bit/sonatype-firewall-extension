@@ -15,7 +15,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -75,7 +76,12 @@ import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePatte
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
+import com.sonatype.insight.brain.repository.RepositoryComponentResult;
+import com.sonatype.insight.brain.repository.RepositoryQueryService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
@@ -119,6 +125,8 @@ public class ComponentInfoServiceTest
 
   private static final ComponentIdentifier NUGET_COORDINATES = ComponentIdentifier.createNugetCoordinates("a", "v");
 
+  private static final ComponentIdentifier NPM_COORDINATES = ComponentIdentifier.createNpmCoordinates("p1", "v1");
+
   // This is the tool name (ci, ide, rm) used in REST paths for HDS resources. Since we use it when we mock the HDS
   // client, it doesn't really matter what value we use here, because we don't really access HDS REST paths.
   private static final String TOOL_NAME = "ci";
@@ -147,11 +155,18 @@ public class ComponentInfoServiceTest
   @Mock
   private ThirdPartyComponentDAO thirdPartyComponentDAO;
 
+  @Mock
+  private RepositoryQueryService repositoryQueryService;
+
+  @Inject
+  private InsightConfig insightConfig;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(ProductLicense.class).toInstance(productLicenseMock);
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(thirdPartyComponentDAO);
+    binder.bind(RepositoryQueryService.class).toInstance(repositoryQueryService);
     super.configure(binder);
   }
 
@@ -574,7 +589,7 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, componentIdentifier1);
 
     ComponentDetailsList componentDetailsList =
-        componentInfoService.getComponentDetailsList(componentIdentifier1, null, null, null);
+        componentInfoService.getComponentDetailsList(componentIdentifier1, null, null, null, null);
     componentDetailsLoaderFactory.newInstance(application).augmentComponentDetails(componentDetailsList.getList(),
         MatchState.EXACT.getId(), null);
 
@@ -1496,6 +1511,155 @@ public class ComponentInfoServiceTest
   }
 
   @Test
+  public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_withRequestedVersion_Beginning() {
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+    String identificationSource = IdentificationSource.REPOSITORY.getId();
+    String scanId = "scanId";
+
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId(), "v1",
+        "v2", "v3");
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
+        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
+        DependencyType.INNER_SOURCE);
+
+    List<ComponentDetailsDTO> result = dto.allVersions;
+
+    assertThat(result).hasSize(3);
+    assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES.createAlternativeVersion("v1"));
+    assertGetComponentVersionsRepositoryResult(result.get(1), MAVEN_A1_COORDINATES.createAlternativeVersion("v2"));
+    assertGetComponentVersionsRepositoryResult(result.get(2), MAVEN_A1_COORDINATES.createAlternativeVersion("v3"));
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_withRequestedVersion_inBetween() {
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+    String identificationSource = IdentificationSource.REPOSITORY.getId();
+    String scanId = "scanId";
+
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId(), "v0",
+        "v1", "v2");
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
+        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
+        DependencyType.INNER_SOURCE);
+
+    List<ComponentDetailsDTO> result = dto.allVersions;
+
+    assertThat(result).hasSize(3);
+    assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES.createAlternativeVersion("v0"));
+    assertGetComponentVersionsRepositoryResult(result.get(1), MAVEN_A1_COORDINATES.createAlternativeVersion("v1"));
+    assertGetComponentVersionsRepositoryResult(result.get(2), MAVEN_A1_COORDINATES.createAlternativeVersion("v2"));
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_withRequestedVersion_End() {
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+    String identificationSource = IdentificationSource.REPOSITORY.getId();
+    String scanId = "scanId";
+
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId(), "v0.4",
+        "v0.8", "v1");
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
+        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
+        DependencyType.INNER_SOURCE);
+
+    List<ComponentDetailsDTO> result = dto.allVersions;
+
+    assertThat(result).hasSize(3);
+    assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES.createAlternativeVersion("v0.4"));
+    assertGetComponentVersionsRepositoryResult(result.get(1), MAVEN_A1_COORDINATES.createAlternativeVersion("v0.8"));
+    assertGetComponentVersionsRepositoryResult(result.get(2), MAVEN_A1_COORDINATES.createAlternativeVersion("v1"));
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_missingRequestedVersion() {
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+    String identificationSource = IdentificationSource.REPOSITORY.getId();
+    String scanId = "scanId";
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId(), "v0",
+        "v3");
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
+        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
+        DependencyType.INNER_SOURCE);
+
+    List<ComponentDetailsDTO> result = dto.allVersions;
+
+    assertThat(result).hasSize(3);
+    assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES.createAlternativeVersion("v0"));
+    assertGetComponentVersionsRepositoryResult(result.get(1), MAVEN_A1_COORDINATES);
+    assertGetComponentVersionsRepositoryResult(result.get(2), MAVEN_A1_COORDINATES.createAlternativeVersion("v3"));
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_noResult() {
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+    String identificationSource = IdentificationSource.REPOSITORY.getId();
+    String scanId = "scanId";
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId());
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
+        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
+        DependencyType.INNER_SOURCE);
+
+    List<ComponentDetailsDTO> result = dto.allVersions;
+
+    assertThat(result).hasSize(1);
+    assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES);
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_npm() {
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+    String identificationSource = IdentificationSource.REPOSITORY.getId();
+    String scanId = "scanId";
+    mockRepositoryQueryServiceAllVersionResponse(NPM_COORDINATES, application.getId(), "v0", "v1", "v2");
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
+        application.getPublicId(), NPM_COORDINATES, null, identificationSource, scanId,
+        DependencyType.INNER_SOURCE);
+
+    List<ComponentDetailsDTO> result = dto.allVersions;
+
+    assertThat(result).hasSize(3);
+    assertGetComponentVersionsRepositoryResult(result.get(0), NPM_COORDINATES.createAlternativeVersion("v0"));
+    assertGetComponentVersionsRepositoryResult(result.get(1), NPM_COORDINATES);
+    assertGetComponentVersionsRepositoryResult(result.get(2), NPM_COORDINATES.createAlternativeVersion("v2"));
+  }
+
+  private void assertGetComponentVersionsRepositoryResult(
+      final ComponentDetailsDTO cp,
+      final ComponentIdentifier expectedComponentIdentifier)
+  {
+    assertThat(cp.componentIdentifier).isEqualTo(expectedComponentIdentifier);
+    assertThat(cp.matchState).isEqualTo(MatchState.EXACT.getId());
+    assertThat(cp.identificationSource).isEqualTo(IdentificationSource.PACKAGE_MANIFEST.getId());
+    assertThat(cp.declaredLicenses).hasSize(1).extracting("licenseId").containsExactly("UNSPECIFIED");
+    assertThat(cp.observedLicenses).hasSize(1).extracting("licenseId").containsExactly("UNSPECIFIED");
+    assertThat(cp.effectiveLicenses).hasSize(1).extracting("licenseId").containsExactly("UNSPECIFIED");
+  }
+
+  private void mockRepositoryQueryServiceAllVersionResponse(
+      ComponentIdentifier componentIdentifier,
+      String ownerId,
+      String... mockVersions)
+  {
+    List<RepositoryComponentResult> resultComponents = Stream.of(mockVersions)
+        .map(v -> new RepositoryComponentResult(componentIdentifier.createAlternativeVersion(v), "sha" + v))
+        .collect(Collectors.toList());
+    RepositoryAllVersionsResponse response = new RepositoryAllVersionsResponse(resultComponents);
+    when(repositoryQueryService.getAllVersions(componentIdentifier, ownerId)).thenReturn(response);
+  }
+
+  @Test
   public void testGetComponentDetailsList_UnknownHdsComponent() {
     String scanId = "test";
     String identificationSource = "cyclone";
@@ -1525,8 +1689,8 @@ public class ComponentInfoServiceTest
     when(thirdPartyComponentDAO.resolveComponentDetails(application.getId(), componentIdentifier1, scanId))
         .thenReturn(tpComponentDetails);
 
-    ComponentDetailsList componentDetailsList =
-        componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId);
+    ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(
+        componentIdentifier1, application, identificationSource, scanId, null);
 
     assertThat(componentDetailsList).isNotNull();
     assertThat(componentDetailsList.getList()).hasSize(2);
@@ -1570,8 +1734,8 @@ public class ComponentInfoServiceTest
     when(thirdPartyComponentDAO.getAllVersions(application.getId(), componentIdentifier1, scanId))
         .thenReturn(thirdPartyComponentDetailsList);
 
-    ComponentDetailsList componentDetailsList =
-        componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId);
+    ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(
+        componentIdentifier1, application, identificationSource, scanId, null);
 
     assertThat(componentDetailsList).isNotNull();
     assertThat(componentDetailsList.getList()).hasSize(1);
@@ -1587,6 +1751,7 @@ public class ComponentInfoServiceTest
   @Test
   public void testGetComponentDetailsList_ErrorHdsComponent() {
     String scanId = "test";
+    DependencyType dependencyType = DependencyType.DIRECT;
     String identificationSource = IdentificationSource.SONATYPE.toString();
 
     Map<String, String> coordinates = new HashMap<>();
@@ -1601,7 +1766,7 @@ public class ComponentInfoServiceTest
 
     assertThatThrownBy(
         () -> componentInfoService
-            .getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId))
+            .getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId, dependencyType))
         .isInstanceOf(BadRequestException.class);
   }
 
@@ -1630,7 +1795,8 @@ public class ComponentInfoServiceTest
         .thenReturn(tpComponentDetailsList);
 
     ComponentDetailsList componentDetailsList =
-        componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId);
+        componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId,
+            null);
 
     assertThat(componentDetailsList).isNotNull();
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
@@ -1670,7 +1836,8 @@ public class ComponentInfoServiceTest
         .thenReturn(tpComponentDetailsList);
 
     ComponentDetailsList componentDetailsList =
-        componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId);
+        componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId,
+            null);
 
     assertThat(componentDetailsList).isNotNull();
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
@@ -1693,7 +1860,7 @@ public class ComponentInfoServiceTest
     ComponentIdentifier componentIdentifier1 = new ComponentIdentifier("unknown", coordinates);
 
     assertThatThrownBy(
-        () -> componentInfoService.getComponentDetailsList(componentIdentifier1, application, null, null))
+        () -> componentInfoService.getComponentDetailsList(componentIdentifier1, application, null, null, null))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Invalid format: unknown");
   }
@@ -1872,7 +2039,8 @@ public class ComponentInfoServiceTest
         .thenReturn(componentDetails);
 
     ComponentDetailsList result =
-        componentInfoService.getComponentDetailsList(componentIdentifier, app, "third-party", scanId);
+        componentInfoService.getComponentDetailsList(componentIdentifier, app, "third-party", scanId,
+            DependencyType.DIRECT);
 
     assertThat(result.getList()).containsExactly(componentDetails);
   }

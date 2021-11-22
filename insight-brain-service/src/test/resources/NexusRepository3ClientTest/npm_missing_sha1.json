@@ -3,7 +3,7 @@
     {
       "format": "npm",
       "checksum": {
-        "sha1": "p1-120-sha1"
+        "sha512": "p1-120-sha512"
       },
       "npm": {
         "name": "p1",
@@ -12,9 +12,6 @@
     },
     {
       "format": "npm",
-      "checksum": {
-        "sha1": "p1-110-sha1"
-      },
       "npm": {
         "name": "p1",
         "version": "1.1.0"

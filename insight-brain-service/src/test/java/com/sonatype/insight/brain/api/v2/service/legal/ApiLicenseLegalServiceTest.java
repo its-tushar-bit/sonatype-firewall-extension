@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -99,7 +98,9 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.repository.RepositoryQueryService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
@@ -221,6 +222,12 @@ public class ApiLicenseLegalServiceTest
   @Inject
   private TestProductLicense testProductLicense;
 
+  @Mock
+  private RepositoryQueryService repositoryQueryService;
+
+  @Mock
+  private InsightConfig insightConfig;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(ApiLicenseLegalHdsService.class).toInstance(mockApiLicenseLegalHdsService);
@@ -228,7 +235,7 @@ public class ApiLicenseLegalServiceTest
     apiLicenseDataAdapterSpy = spy(new DefaultApiLicenseDataAdapter(new MultiLicenseDAO()));
     binder.bind(ApiLicenseDataAdapter.class).toInstance(apiLicenseDataAdapterSpy);
     componentInfoServiceSpy = spy(new ComponentInfoService(null, null, new ComponentDetailsLoaderFactory(null), null,
-        mockThirdPartyComponentDAO));
+        mockThirdPartyComponentDAO, insightConfig, repositoryQueryService));
     binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceSpy);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(mockThirdPartyComponentDAO);
     super.configure(binder);

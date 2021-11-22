@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
 import com.sonatype.insight.brain.repository.RepositoryClient;
+import com.sonatype.insight.brain.repository.RepositoryComponentResult;
 import com.sonatype.insight.client.utils.AbstractClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
@@ -24,6 +25,7 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotAuthenticatedException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,19 +64,20 @@ public class NexusRepository3Client
   @Override
   public RepositoryAllVersionsResponse getAllVersions(Map<String, String> queryParams) throws IOException {
     String continuationToken = null;
-    List<ComponentIdentifier> allVersions = new ArrayList<>();
+    List<RepositoryComponentResult> results = new ArrayList<>();
     do {
-      Result result = path("/service/rest/v1/search/assets").query(toQueryParams(queryParams, continuationToken)).get();
+      Result result = path("/service/rest/v1/search/assets")
+          .queryWithEmptyParams(toQueryParams(queryParams, continuationToken)).get();
       if (result.status() != 200) {
         handleError(result);
       }
       NXRM3SearchResponse searchResponse = JsonUtils.parse(result.data(), NXRM3SearchResponse.class);
-      mapToAllVersionsResponse(allVersions, searchResponse);
+      mapToAllVersionsResponse(results, searchResponse);
       continuationToken = searchResponse.continuationToken;
     }
     while (continuationToken != null);
-    Collections.reverse(allVersions); //nxrm3 result is in the descending order
-    return new RepositoryAllVersionsResponse(allVersions);
+    Collections.reverse(results); //nxrm3 result is in the descending order
+    return new RepositoryAllVersionsResponse(results);
   }
 
   /**
@@ -107,7 +110,7 @@ public class NexusRepository3Client
   }
 
   private void mapToAllVersionsResponse(
-      final List<ComponentIdentifier> allVersions,
+      final List<RepositoryComponentResult> results,
       final NXRM3SearchResponse result)
   {
     if (result != null) {
@@ -116,7 +119,7 @@ public class NexusRepository3Client
         if (id != null) {
           try {
             id.ensureComplete();
-            allVersions.add(id);
+            results.add(new RepositoryComponentResult(id, getSha1Safely(item)));
           }
           catch (InvalidComponentIdentifierException e) {
             log.debug("Repository result contained missing/invalid coordinates", e);
@@ -124,6 +127,13 @@ public class NexusRepository3Client
         }
       }
     }
+  }
+
+  private String getSha1Safely(final NexusItem item) {
+    if (item.checksum != null && StringUtils.isNotBlank(item.checksum.sha1)) {
+      return item.checksum.sha1;
+    }
+    return null;
   }
 
   private ComponentIdentifier getComponentIdentifier(final NexusItem item) {
@@ -170,5 +180,12 @@ public class NexusRepository3Client
     public Map<String, String> maven2;
 
     public Map<String, String> npm;
+
+    public NexusChecksum checksum;
+  }
+
+  static class NexusChecksum
+  {
+    public String sha1;
   }
 }

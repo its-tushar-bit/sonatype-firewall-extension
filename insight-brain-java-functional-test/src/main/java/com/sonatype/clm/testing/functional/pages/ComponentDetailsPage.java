@@ -11,7 +11,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.SecurityTab
 import com.sonatype.clm.testing.functional.elements.componentdetails.LegalTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ViolationsTabContent;
-import com.sonatype.clm.testing.functional.elements.componentdetails.ManageLabelsContent;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ManageLabelsContentTab;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
@@ -143,8 +143,8 @@ public class ComponentDetailsPage
     return new OverviewTabContent();
   }
 
-  public ManageLabelsContent labelsContent() {
-    return new ManageLabelsContent("#manage-component-labels");
+  public ManageLabelsContentTab labelsContent() {
+    return new ManageLabelsContentTab("#manage-component-labels");
   }
 
   public AuditLogContent auditLogContent() {

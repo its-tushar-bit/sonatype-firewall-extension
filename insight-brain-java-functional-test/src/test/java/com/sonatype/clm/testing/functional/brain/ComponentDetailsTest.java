@@ -27,6 +27,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentIn
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LegalTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ManageLabelsContentTab;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OccurrencesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
@@ -49,8 +50,10 @@ import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
@@ -980,9 +983,49 @@ public class ComponentDetailsTest
 
   @Test
   public void testLabelsTab_manageLabels() {
+    // Create app level label, apply to component
+    Label appLevelLabel = tempEntity.newLabel(app.getId(), "app level label", Color.dark_red);
+    tempEntity.newComponentLabel(app.getId(), appLevelLabel.getId(),"fa78f54738ccf77379d1");
+
+    // Go to details page, verify manage labels content appears
     refreshOrOpen(ComponentDetailsPage.urlToLabels(app, SCAN_ID, "fa78f54738ccf77379d1"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    componentDetailsPage.labelsContent().shouldBe(visible);
+    ManageLabelsContentTab manageLabels = componentDetailsPage.labelsContent();
+    manageLabels.shouldBe(visible);
+    manageLabels.appliedLabels().shouldHaveSize(1);
+    manageLabels.applicableLabels().shouldHaveSize(3);
+
+    // Remove applied app level label
+    manageLabels.appliedLabels().get(0).should(exist).click();
+    manageLabels.removeLabelModal().should(exist);
+    // Screenshot remove label modal
+    eyesWatcher.eyesCheck("Remove Label Modal");
+    // Confirm removal and verify labels count
+    manageLabels.removeLabelModal().confirmRemoveButton().should(exist).click();
+    manageLabels.appliedLabels().shouldHaveSize(0);
+    manageLabels.applicableLabels().shouldHaveSize(4);
+
+    // Adding first label
+    manageLabels.applicableLabelText(0).shouldHave(text("Architecture-Blacklisted"));
+    manageLabels.applicableLabels().get(0).should(exist).click();
+    manageLabels.addLabelModal().should(exist);
+    // Screenshot the add label modal
+    eyesWatcher.eyesCheck("Add Label Modal");
+    // Add and confirm
+    manageLabels.addLabelModal().labelsScopeRadioButton(0).should(exist).click();
+    manageLabels.addLabelModal().submitButton().shouldBe(enabled).click();
+    manageLabels.appliedLabelText(0).shouldHave(text("Architecture-Blacklisted"));
+
+    // Adding app level label
+    manageLabels.applicableLabelText(2).shouldHave(text("app level label"));
+    manageLabels.applicableLabels().get(2).should(exist).click();
+    // No modal should appear, the label should just be added right away
+    manageLabels.addLabelModal().shouldNot(exist);
+    manageLabels.appliedLabelText(0).shouldHave(text("app level label"));
+
+    // Confirm additions
+    manageLabels.appliedLabels().shouldHaveSize(2);
+    eyesWatcher.eyesCheck("Labels Tab");
   }
 
   private void createAuditLogEntries() {

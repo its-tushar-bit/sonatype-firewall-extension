@@ -5,12 +5,18 @@
  */
 package com.sonatype.insight.brain.repository.component;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -63,6 +69,19 @@ public class QuarantinedComponentServiceAuthzTest
     quarantinedComponentService.getQuarantinedComponentOverview("token");
   }
 
+  @Test
+  public void testGetQuarantinedComponentPolicyViolations_Unauthenticated() {
+    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(setupTestData());
+    quarantinedComponentService.getQuarantinedComponentPolicyViolations("token");
+  }
+
+  @Test
+  public void testGetQuarantinedComponentPolicyViolations_Authenticated() {
+    login();
+    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(setupTestData());
+    quarantinedComponentService.getQuarantinedComponentPolicyViolations("token");
+  }
+
   private String setupTestData() {
     Date date = new Date();
     ComponentIdentifier componentIdentifier =
@@ -72,9 +91,16 @@ public class QuarantinedComponentServiceAuthzTest
     final RepositoryComponent repositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path",
             "hash", componentIdentifier, date, date);
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 6,
-        repositoryComponent.getPathname(), false, "fail", "policyId", "policyName",
-        repositoryComponent.getComponentIdentifier(), date);
+    List<ConstraintFact> constraintFacts = new ArrayList<>();
+    ConstraintFact constraintFact = new ConstraintFact(UUID.randomUUID().toString(), "constraintName", "and");
+    ConditionFact conditionFact = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID,
+        0 /* conditionIndex */, "some summary", "some reason");
+    conditionFact.setTriggerJson("some trigger");
+    constraintFact.addConditionFact(conditionFact);
+    constraintFacts.add(constraintFact);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent.getPathname(),
+        "hash", constraintFacts, false, "fail", "policyid", "policyname",
+        componentIdentifier, date, null, null, null);
     return repositoryComponent.getId();
   }
 }

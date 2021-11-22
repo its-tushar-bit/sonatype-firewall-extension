@@ -139,7 +139,7 @@ public class ScannerTest extends InjectedTest
     assertThat(item.getItems()).hasSize(0);
     assertThat(item.getContentType()).isEqualTo(ItemContentType.SBOM);
 
-    assertThat(item.getSha1()).isEqualTo("395849f1c53dac640ca8");
+    assertThat(item.getSha1()).isEqualTo("6e263804dcfedb414bf3");
   }
 
   @Test

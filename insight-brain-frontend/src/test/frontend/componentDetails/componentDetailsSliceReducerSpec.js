@@ -9,11 +9,11 @@ import { VISIT_ANCESTOR_ACTION, RETURN_TO_OFFSPRING } from 'MainRoot/componentDe
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 const LOAD_COMPONENT_LABELS_REQUESTED = 'componentDetails/loadComponentDetails/pending';
-const LOAD_COMPONENT_LABELS_FULFILLED = 'componentDetails/loadComponentDetails/fulfilled';
-const LOAD_COMPONENT_LABELS_FAILED = 'componentDetails/loadComponentDetails/rejected';
-const LOAD_APPLICABLE_LABELS_REQUESTED = 'componentDetails/loadApplicableLabels/pending';
-const LOAD_APPLICABLE_LABELS_FULFILLED = 'componentDetails/loadApplicableLabels/fulfilled';
-const LOAD_APPLICABLE_LABELS_FAILED = 'componentDetails/loadApplicableLabels/rejected';
+const LOAD_COMPONENT_LABELS_FULFILLED = 'componentDetails/loadComponentDetailsWithCancelToken/fulfilled';
+const LOAD_COMPONENT_LABELS_FAILED = 'componentDetails/loadComponentDetailsWithCancelToken/rejected';
+const LOAD_APPLICABLE_LABELS_REQUESTED = 'componentDetails/loadApplicableLabelsWithCancelToken/pending';
+const LOAD_APPLICABLE_LABELS_FULFILLED = 'componentDetails/loadApplicableLabelsWithCancelToken/fulfilled';
+const LOAD_APPLICABLE_LABELS_FAILED = 'componentDetails/loadApplicableLabelsWithCancelToken/rejected';
 const REMOVE_APPLIED_LABEL_REQUESTED = 'componentDetails/removeLabel/pending';
 const REMOVE_APPLIED_LABEL_FULFILLED = 'componentDetails/removeLabel/fulfilled';
 const REMOVE_APPLIED_LABEL_FAILED = 'componentDetails/removeLabel/rejected';

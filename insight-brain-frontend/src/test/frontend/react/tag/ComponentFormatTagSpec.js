@@ -42,13 +42,6 @@ describe('ComponentFormatTag', function () {
       expect(text).toHaveText('Alpine');
     });
 
-    it('properly capitalizes the name of the Bower ecosystem', function () {
-      const component = getShallow({ name: 'bower' });
-      const text = component.find('span');
-
-      expect(text).toHaveText('Bower');
-    });
-
     it('properly capitalizes the name of the Cargo ecosystem', function () {
       const component = getShallow({ name: 'cargo' });
       const text = component.find('span');
@@ -92,7 +85,7 @@ describe('ComponentFormatTag', function () {
     });
 
     it('properly capitalizes the name of the Debian ecosystem', function () {
-      const component = getShallow({ name: 'debian' });
+      const component = getShallow({ name: 'deb' });
       const text = component.find('span');
 
       expect(text).toHaveText('Debian');

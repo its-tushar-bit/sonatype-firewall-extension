@@ -64,6 +64,9 @@ export default function ComponentDetails({
       return;
     }
     onTabChange(tabIdToMoveTo);
+    if (tabIndex === tabIdPerIndex.indexOf('labels')) {
+      loadComponentDetails();
+    }
   };
 
   const goToClaim = () => {

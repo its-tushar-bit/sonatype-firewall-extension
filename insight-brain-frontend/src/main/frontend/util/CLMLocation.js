@@ -588,8 +588,15 @@ export function getRequestWaiverUrl(policyViolationId) {
 }
 
 export function getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier) {
-  const componentIdentifierProp = componentIdentifier ? `?componentIdentifier=${componentIdentifier}` : '';
-  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}` + componentIdentifierProp;
+  if (componentIdentifier) {
+    /**
+     * `componentIdentifier` is already a stringified json, but it still needs encoding
+     * `uriTemplate` handles that encoding for us.
+     */
+    return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}?componentIdentifier=${componentIdentifier}`;
+  }
+
+  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}`;
 }
 
 export function getBaseLicenseOverrideUrl(ownerType, ownerId) {

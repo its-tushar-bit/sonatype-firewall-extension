@@ -186,7 +186,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         '/rest/ci/componentDetails/application/appPublicId/licenses?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D&identificationSource=identificationSource&scanId=currentScanId'
       );
       expect(axios.get).toHaveBeenCalledWith(
-        '/rest/licenseOverride/application/appPublicId?componentIdentifier={"format":"format","coordinates":"coordinates"}'
+        '/rest/licenseOverride/application/appPublicId?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D'
       );
     });
 

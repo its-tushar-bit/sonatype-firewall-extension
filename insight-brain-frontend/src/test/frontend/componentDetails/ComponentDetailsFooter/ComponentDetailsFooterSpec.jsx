@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxTextLink } from '@sonatype/react-shared-components';
+import { NxTextLink, NxOverflowTooltip } from '@sonatype/react-shared-components';
 
 import {
   ComponentDetailsFooter,
@@ -62,8 +62,9 @@ describe('ComponentDetailsFooter', () => {
     it('renders back to offspring component button and does not render counter and next button', () => {
       expect(component.find(PaginationLink)).not.toExist();
       expect(component.find(PaginationCounter)).not.toExist();
+      expect(component.find(NxOverflowTooltip)).toExist();
       expect(component.find(NxTextLink)).toExist();
-      expect(component.find(NxTextLink)).toIncludeText('Back to test : offspring : component : name component');
+      expect(component.find(NxTextLink)).toIncludeText('Back to: test : offspring : component : name');
     });
 
     it('handles back to offspring component button click', () => {

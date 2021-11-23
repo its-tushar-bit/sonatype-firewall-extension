@@ -323,7 +323,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     RecommendedVersionsSection recommendedVersionsSection = riskRemediation.recommendedVersionsSections();
     recommendedVersionsSection.shouldBe(visible);
-    footerBackButton.shouldHave(text("Back to ch.qos.logback : logback-access : 0.6 component"));
+    footerBackButton.shouldHave(text("Back to: ch.qos.logback : logback-access : 0.6"));
     eyesWatcher.eyesCheck();
     footerBackButton.click();
 

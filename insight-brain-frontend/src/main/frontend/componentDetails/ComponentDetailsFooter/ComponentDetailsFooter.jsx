@@ -7,7 +7,7 @@ import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { IqPageFooter } from '../../react/IqPageFooter';
 import { PaginationLink } from './PaginationLink';
-import { NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTextLink, NxOverflowTooltip } from '@sonatype/react-shared-components';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 
 export const ComponentDetailsFooter = ({
@@ -20,11 +20,13 @@ export const ComponentDetailsFooter = ({
   ...props
 }) => {
   const footerContent = offspringComponentName ? (
-    <NxTextLink onClick={() => backToOffspringOnClick(prev)}>
-      <NxFontAwesomeIcon icon={faChevronLeft} />
-      <span className="component-details-footer__back-to-component">Back to </span>
-      <span>{`${offspringComponentName} component`}</span>
-    </NxTextLink>
+    <NxOverflowTooltip>
+      <NxTextLink className="nx-truncate-ellipsis" onClick={() => backToOffspringOnClick(prev)}>
+        <NxFontAwesomeIcon icon={faChevronLeft} />
+        <span className="component-details-footer__back-to-component">Back to: </span>
+        <span>{offspringComponentName}</span>
+      </NxTextLink>
+    </NxOverflowTooltip>
   ) : (
     <Fragment>
       <PaginationLink href={prev} text="Previous Component" direction="prev" />

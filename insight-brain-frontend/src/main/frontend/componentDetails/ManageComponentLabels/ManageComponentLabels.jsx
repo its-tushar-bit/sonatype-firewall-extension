@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment, useEffect } from 'react';
-import { groupBy } from 'ramda';
 import * as PropTypes from 'prop-types';
 import { NxLoadWrapper } from '@sonatype/react-shared-components';
 

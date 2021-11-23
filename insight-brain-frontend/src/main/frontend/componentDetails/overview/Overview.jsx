@@ -8,7 +8,7 @@ import React, { Fragment } from 'react';
 import OverviewComponentInformationTile from './componentInformationTile/OverviewComponentInformationTile';
 import { RiskRemediationContainer } from './riskRemediation/RiskRemediationContainer';
 import SimilarMatchesPopoverContainer from './SimilarMatchesPopoover/SimilarMatchesPopoverContainer';
-
+import DependencyTreeTile from './DependencyTreeTile/DependencyTreeTile';
 export default function Overview(props) {
   const { ...componentInformationTileProps } = props;
 
@@ -22,6 +22,7 @@ export default function Overview(props) {
         <Fragment>
           <RiskRemediationContainer />
           <SimilarMatchesPopoverContainer />
+          <DependencyTreeTile />
         </Fragment>
       )}
     </Fragment>

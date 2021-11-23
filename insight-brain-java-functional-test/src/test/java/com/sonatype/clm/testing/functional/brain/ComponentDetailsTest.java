@@ -24,6 +24,7 @@ import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
+import com.sonatype.clm.testing.functional.elements.componentdetails.DependencyTreeTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LegalTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
@@ -441,6 +442,17 @@ public class ComponentDetailsTest
 
     similarMatchesPopover.closeButton().click();
     similarMatchesPopover.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testOverviewTab_DependencyTreeTile() {
+    refreshOrOpen(
+        ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "197d803ab63dd3523d9d"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
+    dependencyTreeTile.shouldBe(visible);
+    dependencyTreeTile.title().shouldHave(text("Dependency Tree"));
   }
 
   @Test

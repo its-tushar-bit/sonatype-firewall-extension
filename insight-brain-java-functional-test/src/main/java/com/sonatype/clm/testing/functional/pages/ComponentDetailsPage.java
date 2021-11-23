@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.componentdetails.DependencyTreeTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OverviewTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.SecurityTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LegalTabContent;
@@ -33,6 +34,10 @@ public class ComponentDetailsPage
 
   public static String urlToOverview(Application app, String scanId, String hash) {
     return BaseUrl.resolvePageUrl(BASE_URL + "/overview", app.getPublicId(), scanId, hash);
+  }
+
+  public static String urlToOverviewWithDependencyTreeTileEnabled(Application app, String scanId, String hash) {
+    return BaseUrl.resolvePageUrl(BASE_URL + "/overview?dependencyTreeEnabled", app.getPublicId(), scanId, hash);
   }
 
   public static String urlToViolations(Application app, String scanId, String hash) {
@@ -121,6 +126,10 @@ public class ComponentDetailsPage
 
   public SelenideElement claimTabForClaimedComponent() {
     return this.tabs().get(5);
+  }
+
+  public DependencyTreeTile dependencyTreeTile() {
+    return new DependencyTreeTile();
   }
 
   public ViolationsTabContent violationsTabContent() {

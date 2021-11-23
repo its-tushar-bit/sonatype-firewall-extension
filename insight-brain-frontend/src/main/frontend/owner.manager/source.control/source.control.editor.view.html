@@ -40,7 +40,7 @@
       <!-- app repository URL -->
       <div id="repository-url-row" class="iq-form-row" ng-if="vm.isApp">
         <div class="iq-form-group">
-          <label class="iq-label" for="editor-source-control-url" ng-disabled="!vm.effectiveProvider()"><!--
+          <label class="iq-label" for="editor-source-control-url"><!--
          -->Repository URL
           </label>
           <input id="editor-source-control-url"
@@ -51,7 +51,6 @@
                  ng-model="vm.dirtySourceControl.repositoryUrl"
                  ng-maxlength="2048"
                  clm-input
-                 ng-disabled="!vm.effectiveProvider()"
                  required
                  messages="{required: 'A valid repository URL is required',
                     pattern: 'A valid repository URL is required. HTTP(S) and SSH URLs are supported'}">

@@ -1084,7 +1084,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.tokenWarning().shouldBe(visible);
 
     SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
-    SourceControlEditorPage.repositoryUrl().shouldBe(visible, disabled);
+    SourceControlEditorPage.repositoryUrl().shouldBe(visible, enabled);
     SourceControlEditorPage.advancedSettingsTree().shouldBe(visible);
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
 

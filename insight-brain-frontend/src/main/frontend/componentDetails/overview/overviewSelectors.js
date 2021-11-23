@@ -135,3 +135,8 @@ export const selectComponentDetailsSelectedRequestData = createSelector(
     scanId: params.scanId,
   })
 );
+
+export const selectShowComponentCoordinatesPopover = createSelector(
+  selectComponentDetailsOverviewSlice,
+  prop('showComponentCoordinatesPopover')
+);

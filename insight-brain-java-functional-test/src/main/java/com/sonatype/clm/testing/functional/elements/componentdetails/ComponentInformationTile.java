@@ -17,10 +17,8 @@ public class ComponentInformationTile
 {
   private static final String TILE_SELECTOR = "#overview-component-information-tile";
 
-  private static final String TILE_CONTENT_SELECTOR = ".nx-tile-content";
-
   private static final String SECTION_DEFINITION_ITEM_SELECTOR =
-      ".nx-read-only > .nx-read-only__item";
+      ".nx-read-only__item";
 
   public static ComponentInformationTile getOverviewTileForParent(String parentSelector) {
     String combinedSelector = SelectorUtils.createSelector(parentSelector, TILE_SELECTOR);
@@ -31,40 +29,19 @@ public class ComponentInformationTile
     super(selectorStringWithParent);
   }
 
-  public GeneralInfoSection generalInfoSection() {
-    return new GeneralInfoSection(this.childSelector(TILE_CONTENT_SELECTOR, "section:nth-child(1)"));
+  public IdentificationDefinitionList identificationDefinitionList() {
+    return new IdentificationDefinitionList(
+        this.childSelector(".iq-identification-info-definition-list"));
   }
 
-  public IdentificationInfoSection identificationInfoSection() {
-    return new IdentificationInfoSection(this.childSelector(TILE_CONTENT_SELECTOR, "section:nth-child(2)"));
+  public SelenideElement componentCoordinatesButton() {
+    return child(".component-coordinates-button");
   }
 
-  public static class GeneralInfoSection
-      extends BasicElement<GeneralInfoSection>
+  public static class IdentificationDefinitionList
+      extends BasicElement<IdentificationDefinitionList>
   {
-    private GeneralInfoSection(String selector) {
-      super(selector);
-    }
-
-    public SelenideElement getTypeItem() {
-      ElementsCollection definitionPairs = getDefinitionPairs();
-      return definitionPairs.get(0);
-    }
-
-    public ElementsCollection getNamingItems() {
-      ElementsCollection definitionPairs = getDefinitionPairs();
-      return definitionPairs.last(definitionPairs.size() - 1);
-    }
-
-    private ElementsCollection getDefinitionPairs() {
-      return children(SECTION_DEFINITION_ITEM_SELECTOR);
-    }
-  }
-
-  public static class IdentificationInfoSection
-      extends BasicElement<IdentificationInfoSection>
-  {
-    private IdentificationInfoSection(String selector) {
+    private IdentificationDefinitionList(String selector) {
       super(selector);
     }
 

@@ -22,8 +22,8 @@ import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
-import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
-import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentCoordinatesPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationDefinitionList;
 import com.sonatype.clm.testing.functional.elements.componentdetails.DependencyTreeTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LegalTabContent;
@@ -376,24 +376,40 @@ public class ComponentDetailsTest
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
 
-    GeneralInfoSection generalInfoSection =
-        componentDetailsPage.overviewTabContent().componentInformationTile().generalInfoSection();
-    generalInfoSection.shouldBe(visible);
-    generalInfoSection.getTypeItem().shouldHave(text("Type maven"));
-    generalInfoSection.getNamingItems()
-        .shouldHave(exactTexts("Group com.mycila", "Artifact license-maven-plugin", "Version 2.11"));
-    IdentificationInfoSection identificationInfoSection =
-        componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
-    identificationInfoSection.shouldBe(visible);
-    identificationInfoSection.getMatchStateItem().shouldHave(text("Match State exact"));
-    identificationInfoSection.getIdentificationSourceItem().shouldHave(text("Identification Source"));
-    identificationInfoSection.getWebsiteItem().shouldHave(text("Website"));
-    identificationInfoSection.getCategoryItem().shouldHave(text("Category"));
+    IdentificationDefinitionList identificationDefinitionList =
+        componentDetailsPage.overviewTabContent().componentInformationTile().identificationDefinitionList();
+    identificationDefinitionList.shouldBe(visible);
+    identificationDefinitionList.getMatchStateItem().shouldHave(text("Match State exact"));
+    identificationDefinitionList.getIdentificationSourceItem().shouldHave(text("Identification Source"));
+    identificationDefinitionList.getWebsiteItem().shouldHave(text("Website"));
+    identificationDefinitionList.getCategoryItem().shouldHave(text("Category"));
 
-    identificationInfoSection.getOccurrencesItem().shouldBe(visible);
-    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File"));
+    identificationDefinitionList.getOccurrencesItem().shouldBe(visible);
+    identificationDefinitionList.getOccurrencesItem().shouldHave(text("Occurrences 1 File"));
 
     eyesWatcher.eyesCheck("component details overview tab component information");
+  }
+
+  @Test
+  public void testOverviewTab_componentCoordinatesPopover() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
+    componentDetailsPage.overviewTab().shouldBe(visible);
+    componentDetailsPage.overviewTabContent().shouldBe(visible);
+
+    componentDetailsPage.overviewTabContent().componentInformationTile().componentCoordinatesButton().click();
+    ComponentCoordinatesPopover componentCoordinatesPopover = new ComponentCoordinatesPopover();
+
+    componentCoordinatesPopover.shouldBe(visible);
+    componentCoordinatesPopover.title().shouldHave(text("Component Coordinates"));
+    componentCoordinatesPopover.typeDefinition().shouldHave(text("Type maven"));
+    componentCoordinatesPopover.namingDefinitions()
+        .shouldHave(exactTexts("Group com.mycila", "Artifact license-maven-plugin", "Version 2.11"));
+
+    eyesWatcher.eyesCheck("component details component coordinates popover");
+
+    componentCoordinatesPopover.closeButton().click();
+    componentCoordinatesPopover.shouldNotBe(visible);
   }
 
   @Test
@@ -403,11 +419,11 @@ public class ComponentDetailsTest
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
 
-    IdentificationInfoSection identificationInfoSection =
-        componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
-    identificationInfoSection.shouldBe(visible);
-    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File"));
-    identificationInfoSection.getOccurrencesLink().click();
+    IdentificationDefinitionList identificationDefinitionList =
+        componentDetailsPage.overviewTabContent().componentInformationTile().identificationDefinitionList();
+    identificationDefinitionList.shouldBe(visible);
+    identificationDefinitionList.getOccurrencesItem().shouldHave(text("Occurrences 1 File"));
+    identificationDefinitionList.getOccurrencesLink().click();
 
     OccurrencesPopover occurrencesPopover = new OccurrencesPopover();
     occurrencesPopover.title().shouldHave(text("Occurrences"));
@@ -427,11 +443,11 @@ public class ComponentDetailsTest
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
 
-    IdentificationInfoSection identificationInfoSection =
-        componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
-    identificationInfoSection.shouldBe(visible);
-    identificationInfoSection.getMatchStateItem().shouldHave(text("Similar (View Similar Matches)"));
-    identificationInfoSection.getSimilarMatchesLink().click();
+    IdentificationDefinitionList identificationDefinitionList =
+        componentDetailsPage.overviewTabContent().componentInformationTile().identificationDefinitionList();
+    identificationDefinitionList.shouldBe(visible);
+    identificationDefinitionList.getMatchStateItem().shouldHave(text("Similar (View Similar Matches)"));
+    identificationDefinitionList.getSimilarMatchesLink().click();
 
     SimilarMatchesPopover similarMatchesPopover = new SimilarMatchesPopover();
     similarMatchesPopover.title().shouldHave(text("Similar Matches"));

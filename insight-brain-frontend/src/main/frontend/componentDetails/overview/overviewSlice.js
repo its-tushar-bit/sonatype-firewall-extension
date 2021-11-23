@@ -52,6 +52,7 @@ const initialState = {
     showInnerSourceProducerReportModal: false,
   },
   showSimilarMatchesPopover: false,
+  showComponentCoordinatesPopover: false,
   selectedVersionData: {
     loading: false,
     loadError: null,
@@ -293,6 +294,7 @@ const componentDetailsOverviewSlice = createSlice({
     setInnerSourceProducerReportUrl: pathSet(['innerSourceProducerData', 'reportUrl']),
     setLatestInnerSourceComponentVersion: pathSet(['innerSourceProducerData', 'latestInnerSourceComponentVersion']),
     toggleShowSimilarMatches: toggleBooleanProp('showSimilarMatchesPopover'),
+    toggleShowComponentCoordinatesPopover: toggleBooleanProp('showComponentCoordinatesPopover'),
     setSelectedVersion: pathSet(['selectedVersionData', 'selectedVersion']),
     resetSelectedVersionData,
     toggleAncestorsList: toggleBooleanProp('expanded'),

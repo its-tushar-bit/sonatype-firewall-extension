@@ -10,12 +10,8 @@
 
 .iq-component-information-tile {
   > .nx-tile-content {
-    .iq-general-info-definition-list {
-      grid-template-columns: repeat(2, auto);
-    }
-
     .iq-identification-info-definition-list {
-      grid-template-columns: repeat(3, auto);
+      grid-template-columns: repeat(5, auto);
 
       .iq-identification-info-definition-list__website-link {
         white-space: nowrap;

@@ -22,7 +22,8 @@ import {
   selectComponentDetailsSelectedRequestData,
   selectSelectedVersionData,
   selectCurrentVersionDetails,
-} from '../../../../main/frontend/componentDetails/overview/overviewSelectors';
+  selectShowComponentCoordinatesPopover,
+} from 'MainRoot/componentDetails/overview/overviewSelectors';
 
 import {
   selectSelectedComponent,
@@ -469,6 +470,20 @@ describe('overviewSelectors', () => {
       const actualSelection = selectComponentDetailsSelectedRequestData.resultFunc(mockVersions, routerCurrentParams);
 
       expect(actualSelection.componentIdentifier).toBeNull();
+    });
+  });
+
+  describe('selectShowComponentCoordinatesPopover', () => {
+    it('is composed from the following selector', () => {
+      expect(selectShowComponentCoordinatesPopover.dependencies).toEqual([selectComponentDetailsOverviewSlice]);
+    });
+
+    it('selects the showComponentCoordinatesPopover ', () => {
+      const actualSelection = selectShowComponentCoordinatesPopover.resultFunc({
+        showComponentCoordinatesPopover: true,
+      });
+
+      expect(actualSelection).toBe(true);
     });
   });
 });

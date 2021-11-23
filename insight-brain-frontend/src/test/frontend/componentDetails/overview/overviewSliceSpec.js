@@ -486,4 +486,18 @@ describe('componentDetailsOverviewReducer', () => {
       expect(selectedVersionDetails).toEqual({ data: 'version data' });
     });
   });
+
+  describe('componentDetailsOverview/toggleShowComponentCoordinatesPopover action', () => {
+    it('toggles showComponentCoordinatesPopover', () => {
+      const state = Object.freeze({
+        showComponentCoordinatesPopover: true,
+      });
+
+      const newState = reducer(state, {
+        type: 'componentDetailsOverview/toggleShowComponentCoordinatesPopover',
+      });
+
+      expect(newState.showComponentCoordinatesPopover).toBe(false);
+    });
+  });
 });

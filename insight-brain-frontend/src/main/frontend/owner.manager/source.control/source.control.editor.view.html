@@ -31,11 +31,6 @@
           form-mask="vm.sourceControlEditorMask"
           mask-attach-to-body
           ng-if="vm.isSourceControlSupported">
-      <div id="source-control-provider-warning"
-           class="iq-alert"
-           ng-if="vm.shouldShowProviderWarning">
-        <i class="fa fa-warning"></i>Source Control Management System must be configured at Root Organization
-      </div>
       <div id="source-control-token-warning"
            class="iq-alert"
            ng-if="vm.shouldShowAccessTokenWarning">

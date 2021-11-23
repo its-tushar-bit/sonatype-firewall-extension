@@ -57,7 +57,6 @@ function SourceControlEditorController(
   // provider
   vm.providerTypes = SourceControlService.getProviderTypes();
   vm.providerTypesMap = SourceControlService.getProviderTypesMap();
-  vm.shouldShowProviderWarning = undefined;
   vm.providerInheritText = undefined;
   vm.effectiveProvider = effectiveProvider;
 
@@ -201,7 +200,6 @@ function SourceControlEditorController(
 
       vm.originalSourceControl = angular.copy(vm.dirtySourceControl);
       vm.shouldShowAccessTokenWarning = isAccessTokenRequiredOnNode() && vm.dirtySourceControl.token === null;
-      vm.shouldShowProviderWarning = vm.isApp && !vm.effectiveProvider();
       vm.showAdvanced = !vm.isApp || !canCollapseAdvanced();
       vm.providerInheritText = getInheritText(
         vm.dirtySourceControl.providerInheritFrom,

@@ -425,7 +425,6 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(visible);
     SourceControlEditorPage.tokenInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Create"), DISABLED);
@@ -484,7 +483,6 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(visible);
     SourceControlEditorPage.tokenInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);

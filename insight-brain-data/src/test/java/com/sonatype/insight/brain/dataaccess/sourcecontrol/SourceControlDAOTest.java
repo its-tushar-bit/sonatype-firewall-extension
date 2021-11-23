@@ -16,8 +16,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -1217,34 +1219,56 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testGetCompositeSourceControlForOutdatedSourceScans_getOutdatedApplicationWithInternalPRScan() {
+  public void testGetCompositeSourceControlForOutdatedSourceScans_ScanTriggerType() {
+    SourceControl rootOrgSourceControl =
+        tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    SourceControl orgSourceControl = tempEntity.newSourceControl(app.getOrganizationId(), null, null, null,
+        SourceControlProvider.GITLAB, false, false, "branchParentOrg", null, true, true, "/target/*");
+    SourceControl appSourceControl =
+        tempEntity.newSourceControl(app.getId(), "http://example.com/org/repo", null, null, null, null, null);
+    // Adjust for values inherited from parents
+    appSourceControl.setProvider(rootOrgSourceControl.getProvider());
+    appSourceControl.setBaseBranch(orgSourceControl.getBaseBranch());
+    appSourceControl.setRemediationPullRequestsEnabled(orgSourceControl.getRemediationPullRequestsEnabled());
+    appSourceControl.setStatusChecksEnabled(orgSourceControl.getStatusChecksEnabled());
+    appSourceControl.setPullRequestCommentingEnabled(true);
+    appSourceControl.setSourceControlEvaluationsEnabled(true);
+    appSourceControl.setSourceControlScanTarget("/target/*");
+    for (ScanTriggerType scanTriggerType : ScanTriggerType.values()) {
+      testGetCompositeSourceControlForOutdatedSourceScans(scanTriggerType, appSourceControl);
+    }
+  }
+
+  private void testGetCompositeSourceControlForOutdatedSourceScans(
+      ScanTriggerType scanTriggerType,
+      SourceControl expectedSourceControl)
+  {
     // given: application with outdated policy evaluation
     LocalDateTime now = LocalDateTime.now();
     Date scanTime = toDate(now.minusHours(INTERVAL_IN_HOURS + 1));
-    SourceControl rootSc = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
-    SourceControl expectedSourceControl = tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null,
-        null, null, null, null);
-    SourceControl scOrg =
-        tempEntity.newSourceControl(app.getOrganizationId(), null, null, null, SourceControlProvider.GITLAB, false,
-            false, "branchParentOrg", null, true, true, "/target/*");
-    // Adjust for values inherited from parents
-    expectedSourceControl.setProvider(rootSc.getProvider());
-    expectedSourceControl.setBaseBranch(scOrg.getBaseBranch());
-    expectedSourceControl.setRemediationPullRequestsEnabled(scOrg.getRemediationPullRequestsEnabled());
-    expectedSourceControl.setStatusChecksEnabled(scOrg.getStatusChecksEnabled());
-    expectedSourceControl.setPullRequestCommentingEnabled(true);
-    expectedSourceControl.setSourceControlEvaluationsEnabled(true);
-    expectedSourceControl.setSourceControlScanTarget("/target/*");
-    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
-        "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId",
+        false, false, false, scanTime, "commitHash123", scanTriggerType);
 
-    // when: fetching applications with outdated source control policy evaluation
-    List<SourceControl> sourceControlList =
-        sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
+    try {
+      // when: fetching source controls for applications with outdated source control policy evaluation
+      List<SourceControl> sourceControlList =
+          sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
 
-    // then: application is retrieved
-    assertThat(sourceControlList.size()).isEqualTo(1);
-    assertSourceControl(sourceControlList.get(0), expectedSourceControl);
+      // then: source control is retrieved only for some trigger types
+      if (scanTriggerType == ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING
+          || scanTriggerType == ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING) {
+        assertThat(sourceControlList).withFailMessage("Expected 1 result for scanTriggerType=%s", scanTriggerType)
+            .hasSize(1);
+        assertSourceControl(sourceControlList.get(0), expectedSourceControl);
+      }
+      else {
+        assertThat(sourceControlList).withFailMessage("Expected no results for scanTriggerType=%s", scanTriggerType)
+            .isEmpty();
+      }
+    }
+    finally {
+      new PolicyEvaluationDAO().delete(policyEvaluation);
+    }
   }
 
   @Test

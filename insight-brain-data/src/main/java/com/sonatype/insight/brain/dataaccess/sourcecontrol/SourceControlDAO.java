@@ -90,8 +90,7 @@ public class SourceControlDAO
           ") lpe ON lpe.application_id =  sc.owner_id " +
           "WHERE ( lpe.time < ?1 " +
           "        AND lpe.scan_trigger_type " +
-          "           IN ('SOURCE_CONTROL_INTERNAL_ONBOARDING', 'SOURCE_CONTROL_INTERNAL_PULL_REQUEST', " +
-          "               'SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING') )  " +
+          "           IN ('SOURCE_CONTROL_INTERNAL_ONBOARDING', 'SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING'))" +
           // Here we retrieve applications that don't have a first source policy evaluation
           // This case happens if the user manually creates the application with source control information
           "      OR lpe.application_id IS NULL ";

@@ -111,7 +111,7 @@ public class DefaultBranchMonitorTest
     defaultBranchMonitor.start();
 
     verify(taskSchedulerMock).schedulePeriodicTask(DefaultBranchMonitor.class, DefaultBranchMonitor.TASK_NAME,
-        Duration.ofHours(24),
+        Duration.ofHours(12),
         expectedStartTime);
   }
 
@@ -125,13 +125,13 @@ public class DefaultBranchMonitorTest
   }
 
   @Test
-  public void testUpdatePullRequestDetails_applicationToUpdateScan() throws Exception {
+  public void testUpdateDefaultBranchScans_applicationToUpdateScan() throws Exception {
     // given: application with outdated scan
     // Service started to initialize interval
     defaultBranchMonitor.start();
     Application app = tempEntity.newApplicationWithParent();
     LocalDateTime now = LocalDateTime.now();
-    Date scanTime = toDate(now.minusHours(defaultBranchMonitor.getIntervalInHours() + 1));
+    Date scanTime = toDate(now.minusMinutes(defaultBranchMonitor.getIntervalInMinutes() + 60));
     SourceControl scRoot = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null,
         SourceControlProvider.GITLAB);
     SourceControl sc = tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
@@ -147,13 +147,13 @@ public class DefaultBranchMonitorTest
   }
 
   @Test
-  public void testUpdatePullRequestDetails_noApplicationsToScan() throws Exception {
+  public void testUpdateDefaultBranchScans_noApplicationsToScan() throws Exception {
     // given: application without scan
     // Service started to initialize interval
     defaultBranchMonitor.start();
     Application app = tempEntity.newApplicationWithParent();
     LocalDateTime now = LocalDateTime.now();
-    Date scanTime = toDate(now.minusHours(defaultBranchMonitor.getIntervalInHours() - 1));
+    Date scanTime = toDate(now.minusMinutes(defaultBranchMonitor.getIntervalInMinutes() - 60));
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
     tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,

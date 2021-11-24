@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -78,6 +79,9 @@ public class SourceControlDAO
           "JOIN insight_brain_ods.source_control sc_app ON sc_app.owner_id = app.application_id " +
           "LEFT JOIN insight_brain_ods.source_control sc_p ON sc_p.owner_id = po.organization_id " +
           "LEFT JOIN insight_brain_ods.source_control sc_gp ON sc_gp.owner_id = gpo.organization_id ";
+
+  private static final String SELECT_COMPOSITE_SOURCE_CONTROL_FOR_APPLICATION = SELECT_COMPOSITE_SOURCE_CONTROL +
+      " WHERE app.application_id = ?1";
 
   private static final String SELECT_APPLICATIONS_FOR_SOURCE_SCAN =
       "SELECT sc.* " +
@@ -539,6 +543,19 @@ public class SourceControlDAO
     return getProviderFromOrganization(tx, organization.getParentOrganizationId());
   }
 
+  public SourceControl getCompositeSourceControlByApplicationId(final String applicationId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query =
+          tx.createNativeQuery(SELECT_COMPOSITE_SOURCE_CONTROL_FOR_APPLICATION, SourceControl.class);
+      query.setParameter(1, applicationId);
+
+      return (SourceControl) query.getSingleResult();
+    }
+    catch (NoResultException e) {
+      return null;
+    }
+  }
+
   public List<SourceControl> getCompositeSourceControlForOutdatedSourceScans(
       final Date scanLimitDate)
   {
@@ -561,6 +578,9 @@ public class SourceControlDAO
             sc.setStatusChecksEnabled((Boolean) array[8]);
             sc.setPullRequestPollTime(array[9] == null ? null : new Date(((Timestamp) array[9]).getTime()));
             sc.setPullRequestErrorCount((int) array[10]);
+            sc.setPullRequestCommentingEnabled((Boolean) array[11]);
+            sc.setSourceControlEvaluationsEnabled((Boolean) array[12]);
+            sc.setSourceControlScanTarget((String) array[13]);
 
             return sc;
           })

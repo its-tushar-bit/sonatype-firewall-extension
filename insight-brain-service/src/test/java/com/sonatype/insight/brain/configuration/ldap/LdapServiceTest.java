@@ -9,7 +9,6 @@ import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.naming.AuthenticationException;
 import javax.naming.NameNotFoundException;
@@ -266,10 +265,14 @@ public class LdapServiceTest
       assertThatThrownBy(() -> {
         ldapService.authenticateUser("any-user", "anything".toCharArray());
       }).isInstanceOf(NamingException.class)
-          .hasMessage("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n")
-          .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
-              "LDAP response read timed out, timeout used:1000ms.",
-              "LDAP user with username 'any-user' does not exist"));
+          .hasMessageMatching("LDAP Server: Test Server1 -> LDAP response read timed out, " +
+              "timeout used:\\p{Zs}?1000\\p{Zs}?ms.;\n")
+          .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage)
+              .containsAnyOf(
+                  "LDAP response read timed out, timeout used:1000ms.",
+                  "LDAP response read timed out, timeout used: 1000 ms.")
+              .contains(
+                  "LDAP user with username 'any-user' does not exist"));
     }
   }
 
@@ -293,12 +296,14 @@ public class LdapServiceTest
         assertThatThrownBy(() -> {
           ldapService.authenticateUser("any-user", "anything".toCharArray());
         }).isInstanceOf(NamingException.class)
-            .hasMessage("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"
-                + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n")
-            .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
-                "LDAP response read timed out, timeout used:1000ms.",
-                "LDAP response read timed out, timeout used:1000ms.",
-                "LDAP user with username 'any-user' does not exist"));
+            .hasMessageMatching("LDAP Server: Test Server1 -> LDAP response read timed out, " +
+                "timeout used:\\p{Zs}?1000\\p{Zs}?ms.;\n"
+                + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:\\p{Zs}?1000\\p{Zs}?ms.;\n")
+            .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage)
+                .containsAnyOf(
+                    "LDAP response read timed out, timeout used:1000ms.",
+                    "LDAP response read timed out, timeout used: 1000 ms.")
+                .contains("LDAP user with username 'any-user' does not exist"));
       }
     }
   }
@@ -416,10 +421,14 @@ public class LdapServiceTest
       assertThatThrownBy(() -> {
         ldapService.getUserByName("any-user");
       }).isInstanceOf(NamingException.class)
-          .hasMessage("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n")
-          .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
-              "LDAP response read timed out, timeout used:1000ms.",
-              "LDAP user with username 'any-user' does not exist"));
+          .hasMessageMatching("LDAP Server: Test Server1 -> LDAP response read " +
+              "timed out, timeout used:\\p{Zs}?1000\\p{Zs}?ms.;\n")
+          .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage)
+              .containsAnyOf(
+                  "LDAP response read timed out, timeout used:1000ms.",
+                  "LDAP response read timed out, timeout used: 1000 ms.")
+              .contains(
+                  "LDAP user with username 'any-user' does not exist"));
     }
   }
 
@@ -434,12 +443,14 @@ public class LdapServiceTest
         assertThatThrownBy(() -> {
           ldapService.getUserByName("any-user");
         }).isInstanceOf(NamingException.class)
-            .hasMessage("LDAP Server: Test Server1 -> LDAP response read timed out, timeout used:1000ms.;\n"
-                + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:1000ms.;\n")
-            .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
-                "LDAP response read timed out, timeout used:1000ms.",
-                "LDAP response read timed out, timeout used:1000ms.",
-                "LDAP user with username 'any-user' does not exist"));
+            .hasMessageMatching("LDAP Server: Test Server1 -> " +
+                "LDAP response read timed out, timeout used:\\p{Zs}?1000\\p{Zs}?ms.;\n"
+                + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:\\p{Zs}?1000\\p{Zs}?ms.;\n")
+            .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage)
+                .containsAnyOf(
+                    "LDAP response read timed out, timeout used:1000ms.",
+                    "LDAP response read timed out, timeout used: 1000 ms.")
+                .contains("LDAP user with username 'any-user' does not exist"));
       }
     }
   }

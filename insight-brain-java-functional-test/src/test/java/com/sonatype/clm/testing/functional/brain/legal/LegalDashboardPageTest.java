@@ -60,6 +60,7 @@ public class LegalDashboardPageTest
 
   @Before
   public void start() {
+    testCLMServer.getHdsServer().respondWith("[]").atUri("/rest/license/metadata");
     app = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName(), "app", "org");
     Application app1 = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName() + "1",
             "app1", "org1");

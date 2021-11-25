@@ -156,6 +156,12 @@ public class ApiLicenseLegalResourceTest
     filter.pageSize = 10;
 
     Application application = tempEntity.newApplicationWithParent();
+    Tag tag = tempEntity.newTag(application.getOrganizationId(), "Test-Tag");
+    tempEntity.newApplicationTag(application.getId(), tag.getId());
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluation, getClass().getSimpleName());
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ApplicationComponent applicationComponent =
         tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, "hash1", componentIdentifier);

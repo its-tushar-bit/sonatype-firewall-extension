@@ -15,6 +15,7 @@ import java.util.Date;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.model.Application;
@@ -463,6 +464,90 @@ public class ApiReportDataResourceV2Test
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
         .isEqualTo("Cannot specify both commit identifier and evaluation id for `to` evaluation.");
+  }
+
+  @Test
+  public void testGetDependencyTree_noDependencyTree() throws Exception {
+    final String appPublicId = "ApiReportDataResourceV2Test_AppId";
+    final String scanId = "ScanId";
+    createReport(appPublicId, scanId, "report");
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
+        .parameter(appPublicId, scanId)
+        .query("dependencyTreeEnabled")
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiDependencyTreeResponseDTO dto = response.getBody(ApiDependencyTreeResponseDTO.class);
+    assertThat(dto).isNotNull();
+    assertThat(dto.getDependencyTree()).isNotNull();
+    assertThat(dto.getDependencyTree().children).isNull();
+    assertThat(dto.getDependencyTree().componentIdentifier).isNull();
+  }
+
+  @Test
+  public void testGetDependencyTree() throws Exception {
+    final String appPublicId = "ApiReportDataResourceV2Test_AppId";
+    final String scanId = "ScanId";
+    createReport(appPublicId, scanId, "report-dependencyTree");
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
+        .parameter(appPublicId, scanId)
+        .query("dependencyTreeEnabled")
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiDependencyTreeResponseDTO dto = response.getBody(ApiDependencyTreeResponseDTO.class);
+    assertThat(dto).isNotNull();
+    assertThat(dto.getDependencyTree()).isNotNull();
+    assertThat(dto.getDependencyTree().children).isNotEmpty();
+    assertThat(dto.getDependencyTree().children.size()).isEqualTo(1);
+    assertThat(dto.getDependencyTree().componentIdentifier).isNull();
+  }
+
+  @Test
+  public void testGetDependencyTree_innerSource() throws Exception {
+    final String appPublicId = "ApiReportDataResourceV2Test_AppId";
+    final String scanId = "ScanId";
+    createReport(appPublicId, scanId, "report-innersource");
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
+        .parameter(appPublicId, scanId)
+        .query("dependencyTreeEnabled")
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiDependencyTreeResponseDTO dto = response.getBody(ApiDependencyTreeResponseDTO.class);
+    assertThat(dto).isNotNull();
+    assertThat(dto.getDependencyTree()).isNotNull();
+    assertThat(dto.getDependencyTree().children).isNotEmpty();
+    assertThat(dto.getDependencyTree().children.size()).isEqualTo(2);
+    assertThat(dto.getDependencyTree().componentIdentifier).isNotNull();
+  }
+
+  @Test
+  public void testGetDependencyTree_notFound() throws Exception {
+    final String appPublicId = "ApiReportDataResourceV2Test_AppId";
+    final String scanId = "ScanId";
+    createReport(appPublicId, scanId, "report");
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
+        .parameter(appPublicId, "FalseScanId")
+        .get();
+
+    assertResponseStatus(404, response);
   }
 
   private void assertValidDiffResults(final HttpResponse response) throws URISyntaxException, JSONException,

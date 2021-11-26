@@ -1,0 +1,345 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "boom",
+        "version" : "3.2.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0f0cc5d04adc5003b8c7",
+    "declaredLicenses" : [ "BSD-3-Clause" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "BSD-3-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 1,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 4.6,
+    "catalogDate" : 1466519382582,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "boom"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "3.2.2"
+      } ],
+      "name" : "boom : 3.2.2"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hoek",
+        "version" : "3.0.4"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "268adff66bb6695c69b4",
+    "declaredLicenses" : [ "BSD-3-Clause" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "BSD-3-Clause" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 1,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 8.8,
+    "catalogDate" : 1447537723152,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "hoek"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "3.0.4"
+      } ],
+      "name" : "hoek : 3.0.4"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "sntp",
+        "version" : "2.1.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "2c6cec14fedc2222739c",
+    "declaredLicenses" : [ "BSD-3-Clause" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "BSD-3-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1508979210513,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "sntp"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "2.1.0"
+      } ],
+      "name" : "sntp : 2.1.0"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "boom",
+        "version" : "5.2.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "5dd9da6ee3a5f3020774",
+    "declaredLicenses" : [ "BSD-3-Clause" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "BSD-3-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 1,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 4.6,
+    "catalogDate" : 1500421460270,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "boom"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "5.2.0"
+      } ],
+      "name" : "boom : 5.2.0"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "cryptiles",
+        "version" : "3.1.4"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "769a68c95612b56faadf",
+    "declaredLicenses" : [ "BSD-3-Clause" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "BSD-3-Clause" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 9.8,
+    "catalogDate" : 1541457884690,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "cryptiles"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "3.1.4"
+      } ],
+      "name" : "cryptiles : 3.1.4"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hoek",
+        "version" : "4.2.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "9634502aa12c445dd5a7",
+    "declaredLicenses" : [ "BSD-3-Clause" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "BSD-3-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 1,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 5.6,
+    "catalogDate" : 1518713267274,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "hoek"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "4.2.1"
+      } ],
+      "name" : "hoek : 4.2.1"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "loadash",
+        "version" : "1.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "b92e54d809f3c225f4f9",
+    "declaredLicenses" : [ "ISC" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "ISC" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1502497207039,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "loadash"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "1.0.0"
+      } ],
+      "name" : "loadash : 1.0.0"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hawk",
+        "version" : "4.1.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "ba067b0885e9c0726c8c",
+    "declaredLicenses" : [ "BSD-3-Clause" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "BSD-3-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1453400742466,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "hawk"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "4.1.2"
+      } ],
+      "name" : "hawk : 4.1.2"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "producer",
+        "version" : "file:../producer"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "e348b36b80ed380e867f",
+    "declaredLicenses" : [ "Not Provided" ],
+    "observedLicenses" : [ "Not Provided" ],
+    "effectiveLicenses" : [ "Not Provided" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : null,
+    "catalogDate" : 0,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "producer"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "file:../producer"
+      } ],
+      "name" : "producer : file:../producer"
+    }
+  } ]
+}

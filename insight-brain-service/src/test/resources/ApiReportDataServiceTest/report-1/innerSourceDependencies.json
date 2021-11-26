@@ -6145,6 +6145,16 @@
           "version" : "1.3.5"
         }
       }
-    } ]
+    } ],
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "h2",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.h2database",
+        "version" : "1.4.200"
+      }
+    }
   }
 }

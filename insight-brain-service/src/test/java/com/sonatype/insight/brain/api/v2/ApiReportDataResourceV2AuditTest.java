@@ -55,6 +55,39 @@ public class ApiReportDataResourceV2AuditTest
   }
 
   @Test
+  public void getDependencyTree() throws Exception {
+    createScanFile(app.getId(), SCAN_ID);
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
+
+    restRequest()
+      .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+      .path(SCAN_PATH)
+      .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
+      .parameter(app.getPublicId(), SCAN_ID)
+      .query("dependencyTreeEnabled")
+      .get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, "not-found");
+    assertApplicationData(auditDTO, app);
+    assertCustomData(auditDTO, "reportId", SCAN_ID);
+  }
+
+  @Test
+  public void getDependencyTree_Unauthorized() throws Exception {
+    restRequest()
+      .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+      .path(SCAN_PATH)
+      .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
+      .parameter(app.getPublicId(), SCAN_ID)
+      .query("dependencyTreeEnabled")
+      .with(unauthorizedUser())
+      .get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, "unauthorized");
+    assertApplicationData(auditDTO, app);
+  }
+
+  @Test
   public void testGetPolicyViolations() throws Exception {
     createScanFile(app.getId(), SCAN_ID);
     mockReport(SCAN_ID, "/ReportResourceTest/report");

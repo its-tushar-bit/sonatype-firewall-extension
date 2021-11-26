@@ -1,0 +1,230 @@
+{
+  "dependencyGraph" : [ {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "npm",
+        "coordinates" : {
+          "packageId" : "hawk",
+          "version" : "4.1.2"
+        }
+      },
+      "directDependency" : true
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "boom",
+        "version" : "3.2.2"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "npm",
+        "coordinates" : {
+          "packageId" : "hoek",
+          "version" : "4.2.1"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "boom",
+        "version" : "5.2.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "npm",
+        "coordinates" : {
+          "packageId" : "hoek",
+          "version" : "4.2.1"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "cryptiles",
+        "version" : "3.1.4"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "npm",
+        "coordinates" : {
+          "packageId" : "boom",
+          "version" : "5.2.0"
+        }
+      }
+    } ],
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hawk",
+        "version" : "4.1.2"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "npm",
+        "coordinates" : {
+          "packageId" : "sntp",
+          "version" : "2.1.0"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "npm",
+        "coordinates" : {
+          "packageId" : "boom",
+          "version" : "3.2.2"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "npm",
+        "coordinates" : {
+          "packageId" : "hoek",
+          "version" : "3.0.4"
+        }
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "npm",
+        "coordinates" : {
+          "packageId" : "cryptiles",
+          "version" : "3.1.4"
+        }
+      }
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hoek",
+        "version" : "3.0.4"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hoek",
+        "version" : "4.2.1"
+      }
+    },
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "sntp",
+        "version" : "2.1.0"
+      }
+    },
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "npm",
+        "coordinates" : {
+          "packageId" : "hoek",
+          "version" : "4.2.1"
+        }
+      }
+    } ],
+    "directDependency" : false
+  } ],
+  "gavDepths" : { },
+  "componentDepths" : [ ],
+  "dependencyTree" : {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "npm",
+        "coordinates" : {
+          "packageId" : "hawk",
+          "version" : "4.1.2"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "sntp",
+            "version" : "2.1.0"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "npm",
+            "coordinates" : {
+              "packageId" : "hoek",
+              "version" : "4.2.1"
+            }
+          }
+        } ]
+      }, {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "boom",
+            "version" : "3.2.2"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "npm",
+            "coordinates" : {
+              "packageId" : "hoek",
+              "version" : "4.2.1"
+            }
+          }
+        } ]
+      }, {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "hoek",
+            "version" : "3.0.4"
+          }
+        }
+      }, {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "cryptiles",
+            "version" : "3.1.4"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "npm",
+            "coordinates" : {
+              "packageId" : "boom",
+              "version" : "5.2.0"
+            }
+          },
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "npm",
+              "coordinates" : {
+                "packageId" : "hoek",
+                "version" : "4.2.1"
+              }
+            }
+          } ]
+        } ]
+      } ],
+      "direct" : true
+    } ],
+    "module" : true
+  }
+}

@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -112,6 +113,9 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ComponentInfoServiceTest
@@ -1153,6 +1157,20 @@ public class ComponentInfoServiceTest
     assertThat(policyMaxThreatLevel).isNotNull();
     assertThat(policyMaxThreatLevel).hasSize(1);
     assertThat(policyMaxThreatLevel.get("other")).isEqualTo(8);
+  }
+
+  @Test
+  public void testGetComponentDetails_GetPoliciesById_Invoked_Once() throws Exception {
+    tempEntity.newLicenseOverride(application.getId(), MAVEN_A1_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
+        "GPL-2.0", null /* comment */);
+
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentInfoService componentInfoServiceMock = spy(componentInfoService);
+    componentInfoServiceMock.getComponentDetails(application, MAVEN_A1_COORDINATES,
+        MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
+
+    verify(componentInfoServiceMock, times(1)).getPoliciesById(application);
   }
 
   private void addPolicy(String applicationPublicId, Policy policy) throws Exception {

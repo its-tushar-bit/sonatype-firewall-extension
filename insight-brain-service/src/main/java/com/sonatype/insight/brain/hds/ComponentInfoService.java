@@ -19,6 +19,7 @@ import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -227,7 +228,8 @@ public class ComponentInfoService
     componentDetails.setPolicyAlerts(policyAlerts);
 
     Map<PolicyThreatCategory, Integer> policyMaxThreatLevelsByCategory;
-    policyMaxThreatLevelsByCategory = getMaxPolicyThreatLevelsByCategory(owner,policyAlerts);
+    Map<String, Policy> policiesById = getPoliciesById(owner);
+    policyMaxThreatLevelsByCategory = getMaxPolicyThreatLevelsByCategory(policyAlerts, policiesById);
     componentDetails.setPolicyMaxThreatLevelsByCategory(maxPolicyThreatLevelToString(policyMaxThreatLevelsByCategory));
 
     log.debug("Loaded component details for {}, hash {}, in {} ms.", identifier, hash, System.currentTimeMillis()
@@ -485,6 +487,7 @@ public class ComponentInfoService
     }
 
     List<ComponentDetailsDTO> componentDetailsDTOs = new ArrayList<>(componentDetailsList.size());
+    Map<String, Policy> policiesById = getPoliciesById(owner);
     for (ComponentDetails componentDetails : componentDetailsList) {
       ComponentDetailsDTO dto = new ComponentDetailsDTO();
       dto.matchState = componentDetails.getMatchState();
@@ -504,7 +507,7 @@ public class ComponentInfoService
           .getOrDefault(componentDetails.getComponentIdentifier(), Collections.emptyList());
 
       dto.policyAlerts = policyAlerts;
-      dto.policyMaxThreatLevelsByCategory = getMaxPolicyThreatLevelsByCategory(owner, policyAlerts);
+      dto.policyMaxThreatLevelsByCategory = getMaxPolicyThreatLevelsByCategory(policyAlerts, policiesById);
 
       dto.violatedPolicyCount = policyAlerts.stream().map(PolicyAlert::getTrigger).map(PolicyFact::getPolicyId)
           .collect(Collectors.toSet()).size();
@@ -525,15 +528,16 @@ public class ComponentInfoService
     return componentDetailsDTOs;
   }
 
+  protected Map<String, Policy> getPoliciesById(Owner owner) {
+    return new PolicyDAO().getApplicableByOwnerIdWithHierarchy(owner.getId()).stream()
+        .collect(Collectors.toMap(Policy::getId, Function.identity()));
+  }
+
   private Map<PolicyThreatCategory, Integer> getMaxPolicyThreatLevelsByCategory(
-      Owner owner,
-      List<PolicyAlert> policyAlerts)
+      List<PolicyAlert> policyAlerts,
+      Map<String, Policy> policiesById)
   {
     HashMap<PolicyThreatCategory, Integer> policyMaxThreatLevelsByCategory;
-
-    Map<String, Policy> policiesById = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(owner.getId()).stream()
-        .collect(Collectors.toMap(Policy::getId, Function.identity()));
-
     policyMaxThreatLevelsByCategory = new HashMap<>();
     for (PolicyAlert policyAlert : policyAlerts) {
       PolicyFact policyFact = policyAlert.getTrigger();

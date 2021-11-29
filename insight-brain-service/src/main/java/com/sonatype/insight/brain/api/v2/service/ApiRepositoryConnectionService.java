@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -19,6 +20,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.repository.RepositoryClient;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
@@ -41,6 +43,8 @@ public class ApiRepositoryConnectionService
   private static final Logger log = LoggerFactory.getLogger(ApiRepositoryConnectionService.class);
 
   public static final String REPOSITORY_URL_AUDIT_KEY = "repositoryBaseUrl";
+
+  public static final String REPOSITORY_FORMAT_AUDIT_KEY = "repositoryFormat";
 
   private final RepositoryConnectionDAO repositoryConnectionDAO;
 
@@ -66,10 +70,15 @@ public class ApiRepositoryConnectionService
       ApiRepositoryConnectionDTO repositoryConnectionDTO)
   {
     validateRepositoryConnection(repositoryConnectionDTO);
-    AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, repositoryConnectionDTO.baseUrl);
-    if (repositoryConnectionDAO.getByOwnerIdAndBaseUrl(ownerId, repositoryConnectionDTO.baseUrl) != null) {
+    if (repositoryConnectionDTO.format == null) {
+      repositoryConnectionDTO.format = RepositoryFormat.GENERIC;
+    }
+    AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, repositoryConnectionDTO.baseUrl)
+        .setData(REPOSITORY_FORMAT_AUDIT_KEY, repositoryConnectionDTO.format);
+    if (repositoryConnectionDAO.getByOwnerIdAndFormat(ownerId, repositoryConnectionDTO.format) != null) {
       throw new ConflictException(
-          String.format("base URL configuration already exists for %s with id: %s", ownerType, ownerId));
+          String.format("repository connection format %s configuration exists for %s with id: %s",
+              repositoryConnectionDTO.format, ownerType, ownerId));
     }
 
     repositoryConnectionDTO.ownerId = ownerId;
@@ -86,22 +95,24 @@ public class ApiRepositoryConnectionService
       ApiRepositoryConnectionDTO dto)
   {
     validateUpdateConnectionData(dto);
-    AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, dto.baseUrl);
+    AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, dto.baseUrl)
+        .setData(REPOSITORY_FORMAT_AUDIT_KEY, dto.format);
     dto.ownerId = internalOwnerId;
-    if (StringUtils.isNotBlank(dto.baseUrl)) {
-      RepositoryConnection connection =
-          repositoryConnectionDAO.getByOwnerIdAndBaseUrl(internalOwnerId, dto.baseUrl);
-      if (connection != null && !Objects.equals(connection.getId(), repositoryConnectionId)) {
-        throw new ConflictException(String.format("repository connection URL configuration exists for %s with id: %s",
-            ownerType, internalOwnerId));
-      }
-    }
-
     RepositoryConnection storedConnection = repositoryConnectionDAO.getById(repositoryConnectionId);
     if (storedConnection == null) {
       throw new NotFoundException(
           String.format("no repository connections found with connection id: %s for %s having id: %s",
               repositoryConnectionId, ownerType, internalOwnerId));
+    }
+    if (StringUtils.isNotBlank(dto.baseUrl)) {
+      RepositoryFormat format = dto.format == null ? storedConnection.getFormat() : dto.format;
+      RepositoryConnection connection =
+          repositoryConnectionDAO.getByOwnerIdAndFormat(internalOwnerId, format);
+      if (connection != null && !Objects.equals(connection.getId(), repositoryConnectionId)) {
+        throw new ConflictException(
+            String.format("repository connection format %s configuration exists for %s with id: %s", format, ownerType,
+                internalOwnerId));
+      }
     }
 
     updateRepositoryConnectionData(dto, storedConnection);
@@ -137,6 +148,9 @@ public class ApiRepositoryConnectionService
 
     if (StringUtils.isNotBlank(dto.baseUrl)) {
       storedConnection.setBaseUrl(dto.baseUrl);
+    }
+    if (dto.format != null) {
+      storedConnection.setFormat(dto.format);
     }
     if (StringUtils.isNoneBlank(dto.username, dto.password)) {
       storedConnection.setUsername(dto.username);
@@ -181,7 +195,8 @@ public class ApiRepositoryConnectionService
       ApiRepositoryConnectionDTO repositoryConnectionDTO)
   {
     validateRepositoryConnection(repositoryConnectionDTO);
-    AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, repositoryConnectionDTO.baseUrl);
+    AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, repositoryConnectionDTO.baseUrl)
+        .setData(REPOSITORY_FORMAT_AUDIT_KEY, repositoryConnectionDTO.format);
     RepositoryClient client = repositoryClientFactory.create().forNexus3(
         repositoryConnectionDTO.baseUrl,
         repositoryConnectionDTO.username,
@@ -200,6 +215,7 @@ public class ApiRepositoryConnectionService
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
     dto.repositoryConnectionId = repositoryConnection.getId();
     dto.ownerId = repositoryConnection.getOwnerId();
+    dto.format = repositoryConnection.getFormat();
     dto.baseUrl = repositoryConnection.getBaseUrl();
     dto.username = repositoryConnection.getUsername();
     return dto;
@@ -217,7 +233,7 @@ public class ApiRepositoryConnectionService
 
   private RepositoryConnection toRepositoryConnection(ApiRepositoryConnectionDTO dto) {
     char[] passwordChars = dto.password == null ? null : dto.password.toCharArray();
-    return new RepositoryConnection(dto.ownerId, dto.baseUrl, dto.username,
+    return new RepositoryConnection(dto.ownerId, dto.baseUrl, dto.format, dto.username,
         passwordHandler.encryptPassword(passwordChars));
   }
 }

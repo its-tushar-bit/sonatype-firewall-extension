@@ -9,11 +9,13 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory.RepositoryClientBuilder;
 import com.sonatype.insight.brain.security.PasswordHandler;
@@ -58,7 +60,37 @@ public class RepositoryQueryServiceTest
   public void testGetAllVersions_Maven() throws Exception {
     //given
     Application app = tempEntity.newApplicationWithParent();
-    tempEntity.newRepositoryConnection(app.getId(), "baseUrl", "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.MAVEN, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl3", RepositoryFormat.NPM, "user2", "pass2".toCharArray());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
+    when(clientFactory.create()).thenReturn(mockBuilder);
+    when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
+    Map<String, String> params =
+        ImmutableMap.of("group", "g1", "name", "n1", "maven.extension", "jar", "maven.classifier", "");
+    RepositoryComponentResult c1 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
+    RepositoryComponentResult c2 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
+    RepositoryComponentResult c3 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
+    List<RepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
+    RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
+    when(mockClient.getAllVersions(params)).thenReturn(mockResults);
+
+    //when
+    RepositoryAllVersionsResponse results = repositoryQueryService.getAllVersions(identifier, app.getId());
+
+    //then
+    assertThat(results.getComponents()).hasSize(3).containsExactly(c1, c2, c3);
+  }
+
+  @Test
+  public void testGetAllVersions_Maven_OnlyGeneric() throws Exception {
+    //given
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.NPM, "user2", "pass2".toCharArray());
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
     when(clientFactory.create()).thenReturn(mockBuilder);
     when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
@@ -85,11 +117,40 @@ public class RepositoryQueryServiceTest
   public void testGetAllVersions_Npm() throws Exception {
     //given
     Application app = tempEntity.newApplicationWithParent();
-    tempEntity.newRepositoryConnection(app.getId(), "baseUrl", "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.NPM, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl3", RepositoryFormat.MAVEN, "user2", "pass2".toCharArray());
     ComponentIdentifier identifier = ComponentIdentifier.createNpmCoordinates("p1", "1.2.0");
     when(clientFactory.create()).thenReturn(mockBuilder);
     when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
-    Map<String, String> params = ImmutableMap.of( "name", "p1");
+    Map<String, String> params = ImmutableMap.of("name", "p1");
+    RepositoryComponentResult c1 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
+    RepositoryComponentResult c2 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
+    RepositoryComponentResult c3 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
+    List<RepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
+    RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
+    when(mockClient.getAllVersions(params)).thenReturn(mockResults);
+
+    //when
+    RepositoryAllVersionsResponse results = repositoryQueryService.getAllVersions(identifier, app.getId());
+
+    //then
+    assertThat(results.getComponents()).hasSize(3).containsExactly(c1, c2, c3);
+  }
+
+  @Test
+  public void testGetAllVersions_Npm_OnlyGeneric() throws Exception {
+    //given
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.MAVEN, "user2", "pass2".toCharArray());
+    ComponentIdentifier identifier = ComponentIdentifier.createNpmCoordinates("p1", "1.2.0");
+    when(clientFactory.create()).thenReturn(mockBuilder);
+    when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
+    Map<String, String> params = ImmutableMap.of("name", "p1");
     RepositoryComponentResult c1 =
         new RepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
     RepositoryComponentResult c2 =

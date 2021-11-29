@@ -7,16 +7,20 @@ package com.sonatype.insight.brain.repository;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.security.PasswordHandler;
 
@@ -44,6 +48,18 @@ public class RepositoryQueryService
 
   private static final String NEXUS3_QUERY_NPM_SCOPE_KEY = "npm.scope";
 
+  private static final Comparator<RepositoryConnection> REPOSITORY_CONNECTION_COMPARATOR = (c1, c2) -> {
+    if (c1.getFormat().equals(c2.getFormat())) {
+      return 0;
+    }
+    if (c1.getFormat().equals(RepositoryFormat.GENERIC)) {
+      return 1;
+    }
+    else {
+      return -1;
+    }
+  };
+
   private final RepositoryClientFactory clientFactory;
 
   private final PasswordHandler passwordHandler;
@@ -63,7 +79,17 @@ public class RepositoryQueryService
 
   public RepositoryAllVersionsResponse getAllVersions(ComponentIdentifier componentIdentifier, String ownerId) {
     Objects.requireNonNull(ownerId);
-    List<RepositoryConnection> repoConnections = repositoryConnectionDAO.getByOwnerIdWithHierarchy(ownerId);
+    RepositoryFormat repositoryFormat;
+    try {
+      repositoryFormat = RepositoryFormat.fromString(componentIdentifier.getFormat());
+    }
+    catch (Exception e) {
+      repositoryFormat = RepositoryFormat.GENERIC;
+    }
+    List<RepositoryConnection> repoConnections = repositoryConnectionDAO.getByOwnerIdAndFormatsWithHierarchy(ownerId,
+            repositoryFormat, RepositoryFormat.GENERIC).stream()
+        .sorted(REPOSITORY_CONNECTION_COMPARATOR)
+        .collect(Collectors.toList());
     if (CollectionUtils.isEmpty(repoConnections)) {
       return new RepositoryAllVersionsResponse(Collections.emptyList());
     }

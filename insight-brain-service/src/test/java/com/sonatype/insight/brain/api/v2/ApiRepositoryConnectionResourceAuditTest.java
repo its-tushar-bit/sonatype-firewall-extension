@@ -9,11 +9,13 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiRepositoryConnectionService;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
@@ -54,6 +56,7 @@ public class ApiRepositoryConnectionResourceAuditTest
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
     dto.ownerId = app.getId();
     dto.baseUrl = "http://localrepo.com/";
+    dto.format = RepositoryFormat.MAVEN;
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
@@ -63,7 +66,8 @@ public class ApiRepositoryConnectionResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_CONNECTION, null);
     assertApplicationData(auditDTO, app);
-    assertCustomData(auditDTO, "repositoryBaseUrl", dto.baseUrl);
+    assertCustomData(auditDTO, ApiRepositoryConnectionService.REPOSITORY_URL_AUDIT_KEY, dto.baseUrl);
+    assertCustomData(auditDTO, ApiRepositoryConnectionService.REPOSITORY_FORMAT_AUDIT_KEY, dto.format.toString());
   }
 
   @Test
@@ -73,6 +77,7 @@ public class ApiRepositoryConnectionResourceAuditTest
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
     dto.ownerId = app.getId();
     dto.baseUrl = "http://updatedrepo.com/";
+    dto.format = RepositoryFormat.MAVEN;
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
         .parameter(OwnerType.APPLICATION, app.getId(), existingConnection.getId())
@@ -82,7 +87,8 @@ public class ApiRepositoryConnectionResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_CONNECTION, null);
     assertApplicationData(auditDTO, app);
-    assertCustomData(auditDTO, "repositoryBaseUrl", dto.baseUrl);
+    assertCustomData(auditDTO, ApiRepositoryConnectionService.REPOSITORY_URL_AUDIT_KEY, dto.baseUrl);
+    assertCustomData(auditDTO, ApiRepositoryConnectionService.REPOSITORY_FORMAT_AUDIT_KEY, dto.format.toString());
   }
 
   @Test

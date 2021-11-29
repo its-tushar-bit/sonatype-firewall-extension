@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.repository.RepositoryClient;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory.RepositoryClientBuilder;
@@ -85,7 +86,7 @@ public class ApiRepositoryConnectionServiceTest
 
   private void testGetRepositoryConnections(final String id, final OwnerType ownerType) {
     tempEntity.newRepositoryConnection(id, "url1", "user1", "pass1".toCharArray());
-    tempEntity.newRepositoryConnection(id, "url2", "user2", "pass2".toCharArray());
+    tempEntity.newRepositoryConnection(id, "url2", RepositoryFormat.MAVEN, "user2", "pass2".toCharArray());
 
     List<ApiRepositoryConnectionDTO> connections =
         repositoryConnectionService.getRepositoryConnections(ownerType, id, false);
@@ -199,6 +200,7 @@ public class ApiRepositoryConnectionServiceTest
   private void testAddRepositoryConnection(OwnerType ownerType, String id) {
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
     dto.baseUrl = "baseUrl";
+    dto.format = RepositoryFormat.MAVEN;
     dto.username = "user";
     dto.password = "pass";
 
@@ -207,6 +209,7 @@ public class ApiRepositoryConnectionServiceTest
 
     assertThat(createdDto.repositoryConnectionId).isNotNull();
     assertThat(createdDto.password).isNull();
+    assertThat(createdDto.format).isEqualTo(dto.format);
     RepositoryConnection savedConfig = dao.getByOwnerIdAndBaseUrl(id, dto.baseUrl);
     assertThat(passwordHandler.decryptPassword(savedConfig.getPassword())).isEqualTo(dto.password.toCharArray());
   }
@@ -262,7 +265,24 @@ public class ApiRepositoryConnectionServiceTest
     dto.baseUrl = "baseUrl";
     assertThatExceptionOfType(ConflictException.class)
         .isThrownBy(() -> repositoryConnectionService.addRepositoryConnection(OwnerType.ORGANIZATION, orgId, dto))
-        .withMessage("base URL configuration already exists for organization with id: " + orgId);
+        .withMessage("repository connection format generic configuration exists for organization with id: " + orgId);
+  }
+
+  @Test
+  public void testAddRepositoryConnection_DefaultFormat() {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+    dto.baseUrl = "baseUrl";
+    dto.username = "user";
+    dto.password = "pass";
+
+    ApiRepositoryConnectionDTO createdDto =
+        repositoryConnectionService.addRepositoryConnection(OwnerType.APPLICATION, app.getId(), dto);
+
+    assertThat(createdDto.repositoryConnectionId).isNotNull();
+    assertThat(createdDto.format).isEqualTo(RepositoryFormat.GENERIC);
+    RepositoryConnection savedConfig = dao.getByOwnerIdAndBaseUrl(app.getId(), dto.baseUrl);
+    assertThat(savedConfig.getFormat()).isEqualTo(RepositoryFormat.GENERIC);
   }
 
   @Test
@@ -272,6 +292,7 @@ public class ApiRepositoryConnectionServiceTest
     dto.baseUrl = "updated baseUrl";
     dto.username = "user2";
     dto.password = "pass2";
+    dto.format = RepositoryFormat.MAVEN;
     testUpdateRepositoryConnection(org.getId(), OwnerType.ORGANIZATION, dto, false);
   }
 
@@ -282,6 +303,7 @@ public class ApiRepositoryConnectionServiceTest
     dto.baseUrl = "updated baseUrl";
     dto.username = "user2";
     dto.password = "pass2";
+    dto.format = RepositoryFormat.MAVEN;
     testUpdateRepositoryConnection(app.getId(), OwnerType.APPLICATION, dto, false);
   }
 
@@ -290,6 +312,7 @@ public class ApiRepositoryConnectionServiceTest
     Application app = tempEntity.newApplicationWithParent();
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
     dto.baseUrl = "updated baseUrl";
+    dto.format = RepositoryFormat.MAVEN;
     testUpdateRepositoryConnection(app.getId(), OwnerType.APPLICATION, dto, true);
   }
 
@@ -399,13 +422,16 @@ public class ApiRepositoryConnectionServiceTest
   public void testUpdateRepositoryConnection_ConfigurationAlreadyExists() {
     String orgId = tempEntity.newOrganization().getId();
     tempEntity.newRepositoryConnection(orgId, "baseUrl", "user", "pass".toCharArray());
+    RepositoryConnection toUpdate =
+        tempEntity.newRepositoryConnection(orgId, "baseUrl", RepositoryFormat.MAVEN, "user", "pass".toCharArray());
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
-    dto.repositoryConnectionId = "anotherId";
-    dto.baseUrl = "baseUrl";
+    dto.repositoryConnectionId = toUpdate.getId();
+    dto.baseUrl = toUpdate.getBaseUrl();
+    dto.format = RepositoryFormat.GENERIC;
     assertThatExceptionOfType(ConflictException.class)
         .isThrownBy(() -> repositoryConnectionService.updateRepositoryConnection(OwnerType.ORGANIZATION, orgId,
             dto.repositoryConnectionId, dto))
-        .withMessage("repository connection URL configuration exists for organization with id: " + orgId);
+        .withMessage("repository connection format generic configuration exists for organization with id: " + orgId);
   }
 
   @Test
@@ -419,6 +445,26 @@ public class ApiRepositoryConnectionServiceTest
             dto.repositoryConnectionId, dto))
         .withMessage(
             "no repository connections found with connection id: nonExistentId for organization having id: " + orgId);
+  }
+
+  @Test
+  public void testUpdateRepositoryConnection_NoFormat() {
+    Application app = tempEntity.newApplicationWithParent();
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+    dto.baseUrl = "updated baseUrl";
+    dto.username = "user2";
+    dto.password = "pass2";
+    RepositoryConnection existingConnection = tempEntity.newRepositoryConnection(app.getId());
+
+    ApiRepositoryConnectionDTO updated =
+        repositoryConnectionService.updateRepositoryConnection(OwnerType.APPLICATION, app.getId(),
+            existingConnection.getId(), dto);
+
+    assertThat(updated.baseUrl).isEqualTo(dto.baseUrl);
+    assertThat(updated.format).isEqualTo(existingConnection.getFormat());
+    RepositoryConnection storedConnection = dao.getById(existingConnection.getId());
+    assertThat(updated.baseUrl).isEqualTo(storedConnection.getBaseUrl());
+    assertThat(updated.format).isEqualTo(storedConnection.getFormat());
   }
 
   @Test

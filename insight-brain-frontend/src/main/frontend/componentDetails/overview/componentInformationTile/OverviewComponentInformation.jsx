@@ -96,28 +96,30 @@ export default function OverviewComponentInformation({
   );
 
   return (
-    <section id="overview-component-information-tile" className="nx-tile iq-component-information-tile">
-      <OccurrencesPopoverContainer occurrences={pathnames} />
+    <>
       <InnerSourceProducerAlertContainer />
-      <InnerSourceProducerReportModalContainer />
-      <InnerSourceProducerPermissionsModalContainer />
-      <ComponentCoordinatesPopover displayName={displayName} componentFormat={format} />
-      <header className="nx-tile-header">
-        <div className="nx-tile-header__title">
-          <h2 className="nx-h2">Component Information</h2>
-        </div>
-        <div className="nx-tile__actions">
-          <NxButton
-            className="component-coordinates-button"
-            variant="tertiary"
-            onClick={toggleShowComponentCoordinatesPopover}
-          >
-            View Coordinates
-          </NxButton>
-        </div>
-      </header>
-      <div className="nx-tile-content">{identificationInfoSectionContent}</div>
-    </section>
+      <section id="overview-component-information-tile" className="nx-tile iq-component-information-tile">
+        <OccurrencesPopoverContainer occurrences={pathnames} />
+        <InnerSourceProducerReportModalContainer />
+        <InnerSourceProducerPermissionsModalContainer />
+        <ComponentCoordinatesPopover displayName={displayName} componentFormat={format} />
+        <header className="nx-tile-header">
+          <div className="nx-tile-header__title">
+            <h2 className="nx-h2">Component Information</h2>
+          </div>
+          <div className="nx-tile__actions">
+            <NxButton
+              className="component-coordinates-button"
+              variant="tertiary"
+              onClick={toggleShowComponentCoordinatesPopover}
+            >
+              View Coordinates
+            </NxButton>
+          </div>
+        </header>
+        <div className="nx-tile-content">{identificationInfoSectionContent}</div>
+      </section>
+    </>
   );
 }
 

@@ -1123,7 +1123,7 @@ public class PolicyMonitorTest
   }
 
   private List<ConstraintFact> createConstraintFacts(Policy policy) {
-    List<ConstraintFact> constraintFacts = new ArrayList();
+    List<ConstraintFact> constraintFacts = new ArrayList<>();
     for (Constraint constraint : policy.getConstraints()) {
       for (Condition condition : constraint.getConditions()) {
         ConstraintFact constraintFact = new ConstraintFact(constraint.getId(), constraint.getName(),

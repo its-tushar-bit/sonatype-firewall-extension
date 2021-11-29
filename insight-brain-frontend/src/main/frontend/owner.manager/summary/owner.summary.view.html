@@ -97,7 +97,7 @@
         <i class="fa fa-user size-12px iq-owner-contact-icon"></i>{{vm.owner.contact.displayName}}
       </div>
     </div>
-    <div class="page-repository-url" ng-if="vm.repositoryUrl">
+    <div class="page-repository-url nx-truncate-ellipsis" ng-if="vm.repositoryUrl">
       <i class="fa fa-{{vm.scmProviderIcon}} size-24px"></i><a href="{{vm.repositoryUrl}}" target="_blank">{{vm.repositoryUrl}}</a>
     </div>
     <div class="iq-nav-pills-container">

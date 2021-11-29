@@ -204,25 +204,7 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  public void testAddOrUpdateSourceControlFromAppEvaluation_DifferentDuplicateAccountName() {
-    testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, null,
-        "ssh://git@github.com/org/a/", "ssh://git@github.com/org/a/");
-  }
-
-  @Test
-  public void testAddOrUpdateSourceControlFromAppEvaluation_ImplicitSshProtocol() {
-    testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, null,
-        "git@github.com:org/a.git", "git@github.com:org/a.git");
-  }
-
-  @Test
-  public void testAddOrUpdateSourceControlFromAppEvaluation_ExplicitSshProtocol() {
-    testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, null,
-        "ssh://git@github.com/org/a.git", "ssh://git@github.com/org/a.git");
-  }
-
-  @Test
-  public void testAddOrUpdateSourceControlFromAppEvaluation_HttpsWithGitExtension() {
+  public void testAddOrUpdateSourceControl_HttpsWithGitExtension() {
     testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, null,
         "https://org@github.com/org/a.git", "https://org@github.com/org/a.git");
   }
@@ -456,7 +438,10 @@ public class ApiSourceControlServiceTest
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService.addSourceControlByOwner(
             OwnerType.ORGANIZATION, "foo", ApiSourceControlAdapter.convertToDTO(
-                new SourceControl.Builder().setOwnerId(testName.getMethodName()).setRepositoryUrl("bar").setToken("baz")
+                new SourceControl.Builder()
+                    .setOwnerId(testName.getMethodName())
+                    .setRepositoryUrl(VALID_URL)
+                    .setToken("baz")
                     .build())));
   }
 
@@ -495,7 +480,7 @@ public class ApiSourceControlServiceTest
         .isThrownBy(() ->
             sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION,
             "foo", ApiSourceControlAdapter.convertToDTO(
-                    new SourceControl.Builder().setOwnerId(testName.getMethodName()).setRepositoryUrl("bar")
+                    new SourceControl.Builder().setOwnerId(testName.getMethodName()).setRepositoryUrl(VALID_URL)
                         .setToken("baz").build())));
   }
 
@@ -512,7 +497,7 @@ public class ApiSourceControlServiceTest
   }
 
   private void testUpdateSourceControlByOwner() throws Exception {
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), "http://example.com/test/test"); 
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), "http://example.com/test/test");
     ApiSourceControlDTO sourceControlDTO = ApiSourceControlAdapter.convertToDTO(sourceControl);
 
     final Date pollTime = new Date(System.currentTimeMillis() - 5_000);
@@ -732,19 +717,22 @@ public class ApiSourceControlServiceTest
 
     // https URLs are accepted
     assertThatNoException().isThrownBy(() -> sourceControlService.validateUrl("https://server/owner/repo"));
-
-    // explicit ssh URLs are accepted - user provided
-    assertThatNoException().isThrownBy(() -> sourceControlService.validateUrl("ssh://git@server/owner/repo.git"));
-
-    // explicit ssh URLs are accepted - no user provided
-    assertThatNoException().isThrownBy(() -> sourceControlService.validateUrl("ssh://server/owner/repo.git"));
-
-    // implicit ssh URLs are accepted
-    assertThatNoException().isThrownBy(() -> sourceControlService.validateUrl("git@server:owner/repo.git"));
   }
 
   @Test
   public void testValidateUrl_UnsupportedUrlFormat() {
+    // explicit ssh URLs
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.validateUrl("ssh://git@server/owner/repo.git"));
+
+    // explicit ssh URLs
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.validateUrl("ssh://server/owner/repo.git"));
+
+    // implicit ssh URLs
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.validateUrl("git@server:owner/repo.git"));
+
     // local protocol
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> sourceControlService.validateUrl("/server/owner/repo.git"));

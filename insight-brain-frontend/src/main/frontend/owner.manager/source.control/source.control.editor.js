@@ -121,10 +121,9 @@ function SourceControlEditorController(
   vm.sshEnabled = sshEnabled;
 
   /**
-   * Matches any absolute HTTP(S) and SSH URL as per RFC 3986
-   * and SSH URL specified as 'user@server:path'
+   * Matches any absolute HTTP(S) as per RFC 3986
    */
-  vm.httpAndSshUrlPattern = /((https?|ssh):\/\/[^?#\s]+|[^@\s]+@[^/?#\s:]+:[^?#\s]+)/;
+  vm.repoCloneUrl = /(http[s]?:\/\/[^?#\s]+)/;
 
   vm.isDirty = isDirty;
   vm.save = save;

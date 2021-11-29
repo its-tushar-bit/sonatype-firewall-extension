@@ -373,13 +373,8 @@ public class SourceControl
 
   @VisibleForTesting
   static String convertUrlIfNeeded(String repositoryUrl) {
-    if (repositoryUrl.startsWith("ssh:")) {
-      String url = repositoryUrl.replaceAll("/[^/@]+@", "/");
-      repositoryUrl = url.replace("ssh:", "https:");
-    }
-    if (repositoryUrl.contains("@") && repositoryUrl.contains(":")) {
-      String url = repositoryUrl.replaceAll("[^@]+@", "");
-      repositoryUrl = "https://" + url.replace(":", "/");
+    if (!repositoryUrl.startsWith("http")) {
+      return repositoryUrl;
     }
     return sanitizeUrl(repositoryUrl);
   }

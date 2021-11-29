@@ -427,10 +427,8 @@ public class ApiSourceControlService
   void validateUrl(final String repositoryUrl) {
     boolean validUrl =
         repositoryUrl.startsWith("https:")                              // HTTPS URL
-            || repositoryUrl.startsWith("http:")                            // HTTP URL
-            || repositoryUrl.startsWith("ssh:")                             // explicit SSH URL
-            || repositoryUrl.contains("@") && repositoryUrl.contains(":")   // implicit SSH URL
-        ;
+        || repositoryUrl.startsWith("http:")                            // HTTP URL
+    ;
     if (!validUrl) {
       throw new BadRequestException("Unsupported repository URL format: `" + repositoryUrl + "`");
     }

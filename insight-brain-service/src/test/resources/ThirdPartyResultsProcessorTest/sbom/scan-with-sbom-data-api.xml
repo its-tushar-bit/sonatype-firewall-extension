@@ -44,13 +44,13 @@
           &lt;id&gt;Apache-2.0&lt;/id&gt;
         &lt;/license&gt;
       &lt;/licenses&gt;
-      &lt;purl&gt;pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?packaging=jar&lt;/purl&gt;
+      &lt;purl&gt;pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar&lt;/purl&gt;
     &lt;/component&gt;
-    &lt;component type=&quot;library&quot; bom-ref=&quot;pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9&quot;&gt;
+    &lt;component type=&quot;library&quot; bom-ref=&quot;pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar&quot;&gt;
       &lt;group&gt;com.fasterxml.jackson.core&lt;/group&gt;
       &lt;name&gt;jackson-databind&lt;/name&gt;
       &lt;version&gt;2.9.9&lt;/version&gt;
-      &lt;purl&gt;pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9&lt;/purl&gt;
+      &lt;purl&gt;pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar&lt;/purl&gt;
     &lt;/component&gt;
   &lt;/components&gt;
 &lt;/bom&gt;</content>

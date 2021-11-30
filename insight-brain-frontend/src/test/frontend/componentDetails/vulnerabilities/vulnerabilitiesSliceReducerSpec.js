@@ -103,6 +103,41 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
         });
       }
     );
+
+    it('toggles the showCommentField if translated status is `OPEN`', () => {
+      const state = Object.freeze({
+        vulnerabilityDetails: {
+          details: null,
+          loading: true,
+          error: 'error',
+        },
+        vulnerabilities: {
+          data: [
+            {
+              refId: '1',
+              severity: 8,
+              status: 'status 1',
+            },
+            {
+              refId: '2',
+              severity: 9.2,
+              status: 'Open',
+            },
+          ],
+        },
+        selectedRefId: '2',
+        vulnerabilitySecurityOverride: {
+          showCommentField: true,
+        },
+      });
+
+      const { vulnerabilitySecurityOverride } = reducer(state, {
+        type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled',
+        payload: null,
+      });
+
+      expect(vulnerabilitySecurityOverride.showCommentField).toBe(false);
+    });
   });
 
   describe('componentDetailsVulnerabilities/loadVulnerabilityDetails/rejected action', () => {
@@ -245,6 +280,7 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
           status: 'status 2',
           saveError: 'save error',
           comments: { value: 'associated comment', trimmedValue: 'associated comment', isPristine: false },
+          showCommentField: false,
         },
       });
 
@@ -263,6 +299,7 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
         isPristine: true,
         validationErrors: null,
       });
+      expect(newState.vulnerabilitySecurityOverride.showCommentField).toBe(true);
 
       const newToggledState = reducer(newState, {
         type: 'componentDetailsVulnerabilities/toggleVulnerabilityPopoverWithEffects',
@@ -282,6 +319,7 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
             status: 'status 2',
             comments: { value: 'associated comment', trimmedValue: 'associated comment', isPristine: false },
             saveError: 'there was an error saving the previous state',
+            showCommentField: false,
           },
         });
 
@@ -298,6 +336,7 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
           validationErrors: null,
         });
         expect(newState.vulnerabilitySecurityOverride.saveError).toBe(null);
+        expect(newState.vulnerabilitySecurityOverride.showCommentField).toBe(true);
       }
     );
   });

@@ -24,6 +24,8 @@ export const MenuBar = ({
 }) => {
   const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0 || isLabsDataInsightsEnabled;
 
+  const backButtonPortalContainer = <div id="menu-bar__back-button-container" />;
+
   if (!isLoggedIn && shouldShowLoginButton) {
     return (
       <div id="menu-bar" className="nx-global-header__actions menu-bar">
@@ -31,13 +33,14 @@ export const MenuBar = ({
       </div>
     );
   }
+
   if (!isLoggedIn) {
-    return null;
+    return backButtonPortalContainer;
   }
 
   return (
     <Fragment>
-      <div id="menu-bar__back-button-container" />
+      {backButtonPortalContainer}
       <div id="menu-bar" className="nx-global-header__actions menu-bar">
         <HelpMenu majorMinorVersion={majorMinorVersion} />
         <NotificationsMenuContainer />

@@ -62,7 +62,7 @@ public class DefaultBranchMonitor
 
   public boolean disableForTesting;
 
-  private int intervalInHours;
+  private int intervalInMinutes;
 
   @Inject
   public DefaultBranchMonitor(
@@ -90,13 +90,19 @@ public class DefaultBranchMonitor
       return;
     }
 
-    intervalInHours = insightConfig.getDefaultBranchMonitoring().getIntervalInHours();
+    // If we schedule the task every intervalInHours (as configured),
+    // then apps that have policy evals after now - intervalInHours are not included in the next default branch
+    // monitoring execution,
+    // which means they will be included only in the subsequent execution,
+    // resulting in a policy eval triggered by monitoring every 2 * intervalInHours.
+    // That's why we use half intervalInHours below.
+    intervalInMinutes = insightConfig.getDefaultBranchMonitoring().getIntervalInHours() * 60 / 2;
 
-    taskScheduler.schedulePeriodicTask(DefaultBranchMonitor.class, TASK_NAME, Duration.ofHours(intervalInHours),
+    taskScheduler.schedulePeriodicTask(DefaultBranchMonitor.class, TASK_NAME, Duration.ofMinutes(intervalInMinutes),
         getDefaultBranchMonitorStartTime());
 
     log.debug("DefaultBranchMonitor scheduled to start at {} and repeat every {} hours.",
-        getDefaultBranchMonitorStartTime(), intervalInHours);
+        getDefaultBranchMonitorStartTime(), (double) intervalInMinutes / 60);
   }
 
   @Override
@@ -123,8 +129,8 @@ public class DefaultBranchMonitor
     long start = System.currentTimeMillis();
     log.debug("Updating default branch source scans.");
 
-    Date scanLimitDate = Date.from(LocalDateTime.now().minusHours(intervalInHours)
-        .atZone(ZoneId.systemDefault()).toInstant());
+    Date scanLimitDate =
+        Date.from(LocalDateTime.now().minusMinutes(intervalInMinutes).atZone(ZoneId.systemDefault()).toInstant());
 
     List<SourceControl> sourceControlList
         = sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(scanLimitDate);
@@ -188,7 +194,7 @@ public class DefaultBranchMonitor
   }
 
   @VisibleForTesting
-  int getIntervalInHours() {
-    return intervalInHours;
+  int getIntervalInMinutes() {
+    return intervalInMinutes;
   }
 }

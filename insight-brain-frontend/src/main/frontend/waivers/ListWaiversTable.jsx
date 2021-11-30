@@ -71,9 +71,7 @@ export default function ListWaiversTable(props) {
   const emptyMessage = (
     <span>
       You don&apos;t have any waivers: to learn more about waivers you can check our{' '}
-      <NxExternalLink href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers">
-        help documentation.
-      </NxExternalLink>
+      <NxExternalLink href="http://links.sonatype.com/products/nxiq/doc/waivers">help documentation.</NxExternalLink>
     </span>
   );
 

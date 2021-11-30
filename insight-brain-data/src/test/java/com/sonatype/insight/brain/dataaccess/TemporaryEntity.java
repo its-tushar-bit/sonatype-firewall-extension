@@ -174,6 +174,7 @@ import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -3189,11 +3190,16 @@ public class TemporaryEntity
   }
 
   public RepositoryConnection newRepositoryConnection() {
-    return newRepositoryConnection("ownerId", "baseUrl", "username", "password".toCharArray());
+    return newRepositoryConnection("ownerId", "baseUrl", RepositoryFormat.GENERIC, "username",
+        "password".toCharArray());
   }
 
   public RepositoryConnection newRepositoryConnection(String ownerId) {
-    return newRepositoryConnection(ownerId, "baseUrl", "username", "password".toCharArray());
+    return newRepositoryConnection(ownerId, "baseUrl", RepositoryFormat.GENERIC, "username", "password".toCharArray());
+  }
+
+  public RepositoryConnection newRepositoryConnection(String ownerId, RepositoryFormat format) {
+    return newRepositoryConnection(ownerId, "baseUrl", format, "username", "password".toCharArray());
   }
 
   public RepositoryConnection newRepositoryConnection(
@@ -3202,7 +3208,17 @@ public class TemporaryEntity
       final String username,
       final char[] password)
   {
-    RepositoryConnection connection = new RepositoryConnection(ownerId, baseUrl, username, password);
+    return newRepositoryConnection(ownerId, baseUrl, RepositoryFormat.GENERIC, username, password);
+  }
+
+  public RepositoryConnection newRepositoryConnection(
+      final String ownerId,
+      final String baseUrl,
+      final RepositoryFormat format,
+      final String username,
+      final char[] password)
+  {
+    RepositoryConnection connection = new RepositoryConnection(ownerId, baseUrl, format, username, password);
     repositoryConnectionDAO.insert(connection);
     repositoryConnections.add(connection);
     return connection;

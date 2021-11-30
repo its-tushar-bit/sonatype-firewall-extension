@@ -22,11 +22,13 @@ import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
-import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
-import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentCoordinatesPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationDefinitionList;
+import com.sonatype.clm.testing.functional.elements.componentdetails.DependencyTreeTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LegalTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ManageLabelsContentTab;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OccurrencesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
@@ -49,8 +51,10 @@ import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
@@ -372,24 +376,40 @@ public class ComponentDetailsTest
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
 
-    GeneralInfoSection generalInfoSection =
-        componentDetailsPage.overviewTabContent().componentInformationTile().generalInfoSection();
-    generalInfoSection.shouldBe(visible);
-    generalInfoSection.getTypeItem().shouldHave(text("Type maven"));
-    generalInfoSection.getNamingItems()
-        .shouldHave(exactTexts("Group com.mycila", "Artifact license-maven-plugin", "Version 2.11"));
-    IdentificationInfoSection identificationInfoSection =
-        componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
-    identificationInfoSection.shouldBe(visible);
-    identificationInfoSection.getMatchStateItem().shouldHave(text("Match State exact"));
-    identificationInfoSection.getIdentificationSourceItem().shouldHave(text("Identification Source"));
-    identificationInfoSection.getWebsiteItem().shouldHave(text("Website"));
-    identificationInfoSection.getCategoryItem().shouldHave(text("Category"));
+    IdentificationDefinitionList identificationDefinitionList =
+        componentDetailsPage.overviewTabContent().componentInformationTile().identificationDefinitionList();
+    identificationDefinitionList.shouldBe(visible);
+    identificationDefinitionList.getMatchStateItem().shouldHave(text("Match State exact"));
+    identificationDefinitionList.getIdentificationSourceItem().shouldHave(text("Identification Source"));
+    identificationDefinitionList.getWebsiteItem().shouldHave(text("Website"));
+    identificationDefinitionList.getCategoryItem().shouldHave(text("Category"));
 
-    identificationInfoSection.getOccurrencesItem().shouldBe(visible);
-    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File"));
+    identificationDefinitionList.getOccurrencesItem().shouldBe(visible);
+    identificationDefinitionList.getOccurrencesItem().shouldHave(text("Occurrences 1 File"));
 
     eyesWatcher.eyesCheck("component details overview tab component information");
+  }
+
+  @Test
+  public void testOverviewTab_componentCoordinatesPopover() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
+    componentDetailsPage.overviewTab().shouldBe(visible);
+    componentDetailsPage.overviewTabContent().shouldBe(visible);
+
+    componentDetailsPage.overviewTabContent().componentInformationTile().componentCoordinatesButton().click();
+    ComponentCoordinatesPopover componentCoordinatesPopover = new ComponentCoordinatesPopover();
+
+    componentCoordinatesPopover.shouldBe(visible);
+    componentCoordinatesPopover.title().shouldHave(text("Component Coordinates"));
+    componentCoordinatesPopover.typeDefinition().shouldHave(text("Type maven"));
+    componentCoordinatesPopover.namingDefinitions()
+        .shouldHave(exactTexts("Group com.mycila", "Artifact license-maven-plugin", "Version 2.11"));
+
+    eyesWatcher.eyesCheck("component details component coordinates popover");
+
+    componentCoordinatesPopover.closeButton().click();
+    componentCoordinatesPopover.shouldNotBe(visible);
   }
 
   @Test
@@ -399,11 +419,11 @@ public class ComponentDetailsTest
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
 
-    IdentificationInfoSection identificationInfoSection =
-        componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
-    identificationInfoSection.shouldBe(visible);
-    identificationInfoSection.getOccurrencesItem().shouldHave(text("Occurrences 1 File"));
-    identificationInfoSection.getOccurrencesLink().click();
+    IdentificationDefinitionList identificationDefinitionList =
+        componentDetailsPage.overviewTabContent().componentInformationTile().identificationDefinitionList();
+    identificationDefinitionList.shouldBe(visible);
+    identificationDefinitionList.getOccurrencesItem().shouldHave(text("Occurrences 1 File"));
+    identificationDefinitionList.getOccurrencesLink().click();
 
     OccurrencesPopover occurrencesPopover = new OccurrencesPopover();
     occurrencesPopover.title().shouldHave(text("Occurrences"));
@@ -423,11 +443,11 @@ public class ComponentDetailsTest
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().shouldBe(visible);
 
-    IdentificationInfoSection identificationInfoSection =
-        componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
-    identificationInfoSection.shouldBe(visible);
-    identificationInfoSection.getMatchStateItem().shouldHave(text("Similar (View Similar Matches)"));
-    identificationInfoSection.getSimilarMatchesLink().click();
+    IdentificationDefinitionList identificationDefinitionList =
+        componentDetailsPage.overviewTabContent().componentInformationTile().identificationDefinitionList();
+    identificationDefinitionList.shouldBe(visible);
+    identificationDefinitionList.getMatchStateItem().shouldHave(text("Similar (View Similar Matches)"));
+    identificationDefinitionList.getSimilarMatchesLink().click();
 
     SimilarMatchesPopover similarMatchesPopover = new SimilarMatchesPopover();
     similarMatchesPopover.title().shouldHave(text("Similar Matches"));
@@ -438,6 +458,17 @@ public class ComponentDetailsTest
 
     similarMatchesPopover.closeButton().click();
     similarMatchesPopover.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testOverviewTab_DependencyTreeTile() {
+    refreshOrOpen(
+        ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "197d803ab63dd3523d9d"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
+    dependencyTreeTile.shouldBe(visible);
+    dependencyTreeTile.title().shouldHave(text("Dependency Tree"));
   }
 
   @Test
@@ -757,10 +788,12 @@ public class ComponentDetailsTest
 
     VulnerabilityOverrideForm vulnerabilityOverrideForm = vulnerabilityDetailsPopover.getVulnerabilityOverrideForm();
     vulnerabilityOverrideForm.shouldBe(visible);
-    vulnerabilityOverrideForm.comment().shouldBe(disabled);
+    vulnerabilityOverrideForm.comment().shouldNotBe(visible);
     vulnerabilityOverrideForm.submitButton().shouldBe(CLM.DISABLED);
 
     vulnerabilityOverrideForm.status().chooseOption(new Option(3, "CONFIRMED"));
+    vulnerabilityOverrideForm.comment().shouldBe(visible);
+    vulnerabilityOverrideForm.comment().shouldBe(enabled);
     vulnerabilityOverrideForm.comment().setValue("vulnerability confirmed in the current code");
     vulnerabilityOverrideForm.submitButton().shouldBe(enabled).click();
     // Conditions after submitting
@@ -978,9 +1011,49 @@ public class ComponentDetailsTest
 
   @Test
   public void testLabelsTab_manageLabels() {
+    // Create app level label, apply to component
+    Label appLevelLabel = tempEntity.newLabel(app.getId(), "app level label", Color.dark_red);
+    tempEntity.newComponentLabel(app.getId(), appLevelLabel.getId(),"fa78f54738ccf77379d1");
+
+    // Go to details page, verify manage labels content appears
     refreshOrOpen(ComponentDetailsPage.urlToLabels(app, SCAN_ID, "fa78f54738ccf77379d1"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    componentDetailsPage.labelsContent().shouldBe(visible);
+    ManageLabelsContentTab manageLabels = componentDetailsPage.labelsContent();
+    manageLabels.shouldBe(visible);
+    manageLabels.appliedLabels().shouldHaveSize(1);
+    manageLabels.applicableLabels().shouldHaveSize(3);
+
+    // Remove applied app level label
+    manageLabels.appliedLabels().get(0).should(exist).click();
+    manageLabels.removeLabelModal().should(exist);
+    // Screenshot remove label modal
+    eyesWatcher.eyesCheck("Remove Label Modal");
+    // Confirm removal and verify labels count
+    manageLabels.removeLabelModal().confirmRemoveButton().should(exist).click();
+    manageLabels.appliedLabels().shouldHaveSize(0);
+    manageLabels.applicableLabels().shouldHaveSize(4);
+
+    // Adding first label
+    manageLabels.applicableLabelText(0).shouldHave(text("Architecture-Blacklisted"));
+    manageLabels.applicableLabels().get(0).should(exist).click();
+    manageLabels.addLabelModal().should(exist);
+    // Screenshot the add label modal
+    eyesWatcher.eyesCheck("Add Label Modal");
+    // Add and confirm
+    manageLabels.addLabelModal().labelsScopeRadioButton(0).should(exist).click();
+    manageLabels.addLabelModal().submitButton().shouldBe(enabled).click();
+    manageLabels.appliedLabelText(0).shouldHave(text("Architecture-Blacklisted"));
+
+    // Adding app level label
+    manageLabels.applicableLabelText(2).shouldHave(text("app level label"));
+    manageLabels.applicableLabels().get(2).should(exist).click();
+    // No modal should appear, the label should just be added right away
+    manageLabels.addLabelModal().shouldNot(exist);
+    manageLabels.appliedLabelText(0).shouldHave(text("app level label"));
+
+    // Confirm additions
+    manageLabels.appliedLabels().shouldHaveSize(2);
+    eyesWatcher.eyesCheck("Labels Tab");
   }
 
   private void createAuditLogEntries() {

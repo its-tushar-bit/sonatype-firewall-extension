@@ -61,9 +61,15 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
+import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
+import com.sonatype.insight.brain.repository.RepositoryClient;
+import com.sonatype.insight.brain.repository.RepositoryComponentResult;
+import com.sonatype.insight.brain.repository.RepositoryQueryService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -72,6 +78,8 @@ import com.sonatype.insight.lqa.LqaFormat;
 import com.sonatype.insight.scan.util.HashUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,6 +112,10 @@ public class ComponentInfoService
 
   private final ThirdPartyComponentDAO thirdPartyComponentDAO;
 
+  private final InsightConfig insightConfig;
+
+  private final RepositoryQueryService repositoryQueryService;
+
   private static final String OTHER_CATEGORY_ID = "113";
 
   private String toolName;
@@ -114,13 +126,17 @@ public class ComponentInfoService
       ComponentPolicyEvaluator componentPolicyEvaluator,
       ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
       ComponentRemediationService componentRemediationService,
-      ThirdPartyComponentDAO thirdPartyComponentDAO)
+      ThirdPartyComponentDAO thirdPartyComponentDAO,
+      InsightConfig insightConfig,
+      RepositoryQueryService repositoryQueryService)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.componentRemediationService = componentRemediationService;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
+    this.insightConfig = insightConfig;
+    this.repositoryQueryService = repositoryQueryService;
     initUnspecifiedLicense();
     initOtherCategory();
   }
@@ -213,7 +229,8 @@ public class ComponentInfoService
     componentDetails.setPolicyAlerts(policyAlerts);
 
     Map<PolicyThreatCategory, Integer> policyMaxThreatLevelsByCategory;
-    policyMaxThreatLevelsByCategory = getMaxPolicyThreatLevelsByCategory(owner,policyAlerts);
+    Map<String, Policy> policiesById = getPoliciesById(owner);
+    policyMaxThreatLevelsByCategory = getMaxPolicyThreatLevelsByCategory(policyAlerts, policiesById);
     componentDetails.setPolicyMaxThreatLevelsByCategory(maxPolicyThreatLevelToString(policyMaxThreatLevelsByCategory));
 
     log.debug("Loaded component details for {}, hash {}, in {} ms.", identifier, hash, System.currentTimeMillis()
@@ -255,7 +272,7 @@ public class ComponentInfoService
             catch (NotFoundException e) {
               // Identifier is unknown to HDS, still want to provide minimal data for details view
               if (isPackageManifestIdentificationSource(identificationSource)) {
-                componentDetails = createComponentDetailsFromPackageManifest(hash, identifier);
+                componentDetails = createComponentDetails(hash, identifier, IdentificationSource.PACKAGE_MANIFEST);
               }
               else {
                 componentDetails = createEmptyComponentDetails(hash, identifier);
@@ -275,12 +292,16 @@ public class ComponentInfoService
     return details;
   }
 
-  private NamedComponentDetails createComponentDetailsFromPackageManifest(String hash, ComponentIdentifier identifier) {
+  private NamedComponentDetails createComponentDetails(
+      String hash,
+      ComponentIdentifier identifier,
+      IdentificationSource identificationSource)
+  {
     NamedComponentDetails details = new NamedComponentDetails();
     details.setComponentIdentifier(identifier);
     details.setHash(hash);
     details.setMatchState(MatchState.EXACT.getId());
-    details.setIdentificationSource(IdentificationSource.PACKAGE_MANIFEST.getId());
+    details.setIdentificationSource(identificationSource.getId());
     return details;
   }
 
@@ -338,7 +359,7 @@ public class ComponentInfoService
   {
     auditComponentAccess(identifier, null);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, null, null, null);
+    ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, null, null, null, null).getLeft();
     componentDetailsLoaderFactory.newInstance(app).augmentComponentDetails(componentDetailsList.getList(), matchState,
         null);
     return componentDetailsList;
@@ -376,7 +397,8 @@ public class ComponentInfoService
   {
     auditComponentAccess(componentIdentifier, null);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    ComponentDetailsList componentDetailsList = getComponentDetailsList(componentIdentifier, owner, null, null);
+    ComponentDetailsList componentDetailsList =
+        getComponentDetailsList(componentIdentifier, owner, null, null, null).getLeft();
     componentDetailsLoaderFactory.newInstance(owner).augmentComponentDetails(componentDetailsList.getList(), matchState,
         null);
     return componentDetailsList;
@@ -423,8 +445,10 @@ public class ComponentInfoService
       String scanId,
       DependencyType dependencyType)
   {
-    List<ComponentDetailsDTO> componentDetailsDTOs = getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId,
-        componentIdentifier, stageId, identificationSource, scanId, dependencyType);
+    Pair<List<ComponentDetailsDTO>, String> result =
+        getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId, componentIdentifier, stageId, identificationSource,
+            scanId, dependencyType);
+    List<ComponentDetailsDTO> componentDetailsDTOs = result.getLeft();
 
     ApiComponentRemediationValueDTO remediationDto;
     if (IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
@@ -435,10 +459,10 @@ public class ComponentInfoService
       remediationDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,
           ownerType, ownerId, stageId);
     }
-    return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto);
+    return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto, result.getRight());
   }
 
-  public List<ComponentDetailsDTO> getComponentDetailsForAllVersionsNoAuth(
+  public Pair<List<ComponentDetailsDTO>, String> getComponentDetailsForAllVersionsNoAuth(
       OwnerType ownerType,
       String ownerId,
       ComponentIdentifier componentIdentifier,
@@ -448,8 +472,10 @@ public class ComponentInfoService
       DependencyType dependencyType)
   {
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    List<ComponentDetails> componentDetailsList =
-        getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId).getList();
+    Pair<ComponentDetailsList, String> componentDetailsListAndSource =
+        getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId, dependencyType);
+    List<ComponentDetails> componentDetailsList = componentDetailsListAndSource.getLeft().getList();
+
     // Fix match state to exact as there's no point propagating it to other versions.
     List<Component> components = componentDetailsLoaderFactory.newInstance(owner)
         .augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), dependencyType);
@@ -467,6 +493,7 @@ public class ComponentInfoService
     }
 
     List<ComponentDetailsDTO> componentDetailsDTOs = new ArrayList<>(componentDetailsList.size());
+    Map<String, Policy> policiesById = getPoliciesById(owner);
     for (ComponentDetails componentDetails : componentDetailsList) {
       ComponentDetailsDTO dto = new ComponentDetailsDTO();
       dto.matchState = componentDetails.getMatchState();
@@ -486,7 +513,7 @@ public class ComponentInfoService
           .getOrDefault(componentDetails.getComponentIdentifier(), Collections.emptyList());
 
       dto.policyAlerts = policyAlerts;
-      dto.policyMaxThreatLevelsByCategory = getMaxPolicyThreatLevelsByCategory(owner, policyAlerts);
+      dto.policyMaxThreatLevelsByCategory = getMaxPolicyThreatLevelsByCategory(policyAlerts, policiesById);
 
       dto.violatedPolicyCount = policyAlerts.stream().map(PolicyAlert::getTrigger).map(PolicyFact::getPolicyId)
           .collect(Collectors.toSet()).size();
@@ -504,18 +531,19 @@ public class ComponentInfoService
       componentDetailsDTOs.add(dto);
     }
 
-    return componentDetailsDTOs;
+    return Pair.of(componentDetailsDTOs, componentDetailsListAndSource.getRight());
+  }
+
+  protected Map<String, Policy> getPoliciesById(Owner owner) {
+    return new PolicyDAO().getApplicableByOwnerIdWithHierarchy(owner.getId()).stream()
+        .collect(Collectors.toMap(Policy::getId, Function.identity()));
   }
 
   private Map<PolicyThreatCategory, Integer> getMaxPolicyThreatLevelsByCategory(
-      Owner owner,
-      List<PolicyAlert> policyAlerts)
+      List<PolicyAlert> policyAlerts,
+      Map<String, Policy> policiesById)
   {
     HashMap<PolicyThreatCategory, Integer> policyMaxThreatLevelsByCategory;
-
-    Map<String, Policy> policiesById = new PolicyDAO().getApplicableByOwnerIdWithHierarchy(owner.getId()).stream()
-        .collect(Collectors.toMap(Policy::getId, Function.identity()));
-
     policyMaxThreatLevelsByCategory = new HashMap<>();
     for (PolicyAlert policyAlert : policyAlerts) {
       PolicyFact policyFact = policyAlert.getTrigger();
@@ -549,11 +577,12 @@ public class ComponentInfoService
     return getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest, identificationSource);
   }
 
-  ComponentDetailsList getComponentDetailsList(
+  Pair<ComponentDetailsList, String> getComponentDetailsList(
       ComponentIdentifier identifier,
       Owner owner,
       String identificationSource,
-      String scanId)
+      String scanId,
+      DependencyType dependencyType)
   {
     long start = System.currentTimeMillis();
 
@@ -562,11 +591,18 @@ public class ComponentInfoService
     }
 
     ComponentDetailsList componentDetailsList;
+    String source = null;
 
     if (isKnownFormat(identifier)) {
       if (identifier.isTerraform()) {
         //Terraform information is not stored in HDS
         componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
+      }
+      else if (shouldGetFromRepositoryData(dependencyType, identifier)) {
+        Pair<RepositoryAllVersionsResponse, String> result =
+            repositoryQueryService.getAllVersions(identifier, owner.getId());
+        componentDetailsList = transformToComponentDetailsList(result.getLeft(), identifier);
+        source = result.getRight();
       }
       else {
         componentDetailsList = getInformationVersionsHds(identifier, identificationSource, owner, scanId);
@@ -583,7 +619,66 @@ public class ComponentInfoService
       log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
           componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
     }
+    return Pair.of(componentDetailsList, source);
+  }
+
+  private ComponentDetailsList transformToComponentDetailsList(
+      RepositoryAllVersionsResponse results,
+      ComponentIdentifier identifier)
+  {
+    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
+    List<ComponentDetails> detailsList = new ArrayList<>();
+    boolean requestVersionAdded = false;
+
+    if (CollectionUtils.isNotEmpty(results.getComponents())) {
+      for (RepositoryComponentResult result : results.getComponents()) {
+        if (!requestVersionAdded) {
+          int comparison = compareVersions(identifier, result);
+          if (comparison <= 0) {
+            String hash = comparison == 0 ? getHash(identifier, result) : generateFakeHash(identifier);
+            detailsList.add(createComponentDetails(identifier, hash, IdentificationSource.PACKAGE_MANIFEST));
+            requestVersionAdded = true;
+            if (comparison == 0) {
+              continue;
+            }
+          }
+        }
+
+        String hash = getHash(identifier, result);
+        detailsList.add(createComponentDetails(result.getIdentifier(), hash,
+            IdentificationSource.PACKAGE_MANIFEST));
+      }
+    }
+
+    if (CollectionUtils.isEmpty(results.getComponents()) || !requestVersionAdded) {
+      detailsList.add(
+          createComponentDetails(identifier, generateFakeHash(identifier), IdentificationSource.PACKAGE_MANIFEST));
+    }
+
+    componentDetailsList.setList(detailsList);
     return componentDetailsList;
+  }
+
+  private String getHash(final ComponentIdentifier identifier, final RepositoryComponentResult result) {
+    return result.getSha1() != null ? HashHelper.truncateHash(result.getSha1()) : generateFakeHash(identifier);
+  }
+
+  private int compareVersions(
+      ComponentIdentifier identifier,
+      RepositoryComponentResult result)
+  {
+    ComparableVersion requestVersion = new ComparableVersion(identifier.get(ComponentIdentifier.VERSION));
+    ComparableVersion resultVersion = new ComparableVersion(result.getIdentifier().get(ComponentIdentifier.VERSION));
+    return requestVersion.compareTo(resultVersion);
+  }
+
+  private boolean shouldGetFromRepositoryData(
+      DependencyType dependencyType,
+      ComponentIdentifier identifier)
+  {
+    return DependencyType.INNER_SOURCE.equals(dependencyType) &&
+        RepositoryClient.REPOSITORY_SUPPORTED_FORMATS.contains(identifier.getFormat()) &&
+        insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION);
   }
 
   private void updateThirdPartyInformation(
@@ -633,18 +728,25 @@ public class ComponentInfoService
       }
       throw e;
     }
-
     if (CollectionUtils.isEmpty(componentDetailsList.getList()) &&
         isPackageManifestIdentificationSource(identificationSource)) {
-      String hash = generateFakeHash(identifier);
-      NamedComponentDetails details = createComponentDetailsFromPackageManifest(hash, identifier);
-      augmentEmptyLicensesAsUnspecified(details);
       componentDetailsList = new ComponentDetailsList();
-      componentDetailsList.setList(Collections.singletonList(details));
+      componentDetailsList.setList(Collections.singletonList(
+          createComponentDetails(identifier, generateFakeHash(identifier), IdentificationSource.PACKAGE_MANIFEST)));
     }
-    //In case it's a third-party component, the data must be replace with the local information
+    //In case it's a third-party component, the data must be replaced with the local information
     updateThirdPartyInformation(identifier, identificationSource, componentDetailsList, owner, scanId);
     return componentDetailsList;
+  }
+
+  private ComponentDetails createComponentDetails(
+      ComponentIdentifier identifier,
+      String hash,
+      IdentificationSource identificationSource)
+  {
+    NamedComponentDetails details = createComponentDetails(hash, identifier, identificationSource);
+    augmentEmptyLicensesAsUnspecified(details);
+    return details;
   }
 
   private boolean isKnownFormat(ComponentIdentifier identifier) {

@@ -180,13 +180,19 @@ public class ApiSourceControlService
             .setBaseBranch(defaultBranch)
             .build();
         sourceControlDAO.insert(sourceControl);
-        auditAndSendTelemetry(sourceControl, application.getId());
+        auditSourceControl(sourceControl);
+        setTokenValueForReturn(sourceControl);
+        sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE,
+            getCompositeSourceControl(OwnerType.APPLICATION, sourceControl));
       }
       else if (shouldUpdateSourceControlRepositoryUrl(sourceControl.getRepositoryUrl())) {
         sourceControl.setRepositoryUrl(repositoryUrl);
         sourceControl.setRepositorySshUrl(sshUrl);
         sourceControlDAO.update(sourceControl);
-        auditAndSendTelemetry(sourceControl, application.getId());
+        auditSourceControl(sourceControl);
+        setTokenValueForReturn(sourceControl);
+        sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE,
+            getCompositeSourceControl(OwnerType.APPLICATION, sourceControl));
       }
       else {
         log.debug("Skipping update of source control repository URL from {} to {}",
@@ -209,7 +215,6 @@ public class ApiSourceControlService
           "Cannot find SourceControl for %s with id: %s", ownerType, getPublicOwnerId(ownerId)));
     }
     setTokenValueForReturn(sourceControl);
-    sendSourceControlTelemetryData(METHOD.GET_BY_OWNER_ID, ownerId);
 
     return ApiSourceControlAdapter.convertToDTO(sourceControl);
   }
@@ -236,7 +241,7 @@ public class ApiSourceControlService
     sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
     setTokenValueForReturn(sourceControl);
-    sendSourceControlTelemetryData(METHOD.ADD, ownerId, sourceControl);
+    sendSourceControlTelemetryData(METHOD.ADD, getCompositeSourceControl(ownerType, sourceControl));
     return ApiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
@@ -283,7 +288,7 @@ public class ApiSourceControlService
     }
     auditSourceControl(sourceControl);
     setTokenValueForReturn(sourceControl);
-    sendSourceControlTelemetryData(METHOD.UPDATE, ownerId, sourceControl);
+    sendSourceControlTelemetryData(METHOD.UPDATE, getCompositeSourceControl(ownerType, sourceControl));
     return ApiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
@@ -302,9 +307,10 @@ public class ApiSourceControlService
     if (OwnerType.APPLICATION.equals(ownerType)) {
       deleteSourceControlDirectory(ownerId);
     }
+    SourceControl compositeSourceControl = getCompositeSourceControl(ownerType, sourceControl);
     sourceControlDAO.delete(sourceControl);
     auditSourceControl(sourceControl);
-    sendSourceControlTelemetryData(METHOD.DELETE, ownerId, sourceControl);
+    sendSourceControlTelemetryData(METHOD.DELETE, compositeSourceControl);
   }
 
   private void deleteSourceControlDirectory(String appId) {
@@ -376,30 +382,29 @@ public class ApiSourceControlService
     }
   }
 
-  private void sendSourceControlTelemetryData(final METHOD method, final String ownerId) {
-    sendSourceControlTelemetryData(method, ownerId, null);
-  }
-
   private void sendSourceControlTelemetryData(
       final METHOD method,
-      final String ownerId,
       final SourceControl sourceControl)
   {
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("method", method);
-    attributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
-    if (sourceControl != null) {
-      attributes.put("repository_url", HdsClientAnalytics.obfuscate(sourceControl.getRepositoryUrl()));
-      attributes.put("provider", (sourceControl.getProvider() != null)
-          ? sourceControl.getProvider().toString() : null);
-      attributes.put("remediation_pull_requests_enabled", sourceControl.getRemediationPullRequestsEnabled());
-      attributes.put("status_checks_enabled", sourceControl.getStatusChecksEnabled());
-      attributes.put("base_branch", sourceControl.getBaseBranch());
-    }
+    attributes.put("owner_id", HdsClientAnalytics.obfuscate(sourceControl.getOwnerId()));
+    attributes.put("repository_url", HdsClientAnalytics.obfuscate(sourceControl.getRepositoryUrl()));
+    attributes.put("provider", sourceControl.getProvider() != null ? sourceControl.getProvider().toString() : null);
+    attributes.put("remediation_pull_requests_enabled", sourceControl.getRemediationPullRequestsEnabled());
+    attributes.put("status_checks_enabled", sourceControl.getStatusChecksEnabled());
+    attributes.put("base_branch", sourceControl.getBaseBranch());
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL);
     telemetryData.setAttributes(attributes);
     telemetrySender.send(telemetryData);
+  }
+
+  private SourceControl getCompositeSourceControl(OwnerType ownerType, SourceControl sourceControl) {
+    if (OwnerType.APPLICATION.equals(ownerType)) {
+      return sourceControlDAO.getCompositeSourceControlByApplicationId(sourceControl.getOwnerId());
+    }
+    return sourceControl;
   }
 
   private SourceControl setTokenValueForReturn(final SourceControl sourceControl) {
@@ -414,11 +419,6 @@ public class ApiSourceControlService
     sourceControl.setToken(StringUtils.isBlank(sourceControl.getToken()) ? null : sourceControl.getToken());
   }
 
-  private void auditAndSendTelemetry(SourceControl sourceControl, String appId) {
-    auditSourceControl(setTokenValueForReturn(sourceControl));
-    sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, appId);
-  }
-
   private boolean shouldUpdateSourceControlRepositoryUrl(String currentValue) {
     return isBlank(currentValue);
   }
@@ -428,8 +428,6 @@ public class ApiSourceControlService
     boolean validUrl =
         repositoryUrl.startsWith("https:")                              // HTTPS URL
         || repositoryUrl.startsWith("http:")                            // HTTP URL
-        || repositoryUrl.startsWith("ssh:")                             // explicit SSH URL
-        || repositoryUrl.contains("@") && repositoryUrl.contains(":")   // implicit SSH URL
     ;
     if (!validUrl) {
       throw new BadRequestException("Unsupported repository URL format: `" + repositoryUrl + "`");

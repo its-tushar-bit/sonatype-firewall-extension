@@ -108,7 +108,7 @@ function routes($stateProvider, $urlRouterProvider) {
       },
     })
     .state('applicationReport.componentDetails.overview', {
-      url: '/overview',
+      url: '/overview?dependencyTreeEnabled',
       params: {
         tabId: 'overview',
       },

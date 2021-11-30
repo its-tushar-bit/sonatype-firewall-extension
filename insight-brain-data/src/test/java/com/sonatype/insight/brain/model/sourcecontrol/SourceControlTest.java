@@ -21,33 +21,22 @@ public class SourceControlTest
     repositoryUrl = "https://server/owner/repo";
     convertedUrl = convertUrlIfNeeded(repositoryUrl);
     assertThat(convertedUrl).isEqualTo(repositoryUrl);
+
+    // strip out the "user@" for https
+    repositoryUrl = "https://user@server/owner/repo";
+    assertThat(convertUrlIfNeeded(repositoryUrl)).isEqualTo("https://server/owner/repo");
+
+    // strip out the user for http
+    repositoryUrl = "http://default:default@server:9090/owner/repo.git";
+    assertThat(convertUrlIfNeeded(repositoryUrl)).isEqualTo("http://server:9090/owner/repo");
   }
 
   @Test
-  public void testConvertUrlIfNeeded_SshUrlsFormatOne() {
-    String givenUrl = "ssh://git@server/owner/repo.git"; // user provided
-    String expectedUrl = "https://server/owner/repo";
-    String convertedUrl = convertUrlIfNeeded(givenUrl);
-    assertThat(convertedUrl).isEqualTo(expectedUrl);
+  public void testConvertUrlIfNeeded_SshNoConversion() {
+    String givenUrl = "git@server:owner/repo.git";
+    assertThat(convertUrlIfNeeded(givenUrl)).isEqualTo(givenUrl);
 
-    givenUrl = "ssh://server/owner/repo.git"; // no user provided
-    convertedUrl = convertUrlIfNeeded(givenUrl);
-    assertThat(convertedUrl).isEqualTo(expectedUrl);
-  }
-
-  @Test
-  public void testConvertUrlIfNeeded_SshUrlsFormatTwo() {
-    String givenUrl = "git@server:owner/repo.git"; // user provided
-    String expectedUrl = "https://server/owner/repo";
-    String convertedUrl = convertUrlIfNeeded(givenUrl);
-    assertThat(convertedUrl).isEqualTo(expectedUrl);
-  }
-
-  @Test
-  public void testConvertUrlIfNeeded_embeddedCredentials() {
-    String givenUrl = "git@server:owner/repo.git"; // user provided
-    String expectedUrl = "https://server/owner/repo";
-    String convertedUrl = convertUrlIfNeeded(givenUrl);
-    assertThat(convertedUrl).isEqualTo(expectedUrl);
+    givenUrl = "ssh://server/owner/repo.git";
+    assertThat(convertUrlIfNeeded(givenUrl)).isEqualTo(givenUrl);
   }
 }

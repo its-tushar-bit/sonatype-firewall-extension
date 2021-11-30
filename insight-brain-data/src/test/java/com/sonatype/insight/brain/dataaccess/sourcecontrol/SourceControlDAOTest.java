@@ -16,8 +16,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -39,6 +41,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SourceControlDAOTest
     extends AbstractDbDAOTest
 {
+  private static final String NULL_REPO_URL = null;
+
   private static final String VALID_URL = "https://example.com/organization/Project";
 
   private static final String VALID_SSH_URL = "git@example.com:organization/Project.git";
@@ -1196,6 +1200,81 @@ public class SourceControlDAOTest
   }
 
   @Test
+  public void testGetCompositeSourceControlByApplicationId_noMatchingApp() {
+    // given: a root organization source control
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, NULL_REPO_URL, "some token", GITLAB);
+
+    // when: fetch the composite source control for an app that doesn't currently exist
+    SourceControl fetchedSourceControl = sourceControlDAO.getCompositeSourceControlByApplicationId("does not exist");
+
+    // then: null result
+    assertThat(fetchedSourceControl).isNull();
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByApplicationId_inheritFromRoot() {
+    // given: a hierarch with everything inheriting from root
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .withOrgAndApp("orgId", "appComposite")
+        .withProvider(GITLAB, null, null)
+        .withToken("rootToken", null, null)
+        .withDefaultBranch("trunk", null, null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, null, null)
+        .withRemediationPullRequests(true, null, null)
+        .withSourceControlEvaluations(false, null, null)
+        .withSsh(false, null, null)
+        .withStatusChecks(false, null, null)
+        .build();
+
+    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByApplicationId(testableHierarchy.appId);
+
+    assertSourceControl(appSourceControl, testableHierarchy.collatedSourceControl);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByApplicationId_inheritFromOrg() {
+    // given: a hierarch with everything inheriting from parent org
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .withOrgAndApp("orgId", "appComposite")
+        .withProvider(GITLAB, GITHUB, null)
+        .withToken("rootToken", "gh-token", null)
+        .withDefaultBranch("trunk", "main", null)
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, true, null)
+        .withRemediationPullRequests(true, false, null)
+        .withSourceControlEvaluations(false, true, null)
+        .withSsh(false, true, null)
+        .withStatusChecks(false, true, null)
+        .build();
+
+    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByApplicationId(testableHierarchy.appId);
+
+    assertSourceControl(appSourceControl, testableHierarchy.collatedSourceControl);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlByApplicationId_overrideAll() {
+    // given: a hierarch with everything overridden in the app source control
+    TestableHierarchy testableHierarchy = new TestableHierarchy()
+        .withOrgAndApp("orgId", "appComposite")
+        .withProvider(GITLAB, GITHUB, GITLAB)
+        .withToken("rootToken", "gh-token", "gl-token")
+        .withDefaultBranch("trunk", "main", "develop")
+        .withRepositoryUrl("https://test.sonatype.com/app/1", "ssh://test.sonatype.com/app/1.git")
+        .withPullRequestCommenting(false, true, false)
+        .withRemediationPullRequests(true, null, false)
+        .withSourceControlEvaluations(false, null, true)
+        .withSsh(false, true, false)
+        .withStatusChecks(false, null, true)
+        .build();
+
+    SourceControl appSourceControl = sourceControlDAO.getCompositeSourceControlByApplicationId(testableHierarchy.appId);
+
+    assertSourceControl(appSourceControl, testableHierarchy.collatedSourceControl);
+  }
+
+  @Test
   public void testGetCompositeSourceControlForOutdatedSourceScans_getOutdatedApplicationWithOnboardingScan() {
     // given: application with outdated policy evaluation
     LocalDateTime now = LocalDateTime.now();
@@ -1217,34 +1296,56 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testGetCompositeSourceControlForOutdatedSourceScans_getOutdatedApplicationWithInternalPRScan() {
+  public void testGetCompositeSourceControlForOutdatedSourceScans_ScanTriggerType() {
+    SourceControl rootOrgSourceControl =
+        tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    SourceControl orgSourceControl = tempEntity.newSourceControl(app.getOrganizationId(), null, null, null,
+        SourceControlProvider.GITLAB, false, false, "branchParentOrg", null, true, true, "/target/*");
+    SourceControl appSourceControl =
+        tempEntity.newSourceControl(app.getId(), "http://example.com/org/repo", null, null, null, null, null);
+    // Adjust for values inherited from parents
+    appSourceControl.setProvider(rootOrgSourceControl.getProvider());
+    appSourceControl.setBaseBranch(orgSourceControl.getBaseBranch());
+    appSourceControl.setRemediationPullRequestsEnabled(orgSourceControl.getRemediationPullRequestsEnabled());
+    appSourceControl.setStatusChecksEnabled(orgSourceControl.getStatusChecksEnabled());
+    appSourceControl.setPullRequestCommentingEnabled(true);
+    appSourceControl.setSourceControlEvaluationsEnabled(true);
+    appSourceControl.setSourceControlScanTarget("/target/*");
+    for (ScanTriggerType scanTriggerType : ScanTriggerType.values()) {
+      testGetCompositeSourceControlForOutdatedSourceScans(scanTriggerType, appSourceControl);
+    }
+  }
+
+  private void testGetCompositeSourceControlForOutdatedSourceScans(
+      ScanTriggerType scanTriggerType,
+      SourceControl expectedSourceControl)
+  {
     // given: application with outdated policy evaluation
     LocalDateTime now = LocalDateTime.now();
     Date scanTime = toDate(now.minusHours(INTERVAL_IN_HOURS + 1));
-    SourceControl rootSc = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
-    SourceControl expectedSourceControl = tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null,
-        null, null, null, null);
-    SourceControl scOrg =
-        tempEntity.newSourceControl(app.getOrganizationId(), null, null, null, SourceControlProvider.GITLAB, false,
-            false, "branchParentOrg", null, true, true, "/target/*");
-    // Adjust for values inherited from parents
-    expectedSourceControl.setProvider(rootSc.getProvider());
-    expectedSourceControl.setBaseBranch(scOrg.getBaseBranch());
-    expectedSourceControl.setRemediationPullRequestsEnabled(scOrg.getRemediationPullRequestsEnabled());
-    expectedSourceControl.setStatusChecksEnabled(scOrg.getStatusChecksEnabled());
-    expectedSourceControl.setPullRequestCommentingEnabled(true);
-    expectedSourceControl.setSourceControlEvaluationsEnabled(true);
-    expectedSourceControl.setSourceControlScanTarget("/target/*");
-    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
-        "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId",
+        false, false, false, scanTime, "commitHash123", scanTriggerType);
 
-    // when: fetching applications with outdated source control policy evaluation
-    List<SourceControl> sourceControlList =
-        sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
+    try {
+      // when: fetching source controls for applications with outdated source control policy evaluation
+      List<SourceControl> sourceControlList =
+          sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
 
-    // then: application is retrieved
-    assertThat(sourceControlList.size()).isEqualTo(1);
-    assertSourceControl(sourceControlList.get(0), expectedSourceControl);
+      // then: source control is retrieved only for some trigger types
+      if (scanTriggerType == ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING
+          || scanTriggerType == ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING) {
+        assertThat(sourceControlList).withFailMessage("Expected 1 result for scanTriggerType=%s", scanTriggerType)
+            .hasSize(1);
+        assertSourceControl(sourceControlList.get(0), expectedSourceControl);
+      }
+      else {
+        assertThat(sourceControlList).withFailMessage("Expected no results for scanTriggerType=%s", scanTriggerType)
+            .isEmpty();
+      }
+    }
+    finally {
+      new PolicyEvaluationDAO().delete(policyEvaluation);
+    }
   }
 
   @Test
@@ -1401,11 +1502,159 @@ public class SourceControlDAOTest
     assertThat(actualSC.getBaseBranch()).isEqualTo(expectedSC.getBaseBranch());
     assertThat(actualSC.getRemediationPullRequestsEnabled()).isEqualTo(expectedSC.getRemediationPullRequestsEnabled());
     assertThat(actualSC.getStatusChecksEnabled()).isEqualTo(expectedSC.getStatusChecksEnabled());
+    assertThat(actualSC.getPullRequestCommentingEnabled()).isEqualTo(expectedSC.getPullRequestCommentingEnabled());
     assertThat(actualSC.getPullRequestPollTime()).isEqualTo(expectedSC.getPullRequestPollTime());
     assertThat(actualSC.getPullRequestErrorCount()).isEqualTo(expectedSC.getPullRequestErrorCount());
+    assertThat(actualSC.getSourceControlEvaluationsEnabled())
+        .isEqualTo(expectedSC.getSourceControlEvaluationsEnabled());
+    assertThat(actualSC.getSourceControlScanTarget()).isEqualTo(expectedSC.getSourceControlScanTarget());
   }
 
   private Date getScanLimitDate() {
     return toDate(LocalDateTime.now().minusHours(INTERVAL_IN_HOURS));
+  }
+
+  private class TestableHierarchy
+  {
+    private SourceControl collatedSourceControl = new SourceControl();
+
+    private SourceControl rootOrgSourceControl = new SourceControl();
+
+    private SourceControl orgSourceControl = new SourceControl();
+
+    private SourceControl appSourceControl = new SourceControl();
+
+    private String appId;
+
+    private TestableHierarchy withOrgAndApp(String orgId, String appName) {
+      Organization org = tempEntity.newOrganizationWithSpecificId(orgId, orgId);
+      Application app = tempEntity.newApplication(appName, appName, orgId);
+      appId = app.getId();
+      rootOrgSourceControl.setOwnerId(ROOT_ORGANIZATION_ID);
+      orgSourceControl.setOwnerId(org.getId());
+      appSourceControl.setOwnerId(appId);
+      collatedSourceControl.setOwnerId(appId);
+
+      return this;
+    }
+
+    private TestableHierarchy withRepositoryUrl(String repositoryUrl, String sshUrl) {
+      appSourceControl.setRepositoryUrl(repositoryUrl);
+      appSourceControl.setRepositorySshUrl(sshUrl);
+      collatedSourceControl.setRepositoryUrl(repositoryUrl);
+      collatedSourceControl.setRepositorySshUrl(sshUrl);
+
+      return this;
+    }
+
+    private TestableHierarchy withProvider(
+        SourceControlProvider rootProvider,
+        SourceControlProvider orgProvider,
+        SourceControlProvider appProvider)
+    {
+      rootOrgSourceControl.setProvider(rootProvider);
+      orgSourceControl.setProvider(orgProvider);
+      appSourceControl.setProvider(appProvider);
+      collatedSourceControl.setProvider(resolve(rootProvider, orgProvider, appProvider));
+
+      return this;
+    }
+
+    private TestableHierarchy withToken(String rootToken, String orgToken, String appToken) {
+      rootOrgSourceControl.setToken(rootToken);
+      orgSourceControl.setToken(orgToken);
+      appSourceControl.setToken(appToken);
+      collatedSourceControl.setToken(resolve(rootToken, orgToken, appToken));
+
+      return this;
+    }
+
+    private TestableHierarchy withUser(String rootUser, String orgUser, String appUser) {
+      rootOrgSourceControl.setUsername(rootUser);
+      orgSourceControl.setUsername(orgUser);
+      appSourceControl.setUsername(appUser);
+      collatedSourceControl.setUsername(resolve(rootUser, orgUser, appUser));
+
+      return this;
+    }
+
+    private TestableHierarchy withDefaultBranch(
+        String rootDefaultBranch,
+        String orgDefaultBranch,
+        String appDefaultBranch)
+    {
+      rootOrgSourceControl.setBaseBranch(rootDefaultBranch);
+      orgSourceControl.setBaseBranch(orgDefaultBranch);
+      appSourceControl.setBaseBranch(appDefaultBranch);
+      collatedSourceControl.setBaseBranch(resolve(rootDefaultBranch, orgDefaultBranch, appDefaultBranch));
+
+      return this;
+    }
+
+    private TestableHierarchy withRemediationPullRequests(
+        Boolean rootRemediation,
+        Boolean orgRemediation,
+        Boolean appRemediation)
+    {
+      rootOrgSourceControl.setRemediationPullRequestsEnabled(rootRemediation);
+      orgSourceControl.setRemediationPullRequestsEnabled(orgRemediation);
+      appSourceControl.setRemediationPullRequestsEnabled(appRemediation);
+      collatedSourceControl.setRemediationPullRequestsEnabled(resolve(rootRemediation, orgRemediation, appRemediation));
+
+      return this;
+    }
+
+    private TestableHierarchy withPullRequestCommenting(
+        Boolean rootCommenting,
+        Boolean orgCommenting,
+        Boolean appCommenting)
+    {
+      rootOrgSourceControl.setPullRequestCommentingEnabled(rootCommenting);
+      orgSourceControl.setPullRequestCommentingEnabled(orgCommenting);
+      appSourceControl.setPullRequestCommentingEnabled(appCommenting);
+      collatedSourceControl.setPullRequestCommentingEnabled(resolve(rootCommenting, orgCommenting, appCommenting));
+
+      return this;
+    }
+
+    private TestableHierarchy withSourceControlEvaluations(Boolean rootEvals, Boolean orgEvals, Boolean appEvals) {
+      rootOrgSourceControl.setSourceControlEvaluationsEnabled(rootEvals);
+      orgSourceControl.setSourceControlEvaluationsEnabled(orgEvals);
+      appSourceControl.setSourceControlEvaluationsEnabled(appEvals);
+      collatedSourceControl.setSourceControlEvaluationsEnabled(resolve(rootEvals, orgEvals, appEvals));
+
+      return this;
+    }
+
+    private TestableHierarchy withSsh(Boolean rootSsh, Boolean orgSsh, Boolean appSsh) {
+      rootOrgSourceControl.setSshEnabled(rootSsh);
+      orgSourceControl.setSshEnabled(orgSsh);
+      appSourceControl.setSshEnabled(appSsh);
+      collatedSourceControl.setSshEnabled(resolve(rootSsh, orgSsh, appSsh));
+
+      return this;
+    }
+
+    private TestableHierarchy withStatusChecks(Boolean rootStatus, Boolean orgStatus, Boolean appStatus) {
+      rootOrgSourceControl.setStatusChecksEnabled(rootStatus);
+      orgSourceControl.setStatusChecksEnabled(orgStatus);
+      appSourceControl.setStatusChecksEnabled(appStatus);
+      collatedSourceControl.setStatusChecksEnabled(resolve(rootStatus, orgStatus, appStatus));
+
+      return this;
+    }
+
+    private <T> T resolve(T rootValue, T orgValue, T appValue) {
+      return appValue != null ? appValue : (orgValue != null ? orgValue : rootValue);
+    }
+
+    TestableHierarchy build() {
+      rootOrgSourceControl = tempEntity.newSourceControl(rootOrgSourceControl);
+      orgSourceControl = tempEntity.newSourceControl(orgSourceControl);
+      appSourceControl = tempEntity.newSourceControl(appSourceControl);
+      collatedSourceControl.setId(appSourceControl.getId());
+
+      return this;
+    }
   }
 }

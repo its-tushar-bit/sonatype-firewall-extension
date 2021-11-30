@@ -101,10 +101,6 @@ public class SourceControlEditorPage
     return new ErrorBox(selector, ".iq-alert.iq-alert--error");
   }
 
-  public static SelenideElement providerWarning() {
-    return $("#source-control-provider-warning");
-  }
-
   public static SelenideElement tokenWarning() {
     return $("#source-control-token-warning");
   }

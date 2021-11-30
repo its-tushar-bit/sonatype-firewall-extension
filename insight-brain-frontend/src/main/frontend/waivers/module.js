@@ -5,6 +5,7 @@
  */
 import { react2angular } from 'react2angular';
 import AddWaiverPageContainer from './AddWaiverPageContainer';
+import RequestWaiverPageContainer from './RequestWaiverPageContainer';
 import ListWaiversPageContainer from './ListWaiversPageContainer';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
@@ -12,6 +13,10 @@ import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 export default angular
   .module('waivers', [])
   .component('addWaiverPage', react2angular(withStoreProvider(AddWaiverPageContainer), [], ['$ngRedux']))
+  .component(
+    'requestWaiverPage',
+    react2angular(withRouterStateProvider(withStoreProvider(RequestWaiverPageContainer)), [], ['$ngRedux', '$state'])
+  )
   .component(
     'listWaiversPage',
     react2angular(withRouterStateProvider(withStoreProvider(ListWaiversPageContainer)), [], ['$ngRedux', '$state'])
@@ -27,6 +32,13 @@ function routes($stateProvider) {
         isDirty: ['addWaiver', 'isDirty'],
       },
       url: '/addWaiver/{violationId}',
+    })
+    .state('requestWaiver', {
+      component: 'requestWaiverPage',
+      data: {
+        title: 'Request Waiver',
+      },
+      url: '/requestWaiver/{violationId}',
     })
     .state('listWaivers', {
       component: 'listWaiversPage',

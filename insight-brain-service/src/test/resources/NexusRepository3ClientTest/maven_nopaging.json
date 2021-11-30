@@ -2,6 +2,9 @@
   "items": [
     {
       "format": "maven2",
+      "checksum": {
+        "sha1": "g1-n1-130-sha1"
+      },
       "maven2": {
         "extension": "jar",
         "groupId": "g1",
@@ -11,6 +14,9 @@
     },
     {
       "format": "maven2",
+      "checksum": {
+        "sha1": "g1-n1-120-sha1"
+      },
       "maven2": {
         "extension": "jar",
         "groupId": "g1",
@@ -20,6 +26,9 @@
     },
     {
       "format": "maven2",
+      "checksum": {
+        "sha1": "g1-n1-110-sha1"
+      },
       "maven2": {
         "extension": "jar",
         "groupId": "g1",

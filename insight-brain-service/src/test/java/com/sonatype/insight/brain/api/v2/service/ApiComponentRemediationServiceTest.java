@@ -47,6 +47,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -387,7 +388,7 @@ public class ApiComponentRemediationServiceTest
         .getComponentSummary(componentIdentifier, app.getId(), scanId);
     doReturn(new ApiComponentRemediationValueDTO()).when(thirdPartyComponentDAO).getSuggestedRemmediation(app.getId(),
         componentIdentifier, scanId);
-    doReturn(Collections.singletonList(componentDetailsDTO)).when(componentInfoServiceMock)
+    doReturn(Pair.of(Collections.singletonList(componentDetailsDTO), null)).when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(OwnerType.APPLICATION, app.getPublicId(), componentIdentifier,
             DevelopStageType.ID, identificationSource, scanId, null);
     ApiComponentRemediationDTO retVal = service
@@ -648,7 +649,7 @@ public class ApiComponentRemediationServiceTest
   }
 
   private void mockHdsGetComponentDetailsList(List<ComponentDetailsDTO> list, ComponentIdentifier componentIdentifier) {
-    doReturn(list).when(componentInfoServiceMock)
+    doReturn(Pair.of(list, null)).when(componentInfoServiceMock)
         .getComponentDetailsForAllVersionsNoAuth(eq(OwnerType.APPLICATION), eq(app.getPublicId()),
             eq(componentIdentifier), any(), any(), any(), isNull());
   }

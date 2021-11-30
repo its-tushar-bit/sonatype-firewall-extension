@@ -27,6 +27,6 @@
         "id": "Apache-2.0"
       }
     }],
-    "purl": "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?packaging=jar"
+    "purl": "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar"
   }]
 }

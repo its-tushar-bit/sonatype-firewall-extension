@@ -3,7 +3,7 @@
      xmlns="http://cyclonedx.org/schema/bom/1.1"
      xmlns:v="http://cyclonedx.org/schema/ext/vulnerability/1.0">
   <components>
-    <component type="library" bom-ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9">
+    <component type="library" bom-ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar">
       <group>com.fasterxml.jackson.core</group>
       <name>jackson-databind</name>
       <version>2.9.9</version>
@@ -12,9 +12,9 @@
           <id></id>
         </license>
       </licenses>
-      <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9</purl>
+      <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</purl>
       <v:vulnerabilities>
-        <v:vulnerability ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9" >
+        <v:vulnerability ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar" >
           <v:id></v:id>
           <v:source name="NVD">
             <v:url>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</v:url>
@@ -45,7 +45,7 @@
             <v:advisory>http://www.securitytracker.com/id/1041890</v:advisory>
           </v:advisories>
         </v:vulnerability>
-        <v:vulnerability ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9">
+        <v:vulnerability ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar">
           <v:id>CVE-2222</v:id>
           <v:source name="NVD">
             <v:url>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</v:url>

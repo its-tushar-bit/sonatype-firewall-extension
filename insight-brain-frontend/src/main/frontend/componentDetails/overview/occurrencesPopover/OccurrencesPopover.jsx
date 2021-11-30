@@ -13,7 +13,7 @@ import Occurrence from './Occurrence';
 import { parseOccurrencePathname } from '../../componentDetailsUtils';
 
 const EXTERNAL_OCCURRENCES_INFO_LINK =
-  'https://help.sonatype.com/iqserver/reporting/application-composition-report/the-component-information-panel#TheComponentInformationPanel-Occurrences';
+  'http://links.sonatype.com/products/nxiq/doc/component-information-panel/occurrences';
 
 export default function OccurrencesPopover(props) {
   const { occurrences, onClose, showOccurrencesPopover } = props;

@@ -2852,18 +2852,18 @@ describe('source.control.editor.spec', function () {
       });
     });
 
-    describe('httpAndSshUrlPattern', function () {
-      it('matches when a valid HTTP(S) or SSH URL is provided', function () {
-        let pattern = vm.httpAndSshUrlPattern;
+    describe('repoCloneUrl', function () {
+      it('matches when a valid HTTP(S) URL', function () {
+        let pattern = vm.repoCloneUrl;
         expect('https://github.com/owner/repo.git'.match(pattern)).toBeTruthy();
         expect('http://git@github.com/owner/repo.git'.match(pattern)).toBeTruthy();
         expect('https://git@github.com/owner/repo.git'.match(pattern)).toBeTruthy();
-        expect('ssh://git@github.com/owner/repo.git'.match(pattern)).toBeTruthy();
-        expect('git@github.com:owner/repo.git'.match(pattern)).toBeTruthy();
       });
 
       it('does not match when an invalid HTTP(S) or SSH URL is provided', function () {
-        let pattern = vm.httpAndSshUrlPattern;
+        let pattern = vm.repoCloneUrl;
+        expect('ssh://git@github.com/owner/repo.git'.match(pattern)).toBeFalsy();
+        expect('git@github.com:owner/repo.git'.match(pattern)).toBeFalsy();
         expect('http:git@github.com/owner/repo.git'.match(pattern)).toBeFalsy();
         expect('git@gitlab.com/owner/repo.git'.match(pattern)).toBeFalsy();
         expect('/srv/git/project.git'.match(pattern)).toBeFalsy();

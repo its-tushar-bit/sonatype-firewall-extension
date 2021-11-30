@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.model.repository;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -27,15 +29,26 @@ public class RepositoryConnection
   @Column(name = "base_url")
   private String baseUrl;
 
+  @Column(name = "format")
+  @Enumerated(EnumType.STRING)
+  private RepositoryFormat format;
+
   @Column(name = "username")
   private String username;
 
   @Column(name = "password")
   private char[] password;
 
-  public RepositoryConnection(String ownerId, String baseUrl, String username, char[] password) {
+  public RepositoryConnection(
+      String ownerId,
+      String baseUrl,
+      RepositoryFormat format,
+      String username,
+      char[] password)
+  {
     this.ownerId = ownerId;
     this.baseUrl = baseUrl;
+    this.format = format;
     this.username = username;
     this.password = password;
   }
@@ -64,6 +77,14 @@ public class RepositoryConnection
 
   public void setBaseUrl(String baseUrl) {
     this.baseUrl = baseUrl;
+  }
+
+  public RepositoryFormat getFormat() {
+    return format;
+  }
+
+  public void setFormat(RepositoryFormat format) {
+    this.format = format;
   }
 
   public String getUsername() {

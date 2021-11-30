@@ -26,6 +26,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -47,6 +48,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashb
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalStageScanDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
+import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
@@ -80,6 +82,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
+import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -189,6 +192,8 @@ public class ApiLicenseLegalService
 
   private final InnerSourceComponentDAO innerSourceComponentDAO;
 
+  private final LegalDashboardsService legalDashboardService;
+
   @Inject
   public ApiLicenseLegalService(
       MultiLicenseDAO multiLicenseDAO,
@@ -215,7 +220,8 @@ public class ApiLicenseLegalService
       ComponentObligationAttributionDAO componentObligationAttributionDAO,
       AggregateFileDAO aggregateFileDAO,
       LicenseThreatGroupDAO licenseThreatGroupDAO,
-      InnerSourceComponentDAO innerSourceComponentDAO)
+      InnerSourceComponentDAO innerSourceComponentDAO,
+      LegalDashboardsService legalDashboardService)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -243,6 +249,7 @@ public class ApiLicenseLegalService
     this.aggregateFileDAO = aggregateFileDAO;
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.innerSourceComponentDAO = innerSourceComponentDAO;
+    this.legalDashboardService = legalDashboardService;
   }
 
   public ApiLicenseLegalApplicationDashboardResultDTO getLicenseLegalApplicationsDashboard(
@@ -334,34 +341,26 @@ public class ApiLicenseLegalService
     return resultDto;
   }
 
-  public ApiLicenseLegalComponentDashboardResultDTO getLicenseLegalComponentsDashboard(
-      Set<String> organizationIds,
-      Set<String> applicationIds,
-      Set<String> tagIds,
-      Set<String> stageTypeIds,
-      Set<String> licenseIds,
-      LicenseLegalResultsOrder order,
-      int page,
-      int pageSize)
-  {
+  public ApiLicenseLegalComponentDashboardResultDTO getLicenseLegalComponentsDashboard(LicenseLegalFilterDTO filter) {
     checkLicense();
 
-    if (page <= 0 || pageSize <= 0) {
+    if (filter.page <= 0 || filter.pageSize <= 0) {
       throw new BadRequestException("Request must include page and pageSize values greater than zero.");
     }
 
     Map<String, Application> mapApplicationIds =
-        getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds).stream()
+        getApplicationsByIdsAndOrganizationIdsAndTagIds(filter.organizationIds, filter.applicationIds, filter.tagIds)
+            .stream()
             .collect(Collectors.toMap(Application::getId, Function.identity()));
     Set<String> applicationIdsToCheck = new HashSet<>(mapApplicationIds.keySet());
 
     Set<String> stageTypeIdsToCheck =
-        isEmpty(stageTypeIds) ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
-            : stageTypeIds;
+        isEmpty(filter.stageTypeIds) ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
+            : filter.stageTypeIds;
 
-    if (isNotEmpty(applicationIdsToCheck) && isNotEmpty(licenseIds)) {
+    if (isNotEmpty(applicationIdsToCheck) && isNotEmpty(filter.licenseIds)) {
       List<Object[]> applicationIdsAndStageTypeIds = applicationComponentDAO
-          .getApplicationIdsAndStageTypeIdsByLicenses(applicationIdsToCheck, stageTypeIdsToCheck, licenseIds);
+          .getApplicationIdsAndStageTypeIdsByLicenses(applicationIdsToCheck, stageTypeIdsToCheck, filter.licenseIds);
 
       recalculateApplicationIdsAndStateTypeIds(applicationIdsAndStageTypeIds, applicationIdsToCheck,
           stageTypeIdsToCheck);
@@ -371,10 +370,19 @@ public class ApiLicenseLegalService
       return new ApiLicenseLegalComponentDashboardResultDTO();
     }
 
+    List<ApplicationComponentLicensesDTO> applicationComponentLicensesDTOS = new ArrayList<>();
+
+    for (String appId : applicationIdsToCheck) {
+      applicationComponentLicensesDTOS
+          .addAll(applicationComponentLicenseDAO.getApplicationComponentEffectiveLicenses(appId, stageTypeIdsToCheck));
+    }
+
+    Set<String> licenseIdsFound = legalDashboardService.getLicenseIds(applicationComponentLicensesDTOS);
+
     List<ApplicationComponent> applicationComponents =
         applicationComponentDAO.getByApplicationIdsAndStageTypeIds(applicationIdsToCheck, stageTypeIdsToCheck);
 
-    int startIndex = (page - 1) * pageSize;
+    int startIndex = (filter.page - 1) * filter.pageSize;
     if (startIndex >= applicationComponents.size()) {
       ApiLicenseLegalComponentDashboardResultDTO resultDto = new ApiLicenseLegalComponentDashboardResultDTO();
       resultDto.totalResultsCount = applicationComponents.size();
@@ -384,6 +392,10 @@ public class ApiLicenseLegalService
     Map<String, ApiLicenseLegalComponentDashboardDTO> mapHashComponent = new HashMap<>();
     Map<String, Set<String>> mapHashApplicationOccurrences = new HashMap<>();
     Map<String, Set<String>> mapHashLicenseIds = new HashMap<>();
+    Map<String, Integer> mapHashReviewCompleted = new HashMap<>();
+    Map<String, Integer> mapHashReviewTotalCount = new HashMap<>();
+    Map<String, Set<String>> obligationNamesByLicenseId =
+        legalDashboardService.getLicenseObligationsFromHds(licenseIdsFound);
 
     try (TransactionContext tx = applicationComponentDAO.createTransactionContext()) {
       for (ApplicationComponent applicationComponent : applicationComponents) {
@@ -425,6 +437,20 @@ public class ApiLicenseLegalService
           applicationOccurrences.add(application.getId());
           dto.applicationOccurrences = applicationOccurrences.size();
 
+          Set<String> allObligationNames = licensesAlreadyFound.stream().filter(obligationNamesByLicenseId::containsKey)
+              .flatMap(licenseId -> obligationNamesByLicenseId.get(licenseId).stream()).collect(Collectors.toSet());
+
+          List<ComponentObligation> obligations =
+              componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(tx,
+                  application.getId(), applicationComponent.getComponentIdentifier(), allObligationNames);
+
+          Map<String, Integer> countMap = legalDashboardService.countObligations(obligations, allObligationNames);
+
+          int addressedCount = countMap.get(LegalDashboardsService.ADDRESSEDCOUNT);
+
+          mapHashReviewCompleted.put(applicationComponent.getHash(), addressedCount);
+          mapHashReviewTotalCount.put(applicationComponent.getHash(), allObligationNames.size());
+
           mapHashApplicationOccurrences.put(applicationComponent.getHash(), applicationOccurrences);
           mapHashLicenseIds.put(applicationComponent.getHash(), licensesAlreadyFound);
 
@@ -438,17 +464,16 @@ public class ApiLicenseLegalService
     }
 
     ApiLicenseLegalComponentDashboardResultDTO resultDto = new ApiLicenseLegalComponentDashboardResultDTO();
-    resultDto.totalResultsCount = mapHashComponent.size();
-
     List<ApiLicenseLegalComponentDashboardDTO> components = mapHashComponent.values().stream()
-        .filter(dto -> isEmpty(licenseIds) || !Collections.disjoint(mapHashLicenseIds.get(dto.hash), licenseIds))
-        .map(fillLicenseNames(mapHashLicenseIds))
-        .sorted(newComponentDashboardComparator(order))
-        .skip(startIndex)
-        .limit(pageSize)
+        .filter(dto -> isEmpty(filter.licenseIds) ||
+            !Collections.disjoint(mapHashLicenseIds.get(dto.hash), filter.licenseIds))
+        .filter(dto -> !StringUtils.isNotBlank(filter.componentName) ||
+            dto.displayName.contains(filter.componentName))
+        .map(fillLicensesAndReview(mapHashLicenseIds, mapHashReviewCompleted, mapHashReviewTotalCount))
+        .sorted(newComponentDashboardComparator(filter.order))
         .collect(Collectors.toList());
-
-    resultDto.results = components;
+    resultDto.totalResultsCount = components.size();
+    resultDto.results = components.subList(startIndex, Math.min(filter.page * filter.pageSize, components.size()));
     return resultDto;
   }
 
@@ -1242,13 +1267,17 @@ public class ApiLicenseLegalService
     return componentIdentifierLegalDataMap;
   }
 
-  private UnaryOperator<ApiLicenseLegalComponentDashboardDTO> fillLicenseNames(
-      Map<String, Set<String>> mapHashLicenseIds)
+  private UnaryOperator<ApiLicenseLegalComponentDashboardDTO> fillLicensesAndReview(
+      Map<String, Set<String>> mapHashLicenseIds,
+      Map<String, Integer> mapHashReviewCompleted,
+      Map<String, Integer> mapHashReviewTotal)
   {
     return dto -> {
       dto.licenseNames.addAll(mapHashLicenseIds.get(dto.hash).stream()
           .map(licenseId -> multiLicenseDAO.getById(licenseId).getShortDisplayName())
           .collect(Collectors.toCollection(TreeSet::new)));
+      dto.reviewCompletedCount = mapHashReviewCompleted.getOrDefault(dto.hash, 0);
+      dto.reviewTotalCount = mapHashReviewTotal.getOrDefault(dto.hash,0);
       return dto;
     };
   }

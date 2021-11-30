@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
@@ -40,6 +41,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -50,6 +52,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class ApiReportDataServiceV2Test
     extends AbstractComponentTest
@@ -116,6 +119,12 @@ public class ApiReportDataServiceV2Test
     File file = Report.getCacheFile(reportFile, "policythreats.json");
     FileUtils.copyURLToFile(getClass()
         .getResource("/ApiReportDataServiceTest/" + resource + "/" + policyThreatsFile), file);
+  }
+  
+  private void populateDependencies(String resource, String dependenciesFile) throws IOException {
+    File file = Report.getCacheFile(reportFile, "dependencies.json");
+    FileUtils.copyURLToFile(getClass()
+        .getResource("/ApiReportDataServiceTest/" + resource + "/" + dependenciesFile), file);
   }
 
   @Before
@@ -499,5 +508,50 @@ public class ApiReportDataServiceV2Test
         .containsExactlyInAnyOrder(new Tuple("644a8c0052eb42b2829d6f9fcaba7ea3", false),
             new Tuple("6430b4c764314ac6aee439ad1c045ad1", true), new Tuple("6430b4c764314ac6aee439ad1c045ad1", true));
     assertThat(data.components.get(1).violations).isEmpty();
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetDependencyTree_NotFound() throws Exception {
+    reportDataService.getDependencyTreeNoAuth(app.getPublicId(), "2304948571222");
+  }
+
+  @Test
+  public void testGetDependencyTree_NoDependencyTree() throws Exception {
+    makeReport("report-1");
+    populateDependencies("report-1", "emptyDependencies.json");
+
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    assertThat(response).isNotNull();
+    assertThat(response.children).isNull();
+  }
+
+  @Test
+  public void testGetDependencyTree() throws Exception {
+    makeReport("report-1");
+    populateDependencies("report-1", "dependencies.json");
+
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    assertThat(response).isNotNull();
+    assertTrue(!response.children.isEmpty());
+    assertThat(response.children.size()).isEqualTo(17);
+  }
+
+  @Test
+  public void testGetDependencyTree_InnerSource() throws Exception {
+    makeReport("report-1");
+    populateDependencies("report-1", "innerSourceDependencies.json");
+
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    assertThat(response).isNotNull();
+    assertTrue(!response.children.isEmpty());
+    assertThat(response.children.size()).isEqualTo(17);
+    assertThat(response.componentIdentifier).isNotNull();
+  }
+
+  @Test
+  public void testGetDependencyTree_noDependenciesFile() throws Exception {
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    assertThat(response).isNotNull();
+    assertThat(response.children).isNull();
   }
 }

@@ -17,8 +17,7 @@ const SimilarMatchesPopover = ({ showSimilarMatchesPopover, onClose, similarMatc
 
   const contentText = `A similar match is found using various, proprietary matching algorithms. Best Match shows the most likely match and
   Other Matches shows all components found to be similar.`;
-  const componentIdentificationInfoLink =
-    'https://help.sonatype.com/iqserver/reporting/application-composition-report/component-identification';
+  const componentIdentificationInfoLink = 'http://links.sonatype.com/products/nxiq/doc/component-identification';
   const contentLink = (
     <NxTextLink external href={componentIdentificationInfoLink}>
       Learn more about Component Identification here.

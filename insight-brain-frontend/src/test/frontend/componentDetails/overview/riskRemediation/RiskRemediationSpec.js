@@ -218,6 +218,7 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
         loadError: null,
         versions: null,
         remediation: remediation,
+        source: null,
       },
       selectedVersionData: {
         loading: false,
@@ -260,6 +261,7 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
         loading: false,
         loadError: null,
         versions: allVersions,
+        source: null,
       },
     });
 
@@ -269,6 +271,29 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
     const versionExplorerComponent = component.find(VersionGraphExplorer);
     expect(versionExplorerComponent).toHaveProp('versions', allVersions);
     expect(versionExplorerComponent).toHaveProp('currentVersion', '123');
+    const versionExplorerRepositorySource = component.find('#iq-version-explorer-repository-source');
+    expect(versionExplorerRepositorySource).toHaveSize(0);
+  });
+
+  it('renders the VersionGraphExplorer with the Repository Source', () => {
+    const component = getMounted({
+      versionExplorerData: {
+        loading: false,
+        loadError: null,
+        versions: allVersions,
+        source: 'https://repo.sonatype.com/',
+      },
+    });
+
+    const versionExplorerTile = component.find('iq-version-explorer');
+    const content = versionExplorerTile.find('#aiVersionChartContainer');
+    expect(content).not.toBeNull();
+    const versionExplorerComponent = component.find(VersionGraphExplorer);
+    expect(versionExplorerComponent).toHaveProp('versions', allVersions);
+    expect(versionExplorerComponent).toHaveProp('currentVersion', '123');
+    const versionExplorerRepositorySource = component.find('#iq-version-explorer-repository-source');
+    expect(versionExplorerRepositorySource).toHaveSize(1);
+    expect(versionExplorerRepositorySource).toHaveText('Repository Source: https://repo.sonatype.com/');
   });
 
   it('renders the Recommended Versions tile', () => {

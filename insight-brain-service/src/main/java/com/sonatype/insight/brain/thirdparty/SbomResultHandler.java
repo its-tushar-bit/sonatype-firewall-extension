@@ -164,15 +164,19 @@ public class SbomResultHandler
         if (componentIdentifier == null) {
           targetBom.addComponent(resolvedComponent.getRight());
         }
-        else if (!resolvedComponents.contains(componentIdentifier)) {
+        else if (resolvedComponents.add(componentIdentifier)) {
+          PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).ensureCompleteIdentifier();
           saveComponent(thirdPartyFileId, identificationSource, sourceComponent, resolvedComponent, tx);
           targetBom.addComponent(resolvedComponent.getRight());
-          resolvedComponents.add(componentIdentifier);
         }
       }
     }
+    catch (InvalidPackageURLException e) {
+      log.debug("Component {} {} is missing coordinates. " + e.getMessage().replace(" for given format", ""),
+          sourceComponent.getName(), sourceComponent.getVersion(), e);
+    }
     catch (Exception e) {
-      log.warn("Error processing component : {}", sourceComponent, e);
+      log.debug("Error processing component : {} {}", sourceComponent.getName(), sourceComponent.getVersion(), e);
     }
   }
 
@@ -187,12 +191,12 @@ public class SbomResultHandler
           return createComponent(sourceComponent, packageUrlIdentifier, false);
         }
         else {
-          log.warn("PackageUrl is not valid {}", packageUrl);
+          log.debug("PackageUrl is not valid {}", packageUrl);
         }
       }
     }
     catch (InvalidPackageURLException e) {
-      log.warn("Fallback to coordinates due to invalid purl: {}", packageUrl);
+      log.debug("Fallback to coordinates due to invalid purl: {}", packageUrl);
     }
     return processComponentFromHashOrCoordinates(sourceComponent);
   }
@@ -218,7 +222,7 @@ public class SbomResultHandler
         return Pair.of(null, component);
       }
       else {
-        log.debug("Component with invalid information {}", sourceComponent);
+        log.debug("Component with invalid information {} {}", sourceComponent.getName(), sourceComponent.getVersion());
       }
     }
     return null;

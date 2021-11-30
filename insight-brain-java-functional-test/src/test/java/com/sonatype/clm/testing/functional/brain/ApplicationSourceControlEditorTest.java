@@ -303,7 +303,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.tokenOverrideRadio().label().shouldHave(text("Override"));
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, enabled);
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.repositoryUrl().shouldHave(value(REPOSITORY_URL));
   }
 
@@ -1084,9 +1083,8 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, disabled);
     SourceControlEditorPage.tokenWarning().shouldBe(visible);
 
-    SourceControlEditorPage.providerWarning().shouldBe(visible);
     SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
-    SourceControlEditorPage.repositoryUrl().shouldBe(visible, disabled);
+    SourceControlEditorPage.repositoryUrl().shouldBe(visible, enabled);
     SourceControlEditorPage.advancedSettingsTree().shouldBe(visible);
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
 
@@ -1148,7 +1146,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");
     SourceControlEditorPage.testConfigButton().shouldBe(visible);
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettingsTree().shouldBe(visible);
     SourceControlEditorPage.repositoryUrl().shouldBe(visible, enabled);
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible);

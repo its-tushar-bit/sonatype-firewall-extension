@@ -53,7 +53,7 @@ public class RepositoryClientFactory
       this.config = config;
     }
 
-    public RepositoryClient forNexus3(String baseUrl, String username, String password) {
+    public RepositoryClient forNexus3(String baseUrl, String username, char[] password) {
       config.setServerUrl(baseUrl);
       checkState(baseUrl != null, "Missing repository base url");
 
@@ -61,7 +61,7 @@ public class RepositoryClientFactory
       if (username != null && password != null) {
         SimpleAuthentication authentication = new SimpleAuthentication();
         authentication.setUsername(username);
-        authentication.setPassword(password.toCharArray());
+        authentication.setPassword(password);
         config.setServerAuth(authentication);
       }
       return new NexusRepository3Client(config);

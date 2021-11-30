@@ -67,7 +67,7 @@ export default function UserTokenModal(props) {
           <p className="iq-user-token-modal__info-paragraph">
             Should you forget or lose your user token credentials, you should delete your user token and create a new
             one. To learn more about User Tokens please see the{' '}
-            <NxExternalLink href="https://help.sonatype.com/iqserver/managing/user-management/user-tokens">
+            <NxExternalLink href="http://links.sonatype.com/products/nxiq/doc/user-tokens">
               help documentation.
             </NxExternalLink>
           </p>

@@ -18,7 +18,7 @@ import { toURIParams, uriTemplate } from './urlUtil';
  * It is an object of shape `{identificationSource, ownerId, ownerType, scanId}`. If provided it will
  * save one request to HDS and instead will search directly in the third-party vulnerabilities table.
  */
-export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, thirdPartyScanParameters) {
+export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, thirdPartyScanParameters = {}) {
   const urlWithPath = uriTemplate`/api/v2/vulnerabilities/${refId}`;
 
   const params = toURIParams({
@@ -588,8 +588,15 @@ export function getRequestWaiverUrl(policyViolationId) {
 }
 
 export function getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier) {
-  const componentIdentifierProp = componentIdentifier ? `?componentIdentifier=${componentIdentifier}` : '';
-  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}` + componentIdentifierProp;
+  if (componentIdentifier) {
+    /**
+     * `componentIdentifier` is already a stringified json, but it still needs encoding
+     * `uriTemplate` handles that encoding for us.
+     */
+    return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}?componentIdentifier=${componentIdentifier}`;
+  }
+
+  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}`;
 }
 
 export function getBaseLicenseOverrideUrl(ownerType, ownerId) {

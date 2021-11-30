@@ -23,7 +23,8 @@ import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage.RequestWaiversPopover;
+import com.sonatype.clm.testing.functional.pages.RequestWaiverPage;
+
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationConstraintInfoTile;
@@ -415,7 +416,7 @@ public class ViolationDetailsTest
     refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
-    
+
     detailsTile.manageWaiversButton().shouldBe(visible);
     detailsTile.manageWaiversButton().click();
 
@@ -424,17 +425,17 @@ public class ViolationDetailsTest
     listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
     listWaiversPage.requestWaiverButton().shouldBe(visible, enabled).click();
 
-    RequestWaiversPopover requestWaiversPopover = listWaiversPage.requestWaiversPopover();
-    requestWaiversPopover.root().shouldBe(visible);
-    requestWaiversPopover.requestWaiverHeader().shouldHave(text("Request Waiver"));
-    requestWaiversPopover.root().shouldHave(text("To request a waiver, please share the Policy Violation ID and" +
+    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
+    requestWaiverPage.root().shouldBe(visible);
+    requestWaiverPage.requestWaiverHeader().shouldHave(text("Request Waiver"));
+    requestWaiverPage.root().shouldHave(text("To request a waiver, please share the Policy Violation ID and" +
             " sample curl command (found below) with the approver. Learn about automating waiver requests."));
-    requestWaiversPopover.requestWaiverReadOnlyData().shouldHave(text("Group1 : Artifact1 : Version1"));
-    requestWaiversPopover.requestWaiverReadOnlyData().shouldHave(text("Policy 1"));
-    requestWaiversPopover.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));
-    requestWaiversPopover.requestWaiverReadOnlyData().shouldHave(text("sonatype-2017-0507"));
-    requestWaiversPopover.requestWaiverPolicyViolationId().shouldHave(text(securityPolicyViolation.getId()));
-    requestWaiversPopover.requestWaiverCancelButton().click();
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Group1 : Artifact1 : Version1"));
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Policy 1"));
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("sonatype-2017-0507"));
+    requestWaiverPage.requestWaiverPolicyViolationId().shouldHave(text(securityPolicyViolation.getId()));
+    requestWaiverPage.backButton().click();
   }
 
   @Test
@@ -442,7 +443,7 @@ public class ViolationDetailsTest
     refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
-    
+
     detailsTile.manageWaiversButton().shouldBe(visible);
     detailsTile.manageWaiversButton().click();
 

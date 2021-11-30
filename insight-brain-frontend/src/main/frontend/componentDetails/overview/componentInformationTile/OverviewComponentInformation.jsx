@@ -13,7 +13,8 @@ import OccurrencesPopoverContainer from '../occurrencesPopover/OccurrencesPopove
 import InnerSourceProducerAlertContainer from '../InnerSourceProducerAlert/InnerSourceProducerAlertContainer';
 import InnerSourceProducerReportModalContainer from '../InnerSourceProducerReportModal/InnerSourceProducerReportModalContainer';
 import InnerSourceProducerPermissionsModalContainer from '../InnerSourceProducerPermissionsModal/InnerSourceProducerPermissionsModalContainer';
-import { NxTextLink } from '@sonatype/react-shared-components';
+import { NxButton, NxTextLink } from '@sonatype/react-shared-components';
+import ComponentCoordinatesPopover from '../ComponentCoordinatesPopover/ComponentCoordinatesPopover';
 
 export default function OverviewComponentInformation({
   componentInformation,
@@ -21,6 +22,7 @@ export default function OverviewComponentInformation({
   similarMatches,
   toggleShowSimilarMatches,
   loadInnerSourceProducerData,
+  toggleShowComponentCoordinatesPopover,
 }) {
   const {
     componentIdentifier,
@@ -41,25 +43,6 @@ export default function OverviewComponentInformation({
   const joinedComponentCategories = join(
     ',',
     componentCategories.map((category) => category.path)
-  );
-
-  const generalInfoSectionContent = (
-    <dl className="nx-read-only nx-read-only--grid iq-general-info-definition-list">
-      <div className="nx-read-only__item">
-        <dt className="nx-read-only__label">Type</dt>
-        <dd className="nx-read-only__data">{format}</dd>
-      </div>
-
-      {displayName.parts.map(
-        ({ field, value }) =>
-          field && (
-            <div className="nx-read-only__item" key={`${field}${value}`}>
-              <dt className="nx-read-only__label">{`${field}`}</dt>
-              <dd className="nx-read-only__data">{value}</dd>
-            </div>
-          )
-      )}
-    </dl>
   );
 
   const viewSimilarMatchesLink = !!similarMatches.length && (
@@ -113,23 +96,30 @@ export default function OverviewComponentInformation({
   );
 
   return (
-    <section id="overview-component-information-tile" className="nx-tile iq-component-information-tile">
-      <OccurrencesPopoverContainer occurrences={pathnames} />
+    <>
       <InnerSourceProducerAlertContainer />
-      <InnerSourceProducerReportModalContainer />
-      <InnerSourceProducerPermissionsModalContainer />
-      <header className="nx-tile-header">
-        <div className="nx-tile-header__title">
-          <h2 className="nx-h2">Component Information</h2>
-        </div>
-      </header>
-      <div className="nx-tile-content">
-        <div className="nx-grid-row">
-          <section className="nx-grid-col iq-component-data-col">{generalInfoSectionContent}</section>
-          <section className="nx-grid-col iq-component-data-col">{identificationInfoSectionContent}</section>
-        </div>
-      </div>
-    </section>
+      <section id="overview-component-information-tile" className="nx-tile iq-component-information-tile">
+        <OccurrencesPopoverContainer occurrences={pathnames} />
+        <InnerSourceProducerReportModalContainer />
+        <InnerSourceProducerPermissionsModalContainer />
+        <ComponentCoordinatesPopover displayName={displayName} componentFormat={format} />
+        <header className="nx-tile-header">
+          <div className="nx-tile-header__title">
+            <h2 className="nx-h2">Component Information</h2>
+          </div>
+          <div className="nx-tile__actions">
+            <NxButton
+              className="component-coordinates-button"
+              variant="tertiary"
+              onClick={toggleShowComponentCoordinatesPopover}
+            >
+              View Coordinates
+            </NxButton>
+          </div>
+        </header>
+        <div className="nx-tile-content">{identificationInfoSectionContent}</div>
+      </section>
+    </>
   );
 }
 
@@ -156,6 +146,7 @@ OverviewComponentInformation.propTypes = {
     website: PropTypes.string,
   }),
   toggleShowOccurrencesPopover: PropTypes.func.isRequired,
+  toggleShowComponentCoordinatesPopover: PropTypes.func.isRequired,
   toggleShowSimilarMatches: PropTypes.func.isRequired,
   similarMatches: PropTypes.array,
 };

@@ -57,7 +57,6 @@ function SourceControlEditorController(
   // provider
   vm.providerTypes = SourceControlService.getProviderTypes();
   vm.providerTypesMap = SourceControlService.getProviderTypesMap();
-  vm.shouldShowProviderWarning = undefined;
   vm.providerInheritText = undefined;
   vm.effectiveProvider = effectiveProvider;
 
@@ -122,10 +121,9 @@ function SourceControlEditorController(
   vm.sshEnabled = sshEnabled;
 
   /**
-   * Matches any absolute HTTP(S) and SSH URL as per RFC 3986
-   * and SSH URL specified as 'user@server:path'
+   * Matches any absolute HTTP(S) as per RFC 3986
    */
-  vm.httpAndSshUrlPattern = /((https?|ssh):\/\/[^?#\s]+|[^@\s]+@[^/?#\s:]+:[^?#\s]+)/;
+  vm.repoCloneUrl = /(http[s]?:\/\/[^?#\s]+)/;
 
   vm.isDirty = isDirty;
   vm.save = save;
@@ -201,7 +199,6 @@ function SourceControlEditorController(
 
       vm.originalSourceControl = angular.copy(vm.dirtySourceControl);
       vm.shouldShowAccessTokenWarning = isAccessTokenRequiredOnNode() && vm.dirtySourceControl.token === null;
-      vm.shouldShowProviderWarning = vm.isApp && !vm.effectiveProvider();
       vm.showAdvanced = !vm.isApp || !canCollapseAdvanced();
       vm.providerInheritText = getInheritText(
         vm.dirtySourceControl.providerInheritFrom,

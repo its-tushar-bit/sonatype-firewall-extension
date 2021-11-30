@@ -59,7 +59,7 @@ window.d3 = d3;
 window.Fuse = Fuse;
 
 Enzyme.configure({ adapter: new Adapter() });
-beforeEach(function () {
+beforeAll(function () {
   jasmineEnzyme();
   jasmine.addMatchers(customMatchers);
 });

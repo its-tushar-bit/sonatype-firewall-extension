@@ -64,6 +64,9 @@ export default function ComponentDetails({
       return;
     }
     onTabChange(tabIdToMoveTo);
+    if (tabIndex === tabIdPerIndex.indexOf('labels')) {
+      loadComponentDetails();
+    }
   };
 
   const goToClaim = () => {
@@ -98,7 +101,7 @@ export default function ComponentDetails({
                 <NxInfoAlert id="proprietary-component-matched-alert">
                   This component has been matched as a Proprietary Component.{' '}
                   <a
-                    href="https://help.sonatype.com/iqserver/reporting/application-composition-report/component-identification#ComponentIdentification-ManagingProprietaryComponents"
+                    href="http://links.sonatype.com/products/nxiq/doc/managing-proprietary-components"
                     target="_blank"
                     rel="noreferrer"
                   >

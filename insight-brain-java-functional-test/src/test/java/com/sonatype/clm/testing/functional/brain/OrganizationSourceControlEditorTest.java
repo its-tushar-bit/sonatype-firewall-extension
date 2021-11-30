@@ -73,7 +73,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.tokenOverrideRadio().label().shouldHave(text("Override"));
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, enabled);
     SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
   }
 
   @Test
@@ -97,7 +96,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.tokenOverrideRadio().label().shouldHave(text("Override"));
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, enabled);
     SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
   }
 
   @Test
@@ -211,7 +209,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.credentialsOverrideRadio().label().shouldHave(text("Override"));
     SourceControlEditorPage.credentialsOverrideRadio().shouldBe(visible, enabled);
     SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(selected);
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
 
     SourceControlEditorPage.token().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
@@ -256,7 +253,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.credentialsOverrideRadio().label().shouldHave(text("Override"));
     SourceControlEditorPage.credentialsOverrideRadio().shouldBe(visible, enabled);
     SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(selected);
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.token().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
     SourceControlEditorPage.credentialsOverrideRadio().click();
@@ -294,7 +290,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.credentialsToken().shouldNotBe(visible);
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.token().shouldBe(visible);
 
     // when we switch to azure as a provider
@@ -307,7 +302,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.credentialsUsername().shouldBe(visible, enabled);
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(visible);
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.token().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
   }
@@ -335,7 +329,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.credentialsToken().shouldBe(visible, disabled);
     SourceControlEditorPage.credentialsUsername().shouldBe(visible, disabled);
     SourceControlEditorPage.credentialsInheritRadio().shouldBe(visible);
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
 
     // when we switch to azure as a provider
     SourceControlEditorPage.providerOverrideRadio().click();
@@ -346,7 +339,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.credentialsUsername().shouldBe(visible, enabled);
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(visible);
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.token().shouldNotBe(visible);
   }
 
@@ -622,7 +614,6 @@ public class OrganizationSourceControlEditorTest
 
     SourceControlEditorPage.token().shouldBe(disabled);
 
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettingsTree().shouldNotBe(visible);
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
@@ -689,7 +680,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.deleteButton().shouldBe(inherited ? disabled : enabled);
     SourceControlEditorPage.saveButton().hover();
     assertToolTip("There are no changes to update.");
-    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettingsTree().shouldNotBe(visible);
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettings().shouldBe(visible);

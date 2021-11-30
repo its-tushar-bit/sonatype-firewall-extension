@@ -51,8 +51,7 @@ describe('SimilarMatchesPopover', () => {
     });
 
     it('renders a text with a link to the component identification documentation', () => {
-      const expectedLinkHref =
-        'https://help.sonatype.com/iqserver/reporting/application-composition-report/component-identification';
+      const expectedLinkHref = 'http://links.sonatype.com/products/nxiq/doc/component-identification';
       const component = getShallow(),
         popover = component.find(IqPopover),
         text = popover.find('p'),

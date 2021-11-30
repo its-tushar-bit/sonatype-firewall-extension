@@ -2,6 +2,9 @@
   "items": [
     {
       "format": "npm",
+      "checksum": {
+        "sha1": "p1-100-sha1"
+      },
       "npm": {
         "name": "p1",
         "version": "1.0.0"

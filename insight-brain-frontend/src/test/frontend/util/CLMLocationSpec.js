@@ -562,4 +562,21 @@ describe('CLMLocation.js', function () {
       );
     });
   });
+
+  describe('getLicenseOverrideUrl', function () {
+    it('should return a URL without componentIdentifier if it is not provided', function () {
+      const expectedUrl = '/rest/licenseOverride/app/appId';
+      expect(clmLocation.getLicenseOverrideUrl('app', 'appId')).toEqual(expectedUrl);
+    });
+
+    it('should return a URL with encoded componentIdentifier if it is provided', function () {
+      const stringComponentIdentifier = JSON.stringify({
+        format: 'maven',
+        coordinates: { version: 'version', group: 'group' },
+      });
+      const expectedUrl =
+        '/rest/licenseOverride/app/appId?componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22version%22%3A%22version%22%2C%22group%22%3A%22group%22%7D%7D';
+      expect(clmLocation.getLicenseOverrideUrl('app', 'appId', stringComponentIdentifier)).toEqual(expectedUrl);
+    });
+  });
 });

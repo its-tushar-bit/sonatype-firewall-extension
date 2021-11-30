@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.net.URI;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -14,6 +15,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -22,6 +24,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDiffDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeResponseDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportViolationsDiffService;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -48,6 +51,8 @@ public class DefaultApiReportDataResourceV2 implements ApiReportDataResourceV2
   public static final String POLICY_DATA_PATH = "policy";
 
   public static final String VIOLATION_DIFF_PATH = "policyViolations/diff";
+
+  public static final String DEPENDENCY_TREE_PATH = "dependencyTree";
 
   private final ApiReportDataServiceV2 reportDataService;
 
@@ -100,6 +105,25 @@ public class DefaultApiReportDataResourceV2 implements ApiReportDataResourceV2
   {
     AuditData.get().setReportId(scanId);
     return reportDataService.getPolicyViolationsData(applicationPublicId, scanId);
+  }
+
+  @GET
+  @Path(SCAN_PATH + "/" + DEPENDENCY_TREE_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
+  public ApiDependencyTreeResponseDTO getDependencyTree(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("scanId") String scanId,
+      @QueryParam("dependencyTreeEnabled") Optional<Boolean> dependencyTreeEnabled) throws Exception
+  {
+    if (dependencyTreeEnabled.isPresent()) {
+      AuditData.get().setReportId(scanId);
+      return reportDataService.getDependencyTree(applicationPublicId, scanId);
+    }
+    else {
+      throw new WebApplicationException(Response.Status.NOT_FOUND);
+    }
+    
   }
 
   /**

@@ -43,4 +43,9 @@ describe('MenuBar', function () {
     const componentWithPermissions = getShallowComponent();
     expect(componentWithPermissions.find('div#menu-bar__back-button-container')).toExist();
   });
+
+  it('should render the back button container if isLoggedIn is false', () => {
+    const componentWithPermissions = getShallowComponent({ isLoggedIn: false });
+    expect(componentWithPermissions.find('div#menu-bar__back-button-container')).toExist();
+  });
 });

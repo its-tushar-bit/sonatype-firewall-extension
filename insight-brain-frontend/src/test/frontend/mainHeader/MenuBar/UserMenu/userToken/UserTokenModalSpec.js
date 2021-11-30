@@ -182,10 +182,7 @@ describe('UserTokenModal', function () {
       );
 
       const externalDocumentationLink = paragraphs.at(1).find(NxExternalLink);
-      expect(externalDocumentationLink).toHaveProp(
-        'href',
-        'https://help.sonatype.com/iqserver/managing/user-management/user-tokens'
-      );
+      expect(externalDocumentationLink).toHaveProp('href', 'http://links.sonatype.com/products/nxiq/doc/user-tokens');
       expect(externalDocumentationLink).toHaveProp('children', 'help documentation.');
     });
 

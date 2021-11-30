@@ -128,7 +128,7 @@ public class ApiComponentRemediationService
 
     List<ComponentDetailsDTO> dtos = componentInfoService
         .getComponentDetailsForAllVersionsNoAuth(ownerType, publicOwnerId, componentIdentifier, stageId,
-            identificationSource, scanId, null);
+            identificationSource, scanId, null).getLeft();
 
     ApiComponentRemediationValueDTO remediationValueDto;
     if (isThirdPartySource) {

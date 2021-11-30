@@ -36,6 +36,23 @@ public class ApiReportDataServiceV2AuthzTest
     grantReadPermission(app.getId());
     reportDataService.getRawData(app.getPublicId(), "irrelevant");
   }
+  
+  @Test(expected = UnauthenticatedException.class)
+  public void getDependencyTree_Anon() throws Exception {
+    reportDataService.getDependencyTree(app.getPublicId(), "irrelevant");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void getDependencyTree_Unauthorized() throws Exception {
+    login();
+    reportDataService.getDependencyTree(app.getPublicId(), "irrelevant");
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void getDependencyTree_Authorized() throws Exception {
+    grantReadPermission(app.getId());
+    reportDataService.getDependencyTree(app.getPublicId(), "irrelevant");
+  }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetPolicyViolations_Anon() throws Exception {

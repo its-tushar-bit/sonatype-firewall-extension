@@ -133,7 +133,7 @@ public class SbomResultHandlerTest
     assertThat(components).extracting(Component::getVersion)
         .containsOnly("9.0.14", "1.2.3", "2.9.9", "2.1.0");
     assertThat(components).extracting(Component::getPurl)
-        .containsExactlyInAnyOrder("pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?packaging=jar", null,
+        .containsExactlyInAnyOrder("pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar", null,
             "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9", null);
     assertThat(components).extracting("hashes.size")
         .containsOnly(null, 1, null, 1);
@@ -669,7 +669,7 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
     assertThat(filteredContent).isNotNull();
-    assertWarnLogOutput("Fallback to coordinates due to invalid purl: pkg:pypi/@1.2.3");
+    assertDebugLogOutput("Fallback to coordinates due to invalid purl: pkg:pypi/@1.2.3");
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
@@ -683,7 +683,7 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
     assertFilteredSbomFile(filteredContent, 1);
-    assertWarnLogOutput("Fallback to coordinates due to invalid purl: pkg:pypi/@1.2.3");
+    assertDebugLogOutput("Fallback to coordinates due to invalid purl: pkg:pypi/@1.2.3");
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
@@ -697,7 +697,7 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
     assertFilteredSbomFile(filteredContent, 1);
-    assertWarnLogOutput("PackageUrl is not valid pkg:pypi/django");
+    assertDebugLogOutput("PackageUrl is not valid pkg:pypi/django");
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
@@ -922,6 +922,21 @@ public class SbomResultHandlerTest
 
   }
 
+  @Test
+  public void testHandleAndFilterContents_invalidPurl_missingCoords() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-invalid-purl-missing-coords.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertFilteredSbomFile(filteredContent, 1);
+    assertDebugLogOutput("Component jackson-databind 2.9.9 is missing coordinates." +
+        " The following coordinates are missing: [type]");
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+  }
+
   private void assertVulnerabilities(Component component) {
     Map<String, Extension> extensions = component.getExtensions();
     assertThat(extensions).isNotEmpty().containsKey(ExtensionType.VULNERABILITIES.getTypeName());
@@ -932,7 +947,8 @@ public class SbomResultHandlerTest
     assertThat(vulnerabilityExtension.getExtensions()).isNotEmpty().hasSize(1);
     Consumer<Vulnerability10> vulnerabilitiesRequirement = vulnerability -> {
       assertThat(vulnerability.getId()).isEqualTo("CVE-2018-7489");
-      assertThat(vulnerability.getRef()).isEqualTo("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9");
+      assertThat(vulnerability.getRef()).isEqualTo(
+          "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
       assertThat(vulnerability.getCwes()).hasSize(2);
       assertThat(vulnerability.getCwes().get(0).getText()).isEqualTo(184);
       assertThat(vulnerability.getCwes().get(1).getText()).isEqualTo(502);
@@ -1082,7 +1098,7 @@ public class SbomResultHandlerTest
     }
   }
 
-  private void assertWarnLogOutput(final String message) {
-    assertThat(logOutput.getWarnMessages(loggerName)).containsOnly(message);
+  private void assertDebugLogOutput(final String message) {
+    assertThat(logOutput.getDebugMessages(loggerName)).contains(message);
   }
 }

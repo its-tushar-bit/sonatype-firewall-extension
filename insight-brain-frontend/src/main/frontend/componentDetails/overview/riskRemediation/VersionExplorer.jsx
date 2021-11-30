@@ -9,13 +9,20 @@ import * as PropTypes from 'prop-types';
 import VersionGraphExplorer from '../VersionGraphExplorer/VersionGraphExplorer';
 
 export const VersionExplorer = (props) => {
-  const { versions, currentVersion } = props;
+  const { versions, currentVersion, source } = props;
   return (
     <section className="iq-version-explorer nx-grid-col__section">
       <header className="nx-grid-header">
         <h3 className="nx-h3 nx-grid-header__title">Version Explorer</h3>
       </header>
-      <div className="iq-grid-content">{currentVersion && versions && <VersionGraphExplorer {...props} />}</div>
+      <div className="iq-grid-content">
+        {currentVersion && versions && (
+          <div>
+            <VersionGraphExplorer {...props} />
+            {source && <div id="iq-version-explorer-repository-source">Repository Source: {source}</div>}
+          </div>
+        )}
+      </div>
     </section>
   );
 };
@@ -23,4 +30,5 @@ export const VersionExplorer = (props) => {
 VersionExplorer.propTypes = {
   versions: PropTypes.array,
   currentVersion: PropTypes.string,
+  source: PropTypes.string,
 };

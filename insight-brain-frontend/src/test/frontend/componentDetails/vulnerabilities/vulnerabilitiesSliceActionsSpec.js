@@ -9,6 +9,8 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 
 import { actions } from 'MainRoot/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
 import * as vulnerabilitiesSelectors from 'MainRoot/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSelectors';
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+
 import {
   getVulnerabilitiesUrl,
   getVulnerabilityJsonDetailUrl,
@@ -175,11 +177,15 @@ describe('vulnerabilitiesSliceActions', () => {
 
   describe('loadVulnerabilityDetails', () => {
     const { loadVulnerabilityDetails } = actions;
+    const expectedComponentIdentifier = { format: 'format', coordinates: { part1: 'part1', part2: 'part2' } };
     beforeEach(() => {
       spyOn(vulnerabilitiesSelectors, 'selectVulnerabityRefId').and.returnValue('2');
+      spyOn(applicationReportSelectors, 'selectSelectedComponent').and.returnValue({
+        componentIdentifier: expectedComponentIdentifier,
+      });
     });
 
-    it('dispatches a componentDetailsVulnerabilities/loadVulnerabilities/fulfilled action after successful requests', (done) => {
+    it('dispatches a componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled action after successful requests', (done) => {
       const vulnerabilityDetails = {
         identifier: 'CVE-2014-3625',
         description: 'Directory traversal vulnerability',
@@ -188,7 +194,7 @@ describe('vulnerabilitiesSliceActions', () => {
 
       mockAxiosCalls({
         get: {
-          [getVulnerabilityJsonDetailUrl('2')]: Promise.resolve({
+          [getVulnerabilityJsonDetailUrl('2', expectedComponentIdentifier)]: Promise.resolve({
             data: {
               ...vulnerabilityDetails,
             },
@@ -215,7 +221,7 @@ describe('vulnerabilitiesSliceActions', () => {
     it('dispatches componentDetailsVulnerabilities/loadVulnerabilityDetails/rejected action', (done) => {
       mockAxiosCalls({
         get: {
-          [getVulnerabilityJsonDetailUrl('2')]: () => Promise.reject('some error'),
+          [getVulnerabilityJsonDetailUrl('2', expectedComponentIdentifier)]: () => Promise.reject('some error'),
         },
       });
 

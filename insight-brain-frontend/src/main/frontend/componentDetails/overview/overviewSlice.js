@@ -41,6 +41,7 @@ const initialState = {
     versions: null,
     remediation: null,
     currentVersionDetails: null,
+    source: null,
   },
   innerSourceProducerData: {
     reportUrl: '',
@@ -52,6 +53,7 @@ const initialState = {
     showInnerSourceProducerReportModal: false,
   },
   showSimilarMatchesPopover: false,
+  showComponentCoordinatesPopover: false,
   selectedVersionData: {
     loading: false,
     loadError: null,
@@ -144,6 +146,7 @@ const loadFulfilled = (state, { payload }) => ({
     versions: payload.componentVersionsData.allVersions,
     remediation: payload.componentVersionsData.remediation,
     currentVersionDetails: payload.currentVersionDetails,
+    source: payload.componentVersionsData.source,
   },
 });
 
@@ -152,6 +155,7 @@ function loadFailed(state, { payload }) {
     state.versionExplorerData.versions = null;
     state.versionExplorerData.remediation = null;
     state.versionExplorerData.currentVersionDetails = null;
+    state.versionExplorerData.source = null;
   } else {
     state.versionExplorerData.loading = false;
     state.versionExplorerData.loadError = Messages.getHttpErrorMessage(payload);
@@ -293,6 +297,7 @@ const componentDetailsOverviewSlice = createSlice({
     setInnerSourceProducerReportUrl: pathSet(['innerSourceProducerData', 'reportUrl']),
     setLatestInnerSourceComponentVersion: pathSet(['innerSourceProducerData', 'latestInnerSourceComponentVersion']),
     toggleShowSimilarMatches: toggleBooleanProp('showSimilarMatchesPopover'),
+    toggleShowComponentCoordinatesPopover: toggleBooleanProp('showComponentCoordinatesPopover'),
     setSelectedVersion: pathSet(['selectedVersionData', 'selectedVersion']),
     resetSelectedVersionData,
     toggleAncestorsList: toggleBooleanProp('expanded'),

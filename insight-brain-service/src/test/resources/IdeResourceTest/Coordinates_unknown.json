@@ -1,0 +1,28 @@
+[
+  {
+    "waitDelta": null,
+    "simpleMatch": true,
+    "matchState": "unknown",
+    "componentIdentifier": null,
+    "groupId": null,
+    "artifactId": null,
+    "version": null,
+    "classifier": null,
+    "securityVulnerabilities": [],
+    "hash": null,
+    "observedLicenseIds": [
+      "UNSPECIFIED"
+    ],
+    "declaredLicenseIds": [
+      "UNSPECIFIED"
+    ],
+    "catalogDate": null,
+    "relativePopularity": null,
+    "identificationSource": "Sonatype",
+    "componentCategories": null,
+    "hygieneRating": null,
+    "integrityRating": null,
+    "securityIssues": 0,
+    "securityThreat": null
+  }
+]

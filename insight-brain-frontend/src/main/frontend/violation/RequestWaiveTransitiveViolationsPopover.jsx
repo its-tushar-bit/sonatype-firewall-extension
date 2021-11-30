@@ -38,10 +38,7 @@ export default function RequestWaiveTransitiveViolationsPopover(props) {
       <NxInfoAlert>
         To request transitive violation waivers, please share the application id, report id, parent component hash, and
         sample curl command (found below) with the approver.{' '}
-        <NxTextLink
-          external
-          href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers#Waivers-RequestingaWaivertobeAdded"
-        >
+        <NxTextLink external href="http://links.sonatype.com/products/nxiq/doc/request-waiver">
           Learn about automating waiver requests.
         </NxTextLink>
       </NxInfoAlert>

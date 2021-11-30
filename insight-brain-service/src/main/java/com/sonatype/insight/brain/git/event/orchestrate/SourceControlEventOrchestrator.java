@@ -94,6 +94,8 @@ public class SourceControlEventOrchestrator
 
   private int otherInstanceEventProcessingStartupDelaySeconds = 30;
 
+  public boolean disableForTesting;
+
   @Inject
   public SourceControlEventOrchestrator(
       InsightConfig insightConfig,
@@ -127,7 +129,7 @@ public class SourceControlEventOrchestrator
 
   @Override
   public void start() {
-    if (insightConfig.isFeatureEnabled(Feature.ORCHESTRATED_EVENT_PROCESSING)) {
+    if (insightConfig.isFeatureEnabled(Feature.ORCHESTRATED_EVENT_PROCESSING) && !disableForTesting) {
       sourceControlEventPublisher.setSourceControlEventListener(this);
       startEventProcessingExecutorService();
     }

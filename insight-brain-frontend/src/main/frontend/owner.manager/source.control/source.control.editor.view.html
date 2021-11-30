@@ -31,11 +31,6 @@
           form-mask="vm.sourceControlEditorMask"
           mask-attach-to-body
           ng-if="vm.isSourceControlSupported">
-      <div id="source-control-provider-warning"
-           class="iq-alert"
-           ng-if="vm.shouldShowProviderWarning">
-        <i class="fa fa-warning"></i>Source Control Management System must be configured at Root Organization
-      </div>
       <div id="source-control-token-warning"
            class="iq-alert"
            ng-if="vm.shouldShowAccessTokenWarning">
@@ -45,21 +40,19 @@
       <!-- app repository URL -->
       <div id="repository-url-row" class="iq-form-row" ng-if="vm.isApp">
         <div class="iq-form-group">
-          <label class="iq-label" for="editor-source-control-url" ng-disabled="!vm.effectiveProvider()"><!--
-         -->Repository URL
-          </label>
+          <label class="iq-label" for="editor-source-control-url"><!--
+         -->Repository Clone URL (HTTPS)</label>
           <input id="editor-source-control-url"
                  type="text"
-                 ng-pattern="vm.httpAndSshUrlPattern"
+                 ng-pattern="vm.repoCloneUrl"
                  class="iq-text-input iq-text-input--repo-url"
                  name="repositoryUrl"
                  ng-model="vm.dirtySourceControl.repositoryUrl"
                  ng-maxlength="2048"
                  clm-input
-                 ng-disabled="!vm.effectiveProvider()"
                  required
-                 messages="{required: 'A valid repository URL is required',
-                    pattern: 'A valid repository URL is required. HTTP(S) and SSH URLs are supported'}">
+                 messages="{required: 'A valid HTTP(S) repository clone URL is required',
+                    pattern: 'A valid HTTP(S) repository clone  URL is required.'}">
         </div>
       </div>
 

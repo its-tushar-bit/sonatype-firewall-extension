@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import com.sonatype.insight.brain.model.repository.RepositoryFormat;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -13,6 +15,8 @@ public class ApiRepositoryConnectionDTO
   public String repositoryConnectionId;
 
   public String ownerId;
+
+  public RepositoryFormat format;
 
   public String baseUrl;
 

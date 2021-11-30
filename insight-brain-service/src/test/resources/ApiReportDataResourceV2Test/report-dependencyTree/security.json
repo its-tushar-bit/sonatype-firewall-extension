@@ -1,0 +1,207 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "boom",
+        "version" : "3.2.2"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "0f0cc5d04adc5003b8c7",
+    "url" : null,
+    "reference" : "sonatype-2016-0091",
+    "source" : "sonatype",
+    "score" : 4.6,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "boom"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "3.2.2"
+      } ],
+      "name" : "boom : 3.2.2"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hoek",
+        "version" : "3.0.4"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "268adff66bb6695c69b4",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-3728",
+    "reference" : "CVE-2018-3728",
+    "source" : "cve",
+    "score" : 8.8,
+    "cwe" : "471",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "hoek"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "3.0.4"
+      } ],
+      "name" : "hoek : 3.0.4"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hoek",
+        "version" : "3.0.4"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "268adff66bb6695c69b4",
+    "url" : null,
+    "reference" : "sonatype-2020-0074",
+    "source" : "sonatype",
+    "score" : 5.6,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:L",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "functional", "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "hoek"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "3.0.4"
+      } ],
+      "name" : "hoek : 3.0.4"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "boom",
+        "version" : "5.2.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "5dd9da6ee3a5f3020774",
+    "url" : null,
+    "reference" : "sonatype-2016-0091",
+    "source" : "sonatype",
+    "score" : 4.6,
+    "cwe" : "79",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:L/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "boom"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "5.2.0"
+      } ],
+      "name" : "boom : 5.2.0"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "cryptiles",
+        "version" : "3.1.4"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "769a68c95612b56faadf",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-1000620",
+    "reference" : "CVE-2018-1000620",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "331",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "cryptiles"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "3.1.4"
+      } ],
+      "name" : "cryptiles : 3.1.4"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hoek",
+        "version" : "4.2.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "9634502aa12c445dd5a7",
+    "url" : null,
+    "reference" : "sonatype-2020-0074",
+    "source" : "sonatype",
+    "score" : 5.6,
+    "cwe" : "20",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:L",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "functional", "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "hoek"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "4.2.1"
+      } ],
+      "name" : "hoek : 4.2.1"
+    }
+  } ]
+}

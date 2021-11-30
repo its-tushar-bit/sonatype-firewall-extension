@@ -1,0 +1,553 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "boom",
+        "version" : "3.2.2"
+      }
+    },
+    "packageUrl" : "pkg:npm/boom@3.2.2",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "boom:3.2.2" ],
+    "pathnames" : [ "dependency:/package-lock.json/boom:3.2.2" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0f0cc5d04adc5003b8c7",
+    "relativePopularity" : null,
+    "createTime" : 1466519382582,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 2,
+      "label" : "Pending"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "boom"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "3.2.2"
+      } ],
+      "name" : "boom : 3.2.2"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:npm/producer@file%3A..%2Fproducer", "pkg:npm/hawk@4.1.2" ],
+    "innerSourceData" : [ {
+      "ownerApplicationName" : "producer2",
+      "ownerApplicationId" : "72722e3f889744a28f0e55be04c7d432",
+      "innerSourceComponentPurl" : "pkg:npm/producer@file%3A..%2Fproducer"
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hoek",
+        "version" : "3.0.4"
+      }
+    },
+    "packageUrl" : "pkg:npm/hoek@3.0.4",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "hoek:3.0.4" ],
+    "pathnames" : [ "dependency:/package-lock.json/hoek:3.0.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "268adff66bb6695c69b4",
+    "relativePopularity" : null,
+    "createTime" : 1447537723152,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 2,
+      "label" : "Pending"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "hoek"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "3.0.4"
+      } ],
+      "name" : "hoek : 3.0.4"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:npm/hawk@4.1.2", "pkg:npm/producer@file%3A..%2Fproducer" ],
+    "innerSourceData" : [ {
+      "ownerApplicationName" : "producer2",
+      "ownerApplicationId" : "72722e3f889744a28f0e55be04c7d432",
+      "innerSourceComponentPurl" : "pkg:npm/producer@file%3A..%2Fproducer"
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "sntp",
+        "version" : "2.1.0"
+      }
+    },
+    "packageUrl" : "pkg:npm/sntp@2.1.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "sntp:2.1.0" ],
+    "pathnames" : [ "dependency:/package-lock.json/sntp:2.1.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "2c6cec14fedc2222739c",
+    "relativePopularity" : null,
+    "createTime" : 1508979210513,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 2,
+      "label" : "Pending"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "sntp"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "2.1.0"
+      } ],
+      "name" : "sntp : 2.1.0"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:npm/hawk@4.1.2", "pkg:npm/producer@file%3A..%2Fproducer" ],
+    "innerSourceData" : [ {
+      "ownerApplicationName" : "producer2",
+      "ownerApplicationId" : "72722e3f889744a28f0e55be04c7d432",
+      "innerSourceComponentPurl" : "pkg:npm/producer@file%3A..%2Fproducer"
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "boom",
+        "version" : "5.2.0"
+      }
+    },
+    "packageUrl" : "pkg:npm/boom@5.2.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "boom:5.2.0" ],
+    "pathnames" : [ "dependency:/package-lock.json/boom:5.2.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "5dd9da6ee3a5f3020774",
+    "relativePopularity" : null,
+    "createTime" : 1500421460270,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 2,
+      "label" : "Pending"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "boom"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "5.2.0"
+      } ],
+      "name" : "boom : 5.2.0"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:npm/cryptiles@3.1.4" ],
+    "innerSourceData" : [ {
+      "ownerApplicationName" : "producer2",
+      "ownerApplicationId" : "72722e3f889744a28f0e55be04c7d432",
+      "innerSourceComponentPurl" : "pkg:npm/producer@file%3A..%2Fproducer"
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "cryptiles",
+        "version" : "3.1.4"
+      }
+    },
+    "packageUrl" : "pkg:npm/cryptiles@3.1.4",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "cryptiles:3.1.4" ],
+    "pathnames" : [ "dependency:/package-lock.json/cryptiles:3.1.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "769a68c95612b56faadf",
+    "relativePopularity" : null,
+    "createTime" : 1541457884690,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 2,
+      "label" : "Pending"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "cryptiles"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "3.1.4"
+      } ],
+      "name" : "cryptiles : 3.1.4"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:npm/producer@file%3A..%2Fproducer", "pkg:npm/hawk@4.1.2" ],
+    "innerSourceData" : [ {
+      "ownerApplicationName" : "producer2",
+      "ownerApplicationId" : "72722e3f889744a28f0e55be04c7d432",
+      "innerSourceComponentPurl" : "pkg:npm/producer@file%3A..%2Fproducer"
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hoek",
+        "version" : "4.2.1"
+      }
+    },
+    "packageUrl" : "pkg:npm/hoek@4.2.1",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "hoek:4.2.1" ],
+    "pathnames" : [ "dependency:/package-lock.json/hoek:4.2.1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "9634502aa12c445dd5a7",
+    "relativePopularity" : null,
+    "createTime" : 1518713267274,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 2,
+      "label" : "Pending"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "hoek"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "4.2.1"
+      } ],
+      "name" : "hoek : 4.2.1"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:npm/boom@3.2.2", "pkg:npm/boom@5.2.0", "pkg:npm/sntp@2.1.0" ],
+    "innerSourceData" : [ {
+      "ownerApplicationName" : "producer2",
+      "ownerApplicationId" : "72722e3f889744a28f0e55be04c7d432",
+      "innerSourceComponentPurl" : "pkg:npm/producer@file%3A..%2Fproducer"
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "loadash",
+        "version" : "1.0.0"
+      }
+    },
+    "packageUrl" : "pkg:npm/loadash@1.0.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "loadash:1.0.0" ],
+    "pathnames" : [ "dependency:/package-lock.json/loadash:1.0.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b92e54d809f3c225f4f9",
+    "relativePopularity" : null,
+    "createTime" : 1502497207039,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 2,
+      "label" : "Pending"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "loadash"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "1.0.0"
+      } ],
+      "name" : "loadash : 1.0.0"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "hawk",
+        "version" : "4.1.2"
+      }
+    },
+    "packageUrl" : "pkg:npm/hawk@4.1.2",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "hawk:4.1.2" ],
+    "pathnames" : [ "dependency:/package-lock.json/hawk:4.1.2" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ba067b0885e9c0726c8c",
+    "relativePopularity" : null,
+    "createTime" : 1453400742466,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 2,
+      "label" : "Pending"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "hawk"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "4.1.2"
+      } ],
+      "name" : "hawk : 4.1.2"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:npm/producer@file%3A..%2Fproducer" ],
+    "innerSourceData" : [ {
+      "ownerApplicationName" : "producer2",
+      "ownerApplicationId" : "72722e3f889744a28f0e55be04c7d432",
+      "innerSourceComponentPurl" : "pkg:npm/producer@file%3A..%2Fproducer"
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "producer",
+        "version" : "file:../producer"
+      }
+    },
+    "packageUrl" : "pkg:npm/producer@file%3A..%2Fproducer",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "producer:file:../producer" ],
+    "pathnames" : [ "dependency:/package-lock.json/producer:file:..\\producer" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e348b36b80ed380e867f",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "producer"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "file:../producer"
+      } ],
+      "name" : "producer : file:../producer"
+    },
+    "directDependency" : true,
+    "innerSource" : true,
+    "innerSourceData" : [ {
+      "ownerApplicationName" : "producer2",
+      "ownerApplicationId" : "72722e3f889744a28f0e55be04c7d432"
+    } ]
+  } ]
+}

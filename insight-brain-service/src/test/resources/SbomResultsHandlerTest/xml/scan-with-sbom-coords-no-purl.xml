@@ -18,7 +18,7 @@
         </license>
       </licenses>
     </component>
-    <component type="library" bom-ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9">
+    <component type="library" bom-ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar">
       <!-- missing group -->
       <name>jackson-databind</name>
       <version>2.9.9</version>

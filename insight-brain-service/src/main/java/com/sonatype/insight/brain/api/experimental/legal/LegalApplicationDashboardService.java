@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationCom
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalApplicationComponentsFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
+import com.sonatype.insight.brain.api.v2.service.legal.LegalDashboardsService;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
@@ -39,7 +40,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
-import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
@@ -90,6 +90,8 @@ public class LegalApplicationDashboardService
 
   private final InnerSourceComponentDAO innerSourceComponentDAO;
 
+  private final LegalDashboardsService legalDashboardService;
+
   @Inject
   public LegalApplicationDashboardService(
       ProductLicense productLicense,
@@ -99,7 +101,8 @@ public class LegalApplicationDashboardService
       ComponentObligationDAO componentObligationDAO,
       LicenseThreatGroupDAO licenseThreatGroupDAO,
       MultiLicenseDAO multiLicenseDAO,
-      InnerSourceComponentDAO innerSourceComponentDAO)
+      InnerSourceComponentDAO innerSourceComponentDAO,
+      LegalDashboardsService legalDashboardService)
   {
     this.productLicense = productLicense;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -109,6 +112,7 @@ public class LegalApplicationDashboardService
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.multiLicenseDAO = multiLicenseDAO;
     this.innerSourceComponentDAO = innerSourceComponentDAO;
+    this.legalDashboardService = legalDashboardService;
   }
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
@@ -119,8 +123,8 @@ public class LegalApplicationDashboardService
     checkLicense();
 
     Set<String> stageTypeIds = filter != null ? filter.stageTypeIds : null;
-    Set<LicenseObligationReviewStatus> reviewStatuses = filter != null ? filter.reviewStatuses : null;
-    Set<String> licenseThreatGroupNames = filter != null ? filter.licenseThreatGroupNames : null;
+    Set<LicenseObligationReviewStatus> reviewStatuses = checkReviewStatus(filter);
+    Set<String> licenseThreatGroupNames = checkLicenseThreat(filter);
 
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
 
@@ -146,7 +150,7 @@ public class LegalApplicationDashboardService
     applicationComponentLicensesDTOS.removeIf(c -> LegalComponentIdentifierUtil
         .isComponentAKnownInnerSource(innerSourcePackageUrls, c.getComponentIdentifier()));
 
-    Set<String> licenseIdsFound = getLicenseIds(applicationComponentLicensesDTOS);
+    Set<String> licenseIdsFound = legalDashboardService.getLicenseIds(applicationComponentLicensesDTOS);
     Map<String, Set<String>> obligationNamesByLicenseId = getLicenseObligationsFromHds(licenseIdsFound);
     Map<String, String> licenseNamesByLicenseId = getLicenseNames(licenseIdsFound);
     List<ApiLicenseLegalApplicationComponentDTO> result = new ArrayList<>(applicationComponentLicensesDTOS.size());
@@ -186,42 +190,14 @@ public class LegalApplicationDashboardService
             componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(tx,
                 application.getId(), componentLicensesDTO.getComponentIdentifier(), allObligationNames);
 
-        int flaggedCount = 0;
-        int openCount = 0;
-        int addressedCount = 0;
-        for (String obligationName : allObligationNames) {
-          ObligationStatus status = obligations.stream()
-              .filter(o -> o.getObligationName().equals(obligationName))
-              .map(ComponentObligation::getStatus)
-              .findFirst()
-              .orElse(ObligationStatus.OPEN);
-          switch (status) {
-            case FLAGGED:
-              flaggedCount++;
-              break;
-            case FULFILLED:
-            case IGNORED:
-              addressedCount++;
-              break;
-            default:
-              openCount++;
-          }
-        }
+        Map<String, Integer> countMap = legalDashboardService.countObligations(obligations, allObligationNames);
 
-        LicenseObligationReviewStatus reviewStatus = LicenseObligationReviewStatus.IN_PROGRESS;
-        if (flaggedCount > 0) {
-          reviewStatus = LicenseObligationReviewStatus.FLAGGED;
-        }
-        else if (isEmpty(allObligationNames)) {
-          reviewStatus = isEmptyOrUnspecifiedLicenses(multiLicenseIds) ? LicenseObligationReviewStatus.UNREVIEWED
-              : LicenseObligationReviewStatus.COMPLETED;
-        }
-        else if (openCount == allObligationNames.size()) {
-          reviewStatus = LicenseObligationReviewStatus.UNREVIEWED;
-        }
-        else if (addressedCount >= allObligationNames.size()) {
-          reviewStatus = LicenseObligationReviewStatus.COMPLETED;
-        }
+        int flaggedCount = countMap.get(LegalDashboardsService.FLAGGEDCOUNT);
+        int openCount = countMap.get(LegalDashboardsService.OPENCOUNT);
+        int addressedCount = countMap.get(LegalDashboardsService.ADDRESSEDCOUNT);
+
+        LicenseObligationReviewStatus reviewStatus = legalDashboardService.getReviewStatus(flaggedCount, openCount,
+            addressedCount, allObligationNames, multiLicenseIds);
 
         if (isEmpty(reviewStatuses) || reviewStatuses.contains(reviewStatus)) {
           ApiLicenseLegalApplicationComponentDTO dto = new ApiLicenseLegalApplicationComponentDTO();
@@ -271,13 +247,6 @@ public class LegalApplicationDashboardService
     }
   }
 
-  private Set<String> getLicenseIds(List<ApplicationComponentLicensesDTO> applicationComponents) {
-    return applicationComponents.stream()
-        .filter(applicationComponent -> isNotEmpty(applicationComponent.getLicenses()))
-        .flatMap(applicationComponent -> applicationComponent.getLicenses().stream())
-        .collect(Collectors.toSet());
-  }
-
   private Map<String, Set<String>> getLicenseObligationsFromHds(Set<String> licenseIds) {
     return licenseIds.isEmpty() ? Collections.emptyMap()
         : apiLicenseLegalHdsService.getLicenseMetadata(licenseIds).parallelStream()
@@ -312,8 +281,12 @@ public class LegalApplicationDashboardService
     }
   }
 
-  private boolean isEmptyOrUnspecifiedLicenses(Set<String> licenseIds) {
-    return isEmpty(licenseIds) || licenseIds.stream().allMatch(License::isEffectivelyUnspecified);
+  private Set<LicenseObligationReviewStatus> checkReviewStatus(LicenseLegalApplicationComponentsFilterDTO filter) {
+    return filter != null ? filter.reviewStatuses : Collections.emptySet();
+  }
+
+  private Set<String> checkLicenseThreat(LicenseLegalApplicationComponentsFilterDTO filter) {
+    return filter != null ? filter.licenseThreatGroupNames : Collections.emptySet();
   }
 
   private Set<ApiLicenseDTOV2> newApiLicenses(

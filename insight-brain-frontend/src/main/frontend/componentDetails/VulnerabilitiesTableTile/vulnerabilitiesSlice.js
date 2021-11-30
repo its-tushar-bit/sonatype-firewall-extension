@@ -24,6 +24,7 @@ import {
 import { validateMaxLength } from 'MainRoot/util/validationUtil';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
+import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 const { initialState: initUserInput, userInput } = nxTextInputStateHelpers;
 const AVAILABLE_STATUS = {
@@ -51,6 +52,7 @@ export const initialState = {
   vulnerabilitySecurityOverride: {
     status: '',
     comments: initUserInput(''),
+    showCommentField: true,
     loading: false,
     loadError: null,
     submitMaskState: null,
@@ -76,8 +78,9 @@ const loadVulnerabilityDetails = createAsyncThunk(
   `${REDUCER_NAME}/loadVulnerabilityDetails`,
   (_, { getState, rejectWithValue }) => {
     const refId = selectVulnerabityRefId(getState());
+    const componentIdentifier = selectSelectedComponent(getState())?.componentIdentifier;
     return axios
-      .get(getVulnerabilityJsonDetailUrl(refId))
+      .get(getVulnerabilityJsonDetailUrl(refId, componentIdentifier))
       .then(({ data }) => data)
       .catch(rejectWithValue);
   }
@@ -135,8 +138,13 @@ function loadVulnerabilityDetailsFulfilled(state, { payload }) {
   );
   state.vulnerabilitySecurityOverride.loading = false;
   state.vulnerabilitySecurityOverride.loadError = null;
-  state.vulnerabilitySecurityOverride.status = AVAILABLE_STATUS[currentVulnerability.status];
   state.vulnerabilitySecurityOverride.saveError = null;
+
+  const status = AVAILABLE_STATUS[currentVulnerability.status];
+  state.vulnerabilitySecurityOverride.status = status;
+  if (status === 'OPEN') {
+    state.vulnerabilitySecurityOverride.showCommentField = false;
+  }
 }
 
 function loadVulnerabilityDetailsFailed(state, { payload }) {
@@ -153,6 +161,7 @@ function toggleVulnerabilityPopoverWithEffects(state, { payload }) {
   state.vulnerabilitySecurityOverride.status = '';
   state.vulnerabilitySecurityOverride.saveError = null;
   state.vulnerabilitySecurityOverride.comments = initUserInput('');
+  state.vulnerabilitySecurityOverride.showCommentField = true;
 }
 
 const componentDetailsVulnerabilitiesSlice = createSlice({
@@ -164,6 +173,7 @@ const componentDetailsVulnerabilitiesSlice = createSlice({
       state.vulnerabilitySecurityOverride.status = payload;
       state.vulnerabilitySecurityOverride.comments = initUserInput('');
       state.vulnerabilitySecurityOverride.saveError = null;
+      state.vulnerabilitySecurityOverride.showCommentField = true;
     },
     setVulnerabilityOverrideComments: (state, { payload }) => {
       state.vulnerabilitySecurityOverride.comments = userInput(validateMaxLength(1000), payload);

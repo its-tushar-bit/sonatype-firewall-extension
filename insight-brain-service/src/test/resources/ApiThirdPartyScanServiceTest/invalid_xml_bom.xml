@@ -3,6 +3,6 @@
      xmlns="http://cyclonedx.org/schema/bom/1.1"
      xmlns:v="http://cyclonedx.org/schema/ext/vulnerability/1.0">
   <components>
-    <component type="library" bom-ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9">
+    <component type="library" bom-ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar">
   </components>
 </bom>

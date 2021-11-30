@@ -23,9 +23,10 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 
 const {
   loadComponentDetails,
+  loadComponentDetailsWithCancelToken,
   visitAncestorAction,
   backToOffspringAction,
-  loadApplicableLabels,
+  loadApplicableLabelsWithCancelToken,
   loadApplicableLabelScopes,
   addProprietaryMatchers,
   removeAppliedLabel,
@@ -35,11 +36,11 @@ const {
 } = componentDetailsActions;
 
 const LOAD_COMPONENT_LABELS_REQUESTED = 'componentDetails/loadComponentDetails/pending';
-const LOAD_COMPONENT_LABELS_FULFILLED = 'componentDetails/loadComponentDetails/fulfilled';
-const LOAD_COMPONENT_LABELS_FAILED = 'componentDetails/loadComponentDetails/rejected';
-const LOAD_APPLICABLE_LABELS_REQUESTED = 'componentDetails/loadApplicableLabels/pending';
-const LOAD_APPLICABLE_LABELS_FULFILLED = 'componentDetails/loadApplicableLabels/fulfilled';
-const LOAD_APPLICABLE_LABELS_FAILED = 'componentDetails/loadApplicableLabels/rejected';
+const LOAD_COMPONENT_LABELS_FULFILLED = 'componentDetails/loadComponentDetailsWithCancelToken/fulfilled';
+const LOAD_COMPONENT_LABELS_FAILED = 'componentDetails/loadComponentDetailsWithCancelToken/rejected';
+const LOAD_APPLICABLE_LABELS_REQUESTED = 'componentDetails/loadApplicableLabelsWithCancelToken/pending';
+const LOAD_APPLICABLE_LABELS_FULFILLED = 'componentDetails/loadApplicableLabelsWithCancelToken/fulfilled';
+const LOAD_APPLICABLE_LABELS_FAILED = 'componentDetails/loadApplicableLabelsWithCancelToken/rejected';
 const REMOVE_APPLIED_LABEL_REQUESTED = 'componentDetails/removeLabel/pending';
 const REMOVE_APPLIED_LABEL_FULFILLED = 'componentDetails/removeLabel/fulfilled';
 const REMOVE_APPLIED_LABEL_FAILED = 'componentDetails/removeLabel/rejected';
@@ -108,6 +109,7 @@ describe('componentDetailsActions', function () {
         },
       },
       componentDetails: {
+        pendingLoads: new Set(),
         selectedLabelDetails: {
           color: 'pink',
           description: 'testLabelDescription',
@@ -151,8 +153,7 @@ describe('componentDetailsActions', function () {
     it('immediately dispatches LOAD_COMPONENT_LABELS_REQUESTED action', () => {
       store.dispatch(loadComponentDetails());
 
-      expect(store.getActions().length).toBe(2);
-      expect(store.getActions()).toHaveActionType(LOAD_COMPONENT_LABELS_REQUESTED);
+      expect(store.getActions()[0].type).toBe(LOAD_COMPONENT_LABELS_REQUESTED);
     });
 
     it('sends a GET request to the appropriate url', (done) => {
@@ -162,15 +163,18 @@ describe('componentDetailsActions', function () {
           [url]: Promise.resolve(mockResponse),
         },
       });
-      store.dispatch(loadComponentDetails()).then(() => {
-        expect(axios.get).toHaveBeenCalledWith(url);
-        expect(store.getActions().length).toBe(3);
-        expect(store.getActions()).toHaveActionType(LOAD_COMPONENT_LABELS_FULFILLED);
+
+      store.dispatch(loadComponentDetailsWithCancelToken(null)).then(() => {
+        expect(axios.get).toHaveBeenCalledWith(url, { cancelToken: null });
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(3);
+        expect(actions).toHaveActionType(LOAD_COMPONENT_LABELS_FULFILLED);
         done();
       });
     });
 
-    it('dispatches LOAD_COMPONENT_LABELS_FULLFILED after a succesfull response', (done) => {
+    it('dispatches LOAD_COMPONENT_LABELS_FULFILED after a succesfull response', (done) => {
       const mockResponse = { data: { labelsByOwner: [{ labels: [{ test: 'test' }] }] } };
       mockAxiosCalls({
         get: {
@@ -180,9 +184,10 @@ describe('componentDetailsActions', function () {
 
       const expectedPayload = mockResponse;
 
-      store.dispatch(loadComponentDetails()).then(() => {
-        expect(store.getActions().length).toBe(3);
-        expect(store.getActions()).toHaveAction({
+      store.dispatch(loadComponentDetailsWithCancelToken(null)).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(3);
+        expect(actions).toHaveAction({
           type: LOAD_COMPONENT_LABELS_FULFILLED,
           payload: expectedPayload,
         });
@@ -190,13 +195,14 @@ describe('componentDetailsActions', function () {
       });
     });
 
-    it('dispatches LOAD_COMPONENT_LABELS_FAILED after a failed reponse', (done) => {
+    it('dispatches LOAD_COMPONENT_LABELS_FAILED after a failed response', (done) => {
       mockAxiosCalls({
         get: {
           [url]: () => Promise.reject('error'),
         },
       });
-      store.dispatch(loadComponentDetails()).then(() => {
+
+      store.dispatch(loadComponentDetailsWithCancelToken(null)).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(3);
         expect(store.getActions()).toHaveAction({
@@ -326,10 +332,11 @@ describe('componentDetailsActions', function () {
 
   describe('loadApplicableLabels', () => {
     it('immediately dispatches LOAD_APPLICABLE_LABELS_REQUESTED action', () => {
-      store.dispatch(loadApplicableLabels());
+      store.dispatch(loadApplicableLabelsWithCancelToken(null));
+      const actions = store.getActions();
 
-      expect(store.getActions().length).toBe(1);
-      expect(store.getActions()).toHaveActionType(LOAD_APPLICABLE_LABELS_REQUESTED);
+      expect(actions.length).toBe(1);
+      expect(actions).toHaveActionType(LOAD_APPLICABLE_LABELS_REQUESTED);
     });
 
     it('sends a GET request to the appropriate url', (done) => {
@@ -339,10 +346,13 @@ describe('componentDetailsActions', function () {
           [applicableLabelsUrl]: Promise.resolve(mockResponse),
         },
       });
-      store.dispatch(loadApplicableLabels()).then(() => {
-        expect(axios.get).toHaveBeenCalledWith(applicableLabelsUrl);
-        expect(store.getActions().length).toBe(2);
-        expect(store.getActions()).toHaveActionType(LOAD_APPLICABLE_LABELS_FULFILLED);
+
+      store.dispatch(loadApplicableLabelsWithCancelToken(null)).then(() => {
+        expect(axios.get).toHaveBeenCalledWith(applicableLabelsUrl, { cancelToken: null });
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionType(LOAD_APPLICABLE_LABELS_FULFILLED);
         done();
       });
     });
@@ -357,9 +367,11 @@ describe('componentDetailsActions', function () {
 
       const expectedPayload = mockResponse;
 
-      store.dispatch(loadApplicableLabels()).then(() => {
-        expect(store.getActions().length).toBe(2);
-        expect(store.getActions()).toHaveAction({
+      store.dispatch(loadApplicableLabelsWithCancelToken(null)).then(() => {
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveAction({
           type: LOAD_APPLICABLE_LABELS_FULFILLED,
           payload: expectedPayload,
         });
@@ -373,7 +385,8 @@ describe('componentDetailsActions', function () {
           [applicableLabelsUrl]: () => Promise.reject('error'),
         },
       });
-      store.dispatch(loadApplicableLabels()).then(() => {
+
+      store.dispatch(loadApplicableLabelsWithCancelToken(null)).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(store.getActions()).toHaveAction({
@@ -392,6 +405,12 @@ describe('componentDetailsActions', function () {
     });
 
     it('immediately dispatches REMOVE_APPLIED_LABEL_REQUESTED action', () => {
+      mockAxiosCalls({
+        del: {
+          [removeLabelUrl]: Promise.resolve(),
+        },
+      });
+
       store.dispatch(removeAppliedLabel(removeAppliedLabelPayload));
 
       expect(store.getActions().length).toBe(1);
@@ -408,10 +427,12 @@ describe('componentDetailsActions', function () {
           [removeLabelUrl]: Promise.resolve(),
         },
       });
+
       store.dispatch(removeAppliedLabel(removeAppliedLabelPayload)).then(() => {
         expect(axios.delete).toHaveBeenCalledWith('/rest/label/component/ownerType/ownerId/my-component-hash/labelId');
-        expect(store.getActions().length).toBe(5);
-        expect(store.getActions()).toHaveActionType(REMOVE_APPLIED_LABEL_REQUESTED);
+        const actions = store.getActions();
+        expect(actions.length).toBe(7);
+        expect(actions).toHaveActionType(REMOVE_APPLIED_LABEL_REQUESTED);
         done();
       });
     });
@@ -428,8 +449,9 @@ describe('componentDetailsActions', function () {
       });
 
       store.dispatch(removeAppliedLabel(removeAppliedLabelPayload)).then(() => {
-        expect(store.getActions().length).toBe(5);
-        expect(store.getActions()).toHaveActionType(REMOVE_APPLIED_LABEL_FULFILLED);
+        const actions = store.getActions();
+        expect(actions.length).toBe(7);
+        expect(actions).toHaveActionType(REMOVE_APPLIED_LABEL_FULFILLED);
         done();
       });
     });

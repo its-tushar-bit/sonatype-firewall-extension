@@ -57,6 +57,8 @@ import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
@@ -152,80 +154,62 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  public void testAddOrUpdateSourceControl_InvalidRepoUrl() {
+  public void testAddOrUpdateSourceControlFromAppEvaluation_InvalidRepoUrl() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
-            () -> testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+            () -> testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, null,
                 "https://not valid", null));
   }
 
   @Test
-  public void testAddOrUpdateSourceControl_AutomaticSourceControlDisabled_Create() {
-    testAddOrUpdateSourceControl_AutomaticSourceControl(false, null,
+  public void testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControlDisabled_Create() {
+    testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(false, null,
         "https://github.com/org/b", "https://github.com/org/a");
   }
 
   @Test
-  public void testAddOrUpdateSourceControl_AutomaticSourceControlDisabled_Update() {
-    testAddOrUpdateSourceControl_AutomaticSourceControl(false, "https://github.com/org/a",
+  public void testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControlDisabled_Update() {
+    testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(false, "https://github.com/org/a",
         "https://github.com/org/b", "https://github.com/org/a");
   }
 
   @Test
-  public void testAddOrUpdateSourceControl_AutomaticSourceControlEnabled_Create() {
-    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+  public void testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControlEnabled_Create() {
+    testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, null,
         "https://github.com/org/b", "https://github.com/org/b");
   }
 
   @Test
-  public void testAddOrUpdateSourceControl_AutomaticSourceControlEnabled_Update() {
-    testAddOrUpdateSourceControl_AutomaticSourceControl(true, "https://github.com/org/a",
+  public void testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControlEnabled_Update() {
+    testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, "https://github.com/org/a",
         "https://github.com/org/b", "https://github.com/org/a");
   }
 
   @Test
-  public void testAddOrUpdateSourceControl_ContextPath() {
-    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+  public void testAddOrUpdateSourceControlFromAppEvaluation_ContextPath() {
+    testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, null,
         "https://github.com/context/org/a", "https://github.com/context/org/a");
   }
 
   @Test
-  public void testAddOrUpdateSourceControl_CustomPort()  {
-    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+  public void testAddOrUpdateSourceControlFromAppEvaluation_CustomPort() {
+    testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, null,
         "https://github.com:123/context/org/a", "https://github.com:123/context/org/a");
   }
 
   @Test
-  public void testAddOrUpdateSourceControl_DuplicateAccountNme() {
-    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+  public void testAddOrUpdateSourceControlFromAppEvaluation_DuplicateAccountNme() {
+    testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, null,
         "https://org@github.com/org/a", "https://org@github.com/org/a");
   }
 
   @Test
-  public void testAddOrUpdateSourceControl_DifferentDuplicateAccountName() {
-    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
-        "ssh://git@github.com/org/a/", "ssh://git@github.com/org/a/");
-  }
-
-  @Test
-  public void testAddOrUpdateSourceControl_ImplicitSshProtocol() {
-    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
-        "git@github.com:org/a.git", "git@github.com:org/a.git");
-  }
-
-  @Test
-  public void testAddOrUpdateSourceControl_ExplicitSshProtocol() {
-    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
-        "ssh://git@github.com/org/a.git", "ssh://git@github.com/org/a.git");
-  }
-
-  @Test
   public void testAddOrUpdateSourceControl_HttpsWithGitExtension() {
-    testAddOrUpdateSourceControl_AutomaticSourceControl(true, null,
+    testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(true, null,
         "https://org@github.com/org/a.git", "https://org@github.com/org/a.git");
   }
 
-  private void testAddOrUpdateSourceControl_AutomaticSourceControl(
+  private void testAddOrUpdateSourceControlFromAppEvaluation_AutomaticSourceControl(
       boolean enabled,
       String initialUrl,
       String collectedUrl,
@@ -245,21 +229,31 @@ public class ApiSourceControlServiceTest
         sourceControlService.addOrUpdateSourceControlFromAppEvaluation(app.getPublicId(), collectedUrl);
     if (!enabled && initialUrl == null) {
       assertThat(result).isNull();
+      verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
     }
     else {
       assertThat(result.ownerId).isEqualTo(app.getId());
       assertThat(result.repositoryUrl).isEqualTo(expectedUrl);
+
+      if (enabled && initialUrl == null) {
+        assertTelemetry(METHOD.ADD_OR_UPDATE, app.getId(), expectedUrl, rootOrgSourcecontrol.getProvider().toString(),
+            rootOrgSourcecontrol.getRemediationPullRequestsEnabled(), rootOrgSourcecontrol.getStatusChecksEnabled(),
+            rootOrgSourcecontrol.getBaseBranch());
+      }
+      else {
+        verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+      }
     }
   }
 
   @Test
-  public void testAddSourceControl_Create_Params() {
-    // when new source control with default branch ans SSH URL is added
+  public void testAddOrUpdateSourceControl_Add() {
+    // when new source control with default branch and SSH URL is added
     String httpUrl = "https://localhost/context/org/a";
     String sshUrl = "git@localhost:org/a.git";
     String branch = "branch";
-    ApiSourceControlDTO actual = sourceControlService.addOrUpdateSourceControl(app.getPublicId(),
-        httpUrl, sshUrl, branch);
+    ApiSourceControlDTO actual =
+        sourceControlService.addOrUpdateSourceControl(app.getPublicId(), httpUrl, sshUrl, branch);
 
     // then params are returned
     assertThat(actual.baseBranch).isEqualTo(branch);
@@ -272,6 +266,10 @@ public class ApiSourceControlServiceTest
     assertThat(persisted.getBaseBranch()).isEqualTo("branch");
     assertThat(persisted.getRepositoryUrl()).isEqualTo(httpUrl);
     assertThat(persisted.getRepositorySshUrl()).isEqualTo(sshUrl);
+
+    assertTelemetry(METHOD.ADD_OR_UPDATE, app.getId(), httpUrl, rootOrgSourcecontrol.getProvider().toString(),
+        rootOrgSourcecontrol.getRemediationPullRequestsEnabled(), rootOrgSourcecontrol.getStatusChecksEnabled(),
+        branch);
   }
 
   @Test
@@ -381,9 +379,9 @@ public class ApiSourceControlServiceTest
     final ApiSourceControlDTO sourceControl = sourceControlService
         .addSourceControlByOwner(OwnerType.APPLICATION, app.getId(), validSourceControl);
     assertThat(sourceControlService.getAll()).hasSize(2);
-    assertTelemetry(METHOD.ADD, app.getId(), sourceControl.repositoryUrl,
-        sourceControl.provider, sourceControl.remediationPullRequestsEnabled, sourceControl.statusChecksEnabled,
-        sourceControl.baseBranch);
+    assertTelemetry(METHOD.ADD, app.getId(), sourceControl.repositoryUrl, rootOrgSourcecontrol.getProvider().toString(),
+        rootOrgSourcecontrol.getRemediationPullRequestsEnabled(), rootOrgSourcecontrol.getStatusChecksEnabled(),
+        rootOrgSourcecontrol.getBaseBranch());
 
     File sourceControlDir = insightWork.getSourceControlDir(app.getId());
     sourceControlDir.mkdirs();
@@ -392,8 +390,8 @@ public class ApiSourceControlServiceTest
     sourceControlService.deleteSourceControlByOwner(OwnerType.APPLICATION, app.getId());
     assertThat(sourceControlService.getAll()).hasSize(1);
     assertTelemetry(METHOD.DELETE, app.getId(), sourceControl.repositoryUrl,
-        sourceControl.provider, sourceControl.remediationPullRequestsEnabled, sourceControl.statusChecksEnabled,
-        sourceControl.baseBranch);
+        rootOrgSourcecontrol.getProvider().toString(), rootOrgSourcecontrol.getRemediationPullRequestsEnabled(),
+        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch());
 
     assertThat(sourceControlDir).doesNotExist();
   }
@@ -440,7 +438,10 @@ public class ApiSourceControlServiceTest
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> sourceControlService.addSourceControlByOwner(
             OwnerType.ORGANIZATION, "foo", ApiSourceControlAdapter.convertToDTO(
-                new SourceControl.Builder().setOwnerId(testName.getMethodName()).setRepositoryUrl("bar").setToken("baz")
+                new SourceControl.Builder()
+                    .setOwnerId(testName.getMethodName())
+                    .setRepositoryUrl(VALID_URL)
+                    .setToken("baz")
                     .build())));
   }
 
@@ -453,6 +454,9 @@ public class ApiSourceControlServiceTest
         createSourceControlDtoForTesting()
     );
     assertThat(sourceControlDTO).isNotNull();
+    assertTelemetry(METHOD.ADD, app.getId(), sourceControlDTO.repositoryUrl,
+        rootOrgSourcecontrol.getProvider().toString(), rootOrgSourcecontrol.getRemediationPullRequestsEnabled(),
+        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch());
   }
 
   @Test
@@ -464,6 +468,9 @@ public class ApiSourceControlServiceTest
         createSourceControlDtoForTesting()
     );
     assertThat(sourceControlDTO).isNotNull();
+    assertTelemetry(METHOD.ADD, app.getId(), sourceControlDTO.repositoryUrl,
+        rootOrgSourcecontrol.getProvider().toString(), rootOrgSourcecontrol.getRemediationPullRequestsEnabled(),
+        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch());
   }
 
   @Test
@@ -473,50 +480,50 @@ public class ApiSourceControlServiceTest
         .isThrownBy(() ->
             sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION,
             "foo", ApiSourceControlAdapter.convertToDTO(
-                    new SourceControl.Builder().setOwnerId(testName.getMethodName()).setRepositoryUrl("bar")
+                    new SourceControl.Builder().setOwnerId(testName.getMethodName()).setRepositoryUrl(VALID_URL)
                         .setToken("baz").build())));
   }
 
   @Test
-  public void testUpdateSourceControlByOwner_licensedByAutomation() {
+  public void testUpdateSourceControlByOwner_licensedByAutomation() throws Exception {
     setLicensedForSourceControlByAutomation();
     testUpdateSourceControlByOwner();
   }
 
   @Test
-  public void testUpdateSourceControlByOwner_licensedByNotifications() {
+  public void testUpdateSourceControlByOwner_licensedByNotifications() throws Exception {
     setLicensedForSourceControlByNotifications();
     testUpdateSourceControlByOwner();
   }
 
-  private void testUpdateSourceControlByOwner() {
-    ApiSourceControlDTO persistedSourceControlDTO = sourceControlService.addSourceControlByOwner(
-        OwnerType.APPLICATION,
-        app.getId(),
-        createSourceControlDtoForTesting()
-    );
-    assertThat(persistedSourceControlDTO).isNotNull();
+  private void testUpdateSourceControlByOwner() throws Exception {
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), "http://example.com/test/test");
+    ApiSourceControlDTO sourceControlDTO = ApiSourceControlAdapter.convertToDTO(sourceControl);
 
-    SourceControl sourceControl = sourceControlDAO.getByOwnerId(app.getId());
     final Date pollTime = new Date(System.currentTimeMillis() - 5_000);
     sourceControl.setPullRequestPollTime(pollTime);
     final int errorCount = 2;
     sourceControl.setPullRequestErrorCount(errorCount);
     sourceControlDAO.update(sourceControl);
 
-    persistedSourceControlDTO.token = "newToken";
+    sourceControlDTO.token = "newToken";
 
     ApiSourceControlDTO updatedControlDTO = sourceControlService.updateSourceControlByOwner(
         OwnerType.APPLICATION,
         app.getId(),
-        persistedSourceControlDTO
+        sourceControlDTO
     );
 
     SourceControl sourceControlAfterUpdate = sourceControlDAO.getByOwnerId(app.getId());
 
     assertThat(updatedControlDTO).isNotNull();
+    String decryptedToken = plexusCipher.decrypt(sourceControlAfterUpdate.getToken(), "CMMDwoV");
+    assertThat(decryptedToken).isEqualTo(sourceControlDTO.token);
     assertThat(sourceControlAfterUpdate.getPullRequestPollTime()).isEqualTo(pollTime);
     assertThat(sourceControlAfterUpdate.getPullRequestErrorCount()).isEqualTo(errorCount);
+    assertTelemetry(METHOD.UPDATE, app.getId(), sourceControl.getRepositoryUrl(),
+        rootOrgSourcecontrol.getProvider().toString(), rootOrgSourcecontrol.getRemediationPullRequestsEnabled(),
+        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch());
   }
 
   @Test
@@ -604,22 +611,8 @@ public class ApiSourceControlServiceTest
 
           final SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);
 
-          final Map<String, Object> expectedAttributes = new HashMap<>();
-          expectedAttributes.put("method", METHOD.ADD);
-          expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(tmpOrg.getId()));
-          expectedAttributes.put("repository_url", HdsClientAnalytics.obfuscate(reloaded.getRepositoryUrl()));
-          expectedAttributes.put("provider", null);
-          expectedAttributes.put("remediation_pull_requests_enabled", remediationPullRequestsEnabled);
-          expectedAttributes.put("status_checks_enabled", statusChecksEnabled);
-          expectedAttributes.put("base_branch", baseBranch);
-
-          final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor =
-              ArgumentCaptor.forClass(TelemetryData.class);
-          verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
-          final TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
-          assertThat(telemetryData).isNotNull();
-          assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
-          reset(telemetrySenderMock);
+          assertTelemetry(METHOD.ADD, tmpOrg.getId(), reloaded.getRepositoryUrl(), null /* provider */,
+              remediationPullRequestsEnabled, statusChecksEnabled, baseBranch);
         }
       }
     }
@@ -724,19 +717,22 @@ public class ApiSourceControlServiceTest
 
     // https URLs are accepted
     assertThatNoException().isThrownBy(() -> sourceControlService.validateUrl("https://server/owner/repo"));
-
-    // explicit ssh URLs are accepted - user provided
-    assertThatNoException().isThrownBy(() -> sourceControlService.validateUrl("ssh://git@server/owner/repo.git"));
-
-    // explicit ssh URLs are accepted - no user provided
-    assertThatNoException().isThrownBy(() -> sourceControlService.validateUrl("ssh://server/owner/repo.git"));
-
-    // implicit ssh URLs are accepted
-    assertThatNoException().isThrownBy(() -> sourceControlService.validateUrl("git@server:owner/repo.git"));
   }
 
   @Test
   public void testValidateUrl_UnsupportedUrlFormat() {
+    // explicit ssh URLs
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.validateUrl("ssh://git@server/owner/repo.git"));
+
+    // explicit ssh URLs
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.validateUrl("ssh://server/owner/repo.git"));
+
+    // implicit ssh URLs
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> sourceControlService.validateUrl("git@server:owner/repo.git"));
+
     // local protocol
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> sourceControlService.validateUrl("/server/owner/repo.git"));

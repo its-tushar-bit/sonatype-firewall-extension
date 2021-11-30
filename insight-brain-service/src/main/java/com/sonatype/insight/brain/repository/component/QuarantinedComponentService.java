@@ -5,17 +5,27 @@
  */
 package com.sonatype.insight.brain.repository.component;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
+import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
+import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +81,41 @@ public class QuarantinedComponentService
     return quarantinedComponentOverviewDto;
   }
 
+  public RepositoryPolicyThreatDTO getQuarantinedComponentPolicyViolations(final String token) {
+
+    final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
+    final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+    final List<RepositoryPolicyViolation> policyViolations = getQuarantinedPolicyViolations(repositoryComponent);
+    if (policyViolations.size() == 0) {
+      log.error("Could not find policy violations causing quarantine for the component with repository component id {}",
+          repositoryComponentId);
+      throw new NotFoundException("No policy violations causing quarantine exist for the requested component.");
+    }
+
+    final RepositoryPolicyThreatDTO repositoryPolicyThreatDTO = new RepositoryPolicyThreatDTO();
+    repositoryPolicyThreatDTO.activePolicyViolations =
+        policyViolations.stream().sorted(Comparator.comparingInt(RepositoryPolicyViolation::getThreatLevel).reversed())
+            .map(this::getRepositoryPolicyViolationDto).collect(Collectors.toList());
+
+    return repositoryPolicyThreatDTO;
+  }
+
+  private RepositoryPolicyViolationDTO getRepositoryPolicyViolationDto(
+      RepositoryPolicyViolation policyViolation)
+  {
+    final RepositoryPolicyViolationDTO policyViolationDto = new RepositoryPolicyViolationDTO();
+
+    policyViolationDto.policyId = policyViolation.getPolicyId();
+    policyViolationDto.policyName = policyViolation.getPolicyName();
+    policyViolationDto.policyThreatLevel = policyViolation.getThreatLevel();
+    policyViolationDto.constraints =
+        PolicyThreatsAdapter.toPolicyThreatsPolicyConstraints(policyViolation.getConstraintFacts());
+    policyViolationDto.blocksUnquarantine = Action.ID_FAIL.equals(policyViolation.getActionTypeId());
+    policyViolationDto.constraintFactsJson = policyViolation.getConstraintFactsJson();
+
+    return policyViolationDto;
+  }
+
   private String getComponentDisplayName(RepositoryComponent repositoryComponent) {
     ComponentIdentifier componentIdentifier = repositoryComponent.getComponentIdentifier();
     if (componentIdentifier == null) {
@@ -93,5 +138,14 @@ public class QuarantinedComponentService
     String repositoryId = repositoryComponent.getRepositoryId();
     Repository repository = repositoryDAO.getById(repositoryId);
     return repository.getPublicId();
+  }
+
+  private List<RepositoryPolicyViolation> getQuarantinedPolicyViolations(RepositoryComponent repositoryComponent) {
+    String repositoryId = repositoryComponent.getRepositoryId();
+    String pathName = repositoryComponent.getPathname();
+    return repositoryPolicyViolationDAO.getByRepositoryIdAndPathnameAndActionAndNotWaived(
+        repositoryId,
+        pathName,
+        Action.ID_FAIL);
   }
 }

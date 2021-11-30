@@ -18,15 +18,36 @@ const formatsThatHaveIcon = {
   swift: require('../../img/tag/swift.svg'),
 };
 
+const nameMapping = {
+  'a-name': 'A-Name',
+  alpine: 'Alpine',
+  cargo: 'Cargo',
+  cocoapods: 'CocoaPods',
+  composer: 'Composer',
+  conan: 'Conan',
+  conda: 'Conda',
+  cran: 'CRAN',
+  deb: 'Debian',
+  drupal: 'Drupal',
+  golang: 'Go',
+  maven: 'Maven',
+  nuget: 'NuGet',
+  pypi: 'PyPI',
+  rpm: 'RPM',
+  gem: 'RubyGems',
+  swift: 'Swift',
+};
+
 export default function ComponentFormatTag({ name }) {
   const routeIconOrNull = propOr(null, name);
   const iconRoute = routeIconOrNull(formatsThatHaveIcon);
   const icon = iconRoute ? <img src={iconRoute} alt="" /> : null;
+  const formatName = nameMapping[name] || name;
 
   return (
     <NxTag className="iq-component-format-tag">
       {icon}
-      <span>{name}</span>
+      <span>{formatName}</span>
     </NxTag>
   );
 }

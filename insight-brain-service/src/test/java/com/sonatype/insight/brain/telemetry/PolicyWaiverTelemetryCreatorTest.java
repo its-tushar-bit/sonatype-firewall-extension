@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +32,6 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
-import org.assertj.core.util.Lists;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -255,7 +255,7 @@ public class PolicyWaiverTelemetryCreatorTest
     policyWaiver.setOwnerId("APP");
     policyWaiver.setExpiryTime(new Date());
     policyWaiver.setHash("HASH");
-    policyWaiver.setConstraintFacts(Lists.emptyList());
+    policyWaiver.setConstraintFacts(Collections.emptyList());
 
     // when: telemetry is sent
     telemetryCreator.sendWaiverTelemetryWithoutViolationInformation(policyWaiver, OwnerType.APPLICATION);
@@ -289,7 +289,7 @@ public class PolicyWaiverTelemetryCreatorTest
     constraintFacts.get(0).setConditionFacts(null);
 
     constraintFacts.add(new ConstraintFact("cons2", "constraint 2", "AND"));
-    constraintFacts.get(1).setConditionFacts(Lists.emptyList());
+    constraintFacts.get(1).setConditionFacts(Collections.emptyList());
 
     constraintFacts.add(new ConstraintFact("cons3", "constraint 3", "AND"));
     final List<ConditionFact> conditionFacts = new ArrayList<>();

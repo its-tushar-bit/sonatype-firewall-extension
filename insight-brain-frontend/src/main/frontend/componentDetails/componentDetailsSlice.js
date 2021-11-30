@@ -25,6 +25,9 @@ import { toggleBooleanProp } from '../util/reduxUtil';
 import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
+import { selectIsApplicableLabelsLoading, selectIsLabelsLoading } from './componentDetailsSelectors';
+
+const HTTP_CLIENT_CLOSED_REQUEST = 499;
 
 const REDUCER_NAME = 'componentDetails';
 export const VISIT_ANCESTOR_ACTION = REDUCER_NAME + '/visitAncestors';
@@ -163,16 +166,35 @@ const loadComponentDetailsFulfilled = (state, { payload }) => {
 };
 
 function loadComponentDetailsFailed(state, { payload }) {
+  if (payload.message === HTTP_CLIENT_CLOSED_REQUEST) {
+    return {
+      ...state,
+      labels: [],
+    };
+  }
   return unsetPendingLoads(['labels'], { ...state, loadError: Messages.getHttpErrorMessage(payload) });
 }
 
-const loadComponentDetails = createAsyncThunk(
-  `${REDUCER_NAME}/loadComponentDetails`,
-  (_, { dispatch, getState, rejectWithValue }) => {
+let loadComponentDetailsCancelToken = null;
+const loadComponentDetails = createAsyncThunk(`${REDUCER_NAME}/loadComponentDetails`, (_, { dispatch, getState }) => {
+  const isPending = selectIsLabelsLoading(getState());
+
+  if (isPending) {
+    loadComponentDetailsCancelToken?.cancel(HTTP_CLIENT_CLOSED_REQUEST);
+  }
+
+  loadComponentDetailsCancelToken = axios.CancelToken.source();
+
+  dispatch(loadComponentDetailsWithCancelToken(loadComponentDetailsCancelToken.token));
+});
+
+const loadComponentDetailsWithCancelToken = createAsyncThunk(
+  `${REDUCER_NAME}/loadComponentDetailsWithCancelToken`,
+  (cancelToken, { getState, dispatch, rejectWithValue }) => {
     return dispatch(loadReportIfNeeded())
       .then(() => {
         const { publicId, hash } = getState().router.currentParams;
-        return axios.get(getComponentLabels(publicId, hash));
+        return axios.get(getComponentLabels(publicId, hash), { cancelToken });
       })
       .then((results) => results)
       .catch(rejectWithValue);
@@ -215,15 +237,34 @@ const addProprietaryMatchers = createAsyncThunk(
   }
 );
 
-const loadApplicableLabelsRequested = setPendingLoads(['applicableLabels']);
+let loadApplicableLabelsCancelToken = null;
+const loadApplicableLabels = createAsyncThunk(`${REDUCER_NAME}/loadApplicableLabels`, (_, { getState, dispatch }) => {
+  const isPending = selectIsApplicableLabelsLoading(getState());
 
-const loadApplicableLabels = createAsyncThunk(
-  `${REDUCER_NAME}/loadApplicableLabels`,
-  (_, { getState, rejectWithValue }) => {
+  if (isPending) {
+    loadApplicableLabelsCancelToken?.cancel(HTTP_CLIENT_CLOSED_REQUEST);
+  }
+
+  loadApplicableLabelsCancelToken = axios.CancelToken.source();
+
+  dispatch(loadApplicableLabelsWithCancelToken(loadApplicableLabelsCancelToken.token));
+});
+
+const loadApplicableLabelsWithCancelToken = createAsyncThunk(
+  `${REDUCER_NAME}/loadApplicableLabelsWithCancelToken`,
+  (cancelToken, { getState, rejectWithValue }) => {
     const { publicId } = getState().router.currentParams;
-    return axios.get(getApplicableLabelsUrl('application', publicId)).catch(rejectWithValue);
+
+    return axios.get(getApplicableLabelsUrl('application', publicId), { cancelToken }).catch(rejectWithValue);
   }
 );
+
+const loadApplicableLabelsRequested = (state) => {
+  return setPendingLoads(['applicableLabels'], {
+    ...state,
+    applicableLabels: [],
+  });
+};
 
 const loadApplicableLabelsFulfilled = (state, { payload }) => {
   const sortAlphabetically = sortWith([ascend(prop('label'))]);
@@ -235,6 +276,12 @@ const loadApplicableLabelsFulfilled = (state, { payload }) => {
 };
 
 const loadApplicableLabelsFailed = (state, { payload }) => {
+  if (payload.message === HTTP_CLIENT_CLOSED_REQUEST) {
+    return {
+      ...state,
+      applicableLabels: [],
+    };
+  }
   return unsetPendingLoads(['applicableLabels'], {
     ...state,
     applicableLabelsLoadError: Messages.getHttpErrorMessage(payload),
@@ -405,14 +452,17 @@ const componentDetailsSlice = createSlice({
   },
   extraReducers: {
     [loadComponentDetails.pending]: loadComponentDetailsRequested,
-    [loadComponentDetails.fulfilled]: loadComponentDetailsFulfilled,
-    [loadComponentDetails.rejected]: loadComponentDetailsFailed,
+    [loadComponentDetailsWithCancelToken.fulfilled]: loadComponentDetailsFulfilled,
+    [loadComponentDetailsWithCancelToken.rejected]: loadComponentDetailsFailed,
+
     [addProprietaryMatchers.pending]: addProprietaryMatchersRequested,
     [addProprietaryMatchers.fulfilled]: addProprietaryMatchersFulfilled,
     [addProprietaryMatchers.rejected]: addProprietaryMatchersFailed,
-    [loadApplicableLabels.pending]: loadApplicableLabelsRequested,
-    [loadApplicableLabels.fulfilled]: loadApplicableLabelsFulfilled,
-    [loadApplicableLabels.rejected]: loadApplicableLabelsFailed,
+
+    [loadApplicableLabelsWithCancelToken.pending]: loadApplicableLabelsRequested,
+    [loadApplicableLabelsWithCancelToken.fulfilled]: loadApplicableLabelsFulfilled,
+    [loadApplicableLabelsWithCancelToken.rejected]: loadApplicableLabelsFailed,
+
     [removeAppliedLabel.pending]: removeAppliedLabelRequested,
     [removeAppliedLabel.fulfilled]: removeAppliedLabelFulfilled,
     [removeAppliedLabel.rejected]: removeAppliedLabelFailed,
@@ -432,10 +482,12 @@ export const actions = {
   addProprietaryMatchers,
   handleAddLabelTag,
   loadComponentDetails,
+  loadComponentDetailsWithCancelToken,
   onTabChange,
   visitAncestorAction,
   backToOffspringAction,
   loadApplicableLabels,
+  loadApplicableLabelsWithCancelToken,
   removeAppliedLabel,
   handleRemoveLabelTag,
   loadApplicableLabelScopes,

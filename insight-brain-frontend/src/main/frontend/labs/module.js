@@ -13,9 +13,9 @@ function configureRoutes($stateProvider) {
     .state('labs', {
       abstract: true,
       url: '/labs',
-      template: `<div id="labs" class="nx-page-main">
+      template: `<main id="labs" class="nx-page-main">
           <ui-view></ui-view>
-        </div>`,
+        </main>`,
     })
     .state('labs.successMetrics', {
       url: '/successMetrics',

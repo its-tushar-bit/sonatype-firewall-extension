@@ -23,6 +23,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportConstraintConditionDTOV2;
@@ -58,6 +60,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,6 +155,36 @@ public class ApiReportDataServiceV2
     data.components = getComponents(bomEntry.buf, policyThreats);
 
     return data;
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiDependencyTreeResponseDTO getDependencyTree(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      final String scanId) throws IOException
+  {
+    return new ApiDependencyTreeResponseDTO(getDependencyTreeNoAuth(applicationPublicId, scanId));
+  }
+
+  public ApiDependencyTreeNodeDTO getDependencyTreeNoAuth(String applicationPublicId, String scanId)
+      throws IOException
+  {
+    ApiDependencyTreeNodeDTO dependencyTree = new ApiDependencyTreeNodeDTO();
+    Application application = appDAO.getByPublicIdNotNull(applicationPublicId);
+    String appId = application.getId();
+
+    final String name = Report.toEntryName(Report.DEPENDENCIES_JSON_FILENAME);
+    final File reportFile = reportService.getReport(appId, scanId);
+    ReportEntry reportEntry = Report.getEntry(reportFile, name);
+    if (reportEntry != null) {
+      JsonNode dependenciesNode = JsonUtils.parse(reportEntry.buf);
+      if (dependenciesNode != null) {
+        JsonNode dependencyTreeNode = dependenciesNode.get("dependencyTree");
+        if (dependencyTreeNode != null && !dependencyTreeNode.isNull() && !dependencyTreeNode.isEmpty()) {
+          dependencyTree = JsonUtils.asPojo(dependencyTreeNode, ApiDependencyTreeNodeDTO.class);
+        }
+      }
+    }
+    return dependencyTree;
   }
 
   private List<ApiReportComponentPolicyViolationsDTOV2> getComponents(byte[] bomData, PolicyThreats policyThreats)

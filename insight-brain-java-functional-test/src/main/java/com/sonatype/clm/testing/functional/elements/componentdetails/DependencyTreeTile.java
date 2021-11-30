@@ -9,14 +9,16 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class ManageLabelsContent
-    extends BasicElement<ManageLabelsContent>
+public class DependencyTreeTile
+    extends BasicElement<ClaimTabContent>
 {
-  public ManageLabelsContent(String selector) {
-    super(selector);
+  public static final String ROOT_SELECTOR = ".component-details-dependency-tree-tile";
+
+  public DependencyTreeTile() {
+    super(ROOT_SELECTOR);
   }
 
-  public SelenideElement transferList() {
-    return child(".iq-transfer-list");
+  public SelenideElement title() {
+    return child(".nx-h2");
   }
 }

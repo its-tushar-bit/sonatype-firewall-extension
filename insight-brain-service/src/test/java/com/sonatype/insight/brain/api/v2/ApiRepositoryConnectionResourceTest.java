@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -140,20 +141,25 @@ public class ApiRepositoryConnectionResourceTest
   @Test
   public void testUpdateRepositoryConnection_Conflict() throws Exception {
     tempEntity.newRepositoryConnection(app.getId(), "http://baseurl1.com", "user1", "pass1".toCharArray());
+    RepositoryConnection toUpdate =
+        tempEntity.newRepositoryConnection(app.getId(), "http://baseurl1.com", RepositoryFormat.MAVEN, "user1",
+            "pass1".toCharArray());
 
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
-    dto.ownerId = app.getId();
-    dto.baseUrl = "http://baseurl1.com";
-    dto.username = "user2";
-    dto.password = "pass2";
+    dto.ownerId = toUpdate.getOwnerId();
+    dto.baseUrl = toUpdate.getBaseUrl();
+    dto.format = RepositoryFormat.GENERIC;
+    dto.username = toUpdate.getUsername();
+    dto.password = String.valueOf(toUpdate.getPassword());
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
-        .parameter(OwnerType.APPLICATION, app.getId(), "someOtherId")
+        .parameter(OwnerType.APPLICATION, app.getId(), toUpdate.getId())
         .body(dto)
         .put();
     assertThat(response.getStatusCode()).isEqualTo(409);
-    assertThat(response.getBodyText()).isEqualTo(String.format(
-        "repository connection URL configuration exists for %s with id: %s", OwnerType.APPLICATION, app.getId()));
+    assertThat(response.getBodyText()).isEqualTo(
+        String.format("repository connection format %s configuration exists for %s with id: %s",
+            RepositoryFormat.GENERIC, OwnerType.APPLICATION, app.getId()));
   }
 
   @Test
@@ -223,7 +229,8 @@ public class ApiRepositoryConnectionResourceTest
     RepositoryConnection conn1 =
         tempEntity.newRepositoryConnection(id, "http://baseurl1.com", "user1", "pass1".toCharArray());
     RepositoryConnection conn2 =
-        tempEntity.newRepositoryConnection(id, "http://baseurl2.com", "user2", "pass2".toCharArray());
+        tempEntity.newRepositoryConnection(id, "http://baseurl2.com", RepositoryFormat.MAVEN, "user2",
+            "pass2".toCharArray());
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
         .parameter(ownerType, id)
@@ -305,6 +312,7 @@ public class ApiRepositoryConnectionResourceTest
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
     dto.ownerId = id;
     dto.baseUrl = "http://updatedurl.com/";
+    dto.format = RepositoryFormat.MAVEN;
     dto.username = "updateduser";
     dto.password = "updatedpass";
 
@@ -316,6 +324,7 @@ public class ApiRepositoryConnectionResourceTest
     ApiRepositoryConnectionDTO responseDto = response.getBody(ApiRepositoryConnectionDTO.class);
     assertThat(responseDto.repositoryConnectionId).isEqualTo(existingConnection.getId());
     assertThat(responseDto.baseUrl).isEqualTo(dto.baseUrl);
+    assertThat(responseDto.format).isEqualTo(dto.format);
     assertThat(responseDto.username).isEqualTo(dto.username);
     assertThat(responseDto.password).isNull();
 
@@ -327,6 +336,7 @@ public class ApiRepositoryConnectionResourceTest
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
     dto.ownerId = id;
     dto.baseUrl = "http://localrepo.com/";
+    dto.format = RepositoryFormat.MAVEN;
     dto.username = "user";
     dto.password = "pass";
 
@@ -338,6 +348,7 @@ public class ApiRepositoryConnectionResourceTest
     ApiRepositoryConnectionDTO responseDto = response.getBody(ApiRepositoryConnectionDTO.class);
     assertThat(responseDto.repositoryConnectionId).isNotNull();
     assertThat(responseDto.baseUrl).isEqualTo(dto.baseUrl);
+    assertThat(responseDto.format).isEqualTo(dto.format);
     assertThat(responseDto.username).isEqualTo(dto.username);
     assertThat(responseDto.password).isNull();
 

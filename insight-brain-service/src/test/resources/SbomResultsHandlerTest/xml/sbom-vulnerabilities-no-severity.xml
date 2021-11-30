@@ -6,7 +6,7 @@
       <version>1.11.1</version>
       <purl>pkg:pypi/django@1.11.1</purl>
       <v:vulnerabilities>
-        <v:vulnerability ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9">
+        <v:vulnerability ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar">
           <v:id>CVE-2018-7489</v:id>
         </v:vulnerability>
       </v:vulnerabilities>

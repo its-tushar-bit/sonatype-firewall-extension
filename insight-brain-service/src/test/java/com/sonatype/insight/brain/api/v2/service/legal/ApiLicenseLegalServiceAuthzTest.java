@@ -8,13 +8,13 @@ package com.sonatype.insight.brain.api.v2.service.legal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardResultDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -98,7 +98,8 @@ public class ApiLicenseLegalServiceAuthzTest
   public void testGetLicenseLegalComponentsDashboard_Unauthenticated() {
     setupResultForDashboard();
     ApiLicenseLegalComponentDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null, null, 1, 1);
+        apiLicenseLegalService.getLicenseLegalComponentsDashboard(
+            new LicenseLegalFilterDTO(null, null, null, null, null, null, 1, 1, null));
     assertThat(resultDto).isNotNull();
     assertThat(resultDto.totalResultsCount).isZero();
     assertThat(resultDto.results).isEmpty();
@@ -109,7 +110,8 @@ public class ApiLicenseLegalServiceAuthzTest
     setupResultForDashboard();
     login();
     ApiLicenseLegalComponentDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null, null, 1, 1);
+        apiLicenseLegalService.getLicenseLegalComponentsDashboard(
+            new LicenseLegalFilterDTO(null, null, null, null, null, null, 1, 1, null));
     assertThat(resultDto).isNotNull();
     assertThat(resultDto.totalResultsCount).isZero();
     assertThat(resultDto.results).isEmpty();
@@ -120,7 +122,8 @@ public class ApiLicenseLegalServiceAuthzTest
     setupResultForDashboard();
     grantLegalReviewerPermission(app.getId());
     ApiLicenseLegalComponentDashboardResultDTO resultDto =
-        apiLicenseLegalService.getLicenseLegalComponentsDashboard(null, null, null, null, null, null, 1, 1);
+        apiLicenseLegalService.getLicenseLegalComponentsDashboard(
+            new LicenseLegalFilterDTO(null, null, null, null, null, null, 1, 1, null));
     assertThat(resultDto).isNotNull();
     assertThat(resultDto.totalResultsCount).isPositive();
     assertThat(resultDto.results).isNotEmpty();

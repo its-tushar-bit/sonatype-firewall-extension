@@ -29,6 +29,7 @@ const mapDispatchToProps = {
   toggleShowOccurrencesPopover: occurrencesPopoverActions.toggleShowOccurrencesPopover,
   toggleShowSimilarMatches: actions.toggleShowSimilarMatches,
   loadInnerSourceProducerData: actions.loadInnerSourceProducerData,
+  toggleShowComponentCoordinatesPopover: actions.toggleShowComponentCoordinatesPopover,
   loadReport: loadReportIfNeeded,
 };
 

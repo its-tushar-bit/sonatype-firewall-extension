@@ -58,15 +58,6 @@ public class PolicyEvaluationDiffServiceTest
 
   @Test
   public void testCreatePolicyViolationDiff() throws URISyntaxException, IOException {
-    testCreatePolicyViolationDiff(0);
-  }
-
-  @Test
-  public void testCreatePolicyViolationDiff_minimumThreatLevel() throws URISyntaxException, IOException {
-    testCreatePolicyViolationDiff(2);
-  }
-
-  private void testCreatePolicyViolationDiff(int minimumThreatLevel) throws URISyntaxException, IOException {
     //setup reports
     createReportFile(app.getId(), FROM_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/from-report", tempDir),
         insightWork);
@@ -78,13 +69,8 @@ public class PolicyEvaluationDiffServiceTest
     PolicyEvaluation to = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
 
     //create diff
-    Optional<PolicyViolationDiff<PolicyViolation>> diffOptional;
-    if (minimumThreatLevel > 0) {
-      diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to, minimumThreatLevel);
-    }
-    else {
-      diffOptional = policyEvaluationDiffService.createPolicyViolationDiff(from, to);
-    }
+    Optional<PolicyViolationDiff<PolicyViolation>> diffOptional =
+        policyEvaluationDiffService.createPolicyViolationDiff(from, to);
 
     //assert added, same and cleared are correct
     assertThat(diffOptional).isNotEmpty();
@@ -97,6 +83,45 @@ public class PolicyEvaluationDiffServiceTest
     assertThat(diffOptional.get().getAppeared()).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder("appeared_1", "appeared_2", "appeared_3", "appeared_4");
     assertThat(diffOptional.get().getAppeared()).hasSize(4);
+    assertThat(diffOptional.get().getCleared()).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder("cleared_1", "cleared_2", "cleared_3", "cleared_4");
+    assertThat(diffOptional.get().getCleared()).hasSize(4);
+  }
+
+  @Test
+  public void testCreatePolicyViolationDiffByComponents() throws Exception {
+    testCreatePolicyViolationDiffByComponents(0);
+  }
+
+  @Test
+  public void testCreatePolicyViolationDiffByComponents_minimumThreatLevel() throws Exception {
+    testCreatePolicyViolationDiffByComponents(2);
+  }
+
+  private void testCreatePolicyViolationDiffByComponents(
+      int minimumThreatLevel) throws Exception
+  {
+    // setup reports
+    createReportFile(app.getId(), FROM_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/from-report1", tempDir),
+        insightWork);
+    createReportFile(app.getId(), TO_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/to-report", tempDir),
+        insightWork);
+
+    // setup evaluations
+    PolicyEvaluation from = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID);
+    PolicyEvaluation to = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
+
+    // create diff
+    Optional<PolicyViolationDiff<PolicyViolation>> diffOptional =
+        policyEvaluationDiffService.createPolicyViolationDiffByComponents(from, to, minimumThreatLevel);
+
+    // assert added and cleared are correct
+    assertThat(diffOptional).isNotEmpty();
+    assertThat(diffOptional.get().getSame()).isNotNull();
+    assertThat(diffOptional.get().getAppeared()).isNotNull();
+    assertThat(diffOptional.get().getCleared()).isNotNull();
+    assertThat(diffOptional.get().getAppeared()).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder("appeared_1", "appeared_2", "same_3", "appeared_3", "appeared_4");
 
     if (minimumThreatLevel > 0) {
       assertThat(diffOptional.get().getCleared()).extracting(PolicyViolation::getId)

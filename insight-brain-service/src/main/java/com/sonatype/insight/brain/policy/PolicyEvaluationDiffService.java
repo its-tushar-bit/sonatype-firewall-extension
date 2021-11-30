@@ -8,15 +8,21 @@ package com.sonatype.insight.brain.policy;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.model.policy.ComponentIdentifierAndHashComparable;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.policy.evaluator.ComponentIdentifierAndHashComparator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
@@ -26,6 +32,7 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.apache.commons.collections4.SetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,17 +50,34 @@ public class PolicyEvaluationDiffService
     this.work = work;
   }
 
+  /**
+   * Creates a PolicyViolationDiff by comparing the policy violations between the two specified policy evaluations.
+   */
   public Optional<PolicyViolationDiff<PolicyViolation>> createPolicyViolationDiff(
       final PolicyEvaluation fromEvaluation,
       final PolicyEvaluation toEvaluation)
   {
-    return createPolicyViolationDiff(fromEvaluation, toEvaluation, 0);
+    return createPolicyViolationDiff(fromEvaluation, toEvaluation, 0, false);
   }
 
-  public Optional<PolicyViolationDiff<PolicyViolation>> createPolicyViolationDiff(
+  /**
+   * Creates a PolicyViolationDiff by comparing the components between the two specified policy evaluations.
+   * The policy violations that are the same are not populated in the diff (not needed at this time).
+   * Only the policy violations with threat level >= minimumThreatLevel are included in the diff.
+   */
+  public Optional<PolicyViolationDiff<PolicyViolation>> createPolicyViolationDiffByComponents(
       final PolicyEvaluation fromEvaluation,
       final PolicyEvaluation toEvaluation,
       final int minimumThreatLevel)
+  {
+    return createPolicyViolationDiff(fromEvaluation, toEvaluation, minimumThreatLevel, true);
+  }
+
+  private Optional<PolicyViolationDiff<PolicyViolation>> createPolicyViolationDiff(
+      final PolicyEvaluation fromEvaluation,
+      final PolicyEvaluation toEvaluation,
+      final int minimumThreatLevel,
+      boolean byComponents)
   {
     final File fromReportFile = getReportByPolicyEvaluation(fromEvaluation);
     if (fromReportFile == null) {
@@ -102,7 +126,21 @@ public class PolicyEvaluationDiffService
       List<PolicyViolation> toViolations =
           PolicyAlertUtil.getPolicyViolationsFromAlertsAndEvaluation(toEvaluation, toAlerts, minimumThreatLevel);
 
-      return Optional.of(PolicyViolationDigester.digestPolicyViolations(fromViolations, toViolations));
+      PolicyViolationDiff<PolicyViolation> policyViolationDiff;
+      if (byComponents) {
+        Set<ComponentIdentifierAndHashComparable> fromComponents = loadComponentsFromReport(fromReportFile);
+        Set<ComponentIdentifierAndHashComparable> toComponents = loadComponentsFromReport(toReportFile);
+        Set<ComponentIdentifierAndHashComparable> addedComponents = SetUtils.difference(toComponents, fromComponents);
+        Set<ComponentIdentifierAndHashComparable> removedComponents = SetUtils.difference(fromComponents, toComponents);
+
+        policyViolationDiff = new PolicyViolationDiff<>();
+        policyViolationDiff.addAppeared(filterPolicyViolationsForComponents(toViolations, addedComponents));
+        policyViolationDiff.addCleared(filterPolicyViolationsForComponents(fromViolations, removedComponents));
+      }
+      else {
+        policyViolationDiff = PolicyViolationDigester.digestPolicyViolations(fromViolations, toViolations);
+      }
+      return Optional.of(policyViolationDiff);
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
@@ -117,5 +155,30 @@ public class PolicyEvaluationDiffService
       }
     }
     return null;
+  }
+
+  private Set<ComponentIdentifierAndHashComparable> loadComponentsFromReport(File reportFile) throws IOException {
+    ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
+    ComponentDAO componentDAO = new ComponentDAO(null);
+    Set<ComponentIdentifierAndHashComparable> result = new TreeSet<>(ComponentIdentifierAndHashComparator.COMPARATOR);
+    result.addAll(componentDAO.getAll(null /* license data */, null /* security data */, bomReportEntry.buf,
+        null /* dependency data */));
+    return result;
+  }
+
+  private List<PolicyViolation> filterPolicyViolationsForComponents(
+      List<PolicyViolation> policyViolations,
+      Set<ComponentIdentifierAndHashComparable> components)
+  {
+    List<PolicyViolation> result = new ArrayList<>();
+    for (PolicyViolation policyViolation : policyViolations) {
+      // Both PolicyViolation and Component implement ComponentIdentifierAndHashComparable,
+      // so we can compare the component hash and identifier across components and policy violations.
+      if (components.contains(policyViolation)) {
+        result.add(policyViolation);
+      }
+    }
+
+    return result;
   }
 }

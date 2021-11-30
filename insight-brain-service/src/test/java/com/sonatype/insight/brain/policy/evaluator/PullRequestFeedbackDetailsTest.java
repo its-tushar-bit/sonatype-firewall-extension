@@ -223,7 +223,7 @@ public class PullRequestFeedbackDetailsTest
   @Test
   public void testPullRequestFeedback_clearedOnly() throws Exception {
     //setup test data
-    setupTestData("/PullRequestFeedbackDetailsTest/to-report", "/PullRequestFeedbackDetailsTest/from-report");
+    setupTestDataForCleared();
 
     SourceControlComponentDetails sourceControlComponentDetails =
         sourceControlComponentLoader.getSourceControlComponentDetails(
@@ -246,7 +246,7 @@ public class PullRequestFeedbackDetailsTest
   @Test
   public void testPullRequestFeedback_clearedOnly_noEmbeddedHtml() throws Exception {
     //setup test data
-    setupTestData("/PullRequestFeedbackDetailsTest/to-report", "/PullRequestFeedbackDetailsTest/from-report");
+    setupTestDataForCleared();
 
     SourceControlComponentDetails sourceControlComponentDetails =
         sourceControlComponentLoader.getSourceControlComponentDetails(
@@ -270,7 +270,7 @@ public class PullRequestFeedbackDetailsTest
   @Test
   public void testPullRequestFeedback_clearedOnly_GitLab() throws Exception {
     //setup test data
-    setupTestData("/PullRequestFeedbackDetailsTest/to-report", "/PullRequestFeedbackDetailsTest/from-report");
+    setupTestDataForCleared();
 
     SourceControlComponentDetails sourceControlComponentDetails =
         sourceControlComponentLoader.getSourceControlComponentDetails(
@@ -719,10 +719,17 @@ public class PullRequestFeedbackDetailsTest
   }
 
   private void setupTestData() throws IOException, URISyntaxException {
-    setupTestData("/PullRequestFeedbackDetailsTest/from-report", "/PullRequestFeedbackDetailsTest/to-report");
+    setupTestData("/PullRequestFeedbackDetailsTest/from-report", "/PullRequestFeedbackDetailsTest/to-report", true);
   }
 
-  private void setupTestData(final String defaultBranchReportLocation, final String featureBranchReportLocation)
+  private void setupTestDataForCleared() throws IOException, URISyntaxException {
+    setupTestData("/PullRequestFeedbackDetailsTest/to-report", "/PullRequestFeedbackDetailsTest/from-report", false);
+  }
+
+  private void setupTestData(
+      final String defaultBranchReportLocation,
+      final String featureBranchReportLocation,
+      boolean forAdded)
       throws IOException, URISyntaxException
   {
     //setup reports
@@ -737,7 +744,7 @@ public class PullRequestFeedbackDetailsTest
     featureBranchPolicyEvaluation.setTime(new GregorianCalendar(2020, 5, 21, 9, 15, 32).getTime());
 
     //setup diff
-    diff = policyEvaluationDiffService.createPolicyViolationDiff(defaultBranchPolicyEvaluation,
+    diff = policyEvaluationDiffService.createPolicyViolationDiffByComponents(defaultBranchPolicyEvaluation,
         featureBranchPolicyEvaluation, MINIMUM_THREAT_LEVEL).get();
 
     //setup remediationVersionMap
@@ -782,12 +789,14 @@ public class PullRequestFeedbackDetailsTest
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
         featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
 
-    // add some dependency info manually
-    ComponentInfo componentInfo = componentDetails.getComponentInfo("df71536d44e3b07f0c15");
-    ComponentInfo newComponentInfo = new ComponentInfo(componentInfo.getDisplayName(), true);
-    componentDetails.getHashToComponentInfoMap().put("df71536d44e3b07f0c15", newComponentInfo);
-    componentInfo = componentDetails.getComponentInfo("7a03e737484ca232d714");
-    newComponentInfo = new ComponentInfo(componentInfo.getDisplayName(), false);
-    componentDetails.getHashToComponentInfoMap().put("7a03e737484ca232d714", newComponentInfo);
+    if (forAdded) {
+      // add some dependency info manually
+      ComponentInfo componentInfo = componentDetails.getComponentInfo("df71536d44e3b07f0c15");
+      ComponentInfo newComponentInfo = new ComponentInfo(componentInfo.getDisplayName(), true);
+      componentDetails.getHashToComponentInfoMap().put("df71536d44e3b07f0c15", newComponentInfo);
+      componentInfo = componentDetails.getComponentInfo("7a03e737484ca232d714");
+      newComponentInfo = new ComponentInfo(componentInfo.getDisplayName(), false);
+      componentDetails.getHashToComponentInfoMap().put("7a03e737484ca232d714", newComponentInfo);
+    }
   }
 }

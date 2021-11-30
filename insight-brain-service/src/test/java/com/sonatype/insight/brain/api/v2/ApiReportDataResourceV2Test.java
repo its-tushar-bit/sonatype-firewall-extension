@@ -293,9 +293,10 @@ public class ApiReportDataResourceV2Test
   public void testGetPolicyViolationDiff_FromCommitMissingAlerts() throws Exception {
     //setup reports
     ReportTestUtils.createReportFile(app.getId(), FROM_SCAN_ID,
-        zipReportDir("/PolicyEvaluationDiffServiceTest/report-missing-policyalerts", tempDir), insightWork);
+        zipReportDir("/" + getClass().getSimpleName() + "/report-missing-policyalerts", tempDir), insightWork);
     ReportTestUtils
-        .createReportFile(app.getId(), TO_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/to-report", tempDir),
+        .createReportFile(app.getId(), TO_SCAN_ID,
+            zipReportDir("/" + getClass().getSimpleName() + "/to-report", tempDir),
             insightWork);
 
     //setup evaluations
@@ -316,16 +317,17 @@ public class ApiReportDataResourceV2Test
 
   private void createReport(String appPublicId, String scanId, String resource) throws IOException {
     Application app = tempEntity.newApplicationWithParent(appPublicId);
-    createReportFile(app.getId(), scanId, "/ApiReportDataResourceV2Test/" + resource);
+    createReportFile(app.getId(), scanId, "/" + getClass().getSimpleName() + "/" + resource);
     tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId);
   }
 
   private void setupValidReportsAndEvaluations() throws IOException, URISyntaxException {
     //setup reports
     ReportTestUtils.createReportFile(app.getId(), FROM_SCAN_ID,
-        zipReportDir("/PolicyEvaluationDiffServiceTest/from-report", tempDir), insightWork);
+        zipReportDir("/" + getClass().getSimpleName() + "/from-report", tempDir), insightWork);
     ReportTestUtils
-        .createReportFile(app.getId(), TO_SCAN_ID, zipReportDir("/PolicyEvaluationDiffServiceTest/to-report", tempDir),
+        .createReportFile(app.getId(), TO_SCAN_ID,
+            zipReportDir("/" + getClass().getSimpleName() + "/to-report", tempDir),
             insightWork);
 
     //setup evaluations
@@ -556,7 +558,8 @@ public class ApiReportDataResourceV2Test
     final String result = response.getBodyText();
 
     final String expectedResult = new String(Files.readAllBytes(Paths
-        .get(ApiReportDataResourceV2Test.class.getResource("/ApiReportDataResourceV2Test/diff-result/diffResult.json")
+        .get(ApiReportDataResourceV2Test.class
+            .getResource("/" + getClass().getSimpleName() + "/diff-result/diffResult.json")
             .toURI())), StandardCharsets.UTF_8);
     JSONAssert.assertEquals(expectedResult, result, new CustomComparator(JSONCompareMode.NON_EXTENSIBLE,
         new Customization("diffTime", (o1, o2) -> true),

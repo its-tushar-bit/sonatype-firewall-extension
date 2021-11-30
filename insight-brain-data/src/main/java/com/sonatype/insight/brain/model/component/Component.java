@@ -25,6 +25,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.ComponentIdentifierAndHashComparable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -33,6 +34,7 @@ import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_GRO
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.VERSION;
 
 public class Component
+    implements ComponentIdentifierAndHashComparable
 {
   private String hash;
 
@@ -263,6 +265,7 @@ public class Component
     this.matchState = matchState;
   }
 
+  @Override
   public String getHash() {
     return hash;
   }
@@ -388,6 +391,7 @@ public class Component
     aggregateFiles.add(aggregateFile);
   }
 
+  @Override
   public ComponentIdentifier getComponentIdentifier() {
     return componentIdentifier;
   }

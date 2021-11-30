@@ -38,6 +38,9 @@ public class PullRequestCommentingServiceTest
   @Mock
   private PullRequestCommentCreator mockPullRequestCommentCreator;
 
+  @Mock
+  private PolicyEvaluationDiffService mockPolicyEvaluationDiffService;
+
   public PullRequestCommentingServiceTest() {
     super(PullRequestCommentingService.class);
   }
@@ -66,6 +69,8 @@ public class PullRequestCommentingServiceTest
     // then: expecting no attempt to create a comment
     verify(mockPullRequestCommentCreator, never()).createPullRequestComment(any(), any(), any(), any());
     verify(mockPullRequestCommentCreator, never()).updatePullRequestComment(any(), any(), any(), any(), any());
+    verify(mockPolicyEvaluationDiffService).createPolicyViolationDiffByComponents(any(), any(),
+        eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
     assertThatLogMessagesEqual(
         info("Unable to get the policy evaluation diff for application 'app1' pull request '123'.")
     );
@@ -88,6 +93,8 @@ public class PullRequestCommentingServiceTest
     // then: expecting no attempt to create a comment
     verify(mockPullRequestCommentCreator, never()).createPullRequestComment(any(), any(), any(), any());
     verify(mockPullRequestCommentCreator, never()).updatePullRequestComment(any(), any(), any(), any(), any());
+    verify(mockPolicyEvaluationDiffService).createPolicyViolationDiffByComponents(any(), any(),
+        eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
     assertThatLogMessagesEqual(
         info("No added or cleared violations in policy evaluation diff, and no previous PR comments for application" +
             " 'app1' pull request '123'.")
@@ -112,6 +119,8 @@ public class PullRequestCommentingServiceTest
     verify(mockPullRequestCommentCreator, times(1))
         .createPullRequestComment(eq(pullRequestPolicyEvaluationsDTO), any(), any(), any());
     verify(mockPullRequestCommentCreator, never()).updatePullRequestComment(any(), any(), any(), any(), any());
+    verify(mockPolicyEvaluationDiffService).createPolicyViolationDiffByComponents(any(), any(),
+        eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
 
     assertNoErrorsInLogs();
     assertNoWarningsInLogs();
@@ -135,6 +144,8 @@ public class PullRequestCommentingServiceTest
     verify(mockPullRequestCommentCreator, times(1))
         .createPullRequestComment(eq(pullRequestPolicyEvaluationsDTO), any(), any(), any());
     verify(mockPullRequestCommentCreator, never()).updatePullRequestComment(any(), any(), any(), any(), any());
+    verify(mockPolicyEvaluationDiffService).createPolicyViolationDiffByComponents(any(), any(),
+        eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
 
     assertNoErrorsInLogs();
     assertNoWarningsInLogs();
@@ -159,6 +170,8 @@ public class PullRequestCommentingServiceTest
     verify(mockPullRequestCommentCreator, times(1))
         .createPullRequestComment(eq(pullRequestPolicyEvaluationsDTO), any(), any(), any());
     verify(mockPullRequestCommentCreator, never()).updatePullRequestComment(any(), any(), any(), any(), any());
+    verify(mockPolicyEvaluationDiffService).createPolicyViolationDiffByComponents(any(), any(),
+        eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
 
     assertNoErrorsInLogs();
     assertNoWarningsInLogs();
@@ -184,6 +197,8 @@ public class PullRequestCommentingServiceTest
     // then: we should be not be creating or updating a comment
     verify(mockPullRequestCommentCreator, never()).createPullRequestComment(any(), any(), any(), any());
     verify(mockPullRequestCommentCreator, never()).updatePullRequestComment(any(), any(), any(), any(), any());
+    verify(mockPolicyEvaluationDiffService).createPolicyViolationDiffByComponents(any(), any(),
+        eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
 
     assertThatLogMessagesEqual(
         info("Policy evaluations have not changed for application 'app1' pull request '123'.")
@@ -211,6 +226,8 @@ public class PullRequestCommentingServiceTest
     verify(mockPullRequestCommentCreator, never()).createPullRequestComment(any(), any(), any(), any());
     verify(mockPullRequestCommentCreator, times(1))
         .updatePullRequestComment(eq(pullRequestPolicyEvaluationsDTO), any(), any(), any(), any());
+    verify(mockPolicyEvaluationDiffService).createPolicyViolationDiffByComponents(any(), any(),
+        eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
 
     assertNoErrorsInLogs();
     assertNoWarningsInLogs();
@@ -233,6 +250,8 @@ public class PullRequestCommentingServiceTest
     assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
         pullRequestCommentingService.doCreateOrUpdatePullRequestComment(pullRequestPolicyEvaluationsDTO)
     ).withMessage("test");
+    verify(mockPolicyEvaluationDiffService).createPolicyViolationDiffByComponents(any(), any(),
+        eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
 
     assertNoErrorsInLogs();
     assertNoWarningsInLogs();
@@ -240,9 +259,6 @@ public class PullRequestCommentingServiceTest
 
   private class TestablePullRequestCommentingService
   {
-    @Mock
-    private PolicyEvaluationDiffService mockPolicyEvaluationDiffService;
-
     @Mock
     private Provider<PullRequestCommentingHashBuilder> mockHashBuilderProvider;
 
@@ -344,7 +360,7 @@ public class PullRequestCommentingServiceTest
     private void setupPolicyViolationDiff() {
       if (!omitPolicyViolationDiff) {
         doReturn(policyViolationDiff).when(mockPolicyEvaluationDiffService)
-            .createPolicyViolationDiff(any(), any(), anyInt());
+            .createPolicyViolationDiffByComponents(any(), any(), eq(PullRequestCommentingService.MINIMUM_THREAT_LEVEL));
       }
     }
   }

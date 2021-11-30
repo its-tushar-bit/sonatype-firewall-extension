@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -324,7 +323,7 @@ public class PullRequestPollingServiceTest
         ArgumentCaptor.forClass(SourceControlPullRequest.class);
     verify(mockSourceControlPullRequestDAO, times(1)).insert(sourceControlPullRequestArgumentCaptor.capture());
     SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequestArgumentCaptor.getValue();
-    assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/orgint/repoint", 10,
+    assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/orgInt/repoInt", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
         pullRequestCreateDate, before, after);
@@ -353,8 +352,7 @@ public class PullRequestPollingServiceTest
     // then: no events emitted
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
-        debug("BITBUCKET is not currently supported for pull request commenting on repository " +
-            repositoryUrl.toLowerCase(Locale.ENGLISH))
+        debug("BITBUCKET is not currently supported for pull request commenting on repository " + repositoryUrl)
     );
   }
 
@@ -409,7 +407,7 @@ public class PullRequestPollingServiceTest
     assertThatLogMessagesEqual(
         warn(
             "Could not fetch pull requests for org 'orgErr'; will retry in 5 minutes.  Please " +
-                "check that the configured project url https://domain.com/orgerr/repoerr is correct, that it is for " +
+                "check that the configured project url https://domain.com/orgErr/repoErr is correct, that it is for " +
                 "'github' and that the API token is valid")
     );
   }
@@ -439,7 +437,7 @@ public class PullRequestPollingServiceTest
     assertThatLogMessagesEqual(
         warn(
             "Could not fetch pull requests for org 'orgErr' repo 'repoErr'; will retry in 5 minutes.  Please " +
-                "check that the configured project url https://domain.com/orgerr/repoerr is correct, that it is for " +
+                "check that the configured project url https://domain.com/orgErr/repoErr is correct, that it is for " +
                 "'gitlab' and that the API token is valid")
     );
   }
@@ -575,11 +573,11 @@ public class PullRequestPollingServiceTest
         ArgumentCaptor.forClass(SourceControlPullRequest.class);
     verify(mockSourceControlPullRequestDAO, times(2)).insert(sourceControlPullRequestArgumentCaptor.capture());
     List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestArgumentCaptor.getAllValues();
-    assertSourceControlPullRequest(sourceControlPullRequests.get(0), "https://domain.com/githuborg/multi-1", 10,
+    assertSourceControlPullRequest(sourceControlPullRequests.get(0), "https://domain.com/githubOrg/multi-1", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
         repo1pullRequestCreateDate, before, after);
-    assertSourceControlPullRequest(sourceControlPullRequests.get(1), "https://domain.com/githuborg/multi-2", 20,
+    assertSourceControlPullRequest(sourceControlPullRequests.get(1), "https://domain.com/githubOrg/multi-2", 20,
         "feature-commit-abc-2", "R2-feature-branch",
         "base-commit", "main-branch",
         repo2pullRequestCreateDate, before, after);
@@ -656,8 +654,6 @@ public class PullRequestPollingServiceTest
           sourceControlList.add(mockRepo.sourceControl);
           doReturn(mockRepo.sourceControl).when(mockSourceControlDAO).getById(mockRepo.sourceControl.getId());
         }
-        doReturn(buildSourceControlList(mockRepo)).when(mockSourceControlDAO)
-            .getByRepositoryOwnerAndName(eq(mockRepo.orgAndRepoName));
         doReturn(mockRepo.gitRepositoryInfo).when(mockSourceControlUtils)
             .getGitRepositoryInfoForApplication(eq(mockRepo.applicationId));
 

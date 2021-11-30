@@ -20,4 +20,7 @@
 .iq-pagination-link__prev,
 .iq-pagination-link__next {
   @include container-horizontal;
+  display: block;
+  padding-top: var(--nx-spacing-4x);
+  padding-bottom: var(--nx-spacing-4x);
 }

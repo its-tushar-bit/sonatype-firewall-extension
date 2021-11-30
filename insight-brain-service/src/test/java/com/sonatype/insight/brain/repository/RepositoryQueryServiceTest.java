@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -79,10 +80,11 @@ public class RepositoryQueryServiceTest
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
     //when
-    RepositoryAllVersionsResponse results = repositoryQueryService.getAllVersions(identifier, app.getId());
+    Pair<RepositoryAllVersionsResponse, String> results =
+        repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
-    assertThat(results.getComponents()).hasSize(3).containsExactly(c1, c2, c3);
+    assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
   }
 
   @Test
@@ -107,10 +109,11 @@ public class RepositoryQueryServiceTest
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
     //when
-    RepositoryAllVersionsResponse results = repositoryQueryService.getAllVersions(identifier, app.getId());
+    Pair<RepositoryAllVersionsResponse, String> results =
+        repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
-    assertThat(results.getComponents()).hasSize(3).containsExactly(c1, c2, c3);
+    assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
   }
 
   @Test
@@ -135,10 +138,11 @@ public class RepositoryQueryServiceTest
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
     //when
-    RepositoryAllVersionsResponse results = repositoryQueryService.getAllVersions(identifier, app.getId());
+    Pair<RepositoryAllVersionsResponse, String> results =
+        repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
-    assertThat(results.getComponents()).hasSize(3).containsExactly(c1, c2, c3);
+    assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
   }
 
   @Test
@@ -162,10 +166,11 @@ public class RepositoryQueryServiceTest
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
     //when
-    RepositoryAllVersionsResponse results = repositoryQueryService.getAllVersions(identifier, app.getId());
+    Pair<RepositoryAllVersionsResponse, String> results =
+        repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
-    assertThat(results.getComponents()).hasSize(3).containsExactly(c1, c2, c3);
+    assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
   }
 
   @Test
@@ -176,10 +181,11 @@ public class RepositoryQueryServiceTest
     ComponentIdentifier identifier = new ComponentIdentifier("unknown", coords);
 
     //when
-    RepositoryAllVersionsResponse results = repositoryQueryService.getAllVersions(identifier, app.getId());
+    Pair<RepositoryAllVersionsResponse, String> results =
+        repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
-    assertThat(results.getComponents()).isEmpty();
+    assertThat(results.getLeft().getComponents()).isEmpty();
   }
 
   @Test
@@ -189,10 +195,11 @@ public class RepositoryQueryServiceTest
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
 
     //when
-    RepositoryAllVersionsResponse results = repositoryQueryService.getAllVersions(identifier, app.getId());
+    Pair<RepositoryAllVersionsResponse, String> results =
+        repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
-    assertThat(results.getComponents()).isEmpty();
+    assertThat(results.getLeft().getComponents()).isEmpty();
   }
 
   @Test
@@ -208,9 +215,10 @@ public class RepositoryQueryServiceTest
     when(mockClient.getAllVersions(params)).thenThrow(new IOException("error"));
 
     //when
-    RepositoryAllVersionsResponse results = repositoryQueryService.getAllVersions(identifier, app.getId());
+    Pair<RepositoryAllVersionsResponse, String> results =
+        repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
-    assertThat(results.getComponents()).isEmpty();
+    assertThat(results.getLeft().getComponents()).isEmpty();
   }
 }

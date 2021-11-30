@@ -113,6 +113,10 @@ public class RiskRemediationTile
     public SelenideElement content() {
       return child("#aiVersionChartContainer");
     }
+
+    public SelenideElement repositorySource() {
+      return child("#iq-version-explorer-repository-source");
+    }
   }
 
   public static class RecommendedVersionsSection

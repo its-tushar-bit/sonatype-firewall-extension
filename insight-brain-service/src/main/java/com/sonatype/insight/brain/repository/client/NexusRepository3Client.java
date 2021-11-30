@@ -166,7 +166,7 @@ public class NexusRepository3Client
     throw new BadGatewayException(message);
   }
 
-  static class NXRM3SearchResponse
+  public static class NXRM3SearchResponse
   {
     public List<NexusItem> items = new ArrayList<>();
 

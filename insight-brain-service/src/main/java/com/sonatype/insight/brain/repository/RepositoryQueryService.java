@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +78,10 @@ public class RepositoryQueryService
     this.repositoryConnectionDAO = repositoryConnectionDAO;
   }
 
-  public RepositoryAllVersionsResponse getAllVersions(ComponentIdentifier componentIdentifier, String ownerId) {
+  public Pair<RepositoryAllVersionsResponse, String> getAllVersions(
+      ComponentIdentifier componentIdentifier,
+      String ownerId)
+  {
     Objects.requireNonNull(ownerId);
     RepositoryFormat repositoryFormat;
     try {
@@ -91,12 +95,12 @@ public class RepositoryQueryService
         .sorted(REPOSITORY_CONNECTION_COMPARATOR)
         .collect(Collectors.toList());
     if (CollectionUtils.isEmpty(repoConnections)) {
-      return new RepositoryAllVersionsResponse(Collections.emptyList());
+      return Pair.of(new RepositoryAllVersionsResponse(Collections.emptyList()), null);
     }
 
     //for the time being we only support one repository connection - cf. CLM-19789
     RepositoryConnection connection = repoConnections.get(0);
-    return searchRepositoryForAllVersions(connection, componentIdentifier);
+    return Pair.of(searchRepositoryForAllVersions(connection, componentIdentifier), connection.getBaseUrl());
   }
 
   private RepositoryAllVersionsResponse searchRepositoryForAllVersions(

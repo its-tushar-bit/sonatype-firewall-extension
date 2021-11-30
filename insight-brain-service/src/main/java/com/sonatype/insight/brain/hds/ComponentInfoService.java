@@ -78,6 +78,7 @@ import com.sonatype.insight.lqa.LqaFormat;
 import com.sonatype.insight.scan.util.HashUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -358,7 +359,7 @@ public class ComponentInfoService
   {
     auditComponentAccess(identifier, null);
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, null, null, null, null);
+    ComponentDetailsList componentDetailsList = getComponentDetailsList(identifier, null, null, null, null).getLeft();
     componentDetailsLoaderFactory.newInstance(app).augmentComponentDetails(componentDetailsList.getList(), matchState,
         null);
     return componentDetailsList;
@@ -396,7 +397,8 @@ public class ComponentInfoService
   {
     auditComponentAccess(componentIdentifier, null);
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    ComponentDetailsList componentDetailsList = getComponentDetailsList(componentIdentifier, owner, null, null, null);
+    ComponentDetailsList componentDetailsList =
+        getComponentDetailsList(componentIdentifier, owner, null, null, null).getLeft();
     componentDetailsLoaderFactory.newInstance(owner).augmentComponentDetails(componentDetailsList.getList(), matchState,
         null);
     return componentDetailsList;
@@ -443,8 +445,10 @@ public class ComponentInfoService
       String scanId,
       DependencyType dependencyType)
   {
-    List<ComponentDetailsDTO> componentDetailsDTOs = getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId,
-        componentIdentifier, stageId, identificationSource, scanId, dependencyType);
+    Pair<List<ComponentDetailsDTO>, String> result =
+        getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId, componentIdentifier, stageId, identificationSource,
+            scanId, dependencyType);
+    List<ComponentDetailsDTO> componentDetailsDTOs = result.getLeft();
 
     ApiComponentRemediationValueDTO remediationDto;
     if (IdentificationSource.isThirdPartyIdentificationSource(identificationSource)) {
@@ -455,10 +459,10 @@ public class ComponentInfoService
       remediationDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,
           ownerType, ownerId, stageId);
     }
-    return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto);
+    return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto, result.getRight());
   }
 
-  public List<ComponentDetailsDTO> getComponentDetailsForAllVersionsNoAuth(
+  public Pair<List<ComponentDetailsDTO>, String> getComponentDetailsForAllVersionsNoAuth(
       OwnerType ownerType,
       String ownerId,
       ComponentIdentifier componentIdentifier,
@@ -468,8 +472,10 @@ public class ComponentInfoService
       DependencyType dependencyType)
   {
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    List<ComponentDetails> componentDetailsList =
-        getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId, dependencyType).getList();
+    Pair<ComponentDetailsList, String> componentDetailsListAndSource =
+        getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId, dependencyType);
+    List<ComponentDetails> componentDetailsList = componentDetailsListAndSource.getLeft().getList();
+
     // Fix match state to exact as there's no point propagating it to other versions.
     List<Component> components = componentDetailsLoaderFactory.newInstance(owner)
         .augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), dependencyType);
@@ -525,7 +531,7 @@ public class ComponentInfoService
       componentDetailsDTOs.add(dto);
     }
 
-    return componentDetailsDTOs;
+    return Pair.of(componentDetailsDTOs, componentDetailsListAndSource.getRight());
   }
 
   protected Map<String, Policy> getPoliciesById(Owner owner) {
@@ -571,7 +577,7 @@ public class ComponentInfoService
     return getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest, identificationSource);
   }
 
-  ComponentDetailsList getComponentDetailsList(
+  Pair<ComponentDetailsList, String> getComponentDetailsList(
       ComponentIdentifier identifier,
       Owner owner,
       String identificationSource,
@@ -585,6 +591,7 @@ public class ComponentInfoService
     }
 
     ComponentDetailsList componentDetailsList;
+    String source = null;
 
     if (isKnownFormat(identifier)) {
       if (identifier.isTerraform()) {
@@ -592,7 +599,10 @@ public class ComponentInfoService
         componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
       }
       else if (shouldGetFromRepositoryData(dependencyType, identifier)) {
-        componentDetailsList = getInformationVersionsRepository(owner, identifier);
+        Pair<RepositoryAllVersionsResponse, String> result =
+            repositoryQueryService.getAllVersions(identifier, owner.getId());
+        componentDetailsList = transformToComponentDetailsList(result.getLeft(), identifier);
+        source = result.getRight();
       }
       else {
         componentDetailsList = getInformationVersionsHds(identifier, identificationSource, owner, scanId);
@@ -609,15 +619,7 @@ public class ComponentInfoService
       log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
           componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
     }
-    return componentDetailsList;
-  }
-
-  private ComponentDetailsList getInformationVersionsRepository(
-      Owner owner,
-      ComponentIdentifier identifier)
-  {
-    RepositoryAllVersionsResponse result = repositoryQueryService.getAllVersions(identifier, owner.getId());
-    return transformToComponentDetailsList(result, identifier);
+    return Pair.of(componentDetailsList, source);
   }
 
   private ComponentDetailsList transformToComponentDetailsList(

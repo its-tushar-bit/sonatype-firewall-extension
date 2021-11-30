@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -170,7 +171,7 @@ public class PullRequestCommentingRemediationServiceTest
     componentDetailsDTOs.add(componentDetailsDTO);
 
     when(mockComponentInfoService.getComponentDetailsForAllVersionsNoAuth(
-        any(), any(), any(), any(), any(), any(), any())).thenReturn(componentDetailsDTOs);
+        any(), any(), any(), any(), any(), any(), any())).thenReturn(Pair.of(componentDetailsDTOs, null));
   }
 
   private void componentRemediationServiceSetup(

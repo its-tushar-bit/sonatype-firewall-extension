@@ -12,8 +12,8 @@ import java.util.Collections;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.CompareVersionsTable;
-import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.RecommendedRemediationSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.RecommendationElement;
+import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.RecommendedRemediationSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.RecommendedVersionsSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.VersionExplorerSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VersionGraph;
@@ -32,24 +32,41 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.repository.client.NexusRepository3Client.NXRM3SearchResponse;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.google.common.collect.ImmutableMap.of;
 
 public class ComponentDetailsOverviewTabRiskRemediationTest
     extends AbstractFunctionalTest
 {
+  @Rule
+  public WireMockRule nxrm3MockSever = new WireMockRule(wireMockConfig().dynamicPort());
+
   public static final String SCAN_ID = "306e0a923df34c64b836358182b1b902";
 
   public static final String FIRST_COMPONENT_HASH = "9aba4af169a1a3baa67f";
@@ -196,6 +213,49 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     riskRemediation.dependencyInformationSection().shouldNotBe(visible);
 
     eyesWatcher.eyesCheck("component details overview tab risk remediation no dependency information");
+  }
+
+  @Test
+  public void testRiskRemediationTile_RepositorySource_InnerSourceDependency() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+    NXRM3SearchResponse nxrm3SearchResponse = new NXRM3SearchResponse();
+    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withBody(JsonUtils.format(nxrm3SearchResponse))));
+    testCLMServer.getHdsServer()
+        .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
+        .atUri("rest/component/dependencies");
+    RepositoryConnection repositoryConnection =
+        tempEntity.newRepositoryConnection(Organization.ROOT_ORGANIZATION_ID, nxrm3MockSever.baseUrl(), null, null);
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
+    componentDetailsPage.overviewTab().shouldBe(visible);
+    componentDetailsPage.overviewTabContent().riskRemediationTile().versionExplorerSection().repositorySource()
+        .shouldBe(visible).shouldHave(text("Repository Source: " + repositoryConnection.getBaseUrl()));
+    
+    eyesWatcher.eyesCheck("component details overview tab risk remediation InnerSource dependency repository source");
+  }
+
+  @Test
+  public void testRiskRemediationTile_RepositorySource_NonInnerSourceDependency() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+    mockHdsResponseForFirstComponent();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
+    componentDetailsPage.overviewTab().shouldBe(visible);
+    componentDetailsPage.overviewTabContent().riskRemediationTile().versionExplorerSection().repositorySource()
+        .shouldNotBe(visible);
+  }
+
+  @Test
+  public void testRiskRemediationTile_RepositorySource_InnerSourceDependency_FeatureDisabled() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
+    componentDetailsPage.overviewTab().shouldBe(visible);
+    componentDetailsPage.overviewTabContent().riskRemediationTile().versionExplorerSection().repositorySource()
+        .shouldNotBe(visible);
   }
 
   @Test

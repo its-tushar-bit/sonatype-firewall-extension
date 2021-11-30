@@ -51,7 +51,7 @@ export const selectVersionExplorerRequestData = createSelector(
   (component, metadata, data) => ({
     ...data,
     stageId: metadata.stageId,
-    dependencyType: component.derivedDependencyType,
+    dependencyType: component.innerSource ? 'innersource' : component.derivedDependencyType,
   })
 );
 

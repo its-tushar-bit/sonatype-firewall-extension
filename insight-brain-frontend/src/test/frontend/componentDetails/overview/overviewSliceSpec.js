@@ -76,6 +76,7 @@ describe('componentDetailsOverviewReducer', () => {
         expanded: false,
       });
       const allVersions = ['list'];
+      const source = 'https://repo.sonatype.com/';
       const remediation = {
         versionChanges: [
           {
@@ -125,6 +126,7 @@ describe('componentDetailsOverviewReducer', () => {
         componentVersionsData: {
           remediation,
           allVersions,
+          source,
         },
         currentVersionDetails,
       };
@@ -138,6 +140,7 @@ describe('componentDetailsOverviewReducer', () => {
       expect(newState.versionExplorerData.loadError).toBe(null);
       expect(newState.versionExplorerData.versions).toBe(allVersions);
       expect(newState.versionExplorerData.remediation).toBe(remediation);
+      expect(newState.versionExplorerData.source).toBe(source);
       expect(newState.versionExplorerData.currentVersionDetails).toBe(currentVersionDetails);
       expect(newState.other).toBe(stateConstantObject);
       expect(newState.expanded).toBe(false);
@@ -165,7 +168,7 @@ describe('componentDetailsOverviewReducer', () => {
       expect(newState.other).toBe(stateConstantObject);
     });
 
-    it('sets versions, remediation and currentVersionDetails to null if request was aborted by client', () => {
+    it('sets versions, remediation, currentVersionDetails, and source to null if request was aborted by client', () => {
       const state = Object.freeze({
         versionExplorerData: {
           loading: true,
@@ -173,11 +176,12 @@ describe('componentDetailsOverviewReducer', () => {
           versions: { version: 12 },
           remediation: {},
           currentVersionDetails: {},
+          source: 'source',
         },
       });
 
       const {
-        versionExplorerData: { versions, remediation, currentVersionDetails },
+        versionExplorerData: { versions, remediation, currentVersionDetails, source },
       } = reducer(state, {
         type: 'componentDetailsOverview/loadVersionExplorerDataWithCancelToken/rejected',
         payload: { message: 499 },
@@ -186,6 +190,7 @@ describe('componentDetailsOverviewReducer', () => {
       expect(versions).toBeNull();
       expect(remediation).toBeNull();
       expect(currentVersionDetails).toBeNull();
+      expect(source).toBeNull();
     });
   });
 

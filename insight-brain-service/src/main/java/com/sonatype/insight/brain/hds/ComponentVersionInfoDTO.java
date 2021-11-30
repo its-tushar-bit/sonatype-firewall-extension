@@ -15,12 +15,19 @@ public class ComponentVersionInfoDTO
 
   public ApiComponentRemediationValueDTO remediation;
 
+  public String source;
+
   public ComponentVersionInfoDTO() {
     // for jackson
   }
 
-  public ComponentVersionInfoDTO(List<ComponentDetailsDTO> allVersions, ApiComponentRemediationValueDTO remediation) {
+  public ComponentVersionInfoDTO(
+      List<ComponentDetailsDTO> allVersions,
+      ApiComponentRemediationValueDTO remediation,
+      String source)
+  {
     this.allVersions = allVersions;
     this.remediation = remediation;
+    this.source = source;
   }
 }

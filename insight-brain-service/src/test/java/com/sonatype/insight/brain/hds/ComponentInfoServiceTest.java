@@ -94,6 +94,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
+import org.apache.commons.lang3.tuple.Pair;
 import org.assertj.core.groups.Tuple;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -593,7 +594,7 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, componentIdentifier1);
 
     ComponentDetailsList componentDetailsList =
-        componentInfoService.getComponentDetailsList(componentIdentifier1, null, null, null, null);
+        componentInfoService.getComponentDetailsList(componentIdentifier1, null, null, null, null).getLeft();
     componentDetailsLoaderFactory.newInstance(application).augmentComponentDetails(componentDetailsList.getList(),
         MatchState.EXACT.getId(), null);
 
@@ -1548,6 +1549,7 @@ public class ComponentInfoServiceTest
     assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES.createAlternativeVersion("v1"));
     assertGetComponentVersionsRepositoryResult(result.get(1), MAVEN_A1_COORDINATES.createAlternativeVersion("v2"));
     assertGetComponentVersionsRepositoryResult(result.get(2), MAVEN_A1_COORDINATES.createAlternativeVersion("v3"));
+    assertThat(dto.source).isEqualTo("https://repo.sonatype.com/");
   }
 
   @Test
@@ -1570,6 +1572,7 @@ public class ComponentInfoServiceTest
     assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES.createAlternativeVersion("v0"));
     assertGetComponentVersionsRepositoryResult(result.get(1), MAVEN_A1_COORDINATES.createAlternativeVersion("v1"));
     assertGetComponentVersionsRepositoryResult(result.get(2), MAVEN_A1_COORDINATES.createAlternativeVersion("v2"));
+    assertThat(dto.source).isEqualTo("https://repo.sonatype.com/");
   }
 
   @Test
@@ -1592,6 +1595,7 @@ public class ComponentInfoServiceTest
     assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES.createAlternativeVersion("v0.4"));
     assertGetComponentVersionsRepositoryResult(result.get(1), MAVEN_A1_COORDINATES.createAlternativeVersion("v0.8"));
     assertGetComponentVersionsRepositoryResult(result.get(2), MAVEN_A1_COORDINATES.createAlternativeVersion("v1"));
+    assertThat(dto.source).isEqualTo("https://repo.sonatype.com/");
   }
 
   @Test
@@ -1613,6 +1617,7 @@ public class ComponentInfoServiceTest
     assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES.createAlternativeVersion("v0"));
     assertGetComponentVersionsRepositoryResult(result.get(1), MAVEN_A1_COORDINATES);
     assertGetComponentVersionsRepositoryResult(result.get(2), MAVEN_A1_COORDINATES.createAlternativeVersion("v3"));
+    assertThat(dto.source).isEqualTo("https://repo.sonatype.com/");
   }
 
   @Test
@@ -1631,6 +1636,7 @@ public class ComponentInfoServiceTest
 
     assertThat(result).hasSize(1);
     assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES);
+    assertThat(dto.source).isEqualTo("https://repo.sonatype.com/");
   }
 
   @Test
@@ -1651,6 +1657,7 @@ public class ComponentInfoServiceTest
     assertGetComponentVersionsRepositoryResult(result.get(0), NPM_COORDINATES.createAlternativeVersion("v0"));
     assertGetComponentVersionsRepositoryResult(result.get(1), NPM_COORDINATES);
     assertGetComponentVersionsRepositoryResult(result.get(2), NPM_COORDINATES.createAlternativeVersion("v2"));
+    assertThat(dto.source).isEqualTo("https://repo.sonatype.com/");
   }
 
   private void assertGetComponentVersionsRepositoryResult(
@@ -1674,7 +1681,8 @@ public class ComponentInfoServiceTest
         .map(v -> new RepositoryComponentResult(componentIdentifier.createAlternativeVersion(v), "sha" + v))
         .collect(Collectors.toList());
     RepositoryAllVersionsResponse response = new RepositoryAllVersionsResponse(resultComponents);
-    when(repositoryQueryService.getAllVersions(componentIdentifier, ownerId)).thenReturn(response);
+    when(repositoryQueryService.getAllVersions(componentIdentifier, ownerId)).thenReturn(
+        Pair.of(response, "https://repo.sonatype.com/"));
   }
 
   @Test
@@ -1708,7 +1716,7 @@ public class ComponentInfoServiceTest
         .thenReturn(tpComponentDetails);
 
     ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(
-        componentIdentifier1, application, identificationSource, scanId, null);
+        componentIdentifier1, application, identificationSource, scanId, null).getLeft();
 
     assertThat(componentDetailsList).isNotNull();
     assertThat(componentDetailsList.getList()).hasSize(2);
@@ -1753,7 +1761,7 @@ public class ComponentInfoServiceTest
         .thenReturn(thirdPartyComponentDetailsList);
 
     ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList(
-        componentIdentifier1, application, identificationSource, scanId, null);
+        componentIdentifier1, application, identificationSource, scanId, null).getLeft();
 
     assertThat(componentDetailsList).isNotNull();
     assertThat(componentDetailsList.getList()).hasSize(1);
@@ -1814,7 +1822,7 @@ public class ComponentInfoServiceTest
 
     ComponentDetailsList componentDetailsList =
         componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId,
-            null);
+            null).getLeft();
 
     assertThat(componentDetailsList).isNotNull();
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
@@ -1855,7 +1863,7 @@ public class ComponentInfoServiceTest
 
     ComponentDetailsList componentDetailsList =
         componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId,
-            null);
+            null).getLeft();
 
     assertThat(componentDetailsList).isNotNull();
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
@@ -2058,7 +2066,7 @@ public class ComponentInfoServiceTest
 
     ComponentDetailsList result =
         componentInfoService.getComponentDetailsList(componentIdentifier, app, "third-party", scanId,
-            DependencyType.DIRECT);
+            DependencyType.DIRECT).getLeft();
 
     assertThat(result.getList()).containsExactly(componentDetails);
   }

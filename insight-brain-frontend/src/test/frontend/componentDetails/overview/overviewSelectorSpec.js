@@ -240,6 +240,31 @@ describe('overviewSelectors', () => {
 
       expect(actualSelection).toEqual(expectedSelection);
     });
+
+    it('selects the data for allVersions request for an InnerSource component', () => {
+      const localSelectedComponent = { innerSource: true, derivedDependencyType: 'transitive' };
+      const expectedSelection = {
+        clientType: 'ci',
+        ownerType: 'application',
+        ownerId: 'publicId',
+        matchState: 'exact',
+        proprietary: false,
+        identificationSource: 'is',
+        componentIdentifier: '{"format":"format","coordinates":{"version":"2.4.9"}}',
+        hash: 'some-component-hash',
+        scanId: 'scanId',
+        stageId: 'build',
+        dependencyType: 'innersource',
+      };
+
+      const actualSelection = selectVersionExplorerRequestData.resultFunc(
+        localSelectedComponent,
+        applicationReportMetaData,
+        componentDetailsRequestData
+      );
+
+      expect(actualSelection).toEqual(expectedSelection);
+    });
   });
 
   describe('selectInnerSourceProducerData', () => {

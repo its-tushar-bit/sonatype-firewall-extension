@@ -34,7 +34,7 @@ export const RiskRemediation = ({
     loadVersionExplorerData();
   }, []);
 
-  const { loading, loadError, remediation, versions } = versionExplorerData;
+  const { loading, loadError, remediation, versions, source } = versionExplorerData;
   const { loading: selectedVersionLoading, loadError: selectedVersionError, selectedVersion } = selectedVersionData;
 
   const overviewComponentRiskRemediationTile_header = (
@@ -75,6 +75,7 @@ export const RiskRemediation = ({
         <div className="nx-grid-col nx-grid-col--50">
           <VersionExplorer
             versions={versions}
+            source={source}
             currentVersion={currentVersion}
             versionClick={loadSelectedVersionData}
             selectedVersionError={selectedVersionError}
@@ -144,6 +145,7 @@ RiskRemediation.propTypes = {
   versionExplorerData: PropTypes.shape({
     versions: PropTypes.array,
     remediation: RemediationPropTypes,
+    source: PropTypes.string,
     loading: PropTypes.bool,
     loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),

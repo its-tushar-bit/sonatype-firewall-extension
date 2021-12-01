@@ -251,7 +251,7 @@ public class SourceControlEventService
   }
 
   @VisibleForTesting
-  void notifyFinishedProcessingEvent(SourceControlEvent event) {
+  void notifyFinishedProcessingEvent(@SuppressWarnings("unused") SourceControlEvent event) {
     // tests will 'spy' on this method to know when the processing of this event is finished and the test can start
     // its validations (since this work occurs in a separate thread)
   }

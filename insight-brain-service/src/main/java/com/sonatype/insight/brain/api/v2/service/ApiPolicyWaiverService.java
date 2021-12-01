@@ -240,7 +240,7 @@ public class ApiPolicyWaiverService
   }
 
   @Authorize(permission = Permission.READ)
-  void checkOwnerReadAuthz(@AuthzContext(Key.OWNER) Owner owner) {
+  void checkOwnerReadAuthz(@SuppressWarnings("unused") @AuthzContext(Key.OWNER) Owner owner) {
     // permission checked by annotations, no method body needed
   }
 

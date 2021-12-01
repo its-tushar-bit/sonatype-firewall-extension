@@ -90,8 +90,10 @@ public class RepositoryQueryService
     catch (Exception e) {
       repositoryFormat = RepositoryFormat.GENERIC;
     }
-    List<RepositoryConnection> repoConnections = repositoryConnectionDAO.getByOwnerIdAndFormatsWithHierarchy(ownerId,
-            repositoryFormat, RepositoryFormat.GENERIC).stream()
+    RepositoryFormat finalRepositoryFormat = repositoryFormat;
+    List<RepositoryConnection> repoConnections = repositoryConnectionDAO.getByOwnerIdWithHierarchy(ownerId).stream()
+        .filter(repositoryConnection -> finalRepositoryFormat.equals(repositoryConnection.getFormat()) ||
+            RepositoryFormat.GENERIC.equals(repositoryConnection.getFormat()))
         .sorted(REPOSITORY_CONNECTION_COMPARATOR)
         .collect(Collectors.toList());
     if (CollectionUtils.isEmpty(repoConnections)) {

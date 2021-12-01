@@ -66,17 +66,6 @@ public class RepositoryConnectionDAO
     return repositoryConnections;
   }
 
-  public List<RepositoryConnection> getByOwnerIdAndFormatsWithHierarchy(String ownerId, RepositoryFormat... formats) {
-    List<RepositoryConnection> repositoryConnections = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      repositoryConnections.addAll(getByOwnerIdAndFormats(owner.getId(), formats));
-      if (!repositoryConnections.isEmpty()) {
-        break;
-      }
-    }
-    return repositoryConnections;
-  }
-
   public RepositoryConnection getByOwnerIdAndBaseUrl(String ownerId, String baseUrl) {
     String sQuery = "SELECT entity FROM RepositoryConnection entity" + //
         " WHERE entity.ownerId=?1 AND entity.baseUrl=?2";

@@ -80,7 +80,8 @@ public class SourceControlUtils
       return null;
     }
 
-    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(sourceControl.getRepositoryUrl(),
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(
+        sourceControl.getRepositoryUrl(), sourceControl.getNormalizedRepositoryUrl(),
         sourceControl.getRepositorySshUrl(), sourceControl.getUsername(), sourceControl.getToken(),
         sourceControl.getProvider(), sourceControl.getBaseBranch(), sourceControl.getRemediationPullRequestsEnabled(),
         sourceControl.getStatusChecksEnabled(),

@@ -28,8 +28,27 @@ public class GitRepositoryInfo
                            final Boolean sshEnabled,
                            final String sourceControlScanTarget)
   {
+    this(repositoryUrl, SourceControl.normalizeRepositoryUrl(repositoryUrl), sshRepositoryUrl, username, token,
+        provider, baseBranch, remediationPullRequestsEnabled, statusChecksEnabled,
+        pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, sshEnabled, sourceControlScanTarget);
+  }
+
+  public GitRepositoryInfo(final String repositoryUrl,
+                           final String normalizedRepositoryUrl,
+                           final String sshRepositoryUrl,
+                           final String username,
+                           final String token,
+                           final SourceControlProvider provider,
+                           final String baseBranch,
+                           final Boolean remediationPullRequestsEnabled,
+                           final Boolean statusChecksEnabled,
+                           final Boolean pullRequestCommentingEnabled,
+                           final Boolean sourceControlEvaluationsEnabled,
+                           final Boolean sshEnabled,
+                           final String sourceControlScanTarget)
+  {
     this.repositoryUrl = repositoryUrl;
-    normalizedRepositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl);
+    this.normalizedRepositoryUrl = normalizedRepositoryUrl;
     this.sshRepositoryUrl = sshRepositoryUrl;
     this.username = username;
     this.token = token;

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.model.sourcecontrol;
 
 import java.util.Date;
-import java.util.Locale;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -145,7 +144,7 @@ public class SourceControl
   }
 
   public static String normalizeRepositoryUrl(String repositoryUrl) {
-    return repositoryUrl != null ? convertUrlIfNeeded(repositoryUrl.toLowerCase(Locale.ENGLISH)) : null;
+    return repositoryUrl != null ? convertUrlIfNeeded(repositoryUrl) : null;
   }
 
   public void setRepositoryUrl(String repositoryUrl) {

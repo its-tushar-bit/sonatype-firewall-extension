@@ -6,7 +6,7 @@
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import cx from 'classnames';
-import { NxInfoAlert, NxLoadWrapper } from '@sonatype/react-shared-components';
+import { NxInfoAlert, NxLoadWrapper, NxTextLink } from '@sonatype/react-shared-components';
 import {
   ComponentDetailsHeader,
   ComponentDetailsReportInfo,
@@ -100,13 +100,12 @@ export default function ComponentDetails({
               {isUnknown && isProprietary && (
                 <NxInfoAlert id="proprietary-component-matched-alert">
                   This component has been matched as a Proprietary Component.{' '}
-                  <a
+                  <NxTextLink
+                    external
                     href="http://links.sonatype.com/products/nxiq/doc/managing-proprietary-components"
-                    target="_blank"
-                    rel="noreferrer"
                   >
                     Learn more here
-                  </a>
+                  </NxTextLink>
                 </NxInfoAlert>
               )}
             </Fragment>

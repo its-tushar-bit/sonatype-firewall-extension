@@ -138,9 +138,6 @@ public class PolicyViolationMigrator
 
     /**
      * Null objects are treated as infinitely large.
-     * 
-     * @return 1 if o1 is not null while o2 is, or -1 if o2 is not null and o1 is. 0 if both objects are either null or
-     *         not null.
      */
     private int nullCheck(Object o1, Object o2) {
       if (o1 == null && o2 != null) {

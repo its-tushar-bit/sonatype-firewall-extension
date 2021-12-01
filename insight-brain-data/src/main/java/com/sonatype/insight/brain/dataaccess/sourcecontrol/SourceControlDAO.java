@@ -9,7 +9,6 @@ import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -201,11 +200,6 @@ public class SourceControlDAO
             " AND entity.pullRequestPollTime <= CURRENT_TIMESTAMP" +
             " ORDER BY entity.pullRequestPollTime ASC";
     return createQuery(sQuery).forceSingleResult().get();
-  }
-
-  public List<SourceControl> getByRepositoryOwnerAndName(String repositoryOwnerAndName) {
-    return getList("SELECT entity FROM SourceControl entity WHERE entity.normalizedRepositoryUrl LIKE ?1",
-        "%/" + repositoryOwnerAndName.toLowerCase(Locale.ENGLISH) + '%');
   }
 
   @Override

@@ -18,7 +18,7 @@ public class SourceControlPullRequestTest
     SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest(" testRepositoryUrl ", 1,
         "testCommitHash", "baseCommitHash", "testBranchName", "baseBranchName", new Date(), new Date(), new Date());
 
-    assertThat(sourceControlPullRequest.getRepositoryUrl()).isEqualTo("testrepositoryurl");
+    assertThat(sourceControlPullRequest.getRepositoryUrl()).isEqualTo("testRepositoryUrl");
   }
 
   @Test
@@ -26,7 +26,7 @@ public class SourceControlPullRequestTest
     SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest();
     sourceControlPullRequest.setRepositoryUrl(" testRepositoryUrl ");
 
-    assertThat(sourceControlPullRequest.getRepositoryUrl()).isEqualTo("testrepositoryurl");
+    assertThat(sourceControlPullRequest.getRepositoryUrl()).isEqualTo("testRepositoryUrl");
   }
 
   @Test

@@ -74,7 +74,7 @@ Threat (of 10) | Policy | Violation Details
   
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |
-0 | Unlikely Test Policy | <b>Nonsensical Constraint:</b><ul><li>Found licenses in the 'Liberal' license threat group ('Apache-2.0')</li></ul>
+0 | Unlikely Test Policy | <b>Nonsensical Constraint:</b><ul><li>Found licenses in the 'Liberal' license threat group ('BSD-3-Clause')</li></ul>
 
 </details>
 

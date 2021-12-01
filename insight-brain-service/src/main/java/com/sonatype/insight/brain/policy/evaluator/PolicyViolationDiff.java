@@ -41,6 +41,10 @@ public class PolicyViolationDiff<T extends PolicyViolationComparable>
     cleared.add(policyViolation);
   }
 
+  public void addCleared(Collection<? extends T> policyViolations) {
+    cleared.addAll(policyViolations);
+  }
+
   public Map<T, T> getSame() {
     return same;
   }

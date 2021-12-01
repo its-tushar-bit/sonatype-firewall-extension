@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory.RepositoryClientBuilder;
@@ -117,6 +118,23 @@ public class RepositoryQueryServiceTest
   }
 
   @Test
+  public void testGetAllVersions_Maven_DoesNotMix() {
+    //given
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newRepositoryConnection(org.getId(), "baseUrl1", RepositoryFormat.MAVEN, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.NPM, "user2", "pass2".toCharArray());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
+
+    //when
+    Pair<RepositoryAllVersionsResponse, String> results =
+        repositoryQueryService.getAllVersions(identifier, app.getId());
+
+    //then
+    assertThat(results.getLeft().getComponents()).isEmpty();
+  }
+
+  @Test
   public void testGetAllVersions_Npm() throws Exception {
     //given
     Application app = tempEntity.newApplicationWithParent();
@@ -171,6 +189,23 @@ public class RepositoryQueryServiceTest
 
     //then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
+  }
+
+  @Test
+  public void testGetAllVersions_Npm_DoesNotMix() {
+    //given
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newRepositoryConnection(org.getId(), "baseUrl1", RepositoryFormat.NPM, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.MAVEN, "user2", "pass2".toCharArray());
+    ComponentIdentifier identifier = ComponentIdentifier.createNpmCoordinates("p1", "1.2.0");
+
+    //when
+    Pair<RepositoryAllVersionsResponse, String> results =
+        repositoryQueryService.getAllVersions(identifier, app.getId());
+
+    //then
+    assertThat(results.getLeft().getComponents()).isEmpty();
   }
 
   @Test

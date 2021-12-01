@@ -35,55 +35,14 @@ public class PolicyViolationComparator
       return result;
     }
 
-    // Hash
-    result = compareNullableStrings(v1.getHash(), v2.getHash());
-    if (result != 0) {
-      return result;
-    }
-
-    // Component identifier
-    result = nullCheck(v1.getComponentIdentifier(), v2.getComponentIdentifier());
-    if (result != 0) {
-      return result;
-    }
-    if (v1.getComponentIdentifier() != null) {
-      result = v1.getComponentIdentifier().compareTo(v2.getComponentIdentifier());
-    }
+    // Hash and component identifier
+    result = ComponentIdentifierAndHashComparator.COMPARATOR.compare(v1, v2);
     if (result != 0) {
       return result;
     }
 
     return ConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(v1.getConstraintFacts(),
         v2.getConstraintFacts());
-  }
-
-  // null is greater than not null
-  private int compareNullableStrings(String s1, String s2) {
-    int result = nullCheck(s1, s2);
-    if (result != 0) {
-      return result;
-    }
-    if (s1 == null) {
-      return 0;
-    }
-    return s1.compareTo(s2);
-  }
-
-  /**
-   * Null objects are treated as infinitely large.
-   * 
-   * @return 1 if o1 is not null while o2 is, or -1 if o2 is not null and o1 is. 0 if both objects are either null or
-   *         not null.
-   */
-  private int nullCheck(Object o1, Object o2) {
-    if (o1 == null && o2 != null) {
-      return 1;
-    }
-    else if (o1 != null && o2 == null) {
-      return -1;
-    }
-
-    return 0;
   }
 
   public static String computeUniqueAppPolicyConstraintId(String applicationId,

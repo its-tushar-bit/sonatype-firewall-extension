@@ -27,7 +27,6 @@ public class SourceControlPullRequestDAOTest
   public void testCRUD() throws Exception {
     // Create
     String repositoryUrl = "testRepositoryUrl";
-    String repositoryUrlLowercase = "testrepositoryurl";
     int pullRequestId = 1234;
     String headCommitHash = "testHeadCommitHash";
     String baseCommitHash = "testBaseCommitHash";
@@ -45,7 +44,7 @@ public class SourceControlPullRequestDAOTest
     String id = sourceControlPullRequest.getId();
     sourceControlPullRequest = dao.getById(id);
     assertThat(sourceControlPullRequest.getId()).isEqualTo(id);
-    assertThat(sourceControlPullRequest.getRepositoryUrl()).isEqualTo(repositoryUrlLowercase);
+    assertThat(sourceControlPullRequest.getRepositoryUrl()).isEqualTo(repositoryUrl);
     assertThat(sourceControlPullRequest.getPullRequestId()).isEqualTo(pullRequestId);
     assertThat(sourceControlPullRequest.getHeadCommitHash()).isEqualTo(headCommitHash);
     assertThat(sourceControlPullRequest.getBranchName()).isEqualTo(branchName);
@@ -87,13 +86,11 @@ public class SourceControlPullRequestDAOTest
 
   @Test
   public void testDeleteByRepositoryUrl() {
-    // Given 3 pull requests, of which two have the same repository URL (case insensitive)
+    // Given 2 pull requests
     SourceControlPullRequest sourceControlPullRequest = tempEntity.newSourceControlPullRequest("testRepositoryUrl1", 1,
         "testHeadCommitHash1", "testBaseCommitHash1", "testBranchName1", "testBaseBranchName");
     tempEntity.newSourceControlPullRequest("testRepositoryUrl2", 1,
         "testHeadCommitHash2", "testBaseCommitHash2", "testBranchName2", "testBaseBranchName");
-    tempEntity.newSourceControlPullRequest("TESTRepositoryUrl2", 2,
-        "testHeadCommitHash3", "testBaseCommitHash3", "testBranchName3", "testBaseBranchName");
 
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();

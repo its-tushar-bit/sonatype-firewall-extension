@@ -111,7 +111,7 @@ public class PullRequestFeedbackMarkupServiceTest
 
     //setup diff
     PolicyViolationDiff<PolicyViolation> diff =
-        policyEvaluationDiffService.createPolicyViolationDiff(defaultBranchPolicyEvaluation,
+        policyEvaluationDiffService.createPolicyViolationDiffByComponents(defaultBranchPolicyEvaluation,
             featureBranchPolicyEvaluation, MINIMUM_THREAT_LEVEL).get();
 
     //setup remediationVersionMap
@@ -162,9 +162,9 @@ public class PullRequestFeedbackMarkupServiceTest
     // then: markup is created and telemetry information updated
     final String expectedContent = readResource("PullRequestFeedbackMarkup_violationAdded.md");
     assertThat(markup).isNotEmpty();
-    assertThat(markup.get()).isEqualTo(expectedContent);
     assertThat(commentTelemetry.newViolationsComponentCount).isEqualTo(4);
     assertThat(commentTelemetry.clearedViolationsComponentCount).isEqualTo(0);
+    assertThat(markup.get()).isEqualTo(expectedContent);
   }
 
   @Test

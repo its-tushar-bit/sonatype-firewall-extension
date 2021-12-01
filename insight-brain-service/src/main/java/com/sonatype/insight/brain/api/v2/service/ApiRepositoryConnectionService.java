@@ -175,7 +175,7 @@ public class ApiRepositoryConnectionService
 
   @Authorize(permission = Permission.READ)
   public List<ApiRepositoryConnectionDTO> getRepositoryConnections(
-      @AuthzContext(Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       boolean inherit)
   {
@@ -190,8 +190,8 @@ public class ApiRepositoryConnectionService
 
   @Authorize(permission = Permission.READ)
   public Status testRepositoryConnection(
-      @AuthzContext(Key.TYPE) OwnerType ownerType,
-      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       ApiRepositoryConnectionDTO repositoryConnectionDTO)
   {
     validateRepositoryConnection(repositoryConnectionDTO);

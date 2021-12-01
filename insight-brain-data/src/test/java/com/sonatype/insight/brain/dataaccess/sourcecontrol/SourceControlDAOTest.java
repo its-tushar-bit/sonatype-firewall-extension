@@ -43,7 +43,9 @@ public class SourceControlDAOTest
 {
   private static final String NULL_REPO_URL = null;
 
-  private static final String VALID_URL = "https://example.com/organization/Project";
+  private static final String VALID_URL = "https://example.com/organization/Project.git";
+
+  private static final String VALID_NORMALIZED_URL = "https://example.com/organization/Project";
 
   private static final String VALID_SSH_URL = "git@example.com:organization/Project.git";
 
@@ -218,32 +220,6 @@ public class SourceControlDAOTest
 
     // then: source control poll time set to null
     assertThat(sourceControl.getPullRequestPollTime()).isNull();
-  }
-
-  @Test
-  public void testGetByRepositoryOwnerAndName() {
-    // given: a source control entry with the desired repo owner and name
-    String repoOwnerAndName = "testOrg/repoName";
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
-    tempEntity.newSourceControl(app.getId(), "http://domain.com/" + repoOwnerAndName, "", null);
-
-    // when: find the source control entry by owner and name string
-    List<SourceControl> sourceControlList = sourceControlDAO.getByRepositoryOwnerAndName(repoOwnerAndName);
-
-    // then: we found it
-    assertThat(sourceControlList).isNotNull();
-    assertThat(sourceControlList.size()).isEqualTo(1);
-    assertThat(sourceControlList.get(0).getOwnerId()).isEqualTo(app.getId());
-
-    // when: add a 2nd source control entry for same repo and search again
-    Application app2 = tempEntity.newApplication(app.getOrganizationId());
-    tempEntity.newSourceControl(app2.getId(), "http://domain.com/" + repoOwnerAndName, null);
-    sourceControlList = sourceControlDAO.getByRepositoryOwnerAndName(repoOwnerAndName);
-
-    // then: we have 2 now
-    assertThat(sourceControlList.size()).isEqualTo(2);
-    assertThat(sourceControlList).extracting(SourceControl::getOwnerId)
-        .containsExactlyInAnyOrder(app.getId(), app2.getId());
   }
 
   @Test
@@ -481,7 +457,7 @@ public class SourceControlDAOTest
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
     assertThat(sourceControl.getOwnerId()).isEqualTo(app.getId());
     assertThat(sourceControl.getRepositoryUrl()).isEqualTo(VALID_URL);
-    assertThat(sourceControl.getNormalizedRepositoryUrl()).isEqualTo(VALID_URL.toLowerCase(Locale.ENGLISH));
+    assertThat(sourceControl.getNormalizedRepositoryUrl()).isEqualTo(VALID_NORMALIZED_URL);
     assertThat(sourceControl.getUsername()).isNull();
     assertThat(sourceControl.getToken()).isEqualTo("bar");
     assertThat(sourceControl.getBaseBranch()).isEqualTo("base/branch");

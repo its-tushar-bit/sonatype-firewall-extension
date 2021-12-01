@@ -320,19 +320,20 @@ public class PullRequestFeedbackDetails
       final Integer scmId)
   {
     String linkUrl = "";
-    if (scmId != null && gitRepositoryInfo.getRepositoryUrl().startsWith("http")) {
+    if (scmId != null) {
       BaseProjectUri projectUri;
+      String repositoryUrl = gitRepositoryInfo.normalizedRepositoryUrl;
       switch (gitRepositoryInfo.provider) {
         case GITHUB:
-          projectUri = new SimpleProjectUri(gitRepositoryInfo.getRepositoryUrl());
+          projectUri = new SimpleProjectUri(repositoryUrl);
           linkUrl = projectUri.getCanonicalUri().toString() + "pull/" + prNumber + "#discussion_r" + scmId;
           break;
         case GITLAB:
-          projectUri = new GitlabProjectUri(gitRepositoryInfo.getRepositoryUrl());
+          projectUri = new GitlabProjectUri(repositoryUrl);
           linkUrl = projectUri.getCanonicalUri().toString() + "-/merge_requests/" + prNumber + "#note_" + scmId;
           break;
         case BITBUCKET:
-          projectUri = new BitbucketServerProjectUri(gitRepositoryInfo.getRepositoryUrl());
+          projectUri = new BitbucketServerProjectUri(repositoryUrl);
           linkUrl = "/bitbucket/projects/" + projectUri.getNamespace() + "/repos/" + projectUri.getProject() +
               "/pull-requests/" + prNumber + "/overview?commentId=" + scmId;
           break;

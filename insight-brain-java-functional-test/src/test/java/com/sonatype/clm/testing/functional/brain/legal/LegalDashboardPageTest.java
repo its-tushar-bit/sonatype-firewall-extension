@@ -72,13 +72,18 @@ public class LegalDashboardPageTest
         "Grammatica-BSD-3-Clause-Variant"};
     ComponentIdentifier[] componentIdentifiers = new ComponentIdentifier[licenses.length];
 
+    String currentComponentName = "";
+
     for (int i = 1; i < 21; i++) {
-      addComponentAndLicenses(apps[ i % apps.length ], "org.package", "component",
+      
+      currentComponentName = (i == 1 || i == 12) ? "#$%&/" : "component";
+
+      addComponentAndLicenses(apps[ i % apps.length ], "org.package", currentComponentName,
               (i % licenses.length + 1 ) + ".0", "hash" + (i % licenses.length + 1), licenses[ i % licenses.length ]);
 
       componentIdentifiers[ i % licenses.length ] = componentIdentifiers[ i % licenses.length ] != null ?
               componentIdentifiers[ i % licenses.length ] : ComponentIdentifier
-                .createMavenCoordinates("org.package", "component", (i % licenses.length + 1) + ".0");
+                .createMavenCoordinates("org.package", currentComponentName, (i % licenses.length + 1) + ".0");
 
       tempEntity.newComponentObligation(
               componentIdentifiers[ i % licenses.length ], apps[ i % apps.length ].getId(),
@@ -124,7 +129,7 @@ public class LegalDashboardPageTest
     this.changeToComponentsTab(ldp);
     ldp.tableRows().shouldHaveSize(10);
     ldp.tableRows().get(0).click();
-    waitUntilUrl(BaseUrl.resolvePageUrl("/legal/component/hash1"));
+    waitUntilUrl(BaseUrl.resolvePageUrl("/legal/component/hash2"));
   }
 
   @Test
@@ -151,10 +156,10 @@ public class LegalDashboardPageTest
     LegalDashboardPage ldp = new LegalDashboardPage();
     this.changeToComponentsTab(ldp);
 
-    ldp.componentsTableComponentNameCols().get(0).shouldHave(Condition.text("org.package : component : 1.0"));
+    ldp.componentsTableComponentNameCols().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0"));
     ldp.componentsTableComponentNameHeader().shouldHave(Condition.attribute("aria-sort", "none"));
     ldp.componentsTableComponentNameHeaderSortBtn().click();
-    ldp.componentsTableComponentNameCols().get(0).shouldHave(Condition.text("org.package : component : 1.0"));
+    ldp.componentsTableComponentNameCols().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0"));
     ldp.componentsTableComponentNameHeader().shouldHave(Condition.attribute("aria-sort", "ascending"));
     ldp.componentsTableComponentNameHeaderSortBtn().click();
     ldp.componentsTableComponentNameCols().get(0).shouldHave(Condition.text("org.package : component : 9.0"));
@@ -167,7 +172,7 @@ public class LegalDashboardPageTest
     LegalDashboardPage ldp = new LegalDashboardPage();
     this.changeToComponentsTab(ldp);
 
-    ldp.componentsTableLicenseNameCols().get(0).shouldHave(Condition.text("Apache-1.0"));
+    ldp.componentsTableLicenseNameCols().get(0).shouldHave(Condition.text("MIT"));
     ldp.componentsTableLicenseNameHeader().shouldHave(Condition.attribute("aria-sort", "none"));
     ldp.componentsTableLicenseNameHeaderSortBtn().click();
     ldp.componentsTableLicenseNameCols().get(0).shouldHave(Condition.text("Apache-1.0"));
@@ -183,7 +188,7 @@ public class LegalDashboardPageTest
     LegalDashboardPage ldp = new LegalDashboardPage();
     this.changeToComponentsTab(ldp);
 
-    ldp.componentsTableApplicationCountCols().get(0).shouldHave(Condition.text("1"));
+    ldp.componentsTableApplicationCountCols().get(0).shouldHave(Condition.text("2"));
     ldp.componentsTableApplicationCountHeader().shouldHave(Condition.attribute("aria-sort", "none"));
     ldp.componentsTableApplicationCountHeaderSortBtn().click();
     ldp.componentsTableApplicationCountCols().get(0).shouldHave(Condition.text("1"));
@@ -191,5 +196,73 @@ public class LegalDashboardPageTest
     ldp.componentsTableApplicationCountHeaderSortBtn().click();
     ldp.componentsTableApplicationCountCols().get(0).shouldHave(Condition.text("2"));
     ldp.componentsTableApplicationCountHeader().shouldHave(Condition.attribute("aria-sort", "descending"));
+  }
+
+  @Test
+  public void testComponentsDisabledSearchButtonOnTableLoad() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.componentsSearchInput().setValue("1.0");
+    ldp.componentsSearchButton().click();
+    ldp.componentsSearchButton().shouldBe(Condition.disabled);
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
+    ldp.componentsSearchButton().shouldBe(Condition.enabled);
+  }
+
+  @Test
+  public void testComponentsSearchInputValidationFor3CharsMin() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.componentsSearchInput().setValue("1.");
+    ldp.componentsSearchButton().shouldBe(Condition.disabled);
+    ldp.componentsSearchInput().parent().parent().shouldHave(Condition.cssClass("invalid"));
+    ldp.componentsSearchInputErrorMessage().has(Condition.text("You must input at least three characters to search"));
+  }
+
+  @Test
+  public void testComponentsSearch() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.componentsSearchInput().setValue("1.0");
+    ldp.componentsSearchButton().click();
+    ldp.componentsTableApplicationCountCols().shouldHaveSize(2);
+    ldp.pageButtons().shouldHaveSize(1);
+  }
+
+  @Test
+  public void testComponentsSearchWithEmptyString() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.componentsSearchInput().setValue("");
+    ldp.componentsSearchButton().click();
+    ldp.componentsTableApplicationCountCols().shouldHaveSize(10);
+    ldp.pageButtons().shouldHaveSize(2);
+  }
+
+  @Test
+  public void testComponentsSearchWithNotMatchableString() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.componentsSearchInput().setValue("not matchable string");
+    ldp.componentsSearchButton().click();
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.visibilityOf(ldp.noComponentsFoundMessage()));
+  }
+
+  @Test
+  public void testComponentsSearchWithSpecialCharsString() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.componentsSearchInput().setValue("#$%&/");
+    ldp.componentsSearchButton().click();
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
   }
 }

@@ -41,7 +41,9 @@ describe('legalDashboardActions', function () {
       },
       legalDashboard: {
         applications: {},
-        components: {},
+        components: {
+          componentNameInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+        },
       },
     };
 

@@ -11,6 +11,7 @@ import {
   LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED,
   LEGAL_DASHBOARD_FETCH_BACKEND_PAGE,
   LEGAL_DASHBOARD_CHANGE_SORT_FIELD,
+  LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH,
 } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
 
 const otherObject = { value: 'test value' };
@@ -41,6 +42,7 @@ describe('legalDashboardReducer', function () {
         results: [],
         error: null,
         sortField: null,
+        componentNameInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
       });
     });
   });
@@ -161,6 +163,90 @@ describe('legalDashboardReducer', function () {
       const newState = legalDashboardReducer(state, action);
       expect(newState.applications.sortField).toBe(action.payload.sortField);
       expect(newState.components).toBe(state.components);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+  describe('LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH action', function () {
+    it('sets the search string for components', function () {
+      const state = Object.freeze({
+        components: {
+          error: {},
+          componentNameInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+        },
+        applications: { error: null },
+        currentTab: 'components',
+        other: otherObject,
+      });
+      const searchString = 'searchString';
+      const action = {
+        type: LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH,
+        payload: searchString,
+      };
+      const newState = legalDashboardReducer(state, action);
+      expect(newState.components.componentNameInput).toEqual({
+        isPristine: false,
+        value: searchString,
+        trimmedValue: searchString,
+        validationErrors: null,
+      });
+      expect(newState.actions).toBe(state.actions);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets the validationErrors with a less than 3 chars search string', function () {
+      const state = Object.freeze({
+        components: {
+          error: {},
+          componentNameInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+        },
+        applications: { error: null },
+        currentTab: 'components',
+        other: otherObject,
+      });
+      const searchString = '12';
+      const action = {
+        type: LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH,
+        payload: searchString,
+      };
+      const newState = legalDashboardReducer(state, action);
+      expect(newState.components.componentNameInput).toEqual({
+        isPristine: false,
+        value: searchString,
+        trimmedValue: searchString,
+        validationErrors: 'You must input at least three characters to search',
+      });
+      expect(newState.actions).toBe(state.actions);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets an empty string as valid to reset search criteria', function () {
+      const state = Object.freeze({
+        components: {
+          error: {},
+          componentNameInput: {
+            isPristine: true,
+            value: '12',
+            trimmedValue: '12',
+            validationErrors: 'No components found given the applied filters and permissions.',
+          },
+        },
+        applications: { error: null },
+        currentTab: '',
+        other: otherObject,
+      });
+      const searchString = '';
+      const action = {
+        type: LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH,
+        payload: searchString,
+      };
+      const newState = legalDashboardReducer(state, action);
+      expect(newState.components.componentNameInput).toEqual({
+        isPristine: false,
+        value: searchString,
+        trimmedValue: searchString,
+        validationErrors: null,
+      });
+      expect(newState.actions).toBe(state.actions);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });

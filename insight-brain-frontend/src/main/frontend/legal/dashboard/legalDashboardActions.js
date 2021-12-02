@@ -14,6 +14,7 @@ export const LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED = 'LEGAL_DASHBOARD_LOAD_RESU
 export const LEGAL_DASHBOARD_LOAD_RESULTS_FAILED = 'LEGAL_DASHBOARD_LOAD_RESULTS_FAILED';
 export const LEGAL_DASHBOARD_FETCH_BACKEND_PAGE = 'LEGAL_DASHBOARD_FETCH_BACKEND_PAGE';
 export const LEGAL_DASHBOARD_CHANGE_SORT_FIELD = 'LEGAL_DASHBOARD_CHANGE_SORT_FIELD';
+export const LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH = 'LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH';
 
 const legalDashboardFetchBackendPage = payloadParamActionCreator(LEGAL_DASHBOARD_FETCH_BACKEND_PAGE);
 const legalDashboardChangeSortField = payloadParamActionCreator(LEGAL_DASHBOARD_CHANGE_SORT_FIELD);
@@ -31,6 +32,8 @@ function loadResultsFailed(resultsType, error) {
     payload: { resultsType, error },
   };
 }
+
+export const changeComponentNameToSearch = payloadParamActionCreator(LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH);
 
 export function loadResults(resultsType) {
   return (dispatch, getState) => {
@@ -53,7 +56,8 @@ export function loadResults(resultsType) {
 function fetchResults(resultsType, state) {
   const { applications, organizations, stages, categories, progressOptions } = state.legalDashboardFilter.appliedFilter;
   const backendPage = state.legalDashboard[resultsType].backendPage || 1;
-  const applicationFilter = {
+
+  const appliedFilter = {
     applicationIds: Array.from(applications),
     organizationIds: Array.from(organizations),
     stageTypeIds: Array.from(stages),
@@ -64,8 +68,12 @@ function fetchResults(resultsType, state) {
     order: state.legalDashboard[resultsType].sortField,
   };
 
+  if (resultsType === 'components') {
+    appliedFilter.componentName = state.legalDashboard[resultsType].componentNameInput.trimmedValue;
+  }
+
   const serviceMethod = getServiceMethod(resultsType);
-  return axios.post(serviceMethod(), applicationFilter);
+  return axios.post(serviceMethod(), appliedFilter);
 }
 
 function getServiceMethod(resultsType) {

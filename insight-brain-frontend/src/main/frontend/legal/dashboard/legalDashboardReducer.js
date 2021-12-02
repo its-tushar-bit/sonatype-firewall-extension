@@ -10,11 +10,15 @@ import {
   LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED,
   LEGAL_DASHBOARD_FETCH_BACKEND_PAGE,
   LEGAL_DASHBOARD_CHANGE_SORT_FIELD,
+  LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH,
 } from './legalDashboardActions';
 import {
   LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED,
   LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED,
 } from './filter/legalDashboardFilterActions';
+import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+
+const { initialState, userInput } = nxTextInputStateHelpers;
 
 const initState = {
   applications: {
@@ -29,9 +33,19 @@ const initState = {
     results: [],
     error: null,
     sortField: null,
+    componentNameInput: initialState(''),
   },
   loading: false,
   loadError: null,
+};
+
+const validator = (value) => {
+  const trimmedValue = value.trim();
+  if (trimmedValue.length < 3 && trimmedValue.length > 0) {
+    return 'You must input at least three characters to search';
+  } else {
+    return null;
+  }
 };
 
 export default function (state = initState, { type, payload }) {
@@ -61,6 +75,10 @@ export default function (state = initState, { type, payload }) {
     case LEGAL_DASHBOARD_CHANGE_SORT_FIELD: {
       const { resultsType, sortField } = payload;
       return updateResults(state, resultsType, { sortField: sortField });
+    }
+
+    case LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH: {
+      return updateResults(state, 'components', { componentNameInput: userInput(validator, payload) });
     }
 
     default:

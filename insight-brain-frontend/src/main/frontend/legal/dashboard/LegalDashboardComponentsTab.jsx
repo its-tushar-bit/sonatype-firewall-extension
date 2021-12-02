@@ -12,13 +12,23 @@ import {
   NxTableHead,
   NxTableRow,
   NxPagination,
+  NxTextInput,
+  NxButton,
+  NxButtonBar,
 } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import LegalDashboardComponentRow from './LegalDashboardComponentRow';
 import { DASHBOARD } from '../advancedLegalConstants';
 import { isNilOrEmpty } from '../../util/jsUtil';
 
-export default function LegalDashboardComponentsTab({ components, fetchBackendPage, changeSortField, stateGo }) {
+export default function LegalDashboardComponentsTab({
+  components,
+  fetchBackendPage,
+  changeSortField,
+  stateGo,
+  changeComponentNameToSearch,
+  loadResults,
+}) {
   const [page, setPage] = useState(components.backendPage - 1 || 0);
   const { itemsPerPage, pagesToFill } = DASHBOARD.components;
   const previousResultsBackend = (components.backendPage - 1) * pagesToFill * itemsPerPage;
@@ -64,60 +74,74 @@ export default function LegalDashboardComponentsTab({ components, fetchBackendPa
   }
 
   return (
-    <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
-      <NxTable id="legal-dashboard-components-table" className="legal-dashboard-table">
-        <NxTableHead>
-          <NxTableRow>
-            <NxTableCell
-              id="component-component-name-header"
-              isSortable
-              sortDir={getSortDir('COMPONENT_NAME')}
-              onClick={() => sort('COMPONENT_NAME')}
-            >
-              Component
-            </NxTableCell>
-            <NxTableCell
-              id="component-license-name-header"
-              isSortable
-              sortDir={getSortDir('LICENSE_NAME')}
-              onClick={() => sort('LICENSE_NAME')}
-            >
-              Licenses
-            </NxTableCell>
-            <NxTableCell
-              id="component-application-count-header"
-              isSortable
-              sortDir={getSortDir('APPLICATION_COUNT')}
-              onClick={() => sort('APPLICATION_COUNT')}
-            >
-              Applications
-            </NxTableCell>
-            <NxTableCell>Component Obligations</NxTableCell>
-            <NxTableCell></NxTableCell>
-          </NxTableRow>
-        </NxTableHead>
-        <NxTableBody isLoading={components.loading} emptyMessage={emptyMessage}>
-          {rows.map((row, index) => (
-            <LegalDashboardComponentRow key={index} row={row} stateGo={stateGo} />
-          ))}
-        </NxTableBody>
-      </NxTable>
-      {components && !isNilOrEmpty(components.results) && (
-        <div className="nx-table-container__footer">
-          <NxPagination
-            pageCount={Math.ceil(components.totalResultsCount / itemsPerPage)}
-            currentPage={page}
-            onChange={onPageChange}
-          />
-        </div>
-      )}
-    </div>
+    <>
+      <NxButtonBar id="legal-dashboard-component-searchbox-container">
+        <NxTextInput validatable onChange={changeComponentNameToSearch} {...components.componentNameInput} />
+        <NxButton
+          variant="primary"
+          onClick={() => loadResults('components')}
+          disabled={components.loading || components.componentNameInput.validationErrors}
+        >
+          Search
+        </NxButton>
+      </NxButtonBar>
+      <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
+        <NxTable id="legal-dashboard-components-table" className="legal-dashboard-table">
+          <NxTableHead>
+            <NxTableRow>
+              <NxTableCell
+                id="component-component-name-header"
+                isSortable
+                sortDir={getSortDir('COMPONENT_NAME')}
+                onClick={() => sort('COMPONENT_NAME')}
+              >
+                Component
+              </NxTableCell>
+              <NxTableCell
+                id="component-license-name-header"
+                isSortable
+                sortDir={getSortDir('LICENSE_NAME')}
+                onClick={() => sort('LICENSE_NAME')}
+              >
+                Licenses
+              </NxTableCell>
+              <NxTableCell
+                id="component-application-count-header"
+                isSortable
+                sortDir={getSortDir('APPLICATION_COUNT')}
+                onClick={() => sort('APPLICATION_COUNT')}
+              >
+                Applications
+              </NxTableCell>
+              <NxTableCell>Component Obligations</NxTableCell>
+              <NxTableCell></NxTableCell>
+            </NxTableRow>
+          </NxTableHead>
+          <NxTableBody isLoading={components.loading} emptyMessage={emptyMessage}>
+            {rows.map((row, index) => (
+              <LegalDashboardComponentRow key={index} row={row} stateGo={stateGo} />
+            ))}
+          </NxTableBody>
+        </NxTable>
+        {components && !isNilOrEmpty(components.results) && (
+          <div className="nx-table-container__footer">
+            <NxPagination
+              pageCount={Math.ceil(components.totalResultsCount / itemsPerPage)}
+              currentPage={page}
+              onChange={onPageChange}
+            />
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 
 LegalDashboardComponentsTab.propTypes = {
   components: PropTypes.any,
+  changeComponentNameToSearch: PropTypes.func.isRequired,
   fetchBackendPage: PropTypes.func.isRequired,
   changeSortField: PropTypes.func.isRequired,
+  loadResults: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
 };

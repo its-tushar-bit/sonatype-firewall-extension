@@ -51,6 +51,11 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 /**
+ * This class in the entry point for the Feature Branch Monitoring feature (part of Continuous Risk Profile).
+ * It detects changes on feature branches that have associated pull requests, executes policy evaluations on the
+ * changed feature branches. The updated pull request policy evaluations may trigger pull requests comment updates,
+ * when policy violations are resolved or introduced.
+ *
  * @since 1.114
  */
 @Named

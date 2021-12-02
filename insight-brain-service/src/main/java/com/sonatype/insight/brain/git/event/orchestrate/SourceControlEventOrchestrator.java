@@ -60,6 +60,10 @@ import static java.lang.System.currentTimeMillis;
  * generally allow requests from different users to be sent in parallel
  * - also, if this instance is processing events, this class regularly polls the database to get the untagged events
  * coming from other instances of IQ and sends them to the UserEventManagers for processing
+ *
+ * This class is used by default as the main driver for event processing. If the 'orchestratedEventProcessing' feature
+ * flag is set to {@code false}, the {@link com.sonatype.insight.brain.git.event.SourceControlEventProcessingScheduler}
+ * class is used instead.
  */
 @Named
 @Singleton

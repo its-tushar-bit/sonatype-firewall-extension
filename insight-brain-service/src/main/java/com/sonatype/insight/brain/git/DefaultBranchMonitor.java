@@ -38,6 +38,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * This class in the entry point for the Default Branch Monitoring feature (part of Continuous Risk Profile).
+ * It runs periodically to ensure that the default branch policy evaluations for all SCM enabled applications are not
+ * stale.
+ * The updated policy evaluations may trigger downstream processes like the creation of automated remediation pull
+ * requests.
+ *
  * @since 1.118
  */
 @Named

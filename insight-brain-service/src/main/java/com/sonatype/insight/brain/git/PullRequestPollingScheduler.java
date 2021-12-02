@@ -22,6 +22,13 @@ import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class is the entry point for the pull request discovery flow, part of PR Comments feature.
+ * It runs periodically and detects if there are any new open pull requests (PRs) for any repository associated with an
+ * SCM configured application, for which we could create PR comments i.e.
+ * - there is a policy evaluation run against the source control configured default branch, and
+ * - there is a policy evaluation run against the feature/development branch head commit that the PR pertains to.
+ */
 @Named
 @Singleton
 public class PullRequestPollingScheduler

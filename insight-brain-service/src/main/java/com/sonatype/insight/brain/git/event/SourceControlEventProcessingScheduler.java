@@ -30,6 +30,10 @@ import org.slf4j.LoggerFactory;
  * source control events from a durable queue (i.e. DB table) and submits them for execution.  This allows us to
  * better control the amount of work we submit to the system at any given time as load testing revealed
  * that the previous implementation could submit so much work that the system becomes overwhelmed.
+ *
+ * This class is used only if the 'orchestratedEventProcessing' feature flag is set to {@code false}. Otherwise,
+ * the {@link com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventOrchestrator} class is driving the
+ * event processing.
  */
 @Named
 @Singleton

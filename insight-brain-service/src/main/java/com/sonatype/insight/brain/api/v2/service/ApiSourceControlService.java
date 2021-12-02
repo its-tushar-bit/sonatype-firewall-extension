@@ -391,8 +391,8 @@ public class ApiSourceControlService
     attributes.put("owner_id", HdsClientAnalytics.obfuscate(sourceControl.getOwnerId()));
     attributes.put("repository_url", HdsClientAnalytics.obfuscate(sourceControl.getRepositoryUrl()));
     attributes.put("provider", sourceControl.getProvider() != null ? sourceControl.getProvider().toString() : null);
-    attributes.put("remediation_pull_requests_enabled", sourceControl.getRemediationPullRequestsEnabled());
-    attributes.put("status_checks_enabled", sourceControl.getStatusChecksEnabled());
+    attributes.put("enable_pull_requests", sourceControl.getRemediationPullRequestsEnabled());
+    attributes.put("enable_status_checks", sourceControl.getStatusChecksEnabled());
     attributes.put("base_branch", sourceControl.getBaseBranch());
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL);

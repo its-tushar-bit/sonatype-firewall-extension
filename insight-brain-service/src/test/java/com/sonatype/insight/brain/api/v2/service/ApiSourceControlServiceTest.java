@@ -657,8 +657,8 @@ public class ApiSourceControlServiceTest
     expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
     expectedAttributes.put("repository_url", HdsClientAnalytics.obfuscate(repositoryUrl));
     expectedAttributes.put("provider", provider);
-    expectedAttributes.put("remediation_pull_requests_enabled", remediationPullRequestsEnabled);
-    expectedAttributes.put("status_checks_enabled", statusChecksEnabled);
+    expectedAttributes.put("enable_pull_requests", remediationPullRequestsEnabled);
+    expectedAttributes.put("enable_status_checks", statusChecksEnabled);
     expectedAttributes.put("base_branch", baseBranch);
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL);

@@ -77,4 +77,20 @@ public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
   public SelenideElement componentsTableApplicationCountHeader() {
     return child("#component-application-count-header");
   }
+
+  public SelenideElement componentsSearchInput() {
+    return child("#legal-dashboard-component-searchbox-container .nx-text-input input[type='text']");
+  }
+
+  public SelenideElement componentsSearchButton() {
+    return child("#legal-dashboard-component-searchbox-container .nx-btn--primary");
+  }
+
+  public SelenideElement componentsSearchInputErrorMessage() {
+    return child("#legal-dashboard-component-searchbox-container .nx-text-input__invalid-message");
+  }
+
+  public SelenideElement noComponentsFoundMessage() {
+    return child("#legal-dashboard-components-table .nx-cell.nx-cell--meta-info");
+  }
 }

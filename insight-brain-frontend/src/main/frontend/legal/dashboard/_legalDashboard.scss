@@ -51,3 +51,11 @@ legal-dashboard {
   margin-left: var(--nx-spacing-2x);
   vertical-align: middle;
 }
+
+#legal-dashboard-component-searchbox-container {
+  justify-content: flex-start;
+  margin-bottom: var(--nx-spacing-8x);
+  .nx-text-input {
+    margin-bottom: 0;
+  }
+}

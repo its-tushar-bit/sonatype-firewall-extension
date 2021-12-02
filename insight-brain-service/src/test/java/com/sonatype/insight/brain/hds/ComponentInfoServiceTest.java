@@ -1533,7 +1533,7 @@ public class ComponentInfoServiceTest
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_withRequestedVersion_Beginning() {
     insightConfig.setExperimentalFeatures(
         ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
-    String identificationSource = IdentificationSource.REPOSITORY.getId();
+    String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
 
     mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId(), "v1",
@@ -1556,7 +1556,7 @@ public class ComponentInfoServiceTest
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_withRequestedVersion_inBetween() {
     insightConfig.setExperimentalFeatures(
         ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
-    String identificationSource = IdentificationSource.REPOSITORY.getId();
+    String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
 
     mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId(), "v0",
@@ -1579,7 +1579,7 @@ public class ComponentInfoServiceTest
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_withRequestedVersion_End() {
     insightConfig.setExperimentalFeatures(
         ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
-    String identificationSource = IdentificationSource.REPOSITORY.getId();
+    String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
 
     mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId(), "v0.4",
@@ -1602,7 +1602,7 @@ public class ComponentInfoServiceTest
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_missingRequestedVersion() {
     insightConfig.setExperimentalFeatures(
         ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
-    String identificationSource = IdentificationSource.REPOSITORY.getId();
+    String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
     mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId(), "v0",
         "v3");
@@ -1624,7 +1624,7 @@ public class ComponentInfoServiceTest
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_noResult() {
     insightConfig.setExperimentalFeatures(
         ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
-    String identificationSource = IdentificationSource.REPOSITORY.getId();
+    String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
     mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId());
 
@@ -1643,7 +1643,7 @@ public class ComponentInfoServiceTest
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_npm() {
     insightConfig.setExperimentalFeatures(
         ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
-    String identificationSource = IdentificationSource.REPOSITORY.getId();
+    String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
     mockRepositoryQueryServiceAllVersionResponse(NPM_COORDINATES, application.getId(), "v0", "v1", "v2");
 

@@ -6,6 +6,10 @@
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
+#iq-policy-violations-table {
+  margin-bottom: 0;
+}
+
 .iq-policy-violations-table {
   &.nx-table {
     // overflow override to properly display dropdowns on the final row

@@ -54,7 +54,7 @@ export default function PolicyViolationsTable({
           Re-evaluate this report to enable <b>waivers functionality</b>.
         </NxWarningAlert>
       )}
-      <NxTable className="iq-policy-violations-table">
+      <NxTable id="iq-policy-violations-table" className="iq-policy-violations-table">
         <NxTableHead>
           <NxTableRow>
             <NxTableCell>Threat</NxTableCell>

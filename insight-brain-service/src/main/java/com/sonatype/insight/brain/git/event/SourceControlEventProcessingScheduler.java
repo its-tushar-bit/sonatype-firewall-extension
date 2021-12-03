@@ -26,6 +26,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * @deprecated this and the #SourceControlEventService were deprecated in IQ 129 in favor of the new
+ * #SourceControlEventOrchestrator which has been enabled on our own internal Sonatype policy server (iq.sonatype.dev)
+ * for several months now without issue.  The intent is to remove this class once we've verified there is no
+ * negative feedback flowing in from the field.
+ *
  * This class is the heartbeat of source control event processing.  It regularly initiates the process that pulls
  * source control events from a durable queue (i.e. DB table) and submits them for execution.  This allows us to
  * better control the amount of work we submit to the system at any given time as load testing revealed

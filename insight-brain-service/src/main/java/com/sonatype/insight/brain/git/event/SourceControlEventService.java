@@ -39,6 +39,9 @@ import static java.lang.Thread.currentThread;
 import static java.lang.Thread.sleep;
 
 /**
+ * @deprecated in favor of the #SourceControlEventOrchestrator in IQ 129.  The intent is to delete this class once it's
+ * verified in the field there are no significant issues with the new orchestrator.
+ *
  * This class handles the interactions with the durable event queue (i.e. DB table) for source control events.
  * These events represent things like responses to discovered pull requests and responses to policy evaluations
  * that may or may not have a corresponding pull request associated with them.

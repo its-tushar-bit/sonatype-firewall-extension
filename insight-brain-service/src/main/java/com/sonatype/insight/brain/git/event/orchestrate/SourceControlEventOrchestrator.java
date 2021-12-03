@@ -63,7 +63,7 @@ import static java.lang.System.currentTimeMillis;
  *
  * This class is used by default as the main driver for event processing. If the 'orchestratedEventProcessing' feature
  * flag is set to {@code false}, the {@link com.sonatype.insight.brain.git.event.SourceControlEventProcessingScheduler}
- * class is used instead.
+ * class, which has been marked as deprecated, is used instead.
  */
 @Named
 @Singleton

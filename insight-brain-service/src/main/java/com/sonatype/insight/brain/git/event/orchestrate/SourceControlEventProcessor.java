@@ -43,7 +43,11 @@ public class SourceControlEventProcessor
   static final String REPO_ACCESS_LOCK_ERROR = "Unable to process event.  Could not acquire the repo access lock.";
 
   /*
-    work for the same repo/application should be done sequentially; work for different apps can be done in parallel
+    work for the same repo/application should be done sequentially; work for different apps can be done in parallel.
+
+    Note (12/2/2021): We control this via the IQ application ID.  There could be multiple IQ applications for the
+    same repo, which means we would have multiple git workspaces for the same repo (different, app specific
+    folders, though, so no real problem here - just something to keep in mind).
    */
   private SemaphorePool repoAccessController = new SemaphorePool(THREAD_POOL_SIZE);
 
@@ -268,6 +272,10 @@ public class SourceControlEventProcessor
     // work pending
   }
 
+  /**
+   * The purpose of the ManagedSourceControlEvent is to capture, retain, and interact with the 'listener' that
+   * will receive the final status/outcome of the processed event.
+   */
   public static class ManagedSourceControlEvent
   {
     private final SourceControlEvent sourceControlEvent;

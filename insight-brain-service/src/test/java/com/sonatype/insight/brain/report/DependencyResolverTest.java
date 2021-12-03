@@ -46,7 +46,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
-import io.dropwizard.util.Maps;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Before;
 import org.junit.Rule;
@@ -888,24 +887,6 @@ public class DependencyResolverTest
     assertThat(bomNodeEmptyPathnames.get("innerSource")).isNull();
     assertThat(bomNodeBadPathnames.get("directDependency")).isNull();
     assertThat(bomNodeBadPathnames.get("innerSource")).isNull();
-  }
-
-  @Test
-  public void testGetPossibleProprietaryCoordinates_Maven() {
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    assertThat(DependencyResolver.getPossibleProprietaryCoordinates(componentIdentifier)).containsExactly("g", "a");
-  }
-
-  @Test
-  public void testGetPossibleProprietaryCoordinates_Npm() {
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
-    assertThat(DependencyResolver.getPossibleProprietaryCoordinates(componentIdentifier)).containsExactly("p");
-  }
-
-  @Test
-  public void testGetPossibleProprietaryCoordinates_Default() {
-    ComponentIdentifier componentIdentifier = new ComponentIdentifier("f", Maps.of("c1", "v1", "c2", "v2"));
-    assertThat(DependencyResolver.getPossibleProprietaryCoordinates(componentIdentifier)).isEmpty();
   }
 
   @Test

@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -445,7 +444,7 @@ public class DependencyResolver
     if (isProprietary == null) {
       isProprietary = createIsProprietary(application.getId());
     }
-    return getPossibleProprietaryCoordinates(componentIdentifier).stream().anyMatch(isProprietary);
+    return componentIdentifier.getProprietaryCoordinates().stream().anyMatch(isProprietary);
   }
 
   // Visible for testing
@@ -466,26 +465,6 @@ public class DependencyResolver
     }
     Selector compoundSelector = new CompoundSelector(PathSelector.PROPERTY_NAME, selectors.toArray(new Selector[0]));
     return s -> compoundSelector.isSelected(s) == Selection.EXCLUDED;
-  }
-
-  // Visible for testing
-  static Set<String> getPossibleProprietaryCoordinates(ComponentIdentifier componentIdentifier) {
-    Set<String> result = new LinkedHashSet<>();
-    switch (componentIdentifier.getFormat()) {
-      case ComponentIdentifier.FORMAT_MAVEN: {
-        result.add(componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID));
-        result.add(componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID));
-        break;
-      }
-      case ComponentIdentifier.FORMAT_NPM: {
-        result.add(componentIdentifier.get(ComponentIdentifier.NPM_PACKAGE_ID));
-        break;
-      }
-      default: {
-        // noop
-      }
-    }
-    return result;
   }
 
   private String getHash(ComponentIdentifier componentIdentifier) {

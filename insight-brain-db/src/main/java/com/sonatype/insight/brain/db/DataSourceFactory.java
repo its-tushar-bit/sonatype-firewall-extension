@@ -32,7 +32,7 @@ public class DataSourceFactory
   private static final Map<DataSource, Boolean> newDataSources = new LinkedHashMap<>();
 
   public DataSourceFactory() {
-    super(null, null);
+    super(new H2DataSourceFactory());
   }
 
   @Override
@@ -53,14 +53,14 @@ public class DataSourceFactory
 
   public static DatabaseEngine getDatabaseEngine(DataSource dataSource) {
     try (Connection conn = dataSource.getConnection()) {
-      return getDatabaseEngine(conn.getMetaData().getDatabaseProductName());
+      return getDatabaseEngineFromName(conn.getMetaData().getDatabaseProductName());
     }
     catch (SQLException e) {
       throw new DatabaseException(e);
     }
   }
 
-  static DatabaseEngine getDatabaseEngine(String databaseProductName) {
+  static DatabaseEngine getDatabaseEngineFromName(String databaseProductName) {
     if ("h2".equalsIgnoreCase(databaseProductName)) {
       return H2DatabaseEngine.INSTANCE;
     }

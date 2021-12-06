@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use './variables' as *;
+
 // Tweaks necessary to get RSC nx-* classes to work within iq-* containers
 .iq-scrollable {
   .nx-table:first-child {
@@ -19,18 +21,14 @@
   margin-left: var(--nx-spacing-3x);
 }
 
-.nx-vulnerability-details dt {
-  font-weight: normal;
-}
-
-.nx-tree-view--collapsed {
-  .nx-tree-view__child {
+.nx-collapsible-items--collapsed {
+  .nx-collapsible-items__child {
     visibility: hidden;
   }
 }
 
-.nx-tree-view--threat-slider {
-  .nx-tree-view__child {
+.nx-collapsible-items--threat-slider {
+  .nx-collapsible-items__child {
     line-height: 18px;
     margin-left: var(--nx-spacing-2x);
   }
@@ -84,4 +82,19 @@
     background-color: $iq-light-turquoise;
     border: 1px solid $iq-light-turquoise;
   }
+}
+
+/**
+  Fix to solve issues of select element overflowing from modal:
+  RSC Variable override: Latest RSC uses --nx-width-form-element-wide: 800px;
+  IQ was implemented to use --nx-width-form-element-wide: 624px;
+*/
+
+html.nx-html {
+  --nx-width-form-element-wide: 624px;
+}
+
+.nx-text-input.nx-text-input--full {
+  width: 100%;
+  max-width: 100%;
 }

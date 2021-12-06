@@ -7,29 +7,29 @@
   #Typography
 */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 // These are deprecated - use the mixins instead
 // will remove from here when all references have been removed
 .bold {
-  @include nx-font-family;
+  @include nx-text-helpers.nx-font-family;
   font-weight: bold;
 }
 
 .semi-bold {
-  @include nx-font-family;
+  @include nx-text-helpers.nx-font-family;
   font-weight: 600;
 }
 
 .regular {
-  @include nx-font-family;
+  @include nx-text-helpers.nx-font-family;
   font-weight: normal;
 }
 
 $h1-font-size: 26px;
 
 h1 {
-  @include bold();
+  @include nx-text-helpers.bold;
 
   font-size: $h1-font-size;
   line-height: 28px;
@@ -37,7 +37,7 @@ h1 {
 }
 
 h2 {
-  @include bold();
+  @include nx-text-helpers.bold;
 
   font-size: 20px;
   line-height: 24px;
@@ -45,7 +45,7 @@ h2 {
 }
 
 h3 {
-  @include bold();
+  @include nx-text-helpers.bold;
 
   font-size: 18px;
   line-height: 21px;
@@ -53,7 +53,7 @@ h3 {
 }
 
 h4 {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   font-size: 14px;
   line-height: 16px;
@@ -66,7 +66,7 @@ li {
 }
 
 form label {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   cursor: default;
   font-size: 16px;
@@ -100,7 +100,7 @@ input[type='email'],
 input[type='password'],
 input[type='url'],
 textarea {
-  @include regular();
+  @include nx-text-helpers.regular;
 
   font-size: 14px;
   line-height: 18px;
@@ -109,7 +109,7 @@ textarea {
 
 label.checkbox,
 label.radio {
-  @include regular();
+  @include nx-text-helpers.regular;
 
   font-size: 14px;
 }

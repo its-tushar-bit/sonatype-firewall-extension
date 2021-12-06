@@ -6,6 +6,7 @@
 import * as enzymeUtils from '../enzymeUtils';
 import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile';
 import LicensesModalContainer from '../../../main/frontend/legal/license/LicensesModalContainer';
+import { NxAccordion } from '@sonatype/react-shared-components';
 
 describe('LicenseDetailsTile component', function () {
   let getShallowComponent, getMountedComponent, $state, minimalProps, setShowLicensesModalMock;
@@ -65,7 +66,7 @@ describe('LicenseDetailsTile component', function () {
 
   it('renders a header with label `License Details`', function () {
     const wrapper = getMountedComponent();
-    expect(wrapper.find('h2.nx-h2')).toHaveText('Licenses');
+    expect(wrapper.find(NxAccordion.Title)).toHaveText('Licenses');
   });
 
   it('renders an edit button', function () {
@@ -218,13 +219,14 @@ describe('LicenseDetailsTile component', function () {
     };
 
     const wrapper = enzymeUtils.getMountedComponent(LicenseDetailsTile, newMinimalProps)();
-    let content = wrapper.find('.nx-tile-content .license-details-tile__effective-licenses span');
+    console.log(wrapper.debug());
+    let content = wrapper.find('.license-details-tile__effective-licenses span');
     expect(content).toHaveText('None found');
 
-    content = wrapper.find('.nx-tile-content .license-details-tile__observed-licenses span');
+    content = wrapper.find('.license-details-tile__observed-licenses span');
     expect(content).toHaveText('None found');
 
-    content = wrapper.find('.nx-tile-content .license-details-tile__declared-licenses span');
+    content = wrapper.find('.license-details-tile__declared-licenses span');
     expect(content).toHaveText('None found');
   });
 

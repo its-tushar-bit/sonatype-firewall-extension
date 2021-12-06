@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 .legal-file-section-header {
   display: flex;
@@ -15,7 +15,7 @@
   font-weight: bold;
   // Truncate with ellipsis from the left
   direction: rtl;
-  @include nx-truncate-ellipsis;
+  @include nx-text-helpers.truncate-ellipsis;
 }
 .legal-file-content {
   display: -webkit-box;
@@ -44,10 +44,6 @@
 
   td {
     padding: 0;
-  }
-
-  .nx-text-input--full {
-    width: 100%;
   }
 
   .nx-toggle {

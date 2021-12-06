@@ -1310,7 +1310,7 @@ public class DashboardFilterTest
   private void assertFilterDisabled(NxTreeViewMultiSelect filter, String filterType) {
     filter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("0"));
 
-    filter.shouldHave(cssClass("nx-tree-view--disabled"));
+    filter.shouldHave(cssClass("nx-collapsible-items--disabled"));
     filter.multiSelectList().filter(visible).shouldBe(empty);
     filter.twisty().shouldBe(visible).click();
     filter.multiSelectList().filter(visible).shouldBe(empty);

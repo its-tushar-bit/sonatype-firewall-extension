@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use './variables' as *;
 
 body {
   &:not(.nx-body) {
@@ -14,7 +15,7 @@ body {
 
   &.nx-body {
     // override bootstrap
-    @include font-size(var(--nx-font-size));
+    @include nx-text-helpers.font-size(var(--nx-font-size));
   }
 }
 

@@ -106,7 +106,7 @@ public class ComponentLegalOverviewPage
     }
 
     public ElementsCollection all() {
-      return children(".nx-tile-subsection.legal-file");
+      return children(".legal-file");
     }
   }
 
@@ -152,7 +152,7 @@ public class ComponentLegalOverviewPage
     }
 
     public ElementsCollection all() {
-      return children(".nx-tile-subsection.legal-file");
+      return children(".legal-file");
     }
   }
 
@@ -189,7 +189,7 @@ public class ComponentLegalOverviewPage
     }
 
     public SelenideElement content() {
-      return child(".nx-tile-content");
+      return child(".nx-accordion__content div");
     }
   }
 

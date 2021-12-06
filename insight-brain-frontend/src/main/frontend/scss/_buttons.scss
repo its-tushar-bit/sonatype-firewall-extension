@@ -6,8 +6,12 @@
 /*
   ##Buttons
 */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use './variables' as *;
+
 .btn {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   background-color: $iq-grey-1;
   border: 1px solid $iq-grey-4;
@@ -138,9 +142,8 @@
 #proprietary-component-form,
 .accordion-group.users {
   .btn-mini {
-    @include border-radius($borderRadiusSmall);
-
-    font-size: $fontSizeMini;
-    padding: $paddingMini;
+    border-radius: 4px;
+    font-size: 11px;
+    padding: 1px 6px;
   }
 }

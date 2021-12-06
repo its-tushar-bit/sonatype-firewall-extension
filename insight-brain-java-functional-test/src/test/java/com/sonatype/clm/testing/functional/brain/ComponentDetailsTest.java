@@ -778,10 +778,10 @@ public class ComponentDetailsTest
     issueContent.shouldHave(text("CVE-1234-56789"));
 
     SelenideElement severityContent = vulnerabilityDetailsPopover.getSectionContentByIdx(2);
-    severityContent.shouldHave(text("Sonatype CVSS 3:9.1 CVE CVSS 2.0:0.0"));
+    severityContent.shouldHave(text("Sonatype CVSS 39.1 CVE CVSS 2.00.0"));
 
     SelenideElement weaknessContent = vulnerabilityDetailsPopover.getSectionContentByIdx(3);
-    weaknessContent.shouldHave(text("Sonatype CWE:400"));
+    weaknessContent.shouldHave(text("Sonatype CWE400"));
 
     SelenideElement sourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(4);
     sourceContent.shouldHave(text("Sonatype Data Research"));

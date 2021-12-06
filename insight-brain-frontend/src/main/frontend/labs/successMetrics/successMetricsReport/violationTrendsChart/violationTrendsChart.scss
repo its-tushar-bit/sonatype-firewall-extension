@@ -7,6 +7,9 @@
 // 48*3 - padding between charts
 // 24   - top padding
 // 292 = 31*4 + 48*3 + 24
+
+@use '../../../../scss/variables' as *;
+
 $chart-height: 292px;
 
 $total-delta-icon-margin-right: 12px;

@@ -3,6 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
 .iq-nav-pills {
   list-style: none;
   overflow: hidden;
@@ -15,7 +20,7 @@
     margin-right: $iq-spacing-md;
 
     > a {
-      @include semi-bold();
+      @include nx-text-helpers.semi-bold;
 
       border: 1px solid $iq-grey-5;
       border-radius: 16px;

@@ -7,6 +7,10 @@
  * Styles required to override Bootstraps default styles
  * Please list the location in the app of any changes
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use './variables' as *;
+
 .nx-list {
   ul,
   ol {
@@ -58,7 +62,7 @@
 .nx-fieldset {
   // override bootstrap <legend> styles and apply normal label styles
   legend.nx-legend {
-    @include semi-bold();
+    @include nx-text-helpers.semi-bold;
 
     // use the same styling as <label>s
     border-style: none;
@@ -178,4 +182,17 @@
   &:focus {
     box-shadow: none;
   }
+}
+
+.nx-vulnerability-details__sub-description-term {
+  font-weight: normal;
+}
+
+/*
+  Fix to solve issue of textarea not expanding to full width:
+  bootstrap value for width of textarea is 206px;
+  This overrides the value so that the textarea expands to full width.
+*/
+.nx-text-input textarea {
+  width: 100%;
 }

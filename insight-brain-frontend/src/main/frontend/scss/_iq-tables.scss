@@ -7,10 +7,14 @@
   #Tables
 */
 
-$iq-table-header-row-height: 24px;
-$iq-table-header-filter-row-height: 38px;
-$iq-cell-filter-left-padding: 3px;
-$iq-cell-filter-right-padding: 2px;
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
+$-table-header-row-height: 24px;
+$-table-header-filter-row-height: 38px;
+$-cell-filter-left-padding: 3px;
+$-cell-filter-right-padding: 2px;
 
 .iq-table {
   border-collapse: collapse;
@@ -64,7 +68,7 @@ tbody {
     }
 
     .iq-cell--label {
-      @include semi-bold();
+      @include nx-text-helpers.semi-bold;
 
       color: $iq-text-color-light;
     }
@@ -76,7 +80,7 @@ tbody {
 }
 
 .iq-cell {
-  @extend .truncate-ellipsis;
+  @include nx-text-helpers.truncate-ellipsis;
 
   background-clip: padding-box;
   border-top: $iq-border-row;
@@ -102,7 +106,7 @@ tbody {
 }
 
 .iq-cell--header {
-  @include semi-bold;
+  @include nx-text-helpers.semi-bold;
   background-color: $iq-off-white;
   border-bottom: $iq-border-row-dark;
   border-top: none;
@@ -188,14 +192,14 @@ tbody {
 }
 
 .iq-cell--label {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   color: $iq-off-black;
 }
 
 // Used when table contents are empty
 .iq-cell--empty {
-  @include regular();
+  @include nx-text-helpers.regular;
 
   box-sizing: border-box;
   color: $iq-text-color-light;
@@ -236,7 +240,7 @@ tbody {
 thead {
   .iq-table-row--filters {
     border-color: transparent;
-    height: $iq-table-header-filter-row-height;
+    height: $-table-header-filter-row-height;
   }
 }
 
@@ -246,7 +250,7 @@ thead {
   border-color: transparent;
   height: $height;
   line-height: $height;
-  padding: 3px $iq-cell-filter-right-padding 3px $iq-cell-filter-left-padding;
+  padding: 3px $-cell-filter-right-padding 3px $-cell-filter-left-padding;
 
   .input-prepend {
     line-height: $height;
@@ -271,14 +275,14 @@ thead {
   }
 
   &:first-child {
-    padding-right: $iq-cell-filter-right-padding;
+    padding-right: $-cell-filter-right-padding;
     padding-left: 0;
     text-align: left;
   }
 
   &:last-child {
     padding-right: 0;
-    padding-left: $iq-cell-filter-left-padding - 1px;
+    padding-left: $-cell-filter-left-padding - 1px;
     text-align: right;
   }
 }
@@ -323,7 +327,7 @@ thead {
 }
 
 .iq-table--fixed__header {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   background-color: $iq-off-white;
   display: block;
@@ -337,8 +341,8 @@ thead {
 
   .iq-cell--header {
     display: inline-block;
-    height: $iq-table-header-row-height;
-    line-height: $iq-table-header-row-height;
+    height: $-table-header-row-height;
+    line-height: $-table-header-row-height;
     padding-top: 0;
     padding-bottom: 0;
   }
@@ -350,7 +354,7 @@ thead {
 
 .iq-table--fixed__content {
   display: block;
-  padding-top: $iq-table-header-row-height; // pushes top row from below header
+  padding-top: $-table-header-row-height; // pushes top row from below header
   position: relative;
   width: 100%;
 
@@ -370,5 +374,5 @@ thead {
 }
 
 .iq-table--fixed__content--filtered {
-  padding-top: $iq-table-header-row-height + $iq-table-header-filter-row-height;
+  padding-top: $-table-header-row-height + $-table-header-filter-row-height;
 }

@@ -26,7 +26,6 @@ describe('DeleteFilterModal', function () {
 
   it('renders NxModal when filterToDelete is not null', function () {
     const shallowRender = getShallowComponent();
-    console.log(shallowRender.debug());
     expect(shallowRender).toMatchSelector(NxModal);
   });
 

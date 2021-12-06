@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 .iq-table--access-list {
   .iq-cell.role {
     width: 20%;
@@ -10,12 +13,12 @@
 }
 
 .iq-cell--access-role {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   width: 20%;
 }
 
 .iq-cell--access-members {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
   white-space: normal;
 }

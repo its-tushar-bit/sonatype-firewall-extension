@@ -3,16 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use 'sass:list';
+
+@use './variables' as *;
+
 .clm-bar {
   padding: 0 !important;
   width: 10px;
 }
 
-@each $threatdef in join($threat-levels, $threat-bars) {
+@each $threatdef in list.join($threat-levels, $threat-bars) {
   .iq-threat-indication,
   .clm-bar {
-    &.#{nth($threatdef, 1)} {
-      background-color: #{nth($threatdef, 3)} !important;
+    &.#{list.nth($threatdef, 1)} {
+      background-color: #{list.nth($threatdef, 3)} !important;
     }
   }
 }

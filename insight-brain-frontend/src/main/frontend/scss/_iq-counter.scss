@@ -3,8 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
 .iq-counter {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   background-color: $iq-off-white;
   border: 1px solid $iq-grey-3;

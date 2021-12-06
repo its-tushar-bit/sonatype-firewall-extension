@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '../scss/variables' as *;
+
 .iq-violation-exclamation {
   color: var(--nx-swatch-white);
 }
@@ -11,8 +14,8 @@
   color: var(--nx-color-text-disabled);
 }
 
-@each $threat in $nx-threat-levels {
-  .iq-violation-exclamation--#{nth($threat, 1)} {
-    color: nth($threat, 2);
+@each $threat-name, $threat-color-var in $nx-threat-levels {
+  .iq-violation-exclamation--#{$threat-name} {
+    color: var($threat-color-var);
   }
 }

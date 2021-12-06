@@ -6,6 +6,11 @@
 /*
  #Dropdown menus
 */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
 $dropdown-menu-box-shadow: 0 2px 6px 2px rgba(87, 87, 87, 0.1);
 
 .iq-dropdown {
@@ -113,7 +118,7 @@ $dropdown-menu-box-shadow: 0 2px 6px 2px rgba(87, 87, 87, 0.1);
 }
 
 .iq-dropdown-menu__link--main-header {
-  @include regular();
+  @include nx-text-helpers.regular;
 
   background-color: $iq-off-white;
   color: $iq-link-color;
@@ -181,7 +186,7 @@ $dropdown-menu-box-shadow: 0 2px 6px 2px rgba(87, 87, 87, 0.1);
 }
 
 .iq-dropdown-submenu__title {
-  @include regular();
+  @include nx-text-helpers.regular;
 
   border-bottom: 1px solid $iq-grey-1;
   color: $iq-slate;

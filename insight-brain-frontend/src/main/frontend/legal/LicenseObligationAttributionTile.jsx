@@ -165,6 +165,7 @@ export default function LicenseObligationAttributionTile(props) {
               <NxTextInput
                 maxLength="1000"
                 type="textarea"
+                className="nx-text-input--full"
                 {...attributionTextInput}
                 onChange={(payload) => {
                   setAttributionText({ name, value: payload });
@@ -197,7 +198,7 @@ export default function LicenseObligationAttributionTile(props) {
     );
   };
 
-  const classes = classnames('nx-tile-content', {
+  const classes = classnames({
     'license-no-legal-elements-text': !isAttributionPresent(),
   });
 
@@ -212,23 +213,19 @@ export default function LicenseObligationAttributionTile(props) {
         id={isAdditionalAttribution ? 'additional-attribution-tile' : toId(name) + '-attribution-tile'}
       >
         <NxAccordion.Header>
-          <header className="nx-tile-header">
-            <div className="nx-tile-header__title">
-              <h2 className="nx-h2 nx-accordion__header-title">{title}</h2>
-            </div>
-            <div className="nx-tile__actions">
-              <NxButton
-                variant="tertiary"
-                onClick={() => {
-                  setAttributionTextInput(initialState(attributionText));
-                  setShowAttributionModal({ name, value: true });
-                }}
-              >
-                <NxFontAwesomeIcon icon={isAttributionPresent() ? faPen : faPlus} />
-                <span>{editOrAdd}</span>
-              </NxButton>
-            </div>
-          </header>
+          <NxAccordion.Title>{title}</NxAccordion.Title>
+          <div className="nx-btn-bar">
+            <NxButton
+              variant="tertiary"
+              onClick={() => {
+                setAttributionTextInput(initialState(attributionText));
+                setShowAttributionModal({ name, value: true });
+              }}
+            >
+              <NxFontAwesomeIcon icon={isAttributionPresent() ? faPen : faPlus} />
+              <span>{editOrAdd}</span>
+            </NxButton>
+          </div>
         </NxAccordion.Header>
         <div className={classes}>{isAttributionPresent() ? originalAttributionText : emptyMessage}</div>
       </NxAccordion>

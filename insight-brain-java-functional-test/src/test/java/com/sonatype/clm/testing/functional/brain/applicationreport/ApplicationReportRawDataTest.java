@@ -146,7 +146,7 @@ public class ApplicationReportRawDataTest
     vulnerabilityModal.header().shouldHave(text("Vulnerability Information"));
     SelenideElement vulnerabilityDetails = vulnerabilityModal.vulnerabilityDetails();
     vulnerabilityDetails.shouldHave(text("sonatype-2017-0507"));
-    vulnerabilityDetails.shouldHave(text("Sonatype CVSS 3:5.4"));
+    vulnerabilityDetails.shouldHave(text("Sonatype CVSS 35.4"));
     vulnerabilityDetails.shouldHave(text("Sonatype Data Research"));
     vulnerabilityDetails.shouldHave(text("There is no non vulnerable version of this package. We recommend " +
         "investigating alternative components or a potential mitigating control."));

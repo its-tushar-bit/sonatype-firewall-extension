@@ -71,28 +71,22 @@ export default function CopyrightStatementsTile(props) {
     <React.Fragment>
       <NxAccordion open={open} onToggle={toggleOpen} id="copyright-statements-tile">
         <NxAccordion.Header>
-          <header className="nx-tile-header">
-            <div className="nx-tile-header__title">
-              <h2 className="nx-h2 nx-accordion__header-title">Copyright Notices</h2>
-            </div>
-            <div className="nx-tile__actions">
-              <NxButton id="edit-copyrights" variant="tertiary" onClick={() => setDisplayCopyrightOverrideModal(true)}>
-                <NxFontAwesomeIcon icon={isCopyrightPresent ? faPen : faPlus} />
-                <span>{isCopyrightPresent ? 'Edit' : 'Add'}</span>
-              </NxButton>
-            </div>
-          </header>
+          <NxAccordion.Title>Copyright Notices</NxAccordion.Title>
+          <div className="nx-btn-bar">
+            <NxButton id="edit-copyrights" variant="tertiary" onClick={() => setDisplayCopyrightOverrideModal(true)}>
+              <NxFontAwesomeIcon icon={isCopyrightPresent ? faPen : faPlus} />
+              <span>{isCopyrightPresent ? 'Edit' : 'Add'}</span>
+            </NxButton>
+          </div>
         </NxAccordion.Header>
-        <div className="nx-tile-content nx-accordion__list-container">
-          <ul className="nx-list nx-list--clickable">
-            {isCopyrightPresent
-              ? component.licenseLegalData.copyrights
-                  .map((c, index) => [c, index])
-                  .filter((pair) => pair[0].status === 'enabled')
-                  .map((pair) => createItem(pair[0], pair[1]))
-              : noDataText()}
-          </ul>
-        </div>
+        <ul className="nx-list nx-list--clickable">
+          {isCopyrightPresent
+            ? component.licenseLegalData.copyrights
+                .map((c, index) => [c, index])
+                .filter((pair) => pair[0].status === 'enabled')
+                .map((pair) => createItem(pair[0], pair[1]))
+            : noDataText()}
+        </ul>
       </NxAccordion>
       {showEditCopyrightOverrideModal && createAttributionModal}
     </React.Fragment>

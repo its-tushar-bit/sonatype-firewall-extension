@@ -3,9 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-button-helpers';
-@import '../dashboard/filter/manageFiltersDropdown/manageFiltersDropdown';
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-button-helpers';
+
+@use '../dashboard/filter/manageFiltersDropdown/manageFiltersDropdown';
 
 dashboard-filter {
   display: contents;
@@ -16,7 +17,7 @@ dashboard-filter {
   padding-right: var(--nx-spacing-2x);
   padding-left: 2px; // this is to avoid cutting off filter caret icon when it's turning
 
-  .nx-tree-view .nx-filter-input {
+  .nx-collapsible-items .nx-filter-input {
     box-sizing: border-box;
     max-width: 100%;
   }
@@ -25,7 +26,7 @@ dashboard-filter {
 .dashboard-filter-footer {
   .nx-alert {
     .nx-btn-bar {
-      @include container-horizontal;
+      @include nx-container-helpers.container-horizontal;
     }
 
     .nx-btn {
@@ -88,7 +89,7 @@ dashboard-filter {
 }
 
 .dashboard-filter-header__title {
-  @include container-horizontal;
+  @include nx-container-helpers.container-horizontal;
 
   align-items: start;
   display: flex;
@@ -99,6 +100,6 @@ dashboard-filter {
   }
 
   .nx-btn--icon-only {
-    @include nx-small-icon-btn;
+    @include nx-button-helpers.small-icon-btn;
   }
 }

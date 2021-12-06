@@ -3,6 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../../../scss/variables' as *;
+
 .iq-chart--mttr {
   height: 400px;
 
@@ -13,7 +18,7 @@
   }
 
   .plottable .axis text {
-    @include regular();
+    @include nx-text-helpers.regular;
 
     color: $iq-slate;
     font-size: 20px;

@@ -4,55 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
-
 component-copyright-details,
 copyright-list,
 copyright-details-header,
 copyright-details-contents {
   display: contents;
-}
-
-#license-obligations-tile > .nx-tile-header h2,
-#attribution-summary-tile > .nx-tile-header h2 {
-  margin: 10px 0;
-}
-
-#attribution-summary-tile {
-  height: max-content;
-
-  .nx-accordion__summary-wrapper {
-    display: grid;
-    grid-template-columns: max-content auto;
-
-    .nx-tile-header {
-      grid-template-columns: auto 1fr;
-      padding: 0;
-    }
-  }
-
-  .nx-accordion__content {
-    .nx-tile-subsection:first-of-type {
-      border-top: none;
-      margin-top: 0;
-      padding-top: 0;
-    }
-
-    .nx-tile-content {
-      padding: 0;
-
-      &.nx-tile-content {
-        &.nx-accordion__list-container {
-          padding-top: 0;
-        }
-      }
-    }
-
-    .nx-list__item:first-of-type .nx-list__link {
-      border-top: none;
-    }
-  }
 }
 
 #component-copyright-details-content {
@@ -79,7 +35,7 @@ copyright-details-contents {
   font-family: monospace;
 }
 
-.file-path-item.nx-tree-view {
+.file-path-item.nx-collapsible-items {
   max-width: unset;
 }
 

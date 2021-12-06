@@ -3,7 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+@use 'sass:list';
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+@use './variables' as *;
 
 /*
   Global icon variables
@@ -298,7 +303,7 @@ $icon-map: (sonatype-icons, double-chevron-right, e600), (sonatype-icons, double
 }
 
 .fa-university.policy-threat-level-background {
-  color: $white;
+  color: var(--nx-swatch-white);
   text-align: center;
 
   &.size-16px {
@@ -309,9 +314,9 @@ $icon-map: (sonatype-icons, double-chevron-right, e600), (sonatype-icons, double
   }
 
   @each $threat in $policy-threat-levels {
-    @each $threatLevel in nth($threat, 4) {
+    @each $threatLevel in list.nth($threat, 4) {
       &.threat-level-#{$threatLevel} {
-        background-color: nth($threat, 3);
+        background-color: list.nth($threat, 3);
       }
     }
   }
@@ -372,13 +377,13 @@ $icon-map: (sonatype-icons, double-chevron-right, e600), (sonatype-icons, double
 
   // for filling in the shackle on the lock
   span:before {
-    color: $white;
+    color: var(--nx-swatch-white);
     content: '\f111'; // fa-circle
     position: absolute;
   }
 
   span:after {
-    color: $white;
+    color: var(--nx-swatch-white);
     content: '\f023'; // fa-lock
     position: absolute;
   }
@@ -441,7 +446,7 @@ $icon-map: (sonatype-icons, double-chevron-right, e600), (sonatype-icons, double
 // End CSS from insight.css
 
 .iq-inverse-icon-wrapper {
-  @include container-horizontal;
+  @include nx-container-helpers.container-horizontal;
 
   background-color: currentColor;
 

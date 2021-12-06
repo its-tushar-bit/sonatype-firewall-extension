@@ -4,7 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../scss/variables' as *;
 
 .cip-policy-table {
   width: 100%;
@@ -147,14 +149,14 @@
 }
 
 .request-waiver-policy-violation-page-link {
-  @include nx-truncate-ellipsis;
+  @include nx-text-helpers.truncate-ellipsis;
 }
 
 /* XXX Remove in favour of new-ui styling */
 .modal-body.modal-error {
-  background: #f2dede;
-  border-color: #b94a48;
-  color: #b94a48;
+  background: $bootstrap-error-background;
+  border-color: $bootstrap-error-text;
+  color: $bootstrap-error-text;
 }
 
 .request-waiver-modal-section {

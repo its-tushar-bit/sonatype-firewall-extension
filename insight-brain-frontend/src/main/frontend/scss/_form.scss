@@ -9,6 +9,10 @@
   base form typography is in _typography.scss
 */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
 // Shared styles
 
 @mixin iq-pristine() {
@@ -33,7 +37,7 @@
 }
 
 @mixin iq-disabled() {
-  background: $white;
+  background: var(--nx-swatch-white);
   border-color: $iq-grey-3;
   border-left: 4px double $iq-grey-3;
 }
@@ -111,7 +115,7 @@ $iq-form-element-wide: 395px;
 // labels
 
 .iq-label {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   color: $iq-off-black;
   display: block;
@@ -130,7 +134,7 @@ $iq-form-element-wide: 395px;
 
 .iq-label--optional {
   &::after {
-    @include regular();
+    @include nx-text-helpers.regular;
 
     color: $iq-slate;
     content: ' - optional';
@@ -139,7 +143,7 @@ $iq-form-element-wide: 395px;
 }
 
 .iq-sub-label {
-  @include regular();
+  @include nx-text-helpers.regular;
 
   color: $iq-off-black;
   display: block;
@@ -167,7 +171,7 @@ fieldset {
     min-width: auto;
 
     legend {
-      @include semi-bold();
+      @include nx-text-helpers.semi-bold;
 
       // use the same styling as <label>s
       border-style: none;
@@ -188,8 +192,8 @@ input[type='url'],
 textarea {
   &.iq-text-input,
   &.iq-textarea {
-    @include box-shadow(none);
-    @include border-radius(0);
+    box-shadow: none;
+    border-radius: 0;
 
     border: 1px solid $iq-grey-4;
     border-left-width: 4px;
@@ -200,7 +204,7 @@ textarea {
 
     // The :focus styling is required to over-ride Bootstrap styles.
     &:focus {
-      @include box-shadow(none);
+      box-shadow: none;
     }
 
     &.ng-dirty {
@@ -364,7 +368,7 @@ dropdown-selector {
     min-width: 0;
 
     > li {
-      @extend .truncate-ellipsis;
+      @include nx-text-helpers.truncate-ellipsis;
 
       color: $iq-slate;
       cursor: pointer;
@@ -384,7 +388,7 @@ dropdown-selector {
 }
 
 .iq-form-select__item {
-  @extend .truncate-ellipsis;
+  @include nx-text-helpers.truncate-ellipsis;
 
   color: $iq-off-black;
   display: block;
@@ -471,7 +475,7 @@ dropdown-selector {
 
   > dt,
   > div > dt {
-    @include semi-bold();
+    @include nx-text-helpers.semi-bold;
 
     color: $iq-off-black;
     cursor: default;
@@ -567,7 +571,7 @@ dropdown-selector {
 */
 .input-prepend {
   .add-on {
-    background-color: $white;
+    background-color: var(--nx-swatch-white);
     border-right: none;
     box-shadow: none;
     padding-left: 2px;
@@ -671,15 +675,14 @@ dropdown-selector {
   See clmInput directive.
 */
 .input-popover {
-  @include border-radius($borderRadiusSmall);
-
-  background-color: $errorBackground !important;
-  border: 1px solid $errorBorder;
-  color: $errorText;
-  z-index: $zindexModalBackdrop - 1;
+  border-radius: 4px;
+  background-color: $bootstrap-error-background !important;
+  border: 1px solid $bootstrap-error-border;
+  color: $bootstrap-error-text;
+  z-index: $iq-modal-backdrop-z-index - 1;
 
   .modal & {
-    z-index: $zindexModal + 1;
+    z-index: $iq-modal-z-index + 1;
   }
 
   &.top {
@@ -714,12 +717,12 @@ dropdown-selector {
 }
 
 .input-popover.top .arrow {
-  border-top-color: $errorBorder !important;
+  border-top-color: $bootstrap-error-border !important;
   left: 80%;
 }
 
 .input-popover.top .arrow:after {
-  border-top-color: $errorBackground !important;
+  border-top-color: $bootstrap-error-background !important;
 }
 
 .input-popover.top .arrow:before {

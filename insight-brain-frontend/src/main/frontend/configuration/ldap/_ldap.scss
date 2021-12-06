@@ -7,6 +7,10 @@
   #LDAP Styles
 */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../scss/variables' as *;
+
 #ldap-name {
   .iq-tile__actions {
     margin-top: 8px;
@@ -39,7 +43,7 @@
 */
 
 .iq-ldap-name-editor {
-  @include bold();
+  @include nx-text-helpers.bold;
 
   margin: 8px 0 16px 0;
 
@@ -49,7 +53,7 @@
     width: 460px;
 
     .editable {
-      @include bold();
+      @include nx-text-helpers.bold;
 
       color: $iq-slate;
       cursor: text;
@@ -63,7 +67,7 @@
     }
 
     input {
-      @include bold();
+      @include nx-text-helpers.bold;
 
       background: transparent;
       -webkit-box-shadow: none;
@@ -96,7 +100,7 @@
 
   .editable-controls {
     input {
-      @include bold();
+      @include nx-text-helpers.bold;
 
       background: transparent;
       border: none;
@@ -125,7 +129,7 @@
   }
 
   .editable {
-    @include bold();
+    @include nx-text-helpers.bold;
 
     -webkit-appearance: none;
     background: transparent;
@@ -151,7 +155,7 @@
     }
 
     &.error {
-      color: #b94a48;
+      color: $bootstrap-error-text;
     }
 
     &.editable-empty,
@@ -276,10 +280,11 @@
   }
 }
 
-.iq-ldap-server-remove {
+.iq-ldap-server-remove.nx-btn {
   position: absolute;
   top: 0;
   right: 0;
+  margin-right: 0;
 }
 
 #ldap-dynamic-group-search-enabled {

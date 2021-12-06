@@ -3,6 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../scss/mixins';
+@use '../../scss/variables' as *;
+@use '../../scss/global' as *;
+
 .iq-tile--report-list-filter {
   border-bottom: 0;
   margin: 0;
@@ -35,7 +42,7 @@
 }
 
 .iq-scrollable--report-list {
-  @include table-fixed-widths(7);
+  @include mixins.table-fixed-widths(7);
 
   max-height: 100%;
   width: 100%;
@@ -67,8 +74,8 @@
   line-height: 12px;
 
   a {
-    @extend .truncate-ellipsis;
-    @include semi-bold();
+    @include nx-text-helpers.truncate-ellipsis;
+    @include nx-text-helpers.semi-bold;
 
     display: inline-block;
   }
@@ -98,7 +105,7 @@
 }
 
 .iq-report-list__report-age {
-  @extend .truncate-ellipsis;
+  @include nx-text-helpers.truncate-ellipsis;
   display: block;
   line-height: 14px;
 }

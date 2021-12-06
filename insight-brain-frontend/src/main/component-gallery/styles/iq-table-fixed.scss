@@ -3,12 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-// These 3 files are loaded by default in IQ
-@import "~bootstrap-sass/lib/variables";
-@import "../../frontend/scss/variables";
-@import "../../frontend/scss/mixins";
+
+@use "../../frontend/scss/mixins";
 
 // Example usage of the table-fixed-widths mixin that must be used for each iq-table-fixed
 .iq-scrollable--fixed-table-example {
-  @include table-fixed-widths(5);
+  @include mixins.table-fixed-widths(5);
 }

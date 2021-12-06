@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from '../../../enzymeUtils';
 import LicenseFilesTile from '../../../../../main/frontend/legal/files/licenses/LicenseFilesTile';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxAccordion } from '@sonatype/react-shared-components';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 
 describe('LicenseFilesTile', function () {
@@ -50,7 +50,7 @@ describe('LicenseFilesTile', function () {
 
   it('renders a header with label `License Files`', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('h2.nx-h2')).toHaveText('License Files');
+    expect(wrapper.find(NxAccordion.Title)).toHaveText('License Files');
   });
 
   it('renders the given licenses', function () {
@@ -65,8 +65,8 @@ describe('LicenseFilesTile', function () {
 
   it('renders none found if there are no licenses', function () {
     const wrapper = getShallowComponent({ licenseFiles: [] });
-    const content = wrapper.find('.nx-tile-content');
-    expect(content).toHaveText('None found');
+    const content = wrapper.find(NxAccordion).shallow();
+    expect(content.find('.nx-accordion__content')).toHaveText('None found');
   });
 
   it('renders an add button if there are no licenses', function () {

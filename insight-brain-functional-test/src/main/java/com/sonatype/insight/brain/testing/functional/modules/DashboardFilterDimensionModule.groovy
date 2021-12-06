@@ -11,13 +11,13 @@ public class DashboardFilterDimensionModule
     extends Module
 {
   static content = {
-    nxTwisty { $('.nx-tree-view__twisty') }
+    nxTwisty { $('.nx-collapsible-items__twisty') }
     nxCounter { $('.nx-counter') }
     twisty { $('.iq-tree-view__twisty') }
     counter { $('.iq-counter') }
     trigger { $('.iq-tree-view__trigger')}
     multiSelectList(required: false) { $('.iq-tree-view__child .iq-checkbox__label').moduleList(FilterCheckboxRow) }
-    nxMultiSelectList(required: false) { $('.nx-tree-view__child.nx-checkbox').module(NxFilterCheckboxRow) }
+    nxMultiSelectList(required: false) { $('.nx-collapsible-items__child.nx-checkbox').module(NxFilterCheckboxRow) }
     tooltip { module TooltipModule }
   }
 

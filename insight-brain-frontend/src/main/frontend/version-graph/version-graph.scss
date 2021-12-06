@@ -3,8 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import './content';
-@import './buttons';
-@import './icons';
-@import './modal';
-@import './tooltip';
+
+@use './content';
+@use './buttons';
+@use './icons';
+@use './modal';
+@use './tooltip';

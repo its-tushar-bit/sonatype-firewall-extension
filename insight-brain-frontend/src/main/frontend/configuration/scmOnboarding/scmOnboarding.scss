@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import '~@sonatype/react-shared-components/scss-shared/nx-table-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-table-helpers';
 
 scm-onboarding {
   display: contents;
@@ -113,5 +113,5 @@ scm-onboarding {
 }
 
 .onboarding-repo-table {
-  height: pagination-table-height(15, 1);
+  height: nx-table-helpers.pagination-table-height(15, 1);
 }

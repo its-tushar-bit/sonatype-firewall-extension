@@ -6,6 +6,9 @@
 /*
   #Mask elements
 */
+
+@use './variables' as *;
+
 .form-mask {
   background-color: rgba($iq-off-white, 0.9);
   position: absolute;

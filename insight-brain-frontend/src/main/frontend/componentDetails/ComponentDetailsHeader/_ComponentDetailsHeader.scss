@@ -3,11 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../scss/mixins';
 
 .component-details-header__heading {
-  @include nx-truncate-ellipsis;
+  @include nx-text-helpers.truncate-ellipsis;
   font-size: 32px;
   line-height: 48px;
   margin-bottom: var(--nx-spacing-2x);
@@ -39,7 +40,7 @@
   margin: 0;
 
   dt {
-    @include visually-hidden;
+    @include mixins.visually-hidden;
     margin: 0;
   }
   dd {

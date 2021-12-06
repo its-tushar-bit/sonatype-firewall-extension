@@ -115,12 +115,12 @@ public class CopyrightDetailsTest
 
   private void doTestCopyrightPathClick() {
     CopyrightFilePaths copyrightFilePaths = ComponentCopyrightDetailsPage.copyrightFilePaths();
-    copyrightFilePaths.pathAt(1).shouldHave(cssClass("nx-tree-view--expanded"));
+    copyrightFilePaths.pathAt(1).shouldHave(cssClass("nx-collapsible-items--expanded"));
     copyrightFilePaths.getFilePath(1).shouldHave(text("path1"));
     copyrightFilePaths.getCopyrightContextText(1).shouldHave(
         text("Copyright SomeDeveloper 2019-2020 All Right reserved"));
-    copyrightFilePaths.pathAt(1).$("button.nx-tree-view__trigger").click();
-    copyrightFilePaths.pathAt(1).shouldNotHave(cssClass("nx-tree-view--expanded"));
+    copyrightFilePaths.pathAt(1).$("button.nx-collapsible-items__trigger").click();
+    copyrightFilePaths.pathAt(1).shouldNotHave(cssClass("nx-collapsible-items--expanded"));
     copyrightFilePaths.getCopyrightContextText(1).shouldHave(text(""));
   }
 
@@ -168,7 +168,7 @@ public class CopyrightDetailsTest
     CopyrightList copyrightList = ComponentCopyrightDetailsPage.copyrightList();
     copyrightList.getItemFileCount(3).click();
     CopyrightFilePaths copyrightFilePaths = ComponentCopyrightDetailsPage.copyrightFilePaths();
-    copyrightFilePaths.pathAt(1).shouldHave(cssClass("nx-tree-view--expanded"));
+    copyrightFilePaths.pathAt(1).shouldHave(cssClass("nx-collapsible-items--expanded"));
   }
 
   @Test
@@ -190,8 +190,8 @@ public class CopyrightDetailsTest
     copyrightList.getItemFileCount(3).click();
     CopyrightFilePaths copyrightFilePaths = ComponentCopyrightDetailsPage.copyrightFilePaths();
     copyrightFilePaths.pathAt(2).click();
-    copyrightFilePaths.pathAt(1).shouldHave(cssClass("nx-tree-view--expanded"));
-    copyrightFilePaths.pathAt(2).shouldHave(cssClass("nx-tree-view--expanded"));
+    copyrightFilePaths.pathAt(1).shouldHave(cssClass("nx-collapsible-items--expanded"));
+    copyrightFilePaths.pathAt(2).shouldHave(cssClass("nx-collapsible-items--expanded"));
   }
 
   @Test

@@ -7,6 +7,8 @@
   #Policy Editor
 */
 
+@use './variables' as *;
+
 #policy-editor.iq-tile-scroll-container {
   width: calc(100% - #{$iq-spacing-sm});
 }

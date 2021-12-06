@@ -7,6 +7,10 @@
   Threat Legends
  */
 
+@use 'sass:list';
+
+@use './variables' as *;
+
 .iq-threat-bar {
   display: inline-block;
   height: 100%;
@@ -14,24 +18,24 @@
   vertical-align: middle;
   width: 8px;
 
-  @each $threatdef in join($threat-levels, $threat-bars) {
-    &.iq-threat-bar--#{nth($threatdef, 1)} {
-      background-color: #{nth($threatdef, 3)};
+  @each $threatdef in list.join($threat-levels, $threat-bars) {
+    &.iq-threat-bar--#{list.nth($threatdef, 1)} {
+      background-color: #{list.nth($threatdef, 3)};
     }
   }
 
   @each $threatdef in $threat-levels {
-    @each $threatLevel in nth($threatdef, 4) {
+    @each $threatLevel in list.nth($threatdef, 4) {
       &.iq-threat-bar--#{$threatLevel} {
-        background-color: nth($threatdef, 3);
+        background-color: list.nth($threatdef, 3);
       }
     }
   }
 
   @each $threat in $policy-threat-levels {
-    @each $threatLevel in nth($threat, 4) {
+    @each $threatLevel in list.nth($threat, 4) {
       &.iq-threat-bar--policy-level-#{$threatLevel} {
-        background-color: nth($threat, 3);
+        background-color: list.nth($threat, 3);
       }
     }
   }

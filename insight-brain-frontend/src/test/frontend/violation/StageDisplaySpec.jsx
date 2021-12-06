@@ -63,7 +63,7 @@ describe('StageDisplay', function () {
         icon = component.find(NxFontAwesomeIcon);
 
       // toHaveText includes the component name for components
-      expect(component).toHaveText('<NxFontAwesomeIcon />Build');
+      expect(component).toHaveText('Build');
       expect(icon).toHaveProp('icon', faSquare);
     });
   });

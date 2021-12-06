@@ -3,13 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import 'iqCheckbox/iqCheckbox';
-@import 'iqRadio/iq-radio';
-@import 'iqBackButton/iqBackButton';
-@import 'iqOrgAppPicker/iq-org-app-picker';
-@import 'iqToggleSwitch/iqToggleSwitch';
-@import 'iqTreeViewMultiSelect/iq-tree-view-multi-select';
-@import 'iqTreeViewRadioSelect/iqTreeViewRadioSelect';
-@import 'externalLink/externalLink';
-@import 'iqPolicyThreatLevelSlider/iqPolicyThreatLevelSlider';
-@import 'iqTreeViewPolicyThreatLevelSlider/iqTreeViewPolicyThreatLevelSlider';
+@use 'iqCheckbox/iqCheckbox';
+@use 'iqRadio/iq-radio';
+@use 'iqBackButton/iqBackButton';
+@use 'iqOrgAppPicker/iq-org-app-picker';
+@use 'iqToggleSwitch/iqToggleSwitch';
+@use 'iqTreeViewMultiSelect/iq-tree-view-multi-select';
+@use 'iqTreeViewRadioSelect/iqTreeViewRadioSelect';
+@use 'externalLink/externalLink';
+@use 'iqPolicyThreatLevelSlider/iqPolicyThreatLevelSlider';
+@use 'iqTreeViewPolicyThreatLevelSlider/iqTreeViewPolicyThreatLevelSlider';

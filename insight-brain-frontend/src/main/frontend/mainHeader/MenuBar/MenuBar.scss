@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import './MenuButton/MenuButton';
-@import './UserMenu/UserMenu';
-@import './LoginButton/LoginButton';
-@import './NotificationsMenu/NotificationsMenu';
+@use './MenuButton/MenuButton';
+@use './UserMenu/UserMenu';
+@use './LoginButton/LoginButton';
+@use './NotificationsMenu/NotificationsMenu';
 
 menu-bar {
   display: contents;

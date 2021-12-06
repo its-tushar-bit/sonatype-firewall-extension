@@ -7,10 +7,12 @@
   #Modals
 */
 
+@use './variables' as *;
+
 // Height of mainHeader + 8px margin
-$iq-modal-top-spacing: 48px;
+$-modal-top-spacing: 48px;
 // Standard margin
-$iq-modal-bottom-spacing: 8px;
+$-modal-bottom-spacing: 8px;
 
 .iq-modal-backdrop {
   background-color: rgba(7, 7, 7, 0.4);
@@ -23,20 +25,20 @@ $iq-modal-bottom-spacing: 8px;
 }
 
 .iq-modal {
-  $iq-modal-width: 560px;
+  $modal-width: 560px;
 
   background-color: $iq-off-white;
   border: 1px solid $iq-slate;
   border-radius: 0;
   box-shadow: -8px 8px 12px $iq-slate;
   height: auto;
-  max-height: calc(100vh - #{$iq-modal-top-spacing} - #{$iq-modal-bottom-spacing});
+  max-height: calc(100vh - #{$-modal-top-spacing} - #{$-modal-bottom-spacing});
   margin: 0; // override bootstrap .modal style
   outline: none;
   position: fixed;
-  top: $iq-modal-top-spacing;
-  left: calc(50% - #{($iq-modal-width / 2)});
-  width: $iq-modal-width;
+  top: $-modal-top-spacing;
+  left: calc(50% - #{($modal-width * 0.5)});
+  width: $modal-width;
   z-index: $iq-modal-z-index;
 
   form {
@@ -198,9 +200,9 @@ $iq-modal-bottom-spacing: 8px;
 }
 
 .iq-modal--sv {
-  $iq-modal-width: 900px;
-  width: $iq-modal-width;
-  left: calc(50% - (#{$iq-modal-width} / 2));
+  $modal-width: 900px;
+  width: $modal-width;
+  left: calc(50% - (#{$modal-width} / 2));
 }
 
 .modal-ldap-user-list {

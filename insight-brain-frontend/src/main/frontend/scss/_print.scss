@@ -5,6 +5,9 @@
  */
 // NOTE: These styles are only fleshed-out enough to get specific pages, which we want to be printable, to work.
 // Currently the only such page is the application report vulnerabilities list
+
+@use './variables' as *;
+
 @media print {
   * {
     // prevent chrome bug that causes spurious attempts to redownload fonts and then text disappearing because
@@ -20,7 +23,7 @@
   }
 
   body {
-    background-color: #fff;
+    background-color: var(--nx-swatch-white);
   }
 
   .nx-page {

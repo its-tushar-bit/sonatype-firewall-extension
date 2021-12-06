@@ -44,15 +44,16 @@ export default function LicenseDetections({
                   License Detections
                 </h2>
               </div>
-              <NxButton
-                id="component-details-edit-licenses"
-                className="nx-tile__actions"
-                variant="tertiary"
-                onClick={toggleShowEditLicensesPopover}
-              >
-                <NxFontAwesomeIcon icon={faPen} />
-                <span>Edit</span>
-              </NxButton>
+              <div className="nx-tile__actions">
+                <NxButton
+                  id="component-details-edit-licenses"
+                  variant="tertiary"
+                  onClick={toggleShowEditLicensesPopover}
+                >
+                  <NxFontAwesomeIcon icon={faPen} />
+                  <span>Edit</span>
+                </NxButton>
+              </div>
               <h3 className="nx-tile-header__subtitle" id="status-container">
                 Status:{' '}
                 <span className="status-subtitle" id="status-subtitle">

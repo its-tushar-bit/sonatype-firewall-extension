@@ -4,11 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+@use '../../../scss/variables' as *;
 
 // RGB value comes from /frontend/dashboard/utils/classybrew.factory.js
-$iq-cell-heatmap-border-color: rgb(247, 251, 255);
+$-cell-heatmap-border-color: rgb(247, 251, 255);
 
 #dashboard-applications {
   position: relative;
@@ -21,9 +23,9 @@ $iq-cell-heatmap-border-color: rgb(247, 251, 255);
     }
 
     .iq-cell--heatmap {
-      @include semi-bold();
+      @include nx-text-helpers.semi-bold;
 
-      border-left: 1px solid $iq-cell-heatmap-border-color;
+      border-left: 1px solid $-cell-heatmap-border-color;
 
       &.white-text {
         color: $iq-off-white;
@@ -53,7 +55,7 @@ $iq-cell-heatmap-border-color: rgb(247, 251, 255);
       }
 
       > span:first-child {
-        @include container-horizontal();
+        @include nx-container-helpers.container-horizontal;
       }
     }
 

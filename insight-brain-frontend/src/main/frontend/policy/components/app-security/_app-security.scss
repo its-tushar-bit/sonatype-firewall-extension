@@ -3,7 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '../../../scss/variables' as *;
+
 // System Preferences Administrators Page
+
 .iq-list__title--admin-role,
 .iq-list__row--admin-role {
   display: inline-block;

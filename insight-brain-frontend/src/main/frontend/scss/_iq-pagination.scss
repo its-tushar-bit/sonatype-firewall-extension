@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 .iq-pagination {
   display: block;
   float: right;
@@ -32,7 +35,7 @@
 }
 
 .iq-pagination__count-text {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   display: inline-block;
   padding-right: 13px;

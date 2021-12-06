@@ -95,7 +95,9 @@ describe('SuccessMetricsConfigurationSpec', () => {
     expect(toggle).not.toBeChecked();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
     // uses aria-label as name if provided
-    expect(screen.getByRole('button', { name: 'There are no changes to update' })).toHaveClassName('disabled');
+    expect(screen.getByRole('button', { name: 'Submit disabled: There are no changes to update' })).toHaveClassName(
+      'disabled'
+    );
 
     fireEvent.click(toggle);
 
@@ -107,7 +109,9 @@ describe('SuccessMetricsConfigurationSpec', () => {
 
     expect(toggle).not.toBeChecked();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'There are no changes to update' })).toHaveClassName('disabled');
+    expect(screen.getByRole('button', { name: 'Submit disabled: There are no changes to update' })).toHaveClassName(
+      'disabled'
+    );
   });
 
   it('submits updated setting', async () => {
@@ -131,10 +135,12 @@ describe('SuccessMetricsConfigurationSpec', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Update' }));
 
-    await waitFor(() => screen.getByRole('button', { name: 'There are no changes to update' }));
+    await waitFor(() => screen.getByRole('button', { name: 'Submit disabled: There are no changes to update' }));
 
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'There are no changes to update' })).toHaveClassName('disabled');
+    expect(screen.getByRole('button', { name: 'Submit disabled: There are no changes to update' })).toHaveClassName(
+      'disabled'
+    );
     expect(screen.getByLabelText('Enable Success Metrics')).toBeChecked();
   });
 

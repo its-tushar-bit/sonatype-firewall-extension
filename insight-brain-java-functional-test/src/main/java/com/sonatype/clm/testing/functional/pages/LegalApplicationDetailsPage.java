@@ -66,7 +66,7 @@ public class LegalApplicationDetailsPage
     }
 
     public NxCheckbox getFilterCheckboxAt(int i ) {
-      return new NxCheckbox(child(".nx-tree-view__children .nx-tree-view__child", nthChild(i + 1)));
+      return new NxCheckbox(child(".nx-collapsible-items__children .nx-collapsible-items__child", nthChild(i + 1)));
     }
   }
 

@@ -3,22 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-button-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-button-helpers';
 
 .legal-application-details-filter {
   box-sizing: border-box;
   padding-right: var(--nx-spacing-2x);
   padding-left: 2px; // this is to avoid cutting off filter caret icon when it's turning
 
-  .nx-tree-view .nx-filter-input {
+  .nx-collapsible-items .nx-filter-input {
     box-sizing: border-box;
     max-width: 100%;
   }
 }
 
 .legal-application-details-filter-header__title {
-  @include container-horizontal;
+  @include nx-container-helpers.container-horizontal;
 
   align-items: start;
   display: flex;
@@ -29,6 +29,6 @@
   }
 
   .nx-btn--icon-only {
-    @include nx-small-icon-btn;
+    @include nx-button-helpers.small-icon-btn;
   }
 }

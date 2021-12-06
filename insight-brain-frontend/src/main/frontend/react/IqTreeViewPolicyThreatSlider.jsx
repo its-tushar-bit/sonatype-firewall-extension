@@ -36,7 +36,7 @@ export default function IqTreeViewPolicyThreatSlider(props) {
       id={id}
       triggerContent={triggerWithCounter}
       disabled={disabled}
-      className="nx-tree-view--threat-slider"
+      className="nx-collapsible-items--threat-slider"
     >
       <NxTreeViewChild>
         <NxPolicyThreatSlider value={value} onChange={onChange} />

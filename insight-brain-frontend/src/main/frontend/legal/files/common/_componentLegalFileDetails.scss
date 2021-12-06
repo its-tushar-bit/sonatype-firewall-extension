@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import 'node_modules/@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import 'node_modules/@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use 'node_modules/@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 #legal-file-details-tile {
   margin-top: 0;
@@ -35,7 +34,7 @@
 }
 
 .legal-file-included-in-detail-filepath {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 }
 
 .legal-file-preformatted {
@@ -43,6 +42,6 @@
   font-family: monospace;
 }
 
-.file-path-item.nx-tree-view {
+.file-path-item.nx-collapsible-items {
   max-width: unset;
 }

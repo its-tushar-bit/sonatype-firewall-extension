@@ -113,35 +113,29 @@ export default function LicenseDetailsTile(props) {
       {showLicensesModal && <LicensesModalContainer />}
       <NxAccordion open={open} onToggle={toggleOpen} id="license-details-tile">
         <NxAccordion.Header>
-          <header className="nx-tile-header">
-            <div className="nx-tile-header__title">
-              <h2 className="nx-h2 nx-accordion__header-title">Licenses</h2>
-            </div>
-            <div className="nx-tile__actions">
-              <NxButton id="edit-licenses" variant="tertiary" onClick={() => setShowLicensesModal(true)}>
-                <NxFontAwesomeIcon icon={faPen} />
-                <span>Edit</span>
-              </NxButton>
-            </div>
-          </header>
+          <NxAccordion.Title>Licenses</NxAccordion.Title>
+          <div className="nx-btn-bar">
+            <NxButton id="edit-licenses" variant="tertiary" onClick={() => setShowLicensesModal(true)}>
+              <NxFontAwesomeIcon icon={faPen} />
+              <span>Edit</span>
+            </NxButton>
+          </div>
         </NxAccordion.Header>
-        <div className="nx-tile-content">
-          <dl className="nx-read-only">
-            <dt className="nx-read-only__label">Effective Licenses</dt>
-            <dd className="nx-read-only__data license-details-tile__effective-licenses">
-              {formatLicenseList(effectiveLicenses)}
-              {getStatusTag()}
-            </dd>
-            <dt className="nx-read-only__label">Declared Licenses</dt>
-            <dd className="nx-read-only__data license-details-tile__declared-licenses">
-              {formatLicenseList(declaredLicenses)}
-            </dd>
-            <dt className="nx-read-only__label">Observed Licenses</dt>
-            <dd className="nx-read-only__data license-details-tile__observed-licenses">
-              {formatLicenseList(observedLicenses)}
-            </dd>
-          </dl>
-        </div>
+        <dl className="nx-read-only">
+          <dt className="nx-read-only__label">Effective Licenses</dt>
+          <dd className="nx-read-only__data license-details-tile__effective-licenses">
+            {formatLicenseList(effectiveLicenses)}
+            {getStatusTag()}
+          </dd>
+          <dt className="nx-read-only__label">Declared Licenses</dt>
+          <dd className="nx-read-only__data license-details-tile__declared-licenses">
+            {formatLicenseList(declaredLicenses)}
+          </dd>
+          <dt className="nx-read-only__label">Observed Licenses</dt>
+          <dd className="nx-read-only__data license-details-tile__observed-licenses">
+            {formatLicenseList(observedLicenses)}
+          </dd>
+        </dl>
       </NxAccordion>
     </Fragment>
   );

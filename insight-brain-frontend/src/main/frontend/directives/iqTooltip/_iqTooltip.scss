@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '../../scss/variables' as *;
+
 .iq-tooltip.top-left {
   // missing in our version of bootstrap
   margin-top: -3px;
@@ -19,7 +22,7 @@
   opacity: 1;
 
   .modal & {
-    z-index: $zindexTooltip + $zindexModal;
+    z-index: $iq-tooltip-z-index + $iq-modal-z-index;
   }
 }
 

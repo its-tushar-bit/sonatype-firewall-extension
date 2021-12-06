@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 #report-title-left {
   float: left;
 
@@ -25,7 +28,7 @@
 
 // Begin styles from /application/application.css
 .report__title {
-  @include bold();
+  @include nx-text-helpers.bold;
 
   margin: 10px auto;
 }

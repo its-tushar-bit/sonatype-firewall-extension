@@ -7,6 +7,12 @@
   #Colors
 */
 
+// Old boostrap variables
+
+$bootstrap-error-text: #b94a48;
+$bootstrap-error-border: #e4b9c1;
+$bootstrap-error-background: #f2dede;
+
 // Sonatype brand colours
 $iq-sonatype-blue: #336699;
 $iq-sonatype-orange: #f89100;
@@ -95,9 +101,9 @@ $policy-threat-levels: ('none', #fff, $iq-threat-color-policy-none, (0)), ('low'
 
 $threat-bars: ('ignore', #fff, $iq-threat-color-ignore), ('unspecified', #fff, $iq-threat-color-unspecified);
 
-$nx-threat-levels: ('unspecified', var(--nx-color-threat-unspecified)) ('none', var(--nx-color-threat-none)),
-  ('low', var(--nx-color-threat-low)), ('moderate', var(--nx-color-threat-moderate)),
-  ('severe', var(--nx-color-threat-severe)), ('critical', var(--nx-color-threat-critical));
+$nx-threat-levels: ('unspecified', --nx-color-threat-unspecified) ('none', --nx-color-threat-none),
+  ('low', --nx-color-threat-low), ('moderate', --nx-color-threat-moderate), ('severe', --nx-color-threat-severe),
+  ('critical', --nx-color-threat-critical);
 
 /*
   #Content color variables
@@ -143,16 +149,20 @@ $iq-spacing-xxl: 64px;
   #z-indexes
   Gathered here for better visibility
 */
-$iq-color-picker-zindex: $zindexModalBackdrop - 10;
-$iq-form-mask-zindex: $zindexModal + 10;
 
 // Modal Z-indexes
 $iq-modal-backdrop-z-index: 1040;
 $iq-modal-z-index: 1050;
 
+$iq-color-picker-zindex: $iq-modal-backdrop-z-index - 10;
+$iq-form-mask-zindex: $iq-modal-z-index + 10;
+
+// This value is derived from bootstrap's tooltip z-index:
+$iq-tooltip-z-index: 1030;
+
 // need the login panel above the form save mask
 // ui-bootstrap modal window template sets z-index via ng-style, hence important
-$iq-login-modal-zindex: $zindexModal + 20 !important;
+$iq-login-modal-zindex: $iq-modal-z-index + 20 !important;
 
 // sidebar manage filter dropdown higher than main content
 $iq-sidebar-zindex: 4;

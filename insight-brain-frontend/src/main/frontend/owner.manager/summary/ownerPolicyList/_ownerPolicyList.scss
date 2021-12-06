@@ -3,6 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../../scss/variables' as *;
+
 owner-policy-list {
   display: block;
   margin-bottom: 24px;
@@ -30,39 +35,39 @@ owner-policy-list {
 
   // All the columns have the same class but require different widths so we have to count them.
   // The numbers represent minimum values for the column header text + arrows to fit.
-  $iq-cell-proxy-width: 85px;
-  $iq-cell-build-width: 85px;
-  $iq-cell-stage-width: 85px;
-  $iq-cell-develop-width: 101px;
-  $iq-cell-release-width: 98px;
-  $iq-cell-operate-width: 101px;
+  $-cell-proxy-width: 85px;
+  $-cell-build-width: 85px;
+  $-cell-stage-width: 85px;
+  $-cell-develop-width: 101px;
+  $-cell-release-width: 98px;
+  $-cell-operate-width: 101px;
 
   .policy-list__stage-column {
     // Proxy, Build, and Stage columns
     &:nth-child(3),
     &:nth-child(5),
     &:nth-child(6) {
-      width: $iq-cell-proxy-width;
+      width: $-cell-proxy-width;
     }
 
     // Develop column
     &:nth-child(4) {
-      width: $iq-cell-develop-width;
+      width: $-cell-develop-width;
     }
 
     // Release column
     &:nth-child(7) {
-      width: $iq-cell-release-width;
+      width: $-cell-release-width;
     }
 
     // Operate column
     &:nth-child(8) {
-      width: $iq-cell-operate-width;
+      width: $-cell-operate-width;
     }
   }
 
   .iq-cell--policy-list-name {
-    @include semi-bold();
+    @include nx-text-helpers.semi-bold;
 
     // padding removed for threat bars
     padding-top: 0;
@@ -72,8 +77,8 @@ owner-policy-list {
     width: calc(
       100% -
         (
-          #{$iq-cell-proxy-width} + 1px + #{$iq-cell-build-width} + 1px + #{$iq-cell-stage-width} + 1px + #{$iq-cell-develop-width} +
-            1px + #{$iq-cell-release-width} + 1px + #{$iq-cell-operate-width} + 1px + 33px
+          #{$-cell-proxy-width} + 1px + #{$-cell-build-width} + 1px + #{$-cell-stage-width} + 1px + #{$-cell-develop-width} +
+            1px + #{$-cell-release-width} + 1px + #{$-cell-operate-width} + 1px + 33px
         )
     );
   }

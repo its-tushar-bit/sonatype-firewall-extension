@@ -4,17 +4,22 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-flexbox-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../scss/variables' as *;
 
 #violation-page {
-  @include container-vertical;
+  @include nx-container-helpers.container-vertical;
 }
 
 .iq-violation-details {
+  .nx-tile-header {
+    row-gap: var(--nx-spacing-2x);
+  }
+
   .nx-tile-header__subtitle {
-    @include container-horizontal;
+    @include nx-container-helpers.container-horizontal;
     display: flex;
     max-width: max-content;
 
@@ -67,7 +72,7 @@
     gap: var(--nx-spacing-8x) var(--nx-spacing-12x);
 
     > * {
-      @include nx-truncate-ellipsis;
+      @include nx-text-helpers.truncate-ellipsis;
     }
 
     dt,
@@ -88,13 +93,13 @@
 .iq-violation-details__subtitle-part {
   $icon-margin: 0 var(--nx-spacing-base) 0 0;
 
-  @include container-horizontal;
+  @include nx-container-helpers.container-horizontal;
 
   font-weight: normal;
   margin: 0 var(--nx-spacing-2x) 0 0;
 
   .iq-inverse-icon-wrapper {
-    @include container-horizontal;
+    @include nx-container-helpers.container-horizontal;
 
     display: inline-block;
 
@@ -114,7 +119,7 @@
 }
 
 .iq-violation-details__stage {
-  @include container-horizontal;
+  @include nx-container-helpers.container-horizontal;
 
   .nx-icon {
     margin: 0 var(--nx-spacing-base) 0 0;

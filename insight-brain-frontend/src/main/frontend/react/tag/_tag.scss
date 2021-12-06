@@ -4,9 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
 .nx-tag {
   .nx-tag__text {
-    @include container-horizontal();
+    @include nx-container-helpers.container-horizontal;
 
     img {
       margin-right: var(--nx-spacing-2x);

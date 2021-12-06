@@ -3,6 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../scss/variables' as *;
+
 @import '../lib/bootstrap/bootstrap-slider-2.0.0.css';
 
 .iq-policy-threat-level-slider {
@@ -33,7 +38,7 @@
   }
 
   .slider-handle {
-    @include semi-bold();
+    @include nx-text-helpers.semi-bold;
 
     background: $iq-slate none;
     border-radius: 4px;

@@ -8,11 +8,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import 'license/license';
-@import 'gettingStarted/gettingStarted';
-@import 'labsDataInsights/labsDataInsights';
-@import 'webhook/editWebhook/editWebhook';
-@import 'webhook/listWebhooks/listWebhooks';
+
+@use '../scss/variables' as *;
+
+@use 'license/license';
+@use 'gettingStarted/gettingStarted';
+@use 'labsDataInsights/labsDataInsights';
+@use 'webhook/editWebhook/editWebhook';
+@use 'webhook/listWebhooks/listWebhooks';
 
 .iq-system-config-explanation {
   max-width: $iq-paragraph-width-maximum;

@@ -4,10 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
-@import './riskRemediation/RiskRemediation';
-@import './InnerSourceProducerAlert/InnerSourceProducerAlert.scss';
-@import './componentInformationTile/OverviewComponentInformation';
+@use './riskRemediation/RiskRemediation';
+@use './InnerSourceProducerAlert/InnerSourceProducerAlert';
+@use './componentInformationTile/OverviewComponentInformation';
 
 .iq-component-information-tile {
   > .nx-tile-content {

@@ -4,10 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import './UserToken/userToken';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../../scss/variables' as *;
+
+@use './UserToken/userToken';
 
 .iq-user-name {
-  @include nx-truncate-ellipsis;
+  @include nx-text-helpers.truncate-ellipsis;
   display: block;
   margin-top: 4px;
   max-width: 200px;

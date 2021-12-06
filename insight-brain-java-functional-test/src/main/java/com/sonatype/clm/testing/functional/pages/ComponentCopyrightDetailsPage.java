@@ -106,15 +106,15 @@ public final class ComponentCopyrightDetailsPage
 
     public boolean isOpen(final int index) {
       final SelenideElement element = pathAt(index);
-      return element.attr("class").toLowerCase().contains("nx-tree-view--expanded");
+      return element.attr("class").toLowerCase().contains("nx-collapsible-items--expanded");
     }
 
     public SelenideElement getFilePath(final int index) {
-      return pathAt(index).$(".nx-tree-view__text");
+      return pathAt(index).$(".nx-collapsible-items__text");
     }
 
     public SelenideElement getCopyrightContextText(final int index) {
-      return pathAt(index).$(".nx-tree-view__children");
+      return pathAt(index).$(".nx-collapsible-items__children");
     }
   }
 

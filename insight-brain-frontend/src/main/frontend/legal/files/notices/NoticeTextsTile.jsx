@@ -30,7 +30,7 @@ export default function NoticeTextsTile(props) {
 
   const enabledNotices = noticeFiles.filter((noticeFile) => noticeFile.originalStatus === 'enabled');
 
-  const classes = classnames('nx-tile-content', {
+  const classes = classnames({
     'license-no-legal-elements-text': !isNoticePresent(),
   });
 
@@ -63,17 +63,13 @@ export default function NoticeTextsTile(props) {
     <React.Fragment>
       <NxAccordion open={open} onToggle={toggleOpen} id="notice-texts-tile">
         <NxAccordion.Header>
-          <header className="nx-tile-header">
-            <div className="nx-tile-header__title">
-              <h2 className="nx-h2 nx-accordion__header-title">Notice Files</h2>
-            </div>
-            <div className="nx-tile__actions">
-              <NxButton id="edit-notices" variant="tertiary" onClick={() => setShowNoticesModal(true)}>
-                <NxFontAwesomeIcon icon={isNoticePresent() ? faPen : faPlus} />
-                <span>{isNoticePresent() ? 'Edit' : 'Add'}</span>
-              </NxButton>
-            </div>
-          </header>
+          <NxAccordion.Title>Notice Files</NxAccordion.Title>
+          <div className="nx-btn-bar">
+            <NxButton id="edit-notices" variant="tertiary" onClick={() => setShowNoticesModal(true)}>
+              <NxFontAwesomeIcon icon={isNoticePresent() ? faPen : faPlus} />
+              <span>{isNoticePresent() ? 'Edit' : 'Add'}</span>
+            </NxButton>
+          </div>
         </NxAccordion.Header>
         <div className={classes}>{enabledNotices.length > 0 ? enabledNotices.map(createItem) : 'None found'}</div>
       </NxAccordion>

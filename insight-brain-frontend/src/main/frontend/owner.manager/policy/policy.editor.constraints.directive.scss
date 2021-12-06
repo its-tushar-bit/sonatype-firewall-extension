@@ -5,6 +5,10 @@
  */
 //Policy View/Editor Constraint Styles
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../scss/variables' as *;
+
 .iq-policy-constraint {
   border-bottom: 1px solid $iq-grey-1;
   padding-bottom: 7px;
@@ -26,8 +30,8 @@
 }
 
 .iq-policy-constraint-summary__name {
-  @include semi-bold();
-  @extend .truncate-ellipsis;
+  @include nx-text-helpers.semi-bold;
+  @include nx-text-helpers.truncate-ellipsis;
 
   color: $iq-off-black;
   display: block;
@@ -46,7 +50,7 @@
 }
 
 .iq-policy-constraint-summary__operator {
-  @include bold();
+  @include nx-text-helpers.bold;
 
   font-size: 16px;
 }

@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 import LicenseObligationAttributionTile from '../../../main/frontend/legal/LicenseObligationAttributionTile';
-import { NxTextInput } from '@sonatype/react-shared-components';
+import { NxAccordion, NxTextInput } from '@sonatype/react-shared-components';
 
 describe('LicenseObligationAttributionTile component', function () {
   let getShallowComponent,
@@ -48,22 +48,22 @@ describe('LicenseObligationAttributionTile component', function () {
 
   it('renders a header with a label matching the license obligation name', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('.nx-h2')).toHaveText('Stated Changes');
+    expect(wrapper.find(NxAccordion.Title)).toHaveText('Stated Changes');
   });
 
   it('renders Additional Attributions header if there is not a name', function () {
     const wrapper = getShallowComponent({ name: null });
-    expect(wrapper.find('.nx-h2')).toHaveText('Additional Attributions');
+    expect(wrapper.find(NxAccordion.Title)).toHaveText('Additional Attributions');
   });
 
   it('renders an Add button if there is no attribution', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('.nx-tile__actions span')).toHaveText('Add');
+    expect(wrapper.find('.nx-btn-bar span')).toHaveText('Add');
   });
 
   it('renders an Edit button if there is an attribution', function () {
     const wrapper = getShallowComponent({ id: 'id' });
-    expect(wrapper.find('.nx-tile__actions span')).toHaveText('Edit');
+    expect(wrapper.find('.nx-btn-bar span')).toHaveText('Edit');
   });
 
   it('renders an Add modal title if there is no attribution', function () {
@@ -81,12 +81,14 @@ describe('LicenseObligationAttributionTile component', function () {
 
   it('renders appropriate text if there is no attribution', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('.nx-tile-content')).toHaveText('No attribution for stated changes added');
+    const content = wrapper.find(NxAccordion).shallow();
+    expect(content.find('.nx-accordion__content')).toHaveText('No attribution for stated changes added');
   });
 
   it('renders `None added` as content if there is no attribution and no name', function () {
     const wrapper = getShallowComponent({ name: null });
-    expect(wrapper.find('.nx-tile-content')).toHaveText('None added');
+    const content = wrapper.find(NxAccordion).shallow();
+    expect(content.find('.nx-accordion__content')).toHaveText('None added');
   });
 
   it('renders the original attribution text as content if there is an attribution', function () {
@@ -95,7 +97,8 @@ describe('LicenseObligationAttributionTile component', function () {
       originalAttributionText: 'Some attribution text.',
     };
     const wrapper = getShallowComponent(attribution);
-    expect(wrapper.find('.nx-tile-content')).toHaveText(attribution.originalAttributionText);
+    const content = wrapper.find(NxAccordion).shallow();
+    expect(content.find('.nx-accordion__content')).toHaveText(attribution.originalAttributionText);
   });
 
   it('renders the modal with root org data', function () {

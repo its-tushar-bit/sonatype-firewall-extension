@@ -4,8 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-table-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-table-helpers';
 
 firewall,
 firewall-page,
@@ -18,8 +19,8 @@ firewall-auto-unquarantine-page {
   }
 
   .iq-status-indicator {
-    @include container-horizontal;
-    @include nx-truncate-ellipsis;
+    @include nx-container-helpers.container-horizontal;
+    @include nx-text-helpers.truncate-ellipsis;
   }
 }
 
@@ -108,7 +109,7 @@ h2.iq-firewall-table-label {
 
 // Firewall component grid column
 .iq-firewall-auto-unquarantine-table {
-  height: pagination-table-height(12, 1);
+  height: nx-table-helpers.pagination-table-height(12, 1);
 
   .iq-cell--date-cleared {
     width: 170px;
@@ -125,7 +126,7 @@ h2.iq-firewall-table-label {
 
 // Firewall Quarantine Grid
 .iq-firewall-quarantine-table {
-  height: pagination-table-height(12, 1);
+  height: nx-table-helpers.pagination-table-height(12, 1);
 
   .iq-cell--threat {
     width: 90px;

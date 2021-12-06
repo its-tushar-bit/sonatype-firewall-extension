@@ -7,6 +7,10 @@
   Owner Summary View
  */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../scss/variables' as *;
+
 #owner-manager-main {
   padding-bottom: 0;
 }
@@ -36,7 +40,7 @@
 }
 
 .iq-owner-public-id {
-  @include regular();
+  @include nx-text-helpers.regular;
 
   font-weight: normal;
 }
@@ -86,7 +90,7 @@
 }
 
 .iq-btn--nav-pill {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   border: 1px solid $iq-grey-5;
   border-radius: 16px;
@@ -109,7 +113,7 @@
 }
 
 .ellipsis {
-  @include bold();
+  @include nx-text-helpers.bold;
 
   font-size: 18px;
 }

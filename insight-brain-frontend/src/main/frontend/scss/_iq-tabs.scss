@@ -6,13 +6,18 @@
 /*
   #Tabs
 */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
 .iq-tab-bar {
   background-color: $iq-blue-xlight;
   height: 42px;
 }
 
 .iq-tab {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   box-sizing: border-box;
   border-bottom: 3px solid $iq-blue-xlight;

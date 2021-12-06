@@ -4,8 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-$iq-notification-age-qualifier-width: 67px;
-$iq-notification-age-width: 43px;
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../../scss/variables' as *;
+
+$-notification-age-qualifier-width: 67px;
+$-notification-age-width: 43px;
 
 .iq-notifications-menu-button {
   position: relative;
@@ -33,8 +37,9 @@ $iq-notification-age-width: 43px;
 }
 
 .iq-count-circle {
-  @include bold();
-  @include border-radius(50%);
+  @include nx-text-helpers.bold;
+
+  border-radius: 50%;
   pointer-events: none;
 
   background-color: $iq-off-white;
@@ -48,9 +53,9 @@ $iq-notification-age-width: 43px;
   width: 16px;
 
   &.exclamation {
-    background-color: #f2dede;
-    border: solid thin #b94a48;
-    color: #b94a48;
+    background-color: $bootstrap-error-background;
+    border: solid thin $bootstrap-error-border;
+    color: $bootstrap-error-text;
   }
 }
 
@@ -78,7 +83,7 @@ $iq-notification-age-width: 43px;
   line-height: 20px;
   padding-right: 8px;
   text-align: right;
-  width: $iq-notification-age-width;
+  width: $-notification-age-width;
 }
 
 .iq-notification__age-qualifier {
@@ -87,11 +92,11 @@ $iq-notification-age-width: 43px;
   padding-right: 16px;
   text-align: left;
   white-space: normal;
-  width: $iq-notification-age-qualifier-width;
+  width: $-notification-age-qualifier-width;
 }
 
 .iq-notification__text {
   display: inline-block;
-  width: calc(100% - #{$iq-notification-age-qualifier-width + $iq-notification-age-width});
+  width: calc(100% - #{$-notification-age-qualifier-width + $-notification-age-width});
   white-space: normal;
 }

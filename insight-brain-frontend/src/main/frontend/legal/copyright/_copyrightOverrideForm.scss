@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use '../../scss/variables' as *;
+
 #edit-copyrights-override-table {
   width: 100%;
   display: grid;

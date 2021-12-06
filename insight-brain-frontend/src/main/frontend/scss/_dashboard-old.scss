@@ -5,6 +5,10 @@
  */
 // these are leftovers from old dashboard, still used by report-list.html and component.html
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
 $dashboard-border-width: 2px;
 $dashboard-border: $dashboard-border-width solid #ccc;
 
@@ -97,7 +101,7 @@ $dashboard-border: $dashboard-border-width solid #ccc;
 
   table {
     &.policy-violation-table tr td:nth-child(2) {
-      @include semi-bold();
+      @include nx-text-helpers.semi-bold;
     }
 
     &.table-risk {
@@ -106,7 +110,7 @@ $dashboard-border: $dashboard-border-width solid #ccc;
       }
 
       tr.stage td:first-child {
-        @include semi-bold();
+        @include nx-text-helpers.semi-bold;
 
         text-align: right;
       }
@@ -136,14 +140,14 @@ $dashboard-border: $dashboard-border-width solid #ccc;
         }
 
         &:not(:first-child) {
-          background-color: #fff;
+          background-color: var(--nx-swatch-white);
         }
       }
 
       td.total-risk {
         background-color: #444;
         border-bottom: 1px solid white;
-        color: #fff;
+        color: var(--nx-swatch-white);
         font-size: 14px;
       }
     }
@@ -152,7 +156,7 @@ $dashboard-border: $dashboard-border-width solid #ccc;
   span.total-risk {
     background-color: #444;
     border-bottom: 1px solid white;
-    color: #fff;
+    color: var(--nx-swatch-white);
     font-size: 14px;
   }
 
@@ -253,7 +257,7 @@ $dashboard-border: $dashboard-border-width solid #ccc;
   }
 
   .latest-risk {
-    @include bold();
+    @include nx-text-helpers.bold;
   }
 
   .accordion-column {
@@ -411,7 +415,7 @@ $dashboard-border: $dashboard-border-width solid #ccc;
   }
 
   .component-violations-table .threat-column {
-    @include bold();
+    @include nx-text-helpers.bold;
     width: 20px;
   }
 

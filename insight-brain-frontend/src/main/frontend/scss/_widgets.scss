@@ -6,28 +6,33 @@
 /*
   #Widgets
 */
+@use 'sass:list';
 
-@import 'iq-alerts';
-@import 'iq-dropdowns';
-@import 'iq-loader';
-@import 'iq-modals';
-@import 'iq-tables';
-@import 'iq-tree-view';
-@import 'iq-grid';
-@import 'iq-list';
-@import 'iq-buttons';
-@import 'iq-indicator-row';
-@import 'iq-threat-indicators';
-@import 'iq-coverage-indicator';
-@import 'iq-grandfathering-indicator';
-@import 'iq-dependency-indicators';
-@import 'iq-counter';
-@import 'iq-nav-pills';
-@import '../role.membership/role.membership.view';
-@import 'iq-text-indicators.scss';
-@import 'iq-threat-bar';
-@import 'iq-pagination';
-@import 'iq-tabs';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
+@use 'iq-alerts';
+@use 'iq-dropdowns';
+@use 'iq-loader';
+@use 'iq-modals';
+@use 'iq-tables';
+@use 'iq-tree-view';
+@use 'iq-grid';
+@use 'iq-list';
+@use 'iq-buttons';
+@use 'iq-indicator-row';
+@use 'iq-threat-indicators';
+@use 'iq-coverage-indicator';
+@use 'iq-grandfathering-indicator';
+@use 'iq-dependency-indicators';
+@use 'iq-counter';
+@use 'iq-nav-pills';
+@use '../role.membership/role.membership.view';
+@use 'iq-text-indicators.scss';
+@use 'iq-threat-bar';
+@use 'iq-pagination';
+@use 'iq-tabs';
 
 /*
   ##Twisty Container
@@ -163,7 +168,7 @@
   opacity: 1;
 
   .modal & {
-    z-index: $zindexTooltip + $zindexModal;
+    z-index: $iq-tooltip-z-index + $iq-modal-z-index;
   }
 }
 
@@ -285,12 +290,12 @@
   line-height: 0;
 
   div {
-    @include square(32px);
-
     border: 1px solid $iq-off-black;
     cursor: pointer;
     display: inline-block;
+    height: 32px;
     position: relative;
+    width: 32px;
 
     @each $color-name, $pickable-color in $pickable-colors {
       &.#{$color-name} {
@@ -339,7 +344,7 @@
 
   .iq-checkbox__label,
   .iq-radio {
-    @extend .truncate-ellipsis;
+    @include nx-text-helpers.truncate-ellipsis;
   }
 
   .iq-radio {
@@ -433,7 +438,7 @@ double-column-picker {
             margin: 8px 0 8px 6px;
 
             .title {
-              @include semi-bold();
+              @include nx-text-helpers.semi-bold;
 
               margin-bottom: 2px;
             }
@@ -566,22 +571,22 @@ double-column-picker {
   }
 
   .threat-level-background {
-    @include semi-bold();
+    @include nx-text-helpers.semi-bold;
 
-    color: $white;
+    color: var(--nx-swatch-white);
 
     @each $threat in $policy-threat-levels {
-      @each $threatLevel in nth($threat, 4) {
+      @each $threatLevel in list.nth($threat, 4) {
         &.policy-threat-level-#{$threatLevel} {
-          background-color: nth($threat, 3);
+          background-color: list.nth($threat, 3);
         }
       }
     }
 
     @each $threat in $threat-levels {
-      @each $threatLevel in nth($threat, 4) {
+      @each $threatLevel in list.nth($threat, 4) {
         &.ltg-threat-level-#{$threatLevel} {
-          background-color: nth($threat, 3);
+          background-color: list.nth($threat, 3);
         }
       }
     }
@@ -758,7 +763,7 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
 
     td {
       &:first-child {
-        @include semi-bold();
+        @include nx-text-helpers.semi-bold;
       }
 
       > .fa {
@@ -804,7 +809,7 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
 */
 .copied-tooltip {
   > .tooltip-arrow {
-    border-bottom-color: $green !important;
+    border-bottom-color: #46a546 !important;
 
     &:after {
       border-bottom-color: $iq-off-white !important;
@@ -814,8 +819,8 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
   > .tooltip-content {
     // This is a wrapper around the extra content, since Bootstrap tooltip overwrites the tooltip-inner with the title
     background-color: $iq-off-white;
-    border: 1px solid $green;
-    color: $green;
+    border: 1px solid #46a546;
+    color: #46a546;
     padding: 4px 8px 4px 8px;
 
     i {
@@ -1074,7 +1079,7 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
   }
 
   a {
-    @include bold();
+    @include nx-text-helpers.bold;
 
     color: #36424e;
     display: block;

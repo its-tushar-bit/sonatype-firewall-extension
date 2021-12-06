@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 component-license-details {
   display: contents;
@@ -46,7 +45,7 @@ component-license-details {
 
 .component-license-details-license-preformatted {
   white-space: pre-wrap;
-  @include monospace;
+  @include nx-text-helpers.monospace;
   padding-left: var(--nx-spacing-2x);
   padding-right: var(--nx-spacing-2x);
 }

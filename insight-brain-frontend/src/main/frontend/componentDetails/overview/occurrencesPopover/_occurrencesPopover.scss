@@ -4,14 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 .iq-occurrence {
   .iq-occurrence__dirname {
-    @include regular();
+    @include nx-text-helpers.regular;
   }
 
   .iq-occurrence__location {
-    @include italic();
+    @include nx-text-helpers.italic;
   }
 }

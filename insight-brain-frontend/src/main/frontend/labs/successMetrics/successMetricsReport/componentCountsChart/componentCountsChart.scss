@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 .iq-chart--component-counts {
   height: 247px;
 }
@@ -12,7 +15,7 @@
 
   span {
     &:first-child {
-      @extend .truncate-ellipsis;
+      @include nx-text-helpers.truncate-ellipsis;
       width: 289px;
     }
 

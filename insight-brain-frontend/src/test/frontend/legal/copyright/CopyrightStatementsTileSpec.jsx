@@ -5,6 +5,7 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import CopyrightStatementsTile from '../../../../main/frontend/legal/copyright/CopyrightStatementsTile';
+import { NxAccordion } from '@sonatype/react-shared-components';
 
 describe('CopyrightStatementsTile component', function () {
   let getShallowComponent, $state;
@@ -53,7 +54,7 @@ describe('CopyrightStatementsTile component', function () {
 
   it('renders a header with label `Copyright Notices`', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('h2.nx-h2')).toHaveText('Copyright Notices');
+    expect(wrapper.find(NxAccordion.Title)).toHaveText('Copyright Notices');
   });
 
   it('renders the given copyright statements', function () {
@@ -112,8 +113,8 @@ describe('CopyrightStatementsTile component', function () {
         },
       },
     })();
-    const content = wrapper.find('.nx-tile-content');
-    expect(content).toHaveText('None found');
+    const content = wrapper.find(NxAccordion).shallow();
+    expect(content.find('.nx-accordion__content')).toHaveText('None found');
   });
 
   it('renders None enabled if all the licenses are disabled', function () {
@@ -131,7 +132,7 @@ describe('CopyrightStatementsTile component', function () {
         },
       },
     })();
-    const content = wrapper.find('.nx-tile-content');
-    expect(content).toHaveText('None enabled');
+    const content = wrapper.find(NxAccordion).shallow();
+    expect(content.find('.nx-accordion__content')).toHaveText('None enabled');
   });
 });

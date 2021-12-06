@@ -6,6 +6,9 @@
 /*
   DASHBOARD VIOLATIONS TABLE
 */
+
+@use './variables' as *;
+
 .ie9 {
   // Display HTML 5 block elements correctly in IE9
   // Copied from bootstrap's reset so that we aren't dependent on it for this

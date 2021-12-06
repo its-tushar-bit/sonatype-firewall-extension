@@ -7,8 +7,12 @@
   ##Buttons
 */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
 .iq-btn {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   background-color: $iq-grey-1;
   border: 1px solid $iq-grey-4;
@@ -156,7 +160,7 @@
  */
 
 .iq-btn--dropdown {
-  $iq-drop-down-indentation: -12px;
+  $drop-down-indentation: -12px;
 
   background-color: transparent;
   border-color: transparent;
@@ -164,7 +168,7 @@
   display: block;
   height: 32px;
   line-height: 32px;
-  margin: 0 0 0 $iq-drop-down-indentation;
+  margin: 0 0 0 $drop-down-indentation;
   overflow: hidden;
   padding: 0 10px 0 12px;
   text-align: left;
@@ -202,6 +206,6 @@
 
   // This overrides the normal spacing for .iq-btn + .iq-btn above
   + .iq-btn--dropdown {
-    margin-left: $iq-drop-down-indentation;
+    margin-left: $drop-down-indentation;
   }
 }

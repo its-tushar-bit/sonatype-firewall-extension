@@ -6,8 +6,13 @@
 /*
   #Tree view
 */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
 .iq-tree-view {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   box-sizing: border-box;
   color: $iq-slate;
@@ -22,7 +27,7 @@
 }
 
 .iq-tree-view__trigger {
-  @extend .truncate-ellipsis;
+  @include nx-text-helpers.truncate-ellipsis;
 
   border: 1px solid transparent;
   display: block;
@@ -104,7 +109,7 @@
 }
 
 .iq-tree-view__text {
-  @extend .truncate-ellipsis;
+  @include nx-text-helpers.truncate-ellipsis;
 
   color: $iq-slate;
   display: block;
@@ -228,8 +233,8 @@
     padding-right: 0;
 
     .iq-checkbox__label {
-      @extend .truncate-ellipsis;
-      @include semi-bold();
+      @include nx-text-helpers.truncate-ellipsis;
+      @include nx-text-helpers.semi-bold;
 
       // fix checkbox labels vertical alignment
       // overwrites (back to original): .iq-tree-view__child label { line-height: 32px; }

@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 #iq-policy-violations-table {
   margin-bottom: 0;
@@ -32,7 +32,7 @@
         }
 
         li {
-          @include container-horizontal();
+          @include nx-container-helpers.container-horizontal;
         }
       }
 
@@ -62,7 +62,7 @@
 
       .iq-policy-violation-row__policy-name-and-action-cell {
         > span {
-          @include bold();
+          @include nx-text-helpers.bold;
         }
       }
 
@@ -78,7 +78,7 @@
         // All indicators are inside div containers since they require multiple elements
         // we take advantage of that selecting all immediate div children of the cell
         > div {
-          @include container-horizontal();
+          @include nx-container-helpers.container-horizontal;
           margin-bottom: var(--nx-spacing-2x);
         }
       }

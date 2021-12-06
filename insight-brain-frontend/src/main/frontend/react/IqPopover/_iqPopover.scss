@@ -4,6 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+@use '../../scss/variables' as *;
+
 //POSITIONING and LAYOUT
 //TODO: consider moving this somewhere else
 .iq-popover {
@@ -63,7 +67,7 @@
 
 .iq-popover__header,
 .iq-popover__footer {
-  @include container-vertical;
+  @include nx-container-helpers.container-vertical;
   padding: var(--nx-spacing-6x);
 }
 
@@ -80,7 +84,7 @@
 }
 
 .iq-popover-header__title {
-  @include container-horizontal;
+  @include nx-container-helpers.container-horizontal;
 
   align-items: start;
   display: flex;

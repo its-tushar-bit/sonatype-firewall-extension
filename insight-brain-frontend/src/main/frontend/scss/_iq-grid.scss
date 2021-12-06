@@ -3,12 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+@use './mixins';
+
 .iq-grid-row {
-  @include flexbox();
+  display: flex;
 }
 
 .iq-grid-col {
-  @include flex(1 0);
+  flex: 1 0;
 
   border-left: 1px solid $iq-grey-2;
   box-sizing: border-box;
@@ -34,30 +40,29 @@
 }
 
 .iq-grid-col--25 {
-  @include flex(0 0 25%);
-
+  flex: 0 0 25%;
   // IE10 and 11 don't respect box-sizing for flex-basis, so we need
   // to provide a width as well
   max-width: 25%;
 }
 
 .iq-grid-col--50 {
-  @include flex(0 0 50%);
+  flex: 0 0 50%;
   max-width: 50%;
 }
 
 .iq-grid-col--75 {
-  @include flex(0 0 75%);
+  flex: 0 0 75%;
   max-width: 75%;
 }
 
 .iq-grid-col--33 {
-  @include flex(0 0 33%);
+  flex: 0 0 33%;
   max-width: 33%;
 }
 
 .iq-grid-col--67 {
-  @include flex(0 0 67%);
+  flex: 0 0 67%;
   max-width: 67%;
 }
 
@@ -89,7 +94,7 @@
 }
 
 .iq-grid-header__title {
-  @extend .truncate-ellipsis;
+  @include nx-text-helpers.truncate-ellipsis;
 
   line-height: 100%;
   margin: 0; // zeros out any <h#> margin

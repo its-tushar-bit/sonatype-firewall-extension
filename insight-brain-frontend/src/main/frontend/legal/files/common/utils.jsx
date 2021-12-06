@@ -10,7 +10,7 @@ import React from 'react';
 import { assoc, keys, reduce } from 'ramda';
 
 export const createLegalFileTileItem = (legalFileType, object, index, $state, targetStateName, routeParams) => (
-  <section id={`${legalFileType}-section-${index}`} key={index} className="nx-tile-subsection legal-file">
+  <section id={`${legalFileType}-section-${index}`} key={index} className="legal-file">
     <div className="legal-file-section-header">
       <span className="legal-file-path">{object.relPath}</span>
     </div>

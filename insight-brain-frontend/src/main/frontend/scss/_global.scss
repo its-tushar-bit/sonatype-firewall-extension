@@ -6,6 +6,11 @@
 /*
   #Basic links
 */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use './variables' as *;
+
 a {
   color: $iq-link-color;
   cursor: pointer;
@@ -81,7 +86,7 @@ a {
 }
 
 .ui-match {
-  @include bold();
+  @include nx-text-helpers.bold;
 }
 
 // See https://issues.sonatype.org/browse/CLM-3087

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../enzymeUtils';
+import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 describe('ViolationDetailsSubtitle', function () {
   let getComponentNameMock, ViolationDetailsSubtitle, minimalProps, getShallowComponent;
@@ -33,8 +34,12 @@ describe('ViolationDetailsSubtitle', function () {
     it('renders and icon and the org name as the first iq-violation-details__subtitle-part', function () {
       const part = getShallowComponent().find('.iq-violation-details__subtitle-part').at(0);
 
-      expect(part).toExist();
-      expect(part).toHaveText('<NxFontAwesomeIcon />Org 1');
+      const icon = part.find(NxFontAwesomeIcon);
+      expect(icon).toExist();
+
+      const organizationNameSpan = part.find('span').at(0);
+      console.log(organizationNameSpan);
+      expect(organizationNameSpan).toHaveText('Org 1');
     });
   });
 
@@ -42,8 +47,11 @@ describe('ViolationDetailsSubtitle', function () {
     it('renders and icon and the app name as the second iq-violation-details__subtitle-part', function () {
       const part = getShallowComponent().find('.iq-violation-details__subtitle-part').at(1);
 
-      expect(part).toExist();
-      expect(part).toHaveText('<NxFontAwesomeIcon />App 1');
+      const icon = part.find(NxFontAwesomeIcon);
+      expect(icon).toExist();
+
+      const applicationNameSpan = part.find('span').at(0);
+      expect(applicationNameSpan).toHaveText('App 1');
     });
   });
 
@@ -51,8 +59,12 @@ describe('ViolationDetailsSubtitle', function () {
     it('renders and icon and the component name as the third iq-violation-details__subtitle-part', function () {
       const part = getShallowComponent().find('.iq-violation-details__subtitle-part').at(2);
 
-      expect(part).toExist();
-      expect(part).toHaveText('<NxFontAwesomeIcon />foo : bar');
+      const icon = part.find(NxFontAwesomeIcon);
+      expect(icon).toExist();
+
+      const componentName = part.find('span').at(0);
+      console.log(componentName.debug());
+      expect(componentName).toHaveText('foo : bar');
     });
 
     it("passes the component's displayName, filename, and filenames to getComponentName", function () {

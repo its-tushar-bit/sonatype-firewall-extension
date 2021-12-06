@@ -20,23 +20,24 @@ public class NxTreeViewMultiSelect
   }
 
   public SelenideElement twisty() {
-    return child(".nx-tree-view__trigger");
+    return child(".nx-collapsible-items__trigger");
   }
 
   public ElementsCollection multiSelectList() {
-    return children(".nx-tree-view__child");
+    return children(".nx-collapsible-items__child");
   }
 
   public ElementsCollection singleSelectList() {
-    return children(".nx-tree-view__child.nx-radio");
+    return children(".nx-collapsible-items__child.nx-radio");
   }
 
   public NxCheckbox checkboxItem(int index) {
-    return new NxCheckbox(child(".nx-tree-view__children .nx-tree-view__child.nx-checkbox", nthChild(index)));
+    return new NxCheckbox(child(".nx-collapsible-items__children .nx-collapsible-items__child.nx-checkbox",
+            nthChild(index)));
   }
 
   public NxRadio radioItem(int index) {
-    return new NxRadio(child(".nx-tree-view__children .nx-tree-view__child.nx-radio", nthChild(index)));
+    return new NxRadio(child(".nx-collapsible-items__children .nx-collapsible-items__child.nx-radio", nthChild(index)));
   }
 
   public NxCheckbox allItems() {

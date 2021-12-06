@@ -3,17 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import './ComponentDetailsHeader/ComponentDetailsHeader';
-@import './ComponentDetailsFooter/ComponentDetailsFooter';
-@import './ComponentDetailsHeader/ComponentDetailsTags';
-@import './auditLog/auditLog';
-@import './ViolationsTableTile/policyViolations';
-@import './overview/Overview';
-@import './overview/riskRemediation/RiskRemediation';
-@import './overview/VersionGraphExplorer/VersionGraphExplorer';
-@import './VulnerabilitiesTableTile/vulnerabilities';
-@import './ComponentDetailsLegalTab/ComponentDetailsLegalTab.scss';
-@import './ManageComponentLabels/ApplyLabelModal/ApplyLabelModal';
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+@use './ComponentDetailsHeader/ComponentDetailsHeader';
+@use './ComponentDetailsFooter/ComponentDetailsFooter';
+@use './ComponentDetailsHeader/ComponentDetailsTags';
+@use './auditLog/auditLog';
+@use './ViolationsTableTile/policyViolations';
+@use './overview/Overview';
+@use './overview/riskRemediation/RiskRemediation';
+@use './overview/VersionGraphExplorer/VersionGraphExplorer';
+@use './VulnerabilitiesTableTile/vulnerabilities';
+@use './ComponentDetailsLegalTab/ComponentDetailsLegalTab.scss';
+@use './ManageComponentLabels/ApplyLabelModal/ApplyLabelModal';
 
 .nx-page-main.iq-component-details-page {
   padding: 0;
@@ -31,6 +34,6 @@ component-details {
   max-width: max-content;
 
   .nx-alert__content {
-    @include container-horizontal;
+    @include nx-container-helpers.container-horizontal;
   }
 }

@@ -3,6 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 .iq-app-report {
   align-items: stretch;
   display: flex;
@@ -24,7 +28,7 @@
     -ms-grid-columns: 1fr auto;
 
     .nx-h1 {
-      @include nx-truncate-ellipsis;
+      @include nx-text-helpers.truncate-ellipsis;
       grid-column-start: 1;
       grid-column-end: 1;
       grid-row-start: 1;
@@ -35,7 +39,7 @@
     }
 
     .nx-page-title__description {
-      @include semi-bold();
+      @include nx-text-helpers.semi-bold;
 
       grid-column-start: 1;
       grid-column-end: 2;
@@ -47,7 +51,7 @@
     }
 
     .iq-page-title__actions {
-      @include container-horizontal;
+      @include nx-container-helpers.container-horizontal;
 
       float: none;
       grid-column-start: 2;

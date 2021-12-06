@@ -6,8 +6,13 @@
 /*
   ##Threat Chiclets
 */
+
+@use 'sass:list';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use './variables' as *;
+
 .threat-chiclet {
-  @include bold();
+  @include nx-text-helpers.bold;
 
   border-radius: 4px;
   display: inline-block;
@@ -24,8 +29,8 @@
 
 // threat levels
 @each $threatdef in $threat-levels {
-  .threat-chiclet-#{nth($threatdef, 1)} {
-    background-color: nth($threatdef, 3) !important;
-    color: nth($threatdef, 2);
+  .threat-chiclet-#{list.nth($threatdef, 1)} {
+    background-color: list.nth($threatdef, 3) !important;
+    color: list.nth($threatdef, 2);
   }
 }

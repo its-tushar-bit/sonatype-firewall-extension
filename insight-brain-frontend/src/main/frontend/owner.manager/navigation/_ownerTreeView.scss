@@ -7,6 +7,11 @@
   ##Organization Tree View
 */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../scss/variables' as *;
+@use '../../scss/typography' as *;
+
 $child-row-left-padding: 40px;
 
 .iq-owner-tree-view {
@@ -73,8 +78,8 @@ $child-row-left-padding: 40px;
 
 .iq-owner-tree-view__header {
   @extend h3;
-  @extend .truncate-ellipsis;
-  @include semi-bold();
+  @include nx-text-helpers.truncate-ellipsis;
+  @include nx-text-helpers.semi-bold;
 
   color: $iq-slate;
   line-height: var(--nx-line-height);

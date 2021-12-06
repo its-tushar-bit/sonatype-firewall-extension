@@ -3,22 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import '~bootstrap-sass/lib/_variables';
-@import '~bootstrap-sass/lib/_mixins';
-@import '~bootstrap-sass/lib/_component-animations';
-@import '~bootstrap-sass/lib/_tooltip';
-@import '~bootstrap-sass/lib/_dropdowns';
-@import '../scss/_variables';
-@import '../scss/_typography';
-@import '../scss/_mixins';
-@import '../scss/_global';
-@import '../scss/_mask';
-@import '../scss/form';
-@import '~bootstrap-datepicker/dist/css/bootstrap-datepicker3.standalone';
-@import '../scss/_widgets';
-@import '../version-graph/version-graph';
-@import './cip.label.editor/cip-label-editor';
-@import './cip.license.editor/cip-license-editor';
-@import './cip.policy.violations/cip-policy-violations';
-@import './cip.vulnerability.editor/cip.vulnerability.editor';
-@import './cip-claim-component';
+
+@use '../scss/_typography';
+@use '../scss/_global';
+@use '../scss/_mask';
+@use '../scss/form';
+@use '../scss/_widgets';
+@use '../version-graph/version-graph';
+@use './cip.label.editor/cip-label-editor';
+@use './cip.license.editor/cip-license-editor';
+@use './cip.policy.violations/cip-policy-violations';
+@use './cip.vulnerability.editor/cip.vulnerability.editor';
+@use './cip-claim-component';

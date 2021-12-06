@@ -70,7 +70,9 @@ export default function ManageFiltersDropdown(props) {
   }
 
   function preventDefault(event) {
-    event.preventDefault();
+    if (!event.target.classList.contains('nx-dropdown__toggle-label')) {
+      event.preventDefault();
+    }
   }
 
   const options = map(getFilterOption, savedFilters),

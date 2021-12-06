@@ -3,19 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import 'cipTabPanel/cipTabPanel';
-@import '../../../version-graph/buttons';
-@import '../../../version-graph/content';
-@import '../../../cip/cip.policy.violations/cip-policy-violations';
-@import '../../../cip/cip.license.editor/cip-license-editor';
-@import '../../../cip/cip.label.editor/cip-label-editor';
-@import '~bootstrap-datepicker/dist/css/bootstrap-datepicker3.standalone';
+
+@use '../../../scss/variables' as *;
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use 'cipTabPanel/cipTabPanel';
+@use '../../../version-graph/buttons';
+@use '../../../version-graph/content';
+@use '../../../cip/cip.policy.violations/cip-policy-violations';
+@use '../../../cip/cip.license.editor/cip-license-editor';
+@use '../../../cip/cip.label.editor/cip-label-editor';
+@use '~bootstrap-datepicker/dist/css/bootstrap-datepicker3.standalone';
 
 // Vulnerabilities tab
-@import '../../../cip/cip.vulnerability.editor/cip.vulnerability.editor';
-@import '../../../audit-report/lib/slickgrid/slick.grid';
-@import '../../../audit-report/slickgrid/slick.grid.custom';
-@import './rootAncestors/rootAncestors';
+@use '../../../cip/cip.vulnerability.editor/cip.vulnerability.editor';
+@use '../../../audit-report/lib/slickgrid/slick.grid' as slick-grid;
+@use '../../../audit-report/slickgrid/slick.grid.custom' as slick-grid-custom;
+@use './rootAncestors/rootAncestors';
 
 $iq-cip-tab-content-padding-top: 5px;
 
@@ -274,7 +278,7 @@ cip-similar {
 
 .iq-btn--cip-modal-back-button {
   .iq-component-display {
-    @include regular();
+    @include nx-text-helpers.regular;
     display: inline;
   }
 }

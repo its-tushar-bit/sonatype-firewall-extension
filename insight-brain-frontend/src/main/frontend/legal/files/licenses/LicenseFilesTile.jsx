@@ -30,7 +30,7 @@ export default function LicenseFilesTile(props) {
 
   const enabledLicenses = licenseFiles.filter((licenseFile) => licenseFile.originalStatus === 'enabled');
 
-  const classes = classnames('nx-tile-content', {
+  const classes = classnames({
     'license-no-legal-elements-text': !isLicensePresent(),
   });
 
@@ -59,17 +59,13 @@ export default function LicenseFilesTile(props) {
     <React.Fragment>
       <NxAccordion open={open} onToggle={toggleOpen} id="license-texts-tile">
         <NxAccordion.Header>
-          <header className="nx-tile-header">
-            <div className="nx-tile-header__title">
-              <h2 className="nx-h2 nx-accordion__header-title">License Files</h2>
-            </div>
-            <div className="nx-tile__actions">
-              <NxButton id="edit-license-files" variant="tertiary" onClick={() => setShowLicenseFilesModal(true)}>
-                <NxFontAwesomeIcon icon={isLicensePresent() ? faPen : faPlus} />
-                <span>{isLicensePresent() ? 'Edit' : 'Add'}</span>
-              </NxButton>
-            </div>
-          </header>
+          <NxAccordion.Title>License Files</NxAccordion.Title>
+          <div className="nx-btn-bar">
+            <NxButton id="edit-license-files" variant="tertiary" onClick={() => setShowLicenseFilesModal(true)}>
+              <NxFontAwesomeIcon icon={isLicensePresent() ? faPen : faPlus} />
+              <span>{isLicensePresent() ? 'Edit' : 'Add'}</span>
+            </NxButton>
+          </div>
         </NxAccordion.Header>
         <div className={classes}>{enabledLicenses.length > 0 ? enabledLicenses.map(createItem) : 'None found'}</div>
       </NxAccordion>

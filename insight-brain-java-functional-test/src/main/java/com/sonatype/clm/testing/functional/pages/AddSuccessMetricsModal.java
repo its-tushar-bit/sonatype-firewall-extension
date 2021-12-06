@@ -66,7 +66,7 @@ public class AddSuccessMetricsModal
   }
 
   public SelenideElement orgPickerTrigger() {
-    return orgPicker().$(".nx-tree-view__trigger");
+    return orgPicker().$(".nx-collapsible-items__trigger");
   }
 
   public SelenideElement orgPickerCounter() {
@@ -82,15 +82,15 @@ public class AddSuccessMetricsModal
   }
 
   public SelenideElement appPickerTrigger() {
-    return appPicker().$(".nx-tree-view__trigger");
+    return appPicker().$(".nx-collapsible-items__trigger");
   }
 
   public NxCheckbox nthOrg(int index) {
-    return new NxCheckbox(orgPicker().$(SelectorUtils.createSelector(".nx-tree-view__child", nthChild(index))));
+    return new NxCheckbox(orgPicker().$(SelectorUtils.createSelector(".nx-collapsible-items__child", nthChild(index))));
   }
 
   public NxCheckbox nthApp(int index) {
-    return new NxCheckbox(appPicker().$(SelectorUtils.createSelector(".nx-tree-view__child", nthChild(index))));
+    return new NxCheckbox(appPicker().$(SelectorUtils.createSelector(".nx-collapsible-items__child", nthChild(index))));
   }
 
   public SelenideElement footer() {

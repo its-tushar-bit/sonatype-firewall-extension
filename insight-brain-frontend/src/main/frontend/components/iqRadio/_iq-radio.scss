@@ -7,8 +7,12 @@
   #Radio inputs
 */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../scss/variables' as *;
+
 .iq-radio {
-  @include regular();
+  @include nx-text-helpers.regular;
 
   display: block;
   font-size: 14px;

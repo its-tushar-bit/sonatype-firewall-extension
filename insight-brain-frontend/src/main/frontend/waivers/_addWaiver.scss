@@ -4,8 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../scss/variables' as *;
 
 add-waiver-page {
   display: contents;
@@ -14,7 +16,7 @@ add-waiver-page {
 .iq-add-waiver-form {
   .nx-read-only__data,
   .nx-read-only__label {
-    @include container-horizontal;
+    @include nx-container-helpers.container-horizontal;
   }
 }
 
@@ -27,7 +29,7 @@ add-waiver-page {
 }
 
 .iq-add-waiver-form__scope .nx-radio {
-  @include nx-truncate-ellipsis;
+  @include nx-text-helpers.truncate-ellipsis;
   max-width: 1024px;
 }
 
@@ -39,7 +41,7 @@ add-waiver-page {
 }
 
 .iq-add-waiver-form .nx-btn-bar {
-  @include container-vertical;
+  @include nx-container-helpers.container-vertical;
 }
 
 .iq-add-waiver-form__vulnerability_details_link {

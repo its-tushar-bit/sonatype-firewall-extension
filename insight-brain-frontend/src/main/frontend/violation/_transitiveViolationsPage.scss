@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 
 transitive-violations-page-container {
   display: contents;
@@ -14,7 +14,7 @@ transitive-violations-page-container {
   }
 
   .iq-transitive-violations-page-action {
-    @include container-horizontal;
+    @include nx-container-helpers.container-horizontal;
   }
 
   .nx-icon--fail {
@@ -38,7 +38,7 @@ transitive-violations-page-container {
 
   .iq-popover {
     .transitive-violations-popover-header__title {
-      @include container-horizontal;
+      @include nx-container-helpers.container-horizontal;
       display: flex;
       align-items: start;
 

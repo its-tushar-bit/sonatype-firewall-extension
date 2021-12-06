@@ -4,8 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 .iq-threat-level {
-  @include semi-bold;
+  @include nx-text-helpers.semi-bold;
 
   font-size: 16px;
 }

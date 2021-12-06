@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 .iq-edit-licenses-form {
   &__comment .nx-text-input {
     min-height: 200px;
@@ -10,7 +13,7 @@
   }
 
   &__scope-status {
-    @include semi-bold();
+    @include nx-text-helpers.semi-bold;
   }
 }
 

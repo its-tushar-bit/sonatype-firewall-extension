@@ -6,7 +6,7 @@
 
 import * as enzymeUtils from '../../../enzymeUtils';
 import NoticeTextsTile from '../../../../../main/frontend/legal/files/notices/NoticeTextsTile';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxAccordion } from '@sonatype/react-shared-components';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 
 describe('NoticeTextsTile', function () {
@@ -52,7 +52,7 @@ describe('NoticeTextsTile', function () {
 
   it('renders a header with label `Notice Files`', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('h2.nx-h2')).toHaveText('Notice Files');
+    expect(wrapper.find(NxAccordion.Title)).toHaveText('Notice Files');
   });
 
   it('renders the given notices', function () {
@@ -67,8 +67,8 @@ describe('NoticeTextsTile', function () {
 
   it('renders none found if there are no notices', function () {
     const wrapper = getShallowComponent({ noticeFiles: [] });
-    const content = wrapper.find('.nx-tile-content');
-    expect(content).toHaveText('None found');
+    const content = wrapper.find(NxAccordion).shallow();
+    expect(content.find('.nx-accordion__content')).toHaveText('None found');
   });
 
   it('renders an add button if there are no notices', function () {

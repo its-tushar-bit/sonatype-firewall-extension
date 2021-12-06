@@ -3,18 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import 'results/cipModal/cipModal';
-@import 'rawData/applicationReportRawData';
-@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
-$iq-application-report-policy-threat-level-width: 90px;
-$iq-application-report-policy-name-width: 225px;
-$iq-application-report-policy-name-filter-width: $iq-application-report-policy-threat-level-width +
-  $iq-application-report-policy-name-width;
+@use '../scss/variables' as *;
 
-$iq-application-report-vulnerability-security-issue-width: 130px;
-$iq-application-report-vulnerability-cvss-issue-width: 100px;
-$iq-application-report-vulnerability-threat-level-width: 62px;
+@use 'results/cipModal/cipModal';
+@use 'rawData/applicationReportRawData';
+
+$-application-report-policy-threat-level-width: 90px;
+$-application-report-policy-name-width: 225px;
+$-application-report-policy-name-filter-width: $-application-report-policy-threat-level-width +
+  $-application-report-policy-name-width;
+
+$-application-report-vulnerability-security-issue-width: 130px;
+$-application-report-vulnerability-cvss-issue-width: 100px;
+$-application-report-vulnerability-threat-level-width: 62px;
 
 application-report-root,
 application-report,
@@ -79,7 +83,7 @@ application-report-vulnerabilities {
 }
 
 .iq-cell--application-report-policy-threat-level {
-  width: $iq-application-report-policy-threat-level-width;
+  width: $-application-report-policy-threat-level-width;
 }
 
 tbody .iq-cell--application-report-policy-threat-level {
@@ -89,11 +93,11 @@ tbody .iq-cell--application-report-policy-threat-level {
 }
 
 .iq-cell--application-report-policy-name {
-  width: $iq-application-report-policy-name-width;
+  width: $-application-report-policy-name-width;
 }
 
 .iq-cell--application-report-component-display {
-  width: calc(100% - #{$iq-application-report-policy-threat-level-width + $iq-application-report-policy-name-width});
+  width: calc(100% - #{$-application-report-policy-threat-level-width + $-application-report-policy-name-width});
   min-width: 0;
 }
 
@@ -110,11 +114,11 @@ tbody .iq-cell--application-report-component-display {
 }
 
 .iq-cell--application-report-policy-name-filter {
-  width: $iq-application-report-policy-name-filter-width;
+  width: $-application-report-policy-name-filter-width;
 }
 
 .iq-cell--application-report-component-name-filter {
-  width: calc(100% - #{$iq-application-report-policy-threat-level-width + $iq-application-report-policy-name-width});
+  width: calc(100% - #{$-application-report-policy-threat-level-width + $-application-report-policy-name-width});
 }
 
 #application-report-vulnerabilities {
@@ -152,15 +156,15 @@ tbody .iq-cell--application-report-component-display {
 }
 
 .iq-cell--vulnerability-policy-threat-level {
-  width: $iq-application-report-vulnerability-threat-level-width;
+  width: $-application-report-vulnerability-threat-level-width;
 }
 
 .iq-cell--vulnerability-security-code {
-  width: $iq-application-report-vulnerability-security-issue-width;
+  width: $-application-report-vulnerability-security-issue-width;
 }
 
 .iq-cell--vulnerability-cvss {
-  width: $iq-application-report-vulnerability-cvss-issue-width;
+  width: $-application-report-vulnerability-cvss-issue-width;
 }
 
 .iq-vulnerability-refid-link {
@@ -187,11 +191,11 @@ tbody .iq-cell--application-report-component-display {
   width: $sidebar-width;
   overflow-y: auto;
   padding: var(--nx-spacing-6x);
-  z-index: 1040; // behind the CIP but above all else
+  z-index: $iq-modal-backdrop-z-index; // behind the CIP but above all else
 }
 
 .application-report-filter-header__title {
-  @include container-horizontal;
+  @include nx-container-helpers.container-horizontal;
   border-bottom: 1px var(--nx-swatch-indigo-95) solid;
   padding-bottom: var(--nx-spacing-2x);
   position: relative; // needed for box-shadow to render
@@ -212,7 +216,7 @@ tbody .iq-cell--application-report-component-display {
 }
 
 .iq-threat-number {
-  @include semi-bold();
+  @include nx-text-helpers.semi-bold;
 
   font-size: 16px;
   margin-left: 8px;

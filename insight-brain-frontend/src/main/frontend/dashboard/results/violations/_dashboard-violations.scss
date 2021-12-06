@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 .iq-dashboard-violations {
   position: relative;
@@ -15,7 +15,7 @@
 
   .iq-threat-cell .nx-threat-number,
   .iq-policy-cell {
-    @include bold();
+    @include nx-text-helpers.bold;
   }
 
   .iq-size-controlled-cell {

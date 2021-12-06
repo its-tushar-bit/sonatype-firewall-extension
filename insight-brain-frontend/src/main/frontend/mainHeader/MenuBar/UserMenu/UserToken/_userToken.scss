@@ -4,9 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 .iq-user-token-modal {
   .iq-user-token-modal__highlight-paragraph {
-    @include semi-bold();
+    @include nx-text-helpers.semi-bold;
   }
 
   .iq-user-token-modal__info-paragraph {

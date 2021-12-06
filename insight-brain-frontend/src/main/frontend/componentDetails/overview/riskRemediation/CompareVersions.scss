@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 #compare-versions-header {
   display: flex;
@@ -23,7 +23,7 @@
 
   tbody {
     .nx-cell:first-of-type:not(.nx-cell--meta-info) {
-      @include semi-bold();
+      @include nx-text-helpers.semi-bold;
       color: var(--nx-swatch-grey-30);
       text-align: right;
     }

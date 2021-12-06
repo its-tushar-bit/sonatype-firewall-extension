@@ -6,6 +6,9 @@
 /*
   #Alerts
 */
+
+@use './variables' as *;
+
 .iq-alert {
   background-color: $iq-warn-color-bg;
   border: 1px solid $iq-warn-color;

@@ -9,6 +9,7 @@ import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 import LegalApplicationDetailsPage from '../../../../main/frontend/legal/application/LegalApplicationDetailsPage';
 import LegalApplicationDetailsComponentRow from '../../../../main/frontend/legal/application/LegalApplicationDetailsComponentRow';
 import LegalApplicationDetailsFilterContainer from '../../../../main/frontend/legal/application/filter/LegalApplicationDetailsFilterContainer';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 describe('LegalApplicationDetailsPage', function () {
   let minimalProps, loadApplicationSpy, stateSpy, toggleFilterSidebarSpy, getShallowComponent;
@@ -16,6 +17,13 @@ describe('LegalApplicationDetailsPage', function () {
   beforeEach(function () {
     loadApplicationSpy = jasmine.createSpy('loadApplication');
     stateSpy = jasmine.createSpyObj('$state', ['get', 'href']);
+    stateSpy.get.and.callFake((stateName) => stateName);
+    stateSpy.href.and.callFake((stateName, stateParams) => {
+      if (stateParams) {
+        return `${stateName}-${JSON.stringify(stateParams)}`;
+      }
+      return stateName;
+    });
     toggleFilterSidebarSpy = jasmine.createSpy('toggleFilterSidebarSpy');
     minimalProps = {
       applicationPublicId: 'app-id',
@@ -238,5 +246,13 @@ describe('LegalApplicationDetailsPage', function () {
     expect(rows.length).toEqual(2);
     expect(rows.at(0)).toHaveProp('row', minimalProps.components.filteredResults[0]);
     expect(rows.at(1)).toHaveProp('row', minimalProps.components.filteredResults[1]);
+  });
+
+  it('renders a MenuBarBackButton to go to the applications dashboard', function () {
+    const wrapper = getShallowComponent();
+    const menuBarBackButton = wrapper.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', 'legal.dashboard');
+    expect(stateSpy.href).toHaveBeenCalled();
   });
 });

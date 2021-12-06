@@ -12,7 +12,12 @@ import {
   LEGAL_DASHBOARD_FETCH_BACKEND_PAGE,
   LEGAL_DASHBOARD_CHANGE_SORT_FIELD,
   LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH,
+  LEGAL_DASHBOARD_SET_PAGE,
 } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
+import {
+  LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED,
+  LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED,
+} from 'MainRoot/legal/dashboard/filter/legalDashboardFilterActions';
 
 const otherObject = { value: 'test value' };
 
@@ -35,11 +40,14 @@ describe('legalDashboardReducer', function () {
         error: null,
         sortField: null,
         totalResultsCount: 0,
+        page: 0,
         backendPage: 1,
         loading: false,
       });
       expect(newState.components).toEqual({
         results: [],
+        page: 0,
+        backendPage: 1,
         error: null,
         sortField: null,
         componentNameInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
@@ -55,6 +63,48 @@ describe('legalDashboardReducer', function () {
       };
       const newState = legalDashboardReducer(state, action);
       expect(newState).toBe(state);
+    });
+  });
+
+  describe('LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED action', function () {
+    it('resets all tabs state except pagination', function () {
+      const state = Object.freeze({
+        components: { results: [1, 2], numResults: 2, error: 'foo', page: 1, backendPage: 2 },
+        applications: { results: [3, 4], numResults: 2, error: 'foo', page: 3, backendPage: 4 },
+        other: otherObject,
+      });
+      const action = { type: LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED };
+      const newState = legalDashboardReducer(state, action);
+      expect(newState.components.results).toEqual([]);
+      expect(newState.components.error).toBeNull();
+      expect(newState.components.page).toBe(1);
+      expect(newState.components.backendPage).toBe(2);
+      expect(newState.applications.results).toEqual([]);
+      expect(newState.applications.error).toBeNull();
+      expect(newState.applications.page).toBe(3);
+      expect(newState.applications.backendPage).toBe(4);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED action', function () {
+    it('resets all tabs state including pagination', function () {
+      const state = Object.freeze({
+        components: { results: [1, 2], numResults: 2, error: 'foo', page: 1, backendPage: 2 },
+        applications: { results: [3, 4], numResults: 2, error: 'foo', page: 3, backendPage: 4 },
+        other: otherObject,
+      });
+      const action = { type: LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED };
+      const newState = legalDashboardReducer(state, action);
+      expect(newState.components.results).toEqual([]);
+      expect(newState.components.error).toBeNull();
+      expect(newState.components.page).toBe(0);
+      expect(newState.components.backendPage).toBe(1);
+      expect(newState.applications.results).toEqual([]);
+      expect(newState.applications.error).toBeNull();
+      expect(newState.applications.page).toBe(0);
+      expect(newState.applications.backendPage).toBe(1);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
 
@@ -121,6 +171,46 @@ describe('legalDashboardReducer', function () {
       expect(newState.applications.error).toBe(action.payload.error);
       expect(newState.applications.loading).toBeFalsy();
       expect(newState.components).toBe(state.components);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+  describe('LEGAL_DASHBOARD_SET_PAGE action', function () {
+    it('sets the page in applications state', function () {
+      const state = Object.freeze({
+        components: { error: {} },
+        applications: { error: null },
+        currentTab: 'applications',
+        other: otherObject,
+      });
+      const action = {
+        type: LEGAL_DASHBOARD_SET_PAGE,
+        payload: {
+          resultsType: 'applications',
+          page: 11,
+        },
+      };
+      const newState = legalDashboardReducer(state, action);
+      expect(newState.applications.page).toBe(action.payload.page);
+      expect(newState.components).toBe(state.components);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+    it('sets the page in components state', function () {
+      const state = Object.freeze({
+        applications: { error: {} },
+        components: { error: null },
+        currentTab: 'applications',
+        other: otherObject,
+      });
+      const action = {
+        type: LEGAL_DASHBOARD_SET_PAGE,
+        payload: {
+          resultsType: 'components',
+          page: 5,
+        },
+      };
+      const newState = legalDashboardReducer(state, action);
+      expect(newState.components.page).toBe(action.payload.page);
+      expect(newState.applications).toBe(state.applications);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });

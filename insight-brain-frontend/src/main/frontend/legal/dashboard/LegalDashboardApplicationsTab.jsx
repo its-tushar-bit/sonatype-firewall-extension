@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useState } from 'react';
+import React from 'react';
 import {
   NxPagination,
   NxTable,
@@ -27,8 +27,9 @@ export default function LegalDashboardApplicationsTab({
   fetchBackendPage,
   changeSortField,
   stateGo,
+  legalDashboardSetPage,
 }) {
-  const [page, setPage] = useState(applications.backendPage - 1 || 0);
+  const page = applications.page || 0;
   const { itemsPerPage, pagesToFill } = DASHBOARD.applications;
   const previousResultsBackend = (applications.backendPage - 1) * pagesToFill * itemsPerPage;
   const rows = slice(
@@ -38,7 +39,7 @@ export default function LegalDashboardApplicationsTab({
   );
 
   function onPageChange(newPage) {
-    setPage(newPage);
+    legalDashboardSetPage({ resultsType: 'applications', page: newPage });
     const backendPageNeeded = Math.ceil((newPage + 1) / pagesToFill);
     if (backendPageNeeded !== applications.backendPage) {
       fetchBackendPage('applications', backendPageNeeded);
@@ -67,7 +68,7 @@ export default function LegalDashboardApplicationsTab({
         break;
     }
     changeSortField('applications', newSortField);
-    setPage(0);
+    legalDashboardSetPage({ resultsType: 'applications', page: 0 });
   }
 
   const emptyMessage = 'No applications found given the applied filters and permissions.';
@@ -120,4 +121,5 @@ LegalDashboardApplicationsTab.propTypes = {
   filtersAreDirty: PropTypes.bool,
   changeSortField: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
+  legalDashboardSetPage: PropTypes.func.isRequired,
 };

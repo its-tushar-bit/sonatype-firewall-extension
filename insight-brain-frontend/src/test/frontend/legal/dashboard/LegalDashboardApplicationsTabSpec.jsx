@@ -38,6 +38,7 @@ describe('LegalDashboardApplicationsTab component', function () {
     },
     fetchBackendPage: () => {},
     changeSortField: () => {},
+    legalDashboardSetPage: () => {},
   };
 
   beforeEach(function () {
@@ -73,6 +74,13 @@ describe('LegalDashboardApplicationsTab component', function () {
     expect(mask).not.toExist();
   });
 
+  it('starts client side pagination on zero by default', function () {
+    const wrapper = getShallowComponent();
+    const pagination = wrapper.find(NxPagination);
+    expect(pagination).toExist();
+    expect(pagination).toHaveProp('currentPage', 0);
+  });
+
   it('paginates locally without calling backend until reaching end of pages loaded', function () {
     const { itemsPerPage, pagesToFill } = DASHBOARD.applications;
     const items = [];
@@ -94,9 +102,11 @@ describe('LegalDashboardApplicationsTab component', function () {
         backendPage: 1,
       },
       fetchBackendPage: () => {},
+      legalDashboardSetPage: () => {},
     };
 
     spyOn(appProps, 'fetchBackendPage');
+    spyOn(appProps, 'legalDashboardSetPage');
 
     const wrapper = enzymeUtils.getShallowComponent(LegalDashboardApplicationsTab, appProps)();
     let pagination = wrapper.find(NxPagination);
@@ -105,14 +115,20 @@ describe('LegalDashboardApplicationsTab component', function () {
     const onChangePage = pagination.prop('onChange');
     for (let index = 0; index < pagesToFill; index++) {
       onChangePage(index);
+      expect(appProps.legalDashboardSetPage).toHaveBeenCalledWith({ resultsType: 'applications', page: index });
     }
 
     expect(appProps.fetchBackendPage).not.toHaveBeenCalled();
 
     onChangePage(pagesToFill);
+    expect(appProps.legalDashboardSetPage).toHaveBeenCalledWith({ resultsType: 'applications', page: pagesToFill });
     expect(appProps.fetchBackendPage).toHaveBeenCalledWith('applications', 2);
 
     onChangePage(pagesToFill * 2);
+    expect(appProps.legalDashboardSetPage).toHaveBeenCalledWith({
+      resultsType: 'applications',
+      page: pagesToFill * 2,
+    });
     expect(appProps.fetchBackendPage).toHaveBeenCalledWith('applications', 3);
   });
 

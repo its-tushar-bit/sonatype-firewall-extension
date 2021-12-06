@@ -22,6 +22,7 @@ import { getLicenseThreatGroupsFromLicense } from '../legalUtility';
 import LegalApplicationDetailsComponentRow from './LegalApplicationDetailsComponentRow';
 import LegalApplicationDetailsFilterContainer from './filter/LegalApplicationDetailsFilterContainer';
 import { faFilter } from '@fortawesome/pro-solid-svg-icons';
+import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 
 export default function LegalApplicationDetailsPage(props) {
   const {
@@ -35,6 +36,7 @@ export default function LegalApplicationDetailsPage(props) {
     filterSidebarOpen,
     toggleFilterSidebar,
     sort,
+    $state,
     loadApplication,
     changeComponentNameFilter,
     changeLicenseNameFilter,
@@ -92,6 +94,7 @@ export default function LegalApplicationDetailsPage(props) {
         error={errorLoading}
         retryHandler={() => loadApplication(applicationPublicId, stageTypeId)}
       >
+        <MenuBarBackButton href={$state.href('legal.dashboard')} text="Back" />
         {filterSidebarOpen && (
           <LegalApplicationDetailsFilterContainer
             licenseThreatGroups={getLicenseThreatGroupsFromComponents(components.filteredResults)}

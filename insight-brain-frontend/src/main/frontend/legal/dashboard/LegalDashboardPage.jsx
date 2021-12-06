@@ -40,6 +40,7 @@ export default function LegalDashboardPage(props) {
     filterLoading,
     router,
     changeComponentNameToSearch,
+    legalDashboardSetPage,
   } = props;
 
   const tabIndexes = ['applications', 'components'];
@@ -87,6 +88,7 @@ export default function LegalDashboardPage(props) {
                   filtersAreDirty={filtersAreDirty}
                   changeSortField={changeSortField}
                   stateGo={stateGo}
+                  legalDashboardSetPage={legalDashboardSetPage}
                 />
               </div>
             </div>
@@ -134,4 +136,5 @@ LegalDashboardPage.propTypes = {
     currentParams: PropTypes.object,
   }),
   changeComponentNameToSearch: PropTypes.func.isRequired,
+  legalDashboardSetPage: PropTypes.func.isRequired,
 };

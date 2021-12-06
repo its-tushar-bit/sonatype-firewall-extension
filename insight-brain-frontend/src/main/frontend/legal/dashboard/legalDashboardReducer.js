@@ -11,6 +11,7 @@ import {
   LEGAL_DASHBOARD_FETCH_BACKEND_PAGE,
   LEGAL_DASHBOARD_CHANGE_SORT_FIELD,
   LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH,
+  LEGAL_DASHBOARD_SET_PAGE,
 } from './legalDashboardActions';
 import {
   LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED,
@@ -24,6 +25,7 @@ const initState = {
   applications: {
     results: [],
     totalResultsCount: 0,
+    page: 0,
     backendPage: 1,
     error: null,
     loading: false,
@@ -31,6 +33,8 @@ const initState = {
   },
   components: {
     results: [],
+    page: 0,
+    backendPage: 1,
     error: null,
     sortField: null,
     componentNameInput: initialState(''),
@@ -51,8 +55,10 @@ const validator = (value) => {
 export default function (state = initState, { type, payload }) {
   switch (type) {
     case LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED:
-    case LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED:
       return resetAllTabs(state);
+
+    case LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED:
+      return resetAllTabs(state, true);
 
     case LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED:
       return resetResults(state, payload);
@@ -65,6 +71,11 @@ export default function (state = initState, { type, payload }) {
     case LEGAL_DASHBOARD_LOAD_RESULTS_FAILED: {
       const { resultsType, error } = payload;
       return updateResults(state, resultsType, { error, loading: false });
+    }
+
+    case LEGAL_DASHBOARD_SET_PAGE: {
+      const { resultsType, page } = payload;
+      return updateResults(state, resultsType, { page: page });
     }
 
     case LEGAL_DASHBOARD_FETCH_BACKEND_PAGE: {
@@ -95,15 +106,15 @@ function resetResults(state, resultsType) {
   return { ...state, [resultsType]: results };
 }
 
-function resetTabState(tabState) {
+function resetTabState(tabState, resetPagination) {
   return {
     ...tabState,
     results: [],
     totalResultsCount: 0,
-    backendPage: 1,
     error: null,
     loading: false,
-    sortField: null,
+    page: resetPagination ? 0 : tabState.page,
+    backendPage: resetPagination ? 1 : tabState.backendPage,
   };
 }
 
@@ -113,8 +124,8 @@ function updateResults(state, resultsType, props) {
   return { ...state, [resultsType]: newTabState };
 }
 
-function resetAllTabs(state) {
-  const components = resetTabState(state.components);
-  const applications = resetTabState(state.applications);
+function resetAllTabs(state, resetPagination) {
+  const components = resetTabState(state.components, resetPagination);
+  const applications = resetTabState(state.applications, resetPagination);
   return { ...state, components, applications };
 }

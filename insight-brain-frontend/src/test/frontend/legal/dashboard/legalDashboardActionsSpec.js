@@ -7,6 +7,7 @@ import {
   loadResults,
   fetchBackendPage,
   changeSortField,
+  legalDashboardSetPage,
 } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
 import axios from 'axios';
 import {
@@ -112,6 +113,24 @@ describe('legalDashboardActions', function () {
       });
     }
 
+    function testlegalDashboardSetPage(tab) {
+      describe('legalDashboardSetPage for ' + tab.resultsType, function () {
+        it('sets the page', function () {
+          const store = SpecUtil.mockReduxStore(initialState);
+          store.dispatch(legalDashboardSetPage({ resultsType: tab.resultsType, page: 11 }));
+
+          expect(store.getActions().length).toBe(1);
+          expect(store.getActions()[0]).toEqual({
+            type: 'LEGAL_DASHBOARD_SET_PAGE',
+            payload: {
+              resultsType: tab.resultsType,
+              page: 11,
+            },
+          });
+        });
+      });
+    }
+
     function testFetchBackendPageAction(tab) {
       describe('fetchBackendPage for ' + tab.resultsType, function () {
         it('sets the backend page', function (done) {
@@ -201,6 +220,7 @@ describe('legalDashboardActions', function () {
     }
 
     tabs.forEach(testLoadResultsAction);
+    testlegalDashboardSetPage(tabs[0]);
     testFetchBackendPageAction(tabs[0]);
     testChangeSortFieldAction(tabs[0]);
   });

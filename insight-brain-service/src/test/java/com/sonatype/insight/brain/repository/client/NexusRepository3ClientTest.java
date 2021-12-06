@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.repository.client;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfigurationDAO;
@@ -274,6 +275,31 @@ public class NexusRepository3ClientTest
     assertThat(response.getComponents()).hasSize(2);
     assertResultComponent(response, 0, "1.1.0", null);
     assertResultComponent(response, 1, "1.2.0", null);
+  }
+
+  @Test
+  public void testGetAllVersions_OrderedByComparableVersion() throws Exception {
+    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+        .withQueryParams(ImmutableMap.of(
+            "group", equalTo("g"),
+            "name", equalTo("a"),
+            "maven.extension", equalTo("jar"),
+            "maven.classifier", equalTo("")))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withBody(getCannedResponse("ordering.json"))));
+    RepositoryClient client = factory.create().forNexus3(baseUrl, null, null);
+    Map<String, String> params =
+        ImmutableMap.of("group", "g", "name", "a", "maven.extension", "jar", "maven.classifier", "");
+
+    RepositoryAllVersionsResponse response = client.getAllVersions(params);
+
+    assertThat(response.getComponents()).hasSize(5);
+    assertResultComponent(response, 0, "1.1.0-01", "1");
+    assertResultComponent(response, 1, "1.2.0-01", "2");
+    assertResultComponent(response, 2, "1.2.0-20210730.075537-6", "3");
+    assertResultComponent(response, 3, "1.2.0-20210730.075537-7", "4");
+    assertResultComponent(response, 4, "1.3.0-01", "5");
   }
 
   private String getCannedResponse(final String path) throws IOException {

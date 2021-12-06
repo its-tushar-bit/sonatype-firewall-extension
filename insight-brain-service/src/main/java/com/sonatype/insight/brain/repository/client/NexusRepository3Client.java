@@ -7,10 +7,11 @@ package com.sonatype.insight.brain.repository.client;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -26,6 +27,7 @@ import com.sonatype.insight.error.exception.NotAuthenticatedException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +78,7 @@ public class NexusRepository3Client
       continuationToken = searchResponse.continuationToken;
     }
     while (continuationToken != null);
-    Collections.reverse(results); //nxrm3 result is in the descending order
+    results.sort(Comparator.comparing(r -> new ComparableVersion(r.getIdentifier().get(ComponentIdentifier.VERSION))));
     return new RepositoryAllVersionsResponse(results);
   }
 
@@ -104,8 +106,6 @@ public class NexusRepository3Client
       params.add(CONTINUATION_TOKEN_PARAM);
       params.add(continuationToken);
     }
-    params.add("sort");
-    params.add(REPO_VERSION);
     return params.toArray(new String[0]);
   }
 

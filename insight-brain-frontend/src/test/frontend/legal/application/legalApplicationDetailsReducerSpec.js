@@ -85,7 +85,7 @@ describe('legalApplicationDetailsReducer', function () {
   });
 
   describe('LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED action', function () {
-    it('resets state when fetching an application', function () {
+    it('resets the application part of state when fetching an application', function () {
       const state = Object.freeze({
         application: {
           name: 'some-app',
@@ -97,12 +97,19 @@ describe('legalApplicationDetailsReducer', function () {
           error: null,
           loading: true,
         },
+        sort: {
+          column: 'licenses',
+          order: 'asc',
+        },
         components: {
           results: [],
           filteredResults: [],
           error: 'some error',
           loading: true,
         },
+        componentFilter: 'componentFilter',
+        licenseFilter: 'licenseFilter',
+        page: 13,
       });
       const action = { type: LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED };
       const newState = legalApplicationDetailsReducer(state, action);
@@ -112,16 +119,23 @@ describe('legalApplicationDetailsReducer', function () {
         loading: true,
       });
       expect(newState.stageType).toEqual({
-        name: null,
+        name: 'some-stage',
         error: null,
-        loading: false,
+        loading: true,
       });
       expect(newState.components).toEqual({
         results: [],
         filteredResults: [],
-        error: null,
-        loading: false,
+        error: 'some error',
+        loading: true,
       });
+      expect(newState.sort).toEqual({
+        column: 'licenses',
+        order: 'asc',
+      });
+      expect(newState.componentFilter).toEqual('componentFilter');
+      expect(newState.licenseFilter).toEqual('licenseFilter');
+      expect(newState.page).toEqual(13);
     });
   });
 

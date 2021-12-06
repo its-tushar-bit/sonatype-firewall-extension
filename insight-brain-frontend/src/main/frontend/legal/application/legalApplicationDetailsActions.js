@@ -23,6 +23,8 @@ export const LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED =
   'LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED';
 export const LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED = 'LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED';
 
+export const LEGAL_APPLICATION_DETAILS_APPLY_FILTERS = 'LEGAL_APPLICATION_DETAILS_APPLY_FILTERS';
+
 const legalApplicationDetailsLoadAppRequested = noPayloadActionCreator(LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED);
 const legalApplicationDetailsLoadAppFulfilled = payloadParamActionCreator(LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED);
 const legalApplicationDetailsLoadAppFailed = payloadParamActionCreator(LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED);
@@ -44,6 +46,8 @@ const legalApplicationDetailsLoadComponentsFulfilled = payloadParamActionCreator
 const legalApplicationDetailsLoadComponentsFailed = payloadParamActionCreator(
   LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED
 );
+
+const legalApplicationDetailsApplyFilters = noPayloadActionCreator(LEGAL_APPLICATION_DETAILS_APPLY_FILTERS);
 
 export function loadApplication(applicationPublicId, stageTypeId) {
   return (dispatch) => {
@@ -96,6 +100,7 @@ function loadComponents(applicationPublicId, stageTypeId) {
         stageTypeIds: [stageTypeId],
       })
       .then((response) => dispatch(legalApplicationDetailsLoadComponentsFulfilled(response.data)))
+      .then(() => dispatch(legalApplicationDetailsApplyFilters()))
       .catch((error) => {
         dispatch(legalApplicationDetailsLoadComponentsFailed(error));
         return Promise.reject(error);

@@ -15,6 +15,7 @@ import {
   LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER_SIDEBAR,
 } from './filter/legalApplicationDetailsFilterActions';
 import {
+  LEGAL_APPLICATION_DETAILS_APPLY_FILTERS,
   LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED,
   LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED,
   LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED,
@@ -61,35 +62,35 @@ export default function (state = initState, { type, payload }) {
   switch (type) {
     case LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED: {
       const application = { ...initState.application, loading: true };
-      return { ...initState, application: application };
+      return { ...state, application };
     }
     case LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED: {
       const application = { ...initState.application, name: payload.name };
-      return { ...initState, application: application };
+      return { ...state, application };
     }
     case LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED: {
       const application = { ...initState.application, error: payload };
-      return { ...initState, application: application };
+      return { ...state, application };
     }
     case LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED: {
       const stageType = { ...state.stageType, loading: true };
-      return { ...state, stageType: stageType };
+      return { ...state, stageType };
     }
     case LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED: {
       const stageType = { ...state.stageType, loading: false, name: payload };
-      return { ...state, stageType: stageType };
+      return { ...state, stageType };
     }
     case LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED: {
       const stageType = { ...state.stageType, loading: false, error: payload };
-      return { ...state, stageType: stageType };
+      return { ...state, stageType };
     }
     case LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED: {
       const components = { ...state.components, loading: true };
-      return { ...state, components: components };
+      return { ...state, components };
     }
     case LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED: {
       const components = { ...state.components, loading: false, results: payload, filteredResults: payload };
-      return { ...state, components: components };
+      return { ...state, components };
     }
     case LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED: {
       const components = {
@@ -97,7 +98,7 @@ export default function (state = initState, { type, payload }) {
         loading: false,
         error: payload,
       };
-      return { ...state, components: components };
+      return { ...state, components };
     }
     case LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER:
       return applyFilters(toggleFilter(payload)(state));
@@ -109,6 +110,8 @@ export default function (state = initState, { type, payload }) {
       return applyFilters(setSortOrder(state, payload));
     case LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER_SIDEBAR:
       return { ...state, filterSidebarOpen: payload };
+    case LEGAL_APPLICATION_DETAILS_APPLY_FILTERS:
+      return applyFilters(state);
 
     default:
       return state;
@@ -125,7 +128,7 @@ const licensesAsString = (licenses) =>
     .join('\n')
     .toLowerCase();
 
-const applyFilters = (state) => {
+function filterResults(state) {
   const { componentFilter, licenseFilter, selected, sort } = state;
   const { progressOptions, licenseThreatGroups } = selected;
   let filteredResults = state.components.results.filter(
@@ -178,7 +181,11 @@ const applyFilters = (state) => {
     return sort.sortOrder === 'asc' ? comparison : comparison * -1;
   };
 
-  filteredResults = filteredResults.filter(filterByComponentName).filter(filterByLicenseName).sort(sortFn);
+  return filteredResults.filter(filterByComponentName).filter(filterByLicenseName).sort(sortFn);
+}
+
+const applyFilters = (state) => {
+  let filteredResults = filterResults(state);
 
   return pathSet(['components', 'filteredResults'], filteredResults, state);
 };

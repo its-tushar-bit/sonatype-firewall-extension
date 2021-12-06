@@ -6,6 +6,7 @@
 
 import axios from 'axios';
 import {
+  LEGAL_APPLICATION_DETAILS_APPLY_FILTERS,
   LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED,
   LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED,
   LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED,
@@ -69,7 +70,7 @@ describe('legalApplicationDetailsActions', function () {
       });
 
       store.dispatch(loadApplication(applicationPublicId, stageTypeId)).then(() => {
-        expect(store.getActions().length).toBe(6);
+        expect(store.getActions().length).toBe(7);
         expect(store.getActions()[1]).toEqual({
           type: LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED,
           payload: 'result application',
@@ -88,6 +89,7 @@ describe('legalApplicationDetailsActions', function () {
           type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED,
           payload: 'result components',
         });
+        expect(store.getActions()[6]).toEqual({ type: LEGAL_APPLICATION_DETAILS_APPLY_FILTERS });
         done();
       });
 

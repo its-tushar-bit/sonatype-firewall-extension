@@ -54,6 +54,12 @@ public class PolicyWaiver
   @Column(name = "expiry_time")
   private Date expiryTime;
 
+  @Column(name = "creator_id")
+  private String creatorId;
+
+  @Column(name = "creator_name")
+  private String creatorName;
+
   /**
    * @since 1.53
    */
@@ -179,5 +185,21 @@ public class PolicyWaiver
 
   public void setExpiryTime(Date expiryTime) {
     this.expiryTime = expiryTime;
+  }
+
+  public String getCreatorId() {
+    return creatorId;
+  }
+
+  public void setCreatorId(String creatorId) {
+    this.creatorId = creatorId;
+  }
+
+  public String getCreatorName() {
+    return creatorName;
+  }
+
+  public void setCreatorName(String creatorName) {
+    this.creatorName = creatorName;
   }
 }

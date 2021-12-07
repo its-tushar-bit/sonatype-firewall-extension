@@ -39,8 +39,7 @@ pipeline {
           [
               booleanParam(name: 'hotfix', value: params.hotfix),
               string(name: 'version', value: params.releaseVersion)
-          ],
-          true
+          ]
         )
       }
     }
@@ -134,7 +133,7 @@ pipeline {
   }
 }
 
-def triggerBuildAndVerifySafeToContinuePipeline(String buildName, List<?> params, boolean checkExtraTests = false) {
+def triggerBuildAndVerifySafeToContinuePipeline(String buildName, List<?> params) {
   def job = build(job: buildName, parameters: params, propagate: false)
 
   def result = job.getCurrentResult()
@@ -148,13 +147,6 @@ def triggerBuildAndVerifySafeToContinuePipeline(String buildName, List<?> params
     def failCount = getTestResults(job).failCount
     if (failCount > 0) {
       error("Stopping IQ Release Pipeline due to failing tests on ${buildName}")
-    }
-
-    if (checkExtraTests) {
-      failCount = getTestResultsForDownstreamJob(job, 'insight/insight-brain/extra-tests/master').failCount
-      if (failCount > 0) {
-        error("Stopping IQ Release Pipeline due to failing extra tests on ${buildName}")
-      }
     }
   }
 }

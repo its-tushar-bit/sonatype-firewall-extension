@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -59,6 +60,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -1125,5 +1127,16 @@ public class ApplicationDAOTest
 
     InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
     assertThat(innerSourceComponentDAO.getById(innerSourceComponent.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToRepositoryConnections() {
+    Application application = tempEntity.newApplicationWithParent();
+    RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(application.getId());
+
+    applicationDAO.delete(application);
+
+    RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
+    assertThat(repositoryConnectionDAO.getById(repositoryConnection.getId())).isNull();
   }
 }

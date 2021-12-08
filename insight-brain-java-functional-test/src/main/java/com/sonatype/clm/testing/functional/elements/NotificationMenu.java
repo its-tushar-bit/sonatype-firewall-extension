@@ -18,8 +18,8 @@ public class NotificationMenu
     super(".iq-notifications-menu-button");
   }
 
-  public SelenideElement notificationCount() {
-    return child(".iq-count-circle");
+  public SelenideElement notificationDot() {
+    return child(".iq-unread-dot");
   }
 
   public NotificationListItem notificationListItem(int index) {

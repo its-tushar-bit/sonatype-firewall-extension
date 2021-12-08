@@ -55,8 +55,6 @@ public class NotificationTest
   @Test
   public void testNotificationMenu() {
     NotificationMenu notificationMenu = new NotificationMenu();
-    notificationMenu.notificationCount().shouldHave(text("2"));
-
     notificationMenu.click();
 
     notificationMenu.notificationListItem(0).age().shouldHave(text("10"));
@@ -70,15 +68,12 @@ public class NotificationTest
     notificationMenu.detailHeader().shouldHave(text("summary1"));
     notificationMenu.detailBody().shouldHave(text("detail1"));
 
-    // notification count should go down
-    notificationMenu.notificationCount().shouldHave(text("1"));
-
     notificationMenu.notificationListItem(1).click();
     notificationMenu.detailHeader().shouldHave(text("summary2"));
     notificationMenu.detailBody().shouldHave(text("detail2"));
 
-    // notification count should disappear
-    notificationMenu.notificationCount().shouldNotBe(visible);
+    // unread notification dot should disappear
+    notificationMenu.notificationDot().shouldNotBe(visible);
 
     // click the same notification again to remove the details
     notificationMenu.notificationListItem(1).click();

@@ -3,12 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../../enzymeUtils';
-import { NxButton } from '@sonatype/react-shared-components';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
-import NotificationsMenu from '../../../../../main/frontend/mainHeader/MenuBar/NotificationsMenu/NotificationsMenu';
-import { MenuButton } from '../../../../../main/frontend/mainHeader/MenuBar/MenuButton/MenuButton';
-import { NotificationDetails } from '../../../../../main/frontend/mainHeader/MenuBar/NotificationsMenu/NotificationDetails';
+import NotificationsMenu from 'MainRoot/mainHeader/MenuBar/NotificationsMenu/NotificationsMenu';
+import { MenuButton } from 'MainRoot/mainHeader/MenuBar/MenuButton/MenuButton';
+import { NotificationDetails } from 'MainRoot/mainHeader/MenuBar/NotificationsMenu/NotificationDetails';
+import { faExclamationCircle } from '@fortawesome/pro-solid-svg-icons';
 
 describe('NotificationsMenu', function () {
   let minimalProps, getShallowComponent, getMountedComponent;
@@ -56,6 +57,13 @@ describe('NotificationsMenu', function () {
 
       expect(alertDiv).toHaveText('Error while loading notifications');
     });
+
+    it('renders an faExclamationCircle icon on the bell', function () {
+      const component = getShallowComponent({ error: 'Error while loading notifications' });
+      expect(component.find(NxFontAwesomeIcon)).toExist();
+      expect(component.find(NxFontAwesomeIcon)).toHaveProp('icon', faExclamationCircle);
+      expect(component.find(NxFontAwesomeIcon)).toMatchSelector('.iq-notif-error');
+    });
   });
 
   describe('after loading notifications', function () {
@@ -73,29 +81,28 @@ describe('NotificationsMenu', function () {
       expect(notifications.at(1)).toHaveText('summary id1');
     });
 
-    it('renders a counter when there are unread notifications', function () {
+    it('renders a .iq-unread-dot when there are unread notifications', function () {
       const notificationsProp = [
         { id: 'id0', summaryText: 'summary id0', viewed: false },
         { id: 'id1', summaryText: 'summary id1', viewed: false },
         { id: 'id2', summaryText: 'summary id2', viewed: true },
       ];
       const component = getShallowComponent({ notificationsToDisplay: notificationsProp }),
-        counter = component.find('.iq-count-circle');
+        unreadDot = component.find('.iq-unread-dot');
 
-      expect(counter).toExist();
-      expect(counter).toHaveText('2');
+      expect(unreadDot).toExist();
     });
 
-    it('does not render a counter when there are no unread notifications', function () {
+    it('does not render an .iq-unread-dot when there are no unread notifications', function () {
       const notificationsProp = [
         { id: 'id0', summaryText: 'summary id0', viewed: true },
         { id: 'id1', summaryText: 'summary id1', viewed: true },
         { id: 'id2', summaryText: 'summary id2', viewed: true },
       ];
       const component = getShallowComponent({ notificationsToDisplay: notificationsProp }),
-        counter = component.find('.iq-count-circle');
+        unreadDot = component.find('.iq-unread-dot');
 
-      expect(counter).not.toExist();
+      expect(unreadDot).not.toExist();
     });
   });
 

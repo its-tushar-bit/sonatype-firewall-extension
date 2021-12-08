@@ -6,11 +6,12 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { faInbox } from '@fortawesome/pro-solid-svg-icons';
+import { faBell, faExclamationCircle } from '@fortawesome/pro-solid-svg-icons';
 
 import { timeAgo } from '../../../util/CommonServices';
 import { MenuButton, MenuTitle } from '../MenuButton/MenuButton';
 import { NotificationDetails } from './NotificationDetails';
+import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 const NotificationsMenu = (props) => {
   const { notificationsToDisplay, loading, error, loadNotifications, setNotificationViewed } = props;
@@ -55,7 +56,7 @@ const NotificationsMenu = (props) => {
 
   return (
     <div className="iq-notifications-menu-button">
-      <MenuButton icon={faInbox} iconLabel="Notifications" onChange={handleMenuChange} closeOnClick={false}>
+      <MenuButton icon={faBell} iconLabel="Notifications" onChange={handleMenuChange} closeOnClick={false}>
         <MenuTitle>Notifications</MenuTitle>
 
         {loading && <div className="alert alert-info">Loading notification content from server...</div>}
@@ -70,9 +71,8 @@ const NotificationsMenu = (props) => {
         )}
       </MenuButton>
 
-      {unreadNotificationCount > 0 && (
-        <div className={classnames('iq-count-circle', { exclamation: error })}>{unreadNotificationCount}</div>
-      )}
+      {error && <NxFontAwesomeIcon className="iq-notif-error" icon={faExclamationCircle} />}
+      {!error && unreadNotificationCount > 0 && <div className="iq-unread-dot"></div>}
     </div>
   );
 };

@@ -1042,6 +1042,7 @@ public class ComponentDetailsTest
     // Add and confirm
     manageLabels.addLabelModal().labelsScopeRadioButton(0).should(exist).click();
     manageLabels.addLabelModal().submitButton().shouldBe(enabled).click();
+    NxSubmitMask.seeAndWaitForDismissal();
     manageLabels.appliedLabelText(0).shouldHave(text("Architecture-Blacklisted"));
 
     // Adding app level label

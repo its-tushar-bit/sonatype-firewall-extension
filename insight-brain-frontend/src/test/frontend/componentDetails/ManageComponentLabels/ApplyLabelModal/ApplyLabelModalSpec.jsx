@@ -3,13 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxModal, NxForm, NxRadio } from '@sonatype/react-shared-components';
+import { NxModal, NxForm, NxRadio, NxSubmitMask } from '@sonatype/react-shared-components';
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import ApplyLabelModal from 'MainRoot/componentDetails/ManageComponentLabels/ApplyLabelModal/ApplyLabelModal';
 
 describe('ApplyLabelModal', () => {
   let getShallow;
+  let getMounted;
   let containerModal;
+  let mountedModal;
 
   const loadApplicableLabelScopesMock = jasmine.createSpy('loadApplicableLabelScopes');
   const saveApplyLabelScopeMock = jasmine.createSpy('saveApplyLabelScope');
@@ -37,15 +39,18 @@ describe('ApplyLabelModal', () => {
   };
 
   beforeEach(() => {
-    getShallow = enzymeUtils.getShallowComponent(ApplyLabelModal, minimalProps);
     containerModal = document.createElement('div');
     document.body.appendChild(containerModal);
+
+    getShallow = enzymeUtils.getShallowComponent(ApplyLabelModal, minimalProps);
+    getMounted = enzymeUtils.getMountedComponent(ApplyLabelModal, minimalProps, { attachTo: containerModal });
   });
 
   afterEach(() => {
     if (containerModal) {
       document.body.removeChild(containerModal);
       containerModal = null;
+      mountedModal?.unmount();
     }
   });
 
@@ -128,5 +133,27 @@ describe('ApplyLabelModal', () => {
       saveLabelError: 'save-err',
     }).find(NxForm);
     expect(form).toHaveProp('submitError', 'save-err');
+  });
+
+  it('does not render NxSubmitMask when submitMaskState is null', function () {
+    const modal = getShallow({ submitMaskState: null });
+    const submitMask = modal.find(NxSubmitMask);
+    expect(submitMask).not.toExist();
+  });
+
+  it('renders NxSubmitMask with loading message when submitMaskState is false', () => {
+    mountedModal = getMounted({ submitMaskState: false });
+    const submitMask = mountedModal.find(NxSubmitMask);
+
+    expect(submitMask).toExist();
+    expect(submitMask).toHaveText('Applying label…');
+  });
+
+  it('renders NxSubmitMask with success message when submitMaskState is true', function () {
+    mountedModal = getMounted({ submitMaskState: true });
+    const submitMask = mountedModal.find(NxSubmitMask);
+
+    expect(submitMask).toExist();
+    expect(submitMask).toHaveText('Success!');
   });
 });

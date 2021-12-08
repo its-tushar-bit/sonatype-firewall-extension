@@ -18,10 +18,11 @@ export default function ApplyLabelModal({
   loadError,
   loading,
   saveApplyLabelScope,
+  saveLabelError,
   selectedLabelDetails,
   setLabelScopeToSave,
   showApplyLabelModal,
-  saveLabelError,
+  submitMaskState,
 }) {
   useEffect(() => {
     if (showApplyLabelModal) {
@@ -48,6 +49,8 @@ export default function ApplyLabelModal({
         loadError={loadError}
         doLoad={loadApplicableLabelScopes}
         validationErrors={hasValidationError}
+        submitMaskState={submitMaskState}
+        submitMaskMessage="Applying label…"
       >
         <header className="nx-modal-header">
           <h2 className="nx-h2" id="iq-apply-label-modal__heading">
@@ -93,8 +96,9 @@ ApplyLabelModal.propTypes = {
   loadError: PropTypes.string,
   loadApplicableLabelScopes: PropTypes.func.isRequired,
   saveApplyLabelScope: PropTypes.func.isRequired,
+  saveLabelError: PropTypes.string,
   selectedLabelDetails: PropTypes.object.isRequired,
   setLabelScopeToSave: PropTypes.func.isRequired,
   showApplyLabelModal: PropTypes.bool.isRequired,
-  saveLabelError: PropTypes.string,
+  submitMaskState: PropTypes.bool,
 };

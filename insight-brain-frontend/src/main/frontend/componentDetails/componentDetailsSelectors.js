@@ -183,6 +183,10 @@ export const selectIsLabelsLoading = createSelector(selectDetails, ({ pendingLoa
 
 export const selectShowApplyLabelModal = createSelector(selectDetails, prop('showApplyLabelModal'));
 
+export const selectApplyLabelMaskState = createSelector(selectDetails, prop('applyLabelMaskState'));
+
+export const selectLabelModalMaskState = createSelector(selectDetails, prop('labelModalMaskState'));
+
 export const selectSelectedLabelDetails = createSelector(selectDetails, prop('selectedLabelDetails'));
 
 export const selectLabelScopeToSave = createSelector(selectDetails, prop('labelScopeToSave'));

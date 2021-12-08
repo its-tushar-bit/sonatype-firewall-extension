@@ -45,7 +45,10 @@ export const initialState = Object.freeze({
   applicableLabelScopes: [],
   loadError: null,
   showApplyLabelModal: false,
+  applyLabelMaskState: null,
+  labelModalMaskState: null,
   selectedLabelDetails: {},
+  selectedLabelOwnerType: '',
   labelScopeToSave: {},
   applicableLabelsLoadError: null,
   removeAppliedLabelError: null,
@@ -317,6 +320,9 @@ const loadApplicableLabelScopesFailed = (state, { payload }) => {
   });
 };
 
+/**
+ * Save selected label w/ scope action and reducers
+ */
 const saveApplyLabelScope = createAsyncThunk(
   `${REDUCER_NAME}/saveApplyLabelScope`,
   (_, { dispatch, getState, rejectWithValue }) => {
@@ -328,9 +334,56 @@ const saveApplyLabelScope = createAsyncThunk(
     return axios
       .post(getSaveLabelScopeUrl(labelScopeType, labelScopeId, hash), payload)
       .then((results) => {
-        dispatch(actions.cancelApplyLabelModal());
-        dispatch(actions.loadComponentDetails());
+        setTimeout(() => {
+          dispatch(actions.cancelApplyLabelModal());
+          dispatch(actions.resetApplyLabelMaskState(null));
+          dispatch(actions.resetLabelModalMaskState(null));
+          dispatch(actions.loadComponentDetails());
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         return results;
+      })
+      .catch(rejectWithValue);
+  }
+);
+
+const saveApplyLabelScopeRequested = (state) => {
+  return setPendingLoads(['isSavingLabelScope'], {
+    ...state,
+    applyLabelMaskState: state.selectedLabelOwnerType === 'application' ? false : null,
+    labelModalMaskState: state.selectedLabelOwnerType === 'application' ? null : false,
+  });
+};
+
+const saveApplyLabelScopeFulfilled = (state) => {
+  return unsetPendingLoads(['isSavingLabelScope'], {
+    ...state,
+    saveLabelScopeError: null,
+    applyLabelMaskState: state.selectedLabelOwnerType === 'application' ? true : null,
+    labelModalMaskState: state.selectedLabelOwnerType === 'application' ? null : true,
+  });
+};
+
+const saveApplyLabelScopeFailed = (state, { payload }) => {
+  return unsetPendingLoads(['isSavingLabelScope'], {
+    ...state,
+    saveLabelScopeError: Messages.getHttpErrorMessage(payload),
+    applyLabelMaskState: null,
+    labelModalMaskState: null,
+  });
+};
+
+/**
+ * Remove applied label action and reducers
+ */
+const removeAppliedLabel = createAsyncThunk(
+  `${REDUCER_NAME}/removeLabel`,
+  ({ ownerType, ownerId, id }, { dispatch, getState, rejectWithValue }) => {
+    const { hash } = getState().router.currentParams;
+    return axios
+      .delete(removeLabel(ownerType, ownerId, hash, id))
+      .then(() => {
+        dispatch(actions.toggleShowRemoveLabelModal());
+        dispatch(loadComponentDetails());
       })
       .catch(rejectWithValue);
   }
@@ -358,41 +411,10 @@ const removeAppliedLabelFailed = (state, { payload }) => {
   });
 };
 
-const removeAppliedLabel = createAsyncThunk(
-  `${REDUCER_NAME}/removeLabel`,
-  ({ ownerType, ownerId, id }, { dispatch, getState, rejectWithValue }) => {
-    const { hash } = getState().router.currentParams;
-    return axios
-      .delete(removeLabel(ownerType, ownerId, hash, id))
-      .then(() => {
-        dispatch(actions.toggleShowRemoveLabelModal());
-        dispatch(loadComponentDetails());
-      })
-      .catch(rejectWithValue);
-  }
-);
-
-const saveApplyLabelScopeRequested = (state) => {
-  return setPendingLoads(['isSavingLabelScope'], state);
-};
-
-const saveApplyLabelScopeFulfilled = (state) => {
-  return unsetPendingLoads(['isSavingLabelScope'], {
-    ...state,
-    saveLabelScopeError: null,
-  });
-};
-
-const saveApplyLabelScopeFailed = (state, { payload }) => {
-  return unsetPendingLoads(['isSavingLabelScope'], {
-    ...state,
-    saveLabelScopeError: Messages.getHttpErrorMessage(payload),
-  });
-};
-
 const handleAddLabelTag = (labelDetails, ownerType) => {
   return (dispatch) => {
     dispatch(actions.setSelectedLabelDetails(labelDetails));
+    dispatch(actions.setSelectedLabelOwnerType(ownerType));
     if (ownerType === 'application') {
       dispatch(actions.setLabelScopeToSaveAction());
       dispatch(actions.saveApplyLabelScope());
@@ -444,11 +466,14 @@ const componentDetailsSlice = createSlice({
     cancelApplyLabelModal,
     toggleShowMatchersPopover: toggleBooleanProp('showMatchersPopover'),
     resetSubmitMaskState: pathSetConst(['setProprietaryMatchers', 'submitMaskState'], null),
+    resetApplyLabelMaskState: propSet('applyLabelMaskState'),
+    resetLabelModalMaskState: propSet('labelModalMaskState'),
     resetSubmitError: pathSetConst(['setProprietaryMatchers', 'submitError'], null),
     setComponentMatchersData: pathSet(['setProprietaryMatchers', 'data']),
     toggleShowRemoveLabelModal: toggleShowRemoveLabelModal,
     setLabelScopeToSave: propSet('labelScopeToSave'),
     setSelectedLabelDetails: propSet('selectedLabelDetails'),
+    setSelectedLabelOwnerType: propSet('selectedLabelOwnerType'),
   },
   extraReducers: {
     [loadComponentDetails.pending]: loadComponentDetailsRequested,

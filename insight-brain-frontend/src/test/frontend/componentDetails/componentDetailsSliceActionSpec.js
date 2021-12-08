@@ -58,6 +58,8 @@ const TOGGLE_SHOW_MATCHERS_POPOVER = 'componentDetails/toggleShowMatchersPopover
 const TOGGLE_SHOW_REMOVE_LABEL_MODAL = 'componentDetails/toggleShowRemoveLabelModal';
 const SET_SELECTED_LABEL_DETAILS = 'componentDetails/setSelectedLabelDetails';
 const CANCEL_SHOW_APPLY_MODAL = 'componentDetails/cancelApplyLabelModal';
+const RESET_APPLY_LABEL_MASK_STATE = 'componentDetails/resetApplyLabelMaskState';
+const RESET_LABEL_MODAL_MASK_STATE = 'componentDetails/resetLabelModalMaskState';
 const STATE_GO = '@@reduxUiRouter/stateGo';
 
 describe('componentDetailsActions', function () {
@@ -591,7 +593,7 @@ describe('componentDetailsActions', function () {
       });
     });
 
-    it('dispatches CANCEL_SHOW_APPLY_MODAL and LOAD_COMPONENT_LABELS_REQUESTED actions after a successful response', (done) => {
+    it('dispatches actions to hide modal, reload labels, and reset submit mask states after a successful response', (done) => {
       const mockResponse = { data: { someData: 'Some data' } };
 
       mockAxiosCalls({
@@ -601,12 +603,15 @@ describe('componentDetailsActions', function () {
       });
 
       store.dispatch(saveApplyLabelScope()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         expect(axios.post).toHaveBeenCalledWith(saveLabelScopeUrl, state.componentDetails.selectedLabelDetails);
         expect(store.getActions()).toHaveAction({
           type: SAVE_LABEL_SCOPE_FULFILLED,
           payload: mockResponse,
         });
         expect(store.getActions()).toHaveActionType(CANCEL_SHOW_APPLY_MODAL);
+        expect(store.getActions()).toHaveActionType(RESET_APPLY_LABEL_MASK_STATE);
+        expect(store.getActions()).toHaveActionType(RESET_LABEL_MODAL_MASK_STATE);
         expect(store.getActions()).toHaveActionType(LOAD_COMPONENT_LABELS_REQUESTED);
         done();
       });

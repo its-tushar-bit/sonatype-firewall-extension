@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
-import { NxLoadWrapper } from '@sonatype/react-shared-components';
+import { NxLoadWrapper, NxSubmitMask } from '@sonatype/react-shared-components';
 import * as RemoveLabelModal from 'MainRoot/componentDetails/ManageComponentLabels/RemoveLabelModal/RemoveLabelModalContainer';
 import ManageComponentLabels from 'MainRoot/componentDetails/ManageComponentLabels/ManageComponentLabels';
 import * as ApplyLabelModalContainer from 'MainRoot/componentDetails/ManageComponentLabels/ApplyLabelModal/ApplyLabelModalContainer';
@@ -72,5 +72,27 @@ describe('ManageComponentLabels', () => {
     expect(component.find(TransferList)).toHaveProp('available', [{ id: 1 }, { id: 2 }]);
     expect(component.find(TransferList)).toHaveProp('selected', [{ id: 3 }]);
     expect(component.find(TransferList)).toHaveProp('onAddItem', handleAddLabelTagMock);
+  });
+
+  it('does not render NxSubmitMask when applyLabelMaskState is null', function () {
+    const component = getShallow({ applyLabelMaskState: null });
+    const submitMask = component.find(NxSubmitMask);
+    expect(submitMask).not.toExist();
+  });
+
+  it('renders NxSubmitMask with expected props when applyLabelMaskState is false', () => {
+    const component = getShallow({ applyLabelMaskState: false });
+    const submitMask = component.find(NxSubmitMask);
+
+    expect(submitMask).toExist();
+    expect(submitMask).toHaveProp('message', 'Applying label…');
+    expect(submitMask).toHaveProp('successMessage', 'Success!');
+  });
+
+  it('renders NxSubmitMask when applyLabelMaskState is true', function () {
+    const component = getShallow({ applyLabelMaskState: true });
+    const submitMask = component.find(NxSubmitMask);
+
+    expect(submitMask).toExist();
   });
 });

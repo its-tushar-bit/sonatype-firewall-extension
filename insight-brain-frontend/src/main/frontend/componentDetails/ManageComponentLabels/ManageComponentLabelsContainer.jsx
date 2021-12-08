@@ -6,6 +6,7 @@
 import { connect } from 'react-redux';
 import {
   selectApplicableLabelsLoadError,
+  selectApplyLabelMaskState,
   selectIsApplicableLabelsLoading,
   selectLabels,
   selectApplicableLabels,
@@ -22,6 +23,7 @@ function mapStateToProps(state) {
     applicableLabels: selectApplicableLabels(state),
     selectedLabels: selectLabels(state),
     selectedLabelDetails: selectSelectedLabelDetails(state),
+    applyLabelMaskState: selectApplyLabelMaskState(state),
     loadError: selectApplicableLabelsLoadError(state),
     loading: selectIsApplicableLabelsLoading(state) || selectComponentDetailsLoading(state),
   };

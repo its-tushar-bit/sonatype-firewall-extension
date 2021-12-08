@@ -5,7 +5,7 @@
  */
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxLoadWrapper } from '@sonatype/react-shared-components';
+import { NxLoadWrapper, NxSubmitMask } from '@sonatype/react-shared-components';
 
 import { componentDetailsTagsPropTypes } from '../ComponentDetailsHeader';
 import TransferList from '../TransferList/TransferList';
@@ -20,6 +20,7 @@ export default function ManageComponentLabels({
   handleRemoveLabelTag,
   handleAddLabelTag,
   selectedLabels = [],
+  applyLabelMaskState,
 }) {
   const selectedLabelsSet = new Set(selectedLabels.map(({ id }) => id));
   const available = applicableLabels.filter((item) => !selectedLabelsSet.has(item.id)) || [];
@@ -31,6 +32,9 @@ export default function ManageComponentLabels({
 
   return (
     <Fragment>
+      {applyLabelMaskState !== null && (
+        <NxSubmitMask success={applyLabelMaskState} message="Applying label…" successMessage="Success!" />
+      )}
       <NxLoadWrapper error={loadError} loading={loading} retryHandler={loadApplicableLabels}>
         {() => (
           <div className="nx-tile">
@@ -66,4 +70,5 @@ ManageComponentLabels.propTypes = {
   loadError: PropTypes.string,
   handleRemoveLabelTag: PropTypes.func.isRequired,
   handleAddLabelTag: PropTypes.func.isRequired,
+  applyLabelMaskState: PropTypes.bool,
 };

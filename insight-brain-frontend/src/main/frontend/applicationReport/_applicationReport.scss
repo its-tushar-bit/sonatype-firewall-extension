@@ -10,6 +10,7 @@
 
 @use 'results/cipModal/cipModal';
 @use 'rawData/applicationReportRawData';
+@use '../DependencyTree/DependencyTree';
 
 $-application-report-policy-threat-level-width: 90px;
 $-application-report-policy-name-width: 225px;

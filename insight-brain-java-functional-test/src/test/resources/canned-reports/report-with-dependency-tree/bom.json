@@ -652,7 +652,9 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "directDependency" : true,
+    "innerSource" : true
   }, {
     "componentIdentifier" : {
       "format" : "maven",

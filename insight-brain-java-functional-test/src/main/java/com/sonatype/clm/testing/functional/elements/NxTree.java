@@ -8,6 +8,8 @@ package com.sonatype.clm.testing.functional.elements;
 import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.By;
 
 public class NxTree
     extends BasicElement<NxTree>
@@ -22,5 +24,9 @@ public class NxTree
 
   public ElementsCollection clickableTreeItems() {
     return children(".nx-tree__item .nx-text-link");
+  }
+
+  public SelenideElement dependencyTypeIndicator(SelenideElement treeItem) {
+    return treeItem.find(By.cssSelector(".iq-dependency-indicator"));
   }
 }

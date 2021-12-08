@@ -10,6 +10,7 @@ import java.net.URL;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.NxTooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -118,6 +119,23 @@ public class DependencyTreeTest
     MainHeader.backButton().shouldHave(text("Back to Application Report"));
     MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+  }
+
+  @Test
+  public void testDependencyTree_innerSource() {
+    ElementsCollection treeItems = dependencyTreePage.tree().treeItems();
+
+    SelenideElement firstTreeItem = treeItems.get(1);
+    firstTreeItem.shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
+
+    SelenideElement dependencyIndicator = dependencyTreePage.tree().dependencyTypeIndicator(firstTreeItem);
+    dependencyIndicator.shouldHave(text("IS"));
+
+    dependencyIndicator.hover();
+    NxTooltip tooltip = new NxTooltip();
+    tooltip.shouldHave(text("InnerSource"));
+
+    eyesWatcher.eyesCheck("dependency tree innerSource dependency indicator");
   }
 
   @Test

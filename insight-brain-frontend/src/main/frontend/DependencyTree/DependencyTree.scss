@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 .iq-dependency-tree-page {
   .nx-tree .nx-threat-indicator {
@@ -12,5 +12,9 @@
     // shift for nested .nx-tree items (RSC .nx-tree items work perfectly with
     // icons but should be adapted a bit when used with .nx-threat-indicator)
     margin: 0 var(--nx-spacing-2x) 0 2px;
+  }
+
+  .iq-dependency-indicator {
+    margin-right: var(--nx-spacing-2x);
   }
 }

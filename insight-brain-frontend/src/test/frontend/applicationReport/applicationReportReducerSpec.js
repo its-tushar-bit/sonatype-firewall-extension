@@ -885,6 +885,8 @@ describe('applicationReportReducer', function () {
             },
           },
           derivedComponentName: 'logback-access : ch.qos.logback : 0.6',
+          innerSource: true,
+          directDependency: true,
         },
         { policyThreatLevel: 3, hash: 'b' },
       ];
@@ -922,6 +924,7 @@ describe('applicationReportReducer', function () {
           isOpen: true,
           policyThreatLevel: 1,
           treePath: [0],
+          isInnerSource: true,
         },
       ]);
     });

@@ -10,6 +10,7 @@ import { faTerminal } from '@fortawesome/pro-solid-svg-icons';
 import { NxFontAwesomeIcon, NxTree, NxThreatIndicator, NxTextLink } from '@sonatype/react-shared-components';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { toggleTreePathAction } from 'MainRoot/applicationReport/applicationReportActions';
+import DependencyIndicator from './DependencyIndicator';
 
 const MemoizedTreeNode = React.memo(TreeNode);
 
@@ -32,6 +33,7 @@ function TreeNode({ items }) {
         >
           <NxTree.ItemLabel>
             <NxThreatIndicator policyThreatLevel={item.policyThreatLevel} />
+            {item.isInnerSource && <DependencyIndicator type="inner-source" />}
             <NxTextLink onClick={() => goToCDP(item.hash)}>{item.displayName}</NxTextLink>
           </NxTree.ItemLabel>
           {!!item.children && (
@@ -69,6 +71,7 @@ const treeItemProps = PropTypes.shape({
   treePath: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
   hash: PropTypes.string,
   policyThreatLevel: PropTypes.number,
+  isInnerSource: PropTypes.bool,
 });
 
 DependencyTree.propTypes = {

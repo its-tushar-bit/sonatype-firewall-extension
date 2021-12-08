@@ -5,7 +5,7 @@
  */
 import React from 'react';
 
-import { render, screen } from '../SpecUtil';
+import { render, screen, within } from '../SpecUtil';
 
 import DependencyTree from 'MainRoot/DependencyTree/DependencyTree';
 import { dependencyTreeData } from '../util/dependencyTreeUtil';
@@ -47,5 +47,26 @@ describe('DependencyTree', () => {
     const clickableTreeNode = screen.getByText('net.sourceforge.jtds : jtds : 1.2.2').closest('a');
 
     expect(clickableTreeNode).toHaveClassName('nx-text-link');
+  });
+
+  it('renders an inner source icon', () => {
+    const mockTree = [
+      {
+        displayName: 'taglibs : standard : 1.1.2',
+        children: null,
+        isOpen: true,
+        treePath: [3],
+        hash: 'qwert56',
+        policyThreatLevel: 10,
+        isInnerSource: true,
+      },
+    ];
+    renderComponent({
+      dependencyTree: mockTree,
+    });
+
+    const item = screen.getAllByRole('treeitem');
+
+    expect(within(item[0]).getByText('IS')).toBeVisible();
   });
 });

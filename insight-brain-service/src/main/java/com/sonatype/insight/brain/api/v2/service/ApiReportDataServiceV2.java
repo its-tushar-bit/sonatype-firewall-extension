@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -56,10 +57,12 @@ import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -172,19 +175,64 @@ public class ApiReportDataServiceV2
     Application application = appDAO.getByPublicIdNotNull(applicationPublicId);
     String appId = application.getId();
 
-    final String name = Report.toEntryName(Report.DEPENDENCIES_JSON_FILENAME);
     final File reportFile = reportService.getReport(appId, scanId);
-    ReportEntry reportEntry = Report.getEntry(reportFile, name);
-    if (reportEntry != null) {
-      JsonNode dependenciesNode = JsonUtils.parse(reportEntry.buf);
-      if (dependenciesNode != null) {
+    ReportEntry dependenciesEntry = Report.getEntry(reportFile, Report.toEntryName(Report.DEPENDENCIES_JSON_FILENAME));
+    ReportEntry bomEntry = Report.getEntry(reportFile, Report.toEntryName(Report.BOM_JSON_FILENAME));
+    if (dependenciesEntry != null && bomEntry != null) {
+      JsonNode dependenciesNode = JsonUtils.parse(dependenciesEntry.buf);
+      JsonNode bomNode = JsonUtils.parse(bomEntry.buf);
+      if (dependenciesNode != null && bomNode != null) {
         JsonNode dependencyTreeNode = dependenciesNode.get("dependencyTree");
+        JsonNode aaDataNode = bomNode.get("aaData");
         if (dependencyTreeNode != null && !dependencyTreeNode.isNull() && !dependencyTreeNode.isEmpty()) {
-          dependencyTree = JsonUtils.asPojo(dependencyTreeNode, ApiDependencyTreeNodeDTO.class);
+          ObjectNode  dependencyTreeObject = (ObjectNode) dependencyTreeNode;
+          dependencyTreeObject.remove("componentIdentifier");
+          Map<ComponentIdentifier,BillOfMaterialsRowDTO> componentsIndex = indexBom(aaDataNode);
+          dependencyTree = JsonUtils.asPojo(dependencyTreeObject, ApiDependencyTreeNodeDTO.class);
+          dependencyTree.setChildren(correlateDependencyTreeWithComponentIndex(dependencyTree, componentsIndex));
         }
       }
     }
     return dependencyTree;
+  }
+
+  private List<ApiDependencyTreeNodeDTO> correlateDependencyTreeWithComponentIndex(
+      ApiDependencyTreeNodeDTO root, 
+      Map<ComponentIdentifier,BillOfMaterialsRowDTO> componentsIndex
+  )
+  {
+    List<ApiDependencyTreeNodeDTO> children = root.getChildren();
+    if (children == null || children.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    List<ApiDependencyTreeNodeDTO> updatedChildren = new LinkedList<>();
+    for (ApiDependencyTreeNodeDTO child : children) {
+      ComponentIdentifier key = child.getComponentIdentifier().toComponentIdentifier();
+      if (componentsIndex.containsKey(key)) {
+        child.setChildren(correlateDependencyTreeWithComponentIndex(child,componentsIndex));
+        child.setPackageUrl(PackageUrlIdentifier.fromComponentIdentifier(key));
+        updatedChildren.add(child);
+      }
+    }
+
+    return updatedChildren;
+  }
+
+  private Map<ComponentIdentifier,BillOfMaterialsRowDTO> indexBom(JsonNode aaDataNode) throws IOException {
+    Map<ComponentIdentifier,BillOfMaterialsRowDTO> components = new HashMap<>();
+    if (aaDataNode == null || aaDataNode.isNull() || aaDataNode.isEmpty()) {
+      return components;
+    }
+    
+    final ArrayNode bomJsonArray = (ArrayNode) aaDataNode;
+    for (JsonNode componentJson : bomJsonArray) {
+      BillOfMaterialsRowDTO component = JsonUtils.asPojo(componentJson, BillOfMaterialsRowDTO.class);
+      if (!component.matchState.equals("unknown")) {
+        components.put(component.componentIdentifier, component);
+      }
+    }
+    return components;
   }
 
   private List<ApiReportComponentPolicyViolationsDTOV2> getComponents(byte[] bomData, PolicyThreats policyThreats)

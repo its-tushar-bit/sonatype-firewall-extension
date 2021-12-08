@@ -127,6 +127,12 @@ public class ApiReportDataServiceV2Test
         .getResource("/ApiReportDataServiceTest/" + resource + "/" + dependenciesFile), file);
   }
 
+  private void populateBom(String resource, String bomFile) throws IOException {
+    File file = Report.getCacheFile(reportFile, "bom.json");
+    FileUtils.copyURLToFile(getClass()
+        .getResource("/ApiReportDataServiceTest/" + resource + "/" + bomFile), file);
+  }
+
   @Before
   public void init() throws Exception {
     app = tempEntity.newApplicationWithParent("app-id");
@@ -522,36 +528,74 @@ public class ApiReportDataServiceV2Test
 
     ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
     assertThat(response).isNotNull();
-    assertThat(response.children).isNull();
+    assertThat(response.getChildren()).isNull();
   }
 
   @Test
   public void testGetDependencyTree() throws Exception {
-    makeReport("report-1");
-    populateDependencies("report-1", "dependencies.json");
+    makeReport("java-report");
+    populateDependencies("java-report", "dependencies.json");
+    populateBom("java-report", "bom.json");
 
     ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
     assertThat(response).isNotNull();
-    assertTrue(!response.children.isEmpty());
-    assertThat(response.children.size()).isEqualTo(17);
+    List<ApiDependencyTreeNodeDTO> children = response.getChildren();
+    assertTrue(!children.isEmpty());
+    assertThat(size(children)).isEqualTo(209);
+    validateDependencyTree(children);
+  }
+
+  @Test
+  public void testGetDependencyTree_multipleRemovals() throws Exception {
+    makeReport("java-report");
+    populateDependencies("java-report", "dependenciesWithMultipleRemovals.json");
+    populateBom("java-report", "bom.json");
+
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    assertThat(response).isNotNull();
+    List<ApiDependencyTreeNodeDTO> children = response.getChildren();
+    assertTrue(!children.isEmpty());
+    assertThat(size(children)).isEqualTo(209);
+    validateDependencyTree(children);
   }
 
   @Test
   public void testGetDependencyTree_InnerSource() throws Exception {
-    makeReport("report-1");
-    populateDependencies("report-1", "innerSourceDependencies.json");
+    makeReport("innersource-report");
+    populateDependencies("innersource-report", "dependencies.json");
+    populateBom("innersource-report", "bom.json");
 
     ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
     assertThat(response).isNotNull();
-    assertTrue(!response.children.isEmpty());
-    assertThat(response.children.size()).isEqualTo(17);
-    assertThat(response.componentIdentifier).isNotNull();
+    assertThat(response.getComponentIdentifier()).isNull();
+    List<ApiDependencyTreeNodeDTO> children = response.getChildren();
+    assertTrue(!children.isEmpty());
+    assertThat(size(children)).isEqualTo(15);
+    validateDependencyTree(children);
+  }
+
+  private void validateDependencyTree(List<ApiDependencyTreeNodeDTO> children) {
+    if (children != null && !children.isEmpty()) {
+      for (ApiDependencyTreeNodeDTO node : children) {
+        assertThat(node.getComponentIdentifier()).isNotNull();
+        assertThat(node.getPackageUrl()).isNotNull();
+        validateDependencyTree(node.getChildren());
+      }
+    }
+  }
+  
+  private int size(List<ApiDependencyTreeNodeDTO> children) {
+    if (children == null || children.isEmpty()) {
+      return 0;
+    }
+    return children.stream()
+      .mapToInt(node -> size(node.getChildren())).sum() + children.size();
   }
 
   @Test
   public void testGetDependencyTree_noDependenciesFile() throws Exception {
     ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
     assertThat(response).isNotNull();
-    assertThat(response.children).isNull();
+    assertThat(response.getChildren()).isNull();
   }
 }

@@ -7,13 +7,41 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.List;
 
+import com.sonatype.insight.purl.PackageUrlIdentifier;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiDependencyTreeNodeDTO 
 {
-  public ApiComponentIdentifierDTOV2 componentIdentifier;
+  private PackageUrlIdentifier packageUrl;
+
+  private ApiComponentIdentifierDTOV2 componentIdentifier;
 
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
-  public List<ApiDependencyTreeNodeDTO> children;
+  private List<ApiDependencyTreeNodeDTO> children;
+
+  public PackageUrlIdentifier getPackageUrl() {
+    return packageUrl;
+  }
+
+  public void setPackageUrl(PackageUrlIdentifier packageUrl) {
+    this.packageUrl = packageUrl;
+  }
+
+  public ApiComponentIdentifierDTOV2 getComponentIdentifier() {
+    return componentIdentifier;
+  }
+
+  public void setComponentIdentifier(ApiComponentIdentifierDTOV2 componentIdentifier) {
+    this.componentIdentifier = componentIdentifier;
+  }
+
+  public List<ApiDependencyTreeNodeDTO> getChildren() {
+    return children;
+  }
+
+  public void setChildren(List<ApiDependencyTreeNodeDTO> children) {
+    this.children = children;
+  }
 }

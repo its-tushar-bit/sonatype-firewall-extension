@@ -11,10 +11,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
@@ -486,8 +488,8 @@ public class ApiReportDataResourceV2Test
     ApiDependencyTreeResponseDTO dto = response.getBody(ApiDependencyTreeResponseDTO.class);
     assertThat(dto).isNotNull();
     assertThat(dto.getDependencyTree()).isNotNull();
-    assertThat(dto.getDependencyTree().children).isNull();
-    assertThat(dto.getDependencyTree().componentIdentifier).isNull();
+    assertThat(dto.getDependencyTree().getChildren()).isNull();
+    assertThat(dto.getDependencyTree().getComponentIdentifier()).isNull();
   }
 
   @Test
@@ -508,9 +510,14 @@ public class ApiReportDataResourceV2Test
     ApiDependencyTreeResponseDTO dto = response.getBody(ApiDependencyTreeResponseDTO.class);
     assertThat(dto).isNotNull();
     assertThat(dto.getDependencyTree()).isNotNull();
-    assertThat(dto.getDependencyTree().children).isNotEmpty();
-    assertThat(dto.getDependencyTree().children.size()).isEqualTo(1);
-    assertThat(dto.getDependencyTree().componentIdentifier).isNull();
+    assertThat(dto.getDependencyTree().getComponentIdentifier()).isNull();
+
+    List<ApiDependencyTreeNodeDTO> children = dto.getDependencyTree().getChildren();
+    assertThat(children).isNotEmpty();
+    assertThat(children.size()).isEqualTo(1);
+    ApiDependencyTreeNodeDTO node = children.get(0);
+    assertThat(node.getPackageUrl()).isNotNull();
+    
   }
 
   @Test
@@ -531,9 +538,17 @@ public class ApiReportDataResourceV2Test
     ApiDependencyTreeResponseDTO dto = response.getBody(ApiDependencyTreeResponseDTO.class);
     assertThat(dto).isNotNull();
     assertThat(dto.getDependencyTree()).isNotNull();
-    assertThat(dto.getDependencyTree().children).isNotEmpty();
-    assertThat(dto.getDependencyTree().children.size()).isEqualTo(2);
-    assertThat(dto.getDependencyTree().componentIdentifier).isNotNull();
+    assertThat(dto.getDependencyTree().getComponentIdentifier()).isNull();
+    
+    List<ApiDependencyTreeNodeDTO> children = dto.getDependencyTree().getChildren();
+    assertThat(children).isNotEmpty();
+    assertThat(children.size()).isEqualTo(2);
+    
+    children.forEach(node -> {
+      assertThat(node.getPackageUrl()).isNotNull();
+      assertThat(node.getComponentIdentifier()).isNotNull();
+    });
+    
   }
 
   @Test

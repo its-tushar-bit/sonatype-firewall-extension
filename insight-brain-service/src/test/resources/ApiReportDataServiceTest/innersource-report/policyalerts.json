@@ -1,0 +1,819 @@
+{
+  "aaData" : [ {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "f65ad5f09d85440598dd14c6c1205259",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "boom",
+            "version" : "3.2.2"
+          }
+        },
+        "hash" : "0f0cc5d04adc5003b8c7",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "boom"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "3.2.2"
+          } ],
+          "name" : "boom : 3.2.2"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "d50a26ac73d34d24ac4e4e3fd870e019",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "hawk",
+            "version" : "4.1.2"
+          }
+        },
+        "hash" : "ba067b0885e9c0726c8c",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "hawk"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "4.1.2"
+          } ],
+          "name" : "hawk : 4.1.2"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "47797f579ec94e71bc3a85803da68568",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "58607253a43e4d7aa8685b415fef6168",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "hoek",
+            "version" : "3.0.4"
+          }
+        },
+        "hash" : "268adff66bb6695c69b4",
+        "constraintFacts" : [ {
+          "constraintId" : "76e61e77ce7d4ccfb515c78626379eec",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "hoek"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "3.0.4"
+          } ],
+          "name" : "hoek : 3.0.4"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "628e351eac0640578ba85eb5bc7486ba",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "1c85fdfcb71c47dabe7758adedc9df17",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "cryptiles",
+            "version" : "3.1.4"
+          }
+        },
+        "hash" : "769a68c95612b56faadf",
+        "constraintFacts" : [ {
+          "constraintId" : "78b78c4a8dc2472397c5976d2e9e4e0f",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2018-1000620 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2018-1000620",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "cryptiles"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "3.1.4"
+          } ],
+          "name" : "cryptiles : 3.1.4"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "7bac78bcdd424543b1cf8d6983f3fb58",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "6d842b5aa4a94e72a97cce00dc038d83",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "hoek",
+            "version" : "3.0.4"
+          }
+        },
+        "hash" : "268adff66bb6695c69b4",
+        "constraintFacts" : [ {
+          "constraintId" : "03eb3f1a3af84b108452c47e1e998393",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2018-3728 with severity >= 7 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2018-3728",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2018-3728 with severity < 9 (severity = 8.8)",
+            "reference" : {
+              "value" : "CVE-2018-3728",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "hoek"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "3.0.4"
+          } ],
+          "name" : "hoek : 3.0.4"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "827c8df8be644a68bf7c2096535717b8",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "boom",
+            "version" : "3.2.2"
+          }
+        },
+        "hash" : "0f0cc5d04adc5003b8c7",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2016-0091 with severity >= 4 (severity = 4.6)",
+            "reference" : {
+              "value" : "sonatype-2016-0091",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2016-0091 with severity < 7 (severity = 4.6)",
+            "reference" : {
+              "value" : "sonatype-2016-0091",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "boom"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "3.2.2"
+          } ],
+          "name" : "boom : 3.2.2"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "195a6df370d74153b602b621bfdc3c9e",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "boom",
+            "version" : "5.2.0"
+          }
+        },
+        "hash" : "5dd9da6ee3a5f3020774",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2016-0091 with severity >= 4 (severity = 4.6)",
+            "reference" : {
+              "value" : "sonatype-2016-0091",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2016-0091 with severity < 7 (severity = 4.6)",
+            "reference" : {
+              "value" : "sonatype-2016-0091",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "boom"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "5.2.0"
+          } ],
+          "name" : "boom : 5.2.0"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "5e13a155224644a7aec6eea444714e21",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "hoek",
+            "version" : "3.0.4"
+          }
+        },
+        "hash" : "268adff66bb6695c69b4",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2020-0074 with severity >= 4 (severity = 5.6)",
+            "reference" : {
+              "value" : "sonatype-2020-0074",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2020-0074 with severity < 7 (severity = 5.6)",
+            "reference" : {
+              "value" : "sonatype-2020-0074",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "hoek"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "3.0.4"
+          } ],
+          "name" : "hoek : 3.0.4"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "c306d2eb4b714b18abca90541b60b8a0",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "d2a1c043ed1947b1a45ec7068a6d140f",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "hoek",
+            "version" : "4.2.1"
+          }
+        },
+        "hash" : "9634502aa12c445dd5a7",
+        "constraintFacts" : [ {
+          "constraintId" : "b93083d6afb64436ab165470ef455106",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability sonatype-2020-0074 with severity >= 4 (severity = 5.6)",
+            "reference" : {
+              "value" : "sonatype-2020-0074",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability sonatype-2020-0074 with severity < 7 (severity = 5.6)",
+            "reference" : {
+              "value" : "sonatype-2020-0074",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "hoek"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "4.2.1"
+          } ],
+          "name" : "hoek : 4.2.1"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyName" : "Integrity-Rating",
+      "threatLevel" : 9,
+      "policyViolationId" : "a26505b3e3d445da8b9daddc713bc5ea",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "boom",
+            "version" : "3.2.2"
+          }
+        },
+        "hash" : "0f0cc5d04adc5003b8c7",
+        "constraintFacts" : [ {
+          "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+          "constraintName" : "Pending integrity rating",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "IntegrityRating",
+            "conditionIndex" : 0,
+            "summary" : "Integrity Rating is Pending",
+            "reason" : "Integrity Rating was Pending",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "boom"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "3.2.2"
+          } ],
+          "name" : "boom : 3.2.2"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyName" : "Integrity-Rating",
+      "threatLevel" : 9,
+      "policyViolationId" : "b36b6fdf323d4be8a09772c386fb65bb",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "boom",
+            "version" : "5.2.0"
+          }
+        },
+        "hash" : "5dd9da6ee3a5f3020774",
+        "constraintFacts" : [ {
+          "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+          "constraintName" : "Pending integrity rating",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "IntegrityRating",
+            "conditionIndex" : 0,
+            "summary" : "Integrity Rating is Pending",
+            "reason" : "Integrity Rating was Pending",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "boom"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "5.2.0"
+          } ],
+          "name" : "boom : 5.2.0"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyName" : "Integrity-Rating",
+      "threatLevel" : 9,
+      "policyViolationId" : "2386394e6fe649fd8fce12060ee67273",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "cryptiles",
+            "version" : "3.1.4"
+          }
+        },
+        "hash" : "769a68c95612b56faadf",
+        "constraintFacts" : [ {
+          "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+          "constraintName" : "Pending integrity rating",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "IntegrityRating",
+            "conditionIndex" : 0,
+            "summary" : "Integrity Rating is Pending",
+            "reason" : "Integrity Rating was Pending",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "cryptiles"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "3.1.4"
+          } ],
+          "name" : "cryptiles : 3.1.4"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyName" : "Integrity-Rating",
+      "threatLevel" : 9,
+      "policyViolationId" : "7ad9ba2bec394af7b3bbf8a72bdcaf66",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "hawk",
+            "version" : "4.1.2"
+          }
+        },
+        "hash" : "ba067b0885e9c0726c8c",
+        "constraintFacts" : [ {
+          "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+          "constraintName" : "Pending integrity rating",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "IntegrityRating",
+            "conditionIndex" : 0,
+            "summary" : "Integrity Rating is Pending",
+            "reason" : "Integrity Rating was Pending",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "hawk"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "4.1.2"
+          } ],
+          "name" : "hawk : 4.1.2"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyName" : "Integrity-Rating",
+      "threatLevel" : 9,
+      "policyViolationId" : "556226e02d3348aa9a74acd4d6640c78",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "hoek",
+            "version" : "3.0.4"
+          }
+        },
+        "hash" : "268adff66bb6695c69b4",
+        "constraintFacts" : [ {
+          "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+          "constraintName" : "Pending integrity rating",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "IntegrityRating",
+            "conditionIndex" : 0,
+            "summary" : "Integrity Rating is Pending",
+            "reason" : "Integrity Rating was Pending",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "hoek"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "3.0.4"
+          } ],
+          "name" : "hoek : 3.0.4"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyName" : "Integrity-Rating",
+      "threatLevel" : 9,
+      "policyViolationId" : "77733a672ca743999467d03f20890f73",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "hoek",
+            "version" : "4.2.1"
+          }
+        },
+        "hash" : "9634502aa12c445dd5a7",
+        "constraintFacts" : [ {
+          "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+          "constraintName" : "Pending integrity rating",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "IntegrityRating",
+            "conditionIndex" : 0,
+            "summary" : "Integrity Rating is Pending",
+            "reason" : "Integrity Rating was Pending",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "hoek"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "4.2.1"
+          } ],
+          "name" : "hoek : 4.2.1"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyName" : "Integrity-Rating",
+      "threatLevel" : 9,
+      "policyViolationId" : "d92e2d25f39648819053099bb178ed23",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "loadash",
+            "version" : "1.0.0"
+          }
+        },
+        "hash" : "b92e54d809f3c225f4f9",
+        "constraintFacts" : [ {
+          "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+          "constraintName" : "Pending integrity rating",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "IntegrityRating",
+            "conditionIndex" : 0,
+            "summary" : "Integrity Rating is Pending",
+            "reason" : "Integrity Rating was Pending",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "loadash"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "1.0.0"
+          } ],
+          "name" : "loadash : 1.0.0"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "d462c40a75ca403188072476a87e6176",
+      "policyName" : "Integrity-Rating",
+      "threatLevel" : 9,
+      "policyViolationId" : "e3a9955655584b9ba1a376db270b0714",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "sntp",
+            "version" : "2.1.0"
+          }
+        },
+        "hash" : "2c6cec14fedc2222739c",
+        "constraintFacts" : [ {
+          "constraintId" : "0fa35829177b4a8f855bd94c62c3445e",
+          "constraintName" : "Pending integrity rating",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "IntegrityRating",
+            "conditionIndex" : 0,
+            "summary" : "Integrity Rating is Pending",
+            "reason" : "Integrity Rating was Pending",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "sntp"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "2.1.0"
+          } ],
+          "name" : "sntp : 2.1.0"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  } ]
+}

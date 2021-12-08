@@ -12,6 +12,7 @@ import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
 import AddWaiverForm, { waiverScopePropTypes } from './AddWaiverForm';
 import { extractViolationDetails } from '../util/violationDetailsUtil';
+import AddAndRequestWaiversBackButton from './AddAndRequestWaiversBackButton';
 
 export default function AddWaiverPage(props) {
   const {
@@ -21,6 +22,8 @@ export default function AddWaiverPage(props) {
     loadError,
     submitMaskState,
     submitError,
+    prevStateName,
+    prevParams,
     //data
     waiverComments,
     availableWaiverScopes,
@@ -39,6 +42,12 @@ export default function AddWaiverPage(props) {
     setExpiryTime,
     cancelAction,
   } = props;
+
+  const backButtonProps = {
+    violationId,
+    prevStateName,
+    prevParams,
+  };
 
   function load() {
     if (violationId) {
@@ -74,10 +83,10 @@ export default function AddWaiverPage(props) {
 
   return (
     <main id="add-waiver-page" className="nx-page-main">
+      <AddAndRequestWaiversBackButton {...backButtonProps} />
       <div className="nx-page-title">
         <h1 className="nx-h1">Add Waiver</h1>
       </div>
-
       <section className="nx-tile">
         {submitMaskState !== null && (
           <NxSubmitMask success={submitMaskState} message="Creating waiver…" successMessage="Success!" />
@@ -97,6 +106,8 @@ export default function AddWaiverPage(props) {
 
 AddWaiverPage.propTypes = {
   violationId: PropTypes.string,
+  prevStateName: PropTypes.string,
+  prevParams: AddAndRequestWaiversBackButton.propTypes.prevParams,
   loading: PropTypes.bool.isRequired,
   loadError: LoadWrapper.propTypes.error,
   submitMaskState: PropTypes.bool,
@@ -126,4 +137,5 @@ AddWaiverPage.propTypes = {
   setApplyToAllComponents: PropTypes.func.isRequired,
   setExpiryTime: PropTypes.func.isRequired,
   cancelAction: PropTypes.func.isRequired,
+  closeVulnerabilityDetailsModal: PropTypes.func.isRequired,
 };

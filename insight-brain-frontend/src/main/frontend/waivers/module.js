@@ -12,7 +12,10 @@ import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 
 export default angular
   .module('waivers', [])
-  .component('addWaiverPage', react2angular(withStoreProvider(AddWaiverPageContainer), [], ['$ngRedux']))
+  .component(
+    'addWaiverPage',
+    react2angular(withRouterStateProvider(withStoreProvider(AddWaiverPageContainer)), [], ['$ngRedux', '$state'])
+  )
   .component(
     'requestWaiverPage',
     react2angular(withRouterStateProvider(withStoreProvider(RequestWaiverPageContainer)), [], ['$ngRedux', '$state'])

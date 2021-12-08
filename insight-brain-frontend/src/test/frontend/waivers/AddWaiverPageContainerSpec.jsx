@@ -76,7 +76,19 @@ describe('AddWaiverPageContainer', function () {
         violationDetails: {},
       },
       router: {
-        currentParams: { violationId: 'foo' },
+        currentParams: {
+          violationId: 'foo',
+        },
+        prevState: {
+          name: 'prevStateName',
+        },
+        prevParams: {
+          publicId: 'publicId',
+          scanId: 'scanId',
+          hash: 'hash',
+          sidebarReference: 'sidebarReference',
+          type: 'type',
+        },
       },
       vulnerabilityDetailsModal: {
         vulnerabilityId: 'CVE-12345',
@@ -92,6 +104,14 @@ describe('AddWaiverPageContainer', function () {
 
     expect(wrapper).toHaveProp('loading', false);
     expect(wrapper).toHaveProp('violationId', 'foo');
+    expect(wrapper).toHaveProp('prevStateName', 'prevStateName');
+    expect(wrapper).toHaveProp('prevParams', {
+      publicId: 'publicId',
+      scanId: 'scanId',
+      hash: 'hash',
+      sidebarReference: 'sidebarReference',
+      type: 'type',
+    });
     expect(wrapper).toHaveProp('violationDetails', {});
     state = {
       ...state,

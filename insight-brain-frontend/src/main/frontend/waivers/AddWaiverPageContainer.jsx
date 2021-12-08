@@ -27,6 +27,8 @@ function mapStateToProps({ addWaiver, violation, router }) {
     ...addWaiver,
     ...pick(['violationDetails'], violation),
     ...pick(['violationId'], router.currentParams),
+    prevStateName: router.prevState.name,
+    prevParams: router.prevParams,
   };
 }
 

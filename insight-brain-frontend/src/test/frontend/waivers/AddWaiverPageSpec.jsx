@@ -8,9 +8,15 @@ import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 import AddWaiverForm from '../../../main/frontend/waivers/AddWaiverForm';
 import { NxSubmitMask } from '@sonatype/react-shared-components';
 import AddWaiverPage from '../../../main/frontend/waivers/AddWaiverPage';
+import AddAndRequestWaiversBackButton from 'MainRoot/waivers/AddAndRequestWaiversBackButton';
 
 describe('AddWaiverPage', function () {
-  let minimalProps, openVulnerabilityDetailsModalMock, loadAddWaiverDataSpy, getShallowComponent, getMountedComponent;
+  let minimalProps,
+    fullProps,
+    openVulnerabilityDetailsModalMock,
+    loadAddWaiverDataSpy,
+    getShallowComponent,
+    getMountedComponent;
 
   beforeEach(function () {
     loadAddWaiverDataSpy = jasmine.createSpy('loadAddWaiverDataSpy');
@@ -28,12 +34,27 @@ describe('AddWaiverPage', function () {
       },
       expiryTime: null,
       loadAddWaiverData: loadAddWaiverDataSpy,
+      prevStateName: null,
+      prevParams: {
+        publicId: 'publicId',
+        scanId: 'scanId',
+        hash: 'hash',
+      },
       saveWaiver: () => {},
       setWaiverComment: () => {},
       setWaiverScope: () => {},
       setApplyToAllComponents: () => {},
       setExpiryTime: () => {},
       cancelAction: () => {},
+    };
+
+    fullProps = {
+      prevParams: {
+        publicId: 'publicId',
+        scanId: 'scanId',
+        hash: 'hash',
+      },
+      prevStateName: 'prevStateName',
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(AddWaiverPage, minimalProps);
@@ -196,5 +217,21 @@ describe('AddWaiverPage', function () {
   it('does not call `loadAddWaiverData` when the violationId is not provided', function () {
     getMountedComponent({ ...minimalProps, violationId: null });
     expect(loadAddWaiverDataSpy).not.toHaveBeenCalled();
+  });
+
+  it('renders a AddAndRequestWaiversBackButton with correct props', function () {
+    let backButton = getShallowComponent().find(AddAndRequestWaiversBackButton);
+    expect(backButton).toExist();
+    expect(backButton).toHaveProp('violationId', 'violationId');
+
+    backButton = getShallowComponent(fullProps).find(AddAndRequestWaiversBackButton);
+    expect(backButton).toExist();
+    expect(backButton).toHaveProp('violationId', 'violationId');
+    expect(backButton).toHaveProp('prevStateName', 'prevStateName');
+    expect(backButton).toHaveProp('prevParams', {
+      publicId: 'publicId',
+      scanId: 'scanId',
+      hash: 'hash',
+    });
   });
 });

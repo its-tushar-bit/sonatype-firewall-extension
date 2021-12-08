@@ -13,8 +13,7 @@ import * as routerContext from 'MainRoot/react/RouterStateContext';
 import * as ComponentDetailsTabsFile from 'MainRoot/componentDetails/ComponentDetailsTabs';
 import ComponentDetailsTabs from 'MainRoot/componentDetails/ComponentDetailsTabs';
 import UnknownComponentAlert from 'MainRoot/componentDetails/UnknownComponentAlert';
-
-import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import * as ComponentDetailsBackButton from 'MainRoot/componentDetails/ComponentDetailsBackButton';
 
 const assertTabs = (component, activeTabId, isUnknown, isClaimed, isExact) => {
   let tabs;
@@ -37,9 +36,13 @@ describe('ComponentDetails', function () {
     stateMock,
     stateGetSpy,
     onTabChangeSpy,
-    toggleShowMatchersPopoverSpy;
+    toggleShowMatchersPopoverSpy,
+    backButtonMock;
 
   beforeEach(function () {
+    backButtonMock = spyOn(ComponentDetailsBackButton, 'default').and.returnValue(
+      <div>Component Details Back Button</div>
+    );
     loadComponentDetailsSpy = jasmine.createSpy('loadComponentDetails');
     onTabChangeSpy = jasmine.createSpy('onTabChange');
     toggleShowMatchersPopoverSpy = jasmine.createSpy('toggleShowMatchersPopover');
@@ -72,11 +75,14 @@ describe('ComponentDetails', function () {
     expect(getShallowComponent()).toExist();
   });
 
-  it('renders a MenuBarBackButton', () => {
-    const el = getShallowComponent(),
-      backBtn = el.find(MenuBarBackButton);
+  it('renders a ComponentDetailsBackButton', () => {
+    const dependencyTreeRouterParams = { publicId: 'testPublicId', scanId: 'testScanId' };
 
-    expect(backBtn).toHaveProp('stateName', 'applicationReport.policy');
+    const el = getShallowComponent({ dependencyTreeRouterParams }),
+      backBtn = el.find(backButtonMock);
+
+    expect(backBtn).toHaveProp('publicId', dependencyTreeRouterParams.publicId);
+    expect(backBtn).toHaveProp('scanId', dependencyTreeRouterParams.scanId);
   });
 
   it('renders the tabs at all times', () => {

@@ -16,7 +16,7 @@ import {
 } from './ComponentDetailsHeader';
 import { ComponentDetailsFooter, ComponentDetailsFooterPropTypes as footerPropTypes } from './ComponentDetailsFooter';
 
-import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
+import ComponentDetailsBackButton from './ComponentDetailsBackButton';
 import ComponentDetailsTabs from './ComponentDetailsTabs';
 import UnknownComponentAlert from './UnknownComponentAlert';
 
@@ -42,6 +42,7 @@ export default function ComponentDetails({
   toggleShowMatchersPopover,
   isProprietary,
   pathnames,
+  dependencyTreeRouterParams,
 }) {
   useEffect(() => {
     loadComponentDetails();
@@ -75,7 +76,7 @@ export default function ComponentDetails({
 
   return (
     <main className={classes}>
-      <MenuBarBackButton stateName="applicationReport.policy" />
+      <ComponentDetailsBackButton {...dependencyTreeRouterParams} />
       <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-details-page__content">
         <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadComponentDetails}>
           {() => (
@@ -153,4 +154,5 @@ ComponentDetails.propTypes = {
   toggleShowMatchersPopover: PropTypes.func.isRequired,
   isProprietary: PropTypes.bool,
   pathnames: PropTypes.arrayOf(PropTypes.string),
+  dependencyTreeRouterParams: PropTypes.shape({ publicId: PropTypes.string, scanId: PropTypes.string }),
 };

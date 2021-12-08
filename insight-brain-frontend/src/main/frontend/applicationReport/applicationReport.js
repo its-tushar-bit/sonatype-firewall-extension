@@ -33,6 +33,7 @@ export function ApplicationReportController($scope, $ngRedux, applicationReportA
             'reevaluateReportCancelled',
             'loadReportIfNeeded',
             'loadInnerSourceReports',
+            'resetDependencyTreeRouterParams',
           ],
           applicationReportActions
         ),
@@ -40,6 +41,7 @@ export function ApplicationReportController($scope, $ngRedux, applicationReportA
 
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
       vm.loadReportIfNeeded();
+      vm.resetDependencyTreeRouterParams();
 
       $scope.$watch('vm.reevaluating', function (reevaluating) {
         if (reevaluating) {

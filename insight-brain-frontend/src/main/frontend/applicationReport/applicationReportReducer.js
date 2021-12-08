@@ -58,6 +58,8 @@ import {
   OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL,
   CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL,
   TOGGLE_TREE_PATH,
+  SET_DEPENDENCY_TREE_ROUTER_PARAMS,
+  RESET_DEPENDENCY_TREE_ROUTER_PARAMS,
 } from './applicationReportActions';
 import { populateDependencyNodeKeys as populateEntryNodeKeys } from 'MainRoot/applicationReport/DependencyInfoGenerator';
 import { extendDependencyTreeData, filterDependencyTree } from 'MainRoot/DependencyTree/dependencyTreeUtil';
@@ -115,6 +117,7 @@ const initState = Object.freeze({
   },
   selectedComponent: null,
   dependencyTree: null,
+  dependencyTreePageRouterParams: null,
 });
 
 export default function applicationReportReducer(state = initState, { type, payload }) {
@@ -251,6 +254,12 @@ export default function applicationReportReducer(state = initState, { type, payl
 
     case TOGGLE_TREE_PATH:
       return setTreePathAction(state, payload);
+
+    case SET_DEPENDENCY_TREE_ROUTER_PARAMS:
+      return { ...state, dependencyTreePageRouterParams: payload };
+
+    case RESET_DEPENDENCY_TREE_ROUTER_PARAMS:
+      return { ...state, dependencyTreePageRouterParams: null };
 
     default:
       return state;

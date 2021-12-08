@@ -356,6 +356,19 @@ export function loadReportIfNeeded() {
 export const TOGGLE_TREE_PATH = 'DEPENDENCY_TREE_TOGGLE_TREE_PATH';
 export const toggleTreePathAction = payloadParamActionCreator(TOGGLE_TREE_PATH);
 
+export const SET_DEPENDENCY_TREE_ROUTER_PARAMS = 'SET_DEPENDENCY_TREE_ROUTER_PARAMS';
+export const setDependencyTreeRouterParams = payloadParamActionCreator(SET_DEPENDENCY_TREE_ROUTER_PARAMS);
+
+export const RESET_DEPENDENCY_TREE_ROUTER_PARAMS = 'RESET_DEPENDENCY_TREE_ROUTER_PARAMS';
+export const resetDependencyTreeRouterParams = noPayloadActionCreator(RESET_DEPENDENCY_TREE_ROUTER_PARAMS);
+
+export const setDependencyTreeRouterParamsForBackButton = () => {
+  return (dispatch, getState) => {
+    const currentRouterParams = selectRouterCurrentParams(getState());
+    dispatch(setDependencyTreeRouterParams(pick(['publicId', 'scanId'], currentRouterParams)));
+  };
+};
+
 export default function applicationReportActions() {
   return {
     setReportParameters,
@@ -383,5 +396,8 @@ export default function applicationReportActions() {
     closeInnerSourceProducerPermissionsModal,
     loadReportIfNeeded,
     toggleTreePathAction,
+    setDependencyTreeRouterParams,
+    resetDependencyTreeRouterParams,
+    setDependencyTreeRouterParamsForBackButton,
   };
 }

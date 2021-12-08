@@ -39,3 +39,8 @@ export const selectIsDependenciesLoading = createSelector(selectApplicationRepor
 
 export const selectReportParameters = createSelector(selectApplicationReportSlice, prop('reportParameters'));
 export const selectDependencyTreeData = createSelector(selectApplicationReportSlice, prop('dependencyTree'));
+
+export const selectDependencyTreeRouterParams = createSelector(
+  selectApplicationReportSlice,
+  prop('dependencyTreePageRouterParams')
+);

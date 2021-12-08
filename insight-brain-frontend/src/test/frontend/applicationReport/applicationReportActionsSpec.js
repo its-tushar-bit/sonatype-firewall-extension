@@ -917,6 +917,21 @@ describe('applicationReportActions', function () {
     });
   });
 
+  describe('setDependencyTreeRouterParamsForBackButton', () => {
+    it('calls setDependencyTreeRouterParams with the current params', () => {
+      const routerParams = { scanId: 'testScanId', publicId: 'testPublicId' };
+      const store = SpecUtil.mockReduxStore({});
+      spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue(routerParams);
+
+      store.dispatch(applicationReportActions.setDependencyTreeRouterParamsForBackButton());
+
+      expect(store.getActions()).toHaveAction({
+        type: 'SET_DEPENDENCY_TREE_ROUTER_PARAMS',
+        payload: routerParams,
+      });
+    });
+  });
+
   function expectCommonDataCalls(isSuccess, additionalCalls = {}) {
     mockAxiosCalls({
       get: {

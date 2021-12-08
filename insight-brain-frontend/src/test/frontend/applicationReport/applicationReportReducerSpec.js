@@ -152,6 +152,7 @@ describe('applicationReportReducer', function () {
         },
         selectedComponent: null,
         dependencyTree: null,
+        dependencyTreePageRouterParams: null,
       });
     });
   });
@@ -2462,6 +2463,36 @@ describe('applicationReportReducer', function () {
       const newState = reduce(state, { type: 'CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL' });
       expect(newState.selectedComponent.showInnerSourceProducerPermissionsModal).toBe(false);
       expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('SET_DEPENDENCY_TREE_ROUTER_PARAMS action', () => {
+    it('sets dependencyTreePageRouterParams', () => {
+      const routerParams = { publicId: 'testPublicId', scanId: 'testScanId' };
+      const state = Object.freeze({
+        dependencyTreePageRouterParams: null,
+      });
+
+      const newState = reduce(state, {
+        type: 'SET_DEPENDENCY_TREE_ROUTER_PARAMS',
+        payload: routerParams,
+      });
+
+      expect(newState.dependencyTreePageRouterParams).toEqual(routerParams);
+    });
+  });
+
+  describe('RESET_DEPENDENCY_TREE_ROUTER_PARAMS action', () => {
+    it('sets dependencyTreePageRouterParams to null', () => {
+      const state = Object.freeze({
+        dependencyTreePageRouterParams: {},
+      });
+
+      const newState = reduce(state, {
+        type: 'RESET_DEPENDENCY_TREE_ROUTER_PARAMS',
+      });
+
+      expect(newState.dependencyTreePageRouterParams).toBeNull();
     });
   });
 });

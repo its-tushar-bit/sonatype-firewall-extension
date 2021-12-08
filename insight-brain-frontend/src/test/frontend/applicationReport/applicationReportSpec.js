@@ -52,6 +52,10 @@ describe('applicationReport component', function () {
     it('calls loadReportIfNeeded', () => {
       expect(controller.loadReportIfNeeded).toHaveBeenCalled();
     });
+
+    it('calls resetDependencyTreeRouterParams', () => {
+      expect(controller.resetDependencyTreeRouterParams).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('activates the form mask when vm.reevaluating is set to true', function () {

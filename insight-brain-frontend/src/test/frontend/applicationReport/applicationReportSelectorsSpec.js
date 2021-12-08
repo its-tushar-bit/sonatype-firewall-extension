@@ -15,6 +15,8 @@ import {
   selectReportParameters,
   selectIsDependenciesLoading,
   selectDependencyTreeData,
+  selectApplicationReportSlice,
+  selectDependencyTreeRouterParams,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { dependencyTreeData } from '../util/dependencyTreeUtil';
 
@@ -297,6 +299,18 @@ describe('applicationReportSelectors', () => {
         appId: 'appId',
         scanId: 'scanId',
       });
+    });
+  });
+
+  describe('selectDependencyTreeRouterParams', () => {
+    it('is composed from the following selector', () => {
+      expect(selectDependencyTreeRouterParams.dependencies).toEqual([selectApplicationReportSlice]);
+    });
+
+    it('selects dependencyTreePageRouterParams', () => {
+      const actualSelection = selectDependencyTreeRouterParams.resultFunc({ dependencyTreePageRouterParams: null });
+
+      expect(actualSelection).toBeNull();
     });
   });
 });

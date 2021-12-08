@@ -9,8 +9,11 @@ import { NxLoadWrapper, NxPageMain, NxTile } from '@sonatype/react-shared-compon
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import ComponentDetailsReportInfo from 'MainRoot/componentDetails/ComponentDetailsHeader/ComponentDetailsReportInfo';
 import DependencyTree from './DependencyTree';
+import {
+  loadReportIfNeeded,
+  setDependencyTreeRouterParamsForBackButton,
+} from 'MainRoot/applicationReport/applicationReportActions';
 import { selectApplicationInfo, selectComponentMetaData } from '../componentDetails/componentDetailsSelectors';
-import { loadReportIfNeeded } from 'MainRoot/applicationReport/applicationReportActions';
 import {
   selectIsDependenciesLoading,
   selectDependencyTreeData,
@@ -24,9 +27,11 @@ export default function DependencyTreePage() {
     metadata = useSelector(selectComponentMetaData),
     loading = useSelector(selectIsDependenciesLoading),
     loadReport = () => dispatch(loadReportIfNeeded());
+  const setCurrentRouterParams = () => dispatch(setDependencyTreeRouterParamsForBackButton());
 
   useEffect(() => {
     loadReport();
+    setCurrentRouterParams();
   }, []);
 
   return (

@@ -15,6 +15,7 @@ import {
 } from './componentDetailsSelectors';
 import { actions } from './componentDetailsSlice';
 import ComponentDetails from './ComponentDetails';
+import { selectDependencyTreeRouterParams } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 const { onTabChange, loadComponentDetails, backToOffspringAction, toggleShowMatchersPopover } = actions;
 
@@ -27,6 +28,7 @@ function mapStateToProps(state, { uiRouterState }) {
     loading: selectComponentDetailsLoading(state),
     isProprietary: selectIsProprietary(state),
     pathnames: selectFilteredPathnames(state),
+    dependencyTreeRouterParams: selectDependencyTreeRouterParams(state),
   };
 }
 

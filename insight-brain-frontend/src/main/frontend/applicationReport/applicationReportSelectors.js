@@ -33,4 +33,9 @@ export const selectSelectedComponentIndexInAggregatedList = createSelector(
 export const selectLoadError = createSelector(selectApplicationReportSlice, prop('loadError'));
 export const selectIsLoading = createSelector(selectApplicationReportSlice, ({ pendingLoads }) => !!pendingLoads.size);
 
+export const selectIsDependenciesLoading = createSelector(selectApplicationReportSlice, ({ pendingLoads }) =>
+  pendingLoads.has('policy')
+);
+
 export const selectReportParameters = createSelector(selectApplicationReportSlice, prop('reportParameters'));
+export const selectDependencyTreeData = createSelector(selectApplicationReportSlice, prop('dependencyTree'));

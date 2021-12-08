@@ -9,9 +9,11 @@ import * as applicationReportActions from 'MainRoot/applicationReport/applicatio
 import * as CLMLocation from 'MainRoot/util/CLMLocation';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+import { dependencyTreeData } from '../util/dependencyTreeUtil';
 
 const createMockState = (isUnknownJs, bomData, unknownJsData, metadata, embeddable) => ({
   applicationReport: {
+    dependencyTree: dependencyTreeData,
     reportParameters: {
       appId: 'appId',
       scanId: 'scanId',
@@ -281,11 +283,11 @@ describe('applicationReportActions', function () {
       expectCommonDataCalls(true, expectReportDataCalls(true));
 
       store.dispatch(applicationReportActions.loadReport()).then(() => {
-        expect(store.getActions().length).toBe(3);
-        expect(store.getActions()[0]).toEqual({
-          type: 'LOAD_REPORT_REQUESTED',
-        });
-        expect(store.getActions()[2]).toEqual({
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(3);
+        expect(actions[0]).toEqual({ type: 'LOAD_REPORT_REQUESTED' });
+        expect(actions[2]).toEqual({
           type: 'LOAD_REPORT_FULFILLED',
           payload: {
             allEntries: [
@@ -317,6 +319,39 @@ describe('applicationReportActions', function () {
             fooReport: 'barReport',
             reportVersion: 3,
             isInnerSourceEnabled: false,
+            dependencies: {
+              dependencyGraph: [
+                {
+                  children: [
+                    {
+                      componentIdentifier: {
+                        format: 'maven',
+                        coordinates: {
+                          artifactId: 'logback-access',
+                          classifier: '',
+                          extension: 'jar',
+                          groupId: 'ch.qos.logback',
+                          version: '0.6',
+                        },
+                      },
+                    },
+                  ],
+                },
+                {
+                  componentIdentifier: {
+                    format: 'maven',
+                    coordinates: {
+                      artifactId: 'logback-access',
+                      classifier: '',
+                      extension: 'jar',
+                      groupId: 'ch.qos.logback',
+                      version: '0.6',
+                    },
+                  },
+                },
+              ],
+              dependencyTree: { children: [] },
+            },
           },
         });
         done();
@@ -577,20 +612,16 @@ describe('applicationReportActions', function () {
       expectCommonDataCalls(true, expectReportDataCalls(true));
 
       store.dispatch(applicationReportActions.reevaluateReport()).then(() => {
-        expect(store.getActions().length).toBe(5);
-        expect(store.getActions()[0]).toEqual({
-          type: 'REEVALUATE_REPORT_REQUESTED',
-        });
+        const actions = store.getActions();
 
-        expect(store.getActions()[1]).toEqual({
-          type: 'REEVALUATE_REPORT_FULFILLED',
-        });
+        expect(actions.length).toBe(5);
+        expect(actions[0]).toEqual({ type: 'REEVALUATE_REPORT_REQUESTED' });
 
-        expect(store.getActions()[2]).toEqual({
-          type: 'LOAD_REPORT_REQUESTED',
-        });
+        expect(actions[1]).toEqual({ type: 'REEVALUATE_REPORT_FULFILLED' });
 
-        expect(store.getActions()[3]).toEqual({
+        expect(actions[2]).toEqual({ type: 'LOAD_REPORT_REQUESTED' });
+
+        expect(actions[3]).toEqual({
           type: 'LOAD_COMMON_DATA_FULFILLED',
           payload: {
             bomData: mockBomData,
@@ -598,7 +629,8 @@ describe('applicationReportActions', function () {
             unknownJsData: undefined,
           },
         });
-        expect(store.getActions()[4]).toEqual({
+
+        expect(actions[4]).toEqual({
           type: 'LOAD_REPORT_FULFILLED',
           payload: {
             allEntries: [
@@ -618,6 +650,39 @@ describe('applicationReportActions', function () {
             fooReport: 'barReport',
             reportVersion: 3,
             isInnerSourceEnabled: false,
+            dependencies: {
+              dependencyGraph: [
+                {
+                  children: [
+                    {
+                      componentIdentifier: {
+                        format: 'maven',
+                        coordinates: {
+                          artifactId: 'logback-access',
+                          classifier: '',
+                          extension: 'jar',
+                          groupId: 'ch.qos.logback',
+                          version: '0.6',
+                        },
+                      },
+                    },
+                  ],
+                },
+                {
+                  componentIdentifier: {
+                    format: 'maven',
+                    coordinates: {
+                      artifactId: 'logback-access',
+                      classifier: '',
+                      extension: 'jar',
+                      groupId: 'ch.qos.logback',
+                      version: '0.6',
+                    },
+                  },
+                },
+              ],
+              dependencyTree: { children: [] },
+            },
           },
         });
         done();
@@ -813,7 +878,11 @@ describe('applicationReportActions', function () {
       const store = SpecUtil.mockReduxStore({ applicationReport: { reportParameters: {} } });
       spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({ scanId: 'scanId-1' });
       spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue(null);
-      spyOn(applicationReportSelectors, 'selectReportParameters').and.returnValue(null);
+      spyOn(applicationReportSelectors, 'selectReportParameters').and.returnValue({
+        appId: 'appId',
+        scanId: 'scanId',
+        isUnknownJs: false,
+      });
 
       store.dispatch(applicationReportActions.loadReportIfNeeded());
 
@@ -823,7 +892,10 @@ describe('applicationReportActions', function () {
       const store = SpecUtil.mockReduxStore({ applicationReport: { reportParameters: { scanId: 'report-id' } } });
       spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({ scanId: 'scanId-1' });
       spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue({ id: 'report-id' });
-      spyOn(applicationReportSelectors, 'selectReportParameters').and.returnValue({ scanId: 'report-id' });
+      spyOn(applicationReportSelectors, 'selectReportParameters').and.returnValue({
+        scanId: 'report-id',
+        appId: 'appId',
+      });
 
       store.dispatch(applicationReportActions.loadReportIfNeeded());
 
@@ -833,7 +905,10 @@ describe('applicationReportActions', function () {
       const store = SpecUtil.mockReduxStore({ applicationReport: { reportParameters: { scanId: 'report-id' } } });
       spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({ scanId: 'report-id' });
       spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue({ id: 'report-id' });
-      spyOn(applicationReportSelectors, 'selectReportParameters').and.returnValue({ scanId: 'report-id' });
+      spyOn(applicationReportSelectors, 'selectReportParameters').and.returnValue({
+        scanId: 'report-id',
+        appId: 'appId',
+      });
 
       store.dispatch(applicationReportActions.loadReportIfNeeded());
 
@@ -903,6 +978,7 @@ describe('applicationReportActions', function () {
                   },
                 },
               ],
+              dependencyTree: { children: [] },
             },
           }
         : () => Promise.reject({ status: 500 }),

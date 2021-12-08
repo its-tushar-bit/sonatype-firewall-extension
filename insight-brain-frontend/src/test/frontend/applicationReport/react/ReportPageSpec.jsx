@@ -67,9 +67,12 @@ describe('Report Page component', function () {
     });
 
     it('has the retryHandler set to the loadReport prop', function () {
-      const loadReport = jasmine.createSpy();
+      const loadReportIfNeeded = jasmine.createSpy();
 
-      expect(getShallowComponent({ loadReport }).find(LoadWrapper)).toHaveProp('retryHandler', loadReport);
+      expect(getShallowComponent({ loadReportIfNeeded }).find(LoadWrapper)).toHaveProp(
+        'retryHandler',
+        loadReportIfNeeded
+      );
     });
   });
 

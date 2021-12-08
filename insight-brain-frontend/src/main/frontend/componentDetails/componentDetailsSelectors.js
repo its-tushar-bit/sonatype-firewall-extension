@@ -33,7 +33,7 @@ export const selectIsProprietary = createSelector(selectSelectedComponent, (comp
 
 export const selectComponentDetailsOffspringDetails = createSelector(selectDetails, prop('offspring'));
 
-const selectComponentMetaData = createSelector(selectApplicationReportMetaData, (metadata) =>
+export const selectComponentMetaData = createSelector(selectApplicationReportMetaData, (metadata) =>
   metadata
     ? {
         applicationName: metadata.application.name,

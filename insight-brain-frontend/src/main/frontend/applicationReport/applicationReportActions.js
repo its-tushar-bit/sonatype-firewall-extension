@@ -89,7 +89,9 @@ export function setRawSortingParameters(key, sortFields, dir) {
 
 export function fetchCommonData(forceClearMetadata = false) {
   return (dispatch, getState) => {
-    const { bomData, unknownJsData, metadata, reportParameters } = getState().applicationReport;
+    const state = getState();
+    const { bomData, unknownJsData, metadata } = state.applicationReport;
+    const reportParameters = selectReportParameters(state);
     const { appId, scanId, isUnknownJs } = reportParameters;
 
     if (forceClearMetadata || !metadata || !bomData || (!unknownJsData && isUnknownJs)) {
@@ -128,7 +130,9 @@ export function fetchCommonData(forceClearMetadata = false) {
 
 export function fetchReportData(forceReload = true) {
   return (dispatch, getState) => {
-    const { bomData, unknownJsData, reportParameters, selectedReport } = getState().applicationReport;
+    const state = getState();
+    const { bomData, unknownJsData, selectedReport } = state.applicationReport;
+    const reportParameters = selectReportParameters(state);
     const { appId, scanId } = reportParameters;
 
     if (forceReload || !selectedReport) {
@@ -153,6 +157,7 @@ export function fetchReportData(forceReload = true) {
               allEntries: allEntries.policies,
               isInnerSourceEnabled: allEntries.isInnerSourceEnabled,
               reportVersion,
+              dependencies,
               ...dataResult,
             })
           );
@@ -168,7 +173,9 @@ export function fetchReportData(forceReload = true) {
 
 export function fetchReportRawData(forceReload = true) {
   return (dispatch, getState) => {
-    const { bomData, unknownJsData, reportParameters, reportRawData } = getState().applicationReport;
+    const state = getState();
+    const { bomData, unknownJsData, reportRawData } = state.applicationReport;
+    const reportParameters = selectReportParameters(state);
     const { appId, scanId } = reportParameters;
 
     if (forceReload || !reportRawData) {
@@ -296,7 +303,9 @@ export const unselectRootAncestor = noPayloadActionCreator(UNSELECT_ROOT_ANCESTO
 
 export function reevaluateReport() {
   return (dispatch, getState) => {
-    const { scanId, appId } = getState().applicationReport.reportParameters;
+    const state = getState();
+    const reportParameters = selectReportParameters(state);
+    const { appId, scanId } = reportParameters;
 
     dispatch({
       type: REEVALUATE_REPORT_REQUESTED,
@@ -344,6 +353,9 @@ export function loadReportIfNeeded() {
   };
 }
 
+export const TOGGLE_TREE_PATH = 'DEPENDENCY_TREE_TOGGLE_TREE_PATH';
+export const toggleTreePathAction = payloadParamActionCreator(TOGGLE_TREE_PATH);
+
 export default function applicationReportActions() {
   return {
     setReportParameters,
@@ -370,5 +382,6 @@ export default function applicationReportActions() {
     openInnerSourceProducerPermissionsModal,
     closeInnerSourceProducerPermissionsModal,
     loadReportIfNeeded,
+    toggleTreePathAction,
   };
 }

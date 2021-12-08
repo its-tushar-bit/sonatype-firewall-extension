@@ -15,7 +15,7 @@ export default function ReportPage(props) {
   const {
     // actions
     setReportParameters,
-    loadReport,
+    loadReportIfNeeded: loadReport,
     reevaluateReport,
     setSorting,
     setSortingParameters,
@@ -90,7 +90,7 @@ ReportPage.propTypes = {
   }),
   // actions
   setReportParameters: PropTypes.func.isRequired,
-  loadReport: PropTypes.func.isRequired,
+  loadReportIfNeeded: PropTypes.func.isRequired,
   reevaluateReport: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   setSorting: PropTypes.func,

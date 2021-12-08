@@ -7,13 +7,13 @@ import { react2angular } from 'react2angular';
 
 import withStoreProvider from '../reactAdapter/StoreProvider';
 import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
-import DependencyTreeContainer from './DependencyTreeContainer';
+import DependencyTreePage from './DependencyTreePage';
 
 const dependencyTreeModule = angular
   .module('dependencyTree', ['ui.router'])
   .component(
     'dependencyTree',
-    react2angular(withStoreProvider(withRouterStateProvider(DependencyTreeContainer)), [], ['$ngRedux', '$state'])
+    react2angular(withStoreProvider(withRouterStateProvider(DependencyTreePage)), [], ['$ngRedux', '$state'])
   );
 
 export default dependencyTreeModule;

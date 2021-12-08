@@ -13,7 +13,10 @@ import {
   selectLoadError,
   selectIsLoading,
   selectReportParameters,
-} from '../../../main/frontend/applicationReport/applicationReportSelectors';
+  selectIsDependenciesLoading,
+  selectDependencyTreeData,
+} from 'MainRoot/applicationReport/applicationReportSelectors';
+import { dependencyTreeData } from '../util/dependencyTreeUtil';
 
 describe('applicationReportSelectors', () => {
   const mockState = {
@@ -24,6 +27,7 @@ describe('applicationReportSelectors', () => {
       },
     },
     applicationReport: {
+      dependencyTree: dependencyTreeData,
       selectedReport: {
         allEntries: [
           {
@@ -260,6 +264,20 @@ describe('applicationReportSelectors', () => {
       const actual = selectIsLoading(mockState);
       expect(actual).toEqual(true);
     });
+  });
+
+  describe('selectIsDependenciesLoading', () => {
+    it('selects isLoading for dependencies.json', () => {
+      const actual = selectIsDependenciesLoading(mockState);
+      expect(actual).toEqual(false);
+    });
+  });
+
+  it('selectDependencyTreeData', () => {
+    const expected = dependencyTreeData;
+    const actual = selectDependencyTreeData(mockState);
+
+    expect(actual).toEqual(expected);
   });
 
   describe('selectReportParameters', () => {

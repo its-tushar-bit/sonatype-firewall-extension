@@ -3,20 +3,75 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import { NxPageMain, NxTile } from '@sonatype/react-shared-components';
-import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import React, { Fragment } from 'react';
+import { useDispatch } from 'react-redux';
+import PropTypes from 'prop-types';
+import { faTerminal } from '@fortawesome/pro-solid-svg-icons';
+import { NxFontAwesomeIcon, NxTree, NxThreatIndicator, NxTextLink } from '@sonatype/react-shared-components';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { toggleTreePathAction } from 'MainRoot/applicationReport/applicationReportActions';
 
-export default function DependencyTree() {
+const MemoizedTreeNode = React.memo(TreeNode);
+
+function TreeNode({ items }) {
+  const dispatch = useDispatch();
+  const toggleTreePath = (payload) => dispatch(toggleTreePathAction(payload));
+
+  const goToCDP = (hash) => {
+    return dispatch(stateGo('applicationReport.componentDetails', { hash }));
+  };
+
+  const renderNode = (nodes) =>
+    nodes?.map((item) => {
+      return (
+        <NxTree.Item
+          collapsible={!!item.children}
+          isOpen={item.isOpen}
+          key={item.hash}
+          onToggleCollapse={() => toggleTreePath(item.treePath)}
+        >
+          <NxTree.ItemLabel>
+            <NxThreatIndicator policyThreatLevel={item.policyThreatLevel} />
+            <NxTextLink onClick={() => goToCDP(item.hash)}>{item.displayName}</NxTextLink>
+          </NxTree.ItemLabel>
+          {!!item.children && (
+            <NxTree data-testid="tree">
+              <MemoizedTreeNode items={item.children} />
+            </NxTree>
+          )}
+        </NxTree.Item>
+      );
+    });
+
+  return <Fragment>{renderNode(items)}</Fragment>;
+}
+
+export default function DependencyTree({ dependencyTree, rootName }) {
   return (
-    <NxPageMain className="iq-dependency-tree-page">
-      <MenuBarBackButton stateName="applicationReport.policy" />
-      <h1 className="nx-h1">Dependency Tree</h1>
-      <NxTile>
-        <NxTile.Content>
-          <div className="iq-dependency-tree">tree component</div>
-        </NxTile.Content>
-      </NxTile>
-    </NxPageMain>
+    <NxTree className="nx-tree--no-gutter iq-dependency-tree">
+      <NxTree.Item>
+        <NxTree.ItemLabel>
+          <NxFontAwesomeIcon fixedWidth icon={faTerminal} />
+          <span>{rootName}</span>
+        </NxTree.ItemLabel>
+        <NxTree>
+          <MemoizedTreeNode items={dependencyTree} />
+        </NxTree>
+      </NxTree.Item>
+    </NxTree>
   );
 }
+
+const treeItemProps = PropTypes.shape({
+  children: PropTypes.arrayOf(PropTypes.object),
+  isOpen: PropTypes.bool,
+  displayName: PropTypes.string,
+  treePath: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
+  hash: PropTypes.string,
+  policyThreatLevel: PropTypes.number,
+});
+
+DependencyTree.propTypes = {
+  rootName: PropTypes.string,
+  dependencyTree: PropTypes.arrayOf(treeItemProps),
+};

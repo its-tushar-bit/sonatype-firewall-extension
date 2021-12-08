@@ -18,6 +18,7 @@ import {
   transduce,
   over,
   not,
+  addIndex,
 } from 'ramda';
 import moment from 'moment';
 
@@ -112,3 +113,10 @@ export function capitalize(str) {
 export function getFutureDate(daysToAdd = 0) {
   return moment().add(daysToAdd, 'days').endOf('day').format('YYYY-MM-DDTHH:mm:ss.SSSZZ');
 }
+
+/**
+ * Returns a mapping function that includes the index similar to Array.prototype.map
+ */
+export const mapIndexed = addIndex(map);
+
+export const getKey = prop('key');

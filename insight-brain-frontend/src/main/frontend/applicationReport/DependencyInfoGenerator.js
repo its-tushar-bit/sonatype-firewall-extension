@@ -3,12 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { always, indexBy, groupBy, map, pipe, prop, reduce } from 'ramda';
+import { always, indexBy, groupBy, map, pipe, reduce } from 'ramda';
 
 import { serializeComponentIdentifier } from '../util/componentIdentifierUtils';
-import { isNilOrEmpty, setToArray } from '../util/jsUtil';
-
-const getKey = prop('key');
+import { isNilOrEmpty, setToArray, getKey } from '../util/jsUtil';
 
 const emptyDependencyInfoGenerator = {
   getDependencyInfo: always(null),
@@ -66,7 +64,7 @@ const getRootAncestorsByChildReducer = (rootAncestorId) => (acc, childKey) => {
   return acc;
 };
 
-const populateDependencyNodeKeys = (node) => ({
+export const populateDependencyNodeKeys = (node) => ({
   ...node,
   key: node.componentIdentifier && serializeComponentIdentifier(node.componentIdentifier),
   children: node.children && map(populateDependencyNodeKeys, node.children),

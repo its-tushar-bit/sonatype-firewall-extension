@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import reduce from '../../../main/frontend/applicationReport/applicationReportReducer';
+import reduce from 'MainRoot/applicationReport/applicationReportReducer';
+import { dependencyTreeData } from '../util/dependencyTreeUtil';
 
 describe('applicationReportReducer', function () {
   const otherObject = { value: 'test value' };
@@ -112,6 +113,7 @@ describe('applicationReportReducer', function () {
           isUnknownJs: false,
         },
       });
+
       expect(newState).toEqual({
         pendingLoads: new Set(),
         filterSidebarOpen: false,
@@ -149,6 +151,7 @@ describe('applicationReportReducer', function () {
           dir: 'asc',
         },
         selectedComponent: null,
+        dependencyTree: null,
       });
     });
   });
@@ -209,6 +212,34 @@ describe('applicationReportReducer', function () {
     });
   });
 
+  describe('DEPENDENCY_TREE_TOGGLE_TREE_PATH action', () => {
+    it('sets "isOpen" data to the correct dependency', () => {
+      const state = Object.freeze({ dependencyTree: dependencyTreeData });
+
+      expect(state.dependencyTree[1].isOpen).toBe(false);
+
+      const newState = reduce(state, {
+        type: 'DEPENDENCY_TREE_TOGGLE_TREE_PATH',
+        payload: [1],
+      });
+
+      expect(newState.dependencyTree[1].isOpen).toBe(true);
+    });
+
+    it('sets "isOpen" data to the correct nested dependency', () => {
+      const state = Object.freeze({ dependencyTree: dependencyTreeData });
+
+      expect(state.dependencyTree[0].children[0].isOpen).toBe(false);
+
+      const newState = reduce(state, {
+        type: 'DEPENDENCY_TREE_TOGGLE_TREE_PATH',
+        payload: [0, 'children', 0],
+      });
+
+      expect(newState.dependencyTree[0].children[0].isOpen).toBe(true);
+    });
+  });
+
   describe('LOAD_REPORT_FULFILLED action', function () {
     it('removes "policy" from pendingLoads and sets selectedReport values without innerSource enabled', function () {
       const state = Object.freeze({
@@ -218,7 +249,9 @@ describe('applicationReportReducer', function () {
         policyTypeFilterEnabled: null,
         other: otherObject,
         sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
+        dependencyTree: null,
       });
+
       const entries = [
         { policyThreatLevel: 1, hash: 'a' },
         { policyThreatLevel: 3, hash: 'a' },
@@ -265,6 +298,7 @@ describe('applicationReportReducer', function () {
           isInnerSourceEnabled: false,
         },
       });
+
       expect(newState).toEqual({
         pendingLoads: new Set(['foo']),
         loadError: null,
@@ -284,6 +318,7 @@ describe('applicationReportReducer', function () {
         isInnerSourceEnabled: false,
         other: otherObject,
         sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
+        dependencyTree: null,
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -295,7 +330,9 @@ describe('applicationReportReducer', function () {
         selectedReport: null,
         policyTypeFilterEnabled: null,
         other: otherObject,
+        dependencyTree: null,
       });
+
       const entries = [
         {
           policyThreatLevel: 10,
@@ -364,6 +401,7 @@ describe('applicationReportReducer', function () {
           isInnerSourceEnabled: true,
         },
       });
+
       expect(newState).toEqual({
         pendingLoads: new Set(['foo']),
         loadError: null,
@@ -408,6 +446,7 @@ describe('applicationReportReducer', function () {
         policyTypeFilterEnabled: false,
         vulnerabilitiesPageEnabled: jasmine.anything(),
         isInnerSourceEnabled: true,
+        dependencyTree: null,
         other: otherObject,
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
@@ -436,6 +475,9 @@ describe('applicationReportReducer', function () {
           payload: {
             allEntries: [],
             reportVersion: 4,
+            dependencies: {
+              dependencyTree: {},
+            },
           },
         }),
         newStateV1 = reduce(state, {
@@ -447,7 +489,9 @@ describe('applicationReportReducer', function () {
         }),
         newStateVNil = reduce(state, {
           type: 'LOAD_REPORT_FULFILLED',
-          payload: { allEntries: [] },
+          payload: {
+            allEntries: [],
+          },
         });
 
       expect(newStateVNil.vulnerabilitiesPageEnabled).toBe(false);
@@ -790,6 +834,95 @@ describe('applicationReportReducer', function () {
       });
       expect(newState.policyTypeFilterEnabled).toBe(false);
       expect(newState.other).toBe(otherObject);
+    });
+
+    it('sets "dependencyTree" in the applicationReport', () => {
+      const state = Object.freeze({
+        selectedReport: null,
+        dependencyTree: null,
+        aggregatedEntries: [
+          {
+            policyThreatLevel: 1,
+            hash: 'a',
+            waived: false,
+            grandfathered: false,
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: 'logback-access',
+                classifier: '',
+                extension: 'jar',
+                groupId: 'ch.qos.logback',
+                version: '0.6',
+              },
+            },
+            derivedComponentName: 'logback-access : ch.qos.logback : 0.6',
+          },
+          {
+            policyThreatLevel: 0,
+            grandfathered: undefined,
+            waived: true,
+            hash: 'b',
+            policyName: 'None',
+            derivedViolationState: 'waived',
+          },
+        ],
+      });
+
+      const entries = [
+        {
+          policyThreatLevel: 1,
+          hash: 'a',
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'logback-access',
+              classifier: '',
+              extension: 'jar',
+              groupId: 'ch.qos.logback',
+              version: '0.6',
+            },
+          },
+          derivedComponentName: 'logback-access : ch.qos.logback : 0.6',
+        },
+        { policyThreatLevel: 3, hash: 'b' },
+      ];
+
+      const newState = reduce(state, {
+        type: 'LOAD_REPORT_FULFILLED',
+        payload: {
+          allEntries: entries,
+          dependencies: {
+            dependencyTree: {
+              children: [
+                {
+                  componentIdentifier: {
+                    format: 'maven',
+                    coordinates: {
+                      artifactId: 'logback-access',
+                      classifier: '',
+                      extension: 'jar',
+                      groupId: 'ch.qos.logback',
+                      version: '0.6',
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      expect(newState.dependencyTree).toEqual([
+        {
+          children: null,
+          displayName: 'logback-access : ch.qos.logback : 0.6',
+          hash: 'a',
+          isOpen: true,
+          policyThreatLevel: 1,
+          treePath: [0],
+        },
+      ]);
     });
   });
 

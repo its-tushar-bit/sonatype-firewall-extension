@@ -31,7 +31,7 @@ export function ApplicationReportController($scope, $ngRedux, applicationReportA
             'setAggregateReportEntries',
             'reevaluateReport',
             'reevaluateReportCancelled',
-            'loadReport',
+            'loadReportIfNeeded',
             'loadInnerSourceReports',
           ],
           applicationReportActions
@@ -39,7 +39,7 @@ export function ApplicationReportController($scope, $ngRedux, applicationReportA
       };
 
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
-      vm.loadReport();
+      vm.loadReportIfNeeded();
 
       $scope.$watch('vm.reevaluating', function (reevaluating) {
         if (reevaluating) {

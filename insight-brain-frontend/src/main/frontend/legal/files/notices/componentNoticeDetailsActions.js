@@ -57,7 +57,7 @@ function extractRoutingParameters(state, requestedNoticeIndex) {
   const routerParams = state.router.currentParams;
   const noticeIndex = requestedNoticeIndex || state.componentNoticeDetails.noticeIndex;
   const component = advancedLegalState.component.component;
-  const notice = component.licenseLegalData.noticeFiles[noticeIndex];
+  const notice = component?.licenseLegalData.noticeFiles[noticeIndex];
 
   const ownerType = routerParams.ownerType;
   const ownerPublicId = routerParams.ownerId;

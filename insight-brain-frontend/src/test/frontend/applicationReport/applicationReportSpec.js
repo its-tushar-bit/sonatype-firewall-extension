@@ -49,8 +49,8 @@ describe('applicationReport component', function () {
       expect(controller.unsubscribe).toBeDefined();
     });
 
-    it('calls loadReport', () => {
-      expect(controller.loadReport).toHaveBeenCalled();
+    it('calls loadReportIfNeeded', () => {
+      expect(controller.loadReportIfNeeded).toHaveBeenCalled();
     });
   });
 

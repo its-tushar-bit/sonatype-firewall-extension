@@ -3,8 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { both, curryN, findIndex, inc, lensPath, pipe, propEq, reduceBy, reject, set, sum, values } from 'ramda';
-
+import {
+  both,
+  curryN,
+  findIndex,
+  inc,
+  lensPath,
+  pipe,
+  propEq,
+  reduceBy,
+  reject,
+  set,
+  values,
+  sum,
+  indexBy,
+  map,
+  over,
+  not,
+} from 'ramda';
 import {
   LOAD_COMMON_DATA_FAILED,
   LOAD_COMMON_DATA_FULFILLED,
@@ -41,7 +57,10 @@ import {
   CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL,
   OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL,
   CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL,
+  TOGGLE_TREE_PATH,
 } from './applicationReportActions';
+import { populateDependencyNodeKeys as populateEntryNodeKeys } from 'MainRoot/applicationReport/DependencyInfoGenerator';
+import { extendDependencyTreeData, filterDependencyTree } from 'MainRoot/DependencyTree/dependencyTreeUtil';
 
 import { sortItemsByFields } from '../util/sortUtils';
 
@@ -51,7 +70,7 @@ import {
   getVulnerabilities,
   extendRawDataWithKey,
 } from './applicationReportService';
-import { pathSet } from '../util/jsUtil';
+import { getKey, isNilOrEmpty, pathSet } from '../util/jsUtil';
 
 const initState = Object.freeze({
   pendingLoads: new Set(),
@@ -95,6 +114,7 @@ const initState = Object.freeze({
     dir: 'asc',
   },
   selectedComponent: null,
+  dependencyTree: null,
 });
 
 export default function applicationReportReducer(state = initState, { type, payload }) {
@@ -116,7 +136,7 @@ export default function applicationReportReducer(state = initState, { type, payl
       });
 
     case LOAD_REPORT_FULFILLED:
-      return setSelectedReport(state, payload);
+      return setExtendedTreeData(setSelectedReport(state, payload), payload?.dependencies || {});
 
     case LOAD_COMMON_DATA_FULFILLED: {
       const { bomData, metadata, unknownJsData } = payload;
@@ -228,6 +248,9 @@ export default function applicationReportReducer(state = initState, { type, payl
 
     case CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL:
       return pathSet(['selectedComponent', 'showInnerSourceProducerPermissionsModal'], false, state);
+
+    case TOGGLE_TREE_PATH:
+      return setTreePathAction(state, payload);
 
     default:
       return state;
@@ -396,3 +419,28 @@ const mutatePendingLoads = curryN(3, function mutatePendingLoads(setMutator, loa
 
 const setPendingLoads = mutatePendingLoads((set) => (val) => set.add(val)),
   unsetPendingLoads = mutatePendingLoads((set) => (val) => set.delete(val));
+
+function setExtendedTreeData(state, dependencies) {
+  if (isNilOrEmpty(dependencies.dependencyTree)) {
+    return state;
+  }
+
+  const entriesByKey = map(populateEntryNodeKeys, state.selectedReport?.aggregatedEntries);
+  const indexedEntries = indexBy(getKey, entriesByKey);
+  const filteredDependencyTree = filterDependencyTree(dependencies.dependencyTree, indexedEntries);
+
+  return {
+    ...state,
+    dependencyTree: extendDependencyTreeData(filteredDependencyTree, indexedEntries),
+  };
+}
+
+function setTreePathAction(state, payload) {
+  const treePathLens = lensPath([...payload, 'isOpen']);
+  const currentData = state.dependencyTree;
+
+  return {
+    ...state,
+    dependencyTree: over(treePathLens, not, currentData),
+  };
+}

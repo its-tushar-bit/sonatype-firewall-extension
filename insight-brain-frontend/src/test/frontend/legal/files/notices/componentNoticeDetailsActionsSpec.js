@@ -81,7 +81,7 @@ describe('ComponentNoticeDetailsAction', function () {
       expect(actions[0].type).toBe(NOTICE_DETAILS_SELECTED_NOTICE);
     });
 
-    it('fetches notice file details by hash when not loaded', function () {
+    it('fetches notice file details by hash when not loaded', function (done) {
       store = SpecUtil.mockReduxStore(pathSet(['advancedLegal', 'component', 'component'], undefined, initialState));
 
       const ownerHierarchyUrl = getOwnerHierarchyUrl('organization', 'org');
@@ -94,26 +94,24 @@ describe('ComponentNoticeDetailsAction', function () {
         },
       });
 
-      store.dispatch(loadComponentAndNoticeDetails('organization', 'org', 'componentHash', 1)).then((done) => {
+      store.dispatch(loadComponentAndNoticeDetails('organization', 'org', 'componentHash', 1)).then(() => {
         expect(axios.get).toHaveBeenCalledWith(ownerHierarchyUrl);
         expect(axios.get).toHaveBeenCalledWith(licenseLegalComponentUrl);
         done();
       });
     });
 
-    it('fetches license file details by component identifier when not loaded', function () {
+    it('fetches license file details by component identifier when not loaded', function (done) {
       let state = pathSet(['advancedLegal', 'component', 'component'], undefined, initialState);
       state = pathSet(['router', 'currentParams', 'hash'], undefined, state);
       store = SpecUtil.mockReduxStore(state);
 
-      const ownerHierarchyUrl = getOwnerHierarchyUrl('organization', 'org');
       const licenseLegalComponentByComponentIdentifierUrl = getLicenseLegalComponentByComponentIdentifierUrl(
         'componentIdentifier'
       );
 
       mockAxiosCalls({
         get: {
-          [ownerHierarchyUrl]: Promise.resolve({ data: 'getData' }),
           [licenseLegalComponentByComponentIdentifierUrl]: Promise.resolve({
             data: 'getData2',
           }),
@@ -122,8 +120,7 @@ describe('ComponentNoticeDetailsAction', function () {
 
       store
         .dispatch(loadComponentAndNoticeDetails('organization', 'org', undefined, 1, 'componentIdentifier'))
-        .then((done) => {
-          expect(axios.get).toHaveBeenCalledWith(ownerHierarchyUrl);
+        .then(() => {
           expect(axios.get).toHaveBeenCalledWith(licenseLegalComponentByComponentIdentifierUrl);
           done();
         });

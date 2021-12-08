@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -13,6 +14,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class ApiRepositoryConnectionDTO
 {
   public String repositoryConnectionId;
+
+  public OwnerType ownerType;
 
   public String ownerId;
 

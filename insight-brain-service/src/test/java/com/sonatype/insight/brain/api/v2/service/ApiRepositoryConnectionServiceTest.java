@@ -13,9 +13,11 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
@@ -51,6 +53,9 @@ public class ApiRepositoryConnectionServiceTest
   @Inject
   private ApiRepositoryConnectionService repositoryConnectionService;
 
+  @Inject
+  private OwnerDAO ownerDAO;
+  
   @Inject
   private RepositoryConnectionDAO dao;
 
@@ -88,10 +93,12 @@ public class ApiRepositoryConnectionServiceTest
     tempEntity.newRepositoryConnection(id, "url1", "user1", "pass1".toCharArray());
     tempEntity.newRepositoryConnection(id, "url2", RepositoryFormat.MAVEN, "user2", "pass2".toCharArray());
 
+    Owner owner = ownerDAO.getById(id);
     List<ApiRepositoryConnectionDTO> connections =
         repositoryConnectionService.getRepositoryConnections(ownerType, id, false);
-    assertThat(connections).hasSize(2).extracting("baseUrl", "username")
-        .containsExactlyInAnyOrder(tuple("url1", "user1"), tuple("url2", "user2"));
+    assertThat(connections).hasSize(2).extracting("baseUrl", "username", "ownerType", "ownerId")
+        .containsExactlyInAnyOrder(tuple("url1", "user1", owner.getType(), owner.getId()),
+            tuple("url2", "user2", owner.getType(), owner.getId()));
   }
 
   @Test
@@ -108,39 +115,39 @@ public class ApiRepositoryConnectionServiceTest
     // Only root org
     RepositoryConnection rootOrgRepositoryConnection = tempEntity.newRepositoryConnection(rootOrgId);
     assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
-        .extracting("ownerId").containsExactly(rootOrgId);
+        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, rootOrgId));
 
     // Root org and org
     RepositoryConnection orgRepositoryConnection = tempEntity.newRepositoryConnection(orgId);
     assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
-        .extracting("ownerId").containsExactly(orgId);
+        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, orgId));
 
     // Root org, org, and app
     RepositoryConnection appRepositoryConnection = tempEntity.newRepositoryConnection(appId);
     assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
-        .extracting("ownerId").containsExactly(appId);
+        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.APPLICATION, appId));
 
     // Org and app
     dao.delete(rootOrgRepositoryConnection);
     assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
-        .extracting("ownerId").containsExactly(appId);
+        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.APPLICATION, appId));
 
     // Only app
     dao.delete(orgRepositoryConnection);
     assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
-        .extracting("ownerId").containsExactly(appId);
+        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.APPLICATION, appId));
 
     // Root org and app
     rootOrgRepositoryConnection = tempEntity.newRepositoryConnection(rootOrgId);
     assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
-        .extracting("ownerId").containsExactly(appId);
+        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.APPLICATION, appId));
 
     // Only org
     dao.delete(rootOrgRepositoryConnection);
     dao.delete(appRepositoryConnection);
     tempEntity.newRepositoryConnection(orgId);
     assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
-        .extracting("ownerId").containsExactly(orgId);
+        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, orgId));
   }
 
   @Test
@@ -157,17 +164,17 @@ public class ApiRepositoryConnectionServiceTest
     // Only root org
     RepositoryConnection rootOrgRepositoryConnection = tempEntity.newRepositoryConnection(rootOrgId);
     assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, orgId, true))
-        .extracting("ownerId").containsExactly(rootOrgId);
+        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, rootOrgId));
 
     // Root org and org
     tempEntity.newRepositoryConnection(orgId);
     assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, orgId, true))
-        .extracting("ownerId").containsExactly(orgId);
+        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, orgId));
 
     // Only org
     dao.delete(rootOrgRepositoryConnection);
     assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, orgId, true))
-        .extracting("ownerId").containsExactly(orgId);
+        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, orgId));
   }
 
   @Test
@@ -182,7 +189,7 @@ public class ApiRepositoryConnectionServiceTest
     // Only root org
     tempEntity.newRepositoryConnection(rootOrgId);
     assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, rootOrgId, true))
-        .extracting("ownerId").containsExactly(rootOrgId);
+        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, rootOrgId));
   }
 
   @Test
@@ -210,6 +217,8 @@ public class ApiRepositoryConnectionServiceTest
     assertThat(createdDto.repositoryConnectionId).isNotNull();
     assertThat(createdDto.password).isNull();
     assertThat(createdDto.format).isEqualTo(dto.format);
+    assertThat(createdDto.ownerType).isEqualTo(ownerType);
+    assertThat(createdDto.ownerId).isEqualTo(id);
     RepositoryConnection savedConfig = dao.getByOwnerIdAndBaseUrl(id, dto.baseUrl);
     assertThat(passwordHandler.decryptPassword(savedConfig.getPassword())).isEqualTo(dto.password.toCharArray());
   }
@@ -281,6 +290,8 @@ public class ApiRepositoryConnectionServiceTest
 
     assertThat(createdDto.repositoryConnectionId).isNotNull();
     assertThat(createdDto.format).isEqualTo(RepositoryFormat.GENERIC);
+    assertThat(createdDto.ownerType).isEqualTo(OwnerType.APPLICATION);
+    assertThat(createdDto.ownerId).isEqualTo(app.getId());
     RepositoryConnection savedConfig = dao.getByOwnerIdAndBaseUrl(app.getId(), dto.baseUrl);
     assertThat(savedConfig.getFormat()).isEqualTo(RepositoryFormat.GENERIC);
   }
@@ -368,6 +379,8 @@ public class ApiRepositoryConnectionServiceTest
     assertThat(updated.baseUrl).isEqualTo(dto.baseUrl);
     assertThat(updated.username).isEqualTo(dto.username);
     assertThat(updated.password).isNull();
+    assertThat(updated.ownerId).isEqualTo(id);
+    assertThat(updated.ownerType).isEqualTo(ownerType);
 
     RepositoryConnection storedConnection = dao.getById(existingConnection.getId());
 
@@ -462,6 +475,8 @@ public class ApiRepositoryConnectionServiceTest
 
     assertThat(updated.baseUrl).isEqualTo(dto.baseUrl);
     assertThat(updated.format).isEqualTo(existingConnection.getFormat());
+    assertThat(updated.ownerType).isEqualTo(OwnerType.APPLICATION);
+    assertThat(updated.ownerId).isEqualTo(app.getId());
     RepositoryConnection storedConnection = dao.getById(existingConnection.getId());
     assertThat(updated.baseUrl).isEqualTo(storedConnection.getBaseUrl());
     assertThat(updated.format).isEqualTo(storedConnection.getFormat());

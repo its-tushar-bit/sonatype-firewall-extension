@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -17,7 +18,9 @@ import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
@@ -45,6 +48,8 @@ public class ApiRepositoryConnectionService
   public static final String REPOSITORY_URL_AUDIT_KEY = "repositoryBaseUrl";
 
   public static final String REPOSITORY_FORMAT_AUDIT_KEY = "repositoryFormat";
+  
+  private final OwnerDAO ownerDAO;
 
   private final RepositoryConnectionDAO repositoryConnectionDAO;
 
@@ -54,10 +59,12 @@ public class ApiRepositoryConnectionService
 
   @Inject
   public ApiRepositoryConnectionService(
+      final OwnerDAO ownerDAO,
       final RepositoryConnectionDAO repositoryConnectionDAO,
       final PasswordHandler passwordHandler,
       final RepositoryClientFactory repositoryClientFactory)
   {
+    this.ownerDAO = ownerDAO;
     this.repositoryConnectionDAO = repositoryConnectionDAO;
     this.passwordHandler = passwordHandler;
     this.repositoryClientFactory = repositoryClientFactory;
@@ -81,6 +88,7 @@ public class ApiRepositoryConnectionService
               repositoryConnectionDTO.format, ownerType, ownerId));
     }
 
+    repositoryConnectionDTO.ownerType = ownerType;
     repositoryConnectionDTO.ownerId = ownerId;
     RepositoryConnection repositoryConnection = toRepositoryConnection(repositoryConnectionDTO);
     repositoryConnectionDAO.insert(repositoryConnection);
@@ -97,6 +105,7 @@ public class ApiRepositoryConnectionService
     validateUpdateConnectionData(dto);
     AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, dto.baseUrl)
         .setData(REPOSITORY_FORMAT_AUDIT_KEY, dto.format);
+    dto.ownerType = ownerType;
     dto.ownerId = internalOwnerId;
     RepositoryConnection storedConnection = repositoryConnectionDAO.getById(repositoryConnectionId);
     if (storedConnection == null) {
@@ -214,6 +223,8 @@ public class ApiRepositoryConnectionService
   private ApiRepositoryConnectionDTO toRepositoryConnectionDTO(RepositoryConnection repositoryConnection) {
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
     dto.repositoryConnectionId = repositoryConnection.getId();
+    dto.ownerType =
+        Optional.ofNullable(ownerDAO.getById(repositoryConnection.getOwnerId())).map(Owner::getType).orElse(null);
     dto.ownerId = repositoryConnection.getOwnerId();
     dto.format = repositoryConnection.getFormat();
     dto.baseUrl = repositoryConnection.getBaseUrl();

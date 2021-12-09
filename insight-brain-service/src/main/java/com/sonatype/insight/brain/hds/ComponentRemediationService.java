@@ -15,7 +15,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -114,10 +113,6 @@ public class ComponentRemediationService
       final String ownerId,
       final String stageId)
   {
-    if (ownerType == OwnerType.REPOSITORY || ownerType == OwnerType.REPOSITORY_CONTAINER) {
-      return null;
-    }
-
     ApiComponentRemediationValueDTO componentRemediationDto = new ApiComponentRemediationValueDTO();
 
     int currentIndex = IntStream.range(0, allVersions.size())

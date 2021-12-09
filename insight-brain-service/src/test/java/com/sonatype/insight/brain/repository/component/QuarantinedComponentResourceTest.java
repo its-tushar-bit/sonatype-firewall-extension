@@ -8,17 +8,22 @@ package com.sonatype.insight.brain.repository.component;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-
+import java.util.HashMap;
+import java.util.Map;
 import javax.ws.rs.core.Response.Status;
 
+import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
@@ -30,6 +35,8 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
+import com.sonatype.insight.dependency.ComponentDependenciesDTO;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.time.DateUtils;
@@ -181,6 +188,56 @@ public class QuarantinedComponentResourceTest
 
     // then
     assertThat(response.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+  }
+
+  @Test
+  public void testGetQuarantinedComponentVersionRemediation() throws Exception {
+    // setup
+    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
+        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
+    final Repository repository = tempEntity.newRepository("repo");
+    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    final QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+    final String encodedToken = Base64.getUrlEncoder().withoutPadding()
+        .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
+
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
+    PackageUrlIdentifier packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+
+    ComponentDetails componentDetail = new ComponentDetails();
+    componentDetail.setComponentIdentifier(componentIdentifier);
+
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    dependenciesMap.put(packageUrlIdentifier, Collections.singleton(packageUrlIdentifier));
+
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+    detailsMap.put(packageUrlIdentifier, componentDetail);
+
+    List<ComponentDetails> componentDetails = new ArrayList<>();
+    componentDetails.add(componentDetail);
+
+    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
+    componentDetailsList.setList(componentDetails);
+
+    ComponentDependenciesDTO componentDependenciesDTO = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+
+    hdsRespondWith(componentDetailsList).atUri("/rest/ci/componentDetails/list");
+    hdsRespondWith(componentDependenciesDTO).atUri("/rest/component/dependencies");
+
+    // when
+    final HttpResponse response =
+        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_REMEDIATION_PATH).parameter(encodedToken).get();
+
+    // then
+    ComponentVersionInfoDTO componentVersionInfoDTO = response.getBody(ComponentVersionInfoDTO.class);
+
+    assertThat(response.getStatusCode()).isEqualTo(Status.OK.getStatusCode());
+    assertThat(componentVersionInfoDTO).isNotNull();
+    assertThat(componentVersionInfoDTO.allVersions).isNotEmpty();
+    assertThat(componentVersionInfoDTO.remediation).isNotNull();
   }
 
   private String setupTestData(ComponentIdentifier componentIdentifier, Date date) {

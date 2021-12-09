@@ -161,7 +161,7 @@ describe('innerSourceRepositoryTile', function () {
         mockOrganization();
       }));
 
-      it('loads the first repository connection', function () {
+      it('loads the repository connections', function () {
         getByIdDeferred1.resolve({
           id: 'organizationId',
         });
@@ -185,10 +185,13 @@ describe('innerSourceRepositoryTile', function () {
         expect(vm.error).toBeUndefined();
         expect(vm.loading).toBeFalsy();
         expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
-        expect(vm.innerSourceRepository).toEqual({ ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' });
+        expect(vm.innerSourceRepositories).toEqual([
+          { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
+          { ownerId: 'organizationId', baseUrl: 'https://some.base.url.2' },
+        ]);
       });
 
-      it('sets inherited true and the ownerName if the ownerId is different', function () {
+      it('sets inherited from to the ownerName if the ownerId is different', function () {
         getByIdDeferred1.resolve({
           id: 'organizationId',
         });
@@ -215,12 +218,7 @@ describe('innerSourceRepositoryTile', function () {
         expect(vm.error).toBeUndefined();
         expect(vm.loading).toBeFalsy();
         expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
-        expect(vm.innerSourceRepository).toEqual({
-          ownerId: 'otherOwnerId',
-          ownerName: 'otherOwnerName',
-          baseUrl: 'https://some.base.url.1',
-          inherited: true,
-        });
+        expect(vm.innerSourceRepositoriesInheritedFrom).toBe('otherOwnerName');
       });
 
       it('sets the error message on getById failure', function () {
@@ -309,7 +307,7 @@ describe('innerSourceRepositoryTile', function () {
         mockApplication();
       }));
 
-      it('loads the first repository connection', function () {
+      it('loads the repository connections', function () {
         getByIdDeferred1.resolve({
           id: 'applicationInternalId',
         });
@@ -333,13 +331,13 @@ describe('innerSourceRepositoryTile', function () {
         expect(vm.error).toBeUndefined();
         expect(vm.loading).toBeFalsy();
         expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
-        expect(vm.innerSourceRepository).toEqual({
-          ownerId: 'applicationInternalId',
-          baseUrl: 'https://some.base.url.1',
-        });
+        expect(vm.innerSourceRepositories).toEqual([
+          { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
+          { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.2' },
+        ]);
       });
 
-      it('sets inherited true and the ownerName if the ownerId is different', function () {
+      it('sets inherited from to the ownerName if the ownerId is different', function () {
         getByIdDeferred1.resolve({
           id: 'applicationInternalId',
         });
@@ -366,12 +364,7 @@ describe('innerSourceRepositoryTile', function () {
         expect(vm.error).toBeUndefined();
         expect(vm.loading).toBeFalsy();
         expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
-        expect(vm.innerSourceRepository).toEqual({
-          ownerId: 'otherOwnerId',
-          ownerName: 'otherOwnerName',
-          baseUrl: 'https://some.base.url.1',
-          inherited: true,
-        });
+        expect(vm.innerSourceRepositoriesInheritedFrom).toBe('otherOwnerName');
       });
 
       it('sets the error message on getById failure', function () {

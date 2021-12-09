@@ -115,6 +115,7 @@
 @use '../violation/requestWaiveTransitiveViolationsPopover';
 @use '../componentDetails/overview/occurrencesPopover/occurrencesPopover';
 @use '../quarantinedComponentReport/quarantinedComponentReport';
+@use '../owner.manager/innersource.repository/innersourceRepositoryTile';
 
 // CIP
 @use '../version-graph/icons' as version-graph-icons;

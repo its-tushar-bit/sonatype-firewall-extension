@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -54,6 +55,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import com.codeborne.selenide.ElementsCollection;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -157,32 +159,43 @@ public abstract class AbstractSummaryViewTest
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
     innerSourceRepositoryTile.should(exist);
-    innerSourceRepositoryTile.rows().shouldHaveSize(1);
-    innerSourceRepositoryTile.itemText().shouldBe(text("InnerSource repository connection not configured"));
+    innerSourceRepositoryTile.listTitle().shouldNot(exist);
+    ElementsCollection rows = innerSourceRepositoryTile.rows();
+    rows.shouldHaveSize(1);
+    rows.get(0).shouldBe(text("No repositories are configured"));
+    innerSourceRepositoryTile.editButton().shouldHave(text("Add"));
   }
 
   @Test
   public void testInnerSourceRepositoryTile_Configured() {
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
-    RepositoryConnection repositoryConnection =
-        tempEntity.newRepositoryConnection(currentOwner.getId(), "http://some.base.url", null, null);
+    RepositoryConnection repositoryConnection1 = tempEntity.newRepositoryConnection(currentOwner.getId(),
+        "http://some.base.url.1", RepositoryFormat.MAVEN, null, null);
+    RepositoryConnection repositoryConnection2 = tempEntity.newRepositoryConnection(currentOwner.getId(),
+        "http://some.base.url.2", RepositoryFormat.NPM, null, null);
     refresh();
     MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
     innerSourceRepositoryTile.should(exist);
-    innerSourceRepositoryTile.rows().shouldHaveSize(1);
-    innerSourceRepositoryTile.itemText().shouldBe(text(repositoryConnection.getBaseUrl()));
+    innerSourceRepositoryTile.listTitle().shouldHave(text("Local"));
+    ElementsCollection rows = innerSourceRepositoryTile.rows();
+    rows.shouldHaveSize(2);
+    rows.get(0).shouldBe(text(repositoryConnection1.getBaseUrl() + "\n" + repositoryConnection1.getFormat()));
+    rows.get(1).shouldBe(text(repositoryConnection2.getBaseUrl() + "\n" + repositoryConnection2.getFormat()));
+    innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
   }
 
   @Test
   public void testInnerSourceRepositoryTile_Configured_Inherited() {
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
-    RepositoryConnection repositoryConnection =
-        tempEntity.newRepositoryConnection(currentOwner.getParentOwnerId(), "http://some.base.url", null, null);
+    RepositoryConnection repositoryConnection1 = tempEntity.newRepositoryConnection(currentOwner.getParentOwnerId(),
+        "http://some.base.url.1", RepositoryFormat.MAVEN, null, null);
+    RepositoryConnection repositoryConnection2 = tempEntity.newRepositoryConnection(currentOwner.getParentOwnerId(),
+        "http://some.base.url.2", RepositoryFormat.NPM, null, null);
     Owner parentOwner = new OwnerDAO().getById(currentOwner.getParentOwnerId());
     refresh();
     MainHeader.closeNavigationSidebar();
@@ -190,9 +203,12 @@ public abstract class AbstractSummaryViewTest
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
     innerSourceRepositoryTile.should(exist);
-    innerSourceRepositoryTile.rows().shouldHaveSize(1);
-    innerSourceRepositoryTile.itemText()
-        .shouldBe(text("Inherit from " + parentOwner.getName() + " (" + repositoryConnection.getBaseUrl() + ")"));
+    innerSourceRepositoryTile.listTitle().shouldHave(text("Inherited from " + parentOwner.getName()));
+    ElementsCollection rows = innerSourceRepositoryTile.rows();
+    rows.shouldHaveSize(2);
+    rows.get(0).shouldBe(text(repositoryConnection1.getBaseUrl() + "\n" + repositoryConnection1.getFormat()));
+    rows.get(1).shouldBe(text(repositoryConnection2.getBaseUrl() + "\n" + repositoryConnection2.getFormat()));
+    innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
   }
 
   @Test

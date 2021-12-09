@@ -18,10 +18,14 @@ public class InnerSourceRepositoryTile
   }
 
   public ElementsCollection rows() {
-    return children(".iq-list__item");
+    return children(".test-list-item-title");
   }
 
-  public SelenideElement itemText() {
-    return child(".test-list-item-title");
+  public SelenideElement listTitle() {
+    return child(".iq-list__title");
+  }
+
+  public SelenideElement editButton() {
+    return child("#innersource-repositories-edit");
   }
 }

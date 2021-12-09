@@ -31,8 +31,8 @@ function InnerSourceRepositoryTileController(
   vm.isOrg = CLMContextLocations.isOrganization();
   vm.isApp = CLMContextLocations.isApplication();
   vm.isInnerSourceRepositorySupported = undefined;
-  vm.innerSourceRepository = undefined;
-  vm.editInnerSourceRepository = editInnerSourceRepository;
+  vm.innerSourceRepositories = [];
+  vm.innerSourceRepositoriesInheritedFrom = undefined;
   vm.load();
 
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, function () {
@@ -66,12 +66,13 @@ function InnerSourceRepositoryTileController(
           }
         })
         .then(function (result) {
-          vm.innerSourceRepository = Array.isArray(result) && result.length > 0 ? result[0] : undefined;
-          if (vm.innerSourceRepository !== undefined && vm.innerSourceRepository.ownerId !== ownerId) {
-            vm.innerSourceRepository.inherited = true;
-            return OrganizationStore.getById(vm.innerSourceRepository.ownerId).then(function (result) {
-              vm.innerSourceRepository.ownerName = result.name;
-            });
+          if (Array.isArray(result) && result.length > 0) {
+            vm.innerSourceRepositories = result;
+            if (vm.innerSourceRepositories[0].ownerId !== ownerId) {
+              return OrganizationStore.getById(vm.innerSourceRepositories[0].ownerId).then(function (result) {
+                vm.innerSourceRepositoriesInheritedFrom = result.name;
+              });
+            }
           }
         })
         .catch(function (e) {
@@ -83,10 +84,6 @@ function InnerSourceRepositoryTileController(
     } else {
       vm.loading = false;
     }
-  }
-
-  function editInnerSourceRepository() {
-    SameOwnerStateNavigationService.goEdit('edit-innersource-repository');
   }
 }
 

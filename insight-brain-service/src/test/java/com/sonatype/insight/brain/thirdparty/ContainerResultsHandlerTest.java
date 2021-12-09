@@ -50,7 +50,7 @@ public class ContainerResultsHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     ContainerResultHandler containerResultHandler = new ContainerResultHandler();
-    String filteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
 
     String expectedXml = loadResource("alpine-3.6-expected-bom.xml");
     assertThat(filteredContent).isEqualTo(expectedXml);
@@ -65,7 +65,7 @@ public class ContainerResultsHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     ContainerResultHandler containerResultHandler = new ContainerResultHandler();
-    String filteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(filteredContent).isNotNull();
 
     List<ThirdPartyFileCoordinate> coordinates =
@@ -127,7 +127,7 @@ public class ContainerResultsHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     ContainerResultHandler containerResultHandler = new ContainerResultHandler();
-    String filteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(filteredContent).isNotNull();
 
     List<ThirdPartyFileCoordinate> coordinates =

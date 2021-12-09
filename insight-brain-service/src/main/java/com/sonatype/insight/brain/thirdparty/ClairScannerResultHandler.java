@@ -46,7 +46,10 @@ public class ClairScannerResultHandler
   private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO = new ThirdPartyCoordinateSecurityDAO();
 
   @Override
-  public String handleAndFilterContents(ThirdPartyScanContent content, ThirdPartyFile thirdPartyFile) {
+  public FilteredThirdPartyContent handleAndFilterContents(
+      ThirdPartyScanContent content,
+      ThirdPartyFile thirdPartyFile)
+  {
     ClairScannerResult clairScannerResult = GSON.fromJson(content.getContent(), ClairScannerResult.class);
 
     if (clairScannerResult != null) {
@@ -65,11 +68,11 @@ public class ClairScannerResultHandler
         }
 
         tx.commit();
-        return GSON.toJson(filteredClairScannerResult);
+        return new FilteredThirdPartyContent(GSON.toJson(filteredClairScannerResult));
       }
     }
 
-    return content.getContent();
+    return new FilteredThirdPartyContent(content.getContent());
   }
 
   private ClairScannerVulnerability saveVulnerability(

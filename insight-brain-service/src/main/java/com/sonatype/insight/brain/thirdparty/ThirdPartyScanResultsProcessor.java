@@ -10,20 +10,25 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
+import javax.xml.stream.util.EventReaderDelegate;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
@@ -32,8 +37,11 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.Xpp3Util;
 import com.sonatype.insight.scan.model.ItemContentType;
+import com.sonatype.insight.scan.model.ProjectScanItem;
+import com.sonatype.insight.scan.model.io.XStreamFactory;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
+import com.thoughtworks.xstream.XStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
@@ -51,6 +59,8 @@ import static java.util.Arrays.asList;
 public class ThirdPartyScanResultsProcessor
 {
   private static final Logger log = LoggerFactory.getLogger(ThirdPartyScanResultsProcessor.class);
+
+  private static final XStream xstream = XStreamFactory.newInstance();
 
   private static final List<String> thirdPartyItemContentTypes =
       asList(ItemContentType.CLAIR_SCANNER.name(), ItemContentType.SBOM.name(), ItemContentType.CONTAINER_URI.name(),
@@ -172,24 +182,27 @@ public class ThirdPartyScanResultsProcessor
         thirdPartyScanTelemetryData.getAttributes().put("content_type", contentType);
         telemetrySender.send(thirdPartyScanTelemetryData);
       }
+      List<ProjectScanItem> moduleDependencies = new ArrayList<>();
       if (!contentType.equals(ItemContentType.IAC_FILE.name())) {
         Xpp3Dom itemElement = Xpp3Util.loadElement("item", parser);
         Xpp3Dom contentElement = itemElement.getChild("content");
         if (contentElement != null) {
-          String filteredContent =
+          FilteredThirdPartyContent filteredContent =
               handleContent(itemElement, contentElement.getValue(), contentType, scanRequestId);
-          writeFilteredInformation(writer, filteredContent);
+          writeFilteredInformation(writer, filteredContent.getContent());
+          Optional.of(filteredContent.getModuleDependencies()).ifPresent(moduleDependencies::addAll);
         }
         else {
           log.error("scan file {} contained a third party scan item {} without any content", scanFile.getName(),
               contentType);
         }
         writer.add(EVENT_FACTORY.createEndElement(new QName(parser.getName()), null));
+        writeDependencyGraph(writer, moduleDependencies);
       }
     }
   }
 
-  private String handleContent(
+  private FilteredThirdPartyContent handleContent(
       Xpp3Dom itemElement,
       String contentElement,
       String contentType,
@@ -242,6 +255,42 @@ public class ThirdPartyScanResultsProcessor
     writer.add(contentEvent);
     writer.add(EVENT_FACTORY.createEndElement(name, null));
     writer.add(EVENT_FACTORY.createCharacters("\n"));
+  }
+
+  private void writeDependencyGraph(final XMLEventWriter writer, final List<ProjectScanItem> moduleDependencies)
+      throws XMLStreamException
+  {
+    for (ProjectScanItem moduleDependency : moduleDependencies) {
+      String xml = xstream.toXML(moduleDependency);
+      XMLEventReader reader = new EventReaderDelegate(getXmlInputFactorySafely(xml))
+      {
+        @Override
+        public boolean hasNext() {
+          if (!super.hasNext()) {
+            return false;
+          }
+          try {
+            return !super.peek().isEndDocument();
+          }
+          catch (XMLStreamException ignored) {
+            return true;
+          }
+        }
+      };
+
+      if (reader.peek().isStartDocument()) {
+        reader.nextEvent();
+      }
+      writer.add(reader);
+    }
+  }
+
+  private XMLEventReader getXmlInputFactorySafely(String xml) throws XMLStreamException {
+    XMLInputFactory factory = XMLInputFactory.newFactory();
+    factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+    factory.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false);
+    factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+    return factory.createXMLEventReader(new StringReader(xml));
   }
 
   ThirdPartyScanResultHandler createHandler(ItemContentType contentItemType) {

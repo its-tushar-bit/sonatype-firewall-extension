@@ -5,14 +5,16 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -28,12 +30,14 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.model.ProjectScanItem;
 
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import com.github.packageurl.PackageURLBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,12 +49,14 @@ import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.generators.xml.BomXmlGenerator;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.ExtensibleType;
 import org.cyclonedx.model.Extension;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
+import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Source;
 import org.cyclonedx.model.vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability10;
@@ -85,7 +91,7 @@ public class SbomResultHandler
   private final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO = new ThirdPartyCoordinateLicenseDAO();
 
   @Override
-  public String handleAndFilterContents(
+  public FilteredThirdPartyContent handleAndFilterContents(
       ThirdPartyScanContent content,
       ThirdPartyFile thirdPartyFile)
   {
@@ -93,16 +99,17 @@ public class SbomResultHandler
       if (!StringUtils.isBlank(content.getContent())) {
         Bom sourceBom = parseBom(content);
         Bom targetBom = new Bom();
+        List<ProjectScanItem> moduleDependencies = new ArrayList<>();
         log.info("Processing SBOM content");
-        processSbom(content, sourceBom, targetBom, thirdPartyFile);
+        processSbom(content, sourceBom, targetBom, thirdPartyFile, moduleDependencies);
         if (targetBom.getComponents() != null && targetBom.getComponents().isEmpty()) {
-          return content.getContent();
+          return new FilteredThirdPartyContent(content.getContent(), moduleDependencies);
         }
         else {
-          return generateFilteredSbom(targetBom);
+          return new FilteredThirdPartyContent(generateFilteredSbom(targetBom), moduleDependencies);
         }
       }
-      return content.getContent();
+      return new FilteredThirdPartyContent(content.getContent());
     }
     catch (Exception e) {
       throw new RuntimeException("Error filtering sbom file " + content.getPath(), e);
@@ -123,7 +130,8 @@ public class SbomResultHandler
       final ThirdPartyScanContent content,
       final Bom sourceBom,
       final Bom targetBom,
-      final ThirdPartyFile thirdPartyFile)
+      final ThirdPartyFile thirdPartyFile,
+      final List<ProjectScanItem> dependencyGraph)
   {
     String identificationSource = getTruncatedIdentificationSource(determineIdentificationSource(content.getPath()));
     try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
@@ -134,6 +142,7 @@ public class SbomResultHandler
       }
       tx.commit();
     }
+    processDependencyGraph(sourceBom, targetBom, dependencyGraph, thirdPartyFile);
   }
 
   //visible for testing
@@ -280,6 +289,10 @@ public class SbomResultHandler
     componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
     component.setName(packageUrlIdentifier.getName());
     component.setVersion(packageUrlIdentifier.getVersion());
+    String namespace = packageUrlIdentifier.getNamespace();
+    if (StringUtils.isNotBlank(namespace)) {
+      component.setGroup(namespace);
+    }
 
     return Pair.of(componentIdentifier, component);
   }
@@ -467,6 +480,133 @@ public class SbomResultHandler
     coordinateLicense.setName(license.getName());
     coordinateLicense.setUrl(license.getUrl());
     thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
+  }
+
+  //visible for testing
+  void processDependencyGraph(
+      Bom sourceBom,
+      Bom targetBom,
+      List<ProjectScanItem> moduleDependencies,
+      ThirdPartyFile thirdPartyFile)
+  {
+    //including dependency data into the target bom.
+    // So we have a mechanism to verify the derived dependency graph from HDS end if needed
+    targetBom.setMetadata(getFilteredMetadata(sourceBom));
+    targetBom.setDependencies(sourceBom.getDependencies());
+
+    List<Dependency> dependencies = sourceBom.getDependencies();
+    if (CollectionUtils.isNotEmpty(dependencies)) {
+      Iterator<Dependency> dependencyItr = dependencies.iterator();
+      Dependency rootModule = dependencyItr.next();
+      String modulePurl = isPurl(rootModule.getRef()) ? rootModule.getRef() : resolveModulePurl(sourceBom);
+      if (modulePurl != null) {
+        Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph = new HashMap<>();
+        ProjectScanItem project = new ProjectScanItem("sbom", modulePurl);
+        project.setPath(thirdPartyFile.getFilename());
+        //direct dependencies
+        for (Dependency dependency : rootModule.getDependencies()) {
+          dependencyGraph.put(dependency.getRef(), Pair.of(true, new ArrayList<>()));
+        }
+
+        resolveSbomDependenciesAndTypes(thirdPartyFile, dependencyItr, dependencyGraph);
+        constructProjectDependencyGraph(dependencyGraph, project);
+        moduleDependencies.add(project);
+      }
+      else {
+        log.debug(String.format("Unable to process dependency graph. " +
+            "The root component of the bom %s cannot be determined", thirdPartyFile.getFilename()));
+      }
+    }
+  }
+
+  private Metadata getFilteredMetadata(final Bom sourceBom) {
+    //making sure we copy only identity data and nothing else
+    Metadata filtered = null;
+    Metadata metadata = sourceBom.getMetadata();
+    if (metadata != null && metadata.getComponent() != null) {
+      filtered = new Metadata();
+      filtered.setTimestamp(metadata.getTimestamp());
+      Component component = new Component();
+      component.setType(metadata.getComponent().getType());
+      component.setBomRef(metadata.getComponent().getBomRef());
+      component.setName(metadata.getComponent().getName());
+      component.setGroup(metadata.getComponent().getGroup());
+      component.setVersion(metadata.getComponent().getVersion());
+      component.setPurl(metadata.getComponent().getPurl());
+      filtered.setComponent(component);
+    }
+    return filtered;
+  }
+
+  private void constructProjectDependencyGraph(
+      final Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph,
+      final ProjectScanItem project)
+  {
+    for (Entry<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> depEntry :
+        dependencyGraph.entrySet()) {
+      com.sonatype.insight.scan.model.Dependency dependency = new com.sonatype.insight.scan.model.Dependency();
+      dependency.setId(depEntry.getKey());
+      dependency.setDirect(depEntry.getValue().getLeft());
+      depEntry.getValue().getRight().forEach(dependency::addDependency);
+      project.addDependency(dependency);
+    }
+  }
+
+  private void resolveSbomDependenciesAndTypes(
+      final ThirdPartyFile thirdPartyFile,
+      final Iterator<Dependency> dependencyItr,
+      final Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph)
+  {
+    dependencyItr.forEachRemaining(dependency -> {
+      Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>> dependencyPair =
+          dependencyGraph.get(dependency.getRef());
+      if (dependencyPair != null) {
+        copyChildDependenciesForDependency(thirdPartyFile, dependencyGraph, dependency, dependencyPair);
+      }
+      else {
+        log.debug(String.format(
+            "Unsupported dependency graph in sbom. Missing parent reference for the child dependency %s",
+            dependency.getRef()));
+      }
+    });
+  }
+
+  private void copyChildDependenciesForDependency(
+      final ThirdPartyFile thirdPartyFile,
+      final Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph,
+      final Dependency dependency,
+      final Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>> dependencyPair)
+  {
+    IterableUtils.forEach(dependency.getDependencies(), bomChild -> {
+      com.sonatype.insight.scan.model.Dependency child = new com.sonatype.insight.scan.model.Dependency();
+      if (isPurl(bomChild.getRef())) {
+        child.setId(bomChild.getRef());
+        dependencyPair.getValue().add(child);
+        if (!dependencyGraph.containsKey(bomChild.getRef())) {
+          dependencyGraph.put(bomChild.getRef(), Pair.of(false, new ArrayList<>()));
+        }
+      }
+      else {
+        log.debug(
+            String.format("invalid purl dependency %s in bom %s", bomChild.getRef(), thirdPartyFile.getFilename()));
+      }
+    });
+  }
+
+  private boolean isPurl(final String ref) {
+    try {
+      return new PackageUrlIdentifier(ref).getPackageUrl() != null;
+    }
+    catch (InvalidPackageURLException e) {
+      return false;
+    }
+  }
+
+  private String resolveModulePurl(Bom bom) {
+    if (bom.getMetadata() != null && bom.getMetadata().getComponent() != null) {
+      return bom.getMetadata().getComponent().getPurl();
+    }
+    return null;
   }
 
   String generateFilteredSbom(Bom sbom)

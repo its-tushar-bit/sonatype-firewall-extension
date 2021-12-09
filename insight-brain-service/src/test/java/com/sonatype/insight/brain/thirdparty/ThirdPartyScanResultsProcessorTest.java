@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.thirdparty;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.HashMap;
@@ -16,7 +17,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -54,6 +54,7 @@ import org.mockito.Mock;
 import org.xmlunit.assertj.XmlAssert;
 
 import static com.sonatype.insight.scan.model.ItemContentType.IAC_FILE;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.entry;
@@ -259,6 +260,40 @@ public class ThirdPartyScanResultsProcessorTest
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class));
   }
 
+  @Test
+  public void testHandle_SbomDependencyTree_basic() throws Exception {
+    testHandle_SbomDependencyTree("DependencyGraph/scan-sbom-dependencies-basic.xml",
+        "DependencyGraph/scan-sbom-dependencies-basic-expected.xml");
+  }
+
+  @Test
+  public void testHandle_SbomDependencyTree_cyclic() throws Exception {
+    testHandle_SbomDependencyTree("DependencyGraph/scan-sbom-dependencies-cyclic.xml",
+        "DependencyGraph/scan-sbom-dependencies-cyclic-expected.xml");
+  }
+
+  @Test
+  public void testHandle_SbomDependencyTree_multiformats() throws Exception {
+    testHandle_SbomDependencyTree("DependencyGraph/scan-sbom-dependencies-multiformat.xml",
+        "DependencyGraph/scan-sbom-dependencies-multiformat-expected.xml");
+  }
+
+  private void testHandle_SbomDependencyTree(final String s, final String s2) throws Exception {
+    File scanFile = getScanFile(s);
+    File tempScanFile = tempDir.newFile();
+
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null);
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(ItemContentType.SBOM);
+    XmlAssert.assertThat(contentOf(tempScanFile))
+        .and(IOUtils.toString(getTestResource(s2), UTF_8))
+        .ignoreWhitespace()
+        .areIdentical();
+  }
+
+  private String contentOf(File gzippedScanFile) throws IOException {
+    return IOUtils.toString(new GZIPInputStream(new FileInputStream(gzippedScanFile)), UTF_8);
+  }
+
   private File getScanXMLFile(File scanFile) throws Exception {
     File output = tempDir.newFile("scan-test.xml");
     try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile))) {
@@ -268,8 +303,7 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   private void assertXml(File scanFile, String expectedFileName) throws Exception {
-    URL resource =
-        getClass().getResource("/ThirdPartyResultsProcessorTest/" + expectedFileName);
+    URL resource = getTestResource(expectedFileName);
     File expectedFile = new File(resource.toURI());
     File actualFile = getScanXMLFile(scanFile);
     XmlAssert.assertThat(actualFile).and(expectedFile).areIdentical().ignoreWhitespace();
@@ -315,13 +349,17 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   private File getScanFile(final String fileName) throws Exception {
-    URL resource = getClass().getResource("/ThirdPartyResultsProcessorTest/" + fileName);
+    URL resource = getTestResource(fileName);
     // Gzip the Third Party scan file
     File sonatypeScanGzipFile = tempDir.newFile(ScanFileNames.SONATYPE_SCAN_FILENAME);
     try (GZIPOutputStream gzipStream = new GZIPOutputStream(new FileOutputStream(sonatypeScanGzipFile))) {
       FileUtils.copyFile(new File(resource.toURI()), gzipStream);
     }
     return sonatypeScanGzipFile;
+  }
+
+  private URL getTestResource(final String fileName) {
+    return getClass().getResource("/ThirdPartyResultsProcessorTest/" + fileName);
   }
 
   private void assertFilteredThirdPartyScanContentFile(
@@ -407,7 +445,7 @@ public class ThirdPartyScanResultsProcessorTest
       assertThat(component.getDescription()).isNull();
       assertThat(component.getExternalReferences()).isNull();
       assertThat(component.getExtensibleTypes()).isNull();
-      assertThat(component.getGroup()).isNull();
+      assertThat(component.getGroup()).isNotNull();
       assertThat(component.getLicenseChoice()).isNull();
       assertThat(component.getPedigree()).isNull();
       assertThat(component.getPublisher()).isNull();

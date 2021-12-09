@@ -20,6 +20,7 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.model.ProjectScanItem;
 
 import com.google.gson.Gson;
 import com.neuvector.model.ModuleCve;
@@ -51,7 +52,7 @@ public class ContainerResultHandler extends SbomResultHandler
   public static final String SONATYPE_CONTAINER = "Sonatype-Container";
 
   @Override
-  public String handleAndFilterContents(
+  public FilteredThirdPartyContent handleAndFilterContents(
       ThirdPartyScanContent content,
       ThirdPartyFile thirdPartyFile)
   {
@@ -59,15 +60,16 @@ public class ContainerResultHandler extends SbomResultHandler
       if (!StringUtils.isBlank(content.getContent())) {
         Bom sourceBom = parseBom(content);
         Bom targetBom = new Bom();
+        List<ProjectScanItem> moduleDependencies = new ArrayList<>();
         log.info("Processing container analysis content");
-        processSbom(content, sourceBom, targetBom, thirdPartyFile);
+        processSbom(content, sourceBom, targetBom, thirdPartyFile, moduleDependencies);
 
         if (targetBom.getComponents() != null && targetBom.getComponents().isEmpty()) {
-          return content.getContent();
+          return new FilteredThirdPartyContent(content.getContent(), moduleDependencies);
         }
-        return generateFilteredSbom(targetBom);
+        return new FilteredThirdPartyContent(generateFilteredSbom(targetBom), moduleDependencies);
       }
-      return content.getContent();
+      return new FilteredThirdPartyContent(content.getContent());
     }
     catch (Exception e) {
       throw new RuntimeException("Error filtering container file " + content.getPath(), e);

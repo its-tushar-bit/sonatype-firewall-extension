@@ -1,0 +1,79 @@
+<scan version="2.32.1-01">
+  <configuration>
+    <properties>
+      <property name="archiveNames" value="true"/>
+      <property name="anonymizeArtifactIds" value="false"/>
+      <property name="fileExcludes" value=""/>
+      <property name="anonymizePaths" value="false"/>
+      <property name="maxDepth" value="256"/>
+      <property name="operatingSystem" value="true"/>
+      <property name="hashFiles" value="true"/>
+      <property name="fileIncludes" value=""/>
+      <property name="procArch" value="true"/>
+      <property name="maxSymlinkDepth" value="5"/>
+      <property name="jreInfo" value="true"/>
+      <property name="proprietaryPackages" value=""/>
+      <property name="pomProperties" value="true"/>
+      <property name="fileSizes" value="false"/>
+      <property name="nameHashes" value="true"/>
+      <property name="dirExcludes" value="**/.*, **/CVS"/>
+      <property name="hashJavaTypes" value="true"/>
+      <property name="ipAddresses" value="false"/>
+      <property name="dirIncludes" value=""/>
+      <property name="proprietaryRegexes" value=""/>
+      <property name="resourceNames" value="true"/>
+    </properties>
+  </configuration>
+  <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-cyclic-bom.xml">
+    <content><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.3">
+  <metadata>
+    <timestamp>2021-12-03T12:18:22Z</timestamp>
+    <component type="application" bom-ref="a-app">
+      <name>a</name>
+      <version>1.0</version>
+      <purl>pkg:npm/a@1.0</purl>
+    </component>
+  </metadata>
+  <components>
+    <component type="framework">
+      <name>b</name>
+      <version>1.0</version>
+      <purl>pkg:npm/b@1.0</purl>
+    </component>
+    <component type="library">
+      <name>c</name>
+      <version>1.0</version>
+      <purl>pkg:npm/c@1.0</purl>
+    </component>
+  </components>
+  <dependencies>
+    <dependency ref="a-app">
+      <dependency ref="pkg:npm/b@1.0"/>
+      <dependency ref="pkg:npm/c@1.0"/>
+    </dependency>
+    <dependency ref="pkg:npm/b@1.0">
+      <dependency ref="pkg:npm/c@1.0"/>
+    </dependency>
+    <dependency ref="pkg:npm/c@1.0">
+      <dependency ref="pkg:npm/b@1.0"/>
+    </dependency>
+  </dependencies>
+</bom>
+]]></content>
+  </item>
+  <project path="scan-cyclic-bom.xml" id="pkg:npm/a@1.0" kind="sbom">
+    <dependencies>
+      <dep id="pkg:npm/b@1.0" direct="true">
+        <dep id="pkg:npm/c@1.0"/>
+      </dep>
+      <dep id="pkg:npm/c@1.0" direct="true">
+        <dep id="pkg:npm/b@1.0"/>
+      </dep>
+    </dependencies>
+  </project>
+  <summary>
+    <startTime>2021-11-28T23:59:43+0000</startTime>
+    <endTime>2021-11-28T23:59:43+0000</endTime>
+  </summary>
+</scan>

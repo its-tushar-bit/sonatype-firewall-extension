@@ -11,10 +11,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
+import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -28,6 +30,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.test.LogOutput;
 
 import org.apache.commons.lang3.StringUtils;
@@ -35,12 +38,14 @@ import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguratio
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.ExtensibleType;
 import org.cyclonedx.model.Extension;
 import org.cyclonedx.model.Extension.ExtensionType;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.License;
+import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Source;
 import org.cyclonedx.model.vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability10;
@@ -91,7 +96,7 @@ public class SbomResultHandlerTest
         new ThirdPartyScanContent("clair-bom.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 2);
 
     List<ThirdPartyFileCoordinate> coordinates =
@@ -110,7 +115,7 @@ public class SbomResultHandlerTest
         new ThirdPartyScanContent(identificationSource + "-bom.xml", null, null, null,
             sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 2);
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
@@ -125,7 +130,7 @@ public class SbomResultHandlerTest
         new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom bom = assertFilteredSbomFile(filteredContent, 4);
     List<Component> components = bom.getComponents();
     assertThat(components).extracting(Component::getName)
@@ -152,7 +157,7 @@ public class SbomResultHandlerTest
         new ThirdPartyScanContent("clair-bom.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom bom = assertFilteredSbomFile(filteredContent, 2);
     List<Component> components = bom.getComponents();
     assertThat(components).extracting(Component::getName)
@@ -176,7 +181,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 7);
 
     List<ThirdPartyFileCoordinate> coordinates =
@@ -199,7 +204,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
 
     List<Component> components = filteredSbom.getComponents();
@@ -223,7 +228,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
 
     List<Component> components = filteredSbom.getComponents();
@@ -247,7 +252,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1, true);
     thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()).isEmpty();
   }
@@ -258,7 +263,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom unfilteredSbom = getBom(sbomContent);
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
 
@@ -285,7 +290,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
 
     List<Component> components = filteredSbom.getComponents();
@@ -313,7 +318,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
 
     List<Component> components = filteredSbom.getComponents();
@@ -356,7 +361,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
 
     List<Component> components = filteredSbom.getComponents();
@@ -380,7 +385,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
 
     List<Component> components = filteredSbom.getComponents();
@@ -406,7 +411,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
 
     List<Component> components = filteredSbom.getComponents();
@@ -420,7 +425,7 @@ public class SbomResultHandlerTest
       assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
       List<ThirdPartyCoordinateSecurity> coordinatesSecurity =
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
-      assertThat(coordinatesSecurity).hasSize(0);
+      assertThat(coordinatesSecurity).isEmpty();
     }
   }
 
@@ -430,7 +435,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
 
     List<Component> components = filteredSbom.getComponents();
@@ -444,7 +449,7 @@ public class SbomResultHandlerTest
       assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
       List<ThirdPartyCoordinateSecurity> coordinatesSecurity =
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
-      assertThat(coordinatesSecurity).hasSize(0);
+      assertThat(coordinatesSecurity).isEmpty();
     }
   }
 
@@ -455,7 +460,7 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
-      sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+      sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     }).withMessage("Error filtering sbom file sbom_1_0.xml");
   }
 
@@ -465,7 +470,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 5);
 
     List<Component> components = filteredSbom.getComponents();
@@ -502,7 +507,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
 
     List<Component> components = filteredSbom.getComponents();
@@ -516,7 +521,7 @@ public class SbomResultHandlerTest
       assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
       List<ThirdPartyCoordinateSecurity> coordinatesSecurity =
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
-      assertThat(coordinatesSecurity).hasSize(0);
+      assertThat(coordinatesSecurity).isEmpty();
     }
   }
 
@@ -526,7 +531,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
 
     List<ThirdPartyFileCoordinate> coordinates =
@@ -547,7 +552,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
 
     List<ThirdPartyFileCoordinate> coordinates =
@@ -560,11 +565,11 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, null);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(filteredContent).isNull();
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
-    assertThat(coordinates).hasSize(0);
+    assertThat(coordinates).isEmpty();
   }
 
   @Test
@@ -572,11 +577,11 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, "");
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(filteredContent).isBlank();
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
-    assertThat(coordinates).hasSize(0);
+    assertThat(coordinates).isEmpty();
   }
 
   @Test
@@ -601,11 +606,11 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     assertThatExceptionOfType(RuntimeException.class)
-        .isThrownBy(() -> sbomResultHandler.handleAndFilterContents(content, thirdPartyFile))
+        .isThrownBy(() -> sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent())
         .withMessage("Error filtering sbom file " + path);
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
-    assertThat(coordinates).hasSize(0);
+    assertThat(coordinates).isEmpty();
   }
 
   @Test
@@ -613,7 +618,7 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("scan-with-sbom-nested-component.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
   }
 
@@ -622,8 +627,12 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("sbom-v1_2.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
-    assertFilteredSbomFile(filteredContent, 2);
+    FilteredThirdPartyContent filteredContent =
+        sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String sbomXml = filteredContent.getContent();
+    Bom bom = assertFilteredSbomFile(sbomXml, 2);
+    assertThat(bom.getMetadata()).isNotNull();
+    assertThat(bom.getDependencies()).hasSize(4);
   }
 
   @Test
@@ -631,8 +640,235 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("sbom-v1_3.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
-    assertFilteredSbomFile(filteredContent, 2);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = assertFilteredSbomFile(filteredContent, 2);
+    assertThat(bom.getMetadata()).isNotNull();
+    assertThat(bom.getDependencies()).hasSize(4);
+  }
+
+  @Test
+  public void testProcessDependencyGraph() {
+    Bom sourceBom = new Bom();
+    Bom targetBom = new Bom();
+    Metadata metadata = new Metadata();
+    Component rootComponent = new Component();
+    rootComponent.setName("root");
+    rootComponent.setBomRef("root");
+    rootComponent.setVersion("1.0");
+    rootComponent.setPurl("pkg:npm/root@1.0");
+    metadata.setComponent(rootComponent);
+    sourceBom.setMetadata(metadata);
+    Dependency root = createDependencyList("root", "pkg:npm/direct1@1.0", "pkg:npm/direct2@2.0");
+    Dependency d1 = createDependencyList("pkg:npm/direct1@1.0", "pkg:npm/d1t1@1.1");
+    Dependency d2 = createDependencyList("pkg:npm/direct2@2.0", "pkg:npm/d2t1@1.1");
+    Dependency d1t1 = d1.getDependencies().get(0);
+    Dependency d2t1 = d2.getDependencies().get(0);
+    sourceBom.setDependencies(Arrays.asList(root, d1, d2, d1t1, d2t1));
+
+    List<ProjectScanItem> result = new ArrayList<>();
+
+    sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
+        new ThirdPartyFile("test-bom.xml", new Date()));
+
+    assertThat(result).hasSize(1).allSatisfy(projectItem -> {
+      assertThat(projectItem.getKind()).isEqualTo("sbom");
+      assertThat(projectItem.getId()).isEqualTo("pkg:npm/root@1.0");
+      assertThat(projectItem.getPath()).isEqualTo("test-bom.xml");
+      List<com.sonatype.insight.scan.model.Dependency> rootDependencies = projectItem.getDependencies();
+      assertThat(rootDependencies).hasSize(4)
+          .extracting(com.sonatype.insight.scan.model.Dependency::getId)
+          .containsExactlyInAnyOrder("pkg:npm/direct1@1.0", "pkg:npm/direct2@2.0",
+              "pkg:npm/d1t1@1.1", "pkg:npm/d2t1@1.1");
+      assertParentAndChildDependency(rootDependencies, "pkg:npm/direct1@1.0", "pkg:npm/d1t1@1.1");
+      assertParentAndChildDependency(rootDependencies, "pkg:npm/direct2@2.0", "pkg:npm/d2t1@1.1");
+    });
+    assertIdentityMetadata(targetBom, metadata);
+    assertThat(targetBom.getDependencies()).hasSize(5);
+  }
+
+  @Test
+  public void testProcessDependencyGraph_WithModulePurl_NoMetadata() {
+    Bom sourceBom = new Bom();
+    Bom targetBom = new Bom();
+    Dependency root = createDependencyList("pkg:npm/root@1.0", "pkg:npm/direct1@1.0", "pkg:npm/direct2@2.0");
+    Dependency d1 = createDependencyList("pkg:npm/direct1@1.0", "pkg:npm/d1t1@1.1");
+    Dependency d2 = createDependencyList("pkg:npm/direct2@2.0", "pkg:npm/d2t1@1.1");
+    Dependency d1t1 = d1.getDependencies().get(0);
+    Dependency d2t1 = d2.getDependencies().get(0);
+    sourceBom.setDependencies(Arrays.asList(root, d1, d2, d1t1, d2t1));
+
+    List<ProjectScanItem> result = new ArrayList<>();
+
+    sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
+        new ThirdPartyFile("test-bom.xml", new Date()));
+
+    assertThat(result).hasSize(1).allSatisfy(projectItem -> {
+      assertThat(projectItem.getKind()).isEqualTo("sbom");
+      assertThat(projectItem.getId()).isEqualTo("pkg:npm/root@1.0");
+      assertThat(projectItem.getPath()).isEqualTo("test-bom.xml");
+      List<com.sonatype.insight.scan.model.Dependency> rootDependencies = projectItem.getDependencies();
+      assertThat(rootDependencies).hasSize(4)
+          .extracting(com.sonatype.insight.scan.model.Dependency::getId)
+          .containsExactlyInAnyOrder("pkg:npm/direct1@1.0", "pkg:npm/direct2@2.0",
+              "pkg:npm/d1t1@1.1", "pkg:npm/d2t1@1.1");
+      assertParentAndChildDependency(rootDependencies, "pkg:npm/direct1@1.0", "pkg:npm/d1t1@1.1");
+      assertParentAndChildDependency(rootDependencies, "pkg:npm/direct2@2.0", "pkg:npm/d2t1@1.1");
+    });
+    assertThat(targetBom.getDependencies()).hasSize(5);
+  }
+
+  @Test
+  public void testProcessDependencyGraph_MissingRootPurl() {
+    Bom sourceBom = new Bom();
+    Bom targetBom = new Bom();
+    Metadata metadata = new Metadata();
+    Component rootComponent = new Component();
+    rootComponent.setName("root");
+    rootComponent.setBomRef("root");
+    rootComponent.setVersion("1.0");
+    metadata.setComponent(rootComponent);
+    sourceBom.setMetadata(metadata);
+    Dependency root = createDependencyList("root", "pkg:npm:/direct1@1.0", "pkg:npm:/direct2@2.0");
+    Dependency d1 = createDependencyList("pkg:npm:/direct1@1.0", "pkg:npm:/d1t1@1.1");
+    Dependency d2 = createDependencyList("pkg:npm:/direct2@2.0", "pkg:npm:/d2t1@1.1");
+    Dependency d1t1 = d1.getDependencies().get(0);
+    Dependency d2t1 = d2.getDependencies().get(0);
+    sourceBom.setDependencies(Arrays.asList(root, d1, d2, d1t1, d2t1));
+
+    List<ProjectScanItem> result = new ArrayList<>();
+
+    sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
+        new ThirdPartyFile("test-bom.xml", new Date()));
+
+    assertThat(result).isEmpty();
+    assertIdentityMetadata(targetBom, metadata);
+    assertThat(targetBom.getDependencies()).hasSize(5);
+  }
+
+  @Test
+  public void testProcessDependencyGraph_NoSourceDependencies() {
+    Bom sourceBom = new Bom();
+    Bom targetBom = new Bom();
+    Metadata metadata = new Metadata();
+    Component rootComponent = new Component();
+    rootComponent.setName("root");
+    rootComponent.setBomRef("root");
+    rootComponent.setVersion("1.0");
+    rootComponent.setPurl("pkg:npm/root@1.0");
+    metadata.setComponent(rootComponent);
+    sourceBom.setMetadata(metadata);
+
+    List<ProjectScanItem> result = new ArrayList<>();
+
+    sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
+        new ThirdPartyFile("test-bom.xml", new Date()));
+
+    assertThat(result).isEmpty();
+    assertIdentityMetadata(targetBom, metadata);
+    assertThat(targetBom.getDependencies()).isNull();
+  }
+
+  @Test
+  public void testProcessDependencyGraph_SourceGraphMissingLeafNodes_StillWorks() {
+    Bom sourceBom = new Bom();
+    Bom targetBom = new Bom();
+    Metadata metadata = new Metadata();
+    Component rootComponent = new Component();
+    rootComponent.setName("root");
+    rootComponent.setBomRef("root");
+    rootComponent.setVersion("1.0");
+    rootComponent.setPurl("pkg:npm/root@1.0");
+    metadata.setComponent(rootComponent);
+    sourceBom.setMetadata(metadata);
+    Dependency root = createDependencyList("root", "pkg:npm/direct1@1.0", "pkg:npm/direct2@2.0");
+    Dependency d1 = createDependencyList("pkg:npm/direct1@1.0", "pkg:npm/d1t1@1.1");
+    Dependency d2 = createDependencyList("pkg:npm/direct2@2.0", "pkg:npm/d2t1@1.1");
+    sourceBom.setDependencies(Arrays.asList(root, d1, d2));
+
+    List<ProjectScanItem> result = new ArrayList<>();
+
+    sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
+        new ThirdPartyFile("test-bom.xml", new Date()));
+
+    assertThat(result).hasSize(1).allSatisfy(projectItem -> {
+      assertThat(projectItem.getKind()).isEqualTo("sbom");
+      assertThat(projectItem.getId()).isEqualTo("pkg:npm/root@1.0");
+      assertThat(projectItem.getPath()).isEqualTo("test-bom.xml");
+      List<com.sonatype.insight.scan.model.Dependency> rootDependencies = projectItem.getDependencies();
+      assertThat(rootDependencies).hasSize(4)
+          .extracting(com.sonatype.insight.scan.model.Dependency::getId)
+          .containsExactlyInAnyOrder("pkg:npm/direct1@1.0", "pkg:npm/direct2@2.0",
+              "pkg:npm/d1t1@1.1", "pkg:npm/d2t1@1.1");
+      assertParentAndChildDependency(rootDependencies,"pkg:npm/direct1@1.0", "pkg:npm/d1t1@1.1");
+      assertParentAndChildDependency(rootDependencies,"pkg:npm/direct2@2.0", "pkg:npm/d2t1@1.1");
+    });
+    assertIdentityMetadata(targetBom, metadata);
+    assertThat(targetBom.getDependencies()).hasSize(3); //continue to copy the incomplete graph in target bom
+  }
+
+  private void assertIdentityMetadata(final Bom targetBom, final Metadata metadata) {
+    assertThat(metadata.getTimestamp()).isEqualTo(targetBom.getMetadata().getTimestamp());
+    Component projectComponent = targetBom.getMetadata().getComponent();
+    Component expectedComponent = metadata.getComponent();
+    assertThat(projectComponent.getBomRef()).isEqualTo(expectedComponent.getBomRef());
+    assertThat(projectComponent.getPurl()).isEqualTo(expectedComponent.getPurl());
+    assertThat(projectComponent.getGroup()).isEqualTo(expectedComponent.getGroup());
+    assertThat(projectComponent.getName()).isEqualTo(expectedComponent.getName());
+    assertThat(projectComponent.getVersion()).isEqualTo(expectedComponent.getVersion());
+    assertThat(projectComponent.getType()).isEqualTo(expectedComponent.getType());
+  }
+
+  private void assertParentAndChildDependency(
+      final List<com.sonatype.insight.scan.model.Dependency> rootDependencies,
+      final String parentPurl,
+      final String childPurl)
+  {
+    com.sonatype.insight.scan.model.Dependency parent =
+        rootDependencies.stream().filter(d -> d.getId().equals(parentPurl)).findFirst().get();
+    assertThat(parent.getDependencies().get(0).getId()).isEqualTo(childPurl);
+  }
+
+  @Test
+  public void testProcessDependencyGraph_IncorrectGraph_ResultsOnlyResolvables() {
+    //given
+    Bom sourceBom = new Bom();
+    Bom targetBom = new Bom();
+    Metadata metadata = new Metadata();
+    Component rootComponent = new Component();
+    rootComponent.setName("root");
+    rootComponent.setBomRef("root");
+    rootComponent.setVersion("1.0");
+    rootComponent.setPurl("pkg:npm/root@1.0");
+    metadata.setComponent(rootComponent);
+    sourceBom.setMetadata(metadata);
+    Dependency root = createDependencyList("root", "pkg:npm/direct1@1.0");
+    Dependency d2 = createDependencyList("pkg:npm/direct2@2.0", "pkg:npm/d2t1@1.1");
+    Dependency d2t1 = d2.getDependencies().get(0);
+    sourceBom.setDependencies(Arrays.asList(root, d2, d2t1));
+    List<ProjectScanItem> result = new ArrayList<>();
+
+    //when
+    sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
+        new ThirdPartyFile("test-bom.xml", new Date()));
+
+    //then
+    assertThat(result).hasSize(1).allSatisfy(projectItem -> {
+      assertThat(projectItem.getKind()).isEqualTo("sbom");
+      assertThat(projectItem.getId()).isEqualTo("pkg:npm/root@1.0");
+      assertThat(projectItem.getPath()).isEqualTo("test-bom.xml");
+      List<com.sonatype.insight.scan.model.Dependency> resultDependencies = projectItem.getDependencies();
+      assertThat(resultDependencies).hasSize(1) // can only resolve the root and its direct dependency
+          .extracting(com.sonatype.insight.scan.model.Dependency::getId)
+          .containsExactlyInAnyOrder("pkg:npm/direct1@1.0");
+    });
+    assertIdentityMetadata(targetBom, metadata);
+    assertThat(targetBom.getDependencies()).hasSize(3); //continue to copy the incorrect graph in target bom
+  }
+
+  private Dependency createDependencyList(String parentPurl, String... childPurls) {
+    Dependency parent = new Dependency(parentPurl);
+    Stream.of(childPurls).forEach(childPurl -> parent.addDependency(new Dependency(childPurl)));
+    return parent;
   }
 
   @Test
@@ -640,7 +876,7 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("scan-with-sbom-coords-no-purl.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 2);
   }
 
@@ -649,7 +885,7 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("scan-with-sbom-no-name-and-version-no-purl.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1, true);
   }
 
@@ -658,7 +894,7 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("scan-with-sbom-no-name-no-purl.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 2, true);
   }
 
@@ -667,13 +903,13 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("sbom-invalid-purl-invalid-coords.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(filteredContent).isNotNull();
     assertDebugLogOutput("Fallback to coordinates due to invalid purl: pkg:pypi/@1.2.3");
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
-    assertThat(coordinates).hasSize(0);
+    assertThat(coordinates).isEmpty();
   }
 
   @Test
@@ -681,7 +917,7 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("sbom-invalid-purl-valid-coords.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
     assertDebugLogOutput("Fallback to coordinates due to invalid purl: pkg:pypi/@1.2.3");
 
@@ -695,7 +931,7 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("sbom-invalid-valid-purl-no-mandatory-value.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
     assertDebugLogOutput("PackageUrl is not valid pkg:pypi/django");
 
@@ -711,7 +947,7 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("sbom-unknow-format-purl.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
 
     List<ThirdPartyFileCoordinate> coordinates =
@@ -740,7 +976,7 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("sbom-truncate-coordinates-for-hds.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
 
     // check filtered content (will be sent to HDS) has been truncated
@@ -818,8 +1054,6 @@ public class SbomResultHandlerTest
       assertThat(component.getExtensibleTypes()).isNull();
       assertThat(component.getExtensions()).isNull();
     }
-    assertThat(bom.getMetadata()).isNull();
-    assertThat(bom.getDependencies()).isNull();
     assertThat(bom.getCompositions()).isNull();
     assertThat(bom.getServices()).isNull();
     assertThat(bom.getExternalReferences()).isNull();
@@ -894,7 +1128,7 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("sbom-component-license-vulnerability.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
 
     // check filtered content (will be sent to HDS) has only coordinates, hash or purl
     Bom filteredSbom = getBom(filteredContent);
@@ -927,7 +1161,7 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("sbom-invalid-purl-missing-coords.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
     assertDebugLogOutput("Component jackson-databind 2.9.9 is missing coordinates." +
         " The following coordinates are missing: [type]");

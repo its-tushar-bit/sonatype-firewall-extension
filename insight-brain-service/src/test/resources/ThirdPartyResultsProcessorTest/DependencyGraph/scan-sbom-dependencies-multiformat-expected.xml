@@ -1,0 +1,82 @@
+<scan version="2.32.1-01">
+  <configuration>
+    <properties>
+      <property name="archiveNames" value="true"/>
+      <property name="anonymizeArtifactIds" value="false"/>
+      <property name="fileExcludes" value=""/>
+      <property name="anonymizePaths" value="false"/>
+      <property name="maxDepth" value="256"/>
+      <property name="operatingSystem" value="true"/>
+      <property name="hashFiles" value="true"/>
+      <property name="fileIncludes" value=""/>
+      <property name="procArch" value="true"/>
+      <property name="maxSymlinkDepth" value="5"/>
+      <property name="jreInfo" value="true"/>
+      <property name="proprietaryPackages" value=""/>
+      <property name="pomProperties" value="true"/>
+      <property name="fileSizes" value="false"/>
+      <property name="nameHashes" value="true"/>
+      <property name="dirExcludes" value="**/.*, **/CVS"/>
+      <property name="hashJavaTypes" value="true"/>
+      <property name="ipAddresses" value="false"/>
+      <property name="dirIncludes" value=""/>
+      <property name="proprietaryRegexes" value=""/>
+      <property name="resourceNames" value="true"/>
+    </properties>
+  </configuration>
+  <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-multiformat-bom.xml">
+    <content><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.3">
+  <metadata>
+    <timestamp>2021-12-03T12:18:22Z</timestamp>
+    <component type="application" bom-ref="acme-app">
+      <name>Acme Application</name>
+      <version>9.1.1</version>
+      <purl>pkg:maven/org.acme/acme-app@9.1.1?type=jar</purl>
+    </component>
+  </metadata>
+  <components>
+    <component type="framework">
+      <group>org.acme</group>
+      <name>genericdep</name>
+      <version>1.0.0</version>
+      <purl>pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar</purl>
+    </component>
+    <component type="library">
+      <name>pydep</name>
+      <version>3.1.0</version>
+      <purl>pkg:pypi/pydep@3.1.0?extension=tgz&amp;qualifier=cp27_win</purl>
+    </component>
+    <component type="library">
+      <name>crandep</name>
+      <version>3.0.0</version>
+      <purl>pkg:cran/crandep@3.0.0</purl>
+    </component>
+  </components>
+  <dependencies>
+    <dependency ref="acme-app">
+      <dependency ref="pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar"/>
+      <dependency ref="pkg:cran/crandep@3.0.0"/>
+    </dependency>
+    <dependency ref="pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar">
+      <dependency ref="pkg:pypi/pydep@3.1.0?extension=tgz&amp;qualifier=cp27_win"/>
+    </dependency>
+    <dependency ref="pkg:cran/crandep@3.0.0"/>
+  </dependencies>
+</bom>
+]]></content>
+  </item>
+  <project id="pkg:maven/org.acme/acme-app@9.1.1?type=jar" kind="sbom" path="scan-multiformat-bom.xml">
+    <dependencies>
+      <dep direct="true" id="pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar">
+        <dep id="pkg:pypi/pydep@3.1.0?extension=tgz&amp;qualifier=cp27_win"/>
+      </dep>
+      <dep direct="true" id="pkg:cran/crandep@3.0.0"/>
+      <dep id="pkg:pypi/pydep@3.1.0?extension=tgz&amp;qualifier=cp27_win"/>
+    </dependencies>
+  </project>
+  <summary>
+    <startTime>2021-11-28T23:59:43+0000</startTime>
+    <endTime>2021-11-28T23:59:43+0000</endTime>
+  </summary>
+</scan>

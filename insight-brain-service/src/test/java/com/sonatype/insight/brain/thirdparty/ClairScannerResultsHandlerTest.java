@@ -61,7 +61,7 @@ public class ClairScannerResultsHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(clairScannerResult));
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);
 
     // check filtered content (sent to HDS) has been truncated
@@ -112,7 +112,7 @@ public class ClairScannerResultsHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(clairScannerResult));
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(filteredContent).isNotNull();
 
     ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);
@@ -161,7 +161,7 @@ public class ClairScannerResultsHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, null);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(filteredContent).isNull();
   }
 
@@ -170,7 +170,7 @@ public class ClairScannerResultsHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(new ClairScannerResult()));
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);
 
     assertThat(filteredClairScannerResult).isNotNull();
@@ -225,7 +225,7 @@ public class ClairScannerResultsHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(clairScannerResult));
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile);
+    String filteredContent = clairHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(filteredContent).isNotNull();
 
     ClairScannerResult filteredClairScannerResult = toClairScannerResult(filteredContent);

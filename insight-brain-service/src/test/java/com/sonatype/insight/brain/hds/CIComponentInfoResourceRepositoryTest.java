@@ -52,6 +52,6 @@ public class CIComponentInfoResourceRepositoryTest
 
   @Override
   protected void assertRemediation(ApiComponentRemediationValueDTO remediationValue) {
-    assertThat(remediationValue).isNotNull();
+    assertThat(remediationValue).isNull();
   }
 }

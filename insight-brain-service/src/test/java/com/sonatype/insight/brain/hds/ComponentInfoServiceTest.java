@@ -1425,7 +1425,7 @@ public class ComponentInfoServiceTest
   @Test
   public void testGetComponentVersionInfo_ReadPermission_Repository() throws Exception {
     ComponentVersionInfoDTO dto = testGetComponentVersionInfo_ReadPermission(repository, repository.getId(), null);
-    assertThat(dto.remediation).isNotNull();
+    assertThat(dto.remediation).isNull();
   }
 
   @Test

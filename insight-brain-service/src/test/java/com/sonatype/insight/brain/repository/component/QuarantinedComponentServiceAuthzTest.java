@@ -70,19 +70,6 @@ public class QuarantinedComponentServiceAuthzTest
   }
 
   @Test
-  public void testGetQuarantinedComponentVersionRemediation_Unauthenticated() {
-    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(setupTestData());
-    quarantinedComponentService.getQuarantineComponentVersionRemediation("token");
-  }
-
-  @Test
-  public void testGetQuarantinedComponentVersionRemediation_Authenticated() {
-    login();
-    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(setupTestData());
-    quarantinedComponentService.getQuarantineComponentVersionRemediation("token");
-  }
-
-  @Test
   public void testGetQuarantinedComponentPolicyViolations_Unauthenticated() {
     when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(setupTestData());
     quarantinedComponentService.getQuarantinedComponentPolicyViolations("token");

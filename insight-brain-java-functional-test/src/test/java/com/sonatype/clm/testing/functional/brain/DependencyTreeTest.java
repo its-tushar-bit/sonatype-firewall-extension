@@ -154,4 +154,21 @@ public class DependencyTreeTest
     SelenideElement title = componentDetailsPage.header().title();
     title.shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
   }
+
+  @Test
+  public void testDependencyTree_navigateBackFromComponentDetailsPage() {
+    dependencyTreePage.tree().shouldBe(visible);
+    ElementsCollection clickableTreeItems = dependencyTreePage.tree().clickableTreeItems();
+
+    clickableTreeItems.get(0).click();
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "891b3de68f449f8a1ad2"));
+
+    eyesWatcher.eyesCheck("component details page from dependency tree");
+
+    SelenideElement menuBarBackButton = MainHeader.backButton();
+    menuBarBackButton.shouldHave(text("Back to Dependency Tree"));
+    menuBarBackButton.click();
+
+    waitUntilUrl(DependencyTreePage.url(app, SCAN_ID));
+  }
 }

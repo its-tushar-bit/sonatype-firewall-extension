@@ -9,6 +9,7 @@ import { both, complement, compose, find, isNil, prop, propEq, propSatisfies } f
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { getViolationDetailsUrl, getVulnerabilityJsonDetailUrl, getApplicableWaiversUrl } from '../util/CLMLocation';
 import { isNilOrEmpty } from '../util/jsUtil';
+import { selectComponentViolations } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 
 export const VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED = 'VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED';
 export const VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED = 'VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED';
@@ -48,20 +49,23 @@ export function fetchApplicableWaivers(id) {
  */
 export function fetchCrossStageViolation(id) {
   return function (dispatch, getState) {
-    const { violationDetails, selectedViolationId } = getState().violation;
+    const state = getState();
+    const { violationDetails, selectedViolationId } = state.violation;
 
     if (selectedViolationId === id) {
       return Promise.resolve(violationDetails);
     }
 
-    return axios.get(getViolationDetailsUrl(id)).then(({ data }) =>
-      dispatch(
+    return axios.get(getViolationDetailsUrl(id)).then(({ data }) => {
+      const violations = selectComponentViolations(state);
+      const waived = violations ? prop('waived', find(propEq('policyId', data.policyId), violations)) : true;
+      return dispatch(
         payloadParamActionCreator(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED)({
-          violationDetails: data,
+          violationDetails: { ...data, waived },
           selectedViolationId: id,
         })
-      )
-    );
+      );
+    });
   };
 }
 

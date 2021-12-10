@@ -162,61 +162,60 @@ describe('PolicyViolationsTableRow', () => {
 
   describe('renders a cell for the waivers actions buttons and relevant indicators', () => {
     describe('renders indicators according to grandfathering and waivers', () => {
-      const getShallowIndicators = (additionalProps) => {
-        const component = getShallow(additionalProps),
+      const getMountedIndicators = (additionalProps) => {
+        const component = getMounted(additionalProps),
           rowCells = component.find(NxTableCell),
           waiversAndGrandfatheringCell = rowCells.at(4);
-
         return waiversAndGrandfatheringCell.find(PolicyViolationsTableRow.indicators);
       };
 
       it('renders a grandfathering indicator if the violation has been grandfathered', () => {
-        const indicators = getShallowIndicators({ violation: { ...minimalProps.violation, grandfathered: true } });
+        const indicators = getMountedIndicators({ violation: { ...minimalProps.violation, grandfathered: true } });
         expect(indicators).toExist();
 
-        const grandfatheringIcon = indicators.dive().find(NxFontAwesomeIcon);
+        const grandfatheringIcon = indicators.find(NxFontAwesomeIcon);
         expect(grandfatheringIcon).toExist();
 
-        expect(indicators.dive().find('span')).toHaveText('Grandfathered');
+        expect(indicators.find('span')).toHaveText('Grandfathered');
       });
 
       it('does not render a grandfathering indicator if the violation has not been grandfathered', () => {
-        const indicators = getShallowIndicators({ violation: { ...minimalProps.violation, grandfathered: false } });
-        expect(indicators.dive().find('span')).not.toExist();
+        const indicators = getMountedIndicators({ violation: { ...minimalProps.violation, grandfathered: false } });
+        expect(indicators.find('span')).not.toExist();
       });
 
       it('renders an information indicator when there are unapplied waivers', () => {
-        const indicators = getShallowIndicators({
+        const indicators = getMountedIndicators({
           violation: { ...minimalProps.violation, applicableWaivers: ['waiver1'] },
         });
-
-        const unnappliedIcon = indicators.dive().find(NxFontAwesomeIcon);
+        const unnappliedIcon = indicators.find(NxFontAwesomeIcon);
         expect(unnappliedIcon).toExist();
 
-        expect(indicators.dive().find('span')).toHaveText('Unapplied Waiver');
+        expect(indicators.find('span')).toHaveText('Unapplied Waiver');
       });
 
       it('does not render an information indicator when there are no unapplied waivers', () => {
-        const indicators = getShallowIndicators({ violation: { ...minimalProps.violation, applicableWaivers: [] } });
-        expect(indicators.dive().find('span')).not.toExist();
+        const indicators = getMountedIndicators({ violation: { ...minimalProps.violation, applicableWaivers: [] } });
+        expect(indicators.find('span')).not.toExist();
       });
 
       it('does not render an information indicator when the violation has been waived', () => {
-        const indicators = getShallowIndicators({
+        const indicators = getMountedIndicators({
           violation: { ...minimalProps.violation, applicableWaivers: ['waiver1'], waived: true },
         });
 
-        expect(indicators.dive().find('span')).not.toExist();
+        expect(indicators).toHaveText('1Active Waiver');
       });
 
       it('renders an ActiveWaiversIndicator when the violation has been waived and has applicableWaivers', () => {
-        const indicators = getShallowIndicators({
+        const indicators = getMountedIndicators({
           violation: { ...minimalProps.violation, applicableWaivers: ['waiver1', 'waiver2'], waived: true },
         });
 
-        const activeWaiversIndicator = indicators.dive().find(ActiveWaiversIndicator);
+        const activeWaiversIndicator = indicators.find(ActiveWaiversIndicator);
         expect(activeWaiversIndicator).toExist();
-        expect(activeWaiversIndicator).toHaveProp('noOfWaivers', 2);
+        expect(activeWaiversIndicator).toHaveProp('activeWaiverCount', 2);
+        expect(indicators).toHaveText('2Active Waivers');
       });
     });
   });

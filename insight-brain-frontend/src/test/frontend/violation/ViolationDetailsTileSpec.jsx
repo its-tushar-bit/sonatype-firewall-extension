@@ -38,7 +38,6 @@ describe('ViolationDetailsTile', function () {
     dateCreatorMock = spyOn(window, 'Date').and.returnValue(mockDate);
     stateGoMock = jasmine.createSpy('stateGo');
     goToWaiversMock = jasmine.createSpy('stateGo');
-
     getOwnerImageUrlMock = jasmine.createSpy('getOwnerImageUrl').and.returnValue('/rest/icon');
     stateGetMock = jasmine.createSpy('$state.get').and.returnValue('theState');
     stateHrefMock = jasmine.createSpy('$state.href').and.returnValue('#/foo');
@@ -80,6 +79,7 @@ describe('ViolationDetailsTile', function () {
         applicationName: 'App 1',
         displayName: { foo: 'bar' },
         filenames: ['/foo/bar'],
+        waived: true,
       },
       stageTypes: [
         { stageTypeId: 'build', shortName: 'Build' },
@@ -219,23 +219,34 @@ describe('ViolationDetailsTile', function () {
           waiverIndicator = componentWithZeroWaivers.find(ActiveWaiversIndicator);
 
         expect(waiverIndicator).toExist();
-        expect(waiverIndicator).toHaveProp('noOfWaivers', 0);
-        expect(waiverIndicator.html()).toContain('0');
-        expect(waiverIndicator.html()).toContain('Active Waivers');
-        expect(waiverIndicator.html()).toContain('iq-waiver-indicator--inactive');
+        expect(waiverIndicator).toHaveProp('activeWaiverCount', 0);
+        expect(waiverIndicator).toHaveProp('waived', true);
       });
 
       it('renders as active and singular when there is only one active waiver for the violation', function () {
         const componentWithOneWaiver = getShallowComponent({
             activeWaivers: ['an active waiver'],
+            isFromPolicyViolations: true,
           }),
           waiverIndicator = componentWithOneWaiver.find(ActiveWaiversIndicator);
 
         expect(waiverIndicator).toExist();
-        expect(waiverIndicator).toHaveProp('noOfWaivers', 1);
-        expect(waiverIndicator.html()).toContain('1');
-        expect(waiverIndicator.html()).toContain('Active Waiver');
-        expect(waiverIndicator.html()).not.toContain('iq-waiver-indicator--inactive');
+        expect(waiverIndicator).toHaveProp('activeWaiverCount', 1);
+        expect(waiverIndicator).toHaveProp('waived', true);
+        expect(waiverIndicator).toHaveProp('showUnapplied', true);
+      });
+
+      it('renders as active and unapplied when waived is false and showUnapplied is set', function () {
+        const componentWithOneWaiver = getShallowComponent({
+            activeWaivers: ['an active waiver'],
+
+            violationDetails: { ...minimalProps.violationDetails, waived: false },
+          }),
+          waiverIndicator = componentWithOneWaiver.find(ActiveWaiversIndicator);
+
+        expect(waiverIndicator).toExist();
+        expect(waiverIndicator).toHaveProp('activeWaiverCount', 1);
+        expect(waiverIndicator).toHaveProp('waived', false);
       });
 
       it('renders as active and plural when there is more than one active waiver for the violation', function () {
@@ -244,10 +255,8 @@ describe('ViolationDetailsTile', function () {
           }),
           waiverIndicator = componentWithSeveralWaiver.find(ActiveWaiversIndicator);
         expect(waiverIndicator).toExist();
-        expect(waiverIndicator).toHaveProp('noOfWaivers', 3);
-        expect(waiverIndicator.html()).toContain('3');
-        expect(waiverIndicator.html()).toContain('Active Waivers');
-        expect(waiverIndicator.html()).not.toContain('iq-waiver-indicator--inactive');
+        expect(waiverIndicator).toHaveProp('activeWaiverCount', 3);
+        expect(waiverIndicator).toHaveProp('waived', true);
       });
 
       it('does not render nx-tile__actions section when policyOwner prop has null ownerId', function () {

@@ -8,14 +8,8 @@ import * as PropTypes from 'prop-types';
 import { flatten } from 'ramda';
 
 import ViolationExclamation from '../../react/ViolationExclamation';
-import {
-  NxFontAwesomeIcon,
-  NxTableCell,
-  NxTableRow,
-  NxThreatIndicator,
-  NxTooltip,
-} from '@sonatype/react-shared-components';
-import { faChevronRight, faHistory, faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
+import { NxFontAwesomeIcon, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { faChevronRight, faHistory } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import ActiveWaiversIndicator from '../../violation/ActiveWaiversIndicator';
 
@@ -129,19 +123,6 @@ const PolicyViolationsGrandfatheringAndWaiverIndicators = ({ violation }) => {
   const { waived, grandfathered, applicableWaivers = [] } = violation;
   const numberOfWaivers = applicableWaivers.length;
 
-  const pendingWaiversIndicator =
-    !waived && numberOfWaivers > 0 ? (
-      <NxTooltip title="Waiver will be applied after the next report evaluation">
-        <div>
-          <NxFontAwesomeIcon icon={faInfoCircle} />
-          <span>Unapplied Waiver</span>
-        </div>
-      </NxTooltip>
-    ) : null;
-
-  const appliedWaiversIndicator =
-    waived && numberOfWaivers > 0 ? <ActiveWaiversIndicator noOfWaivers={numberOfWaivers} /> : null;
-
   const grandfatheredIndicator = grandfathered ? (
     <div>
       <NxFontAwesomeIcon icon={faHistory} />
@@ -151,8 +132,9 @@ const PolicyViolationsGrandfatheringAndWaiverIndicators = ({ violation }) => {
 
   return (
     <Fragment>
-      {pendingWaiversIndicator}
-      {appliedWaiversIndicator}
+      {numberOfWaivers > 0 && (
+        <ActiveWaiversIndicator activeWaiverCount={numberOfWaivers} waived={waived} showUnapplied />
+      )}
       {grandfatheredIndicator}
     </Fragment>
   );

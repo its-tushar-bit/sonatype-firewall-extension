@@ -499,7 +499,7 @@ describe('waiverActions', function () {
           {
             type: VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED,
             payload: {
-              violationDetails,
+              violationDetails: { ...violationDetails, waived: true },
               selectedViolationId: 'foo',
             },
           },

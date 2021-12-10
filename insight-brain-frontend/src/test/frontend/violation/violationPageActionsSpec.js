@@ -94,7 +94,7 @@ describe('violationActions', function () {
       mockAxiosCalls({
         get: {
           [getViolationDetailsUrl('foo')]: Promise.resolve({
-            data: 'violationDetails',
+            data: { violationDetails: 'violationDetails' },
           }),
           [getApplicableWaiversUrl('foo')]: Promise.resolve({
             data: { activeWaivers: ['foo'], expiredWaivers: ['bar'] },
@@ -106,7 +106,7 @@ describe('violationActions', function () {
         expect(store.getActions().length).toBe(4);
         expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
         expect(store.getActions()[1].payload).toEqual({
-          violationDetails: 'violationDetails',
+          violationDetails: { violationDetails: 'violationDetails', waived: true },
           selectedViolationId: 'foo',
         });
         expect(store.getActions()[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
@@ -157,7 +157,7 @@ describe('violationActions', function () {
       mockAxiosCalls({
         get: {
           [getViolationDetailsUrl('foo')]: Promise.resolve({
-            data: 'violationDetails',
+            data: { violationDetails: 'violationDetails' },
           }),
           [getApplicableWaiversUrl('foo')]: () => Promise.reject(responseError),
         },
@@ -167,7 +167,7 @@ describe('violationActions', function () {
         expect(store.getActions().length).toBe(3);
         expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
         expect(store.getActions()[1].payload).toEqual({
-          violationDetails: 'violationDetails',
+          violationDetails: { violationDetails: 'violationDetails', waived: true },
           selectedViolationId: 'foo',
         });
         expect(store.getActions()[2].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FAILED);

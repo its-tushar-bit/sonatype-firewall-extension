@@ -129,7 +129,11 @@ export default function ViolationDetailsTile(props) {
         {policyExists && (
           <Fragment>
             <div className="nx-tile__actions">{manageWaiversButton}</div>
-            <ActiveWaiversIndicator noOfWaivers={activeWaivers.length} />
+            <ActiveWaiversIndicator
+              activeWaiverCount={activeWaivers.length}
+              waived={violationDetails.waived}
+              showUnapplied={isFromPolicyViolations}
+            />
           </Fragment>
         )}
       </header>
@@ -204,6 +208,7 @@ export const violationDetailsPropTypes = {
   applicationName: PropTypes.string.isRequired,
   displayName: PropTypes.object,
   filenames: PropTypes.array,
+  waived: PropTypes.bool,
 };
 
 export const applicableWaiverPropTypes = {

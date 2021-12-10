@@ -3,29 +3,47 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
+import { NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
+import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 
-export default function ActiveWaiversIndicator({ noOfWaivers = 0 }) {
-  const noActiveWaivers = noOfWaivers === 0;
+export default function ActiveWaiversIndicator({ activeWaiverCount = 0, waived, showUnapplied }) {
+  const hasActiveWaivers = activeWaiverCount > 0;
+  const showActiveWaiverIndicator = hasActiveWaivers && (!showUnapplied || waived);
+  const showUnappliedWaiverIndicator = hasActiveWaivers && showUnapplied && !waived;
   const containerClass = classnames('iq-waiver-indicator', {
-    'iq-waiver-indicator--inactive': noActiveWaivers,
+    'iq-waiver-indicator--inactive': !hasActiveWaivers,
+    'iq-waiver-indicator--active': showActiveWaiverIndicator,
   });
 
   const iconClass = classnames('iq-waiver-indicator__counter', {
-    'iq-waiver-indicator__counter--inactive': noActiveWaivers,
+    'iq-waiver-indicator__counter--inactive': !hasActiveWaivers,
   });
-  const indicatorText = noOfWaivers === 1 ? 'Active Waiver' : 'Active Waivers';
+  const indicatorText = activeWaiverCount === 1 ? 'Active Waiver' : 'Active Waivers';
 
   return (
     <div className={containerClass}>
-      <span className={iconClass}>{noOfWaivers}</span>
-      <span>{indicatorText}</span>
+      {showUnappliedWaiverIndicator ? (
+        <NxTooltip title="Waiver will be applied after the next report evaluation">
+          <div>
+            <NxFontAwesomeIcon icon={faInfoCircle} />
+            <span>Unapplied Waiver</span>
+          </div>
+        </NxTooltip>
+      ) : (
+        <Fragment>
+          <span className={iconClass}>{activeWaiverCount}</span>
+          <span>{indicatorText}</span>
+        </Fragment>
+      )}
     </div>
   );
 }
 
 ActiveWaiversIndicator.propTypes = {
-  noOfWaivers: PropTypes.number.isRequired,
+  activeWaiverCount: PropTypes.number.isRequired,
+  waived: PropTypes.bool,
+  showUnapplied: PropTypes.bool,
 };

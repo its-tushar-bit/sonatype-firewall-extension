@@ -166,9 +166,12 @@
   display: flex;
   grid-column: 3;
   grid-row: 2;
-  color: var(--nx-swatch-green-30);
   height: 19px;
   text-align: right;
+}
+
+.iq-waiver-indicator--active {
+  color: var(--nx-swatch-green-30);
 }
 
 .iq-waiver-indicator--inactive {

@@ -26,6 +26,10 @@ public class NxTree
     return children(".nx-tree__item .nx-text-link");
   }
 
+  public ElementsCollection threatIndicators() {
+    return children(".nx-threat-indicator");
+  }
+
   public SelenideElement dependencyTypeIndicator(SelenideElement treeItem) {
     return treeItem.find(By.cssSelector(".iq-dependency-indicator"));
   }

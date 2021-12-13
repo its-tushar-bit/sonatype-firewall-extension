@@ -24,12 +24,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 0,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1253822086000
+      "catalogDate" : 1253822086000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.apache.lucene"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "lucene-spellchecker"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "2.9.0"
+        } ],
+        "name" : "lucene-spellchecker"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -53,12 +70,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 0,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1257241252000
+      "catalogDate" : 1257241252000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.apache.lucene"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "lucene-spellchecker"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "2.9.1"
+        } ],
+        "name" : "lucene-spellchecker"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -82,12 +116,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 0,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1276782880000
+      "catalogDate" : 1276782880000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.apache.lucene"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "lucene-spellchecker"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "2.9.3"
+        } ],
+        "name" : "lucene-spellchecker"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -111,12 +162,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 0,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1291216120000
+      "catalogDate" : 1291216120000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.apache.lucene"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "lucene-spellchecker"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "2.9.4"
+        } ],
+        "name" : "lucene-spellchecker"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -140,12 +208,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 0,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1267036459000
+      "catalogDate" : 1267036459000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.apache.lucene"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "lucene-spellchecker"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "2.9.2"
+        } ],
+        "name" : "lucene-spellchecker"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -169,12 +254,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 0,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1236204130000
+      "catalogDate" : 1236204130000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.apache.lucene"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "lucene-spellchecker"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "2.4.1"
+        } ],
+        "name" : "lucene-spellchecker"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -198,12 +300,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 0,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1223488508000
+      "catalogDate" : 1223488508000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.apache.lucene"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "lucene-spellchecker"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "2.4.0"
+        } ],
+        "name" : "lucene-spellchecker"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -227,12 +346,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 5,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1521199227000
+      "catalogDate" : 1521199227000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.lucee"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "lucene-spellchecker"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "2.9.4"
+        } ],
+        "name" : "lucene-spellchecker"
+      }
     } ]
   }, {
     "hash" : "c32df577f739535648b0",
@@ -259,12 +395,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 0,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1278361761000
+      "catalogDate" : 1278361761000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.slf4j"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "slf4j-api"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "1.6.1"
+        } ],
+        "name" : "slf4j-api"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -288,12 +441,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 0,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1273315526000
+      "catalogDate" : 1273315526000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.slf4j"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "slf4j-api"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "1.6.0"
+        } ],
+        "name" : "slf4j-api"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -317,12 +487,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 0,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1272259135000
+      "catalogDate" : 1272259135000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.slf4j"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "slf4j-api"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "1.6.0-alpha2"
+        } ],
+        "name" : "slf4j-api"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -346,12 +533,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 0,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1271883753000
+      "catalogDate" : 1271883753000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.slf4j"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "slf4j-api"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "1.6.0-RC0"
+        } ],
+        "name" : "slf4j-api"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -375,12 +579,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 0,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1318881317000
+      "catalogDate" : 1318881317000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.slf4j"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "slf4j-api"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "1.6.3"
+        } ],
+        "name" : "slf4j-api"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -404,12 +625,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 0,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1313705583000
+      "catalogDate" : 1313705583000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.slf4j"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "slf4j-api"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "1.6.2"
+        } ],
+        "name" : "slf4j-api"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -433,12 +671,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 5,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1308554453000
+      "catalogDate" : 1308554453000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.ow2.bundles"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "ow2-bundles-externals-slf4j-jcl"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "1.0.29"
+        } ],
+        "name" : "ow2-bundles-externals-slf4j-jcl"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -462,12 +717,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 5,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1355925211000
+      "catalogDate" : 1355925211000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.ow2.bundles"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "ow2-bundles-externals-slf4j-jdk14"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "1.0.35"
+        } ],
+        "name" : "ow2-bundles-externals-slf4j-jdk14"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -491,12 +763,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 5,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1371031114000
+      "catalogDate" : 1371031114000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.ow2.util.bundles"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "slf4j-jcl-1.6.1"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "1.0.0"
+        } ],
+        "name" : "slf4j-jcl-1.6.1"
+      }
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -520,12 +809,29 @@
         "Severe" : 0,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 5,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : null,
-      "catalogDate" : 1347967249000
+      "catalogDate" : 1347967249000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "org.ow2.bundles"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "ow2-bundles-externals-slf4j-jcl"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "1.0.34"
+        } ],
+        "name" : "ow2-bundles-externals-slf4j-jcl"
+      }
     } ]
   }, {
     "hash" : "f0776db1593e215146d2",
@@ -552,12 +858,29 @@
         "Severe" : 2,
         "Moderate" : 0
       },
-      "effectiveLicenseThreat" : null,
+      "effectiveLicenseThreat" : 5,
       "matchState" : null,
       "proprietary" : null,
       "matchedByCoordinates" : false,
       "securityThreatLevel" : 7.5,
-      "catalogDate" : 1462894501000
+      "catalogDate" : 1462894501000,
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Group",
+          "value" : "apache-httpclient"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Artifact",
+          "value" : "commons-httpclient"
+        }, {
+          "value" : " : "
+        }, {
+          "field" : "Version",
+          "value" : "3.1"
+        } ],
+        "name" : "commons-httpclient"
+      }
     } ]
   } ]
 }

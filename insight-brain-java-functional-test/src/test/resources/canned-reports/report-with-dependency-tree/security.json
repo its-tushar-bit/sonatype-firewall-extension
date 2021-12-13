@@ -23,7 +23,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "data", "operational" ]
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "tomcat-util"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.23"
+      } ],
+      "name" : "tomcat-util"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -48,7 +65,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "data", "operational" ]
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "tomcat-util"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.23"
+      } ],
+      "name" : "tomcat-util"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -73,7 +107,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "functional", "data", "other" ]
+    "vulnerabilityCategories" : [ "functional", "data", "other" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "tomcat-util"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.23"
+      } ],
+      "name" : "tomcat-util"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -98,7 +149,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "data", "operational" ]
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "tomcat-util"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.23"
+      } ],
+      "name" : "tomcat-util"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -123,7 +191,24 @@
     "cvssVectorSource" : "cve_cvss_3",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "data" ]
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "tomcat-util"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.23"
+      } ],
+      "name" : "tomcat-util"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -148,7 +233,24 @@
     "cvssVectorSource" : "cve_cvss_3",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "privileged", "configuration" ]
+    "vulnerabilityCategories" : [ "privileged", "configuration" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "tomcat-util"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.23"
+      } ],
+      "name" : "tomcat-util"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -173,7 +275,24 @@
     "cvssVectorSource" : "cve_cvss_3",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "data" ]
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "tomcat-util"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.23"
+      } ],
+      "name" : "tomcat-util"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -198,32 +317,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "data" ]
-  }, {
-    "componentIdentifier" : {
-      "format" : "maven",
-      "coordinates" : {
-        "artifactId" : "geronimo-tomcat",
-        "classifier" : "",
-        "extension" : "jar",
-        "groupId" : "org.apache.geronimo",
-        "version" : "1.0"
-      }
-    },
-    "groupId" : "org.apache.geronimo",
-    "artifactId" : "geronimo-tomcat",
-    "version" : "1.0",
-    "hash" : "30a69958223a2c6215e2",
-    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-5034",
-    "reference" : "CVE-2011-5034",
-    "source" : "cve",
-    "score" : 7.8,
-    "cwe" : "20",
-    "cvssVectorString" : "AV:N/AC:L/Au:N/C:N/I:N/A:C",
-    "cvssVectorSource" : "cve_cvss_2",
-    "matchState" : "exact",
-    "proprietary" : false,
-    "vulnerabilityCategories" : [ "data" ]
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "geronimo"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "geronimo-tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0"
+      } ],
+      "name" : "geronimo-tomcat"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -248,7 +359,24 @@
     "cvssVectorSource" : "sonatype_cvss_3",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "functional", "operational" ]
+    "vulnerabilityCategories" : [ "functional", "operational" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-dbcp"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-dbcp"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4"
+      } ],
+      "name" : "commons-dbcp"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -273,7 +401,24 @@
     "cvssVectorSource" : "cve_cvss_3",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "data" ]
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "ch.qos.logback"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "logback-access"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "0.6"
+      } ],
+      "name" : "logback-access"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -298,7 +443,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "data" ]
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.mortbay.jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "6.1.15"
+      } ],
+      "name" : "jetty"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -323,7 +485,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "functional", "data", "operational" ]
+    "vulnerabilityCategories" : [ "functional", "data", "operational" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.mortbay.jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "6.1.15"
+      } ],
+      "name" : "jetty"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -348,7 +527,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "data", "operational" ]
+    "vulnerabilityCategories" : [ "data", "operational" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.mortbay.jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "6.1.15"
+      } ],
+      "name" : "jetty"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -373,7 +569,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "test_code", "functional", "data" ]
+    "vulnerabilityCategories" : [ "test_code", "functional", "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.mortbay.jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "6.1.15"
+      } ],
+      "name" : "jetty"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -398,7 +611,24 @@
     "cvssVectorSource" : "cve_cvss_3",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "functional", "operational" ]
+    "vulnerabilityCategories" : [ "functional", "operational" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.mortbay.jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "6.1.15"
+      } ],
+      "name" : "jetty"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -423,7 +653,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "functional", "data" ]
+    "vulnerabilityCategories" : [ "functional", "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.openid4java"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "openid4java"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "0.9.5"
+      } ],
+      "name" : "openid4java"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -448,7 +695,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "data" ]
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-beanutils"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-beanutils"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.8.3"
+      } ],
+      "name" : "commons-beanutils"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -473,7 +737,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "functional", "data", "operational" ]
+    "vulnerabilityCategories" : [ "functional", "data", "operational" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.geronimo.framework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "geronimo-security"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.1"
+      } ],
+      "name" : "geronimo-security"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -498,7 +779,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "functional", "data", "operational" ]
+    "vulnerabilityCategories" : [ "functional", "data", "operational" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.geronimo.framework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "geronimo-security"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.1"
+      } ],
+      "name" : "geronimo-security"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -523,7 +821,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "data" ]
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "servlets-default"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.4"
+      } ],
+      "name" : "servlets-default"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -548,7 +863,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "functional", "data", "other" ]
+    "vulnerabilityCategories" : [ "functional", "data", "other" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "servlets-default"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.4"
+      } ],
+      "name" : "servlets-default"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -573,7 +905,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "data" ]
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "catalina-host-manager"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.23"
+      } ],
+      "name" : "catalina-host-manager"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -598,7 +947,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "operational", "configuration" ]
+    "vulnerabilityCategories" : [ "operational", "configuration" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "catalina-host-manager"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.23"
+      } ],
+      "name" : "catalina-host-manager"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -623,7 +989,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "similar",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "functional", "data" ]
+    "vulnerabilityCategories" : [ "functional", "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "apache-httpclient"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-httpclient"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.1"
+      } ],
+      "name" : "commons-httpclient"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -648,7 +1031,24 @@
     "cvssVectorSource" : "cve_cvss_2",
     "matchState" : "similar",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "functional", "data" ]
+    "vulnerabilityCategories" : [ "functional", "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "apache-httpclient"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-httpclient"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.1"
+      } ],
+      "name" : "commons-httpclient"
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -673,6 +1073,23 @@
     "cvssVectorSource" : "sonatype_cvss_3",
     "matchState" : "similar",
     "proprietary" : false,
-    "vulnerabilityCategories" : [ "data" ]
+    "vulnerabilityCategories" : [ "data" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "apache-httpclient"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-httpclient"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.1"
+      } ],
+      "name" : "commons-httpclient"
+    }
   } ]
 }

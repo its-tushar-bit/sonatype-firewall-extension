@@ -32,7 +32,7 @@ function TreeNode({ items }) {
           onToggleCollapse={() => toggleTreePath(item.treePath)}
         >
           <NxTree.ItemLabel>
-            <NxThreatIndicator policyThreatLevel={item.policyThreatLevel} />
+            <NxThreatIndicator className="nx-tree__colored-icon" policyThreatLevel={item.policyThreatLevel} />
             {item.isInnerSource && <DependencyIndicator type="inner-source" />}
             <NxTextLink onClick={() => goToCDP(item.hash)}>{item.displayName}</NxTextLink>
           </NxTree.ItemLabel>

@@ -43,7 +43,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "tomcat-util"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.23"
+      } ],
+      "name" : "tomcat-util"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/geronimo/geronimo-tomcat@1.0?type=jar", "pkg:maven/geronimo/geronimo-tomcat-builder@1.1?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -88,7 +108,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-pool"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-pool"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4"
+      } ],
+      "name" : "commons-pool"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/commons-dbcp/commons-dbcp@1.4?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -133,7 +173,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.jclouds.driver"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jclouds-bouncycastle"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.3.1"
+      } ],
+      "name" : "jclouds-bouncycastle"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/org.jclouds.driver/jclouds-enterprise@1.3.1?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -178,7 +238,26 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.opencms.modules"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "com.alkacon.opencms.v8.twitter"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "8.0.2"
+      } ],
+      "name" : "com.alkacon.opencms.v8.twitter"
+    },
+    "directDependency" : true,
+    "innerSource" : false
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -226,7 +305,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "geronimo"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "geronimo-tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0"
+      } ],
+      "name" : "geronimo-tomcat"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/geronimo/geronimo-tomcat-builder@1.1?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -274,7 +373,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-dbcp"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-dbcp"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4"
+      } ],
+      "name" : "commons-dbcp"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/org.apache.flume.flume-ng-channels/flume-jdbc-channel@1.0.0-incubating?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -322,7 +441,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "cobertura"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "cobertura"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.6"
+      } ],
+      "name" : "cobertura"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/net.sf.xradar/xradar@1.1.2?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -367,7 +506,26 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "ch.qos.logback"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "logback-access"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "0.6"
+      } ],
+      "name" : "logback-access"
+    },
+    "directDependency" : true,
+    "innerSource" : false
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -415,7 +573,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.mortbay.jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jetty"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "6.1.15"
+      } ],
+      "name" : "jetty"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/ch.qos.logback/logback-access@0.6?type=jar", "pkg:maven/org.apache.avro/avro-ipc@1.5.0?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -463,7 +641,26 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.openid4java"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "openid4java"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "0.9.5"
+      } ],
+      "name" : "openid4java"
+    },
+    "directDependency" : true,
+    "innerSource" : false
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -508,7 +705,26 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "edu.stanford.ejalbert"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "BrowserLauncher2"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.3"
+      } ],
+      "name" : "BrowserLauncher2"
+    },
+    "directDependency" : true,
+    "innerSource" : false
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -556,7 +772,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-beanutils"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-beanutils"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.8.3"
+      } ],
+      "name" : "commons-beanutils"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/geronimo/geronimo-tomcat@1.0?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -604,7 +840,26 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.geronimo.framework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "geronimo-security"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.1"
+      } ],
+      "name" : "geronimo-security"
+    },
+    "directDependency" : true,
+    "innerSource" : false
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -653,6 +908,23 @@
       "id" : 3,
       "label" : "Not Applicable"
     },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.jclouds.driver"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jclouds-enterprise"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.3.1"
+      } ],
+      "name" : "jclouds-enterprise"
+    },
     "directDependency" : true,
     "innerSource" : true
   }, {
@@ -699,7 +971,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.flume.flume-ng-channels"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "flume-jdbc-channel"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.0-incubating"
+      } ],
+      "name" : "flume-jdbc-channel"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/org.apache.flume/flume-ng-node@1.0.0-incubating?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -747,7 +1039,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.flume"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "flume-ng-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.0-incubating"
+      } ],
+      "name" : "flume-ng-core"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/org.apache.flume/flume-ng-node@1.0.0-incubating?type=jar", "pkg:maven/org.apache.flume.flume-ng-channels/flume-jdbc-channel@1.0.0-incubating?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -792,7 +1104,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "javancss"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "javancss"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "29.50"
+      } ],
+      "name" : "javancss"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/cobertura/cobertura@1.6?type=jar", "pkg:maven/net.sf.xradar/xradar@1.1.2?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -840,7 +1172,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "servlets-default"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.4"
+      } ],
+      "name" : "servlets-default"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/geronimo/geronimo-tomcat@1.0?type=jar", "pkg:maven/geronimo/geronimo-tomcat-builder@1.1?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -888,7 +1240,26 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "net.sf.xradar"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xradar"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.1.2"
+      } ],
+      "name" : "xradar"
+    },
+    "directDependency" : true,
+    "innerSource" : false
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -936,7 +1307,26 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.flume"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "flume-ng-node"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.0-incubating"
+      } ],
+      "name" : "flume-ng-node"
+    },
+    "directDependency" : true,
+    "innerSource" : false
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -984,7 +1374,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.avro"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "avro-ipc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.5.0"
+      } ],
+      "name" : "avro-ipc"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/org.apache.flume/flume-ng-core@1.0.0-incubating?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -1029,7 +1439,26 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "edu.ucar"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "unidataCommon"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "4.2.20"
+      } ],
+      "name" : "unidataCommon"
+    },
+    "directDependency" : true,
+    "innerSource" : false
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -1074,7 +1503,26 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "tomcat"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "catalina-host-manager"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "5.5.23"
+      } ],
+      "name" : "catalina-host-manager"
+    },
+    "directDependency" : true,
+    "innerSource" : false
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -1122,7 +1570,26 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "geronimo"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "geronimo-tomcat-builder"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.1"
+      } ],
+      "name" : "geronimo-tomcat-builder"
+    },
+    "directDependency" : true,
+    "innerSource" : false
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -1170,7 +1637,26 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.lucene"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "lucene-spellchecker"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.0"
+      } ],
+      "name" : "lucene-spellchecker"
+    },
+    "directDependency" : true,
+    "innerSource" : false
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -1215,7 +1701,27 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.slf4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "slf4j-api"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.6.1"
+      } ],
+      "name" : "slf4j-api"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/edu.ucar/unidataCommon@4.2.20?type=jar", "pkg:maven/org.apache.avro/avro-ipc@1.5.0?type=jar", "pkg:maven/org.apache.flume/flume-ng-core@1.0.0-incubating?type=jar", "pkg:maven/org.apache.flume/flume-ng-node@1.0.0-incubating?type=jar" ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -1260,7 +1766,26 @@
     "integrityRating" : {
       "id" : 3,
       "label" : "Not Applicable"
-    }
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "apache-httpclient"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-httpclient"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.1"
+      } ],
+      "name" : "commons-httpclient"
+    },
+    "directDependency" : true,
+    "innerSource" : false
   }, {
     "componentIdentifier" : null,
     "groupId" : null,
@@ -1275,7 +1800,7 @@
     "hash" : "c2d6a87d5c2bcd383900",
     "relativePopularity" : null,
     "createTime" : null,
-    "lastModifiedTime" : 1638456604000,
+    "lastModifiedTime" : 1639144436000,
     "lastModifiedEntryTime" : 1342168788000,
     "website" : null,
     "identificationSource" : null,
@@ -1289,6 +1814,13 @@
       "hasIdentity" : true,
       "hasSecurity" : true
     },
-    "integrityRating" : null
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "sample-application.zip"
+      } ],
+      "name" : "sample-application.zip"
+    }
   } ]
 }

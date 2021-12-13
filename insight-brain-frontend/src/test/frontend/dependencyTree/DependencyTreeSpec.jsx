@@ -49,6 +49,41 @@ describe('DependencyTree', () => {
     expect(clickableTreeNode).toHaveClassName('nx-text-link');
   });
 
+  it('renders threat indicator', () => {
+    const tree = [
+      {
+        displayName: 'org.apache.commons : commons-lang3 : 3.3.2',
+        children: [
+          {
+            displayName: 'taglibs : standard : 1.1.2.ff',
+            children: null,
+            isOpen: false,
+            treePath: [0, 'children', 0],
+            hash: 'qwert32145',
+            policyThreatLevel: 10,
+          },
+          {
+            displayName: 'taglibs : standard : 1.1.2.hh',
+            children: null,
+            isOpen: true,
+            treePath: [0, 'children', 1],
+            hash: 'qwert321432',
+            policyThreatLevel: 6,
+          },
+        ],
+        isOpen: true,
+        treePath: [0],
+        hash: 'qwert3214',
+        policyThreatLevel: 1,
+      },
+    ];
+    renderComponent({ dependencyTree: tree });
+
+    expect(screen.getAllByRole('img')[0]).toHaveClassName('nx-threat-indicator--low');
+    expect(screen.getAllByRole('img')[1]).toHaveClassName('nx-threat-indicator--critical');
+    expect(screen.getAllByRole('img')[2]).toHaveClassName('nx-threat-indicator--severe');
+  });
+
   it('renders an inner source icon', () => {
     const mockTree = [
       {

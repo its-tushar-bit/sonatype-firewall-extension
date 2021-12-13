@@ -9,6 +9,7 @@ import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.naming.AuthenticationException;
 import javax.naming.NameNotFoundException;
@@ -1388,6 +1389,40 @@ public class LdapServiceTest
 
     List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Epsilon");
     assertThat(users).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1", "test_user2");
+  }
+
+  @Test
+  public void testGetUsersByGroup_Static_OmitsLdapMatchingRuleInChain() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
+    LdapConnection ldapConnection = createLdapConnection(ldapServer);
+    startLdapServer(testLdapServer4, ldapConnection);
+
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupObjectClass("groupOfNames");
+    ldapUserMapping.setGroupMemberAttribute("member:" + LdapQuery.LDAP_MATCHING_RULE_IN_CHAIN + ":");
+    ldapUserMapping.setGroupMemberFormat("${dn}");
+    new LdapUserMappingDAO().update(ldapUserMapping);
+
+    List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Epsilon");
+    assertThat(users).extracting(LdapUser::getUsername).containsExactlyInAnyOrder("test_user1", "test_user2");
+  }
+
+  @Test
+  public void testGetUsersByGroup_Static_NoMembers() throws Exception {
+    LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
+    LdapConnection ldapConnection = createLdapConnection(ldapServer);
+    startLdapServer(testLdapServer4, ldapConnection);
+
+    LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+    ldapUserMapping.setGroupObjectClass("groupOfNames");
+    ldapUserMapping.setGroupMemberAttribute("doesNotExist");
+    ldapUserMapping.setGroupMemberFormat("${dn}");
+    new LdapUserMappingDAO().update(ldapUserMapping);
+
+    List<LdapUser> users = ldapService.getUsersByGroup(ldapServer, "Epsilon");
+    assertThat(users).extracting(LdapUser::getUsername).isEmpty();
   }
 
   @Test

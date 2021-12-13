@@ -118,7 +118,10 @@ public class PolicyAlertEmailResolver
         for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
           try {
             for (LdapUser ldapUser : ldapService.getUsersByGroup(ldapServer, member.getInternalName())) {
-              emailAddresses.add(ldapUser.getEmail());
+              String email = ldapUser.getEmail();
+              if (email != null) {
+                emailAddresses.add(email);
+              }
             }
           }
           catch (Exception e) {

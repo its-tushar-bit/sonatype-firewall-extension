@@ -54,6 +54,11 @@ class LdapQuery
 {
   private static final Logger log = LoggerFactory.getLogger(LdapQuery.class);
 
+  // Visible for testing
+  static final String LDAP_MATCHING_RULE_IN_CHAIN = "1.2.840.113556.1.4.1941";
+
+  private static final String LDAP_MATCHING_RULE_IN_CHAIN_SUFFIX = ":" + LDAP_MATCHING_RULE_IN_CHAIN + ":";
+
   private static interface StringMatcher
   {
     boolean matches(String str, String searchStr);
@@ -674,8 +679,13 @@ class LdapQuery
   }
 
   private List<LdapUser> getUsersByStaticGroup(LdapContext ctx, String groupName) throws NamingException {
+    String groupMemberAttribute = ldapUserMapping.getGroupMemberAttribute();
+    if (groupMemberAttribute.endsWith(LDAP_MATCHING_RULE_IN_CHAIN_SUFFIX)) {
+      groupMemberAttribute =
+          groupMemberAttribute.substring(0, groupMemberAttribute.indexOf(LDAP_MATCHING_RULE_IN_CHAIN_SUFFIX));
+    }
     String[] attributes =
-        pickAttributes(ldapUserMapping.getGroupIDAttribute(), ldapUserMapping.getGroupMemberAttribute());
+        pickAttributes(ldapUserMapping.getGroupIDAttribute(), groupMemberAttribute);
     Multimap<String, String> attributeValues = ArrayListMultimap.create();
     attributeValues.put(escapeAttribute(ldapUserMapping.getGroupIDAttribute(), false),
         escapeAttribute(groupName, false));
@@ -684,8 +694,10 @@ class LdapQuery
     try (SearchResults results = searchGroupsByAttributes(ctx, attributeValues, attributes, 0)) {
       while (results.hasMoreElements()) {
         SearchResult result = results.next();
-        Set<String> members = getAttributeValues(result.getAttributes(), ldapUserMapping.getGroupMemberAttribute());
-        users.addAll(getUsersFromGroupMembers(ctx, ldapUserMapping.getGroupMemberFormat(), members));
+        Set<String> members = getAttributeValues(result.getAttributes(), groupMemberAttribute);
+        if (members != null && !members.isEmpty()) {
+          users.addAll(getUsersFromGroupMembers(ctx, ldapUserMapping.getGroupMemberFormat(), members));
+        }
       }
     }
     return users;

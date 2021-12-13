@@ -25,6 +25,20 @@ departmentNumber: ab
 departmentNumber: xb
 departmentNumber: abc
 
+dn: uid=test_user_no_mail,ou=users,dc=company,dc=com
+uid: test_user_no_mail
+givenName: Test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+sn: User
+cn: Test User No Mail
+userPassword: {md5}rQ8H83Kkz8RJZFwzDwk0fg==
+departmentNumber: ab
+departmentNumber: xb
+departmentNumber: abc
+
 dn: uid=test_user2_1,ou=users,dc=company,dc=com
 uid: test_user2_1
 givenName: Test
@@ -100,6 +114,7 @@ objectClass: top
 objectClass: groupOfNames
 member: uid=test_user1_1,ou=users,dc=company,dc=com
 member: uid=test_user2_1,ou=users,dc=company,dc=com
+member: uid=test_user_no_mail,ou=users,dc=company,dc=com
 
 dn: cn=Delta,ou=groups,dc=company,dc=com
 cn: Delta

@@ -625,7 +625,7 @@ public class ComponentDetailsTest
     componentWaiversTable.getRows().shouldHaveSize(1);
     SelenideElement row1 = componentWaiversTable.getRow(1);
     ElementsCollection row1Cells = row1.findAll(".nx-cell");
-    row1Cells.shouldHave(texts("License-Banned", "License not approved in any situation",
+    row1Cells.shouldHave(texts("License-Banned\nLicense not approved in any situation",
         dateString, "Application - ApplicationReportTest", "com.mycila : license-maven-plugin : 2.11", "- -", ""));
     eyesWatcher.eyesCheck("component details violations tab component waivers popover");
     componentWaiversTable.deleteWaiverButton(1).click();

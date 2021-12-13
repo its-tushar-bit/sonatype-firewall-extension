@@ -476,41 +476,38 @@ public class TransitiveViolationsTest
     componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHaveSize(3);
 
     ElementsCollection appPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
-        .find(Condition.text(application.getName())).findAll("td").shouldHaveSize(7);
-    appPolicyWaiverCells.get(0).shouldHave(Condition.text(appPolicy.getName()));
-    appPolicyWaiverCells.get(1)
-        .shouldHave(Condition.text(appPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
-    appPolicyWaiverCells.get(2).shouldHave(Condition.text(simpleDateFormat.format(appPolicyWaiver.getCreateTime())));
-    appPolicyWaiverCells.get(3)
+        .find(Condition.text(application.getName())).findAll("td").shouldHaveSize(6);
+    appPolicyWaiverCells.get(0).shouldHave(Condition.text(appPolicy.getName()
+        + '\n' + appPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
+    appPolicyWaiverCells.get(1).shouldHave(Condition.text(simpleDateFormat.format(appPolicyWaiver.getCreateTime())));
+    appPolicyWaiverCells.get(2)
         .shouldHave(Condition.text(application.getType().name() + " - " + application.getName()));
-    appPolicyWaiverCells.get(4).shouldHave(Condition.text("g : atransitivey : v"));
-    appPolicyWaiverCells.get(5).shouldHave(Condition.text(appPolicyWaiver.getComment()));
+    appPolicyWaiverCells.get(3).shouldHave(Condition.text("g : atransitivey : v"));
+    appPolicyWaiverCells.get(4).shouldHave(Condition.text(appPolicyWaiver.getComment()));
 
     ElementsCollection orgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
-        .find(Condition.text(organization.getName())).findAll("td").shouldHaveSize(7);
-    orgPolicyWaiverCells.get(0).shouldHave(Condition.text(orgPolicy.getName()));
-    orgPolicyWaiverCells.get(1)
-        .shouldHave(Condition.text(orgPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
-    orgPolicyWaiverCells.get(2).shouldHave(Condition.text(simpleDateFormat.format(orgPolicyWaiver.getCreateTime())));
-    orgPolicyWaiverCells.get(3)
+        .find(Condition.text(organization.getName())).findAll("td").shouldHaveSize(6);
+    orgPolicyWaiverCells.get(0).shouldHave(Condition.text(orgPolicy.getName()
+        + '\n' + orgPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
+    orgPolicyWaiverCells.get(1).shouldHave(Condition.text(simpleDateFormat.format(orgPolicyWaiver.getCreateTime())));
+    orgPolicyWaiverCells.get(2)
         .shouldHave(Condition.text(organization.getType().name() + " - " + organization.getName()));
-    orgPolicyWaiverCells.get(4).shouldHave(Condition.text("g : ZtransitiveY : v"));
-    orgPolicyWaiverCells.get(5).shouldHave(Condition.text("- -"));
+    orgPolicyWaiverCells.get(3).shouldHave(Condition.text("g : ZtransitiveY : v"));
+    orgPolicyWaiverCells.get(4).shouldHave(Condition.text("- -"));
 
     ElementsCollection rootOrgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
-        .find(Condition.text(rootOrganization.getName())).findAll("td").shouldHaveSize(7);
-    rootOrgPolicyWaiverCells.get(0).shouldHave(Condition.text(rootOrgPolicy.getName()));
+        .find(Condition.text(rootOrganization.getName())).findAll("td").shouldHaveSize(6);
+    rootOrgPolicyWaiverCells.get(0).shouldHave(Condition.text(rootOrgPolicy.getName()
+        + '\n' + rootOrgPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
     rootOrgPolicyWaiverCells.get(1)
-        .shouldHave(Condition.text(rootOrgPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
-    rootOrgPolicyWaiverCells.get(2)
         .shouldHave(Condition.text(simpleDateFormat.format(rootOrgPolicyWaiver.getCreateTime())));
-    rootOrgPolicyWaiverCells.get(3).shouldHave(Condition.text(rootOrganization.getName()));
-    rootOrgPolicyWaiverCells.get(4).shouldHave(Condition.text("All"));
-    rootOrgPolicyWaiverCells.get(5).shouldHave(Condition.text("- -"));
+    rootOrgPolicyWaiverCells.get(2).shouldHave(Condition.text(rootOrganization.getName()));
+    rootOrgPolicyWaiverCells.get(3).shouldHave(Condition.text("All"));
+    rootOrgPolicyWaiverCells.get(4).shouldHave(Condition.text("- -"));
 
     eyesWatcher.eyesCheck();
 
-    orgPolicyWaiverCells.get(6).find(".nx-btn--delete-waiver").click();
+    orgPolicyWaiverCells.get(5).find(".nx-btn--delete-waiver").click();
     DeleteWaiverModal deleteWaiverModal = new DeleteWaiverModal();
     deleteWaiverModal.yesButton().click();
     componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHaveSize(2);

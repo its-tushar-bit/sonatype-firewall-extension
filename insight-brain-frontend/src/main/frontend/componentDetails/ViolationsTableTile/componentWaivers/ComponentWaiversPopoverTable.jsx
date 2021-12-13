@@ -23,25 +23,27 @@ import { waiverType, displayWaiverScope } from '../../../util/waiverUtils';
 export const ComponentWaiversTableRow = ({ waiver, setWaiverToDelete, componentName }) => {
   return (
     <NxTableRow>
-      <NxTableCell className="iq-component-violations-waivers-table--policy-name">{waiver.policyName}</NxTableCell>
-      <NxTableCell className="iq-component-violations-waivers-table--constraints">
-        {waiver.constraintFacts && waiver.constraintFacts[0].constraintName}
+      <NxTableCell className="iq-component-violations-waivers-table__policy-and-constraints">
+        <div className="iq-component-violations-waivers-table__policy">{waiver.policyName}</div>
+        <div className="iq-component-violations-waivers-table__constraints">
+          {waiver.constraintFacts && waiver.constraintFacts[0].constraintName}
+        </div>
       </NxTableCell>
-      <NxTableCell className="visual-testing-ignore iq-component-violations-waivers-table--created">
+      <NxTableCell className="visual-testing-ignore iq-component-violations-waivers-table__created">
         {formatDate(waiver.createTime, STANDARD_DATE_FORMAT)}
       </NxTableCell>
-      <NxTableCell className="iq-component-violations-waivers-table--scope">{displayWaiverScope(waiver)}</NxTableCell>
-      <NxTableCell className="iq-component-violations-waivers-table--component-name">
+      <NxTableCell className="iq-component-violations-waivers-table__scope">{displayWaiverScope(waiver)}</NxTableCell>
+      <NxTableCell className="iq-component-violations-waivers-table__component-name">
         {waiver.hash ? componentName : 'All'}
       </NxTableCell>
-      <NxTableCell className="iq-component-violations-waivers-table--comments">{waiver.comment || '- -'}</NxTableCell>
+      <NxTableCell className="iq-component-violations-waivers-table__comments">{waiver.comment || '- -'}</NxTableCell>
       <NxTableCell>
         <div className="nx-btn-bar">
           <NxButton
             onClick={() => setWaiverToDelete(waiver)}
             variant="icon-only"
             title="Delete"
-            className="nx-btn--delete-waiver"
+            className="nx-btn iq-component-violations-waivers-table__delete-btn"
           >
             <NxFontAwesomeIcon icon={faTrashAlt} />
           </NxButton>
@@ -62,8 +64,7 @@ export default function ComponentWaiversPopoverTable({ componentName, waivers = 
     <NxTable className="iq-policy-violations-table">
       <NxTableHead>
         <NxTableRow>
-          <NxTableCell>Policy</NxTableCell>
-          <NxTableCell>Constraint</NxTableCell>
+          <NxTableCell>Policy/Constraint</NxTableCell>
           <NxTableCell>Created</NxTableCell>
           <NxTableCell>Scope</NxTableCell>
           <NxTableCell>Components</NxTableCell>

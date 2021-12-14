@@ -6,7 +6,13 @@
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 
-import { NxTable, NxFontAwesomeIcon, NxTag, NxLoadingSpinner } from '@sonatype/react-shared-components';
+import {
+  NxTable,
+  NxFontAwesomeIcon,
+  NxTag,
+  NxLoadingSpinner,
+  NxSmallThreatCounter,
+} from '@sonatype/react-shared-components';
 import { faTrophy, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import { versionComparisonInfoPropType } from '../../componentDetailsUtils';
@@ -161,19 +167,23 @@ function renderHighestPolicyThreat(highestPolicyThreat, numberOfViolatedPolicies
     return 'None';
   }
 
-  // temporary using custom policy threat indicator until we upgrade RSC and use NxSmallThreatCounter
-  const tagClasses = classnames('iq-compare-versions__policy-threat-indicator', {
-    critical: highestPolicyThreat > 7,
-    severe: highestPolicyThreat <= 7 && highestPolicyThreat > 3,
-    moderate: highestPolicyThreat <= 3 && highestPolicyThreat > 1,
-    low: highestPolicyThreat === 1,
-    none: highestPolicyThreat === 0,
-  });
+  const counterAttrs = {};
+
+  if (highestPolicyThreat > 7) {
+    counterAttrs.criticalCount = highestPolicyThreat;
+  } else if (highestPolicyThreat <= 7 && highestPolicyThreat > 3) {
+    counterAttrs.severeCount = highestPolicyThreat;
+  } else if (highestPolicyThreat <= 3 && highestPolicyThreat > 1) {
+    counterAttrs.moderateCount = highestPolicyThreat;
+  } else if (highestPolicyThreat === 1) {
+    counterAttrs.lowCount = highestPolicyThreat;
+  } else if (highestPolicyThreat === 0) {
+    counterAttrs.noneCount = highestPolicyThreat;
+  }
 
   return (
     <Fragment>
-      {/*use toString() because 0 value breaks enzyme*/}
-      <NxTag className={tagClasses}>{highestPolicyThreat.toString()}</NxTag>
+      <NxSmallThreatCounter {...counterAttrs} />
       {numberOfViolatedPolicies > 1 && <div>within {numberOfViolatedPolicies} policies</div>}
     </Fragment>
   );

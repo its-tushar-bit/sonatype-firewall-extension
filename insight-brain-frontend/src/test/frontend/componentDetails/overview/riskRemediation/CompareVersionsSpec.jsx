@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as enzymeUtils from '../../../enzymeUtils';
-import { NxTableCell, NxLoadingSpinner } from '@sonatype/react-shared-components';
+import { NxTableCell, NxLoadingSpinner, NxSmallThreatCounter } from '@sonatype/react-shared-components';
 import { faTrophy, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import { CompareVersions } from 'MainRoot/componentDetails/overview/riskRemediation/CompareVersions';
 import {
@@ -78,18 +78,10 @@ describe('CompareVersions', () => {
         selectedVersion: { highestPolicyThreat: 8 },
       }).find('#highestPolicyThreat');
 
-      const currentThreat = highestPolicyThreatRow
-        .childAt(1)
-        .childAt(0)
-        .find('.iq-compare-versions__policy-threat-indicator');
-      const selectedThreat = highestPolicyThreatRow
-        .childAt(2)
-        .childAt(0)
-        .find('.iq-compare-versions__policy-threat-indicator');
-      expect(currentThreat).toHaveClassName('critical');
-      expect(currentThreat.childAt(0)).toHaveText('10');
-      expect(selectedThreat).toHaveClassName('critical');
-      expect(selectedThreat.childAt(0)).toHaveText('8');
+      const currentThreat = highestPolicyThreatRow.find(NxSmallThreatCounter).at(0);
+      const selectedThreat = highestPolicyThreatRow.find(NxSmallThreatCounter).at(1);
+      expect(currentThreat).toHaveProp('criticalCount', 10);
+      expect(selectedThreat).toHaveProp('criticalCount', 8);
     });
 
     it('renders threat-indicator styled as severe if policy threat is 4-7', () => {
@@ -98,18 +90,10 @@ describe('CompareVersions', () => {
         selectedVersion: { highestPolicyThreat: 4 },
       }).find('#highestPolicyThreat');
 
-      const currentThreat = highestPolicyThreatRow
-        .childAt(1)
-        .childAt(0)
-        .find('.iq-compare-versions__policy-threat-indicator');
-      const selectedThreat = highestPolicyThreatRow
-        .childAt(2)
-        .childAt(0)
-        .find('.iq-compare-versions__policy-threat-indicator');
-      expect(currentThreat).toHaveClassName('severe');
-      expect(currentThreat.childAt(0)).toHaveText('7');
-      expect(selectedThreat).toHaveClassName('severe');
-      expect(selectedThreat.childAt(0)).toHaveText('4');
+      const currentThreat = highestPolicyThreatRow.find(NxSmallThreatCounter).at(0);
+      const selectedThreat = highestPolicyThreatRow.find(NxSmallThreatCounter).at(1);
+      expect(currentThreat).toHaveProp('severeCount', 7);
+      expect(selectedThreat).toHaveProp('severeCount', 4);
     });
 
     it('renders threat-indicator styled as moderate if policy threat is 2-3', () => {
@@ -118,18 +102,10 @@ describe('CompareVersions', () => {
         selectedVersion: { highestPolicyThreat: 2 },
       }).find('#highestPolicyThreat');
 
-      const currentThreat = highestPolicyThreatRow
-        .childAt(1)
-        .childAt(0)
-        .find('.iq-compare-versions__policy-threat-indicator');
-      const selectedThreat = highestPolicyThreatRow
-        .childAt(2)
-        .childAt(0)
-        .find('.iq-compare-versions__policy-threat-indicator');
-      expect(currentThreat).toHaveClassName('moderate');
-      expect(currentThreat.childAt(0)).toHaveText('3');
-      expect(selectedThreat).toHaveClassName('moderate');
-      expect(selectedThreat.childAt(0)).toHaveText('2');
+      const currentThreat = highestPolicyThreatRow.find(NxSmallThreatCounter).at(0);
+      const selectedThreat = highestPolicyThreatRow.find(NxSmallThreatCounter).at(1);
+      expect(currentThreat).toHaveProp('moderateCount', 3);
+      expect(selectedThreat).toHaveProp('moderateCount', 2);
     });
 
     it('renders threat-indicator styled as low if policy threat is 1', () => {
@@ -138,18 +114,10 @@ describe('CompareVersions', () => {
         selectedVersion: { highestPolicyThreat: 1 },
       }).find('#highestPolicyThreat');
 
-      const currentThreat = highestPolicyThreatRow
-        .childAt(1)
-        .childAt(0)
-        .find('.iq-compare-versions__policy-threat-indicator');
-      const selectedThreat = highestPolicyThreatRow
-        .childAt(2)
-        .childAt(0)
-        .find('.iq-compare-versions__policy-threat-indicator');
-      expect(currentThreat).toHaveClassName('low');
-      expect(currentThreat.childAt(0)).toHaveText('1');
-      expect(selectedThreat).toHaveClassName('low');
-      expect(selectedThreat.childAt(0)).toHaveText('1');
+      const currentThreat = highestPolicyThreatRow.find(NxSmallThreatCounter).at(0);
+      const selectedThreat = highestPolicyThreatRow.find(NxSmallThreatCounter).at(1);
+      expect(currentThreat).toHaveProp('lowCount', 1);
+      expect(selectedThreat).toHaveProp('lowCount', 1);
     });
 
     it('renders threat-indicator styled as none if policy threat is 0', () => {
@@ -158,19 +126,10 @@ describe('CompareVersions', () => {
         selectedVersion: { highestPolicyThreat: 0 },
       }).find('#highestPolicyThreat');
 
-      const currentThreat = highestPolicyThreatRow
-        .childAt(1)
-        .childAt(0)
-        .find('.iq-compare-versions__policy-threat-indicator');
-      const selectedThreat = highestPolicyThreatRow
-        .childAt(2)
-        .childAt(0)
-        .find('.iq-compare-versions__policy-threat-indicator');
-
-      expect(currentThreat).toHaveClassName('none');
-      expect(currentThreat.childAt(0)).toHaveText('0');
-      expect(selectedThreat).toHaveClassName('none');
-      expect(selectedThreat.childAt(0)).toHaveText('0');
+      const currentThreat = highestPolicyThreatRow.find(NxSmallThreatCounter).at(0);
+      const selectedThreat = highestPolicyThreatRow.find(NxSmallThreatCounter).at(1);
+      expect(currentThreat).toHaveProp('noneCount', 0);
+      expect(selectedThreat).toHaveProp('noneCount', 0);
     });
 
     it('renders number of violated policies if numberOfViolatedPolicies > 1', () => {
@@ -189,11 +148,9 @@ describe('CompareVersions', () => {
       const selectedCell = highestPolicyThreatRow.childAt(2);
 
       expect(currentCell.children().length).toBe(2);
-      expect(currentCell.childAt(0)).toHaveClassName('iq-compare-versions__policy-threat-indicator');
       expect(currentCell.childAt(1)).toIncludeText('within 2 policies');
 
       expect(selectedCell.children().length).toBe(2);
-      expect(selectedCell.childAt(0)).toHaveClassName('iq-compare-versions__policy-threat-indicator');
       expect(selectedCell.childAt(1)).toIncludeText('within 10 policies');
     });
 
@@ -213,10 +170,8 @@ describe('CompareVersions', () => {
       const selectedCell = highestPolicyThreatRow.childAt(2);
 
       expect(currentCell.children().length).toBe(1);
-      expect(currentCell.childAt(0)).toHaveClassName('iq-compare-versions__policy-threat-indicator');
 
       expect(selectedCell.children().length).toBe(1);
-      expect(selectedCell.childAt(0)).toHaveClassName('iq-compare-versions__policy-threat-indicator');
     });
 
     it('does not render number of violated policies if numberOfViolatedPolicies is 0', () => {
@@ -235,10 +190,8 @@ describe('CompareVersions', () => {
       const selectedCell = highestPolicyThreatRow.childAt(2);
 
       expect(currentCell.children().length).toBe(1);
-      expect(currentCell.childAt(0)).toHaveClassName('iq-compare-versions__policy-threat-indicator');
 
       expect(selectedCell.children().length).toBe(1);
-      expect(selectedCell.childAt(0)).toHaveClassName('iq-compare-versions__policy-threat-indicator');
     });
 
     it('does not render number of violated policies if numberOfViolatedPolicies is undefined', () => {
@@ -255,10 +208,8 @@ describe('CompareVersions', () => {
       const selectedCell = highestPolicyThreatRow.childAt(2);
 
       expect(currentCell.children().length).toBe(1);
-      expect(currentCell.childAt(0)).toHaveClassName('iq-compare-versions__policy-threat-indicator');
 
       expect(selectedCell.children().length).toBe(1);
-      expect(selectedCell.childAt(0)).toHaveClassName('iq-compare-versions__policy-threat-indicator');
     });
   });
 
@@ -291,12 +242,10 @@ describe('CompareVersions', () => {
             selectedVersion: { policyMaxThreatLevelsByCategory: { [category]: 8 } },
           }).find(rowSelector);
 
-          const currentThreat = row.childAt(1).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
-          const selectedThreat = row.childAt(2).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
-          expect(currentThreat).toHaveClassName('critical');
-          expect(currentThreat.childAt(0)).toHaveText('10');
-          expect(selectedThreat).toHaveClassName('critical');
-          expect(selectedThreat.childAt(0)).toHaveText('8');
+          const currentThreat = row.find(NxSmallThreatCounter).at(0);
+          const selectedThreat = row.find(NxSmallThreatCounter).at(1);
+          expect(currentThreat).toHaveProp('criticalCount', 10);
+          expect(selectedThreat).toHaveProp('criticalCount', 8);
         });
 
         it('renders threat-indicator styled as severe if policy threat is 4-7', () => {
@@ -305,12 +254,10 @@ describe('CompareVersions', () => {
             selectedVersion: { policyMaxThreatLevelsByCategory: { [category]: 4 } },
           }).find(rowSelector);
 
-          const currentThreat = row.childAt(1).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
-          const selectedThreat = row.childAt(2).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
-          expect(currentThreat).toHaveClassName('severe');
-          expect(currentThreat.childAt(0)).toHaveText('7');
-          expect(selectedThreat).toHaveClassName('severe');
-          expect(selectedThreat.childAt(0)).toHaveText('4');
+          const currentThreat = row.find(NxSmallThreatCounter).at(0);
+          const selectedThreat = row.find(NxSmallThreatCounter).at(1);
+          expect(currentThreat).toHaveProp('severeCount', 7);
+          expect(selectedThreat).toHaveProp('severeCount', 4);
         });
 
         it('renders threat-indicator styled as moderate if policy threat is 2-3', () => {
@@ -319,12 +266,10 @@ describe('CompareVersions', () => {
             selectedVersion: { policyMaxThreatLevelsByCategory: { [category]: 2 } },
           }).find(rowSelector);
 
-          const currentThreat = row.childAt(1).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
-          const selectedThreat = row.childAt(2).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
-          expect(currentThreat).toHaveClassName('moderate');
-          expect(currentThreat.childAt(0)).toHaveText('3');
-          expect(selectedThreat).toHaveClassName('moderate');
-          expect(selectedThreat.childAt(0)).toHaveText('2');
+          const currentThreat = row.find(NxSmallThreatCounter).at(0);
+          const selectedThreat = row.find(NxSmallThreatCounter).at(1);
+          expect(currentThreat).toHaveProp('moderateCount', 3);
+          expect(selectedThreat).toHaveProp('moderateCount', 2);
         });
 
         it('renders threat-indicator styled as low if policy threat is 1', () => {
@@ -333,12 +278,10 @@ describe('CompareVersions', () => {
             selectedVersion: { policyMaxThreatLevelsByCategory: { [category]: 1 } },
           }).find(rowSelector);
 
-          const currentThreat = row.childAt(1).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
-          const selectedThreat = row.childAt(2).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
-          expect(currentThreat).toHaveClassName('low');
-          expect(currentThreat.childAt(0)).toHaveText('1');
-          expect(selectedThreat).toHaveClassName('low');
-          expect(selectedThreat.childAt(0)).toHaveText('1');
+          const currentThreat = row.find(NxSmallThreatCounter).at(0);
+          const selectedThreat = row.find(NxSmallThreatCounter).at(1);
+          expect(currentThreat).toHaveProp('lowCount', 1);
+          expect(selectedThreat).toHaveProp('lowCount', 1);
         });
 
         it('renders threat-indicator styled as none if policy threat is 0', () => {
@@ -347,12 +290,10 @@ describe('CompareVersions', () => {
             selectedVersion: { policyMaxThreatLevelsByCategory: { [category]: 0 } },
           }).find(rowSelector);
 
-          const currentThreat = row.childAt(1).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
-          const selectedThreat = row.childAt(2).childAt(0).find('.iq-compare-versions__policy-threat-indicator');
-          expect(currentThreat).toHaveClassName('none');
-          expect(currentThreat.childAt(0)).toHaveText('0');
-          expect(selectedThreat).toHaveClassName('none');
-          expect(selectedThreat.childAt(0)).toHaveText('0');
+          const currentThreat = row.find(NxSmallThreatCounter).at(0);
+          const selectedThreat = row.find(NxSmallThreatCounter).at(1);
+          expect(currentThreat).toHaveProp('noneCount', 0);
+          expect(selectedThreat).toHaveProp('noneCount', 0);
         });
       });
     }

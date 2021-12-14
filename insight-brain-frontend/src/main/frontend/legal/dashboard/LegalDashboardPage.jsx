@@ -68,6 +68,20 @@ export default function LegalDashboardPage(props) {
         {filterSidebarOpen && <LegalDashboardFilterContainer />}
         <div className="nx-page-title nx-page-title__actions">
           <h1 className="nx-h1">Legal Obligations</h1>
+          <div className="nx-btn-bar">
+            <NxButton
+              id="filter-toggle"
+              variant="tertiary"
+              className="btn"
+              onClick={() => toggleFilterSidebar(!filterSidebarOpen)}
+            >
+              <NxFontAwesomeIcon icon={faFilter} />
+              <span>
+                Filter: {showDirtyAsterisk && <span id="filter-toggle-dirty-asterisk">*</span>}
+                {appliedFilterName || DEFAULT_FILTER_NAME}
+              </span>
+            </NxButton>
+          </div>
         </div>
         <NxStatefulTabs
           className="nx-viewport-sized__container"
@@ -81,15 +95,6 @@ export default function LegalDashboardPage(props) {
           <NxTabPanel className="nx-viewport-sized__container">
             <div className="nx-tile nx-viewport-sized__container">
               <div className="nx-tile-content nx-viewport-sized__container">
-                <div className="nx-btn-bar">
-                  <NxButton id="filter-toggle" className="btn" onClick={() => toggleFilterSidebar(!filterSidebarOpen)}>
-                    <NxFontAwesomeIcon icon={faFilter} />
-                    <span>
-                      Filter: {showDirtyAsterisk && <span id="filter-toggle-dirty-asterisk">*</span>}
-                      {appliedFilterName || DEFAULT_FILTER_NAME}
-                    </span>
-                  </NxButton>
-                </div>
                 <LegalDashboardApplicationsTab
                   applications={applications}
                   fetchBackendPage={fetchBackendPage}

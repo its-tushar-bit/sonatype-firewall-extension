@@ -484,6 +484,49 @@ public abstract class DefaultPolicyEvaluatorTest
   }
 
   @Test
+  public void testRun_JsonExportWithPolicyViolations() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    createPolicy(app.getId(), "Policy 1", Action.ID_WARN, 9);
+    createPolicy(app.getId(), "Policy 2", Action.ID_FAIL, 5);
+    createPolicy(app.getId(), "Policy 3", Action.ID_WARN, 2);
+
+    File jsonFile = new File(tempDir.getRoot(), "not-yet-existent/results.json");
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
+        "-r", jsonFile.getAbsolutePath(), //
+        "src/test/data/artifact.jar");
+
+    PolicyEvaluationResult expectedPolicyEvaluationResult = newPolicyEvaluationResultForOneComponent();
+    expectedPolicyEvaluationResult.setCriticalComponentCount(4);
+    expectedPolicyEvaluationResult.setCriticalPolicyViolationCount(4);
+    expectedPolicyEvaluationResult.setSeverePolicyViolationCount(4);
+    expectedPolicyEvaluationResult.setModeratePolicyViolationCount(4);
+
+    // Check result
+    withTestRunner(params)
+        .expectFailExit()
+        .expectInfoLog("Policy Action: Failure")
+        .expectPolicyEvaluationResult(expectedPolicyEvaluationResult)
+        .expectWarnLog("The IQ Server reports policy warning due to \nPolicy(Policy 1)") //
+        .expectErrorLog("The IQ Server reports policy failing due to \nPolicy(Policy 2)") //
+        .expectWarnLog("The IQ Server reports policy warning due to \nPolicy(Policy 3)")
+        .doPolicyEvaluationRun();
+
+    // Check exported JSON
+    ResultData resultData = JsonUtils.parse(Files.readAllBytes(jsonFile.toPath()), ResultData.class);
+    assertThat(resultData.scanId).isEqualTo("SCAN-ID");
+    assertThat(resultData.applicationId).isEqualTo(app.getPublicId());
+    assertThat(resultData.reportDataUrl).isNotNull();
+    assertThat(resultData.reportHtmlUrl).isNotNull();
+    assertThat(resultData.reportPdfUrl).isNotNull();
+    assertThat(resultData.policyEvaluationResult.getTotalComponentCount()).isEqualTo(1);
+    assertThat(resultData.policyEvaluationResult.getCriticalComponentCount()).isEqualTo(4);
+    assertThat(resultData.policyEvaluationResult.getCriticalPolicyViolationCount()).isEqualTo(4);
+    assertThat(resultData.policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(4);
+    assertThat(resultData.policyEvaluationResult.getModeratePolicyViolationCount()).isEqualTo(4);
+  }
+
+  @Test
   public void testRun_ParametersFromFile() throws Exception {
     // Verifies that (from the CLM-7494 user story):
     // - The argument file must use the JVM's default character encoding.

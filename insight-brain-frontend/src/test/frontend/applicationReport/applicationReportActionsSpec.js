@@ -9,7 +9,7 @@ import * as applicationReportActions from 'MainRoot/applicationReport/applicatio
 import * as CLMLocation from 'MainRoot/util/CLMLocation';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
-import { dependencyTreeData } from '../util/dependencyTreeUtil';
+import { dependencyTreeData } from '../dependencyTree/dependencyTreeMockData';
 
 const createMockState = (isUnknownJs, bomData, unknownJsData, metadata, embeddable) => ({
   applicationReport: {

@@ -87,110 +87,110 @@ public class DependencyTreeTest
 
     treeItems.shouldHaveSize(35);
 
-    treeItems.get(0).shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
-    threatIndicators.get(0).shouldHave(cssClass(THREAT_SEVERE_CLASS));
+    treeItems.get(0).shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
+    threatIndicators.get(0).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
 
-    treeItems.get(1).shouldHave(text("org.jclouds.driver : jclouds-bouncycastle : 1.3.1"));
-    threatIndicators.get(1).shouldHave(cssClass(THREAT_SEVERE_CLASS));
+    treeItems.get(1).shouldHave(text("ch.qos.logback : logback-access : 0.6"));
+    threatIndicators.get(1).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
 
-    treeItems.get(2).shouldHave(text("tomcat : catalina-host-manager : 5.5.23"));
-    threatIndicators.get(2).shouldHave(cssClass(THREAT_SEVERE_CLASS));
+    treeItems.get(2).shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
+    threatIndicators.get(2).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
 
-    treeItems.get(3).shouldHave(text("org.opencms.modules : com.alkacon.opencms.v8.twitter : 8.0.2"));
-    threatIndicators.get(3).shouldHave(cssClass(THREAT_NONE_CLASS));
+    treeItems.get(3).shouldHave(text("apache-httpclient : commons-httpclient : 3.1"));
+    threatIndicators.get(3).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
 
-    treeItems.get(4).shouldHave(text("edu.stanford.ejalbert : browserlauncher2 : 1.3"));
-    threatIndicators.get(4).shouldHave(cssClass(THREAT_NONE_CLASS));
+    treeItems.get(4).shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
+    threatIndicators.get(4).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(5).shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
-    threatIndicators.get(5).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+    treeItems.get(5).shouldHave(text("org.jclouds.driver : jclouds-bouncycastle : 1.3.1"));
+    threatIndicators.get(5).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(6).shouldHave(text("org.openid4java : openid4java : 0.9.5"));
+    treeItems.get(6).shouldHave(text("tomcat : catalina-host-manager : 5.5.23"));
     threatIndicators.get(6).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(7).shouldHave(text("edu.ucar : unidatacommon : 4.2.20"));
+    treeItems.get(7).shouldHave(text("org.openid4java : openid4java : 0.9.5"));
     threatIndicators.get(7).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(8).shouldHave(text("org.slf4j : slf4j-api : 1.6.1"));
+    treeItems.get(8).shouldHave(text("edu.ucar : unidatacommon : 4.2.20"));
     threatIndicators.get(8).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(9).shouldHave(text("geronimo : geronimo-tomcat-builder : 1.1"));
-    threatIndicators.get(9).shouldHave(cssClass(THREAT_NONE_CLASS));
+    treeItems.get(9).shouldHave(text("org.slf4j : slf4j-api : 1.6.1"));
+    threatIndicators.get(9).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(10).shouldHave(text("geronimo : geronimo-tomcat : 1.0"));
-    threatIndicators.get(10).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+    treeItems.get(10).shouldHave(text("net.sf.xradar : xradar : 1.1.2"));
+    threatIndicators.get(10).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(11).shouldHave(text("commons-beanutils : commons-beanutils : 1.8.3"));
-    threatIndicators.get(11).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+    treeItems.get(11).shouldHave(text("cobertura : cobertura : 1.6"));
+    threatIndicators.get(11).shouldHave(cssClass(THREAT_NONE_CLASS));
 
-    treeItems.get(12).shouldHave(text("tomcat : servlets-default : 5.5.4"));
-    threatIndicators.get(12).shouldHave(cssClass(THREAT_SEVERE_CLASS));
+    treeItems.get(12).shouldHave(text("javancss : javancss : 29.50"));
+    threatIndicators.get(12).shouldHave(cssClass(THREAT_NONE_CLASS));
 
-    treeItems.get(13).shouldHave(text("tomcat : tomcat-util : 5.5.23"));
-    threatIndicators.get(13).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+    treeItems.get(13).shouldHave(text("javancss : javancss : 29.50"));
+    threatIndicators.get(13).shouldHave(cssClass(THREAT_NONE_CLASS));
 
-    treeItems.get(14).shouldHave(text("tomcat : servlets-default : 5.5.4"));
+    treeItems.get(14).shouldHave(text("org.apache.lucene : lucene-spellchecker : 2.9.0"));
     threatIndicators.get(14).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(15).shouldHave(text("tomcat : tomcat-util : 5.5.23"));
-    threatIndicators.get(15).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+    treeItems.get(15).shouldHave(text("org.opencms.modules : com.alkacon.opencms.v8.twitter : 8.0.2"));
+    threatIndicators.get(15).shouldHave(cssClass(THREAT_NONE_CLASS));
 
-    treeItems.get(16).shouldHave(text("ch.qos.logback : logback-access : 0.6"));
-    threatIndicators.get(16).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+    treeItems.get(16).shouldHave(text("edu.stanford.ejalbert : browserlauncher2 : 1.3"));
+    threatIndicators.get(16).shouldHave(cssClass(THREAT_NONE_CLASS));
 
-    treeItems.get(17).shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
-    threatIndicators.get(17).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+    treeItems.get(17).shouldHave(text("geronimo : geronimo-tomcat-builder : 1.1"));
+    threatIndicators.get(17).shouldHave(cssClass(THREAT_NONE_CLASS));
 
-    treeItems.get(18).shouldHave(text("org.apache.flume : flume-ng-node : 1.0.0-incubating"));
-    threatIndicators.get(18).shouldHave(cssClass(THREAT_NONE_CLASS));
+    treeItems.get(18).shouldHave(text("geronimo : geronimo-tomcat : 1.0"));
+    threatIndicators.get(18).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
 
-    treeItems.get(19).shouldHave(text("org.apache.flume : flume-ng-core : 1.0.0-incubating"));
-    threatIndicators.get(19).shouldHave(cssClass(THREAT_NONE_CLASS));
+    treeItems.get(19).shouldHave(text("commons-beanutils : commons-beanutils : 1.8.3"));
+    threatIndicators.get(19).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
 
-    treeItems.get(20).shouldHave(text("org.apache.avro : avro-ipc : 1.5.0"));
-    threatIndicators.get(20).shouldHave(cssClass(THREAT_NONE_CLASS));
+    treeItems.get(20).shouldHave(text("tomcat : tomcat-util : 5.5.23"));
+    threatIndicators.get(20).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
 
-    treeItems.get(21).shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
-    threatIndicators.get(21).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+    treeItems.get(21).shouldHave(text("tomcat : servlets-default : 5.5.4"));
+    threatIndicators.get(21).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(22).shouldHave(text("org.slf4j : slf4j-api : 1.6.1"));
-    threatIndicators.get(22).shouldHave(cssClass(THREAT_SEVERE_CLASS));
+    treeItems.get(22).shouldHave(text("tomcat : tomcat-util : 5.5.23"));
+    threatIndicators.get(22).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
 
-    treeItems.get(23).shouldHave(text("org.slf4j : slf4j-api : 1.6.1"));
+    treeItems.get(23).shouldHave(text("tomcat : servlets-default : 5.5.4"));
     threatIndicators.get(23).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(24).shouldHave(text("org.apache.flume.flume-ng-channels : flume-jdbc-channel : 1.0.0-incubating"));
-    threatIndicators.get(4).shouldHave(cssClass(THREAT_NONE_CLASS));
+    treeItems.get(24).shouldHave(text("org.apache.flume : flume-ng-node : 1.0.0-incubating"));
+    threatIndicators.get(24).shouldHave(cssClass(THREAT_NONE_CLASS));
 
-    treeItems.get(25).shouldHave(text("commons-dbcp : commons-dbcp : 1.4"));
-    threatIndicators.get(25).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+    treeItems.get(25).shouldHave(text("org.slf4j : slf4j-api : 1.6.1"));
+    threatIndicators.get(25).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(26).shouldHave(text("commons-pool : commons-pool : 1.4"));
-    threatIndicators.get(26).shouldHave(cssClass(THREAT_SEVERE_CLASS));
+    treeItems.get(26).shouldHave(text("org.apache.flume : flume-ng-core : 1.0.0-incubating"));
+    threatIndicators.get(26).shouldHave(cssClass(THREAT_NONE_CLASS));
 
-    treeItems.get(27).shouldHave(text("org.apache.flume : flume-ng-core : 1.0.0-incubating"));
-    threatIndicators.get(27).shouldHave(cssClass(THREAT_NONE_CLASS));
+    treeItems.get(27).shouldHave(text("org.slf4j : slf4j-api : 1.6.1"));
+    threatIndicators.get(27).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(28).shouldHave(text("org.slf4j : slf4j-api : 1.6.1"));
-    threatIndicators.get(28).shouldHave(cssClass(THREAT_SEVERE_CLASS));
+    treeItems.get(28).shouldHave(text("org.apache.avro : avro-ipc : 1.5.0"));
+    threatIndicators.get(28).shouldHave(cssClass(THREAT_NONE_CLASS));
 
-    treeItems.get(29).shouldHave(text("net.sf.xradar : xradar : 1.1.2"));
-    threatIndicators.get(29).shouldHave(cssClass(THREAT_SEVERE_CLASS));
+    treeItems.get(29).shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
+    threatIndicators.get(29).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
 
-    treeItems.get(30).shouldHave(text("cobertura : cobertura : 1.6"));
-    threatIndicators.get(30).shouldHave(cssClass(THREAT_NONE_CLASS));
+    treeItems.get(30).shouldHave(text("org.slf4j : slf4j-api : 1.6.1"));
+    threatIndicators.get(30).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(31).shouldHave(text("javancss : javancss : 29.50"));
+    treeItems.get(31).shouldHave(text("org.apache.flume.flume-ng-channels : flume-jdbc-channel : 1.0.0-incubating"));
     threatIndicators.get(31).shouldHave(cssClass(THREAT_NONE_CLASS));
 
-    treeItems.get(32).shouldHave(text("javancss : javancss : 29.50"));
-    threatIndicators.get(32).shouldHave(cssClass(THREAT_NONE_CLASS));
+    treeItems.get(32).shouldHave(text("commons-dbcp : commons-dbcp : 1.4"));
+    threatIndicators.get(32).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
 
-    treeItems.get(33).shouldHave(text("org.apache.lucene : lucene-spellchecker : 2.9.0"));
+    treeItems.get(33).shouldHave(text("commons-pool : commons-pool : 1.4"));
     threatIndicators.get(33).shouldHave(cssClass(THREAT_SEVERE_CLASS));
 
-    treeItems.get(34).shouldHave(text("apache-httpclient : commons-httpclient : 3.1"));
-    threatIndicators.get(34).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+    treeItems.get(34).shouldHave(text("org.apache.flume : flume-ng-core : 1.0.0-incubating"));
+    threatIndicators.get(34).shouldHave(cssClass(THREAT_NONE_CLASS));
 
     eyesWatcher.eyesCheck("dependency tree page");
 
@@ -203,10 +203,10 @@ public class DependencyTreeTest
   public void testDependencyTree_innerSource() {
     ElementsCollection treeItems = dependencyTreePage.tree().treeItems();
 
-    SelenideElement firstTreeItem = treeItems.get(1);
-    firstTreeItem.shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
+    SelenideElement innerSourceTreeItem = treeItems.get(5);
+    innerSourceTreeItem.shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
 
-    SelenideElement dependencyIndicator = dependencyTreePage.tree().dependencyTypeIndicator(firstTreeItem);
+    SelenideElement dependencyIndicator = dependencyTreePage.tree().dependencyTypeIndicator(innerSourceTreeItem);
     dependencyIndicator.shouldHave(text("IS"));
 
     dependencyIndicator.hover();
@@ -223,14 +223,14 @@ public class DependencyTreeTest
 
     clickableTreeItems.shouldHaveSize(35);
 
-    clickableTreeItems.get(0).shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
+    clickableTreeItems.get(0).shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
     clickableTreeItems.get(0).click();
 
-    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "891b3de68f449f8a1ad2"));
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "848d7549ef7ec13ce546"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
 
     SelenideElement title = componentDetailsPage.header().title();
-    title.shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
+    title.shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
   }
 
   @Test
@@ -239,7 +239,7 @@ public class DependencyTreeTest
     ElementsCollection clickableTreeItems = dependencyTreePage.tree().clickableTreeItems();
 
     clickableTreeItems.get(0).click();
-    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "891b3de68f449f8a1ad2"));
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "848d7549ef7ec13ce546"));
 
     eyesWatcher.eyesCheck("component details page from dependency tree");
 

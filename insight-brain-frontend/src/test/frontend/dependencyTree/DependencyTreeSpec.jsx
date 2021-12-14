@@ -8,7 +8,7 @@ import React from 'react';
 import { render, screen, within } from '../SpecUtil';
 
 import DependencyTree from 'MainRoot/DependencyTree/DependencyTree';
-import { dependencyTreeData } from '../util/dependencyTreeUtil';
+import { dependencyTreeData } from './dependencyTreeMockData';
 
 describe('DependencyTree', () => {
   let minimalProps, renderComponent, toggleTreePath;

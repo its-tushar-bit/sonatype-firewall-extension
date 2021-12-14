@@ -3,14 +3,19 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { sort, prop, pipe, descend } from 'ramda';
+
 import { mapIndexed, isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { serializeComponentIdentifier } from '../util/componentIdentifierUtils';
 
 export const extendDependencyTreeData = (dependencyTreeData, indexedEntries, treePath = []) => {
+  const getComponentMatch = (node) => indexedEntries[serializeComponentIdentifier(node?.componentIdentifier)];
+  const sortByPolicyThreatLevel = sort(descend(pipe(getComponentMatch, prop('policyThreatLevel'))));
+
   const formatedData = mapIndexed((child, index) => {
     if (!child.componentIdentifier) return null;
 
-    const matcher = indexedEntries[serializeComponentIdentifier(child.componentIdentifier)];
+    const matcher = getComponentMatch(child);
 
     const newTreePath = [...treePath, index];
     const childData = {
@@ -24,7 +29,7 @@ export const extendDependencyTreeData = (dependencyTreeData, indexedEntries, tre
     };
 
     return childData;
-  }, dependencyTreeData.children);
+  }, sortByPolicyThreatLevel(dependencyTreeData.children));
 
   return formatedData;
 };

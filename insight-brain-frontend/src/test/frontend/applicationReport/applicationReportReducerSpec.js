@@ -5,7 +5,7 @@
  */
 
 import reduce from 'MainRoot/applicationReport/applicationReportReducer';
-import { dependencyTreeData } from '../util/dependencyTreeUtil';
+import { dependencyTreeData } from '../dependencyTree/dependencyTreeMockData';
 
 describe('applicationReportReducer', function () {
   const otherObject = { value: 'test value' };

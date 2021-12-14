@@ -11,7 +11,7 @@ import DependencyTreePage from 'MainRoot/DependencyTree/DependencyTreePage';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 import * as componentDetailsSelectors from 'MainRoot/componentDetails/componentDetailsSelectors';
-import { dependencyTreeData } from '../util/dependencyTreeUtil';
+import { dependencyTreeData } from './dependencyTreeMockData';
 
 describe('DependencyTreePage', () => {
   let renderComponent;

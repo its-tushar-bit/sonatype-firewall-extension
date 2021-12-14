@@ -18,7 +18,7 @@ import {
   selectApplicationReportSlice,
   selectDependencyTreeRouterParams,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
-import { dependencyTreeData } from '../util/dependencyTreeUtil';
+import { dependencyTreeData } from '../dependencyTree/dependencyTreeMockData';
 
 describe('applicationReportSelectors', () => {
   const mockState = {

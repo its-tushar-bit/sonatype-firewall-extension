@@ -254,4 +254,8 @@ public class ComponentLegalOverviewPage
   public static SelenideElement resolveAllObligationsButton() {
     return $("#mark-all-obligations-resolved");
   }
+
+  public static SelenideElement backLink() {
+    return $(".nx-back-button");
+  }
 }

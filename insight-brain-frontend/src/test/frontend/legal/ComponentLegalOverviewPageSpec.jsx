@@ -118,6 +118,13 @@ describe('ComponentLegalOverviewPage', function () {
       component,
       ecosystem: 'maven',
       hash: '1e48256a2341047e7d72',
+      prevState: {
+        name: 'prevState.test',
+        url: 'prevstate/test',
+      },
+      prevParams: {
+        testParam: 'testParam',
+      },
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentLegalOverviewPage, minimalProps);
@@ -149,7 +156,7 @@ describe('ComponentLegalOverviewPage', function () {
   });
 
   it('does not load the data if there is no hash', function () {
-    const component = mount(
+    const component = getShallowComponent(
       <ComponentLegalOverviewPage loadComponent={loadComponentSpy} loading={true} $state={spy$State} />
     );
     expect(loadComponentSpy).not.toHaveBeenCalled();
@@ -196,7 +203,7 @@ describe('ComponentLegalOverviewPage', function () {
     expect(spy$State.href).toHaveBeenCalled();
   });
 
-  it('renders a MenuBarBackButton to go to the dashboard page when using app public id but no stage type id', function () {
+  it('renders a MenuBarBackButton to go to the real prev page when using app public id but no stage type id', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
       applicationPublicId: 'appId',
@@ -204,11 +211,22 @@ describe('ComponentLegalOverviewPage', function () {
 
     const menuBarBackButton = wrapper.find(MenuBarBackButton);
     expect(menuBarBackButton).toExist();
-    expect(menuBarBackButton).toHaveProp('href', 'legal.dashboard');
+    expect(menuBarBackButton).toHaveProp('href', 'prevState.test-{"testParam":"testParam"}');
     expect(spy$State.href).toHaveBeenCalled();
   });
 
-  it('renders a MenuBarBackButton to go to the dashboard page when using stage type id but no app public id', function () {
+  it('renders a MenuBarBackButton to go to the real prev page when is neither using stage type id nor app public id', function () {
+    const wrapper = getShallowComponent({
+      ...minimalProps,
+      stageTypeId: 'stage',
+    });
+    const menuBarBackButton = wrapper.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', 'prevState.test-{"testParam":"testParam"}');
+    expect(spy$State.href).toHaveBeenCalled();
+  });
+
+  it('renders a MenuBarBackButton to go to the real prev page when using stage type id but no app public id', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
       stageTypeId: 'stage',
@@ -216,11 +234,11 @@ describe('ComponentLegalOverviewPage', function () {
 
     const menuBarBackButton = wrapper.find(MenuBarBackButton);
     expect(menuBarBackButton).toExist();
-    expect(menuBarBackButton).toHaveProp('href', 'legal.dashboard');
+    expect(menuBarBackButton).toHaveProp('href', 'prevState.test-{"testParam":"testParam"}');
     expect(spy$State.href).toHaveBeenCalled();
   });
 
-  it('renders a MenuBarBackButton to go to the dashboard page when not using stage type id and app public id', function () {
+  it('renders a MenuBarBackButton to go to the real prev page when not using stage type id and app public id', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
       organizationId: 'orgId',
@@ -228,7 +246,7 @@ describe('ComponentLegalOverviewPage', function () {
 
     const menuBarBackButton = wrapper.find(MenuBarBackButton);
     expect(menuBarBackButton).toExist();
-    expect(menuBarBackButton).toHaveProp('href', 'legal.dashboard');
+    expect(menuBarBackButton).toHaveProp('href', 'prevState.test-{"testParam":"testParam"}');
     expect(spy$State.href).toHaveBeenCalled();
   });
 

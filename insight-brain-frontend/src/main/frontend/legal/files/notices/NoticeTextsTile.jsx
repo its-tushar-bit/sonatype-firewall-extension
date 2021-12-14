@@ -88,5 +88,5 @@ NoticeTextsTile.propTypes = {
   availableScopes: availableScopesPropType,
   hash: PropTypes.string,
   $state: PropTypes.object.isRequired,
-  componentIdentifier: PropTypes.string.isRequired,
+  componentIdentifier: PropTypes.string,
 };

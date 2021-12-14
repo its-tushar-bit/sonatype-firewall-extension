@@ -44,7 +44,9 @@ export default function LegalDashboardPage(props) {
   } = props;
 
   const tabIndexes = ['applications', 'components'];
+  const stateIndexes = ['legal.applicationsDashboard', 'legal.componentsDashboard'];
   const componentTabEnabled = router.currentParams.legalComponentsTabEnabled;
+  const defaultActiveTab = tabIndexes.findIndex((tab) => router.currentState?.data?.activeTab === tab);
 
   useEffect(() => {
     loadFilter();
@@ -52,11 +54,13 @@ export default function LegalDashboardPage(props) {
 
   useEffect(() => {
     if (!filterLoading) {
-      loadResults('applications');
+      loadResults(tabIndexes[defaultActiveTab]);
     }
   }, [filterLoading]);
 
-  const loadTabContents = (index) => loadResults(tabIndexes[index]);
+  const loadTabContents = (index) => {
+    stateGo(stateIndexes[index], { legalComponentsTabEnabled: 'true' });
+  };
 
   return (
     <main id="legal-dashboard-container" className="nx-page-main">
@@ -65,7 +69,11 @@ export default function LegalDashboardPage(props) {
         <div className="nx-page-title nx-page-title__actions">
           <h1 className="nx-h1">Legal Obligations</h1>
         </div>
-        <NxStatefulTabs className="nx-viewport-sized__container" defaultActiveTab={0} onTabSelect={loadTabContents}>
+        <NxStatefulTabs
+          className="nx-viewport-sized__container"
+          defaultActiveTab={defaultActiveTab}
+          onTabSelect={loadTabContents}
+        >
           <NxTabList>
             <NxTab>Applications</NxTab>
             {componentTabEnabled && <NxTab>Components</NxTab>}
@@ -134,6 +142,7 @@ LegalDashboardPage.propTypes = {
   showDirtyAsterisk: PropTypes.bool,
   router: PropTypes.shape({
     currentParams: PropTypes.object,
+    currentState: PropTypes.object,
   }),
   changeComponentNameToSearch: PropTypes.func.isRequired,
   legalDashboardSetPage: PropTypes.func.isRequired,

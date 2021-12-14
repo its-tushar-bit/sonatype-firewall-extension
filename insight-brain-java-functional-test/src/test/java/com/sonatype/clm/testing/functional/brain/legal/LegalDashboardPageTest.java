@@ -5,11 +5,14 @@
  */
 package com.sonatype.clm.testing.functional.brain.legal;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.LegalDashboardPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -19,6 +22,7 @@ import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import com.codeborne.selenide.Condition;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -59,9 +63,33 @@ public class LegalDashboardPageTest
   }
 
   @Before
-  public void start() {
+  public void start() throws IOException {
     testCLMServer.getHdsServer().respondWith("[]").atUri("/rest/license/metadata");
     app = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName(), "app", "org");
+
+    testCLMServer.getHdsServer()
+        .respondWith(IOUtils
+            .toString(this.getClass().getResourceAsStream("/legal/legalLicenseMetadataHdsResponse.json"),
+                StandardCharsets.UTF_8))
+        .atUri("/rest/license/metadata");
+    testCLMServer.getHdsServer()
+        .respondWith(IOUtils
+            .toString(this.getClass().getResourceAsStream("/legal/legalCommentHdsResponse.json"),
+                StandardCharsets.UTF_8))
+        .atUri("/rest/legal/comment");
+    testCLMServer.getHdsServer()
+        .respondWith("[]")
+        .atUri("/rest/legal/file");
+
+    testCLMServer.getHdsServer()
+        .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetails.json"),
+            StandardCharsets.UTF_8))
+        .atUri("rest/ci/componentDetails");
+    testCLMServer.getHdsServer()
+        .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetailsList.json"),
+            StandardCharsets.UTF_8))
+        .atUri("rest/ci/componentDetails/list");
+
     Application app1 = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName() + "1",
             "app1", "org1");
     Application app2 = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName() + "2",
@@ -263,6 +291,21 @@ public class LegalDashboardPageTest
     ldp.componentsSearchInput().setValue("#$%&/");
     ldp.componentsSearchButton().click();
     Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
+  }
+
+  @Test
+  public void testComponentLegalOverviewBackButtonFromComponentsDashboard() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
+    ldp.tableRows().get(0).click();
+    ComponentLegalOverviewPage.AttributionSummaryTile attributionSummaryTile =
+            new ComponentLegalOverviewPage.AttributionSummaryTile();
+    wait.until(ExpectedConditions.visibilityOf(attributionSummaryTile.getElement()));
+    ComponentLegalOverviewPage.backLink().click();
     wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
   }
 }

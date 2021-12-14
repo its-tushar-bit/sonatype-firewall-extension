@@ -98,6 +98,23 @@ function routes($stateProvider) {
       component: 'legalDashboard',
       data: {
         title: 'Legal Dashboard',
+        activeTab: 'applications',
+      },
+    })
+    .state('legal.applicationsDashboard', {
+      url: '/legal/applicationsDashboard?legalComponentsTabEnabled',
+      component: 'legalDashboard',
+      data: {
+        title: 'Legal Dashboard',
+        activeTab: 'applications',
+      },
+    })
+    .state('legal.componentsDashboard', {
+      url: '/legal/componentsDashboard?legalComponentsTabEnabled',
+      component: 'legalDashboard',
+      data: {
+        title: 'Legal Dashboard',
+        activeTab: 'components',
       },
     })
     .state('legal.componentOverview', {

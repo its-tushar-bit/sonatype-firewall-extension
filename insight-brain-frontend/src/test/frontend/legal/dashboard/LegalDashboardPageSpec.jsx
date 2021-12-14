@@ -19,6 +19,8 @@ describe('LegalDashboardPage', function () {
     getMountedComponent;
   const mockApplications = {
     results: [],
+    totalResultsCount: 0,
+    backendPage: 1,
   };
   const mockComponents = {
     results: [],
@@ -41,14 +43,25 @@ describe('LegalDashboardPage', function () {
       loadResults: loadResultsSpy,
       loadFilter: loadFilterSpy,
       isAuthorized: true,
-      loading: 'loading',
+      loading: true,
       loadError: 'loadError',
-      filtersAreDirty: 'filtersAreDirty',
+      filtersAreDirty: true,
       router: {
         currentParams: {
           legalComponentsTabEnabled: 'true',
         },
+        currentState: {
+          data: {
+            activeTab: 'applications',
+          },
+        },
       },
+      changeComponentNameToSearch: () => {},
+      legalDashboardSetPage: () => {},
+      toggleFilterSidebar: () => {},
+      fetchBackendPage: () => {},
+      changeSortField: () => {},
+      stateGo: () => {},
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardPage, minimalProps);
@@ -75,7 +88,7 @@ describe('LegalDashboardPage', function () {
   it('is wrapped by a LoadWrapper with appropriate parameters', function () {
     let loadWrapper = getShallowComponent().find(LoadWrapper);
     expect(loadWrapper).toExist();
-    expect(loadWrapper).toHaveProp('loading', 'loading');
+    expect(loadWrapper).toHaveProp('loading', true);
     expect(loadWrapper).toHaveProp('error', 'loadError');
     expect(loadWrapper).toHaveProp('retryHandler', loadResultsSpy);
   });
@@ -89,7 +102,7 @@ describe('LegalDashboardPage', function () {
     let applicationsTab = wrapper.find(LegalDashboardApplicationsTab);
     expect(applicationsTab).toExist();
     expect(applicationsTab).toHaveProp('applications', mockApplications);
-    expect(applicationsTab).toHaveProp('filtersAreDirty', 'filtersAreDirty');
+    expect(applicationsTab).toHaveProp('filtersAreDirty', true);
   });
 
   it('renders an LegalDashboardComponentsTab', function () {

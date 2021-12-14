@@ -28,6 +28,9 @@ describe('LegalDashboardContainerSpec', function () {
         appliedFilterName: 'appliedFilterName',
         showDirtyAsterisk: 'showDirtyAsterisk',
       },
+      router: {
+        currentParams: {},
+      },
     };
 
     loadResultsMock = jasmine.createSpy('loadResults').and.returnValue({ type: 'FOO' });

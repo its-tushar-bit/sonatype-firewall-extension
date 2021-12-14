@@ -31,7 +31,7 @@ public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
   }
 
   public SelenideElement componentsTab() {
-    return child("#nx-tabs-0-tab-1");
+    return children(".nx-tab").get(1);
   }
 
   public ElementsCollection tableRows() {

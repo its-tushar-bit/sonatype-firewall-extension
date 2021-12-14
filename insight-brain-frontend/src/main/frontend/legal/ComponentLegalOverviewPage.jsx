@@ -46,6 +46,8 @@ export default function ComponentLegalOverviewPage(props) {
     showLicensesModal,
     ecosystem,
     $state,
+    prevState,
+    prevParams,
 
     //actions
     setDisplayCopyrightOverrideModal,
@@ -99,7 +101,7 @@ export default function ComponentLegalOverviewPage(props) {
           applicationPublicId: applicationPublicId,
           stageTypeId: stageTypeId,
         })
-      : $state.href($state.get('legal.dashboard'));
+      : $state.href($state.get(prevState.name), { ...prevParams });
 
   return (
     <main className="nx-page-main">
@@ -226,5 +228,12 @@ ComponentLegalOverviewPage.propTypes = {
   setShowLicensesModal: PropTypes.func.isRequired,
   showLicensesModal: PropTypes.bool.isRequired,
   ecosystem: PropTypes.string,
-  $state: PropTypes.object.isRequired,
+  $state: PropTypes.shape({
+    href: PropTypes.func,
+    get: PropTypes.func,
+  }),
+  prevState: PropTypes.shape({
+    name: PropTypes.string,
+  }),
+  prevParams: PropTypes.object,
 };

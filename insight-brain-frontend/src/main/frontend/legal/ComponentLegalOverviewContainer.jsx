@@ -30,6 +30,7 @@ function mapStateToProps({ advancedLegal, router, copyrightOverrides }) {
       ['hash', 'organizationId', 'applicationPublicId', 'stageTypeId', 'componentIdentifier'],
       router.currentParams
     ),
+    ...pick(['prevState', 'prevParams'], router),
     ...pick(['showEditCopyrightOverrideModal'], copyrightOverrides),
     ecosystem: path(['component', 'componentIdentifier', 'format'], component),
   };

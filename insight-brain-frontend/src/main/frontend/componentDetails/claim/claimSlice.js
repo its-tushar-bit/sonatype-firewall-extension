@@ -7,7 +7,11 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import moment from 'moment';
 import { pick, map, compose, any, curryN, always, clone, isNil } from 'ramda';
-import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import {
+  nxTextInputStateHelpers,
+  nxDateInputStateHelpers,
+  SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS,
+} from '@sonatype/react-shared-components';
 
 import { propSetConst } from '../../util/reduxToolkitUtil';
 import { isNilOrEmpty, pathSet } from '../../util/jsUtil';
@@ -18,6 +22,7 @@ import { getClaimComponentUrl } from '../../util/CLMLocation';
 import { selectSelectedComponentHash, selectClaimRequestData, selectClaimId, DATE_FORMAT } from './claimSelectors';
 
 const { initialState: initUserInput, userInput } = nxTextInputStateHelpers;
+const { initialState: initUserDateInput, userInput: userDateInput } = nxDateInputStateHelpers;
 
 const CREATE_TIME_REGEX = /^(199\d|[2-9]\d{3})-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/;
 
@@ -33,7 +38,7 @@ export const initialState = {
     groupId: initUserInput(''),
     version: initUserInput(''),
     comment: initUserInput(''),
-    createTime: initUserInput(''),
+    createTime: initUserDateInput(''),
   },
   serverData: null,
   isDirty: false,
@@ -49,7 +54,6 @@ const loadComponentIdentified = createAsyncThunk(
   `${REDUCER_NAME}/loadComponentIdentified`,
   (_, { getState, rejectWithValue }) => {
     const hash = selectSelectedComponentHash(getState());
-
     return axios
       .get(getClaimComponentUrl(hash))
       .then(({ data }) => data)
@@ -89,7 +93,7 @@ const extractInputFieldsData = (payload) => {
   return {
     ...map((coordinate) => initUserInput(coordinate ?? ''), coordinates),
     comment: initUserInput(payload.comment ?? ''),
-    createTime: initUserInput(createTime),
+    createTime: initUserDateInput(createTime),
   };
 };
 
@@ -194,8 +198,15 @@ const updatedComputedProps = compose(computeValidationError, computeIsDirty);
 const getStateWithUpdatedValue = (fieldName, validator, state, { payload }) =>
   pathSet(['inputFields', fieldName], userInput(validator, payload), state);
 
+const getStateWithUpdatedDateValue = (fieldName, validator, state, { payload }) =>
+  pathSet(['inputFields', fieldName], userDateInput(validator, payload), state);
+
 const setTextInput = curryN(4, function setTextInput(fieldName, validator, state, { payload }) {
   return updatedComputedProps(getStateWithUpdatedValue(fieldName, validator, state, { payload }));
+});
+
+const setDateInput = curryN(4, function setDateInput(fieldName, validator, state, { payload }) {
+  return updatedComputedProps(getStateWithUpdatedDateValue(fieldName, validator, state, { payload }));
 });
 
 function startClaimMaskSuccessTimer(dispatch) {
@@ -236,7 +247,7 @@ const componentDetailsClaimSlice = createSlice({
     setGroupId: setTextInput('groupId', validateNonEmpty),
     setExtension: setTextInput('extension', validateNonEmpty),
     setArtifactId: setTextInput('artifactId', validateNonEmpty),
-    setCreatedTime: setTextInput('createTime', validateDateBoundaries),
+    setCreatedTime: setDateInput('createTime', validateDateBoundaries),
     setVersion: setTextInput('version', validateNonEmpty),
     setClassifier: setTextInput('classifier', null),
     setComment: setTextInput('comment', null),

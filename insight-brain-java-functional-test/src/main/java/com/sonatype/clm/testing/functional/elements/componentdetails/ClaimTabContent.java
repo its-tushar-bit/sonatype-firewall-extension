@@ -39,7 +39,7 @@ public class ClaimTabContent
   }
 
   public SelenideElement createdTime() {
-    return child("#created");
+    return child("#claim-creation-time");
   }
 
   public SelenideElement version() {

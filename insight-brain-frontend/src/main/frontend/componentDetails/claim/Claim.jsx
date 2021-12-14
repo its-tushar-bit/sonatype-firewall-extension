@@ -5,7 +5,7 @@
  */
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm, NxFormGroup, NxTextInput, NxButton } from '@sonatype/react-shared-components';
+import { NxForm, NxFormGroup, NxTextInput, NxButton, NxDateInput } from '@sonatype/react-shared-components';
 
 import RevokeClaimModal, { revokeClaimModalPropTypes } from './RevokeClaimModal';
 
@@ -124,7 +124,7 @@ export default function Claim({
                 />
               </NxFormGroup>
               <NxFormGroup label="Created" isRequired={!!createTime.trimmedValue}>
-                <NxTextInput type="date" {...createTime} onChange={setCreatedTime} validatable={true} id="created" />
+                <NxDateInput {...createTime} onChange={setCreatedTime} validatable={true} id="claim-creation-time" />
               </NxFormGroup>
             </div>
             <div className="nx-form-row">

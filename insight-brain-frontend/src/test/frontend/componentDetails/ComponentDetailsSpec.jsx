@@ -300,4 +300,20 @@ describe('ComponentDetails', function () {
       assertTabs(el, minimalProps.activeTabId, false, false, false);
     });
   });
+
+  it('hides a ComponentDetailsFooter component when landing from the dependency tree', () => {
+    const mockPagination = {
+      next: '/next-component',
+    };
+    const el = getShallowComponent({
+      componentDetails: {
+        name: 'Mock Component Name',
+        hash: 'some-crazy-hash',
+        matchState: 'exact',
+      },
+      pagination: mockPagination,
+      dependencyTreeRouterParams: { publicId: 'publicId', scanId: 'scanId' },
+    });
+    expect(el.find(ComponentDetailsFooter)).not.toExist();
+  });
 });

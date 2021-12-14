@@ -241,6 +241,9 @@ public class DependencyTreeTest
     clickableTreeItems.get(0).click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "848d7549ef7ec13ce546"));
 
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.footer().shouldNotBe(visible);
+
     eyesWatcher.eyesCheck("component details page from dependency tree");
 
     SelenideElement menuBarBackButton = MainHeader.backButton();

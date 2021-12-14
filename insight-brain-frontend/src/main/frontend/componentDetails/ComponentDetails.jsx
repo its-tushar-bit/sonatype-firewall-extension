@@ -120,7 +120,9 @@ export default function ComponentDetails({
           isExact={isExact}
         />
       </div>
-      {pagination && <ComponentDetailsFooter {...pagination} backToOffspringOnClick={backToOffspringOnClick} />}
+      {!dependencyTreeRouterParams && pagination && (
+        <ComponentDetailsFooter {...pagination} backToOffspringOnClick={backToOffspringOnClick} />
+      )}
     </main>
   );
 }

@@ -60,7 +60,7 @@ public class ComponentWaiversPopover
     }
 
     public SelenideElement deleteWaiverButton(int rowIndex) {
-      return getRow(rowIndex).find(".nx-btn--delete-waiver");
+      return getRow(rowIndex).find(".iq-component-violations-waivers-table__delete-btn");
     }
 
     public SelenideElement emptyTableMessage() {

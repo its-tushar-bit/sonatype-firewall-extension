@@ -507,7 +507,7 @@ public class TransitiveViolationsTest
 
     eyesWatcher.eyesCheck();
 
-    orgPolicyWaiverCells.get(5).find(".nx-btn--delete-waiver").click();
+    orgPolicyWaiverCells.get(5).find(".iq-component-violations-waivers-table__delete-btn").click();
     DeleteWaiverModal deleteWaiverModal = new DeleteWaiverModal();
     deleteWaiverModal.yesButton().click();
     componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHaveSize(2);

@@ -15,6 +15,7 @@ import {
   selectReportParameters,
   selectIsDependenciesLoading,
   selectDependencyTreeData,
+  selectDependencyTreeIsAvailable,
   selectApplicationReportSlice,
   selectDependencyTreeRouterParams,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
@@ -280,6 +281,19 @@ describe('applicationReportSelectors', () => {
     const actual = selectDependencyTreeData(mockState);
 
     expect(actual).toEqual(expected);
+  });
+
+  it('selectDependencyTreeIsAvailable', () => {
+    const state = {
+      ...mockState,
+      applicationReport: {
+        ...mockState.applicationReport,
+        dependencyTree: null,
+      },
+    };
+    const actual = selectDependencyTreeIsAvailable(state);
+
+    expect(actual).toEqual(false);
   });
 
   describe('selectReportParameters', () => {

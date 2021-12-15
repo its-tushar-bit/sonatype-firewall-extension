@@ -837,16 +837,13 @@ describe('applicationReportReducer', function () {
       expect(newState.other).toBe(otherObject);
     });
 
-    it('sets "dependencyTree" in the applicationReport', () => {
-      const state = Object.freeze({
-        selectedReport: null,
-        dependencyTree: null,
-        aggregatedEntries: [
+    describe('dependency tree', () => {
+      let entries;
+      beforeEach(() => {
+        entries = [
           {
             policyThreatLevel: 1,
             hash: 'a',
-            waived: false,
-            grandfathered: false,
             componentIdentifier: {
               format: 'maven',
               coordinates: {
@@ -858,75 +855,78 @@ describe('applicationReportReducer', function () {
               },
             },
             derivedComponentName: 'logback-access : ch.qos.logback : 0.6',
+            innerSource: true,
+            directDependency: true,
           },
-          {
-            policyThreatLevel: 0,
-            grandfathered: undefined,
-            waived: true,
-            hash: 'b',
-            policyName: 'None',
-            derivedViolationState: 'waived',
-          },
-        ],
+          { policyThreatLevel: 3, hash: 'b' },
+        ];
       });
 
-      const entries = [
-        {
-          policyThreatLevel: 1,
-          hash: 'a',
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              artifactId: 'logback-access',
-              classifier: '',
-              extension: 'jar',
-              groupId: 'ch.qos.logback',
-              version: '0.6',
+      it('sets "dependencyTree" in the applicationReport', () => {
+        const state = Object.freeze({
+          selectedReport: null,
+          dependencyTree: null,
+          aggregatedEntries: [
+            {
+              policyThreatLevel: 1,
+              hash: 'a',
+              waived: false,
+              grandfathered: false,
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  artifactId: 'logback-access',
+                  classifier: '',
+                  extension: 'jar',
+                  groupId: 'ch.qos.logback',
+                  version: '0.6',
+                },
+              },
+              derivedComponentName: 'logback-access : ch.qos.logback : 0.6',
+              innerSource: true,
+              directDependency: true,
             },
-          },
-          derivedComponentName: 'logback-access : ch.qos.logback : 0.6',
-          innerSource: true,
-          directDependency: true,
-        },
-        { policyThreatLevel: 3, hash: 'b' },
-      ];
+            { policyThreatLevel: 3, hash: 'b' },
+          ],
+        });
 
-      const newState = reduce(state, {
-        type: 'LOAD_REPORT_FULFILLED',
-        payload: {
-          allEntries: entries,
-          dependencies: {
-            dependencyTree: {
-              children: [
-                {
-                  componentIdentifier: {
-                    format: 'maven',
-                    coordinates: {
-                      artifactId: 'logback-access',
-                      classifier: '',
-                      extension: 'jar',
-                      groupId: 'ch.qos.logback',
-                      version: '0.6',
+        const newState = reduce(state, {
+          type: 'LOAD_REPORT_FULFILLED',
+          payload: {
+            allEntries: entries,
+            dependencies: {
+              dependencyTree: {
+                children: [
+                  {
+                    componentIdentifier: {
+                      format: 'maven',
+                      coordinates: {
+                        artifactId: 'logback-access',
+                        classifier: '',
+                        extension: 'jar',
+                        groupId: 'ch.qos.logback',
+                        version: '0.6',
+                      },
                     },
                   },
-                },
-              ],
+                ],
+              },
             },
           },
-        },
-      });
+        });
 
-      expect(newState.dependencyTree).toEqual([
-        {
-          children: null,
-          displayName: 'logback-access : ch.qos.logback : 0.6',
-          hash: 'a',
-          isOpen: true,
-          policyThreatLevel: 1,
-          treePath: [0],
-          isInnerSource: true,
-        },
-      ]);
+        expect(newState.dependencyTree).toEqual([
+          {
+            children: null,
+            displayName: 'logback-access : ch.qos.logback : 0.6',
+            hash: 'a',
+            isOpen: true,
+            policyThreatLevel: 1,
+            treePath: [0],
+            isInnerSource: true,
+          },
+        ]);
+      });
     });
   });
 

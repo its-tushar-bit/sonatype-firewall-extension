@@ -38,6 +38,7 @@ describe('DependencyTreePage', () => {
 
   it('renders the tree with the correct title', () => {
     spyOn(applicationReportSelectors, 'selectIsDependenciesLoading').and.returnValue(false);
+    spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
     renderComponent();
     expect(screen.getByText('Dependency Tree')).toBeVisible();
     expect(screen.getByText('This is a test name')).toBeVisible();
@@ -45,17 +46,33 @@ describe('DependencyTreePage', () => {
 
   it('renders the loading message', () => {
     spyOn(applicationReportSelectors, 'selectIsDependenciesLoading').and.returnValue(true);
+    spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
     renderComponent();
     expect(screen.getByText('Loading…')).toBeVisible();
   });
 
   it('renders the header breadcrumbs', () => {
     spyOn(componentDetailsSelectors, 'selectComponentMetaData').and.returnValue(reportMetadata);
+    spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
     renderComponent();
     const breadcrumbs = screen.getByTestId('dependency-tree-page-header-breadcrumbs');
     const expectedRenderedReportTime = `${reportMetadata.reportTime} 00:00:00`;
     expect(within(breadcrumbs).getByText(reportMetadata.organizationName)).toBeVisible();
     expect(within(breadcrumbs).getByText(reportMetadata.applicationName)).toBeVisible();
     expect(within(breadcrumbs).getByText(`${reportMetadata.reportTitle} ${expectedRenderedReportTime}`)).toBeVisible();
+  });
+
+  it('renders NxErrorAlert if no dependency tree available', () => {
+    spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(false);
+    renderComponent();
+    expect(screen.getByRole('alert')).toBeVisible();
+  });
+
+  it('renders tile if dependency tree is available', () => {
+    spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
+    spyOn(applicationReportSelectors, 'selectIsDependenciesLoading').and.returnValue(false);
+    renderComponent();
+    expect(screen.queryByText('Dependency tree not available.')).toBeNull();
+    expect(screen.getByText('This is a test name')).toBeVisible();
   });
 });

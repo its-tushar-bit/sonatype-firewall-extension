@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { NxLoadWrapper, NxPageMain, NxTile } from '@sonatype/react-shared-components';
+import { NxLoadWrapper, NxPageMain, NxTile, NxErrorAlert } from '@sonatype/react-shared-components';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import ComponentDetailsReportInfo from 'MainRoot/componentDetails/ComponentDetailsHeader/ComponentDetailsReportInfo';
 import DependencyTree from './DependencyTree';
@@ -17,6 +17,7 @@ import { selectApplicationInfo, selectComponentMetaData } from '../componentDeta
 import {
   selectIsDependenciesLoading,
   selectDependencyTreeData,
+  selectDependencyTreeIsAvailable,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 export default function DependencyTreePage() {
@@ -26,6 +27,7 @@ export default function DependencyTreePage() {
     applicationInfo = useSelector(selectApplicationInfo),
     metadata = useSelector(selectComponentMetaData),
     loading = useSelector(selectIsDependenciesLoading),
+    dependencyTreeIsAvailable = useSelector(selectDependencyTreeIsAvailable),
     loadReport = () => dispatch(loadReportIfNeeded());
   const setCurrentRouterParams = () => dispatch(setDependencyTreeRouterParamsForBackButton());
 
@@ -39,19 +41,25 @@ export default function DependencyTreePage() {
       <MenuBarBackButton stateName="applicationReport.policy" />
       <header className="nx-page-title">
         <h1 className="nx-h1 iq-dependency-tree__title">Dependency Tree</h1>
-        <ComponentDetailsReportInfo
-          data-testid="dependency-tree-page-header-breadcrumbs"
-          className="nx-page-title__description"
-          {...(metadata || {})}
-        />
+        {dependencyTreeIsAvailable && (
+          <ComponentDetailsReportInfo
+            data-testid="dependency-tree-page-header-breadcrumbs"
+            className="nx-page-title__description"
+            {...(metadata || {})}
+          />
+        )}
       </header>
-      <NxTile data-testid="dependency-tree-tile">
-        <NxTile.Content>
-          <NxLoadWrapper loading={loading} retryHandler={loadReport}>
-            <DependencyTree dependencyTree={dependencyTree} rootName={applicationInfo?.applicationName} />
-          </NxLoadWrapper>
-        </NxTile.Content>
-      </NxTile>
+      {dependencyTreeIsAvailable ? (
+        <NxTile data-testid="dependency-tree-tile">
+          <NxTile.Content>
+            <NxLoadWrapper loading={loading} retryHandler={loadReport}>
+              <DependencyTree dependencyTree={dependencyTree} rootName={applicationInfo?.applicationName} />
+            </NxLoadWrapper>
+          </NxTile.Content>
+        </NxTile>
+      ) : (
+        <NxErrorAlert>Dependency tree not available.</NxErrorAlert>
+      )}
     </NxPageMain>
   );
 }

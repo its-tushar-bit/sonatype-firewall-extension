@@ -430,7 +430,7 @@ const setPendingLoads = mutatePendingLoads((set) => (val) => set.add(val)),
   unsetPendingLoads = mutatePendingLoads((set) => (val) => set.delete(val));
 
 function setExtendedTreeData(state, dependencies) {
-  if (isNilOrEmpty(dependencies.dependencyTree)) {
+  if (isNilOrEmpty(dependencies?.dependencyTree?.children)) {
     return state;
   }
 

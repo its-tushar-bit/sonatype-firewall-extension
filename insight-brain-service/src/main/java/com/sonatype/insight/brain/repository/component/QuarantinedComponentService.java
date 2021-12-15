@@ -8,16 +8,19 @@ package com.sonatype.insight.brain.repository.component;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -35,6 +38,8 @@ public class QuarantinedComponentService
 {
   private final QuarantinedComponentAccessManager quarantinedComponentAccessManager;
 
+  private final ComponentInfoService componentInfoService;
+
   private final RepositoryDAO repositoryDAO;
 
   private final RepositoryComponentDAO repositoryComponentDAO;
@@ -46,15 +51,19 @@ public class QuarantinedComponentService
   @Inject
   public QuarantinedComponentService(
       final DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
+      final ComponentInfoService componentInfoService,
       final RepositoryDAO repositoryDAO,
       final RepositoryComponentDAO repositoryComponentDAO,
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO
   )
   {
     this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
+    this.componentInfoService = componentInfoService;
     this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+
+    componentInfoService.setToolName("ci");
   }
 
   public QuarantinedComponentDto getQuarantinedComponent(final String token) {
@@ -114,6 +123,15 @@ public class QuarantinedComponentService
     policyViolationDto.constraintFactsJson = policyViolation.getConstraintFactsJson();
 
     return policyViolationDto;
+  }
+
+  public ComponentVersionInfoDTO getQuarantineComponentVersionRemediation(final String token) {
+    final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
+    RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+
+    return componentInfoService.getComponentVersionInfoNoAuth(OwnerType.REPOSITORY,
+        repositoryComponent.getRepositoryId(), repositoryComponent.getComponentIdentifier(), Stage.ID_PROXY,
+        repositoryComponent.getIdentificationSourceId(), null, null);
   }
 
   private String getComponentDisplayName(RepositoryComponent repositoryComponent) {

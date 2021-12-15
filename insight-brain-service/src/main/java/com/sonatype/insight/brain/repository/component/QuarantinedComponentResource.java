@@ -14,6 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
+import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -30,7 +31,10 @@ public class QuarantinedComponentResource
 
   public static final String QUARANTINED_COMPONENT_PATH = "{token}";
 
-  public static final String QUARANTINED_COMPONENT_OVERVIEW_PATH = "{token}/overview";
+  public static final String QUARANTINED_COMPONENT_OVERVIEW_PATH = QUARANTINED_COMPONENT_PATH + "/overview";
+
+  public static final String QUARANTINED_COMPONENT_VERSION_REMEDIATION_PATH =
+      QUARANTINED_COMPONENT_PATH + "/remediation";
 
   public static final String QUARANTINED_COMPONENT_POLICY_VIOLATIONS_PATH = "{token}/policyViolations";
 
@@ -58,9 +62,14 @@ public class QuarantinedComponentResource
   @GET
   @Path(QUARANTINED_COMPONENT_POLICY_VIOLATIONS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public RepositoryPolicyThreatDTO getQuarantinedComponentPolicyViolations(
-      @PathParam("token") String token)
-  {
+  public RepositoryPolicyThreatDTO getQuarantinedComponentPolicyViolations(@PathParam("token") String token) {
     return quarantinedComponentService.getQuarantinedComponentPolicyViolations(token);
+  }
+
+  @GET
+  @Path(QUARANTINED_COMPONENT_VERSION_REMEDIATION_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ComponentVersionInfoDTO getQuarantinedComponentVersionRemediation(@PathParam("token") String token) {
+    return quarantinedComponentService.getQuarantineComponentVersionRemediation(token);
   }
 }

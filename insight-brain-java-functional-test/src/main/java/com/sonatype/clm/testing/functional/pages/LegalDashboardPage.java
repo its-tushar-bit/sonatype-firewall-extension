@@ -93,4 +93,8 @@ public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
   public SelenideElement noComponentsFoundMessage() {
     return child("#legal-dashboard-components-table .nx-cell.nx-cell--meta-info");
   }
+
+  public SelenideElement selectedPaginationPage() {
+    return child(".nx-btn--pagination.selected");
+  }
 }

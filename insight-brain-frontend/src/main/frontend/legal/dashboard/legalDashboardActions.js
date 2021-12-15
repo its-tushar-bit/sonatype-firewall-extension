@@ -15,11 +15,13 @@ export const LEGAL_DASHBOARD_LOAD_RESULTS_FAILED = 'LEGAL_DASHBOARD_LOAD_RESULTS
 export const LEGAL_DASHBOARD_SET_PAGE = 'LEGAL_DASHBOARD_SET_PAGE';
 export const LEGAL_DASHBOARD_FETCH_BACKEND_PAGE = 'LEGAL_DASHBOARD_FETCH_BACKEND_PAGE';
 export const LEGAL_DASHBOARD_CHANGE_SORT_FIELD = 'LEGAL_DASHBOARD_CHANGE_SORT_FIELD';
-export const LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH = 'LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH';
+export const LEGAL_DASHBOARD_COMPONENT_SEARCH = 'LEGAL_DASHBOARD_COMPONENT_SEARCH';
+export const LEGAL_DASHBOARD_COMPONENT_SET_SEARCH_INPUT_VALUE = 'LEGAL_DASHBOARD_COMPONENT_SET_SEARCH_INPUT_VALUE';
 
 export const legalDashboardSetPage = payloadParamActionCreator(LEGAL_DASHBOARD_SET_PAGE);
 const legalDashboardFetchBackendPage = payloadParamActionCreator(LEGAL_DASHBOARD_FETCH_BACKEND_PAGE);
 const legalDashboardChangeSortField = payloadParamActionCreator(LEGAL_DASHBOARD_CHANGE_SORT_FIELD);
+export const setComponentSearchInputValue = payloadParamActionCreator(LEGAL_DASHBOARD_COMPONENT_SET_SEARCH_INPUT_VALUE);
 
 function loadResultsFulfilled(resultsType, results) {
   return {
@@ -35,7 +37,14 @@ function loadResultsFailed(resultsType, error) {
   };
 }
 
-export const changeComponentNameToSearch = payloadParamActionCreator(LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH);
+export function searchByComponentName() {
+  return (dispatch, getState) => {
+    dispatch({
+      type: LEGAL_DASHBOARD_COMPONENT_SEARCH,
+    });
+    return dispatchResults(dispatch, 'components', getState);
+  };
+}
 
 export function loadResults(resultsType) {
   return (dispatch, getState) => {
@@ -43,16 +52,19 @@ export function loadResults(resultsType) {
       type: LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED,
       payload: resultsType,
     });
-
-    return fetchResults(resultsType, getState())
-      .then((payload) => {
-        dispatch(loadResultsFulfilled(resultsType, payload.data));
-      })
-      .catch((error) => {
-        dispatch(loadResultsFailed(resultsType, error));
-        return Promise.reject(error);
-      });
+    return dispatchResults(dispatch, resultsType, getState);
   };
+}
+
+function dispatchResults(dispatch, resultsType, getState) {
+  return fetchResults(resultsType, getState())
+    .then((payload) => {
+      dispatch(loadResultsFulfilled(resultsType, payload.data));
+    })
+    .catch((error) => {
+      dispatch(loadResultsFailed(resultsType, error));
+      return Promise.reject(error);
+    });
 }
 
 function fetchResults(resultsType, state) {
@@ -71,7 +83,7 @@ function fetchResults(resultsType, state) {
   };
 
   if (resultsType === 'components') {
-    appliedFilter.componentName = state.legalDashboard[resultsType].componentNameInput.trimmedValue;
+    appliedFilter.componentName = state.legalDashboard[resultsType].componentNameToSearch;
   }
 
   const serviceMethod = getServiceMethod(resultsType);

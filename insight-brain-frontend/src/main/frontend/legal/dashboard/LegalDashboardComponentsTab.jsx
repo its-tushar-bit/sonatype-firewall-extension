@@ -14,7 +14,6 @@ import {
   NxPagination,
   NxTextInput,
   NxButton,
-  NxButtonBar,
 } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import LegalDashboardComponentRow from './LegalDashboardComponentRow';
@@ -26,8 +25,8 @@ export default function LegalDashboardComponentsTab({
   fetchBackendPage,
   changeSortField,
   stateGo,
-  changeComponentNameToSearch,
-  loadResults,
+  searchByComponentName,
+  setComponentSearchInputValue,
 }) {
   const [page, setPage] = useState(components.backendPage - 1 || 0);
   const { itemsPerPage, pagesToFill } = DASHBOARD.components;
@@ -73,18 +72,20 @@ export default function LegalDashboardComponentsTab({
     }
   }
 
+  function handleSubmit(e) {
+    e.preventDefault();
+    searchByComponentName();
+    setPage(0);
+  }
+
   return (
     <>
-      <NxButtonBar id="legal-dashboard-component-searchbox-container">
-        <NxTextInput validatable onChange={changeComponentNameToSearch} {...components.componentNameInput} />
-        <NxButton
-          variant="primary"
-          onClick={() => loadResults('components')}
-          disabled={components.loading || components.componentNameInput.validationErrors}
-        >
+      <form id="legal-dashboard-component-searchbox-container" onSubmit={handleSubmit}>
+        <NxTextInput validatable onChange={setComponentSearchInputValue} {...components.componentSearchInput} />
+        <NxButton variant="primary" disabled={components.loading || components.componentSearchInput.validationErrors}>
           Search
         </NxButton>
-      </NxButtonBar>
+      </form>
       <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
         <NxTable id="legal-dashboard-components-table" className="legal-dashboard-table">
           <NxTableHead>
@@ -139,9 +140,10 @@ export default function LegalDashboardComponentsTab({
 
 LegalDashboardComponentsTab.propTypes = {
   components: PropTypes.any,
-  changeComponentNameToSearch: PropTypes.func.isRequired,
+  searchByComponentName: PropTypes.func.isRequired,
   fetchBackendPage: PropTypes.func.isRequired,
   changeSortField: PropTypes.func.isRequired,
   loadResults: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
+  setComponentSearchInputValue: PropTypes.func,
 };

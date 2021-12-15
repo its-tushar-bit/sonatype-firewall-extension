@@ -8,6 +8,7 @@ import {
   fetchBackendPage,
   changeSortField,
   legalDashboardSetPage,
+  searchByComponentName,
 } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
 import axios from 'axios';
 import {
@@ -27,6 +28,7 @@ describe('legalDashboardActions', function () {
       },
       {
         resultsType: 'components',
+        componentNameToSearch: 'searchString',
         serviceMethod: legalDashboardComponentsUrlSpy,
       },
     ];
@@ -43,10 +45,74 @@ describe('legalDashboardActions', function () {
       legalDashboard: {
         applications: {},
         components: {
-          componentNameInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+          componentNameToSearch: '',
+          componentSearchInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
         },
       },
     };
+
+    function testSearchByComponentNameAction(tab) {
+      describe('searchByComponentName for components', function () {
+        it('loads results', function (done) {
+          const store = SpecUtil.mockReduxStore(initialState);
+          mockAxiosCalls({
+            post: {
+              [getLegalDashboardApplicationsUrl()]: Promise.resolve({
+                data: 'results',
+              }),
+              [getLegalDashboardComponentsUrl()]: Promise.resolve({
+                data: 'results',
+              }),
+            },
+          });
+
+          store.dispatch(searchByComponentName()).then(() => {
+            expect(store.getActions().length).toBe(2);
+            expect(store.getActions()[1]).toEqual({
+              type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED',
+              payload: {
+                resultsType: tab.resultsType,
+                results: 'results',
+              },
+            });
+            done();
+          });
+
+          expect(store.getActions().length).toBe(1);
+          expect(store.getActions()[0]).toEqual({
+            type: 'LEGAL_DASHBOARD_COMPONENT_SEARCH',
+          });
+        });
+
+        it('handles failure to searchByComponentName results', function (done) {
+          const store = SpecUtil.mockReduxStore(initialState);
+          const errorTest = 'Error test';
+          mockAxiosCalls({
+            post: {
+              [getLegalDashboardApplicationsUrl()]: () => Promise.reject(errorTest),
+              [getLegalDashboardComponentsUrl()]: () => Promise.reject(errorTest),
+            },
+          });
+
+          store.dispatch(searchByComponentName(tab.componentNameToSearch)).catch(() => {
+            expect(store.getActions().length).toBe(2);
+            expect(store.getActions()[1]).toEqual({
+              type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FAILED',
+              payload: {
+                resultsType: tab.resultsType,
+                error: errorTest,
+              },
+            });
+            done();
+          });
+
+          expect(store.getActions().length).toBe(1);
+          expect(store.getActions()[0]).toEqual({
+            type: 'LEGAL_DASHBOARD_COMPONENT_SEARCH',
+          });
+        });
+      });
+    }
 
     function testLoadResultsAction(tab) {
       describe('loadResults for ' + tab.resultsType, function () {
@@ -220,6 +286,7 @@ describe('legalDashboardActions', function () {
     }
 
     tabs.forEach(testLoadResultsAction);
+    testSearchByComponentNameAction(tabs[1]);
     testlegalDashboardSetPage(tabs[0]);
     testFetchBackendPageAction(tabs[0]);
     testChangeSortFieldAction(tabs[0]);

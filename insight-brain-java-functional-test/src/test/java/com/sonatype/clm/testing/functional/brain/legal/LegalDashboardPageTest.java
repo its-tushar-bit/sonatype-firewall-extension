@@ -262,6 +262,17 @@ public class LegalDashboardPageTest
   }
 
   @Test
+  public void testComponentsSearchByEnterKeystroke() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.componentsSearchInput().setValue("1.0");
+    ldp.componentsSearchInput().pressEnter();
+    ldp.componentsTableApplicationCountCols().shouldHaveSize(2);
+    ldp.pageButtons().shouldHaveSize(1);
+  }
+
+  @Test
   public void testComponentsSearchWithEmptyString() {
     refreshOrOpen(LegalDashboardPage.url(true));
     LegalDashboardPage ldp = new LegalDashboardPage();
@@ -281,6 +292,21 @@ public class LegalDashboardPageTest
     ldp.componentsSearchButton().click();
     Wait<WebDriver> wait = getWebDriverAwait();
     wait.until(ExpectedConditions.visibilityOf(ldp.noComponentsFoundMessage()));
+  }
+
+  @Test
+  public void testComponentsPaginationResetOnSearchStringChange() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.componentsSearchInput().setValue("");
+    ldp.componentsSearchButton().click();
+    ldp.componentsTableApplicationCountCols().shouldHaveSize(10);
+    ldp.pageButtons().shouldHaveSize(2);
+    ldp.pageButtons().get(1).click();
+    ldp.componentsSearchInput().setValue(": 1.0");
+    ldp.componentsSearchInput().pressEnter();
+    ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
   }
 
   @Test

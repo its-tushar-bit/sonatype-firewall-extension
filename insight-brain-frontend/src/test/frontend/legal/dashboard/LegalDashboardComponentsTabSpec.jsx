@@ -19,7 +19,7 @@ import { DASHBOARD } from '../../../../main/frontend/legal/advancedLegalConstant
 describe('LegalDashboardComponentsTab component', function () {
   let getShallowComponent;
 
-  const componentNameInput = { isPristine: true, value: '', trimmedValue: '', validationErrors: null };
+  const componentSearchInput = { isPristine: true, value: '', trimmedValue: '', validationErrors: null };
   const minimalProps = {
     components: {
       results: [
@@ -114,7 +114,7 @@ describe('LegalDashboardComponentsTab component', function () {
       ],
       totalResultsCount: 11,
       backendPage: 1,
-      componentNameInput,
+      componentSearchInput,
     },
     fetchBackendPage: () => {},
     changeSortField: () => {},
@@ -142,47 +142,43 @@ describe('LegalDashboardComponentsTab component', function () {
     expect(searchButton).toHaveProp('variant', 'primary');
   });
 
-  it('executes changeComponentNameToSearch on change event', function () {
-    spyOn(minimalProps, 'changeComponentNameToSearch');
-    const wrapper = getShallowComponent();
-    let filterInput = wrapper.find(NxTextInput);
-    filterInput.simulate('change', 'a');
-    expect(minimalProps.changeComponentNameToSearch).toHaveBeenCalledWith('a');
-  });
-
-  it("passes state's componentNameInput validationErrros to search box", function () {
-    const validationErrorMessage = 'You must input at least three characters to search';
+  it('renders the component search box text using the state passed through', function () {
     const customMinimalProps = {
       ...minimalProps,
       components: {
         ...minimalProps.components,
-        componentNameInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: validationErrorMessage },
-      },
-    };
-    const wrapper = enzymeUtils.getMountedComponent(LegalDashboardComponentsTab, customMinimalProps)();
-    let filterInput = wrapper.find(NxTextInput);
-    expect(filterInput.props().validationErrors).toEqual(validationErrorMessage);
-  });
-
-  it("passes state's componentNameInput value and trimmedValue to the search box", function () {
-    const searchString = ' 123 ';
-    const trimmedSearchString = searchString.trim();
-    const customMinimalProps = {
-      ...minimalProps,
-      components: {
-        ...minimalProps.components,
-        componentNameInput: {
-          isPristine: true,
-          value: searchString,
-          trimmedValue: trimmedSearchString,
+        componentSearchInput: {
+          isPristine: false,
+          value: 'componentSearchInput',
+          trimmedValue: 'componentSearchInput',
           validationErrors: null,
         },
       },
     };
-    const wrapper = enzymeUtils.getMountedComponent(LegalDashboardComponentsTab, customMinimalProps)();
+    const wrapper = enzymeUtils.getShallowComponent(LegalDashboardComponentsTab, customMinimalProps)();
     let filterInput = wrapper.find(NxTextInput);
-    expect(filterInput.props().value).toEqual(searchString);
-    expect(filterInput.props().trimmedValue).toEqual(trimmedSearchString);
+    expect(filterInput).toHaveProp('value', customMinimalProps.components.componentSearchInput.value);
+  });
+
+  it('renders the component search box validation error', function () {
+    const customMinimalProps = {
+      ...minimalProps,
+      components: {
+        ...minimalProps.components,
+        componentSearchInput: {
+          isPristine: false,
+          value: '12',
+          trimmedValue: '12',
+          validationErrors: 'validation error',
+        },
+      },
+    };
+    const wrapper = enzymeUtils.getShallowComponent(LegalDashboardComponentsTab, customMinimalProps)();
+    let filterInput = wrapper.find(NxTextInput);
+    expect(filterInput).toHaveProp(
+      'validationErrors',
+      customMinimalProps.components.componentSearchInput.validationErrors
+    );
   });
 
   it('renders LegalDashboardComponentRow components for each component passed in', function () {
@@ -200,7 +196,7 @@ describe('LegalDashboardComponentsTab component', function () {
     const wrapper = enzymeUtils.getMountedComponent(LegalDashboardComponentsTab, {
       components: {
         results: [],
-        componentNameInput,
+        componentSearchInput,
       },
     })();
     let table = wrapper.find(NxTable);
@@ -231,7 +227,7 @@ describe('LegalDashboardComponentsTab component', function () {
         results: items,
         totalResultsCount: items.length * 3,
         backendPage: 1,
-        componentNameInput,
+        componentSearchInput,
       },
       fetchBackendPage: () => {},
     };

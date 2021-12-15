@@ -11,8 +11,9 @@ import {
   LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED,
   LEGAL_DASHBOARD_FETCH_BACKEND_PAGE,
   LEGAL_DASHBOARD_CHANGE_SORT_FIELD,
-  LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH,
   LEGAL_DASHBOARD_SET_PAGE,
+  LEGAL_DASHBOARD_COMPONENT_SEARCH,
+  LEGAL_DASHBOARD_COMPONENT_SET_SEARCH_INPUT_VALUE,
 } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
 import {
   LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED,
@@ -50,7 +51,8 @@ describe('legalDashboardReducer', function () {
         backendPage: 1,
         error: null,
         sortField: null,
-        componentNameInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+        componentNameToSearch: '',
+        componentSearchInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
       });
     });
   });
@@ -256,12 +258,40 @@ describe('legalDashboardReducer', function () {
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
-  describe('LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH action', function () {
+  describe('LEGAL_DASHBOARD_COMPONENT_SEARCH action', function () {
     it('sets the search string for components', function () {
+      const searchString = 'aws';
       const state = Object.freeze({
         components: {
           error: {},
-          componentNameInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+          componentNameToSearch: 'searchString',
+          componentSearchInput: {
+            isPristine: false,
+            value: searchString,
+            trimmedValue: searchString,
+            validationErrors: null,
+          },
+        },
+        applications: { error: null },
+        currentTab: 'components',
+        other: otherObject,
+      });
+      const action = {
+        type: LEGAL_DASHBOARD_COMPONENT_SEARCH,
+      };
+      const newState = legalDashboardReducer(state, action);
+      expect(newState.components.componentNameToSearch).toEqual(searchString);
+      expect(newState.actions).toBe(state.actions);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+  describe('LEGAL_DASHBOARD_COMPONENT_SET_SEARCH_INPUT_VALUE action', function () {
+    it('sets the string for components search box', function () {
+      const state = Object.freeze({
+        components: {
+          error: {},
+          componentNameToSearch: '',
+          componentSearchInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
         },
         applications: { error: null },
         currentTab: 'components',
@@ -269,55 +299,27 @@ describe('legalDashboardReducer', function () {
       });
       const searchString = 'searchString';
       const action = {
-        type: LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH,
+        type: LEGAL_DASHBOARD_COMPONENT_SET_SEARCH_INPUT_VALUE,
         payload: searchString,
       };
       const newState = legalDashboardReducer(state, action);
-      expect(newState.components.componentNameInput).toEqual({
-        isPristine: false,
-        value: searchString,
-        trimmedValue: searchString,
-        validationErrors: null,
-      });
+      expect(newState.components.componentSearchInput.value).toEqual(searchString);
+      expect(newState.components.componentSearchInput.trimmedValue).toEqual(searchString);
+      expect(newState.components.componentSearchInput.isPristine).toEqual(false);
       expect(newState.actions).toBe(state.actions);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
 
-    it('sets the validationErrors with a less than 3 chars search string', function () {
+    it('sets an empty string as valid on componentSearchInput', function () {
       const state = Object.freeze({
         components: {
           error: {},
-          componentNameInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
-        },
-        applications: { error: null },
-        currentTab: 'components',
-        other: otherObject,
-      });
-      const searchString = '12';
-      const action = {
-        type: LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH,
-        payload: searchString,
-      };
-      const newState = legalDashboardReducer(state, action);
-      expect(newState.components.componentNameInput).toEqual({
-        isPristine: false,
-        value: searchString,
-        trimmedValue: searchString,
-        validationErrors: 'You must input at least three characters to search',
-      });
-      expect(newState.actions).toBe(state.actions);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-
-    it('sets an empty string as valid to reset search criteria', function () {
-      const state = Object.freeze({
-        components: {
-          error: {},
-          componentNameInput: {
-            isPristine: true,
-            value: '12',
-            trimmedValue: '12',
-            validationErrors: 'No components found given the applied filters and permissions.',
+          componentNameToSearch: 'searchString',
+          componentSearchInput: {
+            isPristine: false,
+            value: 'searchString',
+            trimmedValue: 'searchString',
+            validationErrors: null,
           },
         },
         applications: { error: null },
@@ -326,16 +328,40 @@ describe('legalDashboardReducer', function () {
       });
       const searchString = '';
       const action = {
-        type: LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH,
+        type: LEGAL_DASHBOARD_COMPONENT_SET_SEARCH_INPUT_VALUE,
         payload: searchString,
       };
       const newState = legalDashboardReducer(state, action);
-      expect(newState.components.componentNameInput).toEqual({
-        isPristine: false,
-        value: searchString,
-        trimmedValue: searchString,
-        validationErrors: null,
+      expect(newState.components.componentSearchInput.value).toEqual(searchString);
+      expect(newState.components.componentSearchInput.trimmedValue).toEqual(searchString);
+      expect(newState.components.componentSearchInput.isPristine).toEqual(false);
+      expect(newState.actions).toBe(state.actions);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets an invalid string on componentSearchInput', function () {
+      const state = Object.freeze({
+        components: {
+          error: {},
+          componentNameToSearch: 'searchString',
+          componentSearchInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+        },
+        applications: { error: null },
+        currentTab: '',
+        other: otherObject,
       });
+      const searchString = '12';
+      const action = {
+        type: LEGAL_DASHBOARD_COMPONENT_SET_SEARCH_INPUT_VALUE,
+        payload: searchString,
+      };
+      const newState = legalDashboardReducer(state, action);
+      expect(newState.components.componentSearchInput.value).toEqual(searchString);
+      expect(newState.components.componentSearchInput.trimmedValue).toEqual(searchString);
+      expect(newState.components.componentSearchInput.isPristine).toEqual(false);
+      expect(newState.components.componentSearchInput.validationErrors).toEqual(
+        'You must input at least three characters to search'
+      );
       expect(newState.actions).toBe(state.actions);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });

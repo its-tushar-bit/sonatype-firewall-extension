@@ -10,14 +10,24 @@ import {
   LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED,
   LEGAL_DASHBOARD_FETCH_BACKEND_PAGE,
   LEGAL_DASHBOARD_CHANGE_SORT_FIELD,
-  LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH,
   LEGAL_DASHBOARD_SET_PAGE,
+  LEGAL_DASHBOARD_COMPONENT_SEARCH,
+  LEGAL_DASHBOARD_COMPONENT_SET_SEARCH_INPUT_VALUE,
 } from './legalDashboardActions';
 import {
   LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED,
   LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED,
 } from './filter/legalDashboardFilterActions';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+
+const validator = (value) => {
+  const trimmedValue = value.trim();
+  if (trimmedValue.length < 3 && trimmedValue.length > 0) {
+    return 'You must input at least three characters to search';
+  } else {
+    return null;
+  }
+};
 
 const { initialState, userInput } = nxTextInputStateHelpers;
 
@@ -37,19 +47,11 @@ const initState = {
     backendPage: 1,
     error: null,
     sortField: null,
-    componentNameInput: initialState(''),
+    componentNameToSearch: '',
+    componentSearchInput: initialState(''),
   },
   loading: false,
   loadError: null,
-};
-
-const validator = (value) => {
-  const trimmedValue = value.trim();
-  if (trimmedValue.length < 3 && trimmedValue.length > 0) {
-    return 'You must input at least three characters to search';
-  } else {
-    return null;
-  }
 };
 
 export default function (state = initState, { type, payload }) {
@@ -88,8 +90,17 @@ export default function (state = initState, { type, payload }) {
       return updateResults(state, resultsType, { sortField: sortField });
     }
 
-    case LEGAL_DASHBOARD_CHANGE_COMPONENT_NAME_TO_SEARCH: {
-      return updateResults(state, 'components', { componentNameInput: userInput(validator, payload) });
+    case LEGAL_DASHBOARD_COMPONENT_SEARCH: {
+      const preState = updateResults(state, 'components', {
+        componentNameToSearch: state.components.componentSearchInput.trimmedValue,
+      });
+      return resetResults(preState, 'components', true);
+    }
+
+    case LEGAL_DASHBOARD_COMPONENT_SET_SEARCH_INPUT_VALUE: {
+      return updateResults(state, 'components', {
+        componentSearchInput: userInput(validator, payload),
+      });
     }
 
     default:
@@ -97,11 +108,10 @@ export default function (state = initState, { type, payload }) {
   }
 }
 
-function resetResults(state, resultsType) {
-  const { backendPage, sortField } = state[resultsType];
-  const results = resetTabState(state[resultsType]);
+function resetResults(state, resultsType, resetPagination = false) {
+  const { sortField } = state[resultsType];
+  const results = resetTabState(state[resultsType], resetPagination);
   results.loading = true;
-  results.backendPage = backendPage;
   results.sortField = sortField;
   return { ...state, [resultsType]: results };
 }

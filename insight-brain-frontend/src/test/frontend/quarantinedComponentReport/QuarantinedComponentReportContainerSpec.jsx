@@ -9,17 +9,17 @@ import configureStore from 'redux-mock-store';
 import QuarantinedComponentReport from 'MainRoot/quarantinedComponentReport/QuarantinedComponentReport';
 
 describe('QuarantinedComponentContainer', function () {
-  let QuarantinedComponentContainer, loadComponentMock, store, state, vdom;
+  let QuarantinedComponentContainer, loadQuarantineReportDataSpy, store, state, vdom;
 
   beforeEach(function () {
-    loadComponentMock = jasmine.createSpy('loadComponentMock').and.returnValue({
-      type: 'QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_REQUESTED',
+    loadQuarantineReportDataSpy = jasmine.createSpy('loadQuarantineReportDataSpy').and.returnValue({
+      type: 'QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED',
     });
 
     QuarantinedComponentContainer = require('inject-loader!../../../main/frontend/quarantinedComponentReport/QuarantinedComponentContainer')(
       {
         './quarantinedComponentReportActions': {
-          loadComponent: loadComponentMock,
+          loadQuarantineReportData: loadQuarantineReportDataSpy,
         },
       }
     ).default;
@@ -33,9 +33,9 @@ describe('QuarantinedComponentContainer', function () {
       },
       quarantinedComponentReport: {
         viewState: {
-          dataLoading: false,
           loadError: null,
-          repositoryComponentId: '',
+          componentOverviewLoading: false,
+          componentOverview: {},
         },
       },
     };
@@ -47,9 +47,7 @@ describe('QuarantinedComponentContainer', function () {
   it('maps the state slice to props', () => {
     let wrapper = shallow(vdom).dive();
 
-    expect(wrapper).toHaveProp('repositoryComponentId', '');
     expect(wrapper).toHaveProp('loadError', null);
-    expect(wrapper).toHaveProp('dataLoading', false);
 
     state = {
       ...state,
@@ -57,28 +55,26 @@ describe('QuarantinedComponentContainer', function () {
         ...state.quarantinedComponentReport,
         viewState: {
           ...state.quarantinedComponentReport.viewState,
-          dataLoading: true,
           loadError: 'error',
-          repositoryComponentId: 'repComId',
+          componentOverviewLoading: true,
+          componentOverview: {},
         },
       },
     };
     wrapper = shallow(vdom).dive();
 
-    expect(wrapper).toHaveProp('dataLoading', true);
     expect(wrapper).toHaveProp('loadError', 'error');
-    expect(wrapper).toHaveProp('repositoryComponentId', 'repComId');
   });
 
   it('maps action creators to props', function () {
     const wrapper = shallow(vdom).dive(),
-      loadComponentActionCreator = wrapper.prop('loadComponent');
+      loadQuarantineReportDataActionCreator = wrapper.prop('loadQuarantineReportData');
 
-    expect(loadComponentActionCreator).toEqual(jasmine.any(Function));
+    expect(loadQuarantineReportDataActionCreator).toEqual(jasmine.any(Function));
     expect(store.getActions()).toEqual([]);
 
-    loadComponentActionCreator('token');
-    expect(store.getActions()).toEqual([{ type: 'QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_REQUESTED' }]);
+    loadQuarantineReportDataActionCreator('token');
+    expect(store.getActions()).toEqual([{ type: 'QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED' }]);
   });
 
   it('renders QuarantinedComponentReport component', function () {

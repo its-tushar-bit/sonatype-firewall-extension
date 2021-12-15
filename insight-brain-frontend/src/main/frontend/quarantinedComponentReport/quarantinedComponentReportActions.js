@@ -6,30 +6,40 @@
 import axios from 'axios';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
-import { Messages } from '../util/CommonServices';
 
-import { getQuarantinedComponentUrl } from '../util/CLMLocation';
+import { getQuarantinedComponentOverviewUrl } from '../util/CLMLocation';
 
-export const QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_REQUESTED =
-  'QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_REQUESTED';
-export const QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FULFILLED =
-  'QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FULFILLED';
-export const QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FAILED = 'QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FAILED';
+export const QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED =
+  'QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED';
+export const QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FULFILLED =
+  'QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FULFILLED';
+export const QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED =
+  'QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED';
 
-const loadComponentRequested = noPayloadActionCreator(QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_REQUESTED);
-const loadComponentFulfilled = payloadParamActionCreator(QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FULFILLED);
-const loadComponentFailed = payloadParamActionCreator(QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FAILED);
+const loadQuarantineComponentOverviewRequested = noPayloadActionCreator(
+  QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED
+);
+const loadQuarantineComponentOverviewFulfilled = payloadParamActionCreator(
+  QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FULFILLED
+);
+const loadQuarantineComponentOverviewFailed = payloadParamActionCreator(
+  QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED
+);
 
-export function loadComponent(token) {
+export function loadQuarantineReportData(token) {
+  return (dispatch) => Promise.all([dispatch(loadQuarantineComponentOverview(token))]);
+}
+
+export function loadQuarantineComponentOverview(token) {
   return function (dispatch) {
-    dispatch(loadComponentRequested());
+    dispatch(loadQuarantineComponentOverviewRequested());
     return axios
-      .get(getQuarantinedComponentUrl(token))
+      .get(getQuarantinedComponentOverviewUrl(token))
       .then(({ data }) => {
-        dispatch(loadComponentFulfilled(data));
+        dispatch(loadQuarantineComponentOverviewFulfilled(data));
       })
       .catch((error) => {
-        dispatch(loadComponentFailed(Messages.getHttpErrorMessage(error)));
+        dispatch(loadQuarantineComponentOverviewFailed(error));
       });
   };
 }

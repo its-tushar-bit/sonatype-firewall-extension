@@ -5,44 +5,66 @@
  */
 
 import { createReducerFromActionMap } from '../util/reduxUtil';
-import { always } from 'ramda';
 import {
-  QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FAILED,
-  QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FULFILLED,
-  QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_REQUESTED,
+  QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED,
+  QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FULFILLED,
+  QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED,
 } from './quarantinedComponentReportActions';
 
 const initialState = Object.freeze({
   viewState: Object.freeze({
     loadError: null,
-    dataLoading: true,
-    repositoryComponentId: '',
+    componentOverview: {
+      componentOverviewLoading: true,
+      componentDisplayName: '',
+      isQuarantined: false,
+      quarantinedPolicyViolationsCount: '',
+      repositoryName: '',
+      quarantinedDate: '',
+      cataloguedDate: '',
+    },
   }),
 });
 
-const loadComponentFulfilled = (payload, state) => ({
+const loadComponentOverviewRequested = (payload, state) => ({
   ...state,
   viewState: {
     ...state.viewState,
-    dataLoading: false,
-    repositoryComponentId: payload.repositoryComponentId,
+    componentOverview: {
+      ...state.viewState.componentOverview,
+      componentOverviewLoading: true,
+    },
   },
 });
 
-const loadComponentFailed = (payload, state) => ({
+const loadComponentOverviewFulfilled = (payload, state) => ({
   ...state,
   viewState: {
     ...state.viewState,
-    loadError: payload,
-    dataLoading: false,
-    repositoryComponentId: '',
+    loadError: null,
+    componentOverview: {
+      ...payload,
+      componentOverviewLoading: false,
+    },
+  },
+});
+
+const loadComponentOverviewFailed = (payload, state) => ({
+  ...state,
+  viewState: {
+    ...state.viewState,
+    loadError: state.viewState.loadError || payload,
+    componentOverview: {
+      ...state.viewState.componentOverview,
+      componentOverviewLoading: false,
+    },
   },
 });
 
 const reducerActionMap = {
-  [QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_REQUESTED]: always(initialState),
-  [QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FULFILLED]: loadComponentFulfilled,
-  [QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FAILED]: loadComponentFailed,
+  [QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED]: loadComponentOverviewFailed,
+  [QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FULFILLED]: loadComponentOverviewFulfilled,
+  [QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED]: loadComponentOverviewRequested,
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

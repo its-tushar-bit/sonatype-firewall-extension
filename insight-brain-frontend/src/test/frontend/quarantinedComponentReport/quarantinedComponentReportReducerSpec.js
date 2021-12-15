@@ -9,8 +9,15 @@ describe('quarantinedComponentReportReducer', function () {
   const defaultState = Object.freeze({
     viewState: Object.freeze({
       loadError: null,
-      dataLoading: true,
-      repositoryComponentId: '',
+      componentOverview: {
+        componentOverviewLoading: true,
+        componentDisplayName: '',
+        isQuarantined: false,
+        quarantinedPolicyViolationsCount: '',
+        repositoryName: '',
+        quarantinedDate: '',
+        cataloguedDate: '',
+      },
     }),
   });
 
@@ -36,6 +43,114 @@ describe('quarantinedComponentReportReducer', function () {
         newState = reduce(state, { type: 'UNKNOWN' });
 
       expect(newState).toBe(state);
+    });
+  });
+
+  describe('QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED action', function () {
+    let minimumState = {
+      viewState: {
+        componentOverview: {},
+      },
+    };
+
+    it('resets the state used for quarantine report overview', function () {
+      expect(reduce(minimumState, { type: 'QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED' })).toEqual(
+        {
+          ...minimumState,
+          viewState: {
+            ...minimumState.viewState,
+            componentOverview: {
+              ...minimumState.viewState.componentOverview,
+              componentOverviewLoading: true,
+            },
+          },
+        }
+      );
+    });
+  });
+
+  describe('QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FULFILLED action', function () {
+    let minimumState = {
+      viewState: {
+        componentOverview: {},
+      },
+    };
+
+    it('updates the state', function () {
+      let payload = {
+        componentDisplayName: null,
+        isQuarantined: null,
+        quarantinedPolicyViolationsCount: null,
+        repositoryName: null,
+        quarantinedDate: null,
+        cataloguedDate: null,
+      };
+
+      expect(
+        reduce(minimumState, {
+          type: 'QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FULFILLED',
+          payload: payload,
+        })
+      ).toEqual({
+        ...minimumState,
+        viewState: {
+          ...minimumState.viewState,
+          loadError: null,
+          componentOverview: {
+            ...payload,
+            componentOverviewLoading: false,
+          },
+        },
+      });
+    });
+  });
+
+  describe('QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED action', function () {
+    let minimumState = {
+      viewState: {
+        loadError: null,
+        componentOverview: {},
+      },
+    };
+
+    it('updates the state', function () {
+      expect(
+        reduce(minimumState, {
+          type: 'QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED',
+          payload: 'error!',
+        })
+      ).toEqual({
+        ...minimumState,
+        viewState: {
+          ...minimumState.viewState,
+          loadError: 'error!',
+          componentOverview: {
+            ...minimumState.viewState.componentOverview,
+            componentOverviewLoading: false,
+          },
+        },
+      });
+    });
+
+    it('does not update loadError if it exists', function () {
+      let newState = reduce(minimumState, {
+        type: 'QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED',
+        payload: 'old error!',
+      });
+
+      expect(
+        reduce(newState, { type: 'QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED', payload: 'error!' })
+      ).toEqual({
+        ...minimumState,
+        viewState: {
+          ...minimumState.viewState,
+          loadError: 'old error!',
+          componentOverview: {
+            ...minimumState.viewState.componentOverview,
+            componentOverviewLoading: false,
+          },
+        },
+      });
     });
   });
 });

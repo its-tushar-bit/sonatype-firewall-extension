@@ -6,17 +6,17 @@
 import { connect } from 'react-redux';
 import QuarantinedComponentReport from './QuarantinedComponentReport';
 import { pick } from 'ramda';
-import { loadComponent } from './quarantinedComponentReportActions';
+import { loadQuarantineReportData } from './quarantinedComponentReportActions';
 
 function mapStateToProps({ router, quarantinedComponentReport }) {
   return {
     ...pick(['token'], router.currentParams),
-    ...pick(['loadError', 'repositoryComponentId', 'dataLoading'], quarantinedComponentReport.viewState),
+    ...pick(['loadError', 'componentOverview'], quarantinedComponentReport.viewState),
   };
 }
 
 const mapDispatchToProps = {
-  loadComponent,
+  loadQuarantineReportData,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(QuarantinedComponentReport);

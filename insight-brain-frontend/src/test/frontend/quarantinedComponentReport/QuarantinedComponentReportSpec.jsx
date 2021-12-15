@@ -4,24 +4,25 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../enzymeUtils';
-import { NxLoadWrapper } from '@sonatype/react-shared-components';
+import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 
 describe('QuarantinedComponentReport', function () {
-  let minimalProps, QuarantinedComponentReport, loadComponentSpy, getShallowComponent;
+  let minimalProps, QuarantinedComponentReport, loadQuarantineReportDataSpy, getShallowComponent;
 
   beforeEach(function () {
     QuarantinedComponentReport = require('inject-loader!../../../main/frontend/quarantinedComponentReport/QuarantinedComponentReport')(
       {}
     ).default;
 
-    loadComponentSpy = jasmine.createSpy('loadComponent');
+    loadQuarantineReportDataSpy = jasmine.createSpy('loadQuarantineReportData');
 
     minimalProps = {
       token: 'token',
       loadError: null,
-      dataLoading: false,
-      repositoryComponentId: 'repcomid',
-      loadComponent: loadComponentSpy,
+      loadQuarantineReportData: loadQuarantineReportDataSpy,
+      componentOverview: {
+        componentOverviewLoading: true,
+      },
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(QuarantinedComponentReport, minimalProps);
@@ -32,27 +33,25 @@ describe('QuarantinedComponentReport', function () {
   });
 
   it('renders a loading LoadWrapper when dataLoading is true', function () {
-    const component = getShallowComponent({
-      dataLoading: true,
-    });
-    const loadWrapper = component.find(NxLoadWrapper);
+    const component = getShallowComponent();
+    const loadWrapper = component.find(LoadWrapper);
     expect(loadWrapper).toHaveProp('loading', true);
   });
 
   it('passes any loadError to the LoadWrapper', function () {
     const component = getShallowComponent({ loadError: 'error' });
-    const loadWrapper = component.find(NxLoadWrapper);
+    const loadWrapper = component.find(LoadWrapper);
     expect(loadWrapper).toHaveProp('error', 'error');
   });
 
-  it('calls loadFirewallData when the LoadWrapper retryHandler is invoked', function () {
-    const loadWrapper = getShallowComponent().find(NxLoadWrapper),
+  it('calls loadQuarantineReportData when the LoadWrapper retryHandler is invoked', function () {
+    const loadWrapper = getShallowComponent().find(LoadWrapper),
       retryHandler = loadWrapper.prop('retryHandler');
 
-    expect(loadComponentSpy).not.toHaveBeenCalled();
+    expect(loadQuarantineReportDataSpy).not.toHaveBeenCalled();
 
     retryHandler();
 
-    expect(loadComponentSpy).toHaveBeenCalled();
+    expect(loadQuarantineReportDataSpy).toHaveBeenCalled();
   });
 });

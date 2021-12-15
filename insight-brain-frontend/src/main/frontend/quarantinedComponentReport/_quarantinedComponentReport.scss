@@ -7,3 +7,19 @@
 quarantined-component-report {
   display: contents;
 }
+
+.iq-quarantine-report-component-overview-tile {
+  > .nx-tile-content {
+    .iq-general-info-content {
+      grid-template-columns: repeat(2, auto);
+    }
+
+    .iq-repo-info-content {
+      grid-template-columns: auto;
+    }
+
+    .iq-component-data-col {
+      flex: none;
+    }
+  }
+}

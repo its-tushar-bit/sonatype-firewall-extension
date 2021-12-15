@@ -5,36 +5,43 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxLoadWrapper } from '@sonatype/react-shared-components';
+import LoadWrapper from '../react/LoadWrapper';
+import { formatDate } from '../util/dateUtils';
+
+import QuarantineComponentOverviewTile from './componentOverviewTile/QuarantineComponentOverviewTile';
 
 export default function QuarantinedComponentReport(props) {
   // Url parameter
   const { token } = props;
 
   // Actions
-  const { loadComponent } = props;
+  const { loadQuarantineReportData } = props;
 
   // viewState
-  const { repositoryComponentId, loadError, dataLoading } = props;
+  const { loadError, componentOverview } = props;
+
+  const dataLoading = componentOverview.componentOverviewLoading || !componentOverview.componentDisplayName;
 
   useEffect(() => {
-    loadComponent(token);
-  }, []);
+    loadQuarantineReportData(token);
+  }, [token]);
 
   return (
     <main id="quarantined-component-report" className="nx-page-main">
-      <NxLoadWrapper retryHandler={() => loadComponent(token)} error={loadError} loading={dataLoading}>
-        <div>Token: {token}</div>
-        <div>Repository Component Id: {repositoryComponentId}</div>
-      </NxLoadWrapper>
+      <div class="nx-page-title">
+        <h1 class="nx-h1">Quarantine Report</h1>
+        <div class="nx-page-title__description">{formatDate(new Date())}</div>
+      </div>
+
+      <LoadWrapper retryHandler={() => loadQuarantineReportData(token)} error={loadError} loading={dataLoading}>
+        <QuarantineComponentOverviewTile componentOverview={componentOverview} />
+      </LoadWrapper>
     </main>
   );
 }
 
 QuarantinedComponentReport.propTypes = {
   token: PropTypes.string.isRequired,
-  loadComponent: PropTypes.func.isRequired,
-  repositoryComponentId: PropTypes.string.isRequired,
+  loadQuarantineReportData: PropTypes.func.isRequired,
   loadError: PropTypes.string,
-  dataLoading: PropTypes.bool.isRequired,
 };

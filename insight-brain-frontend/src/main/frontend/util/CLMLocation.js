@@ -729,8 +729,8 @@ export function getClaimComponentUrl(hash) {
   return hash ? `${base}/${encodeURIComponent(hash)}` : base;
 }
 
-export function getQuarantinedComponentUrl(token) {
-  return uriTemplate`/rest/repositories/quarantinedComponent/${token}`;
+export function getQuarantinedComponentOverviewUrl(token) {
+  return uriTemplate`/rest/repositories/quarantinedComponent/${token}/overview`;
 }
 
 export const getVulnerabilityOverrideUrl = (ownerType, ownerId, hash, vulnerability) => {

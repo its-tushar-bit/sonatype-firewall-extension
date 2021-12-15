@@ -5,18 +5,19 @@
  */
 import axios from 'axios';
 
-import { getQuarantinedComponentUrl } from 'MainRoot/util/CLMLocation';
+import { getQuarantinedComponentOverviewUrl } from 'MainRoot/util/CLMLocation';
 import {
-  loadComponent,
-  QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FAILED,
-  QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FULFILLED,
-  QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_REQUESTED,
+  loadQuarantineReportData,
+  loadQuarantineComponentOverview,
+  QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED,
+  QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FULFILLED,
+  QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED,
 } from 'MainRoot/quarantinedComponentReport/quarantinedComponentReportActions';
 
 describe('quarantinedComponentReportActions', function () {
   const token = 'token';
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
-    quarantinedComponentUrl = getQuarantinedComponentUrl(token);
+    quarantinedComponentOverviewUrl = getQuarantinedComponentOverviewUrl(token);
 
   let store, state;
 
@@ -24,7 +25,6 @@ describe('quarantinedComponentReportActions', function () {
     state = Object.freeze({
       viewState: Object.freeze({
         loadError: null,
-        dataLoading: true,
         repositoryComponentId: '',
       }),
     });
@@ -32,45 +32,79 @@ describe('quarantinedComponentReportActions', function () {
     store = SpecUtil.mockReduxStore(state);
   });
 
-  describe('loadComponent', function () {
+  describe('loadQuarantineReportData', function () {
+    it('immediately dispatches actions to load all quarantine report data', function () {
+      store.dispatch(loadQuarantineReportData(token));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+  });
+
+  describe('loadQuarantineComponentOverview', function () {
     afterEach(function () {
-      expect(axios.get).toHaveBeenCalledWith(quarantinedComponentUrl);
+      expect(axios.get).toHaveBeenCalledWith(quarantinedComponentOverviewUrl);
     });
 
-    it('immediately dispatches a QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_REQUESTED action', function () {
+    it('immediately dispatches a QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED action', function () {
       mockAxiosCalls({
         get: {
-          [quarantinedComponentUrl]: Promise.resolve({
-            data: { repositoryComponentId: 'id' },
+          [quarantinedComponentOverviewUrl]: Promise.resolve({
+            data: {
+              data: {
+                componentDisplayName: 'some-component',
+                isQuarantined: true,
+                quarantinedPolicyViolationsCount: 123,
+                repositoryName: 'maven-central',
+                quarantinedDate: '2021-11-18T16:31:17.192+0000',
+                cataloguedDate: '2021-11-18T16:31:17.192+0000',
+              },
+            },
           }),
         },
       });
 
-      store.dispatch(loadComponent(token));
+      store.dispatch(loadQuarantineComponentOverview(token));
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_REQUESTED);
+      expect(actions[0].type).toBe(QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED);
       expect(actions[0].payload).toBeUndefined();
     });
 
     describe('after a successful GET call', function () {
-      it('dispatches QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FULFILLED action', function (done) {
+      it('dispatches QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FULFILLED action', function (done) {
         mockAxiosCalls({
           get: {
-            [quarantinedComponentUrl]: Promise.resolve({
-              data: { repositoryComponentId: 'id' },
+            [quarantinedComponentOverviewUrl]: Promise.resolve({
+              data: {
+                componentDisplayName: 'some-component',
+                isQuarantined: true,
+                quarantinedPolicyViolationsCount: 123,
+                repositoryName: 'maven-central',
+                quarantinedDate: '2021-11-18T16:31:17.192+0000',
+                cataloguedDate: '2021-11-18T16:31:17.192+0000',
+              },
             }),
           },
         });
 
-        store.dispatch(loadComponent(token)).then(() => {
+        store.dispatch(loadQuarantineComponentOverview(token)).then(() => {
           actions = store.getActions();
           expect(actions.length).toBe(2);
-          expect(actions[0].type).toBe(QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_REQUESTED);
+          expect(actions[0].type).toBe(QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_REQUESTED);
           expect(actions[0].payload).toBeUndefined();
-          expect(actions[1].type).toBe(QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FULFILLED);
-          expect(actions[1].payload).toEqual({ repositoryComponentId: 'id' });
+          expect(actions[1].type).toBe(QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FULFILLED);
+          expect(actions[1].payload).toEqual({
+            componentDisplayName: 'some-component',
+            isQuarantined: true,
+            quarantinedPolicyViolationsCount: 123,
+            repositoryName: 'maven-central',
+            quarantinedDate: '2021-11-18T16:31:17.192+0000',
+            cataloguedDate: '2021-11-18T16:31:17.192+0000',
+          });
           done();
         });
 
@@ -80,17 +114,17 @@ describe('quarantinedComponentReportActions', function () {
     });
 
     describe('after a failed GET call', function () {
-      it('dispatches an QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FAILED action', function (done) {
+      it('dispatches an QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED action', function (done) {
         mockAxiosCalls({
           get: {
-            [quarantinedComponentUrl]: () => Promise.reject('error!'),
+            [quarantinedComponentOverviewUrl]: () => Promise.reject('error!'),
           },
         });
 
-        store.dispatch(loadComponent(token)).then(() => {
+        store.dispatch(loadQuarantineComponentOverview(token)).then(() => {
           actions = store.getActions();
           expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe(QUARANTINED_COMPONENT_REPORT_LOAD_COMPONENT_FAILED);
+          expect(actions[1].type).toBe(QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED);
           expect(actions[1].payload).toBe('error!');
           done();
         });

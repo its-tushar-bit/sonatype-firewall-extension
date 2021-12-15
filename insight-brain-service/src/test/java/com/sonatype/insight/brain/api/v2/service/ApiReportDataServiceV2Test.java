@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
@@ -27,10 +29,11 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
+import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -66,6 +69,9 @@ public class ApiReportDataServiceV2Test
   private InsightConfig config;
 
   private final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+
+  @Inject
+  private LicenseOverrideDAO licenseOverrideDAO;
 
   private Application app;
 
@@ -282,6 +288,74 @@ public class ApiReportDataServiceV2Test
     component = data.components.get(2);
     assertThat(component.hash).isEqualTo("69b58197caabec2e0d06");
     assertThat(component.dependencyData).isNull();
+  }
+
+  @Test
+  public void testGetDataNoAuth_UseLicensesJsonOverriddenLicenses_True() throws Exception {
+    config.getFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false);
+    makeReport("report-1");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
+    licenseOverrideDAO.delete(licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), componentIdentifier));
+
+    ApiReportRawDataDTOV2 data = reportDataService.getDataNoAuth(app.getPublicId(), scanId, true);
+
+    assertThat(data).isNotNull();
+    assertThat(data.components).hasSize(3);
+    ApiReportComponentDTOV2 component = data.components.get(0);
+    assertThat(component.hash).isEqualTo("5398a935d7fbeccac7b1");
+    assertThat(component.licenseData).isNotNull();
+    assertThat(component.licenseData.overriddenLicenses).extracting(l -> l.licenseName).containsExactly("Apache-2.0");
+
+    LicenseOverride licenseOverride = new LicenseOverride();
+    licenseOverride.setOwnerId(app.getId());
+    licenseOverride.setStatus(LicenseOverrideStatus.OVERRIDDEN);
+    licenseOverride.setLicenseIds(Collections.singleton("AAL"));
+    licenseOverride.setComponentIdentifier(componentIdentifier);
+    licenseOverrideDAO.insert(licenseOverride);
+
+    data = reportDataService.getDataNoAuth(app.getPublicId(), scanId, true);
+
+    assertThat(data).isNotNull();
+    assertThat(data.components).hasSize(3);
+    component = data.components.get(0);
+    assertThat(component.hash).isEqualTo("5398a935d7fbeccac7b1");
+    assertThat(component.licenseData).isNotNull();
+    assertThat(component.licenseData.overriddenLicenses).extracting(l -> l.licenseName).containsExactly("Apache-2.0");
+  }
+
+  @Test
+  public void testGetDataNoAuth_UseLicensesJsonOverriddenLicenses_False() throws Exception {
+    config.getFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false);
+    makeReport("report-1");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
+    licenseOverrideDAO.delete(licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), componentIdentifier));
+
+    ApiReportRawDataDTOV2 data = reportDataService.getDataNoAuth(app.getPublicId(), scanId, false);
+
+    assertThat(data).isNotNull();
+    assertThat(data.components).hasSize(3);
+    ApiReportComponentDTOV2 component = data.components.get(0);
+    assertThat(component.hash).isEqualTo("5398a935d7fbeccac7b1");
+    assertThat(component.licenseData).isNotNull();
+    assertThat(component.licenseData.overriddenLicenses).isEmpty();
+
+    LicenseOverride licenseOverride = new LicenseOverride();
+    licenseOverride.setOwnerId(app.getId());
+    licenseOverride.setStatus(LicenseOverrideStatus.OVERRIDDEN);
+    licenseOverride.setLicenseIds(Collections.singleton("AAL"));
+    licenseOverride.setComponentIdentifier(componentIdentifier);
+    licenseOverrideDAO.insert(licenseOverride);
+
+    data = reportDataService.getDataNoAuth(app.getPublicId(), scanId, false);
+
+    assertThat(data).isNotNull();
+    assertThat(data.components).hasSize(3);
+    component = data.components.get(0);
+    assertThat(component.hash).isEqualTo("5398a935d7fbeccac7b1");
+    assertThat(component.licenseData).isNotNull();
+    assertThat(component.licenseData.overriddenLicenses).extracting(l -> l.licenseName).containsExactly("AAL");
   }
 
   @Test

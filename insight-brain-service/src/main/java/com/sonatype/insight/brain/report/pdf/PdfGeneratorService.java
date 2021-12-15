@@ -17,6 +17,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -93,9 +96,27 @@ public class PdfGeneratorService
     pdfData.baseUrl = getBaseUrl();
     pdfData.productVersion = versionService.getLogDisplayVersion();
     pdfData.policyData = apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId);
-    pdfData.rawData = apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId);
+    pdfData.rawData = apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true);
+    augmentEmptyLicensesAsNotProvided(pdfData.rawData);
     PdfGenerator.generate(pdfFile, pdfData);
     return pdfFile;
+  }
+
+  // Visible for testing
+  void augmentEmptyLicensesAsNotProvided(ApiReportRawDataDTOV2 rawData) {
+    for (ApiReportComponentDTOV2 component : rawData.components) {
+      if (component.licenseData == null) {
+        continue;
+      }
+      if (component.licenseData.effectiveLicenses.isEmpty() && component.licenseData.declaredLicenses.isEmpty() &&
+          component.licenseData.observedLicenses.isEmpty()) {
+        ApiLicenseDTO license = new ApiLicenseDTO();
+        license.licenseName = "Not Provided";
+        component.licenseData.effectiveLicenses.add(license);
+        component.licenseData.declaredLicenses.add(license);
+        component.licenseData.observedLicenses.add(license);
+      }
+    }
   }
 
   private String getBaseUrl() {

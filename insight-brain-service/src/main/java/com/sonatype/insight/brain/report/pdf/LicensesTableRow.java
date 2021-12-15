@@ -7,31 +7,24 @@ package com.sonatype.insight.brain.report.pdf;
 
 import java.util.Comparator;
 
-import org.codehaus.plexus.util.StringUtils;
-
 public class LicensesTableRow
     implements Comparable<LicensesTableRow>
 {
   private static final Comparator<LicensesTableRow> COMPARATOR =
-      Comparator.comparing(LicensesTableRow::getLicenses, String::compareToIgnoreCase)
+      Comparator.comparing((LicensesTableRow row) -> row.effectiveLicenses, String::compareToIgnoreCase)
+          .thenComparing(row -> row.declaredLicenses, String::compareToIgnoreCase)
+          .thenComparing(row -> row.observedLicenses, String::compareToIgnoreCase)
           .thenComparing(row -> row.componentName, Comparator.nullsLast(String::compareToIgnoreCase));
+
+  public boolean overridden;
+
+  public String effectiveLicenses;
 
   public String declaredLicenses;
 
   public String observedLicenses;
 
   public String componentName;
-
-  // Visible for testing
-  String getLicenses() {
-    if (StringUtils.isEmpty(declaredLicenses)) {
-      return StringUtils.isEmpty(observedLicenses) ? "" : observedLicenses;
-    }
-    if (StringUtils.isEmpty(observedLicenses)) {
-      return declaredLicenses;
-    }
-    return declaredLicenses + ", " + observedLicenses;
-  }
 
   @Override
   public int compareTo(LicensesTableRow that) {

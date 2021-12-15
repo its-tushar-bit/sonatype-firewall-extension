@@ -6,8 +6,11 @@
 package com.sonatype.insight.brain.report.pdf;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -386,80 +389,27 @@ public class PdfGeneratorTest
 
   @Test
   public void testGetLicensesString_Empty() throws Exception {
-    assertThat(getLicenseText(new ApiLicenseDataDTOV2())).isEmpty();
+    assertThat(getLicenseText(Collections.emptyList())).isEmpty();
   }
 
   @Test
-  public void testGetLicensesString_OneObservedLicense() throws Exception {
-    ApiLicenseDataDTOV2 licenseData = new ApiLicenseDataDTOV2();
-    ApiLicenseDTO observedLicense = new ApiLicenseDTO();
-    observedLicense.licenseName = "observedLicense";
-    licenseData.observedLicenses.add(observedLicense);
+  public void testGetLicensesString_OneLicense() throws Exception {
+    ApiLicenseDTO license = new ApiLicenseDTO();
+    license.licenseName = "license";
 
-    assertThat(getLicenseText(licenseData)).isEqualTo("observedLicense");
+    assertThat(getLicenseText(Collections.singletonList(license))).isEqualTo("license");
   }
 
   @Test
-  public void testGetLicensesString_OneDeclaredLicense() throws Exception {
-    ApiLicenseDataDTOV2 licenseData = new ApiLicenseDataDTOV2();
-    ApiLicenseDTO declaredLicense = new ApiLicenseDTO();
-    declaredLicense.licenseName = "declaredLicense";
-    licenseData.declaredLicenses.add(declaredLicense);
+  public void testGetLicensesString_MultipleLicenses() throws Exception {
+    ApiLicenseDTO license1 = new ApiLicenseDTO();
+    license1.licenseName = "license1";
+    ApiLicenseDTO license2 = new ApiLicenseDTO();
+    license2.licenseName = "license2";
+    ApiLicenseDTO license3 = new ApiLicenseDTO();
+    license3.licenseName = "license3";
 
-    assertThat(getLicenseText(licenseData)).isEqualTo("declaredLicense");
-  }
-
-  @Test
-  public void testGetLicensesString_MultipleDeclaredLicenses() throws Exception {
-    ApiLicenseDataDTOV2 licenseData = new ApiLicenseDataDTOV2();
-    ApiLicenseDTO declaredLicense1 = new ApiLicenseDTO();
-    declaredLicense1.licenseName = "declaredLicense1";
-    licenseData.declaredLicenses.add(declaredLicense1);
-    ApiLicenseDTO declaredLicense2 = new ApiLicenseDTO();
-    declaredLicense2.licenseName = "declaredLicense2";
-    licenseData.declaredLicenses.add(declaredLicense2);
-    ApiLicenseDTO declaredLicense3 = new ApiLicenseDTO();
-    declaredLicense3.licenseName = "declaredLicense3";
-    licenseData.declaredLicenses.add(declaredLicense3);
-
-    assertThat(getLicenseText(licenseData))
-        .isEqualTo("declaredLicense1, declaredLicense2, declaredLicense3");
-  }
-
-  @Test
-  public void testGetLicensesString_MultipleObservedLicenses() throws Exception {
-    ApiLicenseDataDTOV2 licenseData = new ApiLicenseDataDTOV2();
-    ApiLicenseDTO observedLicense1 = new ApiLicenseDTO();
-    observedLicense1.licenseName = "observedLicense1";
-    licenseData.observedLicenses.add(observedLicense1);
-    ApiLicenseDTO observedLicense2 = new ApiLicenseDTO();
-    observedLicense2.licenseName = "observedLicense2";
-    licenseData.observedLicenses.add(observedLicense2);
-    ApiLicenseDTO observedLicense3 = new ApiLicenseDTO();
-    observedLicense3.licenseName = "observedLicense3";
-    licenseData.observedLicenses.add(observedLicense3);
-
-    assertThat(getLicenseText(licenseData)).isEqualTo("observedLicense1, observedLicense2, observedLicense3");
-  }
-
-  @Test
-  public void testGetLicensesString_MultipleDeclaredAndObservedLicenses() throws Exception {
-    ApiLicenseDataDTOV2 licenseData = new ApiLicenseDataDTOV2();
-    ApiLicenseDTO declaredLicense1 = new ApiLicenseDTO();
-    declaredLicense1.licenseName = "declaredLicense1";
-    licenseData.declaredLicenses.add(declaredLicense1);
-    ApiLicenseDTO declaredLicense2 = new ApiLicenseDTO();
-    declaredLicense2.licenseName = "declaredLicense2";
-    licenseData.declaredLicenses.add(declaredLicense2);
-    ApiLicenseDTO observedLicense1 = new ApiLicenseDTO();
-    observedLicense1.licenseName = "observedLicense1";
-    licenseData.observedLicenses.add(observedLicense1);
-    ApiLicenseDTO observedLicense2 = new ApiLicenseDTO();
-    observedLicense2.licenseName = "observedLicense2";
-    licenseData.observedLicenses.add(observedLicense2);
-
-    assertThat(getLicenseText(licenseData))
-        .isEqualTo("declaredLicense1, declaredLicense2, observedLicense1, observedLicense2");
+    assertThat(getLicenseText(Arrays.asList(license1, license2, license3))).isEqualTo("license1, license2, license3");
   }
 
   @Test
@@ -555,14 +505,28 @@ public class PdfGeneratorTest
   @Test
   public void testCreateLicensesTable_RowOrdering() throws Exception {
     ApiReportRawDataDTOV2 rawData = new ApiReportRawDataDTOV2();
-    ApiReportComponentDTOV2 component11 = generateComponentWithLicense("license1", "component11");
-    ApiReportComponentDTOV2 component12 = generateComponentWithLicense("license1", "component12");
-    ApiReportComponentDTOV2 component21 = generateComponentWithLicense("license2", "component21");
-    ApiReportComponentDTOV2 component22 = generateComponentWithLicense("license2", "component22");
-    rawData.components.add(component22);
-    rawData.components.add(component21);
-    rawData.components.add(component12);
-    rawData.components.add(component11);
+    ApiReportComponentDTOV2 c1 = generateComponentWithLicenses("v1", "v1", "v1", "v1");
+
+    ApiReportComponentDTOV2 c2 = generateComponentWithLicenses("v2", "v1", "v1", "v1");
+    ApiReportComponentDTOV2 c3 = generateComponentWithLicenses("v1", "v2", "v1", "v1");
+    ApiReportComponentDTOV2 c4 = generateComponentWithLicenses("v1", "v1", "v2", "v1");
+    ApiReportComponentDTOV2 c5 = generateComponentWithLicenses("v1", "v1", "v1", "v2");
+
+    ApiReportComponentDTOV2 c6 = generateComponentWithLicenses("v2", "v2", "v1", "v1");
+    ApiReportComponentDTOV2 c7 = generateComponentWithLicenses("v1", "v2", "v2", "v1");
+    ApiReportComponentDTOV2 c8 = generateComponentWithLicenses("v1", "v1", "v2", "v2");
+    ApiReportComponentDTOV2 c9 = generateComponentWithLicenses("v2", "v1", "v1", "v2");
+    ApiReportComponentDTOV2 c10 = generateComponentWithLicenses("v1", "v2", "v1", "v2");
+    ApiReportComponentDTOV2 c11 = generateComponentWithLicenses("v2", "v1", "v2", "v1");
+
+    ApiReportComponentDTOV2 c12 = generateComponentWithLicenses("v1", "v2", "v2", "v2");
+    ApiReportComponentDTOV2 c13 = generateComponentWithLicenses("v2", "v1", "v2", "v2");
+    ApiReportComponentDTOV2 c14 = generateComponentWithLicenses("v2", "v2", "v1", "v2");
+    ApiReportComponentDTOV2 c15 = generateComponentWithLicenses("v2", "v2", "v2", "v1");
+
+    ApiReportComponentDTOV2 c16 = generateComponentWithLicenses("v2", "v2", "v2", "v2");
+
+    rawData.components.addAll(Arrays.asList(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16));
     PdfData pdfData = newPdfData();
     pdfData.rawData = rawData;
     PdfGenerator pdfGenerator = new PdfGenerator(null, pdfData);
@@ -572,8 +536,31 @@ public class PdfGeneratorTest
 
     assertThat(licensesTable).isNotNull();
     List<Row> rows = licensesTable.getRows();
-    assertThat(rows.subList(1, rows.size())).extracting(row -> ((TextCell) row.getCells().get(1)).getText())
-        .containsExactly("component11", "component12", "component21", "component22");
+    assertThat(rows).extracting(r -> r.getCells().stream().map(c -> {
+      if (c instanceof ParagraphCell) {
+        return ((ParagraphCell) c).getParagraph().getWrappedParagraph().iterator().next().getText();
+      }
+      if (c instanceof TextCell) {
+        return ((TextCell) c).getText();
+      }
+      return null;
+    }).collect(Collectors.joining(","))).containsExactly("EFFECTIVE,DECLARED,OBSERVED,COMPONENT",
+        "v1,v1,v1,v1",
+        "v1,v1,v1,v2",
+        "v1,v1,v2,v1",
+        "v1,v1,v2,v2",
+        "v1,v2,v1,v1",
+        "v1,v2,v1,v2",
+        "v1,v2,v2,v1",
+        "v1,v2,v2,v2",
+        "v2,v1,v1,v1",
+        "v2,v1,v1,v2",
+        "v2,v1,v2,v1",
+        "v2,v1,v2,v2",
+        "v2,v2,v1,v1",
+        "v2,v2,v1,v2",
+        "v2,v2,v2,v1",
+        "v2,v2,v2,v2");
   }
 
   @Test
@@ -663,13 +650,24 @@ public class PdfGeneratorTest
     return component;
   }
 
-  private ApiReportComponentDTOV2 generateComponentWithLicense(String licenseName, String componentName) {
+  private ApiReportComponentDTOV2 generateComponentWithLicenses(
+      String effectiveLicense,
+      String declaredLicense,
+      String observedLicense,
+      String componentName)
+  {
     ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
     component.displayName = componentName;
     component.licenseData = new ApiLicenseDataDTOV2();
     ApiLicenseDTO license = new ApiLicenseDTO();
-    license.licenseName = licenseName;
+    license.licenseName = effectiveLicense;
+    component.licenseData.effectiveLicenses.add(license);
+    license = new ApiLicenseDTO();
+    license.licenseName = declaredLicense;
     component.licenseData.declaredLicenses.add(license);
+    license = new ApiLicenseDTO();
+    license.licenseName = observedLicense;
+    component.licenseData.observedLicenses.add(license);
     return component;
   }
 
@@ -697,12 +695,10 @@ public class PdfGeneratorTest
     return policyData;
   }
 
-  private String getLicenseText(ApiLicenseDataDTOV2 licenseData) throws Exception {
+  private String getLicenseText(List<ApiLicenseDTO> licenses) throws Exception {
     PdfGenerator pdfGenerator = new PdfGenerator(null, newPdfData());
     pdfGenerator.initFontStyles(new PDDocument());
-    ParagraphCell paragraphCell = pdfGenerator.buildLicensesCell(
-        PdfGenerator.licensesToString(licenseData.declaredLicenses),
-        PdfGenerator.licensesToString(licenseData.observedLicenses));
+    ParagraphCell paragraphCell = pdfGenerator.buildLicensesCell(PdfGenerator.licensesToString(licenses), false);
     paragraphCell.setWidth(1000);
     StringBuilder stringBuilder = new StringBuilder();
     Paragraph paragraph = paragraphCell.getParagraph().getWrappedParagraph();

@@ -372,6 +372,14 @@ public class ApiReportDataServiceV2
   }
 
   public ApiReportRawDataDTOV2 getDataNoAuth(String applicationPublicId, String scanId) throws IOException {
+    return getDataNoAuth(applicationPublicId, scanId, false);
+  }
+
+  public ApiReportRawDataDTOV2 getDataNoAuth(
+      String applicationPublicId,
+      String scanId,
+      boolean useLicensesJsonOverriddenLicenses) throws IOException
+  {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File reportFile = reportService.getReport(app.getId(), scanId);
 
@@ -386,8 +394,8 @@ public class ApiReportDataServiceV2
       throw new BadRequestException("The report with ID " + scanId + " contains no component data.");
     }
 
-    List<Component> components =
-        new ComponentDAO(app).getAll(licenseEntry.buf, securityEntry.buf, bomEntry.buf, dependenciesReportEntry.buf);
+    List<Component> components = new ComponentDAO(app).getAll(licenseEntry.buf, useLicensesJsonOverriddenLicenses,
+        securityEntry.buf, bomEntry.buf, dependenciesReportEntry.buf);
 
     ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
     for (Component comp : components) {

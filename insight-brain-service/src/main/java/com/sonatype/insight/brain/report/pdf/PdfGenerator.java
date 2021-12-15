@@ -172,10 +172,6 @@ public class PdfGenerator
 
   private FontStyle threatLevelFontStyle;
 
-  private FontStyle declaredLicensesFontStyle;
-
-  private FontStyle observedLicensesFontStyle;
-
   private String createdOnDateTime;
 
   private String analyzedOnDateTime;
@@ -229,8 +225,6 @@ public class PdfGenerator
     tableRowFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
     rectangleFontStyle = new FontStyle(summaryFontStyle.getFont(), 14f, Color.WHITE);
     threatLevelFontStyle = new FontStyle(semiBoldFont, THREAT_LEVEL_FONT_SIZE, DEFAULT_FONT_COLOR);
-    declaredLicensesFontStyle = new FontStyle(boldFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
-    observedLicensesFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
   }
 
   private void setDocumentMetadata() {
@@ -493,18 +487,24 @@ public class PdfGenerator
 
   // Visible for testing
   Table createLicensesTable(PDPage page) {
-    float licenseWidthPercent = 20;
-    float componentWidthPercent = 80;
+    float effectiveLicenseWidthPercent = 15;
+    float declaredLicenseWidthPercent = 15;
+    float observedLicenseWidthPercent = 15;
+    float componentWidthPercent = 55;
 
     float tableWidthOnePercent = (page.getCropBox().getWidth() - 2 * MARGIN) / 100;
     TableBuilder tableBuilder =
         Table.builder().addColumnsOfWidth(
-            tableWidthOnePercent * licenseWidthPercent,
+            tableWidthOnePercent * effectiveLicenseWidthPercent,
+            tableWidthOnePercent * declaredLicenseWidthPercent,
+            tableWidthOnePercent * observedLicenseWidthPercent,
             tableWidthOnePercent * componentWidthPercent);
 
     // Add licenses table headers
     tableBuilder.addRow(Row.builder()
-        .add(headerCellBuilder().text("LICENSE").build())
+        .add(headerCellBuilder().text("EFFECTIVE").build())
+        .add(headerCellBuilder().text("DECLARED").build())
+        .add(headerCellBuilder().text("OBSERVED").build())
         .add(headerCellBuilder().text("COMPONENT").build())
         .build());
 
@@ -513,7 +513,9 @@ public class PdfGenerator
     licensesTableRows.sort(null);
     for (LicensesTableRow licensesTableRow : licensesTableRows) {
       tableBuilder.addRow(Row.builder()
-          .add(buildLicensesCell(licensesTableRow.declaredLicenses, licensesTableRow.observedLicenses))
+          .add(buildLicensesCell(licensesTableRow.effectiveLicenses, licensesTableRow.overridden))
+          .add(buildLicensesCell(licensesTableRow.declaredLicenses, false))
+          .add(buildLicensesCell(licensesTableRow.observedLicenses, false))
           .add(cellBuilder(licensesTableRow.componentName).build())
           .build());
     }
@@ -521,23 +523,23 @@ public class PdfGenerator
   }
 
   // Visible for testing
-  ParagraphCell buildLicensesCell(String declaredLicenses, String observedLicenses) {
+  ParagraphCell buildLicensesCell(String licenses, boolean overridden) {
     ParagraphBuilder paragraphBuilder = Paragraph.builder();
-    if (!declaredLicenses.isEmpty()) {
+    if (!licenses.isEmpty()) {
       paragraphBuilder.append(StyledText.builder()
-          .font(declaredLicensesFontStyle.getFont())
-          .fontSize(declaredLicensesFontStyle.getFontSize())
-          .color(declaredLicensesFontStyle.getFontColor())
-          .text(declaredLicenses)
+          .font(tableRowFontStyle.getFont())
+          .fontSize(tableRowFontStyle.getFontSize())
+          .color(tableRowFontStyle.getFontColor())
+          .text(licenses)
           .build());
-    }
-    if (!observedLicenses.isEmpty()) {
-      paragraphBuilder.append(StyledText.builder()
-          .font(observedLicensesFontStyle.getFont())
-          .fontSize(observedLicensesFontStyle.getFontSize())
-          .color(observedLicensesFontStyle.getFontColor())
-          .text((declaredLicenses.isEmpty() ? "" : ", ") + observedLicenses)
-          .build());
+      if (overridden) {
+        paragraphBuilder.append(StyledText.builder()
+            .font(summaryHeaderFontStyle.getFont())
+            .fontSize(summaryHeaderFontStyle.getFontSize())
+            .color(summaryHeaderFontStyle.getFontColor())
+            .text(" (Overridden)")
+            .build());
+      }
     }
     return paragraphCellBuilder().paragraph(paragraphBuilder.build()).build();
   }
@@ -549,6 +551,8 @@ public class PdfGenerator
         continue;
       }
       LicensesTableRow licensesTableRow = new LicensesTableRow();
+      licensesTableRow.overridden = !component.licenseData.overriddenLicenses.isEmpty();
+      licensesTableRow.effectiveLicenses = licensesToString(component.licenseData.effectiveLicenses);
       licensesTableRow.declaredLicenses = licensesToString(component.licenseData.declaredLicenses);
       licensesTableRow.observedLicenses = licensesToString(component.licenseData.observedLicenses);
       licensesTableRow.componentName = component.displayName;
@@ -781,6 +785,7 @@ public class PdfGenerator
         .horizontalAlignment(HorizontalAlignment.LEFT)
         .verticalAlignment(VerticalAlignment.TOP)
         .borderColor(CELL_BORDER_COLOR)
+        .paddingTop(PADDING)
         .drawer(new TextCellDrawer<TextCell>()
         {
           @Override
@@ -802,6 +807,7 @@ public class PdfGenerator
         .borderWidthBottom(CELL_BORDER_WIDTH)
         .horizontalAlignment(HorizontalAlignment.LEFT)
         .verticalAlignment(VerticalAlignment.TOP)
+        .paddingTop(0)
         .borderColor(CELL_BORDER_COLOR);
   }
 
@@ -817,14 +823,13 @@ public class PdfGenerator
   /**
    * This is a slight modification of rst.pdfbox.layout.util.WordBreakers.DefaultWordBreaker to not break a word if a
    * dash or period is found after a non-digit letter unless it has no other choice i.e.
-   *
-   * Breaks a word if one of the following characters is found after a
-   * non-digit letter:
+   * <p>
+   * Breaks a word if one of the following characters is found after a non-digit letter:
    * <ul>
    * <li>,</li>
    * <li>/</li>
    * </ul>
-   *
+   * <p>
    * This also provides a fix for rst.pdfbox.layout.util.WordBreakers.AbstractWordBreaker.breakWordHard potentially
    * causing a StringIndexOutOfBoundsException, see CLM-15256
    */

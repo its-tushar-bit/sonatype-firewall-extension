@@ -16,6 +16,10 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -106,5 +110,114 @@ public class PdfGeneratorServiceTest
         .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
     assertThat(response.getEntity()).isEqualTo(pdfFile);
     assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains("%PDF-");
+  }
+
+  @Test
+  public void testAugmentEmptyLicensesAsNotProvided_NoComponents() {
+    ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
+
+    pdfGeneratorService.augmentEmptyLicensesAsNotProvided(data);
+
+    assertThat(data).usingRecursiveComparison().isEqualTo(new ApiReportRawDataDTOV2());
+  }
+
+  @Test
+  public void testAugmentEmptyLicensesAsNotProvided_NoLicenseData() {
+    ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
+    ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
+    data.components.add(component);
+
+    ApiReportRawDataDTOV2 expected = new ApiReportRawDataDTOV2();
+    component = new ApiReportComponentDTOV2();
+    expected.components.add(component);
+
+    pdfGeneratorService.augmentEmptyLicensesAsNotProvided(data);
+
+    assertThat(data).usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  public void testAugmentEmptyLicensesAsNotProvided() {
+    ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
+    ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
+    component.licenseData = new ApiLicenseDataDTOV2();
+    data.components.add(component);
+
+    ApiReportRawDataDTOV2 expected = new ApiReportRawDataDTOV2();
+    component = new ApiReportComponentDTOV2();
+    component.licenseData = new ApiLicenseDataDTOV2();
+    ApiLicenseDTO license = new ApiLicenseDTO();
+    license.licenseName = "Not Provided";
+    component.licenseData.effectiveLicenses.add(license);
+    component.licenseData.declaredLicenses.add(license);
+    component.licenseData.observedLicenses.add(license);
+    expected.components.add(component);
+
+    pdfGeneratorService.augmentEmptyLicensesAsNotProvided(data);
+
+    assertThat(data).usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  public void testAugmentEmptyLicensesAsNotProvided_HasEffective() {
+    ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
+    ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
+    component.licenseData = new ApiLicenseDataDTOV2();
+    ApiLicenseDTO license = new ApiLicenseDTO();
+    license.licenseName = "license";
+    component.licenseData.effectiveLicenses.add(license);
+    data.components.add(component);
+
+    ApiReportRawDataDTOV2 expected = new ApiReportRawDataDTOV2();
+    component = new ApiReportComponentDTOV2();
+    component.licenseData = new ApiLicenseDataDTOV2();
+    component.licenseData.effectiveLicenses.add(license);
+    expected.components.add(component);
+
+    pdfGeneratorService.augmentEmptyLicensesAsNotProvided(data);
+
+    assertThat(data).usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  public void testAugmentEmptyLicensesAsNotProvided_HasDeclared() {
+    ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
+    ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
+    component.licenseData = new ApiLicenseDataDTOV2();
+    ApiLicenseDTO license = new ApiLicenseDTO();
+    license.licenseName = "license";
+    component.licenseData.declaredLicenses.add(license);
+    data.components.add(component);
+
+    ApiReportRawDataDTOV2 expected = new ApiReportRawDataDTOV2();
+    component = new ApiReportComponentDTOV2();
+    component.licenseData = new ApiLicenseDataDTOV2();
+    component.licenseData.declaredLicenses.add(license);
+    expected.components.add(component);
+
+    pdfGeneratorService.augmentEmptyLicensesAsNotProvided(data);
+
+    assertThat(data).usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  public void testAugmentEmptyLicensesAsNotProvided_HasObserved() {
+    ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
+    ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
+    component.licenseData = new ApiLicenseDataDTOV2();
+    ApiLicenseDTO license = new ApiLicenseDTO();
+    license.licenseName = "license";
+    component.licenseData.observedLicenses.add(license);
+    data.components.add(component);
+
+    ApiReportRawDataDTOV2 expected = new ApiReportRawDataDTOV2();
+    component = new ApiReportComponentDTOV2();
+    component.licenseData = new ApiLicenseDataDTOV2();
+    component.licenseData.observedLicenses.add(license);
+    expected.components.add(component);
+
+    pdfGeneratorService.augmentEmptyLicensesAsNotProvided(data);
+
+    assertThat(data).usingRecursiveComparison().isEqualTo(expected);
   }
 }

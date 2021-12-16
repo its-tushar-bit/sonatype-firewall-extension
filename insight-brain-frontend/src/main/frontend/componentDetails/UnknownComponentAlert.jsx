@@ -13,19 +13,13 @@ export default function UnknownComponentAlert({ onClaimClick, toggleShowMatchers
     <Fragment>
       <NxWarningAlert className="iq-component-details-unknown-component-alert">
         <span>The component is unknown.</span>
-        <NxButton
-          id="iq-component-details-unknown-component-claim"
-          onClick={onClaimClick}
-          variant="secondary"
-          title="Claim Component"
-        >
+        <NxButton id="iq-component-details-unknown-component-claim" onClick={onClaimClick} variant="secondary">
           Claim Component
         </NxButton>
         {!!pathnames.length && (
           <NxButton
             onClick={toggleShowMatchersPopover}
             variant="primary"
-            title="Add Proprietary Component Matchers"
             id="iq-component-details-add-proprietary-component-matchers-btn"
           >
             Add Proprietary Component Matchers

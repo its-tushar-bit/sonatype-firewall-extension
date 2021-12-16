@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../enzymeUtils';
-import { NxButton } from '@sonatype/react-shared-components';
 
 import UnkownComponentAlert from 'MainRoot/componentDetails/UnknownComponentAlert';
 
@@ -25,31 +24,28 @@ describe('UnkownComponentAlert', function () {
 
   it('renders an NxWarningAlert with two action buttons', () => {
     const alertEl = getShallowComponent();
-    const claimButton = alertEl.find(NxButton).at(0);
-    const addButton = alertEl.find(NxButton).at(1);
+    const claimButton = alertEl.find('#iq-component-details-unknown-component-claim');
+    const addButton = alertEl.find('#iq-component-details-add-proprietary-component-matchers-btn');
 
     expect(alertEl).toExist();
     expect(alertEl.find('span').text()).toEqual('The component is unknown.');
 
     expect(claimButton).toExist();
-    expect(claimButton).toHaveProp('title', 'Claim Component');
     expect(claimButton.text()).toEqual('Claim Component');
 
     expect(addButton).toExist();
-    expect(addButton).toHaveProp('title', 'Add Proprietary Component Matchers');
     expect(addButton.text()).toEqual('Add Proprietary Component Matchers');
   });
 
   it('does not render addButton', () => {
     const alertEl = getShallowComponent({ pathnames: [] });
-    const claimButton = alertEl.find(NxButton).at(0);
-    const addButton = alertEl.find(NxButton).at(1);
+    const claimButton = alertEl.find('#iq-component-details-unknown-component-claim');
+    const addButton = alertEl.find('#iq-component-details-add-proprietary-component-matchers-btn');
 
     expect(alertEl).toExist();
     expect(alertEl.find('span').text()).toEqual('The component is unknown.');
 
     expect(claimButton).toExist();
-    expect(claimButton).toHaveProp('title', 'Claim Component');
     expect(claimButton.text()).toEqual('Claim Component');
 
     expect(addButton).not.toExist();
@@ -57,7 +53,7 @@ describe('UnkownComponentAlert', function () {
 
   it('calls toggleShowMatchersPopover when the Add Proprietary Component Matchers button is clicked', function () {
     const component = getShallowComponent();
-    const addButton = component.find(NxButton).at(1);
+    const addButton = component.find('#iq-component-details-add-proprietary-component-matchers-btn');
 
     addButton.simulate('click');
     expect(toggleShowMatchersPopoverSpy).toHaveBeenCalledTimes(1);

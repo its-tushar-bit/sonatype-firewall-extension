@@ -5,16 +5,19 @@
  */
 package com.sonatype.insight.brain.repository.component;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -30,6 +33,7 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +49,8 @@ public class QuarantinedComponentService
   private final RepositoryComponentDAO repositoryComponentDAO;
 
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  private static final String PATHNAME_SEPARATOR = "/";
 
   private static final Logger log = LoggerFactory.getLogger(QuarantinedComponentService.class);
 
@@ -77,6 +83,9 @@ public class QuarantinedComponentService
   public QuarantinedComponentOverviewDto getQuarantinedComponentOverview(final String token) {
     final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+    String repositoryId = repositoryComponent.getRepositoryId();
+    String pathname = repositoryComponent.getPathname();
+    String pathnamePrefix = getPathnamePrefix(pathname);
 
     final QuarantinedComponentOverviewDto quarantinedComponentOverviewDto = new QuarantinedComponentOverviewDto();
     quarantinedComponentOverviewDto.componentDisplayName = getComponentDisplayName(repositoryComponent);
@@ -86,6 +95,8 @@ public class QuarantinedComponentService
     quarantinedComponentOverviewDto.repositoryName = getRepositoryName(repositoryComponent);
     quarantinedComponentOverviewDto.quarantinedDate = repositoryComponent.getQuarantineTime();
     quarantinedComponentOverviewDto.cataloguedDate = repositoryComponent.getTime();
+    quarantinedComponentOverviewDto.otherVersionsCount =
+        repositoryComponentDAO.getTotalOtherVersionRepositoryComponents(repositoryId, pathnamePrefix, pathname);
 
     return quarantinedComponentOverviewDto;
   }
@@ -109,6 +120,47 @@ public class QuarantinedComponentService
     return repositoryPolicyThreatDTO;
   }
 
+  public ComponentVersionInfoDTO getQuarantineComponentVersionRemediation(final String token) {
+    final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
+    RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+
+    return componentInfoService.getComponentVersionInfoNoAuth(OwnerType.REPOSITORY,
+        repositoryComponent.getRepositoryId(), repositoryComponent.getComponentIdentifier(), Stage.ID_PROXY,
+        repositoryComponent.getIdentificationSourceId(), null, null);
+  }
+
+  public ApiPageResult<String> getQuarantinedComponentOtherVersions(
+      final String token, int page, int pageSize, boolean asc)
+  {
+
+    final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
+    RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+    String repositoryId = repositoryComponent.getRepositoryId();
+    String pathname = repositoryComponent.getPathname();
+    String pathnamePrefix = getPathnamePrefix(pathname);
+
+    List<RepositoryComponent> otherVersionComponents = repositoryComponentDAO
+        .getOtherVersionRepositoryComponentsByPathnameFilter(repositoryId, pathnamePrefix, pathname, page,
+            pageSize, asc);
+
+    List<String> otherVersionComponentDisplayNames =
+        otherVersionComponents.stream().map(this::getComponentDisplayName).collect(Collectors.toList());
+
+    long total =
+        repositoryComponentDAO.getTotalOtherVersionRepositoryComponents(repositoryId, pathnamePrefix, pathname);
+
+    return new ApiPageResult<>(total, page, pageSize, otherVersionComponentDisplayNames);
+  }
+
+  String getPathnamePrefix(String pathname) {
+
+    String[] arr = StringUtils.split(pathname, PATHNAME_SEPARATOR);
+    if (arr.length > 2) {
+      return StringUtils.join(Arrays.copyOf(arr, arr.length - 2), PATHNAME_SEPARATOR) + PATHNAME_SEPARATOR;
+    }
+    return pathname;
+  }
+
   private RepositoryPolicyViolationDTO getRepositoryPolicyViolationDto(
       RepositoryPolicyViolation policyViolation)
   {
@@ -123,15 +175,6 @@ public class QuarantinedComponentService
     policyViolationDto.constraintFactsJson = policyViolation.getConstraintFactsJson();
 
     return policyViolationDto;
-  }
-
-  public ComponentVersionInfoDTO getQuarantineComponentVersionRemediation(final String token) {
-    final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
-    RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
-
-    return componentInfoService.getComponentVersionInfoNoAuth(OwnerType.REPOSITORY,
-        repositoryComponent.getRepositoryId(), repositoryComponent.getComponentIdentifier(), Stage.ID_PROXY,
-        repositoryComponent.getIdentificationSourceId(), null, null);
   }
 
   private String getComponentDisplayName(RepositoryComponent repositoryComponent) {

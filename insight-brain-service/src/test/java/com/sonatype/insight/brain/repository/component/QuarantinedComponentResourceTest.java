@@ -5,16 +5,19 @@
  */
 package com.sonatype.insight.brain.repository.component;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
-import java.util.UUID;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
@@ -23,6 +26,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
@@ -38,8 +42,11 @@ import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.time.DateUtils;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -154,7 +161,7 @@ public class QuarantinedComponentResourceTest
     // setup
     Date date = new Date();
     ComponentIdentifier componentIdentifier =
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+        ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.2");
     final String encodedToken = setupTestData(componentIdentifier, date);
 
     // when
@@ -167,12 +174,13 @@ public class QuarantinedComponentResourceTest
     QuarantinedComponentOverviewDto quarantinedComponentOverviewDto =
         response.getBody(QuarantinedComponentOverviewDto.class);
     assertThat(quarantinedComponentOverviewDto).isNotNull();
-    assertThat(quarantinedComponentOverviewDto.componentDisplayName).isEqualTo("g : a : v");
+    assertThat(quarantinedComponentOverviewDto.componentDisplayName).isEqualTo("com.lingocoder : abi.cli : 0.5.2");
     assertThat(quarantinedComponentOverviewDto.isQuarantined).isEqualTo(true);
     assertThat(quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount).isEqualTo(1);
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo("repositoryPublicId");
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
+    assertThat(quarantinedComponentOverviewDto.otherVersionsCount).isEqualTo(1);
   }
 
   @Test
@@ -246,8 +254,14 @@ public class QuarantinedComponentResourceTest
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     final Repository repository = tempEntity.newRepository(repositoryManager, "repositoryPublicId");
     final RepositoryComponent repositoryComponent =
-        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path",
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            "com/lingocoder/abi.cli/0.5.2/abi.cli-0.5.2.jar",
             "hash", componentIdentifier, date, date);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.3.jar", "hash",
+        ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.3"),
+        date, null);
+
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 6,
         repositoryComponent.getPathname(), false, "fail", "policyId", "policyName",
         repositoryComponent.getComponentIdentifier(), date);
@@ -343,6 +357,102 @@ public class QuarantinedComponentResourceTest
     assertThat(response.getStatusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
     assertThat(response.getBodyText())
         .isEqualTo("No policy violations causing quarantine exist for the requested component.");
+  }
+
+  @Test
+  public void testGetQuarantinedComponentOtherVersions() throws Exception {
+
+    // setup
+    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
+        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
+    Date date = new Date();
+    final RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.1.jar", "hash",
+            ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.1"),
+            date, new DateTime(date).minusDays(1).toDate(), date);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.2.jar", "hash",
+        ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.2"),
+        date, null);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.3.jar", "hash",
+        ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.3"),
+        date, date, null);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.4.jar", "hash",
+        ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.4"),
+        date, new DateTime(date).minusDays(1).toDate(), date);
+
+    final QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+    final String encodedToken = Base64.getUrlEncoder().withoutPadding()
+        .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
+
+    // when
+    final HttpResponse response =
+        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_OTHER_VERSIONS_PATH).parameter(encodedToken).get();
+
+    // then
+    assertThat(response.getStatusCode()).isEqualTo(Status.OK.getStatusCode());
+    ApiPageResult<String> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
+        new TypeReference<ApiPageResult<String>>() { });
+    assertThat(responseDTO.getTotal()).isEqualTo(2);
+    assertThat(responseDTO.getPage()).isEqualTo(1);
+    assertThat(responseDTO.getPageSize()).isEqualTo(5);
+    assertThat(responseDTO.getPageCount()).isEqualTo(1);
+    assertThat(responseDTO.getResults()).hasSize(2);
+    List<String> resultList = Arrays.asList("com.lingocoder : abi.cli : 0.5.2",
+        "com.lingocoder : abi.cli : 0.5.4");
+    assertThat(responseDTO.getResults()).isEqualTo(resultList);
+  }
+
+  @Test
+  public void testGetQuarantinedComponentOtherVersions_otherVersionsDoesNotExist() throws Exception {
+
+    // setup
+    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
+        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
+    Date date = new Date();
+    final RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "com/lingocoder/abi.cli/0.5.1/abi.cli-0.5.1.jar",
+            new DateTime(date).minusDays(1).toDate(), date);
+    tempEntity.newRepositoryComponent(repository.getId(),
+        "org/apache/maven/plugins/maven-resources-plugin/3.2.0/maven-resources-plugin-3.2.0.jar", null, null);
+
+    final QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+    final String encodedToken = Base64.getUrlEncoder().withoutPadding()
+        .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
+
+    // when
+    final HttpResponse response =
+        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
+                QuarantinedComponentResource.QUARANTINED_COMPONENT_OTHER_VERSIONS_PATH).parameter(encodedToken)
+            .query("page", 1)
+            .query("pageSize", 2)
+            .query("asc", "false")
+            .get();
+
+    // then
+    assertThat(response.getStatusCode()).isEqualTo(Status.OK.getStatusCode());
+    ApiPageResult<String> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
+        new TypeReference<ApiPageResult<String>>() { });
+    assertThat(responseDTO.getTotal()).isZero();
+    assertThat(responseDTO.getPage()).isEqualTo(1);
+    assertThat(responseDTO.getPageSize()).isEqualTo(2);
+    assertThat(responseDTO.getPageCount()).isZero();
+    assertThat(responseDTO.getResults()).isEmpty();
+  }
+
+  private <T> T getBodyByTypeReference(byte[] bodyBytes, final TypeReference<T> typeRef) {
+    try {
+      return new ObjectMapper().readValue(bodyBytes, typeRef);
+    }
+    catch (IOException exception) {
+      throw new IllegalStateException(exception);
+    }
   }
 }
 

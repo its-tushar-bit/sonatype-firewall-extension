@@ -82,6 +82,19 @@ public class QuarantinedComponentServiceAuthzTest
     quarantinedComponentService.getQuarantinedComponentPolicyViolations("token");
   }
 
+  @Test
+  public void testGetQuarantinedComponentOtherVersions_Unauthenticated() {
+    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(setupTestData());
+    quarantinedComponentService.getQuarantinedComponentOtherVersions("token", 1, 2, false);
+  }
+
+  @Test
+  public void testGetQuarantinedComponentOtherVersions_Authenticated() {
+    login();
+    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(setupTestData());
+    quarantinedComponentService.getQuarantinedComponentOtherVersions("token", 1, 5, true);
+  }
+
   private String setupTestData() {
     Date date = new Date();
     ComponentIdentifier componentIdentifier =

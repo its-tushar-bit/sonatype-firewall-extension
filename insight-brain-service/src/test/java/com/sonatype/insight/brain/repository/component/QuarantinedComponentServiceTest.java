@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
@@ -28,6 +29,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
+import org.joda.time.DateTime;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -66,7 +68,7 @@ public class QuarantinedComponentServiceTest
     //setup
     Date date = new Date();
     ComponentIdentifier componentIdentifier =
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+        ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.2");
     when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(
         setupTestData(componentIdentifier, date, date, null));
 
@@ -76,12 +78,13 @@ public class QuarantinedComponentServiceTest
 
     //then
     assertThat(quarantinedComponentOverviewDto).isNotNull();
-    assertThat(quarantinedComponentOverviewDto.componentDisplayName).isEqualTo("g : a : v");
+    assertThat(quarantinedComponentOverviewDto.componentDisplayName).isEqualTo("com.lingocoder : abi.cli : 0.5.2");
     assertThat(quarantinedComponentOverviewDto.isQuarantined).isEqualTo(true);
     assertThat(quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount).isEqualTo(2);
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo("repositoryPublicId");
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
+    assertThat(quarantinedComponentOverviewDto.otherVersionsCount).isEqualTo(1);
   }
 
   @Test
@@ -89,7 +92,7 @@ public class QuarantinedComponentServiceTest
     //setup
     Date date = new Date();
     ComponentIdentifier componentIdentifier =
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+        ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.2");
     when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(
         setupTestData(componentIdentifier, date, null, null));
 
@@ -107,7 +110,7 @@ public class QuarantinedComponentServiceTest
     //setup
     Date date = new Date();
     ComponentIdentifier componentIdentifier =
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+        ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.2");
     when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(
         setupTestData(componentIdentifier, date, date, date));
 
@@ -142,8 +145,13 @@ public class QuarantinedComponentServiceTest
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     final Repository repository = tempEntity.newRepository(repositoryManager, "repositoryPublicId");
     final RepositoryComponent repositoryComponent =
-        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path",
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+            "com/lingocoder/abi.cli/0.5.2/abi.cli-0.5.2.jar",
             "hash", componentIdentifier, time, quarantinedTime, unquarantinedTime);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.3.jar",
+        "hash", ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.3"), time, null, null);
+
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 6,
         repositoryComponent.getPathname(), false, "fail", "policyId", "policyName",
         repositoryComponent.getComponentIdentifier(), time);
@@ -228,5 +236,44 @@ public class QuarantinedComponentServiceTest
       quarantinedComponentService.getQuarantinedComponentPolicyViolations("token");
     }).isInstanceOf(NotFoundException.class)
         .hasMessage("No policy violations causing quarantine exist for the requested component.");
+  }
+
+  @Test
+  public void testGetQuarantinedComponentOtherVersions() throws Exception {
+    // setup
+    Date date = new Date();
+    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    final Repository repository = tempEntity.newRepository(repositoryManager, "repositoryPublicId");
+    final RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "com/lingocoder/abi.cli/0.5.1/abi.cli-0.5.1.jar",
+            new DateTime(date).minusDays(1).toDate(), date);
+    tempEntity.newRepositoryComponent(repository.getId(), "com/lingocoder/abi.cli/0.5.2/abi.cli-0.5.2.jar", null, null);
+    tempEntity.newRepositoryComponent(repository.getId(), "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.3.jar", date, null);
+    tempEntity.newRepositoryComponent(repository.getId(), "com/lingocoder/abi.cli/0.5.4/abi.cli-0.5.4.jar",
+        new DateTime(date).minusDays(1).toDate(), date);
+
+    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token"))
+        .thenReturn(repositoryComponent.getId());
+
+    // when
+    ApiPageResult<String> result =
+        quarantinedComponentService.getQuarantinedComponentOtherVersions("token", 1, 5, false);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.getTotal()).isEqualTo(2);
+    assertThat(result.getPage()).isEqualTo(1);
+    assertThat(result.getPageSize()).isEqualTo(5);
+    assertThat(result.getPageCount()).isEqualTo(1);
+    assertThat(result.getResults()).hasSize(2);
+  }
+
+  @Test
+  public void testGetPathnamePrefix() throws Exception {
+
+    assertThat(quarantinedComponentService.getPathnamePrefix("a")).isEqualTo("a");
+    assertThat(quarantinedComponentService.getPathnamePrefix("a/b")).isEqualTo("a/b");
+    assertThat(quarantinedComponentService.getPathnamePrefix("a/b/c/d/version/file")).isEqualTo("a/b/c/d/");
+    assertThat(quarantinedComponentService.getPathnamePrefix("a/b/c/-/file")).isEqualTo("a/b/c/");
   }
 }

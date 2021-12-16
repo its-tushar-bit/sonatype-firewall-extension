@@ -7,14 +7,21 @@ package com.sonatype.insight.brain.repository.component;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
-import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
+import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -36,7 +43,10 @@ public class QuarantinedComponentResource
   public static final String QUARANTINED_COMPONENT_VERSION_REMEDIATION_PATH =
       QUARANTINED_COMPONENT_PATH + "/remediation";
 
-  public static final String QUARANTINED_COMPONENT_POLICY_VIOLATIONS_PATH = "{token}/policyViolations";
+  public static final String QUARANTINED_COMPONENT_POLICY_VIOLATIONS_PATH =
+      QUARANTINED_COMPONENT_PATH + "/policyViolations";
+
+  public static final String QUARANTINED_COMPONENT_OTHER_VERSIONS_PATH = QUARANTINED_COMPONENT_PATH + "/otherVersions";
 
   private final QuarantinedComponentService quarantinedComponentService;
 
@@ -71,5 +81,23 @@ public class QuarantinedComponentResource
   @Produces(MediaType.APPLICATION_JSON)
   public ComponentVersionInfoDTO getQuarantinedComponentVersionRemediation(@PathParam("token") String token) {
     return quarantinedComponentService.getQuarantineComponentVersionRemediation(token);
+  }
+
+  @GET
+  @Path(QUARANTINED_COMPONENT_OTHER_VERSIONS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getQuarantinedComponentOtherVersions(
+      @Context UriInfo uriInfo,
+      @PathParam("token") String token,
+      @DefaultValue("1") @QueryParam("page") int page,
+      @DefaultValue("5") @QueryParam("pageSize") int pageSize,
+      @DefaultValue("true") @QueryParam("asc") boolean asc)
+  {
+    final ApiPageResult<String> result = quarantinedComponentService
+        .getQuarantinedComponentOtherVersions(token, page, pageSize, asc);
+
+    return new PaginationResponseBuilder<>(uriInfo.getAbsolutePath().getPath(), page, pageSize, result)
+        .queryParameters(uriInfo.getQueryParameters())
+        .build();
   }
 }

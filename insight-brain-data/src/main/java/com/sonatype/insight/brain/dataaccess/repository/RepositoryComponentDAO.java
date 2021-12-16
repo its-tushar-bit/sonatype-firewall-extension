@@ -324,4 +324,58 @@ public class RepositoryComponentDAO
       createQuery(sQuery, repositoryId).executeUpdate(tx);
     }
   }
+
+  public List<RepositoryComponent> getOtherVersionRepositoryComponentsByPathnameFilter(
+      String repositoryId,
+      String pathnamePrefix,
+      String pathname,
+      int page,
+      int pageSize,
+      boolean asc)
+  {
+
+    String baseQuery = "SELECT DISTINCT component FROM RepositoryComponent component" + //
+        " WHERE component.repositoryId=?1" + //
+        " AND component.pathname like ?2" + //
+        " AND component.pathname <> ?3" + //
+        " AND (component.quarantineTime IS NULL" + //
+        " OR (component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NOT NULL))" + //
+        " ORDER BY component.pathname";
+
+    StringBuilder sQuery = new StringBuilder(baseQuery);
+
+    if (asc) {
+      sQuery.append(" ASC");
+    }
+    else {
+      sQuery.append(" DESC");
+    }
+
+    int offset = (page - 1) * pageSize;
+    try (TransactionContext tx = createTransactionContext()) {
+      final javax.persistence.Query paginationQuery =
+          createPaginationQuery(tx, sQuery.toString(), offset, pageSize);
+      paginationQuery.setParameter(1, repositoryId);
+      paginationQuery.setParameter(2, pathnamePrefix + "%");
+      paginationQuery.setParameter(3, pathname);
+
+      return paginationQuery.getResultList();
+    }
+  }
+
+  public long getTotalOtherVersionRepositoryComponents(
+      String repositoryId,
+      String pathnamePrefix,
+      String pathname)
+  {
+
+    String sQuery = "SELECT count(DISTINCT component) FROM RepositoryComponent component" + //
+        " WHERE component.repositoryId=?1" + //
+        " AND component.pathname like ?2" + //
+        " AND component.pathname <> ?3" + //
+        " AND (component.quarantineTime IS NULL" + //
+        " OR (component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NOT NULL))";
+
+    return getSingle(Long.class, sQuery, repositoryId, pathnamePrefix + "%", pathname);
+  }
 }

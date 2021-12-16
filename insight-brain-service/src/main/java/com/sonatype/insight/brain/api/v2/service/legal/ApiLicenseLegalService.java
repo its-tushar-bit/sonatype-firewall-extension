@@ -26,7 +26,6 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -51,6 +50,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTeleme
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalReviewStatus;
+import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
@@ -445,6 +445,11 @@ public class ApiLicenseLegalService
                   application.getId(), applicationComponent.getComponentIdentifier(), allObligationNames);
 
           Map<String, Integer> countMap = legalDashboardService.countObligations(obligations, allObligationNames);
+
+          if (skipComponentByLicenseLegalReviewStatus(filter.reviewStatus, countMap, allObligationNames,
+              licensesAlreadyFound)) {
+            continue;
+          }
 
           int addressedCount = countMap.get(LegalDashboardsService.ADDRESSEDCOUNT);
 
@@ -1316,5 +1321,33 @@ public class ApiLicenseLegalService
       licenses.add(new ApiLicenseDTOV2(e.getKey(), licensesNames.get(e.getKey()), licenseThreatGroups));
     }
     return licenses;
+  }
+
+  private boolean skipComponentByLicenseLegalReviewStatus(
+      Set<LicenseLegalReviewStatus> reviewStatus,
+      Map<String, Integer> countObligations,
+      Set<String> allObligationsForComponent,
+      Set<String> licensesAlreadyFound)
+  {
+    if (isNotEmpty(reviewStatus) && reviewStatus.size() == 1) {
+      LicenseObligationReviewStatus licenseObligationReviewStatus =
+          legalDashboardService.getReviewStatus(countObligations.get(LegalDashboardsService.FLAGGEDCOUNT),
+              countObligations.get(LegalDashboardsService.OPENCOUNT),
+              countObligations.get(LegalDashboardsService.ADDRESSEDCOUNT),
+              allObligationsForComponent, licensesAlreadyFound);
+
+      if (licenseObligationReviewStatus.equals(LicenseObligationReviewStatus.UNREVIEWED) &&
+          reviewStatus.contains(LicenseLegalReviewStatus.NOT_STARTED)) {
+        return false;
+      }
+      else if (!licenseObligationReviewStatus.equals(LicenseObligationReviewStatus.UNREVIEWED) &&
+          reviewStatus.contains(LicenseLegalReviewStatus.OPEN)) {
+        return false;
+      }
+      else {
+        return true;
+      }
+    }
+    return false;
   }
 }

@@ -34,6 +34,29 @@ public class LicenseLegalFilterDTO
     this.componentName = componentName;
   }
 
+  public LicenseLegalFilterDTO(Set<String> organizationIds,
+                               Set<String> applicationIds,
+                               Set<String> tagIds,
+                               Set<String> stageTypeIds,
+                               Set<String> licenseIds,
+                               Set<LicenseLegalReviewStatus> reviewStatus,
+                               LicenseLegalResultsOrder order,
+                               int page,
+                               int pageSize,
+                               String componentName)
+  {
+    this.organizationIds = organizationIds;
+    this.applicationIds = applicationIds;
+    this.tagIds = tagIds;
+    this.stageTypeIds = stageTypeIds;
+    this.licenseIds = licenseIds;
+    this.reviewStatus = reviewStatus;
+    this.order = order;
+    this.page = page;
+    this.pageSize = pageSize;
+    this.componentName = componentName;
+  }
+
   public Set<String> applicationIds;
 
   public Set<String> organizationIds;

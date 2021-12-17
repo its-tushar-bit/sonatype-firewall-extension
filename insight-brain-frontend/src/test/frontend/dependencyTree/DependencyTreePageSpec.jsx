@@ -63,6 +63,7 @@ describe('DependencyTreePage', () => {
   });
 
   it('renders NxErrorAlert if no dependency tree available', () => {
+    spyOn(applicationReportSelectors, 'selectIsDependenciesLoading').and.returnValue(false);
     spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(false);
     renderComponent();
     expect(screen.getByRole('alert')).toBeVisible();

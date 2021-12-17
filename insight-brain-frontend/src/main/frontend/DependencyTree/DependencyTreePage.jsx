@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { NxLoadWrapper, NxPageMain, NxTile, NxErrorAlert } from '@sonatype/react-shared-components';
+import { NxLoadWrapper, NxPageMain, NxTile } from '@sonatype/react-shared-components';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import ComponentDetailsReportInfo from 'MainRoot/componentDetails/ComponentDetailsHeader/ComponentDetailsReportInfo';
 import DependencyTree from './DependencyTree';
@@ -49,17 +49,17 @@ export default function DependencyTreePage() {
           />
         )}
       </header>
-      {dependencyTreeIsAvailable ? (
-        <NxTile data-testid="dependency-tree-tile">
-          <NxTile.Content>
-            <NxLoadWrapper loading={loading} retryHandler={loadReport}>
-              <DependencyTree dependencyTree={dependencyTree} rootName={applicationInfo?.applicationName} />
-            </NxLoadWrapper>
-          </NxTile.Content>
-        </NxTile>
-      ) : (
-        <NxErrorAlert>Dependency tree not available.</NxErrorAlert>
-      )}
+      <NxTile data-testid="dependency-tree-tile">
+        <NxTile.Content>
+          <NxLoadWrapper
+            loading={loading}
+            retryHandler={loadReport}
+            error={!loading && !dependencyTreeIsAvailable ? 'Dependency tree not available.' : null}
+          >
+            <DependencyTree dependencyTree={dependencyTree} rootName={applicationInfo?.applicationName} />
+          </NxLoadWrapper>
+        </NxTile.Content>
+      </NxTile>
     </NxPageMain>
   );
 }

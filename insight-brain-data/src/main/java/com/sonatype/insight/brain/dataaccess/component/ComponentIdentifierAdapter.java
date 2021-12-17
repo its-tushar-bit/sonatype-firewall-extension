@@ -39,6 +39,8 @@ public class ComponentIdentifierAdapter
 {
   public static final String COMPONENT_IDENTIFIER = "componentIdentifier";
 
+  public static final String PURL_IDENTIFIER = "packageUrl";
+
   /**
    * Extract ComponentIdentifier or create one as needed from existing GAV data.
    */
@@ -56,6 +58,14 @@ public class ComponentIdentifierAdapter
       return ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version, classifier, extension);
     }
     return null;
+  }
+
+  public static PackageUrlIdentifier getPackageUrlIdentifier(JsonNode objectNode) {
+    if (objectNode.hasNonNull(PURL_IDENTIFIER)) {
+      return new PackageUrlIdentifier(objectNode.get(PURL_IDENTIFIER).asText());
+    }
+
+    return PackageUrlIdentifier.fromComponentIdentifier(getComponentIdentifier(objectNode));
   }
 
   /**

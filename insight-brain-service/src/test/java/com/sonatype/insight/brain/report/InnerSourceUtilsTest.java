@@ -10,26 +10,45 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Test;
 
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class InnerSourceUtilsTest
 {
   @Test
-  public void testGetVersionlessPackageUrl_Maven() {
-    ComponentIdentifier id = ComponentIdentifier.createMavenCoordinates("company", "name", "1.0.1");
-    PackageUrlIdentifier versionlessPackageUrl = InnerSourceUtils.getVersionlessPackageUrl(id);
-    assertThat(versionlessPackageUrl.getPackageUrl()).isEqualTo("pkg:maven/company/name");
-  }
-
-  @Test
-  public void testGetVersionlessPackageUrl_Npm() {
-    ComponentIdentifier id = ComponentIdentifier.createNpmCoordinates("@angular", "2.0.1");
-    PackageUrlIdentifier versionlessPackageUrl = InnerSourceUtils.getVersionlessPackageUrl(id);
-    assertThat(versionlessPackageUrl.getPackageUrl()).isEqualTo("pkg:npm/%40angular");
+  public void testGetVersionlessPackageUrl() {
+    assertGetVersionlessPackageUrl(createMavenCoordinates("company", "name", "1.0.1"), "pkg:maven/company/name");
+    assertGetVersionlessPackageUrl(createNpmCoordinates("@angular", "2.0.1"), "pkg:npm/%40angular");
+    assertGetVersionlessPackageUrl(createNugetCoordinates("simplejson", "0.38.0"), "pkg:nuget/simplejson");
+    assertGetVersionlessPackageUrl(createAnameCoordinates("hawk", "win32", "0.3.0"), "pkg:a-name/hawk?qualifier=win32");
+    assertGetVersionlessPackageUrl(createPypiCoordinates("PyYAML", "3.11", "win-amd64-py2.7", "exe"),
+        "pkg:pypi/pyyaml?extension=exe&qualifier=win-amd64-py2.7");
+    assertGetVersionlessPackageUrl(createGolangCoordinates("golang.org/x/text", "v0.3.0"),
+        "pkg:golang/golang.org/x/text");
+    assertGetVersionlessPackageUrl(createRpmCoordinates("glibc", "v0.3.0", "x86"), "pkg:rpm/glibc?arch=x86");
+    assertGetVersionlessPackageUrl(createConanCoordinates("bison", "3.5.3", "org", "stable"),
+        "pkg:conan/org/bison?channel=stable");
+    assertGetVersionlessPackageUrl(createCargoCoordinates("humpty", "0.7.0", "pants"), "pkg:cargo/humpty?type=pants");
+    assertGetVersionlessPackageUrl(createContainerCoordinates("docker", "psql", "14.4"),
+        "pkg:generic/docker/psql?nexustype=container");
+    assertGetVersionlessPackageUrl(createRubyGemsCoordinates("rails", "5.0.1", "x86"), "pkg:gem/rails?platform=x86");
+    assertGetVersionlessPackageUrl(createTerraformCoordinates("tplan", "terra", "9.0"), "pkg:terraform/tplan/terra");
+    assertGetVersionlessPackageUrl(createCocoapodsCoordinates("cave", "1.0.1"), "pkg:cocoapods/cave");
+    assertGetVersionlessPackageUrl(createCondaCoordinates("pml", "1.0.1"), "pkg:conda/pml");
+    assertGetVersionlessPackageUrl(createPecoffCoordinates("microsoft", "sysdll", "1.9.1"),
+        "pkg:generic/sysdll?nexusnamespace=microsoft&nexustype=pecoff");
+    assertGetVersionlessPackageUrl(createSwiftCoordinates("arc", "1.0.0"), "pkg:swift/arc");
+    assertGetVersionlessPackageUrl(createIacCoordinates("bincrafters", "prima", "1.0.0"),
+        "pkg:generic/bincrafters/prima?nexustype=iac");
   }
 
   @Test
   public void testGetVersionlessPackageUrl_Null() {
     assertThat(InnerSourceUtils.getVersionlessPackageUrl(null)).isNull();
+  }
+
+  private void assertGetVersionlessPackageUrl(final ComponentIdentifier id, final String s) {
+    PackageUrlIdentifier versionlessPackageUrl = InnerSourceUtils.getVersionlessPackageUrl(id);
+    assertThat(versionlessPackageUrl.getPackageUrl()).isEqualTo(s);
   }
 }

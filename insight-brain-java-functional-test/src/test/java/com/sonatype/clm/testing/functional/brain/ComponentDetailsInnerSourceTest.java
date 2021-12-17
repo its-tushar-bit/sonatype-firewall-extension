@@ -75,7 +75,7 @@ public class ComponentDetailsInnerSourceTest
   @Test
   public void testOverviewTab_innerSourceProducerAlertNewVersionModal() {
     String packageUrl = InnerSourceUtils
-        .getVersionlessPackageUrl(ComponentIdentifier.createMavenCoordinates("java2html", "j2h", "1.3.1"))
+        .getVersionlessPackageUrl(ComponentIdentifier.createMavenCoordinates("java2html", "j2h", "1.3.1", "", "jar"))
         .getPackageUrl();
     tempEntity.newInnerSourceComponent(packageUrl, app, "0.0.0");
 

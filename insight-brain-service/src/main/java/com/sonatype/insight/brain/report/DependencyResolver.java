@@ -114,7 +114,7 @@ public class DependencyResolver
 
   private AtomicInteger exactlyMatchedComponentCount = new AtomicInteger();
 
-  private Map<ComponentIdentifier, ObjectNode> bomComponentNodes;
+  private Map<PackageUrlIdentifier, ObjectNode> bomComponentNodes;
 
   public static DependencyResolver getInstance(
       JsonNode dependenciesJson,
@@ -395,7 +395,8 @@ public class DependencyResolver
       // an IS component so add a new identified component here and only marked as IS if the application is different,
       // otherwise is only marked as direct.
       ObjectNode isNode = newNodeForISComponent(innerSourceComponentIdentifier);
-      bomComponentNodes.put(innerSourceComponentIdentifier, isNode);
+
+      bomComponentNodes.put(PackageUrlIdentifier.fromComponentIdentifier(innerSourceComponentIdentifier), isNode);
       InnerSourceData innerSourceData = null;
       if (isInnerSourceDependency) {
         innerSourceData = new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), null);
@@ -486,17 +487,18 @@ public class DependencyResolver
   }
 
   private Optional<ObjectNode> findBomComponent(ComponentIdentifier identifier) {
+    //after CLM-20283 we should covert this lookup to use purl instead of component identifier
     loadBomComponentsIfNotLoaded();
-    return Optional.ofNullable(bomComponentNodes.get(identifier));
+    return Optional.ofNullable(bomComponentNodes.get(PackageUrlIdentifier.fromComponentIdentifier(identifier)));
   }
 
   private void loadBomComponentsIfNotLoaded() {
     if (bomComponentNodes == null) {
       bomComponentNodes = new HashMap<>();
       for (JsonNode bomChild : bomJson.get(AA_DATA_NODE)) {
-        ComponentIdentifier bomComponentIdentifier = getBomComponentIdentifier(bomChild);
-        if (bomComponentIdentifier != null) {
-          bomComponentNodes.put(bomComponentIdentifier, (ObjectNode) bomChild);
+        PackageUrlIdentifier purl = getBomPackageUrl(bomChild);
+        if (purl != null) {
+          bomComponentNodes.put(purl, (ObjectNode) bomChild);
         }
         String matchStateString = bomChild.path(MATCH_STATE).asText();
         MatchState matchState = MatchState.getById(matchStateString);
@@ -505,9 +507,9 @@ public class DependencyResolver
           if (pathnames == null || pathnames.isEmpty()) {
             continue;
           }
-          bomComponentIdentifier = parsePathToId(pathnames.get(0).asText());
-          if (bomComponentIdentifier != null) {
-            bomComponentNodes.put(bomComponentIdentifier, (ObjectNode) bomChild);
+          purl = parsePathToId(pathnames.get(0).asText());
+          if (purl != null) {
+            bomComponentNodes.put(purl, (ObjectNode) bomChild);
           }
         }
       }
@@ -609,24 +611,24 @@ public class DependencyResolver
     }
   }
 
-  private ComponentIdentifier getBomComponentIdentifier(JsonNode bomChild) {
-    ComponentIdentifier bomComponentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(bomChild);
-
-    if (bomComponentIdentifier == null) {
-      bomComponentIdentifier = parsePathToId(bomChild.withArray("pathnames").get(0).asText());
+  private PackageUrlIdentifier getBomPackageUrl(JsonNode bomChild) {
+    PackageUrlIdentifier purl = ComponentIdentifierAdapter.getPackageUrlIdentifier(bomChild);
+    if (purl == null) {
+      purl = parsePathToId(bomChild.withArray("pathnames").get(0).asText());
     }
-    return bomComponentIdentifier;
+    return purl;
   }
 
-  private ComponentIdentifier parsePathToId(final String pathnames) {
+  private PackageUrlIdentifier parsePathToId(final String pathnames) {
     String path;
     if (StringUtils.contains(pathnames, PURL_PREFIX)) {
-      path = StringUtils.substring(pathnames, pathnames.indexOf(PURL_PREFIX), pathnames.length());
+      return new PackageUrlIdentifier(
+          StringUtils.substring(pathnames, pathnames.indexOf(PURL_PREFIX), pathnames.length()));
     }
     else {
       path = StringUtils.substringAfterLast(pathnames, "/");
+      return PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifierHelper.parseId(path));
     }
-    return ComponentIdentifierHelper.parseId(path);
   }
 
   private Set<ComponentIdentifier> getDirectDependencies(List<DependencyNode> children) {

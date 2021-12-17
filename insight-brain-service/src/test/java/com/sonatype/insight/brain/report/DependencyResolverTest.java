@@ -110,9 +110,8 @@ public class DependencyResolverTest
 
     assertThat(dependenciesJson).isNotNull();
     ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(dependencyTree);
-    PackageUrlIdentifier expectedPurl = new PackageUrlIdentifier(String.format("pkg:maven/%s/%s",
-        componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),
-        componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)));
+    PackageUrlIdentifier expectedPurl =
+        PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier.createAlternativeVersion(null));
 
     assertThat(innerSourceComponents.get(0).getPackageUrl()).isEqualTo(expectedPurl.getPackageUrl());
     assertThat(innerSourceComponents.get(0).getLatestVersion()).isEqualTo("1.0.0");
@@ -135,7 +134,7 @@ public class DependencyResolverTest
   @Test
   public void processInnerSource_updateInnerSourceParent() {
     Application innerSourceApp = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", innerSourceApp);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", innerSourceApp);
 
     ComponentIdentifier rootComponentIdentifier = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.nexus", "nexus-platform-api", "1.0.0", "", "jar");
@@ -154,7 +153,8 @@ public class DependencyResolverTest
   @Test
   public void processInnerSource_updateInnerSourceParentWithOlderVersion() {
     Application innerSourceApp = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", innerSourceApp, "1.0.1");
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", innerSourceApp,
+        "1.0.1");
 
     ComponentIdentifier rootComponentIdentifier =
         ComponentIdentifier.createMavenCoordinates("com.sonatype.nexus", "nexus-platform-api", "1.0.0", "", "jar");
@@ -193,10 +193,10 @@ public class DependencyResolverTest
   @Test
   public void processInnerSource_multiModule_component_not_in_bom() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
-    tempEntity
-        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60", appInnerSource);
-    InnerSourceComponent innerSourceComponent = tempEntity
-        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing", appInnerSource);
+    tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60?type=jar", appInnerSource);
+    InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar", appInnerSource);
 
     ComponentIdentifier knownModule1 = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-test-reverse-proxy", "2.23.5-SNAPSHOT", "",
@@ -241,10 +241,10 @@ public class DependencyResolverTest
   @Test
   public void processInnerSource_multiModule() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
-    tempEntity
-        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60", appInnerSource);
-    InnerSourceComponent innerSourceComponent = tempEntity
-        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing", appInnerSource);
+    tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60?type=jar", appInnerSource);
+    InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar", appInnerSource);
 
     ComponentIdentifier knownModule1 = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-test-reverse-proxy", "2.23.5-SNAPSHOT", "",
@@ -293,17 +293,16 @@ public class DependencyResolverTest
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-module-model", "1.0.0-SNAPSHOT", "", "jar");
     ComponentIdentifier innerScannerArchive = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
-    ComponentIdentifier innerSourceClient = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.insight.scan", "insight-client-utils", "1.0.0-SNAPSHOT", "",
-            "jar");
+    ComponentIdentifier innerSourceClient = ComponentIdentifier.createMavenCoordinates(
+        "com.sonatype.insight.scan", "insight-client-utils", "1.0.0-SNAPSHOT", "", "jar");
 
-    InnerSourceComponent model =
-        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
-    InnerSourceComponent archive = tempEntity
-        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive", appInnerSource);
-    InnerSourceComponent utils =
-        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
+    InnerSourceComponent model = tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar", appInnerSource);
+    InnerSourceComponent archive = tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar", appInnerSource);
+    InnerSourceComponent utils = tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource/bom.json");
@@ -352,19 +351,17 @@ public class DependencyResolverTest
   @Test
   public void processInnerSource_InvalidDep() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
-    tempEntity
-        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60", appInnerSource);
-    InnerSourceComponent innerSourceComponent = tempEntity
-        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing", appInnerSource);
+    tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60?type=jar", appInnerSource);
+    InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar", appInnerSource);
 
-    ComponentIdentifier knownModule1 = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.insight.scan", "insight-test-reverse-proxy", "2.23.5-SNAPSHOT", "",
-            "jar");
+    ComponentIdentifier knownModule1 = ComponentIdentifier.createMavenCoordinates(
+        "com.sonatype.insight.scan", "insight-test-reverse-proxy", "2.23.5-SNAPSHOT", "", "jar");
     ComponentIdentifier knownModule2 = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-model", "2.23.5-SNAPSHOT", "", "jar");
-    ComponentIdentifier knownModule3 = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-model-io", "2.23.5-SNAPSHOT", "",
-            "jar");
+    ComponentIdentifier knownModule3 = ComponentIdentifier.createMavenCoordinates(
+        "com.sonatype.insight.scan", "insight-scanner-model-io", "2.23.5-SNAPSHOT", "", "jar");
     ComponentIdentifier knownModule4 = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-core", "2.23.5-SNAPSHOT", "", "jar");
 
@@ -400,13 +397,13 @@ public class DependencyResolverTest
   public void processInnerSource_knownInnerSourceParent() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    InnerSourceComponent model =
-        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
-    InnerSourceComponent archive = tempEntity
-        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive", appInnerSource);
-    InnerSourceComponent utils =
-        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
+    InnerSourceComponent model = tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar", appInnerSource);
+    InnerSourceComponent archive = tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar", appInnerSource);
+    InnerSourceComponent utils = tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-known/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-known/bom.json");
@@ -444,13 +441,13 @@ public class DependencyResolverTest
   public void processInnerSource_nested_transitive_dep() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    InnerSourceComponent model =
-        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
-    InnerSourceComponent archive = tempEntity
-        .newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive", appInnerSource);
-    InnerSourceComponent utils =
-        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
+    InnerSourceComponent model = tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar", appInnerSource);
+    InnerSourceComponent archive = tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar", appInnerSource);
+    InnerSourceComponent utils = tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-nested-transitive/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-nested-transitive/bom.json");
@@ -476,15 +473,15 @@ public class DependencyResolverTest
   public void processInnerSource_unknown_components() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    InnerSourceComponent model =
-        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
+    InnerSourceComponent model = tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar", appInnerSource);
     ComponentIdentifier modelId = ComponentIdentifier.createMavenCoordinates(
         "com.sonatype.insight.scan", "insight-module-model", "1.0.0-SNAPSHOT", "", "jar");
     tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-innersource-child", appInnerSource);
+        "pkg:maven/com.sonatype.insight.scan/insight-innersource-child?type=jar", appInnerSource);
     ComponentIdentifier childId = ComponentIdentifier.createMavenCoordinates(
         "com.sonatype.insight.scan", "insight-innersource-child", "2.0.0", "", "jar");
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-unknown-components/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-unknown-components/bom.json");
@@ -561,10 +558,10 @@ public class DependencyResolverTest
 
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-data", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-business", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-data?type=jar", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-business?type=jar", appInnerSource);
     InnerSourceComponent innerSourceComponent =
-        tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-Producer", appInnerSource);
+        tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-Producer?type=jar", appInnerSource);
 
     JsonNode dependenciesJson =
         getJsonNodeInformation("report-innersource-direct-transitive-dependency/dependencies.json");
@@ -649,7 +646,7 @@ public class DependencyResolverTest
   @Test
   public void testProcessDependencyTree_with_maven_plugin() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:maven/com.innersource/InnerSource-Producer", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.innersource/InnerSource-Producer?type=jar", appInnerSource);
 
     JsonNode dependenciesJson =
         getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/dependencies.json");
@@ -712,9 +709,9 @@ public class DependencyResolverTest
   @Test
   public void testResolve_MultipleParents() throws Exception {
     Application appInnerSource1 = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:maven/com.innersource/known-direct-1", appInnerSource1);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.innersource/known-direct-1?type=jar", appInnerSource1);
     Application appInnerSource2 = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:maven/com.innersource/known-direct-2", appInnerSource2);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.innersource/known-direct-2?type=jar", appInnerSource2);
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-multiple-parents/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-multiple-parents/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-multiple-parents/summary.json");
@@ -847,6 +844,31 @@ public class DependencyResolverTest
     Set<String> innerSourceIds = new HashSet<>();
     innerSourceIds.add(producerOne.getApplicationId());
     innerSourceIds.add(producerTwo.getApplicationId());
+    assertTelemetryInformation(app.getId(), innerSourceIds);
+  }
+
+  @Test
+  public void testResolve_otherFormat() throws Exception {
+    Application appInnerSource = tempEntity.newApplicationWithParent();
+
+    InnerSourceComponent producerOne =
+        tempEntity.newInnerSourceComponent("pkg:pypi/pypi-app?extension=zip", appInnerSource);
+
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-otherformat/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-otherformat/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-otherformat/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-otherformat/data.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+
+    List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
+    assertInnerSourceInformation(bomJson, 1, 1, null, bomInnerSourceDependencies);
+
+    assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
+    assertSummaryCounters(summaryJson, dataJson, 3);
+
+    Set<String> innerSourceIds = new HashSet<>();
+    innerSourceIds.add(producerOne.getApplicationId());
     assertTelemetryInformation(app.getId(), innerSourceIds);
   }
 

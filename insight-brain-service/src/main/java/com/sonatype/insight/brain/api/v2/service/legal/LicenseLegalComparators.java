@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service.legal;
 
 import java.util.Comparator;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
@@ -67,11 +68,13 @@ public class LicenseLegalComparators
         break;
       case LICENSE_NAME_ASC:
         comparator =
-            Comparator.comparing(dto -> StringUtils.join(dto.licenseNames, ','), String.CASE_INSENSITIVE_ORDER);
+            Comparator.comparing(dto -> dto.licenses.stream().map(l -> l.licenseName).collect(Collectors.joining(",")),
+                String.CASE_INSENSITIVE_ORDER);
         break;
       case LICENSE_NAME_DESC:
         comparator =
-            Comparator.comparing(dto -> StringUtils.join(dto.licenseNames, ','), String.CASE_INSENSITIVE_ORDER);
+            Comparator.comparing(dto -> dto.licenses.stream().map(l -> l.licenseName).collect(Collectors.joining(",")),
+                String.CASE_INSENSITIVE_ORDER);
         comparator = comparator.reversed();
         break;
       case APPLICATION_COUNT_ASC:

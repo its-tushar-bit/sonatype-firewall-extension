@@ -474,7 +474,7 @@ public class ApiLicenseLegalService
             !Collections.disjoint(mapHashLicenseIds.get(dto.hash), filter.licenseIds))
         .filter(dto -> !StringUtils.isNotBlank(filter.componentName) ||
             dto.displayName.contains(filter.componentName))
-        .map(fillLicensesAndReview(mapHashLicenseIds, mapHashReviewCompleted, mapHashReviewTotalCount))
+        .map(fillComponentReview(mapHashReviewCompleted, mapHashReviewTotalCount))
         .sorted(newComponentDashboardComparator(filter.order))
         .collect(Collectors.toList());
     resultDto.totalResultsCount = components.size();
@@ -1272,15 +1272,11 @@ public class ApiLicenseLegalService
     return componentIdentifierLegalDataMap;
   }
 
-  private UnaryOperator<ApiLicenseLegalComponentDashboardDTO> fillLicensesAndReview(
-      Map<String, Set<String>> mapHashLicenseIds,
+  private UnaryOperator<ApiLicenseLegalComponentDashboardDTO> fillComponentReview(
       Map<String, Integer> mapHashReviewCompleted,
       Map<String, Integer> mapHashReviewTotal)
   {
     return dto -> {
-      dto.licenseNames.addAll(mapHashLicenseIds.get(dto.hash).stream()
-          .map(licenseId -> multiLicenseDAO.getById(licenseId).getShortDisplayName())
-          .collect(Collectors.toCollection(TreeSet::new)));
       dto.reviewCompletedCount = mapHashReviewCompleted.getOrDefault(dto.hash, 0);
       dto.reviewTotalCount = mapHashReviewTotal.getOrDefault(dto.hash,0);
       return dto;

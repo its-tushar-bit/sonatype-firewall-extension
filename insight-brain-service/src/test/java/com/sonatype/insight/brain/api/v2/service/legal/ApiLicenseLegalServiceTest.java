@@ -1055,16 +1055,16 @@ public class ApiLicenseLegalServiceTest
         "g1 : a1 : v1");
 
     resultDto = apiLicenseLegalService.getLicenseLegalComponentsDashboard(
-        new LicenseLegalFilterDTO(null, null, null, null, null,
-            LicenseLegalResultsOrder.LICENSE_NAME_ASC, 1, 3, null));
-    assertThat(resultDto.results).extracting(dto -> StringUtils.join(dto.licenseNames, ','))
+        new LicenseLegalFilterDTO(null, null, null, null, null, LicenseLegalResultsOrder.LICENSE_NAME_ASC, 1, 3, null));
+    assertThat(resultDto.results)
+        .extracting(dto -> dto.licenses.stream().map(l -> l.licenseName).collect(Collectors.joining(",")))
         .containsExactly("Apache-2.0", "GPL-2.0", "MIT");
 
-    resultDto = apiLicenseLegalService.getLicenseLegalComponentsDashboard(
-        new LicenseLegalFilterDTO(null, null, null, null, null,
-            LicenseLegalResultsOrder.LICENSE_NAME_DESC, 1, 3, null));
-    assertThat(resultDto.results).extracting(dto -> StringUtils.join(dto.licenseNames, ',')).containsExactly("MIT",
-        "GPL-2.0", "Apache-2.0");
+    resultDto = apiLicenseLegalService.getLicenseLegalComponentsDashboard(new LicenseLegalFilterDTO(null, null, null,
+        null, null, LicenseLegalResultsOrder.LICENSE_NAME_DESC, 1, 3, null));
+    assertThat(resultDto.results)
+        .extracting(dto -> dto.licenses.stream().map(l -> l.licenseName).collect(Collectors.joining(",")))
+        .containsExactly("MIT", "GPL-2.0", "Apache-2.0");
 
     resultDto = apiLicenseLegalService.getLicenseLegalComponentsDashboard(
         new LicenseLegalFilterDTO(null, null, null, null, null,
@@ -3039,14 +3039,12 @@ public class ApiLicenseLegalServiceTest
   {
     assertThat(dto.hash).isEqualTo(hash);
     assertThat(dto.displayName).isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
-    assertThat(dto.licenseNames).containsAll(licenseNames);
     assertThat(dto.licenses).doesNotContainNull();
     assertThat(dto.licenses)
         .flatExtracting(license -> license.licenseThreatGroups)
         .extracting(group -> group.licenseThreatGroupName)
         .containsOnly(licenseThreatGroupName);
-    assertThat(dto.licenseNames).containsExactlyInAnyOrderElementsOf(dto.licenses.stream().map(e -> e.licenseName)
-        .collect(Collectors.toList()));
+    assertThat(dto.licenses).extracting(d -> d.licenseName).containsExactlyElementsOf(licenseNames);
     assertThat(dto.applicationOccurrences).isEqualTo(applicationOccurrences);
     assertThat(dto.reviewCompletedCount).isEqualTo(componentsReviewedCount);
     assertThat(dto.reviewTotalCount).isEqualTo(componentsTotalCount);

@@ -181,7 +181,7 @@ public class ApiLicenseLegalResourceTest
     assertThat(dto.applicationOccurrences).isEqualTo(1);
     assertThat(dto.displayName).isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
     assertThat(dto.hash).isEqualTo("hash1");
-    assertThat(dto.licenseNames).containsExactly("MIT");
+    assertThat(dto.licenses).extracting(dt -> dt.licenseName).containsExactly("MIT");
     assertThat(dto.reviewCompletedCount).isZero();
     assertThat(dto.reviewTotalCount).isZero();
   }

@@ -8,7 +8,7 @@ import { NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shar
 import * as PropTypes from 'prop-types';
 import LegalBinaryDonutChart from '../shared/LegalBinaryDonutChart';
 import { isNilOrEmpty } from '../../util/jsUtil';
-import { flatten, map, pipe, prop } from 'ramda';
+import { flatten, map, pipe, prop, join } from 'ramda';
 
 export default function LegalDashboardComponentRow({ row, stateGo }) {
   const { licenses } = row;
@@ -29,7 +29,7 @@ export default function LegalDashboardComponentRow({ row, stateGo }) {
       </NxTableCell>
       <NxTableCell className="legal-dashboard-components-licenses nx-truncate-ellipsis">
         <NxThreatIndicator policyThreatLevel={threatGroupLevel} />
-        <span>{row.licenseNames.join(', ')}</span>
+        <span>{pipe(map(prop('licenseName')), join(', '))(row.licenses)}</span>
       </NxTableCell>
       <NxTableCell className="legal-dashboard-components-occurrences isNumeric">
         {row.applicationOccurrences}

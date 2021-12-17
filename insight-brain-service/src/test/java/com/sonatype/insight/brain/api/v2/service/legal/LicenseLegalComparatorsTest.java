@@ -7,8 +7,12 @@ package com.sonatype.insight.brain.api.v2.service.legal;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
@@ -115,20 +119,30 @@ public class LicenseLegalComparatorsTest
 
   @Test
   public void testNewComponentDashboardComparator_ByLicenseName() {
-    ApiLicenseLegalComponentDashboardDTO dto1 = new ApiLicenseLegalComponentDashboardDTO();
-    dto1.licenseNames = Collections.singleton("l1");
-    ApiLicenseLegalComponentDashboardDTO dto2 = new ApiLicenseLegalComponentDashboardDTO();
-    dto2.licenseNames = Collections.singleton("L2");
-    ApiLicenseLegalComponentDashboardDTO dto3 = new ApiLicenseLegalComponentDashboardDTO();
-    dto3.licenseNames = Collections.singleton("l3");
+    List<ApiLicenseThreatDTOV2> licenseThreatGroups = Collections.emptyList();
+    Set<ApiLicenseDTOV2> dtoSet1 = new HashSet<>();
+    ApiLicenseDTOV2 dto1 = new ApiLicenseDTOV2("id1", "l1", licenseThreatGroups);
+    dtoSet1.add(dto1);
+    Set<ApiLicenseDTOV2> dtoSet2 = new HashSet<>();
+    ApiLicenseDTOV2 dto2 = new ApiLicenseDTOV2("id2", "l2", licenseThreatGroups);
+    dtoSet2.add(dto2);
+    Set<ApiLicenseDTOV2> dtoSet3 = new HashSet<>();
+    ApiLicenseDTOV2 dto3 = new ApiLicenseDTOV2("id3", "l3", licenseThreatGroups);
+    dtoSet3.add(dto3);
 
-    List<ApiLicenseLegalComponentDashboardDTO> dtos = Arrays.asList(dto2, dto3, dto1);
+    ApiLicenseLegalComponentDashboardDTO apiDTO1 = new ApiLicenseLegalComponentDashboardDTO();
+    apiDTO1.licenses = dtoSet1;
+    ApiLicenseLegalComponentDashboardDTO apiDTO2 = new ApiLicenseLegalComponentDashboardDTO();
+    apiDTO2.licenses = dtoSet2;
+    ApiLicenseLegalComponentDashboardDTO apiDTO3 = new ApiLicenseLegalComponentDashboardDTO();
+    apiDTO3.licenses = dtoSet3;
+  
+    List<ApiLicenseLegalComponentDashboardDTO> dtos = Arrays.asList(apiDTO2, apiDTO1, apiDTO3);
     Collections.sort(dtos, newComponentDashboardComparator(LicenseLegalResultsOrder.LICENSE_NAME_ASC));
-    assertThat(dtos).flatExtracting(dto -> dto.licenseNames).containsExactly("l1", "L2", "l3");
-
-    dtos = Arrays.asList(dto2, dto3, dto1);
+    assertThat(dtos).extracting(dto -> dto.licenses).containsExactly(dtoSet1, dtoSet2, dtoSet3);
+    dtos = Arrays.asList(apiDTO2, apiDTO3, apiDTO1);
     Collections.sort(dtos, newComponentDashboardComparator(LicenseLegalResultsOrder.LICENSE_NAME_DESC));
-    assertThat(dtos).flatExtracting(dto -> dto.licenseNames).containsExactly("l3", "L2", "l1");
+    assertThat(dtos).extracting(dto -> dto.licenses).containsExactly(dtoSet3, dtoSet2, dtoSet1);
   }
 
   @Test

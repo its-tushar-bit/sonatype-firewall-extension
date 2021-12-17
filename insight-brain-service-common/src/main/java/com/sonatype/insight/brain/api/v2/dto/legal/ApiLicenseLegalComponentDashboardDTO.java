@@ -29,8 +29,6 @@ public class ApiLicenseLegalComponentDashboardDTO
 
   public String displayName;
 
-  public Set<String> licenseNames = new HashSet<>();
-
   public Set<ApiLicenseDTOV2> licenses = new HashSet<>();
 
   public int applicationOccurrences;

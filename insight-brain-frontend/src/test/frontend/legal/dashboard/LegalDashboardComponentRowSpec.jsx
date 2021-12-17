@@ -22,13 +22,23 @@ describe('LegalDashboardComponentRow component', function () {
       applicationOccurrences: 1,
       displayName: 'Component Name',
       hash: '8c5c838e0c6d2f6cdf30',
-      licenseNames: ['Apache-2.0', 'GPL 1'],
       reviewCompletedCount: 12,
       reviewTotalCount: 20,
       licenses: [
         {
           licenseId: 'Apache-2.0',
           licenseName: 'Apache-2.0',
+          licenseThreatGroups: [
+            {
+              licenseThreatGroupName: 'Liberal',
+              licenseThreatGroupLevel: 0,
+              licenseThreatGroupCategory: 'no-threat',
+            },
+          ],
+        },
+        {
+          licenseId: 'GPL 1',
+          licenseName: 'GPL 1',
           licenseThreatGroups: [
             {
               licenseThreatGroupName: 'Liberal',
@@ -68,7 +78,30 @@ describe('LegalDashboardComponentRow component', function () {
         applicationOccurrences: 1,
         displayName: 'Component Name',
         hash: '8c5c838e0c6d2f6cdf30',
-        licenseNames: ['Apache-2.0', 'GPL 1'],
+        licenses: [
+          {
+            licenseId: 'Apache-2.0',
+            licenseName: 'Apache-2.0',
+            licenseThreatGroups: [
+              {
+                licenseThreatGroupName: 'Liberal',
+                licenseThreatGroupLevel: 0,
+                licenseThreatGroupCategory: 'no-threat',
+              },
+            ],
+          },
+          {
+            licenseId: 'GPL 1',
+            licenseName: 'GPL 1',
+            licenseThreatGroups: [
+              {
+                licenseThreatGroupName: 'Liberal',
+                licenseThreatGroupLevel: 0,
+                licenseThreatGroupCategory: 'no-threat',
+              },
+            ],
+          },
+        ],
         reviewCompletedCount: 0,
         reviewTotalCount: 0,
       },
@@ -89,7 +122,30 @@ describe('LegalDashboardComponentRow component', function () {
         applicationOccurrences: 1,
         displayName: 'Component Name 1',
         hash: '8c5c838e0c6d2f6cdf31',
-        licenseNames: ['Apache-2.0', 'GPL 1'],
+        licenses: [
+          {
+            licenseId: 'Apache-2.0',
+            licenseName: 'Apache-2.0',
+            licenseThreatGroups: [
+              {
+                licenseThreatGroupName: 'Liberal',
+                licenseThreatGroupLevel: 0,
+                licenseThreatGroupCategory: 'no-threat',
+              },
+            ],
+          },
+          {
+            licenseId: 'GPL 1',
+            licenseName: 'GPL 1',
+            licenseThreatGroups: [
+              {
+                licenseThreatGroupName: 'Liberal',
+                licenseThreatGroupLevel: 0,
+                licenseThreatGroupCategory: 'no-threat',
+              },
+            ],
+          },
+        ],
         reviewCompletedCount: 5,
         reviewTotalCount: 5,
       },

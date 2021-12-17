@@ -27,7 +27,30 @@ describe('LegalDashboardComponentsTab component', function () {
           applicationOccurrences: 1,
           displayName: 'com.amazonaws : aws-java-sdk-sqs : 1.11.415',
           hash: '8c5c838e0c6d2f6cdf30',
-          licenseNames: ['Apache-2.0', 'GPL 1'],
+          licenses: [
+            {
+              licenseId: 'Apache-2.0',
+              licenseName: 'Apache-2.0',
+              licenseThreatGroups: [
+                {
+                  licenseThreatGroupName: 'Liberal',
+                  licenseThreatGroupLevel: 0,
+                  licenseThreatGroupCategory: 'no-threat',
+                },
+              ],
+            },
+            {
+              licenseId: 'GPL 1',
+              licenseName: 'GPL 1',
+              licenseThreatGroups: [
+                {
+                  licenseThreatGroupName: 'Liberal',
+                  licenseThreatGroupLevel: 0,
+                  licenseThreatGroupCategory: 'no-threat',
+                },
+              ],
+            },
+          ],
           reviewCompletedCount: 0,
           reviewTotalCount: 0,
         },
@@ -35,7 +58,19 @@ describe('LegalDashboardComponentsTab component', function () {
           applicationOccurrences: 1,
           displayName: 'com.amazonaws : aws-java-sdk-sqs : 2.11.415',
           hash: '8c5c838e0c6d2f6cdf31',
-          licenseNames: ['Apache-2.0'],
+          licenses: [
+            {
+              licenseId: 'Apache-2.0',
+              licenseName: 'Apache-2.0',
+              licenseThreatGroups: [
+                {
+                  licenseThreatGroupName: 'Liberal',
+                  licenseThreatGroupLevel: 0,
+                  licenseThreatGroupCategory: 'no-threat',
+                },
+              ],
+            },
+          ],
           reviewCompletedCount: 2,
           reviewTotalCount: 4,
         },
@@ -43,7 +78,19 @@ describe('LegalDashboardComponentsTab component', function () {
           applicationOccurrences: 1,
           displayName: 'com.amazonaws : aws-java-sdk-sqs : 3.11.415',
           hash: '8c5c838e0c6d2f6cdf32',
-          licenseNames: ['Apache-2.0'],
+          licenses: [
+            {
+              licenseId: 'Apache-2.0',
+              licenseName: 'Apache-2.0',
+              licenseThreatGroups: [
+                {
+                  licenseThreatGroupName: 'Liberal',
+                  licenseThreatGroupLevel: 0,
+                  licenseThreatGroupCategory: 'no-threat',
+                },
+              ],
+            },
+          ],
           reviewCompletedCount: 0,
           reviewTotalCount: 0,
         },
@@ -51,7 +98,19 @@ describe('LegalDashboardComponentsTab component', function () {
           applicationOccurrences: 1,
           displayName: 'com.amazonaws : aws-java-sdk-sqs : 4.11.415',
           hash: '8c5c838e0c6d2f6cdf33',
-          licenseNames: ['Apache-2.0'],
+          licenses: [
+            {
+              licenseId: 'Apache-2.0',
+              licenseName: 'Apache-2.0',
+              licenseThreatGroups: [
+                {
+                  licenseThreatGroupName: 'Liberal',
+                  licenseThreatGroupLevel: 0,
+                  licenseThreatGroupCategory: 'no-threat',
+                },
+              ],
+            },
+          ],
           reviewCompletedCount: 0,
           reviewTotalCount: 0,
         },
@@ -59,7 +118,19 @@ describe('LegalDashboardComponentsTab component', function () {
           applicationOccurrences: 1,
           displayName: 'com.amazonaws : aws-java-sdk-sqs : 5.11.415',
           hash: '8c5c838e0c6d2f6cdf34',
-          licenseNames: ['Apache-2.0'],
+          licenses: [
+            {
+              licenseId: 'Apache-2.0',
+              licenseName: 'Apache-2.0',
+              licenseThreatGroups: [
+                {
+                  licenseThreatGroupName: 'Liberal',
+                  licenseThreatGroupLevel: 0,
+                  licenseThreatGroupCategory: 'no-threat',
+                },
+              ],
+            },
+          ],
           reviewCompletedCount: 0,
           reviewTotalCount: 0,
         },
@@ -67,7 +138,19 @@ describe('LegalDashboardComponentsTab component', function () {
           applicationOccurrences: 1,
           displayName: 'com.amazonaws : aws-java-sdk-sqs : 6.11.415',
           hash: '8c5c838e0c6d2f6cdf35',
-          licenseNames: ['Apache-2.0'],
+          licenses: [
+            {
+              licenseId: 'Apache-2.0',
+              licenseName: 'Apache-2.0',
+              licenseThreatGroups: [
+                {
+                  licenseThreatGroupName: 'Liberal',
+                  licenseThreatGroupLevel: 0,
+                  licenseThreatGroupCategory: 'no-threat',
+                },
+              ],
+            },
+          ],
           reviewCompletedCount: 0,
           reviewTotalCount: 0,
         },
@@ -75,7 +158,19 @@ describe('LegalDashboardComponentsTab component', function () {
           applicationOccurrences: 1,
           displayName: 'com.amazonaws : aws-java-sdk-sqs : 7.11.415',
           hash: '8c5c838e0c6d2f6cdf36',
-          licenseNames: ['Apache-2.0'],
+          licenses: [
+            {
+              licenseId: 'Apache-2.0',
+              licenseName: 'Apache-2.0',
+              licenseThreatGroups: [
+                {
+                  licenseThreatGroupName: 'Liberal',
+                  licenseThreatGroupLevel: 0,
+                  licenseThreatGroupCategory: 'no-threat',
+                },
+              ],
+            },
+          ],
           reviewCompletedCount: 0,
           reviewTotalCount: 0,
         },
@@ -83,7 +178,19 @@ describe('LegalDashboardComponentsTab component', function () {
           applicationOccurrences: 1,
           displayName: 'com.amazonaws : aws-java-sdk-sqs : 8.11.415',
           hash: '8c5c838e0c6d2f6cdf37',
-          licenseNames: ['Apache-2.0'],
+          licenses: [
+            {
+              licenseId: 'Apache-2.0',
+              licenseName: 'Apache-2.0',
+              licenseThreatGroups: [
+                {
+                  licenseThreatGroupName: 'Liberal',
+                  licenseThreatGroupLevel: 0,
+                  licenseThreatGroupCategory: 'no-threat',
+                },
+              ],
+            },
+          ],
           reviewCompletedCount: 0,
           reviewTotalCount: 0,
         },
@@ -91,7 +198,19 @@ describe('LegalDashboardComponentsTab component', function () {
           applicationOccurrences: 1,
           displayName: 'com.amazonaws : aws-java-sdk-sqs : 9.11.415',
           hash: '8c5c838e0c6d2f6cdf38',
-          licenseNames: ['Apache-2.0'],
+          licenses: [
+            {
+              licenseId: 'Apache-2.0',
+              licenseName: 'Apache-2.0',
+              licenseThreatGroups: [
+                {
+                  licenseThreatGroupName: 'Liberal',
+                  licenseThreatGroupLevel: 0,
+                  licenseThreatGroupCategory: 'no-threat',
+                },
+              ],
+            },
+          ],
           reviewCompletedCount: 0,
           reviewTotalCount: 0,
         },
@@ -99,7 +218,19 @@ describe('LegalDashboardComponentsTab component', function () {
           applicationOccurrences: 1,
           displayName: 'com.amazonaws : aws-java-sdk-sqs : 10.11.415',
           hash: '8c5c838e0c6d2f6cdf39',
-          licenseNames: ['Apache-2.0'],
+          licenses: [
+            {
+              licenseId: 'Apache-2.0',
+              licenseName: 'Apache-2.0',
+              licenseThreatGroups: [
+                {
+                  licenseThreatGroupName: 'Liberal',
+                  licenseThreatGroupLevel: 0,
+                  licenseThreatGroupCategory: 'no-threat',
+                },
+              ],
+            },
+          ],
           reviewCompletedCount: 0,
           reviewTotalCount: 0,
         },
@@ -107,7 +238,19 @@ describe('LegalDashboardComponentsTab component', function () {
           applicationOccurrences: 1,
           displayName: 'com.amazonaws : aws-java-sdk-sqs : 10.11.415',
           hash: '8c5c838e0c6d2f6cdf40',
-          licenseNames: ['Apache-2.0'],
+          licenses: [
+            {
+              licenseId: 'Apache-2.0',
+              licenseName: 'Apache-2.0',
+              licenseThreatGroups: [
+                {
+                  licenseThreatGroupName: 'Liberal',
+                  licenseThreatGroupLevel: 0,
+                  licenseThreatGroupCategory: 'no-threat',
+                },
+              ],
+            },
+          ],
           reviewCompletedCount: 0,
           reviewTotalCount: 0,
         },

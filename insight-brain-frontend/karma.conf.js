@@ -35,6 +35,9 @@ module.exports = function (config) {
         // are unfortunately quite fragile. They are known to run correctly when run in alphabetical order, but
         // not necessarily in random order.
         random: false,
+
+        // whether to stop suite execution when a spec fails
+        stopOnSpecFailure: false,
       },
     },
 

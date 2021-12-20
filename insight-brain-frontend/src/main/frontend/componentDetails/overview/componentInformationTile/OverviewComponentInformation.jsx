@@ -102,20 +102,22 @@ export default function OverviewComponentInformation({
         <OccurrencesPopoverContainer occurrences={pathnames} />
         <InnerSourceProducerReportModalContainer />
         <InnerSourceProducerPermissionsModalContainer />
-        <ComponentCoordinatesPopover displayName={displayName} componentFormat={format} />
+        {!isUnknown && <ComponentCoordinatesPopover displayName={displayName} componentFormat={format} />}
         <header className="nx-tile-header">
           <div className="nx-tile-header__title">
             <h2 className="nx-h2">Component Information</h2>
           </div>
-          <div className="nx-tile__actions">
-            <NxButton
-              className="component-coordinates-button"
-              variant="tertiary"
-              onClick={toggleShowComponentCoordinatesPopover}
-            >
-              View Coordinates
-            </NxButton>
-          </div>
+          {!isUnknown && (
+            <div className="nx-tile__actions">
+              <NxButton
+                className="component-coordinates-button"
+                variant="tertiary"
+                onClick={toggleShowComponentCoordinatesPopover}
+              >
+                View Coordinates
+              </NxButton>
+            </div>
+          )}
         </header>
         <div className="nx-tile-content">{identificationInfoSectionContent}</div>
       </section>

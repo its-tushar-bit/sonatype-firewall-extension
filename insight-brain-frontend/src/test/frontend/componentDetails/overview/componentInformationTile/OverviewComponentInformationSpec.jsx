@@ -282,11 +282,39 @@ describe('OverviewComponentInformation', () => {
   });
 
   it('calls toggleShowComponentCoordinatesPopover', () => {
-    const component = getShallow(),
+    const knownComponentProps = {
+      componentInformation: {
+        componentIdentifier: {
+          format: 'custom',
+        },
+        displayName: {
+          parts: [
+            { field: 'Artifact Id', value: 'componentArtifactID' },
+            { value: ' , ' },
+            { field: 'Version', value: 'v1.0.1' },
+          ],
+        },
+        createTime: new Date().getTime() - 100 /* forcing a date less than a day ago */,
+        matchState: 'exact',
+        identificationSource: 'clair',
+        componentCategories: [{ path: 'category1' }, { path: 'category2' }],
+        pathnames: ['knownComponentPath', 'knownComponentPath2'],
+        similarMatches: [],
+        website: 'websitelink.com',
+      },
+    };
+    const component = getShallow(knownComponentProps),
       button = component.find('.component-coordinates-button');
 
     button.simulate('click');
 
     expect(toggleShowComponentCoordinatesPopoverSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('Component Coordinates Popover is not visible if component is unknown', () => {
+    const component = getShallow(),
+      button = component.find('.component-coordinates-button');
+
+    expect(button).not.toExist();
   });
 });

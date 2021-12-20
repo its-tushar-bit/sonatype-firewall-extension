@@ -23,6 +23,7 @@ import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentCoordinatesPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationDefinitionList;
 import com.sonatype.clm.testing.functional.elements.componentdetails.DependencyTreeTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
@@ -410,6 +411,19 @@ public class ComponentDetailsTest
 
     componentCoordinatesPopover.closeButton().click();
     componentCoordinatesPopover.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testOverviewTab_componentCoordinatesPopover_unknownComponent_hideCoordinatesButton() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForUnknownComponent();
+
+    componentDetailsPage.overviewTab().shouldBe(visible);
+    componentDetailsPage.overviewTabContent().shouldBe(visible);
+
+    ComponentInformationTile componentInformationTile =
+        componentDetailsPage.overviewTabContent().componentInformationTile();
+    componentInformationTile.componentCoordinatesButton().shouldNotBe(visible);
   }
 
   @Test

@@ -78,6 +78,8 @@ public class ConditionTypes
   public static final SecurityVulnerabilityCategoryConditionType SecurityVulnerabilityCategoryConditionType =
       new SecurityVulnerabilityCategoryConditionType();
 
+  public static final IacControlConditionType IacControlConditionType = new IacControlConditionType();
+
   static {
     // Don't add DeprecatedSecurityVulnerabilityConditionType
     add(AgeInDaysConditionType);
@@ -102,6 +104,7 @@ public class ConditionTypes
     add(SecurityVulnerabilitySourceConditionType);
     add(DataSourceConditionType);
     add(DependencyTypeConditionType);
+    addDisabledConditionType(IacControlConditionType);
   }
 
   public static Collection<ConditionType> getAll() {

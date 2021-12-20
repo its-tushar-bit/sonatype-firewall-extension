@@ -2956,6 +2956,16 @@ public class TemporaryEntity
     return vulnerability;
   }
 
+  public void newThirdPartyVulnerability(String referenceId, String description) {
+    ThirdPartyVulnerability vulnerability = new ThirdPartyVulnerability();
+    vulnerability.setRefId(referenceId);
+    vulnerability.setDescription(description);
+    vulnerability.setSeverity(9);
+    vulnerability.setUpdateTime(new Date());
+    thirdPartyVulnerabilityDAO.insert(vulnerability);
+    thirdPartyVulnerabilities.add(vulnerability);
+  }
+
   public ProductLicense setProductLicense() {
     return setProductLicense(Base64.getEncoder().encodeToString("LICENSE_KEY".getBytes(StandardCharsets.UTF_8)),
         "LICENSE_DETAILS");

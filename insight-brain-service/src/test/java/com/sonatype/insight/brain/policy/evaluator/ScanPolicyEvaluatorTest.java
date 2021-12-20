@@ -71,6 +71,7 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.IacControlConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
@@ -1851,6 +1852,7 @@ public class ScanPolicyEvaluatorTest
     try {
       Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
           .filter(id -> !ProprietaryNameConflictConditionType.ID.equals(id))
+          .filter(id -> !IacControlConditionType.ID.equals(id))
           .collect(Collectors.toSet());
       assertThat(conditions.stream().map(Condition::getConditionTypeId).collect(toSet()))
           .isEqualTo(expectedConditionTypeIds);

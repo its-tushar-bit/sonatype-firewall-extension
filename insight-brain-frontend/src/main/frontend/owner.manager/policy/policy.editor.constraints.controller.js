@@ -54,6 +54,7 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
       case 'DependencyType':
       case 'SecurityVulnerabilityCategory':
       case 'SecurityVulnerabilitySource':
+      case 'IacControlConditionType':
         value = getAvailableValue('name');
         break;
       default:

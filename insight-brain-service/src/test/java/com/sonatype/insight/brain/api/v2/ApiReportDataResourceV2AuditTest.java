@@ -64,7 +64,6 @@ public class ApiReportDataResourceV2AuditTest
       .path(SCAN_PATH)
       .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
       .parameter(app.getPublicId(), SCAN_ID)
-      .query("dependencyTreeEnabled")
       .get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, "not-found");
@@ -79,7 +78,6 @@ public class ApiReportDataResourceV2AuditTest
       .path(SCAN_PATH)
       .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
       .parameter(app.getPublicId(), SCAN_ID)
-      .query("dependencyTreeEnabled")
       .with(unauthorizedUser())
       .get();
 

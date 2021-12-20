@@ -481,7 +481,6 @@ public class ApiReportDataResourceV2Test
         .path(SCAN_PATH)
         .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
         .parameter(appPublicId, scanId)
-        .query("dependencyTreeEnabled")
         .get();
 
     assertResponseStatus(200, response);
@@ -503,7 +502,6 @@ public class ApiReportDataResourceV2Test
         .path(SCAN_PATH)
         .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
         .parameter(appPublicId, scanId)
-        .query("dependencyTreeEnabled")
         .get();
 
     assertResponseStatus(200, response);
@@ -531,7 +529,6 @@ public class ApiReportDataResourceV2Test
         .path(SCAN_PATH)
         .path(DefaultApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
         .parameter(appPublicId, scanId)
-        .query("dependencyTreeEnabled")
         .get();
 
     assertResponseStatus(200, response);

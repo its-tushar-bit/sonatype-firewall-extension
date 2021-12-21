@@ -22,16 +22,11 @@ import com.sonatype.clm.testing.functional.elements.IQDropdown;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxTooltip;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
+import com.sonatype.clm.testing.functional.pages.*;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQGrandfatheringIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ResultRow;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitiesPage;
-import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
@@ -779,6 +774,33 @@ public class ApplicationReportTest
     ReportListPage.firstRow().buildReportLink().click();
     reportPage.backButton().click();
     waitUntilUrl(ReportListPage.url());
+  }
+
+  @Test
+  public void testNoDependencyTreeAvailable() throws IOException {
+    refreshOrOpen(ApplicationReportPage.urlWithDepencyTreeEnabled(app, SCAN_ID));
+
+    eyesWatcher.eyesCheck("go To Dependency Tree Button disabled");
+    reportPage.goToDependencyTreeButton().shouldHave(cssClass("disabled"));
+    reportPage.goToDependencyTreeButton().click();
+    DependencyTreePage dependencyTreePage = new DependencyTreePage();
+    dependencyTreePage.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testNavigateToDependencyTree() throws IOException {
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/report-with-dependency-tree", tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    evaluator.evaluatePolicy();
+
+    refreshOrOpen(ApplicationReportPage.urlWithDepencyTreeEnabled(app, SCAN_ID));
+
+    eyesWatcher.eyesCheck("go To Dependency Tree Button enabled");
+
+    reportPage.goToDependencyTreeButton().click();
+    DependencyTreePage dependencyTreePage = new DependencyTreePage();
+    dependencyTreePage.shouldBe(visible);
   }
 
   private void checkSecondarySortByNameDescending(final ElementsCollection violations) {

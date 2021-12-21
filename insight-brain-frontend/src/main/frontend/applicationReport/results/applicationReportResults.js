@@ -89,6 +89,12 @@ function ApplicationReportResultsController(
       $ngRedux.dispatch(stateGo('applicationReport.componentDetails', { hash }));
     },
 
+    goToDependencyTree() {
+      if (vm.dependencyTree) {
+        $ngRedux.dispatch(stateGo('applicationReport.dependencyTree'));
+      }
+    },
+
     openCipModal(componentIndex) {
       vm.selectComponent(componentIndex);
       Modal.open({

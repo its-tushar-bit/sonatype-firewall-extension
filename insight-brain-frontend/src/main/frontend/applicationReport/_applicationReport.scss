@@ -58,6 +58,10 @@ application-report-vulnerabilities {
   display: flex;
   justify-content: flex-end;
 
+  .aggregate-by-component-toggle {
+    margin-right: auto;
+  }
+
   &.nx-btn-bar {
     margin-bottom: 0px;
   }

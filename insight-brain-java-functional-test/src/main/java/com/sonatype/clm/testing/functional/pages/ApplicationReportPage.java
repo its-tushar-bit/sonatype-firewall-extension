@@ -46,6 +46,13 @@ public class ApplicationReportPage
         scanId);
   }
 
+  public static String urlWithDepencyTreeEnabled(Application app, String scanId) {
+    return BaseUrl
+      .resolvePageUrl("/applicationReport/{applicationPublicId}/{scanId}/policy?dependencyTreeEnabled=true",
+      app.getPublicId(),
+      scanId);
+  }
+
   public ApplicationReportPage() {
     super(ROOT);
   }
@@ -100,6 +107,10 @@ public class ApplicationReportPage
 
   public SelenideElement filterToggle() {
     return child("#filter-toggle");
+  }
+
+  public SelenideElement goToDependencyTreeButton() {
+    return child("#go-to-dependency-tree");
   }
 
   public ApplicationReportFilter filterPanel() {

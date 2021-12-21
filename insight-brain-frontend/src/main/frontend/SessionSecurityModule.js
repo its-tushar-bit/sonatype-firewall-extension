@@ -3,43 +3,56 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-var COOKIE_NAME = 'IQ-SESSION-EXPIRATION-TIMESTAMP';
+
+import logoutWarningModalModule from './utility/services/logoutWarningModal/module';
+
+const COOKIE_NAME = 'IQ-SESSION-EXPIRATION-TIMESTAMP';
+
+const TWO_MINUTES = 2 * 60 * 1000;
 /**
  * A service that keeps track of how long it has been since the session was refreshed, and if it has been too long,
  * assumes that the session has expired and refreshes the page for security
  */
-function SessionSecurityService($cookies, $window) {
+function SessionSecurityService($cookies, $window, $rootScope, logoutWarningModalService) {
   /*
    * the approximate difference between the server's clock time and the time on the client.  This is necessary to
    * more reliably determine whether the server session has timed out.  Note that this value cannot be exact because
    * it also includes an unknown and not necessarily consistent amount of network latency.  If the client's clock
    * is ahead of the server's, this value will be positive
    */
-  var serverDateDifference = 0;
+  let serverDateDifference = 0;
 
   /**
-   * @return the current value of the session expiration cookie
+   * Get the timestamp from the cookie and adjust it to compensate for clock differences between
+   * the client and server.
+   * @return the current value of the session expiration, adjusted
    */
   function getSessionExpirationTimestamp() {
-    var sessionExpirationTimestampStr = $cookies.get(COOKIE_NAME),
+    const sessionExpirationTimestampStr = $cookies.get(COOKIE_NAME),
       sessionExpirationTimestamp = parseInt(sessionExpirationTimestampStr, 10);
 
-    return sessionExpirationTimestamp;
+    return sessionExpirationTimestamp + serverDateDifference;
   }
 
   /**
    * check to see if the current value of the session expiration cookie is in the past, and run sessionExpired if so
    */
   function checkSessionExpired() {
-    // get the timestamp from the cookie and adjust it to compensate for clock differences between
-    // the client and server.
-    var sessionExpirationTimestamp = getSessionExpirationTimestamp() + serverDateDifference;
-
-    if (new Date() > sessionExpirationTimestamp) {
+    if (Date.now() > getSessionExpirationTimestamp()) {
       sessionExpired();
     } else {
-      checkSessionExpiredLater(sessionExpirationTimestamp);
+      checkSessionExpiredLater();
     }
+  }
+
+  /**
+   * Returns the difference between the sessionExpirationTimestamp and the current date.
+   * If this difference is negative, returns 0
+   * @returns milliseconds left for the session
+   */
+  function getSessionTimeoutMillis() {
+    const difference = getSessionExpirationTimestamp() - Date.now();
+    return Math.max(difference, 0);
   }
 
   /**
@@ -54,16 +67,22 @@ function SessionSecurityService($cookies, $window) {
   /**
    * Set up a timeout to call checkSessionExpired at the time of the sessionExpirationTimestamp
    */
-  function checkSessionExpiredLater(sessionExpirationTimestamp) {
-    var sessionTimeoutMillis = sessionExpirationTimestamp - new Date();
+  function checkSessionExpiredLater() {
+    const sessionTimeoutMillis = getSessionTimeoutMillis();
+    const alertTimeoutMillis = sessionTimeoutMillis - TWO_MINUTES;
 
-    if (!isNaN(sessionTimeoutMillis)) {
+    if (!isNaN(alertTimeoutMillis)) {
       // NOTE don't use $timeout here. Angular appears to have an issue where having more than one
       // forever-repeating timeout/interval causes it to never consider the page to be "stable", which
       // breaks everything that relies on our StableBodyService. By using setTimeout instead of $timeout, we
       // avoid letting angular know about this timeout so that problem is avoided.
       // Cleanup of the StableBodyService is in https://issues.sonatype.org/browse/CLM-7840
-      setTimeout(checkSessionExpired, sessionTimeoutMillis);
+      if (alertTimeoutMillis > 0) {
+        setTimeout(checkSessionExpiredLater, alertTimeoutMillis);
+      } else {
+        logoutWarningModalService.open(Math.floor(sessionTimeoutMillis / 1000), $rootScope.productEdition);
+        setTimeout(checkSessionExpired, sessionTimeoutMillis);
+      }
     } else {
       console.warn(COOKIE_NAME + ' cookie is missing. Session timeout detection will be disabled');
     }
@@ -76,22 +95,18 @@ function SessionSecurityService($cookies, $window) {
     serverDateDifference = new Date() - serverDate;
   }
 
-  function init() {
-    checkSessionExpiredLater(getSessionExpirationTimestamp());
-  }
-
   return {
-    init: init,
+    init: checkSessionExpiredLater,
     sessionExpired: sessionExpired,
     setServerDate: setServerDate,
   };
 }
 
-SessionSecurityService.$inject = ['$cookies', '$window'];
+SessionSecurityService.$inject = ['$cookies', '$window', `$rootScope`, 'logoutWarningModalService'];
 
 export default angular
-  .module('SessionSecurityModule', ['ngCookies']) //
-  .service('SessionSecurityService', SessionSecurityService) //
+  .module('SessionSecurityModule', ['ngCookies', logoutWarningModalModule.name])
+  .service('SessionSecurityService', SessionSecurityService)
   .run([
     '$window',
     'SessionSecurityService',

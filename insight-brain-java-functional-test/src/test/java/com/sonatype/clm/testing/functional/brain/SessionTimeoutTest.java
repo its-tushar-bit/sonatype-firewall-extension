@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
+import com.sonatype.clm.testing.functional.elements.LogoutWarningModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.MainView;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
@@ -37,6 +38,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -191,31 +193,28 @@ public class SessionTimeoutTest
   @Test
   public void testRefreshAfterServerTimeoutWithCookieUpdate() throws Exception {
     SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
-
-    // set session timeout to 10 seconds
-    sessionManager.setGlobalSessionTimeout(10000);
+    // set session timeout to 122 seconds
+    sessionManager.setGlobalSessionTimeout(122000);
 
     // Current Time: 0; Timeout Time: N/A
     loginAsAdmin();
-    Thread.sleep(5000);
+    Thread.sleep(1000);
 
     // Perform an interaction that will cause a server request
-    // Current Time: 5000; Timeout Time: 10000
+    // Current Time: 1000; Timeout Time: 121000; Modal Time (time at which the modal opens): 2000
     systemConfigMenu.dropdownToggle().shouldBe(visible).click();
     systemConfigMenu.webhooks().click();
 
-    // wait until after the initial timeout would've expired, but not after the timeout from the most recent
-    // interaction would've expired
-    Thread.sleep(6000);
+    // wait until the original timeout for the modal is met and assert that it is not shown
+    Thread.sleep(1500);
+    // Current Time: 2500; Timeout Time: 119500; Modal Time: 500
+    LogoutWarningModal logoutWarningModal = new LogoutWarningModal();
+    logoutWarningModal.warningText().shouldNotBe(visible);
 
-    // Current Time: 11000; Timeout Time: 15000
-    new WebhookConfigurationPage().newWebhook().shouldBe(visible);
-
-    // wait until after the new timeout should expire
-    Thread.sleep(5000);
-
-    // Current Time: 16000; Timeout Time: 15000
-    assertUiCleared();
+    // wait until under 2 minutes to session expiration so that modal shows up
+    Thread.sleep(1000);
+    // Current Time: 3500; Timeout Time: 118500; Modal Time: 0.
+    logoutWarningModal.warningText().shouldBe(visible);
   }
 
   /**
@@ -230,12 +229,54 @@ public class SessionTimeoutTest
     sessionManager.setGlobalSessionTimeout(6000);
 
     loginAsAdmin();
+    LogoutWarningModal logoutWarningModal = new LogoutWarningModal();
+    logoutWarningModal.keepMeSignedInButton().shouldBe(visible).click();
     systemConfigMenu.dropdownToggle().shouldBe(visible).click();
     systemConfigMenu.webhooks().click();
     new WebhookConfigurationPage().newWebhook().shouldBe(visible).click();
     new WebhookEditPage().url().shouldBe(visible).setValue("test");
 
     Thread.sleep(9000);
+
+    assertUiCleared();
+  }
+
+  @Test
+  public void testLogoutWarningModal() throws Exception {
+    // set session timeout to 4 seconds
+    sessionManager.setGlobalSessionTimeout(4000);
+    loginAsAdmin();
+
+    LogoutWarningModal logoutWarningModal = new LogoutWarningModal();
+    logoutWarningModal.keepMeSignedInButton().shouldBe(visible);
+    logoutWarningModal.warningText().shouldHave(
+        text("Due to 30 minutes of inactivity you will be logged out in 2 seconds."));
+    
+    Thread.sleep(4500);
+
+    assertUiCleared();
+  }
+
+  @Test
+  public void testLogoutWarningModal_ExtendSession() throws Exception {
+    // set session timeout to 3 seconds
+    sessionManager.setGlobalSessionTimeout(3000);
+
+    // Current Time: 0; Timeout Time: N/A
+    loginAsAdmin();
+    Thread.sleep(1500);
+
+    // Clicking the button should trigger an interaction that will cause a server request
+    // Current Time: 1500; Timeout Time: 3000
+    LogoutWarningModal logoutWarningModal = new LogoutWarningModal();
+    logoutWarningModal.keepMeSignedInButton().shouldBe(visible).click();
+
+    // wait until after the initial timeout would've expired, but not after the timeout from the most recent
+    // interaction would've expired
+    Thread.sleep(2000);
+    logoutWarningModal.warningText().shouldBe(visible);
+    // wait until after the new timeout should expire
+    Thread.sleep(3000);
 
     assertUiCleared();
   }

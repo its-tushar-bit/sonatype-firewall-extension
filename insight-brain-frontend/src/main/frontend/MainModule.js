@@ -31,6 +31,7 @@ import configurationModule from './configuration/module';
 import legalModule from './legal/legal.module';
 import { not, contains, path } from 'ramda';
 import { attachAxiosInterceptors } from './utility/axiosConfig';
+import { requestNotificationPermission } from './utility/services/notificationService';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -281,7 +282,7 @@ export const InitModule = angular
         if (savedState) {
           $state.go(savedState.state, savedState.params);
         }
-
+        requestNotificationPermission();
         SessionSecurityService.init();
       }
 

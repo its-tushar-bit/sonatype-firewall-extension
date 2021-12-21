@@ -10,8 +10,10 @@ import {
   getOwnerHierarchyUrl,
 } from '../../../main/frontend/util/CLMLocation';
 import {
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED,
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
   loadAvailableScopes,
@@ -30,6 +32,15 @@ describe('advancedLegalActions', function () {
       store = SpecUtil.mockReduxStore({});
     });
 
+    it('immediately dispatches a ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED action', function () {
+      store.dispatch(loadComponent('orgOrApp', 'ownerId', 'hash'));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
     it('dispatches a ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED action with applications', function (done) {
       const componentInfo = {
         foo: 'bar',
@@ -42,9 +53,9 @@ describe('advancedLegalActions', function () {
 
       store.dispatch(loadComponent('orgOrApp', 'ownerId', 'hash')).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(1);
-        expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
-        expect(actions[0].payload).toBe(componentInfo);
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+        expect(actions[1].payload).toBe(componentInfo);
         done();
       });
     });
@@ -59,9 +70,9 @@ describe('advancedLegalActions', function () {
 
       store.dispatch(loadComponent('orgOrApp', 'ownerId', 'hash')).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(1);
-        expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FAILED);
-        expect(actions[0].payload).toBe(errorTest);
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FAILED);
+        expect(actions[1].payload).toBe(errorTest);
         done();
       });
     });
@@ -71,6 +82,15 @@ describe('advancedLegalActions', function () {
 
     beforeEach(function () {
       store = SpecUtil.mockReduxStore({});
+    });
+
+    it('immediately dispatches a ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED action', function () {
+      store.dispatch(loadComponentByComponentIdentifier('componentIdentifier'));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
     });
 
     it('dispatches a ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED action with applications', function (done) {
@@ -87,9 +107,9 @@ describe('advancedLegalActions', function () {
 
       store.dispatch(loadComponentByComponentIdentifier('componentIdentifier')).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(1);
-        expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
-        expect(actions[0].payload).toBe(componentInfo);
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+        expect(actions[1].payload).toBe(componentInfo);
         done();
       });
     });
@@ -104,9 +124,9 @@ describe('advancedLegalActions', function () {
 
       store.dispatch(loadComponentByComponentIdentifier('componentIdentifier')).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(1);
-        expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FAILED);
-        expect(actions[0].payload).toBe(errorTest);
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FAILED);
+        expect(actions[1].payload).toBe(errorTest);
         done();
       });
     });
@@ -117,6 +137,15 @@ describe('advancedLegalActions', function () {
 
     beforeEach(function () {
       store = SpecUtil.mockReduxStore({});
+    });
+
+    it('immediately dispatches a ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED action', function () {
+      store.dispatch(loadAvailableScopes('ownerId'));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
     });
 
     it('dispatches a ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED action with the hierarchy', function (done) {
@@ -137,9 +166,9 @@ describe('advancedLegalActions', function () {
 
       store.dispatch(loadAvailableScopes('ownerType', 'ownerId')).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(1);
-        expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
-        expect(actions[0].payload).toEqual({
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
+        expect(actions[1].payload).toEqual({
           values: [
             {
               ...pick(['type', 'id', 'publicId', 'name'], payload),
@@ -161,9 +190,9 @@ describe('advancedLegalActions', function () {
 
       store.dispatch(loadAvailableScopes('ownerType', 'ownerId')).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(1);
-        expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED);
-        expect(actions[0].payload).toBe(errorTest);
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED);
+        expect(actions[1].payload).toBe(errorTest);
         done();
       });
     });

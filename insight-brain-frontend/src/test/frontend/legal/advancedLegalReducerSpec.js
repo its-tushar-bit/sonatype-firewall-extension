@@ -6,8 +6,10 @@
 
 import reduce from '../../../main/frontend/legal/advancedLegalReducer.js';
 import {
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED,
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
 } from '../../../main/frontend/legal/advancedLegalActions.js';
@@ -42,6 +44,18 @@ describe('advancedLegalReducer', function () {
       };
       const newState = reduce(state, action);
       expect(newState).toBe(state);
+    });
+  });
+
+  describe('ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED action', function () {
+    it('sets component loading to true and error to null', function () {
+      const newState = reduce(undefined, {
+        type: ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
+      });
+
+      const { component } = newState;
+      expect(component.loading).toBeTruthy();
+      expect(component.error).toBeNull();
     });
   });
 
@@ -386,6 +400,18 @@ describe('advancedLegalReducer', function () {
       const { component } = newState;
       expect(component.loading).toBeFalsy();
       expect(component.error).toBe(errorTest);
+    });
+  });
+
+  describe('ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED action', function () {
+    it('sets in availableScopes loading to true and error to null', function () {
+      const newState = reduce(undefined, {
+        type: ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
+      });
+
+      const { availableScopes } = newState;
+      expect(availableScopes.loading).toBeTruthy();
+      expect(availableScopes.error).toBeNull();
     });
   });
 

@@ -9,23 +9,29 @@ import {
   getLicenseLegalComponentUrl,
   getOwnerHierarchyUrl,
 } from '../util/CLMLocation';
-import { payloadParamActionCreator } from '../util/reduxUtil';
+import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { processOwnerHierarchy } from '../util/hierarchyUtil';
 
+export const ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED = 'ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED';
 export const ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED = 'ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED';
 export const ADVANCED_LEGAL_LOAD_COMPONENT_FAILED = 'ADVANCED_LEGAL_LOAD_COMPONENT_FAILED';
 
+export const ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED = 'ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED';
 export const ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED = 'ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED';
 export const ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED = 'ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED';
 
+const loadComponentRequested = noPayloadActionCreator(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
 const loadComponentFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
 const loadComponentFailed = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_COMPONENT_FAILED);
 
+const loadAvailableScopesRequested = noPayloadActionCreator(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED);
 const loadAvailableScopesFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
 const loadAvailableScopesFailed = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED);
 
 export function loadComponent(orgOrApp, ownerId, hash) {
   return (dispatch) => {
+    dispatch(loadComponentRequested());
+
     return axios
       .get(getLicenseLegalComponentUrl(orgOrApp, ownerId, hash))
       .then(({ data }) => {
@@ -38,6 +44,8 @@ export function loadComponent(orgOrApp, ownerId, hash) {
 }
 export function loadComponentByComponentIdentifier(componentIdentifier) {
   return (dispatch) => {
+    dispatch(loadComponentRequested());
+
     return axios
       .get(getLicenseLegalComponentByComponentIdentifierUrl(componentIdentifier))
       .then(({ data }) => {
@@ -51,6 +59,8 @@ export function loadComponentByComponentIdentifier(componentIdentifier) {
 
 export function loadAvailableScopes(ownerType, ownerId) {
   return (dispatch) => {
+    dispatch(loadAvailableScopesRequested());
+
     return axios
       .get(getOwnerHierarchyUrl(ownerType, ownerId))
       .then(({ data }) => {

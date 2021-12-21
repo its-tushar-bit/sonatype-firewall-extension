@@ -34,7 +34,9 @@ import {
   getSaveLegalFileUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 import {
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
 } from '../../../../main/frontend/legal/advancedLegalActions';
 
@@ -162,10 +164,12 @@ describe('advancedLegalFileActions', function () {
         expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId', postBody);
         expect(axios.get).toHaveBeenCalledWith('/api/v2/licenseLegalMetadata/application/app/component?hash=hash123');
         expect(axios.get).toHaveBeenCalledWith('/rest/owner/application/app/hierarchy');
-        expect(actions.length).toBe(4);
-        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
-        expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
-        expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+        expect(actions.length).toBe(6);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED);
+        expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
+        expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
+        expect(actions[4].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
+        expect(actions[5].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
         done();
       });
 
@@ -216,10 +220,12 @@ describe('advancedLegalFileActions', function () {
             '/api/v2/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component?componentIdentifier=componentIdentifier-123'
           );
           expect(axios.get).toHaveBeenCalledWith('/rest/owner/organization/ROOT_ORGANIZATION_ID/hierarchy');
-          expect(actions.length).toBe(4);
-          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
-          expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
-          expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+          expect(actions.length).toBe(6);
+          expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED);
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
+          expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
+          expect(actions[4].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
+          expect(actions[5].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
           done();
         });
 

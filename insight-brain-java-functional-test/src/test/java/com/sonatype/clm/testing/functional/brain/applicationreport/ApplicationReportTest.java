@@ -777,7 +777,7 @@ public class ApplicationReportTest
   }
 
   @Test
-  public void testNoDependencyTreeAvailable() throws IOException {
+  public void testNoDependencyTreeAvailable() {
     refreshOrOpen(ApplicationReportPage.urlWithDepencyTreeEnabled(app, SCAN_ID));
 
     eyesWatcher.eyesCheck("go To Dependency Tree Button disabled");
@@ -794,6 +794,7 @@ public class ApplicationReportTest
     evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
     evaluator.evaluatePolicy();
 
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     refreshOrOpen(ApplicationReportPage.urlWithDepencyTreeEnabled(app, SCAN_ID));
 
     eyesWatcher.eyesCheck("go To Dependency Tree Button enabled");

@@ -1135,6 +1135,7 @@ public class TemporaryEntity
   public PolicyWaiver newWaiver(String hash, String policyId, String ownerId, String comment, Date expiryTime) {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, comment);
     waiver.setExpiryTime(expiryTime);
+    addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
     return waiver;
   }
@@ -1147,6 +1148,7 @@ public class TemporaryEntity
       String comment)
   {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
+    addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
     return waiver;
   }
@@ -1154,6 +1156,7 @@ public class TemporaryEntity
   public PolicyWaiver newWaiver(String hash, String policyId, String ownerId, List<ConstraintFact> constraintFacts) {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, null /* comment */);
     waiver.setConstraintFacts(constraintFacts);
+    addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
     return waiver;
   }
@@ -1168,6 +1171,7 @@ public class TemporaryEntity
   {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
     waiver.setCreateTime(createTime);
+    addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
     return waiver;
   }
@@ -1184,8 +1188,14 @@ public class TemporaryEntity
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
     waiver.setCreateTime(createTime);
     waiver.setExpiryTime(expiryTime);
+    addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
     return waiver;
+  }
+
+  private void addCreatorDataToWaiver(PolicyWaiver waiver) {
+    waiver.setCreatorId("testuser");
+    waiver.setCreatorName("Test User");
   }
 
   public LdapServer newLdapServer(String name) {

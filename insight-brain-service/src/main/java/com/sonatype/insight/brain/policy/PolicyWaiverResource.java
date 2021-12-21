@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -60,9 +61,15 @@ public class PolicyWaiverResource
 
   private final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
 
+  private final CurrentUser currentUser;
+
   @Inject
-  public PolicyWaiverResource(final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator) {
+  public PolicyWaiverResource(
+      final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator,
+      final CurrentUser currentUser) 
+  {
     this.policyWaiverTelemetryCreator = policyWaiverTelemetryCreator;
+    this.currentUser = currentUser;
   }
 
   @POST
@@ -83,6 +90,8 @@ public class PolicyWaiverResource
 
     policyWaiver.setId(null);
     policyWaiver.setOwnerId(internalOwnerId);
+    policyWaiver.setCreatorId(currentUser.getUserPrincipal().getUsername());
+    policyWaiver.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
     new PolicyWaiverDAO().insert(policyWaiver);
     auditPolicyWaiver(policyWaiver);
     policyWaiverTelemetryCreator.sendWaiverTelemetryWithoutViolationInformation(policyWaiver, ownerType);
@@ -137,6 +146,8 @@ public class PolicyWaiverResource
       dto.policyName = policyNameLoader.apply(dto.getPolicyId());
       dto.setConstraintFactsJson(waiver.getConstraintFactsJson());
       dto.setConstraintFacts(waiver.getConstraintFacts());
+      dto.setCreatorId(waiver.getCreatorId());
+      dto.setCreatorName(waiver.getCreatorName());
       dtos.add(dto);
     }
     return dtos;

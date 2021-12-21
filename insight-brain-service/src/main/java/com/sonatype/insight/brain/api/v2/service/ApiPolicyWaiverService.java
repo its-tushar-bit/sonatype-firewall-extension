@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.policy.ConstraintFactDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -92,6 +93,8 @@ public class ApiPolicyWaiverService
 
   private final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
 
+  private final CurrentUser currentUser;
+
   @Inject
   public ApiPolicyWaiverService(
       TelemetrySender telemetrySender,
@@ -101,7 +104,8 @@ public class ApiPolicyWaiverService
       OwnerDAO ownerDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
       ApiPolicyViolationServiceV2 apiPolicyViolationServiceV2,
-      PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator)
+      PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator,
+      CurrentUser currentUser)
   {
     this.telemetrySender = telemetrySender;
     this.policyWaiverDAO = policyWaiverDAO;
@@ -111,6 +115,7 @@ public class ApiPolicyWaiverService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.apiPolicyViolationServiceV2 = apiPolicyViolationServiceV2;
     this.policyWaiverTelemetryCreator = policyWaiverTelemetryCreator;
+    this.currentUser = currentUser;
   }
 
   /**
@@ -522,6 +527,8 @@ public class ApiPolicyWaiverService
     PolicyWaiver policyWaiver = new PolicyWaiver(hash, policyViolation.getPolicyId(), ownerId, comment);
     policyWaiver.setConstraintFactsJson(policyViolation.getConstraintFactsJson());
     policyWaiver.setExpiryTime(expiryTime);
+    policyWaiver.setCreatorId(currentUser.getUserPrincipal().getUsername());
+    policyWaiver.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
 
     policyWaiverDAO.insert(tx, policyWaiver);
     return policyWaiver;

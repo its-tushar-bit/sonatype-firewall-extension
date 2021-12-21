@@ -6,18 +6,20 @@
 import React, { Fragment } from 'react';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
+import { equals } from 'ramda';
 import { faTerminal } from '@fortawesome/pro-solid-svg-icons';
 import { NxFontAwesomeIcon, NxTree, NxThreatIndicator, NxTextLink } from '@sonatype/react-shared-components';
+
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { toggleTreePathAction } from 'MainRoot/applicationReport/applicationReportActions';
 import DependencyIndicator from './DependencyIndicator';
 
 const MemoizedTreeNode = React.memo(TreeNode);
 
-function TreeNode({ items }) {
+function TreeNode({ items, treePathToggleAction, hashToMatch }) {
   const dispatch = useDispatch();
-  const toggleTreePath = (payload) => dispatch(toggleTreePathAction(payload));
 
+  const matchesHash = equals(hashToMatch);
+  const dispatchToggleTreeAtPath = (payload) => dispatch(treePathToggleAction(payload));
   const goToCDP = (hash) => {
     return dispatch(stateGo('applicationReport.componentDetails', { hash }));
   };
@@ -29,16 +31,24 @@ function TreeNode({ items }) {
           collapsible={!!item.children}
           isOpen={item.isOpen}
           key={item.hash}
-          onToggleCollapse={() => toggleTreePath(item.treePath)}
+          onToggleCollapse={() => dispatchToggleTreeAtPath(item.treePath)}
         >
           <NxTree.ItemLabel>
             <NxThreatIndicator className="nx-tree__colored-icon" policyThreatLevel={item.policyThreatLevel} />
             {item.isInnerSource && <DependencyIndicator type="inner-source" />}
-            <NxTextLink onClick={() => goToCDP(item.hash)}>{item.displayName}</NxTextLink>
+            {matchesHash(item.hash) ? (
+              <span className="iq-matched-hash-tree-label">{item.displayName}</span>
+            ) : (
+              <NxTextLink onClick={() => goToCDP(item.hash)}>{item.displayName}</NxTextLink>
+            )}
           </NxTree.ItemLabel>
           {!!item.children && (
             <NxTree data-testid="tree">
-              <MemoizedTreeNode items={item.children} />
+              <MemoizedTreeNode
+                items={item.children}
+                treePathToggleAction={treePathToggleAction}
+                hashToMatch={hashToMatch}
+              />
             </NxTree>
           )}
         </NxTree.Item>
@@ -48,23 +58,7 @@ function TreeNode({ items }) {
   return <Fragment>{renderNode(items)}</Fragment>;
 }
 
-export default function DependencyTree({ dependencyTree, rootName }) {
-  return (
-    <NxTree className="nx-tree--no-gutter iq-dependency-tree">
-      <NxTree.Item>
-        <NxTree.ItemLabel>
-          <NxFontAwesomeIcon fixedWidth icon={faTerminal} />
-          <span>{rootName}</span>
-        </NxTree.ItemLabel>
-        <NxTree>
-          <MemoizedTreeNode items={dependencyTree} />
-        </NxTree>
-      </NxTree.Item>
-    </NxTree>
-  );
-}
-
-const treeItemProps = PropTypes.shape({
+const treeItemPropTypes = PropTypes.shape({
   children: PropTypes.arrayOf(PropTypes.object),
   isOpen: PropTypes.bool,
   displayName: PropTypes.string,
@@ -73,8 +67,29 @@ const treeItemProps = PropTypes.shape({
   policyThreatLevel: PropTypes.number,
   isInnerSource: PropTypes.bool,
 });
+TreeNode.propTypes = {
+  hashToMatch: PropTypes.string,
+  items: PropTypes.arrayOf(treeItemPropTypes),
+  treePathToggleAction: PropTypes.func.isRequired,
+};
+
+export default function DependencyTree({ rootName, ...rest }) {
+  return (
+    <NxTree className="nx-tree--no-gutter iq-dependency-tree">
+      <NxTree.Item>
+        <NxTree.ItemLabel>
+          <NxFontAwesomeIcon fixedWidth icon={faTerminal} />
+          <span>{rootName}</span>
+        </NxTree.ItemLabel>
+        <NxTree>
+          <MemoizedTreeNode {...rest} />
+        </NxTree>
+      </NxTree.Item>
+    </NxTree>
+  );
+}
 
 DependencyTree.propTypes = {
   rootName: PropTypes.string,
-  dependencyTree: PropTypes.arrayOf(treeItemProps),
+  ...TreeNode.propTypes,
 };

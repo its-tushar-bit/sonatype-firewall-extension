@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { extendDependencyTreeData } from 'MainRoot/DependencyTree/dependencyTreeUtil';
-import { unextendedDependencyTreeData, indexedEntries } from './dependencyTreeMockData';
+import { extendDependencyTreeData, getDependencyTreeSubset } from 'MainRoot/DependencyTree/dependencyTreeUtil';
+import { dependencyTreeData, unextendedDependencyTreeData, indexedEntries } from './dependencyTreeMockData';
 
 describe('dependencyTreeUtil', () => {
   it('extends and sort dependency tree raw data', () => {
@@ -23,5 +23,35 @@ describe('dependencyTreeUtil', () => {
         ],
       }),
     ]);
+  });
+
+  describe('getDependencyTreeSubset', () => {
+    it('returns empty subset if no arguments were provided', () => {
+      const subset = getDependencyTreeSubset();
+
+      expect(subset.length).toBe(0);
+    });
+
+    it('returns empty subset if the dependency could not be found', () => {
+      const subset = getDependencyTreeSubset(dependencyTreeData, 'ramdomHash');
+
+      expect(subset.length).toBe(0);
+    });
+
+    it('returns subset for a matching dependency', () => {
+      const subset = getDependencyTreeSubset(dependencyTreeData, 'qwert32145');
+
+      const [firstDependency] = subset;
+
+      expect(firstDependency.hash).toBe('qwert3214');
+      expect(firstDependency.treePath).toEqual([0]);
+      expect(firstDependency.children.length).toBe(1);
+
+      const [firstChildDependency] = firstDependency.children;
+
+      expect(firstChildDependency.hash).toBe('qwert32145');
+      expect(firstChildDependency.treePath).toEqual([0, 'children', 0]);
+      expect(firstChildDependency.children).toBeNull();
+    });
   });
 });

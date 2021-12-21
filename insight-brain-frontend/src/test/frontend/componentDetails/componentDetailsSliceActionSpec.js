@@ -20,6 +20,8 @@ import {
 } from 'MainRoot/componentDetails/componentDetailsSlice';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import * as componentDetailsSelectors from 'MainRoot/componentDetails/componentDetailsSelectors';
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 
 const {
   loadComponentDetails,
@@ -152,6 +154,11 @@ describe('componentDetailsActions', function () {
   });
 
   describe('loadComponentLabels', () => {
+    beforeEach(() => {
+      spyOn(applicationReportSelectors, 'selectDependencyTreeData').and.returnValue([{ children: null, isOpen: true }]);
+      spyOn(componentDetailsSelectors, 'selectComponentDetails').and.returnValue({ hash: 'hash' });
+    });
+
     it('immediately dispatches LOAD_COMPONENT_LABELS_REQUESTED action', () => {
       store.dispatch(loadComponentDetails());
 
@@ -176,15 +183,17 @@ describe('componentDetailsActions', function () {
       });
     });
 
-    it('dispatches LOAD_COMPONENT_LABELS_FULFILED after a succesfull response', (done) => {
-      const mockResponse = { data: { labelsByOwner: [{ labels: [{ test: 'test' }] }] } };
+    it('dispatches LOAD_COMPONENT_LABELS_FULFILLED after a successful response', (done) => {
+      const mockResponse = {
+        data: { labelsByOwner: [{ labels: [{ test: 'test' }] }] },
+      };
       mockAxiosCalls({
         get: {
           [url]: Promise.resolve(mockResponse),
         },
       });
 
-      const expectedPayload = mockResponse;
+      const expectedPayload = { ...mockResponse, dependencyTree: [{ children: null, isOpen: true }], hash: 'hash' };
 
       store.dispatch(loadComponentDetailsWithCancelToken(null)).then(() => {
         const actions = store.getActions();

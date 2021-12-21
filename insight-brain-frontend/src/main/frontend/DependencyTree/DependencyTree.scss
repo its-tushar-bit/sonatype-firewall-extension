@@ -13,8 +13,12 @@
     // icons but should be adapted a bit when used with .nx-threat-indicator)
     margin: 0 var(--nx-spacing-2x) 0 2px;
   }
+}
 
-  .iq-dependency-indicator {
-    margin-right: var(--nx-spacing-2x);
-  }
+.nx-tree .iq-dependency-indicator {
+  margin-right: var(--nx-spacing-2x);
+}
+
+.nx-tree .iq-matched-hash-tree-label {
+  @include nx-text-helpers.semi-bold;
 }

@@ -21,6 +21,7 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.elements.NxTree;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentCoordinatesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile;
@@ -75,17 +76,10 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 
+import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.disappear;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.matchText;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 
 public class ComponentDetailsTest
@@ -475,14 +469,55 @@ public class ComponentDetailsTest
   }
 
   @Test
-  public void testOverviewTab_DependencyTreeTile() {
+  public void testOverviewTab_DependencyTreeTile() throws IOException {
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/report-with-dependency-tree", tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    evaluator.evaluatePolicy();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     refreshOrOpen(
-        ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "197d803ab63dd3523d9d"));
+        ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "494308fc2d433720c778"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
 
     DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
     dependencyTreeTile.shouldBe(visible);
     dependencyTreeTile.title().shouldHave(text("Dependency Tree"));
+
+    final String THREAT_CRITICAL_CLASS = "nx-threat-indicator--critical";
+    final String THREAT_NONE_CLASS = "nx-threat-indicator--none";
+    final NxTree nxTree = dependencyTreeTile.tree();
+
+    ElementsCollection clickableTreeItems = nxTree.clickableTreeItems();
+    ElementsCollection nonClickableTreeItems = nxTree.nonClickableTreeItems();
+    ElementsCollection threatIndicators = nxTree.threatIndicators();
+
+    nxTree.treeItems().get(0).shouldHave(text("ApplicationReportTest"));
+    clickableTreeItems.shouldHaveSize(4);
+    scrollIntoView(clickableTreeItems.get(0), true);
+
+    clickableTreeItems.get(0).shouldHave(text("ch.qos.logback : logback-access : 0.6"));
+    threatIndicators.get(0).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+
+    clickableTreeItems.get(1).shouldHave(text("org.apache.flume : flume-ng-node : 1.0.0-incubating"));
+    threatIndicators.get(1).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+
+    clickableTreeItems.get(2).shouldHave(text("org.apache.flume : flume-ng-core : 1.0.0-incubating"));
+    threatIndicators.get(2).shouldHave(cssClass(THREAT_NONE_CLASS));
+
+    clickableTreeItems.get(3).shouldHave(text("org.apache.avro : avro-ipc : 1.5.0"));
+    threatIndicators.get(3).shouldHave(cssClass(THREAT_NONE_CLASS));
+
+    nonClickableTreeItems.shouldHaveSize(2);
+
+    nonClickableTreeItems.get(0).shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
+    threatIndicators.get(1).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+    nonClickableTreeItems.get(0).shouldNotHave(attribute("a"));
+
+    nonClickableTreeItems.get(1).shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
+    threatIndicators.get(5).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
+    nonClickableTreeItems.get(1).shouldNotHave(attribute("a"));
+
+    eyesWatcher.eyesCheck("Overview tab with dependency tree tile");
   }
 
   @Test

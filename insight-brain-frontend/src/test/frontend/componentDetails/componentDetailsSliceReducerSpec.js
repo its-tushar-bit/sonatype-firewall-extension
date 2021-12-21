@@ -7,6 +7,7 @@
 import reducer, { initialState } from 'MainRoot/componentDetails/componentDetailsSlice';
 import { VISIT_ANCESTOR_ACTION, RETURN_TO_OFFSPRING } from 'MainRoot/componentDetails/componentDetailsSlice';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
+import * as dependencyTreeUtil from 'MainRoot/DependencyTree/dependencyTreeUtil';
 
 const LOAD_COMPONENT_LABELS_REQUESTED = 'componentDetails/loadComponentDetails/pending';
 const LOAD_COMPONENT_LABELS_FULFILLED = 'componentDetails/loadComponentDetailsWithCancelToken/fulfilled';
@@ -51,6 +52,7 @@ describe('componentDetailsReducer', () => {
       showRemoveLabelModal: false,
       applicableLabelScopesLoadError: null,
       saveLabelScopeError: null,
+      dependencyTreeSubset: null,
     };
   });
 
@@ -112,6 +114,8 @@ describe('componentDetailsReducer', () => {
 
   describe('LOAD_COMPONENT_LABELS_FULFILLED action', function () {
     it('adds labels value and removes "labels" pending load', function () {
+      const getDependencyTreeSubsetSpy = spyOn(dependencyTreeUtil, 'getDependencyTreeSubset').and.returnValue([]);
+
       const newState = reducer(mockState, {
         type: LOAD_COMPONENT_LABELS_FULFILLED,
         payload: {
@@ -120,9 +124,12 @@ describe('componentDetailsReducer', () => {
           },
         },
       });
+
       expect(newState.pendingLoads.size).toEqual(0);
       expect(newState.labels).toEqual([]);
       expect(newState.loadError).toBeNull();
+      expect(newState.dependencyTreeSubset).toEqual([]);
+      expect(getDependencyTreeSubsetSpy).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -578,6 +585,25 @@ describe('componentDetailsReducer', () => {
 
       const newState = reducer(state, { type: SELECT_COMPONENT });
       expect(newState).toEqual(initialState);
+    });
+  });
+
+  describe('toggleIsOpenAtTreePathAction', () => {
+    it('set subset', () => {
+      mockState.dependencyTreeSubset = [
+        { children: [{ isOpen: false }], isOpen: false },
+        { children: null, isOpen: false },
+      ];
+
+      const newState = reducer(mockState, {
+        type: 'componentDetails/toggleIsOpenAtTreePathAction',
+        payload: ['0', 'children', '0'],
+      });
+
+      expect(newState.dependencyTreeSubset[0].children[0].isOpen).toBeTrue();
+      // isOpen in other tree items should not be toggled
+      expect(newState.dependencyTreeSubset[0].isOpen).toBeFalse();
+      expect(newState.dependencyTreeSubset[1].isOpen).toBeFalse();
     });
   });
 });

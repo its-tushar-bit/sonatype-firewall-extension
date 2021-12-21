@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.elements.componentdetails;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.NxTree;
 
 import com.codeborne.selenide.SelenideElement;
 
@@ -20,5 +21,9 @@ public class DependencyTreeTile
 
   public SelenideElement title() {
     return child(".nx-h2");
+  }
+
+  public NxTree tree() {
+    return new NxTree(".iq-dependency-tree");
   }
 }

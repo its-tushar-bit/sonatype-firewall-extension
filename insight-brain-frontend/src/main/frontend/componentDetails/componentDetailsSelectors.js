@@ -229,3 +229,5 @@ export const selectComponentDetailsLoading = createSelector(
 export const selectShowRemoveLabelModal = createSelector(selectDetails, prop('showRemoveLabelModal'));
 
 export const selectRemoveAppliedLabelError = createSelector(selectDetails, prop('removeAppliedLabelError'));
+
+export const selectDependencyTreeSubset = createSelector(selectDetails, prop('dependencyTreeSubset'));

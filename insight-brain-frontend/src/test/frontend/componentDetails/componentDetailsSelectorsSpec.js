@@ -29,6 +29,7 @@ import {
   selectIsProprietary,
   selectComponentAncestors,
   selectSaveLabelError,
+  selectDependencyTreeSubset,
 } from 'MainRoot/componentDetails/componentDetailsSelectors';
 
 describe('componentDetailsSelectors', () => {
@@ -718,6 +719,20 @@ describe('componentDetailsSelectors', () => {
       };
       const actual = selectSaveLabelError(state);
       expect(actual).toBeNull();
+    });
+  });
+
+  describe('selectDependencyTreeSubset', () => {
+    it('is composed of the following selector', () => {
+      expect(selectDependencyTreeSubset.dependencies).toEqual([selectDetails]);
+    });
+
+    it('returns subset', () => {
+      const componentDetails = { dependencyTreeSubset: ['testSubset'] };
+
+      const selection = selectDependencyTreeSubset.resultFunc(componentDetails);
+
+      expect(selection).toEqual(['testSubset']);
     });
   });
 });

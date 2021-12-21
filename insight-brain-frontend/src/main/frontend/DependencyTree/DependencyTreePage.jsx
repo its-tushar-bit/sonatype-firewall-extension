@@ -12,6 +12,7 @@ import DependencyTree from './DependencyTree';
 import {
   loadReportIfNeeded,
   setDependencyTreeRouterParamsForBackButton,
+  toggleTreePathAction,
 } from 'MainRoot/applicationReport/applicationReportActions';
 import { selectApplicationInfo, selectComponentMetaData } from '../componentDetails/componentDetailsSelectors';
 import {
@@ -56,7 +57,11 @@ export default function DependencyTreePage() {
             retryHandler={loadReport}
             error={!loading && !dependencyTreeIsAvailable ? 'Dependency tree not available.' : null}
           >
-            <DependencyTree dependencyTree={dependencyTree} rootName={applicationInfo?.applicationName} />
+            <DependencyTree
+              items={dependencyTree}
+              rootName={applicationInfo?.applicationName}
+              treePathToggleAction={toggleTreePathAction}
+            />
           </NxLoadWrapper>
         </NxTile.Content>
       </NxTile>

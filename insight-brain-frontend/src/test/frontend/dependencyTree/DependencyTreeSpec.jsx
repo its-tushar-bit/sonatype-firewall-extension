@@ -11,14 +11,14 @@ import DependencyTree from 'MainRoot/DependencyTree/DependencyTree';
 import { dependencyTreeData } from './dependencyTreeMockData';
 
 describe('DependencyTree', () => {
-  let minimalProps, renderComponent, toggleTreePath;
+  let minimalProps, renderComponent, treePathToggleAction;
   beforeEach(() => {
+    treePathToggleAction = jasmine.createSpy('treePathToggleAction');
     minimalProps = {
-      dependencyTree: dependencyTreeData,
-      toggleTreePath,
+      items: dependencyTreeData,
+      treePathToggleAction,
       rootName: 'Root Name',
     };
-    toggleTreePath = jasmine.createSpy('toggleTreePath');
     renderComponent = (additionalProps) => render(<DependencyTree {...minimalProps} {...additionalProps} />);
   });
 
@@ -49,6 +49,14 @@ describe('DependencyTree', () => {
     expect(clickableTreeNode).toHaveClassName('nx-text-link');
   });
 
+  it('renders non clickable tree item', () => {
+    renderComponent({ hashToMatch: 'qwert32143' });
+
+    const nonClickableTreeItem = screen.getByText('net.sourceforge.jtds : jtds : 1.2.2');
+
+    expect(nonClickableTreeItem.closest('a')).toBeNull();
+  });
+
   it('renders threat indicator', () => {
     const tree = [
       {
@@ -77,7 +85,7 @@ describe('DependencyTree', () => {
         policyThreatLevel: 1,
       },
     ];
-    renderComponent({ dependencyTree: tree });
+    renderComponent({ items: tree });
 
     expect(screen.getAllByRole('img')[0]).toHaveClassName('nx-threat-indicator--low');
     expect(screen.getAllByRole('img')[1]).toHaveClassName('nx-threat-indicator--critical');
@@ -97,7 +105,7 @@ describe('DependencyTree', () => {
       },
     ];
     renderComponent({
-      dependencyTree: mockTree,
+      items: mockTree,
     });
 
     const item = screen.getAllByRole('treeitem');

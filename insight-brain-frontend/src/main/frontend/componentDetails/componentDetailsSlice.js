@@ -5,12 +5,12 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { always, curryN, prop, sortWith, ascend } from 'ramda';
+import { always, curryN, prop, sortWith, ascend, lensPath, over, not } from 'ramda';
 import { enableMapSet } from 'immer';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { loadReportIfNeeded } from '../applicationReport/applicationReportActions';
-import { selectSelectedComponent } from '../applicationReport/applicationReportSelectors';
+import { selectDependencyTreeData, selectSelectedComponent } from '../applicationReport/applicationReportSelectors';
 import {
   getComponentLabels,
   setProprietaryMatchers,
@@ -25,7 +25,12 @@ import { toggleBooleanProp } from '../util/reduxUtil';
 import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
-import { selectIsApplicableLabelsLoading, selectIsLabelsLoading } from './componentDetailsSelectors';
+import {
+  selectComponentDetails,
+  selectIsApplicableLabelsLoading,
+  selectIsLabelsLoading,
+} from './componentDetailsSelectors';
+import { getDependencyTreeSubset } from 'MainRoot/DependencyTree/dependencyTreeUtil';
 
 const HTTP_CLIENT_CLOSED_REQUEST = 499;
 
@@ -61,6 +66,7 @@ export const initialState = Object.freeze({
     submitError: null,
     data: { pathnames: [], regex: '' },
   },
+  dependencyTreeSubset: null,
 });
 
 const mutatePendingLoads = curryN(3, function mutatePendingLoads(setMutator, loads, state) {
@@ -165,6 +171,7 @@ const loadComponentDetailsFulfilled = (state, { payload }) => {
     ...state,
     labels: labels,
     loadError: null,
+    dependencyTreeSubset: getDependencyTreeSubset(payload.dependencyTree, payload.hash),
   });
 };
 
@@ -199,7 +206,16 @@ const loadComponentDetailsWithCancelToken = createAsyncThunk(
         const { publicId, hash } = getState().router.currentParams;
         return axios.get(getComponentLabels(publicId, hash), { cancelToken });
       })
-      .then((results) => results)
+      .then((results) => {
+        const dependencyTree = selectDependencyTreeData(getState());
+        const { hash } = selectComponentDetails(getState());
+
+        return {
+          ...results,
+          dependencyTree,
+          hash,
+        };
+      })
       .catch(rejectWithValue);
   }
 );
@@ -456,6 +472,13 @@ const toggleShowRemoveLabelModal = (state) => {
   });
 };
 
+const toggleIsOpenAtTreePathAction = (state, { payload }) => {
+  const treePathIsOpenLens = lensPath([...payload, 'isOpen']);
+  const currentSubset = state.dependencyTreeSubset;
+
+  state.dependencyTreeSubset = over(treePathIsOpenLens, not, currentSubset);
+};
+
 const componentDetailsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -474,6 +497,7 @@ const componentDetailsSlice = createSlice({
     setLabelScopeToSave: propSet('labelScopeToSave'),
     setSelectedLabelDetails: propSet('selectedLabelDetails'),
     setSelectedLabelOwnerType: propSet('selectedLabelOwnerType'),
+    toggleIsOpenAtTreePathAction,
   },
   extraReducers: {
     [loadComponentDetails.pending]: loadComponentDetailsRequested,

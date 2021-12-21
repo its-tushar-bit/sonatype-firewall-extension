@@ -104,6 +104,9 @@ public class ApiPolicyWaiverResourceTest
     assertThat(apiPolicyWaiverDTO.scopeOwnerType).isEqualTo(OwnerType.APPLICATION.toString());
     assertThat(apiPolicyWaiverDTO.expiryTime).isEqualTo(aWeekFromNow);
     assertThat(apiPolicyWaiverDTO.vulnerabilityId).isEqualTo("vulnerability-1");
+    assertThat(apiPolicyWaiverDTO.creatorId).isNotNull();
+    assertThat(apiPolicyWaiverDTO.creatorId).isEqualTo("testuser");
+    assertThat(apiPolicyWaiverDTO.creatorName).isEqualTo("Test User");
   }
 
   @Test

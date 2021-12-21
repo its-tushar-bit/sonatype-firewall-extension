@@ -803,6 +803,9 @@ public class ApiComponentsWithWaiversReportingServiceTest
     assertThat(policyWaiverDTO.scopeOwnerType).isEqualTo(waiverOwnerType);
     assertThat(policyWaiverDTO.scopeOwnerId).isEqualTo(waiver.getOwnerId());
     assertThat(policyWaiverDTO.scopeOwnerName).isEqualTo(waiverOwnerName);
+    assertThat(policyWaiverDTO.creatorId).isNotNull();
+    assertThat(policyWaiverDTO.creatorId).isEqualTo(waiver.getCreatorId());
+    assertThat(policyWaiverDTO.creatorName).isEqualTo(waiver.getCreatorName());
   }
 
   private void assertApplicationWaiverDTO(ApiApplicationWaiverDTO actual, Application app) {

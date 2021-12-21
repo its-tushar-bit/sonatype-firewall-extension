@@ -21,6 +21,8 @@ public class ApiPolicyWaiverDTOTestUtils
       String comment,
       String policyViolationId,
       final Date expiryTime,
+      String creatorId,
+      String creatorName,
       ApiPolicyWaiverDTO actual)
   {
     assertThat(actual.hash).isEqualTo(hash);
@@ -30,5 +32,8 @@ public class ApiPolicyWaiverDTOTestUtils
     assertThat(actual.comment).isEqualTo(comment);
     assertThat(actual.expiryTime).isEqualTo(expiryTime);
     assertThat(actual.policyViolationId).isEqualTo(policyViolationId);
+    assertThat(actual.creatorId).isNotNull();
+    assertThat(actual.creatorId).isEqualTo(creatorId);
+    assertThat(actual.creatorName).isEqualTo(creatorName);
   }
 }

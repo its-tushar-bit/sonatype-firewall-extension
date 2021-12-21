@@ -104,6 +104,16 @@ public class ApiPolicyWaiverDTO
   @JsonInclude(Include.NON_NULL)
   public String componentName;
 
+  /**
+   * @since 1.132
+   */
+  public String creatorId;
+
+  /**
+   * @since 1.132
+   */
+  public String creatorName;
+
   public static ApiPolicyWaiverDTO toDto(PolicyWaiver policyWaiver, Owner owner) {
     ApiPolicyWaiverDTO dto = new ApiPolicyWaiverDTO();
 
@@ -113,7 +123,9 @@ public class ApiPolicyWaiverDTO
     dto.expiryTime = policyWaiver.getExpiryTime();
     dto.hash = policyWaiver.getHash();
     dto.policyId = policyWaiver.getPolicyId();
-
+    dto.creatorId = policyWaiver.getCreatorId();
+    dto.creatorName = policyWaiver.getCreatorName();
+    
     if (owner != null) {
       dto.scopeOwnerId = owner.getId();
       dto.scopeOwnerType = ScopeOwnerUtils.getScopeOwnerType(owner.getType(), owner.getId());

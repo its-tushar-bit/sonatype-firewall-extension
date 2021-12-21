@@ -742,18 +742,19 @@ public class ApiPolicyWaiverServiceTest
 
     assertThat(activeApplicableWaivers.size()).isEqualTo(3);
     assertApiPolicyWaiverDTO("hash", policyId, orgId, "NewOrg", "", policyViolationId,
-        null, activeApplicableWaivers.get(0));
+        null, "testuser", "Test User", activeApplicableWaivers.get(0));
     assertApiPolicyWaiverDTO(null, policyId, orgId, "NewOrg", "", policyViolationId,
-        null, activeApplicableWaivers.get(1));
+        null, "testuser", "Test User", activeApplicableWaivers.get(1));
     assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "A comment", policyViolationId,
-        expiringInFutureExpiryTime, activeApplicableWaivers.get(2));
+        expiringInFutureExpiryTime, "testuser", "Test User", activeApplicableWaivers.get(2));
 
     // expiredWaivers
     List<ApiPolicyWaiverDTO> expiredApplicableWaivers = dto.expiredWaivers;
 
     assertThat(expiredApplicableWaivers.size()).isEqualTo(1);
     assertApiPolicyWaiverDTO(
-        "hash", policyId, appId, "NewApp", "", policyViolationId, expiredExpiryTime, expiredApplicableWaivers.get(0));
+        "hash", policyId, appId, "NewApp", "", policyViolationId, expiredExpiryTime,
+        "testuser", "Test User", expiredApplicableWaivers.get(0));
   }
 
   @Test
@@ -1061,6 +1062,9 @@ public class ApiPolicyWaiverServiceTest
     assertThat(policyWaiver.getCreatorId()).isEqualTo(creatorId);
     assertThat(policyWaiver.getCreatorName()).isEqualTo(creatorName);
     assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(policyViolation.getConstraintFactsJson());
+    assertThat(policyWaiver.getCreatorId()).isNotNull();
+    assertThat(policyWaiver.getCreatorId()).isEqualTo("testuser");
+    assertThat(policyWaiver.getCreatorName()).isEqualTo("Test User");
   }
 
   private void assertTelemetry(final OwnerType ownerType,

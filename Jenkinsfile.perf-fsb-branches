@@ -38,13 +38,26 @@ pipeline {
 
     stage('Test performance') {
       steps {
-        build job: '../Test-performance',
-                parameters: [
-                        string(name: 'BRANCH_NAME', value: "${env.BRANCH_NAME}"),
-                        string(name: 'DATABASE_GROUP', value: "${DATABASE_GROUP}"),
-                        text(name: 'TARGET_ENDPOINTS', value: "${TARGET_ENDPOINTS}")
-                ],
-                wait: true
+        script {
+          def built = build job: '../Test-performance',
+              parameters: [
+                      string(name: 'BRANCH_NAME', value: "${env.BRANCH_NAME}"),
+                      string(name: 'DATABASE_GROUP', value: "${DATABASE_GROUP}"),
+                      text(name: 'TARGET_ENDPOINTS', value: "${TARGET_ENDPOINTS}")
+              ],
+              wait: true
+          copyArtifacts(projectName: '../Test-performance', selector: specific("${built.number}"));
+        }
+
+        archiveArtifacts artifacts: 'small-terraform1.tfstate'
+        archiveArtifacts artifacts: 'smallAWSPerfRun1/perf_results*'
+        archiveArtifacts artifacts: 'small-terraform2.tfstate'
+        archiveArtifacts artifacts: 'smallAWSPerfRun2/perf_results*'
+        archiveArtifacts artifacts: 'small-terraform3.tfstate'
+        archiveArtifacts artifacts: 'smallAWSPerfRun3/perf_results*'
+        archiveArtifacts artifacts: 'process-fsb-results/report-of-small-*-environment.pdf'
+        archiveArtifacts artifacts: 'process-fsb-results/report-of-medium-*-environment.pdf'
+        archiveArtifacts artifacts: 'process-fsb-results/report-of-large-*-environment.pdf'
       }
     }
   }

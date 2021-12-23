@@ -510,6 +510,7 @@
       },
       "module" : true
     },
+    "packageUrl": "pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.0?type=jar",
     "children" : [ {
       "componentIdentifier" : {
         "format" : "maven",
@@ -521,6 +522,7 @@
           "version" : "1.0.0-SNAPSHOT"
         }
       },
+      "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar",
       "children" : [ {
         "componentIdentifier" : {
           "format" : "maven",
@@ -531,7 +533,8 @@
             "groupId" : "org.slf4j",
             "version" : "1.7.30"
           }
-        }
+        },
+        "packageUrl": "pkg:maven/org.slf4j/slf4j-api@1.7.30?type=jar"
       }, {
         "componentIdentifier" : {
           "format" : "maven",
@@ -542,7 +545,8 @@
             "groupId" : "xmlpull",
             "version" : "1.1.3.1"
           }
-        }
+        },
+        "packageUrl": "pkg:maven/xmlpull/xmlpull@1.1.3.1?type=jar"
       } ],
       "direct" : true
     }, {
@@ -556,6 +560,7 @@
           "version" : "1.0.0-SNAPSHOT"
         }
       },
+      "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar",
       "children" : [ {
         "componentIdentifier" : {
           "format" : "maven",
@@ -566,7 +571,8 @@
             "groupId" : "com.google.code.gson",
             "version" : "2.8.1"
           }
-        }
+        },
+        "packageUrl": "pkg:maven/com.google.code.gson/gson@2.8.1?type=jar"
       }, {
         "componentIdentifier" : {
           "format" : "maven",
@@ -578,6 +584,7 @@
             "version" : "2.48.2"
           }
         },
+        "packageUrl": "pkg:maven/org.seleniumhq.selenium/selenium-leg-rc@2.48.2?type=jar",
         "children" : [ {
           "componentIdentifier" : {
             "format" : "maven",
@@ -588,7 +595,8 @@
               "groupId" : "org.seleniumhq.selenium",
               "version" : "2.48.2"
             }
-          }
+          },
+          "packageUrl": "pkg:maven/org.seleniumhq.selenium/selenium-remote-driver@2.48.2?type=jar"
         } ]
       } ],
       "direct" : true
@@ -603,6 +611,7 @@
           "version" : "2.9.8"
         }
       },
+      "packageUrl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.8?type=jar",
       "children" : [ {
         "componentIdentifier" : {
           "format" : "maven",
@@ -613,7 +622,8 @@
             "groupId" : "com.fasterxml.jackson.core",
             "version" : "2.9.0"
           }
-        }
+        },
+        "packageUrl": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.9.8?type=jar"
       }, {
         "componentIdentifier" : {
           "format" : "maven",
@@ -624,7 +634,8 @@
             "groupId" : "com.fasterxml.jackson.core",
             "version" : "2.9.8"
           }
-        }
+        },
+        "packageUrl": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.9.8?type=jar"
       } ],
       "direct" : true
     }, {
@@ -638,6 +649,7 @@
           "version" : "1.0.0-SNAPSHOT"
         }
       },
+      "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-client-utils@1.0.0-SNAPSHOT?type=jar",
       "children" : [ {
         "componentIdentifier" : {
           "format" : "maven",
@@ -648,7 +660,8 @@
             "groupId" : "org.apache.httpcomponents",
             "version" : "4.4.6"
           }
-        }
+        },
+        "packageUrl": "pkg:maven/org.apache.httpcomponents/httpcore@4.4.6?type=jar"
       } ],
       "direct" : true
     } ]

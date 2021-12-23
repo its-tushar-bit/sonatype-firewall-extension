@@ -424,6 +424,7 @@
       },
       "module": true
     },
+    "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner@2.23.5-SNAPSHOT?type=jar",
     "children": [
       {
         "componentIdentifier": {
@@ -436,6 +437,7 @@
             "version": "2.23.5-SNAPSHOT"
           }
         },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.23.5-SNAPSHOT?type=jar",
         "direct": true,
         "module": true
       },
@@ -450,6 +452,7 @@
             "version": "2.23.5-SNAPSHOT"
           }
         },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-client-utils@2.23.5-SNAPSHOT?type=jar",
         "children": [
           {
             "componentIdentifier": {
@@ -462,6 +465,7 @@
                 "version": "2.23.5-SNAPSHOT"
               }
             },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.23.5-SNAPSHOT?type=jar",
             "direct": true
           }
         ],
@@ -479,6 +483,7 @@
             "version": "2.23.5-SNAPSHOT"
           }
         },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-archive-utils@2.23.5-SNAPSHOT?type=jar",
         "children": [
           {
             "componentIdentifier": {
@@ -491,6 +496,7 @@
                 "version": "1.19"
               }
             },
+            "packageUrl": "pkg:maven/org.apache.commons/commons-compress@1.19?type=jar",
             "direct": true
           },
           {
@@ -504,6 +510,7 @@
                 "version": "2.28.2"
               }
             },
+            "packageUrl": "pkg:maven/org.mockito/mockito-core@2.28.2?type=jar",
             "direct": true
           }
         ]
@@ -519,6 +526,7 @@
             "version": "2.23.5-SNAPSHOT"
           }
         },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-model@2.23.5-SNAPSHOT?type=jar",
         "direct": true,
         "module": true
       },
@@ -533,6 +541,7 @@
             "version": "2.23.5-SNAPSHOT"
           }
         },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-model-io@2.23.5-SNAPSHOT?type=jar",
         "children": [
           {
             "componentIdentifier": {
@@ -558,6 +567,7 @@
                 "version": "2.23.5-SNAPSHOT"
               }
             },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-model@2.23.5-SNAPSHOT?type=jar",
             "direct": true
           }
         ],
@@ -575,6 +585,7 @@
             "version": "2.23.5-SNAPSHOT"
           }
         },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-core@2.23.5-SNAPSHOT?type=jar",
         "children": [
           {
             "componentIdentifier": {
@@ -604,6 +615,7 @@
             "version": "2.23.5-SNAPSHOT"
           }
         },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@2.23.5-SNAPSHOT?type=jar",
         "children": [
           {
             "componentIdentifier": {
@@ -616,6 +628,7 @@
                 "version": "2.28.2"
               }
             },
+            "packageUrl": "pkg:maven/org.mockito/mockito-core@2.28.2?type=jar",
             "direct": true
           },
           {
@@ -629,6 +642,7 @@
                 "version": "1.12.0-01"
               }
             },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing@1.12.0-01?type=jar",
             "children": [
               {
                 "componentIdentifier": {
@@ -640,7 +654,8 @@
                     "groupId": "com.sonatype.insight.scan",
                     "version": "1.12.0-01"
                   }
-                }
+                },
+                "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60@1.12.0-01?type=jar"
               },
               {
                 "componentIdentifier": {
@@ -652,7 +667,8 @@
                     "groupId": "org.ow2.asm",
                     "version": "7.1"
                   }
-                }
+                },
+                "packageUrl": "pkg:maven/org.ow2.asm/asm@7.1?type=jar"
               }
             ],
             "direct": true
@@ -668,6 +684,7 @@
                 "version": "2.23.5-SNAPSHOT"
               }
             },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-model-io@2.23.5-SNAPSHOT?type=jar",
             "children": [
               {
                 "componentIdentifier": {
@@ -679,7 +696,8 @@
                     "groupId": "com.thoughtworks.xstream",
                     "version": "1.4.11.1"
                   }
-                }
+                },
+                "packageUrl": "pkg:maven/com.thoughtworks.xstream/xstream@1.4.11.1?type=jar"
               }
             ],
             "direct": true
@@ -695,6 +713,7 @@
                 "version": "2.23.5-SNAPSHOT"
               }
             },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-archive-utils@2.23.5-SNAPSHOT?type=jar",
             "children": [
               {
                 "componentIdentifier": {
@@ -706,7 +725,8 @@
                     "groupId": "org.apache.commons",
                     "version": "1.19"
                   }
-                }
+                },
+                "packageUrl": "pkg:maven/org.apache.commons/commons-compress@1.19?type=jar"
               }
             ],
             "direct": true
@@ -722,6 +742,7 @@
                 "version": "2.23.5-SNAPSHOT"
               }
             },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-model@2.23.5-SNAPSHOT?type=jar",
             "direct": true
           },
           {
@@ -735,6 +756,7 @@
                 "version": "2.6"
               }
             },
+            "packageUrl": "pkg:maven/commons-io/commons-io@2.6?type=jar",
             "direct": true
           },
           {
@@ -748,6 +770,7 @@
                 "version": "2.23.5-SNAPSHOT"
               }
             },
+            "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-core@2.23.5-SNAPSHOT?type=jar",
             "direct": true
           }
         ],
@@ -765,6 +788,7 @@
             "version": "2.23.5-SNAPSHOT"
           }
         },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-module-model@2.23.5-SNAPSHOT?type=jar",
         "children": [
           {
             "componentIdentifier": {
@@ -777,6 +801,7 @@
                 "version": "1.4.11.1"
               }
             },
+            "packageUrl": "pkg:maven/com.thoughtworks.xstream/xstream@1.4.11.1?type=jar",
             "direct": true
           }
         ],

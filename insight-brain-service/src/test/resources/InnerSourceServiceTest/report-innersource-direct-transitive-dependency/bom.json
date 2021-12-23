@@ -10,6 +10,7 @@
         "version" : "3.9"
       }
     },
+    "packageUrl": "pkg:maven/org.apache.commons/commons-lang3@3.9?type=jar",
     "groupId" : "org.apache.commons",
     "artifactId" : "commons-lang3",
     "version" : "3.9",
@@ -54,6 +55,7 @@
         "version" : "1"
       }
     },
+    "packageUrl": "pkg:maven/javax.inject/javax.inject@1?type=jar",
     "groupId" : "javax.inject",
     "artifactId" : "javax.inject",
     "version" : "1",
@@ -98,6 +100,7 @@
         "version" : "3.2.2"
       }
     },
+    "packageUrl": "pkg:maven/commons-collections/commons-collections@3.2.2?type=jar",
     "groupId" : "commons-collections",
     "artifactId" : "commons-collections",
     "version" : "3.2.2",

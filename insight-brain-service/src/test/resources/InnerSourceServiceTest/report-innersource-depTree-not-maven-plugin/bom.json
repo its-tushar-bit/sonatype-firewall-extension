@@ -11,6 +11,7 @@
           "version": "2.8.1"
         }
       },
+      "packageUrl": "pkg:maven/com.innersource/known-direct@2.8.1?type=jar",
       "groupId": "com.innersource",
       "artifactId": "known-direct",
       "version": "2.8.1",
@@ -80,6 +81,7 @@
           "version": "2.8.1"
         }
       },
+      "packageUrl": "pkg:maven/com.innersource/known-transitive1@2.8.1?type=jar",
       "groupId": "com.innersource",
       "artifactId": "known-transitive1",
       "version": "2.8.1",
@@ -149,6 +151,7 @@
           "version": "2.8.1"
         }
       },
+      "packageUrl": "pkg:maven/com.innersource/known-transitive1-2@2.8.1?type=jar",
       "groupId": "com.innersource",
       "artifactId": "known-transitive1-2",
       "version": "2.8.1",
@@ -302,6 +305,7 @@
           "version": "1.0.0-SNAPSHOT"
         }
       },
+      "packageUrl": "pkg:maven/com.innersource/known-transitive3@1.0.0-SNAPSHOT?type=jar",
       "groupId": "com.innersource",
       "artifactId": "known-transitive3",
       "version": "1.0.0-SNAPSHOT",

@@ -11,6 +11,7 @@
       },
       "module" : true
     },
+    "packageUrl": "pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.0?type=jar",
     "children" : [ {
       "componentIdentifier" : {
         "format" : "maven",
@@ -22,6 +23,7 @@
           "version" : "1.0.0-SNAPSHOT"
         }
       },
+      "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar",
       "children" : [ {
         "componentIdentifier" : {
           "format" : "maven",
@@ -43,7 +45,8 @@
             "groupId" : "com.sonatype.insight.scan",
             "version" : "2.0.0"
           }
-        }
+        },
+        "packageUrl": "pkg:maven/com.sonatype.insight.scan/insight-innersource-child@2.0.0?type=jar"
       } ],
       "direct" : true
     }]

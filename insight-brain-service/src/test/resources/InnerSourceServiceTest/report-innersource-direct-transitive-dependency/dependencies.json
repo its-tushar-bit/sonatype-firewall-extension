@@ -144,6 +144,7 @@
         "version" : "1.0-SNAPSHOT"
       }
     },
+    "packageUrl": "pkg:maven/org.example/ACME-Consumer@1.0-SNAPSHOT?type=jar",
     "children" : [ {
       "componentIdentifier" : {
         "format" : "maven",
@@ -155,6 +156,7 @@
           "version" : "1.0-SNAPSHOT"
         }
       },
+      "packageUrl": "pkg:maven/org.example/Consumer-Service@1.0-SNAPSHOT?type=jar",
       "children" : [ {
         "componentIdentifier" : {
           "format" : "maven",
@@ -166,6 +168,7 @@
             "version" : "1"
           }
         },
+        "packageUrl": "pkg:maven/javax.inject/javax.inject@1?type=jar",
         "direct" : true
       }, {
         "componentIdentifier" : {
@@ -178,6 +181,7 @@
             "version" : "3.2.2"
           }
         },
+        "packageUrl": "pkg:maven/commons-collections/commons-collections@3.2.2?type=jar",
         "direct" : true
       }, {
         "componentIdentifier" : {
@@ -190,6 +194,7 @@
             "version" : "1.0-SNAPSHOT"
           }
         },
+        "packageUrl": "pkg:maven/org.example/ACME-business@1.0-SNAPSHOT?type=jar",
         "children" : [ {
           "componentIdentifier" : {
             "format" : "maven",
@@ -200,7 +205,8 @@
               "groupId" : "org.apache.commons",
               "version" : "3.9"
             }
-          }
+          },
+          "packageUrl": "pkg:maven/org.apache.commons/commons-lang3@3.9?type=jar"
         }, {
           "componentIdentifier" : {
             "format" : "maven",
@@ -211,7 +217,8 @@
               "groupId" : "org.example",
               "version" : "1.0-SNAPSHOT"
             }
-          }
+          },
+          "packageUrl": "pkg:maven/org.example/ACME-data@1.0-SNAPSHOT?type=jar"
         } ],
         "direct" : true
       } ],

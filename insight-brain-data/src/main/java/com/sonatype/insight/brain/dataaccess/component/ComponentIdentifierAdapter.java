@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.util.ComponentIdentifierHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -23,6 +24,7 @@ import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import com.github.packageurl.PackageURLBuilder;
 import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_CLASSIFIER;
@@ -40,6 +42,8 @@ public class ComponentIdentifierAdapter
   public static final String COMPONENT_IDENTIFIER = "componentIdentifier";
 
   public static final String PURL_IDENTIFIER = "packageUrl";
+
+  public static final String PURL_PREFIX = "pkg:";
 
   /**
    * Extract ComponentIdentifier or create one as needed from existing GAV data.
@@ -65,7 +69,30 @@ public class ComponentIdentifierAdapter
       return new PackageUrlIdentifier(objectNode.get(PURL_IDENTIFIER).asText());
     }
 
-    return PackageUrlIdentifier.fromComponentIdentifier(getComponentIdentifier(objectNode));
+    ComponentIdentifier componentIdentifier = getComponentIdentifier(objectNode);
+    if (componentIdentifier != null) {
+      return PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+    }
+
+    JsonNode pathnames = objectNode.withArray("pathnames");
+    if (pathnames != null && !pathnames.isEmpty()) {
+      return parsePathToId(pathnames.get(0).asText());
+    }
+    return null;
+  }
+
+  public static PackageUrlIdentifier parsePathToId(final String pathnames) {
+    if (StringUtils.isBlank(pathnames)) {
+      return null;
+    }
+    if (StringUtils.contains(pathnames, PURL_PREFIX)) {
+      return new PackageUrlIdentifier(
+          StringUtils.substring(pathnames, pathnames.indexOf(PURL_PREFIX), pathnames.length()));
+    }
+    else {
+      String path = StringUtils.substringAfterLast(pathnames, "/");
+      return PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifierHelper.parseId(path));
+    }
   }
 
   /**

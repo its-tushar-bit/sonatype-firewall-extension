@@ -98,10 +98,10 @@ public class DependencyResolverTest
             .readTree(getClass().getResource("/InnerSourceServiceTest/report-innersource/dependencies.json"));
     JsonNode dependencyTree = dependenciesJson.path("dependencyTree");
 
-    ComponentIdentifier rootComponentIdentifier = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.nexus", "nexus-platform-api", "1.0.0", "", "jar");
+    PackageUrlIdentifier rootPurl =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.0?type=jar");
 
-    newDependencyResolver().saveInnerSourceComponent(rootComponentIdentifier);
+    newDependencyResolver().saveInnerSourceComponent(rootPurl);
 
     List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAOSpy.getByApplicationId(app.getId());
     assertThat(innerSourceComponents).hasSize(1);
@@ -120,12 +120,12 @@ public class DependencyResolverTest
   @Test
   public void processInnerSource_checkInnerSourceParent() {
     InnerSourceComponent innerSourceComponent =
-        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.main/innersource-main", app);
+        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.main/innersource-main?type=jar", app);
 
-    ComponentIdentifier rootComponentIdentifier = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.innersource.main", "innersource-main", "1.0.0", "", "jar");
+    PackageUrlIdentifier rootPurl =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.innersource.main/innersource-main@1.0.0?type=jar");
 
-    newDependencyResolver().saveInnerSourceComponent(rootComponentIdentifier);
+    newDependencyResolver().saveInnerSourceComponent(rootPurl);
 
     verify(innerSourceComponentDAOSpy, never()).insert(innerSourceComponent);
     verify(innerSourceComponentDAOSpy, never()).update(innerSourceComponent);
@@ -136,10 +136,10 @@ public class DependencyResolverTest
     Application innerSourceApp = tempEntity.newApplicationWithParent();
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", innerSourceApp);
 
-    ComponentIdentifier rootComponentIdentifier = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.nexus", "nexus-platform-api", "1.0.0", "", "jar");
+    PackageUrlIdentifier rootPurl =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.0?type=jar");
 
-    newDependencyResolver().saveInnerSourceComponent(rootComponentIdentifier);
+    newDependencyResolver().saveInnerSourceComponent(rootPurl);
 
     ArgumentCaptor<InnerSourceComponent> argument = ArgumentCaptor.forClass(InnerSourceComponent.class);
     verify(innerSourceComponentDAOSpy).update(argument.capture());
@@ -156,10 +156,9 @@ public class DependencyResolverTest
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", innerSourceApp,
         "1.0.1");
 
-    ComponentIdentifier rootComponentIdentifier =
-        ComponentIdentifier.createMavenCoordinates("com.sonatype.nexus", "nexus-platform-api", "1.0.0", "", "jar");
-
-    newDependencyResolver().saveInnerSourceComponent(rootComponentIdentifier);
+    PackageUrlIdentifier rootPurl =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.0?type=jar");
+    newDependencyResolver().saveInnerSourceComponent(rootPurl);
 
     ArgumentCaptor<InnerSourceComponent> argument = ArgumentCaptor.forClass(InnerSourceComponent.class);
     verify(innerSourceComponentDAOSpy).update(argument.capture());
@@ -174,10 +173,10 @@ public class DependencyResolverTest
     InnerSourceComponent innerSourceComponent =
         tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
 
-    ComponentIdentifier rootComponentIdentifier = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.nexus", "nexus-platform-api", "1.0.0", "", "jar");
+    PackageUrlIdentifier rootPurl =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.0?type=jar");
 
-    newDependencyResolver().saveInnerSourceComponent(rootComponentIdentifier);
+    newDependencyResolver().saveInnerSourceComponent(rootPurl);
 
     verify(innerSourceComponentDAOSpy, never()).update(innerSourceComponent);
   }
@@ -198,16 +197,14 @@ public class DependencyResolverTest
     InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent(
         "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar", appInnerSource);
 
-    ComponentIdentifier knownModule1 = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.insight.scan", "insight-test-reverse-proxy", "2.23.5-SNAPSHOT", "",
-            "jar");
-    ComponentIdentifier knownModule2 = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-model", "2.23.5-SNAPSHOT", "", "jar");
-    ComponentIdentifier knownModule3 = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-model-io", "2.23.5-SNAPSHOT", "",
-            "jar");
-    ComponentIdentifier knownModule4 = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-core", "2.23.5-SNAPSHOT", "", "jar");
+    PackageUrlIdentifier knownModule1 = new PackageUrlIdentifier(
+        "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.23.5-SNAPSHOT?type=jar");
+    PackageUrlIdentifier knownModule2 =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-scanner-model@2.23.5-SNAPSHOT?type=jar");
+    PackageUrlIdentifier knownModule3 = new PackageUrlIdentifier(
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-model-io@2.23.5-SNAPSHOT?type=jar");
+    PackageUrlIdentifier knownModule4 =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-scanner-core@2.23.5-SNAPSHOT?type=jar");
 
     JsonNode dependenciesJson =
         getJsonNodeInformation("report-innersource-multi-module-component-not-in-bom/dependencies.json");
@@ -232,7 +229,8 @@ public class DependencyResolverTest
     ComponentIdentifier innerSourceParent = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-hashing", "1.12.0-01", "", "jar");
 
-    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource, innerSourceParent);
+    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource,
+        PackageUrlIdentifier.fromComponentIdentifier(innerSourceParent));
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
@@ -246,16 +244,14 @@ public class DependencyResolverTest
     InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent(
         "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar", appInnerSource);
 
-    ComponentIdentifier knownModule1 = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.insight.scan", "insight-test-reverse-proxy", "2.23.5-SNAPSHOT", "",
-            "jar");
-    ComponentIdentifier knownModule2 = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-model", "2.23.5-SNAPSHOT", "", "jar");
-    ComponentIdentifier knownModule3 = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-model-io", "2.23.5-SNAPSHOT", "",
-            "jar");
-    ComponentIdentifier knownModule4 = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-core", "2.23.5-SNAPSHOT", "", "jar");
+    PackageUrlIdentifier knownModule1 = new PackageUrlIdentifier(
+        "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.23.5-SNAPSHOT?type=jar");
+    PackageUrlIdentifier knownModule2 =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-scanner-model@2.23.5-SNAPSHOT?type=jar");
+    PackageUrlIdentifier knownModule3 = new PackageUrlIdentifier(
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-model-io@2.23.5-SNAPSHOT?type=jar");
+    PackageUrlIdentifier knownModule4 =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-scanner-core@2.23.5-SNAPSHOT?type=jar");
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-multi-module/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-multi-module/bom.json");
@@ -279,7 +275,8 @@ public class DependencyResolverTest
     ComponentIdentifier innerSourceParent = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-hashing", "1.12.0-01", "", "jar");
 
-    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource, innerSourceParent);
+    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource,
+        PackageUrlIdentifier.fromComponentIdentifier(innerSourceParent));
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
@@ -317,9 +314,12 @@ public class DependencyResolverTest
 
     assertSummaryCounters(summaryJson, dataJson, 18);
 
-    assertInnerSourceParent(bomInnerSourceParent.get(1), appInnerSource, innerSourceModel);
-    assertInnerSourceParent(bomInnerSourceParent.get(2), appInnerSource, innerScannerArchive);
-    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource, innerSourceClient);
+    assertInnerSourceParent(bomInnerSourceParent.get(1), appInnerSource,
+        PackageUrlIdentifier.fromComponentIdentifier(innerSourceModel));
+    assertInnerSourceParent(bomInnerSourceParent.get(2), appInnerSource,
+        PackageUrlIdentifier.fromComponentIdentifier(innerScannerArchive));
+    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource,
+        PackageUrlIdentifier.fromComponentIdentifier(innerSourceClient));
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
 
@@ -356,14 +356,14 @@ public class DependencyResolverTest
     InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent(
         "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar", appInnerSource);
 
-    ComponentIdentifier knownModule1 = ComponentIdentifier.createMavenCoordinates(
-        "com.sonatype.insight.scan", "insight-test-reverse-proxy", "2.23.5-SNAPSHOT", "", "jar");
-    ComponentIdentifier knownModule2 = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-model", "2.23.5-SNAPSHOT", "", "jar");
-    ComponentIdentifier knownModule3 = ComponentIdentifier.createMavenCoordinates(
-        "com.sonatype.insight.scan", "insight-scanner-model-io", "2.23.5-SNAPSHOT", "", "jar");
-    ComponentIdentifier knownModule4 = ComponentIdentifier
-        .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-core", "2.23.5-SNAPSHOT", "", "jar");
+    PackageUrlIdentifier knownModule1 = new PackageUrlIdentifier(
+        "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.23.5-SNAPSHOT?type=jar");
+    PackageUrlIdentifier knownModule2 =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-scanner-model@2.23.5-SNAPSHOT?type=jar");
+    PackageUrlIdentifier knownModule3 = new PackageUrlIdentifier(
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner-model-io@2.23.5-SNAPSHOT?type=jar");
+    PackageUrlIdentifier knownModule4 =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-scanner-core@2.23.5-SNAPSHOT?type=jar");
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-invalid-dep/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-invalid-dep/bom.json");
@@ -387,7 +387,8 @@ public class DependencyResolverTest
     ComponentIdentifier innerSourceParent = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-hashing", "1.12.0-01", "", "jar");
 
-    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource, innerSourceParent);
+    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource,
+        PackageUrlIdentifier.fromComponentIdentifier(innerSourceParent));
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
@@ -475,12 +476,12 @@ public class DependencyResolverTest
 
     InnerSourceComponent model = tempEntity.newInnerSourceComponent(
         "pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar", appInnerSource);
-    ComponentIdentifier modelId = ComponentIdentifier.createMavenCoordinates(
-        "com.sonatype.insight.scan", "insight-module-model", "1.0.0-SNAPSHOT", "", "jar");
+    PackageUrlIdentifier modelId =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
     tempEntity.newInnerSourceComponent(
         "pkg:maven/com.sonatype.insight.scan/insight-innersource-child?type=jar", appInnerSource);
-    ComponentIdentifier childId = ComponentIdentifier.createMavenCoordinates(
-        "com.sonatype.insight.scan", "insight-innersource-child", "2.0.0", "", "jar");
+    PackageUrlIdentifier childId =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-innersource-child@2.0.0?type=jar");
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-unknown-components/dependencies.json");
@@ -581,14 +582,14 @@ public class DependencyResolverTest
     assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies, knownDependencies);
     assertSummaryCounters(summaryJson, dataJson, 5);
 
-    ComponentIdentifier directDep = ComponentIdentifier
-        .createMavenCoordinates("javax.inject", "javax.inject", "1", "", "jar");
+    PackageUrlIdentifier directDep = new PackageUrlIdentifier("pkg:maven/javax.inject/javax.inject@1?type=jar");
     assertKnownComponents(knownDependencies, Collections.singletonList(directDep));
 
     ComponentIdentifier innerSourceParent = ComponentIdentifier
         .createMavenCoordinates("org.example", "ACME-business", "1.0-SNAPSHOT", "", "jar");
 
-    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource, innerSourceParent);
+    assertInnerSourceParent(bomInnerSourceParent.get(0), appInnerSource,
+        PackageUrlIdentifier.fromComponentIdentifier(innerSourceParent));
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
@@ -1003,11 +1004,11 @@ public class DependencyResolverTest
     DependencyResolver dependencyResolver = DependencyResolver.getInstance(null, null, null, null, application, null);
     assertThat(dependencyResolver.isProprietary).isNull();
 
-    assertThat(dependencyResolver.isProprietary(ComponentIdentifier.createNpmCoordinates("p1", "v"))).isTrue();
+    assertThat(dependencyResolver.isProprietaryComponent(new PackageUrlIdentifier("pkg:npm/p1@v"))).isTrue();
     Predicate<String> isProprietary = dependencyResolver.isProprietary;
     assertThat(isProprietary).isNotNull();
 
-    assertThat(dependencyResolver.isProprietary(ComponentIdentifier.createNpmCoordinates("p2", "v"))).isFalse();
+    assertThat(dependencyResolver.isProprietaryComponent(new PackageUrlIdentifier("pkg:npm/p2@v"))).isFalse();
     assertThat(dependencyResolver.isProprietary).isEqualTo(isProprietary);
   }
 
@@ -1024,10 +1025,10 @@ public class DependencyResolverTest
 
   public void assertKnownComponents(
       List<JsonNode> knownDependencies,
-      List<ComponentIdentifier> expectedKnownComponents)
+      List<PackageUrlIdentifier> expectedKnownComponents)
   {
-    List<ComponentIdentifier> knownComponents =
-        knownDependencies.stream().map(ComponentIdentifierAdapter::getComponentIdentifier)
+    List<PackageUrlIdentifier> knownComponents =
+        knownDependencies.stream().map(ComponentIdentifierAdapter::getPackageUrlIdentifier)
             .collect(Collectors.toList());
     assertThat(knownComponents).containsAll(expectedKnownComponents);
   }
@@ -1050,8 +1051,8 @@ public class DependencyResolverTest
       final Set<InnerSourceData> innerSourceData) throws Exception
   {
     JsonNode bomNode = findNodeById(bomJson, componentIdentifier);
-    assertThat(objectMapper.treeToValue(bomNode.get("componentIdentifier"), ComponentIdentifier.class)).isEqualTo(
-        componentIdentifier);
+    PackageUrlIdentifier purlId = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+    assertThat(ComponentIdentifierAdapter.getPackageUrlIdentifier(bomNode)).isEqualTo(purlId);
     assertThat(bomNode.get("directDependency").asBoolean()).isEqualTo(isDirect);
     assertThat(bomNode.get("innerSource").asBoolean()).isEqualTo(isInnerSource);
     Set<ComponentIdentifier> actualParentIds = null;
@@ -1076,10 +1077,11 @@ public class DependencyResolverTest
   }
 
   private JsonNode findNodeById(final JsonNode bomJson, final ComponentIdentifier identifier) {
+    PackageUrlIdentifier purlId = PackageUrlIdentifier.fromComponentIdentifier(identifier);
     for (JsonNode node : bomJson.get("aaData")) {
-      ComponentIdentifier nodeId = ComponentIdentifierAdapter.getComponentIdentifier(node);
-      if (nodeId != null) {
-        if (Objects.equals(identifier, nodeId)) {
+      PackageUrlIdentifier nodePurl = ComponentIdentifierAdapter.getPackageUrlIdentifier(node);
+      if (nodePurl != null) {
+        if (Objects.equals(purlId, nodePurl)) {
           return node;
         }
       }
@@ -1162,7 +1164,7 @@ public class DependencyResolverTest
   private void assertInnerSourceParent(
       JsonNode bomInnerSource,
       Application app,
-      ComponentIdentifier componentIdentifier) throws Exception
+      PackageUrlIdentifier packageUrl) throws Exception
   {
     assertThat(bomInnerSource).isNotNull();
     assertThat(bomInnerSource.get("componentIdentifier")).isNotNull();
@@ -1173,7 +1175,7 @@ public class DependencyResolverTest
     assertThat(bomInnerSource.get(ComponentIdentifier.MAVEN_ARTIFACT_ID).asText()).isNotNull();
     assertThat(bomInnerSource.get(ComponentIdentifier.VERSION).asText()).isNotNull();
 
-    assertThat(componentIdentifier).isEqualTo(ComponentIdentifierAdapter.getComponentIdentifier(bomInnerSource));
+    assertThat(packageUrl).isEqualTo(ComponentIdentifierAdapter.getPackageUrlIdentifier(bomInnerSource));
 
     AnalyzerFeatures analyzerFeaturesExpected =
         new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "mvn");
@@ -1276,14 +1278,14 @@ public class DependencyResolverTest
     return objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/" + path));
   }
 
-  private void assertUpdatedBomAttributeValue(JsonNode bomJson,
-      ComponentIdentifier lookupId, String fieldName,
+  private void assertUpdatedBomAttributeValue(
+      JsonNode bomJson,
+      PackageUrlIdentifier lookupId, String fieldName,
       String fieldValue) throws IOException
   {
     for (JsonNode dependency : bomJson.get("aaData")) {
-      ComponentIdentifier found = JsonUtils
-          .asPojo(dependency.get("componentIdentifier"), ComponentIdentifier.class);
-      if (lookupId.equals(found)) {
+      PackageUrlIdentifier purl = ComponentIdentifierAdapter.getPackageUrlIdentifier(dependency);
+      if (lookupId.equals(purl)) {
         assertThat(dependency.get(fieldName).asText()).isEqualTo(fieldValue);
         return;
       }

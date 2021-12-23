@@ -22,7 +22,6 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -48,7 +47,6 @@ import com.sonatype.insight.scan.archive.RegexSelector;
 import com.sonatype.insight.scan.archive.Selector;
 import com.sonatype.insight.scan.archive.Selector.Selection;
 import com.sonatype.insight.scan.util.HashUtils;
-import com.sonatype.insight.util.ComponentIdentifierHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,8 +57,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.report.InnerSourceUtils.getVersionlessPackageUrl;
 
 /**
  * @since 1.112
@@ -83,7 +79,7 @@ public class DependencyResolver
 
   private static final String FIELD_COMPONENT_IDENTIFIER = "componentIdentifier";
 
-  private static final String PURL_PREFIX = "pkg:";
+  private static final String FIELD_PACKAGE_URL = "packageUrl";
 
   public static final String AA_DATA_NODE = "aaData";
 
@@ -173,9 +169,10 @@ public class DependencyResolver
       if (!dependencyTreeNode.isMissingNode()) {
         DependencyNode tree = JsonUtils.asPojo(dependencyTreeNode, DependencyNode.class);
         if (tree != null) {
-          if (tree.getComponentIdentifier() != null) {
+          PackageUrlIdentifier rootPurl = InnerSourceUtils.getPackageUrl(tree);
+          if (rootPurl != null) {
             boolean isValidRootArtifact =
-                saveInnerSourceComponent(tree.getComponentIdentifier());
+                saveInnerSourceComponent(rootPurl);
             if (isValidRootArtifact) {
               processInnerSourceDependencies(tree.getChildren());
             }
@@ -190,36 +187,46 @@ public class DependencyResolver
   }
 
   //visible for testing
-  boolean saveInnerSourceComponent(final ComponentIdentifier componentIdentifier) {
-    String appId = application.getId();
-    PackageUrlIdentifier rootArtifactIdentifier = getVersionlessPackageUrl(componentIdentifier);
-    if (rootArtifactIdentifier != null) {
-      String version = componentIdentifier.get(ComponentIdentifier.VERSION);
-      InnerSourceComponent innerSourceComponent = innerSourceComponentDAO.getByPackageUrl(rootArtifactIdentifier);
-      if (innerSourceComponent != null) {
-        boolean isNewerVersion = isNewerVersion(innerSourceComponent.getLatestVersion(), version);
-        if (!appId.equals(innerSourceComponent.getApplicationId()) || isNewerVersion) {
+  boolean saveInnerSourceComponent(final PackageUrlIdentifier packageUrl) {
+    if (packageUrl != null) {
+      String appId = application.getId();
+      PackageUrlIdentifier versionlessPurl = packageUrl.createAlternativeVersion(null);
+      if (versionlessPurl != null) {
+        String version = packageUrl.getVersion();
+        InnerSourceComponent innerSourceComponent = innerSourceComponentDAO.getByPackageUrl(versionlessPurl);
+        if (innerSourceComponent != null) {
+          processExistingInnerSourceComponent(innerSourceComponent, version, appId);
+        }
+        else {
+          innerSourceComponent = new InnerSourceComponent();
           innerSourceComponent.setApplicationId(appId);
-          if (isNewerVersion) {
-            innerSourceComponent.setLatestVersion(version);
-          }
-          innerSourceComponentDAO.update(innerSourceComponent);
-          log.info("InnerSource component {} with version {} for app {} was updated",
+          innerSourceComponent.setPackageUrl(versionlessPurl.getPackageUrl());
+          innerSourceComponent.setLatestVersion(version);
+          innerSourceComponentDAO.insert(innerSourceComponent);
+          log.info("InnerSource component {} with version {} for app {} was created",
               innerSourceComponent.getPackageUrl(), version, appId);
         }
+        return true;
       }
-      else {
-        innerSourceComponent = new InnerSourceComponent();
-        innerSourceComponent.setApplicationId(appId);
-        innerSourceComponent.setPackageUrl(rootArtifactIdentifier.getPackageUrl());
-        innerSourceComponent.setLatestVersion(version);
-        innerSourceComponentDAO.insert(innerSourceComponent);
-        log.info("InnerSource component {} with version {} for app {} was created",
-            innerSourceComponent.getPackageUrl(), version, appId);
-      }
-      return true;
     }
     return false;
+  }
+
+  private void processExistingInnerSourceComponent(
+      final InnerSourceComponent innerSourceComponent,
+      final String version,
+      final String appId)
+  {
+    boolean isNewerVersion = isNewerVersion(innerSourceComponent.getLatestVersion(), version);
+    if (!appId.equals(innerSourceComponent.getApplicationId()) || isNewerVersion) {
+      innerSourceComponent.setApplicationId(appId);
+      if (isNewerVersion) {
+        innerSourceComponent.setLatestVersion(version);
+      }
+      innerSourceComponentDAO.update(innerSourceComponent);
+      log.info("InnerSource component {} with version {} for app {} was updated",
+          innerSourceComponent.getPackageUrl(), version, appId);
+    }
   }
 
   private boolean isNewerVersion(String oldVersion, String newVersion) {
@@ -229,16 +236,16 @@ public class DependencyResolver
 
   private Set<String> associateModuleToApp(
       final DependencyNode moduleDependency,
-      final Set<ComponentIdentifier> directDependencies)
+      final Set<PackageUrlIdentifier> directDependencies)
   {
-    ComponentIdentifier moduleComponent = moduleDependency.getComponentIdentifier();
-    log.debug("InnerSource module '{}' found", moduleComponent);
-
-    saveInnerSourceComponent(moduleComponent);
-
     Set<String> innerSourceAppIds = new HashSet<>();
-    for (DependencyNode directDependencyChild : moduleDependency.getChildren()) {
-      processDirectDependency(directDependencyChild, innerSourceAppIds, directDependencies);
+    PackageUrlIdentifier modulePurl = InnerSourceUtils.getPackageUrl(moduleDependency);
+    if (modulePurl != null) {
+      log.debug("InnerSource module '{}' found", modulePurl);
+      saveInnerSourceComponent(modulePurl);
+      for (DependencyNode directDependencyChild : moduleDependency.getChildren()) {
+        processDirectDependency(directDependencyChild, innerSourceAppIds, directDependencies);
+      }
     }
     return innerSourceAppIds;
   }
@@ -247,7 +254,7 @@ public class DependencyResolver
     if (!children.isEmpty()) {
 
       Set<String> innerSourceAppIds = new HashSet<>();
-      Set<ComponentIdentifier> directDependencies = getDirectDependencies(children);
+      Set<PackageUrlIdentifier> directDependencies = getDirectDependencies(children);
 
       for (DependencyNode dependencyChild : children) {
         if (dependencyChild.isModule()) {
@@ -267,12 +274,12 @@ public class DependencyResolver
   private void processDirectDependency(
       final DependencyNode directDependency,
       final Set<String> innerSourceAppIds,
-      final Set<ComponentIdentifier> directDependencies)
+      final Set<PackageUrlIdentifier> directDependencies)
   {
-    ComponentIdentifier dependencyId = directDependency.getComponentIdentifier();
+    PackageUrlIdentifier dependencyId = InnerSourceUtils.getPackageUrl(directDependency);
 
     if (dependencyId != null) {
-      PackageUrlIdentifier simplifiedPurl = InnerSourceUtils.getVersionlessPackageUrl(dependencyId);
+      PackageUrlIdentifier simplifiedPurl = dependencyId.createAlternativeVersion(null);
       InnerSourceComponent innerSourceComponent =
           simplifiedPurl == null ? null : innerSourceComponentDAO.getByPackageUrl(simplifiedPurl);
 
@@ -285,14 +292,14 @@ public class DependencyResolver
         if (isInnerSourceDependency) {
           innerSourceAppIds.add(innerSourceApp.getId());
           processTransitiveDependencies(directDependency.getChildren(), directDependency, innerSourceApp,
-              directDependency.getComponentIdentifier(), directDependencies);
+              InnerSourceUtils.getPackageUrl(directDependency), directDependencies);
         }
       }
       else {
         // a regular (non InnerSource) dependency
         updateBomNodeDependencyInformation(true, false, dependencyId, null, null);
         updateDependencyInfoForComponentChildren(directDependency.getChildren(), false, false,
-            directDependency.getComponentIdentifier());
+            InnerSourceUtils.getPackageUrl(directDependency));
       }
     }
   }
@@ -301,31 +308,30 @@ public class DependencyResolver
       final List<DependencyNode> transitiveDependencies,
       final DependencyNode innerSourceParent,
       final Application innerSourceApp,
-      final ComponentIdentifier parentComponentIdentifier,
-      final Set<ComponentIdentifier> directDependencies)
+      final PackageUrlIdentifier parentPurl,
+      final Set<PackageUrlIdentifier> directDependencies)
   {
     for (DependencyNode dependency : transitiveDependencies) {
-      ComponentIdentifier dependencyIdentifier = dependency.getComponentIdentifier();
-      Optional<ObjectNode> bomObjectNodeOptional = findBomComponent(dependencyIdentifier);
+      PackageUrlIdentifier dependencyPurl = InnerSourceUtils.getPackageUrl(dependency);
+      Optional<ObjectNode> bomObjectNodeOptional = findBomComponent(dependencyPurl);
 
-      if (bomObjectNodeOptional.isPresent() && !directDependencies.contains(dependencyIdentifier)) {
+      if (bomObjectNodeOptional.isPresent() && dependencyPurl != null && !directDependencies.contains(dependencyPurl)) {
         ObjectNode bomObjectNode = bomObjectNodeOptional.get();
 
         InnerSourceData innerSourceData = new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(),
             PackageUrlIdentifier.toPackageUrl(innerSourceParent.getComponentIdentifier()));
-        updateBomNodeDependencyInformation(false, false, dependencyIdentifier, parentComponentIdentifier,
+        updateBomNodeDependencyInformation(false, false, dependencyPurl, parentPurl,
             innerSourceData);
-        log.debug("Component {} associated with InnerSource app {}", dependencyIdentifier,
-            innerSourceApp.getName());
+        log.debug("Component {} associated with InnerSource app {}", dependencyPurl, innerSourceApp.getName());
 
         if (MatchState.UNKNOWN.getId().equals(bomObjectNode.get(MATCH_STATE).asText())) {
-          updateUnknownTransitiveDependencyAsKnown(dependencyIdentifier, bomObjectNode);
+          updateUnknownTransitiveDependencyAsKnown(dependencyPurl, bomObjectNode);
         }
       }
 
       if (CollectionUtils.isNotEmpty(dependency.getChildren())) {
-        processTransitiveDependencies(dependency.getChildren(), innerSourceParent, innerSourceApp,
-            dependencyIdentifier, directDependencies);
+        processTransitiveDependencies(dependency.getChildren(), innerSourceParent, innerSourceApp, dependencyPurl,
+            directDependencies);
       }
     }
   }
@@ -334,15 +340,15 @@ public class DependencyResolver
       final List<DependencyNode> children,
       final boolean isDirect,
       final boolean isInnerSource,
-      final ComponentIdentifier parentIdentifier)
+      final PackageUrlIdentifier parentPurl)
   {
     for (DependencyNode node : children) {
       if (node != null && node.getComponentIdentifier() != null) {
-        updateBomNodeDependencyInformation(isDirect, isInnerSource, node.getComponentIdentifier(),
-            parentIdentifier, null);
+        updateBomNodeDependencyInformation(isDirect, isInnerSource, InnerSourceUtils.getPackageUrl(node),
+            parentPurl, null);
         if (CollectionUtils.isNotEmpty(node.getChildren())) {
           updateDependencyInfoForComponentChildren(node.getChildren(), false, isInnerSource,
-              node.getComponentIdentifier());
+              InnerSourceUtils.getPackageUrl(node));
         }
       }
     }
@@ -362,7 +368,7 @@ public class DependencyResolver
   }
 
   private boolean updateDependencyBomAsInnerSource(
-      final ComponentIdentifier innerSourceComponentIdentifier,
+      final PackageUrlIdentifier innerSourceComponentIdentifier,
       final Application innerSourceApp)
   {
     //If the component is direct and exists as InnerSource, it needs to be updated as such
@@ -396,7 +402,7 @@ public class DependencyResolver
       // otherwise is only marked as direct.
       ObjectNode isNode = newNodeForISComponent(innerSourceComponentIdentifier);
 
-      bomComponentNodes.put(PackageUrlIdentifier.fromComponentIdentifier(innerSourceComponentIdentifier), isNode);
+      bomComponentNodes.put(innerSourceComponentIdentifier, isNode);
       InnerSourceData innerSourceData = null;
       if (isInnerSourceDependency) {
         innerSourceData = new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), null);
@@ -411,41 +417,31 @@ public class DependencyResolver
     return isInnerSourceDependency;
   }
 
-  private ObjectNode newNodeForISComponent(ComponentIdentifier componentIdentifier) {
+  private ObjectNode newNodeForISComponent(PackageUrlIdentifier componentPurl) {
     ArrayNode aaNode = (ArrayNode) bomJson.get(AA_DATA_NODE);
     ObjectNode isNode = aaNode.addObject();
-    isNode.put("hash", getHash(componentIdentifier));
-    isNode.put("proprietary", isProprietary(componentIdentifier));
+    isNode.put("hash", getHash(componentPurl));
+    isNode.put("proprietary", isProprietaryComponent(componentPurl));
     isNode.set(FIELD_ANALYZER_FEATURES, JsonUtils.asTree(getAnalyzerFeaturesForNewNode(aaNode)));
     isNode.put("createTime", new Date().getTime());
     isNode.put("relativePopularity", 0);
-    PackageUrlIdentifier packageUrl = null;
-    try {
-      packageUrl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
-    }
-    catch (Exception e) {
-      log.debug(e.getMessage(), e);
-      // we don't need to fail if the package url can't be determined
-    }
-    if (packageUrl != null) {
-      String packageUrlString = packageUrl.getPackageUrl();
-      ObjectMapper objectMapper = new ObjectMapper();
-      ArrayNode filenames = objectMapper.createArrayNode();
-      filenames.add(packageUrlString);
-      isNode.set("filenames", filenames);
-      ArrayNode pathnames = objectMapper.createArrayNode();
-      pathnames.add("dependency:/" + packageUrlString.replace('/', '\\'));
-      isNode.set("pathnames", pathnames);
-    }
+    String packageUrlString = componentPurl.getPackageUrl();
+    ObjectMapper objectMapper = new ObjectMapper();
+    ArrayNode filenames = objectMapper.createArrayNode();
+    filenames.add(packageUrlString);
+    isNode.set("filenames", filenames);
+    ArrayNode pathnames = objectMapper.createArrayNode();
+    pathnames.add("dependency:/" + packageUrlString.replace('/', '\\'));
+    isNode.set("pathnames", pathnames);
     return isNode;
   }
 
   // Visible for testing
-  boolean isProprietary(ComponentIdentifier componentIdentifier) {
+  boolean isProprietaryComponent(PackageUrlIdentifier componentPurl) {
     if (isProprietary == null) {
       isProprietary = createIsProprietary(application.getId());
     }
-    return componentIdentifier.getProprietaryCoordinates().stream().anyMatch(isProprietary);
+    return componentPurl.toComponentIdentifier().getProprietaryCoordinates().stream().anyMatch(isProprietary);
   }
 
   // Visible for testing
@@ -468,10 +464,8 @@ public class DependencyResolver
     return s -> compoundSelector.isSelected(s) == Selection.EXCLUDED;
   }
 
-  private String getHash(ComponentIdentifier componentIdentifier) {
-    String hashString = componentIdentifier.getFormat() + ":" + StringUtils
-        .join(componentIdentifier.getCoordinates().values(), ":");
-    return HashHelper.truncateHash(HashUtils.hash(hashString, HashUtils.SHA1));
+  private String getHash(PackageUrlIdentifier componentPurl) {
+    return HashHelper.truncateHash(HashUtils.hash(componentPurl.getPackageUrl(), HashUtils.SHA1));
   }
 
   private AnalyzerFeatures getAnalyzerFeaturesForNewNode(JsonNode aaNode) {
@@ -486,17 +480,16 @@ public class DependencyResolver
         AnalysisType.COORDINATE, scanClient, false, false, false);
   }
 
-  private Optional<ObjectNode> findBomComponent(ComponentIdentifier identifier) {
-    //after CLM-20283 we should covert this lookup to use purl instead of component identifier
+  private Optional<ObjectNode> findBomComponent(PackageUrlIdentifier identifier) {
     loadBomComponentsIfNotLoaded();
-    return Optional.ofNullable(bomComponentNodes.get(PackageUrlIdentifier.fromComponentIdentifier(identifier)));
+    return Optional.ofNullable(bomComponentNodes.get(identifier));
   }
 
   private void loadBomComponentsIfNotLoaded() {
     if (bomComponentNodes == null) {
       bomComponentNodes = new HashMap<>();
       for (JsonNode bomChild : bomJson.get(AA_DATA_NODE)) {
-        PackageUrlIdentifier purl = getBomPackageUrl(bomChild);
+        PackageUrlIdentifier purl = ComponentIdentifierAdapter.getPackageUrlIdentifier(bomChild);
         if (purl != null) {
           bomComponentNodes.put(purl, (ObjectNode) bomChild);
         }
@@ -507,7 +500,7 @@ public class DependencyResolver
           if (pathnames == null || pathnames.isEmpty()) {
             continue;
           }
-          purl = parsePathToId(pathnames.get(0).asText());
+          purl = ComponentIdentifierAdapter.parsePathToId(pathnames.get(0).asText());
           if (purl != null) {
             bomComponentNodes.put(purl, (ObjectNode) bomChild);
           }
@@ -518,7 +511,7 @@ public class DependencyResolver
 
   private void markComponentAsKnown(
       final ObjectNode bomObjectNode,
-      final ComponentIdentifier componentIdentifier)
+      final PackageUrlIdentifier componentPurl)
   {
     knownArtifactCount.getAndIncrement();
     exactlyMatchedComponentCount.getAndIncrement();
@@ -526,8 +519,8 @@ public class DependencyResolver
     bomObjectNode.put(MATCH_STATE, MatchState.EXACT.getId());
     bomObjectNode.put("identificationSource", IdentificationSource.PACKAGE_MANIFEST.getId());
 
-    bomObjectNode.set("componentIdentifier", JsonUtils.asTree(componentIdentifier));
-    bomObjectNode.put("packageUrl", PackageUrlIdentifier.toPackageUrl(componentIdentifier));
+    bomObjectNode.set(FIELD_COMPONENT_IDENTIFIER, JsonUtils.asTree(componentPurl.toComponentIdentifier()));
+    bomObjectNode.put(FIELD_PACKAGE_URL, componentPurl.getPackageUrl());
 
     ComponentDisplayNameUtil.injectDisplayName(bomObjectNode);
 
@@ -539,25 +532,28 @@ public class DependencyResolver
   private void updateBomNodeDependencyInformation(
       final boolean isDirect,
       final boolean isInnerSource,
-      final ComponentIdentifier componentId,
-      final ComponentIdentifier parentComponentId,
+      final PackageUrlIdentifier componentPurl,
+      final PackageUrlIdentifier parentComponentPurl,
       final InnerSourceData innerSourceData)
   {
-    findBomComponent(componentId)
+    findBomComponent(componentPurl)
         .ifPresent(bomObjectNode -> {
           if (!bomObjectNode.hasNonNull(FIELD_COMPONENT_IDENTIFIER)) {
-            bomObjectNode.set(FIELD_COMPONENT_IDENTIFIER, new ObjectMapper().valueToTree(componentId));
+            bomObjectNode.set(FIELD_COMPONENT_IDENTIFIER,
+                new ObjectMapper().valueToTree(componentPurl.toComponentIdentifier()));
+          }
+          if (!bomObjectNode.hasNonNull(FIELD_PACKAGE_URL)) {
+            bomObjectNode.put(FIELD_PACKAGE_URL, componentPurl.getPackageUrl());
           }
           bomObjectNode
               .put(FIELD_DIRECT_DEPENDENCY, bomObjectNode.path(FIELD_DIRECT_DEPENDENCY).asBoolean(false) || isDirect);
           bomObjectNode
               .put(FIELD_INNER_SOURCE, bomObjectNode.path(FIELD_INNER_SOURCE).asBoolean(false) || isInnerSource);
-          if (!isDirect && parentComponentId != null) {
+          if (!isDirect && parentComponentPurl != null) {
             if (bomObjectNode.path(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD).isMissingNode()) {
               bomObjectNode.putArray(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD);
             }
             ArrayNode parentComponentPurls = (ArrayNode) bomObjectNode.get(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD);
-            PackageUrlIdentifier parentComponentPurl = PackageUrlIdentifier.fromComponentIdentifier(parentComponentId);
             if (!contains(parentComponentPurls, parentComponentPurl)) {
               parentComponentPurls.add(parentComponentPurl.getPackageUrl());
             }
@@ -598,49 +594,29 @@ public class DependencyResolver
   }
 
   private void updateUnknownTransitiveDependencyAsKnown(
-      final ComponentIdentifier bomComponentIdentifier,
+      final PackageUrlIdentifier bomPurl,
       final ObjectNode bomObjectNode)
   {
-    PackageUrlIdentifier purl = getVersionlessPackageUrl(bomComponentIdentifier);
-    InnerSourceComponent is = innerSourceComponentDAO.getByPackageUrl(purl);
+    PackageUrlIdentifier versionlessPurl = bomPurl.createAlternativeVersion(null);
+    InnerSourceComponent is = innerSourceComponentDAO.getByPackageUrl(versionlessPurl);
     if (is != null) {
       //If the component is transitive and exists as InnerSource, it needs to be updated so it can be marked as
       //Transitive dependency but not as InnerSource
-      markComponentAsKnown(bomObjectNode, bomComponentIdentifier);
-      log.debug("InnerSource module {} was updated in bom.json as Transitive InnerSource", bomComponentIdentifier);
+      markComponentAsKnown(bomObjectNode, bomPurl);
+      log.debug("InnerSource module {} was updated in bom.json as Transitive InnerSource", bomPurl);
     }
   }
 
-  private PackageUrlIdentifier getBomPackageUrl(JsonNode bomChild) {
-    PackageUrlIdentifier purl = ComponentIdentifierAdapter.getPackageUrlIdentifier(bomChild);
-    if (purl == null) {
-      purl = parsePathToId(bomChild.withArray("pathnames").get(0).asText());
-    }
-    return purl;
-  }
-
-  private PackageUrlIdentifier parsePathToId(final String pathnames) {
-    String path;
-    if (StringUtils.contains(pathnames, PURL_PREFIX)) {
-      return new PackageUrlIdentifier(
-          StringUtils.substring(pathnames, pathnames.indexOf(PURL_PREFIX), pathnames.length()));
-    }
-    else {
-      path = StringUtils.substringAfterLast(pathnames, "/");
-      return PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifierHelper.parseId(path));
-    }
-  }
-
-  private Set<ComponentIdentifier> getDirectDependencies(List<DependencyNode> children) {
-    Set<ComponentIdentifier> directDependencies = new HashSet<>();
+  private Set<PackageUrlIdentifier> getDirectDependencies(List<DependencyNode> children) {
+    Set<PackageUrlIdentifier> directDependencies = new HashSet<>();
     for (DependencyNode child : children) {
       if (!child.isModule() && child.isDirect()) {
-        directDependencies.add(child.getComponentIdentifier());
+        directDependencies.add(InnerSourceUtils.getPackageUrl(child));
       }
 
       for (DependencyNode firstLevel : child.getChildren()) {
         if (firstLevel.isDirect()) {
-          directDependencies.add(firstLevel.getComponentIdentifier());
+          directDependencies.add(InnerSourceUtils.getPackageUrl(firstLevel));
         }
       }
     }

@@ -70,6 +70,11 @@ If you are developing these bundles, you'll want to use the following command:
 
 `yarn run start-all`
 
+The Nexus IQ Server requires a license to run.
+You can find licenses and their descriptions on Confluence at [Product Licensing](https://docs.sonatype.com/display/ProdMgmt/Product+Licensing).
+Most developers will want a license with a name similar to `2021-sonatype-internal-rm-lc-fw-fwfa-adp-alp-iacp-1000apps-1000rm_users-1000lc_users-1000fw_users.lic`.
+That will enable all the functionality you're likely to need.
+
 #### Running tests
 
 Unit tests are written using the [Jasmine](https://jasmine.github.io/) BDD framework.

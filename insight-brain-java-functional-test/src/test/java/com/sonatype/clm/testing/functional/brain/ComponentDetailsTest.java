@@ -652,7 +652,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testPolicyViolationsTab_viewAllComponentWaivers() {
-    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/YYYY");
+    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
     String dateString = dateFormat.format(Date.from(Instant.now()));
     waiveFirstReportRow();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));

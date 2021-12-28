@@ -51,6 +51,7 @@ export default function ListWaiversTable(props) {
           {waiver.hash ? <ComponentDisplay component={violationDetails} truncate={true} /> : 'All'}
         </NxTableCell>
         <NxTableCell>{waiver.expiryTime ? moment(waiver.expiryTime).fromNow() : 'Does not expire'}</NxTableCell>
+        <NxTableCell className="iq-waivers-table--creator">{waiver?.creatorName || '- -'}</NxTableCell>
         <NxTableCell className="iq-waivers-table--comments">{waiver.comment || '- -'}</NxTableCell>
         <NxTableCell>
           <div className="nx-btn-bar">
@@ -83,6 +84,7 @@ export default function ListWaiversTable(props) {
           <NxTableCell>SCOPE</NxTableCell>
           <NxTableCell>COMPONENTS</NxTableCell>
           <NxTableCell>WAIVER EXPIRATION</NxTableCell>
+          <NxTableCell>CREATED BY</NxTableCell>
           <NxTableCell>COMMENTS</NxTableCell>
           <NxTableCell> </NxTableCell>
         </NxTableRow>

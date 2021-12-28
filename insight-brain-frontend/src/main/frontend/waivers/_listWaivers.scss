@@ -25,10 +25,11 @@ list-waivers-page {
 }
 
 .iq-waivers-table--scope,
+.iq-waivers-table--creator,
 .iq-waivers-table--comments {
   overflow-wrap: anywhere;
 }
 
 .iq-waivers-table--component-name {
-  max-width: 430px;
+  max-width: 350px;
 }

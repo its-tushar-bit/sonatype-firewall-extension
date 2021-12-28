@@ -62,7 +62,7 @@ describe('ListWaiversTable', function () {
     const tableHeaderRow = table.find(NxTableHead).find(NxTableRow);
     expect(tableHeaderRow).toExist();
     const tableHeaderCells = tableHeaderRow.find(NxTableCell);
-    expect(tableHeaderCells.length).toBe(6);
+    expect(tableHeaderCells.length).toBe(7);
   });
 
   it('sets the emptyMessage on NxTableBody including a link to the waivers help docs', function () {
@@ -119,7 +119,17 @@ describe('ListWaiversTable', function () {
     expect(icon.prop('icon')).toEqual(faTrashAlt);
   };
 
-  const assertWaiverTableRow = (tableRow, dateCreated, scope, components, expiration, comments, isExpired, waiver) => {
+  const assertWaiverTableRow = (
+    tableRow,
+    dateCreated,
+    scope,
+    components,
+    expiration,
+    comments,
+    isExpired,
+    createdBy,
+    waiver
+  ) => {
     if (isExpired) {
       expect(tableRow).toHaveClassName('list-waivers-row--expired');
     } else {
@@ -127,7 +137,7 @@ describe('ListWaiversTable', function () {
     }
 
     const tableCells = tableRow.children();
-    expect(tableCells.length).toBe(6);
+    expect(tableCells.length).toBe(7);
     expect(tableCells.at(0).childAt(0).text()).toBe(dateCreated);
     expect(tableCells.at(1).childAt(0).text()).toBe(scope);
 
@@ -139,8 +149,9 @@ describe('ListWaiversTable', function () {
     }
 
     expect(tableCells.at(3).childAt(0).text()).toBe(expiration);
-    expect(tableCells.at(4).childAt(0).text()).toBe(comments);
-    assertDeleteWaiverBtn(tableCells.at(5).childAt(0), waiver);
+    expect(tableCells.at(4).childAt(0).text()).toBe(createdBy);
+    expect(tableCells.at(5).childAt(0).text()).toBe(comments);
+    assertDeleteWaiverBtn(tableCells.at(6).childAt(0), waiver);
   };
 
   it('renders an NxTableBody with active and expired waivers sorted by createTime desc', function () {
@@ -156,6 +167,7 @@ describe('ListWaiversTable', function () {
         hash: null,
         scopeOwnerType: 'root_organization',
         scopeOwnerName: 'Root Organization',
+        creatorName: 'User 1',
       },
       {
         policyWaiverId: '2',
@@ -175,6 +187,7 @@ describe('ListWaiversTable', function () {
         hash: '1e48256a2341047e7d72',
         scopeOwnerType: 'root_organization',
         scopeOwnerName: 'Root Organization',
+        creatorName: 'User 1',
       },
       {
         comment: 'comment4',
@@ -184,6 +197,7 @@ describe('ListWaiversTable', function () {
         hash: '1e48256a2341047e7d72',
         scopeOwnerType: 'organization',
         scopeOwnerName: 'suborg',
+        creatorName: 'User 2',
       },
     ];
     const props = {
@@ -205,6 +219,7 @@ describe('ListWaiversTable', function () {
       'Does not expire',
       'comment2',
       false,
+      '- -',
       activeWaivers[1]
     );
     assertWaiverTableRow(
@@ -215,6 +230,7 @@ describe('ListWaiversTable', function () {
       'in 7 days',
       'comment1',
       false,
+      'User 1',
       activeWaivers[0]
     );
     assertWaiverTableRow(
@@ -225,6 +241,7 @@ describe('ListWaiversTable', function () {
       'a month ago',
       'comment4',
       true,
+      'User 2',
       expiredWaivers[1]
     );
     assertWaiverTableRow(
@@ -235,6 +252,7 @@ describe('ListWaiversTable', function () {
       'a year ago',
       'comment3',
       true,
+      'User 1',
       expiredWaivers[0]
     );
   });

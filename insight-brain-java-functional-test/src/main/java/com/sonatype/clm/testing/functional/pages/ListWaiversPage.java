@@ -168,8 +168,12 @@ public class ListWaiversPage
       return child(".nx-cell", nthChild(4));
     }
 
-    public SelenideElement comments() {
+    public SelenideElement createdBy() {
       return child(".nx-cell", nthChild(5));
+    }
+
+    public SelenideElement comments() {
+      return child(".nx-cell", nthChild(6));
     }
 
     public SelenideElement deleteButton() {

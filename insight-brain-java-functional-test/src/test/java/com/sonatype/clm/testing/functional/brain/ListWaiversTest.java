@@ -139,6 +139,7 @@ public class ListWaiversTest
     waiverListTable.headerRow().components().shouldHave(text("COMPONENTS"));
     waiverListTable.headerRow().waiverExpiration().shouldHave(text("WAIVER EXPIRATION"));
     waiverListTable.headerRow().comments().shouldHave(text("COMMENTS"));
+    waiverListTable.headerRow().createdBy().shouldHave(text("CREATED BY"));
     waiverListTable.noWaiversMessage().should(exist);
     waiverListTable.noWaiversMessage().shouldHave(
         text("You don't have any waivers: to learn more about waivers you can check our help documentation."));
@@ -175,6 +176,7 @@ public class ListWaiversTest
     row1.scope().shouldHave(text("Organization - Org 1"));
     row1.components().shouldHave(text("All"));
     row1.waiverExpiration().shouldHave(text("Does not expire"));
+    row1.createdBy().shouldHave(text("Test User"));
     row1.comments().shouldHave(text("- -"));
 
     WaiverListRow row2 = waiverListTable.row(2);
@@ -183,6 +185,7 @@ public class ListWaiversTest
     row2.scope().shouldHave(text("Application - App 1"));
     row2.components().shouldHave(text("Group1 : Artifact1 : Version1"));
     row2.waiverExpiration().shouldHave(text("5 days ago"));
+    row2.createdBy().shouldHave(text("Test User"));
     row2.comments().shouldHave(text(longUnbrokenComment));
 
     eyesWatcher.eyesCheck("Waivers List");

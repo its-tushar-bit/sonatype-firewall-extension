@@ -22,13 +22,14 @@ import {
   closeVulnerabilityDetailsModal,
 } from '../vulnerabilityDetails/vulnerabilityDetailsModalActions';
 
-function mapStateToProps({ addWaiver, violation, router }) {
+function mapStateToProps({ addWaiver, violation, router, user }) {
   return {
     ...addWaiver,
     ...pick(['violationDetails'], violation),
     ...pick(['violationId'], router.currentParams),
     prevStateName: router.prevState.name,
     prevParams: router.prevParams,
+    currentUser: user?.currentUser?.displayName,
   };
 }
 

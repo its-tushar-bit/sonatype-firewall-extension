@@ -31,6 +31,7 @@ export default function AddWaiverPage(props) {
     applyToAllComponents,
     expiryTime,
     violationDetails,
+    currentUser,
     //actions
     loadAddWaiverData,
     openVulnerabilityDetailsModal,
@@ -77,6 +78,7 @@ export default function AddWaiverPage(props) {
       setExpiryTime,
       saveWaiver,
       cancelAction,
+      currentUser,
       ...extractViolationDetails(violationDetails),
     };
   };
@@ -138,4 +140,5 @@ AddWaiverPage.propTypes = {
   setExpiryTime: PropTypes.func.isRequired,
   cancelAction: PropTypes.func.isRequired,
   closeVulnerabilityDetailsModal: PropTypes.func.isRequired,
+  currentUser: PropTypes.string,
 };

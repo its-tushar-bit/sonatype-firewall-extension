@@ -42,6 +42,7 @@ export default function AddWaiverForm(props) {
     saveWaiver,
     vulnerabilityId,
     cancelAction,
+    currentUser,
   } = props;
 
   useEffect(() => {
@@ -182,6 +183,12 @@ export default function AddWaiverForm(props) {
         <NxFieldset className="iq-add-waiver-form__comments" label="Comments">
           <NxTextInput type="textarea" maxLength={1000} {...waiverComments} onChange={setWaiverComment} />
         </NxFieldset>
+
+        {/* Created By */}
+        <div className="nx-read-only iq-add-waiver-form__created-by">
+          <header className="nx-read-only__label">Created By</header>
+          <div className="nx-read-only__data">{currentUser}</div>
+        </div>
       </div>
 
       {/* Actions */}
@@ -235,4 +242,5 @@ AddWaiverForm.propTypes = {
   vulnerabilityId: PropTypes.string,
   cancelAction: PropTypes.func.isRequired,
   componentIdentifier: PropTypes.object,
+  currentUser: PropTypes.string,
 };

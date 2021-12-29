@@ -93,6 +93,11 @@ describe('AddWaiverPageContainer', function () {
       vulnerabilityDetailsModal: {
         vulnerabilityId: 'CVE-12345',
       },
+      user: {
+        currentUser: {
+          displayName: 'test user',
+        },
+      },
     };
 
     store = configureStore()(() => state);
@@ -129,6 +134,7 @@ describe('AddWaiverPageContainer', function () {
     expect(wrapper).toHaveProp('loading', true);
     expect(wrapper).toHaveProp('violationId', 'foo');
     expect(wrapper).toHaveProp('violationDetails', { id: 'bar' });
+    expect(wrapper).toHaveProp('currentUser', 'test user');
   });
 
   it('maps action creators to props', function () {

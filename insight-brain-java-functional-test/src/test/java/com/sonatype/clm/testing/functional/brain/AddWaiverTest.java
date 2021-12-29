@@ -108,6 +108,10 @@ public class AddWaiverTest
     addWaiverPage.expiryTimesSelect().getSelectedOption().shouldHave(text("Never"));
 
     eyesWatcher.eyesCheck();
+
+    addWaiverPage.currentUserName().scrollIntoView(true).shouldHave(text("Admin BuiltIn"));
+
+    eyesWatcher.eyesCheck("add waiver form: scroll to \"created by\" field");
   }
 
   @Test

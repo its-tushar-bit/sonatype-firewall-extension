@@ -45,6 +45,10 @@ public class AddWaiverPage
     return child(".iq-add-waiver-form__constraint .nx-read-only__data");
   }
 
+  public SelenideElement currentUserName() {
+    return child(".iq-add-waiver-form__created-by .nx-read-only__data");
+  }
+
   public ElementsCollection conditions() {
     return children(".iq-add-waiver-form__conditions .nx-read-only__data span");
   }

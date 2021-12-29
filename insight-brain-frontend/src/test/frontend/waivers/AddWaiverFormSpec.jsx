@@ -80,6 +80,7 @@ describe('AddWaiverForm', function () {
       closeVulnerabilityDetailsModal: closeVulnerabilityDetailsModalSpy,
       vulnerabilityId: 'CVE-12345',
       cancelAction: cancelActionSpy,
+      currentUser: 'test user',
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(AddWaiverForm, minimalProps);
@@ -141,6 +142,14 @@ describe('AddWaiverForm', function () {
     expect(reasons.length).toBe(minimalProps.reasons.length);
     expect(reasons.at(0).find('span')).toHaveText('reason1');
     expect(reasons.at(1).find('span')).toHaveText('reason2');
+  });
+
+  it('renders an nx-read-only with the current user under "created by"', function () {
+    const component = getShallowComponent(),
+      createdBySection = component.find('.iq-add-waiver-form__created-by'),
+      currentUser = createdBySection.find('.nx-read-only__data');
+
+    expect(currentUser).toHaveText('test user');
   });
 
   it('renders a link to see vulnerability details and opens the modal on click', function () {

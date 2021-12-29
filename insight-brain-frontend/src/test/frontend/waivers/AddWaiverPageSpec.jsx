@@ -40,6 +40,7 @@ describe('AddWaiverPage', function () {
         scanId: 'scanId',
         hash: 'hash',
       },
+      currentUser: 'test user',
       saveWaiver: () => {},
       setWaiverComment: () => {},
       setWaiverScope: () => {},
@@ -156,6 +157,7 @@ describe('AddWaiverPage', function () {
     expect(addWaiverForm).toHaveProp('cancelAction', minimalProps.cancelAction);
     expect(addWaiverForm).toHaveProp('expiryTime', fullProps.expiryTime);
     expect(addWaiverForm).toHaveProp('setExpiryTime', minimalProps.setExpiryTime);
+    expect(addWaiverForm).toHaveProp('currentUser', minimalProps.currentUser);
   });
 
   it('renders NxSubmitMask with success message when submitMaskState is true', function () {

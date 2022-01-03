@@ -19,7 +19,7 @@ const ExportButton = ({ exportTitle, exportRequestData, exportUrl }) => {
       encType="multipart/form-data"
     >
       <input type="hidden" name="filter" value={exportRequestJson} />
-      <button id="export-results" className="btn btn-tertiary" disabled={!exportUrl}>
+      <button id="export-results" className="btn btn-tertiary export-dashboard-results-btn" disabled={!exportUrl}>
         <i className="fa fa-file-o" />
         Export {exportTitle} Data
       </button>

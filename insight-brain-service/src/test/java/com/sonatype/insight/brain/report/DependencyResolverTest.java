@@ -1281,7 +1281,7 @@ public class DependencyResolverTest
   private void assertUpdatedBomAttributeValue(
       JsonNode bomJson,
       PackageUrlIdentifier lookupId, String fieldName,
-      String fieldValue) throws IOException
+      String fieldValue)
   {
     for (JsonNode dependency : bomJson.get("aaData")) {
       PackageUrlIdentifier purl = ComponentIdentifierAdapter.getPackageUrlIdentifier(dependency);

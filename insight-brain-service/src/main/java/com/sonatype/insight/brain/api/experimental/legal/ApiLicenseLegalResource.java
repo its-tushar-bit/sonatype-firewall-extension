@@ -153,10 +153,12 @@ public class ApiLicenseLegalResource
   @Produces(MediaType.APPLICATION_JSON)
   public ComponentCopyrightWithOwnerDTO getComponentCopyright(
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("packageUrl") String packageUrl,
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId)
   {
-    return componentLegalService.getComponentCopyrightWithHierarchy(ownerType, ownerId, componentIdentifier);
+    return componentLegalService.getComponentCopyrightWithHierarchy(ownerType, ownerId,
+        apiLicenseLegalService.getComponentIdentifier(componentIdentifier, packageUrl));
   }
 
   /**
@@ -185,9 +187,11 @@ public class ApiLicenseLegalResource
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("packageUrl") String packageUrl,
       @QueryParam("legalFileType") LegalFileType legalFileType)
   {
-    return componentLegalService.getComponentLegalFile(ownerType, ownerId, componentIdentifier, legalFileType);
+    return componentLegalService.getComponentLegalFile(ownerType, ownerId,
+        apiLicenseLegalService.getComponentIdentifier(componentIdentifier, packageUrl), legalFileType);
   }
 
   /**
@@ -200,10 +204,12 @@ public class ApiLicenseLegalResource
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("packageUrl") String packageUrl,
       @QueryParam("obligationName") String obligationName)
   {
     return componentLegalService
-        .getComponentObligationAttributions(ownerType, ownerId, componentIdentifier, obligationName);
+        .getComponentObligationAttributions(ownerType, ownerId,
+            apiLicenseLegalService.getComponentIdentifier(componentIdentifier, packageUrl), obligationName);
   }
 
   /**
@@ -248,9 +254,11 @@ public class ApiLicenseLegalResource
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("packageUrl") String packageUrl,
       @QueryParam("obligationName") String obligationName)
   {
-    return componentLegalService.getComponentObligation(ownerType, ownerId, componentIdentifier, obligationName);
+    return componentLegalService.getComponentObligation(ownerType, ownerId,
+        apiLicenseLegalService.getComponentIdentifier(componentIdentifier, packageUrl), obligationName);
   }
 
   /**
@@ -269,7 +277,7 @@ public class ApiLicenseLegalResource
     if (componentObligationDTO.getComment() != null &&
         componentObligationDTO.getComment().length() > OBLIGATION_COMMENT_MAX_CHARACTER) {
       throw new BadRequestException(String.format(
-        "ComponentObligationAttribution content must be less than %s characters", OBLIGATION_COMMENT_MAX_CHARACTER));
+          "ComponentObligationAttribution content must be less than %s characters", OBLIGATION_COMMENT_MAX_CHARACTER));
     }
     return componentLegalService
         .saveComponentObligations(ownerType, ownerId, Collections.singletonList(componentObligationDTO))
@@ -314,13 +322,14 @@ public class ApiLicenseLegalResource
       @PathParam("componentHash") String componentHash,
       @PathParam("copyrightContentHash") String copyrightContentHash,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("packageUrl") String packageUrl,
       @QueryParam("pageStart") int pageStart,
       @QueryParam("pageLength") int pageLength)
   {
     return apiLegalCopyrightService.getCopyrightFilePaths(
         ownerType,
         ownerId,
-        componentIdentifier,
+        apiLicenseLegalService.getComponentIdentifier(componentIdentifier, packageUrl),
         componentHash,
         copyrightContentHash,
         pageStart, pageLength);
@@ -338,12 +347,13 @@ public class ApiLicenseLegalResource
       @PathParam("componentHash") String componentHash,
       @PathParam("copyrightContentHash") String copyrightContentHash,
       @QueryParam("filePath") String filePath,
-      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("packageUrl") String packageUrl)
   {
     return apiLegalCopyrightService.getCopyrightContextContent(
         ownerType,
         ownerId,
-        componentIdentifier,
+        apiLicenseLegalService.getComponentIdentifier(componentIdentifier, packageUrl),
         componentHash,
         copyrightContentHash,
         filePath);
@@ -359,12 +369,13 @@ public class ApiLicenseLegalResource
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,
       @PathParam("componentHash") String componentHash,
-      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("packageUrl") String packageUrl)
   {
     return apiLegalCopyrightService.getCopyrightFileCount(
         ownerType,
         ownerId,
-        componentIdentifier,
+        apiLicenseLegalService.getComponentIdentifier(componentIdentifier, packageUrl),
         componentHash);
   }
 }

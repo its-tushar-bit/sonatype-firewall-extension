@@ -12,6 +12,7 @@ import java.util.Objects;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 /**
  * @since 1.105
@@ -21,6 +22,8 @@ public class ComponentCopyrightDTO
   private String id;
 
   private ApiComponentIdentifierDTOV2 componentIdentifier;
+
+  private String packageUrl;
 
   private List<CopyrightOverrideDTO> copyrightOverrides = new ArrayList<>();
 
@@ -40,6 +43,9 @@ public class ComponentCopyrightDTO
   {
     this.id = id;
     this.componentIdentifier = componentIdentifier;
+    if (componentIdentifier.getFormat() != null && componentIdentifier.getCoordinates() != null) {
+      packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier.toComponentIdentifier());
+    }
     this.copyrightOverrides = copyrightOverrides;
     this.lastUpdatedByUsername = lastUpdatedByUsername;
     this.lastUpdatedAt = lastUpdatedAt;
@@ -72,6 +78,14 @@ public class ComponentCopyrightDTO
 
   public void setComponentIdentifier(final ApiComponentIdentifierDTOV2 componentIdentifier) {
     this.componentIdentifier = componentIdentifier;
+  }
+
+  public String getPackageUrl() {
+    return packageUrl;
+  }
+
+  public void setPackageUrl(final String packageUrl) {
+    this.packageUrl = packageUrl;
   }
 
   public List<CopyrightOverrideDTO> getCopyrightOverrides() {
@@ -109,6 +123,7 @@ public class ComponentCopyrightDTO
     ComponentCopyrightDTO that = (ComponentCopyrightDTO) o;
     return Objects.equals(getId(), that.getId()) &&
         Objects.equals(getComponentIdentifier(), that.getComponentIdentifier()) &&
+        Objects.equals(getPackageUrl(), that.getPackageUrl()) &&
         Objects.equals(getCopyrightOverrides(), that.getCopyrightOverrides()) &&
         Objects.equals(getLastUpdatedAt(), that.getLastUpdatedAt()) &&
         Objects.equals(getLastUpdatedByUsername(), that.getLastUpdatedByUsername());
@@ -116,7 +131,7 @@ public class ComponentCopyrightDTO
 
   @Override
   public int hashCode() {
-    return Objects.hash(getId(), getComponentIdentifier(), getCopyrightOverrides(),
+    return Objects.hash(getId(), getComponentIdentifier(), getPackageUrl(), getCopyrightOverrides(),
         getLastUpdatedAt(), getLastUpdatedByUsername());
   }
 }

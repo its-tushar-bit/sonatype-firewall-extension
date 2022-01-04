@@ -10,6 +10,7 @@ import java.util.Date;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -26,6 +27,8 @@ public class ApiLicenseLegalObligationDTO
   private String comment;
 
   private ApiComponentIdentifierDTOV2 componentIdentifier;
+
+  private String packageUrl;
 
   private String ownerId;
 
@@ -44,6 +47,9 @@ public class ApiLicenseLegalObligationDTO
     comment = componentObligation.getComment();
     componentIdentifier =
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentObligation.getComponentIdentifier());
+    if (componentIdentifier.getFormat() != null && componentIdentifier.getCoordinates() != null) {
+      packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier.toComponentIdentifier());
+    }
     ownerId = componentObligation.getOwnerId();
     lastUpdatedAt = componentObligation.getLastUpdatedAt();
     lastUpdatedByUsername = componentObligation.getLastUpdatedByUsername();
@@ -97,6 +103,14 @@ public class ApiLicenseLegalObligationDTO
 
   public void setComponentIdentifier(ApiComponentIdentifierDTOV2 componentIdentifier) {
     this.componentIdentifier = componentIdentifier;
+  }
+
+  public String getPackageUrl() {
+    return packageUrl;
+  }
+
+  public void setPackageUrl(String packageUrl) {
+    this.packageUrl = packageUrl;
   }
 
   public String getOwnerId() {

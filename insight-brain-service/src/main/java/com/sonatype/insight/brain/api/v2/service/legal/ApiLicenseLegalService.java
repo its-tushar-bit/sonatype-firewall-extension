@@ -897,6 +897,10 @@ public class ApiLicenseLegalService
     return IntStream.range(0, booleans.length).mapToObj(idx -> booleans[idx]).filter(bool -> bool).count() == 1;
   }
 
+  public ComponentIdentifier getComponentIdentifier(ComponentIdentifier componentIdentifier, String packageUrl) {
+    return packageUrl != null ? new PackageUrlIdentifier(packageUrl).toComponentIdentifier() : componentIdentifier;
+  }
+
   private Set<ComponentIdentifier> getComponentIdentifiers(Collection<ApiReportRawDataDTOV2> rawReports) {
     return rawReports.stream()
         .flatMap(rawReport -> getComponentIdentifiers(rawReport).stream())

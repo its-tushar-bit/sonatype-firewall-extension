@@ -59,6 +59,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentFilePathsDTO;
 import com.sonatype.insight.license.dto.model.LegalCommentFilesDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.ImmutableSet;
 import org.assertj.core.api.Condition;
@@ -270,6 +271,8 @@ public class ApiLicenseLegalResourceTest
     assertThat(responseDto).isNotNull();
     assertThat(responseDto.getComponentIdentifier().toComponentIdentifier())
         .isEqualTo(componentIdentifier);
+    assertThat(responseDto.getPackageUrl())
+        .isEqualTo(PackageUrlIdentifier.toPackageUrl(componentIdentifier));
   }
 
   @Test
@@ -348,11 +351,24 @@ public class ApiLicenseLegalResourceTest
         .query("obligationName", componentObligationAttribution.getObligationName())
         .get();
 
+    String packageUrl = PackageUrlIdentifier.toPackageUrl(componentObligationAttribution.getComponentIdentifier());
+
+    HttpResponse response2 = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_ATTRIBUTION_PATH)
+        .parameter(application.getType(), application.getPublicId())
+        .query("packageUrl", packageUrl)
+        .query("obligationName", componentObligationAttribution.getObligationName())
+        .get();
+
     assertResponseStatus(200, response);
+    assertResponseStatus(200, response2);
     List<ComponentObligationAttributionDTO> responseBody =
         Arrays.asList(response.getBody(ComponentObligationAttributionDTO[].class));
+    List<ComponentObligationAttributionDTO> responseBody2 =
+        Arrays.asList(response2.getBody(ComponentObligationAttributionDTO[].class));
     assertThat(responseBody).extracting(ComponentObligationAttributionDTO::getId)
         .containsExactly(componentObligationAttribution.getId());
+    assertThat(responseBody).isEqualTo(responseBody2);
   }
 
   @Test
@@ -428,9 +444,23 @@ public class ApiLicenseLegalResourceTest
         .query("obligationName", componentObligation.getObligationName())
         .get();
 
+    String packageUrl = PackageUrlIdentifier.toPackageUrl(componentObligation.getComponentIdentifier());
+
+    HttpResponse response2 = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_PATH)
+        .parameter(application.getType(), application.getPublicId())
+        .query("packageUrl", packageUrl)
+        .query("obligationName", componentObligation.getObligationName())
+        .get();
+
     assertResponseStatus(200, response);
+    assertResponseStatus(200, response2);
     ApiLicenseLegalObligationDTO responseDto = response.getBody(ApiLicenseLegalObligationDTO.class);
+    ApiLicenseLegalObligationDTO responseDto2 = response2.getBody(ApiLicenseLegalObligationDTO.class);
     assertThat(responseDto).isNotNull();
+    assertThat(responseDto).usingRecursiveComparison().ignoringExpectedNullFields()
+        .isEqualTo(responseDto2);
+    assertThat(responseDto.getPackageUrl()).isEqualTo(packageUrl);
     assertThat(responseDto.getId()).isEqualTo(componentObligation.getId());
   }
 
@@ -448,11 +478,26 @@ public class ApiLicenseLegalResourceTest
         .query("componentIdentifier", componentCopyright.getComponentIdentifier())
         .get();
 
+    String packageUrl = PackageUrlIdentifier.toPackageUrl(componentCopyright.getComponentIdentifier());
+
+    HttpResponse response2 = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_COPYRIGHT_PATH)
+        .parameter(application.getType(), application.getPublicId())
+        .query("packageUrl", packageUrl)
+        .get();
+
     assertResponseStatus(200, response);
+    assertResponseStatus(200, response2);
     ComponentCopyrightWithOwnerDTO componentCopyrightWithOwnerDTO =
         response.getBody(ComponentCopyrightWithOwnerDTO.class);
+    ComponentCopyrightWithOwnerDTO componentCopyrightWithOwnerDTO2 =
+        response.getBody(ComponentCopyrightWithOwnerDTO.class);
     assertThat(componentCopyrightWithOwnerDTO).isNotNull();
+    assertThat(componentCopyrightWithOwnerDTO).usingRecursiveComparison().ignoringExpectedNullFields()
+        .isEqualTo(componentCopyrightWithOwnerDTO2);
     assertThat(componentCopyrightWithOwnerDTO.getComponentCopyrightDTO().getId()).isEqualTo(componentCopyright.getId());
+    assertThat(componentCopyrightWithOwnerDTO.getComponentCopyrightDTO().getId())
+        .isEqualTo(componentCopyrightWithOwnerDTO2.getComponentCopyrightDTO().getId());
     assertThat(componentCopyrightWithOwnerDTO.getOwnerId()).isEqualTo(organization.getId());
   }
 
@@ -472,12 +517,26 @@ public class ApiLicenseLegalResourceTest
         .query("legalFileType", LegalFileType.LICENSE.toString())
         .get();
 
+    String packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
+
+    HttpResponse response2 = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_LEGAL_FILE_PATH)
+        .parameter(app.getType(), app.getPublicId())
+        .query("packageUrl", packageUrl)
+        .query("legalFileType", LegalFileType.LICENSE.toString())
+        .get();
+
     assertResponseStatus(200, response);
+    assertResponseStatus(200, response2);
     ComponentLegalFileDTO componentLegalFileDTO = response.getBody(ComponentLegalFileDTO.class);
+    ComponentLegalFileDTO componentLegalFileDTO2 = response.getBody(ComponentLegalFileDTO.class);
     assertThat(componentLegalFileDTO).isNotNull();
+    assertThat(componentLegalFileDTO).usingRecursiveComparison().ignoringExpectedNullFields()
+        .isEqualTo(componentLegalFileDTO2);
     assertThat(componentLegalFile.getId()).isEqualTo(componentLegalFile.getId());
     assertThat(componentLegalFileDTO.getLegalFileOverrides()).hasSize(1);
     assertThat(componentLegalFileDTO.getLegalFileOverrides().get(0).getId()).isEqualTo(licenseOverride.getId());
+    assertThat(componentLegalFileDTO.getPackageUrl()).isEqualTo(packageUrl);
   }
 
   @Test
@@ -496,12 +555,26 @@ public class ApiLicenseLegalResourceTest
         .query("legalFileType", LegalFileType.NOTICE.toString())
         .get();
 
+    String packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
+
+    HttpResponse response2 = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_LEGAL_FILE_PATH)
+        .parameter(app.getType(), app.getPublicId(), LegalFileType.NOTICE.toString())
+        .query("packageUrl", packageUrl)
+        .query("legalFileType", LegalFileType.NOTICE.toString())
+        .get();
+
     assertResponseStatus(200, response);
+    assertResponseStatus(200, response2);
     ComponentLegalFileDTO componentLegalFileDTO = response.getBody(ComponentLegalFileDTO.class);
+    ComponentLegalFileDTO componentLegalFileDTO2 = response.getBody(ComponentLegalFileDTO.class);
     assertThat(componentLegalFileDTO).isNotNull();
+    assertThat(componentLegalFileDTO).usingRecursiveComparison().ignoringExpectedNullFields()
+        .isEqualTo(componentLegalFileDTO2);
     assertThat(componentLegalFile.getId()).isEqualTo(componentLegalFile.getId());
     assertThat(componentLegalFileDTO.getLegalFileOverrides()).hasSize(1);
     assertThat(componentLegalFileDTO.getLegalFileOverrides().get(0).getId()).isEqualTo(noticeOverride.getId());
+    assertThat(componentLegalFileDTO.getPackageUrl()).isEqualTo(packageUrl);
   }
 
   @Test
@@ -533,10 +606,27 @@ public class ApiLicenseLegalResourceTest
         .query("pageLength", 15)
         .get();
 
+    String packageUrl = PackageUrlIdentifier.toPackageUrl(mavenIdentifier);
+
+    final HttpResponse response2 = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_COPYRIGHT_FILEPATHS)
+        .parameter(OwnerType.ORGANIZATION.toString(), Organization.ROOT_ORGANIZATION_ID, "hash", "copyright hash 2")
+        .query("packageUrl", packageUrl)
+        .query("pageStart", 0)
+        .query("pageLength", 15)
+        .get();
+
     assertResponseStatus(200, response);
+    assertResponseStatus(200, response2);
     final CopyrightFilePathsDTO filePaths = response.getBody(CopyrightFilePathsDTO.class);
+    final CopyrightFilePathsDTO filePaths2 = response.getBody(CopyrightFilePathsDTO.class);
 
     assertThat(filePaths.getFilePaths()).hasSize(3).containsExactly(
+        new CopyrightFilePathDTO("path1/file1", 2),
+        new CopyrightFilePathDTO("path2/file1", 2),
+        new CopyrightFilePathDTO("path2/file2", 1));
+
+    assertThat(filePaths2.getFilePaths()).hasSize(3).containsExactly(
         new CopyrightFilePathDTO("path1/file1", 2),
         new CopyrightFilePathDTO("path2/file1", 2),
         new CopyrightFilePathDTO("path2/file2", 1));
@@ -570,10 +660,22 @@ public class ApiLicenseLegalResourceTest
         .query("filePath", "path2/file1")
         .get();
 
+    String packageUrl = PackageUrlIdentifier.toPackageUrl(mavenIdentifier);
+
+    final HttpResponse response2 = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_COPYRIGHT_FILEPATH_CONTEXT)
+        .parameter(OwnerType.ORGANIZATION.toString(), Organization.ROOT_ORGANIZATION_ID, "hash", "copyright hash 2")
+        .query("packageUrl", packageUrl)
+        .query("filePath", "path2/file1")
+        .get();
+
     assertResponseStatus(200, response);
+    assertResponseStatus(200, response2);
     final Collection<String> contents = response.getBodySet(String.class);
+    final Collection<String> contents2 = response2.getBodySet(String.class);
 
     assertThat(contents).containsExactlyInAnyOrder("Content 1", "Content 2");
+    assertThat(contents2).containsExactlyInAnyOrder("Content 1", "Content 2");
   }
 
   @Test
@@ -603,10 +705,25 @@ public class ApiLicenseLegalResourceTest
         .query("componentIdentifier", mavenIdentifier)
         .get();
 
+    String packageUrl = PackageUrlIdentifier.toPackageUrl(mavenIdentifier);
+
+    final HttpResponse response2 = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_COPYRIGHT_FILE_COUNT)
+        .parameter(OwnerType.ORGANIZATION.toString(), Organization.ROOT_ORGANIZATION_ID, "hash")
+        .query("packageUrl", packageUrl)
+        .get();
+
     assertResponseStatus(200, response);
+    assertResponseStatus(200, response2);
     final Map<String, Integer> fileCounts = response.getBody(Map.class);
+    final Map<String, Integer> fileCounts2 = response2.getBody(Map.class);
 
     assertThat(fileCounts).hasSize(3)
+        .hasEntrySatisfying("copyright hash 1", new Condition<>(Predicate.isEqual(2), "hash 1"))
+        .hasEntrySatisfying("copyright hash 2", new Condition<>(Predicate.isEqual(5), "hash 2"))
+        .hasEntrySatisfying("copyright hash 3", new Condition<>(Predicate.isEqual(3), "hash 3"));
+
+    assertThat(fileCounts2).hasSize(3)
         .hasEntrySatisfying("copyright hash 1", new Condition<>(Predicate.isEqual(2), "hash 1"))
         .hasEntrySatisfying("copyright hash 2", new Condition<>(Predicate.isEqual(5), "hash 2"))
         .hasEntrySatisfying("copyright hash 3", new Condition<>(Predicate.isEqual(3), "hash 3"));

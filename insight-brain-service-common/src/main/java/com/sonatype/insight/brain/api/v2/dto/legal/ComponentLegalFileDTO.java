@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -27,6 +28,8 @@ public class ComponentLegalFileDTO
   private String id;
 
   private ApiComponentIdentifierDTOV2 componentIdentifier;
+
+  private String packageUrl;
 
   private String ownerId;
 
@@ -46,6 +49,9 @@ public class ComponentLegalFileDTO
     id = componentLegalFile.getId();
     componentIdentifier =
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentLegalFile.getComponentIdentifier());
+    if (componentIdentifier.getFormat() != null && componentIdentifier.getCoordinates() != null) {
+      packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier.toComponentIdentifier());
+    }
     ownerId = componentLegalFile.getOwnerId();
     legalFileType = componentLegalFile.getType();
     this.legalFileOverrides = legalFileOverrides.stream().map(LegalFileOverrideDTO::new).collect(Collectors.toList());
@@ -67,6 +73,14 @@ public class ComponentLegalFileDTO
 
   public void setComponentIdentifier(ApiComponentIdentifierDTOV2 componentIdentifier) {
     this.componentIdentifier = componentIdentifier;
+  }
+
+  public String getPackageUrl() {
+    return packageUrl;
+  }
+
+  public void setPackageUrl(final String packageUrl) {
+    this.packageUrl = packageUrl;
   }
 
   public String getOwnerId() {

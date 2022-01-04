@@ -10,6 +10,7 @@ import java.util.Objects;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -23,6 +24,8 @@ public class ComponentObligationAttributionDTO
   private String id;
 
   private ApiComponentIdentifierDTOV2 componentIdentifier;
+
+  private String packageUrl;
 
   private String ownerId;
 
@@ -51,6 +54,9 @@ public class ComponentObligationAttributionDTO
     ownerId = componentObligationAttribution.getOwnerId();
     componentIdentifier =
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentObligationAttribution.getComponentIdentifier());
+    if (componentIdentifier.getFormat() != null && componentIdentifier.getCoordinates() != null) {
+      packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier.toComponentIdentifier());
+    }
     obligationName = componentObligationAttribution.getObligationName();
     content = componentObligationAttribution.getContent();
     lastUpdatedAt = componentObligationAttribution.getLastUpdatedAt();
@@ -71,6 +77,14 @@ public class ComponentObligationAttributionDTO
 
   public void setComponentIdentifier(ApiComponentIdentifierDTOV2 componentIdentifier) {
     this.componentIdentifier = componentIdentifier;
+  }
+
+  public String getPackageUrl() {
+    return packageUrl;
+  }
+
+  public void setPackageUrl(final String packageUrl) {
+    this.packageUrl = packageUrl;
   }
 
   public String getOwnerId() {
@@ -125,6 +139,7 @@ public class ComponentObligationAttributionDTO
     return Objects.equals(getId(), that.getId()) &&
         Objects.equals(getComponentIdentifier() == null ? null : getComponentIdentifier().toComponentIdentifier(),
             that.getComponentIdentifier() == null ? null : getComponentIdentifier().toComponentIdentifier()) &&
+        Objects.equals(getPackageUrl(), that.getPackageUrl()) &&
         Objects.equals(getOwnerId(), that.getOwnerId()) &&
         Objects.equals(getObligationName(), that.getObligationName()) &&
         Objects.equals(getContent(), that.getContent()) &&
@@ -135,8 +150,8 @@ public class ComponentObligationAttributionDTO
   @Override
   public int hashCode() {
     return Objects
-        .hash(getId(), getComponentIdentifier(), getOwnerId(), getObligationName(), getContent(), getLastUpdatedAt(),
-            getLastUpdatedByUsername());
+        .hash(getId(), getComponentIdentifier(), getPackageUrl(), getOwnerId(), getObligationName(), getContent(),
+            getLastUpdatedAt(), getLastUpdatedByUsername());
   }
 
   @Override
@@ -144,6 +159,7 @@ public class ComponentObligationAttributionDTO
     return "ComponentObligationAttributionDTO{" +
         "id='" + id + '\'' +
         ", componentIdentifier=" + componentIdentifier +
+        ", packageUrl=" + packageUrl +
         ", ownerId='" + ownerId + '\'' +
         ", obligationName='" + obligationName + '\'' +
         ", content='" + content + '\'' +

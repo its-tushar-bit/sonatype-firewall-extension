@@ -3,16 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useContext } from 'react';
+import React from 'react';
 
 import { NxFontAwesomeIcon, NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { faExternalLink } from '@fortawesome/pro-regular-svg-icons';
-import RouterStateContext from '../../../react/RouterStateContext';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import classNames from 'classnames';
 
 export default function DashboardApplicationsTableStageRiskRow(props) {
-  const uiRouterState = useContext(RouterStateContext);
+  const uiRouterState = useRouterState();
 
   const { applicationId, stageRisk, isLastStageRisk, appAutomationId } = props,
     stageRowAutomationId = `${appAutomationId}stage${stageRisk.scanId}`,

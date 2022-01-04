@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
  * the {@link com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventOrchestrator} class is driving the
  * event processing.
  */
+@Deprecated
 @Named
 @Singleton
 public class SourceControlEventProcessingScheduler

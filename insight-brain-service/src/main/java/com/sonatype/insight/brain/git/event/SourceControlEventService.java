@@ -60,6 +60,7 @@ import static java.lang.Thread.sleep;
  * assigning events to particular IQ instances will be solved in the future, prior to releasing official support for
  * multi-node IQ.
  */
+@Deprecated
 @Named
 @Singleton
 public class SourceControlEventService

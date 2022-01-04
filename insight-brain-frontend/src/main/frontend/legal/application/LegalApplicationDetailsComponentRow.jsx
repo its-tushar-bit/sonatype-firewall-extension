@@ -19,8 +19,7 @@ export default function LegalApplicationDetailsComponentRow({ applicationPublicI
     : pipe(map(prop('licenseThreatGroups')), flatten, map(prop('licenseThreatGroupLevel')))(licenses);
   const threatGroupLevel = isNilOrEmpty(threatGroupLevels) ? 0 : Math.max(...threatGroupLevels) || 0;
   const percentage = reviewTotalCount > 0 ? Math.min(100, (reviewCompletedCount * 100) / reviewTotalCount) : 0;
-  const reviewProgressRatio =
-    !isNilOrEmpty(licenses) && reviewTotalCount === 0 ? '- / -' : `${reviewCompletedCount} / ${reviewTotalCount}`;
+  const reviewProgressRatio = reviewTotalCount === 0 ? '- / -' : `${reviewCompletedCount} / ${reviewTotalCount}`;
 
   function goToComponentPage() {
     stateGo('legal.applicationStageTypeComponentOverview', {

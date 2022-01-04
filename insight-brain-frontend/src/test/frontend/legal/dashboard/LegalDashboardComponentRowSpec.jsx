@@ -72,7 +72,7 @@ describe('LegalDashboardComponentRow component', function () {
     expect('chevron' in cells.at(4).props()).toEqual(true);
   });
 
-  it('passes a 0 percentage if there are no reviews', function () {
+  it('passes 0 for percentage and -/- for the display if there are no reviews', function () {
     const props = {
       row: {
         applicationOccurrences: 1,
@@ -113,7 +113,28 @@ describe('LegalDashboardComponentRow component', function () {
     let donutChart = cells.at(3).find(NxBinaryDonutChart);
     expect(donutChart).toExist();
     expect(donutChart).toHaveProp('percent', 0);
-    expect(cells.at(3).at(0).text()).toEqual('0 / 0');
+    expect(cells.at(3).at(0).text()).toEqual('- / -');
+  });
+
+  it('passes 0 for percentage and -/- for the display if there are no licenses', function () {
+    const props = {
+      row: {
+        applicationOccurrences: 1,
+        displayName: 'Component Name',
+        hash: '8c5c838e0c6d2f6cdf30',
+        licenses: [],
+        reviewCompletedCount: 0,
+        reviewTotalCount: 0,
+      },
+    };
+    const wrapper = getMountedComponent(props);
+    let tableRow = wrapper.find(NxTableRow);
+    expect(tableRow).toExist();
+    let cells = tableRow.find(NxTableCell);
+    let donutChart = cells.at(3).find(NxBinaryDonutChart);
+    expect(donutChart).toExist();
+    expect(donutChart).toHaveProp('percent', 0);
+    expect(cells.at(3).at(0).text()).toEqual('- / -');
   });
 
   it('passes a 100 percentage if completedCount is equal than totalCount', function () {

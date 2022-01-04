@@ -373,6 +373,9 @@ public class IndexService
         .build();
     indexingContext.indexWriter.deleteDocuments(queryForObsoleteDocs);
     Application application = applicationDAO.getById(applicationId);
+    if (application == null) {
+      return;
+    }
     StageType stageType = StageTypes.getById(stageTypeId);
     addDocsWithException(indexingContext.indexWriter,
         buildApplicationStageSVDocs(indexingContext, application, stageType));

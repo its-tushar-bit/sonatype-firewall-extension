@@ -230,14 +230,14 @@ describe('applicationReportReducer', function () {
     it('sets "isOpen" data to the correct nested dependency', () => {
       const state = Object.freeze({ dependencyTree: dependencyTreeData });
 
-      expect(state.dependencyTree[0].children[0].isOpen).toBe(false);
+      expect(state.dependencyTree[0].children[0].isOpen).toBe(true);
 
       const newState = reduce(state, {
         type: 'DEPENDENCY_TREE_TOGGLE_TREE_PATH',
         payload: [0, 'children', 0],
       });
 
-      expect(newState.dependencyTree[0].children[0].isOpen).toBe(true);
+      expect(newState.dependencyTree[0].children[0].isOpen).toBe(false);
     });
   });
 

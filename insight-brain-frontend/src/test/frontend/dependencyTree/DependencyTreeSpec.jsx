@@ -34,7 +34,7 @@ describe('DependencyTree', () => {
 
   it('show children when branch is not collapsed', () => {
     renderComponent();
-    expect(screen.getAllByRole('treeitem')[1]).toHaveClassName('open');
+    expect(screen.getAllByRole('treeitem')[0]).toHaveClassName('open');
   });
 
   it('hides children when branch is collapsed', () => {

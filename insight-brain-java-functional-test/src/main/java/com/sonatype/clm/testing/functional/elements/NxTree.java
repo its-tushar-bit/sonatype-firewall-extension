@@ -26,6 +26,10 @@ public class NxTree
     return children(".nx-tree__item .nx-text-link");
   }
 
+  public ElementsCollection collapseIcons() {
+    return children(".nx-tree__collapse-click");
+  }
+
   public ElementsCollection nonClickableTreeItems() {
     return children(".nx-tree__item .iq-matched-hash-tree-label");
   }

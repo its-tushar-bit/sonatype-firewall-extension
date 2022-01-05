@@ -521,6 +521,97 @@ public class ComponentDetailsTest
   }
 
   @Test
+  public void testOverviewTab_DependencyTreeTile_InitialState() throws IOException {
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/report-with-dependency-tree", tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    evaluator.evaluatePolicy();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    refreshOrOpen(
+            ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "ae81d32288bf8419181f"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
+    dependencyTreeTile.shouldBe(visible);
+    dependencyTreeTile.title().shouldHave(text("Dependency Tree"));
+
+    final NxTree nxTree = dependencyTreeTile.tree();
+
+    ElementsCollection clickableTreeItems = nxTree.clickableTreeItems();
+    ElementsCollection nonClickableTreeItems = nxTree.nonClickableTreeItems();
+    ElementsCollection clickableIcons = nxTree.collapseIcons();
+
+    nxTree.treeItems().get(0).shouldHave(text("ApplicationReportTest"));
+    clickableTreeItems.shouldHaveSize(4);
+    scrollIntoView(clickableTreeItems.get(0), true);
+
+    clickableTreeItems.get(0).shouldHave(text("org.apache.flume : flume-ng-node : 1.0.0-incubating"));
+
+    clickableTreeItems.get(1).shouldHave(text("org.apache.flume : flume-ng-core : 1.0.0-incubating"));
+
+    clickableTreeItems.get(0).shouldBe(visible);
+    clickableTreeItems.get(1).shouldBe(visible);
+    clickableTreeItems.get(2).shouldNotBe(visible);
+    clickableTreeItems.get(3).shouldNotBe(visible);
+
+    nonClickableTreeItems.shouldHaveSize(1);
+
+    nonClickableTreeItems.get(0).shouldHave(text("org.apache.avro : avro-ipc : 1.5.0"));
+
+    eyesWatcher.eyesCheck("Overview tab with dependency tree tile collapsed");
+
+    clickableIcons.get(2).click();
+    clickableTreeItems.get(2).shouldBe(visible);
+    clickableTreeItems.get(3).shouldBe(visible);
+
+    clickableTreeItems.get(2).shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
+
+    clickableTreeItems.get(3).shouldHave(text("org.slf4j : slf4j-api : 1.6.1"));
+
+    eyesWatcher.eyesCheck("Overview tab with dependency tree tile expanded");
+  }
+
+  @Test
+  public void testOverviewTab_DependencyTreeTileInitialStateDirectDependency() throws IOException {
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/report-with-dependency-tree", tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    evaluator.evaluatePolicy();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    refreshOrOpen(
+            ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "ad19001bd021002377c2"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
+    dependencyTreeTile.shouldBe(visible);
+    dependencyTreeTile.title().shouldHave(text("Dependency Tree"));
+
+    final NxTree nxTree = dependencyTreeTile.tree();
+
+    ElementsCollection clickableTreeItems = nxTree.clickableTreeItems();
+    ElementsCollection nonClickableTreeItems = nxTree.nonClickableTreeItems();
+
+    nxTree.treeItems().get(0).shouldHave(text("ApplicationReportTest"));
+    clickableTreeItems.shouldHaveSize(10);
+    scrollIntoView(clickableTreeItems.get(0), true);
+
+    clickableTreeItems.get(0).shouldBe(visible);
+    clickableTreeItems.get(1).shouldBe(visible);
+    clickableTreeItems.get(2).shouldBe(visible);
+    clickableTreeItems.get(4).shouldBe(visible);
+    clickableTreeItems.get(5).shouldBe(visible);
+    clickableTreeItems.get(6).shouldBe(visible);
+    clickableTreeItems.get(7).shouldBe(visible);
+    clickableTreeItems.get(8).shouldBe(visible);
+    clickableTreeItems.get(9).shouldBe(visible);
+
+    nonClickableTreeItems.shouldHaveSize(1);
+
+    eyesWatcher.eyesCheck("Overview tab with dependency tree direct dependency");
+
+  }
+
+  @Test
   public void testPolicyViolationsTab_violationTableEntries() {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     SelenideElement lastViolation = reportPage.resultRows().last();

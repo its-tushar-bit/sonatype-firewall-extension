@@ -46,12 +46,32 @@ describe('dependencyTreeUtil', () => {
       expect(firstDependency.hash).toBe('qwert3214');
       expect(firstDependency.treePath).toEqual([0]);
       expect(firstDependency.children.length).toBe(1);
+      expect(firstDependency.isOpen).toBeTrue();
 
       const [firstChildDependency] = firstDependency.children;
 
       expect(firstChildDependency.hash).toBe('qwert32145');
       expect(firstChildDependency.treePath).toEqual([0, 'children', 0]);
       expect(firstChildDependency.children).toBeNull();
+      expect(firstChildDependency.isOpen).toBeFalse();
+    });
+
+    it('returns subset for a matching direct dependency', () => {
+      const subset = getDependencyTreeSubset(dependencyTreeData, 'qwert3214');
+
+      const [firstDependency] = subset;
+
+      expect(firstDependency.hash).toBe('qwert3214');
+      expect(firstDependency.treePath).toEqual([0]);
+      expect(firstDependency.children.length).toBe(1);
+      expect(firstDependency.isOpen).toBeTrue();
+
+      const [firstChildDependency] = firstDependency.children;
+
+      expect(firstChildDependency.hash).toBe('qwert32145');
+      expect(firstChildDependency.treePath).toEqual([0, 'children', 0]);
+      expect(firstChildDependency.children).toBeNull();
+      expect(firstChildDependency.isOpen).toBeTrue();
     });
   });
 });

@@ -81,8 +81,9 @@ export const getDependencyTreeSubset = (dependencyTree, hash) => {
   const hasMatchingHash = propEq('hash', hash);
   const reduceByHash = (tree) =>
     tree.reduce((acc, node) => {
+      const isDirect = node.treePath.length < 3;
       if (hasMatchingHash(node)) {
-        return [...acc, node];
+        return [...acc, { ...node, isOpen: isDirect }];
       }
 
       const filteredChildren = node.children && reduceByHash(node.children);
@@ -92,7 +93,7 @@ export const getDependencyTreeSubset = (dependencyTree, hash) => {
         return acc;
       }
 
-      return [...acc, { ...node, children: filteredChildren }];
+      return [...acc, { ...node, children: filteredChildren, isOpen: true }];
     }, []);
 
   const subset = reduceByHash(dependencyTree);

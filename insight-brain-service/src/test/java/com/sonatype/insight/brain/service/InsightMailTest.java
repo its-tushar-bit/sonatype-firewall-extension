@@ -17,6 +17,7 @@ import javax.mail.Session;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 
+import org.apache.commons.mail.EmailConstants;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -123,9 +124,17 @@ public class InsightMailTest
     // Assert mail server
     Session session = email.getSession();
     assertThat(session.getProperties()) //
-        .containsEntry("mail.smtp.host", mailConfiguration.getHostname())
-        .containsEntry("mail.smtp.port", String.valueOf(mailConfiguration.getPort()))
-        .containsEntry("mail.smtp.starttls.enable", String.valueOf(mailConfiguration.isStartTlsEnabled()));
+        .containsEntry(EmailConstants.MAIL_HOST, mailConfiguration.getHostname())
+        .containsEntry(EmailConstants.MAIL_PORT, String.valueOf(mailConfiguration.getPort()))
+        .containsEntry(EmailConstants.MAIL_TRANSPORT_STARTTLS_ENABLE,
+            String.valueOf(mailConfiguration.isStartTlsEnabled()));
+
+    if (mailConfiguration.isStartTlsEnabled() || mailConfiguration.isSslEnabled()) {
+      assertThat(session.getProperties()).containsEntry(EmailConstants.MAIL_SMTP_SSL_CHECKSERVERIDENTITY, "true");
+    }
+    else {
+      assertThat(session.getProperties()).doesNotContainEntry(EmailConstants.MAIL_SMTP_SSL_CHECKSERVERIDENTITY, "true");
+    }
 
     // Assert authentication
     PasswordAuthentication passwordAuthentication = session.requestPasswordAuthentication(null, 0, null, null, null);

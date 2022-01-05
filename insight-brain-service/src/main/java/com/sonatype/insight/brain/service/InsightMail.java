@@ -83,6 +83,7 @@ public class InsightMail
       }
       email.setSSLOnConnect(mailConfiguration.isSslEnabled());
       email.setStartTLSEnabled(mailConfiguration.isStartTlsEnabled());
+      email.setSSLCheckServerIdentity(true);
 
       if (StringUtils.isNotBlank(mailConfiguration.getUsername())) {
         email.setAuthentication( //

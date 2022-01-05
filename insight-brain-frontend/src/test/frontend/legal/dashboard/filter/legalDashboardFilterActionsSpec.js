@@ -16,6 +16,7 @@ import {
   getOrganizationsUrl,
   getApplicationTagsUrl,
   getLegalDashboardApplicationsUrl,
+  getLegalDashboardComponentsUrl,
   getLegalDashboardFilters,
   getLegalDashboardSavedFilters,
 } from '../../../../../main/frontend/util/CLMLocation';
@@ -41,6 +42,13 @@ describe('legalDashboardFilterActions', function () {
   };
 
   const initialState = {
+    router: {
+      currentState: {
+        data: {
+          activeTab: 'applications',
+        },
+      },
+    },
     stages: {
       dashboard: {
         stageTypes: [{ stageTypeId: 1, stageName: 'stage' }],
@@ -62,16 +70,20 @@ describe('legalDashboardFilterActions', function () {
     },
   };
 
-  const applicationsPayload = {
-    applicationIds: [],
-    organizationIds: [],
-    stageTypeIds: [],
-    tagIds: [],
-    reviewStatus: [],
-    page: 1,
-    pageSize: DASHBOARD.applications.itemsPerPage * DASHBOARD.applications.pagesToFill,
-    order: null,
-  };
+  function getRequestPayload(activeTab) {
+    const payload = {
+      applicationIds: [],
+      organizationIds: [],
+      stageTypeIds: [],
+      tagIds: [],
+      reviewStatus: [],
+      page: 1,
+      pageSize: DASHBOARD[activeTab].itemsPerPage * DASHBOARD[activeTab].pagesToFill,
+      order: null,
+    };
+
+    return activeTab === 'components' ? { ...payload, componentName: undefined, order: undefined } : payload;
+  }
 
   describe('loadFilter', function () {
     describe('when failed fetching filter data', function () {
@@ -112,7 +124,7 @@ describe('legalDashboardFilterActions', function () {
     });
   });
 
-  describe('applyFilter', function () {
+  describe('applyFilter for applications tab', function () {
     const expectedFailAction = {
       type: 'LEGAL_DASHBOARD_APPLY_FILTER_FAILED',
       payload: 'Error 403',
@@ -125,7 +137,20 @@ describe('legalDashboardFilterActions', function () {
     testFailedToUpdateFilter(action, 'test filters', 'test filter name', expectedFailAction);
   });
 
-  describe('applyDefaultFilter', function () {
+  describe('applyFilter for components tab', function () {
+    const expectedFailAction = {
+      type: 'LEGAL_DASHBOARD_APPLY_FILTER_FAILED',
+      payload: 'Error 403',
+    };
+
+    const action = applyFilter('test filters', 'test filter name');
+
+    testSuccessfullyUpdatesFiltersAndLoadsResults(action, 'test filters', 'test filter name', 'components');
+    testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, 'test filters', 'test filter name', 'components');
+    testFailedToUpdateFilter(action, 'test filters', 'test filter name', expectedFailAction, 'components');
+  });
+
+  describe('applyDefaultFilter for applications tab', function () {
     const filter = filterToJson(defaultFilter);
 
     const expectedFailAction = {
@@ -140,6 +165,21 @@ describe('legalDashboardFilterActions', function () {
     testFailedToUpdateFilter(action, filter, null, expectedFailAction);
   });
 
+  describe('applyDefaultFilter for components tab', function () {
+    const filter = filterToJson(defaultFilter);
+
+    const expectedFailAction = {
+      type: 'LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED',
+      payload: 'Default filter',
+    };
+
+    const action = applyDefaultFilter();
+
+    testSuccessfullyUpdatesFiltersAndLoadsResults(action, filter, null, 'components');
+    testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, filter, null, 'components');
+    testFailedToUpdateFilter(action, filter, null, expectedFailAction, 'components');
+  });
+
   describe('applyFilterCancelled', function () {
     it('dispatches an LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED function', () => {
       store = SpecUtil.mockReduxStore(initialState);
@@ -152,19 +192,27 @@ describe('legalDashboardFilterActions', function () {
     });
   });
 
-  function testFailedToUpdateFilter(action, expectedFilter, expectedFilterName, expectedFailAction) {
+  function testFailedToUpdateFilter(
+    action,
+    expectedFilter,
+    expectedFilterName,
+    expectedFailAction,
+    activeTab = 'applications'
+  ) {
+    const endpointUrl = getEndpointUrl(activeTab);
     it(`dispatches ${expectedFailAction.type} if failed to update filters`, function (done) {
       mockAxiosCalls({
         put: {
           [getLegalDashboardFilters()]: () => Promise.reject({ status: 403 }),
         },
         post: {
-          [getLegalDashboardApplicationsUrl()]: Promise.resolve({
+          [endpointUrl]: Promise.resolve({
             data: { dashboardResults: 'results' },
           }),
         },
       });
 
+      initialState.router.currentState.data.activeTab = activeTab;
       store = SpecUtil.mockReduxStore(initialState);
 
       store.dispatch(action).catch(() => {
@@ -173,7 +221,7 @@ describe('legalDashboardFilterActions', function () {
           basedOnFilterName: expectedFilterName,
           type: 'ADVANCED_LEGAL_PACK_DASHBOARD',
         });
-        expect(axios.post).not.toHaveBeenCalledWith(getLegalDashboardApplicationsUrl());
+        expect(axios.post).not.toHaveBeenCalledWith(endpointUrl);
 
         expect(store.getActions().length).toBe(2);
 
@@ -189,7 +237,17 @@ describe('legalDashboardFilterActions', function () {
     });
   }
 
-  function testSuccessfullyUpdatesFiltersAndLoadsResults(action, expectedFilter, expectedFilterName) {
+  function getEndpointUrl(activeTab) {
+    return activeTab === 'components' ? getLegalDashboardComponentsUrl() : getLegalDashboardApplicationsUrl();
+  }
+
+  function testSuccessfullyUpdatesFiltersAndLoadsResults(
+    action,
+    expectedFilter,
+    expectedFilterName,
+    activeTab = 'applications'
+  ) {
+    const endpointUrl = getEndpointUrl(activeTab);
     it('updates filters and loads results', function (done) {
       mockAxiosCalls({
         put: {
@@ -198,16 +256,17 @@ describe('legalDashboardFilterActions', function () {
           }),
         },
         post: {
-          [getLegalDashboardApplicationsUrl()]: Promise.resolve({
-            data: { applications: { results: [] } },
+          [endpointUrl]: Promise.resolve({
+            data: { [activeTab]: { results: [] } },
           }),
         },
       });
 
+      initialState.router.currentState.data.activeTab = activeTab;
       store = SpecUtil.mockReduxStore(initialState);
 
       store.dispatch(action).then(() => {
-        expect(axios.post).toHaveBeenCalledWith(getLegalDashboardApplicationsUrl(), applicationsPayload);
+        expect(axios.post).toHaveBeenCalledWith(endpointUrl, getRequestPayload(activeTab));
         expect(axios.put).toHaveBeenCalledWith(getLegalDashboardFilters(), {
           filter: expectedFilter,
           basedOnFilterName: expectedFilterName,
@@ -225,14 +284,14 @@ describe('legalDashboardFilterActions', function () {
         });
         expect(store.getActions()[2]).toEqual({
           type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
-          payload: 'applications',
+          payload: activeTab,
         });
 
         expect(store.getActions()[3]).toEqual({
           type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED',
           payload: {
-            resultsType: 'applications',
-            results: { applications: { results: [] } },
+            resultsType: activeTab,
+            results: { [activeTab]: { results: [] } },
           },
         });
 
@@ -246,7 +305,13 @@ describe('legalDashboardFilterActions', function () {
     });
   }
 
-  function testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, expectedFilter, expectedFilterName) {
+  function testSuccessfullyUpdatesFiltersButFailsToLoadsResults(
+    action,
+    expectedFilter,
+    expectedFilterName,
+    activeTab = 'applications'
+  ) {
+    const endpointUrl = getEndpointUrl(activeTab);
     it('returns rejected promise and does not dispatch apply filter failed action if failed to load results', function (done) {
       mockAxiosCalls({
         put: {
@@ -255,14 +320,15 @@ describe('legalDashboardFilterActions', function () {
           }),
         },
         post: {
-          [getLegalDashboardApplicationsUrl()]: () => Promise.reject('load results error'),
+          [endpointUrl]: () => Promise.reject('load results error'),
         },
       });
 
+      initialState.router.currentState.data.activeTab = activeTab;
       store = SpecUtil.mockReduxStore(initialState);
 
       store.dispatch(action).catch(() => {
-        expect(axios.post).toHaveBeenCalledWith(getLegalDashboardApplicationsUrl(), applicationsPayload);
+        expect(axios.post).toHaveBeenCalledWith(endpointUrl, getRequestPayload(activeTab));
         expect(axios.put).toHaveBeenCalledWith(getLegalDashboardFilters(), {
           filter: expectedFilter,
           basedOnFilterName: expectedFilterName,
@@ -281,14 +347,14 @@ describe('legalDashboardFilterActions', function () {
 
         expect(store.getActions()[2]).toEqual({
           type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
-          payload: 'applications',
+          payload: activeTab,
         });
 
         expect(store.getActions()[3]).toEqual({
           type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FAILED',
           payload: {
             error: 'load results error',
-            resultsType: 'applications',
+            resultsType: activeTab,
           },
         });
 

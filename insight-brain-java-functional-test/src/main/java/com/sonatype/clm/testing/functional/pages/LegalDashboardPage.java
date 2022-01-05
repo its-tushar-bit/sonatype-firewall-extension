@@ -15,6 +15,8 @@ public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
 {
   public static final String ROOT = "#legal-dashboard-container";
 
+  private static final String CHECKBOX_SELECTOR = ".nx-checkbox";
+
   public LegalDashboardPage() {
     super(ROOT);
   }
@@ -96,5 +98,37 @@ public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
 
   public SelenideElement selectedPaginationPage() {
     return child(".nx-btn--pagination.selected");
+  }
+
+  public SelenideElement filterButton() {
+    return child("#filter-toggle");
+  }
+
+  public ElementsCollection filterCollapsibleItems() {
+    return children(".nx-collapsible-items");
+  }
+
+  public ElementsCollection filterOrganizationsCheckBoxes() {
+    return filterCollapsibleItems().get(0).findAll(CHECKBOX_SELECTOR);
+  }
+
+  public ElementsCollection filterApplicationsCheckBoxes() {
+    return filterCollapsibleItems().get(1).findAll(CHECKBOX_SELECTOR);
+  }
+
+  public ElementsCollection filterApplicationCategoriesCheckBoxes() {
+    return filterCollapsibleItems().get(2).findAll(CHECKBOX_SELECTOR);
+  }
+
+  public ElementsCollection filterStagesCheckBoxes() {
+    return filterCollapsibleItems().get(3).findAll(CHECKBOX_SELECTOR);
+  }
+
+  public ElementsCollection filterReviewProgressCheckBoxes() {
+    return filterCollapsibleItems().get(4).findAll(CHECKBOX_SELECTOR);
+  }
+
+  public SelenideElement filterApplyButton() {
+    return child("#legal-dashboard-filter-apply");
   }
 }

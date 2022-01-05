@@ -20,6 +20,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
 import com.codeborne.selenide.Condition;
 import org.apache.commons.io.IOUtils;
@@ -51,12 +53,13 @@ public class LegalDashboardPageTest
           String artifactId,
           String version,
           String hash,
+          String stageTypeId,
           String... licenseIds)
   {
     final ComponentIdentifier componentIdentifier =
             ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
     final ApplicationComponent applicationComponent =
-            tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, hash,
+            tempEntity.newApplicationComponent(application.getId(), stageTypeId, hash,
                     componentIdentifier);
     Arrays.stream(licenseIds)
             .forEach(licenseId -> tempEntity.newApplicationComponentLicense(applicationComponent.getId(), licenseId));
@@ -106,8 +109,11 @@ public class LegalDashboardPageTest
       
       currentComponentName = (i == 1 || i == 12) ? "#$%&/" : "component";
 
+      String stageType = i % 3 == 0 ? BuildStageType.ID : ( i % 5 == 0 ? SourceStageType.ID : ReleaseStageType.ID );
+
       addComponentAndLicenses(apps[ i % apps.length ], "org.package", currentComponentName,
-              (i % licenses.length + 1 ) + ".0", "hash" + (i % licenses.length + 1), licenses[ i % licenses.length ]);
+              (i % licenses.length + 1 ) + ".0", "hash" + (i % licenses.length + 1),
+                          stageType, licenses[ i % licenses.length ]);
 
       componentIdentifiers[ i % licenses.length ] = componentIdentifiers[ i % licenses.length ] != null ?
               componentIdentifiers[ i % licenses.length ] : ComponentIdentifier
@@ -333,5 +339,112 @@ public class LegalDashboardPageTest
     wait.until(ExpectedConditions.visibilityOf(attributionSummaryTile.getElement()));
     ComponentLegalOverviewPage.backLink().click();
     wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
+  }
+
+  @Test
+  public void testComponentsFilterByOrganizations() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.filterButton().click();
+    ldp.filterCollapsibleItems().get(0).click();
+    ldp.filterOrganizationsCheckBoxes().get(3).click();
+    ldp.filterApplyButton().click();
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
+    ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
+    ldp.tableRows().shouldHaveSize(7);
+    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : component : 1.0 Apache-1.0 1 - / -"));
+    ldp.tableRows().get(6).shouldHave(
+            Condition.text("org.package : component : 9.0 GreenSock-Commercial-License 1 - / -"));
+  }
+
+  @Test
+  public void testComponentsFilterByApplication() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.filterButton().click();
+    ldp.filterCollapsibleItems().get(1).click();
+    ldp.filterApplicationsCheckBoxes().get(1).click();
+    ldp.filterApplyButton().click();
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
+    ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
+    ldp.tableRows().shouldHaveSize(6);
+    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 1 1 / 4"));
+    ldp.tableRows().get(5).shouldHave(Condition.text("org.package : component : 8.0 GPL-2.0+ or LGPL-3.0+ 1 - / -"));
+  }
+
+  @Test
+  public void testComponentsFilterByApplicationCategories() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.filterButton().click();
+    ldp.filterCollapsibleItems().get(2).click();
+    ldp.filterApplicationCategoriesCheckBoxes().get(1).click();
+    ldp.filterApplyButton().click();
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
+    ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
+    ldp.tableRows().shouldHaveSize(10);
+    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 2 1 / 4"));
+    ldp.tableRows().get(9).shouldHave(
+            Condition.text("org.package : component : 8.0 GPL-2.0, GPL-2.0+ or LGPL-3.0+, GPL-3.0, LGPL-3.0 2 - / -"));
+  }
+
+  @Test
+  public void testComponentsFilterByStages() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.filterButton().click();
+    ldp.filterCollapsibleItems().get(3).click();
+    ldp.filterStagesCheckBoxes().get(1).click();
+    ldp.filterApplyButton().click();
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
+    ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
+    ldp.tableRows().shouldHaveSize(3);
+    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : component : 10.0 Gridifier-Developer-LA 1 - / -"));
+    ldp.tableRows().get(2).shouldHave(Condition.text("org.package : component : 6.0 CC-BY-NC-3.0 1 - / -"));
+
+    ldp.filterStagesCheckBoxes().get(1).click();
+    ldp.filterStagesCheckBoxes().get(2).click();
+    ldp.filterApplyButton().click();
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
+    ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
+    ldp.tableRows().shouldHaveSize(6);
+    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 1 1 / 4"));
+    ldp.tableRows().get(5).shouldHave(Condition.text("org.package : component : 8.0 GPL-2.0+ or LGPL-3.0+ 1 - / -"));
+
+    ldp.filterStagesCheckBoxes().get(2).click();
+    ldp.filterStagesCheckBoxes().get(4).click();
+    ldp.filterApplyButton().click();
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
+    ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
+    ldp.tableRows().shouldHaveSize(9);
+    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 1 1 / 4"));
+    ldp.tableRows().get(8).shouldHave(
+            Condition.text("org.package : component : 9.0 GreenSock-Commercial-License 2 - / -"));
+  }
+
+  @Test
+  public void testComponentsFilterByReviewProgress() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    this.changeToComponentsTab(ldp);
+    ldp.filterButton().click();
+    ldp.filterCollapsibleItems().get(4).click();
+    ldp.filterReviewProgressCheckBoxes().get(2).click();
+    ldp.filterApplyButton().click();
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
+    ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
+    ldp.tableRows().shouldHaveSize(10);
+    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 2 1 / 4"));
+    ldp.tableRows().get(9).shouldHave(
+            Condition.text("org.package : component : 8.0 GPL-2.0, GPL-2.0+ or LGPL-3.0+, GPL-3.0, LGPL-3.0 2 - / -"));
   }
 }

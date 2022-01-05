@@ -146,7 +146,7 @@ export const applyFilterCancelled = noPayloadActionCreator(LEGAL_DASHBOARD_APPLY
 const applySavedFilterFailed = payloadParamActionCreator(LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED);
 
 function applyFilterFulfilled(data, basedOnFilterName) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
     dispatch({
       type: LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED,
       payload: {
@@ -154,7 +154,7 @@ function applyFilterFulfilled(data, basedOnFilterName) {
         basedOnFilterName,
       },
     });
-    return dispatch(loadResults('applications'));
+    return dispatch(loadResults(getState().router.currentState.data.activeTab));
   };
 }
 

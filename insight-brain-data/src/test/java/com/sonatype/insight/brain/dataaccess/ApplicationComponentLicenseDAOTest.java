@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -140,6 +144,73 @@ public class ApplicationComponentLicenseDAOTest
   }
 
   @Test
+  public void testGetApplicationComponentEffectiveLicensesMultiApplications() {
+    StageType stageType = new BuildStageType();
+
+    Application app1 = tempEntity.newApplication(organization.getId());
+    ApplicationComponent applicationComponent1 =
+        tempEntity.newApplicationComponent(app1.getId(), stageType.getId(), "hash1",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    tempEntity.newApplicationComponentLicense(applicationComponent1.getId(), "license-1");
+
+    Application app2 = tempEntity.newApplication(organization.getId());
+    ApplicationComponent applicationComponent2 =
+        tempEntity.newApplicationComponent(app2.getId(), stageType.getId(), "hash2",
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+    tempEntity.newApplicationComponentLicense(applicationComponent2.getId(), "license-1");
+    tempEntity.newApplicationComponentLicense(applicationComponent2.getId(), "license-2");
+
+    Application app3 = tempEntity.newApplication(organization.getId());
+    ApplicationComponent applicationComponent3 =
+        tempEntity.newApplicationComponent(app3.getId(), stageType.getId(), "hash3",
+        ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"));
+    tempEntity.newApplicationComponentLicense(applicationComponent3.getId(), "license-1");
+    tempEntity.newLicenseOverride(applicationComponent3.getApplicationId(),
+        applicationComponent3.getComponentIdentifier(), LicenseOverrideStatus.OVERRIDDEN, "MIT");
+
+    Application app4 = tempEntity.newApplication(organization.getId());
+    ApplicationComponent applicationComponent4 =
+        tempEntity.newApplicationComponent(app4.getId(), stageType.getId(), "hash4",
+        ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"));
+    tempEntity.newApplicationComponentLicense(applicationComponent4.getId(), "license-1");
+    tempEntity.newLicenseOverride(application.getOrganizationId(), applicationComponent4.getComponentIdentifier(),
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
+
+    Application app5 = tempEntity.newApplication(organization.getId());
+    ApplicationComponent applicationComponent5 =
+        tempEntity.newApplicationComponent(app5.getId(), stageType.getId(), "hash5",
+        ComponentIdentifier.createMavenCoordinates("g5", "a5", "v5"));
+    tempEntity.newApplicationComponentLicense(applicationComponent5.getId(), "license-1");
+    tempEntity.newLicenseOverride(Organization.ROOT_ORGANIZATION_ID, applicationComponent5.getComponentIdentifier(),
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
+
+    // using other stage type
+    Application app6 = tempEntity.newApplication(organization.getId());
+    ApplicationComponent applicationComponent6 = tempEntity.newApplicationComponent(app6.getId(), DevelopStageType.ID,
+        "hash6", ComponentIdentifier.createMavenCoordinates("g6", "a6", "v6"));
+    tempEntity.newApplicationComponentLicense(applicationComponent6.getId(), "license-6");
+
+    // using other application
+    Application otherApplication = tempEntity.newApplication(organization.getId());
+    ApplicationComponent applicationComponent7 = tempEntity.newApplicationComponent(otherApplication.getId(),
+        stageType.getId(), "hash7", ComponentIdentifier.createMavenCoordinates("g7", "a7", "v7"));
+    tempEntity.newApplicationComponentLicense(applicationComponent7.getId(), "license-7");
+
+    Set<String> applicationsIds =
+        new HashSet<>(Arrays.asList(app1.getId(), app2.getId(), app3.getId(), app4.getId(), app5.getId(), app6.getId(),
+            otherApplication.getId()));
+
+    assertThat(dao.getApplicationComponentEffectiveLicenses(applicationsIds, Sets.newHashSet(stageType.getId())))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(newApplicationComponentLicensesDTO(applicationComponent1, "license-1"),
+            newApplicationComponentLicensesDTO(applicationComponent2, "license-1", "license-2"),
+            newApplicationComponentLicensesDTO(applicationComponent3, "MIT"),
+            newApplicationComponentLicensesDTO(applicationComponent4, "Apache-2.0"),
+            newApplicationComponentLicensesDTO(applicationComponent5, "Apache-2.0"),
+            newApplicationComponentLicensesDTO(applicationComponent7, "license-7"));
+  }
+
+  @Test
   public void testDeleteByApplicationComponentId() {
     ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
@@ -167,7 +238,8 @@ public class ApplicationComponentLicenseDAOTest
       String... licenses)
   {
     ComponentIdentifier componentIdentifier = applicationComponent.getComponentIdentifier();
-    return new ApplicationComponentLicensesDTO(applicationComponent.getHash(), componentIdentifier.getFormat(),
+    return new ApplicationComponentLicensesDTO(applicationComponent.getApplicationId(), applicationComponent.getHash(),
+        componentIdentifier.getFormat(),
         JsonUtils.writeUnformatted(applicationComponent.getComponentIdentifier().getCoordinates()),
         StringUtils.join(licenses, '\n'));
   }

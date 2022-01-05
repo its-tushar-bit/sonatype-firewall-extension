@@ -22,6 +22,8 @@ public class ApplicationComponentLicensesDTO
   /** The licenses delimiter character escaped for regular expressions. */
   private static final String LICENSES_DELIMITER_REGEX = "\\" + LICENSES_DELIMITER_CHAR;
 
+  private String applicationId;
+
   private String hash;
 
   private String componentIdFormat;
@@ -33,15 +35,21 @@ public class ApplicationComponentLicensesDTO
   private ComponentIdentifier componentIdentifier;
 
   public ApplicationComponentLicensesDTO(
+      String applicationId,
       String hash,
       String componentIdFormat,
       String componentIdCoordinatesJson,
       String licensesString)
   {
+    this.applicationId = applicationId;
     this.hash = hash;
     this.componentIdFormat = componentIdFormat;
     this.componentIdCoordinatesJson = componentIdCoordinatesJson;
     this.licensesString = licensesString;
+  }
+
+  public String getApplicationId() {
+    return applicationId;
   }
 
   public String getHash() {

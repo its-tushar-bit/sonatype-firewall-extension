@@ -9,8 +9,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTOV2;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ApiLicenseLegalComponentDashboardDTO
 {
@@ -20,12 +24,22 @@ public class ApiLicenseLegalComponentDashboardDTO
 
   public ApiLicenseLegalComponentDashboardDTO(ApplicationComponent applicationComponent) {
     this.hash = applicationComponent.getHash();
-    this.displayName = applicationComponent.getComponentIdentifier() != null
-        ? ComponentDisplayNameUtil.fromIdentifier(applicationComponent.getComponentIdentifier()).toString()
+    this.componentIdentifier = applicationComponent.getComponentIdentifier();
+    this.displayName = componentIdentifier != null
+        ? ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString()
         : applicationComponent.getPathnames().get(0);
   }
 
+  public ApiLicenseLegalComponentDashboardDTO(ApplicationComponentLicensesDTO applicationComponentLicensesDTO) {
+    this.hash = applicationComponentLicensesDTO.getHash();
+    this.componentIdentifier = applicationComponentLicensesDTO.getComponentIdentifier();
+    this.displayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();
+  }
+
   public String hash;
+
+  @JsonIgnore
+  public ComponentIdentifier componentIdentifier;
 
   public String displayName;
 
@@ -36,4 +50,7 @@ public class ApiLicenseLegalComponentDashboardDTO
   public int reviewCompletedCount;
 
   public int reviewTotalCount;
+
+  @JsonIgnore
+  public LicenseObligationReviewStatus reviewStatus;
 }

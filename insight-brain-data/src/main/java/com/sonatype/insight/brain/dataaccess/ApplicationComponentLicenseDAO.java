@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,6 +24,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class ApplicationComponentLicenseDAO
     extends AbstractOperationalSqlDAO<ApplicationComponentLicense>
 {
+  private static final int H2_IN_OPERATOR_THRESHOLD_COMPLEX_QUERY = 350;
+
   @Override
   public ApplicationComponentLicense getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM ApplicationComponentLicense entity" + //
@@ -60,13 +64,33 @@ public class ApplicationComponentLicenseDAO
    * @return A list of {@link ApplicationComponentLicensesDTO} where a {@link ComponentIdentifier} has the list of
    *         licenses.
    */
-  @SuppressWarnings("unchecked")
   public List<ApplicationComponentLicensesDTO> getApplicationComponentEffectiveLicenses(
       String applicationId,
       Set<String> stageTypeIds)
   {
+    return getApplicationComponentEffectiveLicenses(Collections.singleton(applicationId), stageTypeIds);
+  }
+
+  /**
+   * Gets the effective licenses for components from an evaluation made for applications in a give state type, grouped
+   * by {@link ComponentIdentifier}.
+   * An effective license may come from an override (made by application, organization or root organization scope) or an
+   * existing record in the table application_component_license (found during evaluation).
+   * 
+   * @param applicationIds Application IDs to query.
+   * @param stageTypeIds Stage type IDs to query.
+   * @return A list of {@link ApplicationComponentLicensesDTO} where a {@link ComponentIdentifier} has the list of
+   *         licenses.
+   */
+  @SuppressWarnings("unchecked")
+  public List<ApplicationComponentLicensesDTO> getApplicationComponentEffectiveLicenses(
+      Set<String> applicationIds,
+      Set<String> stageTypeIds)
+  {
     try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = "SELECT ac.hash, ac.component_id_format," + //
+      boolean requiresManualFilter = requiresManualFilter(applicationIds);
+
+      String sQuery = "SELECT ac.application_id, ac.hash, ac.component_id_format," + //
           "  ac.component_id_coordinates_json," + //
           "  STRING_AGG(DISTINCT COALESCE(li.license_id, li2.license_id, li3.license_id, acl.effective_license_id)," +
           "    CHR(10)) licenses" +
@@ -93,19 +117,24 @@ public class ApplicationComponentLicenseDAO
           "     AND li3.component_id_coordinates_json = ac.component_id_coordinates_json" + //
           "   LEFT JOIN insight_brain_ods.application_component_license acl" + //
           "     ON acl.application_component_id = ac.application_component_id" + //
-          " WHERE ac.application_id = ?2" + //
-          " AND ac.stage_type_id IN " + buildPositionalParameters(stageTypeIds, 3) + //
-          " GROUP BY ac.hash, ac.component_id_format,ac.component_id_coordinates_json";
+          " WHERE ac.stage_type_id IN " + buildPositionalParameters(stageTypeIds, 2) + //
+          (!requiresManualFilter
+              ? " AND ac.application_id IN " + buildPositionalParameters(applicationIds, stageTypeIds.size() + 2)
+              : "") + //
+          " GROUP BY ac.application_id, ac.hash, ac.component_id_format,ac.component_id_coordinates_json";
 
       javax.persistence.Query query = tx.createNativeQuery(sQuery);
       query.setParameter(1, Organization.ROOT_ORGANIZATION_ID);
-      query.setParameter(2, applicationId);
-      addPositionalParameters(query, stageTypeIds, 3);
+      addPositionalParameters(query, stageTypeIds, 2);
+      if (!requiresManualFilter) {
+        addPositionalParameters(query, applicationIds, stageTypeIds.size() + 2);
+      }
 
       return ((Stream<Object[]>) query.getResultStream()).parallel()
-          .filter(array -> array[0] != null && array[1] != null)
+          .filter(array -> !requiresManualFilter || applicationIds.contains(array[0]))
+          .filter(array -> array[1] != null && array[2] != null)
           .map(array -> new ApplicationComponentLicensesDTO((String) array[0], (String) array[1], (String) array[2],
-              (String) array[3]))
+              (String) array[3], (String) array[4]))
           .collect(Collectors.toList());
     }
   }
@@ -136,5 +165,10 @@ public class ApplicationComponentLicenseDAO
     // WARNING: Don't add any business logic to this method because, for performance reasons,
     // we bypass this method when deleting all entities associated with an application component.
     super.delete(applicationComponentLicense);
+  }
+
+  private boolean requiresManualFilter(Collection<?> items) {
+    return (isDatabaseEmbedded() && items.size() >= H2_IN_OPERATOR_THRESHOLD_COMPLEX_QUERY)
+        || items.size() >= getInOperatorThreshold();
   }
 }

@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -573,6 +574,7 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     List<String> licenseIds = Arrays.asList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
+    app.setId(Organization.ROOT_ORGANIZATION_ID);
     setupLicenseObligations(app, componentIdentifier1, licenseIds, ObligationStatus.FULFILLED,
         ObligationStatus.FULFILLED);
     ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService
@@ -588,6 +590,7 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     List<String> licenseIds = Arrays.asList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
+    app.setId(Organization.ROOT_ORGANIZATION_ID);
     setupLicenseObligations(app, componentIdentifier1, licenseIds, ObligationStatus.IGNORED, ObligationStatus.IGNORED);
     ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService
         .getLicenseLegalComponentsDashboard(new LicenseLegalFilterDTO(null, null, null, null, null, null, 1, 1, null));
@@ -602,6 +605,7 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     List<String> licenseIds = Arrays.asList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
+    app.setId(Organization.ROOT_ORGANIZATION_ID);
     setupLicenseObligations(app, componentIdentifier1, licenseIds, ObligationStatus.IGNORED,
         ObligationStatus.FULFILLED);
     ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService
@@ -617,6 +621,7 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     List<String> licenseIds = Arrays.asList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
+    app.setId(Organization.ROOT_ORGANIZATION_ID);
     setupLicenseObligations(app, componentIdentifier1, licenseIds, ObligationStatus.FULFILLED, ObligationStatus.OPEN);
     ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService
         .getLicenseLegalComponentsDashboard(new LicenseLegalFilterDTO(null, null, null, null, null, null, 1, 1, null));
@@ -631,6 +636,7 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     List<String> licenseIds = Arrays.asList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
+    app.setId(Organization.ROOT_ORGANIZATION_ID);
     setupLicenseObligations(app, componentIdentifier1, licenseIds, ObligationStatus.OPEN, ObligationStatus.IGNORED);
     ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService
         .getLicenseLegalComponentsDashboard(new LicenseLegalFilterDTO(null, null, null, null, null, null, 1, 1, null));
@@ -941,7 +947,7 @@ public class ApiLicenseLegalServiceTest
   @Test
   public void testGetLicenseLegalComponentsDashboard_ByLicense() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    setupComponentDashboardEntities("Tag1", BuildStageType.ID, "somHash", componentIdentifier, "MIT", "Apache-2.0");
+    setupComponentDashboardEntities("Tag1", BuildStageType.ID, "somHash", componentIdentifier, "Apache-2.0", "MIT");
     setupComponentDashboardEntities("Tag1", ReleaseStageType.ID, "somHash2", componentIdentifier, "AGPL-3.0");
 
     ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService
@@ -952,7 +958,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(resultDto.results).hasSize(1);
     ApiLicenseLegalComponentDashboardDTO dto = resultDto.results.get(0);
     assertLegalLicenseComponentDashboardDTO(dto, "somHash", componentIdentifier,
-        Sets.newHashSet("MIT", "Apache-2.0"), 1, 0, 0, "Liberal");
+        Sets.newHashSet("Apache-2.0", "MIT"), 1, 0, 0, "Liberal");
   }
 
   @Test
@@ -1183,7 +1189,10 @@ public class ApiLicenseLegalServiceTest
     setupComponentDashboardEntities("Tag4", BuildStageType.ID, "somHash4", componentIdentifier4, "PUBLIC-DOMAIN");
 
     List<String> licenses = Arrays.asList("MIT");
-
+    
+    applicationTagPair1.getLeft().setId(Organization.ROOT_ORGANIZATION_ID);
+    applicationTagPair2.getLeft().setId(Organization.ROOT_ORGANIZATION_ID);
+    applicationTagPair3.getLeft().setId(Organization.ROOT_ORGANIZATION_ID);
     setupLicenseObligations(applicationTagPair1.getLeft(), componentIdentifier1, licenses, ObligationStatus.OPEN);
     setupLicenseObligations(applicationTagPair2.getLeft(), componentIdentifier2, licenses, ObligationStatus.FLAGGED);
     setupLicenseObligations(applicationTagPair3.getLeft(), componentIdentifier3, licenses, ObligationStatus.FULFILLED);
@@ -1225,7 +1234,8 @@ public class ApiLicenseLegalServiceTest
     setupComponentDashboardEntities("Tag3", BuildStageType.ID, "somHash3", componentIdentifier3, "UNSPECIFIED");
 
     List<String> licenses = Arrays.asList("MIT");
-
+    applicationTagPair1.getLeft().setId(Organization.ROOT_ORGANIZATION_ID);
+    applicationTagPair2.getLeft().setId(Organization.ROOT_ORGANIZATION_ID);
     setupLicenseObligations(applicationTagPair1.getLeft(), componentIdentifier1, licenses, ObligationStatus.OPEN);
     setupLicenseObligations(applicationTagPair2.getLeft(), componentIdentifier2, licenses, ObligationStatus.FLAGGED);
 

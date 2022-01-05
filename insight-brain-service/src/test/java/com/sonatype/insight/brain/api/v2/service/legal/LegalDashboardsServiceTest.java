@@ -164,9 +164,9 @@ public class LegalDashboardsServiceTest
   public void testgetLicenseIds() {
     List<ApplicationComponentLicensesDTO> componentList = new ArrayList<>();
     ApplicationComponentLicensesDTO comp1 =
-        new ApplicationComponentLicensesDTO("hash", "format", "idJson", "Apache 1.1\nApache 1.0\nBSD");
+        new ApplicationComponentLicensesDTO("app", "hash", "format", "idJson", "Apache 1.1\nApache 1.0\nBSD");
     ApplicationComponentLicensesDTO comp2 =
-        new ApplicationComponentLicensesDTO("hash2", "format2", "idJson2", "MIT\nApache 2.0\nBSD");
+        new ApplicationComponentLicensesDTO("app", "hash2", "format2", "idJson2", "MIT\nApache 2.0\nBSD");
     componentList.add(comp1);
     componentList.add(comp2);
     Set<String> result = legalDashboardService.getLicenseIds(componentList);

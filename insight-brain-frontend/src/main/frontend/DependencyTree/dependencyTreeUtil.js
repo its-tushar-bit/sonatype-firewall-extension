@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { propEq, sort, prop, pipe, descend } from 'ramda';
+import { propEq, sort, prop, pipe, descend, curry, contains, toLower } from 'ramda';
 
 import { mapIndexed, isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { serializeComponentIdentifier } from '../util/componentIdentifierUtils';
@@ -23,6 +23,7 @@ export const extendDependencyTreeData = (dependencyTreeData, indexedEntries, tre
       children: child.children ? extendDependencyTreeData(child, indexedEntries, [...newTreePath, 'children']) : null,
       isOpen: true,
       treePath: newTreePath,
+      originalTreePath: newTreePath,
       hash: matcher.hash,
       policyThreatLevel: matcher.policyThreatLevel,
       displayName: matcher.derivedComponentName,
@@ -34,6 +35,26 @@ export const extendDependencyTreeData = (dependencyTreeData, indexedEntries, tre
 
   return formatedData;
 };
+
+export const deepReduce = curry((callback, initialValue, tree) =>
+  tree.reduce((acc, node) => {
+    if (isNilOrEmpty(node.children)) return callback(acc, node);
+    return deepReduce(callback, callback(acc, node), node.children);
+  }, initialValue)
+);
+
+const filterDependencyTreeBy = curry((predicate, tree) =>
+  tree.reduce((dependencies, node) => {
+    const isCurrentNodeSatisfyingPredicate = predicate(node);
+    if (isCurrentNodeSatisfyingPredicate) return [...dependencies, node];
+
+    const filteredChildren = node.children && filterDependencyTreeBy(predicate, node.children);
+    const hasWantedNodesWithinChildren = !isNilOrEmpty(filteredChildren);
+    if (hasWantedNodesWithinChildren) return [...dependencies, { ...node, children: filteredChildren }];
+
+    return dependencies;
+  }, [])
+);
 
 export const filterDependencyTree = (dependencies, entries) => {
   if (!dependencies?.children) return null;
@@ -99,4 +120,13 @@ export const getDependencyTreeSubset = (dependencyTree, hash) => {
   const subset = reduceByHash(dependencyTree);
 
   return updateTreePath(subset);
+};
+
+export const filterDependencyTreeBySearchTerm = (dependencyTree, searchTerm) => {
+  if (isNilOrEmpty(dependencyTree) || !searchTerm) return [];
+
+  const componentNameContainsSearchTerm = pipe(prop('displayName'), toLower, contains(toLower(searchTerm)));
+  const filteredTree = filterDependencyTreeBy(componentNameContainsSearchTerm)(dependencyTree);
+
+  return updateTreePath(filteredTree);
 };

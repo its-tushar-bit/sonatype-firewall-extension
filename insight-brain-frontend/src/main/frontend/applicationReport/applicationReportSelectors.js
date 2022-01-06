@@ -38,13 +38,21 @@ export const selectIsDependenciesLoading = createSelector(selectApplicationRepor
 );
 
 export const selectReportParameters = createSelector(selectApplicationReportSlice, prop('reportParameters'));
+
 export const selectDependencyTreeData = createSelector(selectApplicationReportSlice, prop('dependencyTree'));
 export const selectDependencyTreeIsAvailable = createSelector(
   selectApplicationReportSlice,
   (report) => !!prop('dependencyTree', report)
 );
-
 export const selectDependencyTreeRouterParams = createSelector(
   selectApplicationReportSlice,
   prop('dependencyTreePageRouterParams')
+);
+export const selectDependencyTreeSearchTerm = createSelector(
+  selectApplicationReportSlice,
+  prop('dependencyTreeSearchTerm')
+);
+export const selectDisplayedDependencyTree = createSelector(
+  selectApplicationReportSlice,
+  prop('displayedDependencyTree')
 );

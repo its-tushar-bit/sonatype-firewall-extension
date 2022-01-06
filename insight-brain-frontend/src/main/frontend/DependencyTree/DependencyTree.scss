@@ -22,3 +22,8 @@
 .nx-tree .iq-matched-hash-tree-label {
   @include nx-text-helpers.semi-bold;
 }
+
+.iq-dependency-tree__empty {
+  text-align: center;
+  margin-top: var(--nx-spacing-4x);
+}

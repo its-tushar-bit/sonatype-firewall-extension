@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.LinkedList;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
@@ -34,6 +35,8 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.attribute;
 
 public class DependencyTreeTest
     extends AbstractFunctionalTest
@@ -251,5 +254,71 @@ public class DependencyTreeTest
     menuBarBackButton.click();
 
     waitUntilUrl(DependencyTreePage.url(app, SCAN_ID));
+  }
+
+  @Test
+  public void testDependencyTree_filterByDisplayName() {
+    dependencyTreePage.tree().shouldBe(visible);
+    ElementsCollection clickableTreeItems = dependencyTreePage.tree().clickableTreeItems();
+    clickableTreeItems.shouldHaveSize(35);
+
+    SelenideElement filterInput = dependencyTreePage.componentNameFilterInput();
+    filterInput.setValue("geronimo-security");
+    clickableTreeItems.shouldHaveSize(1);
+
+    eyesWatcher.eyesCheck("dependency tree page filtered by component name");
+
+    clickableTreeItems.get(0).click();
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "848d7549ef7ec13ce546"));
+    MainHeader.backButton().click();
+    waitUntilUrl(DependencyTreePage.url(app, SCAN_ID));
+
+    filterInput.shouldHave(value("geronimo-security"));
+    clickableTreeItems.shouldHaveSize(1);
+
+    filterInput.setValue("non existent component");
+    clickableTreeItems.shouldHaveSize(0);
+
+    eyesWatcher.eyesCheck("dependency tree page filtered by component name with no results");
+  }
+
+  @Test
+  public void testDependencyTree_persistBranchStatus() {
+    dependencyTreePage.tree().shouldBe(visible);
+    ElementsCollection treeItems = dependencyTreePage.tree().treeItems();
+    treeItems.shouldHaveSize(36);
+
+    SelenideElement filterInput = dependencyTreePage.componentNameFilterInput();
+    filterInput.setValue("geronimo");
+    treeItems.shouldHaveSize(9);
+
+    treeItems.forEach(item -> {
+      item.shouldHave(attribute("aria-expanded", "true"));
+    });
+
+    SelenideElement firstCollapsibleTreeItem = treeItems.get(2);
+    dependencyTreePage.tree().collapseIconFor(firstCollapsibleTreeItem).click();
+    firstCollapsibleTreeItem.shouldHave(attribute("aria-expanded", "false"));
+
+    filterInput.setValue("");
+    firstCollapsibleTreeItem.shouldHave(attribute("aria-expanded", "false"));
+  }
+
+  @Test
+  public void testDependencyTree_expandAllNodesInFilteredTree() {
+    dependencyTreePage.tree().shouldBe(visible);
+    ElementsCollection treeItems = dependencyTreePage.tree().treeItems();
+    treeItems.shouldHaveSize(36);
+
+    LinkedList<SelenideElement> collapseIcons = new LinkedList<>(dependencyTreePage.tree().collapseIcons());
+    collapseIcons.descendingIterator().forEachRemaining(SelenideElement::click);
+
+    SelenideElement filterInput = dependencyTreePage.componentNameFilterInput();
+    filterInput.setValue("geronimo");
+    treeItems.shouldHaveSize(9);
+
+    treeItems.forEach(item -> {
+      item.shouldHave(attribute("aria-expanded", "true"));
+    });
   }
 }

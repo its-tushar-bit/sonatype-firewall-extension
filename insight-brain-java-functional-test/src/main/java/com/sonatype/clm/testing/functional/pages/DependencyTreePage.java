@@ -34,4 +34,8 @@ public class DependencyTreePage
   public NxTree tree() {
     return new NxTree(".iq-dependency-tree");
   }
+
+  public SelenideElement componentNameFilterInput() {
+    return child("#iq-dependency-tree-component-name-filter-input");
+  }
 }

@@ -3,7 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { extendDependencyTreeData, getDependencyTreeSubset } from 'MainRoot/DependencyTree/dependencyTreeUtil';
+import {
+  deepReduce,
+  extendDependencyTreeData,
+  filterDependencyTreeBySearchTerm,
+  getDependencyTreeSubset,
+} from 'MainRoot/DependencyTree/dependencyTreeUtil';
 import { dependencyTreeData, unextendedDependencyTreeData, indexedEntries } from './dependencyTreeMockData';
 
 describe('dependencyTreeUtil', () => {
@@ -72,6 +77,59 @@ describe('dependencyTreeUtil', () => {
       expect(firstChildDependency.treePath).toEqual([0, 'children', 0]);
       expect(firstChildDependency.children).toBeNull();
       expect(firstChildDependency.isOpen).toBeTrue();
+    });
+  });
+
+  describe('filterDependencyTreeBySearchTerm', () => {
+    it('returns an empty list if no arguments were provided', () => {
+      const subset = filterDependencyTreeBySearchTerm();
+
+      expect(subset.length).toBe(0);
+    });
+
+    it('returns an empty list if there are no results matching the search term', () => {
+      const result = filterDependencyTreeBySearchTerm(dependencyTreeData, 'unknown component');
+
+      expect(result.length).toBe(0);
+    });
+
+    it('returns list with nodes matching search term', () => {
+      const result = filterDependencyTreeBySearchTerm(dependencyTreeData, 'jtds');
+
+      expect(result.length).toBe(1);
+
+      const [firstDependency] = result;
+
+      expect(firstDependency.displayName).toBe('net.sourceforge.jtds : jtds : 1.2.2');
+      expect(firstDependency.treePath).toEqual([0]);
+      expect(firstDependency.originalTreePath).toEqual([1]);
+      expect(firstDependency.children.length).toBe(1);
+
+      const [firstChildDependency] = firstDependency.children;
+
+      expect(firstChildDependency.displayName).toBe('taglibs : standard : 1.1.2.FF');
+      expect(firstChildDependency.treePath).toEqual([0, 'children', 0]);
+      expect(firstChildDependency.originalTreePath).toEqual([1, 'children', 0]);
+      expect(firstChildDependency.children).toBeNull();
+    });
+
+    it('performs case insensitive search', () => {
+      expect(filterDependencyTreeBySearchTerm(dependencyTreeData, 'jtds')).toEqual(
+        filterDependencyTreeBySearchTerm(dependencyTreeData, 'JTDS')
+      );
+    });
+  });
+
+  describe('deepReduce', () => {
+    it('reduce a tree by applying a reducer function to each node in a tree', () => {
+      const callback = jasmine.createSpy().and.returnValue(0);
+      deepReduce(callback, 0, dependencyTreeData);
+
+      expect(callback).toHaveBeenCalledTimes(6);
+      dependencyTreeData.forEach((node) => {
+        if (node.children) node.children.forEach((node) => expect(callback).toHaveBeenCalledWith(0, node));
+        expect(callback).toHaveBeenCalledWith(0, node);
+      });
     });
   });
 });

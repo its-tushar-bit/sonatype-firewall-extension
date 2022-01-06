@@ -153,6 +153,8 @@ describe('applicationReportReducer', function () {
         selectedComponent: null,
         dependencyTree: null,
         dependencyTreePageRouterParams: null,
+        dependencyTreeSearchTerm: '',
+        displayedDependencyTree: null,
       });
     });
   });
@@ -210,34 +212,6 @@ describe('applicationReportReducer', function () {
       });
 
       expect(newState.pendingLoads).toEqual(new Set(['foo']));
-    });
-  });
-
-  describe('DEPENDENCY_TREE_TOGGLE_TREE_PATH action', () => {
-    it('sets "isOpen" data to the correct dependency', () => {
-      const state = Object.freeze({ dependencyTree: dependencyTreeData });
-
-      expect(state.dependencyTree[1].isOpen).toBe(false);
-
-      const newState = reduce(state, {
-        type: 'DEPENDENCY_TREE_TOGGLE_TREE_PATH',
-        payload: [1],
-      });
-
-      expect(newState.dependencyTree[1].isOpen).toBe(true);
-    });
-
-    it('sets "isOpen" data to the correct nested dependency', () => {
-      const state = Object.freeze({ dependencyTree: dependencyTreeData });
-
-      expect(state.dependencyTree[0].children[0].isOpen).toBe(true);
-
-      const newState = reduce(state, {
-        type: 'DEPENDENCY_TREE_TOGGLE_TREE_PATH',
-        payload: [0, 'children', 0],
-      });
-
-      expect(newState.dependencyTree[0].children[0].isOpen).toBe(false);
     });
   });
 
@@ -923,6 +897,7 @@ describe('applicationReportReducer', function () {
             isOpen: true,
             policyThreatLevel: 1,
             treePath: [0],
+            originalTreePath: [0],
             isInnerSource: true,
           },
         ]);
@@ -2469,6 +2444,38 @@ describe('applicationReportReducer', function () {
     });
   });
 
+  describe('DEPENDENCY_TREE_TOGGLE_TREE_PATH action', () => {
+    it('sets "isOpen" data to the correct dependency', () => {
+      const state = Object.freeze({ dependencyTree: dependencyTreeData, displayedDependencyTree: dependencyTreeData });
+
+      expect(state.dependencyTree[1].isOpen).toBe(false);
+      expect(state.displayedDependencyTree[1].isOpen).toBe(false);
+
+      const newState = reduce(state, {
+        type: 'DEPENDENCY_TREE_TOGGLE_TREE_PATH',
+        payload: [1],
+      });
+
+      expect(newState.dependencyTree[1].isOpen).toBe(true);
+      expect(newState.displayedDependencyTree[1].isOpen).toBe(true);
+    });
+
+    it('sets "isOpen" data to the correct nested dependency', () => {
+      const state = Object.freeze({ dependencyTree: dependencyTreeData, displayedDependencyTree: dependencyTreeData });
+
+      expect(state.dependencyTree[0].children[0].isOpen).toBe(true);
+      expect(state.displayedDependencyTree[0].children[0].isOpen).toBe(true);
+
+      const newState = reduce(state, {
+        type: 'DEPENDENCY_TREE_TOGGLE_TREE_PATH',
+        payload: [0, 'children', 0],
+      });
+
+      expect(newState.dependencyTree[0].children[0].isOpen).toBe(false);
+      expect(newState.displayedDependencyTree[0].children[0].isOpen).toBe(false);
+    });
+  });
+
   describe('SET_DEPENDENCY_TREE_ROUTER_PARAMS action', () => {
     it('sets dependencyTreePageRouterParams', () => {
       const routerParams = { publicId: 'testPublicId', scanId: 'testScanId' };
@@ -2485,17 +2492,30 @@ describe('applicationReportReducer', function () {
     });
   });
 
-  describe('RESET_DEPENDENCY_TREE_ROUTER_PARAMS action', () => {
-    it('sets dependencyTreePageRouterParams to null', () => {
-      const state = Object.freeze({
-        dependencyTreePageRouterParams: {},
-      });
+  describe('SET_DEPENDENCY_TREE_SEARCH_TERM action', () => {
+    it('filters dependency tree by the provided search term', () => {
+      const state = Object.freeze({ dependencyTree: dependencyTreeData, displayedDependencyTree: null });
 
       const newState = reduce(state, {
-        type: 'RESET_DEPENDENCY_TREE_ROUTER_PARAMS',
+        type: 'SET_DEPENDENCY_TREE_SEARCH_TERM',
+        payload: 'LANG',
       });
 
-      expect(newState.dependencyTreePageRouterParams).toBeNull();
+      expect(newState.displayedDependencyTree.length).toBe(1);
+      expect(newState.displayedDependencyTree[0].children.length).toBe(1);
+      expect(newState.displayedDependencyTree[0].displayName).toBe('org.apache.commons : commons-lang3 : 3.3.2');
+    });
+
+    it('expands all the visible branches in the filtered dependency tree', () => {
+      const state = Object.freeze({ dependencyTree: dependencyTreeData, displayedDependencyTree: null });
+
+      const newState = reduce(state, {
+        type: 'SET_DEPENDENCY_TREE_SEARCH_TERM',
+        payload: 'LANG',
+      });
+
+      expect(newState.displayedDependencyTree[0].isOpen).toBeTrue();
+      expect(newState.displayedDependencyTree[0].children[0].isOpen).toBeTrue();
     });
   });
 });

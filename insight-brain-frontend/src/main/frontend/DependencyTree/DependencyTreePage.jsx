@@ -5,32 +5,37 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { NxLoadWrapper, NxPageMain, NxTile } from '@sonatype/react-shared-components';
+import { NxLoadWrapper, NxPageMain, NxTile, NxFilterInput } from '@sonatype/react-shared-components';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import ComponentDetailsReportInfo from 'MainRoot/componentDetails/ComponentDetailsHeader/ComponentDetailsReportInfo';
 import DependencyTree from './DependencyTree';
 import {
   loadReportIfNeeded,
+  setDependencyTreeSearchTerm,
   setDependencyTreeRouterParamsForBackButton,
   toggleTreePathAction,
 } from 'MainRoot/applicationReport/applicationReportActions';
 import { selectApplicationInfo, selectComponentMetaData } from '../componentDetails/componentDetailsSelectors';
 import {
   selectIsDependenciesLoading,
-  selectDependencyTreeData,
   selectDependencyTreeIsAvailable,
+  selectDisplayedDependencyTree,
+  selectDependencyTreeSearchTerm,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 export default function DependencyTreePage() {
   const dispatch = useDispatch();
 
-  const dependencyTree = useSelector(selectDependencyTreeData),
+  const setCurrentRouterParams = () => dispatch(setDependencyTreeRouterParamsForBackButton());
+  const updateDependencyTreeSearchTerm = (searchTerm) => dispatch(setDependencyTreeSearchTerm(searchTerm));
+  const dependencyTreeSearchTerm = useSelector(selectDependencyTreeSearchTerm);
+  const dependencyTree = useSelector(selectDisplayedDependencyTree),
     applicationInfo = useSelector(selectApplicationInfo),
     metadata = useSelector(selectComponentMetaData),
     loading = useSelector(selectIsDependenciesLoading),
     dependencyTreeIsAvailable = useSelector(selectDependencyTreeIsAvailable),
     loadReport = () => dispatch(loadReportIfNeeded());
-  const setCurrentRouterParams = () => dispatch(setDependencyTreeRouterParamsForBackButton());
 
   useEffect(() => {
     loadReport();
@@ -57,11 +62,21 @@ export default function DependencyTreePage() {
             retryHandler={loadReport}
             error={!loading && !dependencyTreeIsAvailable ? 'Dependency tree not available.' : null}
           >
-            <DependencyTree
-              items={dependencyTree}
-              rootName={applicationInfo?.applicationName}
-              treePathToggleAction={toggleTreePathAction}
+            <NxFilterInput
+              id="iq-dependency-tree-component-name-filter-input"
+              placeholder="component name"
+              value={dependencyTreeSearchTerm}
+              onChange={updateDependencyTreeSearchTerm}
             />
+            {dependencyTreeSearchTerm && isNilOrEmpty(dependencyTree) ? (
+              <p className="iq-dependency-tree__empty">No matching components</p>
+            ) : (
+              <DependencyTree
+                items={dependencyTree}
+                rootName={applicationInfo?.applicationName}
+                treePathToggleAction={toggleTreePathAction}
+              />
+            )}
           </NxLoadWrapper>
         </NxTile.Content>
       </NxTile>

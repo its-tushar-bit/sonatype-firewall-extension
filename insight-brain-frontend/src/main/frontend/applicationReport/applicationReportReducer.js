@@ -18,8 +18,8 @@ import {
   sum,
   indexBy,
   map,
-  over,
-  not,
+  path,
+  assoc,
 } from 'ramda';
 import {
   LOAD_COMMON_DATA_FAILED,
@@ -60,9 +60,15 @@ import {
   TOGGLE_TREE_PATH,
   SET_DEPENDENCY_TREE_ROUTER_PARAMS,
   RESET_DEPENDENCY_TREE_ROUTER_PARAMS,
+  SET_DEPENDENCY_TREE_SEARCH_TERM,
 } from './applicationReportActions';
 import { populateDependencyNodeKeys as populateEntryNodeKeys } from 'MainRoot/applicationReport/DependencyInfoGenerator';
-import { extendDependencyTreeData, filterDependencyTree } from 'MainRoot/DependencyTree/dependencyTreeUtil';
+import {
+  deepReduce,
+  extendDependencyTreeData,
+  filterDependencyTree,
+  filterDependencyTreeBySearchTerm,
+} from 'MainRoot/DependencyTree/dependencyTreeUtil';
 
 import { sortItemsByFields } from '../util/sortUtils';
 
@@ -118,6 +124,8 @@ const initState = Object.freeze({
   selectedComponent: null,
   dependencyTree: null,
   dependencyTreePageRouterParams: null,
+  dependencyTreeSearchTerm: '',
+  displayedDependencyTree: null,
 });
 
 export default function applicationReportReducer(state = initState, { type, payload }) {
@@ -253,13 +261,16 @@ export default function applicationReportReducer(state = initState, { type, payl
       return pathSet(['selectedComponent', 'showInnerSourceProducerPermissionsModal'], false, state);
 
     case TOGGLE_TREE_PATH:
-      return setTreePathAction(state, payload);
+      return setIsOpenAtTreePath(state, payload);
 
     case SET_DEPENDENCY_TREE_ROUTER_PARAMS:
       return { ...state, dependencyTreePageRouterParams: payload };
 
     case RESET_DEPENDENCY_TREE_ROUTER_PARAMS:
       return { ...state, dependencyTreePageRouterParams: null };
+
+    case SET_DEPENDENCY_TREE_SEARCH_TERM:
+      return applyDependencyTreeSearchTermFilter(pathSet(['dependencyTreeSearchTerm'], payload, state));
 
     default:
       return state;
@@ -437,19 +448,46 @@ function setExtendedTreeData(state, dependencies) {
   const entriesByKey = map(populateEntryNodeKeys, state.selectedReport?.aggregatedEntries);
   const indexedEntries = indexBy(getKey, entriesByKey);
   const filteredDependencyTree = filterDependencyTree(dependencies.dependencyTree, indexedEntries);
+  const dependencyTreeWithExtendedData = extendDependencyTreeData(filteredDependencyTree, indexedEntries);
 
   return {
     ...state,
-    dependencyTree: extendDependencyTreeData(filteredDependencyTree, indexedEntries),
+    dependencyTree: dependencyTreeWithExtendedData,
+    displayedDependencyTree: dependencyTreeWithExtendedData,
   };
 }
 
-function setTreePathAction(state, payload) {
-  const treePathLens = lensPath([...payload, 'isOpen']);
-  const currentData = state.dependencyTree;
+function setIsOpenAtTreePath(state, treePath) {
+  const { dependencyTree, displayedDependencyTree } = state;
+  const node = path(treePath, displayedDependencyTree);
+  const isOpen = !node.isOpen;
+  const setIsOpenAtPath = (tree, path) => pathSet([...path, 'isOpen'], isOpen, tree);
 
   return {
     ...state,
-    dependencyTree: over(treePathLens, not, currentData),
+    dependencyTree: setIsOpenAtPath(dependencyTree, node?.originalTreePath),
+    displayedDependencyTree: setIsOpenAtPath(displayedDependencyTree, treePath),
   };
+}
+
+function uncollapseDisplayedDependencyTree(state, treePath) {
+  const { displayedDependencyTree } = state;
+
+  return {
+    ...state,
+    displayedDependencyTree: pathSet([...treePath, 'isOpen'], true, displayedDependencyTree),
+  };
+}
+
+function applyDependencyTreeSearchTermFilter(state) {
+  const { dependencyTree, dependencyTreeSearchTerm } = state;
+
+  if (!dependencyTreeSearchTerm) return assoc('displayedDependencyTree', dependencyTree, state);
+
+  const visibleDependencyTree = filterDependencyTreeBySearchTerm(dependencyTree, dependencyTreeSearchTerm);
+  const stateWithUpdatedDependencyTree = assoc('displayedDependencyTree', visibleDependencyTree, state);
+  const uncollapseBranch = (state, node) => uncollapseDisplayedDependencyTree(state, node.treePath);
+  const stateWithUncollapsedTree = deepReduce(uncollapseBranch, stateWithUpdatedDependencyTree, visibleDependencyTree);
+
+  return stateWithUncollapsedTree;
 }

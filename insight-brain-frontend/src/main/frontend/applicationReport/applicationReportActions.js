@@ -369,6 +369,9 @@ export const setDependencyTreeRouterParamsForBackButton = () => {
   };
 };
 
+export const SET_DEPENDENCY_TREE_SEARCH_TERM = 'SET_DEPENDENCY_TREE_SEARCH_TERM';
+export const setDependencyTreeSearchTerm = payloadParamActionCreator(SET_DEPENDENCY_TREE_SEARCH_TERM);
+
 export default function applicationReportActions() {
   return {
     setReportParameters,
@@ -399,5 +402,6 @@ export default function applicationReportActions() {
     setDependencyTreeRouterParams,
     resetDependencyTreeRouterParams,
     setDependencyTreeRouterParamsForBackButton,
+    setDependencyTreeSearchTerm,
   };
 }

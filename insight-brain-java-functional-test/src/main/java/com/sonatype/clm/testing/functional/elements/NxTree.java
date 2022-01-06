@@ -41,4 +41,8 @@ public class NxTree
   public SelenideElement dependencyTypeIndicator(SelenideElement treeItem) {
     return treeItem.find(By.cssSelector(".iq-dependency-indicator"));
   }
+
+  public SelenideElement collapseIconFor(SelenideElement treeItem) {
+    return treeItem.find(By.cssSelector(".nx-tree__collapse-click"));
+  }
 }

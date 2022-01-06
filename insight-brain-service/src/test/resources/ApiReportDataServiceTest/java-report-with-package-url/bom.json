@@ -1,0 +1,1944 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-lang",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-lang",
+        "version" : "2.6"
+      }
+    },
+    "packageUrl" : "pkg:maven/commons-lang/commons-lang@2.6?type=jar",
+    "groupId" : "commons-lang",
+    "artifactId" : "commons-lang",
+    "version" : "2.6",
+    "filenames" : [ "pkg:maven/commons-lang/commons-lang@2.6?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/xxe/pom.xml/pkg:maven\\commons-lang\\commons-lang@2.6?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0ce1edb914c94ebc388f",
+    "relativePopularity" : 1.0,
+    "createTime" : 1462848008000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-lang"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-lang"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.6"
+      } ],
+      "name" : "commons-lang"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jquery",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.5.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.webjars/jquery@3.5.1?type=jar",
+    "groupId" : "org.webjars",
+    "artifactId" : "jquery",
+    "version" : "3.5.1",
+    "filenames" : [ "pkg:maven/org.webjars/jquery@3.5.1?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webwolf/pom.xml/pkg:maven\\org.webjars\\jquery@3.5.1?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "2392938e374f561c27c5",
+    "relativePopularity" : 0.46,
+    "createTime" : 1588764776000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 110,
+      "path" : "Web Frameworks"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.webjars"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jquery"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.5.1"
+      } ],
+      "name" : "jquery"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars jquery",
+        "qualifier" : "",
+        "version" : "1.10.2"
+      }
+    },
+    "packageUrl" : "pkg:a-name/org.webjars%20jquery@1.10.2",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "jquery-1.10.2.min.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/jquery/jquery-1.10.2.min.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "0511abe9863c2ea7084e",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/jquery/jquery-1.10.2.min.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "37081687a930b9a4a29c",
+    "relativePopularity" : null,
+    "createTime" : 1373979718000,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars jquery"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.10.2"
+      } ],
+      "name" : "org.webjars jquery"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "jquery",
+        "qualifier" : "",
+        "version" : "2.1.4"
+      }
+    },
+    "packageUrl" : "pkg:a-name/jquery@2.1.4",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "jquery-2.1.4.min.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/jquery-2.1.4.min.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "43dc554608df885a59dd",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/jquery-2.1.4.min.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "37da25aeb3ac361a1964",
+    "relativePopularity" : null,
+    "createTime" : 1637357814000,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "jquery"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "2.1.4"
+      } ],
+      "name" : "jquery"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xml-resolver",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "xml-resolver",
+        "version" : "1.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/xml-resolver/xml-resolver@1.2?type=jar",
+    "groupId" : "xml-resolver",
+    "artifactId" : "xml-resolver",
+    "version" : "1.2",
+    "filenames" : [ "pkg:maven/xml-resolver/xml-resolver@1.2?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/vulnerable-components/pom.xml/pkg:maven\\xml-resolver\\xml-resolver@1.2?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "3d0f97750b3a03e09718",
+    "relativePopularity" : 1.0,
+    "createTime" : 1463028498000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "xml-resolver"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xml-resolver"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.2"
+      } ],
+      "name" : "xml-resolver"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "jquery-timepicker",
+        "qualifier" : "",
+        "version" : "1.3.2"
+      }
+    },
+    "packageUrl" : "pkg:a-name/jquery-timepicker@1.3.2",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "jquery-ui-1.10.4.custom.min.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/jquery/jquery-ui-1.10.4.custom.min.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "8136518429f61e6a9cb4",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/jquery/jquery-ui-1.10.4.custom.min.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "459038f2b3a096115f62",
+    "relativePopularity" : null,
+    "createTime" : 1613411596000,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "jquery-timepicker"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.3.2"
+      } ],
+      "name" : "jquery-timepicker"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jose4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.bitbucket.b_c",
+        "version" : "0.7.6"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.bitbucket.b_c/jose4j@0.7.6?type=jar",
+    "groupId" : "org.bitbucket.b_c",
+    "artifactId" : "jose4j",
+    "version" : "0.7.6",
+    "filenames" : [ "pkg:maven/org.bitbucket.b_c/jose4j@0.7.6?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webwolf/pom.xml/pkg:maven\\org.bitbucket.b_c\\jose4j@0.7.6?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "4685155beaabc2fd6718",
+    "relativePopularity" : 0.0,
+    "createTime" : 1611871884000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 28,
+      "path" : "Data Processors/Format/JSON"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.bitbucket.b_c"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jose4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "0.7.6"
+      } ],
+      "name" : "jose4j"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "edward",
+        "qualifier" : "",
+        "version" : "7.0.8"
+      }
+    },
+    "packageUrl" : "pkg:a-name/edward@7.0.8",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "mode-java.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/mode-java.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "4fb473ca987d98c419d2",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/mode-java.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "48a5ae0c21acfee7b07a",
+    "relativePopularity" : null,
+    "createTime" : 1637357814000,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "edward"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "7.0.8"
+      } ],
+      "name" : "edward"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jjwt",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.jsonwebtoken",
+        "version" : "0.9.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/io.jsonwebtoken/jjwt@0.9.1?type=jar",
+    "groupId" : "io.jsonwebtoken",
+    "artifactId" : "jjwt",
+    "version" : "0.9.1",
+    "filenames" : [ "pkg:maven/io.jsonwebtoken/jjwt@0.9.1?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/challenge/pom.xml/pkg:maven\\io.jsonwebtoken\\jjwt@0.9.1?type=jar", "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/jwt/pom.xml/pkg:maven\\io.jsonwebtoken\\jjwt@0.9.1?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "54d2abfc3e63a28824d3",
+    "relativePopularity" : 1.0,
+    "createTime" : 1530831094000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 98,
+      "path" : "Security/Authentication"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "io.jsonwebtoken"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jjwt"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "0.9.1"
+      } ],
+      "name" : "jjwt"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "asciidoctorj",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.asciidoctor",
+        "version" : "2.4.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.asciidoctor/asciidoctorj@2.4.3?type=jar",
+    "groupId" : "org.asciidoctor",
+    "artifactId" : "asciidoctorj",
+    "version" : "2.4.3",
+    "filenames" : [ "pkg:maven/org.asciidoctor/asciidoctorj@2.4.3?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/pom.xml/pkg:maven\\org.asciidoctor\\asciidoctorj@2.4.3?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "58c98a3ec44d15288a13",
+    "relativePopularity" : 0.0,
+    "createTime" : 1612717652000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 35,
+      "path" : "Data Processors/Templating/AsciiDoc"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.asciidoctor"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "asciidoctorj"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.4.3"
+      } ],
+      "name" : "asciidoctorj"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "cglib-nodep",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "cglib",
+        "version" : "2.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/cglib/cglib-nodep@2.2?type=jar",
+    "groupId" : "cglib",
+    "artifactId" : "cglib-nodep",
+    "version" : "2.2",
+    "filenames" : [ "pkg:maven/cglib/cglib-nodep@2.2?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/vulnerable-components/pom.xml/pkg:maven\\cglib\\cglib-nodep@2.2?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "59afed7ab65e7ec6585d",
+    "relativePopularity" : 0.94,
+    "createTime" : 1228170512000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : "http://cglib.sourceforge.net/",
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 91,
+      "path" : "Programming Language Utilites/Bytecode and ASM Utilities"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "cglib"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "cglib-nodep"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.2"
+      } ],
+      "name" : "cglib-nodep"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "xstream",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.thoughtworks.xstream",
+        "version" : "1.4.5"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.thoughtworks.xstream/xstream@1.4.5?type=jar",
+    "groupId" : "com.thoughtworks.xstream",
+    "artifactId" : "xstream",
+    "version" : "1.4.5",
+    "filenames" : [ "pkg:maven/com.thoughtworks.xstream/xstream@1.4.5?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/vulnerable-components/pom.xml/pkg:maven\\com.thoughtworks.xstream\\xstream@1.4.5?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "61c0a127b237182fdf2c",
+    "relativePopularity" : 0.17,
+    "createTime" : 1380382358000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.thoughtworks.xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "xstream"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.5"
+      } ],
+      "name" : "xstream"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "underscore",
+        "qualifier" : "",
+        "version" : "1.10.2"
+      }
+    },
+    "packageUrl" : "pkg:a-name/underscore@1.10.2",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "underscore-min.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/underscore-min.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "e4cf51325358922e7ceb",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/underscore-min.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "6e27fcb901943b36046d",
+    "relativePopularity" : null,
+    "createTime" : 1323270738045,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "underscore"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.10.2"
+      } ],
+      "name" : "underscore"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "backbone",
+        "qualifier" : "",
+        "version" : "1.4.0"
+      }
+    },
+    "packageUrl" : "pkg:a-name/backbone@1.4.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "backbone-min.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/backbone-min.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "d7a331dfccce646eb566",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/backbone-min.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "6fc8539282a937aa640b",
+    "relativePopularity" : null,
+    "createTime" : 1623081710000,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "backbone"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.0"
+      } ],
+      "name" : "backbone"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "zxcvbn",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.nulab-inc",
+        "version" : "1.4.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.nulab-inc/zxcvbn@1.4.0?type=jar",
+    "groupId" : "com.nulab-inc",
+    "artifactId" : "zxcvbn",
+    "version" : "1.4.0",
+    "filenames" : [ "pkg:maven/com.nulab-inc/zxcvbn@1.4.0?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/secure-passwords/pom.xml/pkg:maven\\com.nulab-inc\\zxcvbn@1.4.0?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7cf830b18fe2d2b13739",
+    "relativePopularity" : 0.0,
+    "createTime" : 1613695402000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 147,
+      "path" : "Programming/Regular Expression"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.nulab-inc"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "zxcvbn"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.0"
+      } ],
+      "name" : "zxcvbn"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.5"
+      }
+    },
+    "packageUrl" : "pkg:maven/ant/ant@1.6.5?type=jar",
+    "groupId" : "ant",
+    "artifactId" : "ant",
+    "version" : "1.6.5",
+    "filenames" : [ "pkg:maven/ant/ant@1.6.5?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/vulnerable-components/pom.xml/pkg:maven\\ant\\ant@1.6.5?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7d18faf23df1a5c3a436",
+    "relativePopularity" : 1.0,
+    "createTime" : 1132682799000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 10,
+      "path" : "Build Tools"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "ant"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ant"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.6.5"
+      } ],
+      "name" : "ant"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "node-polyglot",
+        "qualifier" : "",
+        "version" : "0.4.3"
+      }
+    },
+    "packageUrl" : "pkg:a-name/node-polyglot@0.4.3",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "polyglot.min.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/polyglot.min.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "efabc95fbfc3b8c405b4",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/polyglot.min.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "84e9051134ececf6bb16",
+    "relativePopularity" : null,
+    "createTime" : 1435346276937,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "node-polyglot"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "0.4.3"
+      } ],
+      "name" : "node-polyglot"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "@para-snack/core",
+        "qualifier" : "",
+        "version" : "0.0.8"
+      }
+    },
+    "packageUrl" : "pkg:a-name/%40para-snack/core@0.0.8",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "require.min.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/require.min.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "cc1460eda8305a15fb88",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/require.min.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "88e355d2bfccae168fd1",
+    "relativePopularity" : null,
+    "createTime" : 1632152202000,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "@para-snack/core"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "0.0.8"
+      } ],
+      "name" : "@para-snack/core"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-exec",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "1.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.commons/commons-exec@1.3?type=jar",
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-exec",
+    "version" : "1.3",
+    "filenames" : [ "pkg:maven/org.apache.commons/commons-exec@1.3?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/pom.xml/pkg:maven\\org.apache.commons\\commons-exec@1.3?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8dfb9facd0830a27b1b5",
+    "relativePopularity" : 1.0,
+    "createTime" : 1414974434000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : "http://commons.apache.org/proper/commons-exec/",
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 89,
+      "path" : "Programming Language Utilites"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.apache.commons"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-exec"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.3"
+      } ],
+      "name" : "commons-exec"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "jquery-form",
+        "qualifier" : "",
+        "version" : "3.50.0"
+      }
+    },
+    "packageUrl" : "pkg:a-name/jquery-form@3.50.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "jquery.form.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/jquery_form/jquery.form.js", "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/jquery.form.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "eca8a197845794162283",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/jquery_form/jquery.form.js", "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/jquery.form.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "9c06887e03feb6c996ab",
+    "relativePopularity" : null,
+    "createTime" : 1615591317000,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "jquery-form"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.50.0"
+      } ],
+      "name" : "jquery-form"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ant-launcher",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ant",
+        "version" : "1.6.5"
+      }
+    },
+    "packageUrl" : "pkg:maven/ant/ant-launcher@1.6.5?type=jar",
+    "groupId" : "ant",
+    "artifactId" : "ant-launcher",
+    "version" : "1.6.5",
+    "filenames" : [ "pkg:maven/ant/ant-launcher@1.6.5?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/vulnerable-components/pom.xml/pkg:maven\\ant\\ant-launcher@1.6.5?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b06fd72d7cabd5ec39ce",
+    "relativePopularity" : 1.0,
+    "createTime" : 1132682802000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 119,
+      "path" : "Boot loader"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "ant"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "ant-launcher"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.6.5"
+      } ],
+      "name" : "ant-launcher"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars bootstrap",
+        "qualifier" : "",
+        "version" : "3.1.1"
+      }
+    },
+    "packageUrl" : "pkg:a-name/org.webjars%20bootstrap@3.1.1",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "bootstrap.min.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/challenge/src/main/resources/js/bootstrap.min.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "5814e91bb6276f4de8b7",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/challenge/src/main/resources/js/bootstrap.min.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b72e6b076e32fb3a87f6",
+    "relativePopularity" : null,
+    "createTime" : 1392315408000,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars bootstrap"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.1.1"
+      } ],
+      "name" : "org.webjars bootstrap"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jaxb-runtime",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.glassfish.jaxb",
+        "version" : "2.3.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.glassfish.jaxb/jaxb-runtime@2.3.0?type=jar",
+    "groupId" : "org.glassfish.jaxb",
+    "artifactId" : "jaxb-runtime",
+    "version" : "2.3.0",
+    "filenames" : [ "pkg:maven/org.glassfish.jaxb/jaxb-runtime@2.3.0?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/xxe/pom.xml/pkg:maven\\org.glassfish.jaxb\\jaxb-runtime@2.3.0?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c50f1a599ff0fcf3944e",
+    "relativePopularity" : 0.21,
+    "createTime" : 1501687015000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.glassfish.jaxb"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jaxb-runtime"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.3.0"
+      } ],
+      "name" : "jaxb-runtime"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.webjars jquery-ui",
+        "qualifier" : "",
+        "version" : "1.12.1"
+      }
+    },
+    "packageUrl" : "pkg:a-name/org.webjars%20jquery-ui@1.12.1",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "jquery-ui.min.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/jquery-ui.min.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "78489e580adaef931e6e",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/jquery-ui.min.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ccd02828be70182e7a6d",
+    "relativePopularity" : null,
+    "createTime" : 1613411596000,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.webjars jquery-ui"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.12.1"
+      } ],
+      "name" : "org.webjars jquery-ui"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "requirejs-text",
+        "qualifier" : "",
+        "version" : "2.0.12"
+      }
+    },
+    "packageUrl" : "pkg:a-name/requirejs-text@2.0.12",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "text.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/text.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "585d8cd0f76a23b01c2f",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/text.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "cf2efe48a18919c6b6ee",
+    "relativePopularity" : null,
+    "createTime" : 1623081710000,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "requirejs-text"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "2.0.12"
+      } ],
+      "name" : "requirejs-text"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "org.owasp.webgoat webgoat-container",
+        "qualifier" : "",
+        "version" : "7.0"
+      }
+    },
+    "packageUrl" : "pkg:a-name/org.owasp.webgoat%20webgoat-container@7.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "FlagModel.js", "GoatUtils.js", "HintModel.js", "LessonInfoModel.js", "MenuData.js", "MenuItemView.js", "MenuModel.js", "UserAndInfoView.js", "goatConstants.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/model/FlagModel.js", "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/model/HintModel.js", "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/model/LessonInfoModel.js", "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/model/MenuData.js", "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/model/MenuModel.js", "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/support/GoatUtils.js", "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/support/goatConstants.js", "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/view/MenuItemView.js", "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/view/UserAndInfoView.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "c511b1ad0c59d01b2a27",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/model/FlagModel.js" ]
+    }, {
+      "hash" : "202a73981bdc2162766d",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/model/HintModel.js" ]
+    }, {
+      "hash" : "52a34c62adbf6b2dc23e",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/model/LessonInfoModel.js" ]
+    }, {
+      "hash" : "a2b981f48acf21333c15",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/model/MenuData.js" ]
+    }, {
+      "hash" : "4296d2e85bb1c406f07a",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/model/MenuModel.js" ]
+    }, {
+      "hash" : "f491e48c39b8ad502635",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/support/GoatUtils.js" ]
+    }, {
+      "hash" : "37277c1346cf9ac94354",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/support/goatConstants.js" ]
+    }, {
+      "hash" : "4d82f4eadde0f3f98ca7",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/view/MenuItemView.js" ]
+    }, {
+      "hash" : "b27453264678405686a6",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/goatApp/view/UserAndInfoView.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "cf589d4746179e58dc8e",
+    "relativePopularity" : null,
+    "createTime" : 1454353150000,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "org.owasp.webgoat webgoat-container"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "7.0"
+      } ],
+      "name" : "org.owasp.webgoat webgoat-container"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "ace-builds",
+        "qualifier" : "",
+        "version" : "1.4.0"
+      }
+    },
+    "packageUrl" : "pkg:a-name/ace-builds@1.4.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "theme-monokai.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/theme-monokai.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "7927d1bf0465617481f6",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/theme-monokai.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d500dca5e091b0da0d94",
+    "relativePopularity" : null,
+    "createTime" : 1629488476000,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "ace-builds"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.4.0"
+      } ],
+      "name" : "ace-builds"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "bootstrap",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars",
+        "version" : "3.3.7"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.webjars/bootstrap@3.3.7?type=jar",
+    "groupId" : "org.webjars",
+    "artifactId" : "bootstrap",
+    "version" : "3.3.7",
+    "filenames" : [ "pkg:maven/org.webjars/bootstrap@3.3.7?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webwolf/pom.xml/pkg:maven\\org.webjars\\bootstrap@3.3.7?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d6aeba80236573ed585b",
+    "relativePopularity" : 0.64,
+    "createTime" : 1469466465000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 83,
+      "path" : "GUI"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.webjars"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "bootstrap"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.3.7"
+      } ],
+      "name" : "bootstrap"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "a-name",
+      "coordinates" : {
+        "name" : "jquery",
+        "qualifier" : "",
+        "version" : "3.4.1"
+      }
+    },
+    "packageUrl" : "pkg:a-name/jquery@3.4.1",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "jquery.min.js" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/jquery.min.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "2115753ca5fb7032aec4",
+      "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-container/src/main/resources/static/js/libs/jquery.min.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e7c380e22aeaffae68ce",
+    "relativePopularity" : null,
+    "createTime" : 1637357814000,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "jquery"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.4.1"
+      } ],
+      "name" : "jquery"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jsoup",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.jsoup",
+        "version" : "1.13.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.jsoup/jsoup@1.13.1?type=jar",
+    "groupId" : "org.jsoup",
+    "artifactId" : "jsoup",
+    "version" : "1.13.1",
+    "filenames" : [ "pkg:maven/org.jsoup/jsoup@1.13.1?type=jar" ],
+    "pathnames" : [ "dependency:/WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/cross-site-scripting/pom.xml/pkg:maven\\org.jsoup\\jsoup@1.13.1?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "f9577f3732bb7caa4fee",
+    "relativePopularity" : 1.0,
+    "createTime" : 1583025981000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.jsoup"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jsoup"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.13.1"
+      } ],
+      "name" : "jsoup"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "WebGoat-8.2.1.zip" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7310db9fafcdc400f9b7",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1640195746000,
+    "lastModifiedEntryTime" : 1627636990000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "WebGoat-8.2.1.zip"
+      } ],
+      "name" : "WebGoat-8.2.1.zip"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "git.zip" ],
+    "pathnames" : [ "WebGoat-8.2.1.zip/WebGoat-8.2.1/webgoat-lessons/challenge/src/main/resources/challenge7/git.zip" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "41cb244475c8c1ddc670",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1627636990000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "git.zip"
+      } ],
+      "name" : "git.zip"
+    }
+  } ]
+}

@@ -187,7 +187,7 @@ public class ApiReportDataServiceV2
         if (dependencyTreeNode != null && !dependencyTreeNode.isNull() && !dependencyTreeNode.isEmpty()) {
           ObjectNode  dependencyTreeObject = (ObjectNode) dependencyTreeNode;
           dependencyTreeObject.remove("componentIdentifier");
-          Map<ComponentIdentifier,BillOfMaterialsRowDTO> componentsIndex = indexBom(aaDataNode);
+          Map<String,BillOfMaterialsRowDTO> componentsIndex = indexBom(aaDataNode);
           dependencyTree = JsonUtils.asPojo(dependencyTreeObject, ApiDependencyTreeNodeDTO.class);
           dependencyTree.setChildren(correlateDependencyTreeWithComponentIndex(dependencyTree, componentsIndex));
         }
@@ -198,7 +198,7 @@ public class ApiReportDataServiceV2
 
   private List<ApiDependencyTreeNodeDTO> correlateDependencyTreeWithComponentIndex(
       ApiDependencyTreeNodeDTO root, 
-      Map<ComponentIdentifier,BillOfMaterialsRowDTO> componentsIndex
+      Map<String,BillOfMaterialsRowDTO> componentsIndex
   )
   {
     List<ApiDependencyTreeNodeDTO> children = root.getChildren();
@@ -208,10 +208,17 @@ public class ApiReportDataServiceV2
 
     List<ApiDependencyTreeNodeDTO> updatedChildren = new LinkedList<>();
     for (ApiDependencyTreeNodeDTO child : children) {
-      ComponentIdentifier key = child.getComponentIdentifier().toComponentIdentifier();
+      String key;
+      if (child.getPackageUrl() != null && !child.getPackageUrl().isEmpty()) {
+        key = child.getPackageUrl();
+      }
+      else {
+        ComponentIdentifier identifier = child.getComponentIdentifier().toComponentIdentifier();
+        key = PackageUrlIdentifier.fromComponentIdentifier(identifier).getPackageUrl();
+      }
       if (componentsIndex.containsKey(key)) {
         child.setChildren(correlateDependencyTreeWithComponentIndex(child,componentsIndex));
-        child.setPackageUrl(PackageUrlIdentifier.fromComponentIdentifier(key));
+        child.setPackageUrl(key);
         updatedChildren.add(child);
       }
     }
@@ -219,8 +226,8 @@ public class ApiReportDataServiceV2
     return updatedChildren;
   }
 
-  private Map<ComponentIdentifier,BillOfMaterialsRowDTO> indexBom(JsonNode aaDataNode) throws IOException {
-    Map<ComponentIdentifier,BillOfMaterialsRowDTO> components = new HashMap<>();
+  private Map<String,BillOfMaterialsRowDTO> indexBom(JsonNode aaDataNode) throws IOException {
+    Map<String,BillOfMaterialsRowDTO> components = new HashMap<>();
     if (aaDataNode == null || aaDataNode.isNull() || aaDataNode.isEmpty()) {
       return components;
     }
@@ -229,7 +236,7 @@ public class ApiReportDataServiceV2
     for (JsonNode componentJson : bomJsonArray) {
       BillOfMaterialsRowDTO component = JsonUtils.asPojo(componentJson, BillOfMaterialsRowDTO.class);
       if (!component.matchState.equals("unknown")) {
-        components.put(component.componentIdentifier, component);
+        components.put(component.packageUrl, component);
       }
     }
     return components;

@@ -634,6 +634,20 @@ public class ApiReportDataServiceV2Test
   }
 
   @Test
+  public void testGetDependencyTree_dependencyTreeWithPackageURL() throws Exception {
+    makeReport("java-report-with-package-url");
+    populateDependencies("java-report-with-package-url", "dependencies.json");
+    populateBom("java-report-with-package-url", "bom.json");
+
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    assertThat(response).isNotNull();
+    List<ApiDependencyTreeNodeDTO> children = response.getChildren();
+    assertTrue(!children.isEmpty());
+    assertThat(size(children)).isEqualTo(15);
+    validateDependencyTree(children);
+  }
+
+  @Test
   public void testGetDependencyTree_InnerSource() throws Exception {
     makeReport("innersource-report");
     populateDependencies("innersource-report", "dependencies.json");

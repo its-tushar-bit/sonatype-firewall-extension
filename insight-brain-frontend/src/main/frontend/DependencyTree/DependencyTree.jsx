@@ -6,16 +6,24 @@
 import React, { Fragment } from 'react';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
-import { equals } from 'ramda';
+import { equals, intersperse } from 'ramda';
 import { faTerminal } from '@fortawesome/pro-solid-svg-icons';
 import { NxFontAwesomeIcon, NxTree, NxThreatIndicator, NxTextLink } from '@sonatype/react-shared-components';
 
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import DependencyIndicator from './DependencyIndicator';
 
+const renderDisplayName = (displayName, searchTerm) =>
+  searchTerm
+    ? intersperse(
+        <mark className="iq-dependency-tree-page__search-match">{searchTerm}</mark>,
+        displayName.split(searchTerm)
+      )
+    : displayName;
+
 const MemoizedTreeNode = React.memo(TreeNode);
 
-function TreeNode({ items, treePathToggleAction, hashToMatch }) {
+function TreeNode({ items, treePathToggleAction, hashToMatch, searchTerm }) {
   const dispatch = useDispatch();
 
   const matchesHash = equals(hashToMatch);
@@ -39,7 +47,9 @@ function TreeNode({ items, treePathToggleAction, hashToMatch }) {
             {matchesHash(item.hash) ? (
               <span className="iq-matched-hash-tree-label">{item.displayName}</span>
             ) : (
-              <NxTextLink onClick={() => goToCDP(item.hash)}>{item.displayName}</NxTextLink>
+              <NxTextLink onClick={() => goToCDP(item.hash)}>
+                {renderDisplayName(item.displayName, searchTerm)}
+              </NxTextLink>
             )}
           </NxTree.ItemLabel>
           {!!item.children && (
@@ -48,6 +58,7 @@ function TreeNode({ items, treePathToggleAction, hashToMatch }) {
                 items={item.children}
                 treePathToggleAction={treePathToggleAction}
                 hashToMatch={hashToMatch}
+                searchTerm={searchTerm}
               />
             </NxTree>
           )}
@@ -69,6 +80,7 @@ const treeItemPropTypes = PropTypes.shape({
 });
 TreeNode.propTypes = {
   hashToMatch: PropTypes.string,
+  searchTerm: PropTypes.string,
   items: PropTypes.arrayOf(treeItemPropTypes),
   treePathToggleAction: PropTypes.func.isRequired,
 };

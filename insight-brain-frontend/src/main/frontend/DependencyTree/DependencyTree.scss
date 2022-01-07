@@ -13,6 +13,10 @@
     // icons but should be adapted a bit when used with .nx-threat-indicator)
     margin: 0 var(--nx-spacing-2x) 0 2px;
   }
+
+  .iq-dependency-tree-page__search-match {
+    background-color: var(--nx-swatch-orange-95);
+  }
 }
 
 .nx-tree .iq-dependency-indicator {

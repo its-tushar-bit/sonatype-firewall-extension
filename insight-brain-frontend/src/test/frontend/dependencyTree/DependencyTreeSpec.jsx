@@ -18,6 +18,7 @@ describe('DependencyTree', () => {
       items: dependencyTreeData,
       treePathToggleAction,
       rootName: 'Root Name',
+      searchTerm: '',
     };
     renderComponent = (additionalProps) => render(<DependencyTree {...minimalProps} {...additionalProps} />);
   });
@@ -111,5 +112,21 @@ describe('DependencyTree', () => {
     const item = screen.getAllByRole('treeitem');
 
     expect(within(item[0]).getByText('IS')).toBeVisible();
+  });
+
+  it('renders highlighted search terms', () => {
+    const searchTerm = 'commons';
+    renderComponent({
+      searchTerm,
+    });
+
+    const firstItem = screen.getByRole('treeitem', { name: /org.apache.commons : commons-lang3 : 3.3.2/i });
+    expect(firstItem).toBeVisible();
+
+    const highlightedTerms = within(firstItem).getAllByText(searchTerm);
+
+    expect(highlightedTerms).toHaveSize(2);
+    expect(highlightedTerms[0]).toHaveClassName('iq-dependency-tree-page__search-match');
+    expect(highlightedTerms[1]).toHaveClassName('iq-dependency-tree-page__search-match');
   });
 });

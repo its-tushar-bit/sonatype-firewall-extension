@@ -81,6 +81,7 @@ export default function DependencyTreePage() {
                 items={dependencyTree}
                 rootName={applicationInfo?.applicationName}
                 treePathToggleAction={toggleTreePathAction}
+                searchTerm={dependencyTreeSearchTerm}
               />
             )}
           </NxLoadWrapper>

@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
@@ -69,18 +68,24 @@ public class PolicyMonitorScheduler
 
   @Override
   public void productLicenseChanged() {
-    if (productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)) {
+    if (PolicyMonitor.isLicensed(productLicense)) {
+      log.info("Policy Monitor is licensed");
       startMonitoring();
     }
     else {
+      log.info("Policy Monitor is not licensed");
       stopMonitoring();
     }
   }
 
   @Override
   public void start() {
-    if (productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)) {
+    if (PolicyMonitor.isLicensed(productLicense)) {
+      log.info("Policy Monitor is licensed");
       startMonitoring();
+    }
+    else {
+      log.info("Policy Monitor is not licensed");
     }
   }
 

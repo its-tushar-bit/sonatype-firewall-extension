@@ -23,9 +23,9 @@ import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 public class PolicyMonitorSchedulerTest
     extends AbstractComponentTest
@@ -50,9 +50,19 @@ public class PolicyMonitorSchedulerTest
     super.configure(binder);
   }
 
+  private void enableLicenseForApplications(boolean enable) {
+    lenient().when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(enable);
+  }
+
+  private void enableLicenseForFirewall(boolean enable) {
+    lenient().when(productLicenseMock.hasFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE)).thenReturn(enable);
+    lenient().when(productLicenseMock.hasFeature(LicensedFeature.RELEASE_INTEGRITY)).thenReturn(enable);
+  }
+
   @Test
   public void testStartServer_PolicyMonitoringUnlicensed() {
-    when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(false);
+    enableLicenseForApplications(false);
+    enableLicenseForFirewall(false);
 
     policyMonitorScheduler.start();
 
@@ -60,9 +70,22 @@ public class PolicyMonitorSchedulerTest
   }
 
   @Test
-  public void testStartServer_PolicyMonitoringLicensed() {
-    when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
+  public void testStartServer_PolicyMonitoringLicensedForApplications() {
+    enableLicenseForApplications(true);
+    enableLicenseForFirewall(false);
 
+    testStartServer_PolicyMonitoringLicensed();
+  }
+
+  @Test
+  public void testStartServer_PolicyMonitoringLicensedForFirewall() {
+    enableLicenseForApplications(false);
+    enableLicenseForFirewall(true);
+
+    testStartServer_PolicyMonitoringLicensed();
+  }
+
+  private void testStartServer_PolicyMonitoringLicensed() {
     policyMonitorScheduler.start();
 
     ArgumentCaptor<LocalTime> startTimeCaptor = ArgumentCaptor.forClass(LocalTime.class);
@@ -73,9 +96,20 @@ public class PolicyMonitorSchedulerTest
   }
 
   @Test
-  public void testProductLicenseChanged_MonitoringWasAdded() {
-    when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(true);
+  public void testProductLicenseChanged_MonitoringWasAddedForApplications() {
+    enableLicenseForApplications(true);
 
+    testProductLicenseChanged_MonitoringWasAdded();
+  }
+
+  @Test
+  public void testProductLicenseChanged_MonitoringWasAddedForFirewall() {
+    enableLicenseForFirewall(true);
+
+    testProductLicenseChanged_MonitoringWasAdded();
+  }
+
+  private void testProductLicenseChanged_MonitoringWasAdded() {
     policyMonitorScheduler.productLicenseChanged();
 
     ArgumentCaptor<LocalTime> startTimeCaptor = ArgumentCaptor.forClass(LocalTime.class);

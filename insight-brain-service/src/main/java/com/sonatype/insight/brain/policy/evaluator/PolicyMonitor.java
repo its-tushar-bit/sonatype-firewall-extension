@@ -157,11 +157,11 @@ public class PolicyMonitor
   private void evaluateApplications(final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId)
       throws InterruptedException
   {
-    // not licensed for app monitoring
-    if (!productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)) {
+    if (!isLicensedForApplications(productLicense)) {
       log.debug("Not licensed for Application Policy Monitoring.");
       return;
     }
+    log.debug("Licensed for Application Policy Monitoring.");
 
     OwnerDAO ownerDAO = new OwnerDAO();
     List<Application> apps = new ApplicationDAO().getAll();
@@ -202,12 +202,11 @@ public class PolicyMonitor
   private void evaluateApplicableQuarantinedRepositoryComponents(
       final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId)
   {
-    // not checking for FIREWALL_FOR_ARTIFACTORY at this time
-    if (!productLicense.hasFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE) ||
-        !productLicense.hasFeature(LicensedFeature.RELEASE_INTEGRITY)) {
+    if (!isLicensedForFirewall(productLicense)) {
       log.debug("Not licensed for Firewall Policy Monitoring.");
       return;
     }
+    log.debug("Licensed for Firewall Policy Monitoring.");
 
     final Set<String> autoUnquarantineEnabledConditionTypes =
         apiFirewallService.getAutoUnquarantineEnabledPolicyConditionTypesIds();
@@ -501,5 +500,19 @@ public class PolicyMonitor
       log.debug("effort fetching report data for app id {} scan id {}", appId, scanId);
       return false;
     }
+  }
+
+  private static boolean isLicensedForApplications(ProductLicense productLicense) {
+    return productLicense.hasFeature(LicensedFeature.POLICY_MONITORING);
+  }
+
+  private static boolean isLicensedForFirewall(ProductLicense productLicense) {
+    // not checking for FIREWALL_FOR_ARTIFACTORY at this time
+    return productLicense.hasFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE)
+        && productLicense.hasFeature(LicensedFeature.RELEASE_INTEGRITY);
+  }
+
+  static boolean isLicensed(ProductLicense productLicense) {
+    return isLicensedForApplications(productLicense) || isLicensedForFirewall(productLicense);
   }
 }

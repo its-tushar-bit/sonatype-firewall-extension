@@ -45,12 +45,16 @@ public class PolicyMonitoringTask
 
   @Override
   public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
+    log.info("Manual request to run Policy Monitor");
+
     policyMonitor.run();
     output.write("Completed manual Policy Monitor execution\n");
   }
 
   @Override
   public void execute(JobExecutionContext context) {
+    log.info("Automatic request to run Policy Monitor");
+
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
       policyMonitor.run();
     }

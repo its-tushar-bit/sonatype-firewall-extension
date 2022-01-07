@@ -338,9 +338,9 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_InvalidFile() throws Exception {
     File scanFile = getScanFile("empty-scan.xml");
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null);
-    }).withMessage("Error reading/processing third party scan content from scan file");
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null)
+    ).withMessage("Error reading/processing third party scan content from scan file");
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class));
   }
 

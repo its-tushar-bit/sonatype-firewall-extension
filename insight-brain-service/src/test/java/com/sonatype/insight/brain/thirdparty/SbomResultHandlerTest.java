@@ -102,9 +102,7 @@ public class SbomResultHandlerTest
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).hasSize(2);
-    assertThat(coordinates).allSatisfy(coord -> {
-      assertThat(coord.getSource()).isEqualTo("clair");
-    });
+    assertThat(coordinates).allSatisfy(coord -> assertThat(coord.getSource()).isEqualTo("clair"));
   }
 
   @Test
@@ -254,7 +252,7 @@ public class SbomResultHandlerTest
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1, true);
-    thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()).isEmpty();
+    assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId())).isEmpty();
   }
 
   @Test
@@ -459,9 +457,9 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent("sbom_1_0.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
-      sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    }).withMessage("Error filtering sbom file sbom_1_0.xml");
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> sbomResultHandler.handleAndFilterContents(content, thirdPartyFile))
+        .withMessage("Error filtering sbom file sbom_1_0.xml");
   }
 
   @Test
@@ -601,12 +599,12 @@ public class SbomResultHandlerTest
     testHandleAndFilterContents_invalid_sbom(getSbomJsonFile("sbom-invalid.json"), "sbom-invalid.json");
   }
 
-  private void testHandleAndFilterContents_invalid_sbom(String sbomContent, String path) throws Exception {
+  private void testHandleAndFilterContents_invalid_sbom(String sbomContent, String path) {
     ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     assertThatExceptionOfType(RuntimeException.class)
-        .isThrownBy(() -> sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent())
+        .isThrownBy(() -> sbomResultHandler.handleAndFilterContents(content, thirdPartyFile))
         .withMessage("Error filtering sbom file " + path);
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());

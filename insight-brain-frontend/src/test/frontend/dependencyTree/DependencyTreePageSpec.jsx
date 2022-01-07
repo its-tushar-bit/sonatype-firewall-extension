@@ -76,4 +76,11 @@ describe('DependencyTreePage', () => {
     expect(screen.queryByText('Dependency tree not available.')).toBeNull();
     expect(screen.getByText('This is a test name')).toBeVisible();
   });
+
+  it('renders permanent message', () => {
+    spyOn(applicationReportSelectors, 'selectIsDependenciesLoading').and.returnValue(false);
+
+    renderComponent();
+    expect(screen.getByText('Only supported ecosystem components are displayed in dependency tree.')).toBeVisible();
+  });
 });

@@ -35,6 +35,10 @@ public class DependencyTreePage
     return new NxTree(".iq-dependency-tree");
   }
 
+  public SelenideElement permanentMessage() {
+    return child(".nx-p");
+  }
+
   public SelenideElement componentNameFilterInput() {
     return child("#iq-dependency-tree-component-name-filter-input");
   }

@@ -85,6 +85,9 @@ public class DependencyTreeTest
 
     dependencyTreePage.tree().treeItems().get(0).shouldHave(text("ApplicationReportTest"));
 
+    SelenideElement permanentMessage = dependencyTreePage.permanentMessage();
+    permanentMessage.shouldHave(text("Only supported ecosystem components are displayed in dependency tree."));
+
     ElementsCollection treeItems = dependencyTreePage.tree().clickableTreeItems();
     ElementsCollection threatIndicators = dependencyTreePage.tree().threatIndicators();
 

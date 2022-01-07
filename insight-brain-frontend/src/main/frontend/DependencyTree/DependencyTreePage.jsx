@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { NxLoadWrapper, NxPageMain, NxTile, NxFilterInput } from '@sonatype/react-shared-components';
+import { NxLoadWrapper, NxPageMain, NxTile, NxFilterInput, NxP, NxTextLink } from '@sonatype/react-shared-components';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import ComponentDetailsReportInfo from 'MainRoot/componentDetails/ComponentDetailsHeader/ComponentDetailsReportInfo';
 import DependencyTree from './DependencyTree';
@@ -55,6 +55,12 @@ export default function DependencyTreePage() {
           />
         )}
       </header>
+      <NxP>
+        Only supported ecosystem components are displayed in dependency tree.{' '}
+        <NxTextLink external href="http://links.sonatype.com/products/nxiq/doc/dependency-tree">
+          View more details here.
+        </NxTextLink>
+      </NxP>
       <NxTile data-testid="dependency-tree-tile">
         <NxTile.Content>
           <NxLoadWrapper

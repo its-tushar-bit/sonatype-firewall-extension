@@ -9,6 +9,7 @@ import LoadWrapper from '../react/LoadWrapper';
 import { formatDate } from '../util/dateUtils';
 
 import QuarantineComponentOverviewTile from './componentOverviewTile/QuarantineComponentOverviewTile';
+import QuarantineComponentOverviewDescriptionTile from './componentOverviewTile/QuarantinedComponentOverviewDescriptionTile';
 
 export default function QuarantinedComponentReport(props) {
   // Url parameter
@@ -32,7 +33,7 @@ export default function QuarantinedComponentReport(props) {
         <h1 class="nx-h1">Quarantine Report</h1>
         <div class="nx-page-title__description">{formatDate(new Date())}</div>
       </div>
-
+      <QuarantineComponentOverviewDescriptionTile />
       <LoadWrapper retryHandler={() => loadQuarantineReportData(token)} error={loadError} loading={dataLoading}>
         <QuarantineComponentOverviewTile componentOverview={componentOverview} />
       </LoadWrapper>

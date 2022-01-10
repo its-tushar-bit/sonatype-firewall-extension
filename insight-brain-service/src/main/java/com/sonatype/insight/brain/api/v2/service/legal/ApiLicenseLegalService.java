@@ -868,7 +868,10 @@ public class ApiLicenseLegalService
   }
 
   public ComponentIdentifier getComponentIdentifier(ComponentIdentifier componentIdentifier, String packageUrl) {
-    return packageUrl != null ? new PackageUrlIdentifier(packageUrl).toComponentIdentifier() : componentIdentifier;
+    if (packageUrl == null && componentIdentifier == null) {
+      throw new BadRequestException("componentIdentifier or packageUrl must be specified.");
+    }
+    return packageUrl != null ? new PackageUrlIdentifier(packageUrl).ensureCompleteIdentifier() : componentIdentifier;
   }
 
   private Set<ComponentIdentifier> getComponentIdentifiers(Collection<ApiReportRawDataDTOV2> rawReports) {

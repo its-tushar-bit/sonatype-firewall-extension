@@ -341,8 +341,8 @@ public class ApiLicenseLegalResourceTest
   public void testGetComponentObligationAttribution() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     ComponentObligationAttribution componentObligationAttribution = tempEntity.newComponentObligationAttribution(
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), application.getId(), "obligationName", "content",
-        ComponentLegalService.NOT_IMPLEMENTED);
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar"), application.getId(),
+        "obligationName", "content", ComponentLegalService.NOT_IMPLEMENTED);
 
     HttpResponse response = restRequest()
         .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_ATTRIBUTION_PATH)
@@ -434,8 +434,8 @@ public class ApiLicenseLegalResourceTest
   public void testGetComponentObligation() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     ComponentObligation componentObligation = tempEntity.newComponentObligation(
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), application.getId(), "obligationName", null,
-        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar"), application.getId(),
+        "obligationName", null, ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
 
     HttpResponse response = restRequest()
         .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_PATH)
@@ -504,7 +504,7 @@ public class ApiLicenseLegalResourceTest
   @Test
   public void testGetComponentLegalFile_License() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
     ComponentLegalFile componentLegalFile =
         tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), LegalFileType.LICENSE, "legalContentHash");
     LegalFileOverride licenseOverride = tempEntity.newLegalFileOverride(null, "hash1",
@@ -542,7 +542,7 @@ public class ApiLicenseLegalResourceTest
   @Test
   public void testGetComponentLegalFile_Notice() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
     ComponentLegalFile componentLegalFile =
         tempEntity.newComponentLegalFile(componentIdentifier, app.getId(), LegalFileType.NOTICE, "legalContentHash");
     LegalFileOverride noticeOverride = tempEntity.newLegalFileOverride(null, "hash1", "content1",
@@ -579,7 +579,7 @@ public class ApiLicenseLegalResourceTest
 
   @Test
   public void testGetCopyrightFilePaths() throws Exception {
-    final ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    final ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
 
     final LegalCommentFilesDTO commentFilesDTO1 = new LegalCommentFilesDTO();
     commentFilesDTO1.setContent("Content 1");
@@ -634,7 +634,7 @@ public class ApiLicenseLegalResourceTest
 
   @Test
   public void testGetCopyrightContextContent() throws Exception {
-    final ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    final ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
 
     final LegalCommentFilesDTO commentFilesDTO1 = new LegalCommentFilesDTO();
     commentFilesDTO1.setContent("Content 1");
@@ -680,7 +680,7 @@ public class ApiLicenseLegalResourceTest
 
   @Test
   public void testGetCopyrightFileCount() throws Exception {
-    final ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    final ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
 
     final LegalCommentFilesDTO commentFilesDTO1 = new LegalCommentFilesDTO();
     commentFilesDTO1.setContent("Content 1");

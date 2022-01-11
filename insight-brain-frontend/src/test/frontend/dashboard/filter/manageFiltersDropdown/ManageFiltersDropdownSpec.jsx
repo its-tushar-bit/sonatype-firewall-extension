@@ -145,9 +145,11 @@ describe('ManageFiltersDropdown', function () {
 
       expect(options.at(1).find('.nx-dropdown-button')).toHaveText('foo');
       expect(options.at(1).find('.nx-btn--delete-filter')).toExist();
+      expect(options.at(1).find('.nx-btn--delete-filter')).toHaveProp('title', 'Delete');
 
       expect(options.at(2).find('.nx-dropdown-button')).toHaveText('bar');
       expect(options.at(2).find('.nx-btn--delete-filter')).toExist();
+      expect(options.at(2).find('.nx-btn--delete-filter')).toHaveProp('title', 'Delete');
     });
 
     it('renders default option with selected class if appliedFilterName is null', function () {

@@ -62,7 +62,12 @@ export default function ManageFiltersDropdown(props) {
         >
           <span>{filter.name}</span>
         </button>
-        <NxButton onClick={() => handleDeleteFilter(filter)} variant="icon-only" className="nx-btn--delete-filter">
+        <NxButton
+          onClick={() => handleDeleteFilter(filter)}
+          variant="icon-only"
+          className="nx-btn--delete-filter"
+          title="Delete"
+        >
           <NxFontAwesomeIcon icon={faTrashAlt} />
         </NxButton>
       </div>

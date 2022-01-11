@@ -3,9 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { NxLoadWrapper, NxPageMain, NxTile, NxFilterInput, NxP, NxTextLink } from '@sonatype/react-shared-components';
+import { NxLoadWrapper, NxPageMain, NxTile, NxP, NxTextLink } from '@sonatype/react-shared-components';
+import { debounce } from 'debounce';
+
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import ComponentDetailsReportInfo from 'MainRoot/componentDetails/ComponentDetailsHeader/ComponentDetailsReportInfo';
 import DependencyTree from './DependencyTree';
@@ -23,12 +25,14 @@ import {
   selectDependencyTreeSearchTerm,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import IqStatefulFilterInput from 'MainRoot/react/IqStatefulFilterInput';
+
+const INPUT_DEBOUNCE_TIME = 500;
 
 export default function DependencyTreePage() {
   const dispatch = useDispatch();
 
   const setCurrentRouterParams = () => dispatch(setDependencyTreeRouterParamsForBackButton());
-  const updateDependencyTreeSearchTerm = (searchTerm) => dispatch(setDependencyTreeSearchTerm(searchTerm));
   const dependencyTreeSearchTerm = useSelector(selectDependencyTreeSearchTerm);
   const dependencyTree = useSelector(selectDisplayedDependencyTree),
     applicationInfo = useSelector(selectApplicationInfo),
@@ -36,6 +40,10 @@ export default function DependencyTreePage() {
     loading = useSelector(selectIsDependenciesLoading),
     dependencyTreeIsAvailable = useSelector(selectDependencyTreeIsAvailable),
     loadReport = () => dispatch(loadReportIfNeeded());
+  const debouncedSetDependencyTreeSearchTerm = useCallback(
+    debounce((value) => dispatch(setDependencyTreeSearchTerm(value)), INPUT_DEBOUNCE_TIME),
+    []
+  );
 
   useEffect(() => {
     loadReport();
@@ -68,11 +76,11 @@ export default function DependencyTreePage() {
             retryHandler={loadReport}
             error={!loading && !dependencyTreeIsAvailable ? 'Dependency tree not available.' : null}
           >
-            <NxFilterInput
+            <IqStatefulFilterInput
               id="iq-dependency-tree-component-name-filter-input"
               placeholder="component name"
-              value={dependencyTreeSearchTerm}
-              onChange={updateDependencyTreeSearchTerm}
+              onChange={debouncedSetDependencyTreeSearchTerm}
+              defaultValue={dependencyTreeSearchTerm}
             />
             {dependencyTreeSearchTerm && isNilOrEmpty(dependencyTree) ? (
               <p className="iq-dependency-tree__empty">No matching components</p>

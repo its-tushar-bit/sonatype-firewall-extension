@@ -31,6 +31,7 @@ import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -265,9 +266,14 @@ public class DependencyTreeTest
     ElementsCollection clickableTreeItems = dependencyTreePage.tree().clickableTreeItems();
     clickableTreeItems.shouldHaveSize(35);
 
+    final String SEARCH_TERM = "geronimo-security";
     SelenideElement filterInput = dependencyTreePage.componentNameFilterInput();
-    filterInput.setValue("geronimo-security");
+    filterInput.setValue(SEARCH_TERM);
+
     clickableTreeItems.shouldHaveSize(1);
+    SelenideElement highlightedTreeItemPortion =
+        clickableTreeItems.first().find(By.cssSelector(".iq-dependency-tree-page__search-match"));
+    highlightedTreeItemPortion.shouldHave(text(SEARCH_TERM));
 
     eyesWatcher.eyesCheck("dependency tree page filtered by component name");
 
@@ -276,7 +282,7 @@ public class DependencyTreeTest
     MainHeader.backButton().click();
     waitUntilUrl(DependencyTreePage.url(app, SCAN_ID));
 
-    filterInput.shouldHave(value("geronimo-security"));
+    filterInput.shouldHave(value(SEARCH_TERM));
     clickableTreeItems.shouldHaveSize(1);
 
     filterInput.setValue("non existent component");

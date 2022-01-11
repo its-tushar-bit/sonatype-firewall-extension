@@ -47,6 +47,7 @@ export const waiverType = {
   scopeOwnerType: PropTypes.string,
   hash: PropTypes.string,
   createTime: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  creatorName: PropTypes.string,
   comment: PropTypes.string,
   constraintFacts: PropTypes.array,
   constraintFactsJson: PropTypes.string,

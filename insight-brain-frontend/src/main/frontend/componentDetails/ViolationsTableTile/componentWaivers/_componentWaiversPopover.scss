@@ -11,6 +11,7 @@
 
 .iq-component-violations-waivers-table__scope,
 .iq-component-violations-waivers-table__comments,
+.iq-component-violations-waivers-table__creator-name,
 .iq-component-violations-waivers-table__component-name {
   overflow-wrap: anywhere;
   @supports not (overflow-wrap: anywhere) {

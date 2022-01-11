@@ -36,6 +36,9 @@ export const ComponentWaiversTableRow = ({ waiver, setWaiverToDelete, componentN
       <NxTableCell className="iq-component-violations-waivers-table__component-name">
         {waiver.hash ? componentName : 'All'}
       </NxTableCell>
+      <NxTableCell className="iq-component-violations-waivers-table__creator-name">
+        {waiver.creatorName || '- -'}
+      </NxTableCell>
       <NxTableCell className="iq-component-violations-waivers-table__comments">{waiver.comment || '- -'}</NxTableCell>
       <NxTableCell>
         <div className="nx-btn-bar">
@@ -68,6 +71,7 @@ export default function ComponentWaiversPopoverTable({ componentName, waivers = 
           <NxTableCell>Created</NxTableCell>
           <NxTableCell>Scope</NxTableCell>
           <NxTableCell>Components</NxTableCell>
+          <NxTableCell>Created by</NxTableCell>
           <NxTableCell>Comment</NxTableCell>
           <NxTableCell />
         </NxTableRow>

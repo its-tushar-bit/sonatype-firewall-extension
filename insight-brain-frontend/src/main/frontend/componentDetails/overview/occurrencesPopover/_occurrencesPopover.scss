@@ -5,10 +5,12 @@
  */
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '../../../scss/mixins';
 
 .iq-occurrence {
   .iq-occurrence__dirname {
     @include nx-text-helpers.regular;
+    @include mixins.overflow-wrap-anywhere;
   }
 
   .iq-occurrence__location {

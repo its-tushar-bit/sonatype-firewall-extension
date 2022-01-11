@@ -65,3 +65,10 @@
   white-space: nowrap;
   width: 1px;
 }
+
+@mixin overflow-wrap-anywhere() {
+  overflow-wrap: anywhere;
+  @supports not (overflow-wrap: anywhere) {
+    word-break: break-all;
+  }
+}

@@ -7,8 +7,9 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faExternalLink } from '@fortawesome/pro-regular-svg-icons';
+import withDeprecated from 'MainRoot/react/withDeprecated';
 
-export default function NxExternalLink({ href, children }) {
+function NxExternalLink({ href, children }) {
   return (
     <a className="iq-external-link" target="_blank" rel="noopener noreferrer" href={href}>
       {children}&nbsp;
@@ -20,3 +21,5 @@ NxExternalLink.propTypes = {
   href: PropTypes.string.isRequired,
   children: PropTypes.any.isRequired,
 };
+
+export default withDeprecated(NxExternalLink, 'Please use NxTextLink from react-shared-components(RSC)');

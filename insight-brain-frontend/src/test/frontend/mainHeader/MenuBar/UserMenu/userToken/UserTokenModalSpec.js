@@ -178,7 +178,7 @@ describe('UserTokenModal', function () {
 
       expect(paragraphs.at(1)).toHaveText(
         'Should you forget or lose your user token credentials, you should delete your ' +
-          'user token and create a new one. To learn more about User Tokens please see the <NxExternalLink />'
+          'user token and create a new one. To learn more about User Tokens please see the <DeprecatedNxExternalLinkContainer />'
       );
 
       const externalDocumentationLink = paragraphs.at(1).find(NxExternalLink);

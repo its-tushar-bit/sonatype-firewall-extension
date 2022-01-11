@@ -11,7 +11,7 @@ import * as componentDetailsSelectors from 'MainRoot/componentDetails/componentD
 import { dependencyTreeData } from 'TestRoot/dependencyTree/dependencyTreeMockData';
 
 describe('DependencyTreeTile', () => {
-  let selectRouterCurrentParamsSpy, renderComponent, selectDependencyTreeSubsetSpy;
+  let selectRouterCurrentParamsSpy, renderComponent, selectDependencyTreeSubsetSpy, selectIsLabelsLoadingSpy;
 
   beforeEach(() => {
     selectDependencyTreeSubsetSpy = spyOn(componentDetailsSelectors, 'selectDependencyTreeSubset').and.returnValue(
@@ -27,6 +27,7 @@ describe('DependencyTreeTile', () => {
     selectRouterCurrentParamsSpy = spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
       dependencyTreeEnabled: true,
     });
+    selectIsLabelsLoadingSpy = spyOn(componentDetailsSelectors, 'selectIsLabelsLoading').and.returnValue(false);
 
     renderComponent = () => render(<DependencyTreeTile />);
   });
@@ -37,18 +38,26 @@ describe('DependencyTreeTile', () => {
     expect(screen.getByText('Dependency Tree')).toBeVisible();
   });
 
-  it('does not render tile with title if dependencyTreeSubset does not exist', () => {
+  it('renders alert if dependencyTreeSubset does not exist', () => {
     selectDependencyTreeSubsetSpy.and.returnValue(null);
 
     renderComponent();
 
-    expect(screen.queryByText('Dependency Tree')).not.toBeInTheDocument();
+    expect(screen.getByText('Dependency tree not available')).toBeVisible();
   });
 
   it('does not render tile with title if dependencyTreeEnabled is falsy', () => {
     selectRouterCurrentParamsSpy.and.returnValue({
       dependencyTreeEnabled: null,
     });
+
+    renderComponent();
+
+    expect(screen.queryByText('Dependency Tree')).not.toBeInTheDocument();
+  });
+
+  it('does not render tile with title if data is still loading', () => {
+    selectIsLabelsLoadingSpy.and.returnValue(true);
 
     renderComponent();
 

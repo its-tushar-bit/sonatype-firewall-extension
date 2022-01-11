@@ -26,4 +26,8 @@ public class DependencyTreeTile
   public NxTree tree() {
     return new NxTree(".iq-dependency-tree");
   }
+
+  public SelenideElement unavailableAlert() {
+    return child(".component-details-dependency-tree-tile__unavailable-tree-alert");
+  }
 }

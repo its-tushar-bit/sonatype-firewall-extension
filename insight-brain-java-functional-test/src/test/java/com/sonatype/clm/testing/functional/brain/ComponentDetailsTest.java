@@ -521,6 +521,18 @@ public class ComponentDetailsTest
   }
 
   @Test
+  public void testOverviewTab_dependencyTreeTile_emptyTree() {
+    refreshOrOpen(
+        ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "dc810b3d25f9e8c930f5"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
+    dependencyTreeTile.unavailableAlert().shouldBe(visible);
+
+    eyesWatcher.eyesCheck("Overview tab with unavailable dependency tree");
+  }
+
+  @Test
   public void testOverviewTab_DependencyTreeTile_InitialState() throws IOException {
     URL zippedReport = ReportHelper.zipReport("/canned-reports/report-with-dependency-tree", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());

@@ -11,6 +11,8 @@ CREATE TABLE organization (
   name_lowercase_no_whitespace varchar(200) NOT NULL,
   policy_violation_grandfathering_enabled boolean,
   allow_policy_violation_grandfathering_override boolean DEFAULT true NOT NULL, -- Whether policy violation grandfathering can be overridden by children (orgs and apps).
+  repository_connection_enabled boolean DEFAULT true NOT NULL,
+  allow_repository_connection_override boolean DEFAULT true NOT NULL,
   CONSTRAINT organization_pk PRIMARY KEY (organization_id),
   CONSTRAINT organization_name_uk UNIQUE (name_lowercase_no_whitespace),
   CONSTRAINT organization_parent_organization_fk FOREIGN KEY (parent_organization_id) REFERENCES organization(organization_id)
@@ -27,6 +29,7 @@ CREATE TABLE application (
   organization_id varchar(50) NOT NULL,
   contact_internal_name varchar(60) NULL, -- The internal name of the contact User (CLM User or LDAP user)
   policy_violation_grandfathering_enabled boolean,
+  repository_connection_enabled boolean DEFAULT true NOT NULL,
   CONSTRAINT application_pk PRIMARY KEY (application_id),
   CONSTRAINT application_uk UNIQUE (public_id_lowercase),
   CONSTRAINT application_name_uk UNIQUE (name_lowercase_no_whitespace),

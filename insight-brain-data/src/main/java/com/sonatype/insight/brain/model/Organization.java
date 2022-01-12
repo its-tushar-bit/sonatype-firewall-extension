@@ -46,6 +46,18 @@ public class Organization
   @Column(name = "allow_policy_violation_grandfathering_override")
   private boolean allowPolicyViolationGrandfatheringOverride = true;
 
+  /**
+   * @since 1.132
+   */
+  @Column(name = "repository_connection_enabled")
+  private Boolean repositoryConnectionEnabled = true;
+
+  /**
+   * @since 1.132
+   */
+  @Column(name = "allow_repository_connection_override")
+  private boolean allowRepositoryConnectionOverride = true;
+
   public Organization() {
   }
 
@@ -136,6 +148,22 @@ public class Organization
 
   public void setAllowPolicyViolationGrandfatheringOverride(boolean allowPolicyViolationGrandfatheringOverride) {
     this.allowPolicyViolationGrandfatheringOverride = allowPolicyViolationGrandfatheringOverride;
+  }
+
+  public Boolean isRepositoryConnectionEnabled() {
+    return repositoryConnectionEnabled;
+  }
+
+  public void setRepositoryConnectionEnabled(Boolean repositoryConnectionEnabled) {
+    this.repositoryConnectionEnabled = repositoryConnectionEnabled;
+  }
+
+  public boolean isAllowRepositoryConnectionOverride() {
+    return allowRepositoryConnectionOverride;
+  }
+
+  public void setAllowRepositoryConnectionOverride(boolean allowRepositoryConnectionOverride) {
+    this.allowRepositoryConnectionOverride = allowRepositoryConnectionOverride;
   }
 
   @Override

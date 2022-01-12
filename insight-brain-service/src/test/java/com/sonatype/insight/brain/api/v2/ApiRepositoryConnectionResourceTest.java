@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -417,6 +418,60 @@ public class ApiRepositoryConnectionResourceTest
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .post();
+    assertThat(response.getStatusCode()).isEqualTo(400);
+  }
+
+  @Test
+  public void testUpdateOwnerRepositoryConnectionStatus_Application() throws Exception {
+    String appId = tempEntity.newApplicationWithParent().getId();
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    dto.allowOverride = false;
+    dto.enabled = true;
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+        .parameter(OwnerType.APPLICATION, appId)
+        .body(dto)
+        .put();
+    assertThat(response.getStatusCode()).isEqualTo(204);
+  }
+
+  @Test
+  public void testUpdateOwnerRepositoryConnectionStatus_Organization() throws Exception {
+    String orgId = tempEntity.newOrganization().getId();
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    dto.allowOverride = false;
+    dto.enabled = true;
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+        .parameter(OwnerType.ORGANIZATION, orgId)
+        .body(dto)
+        .put();
+    assertThat(response.getStatusCode()).isEqualTo(204);
+  }
+
+  @Test
+  public void testUpdateOwnerRepositoryConnectionStatus_FeatureDisabled() throws Exception {
+    insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, false));
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+        .parameter(OwnerType.APPLICATION, "appId")
+        .body(dto)
+        .put();
+    assertThat(response.getStatusCode()).isEqualTo(403);
+    assertThat(response.getBodyText()).isEqualTo(FEATURE_FLAG + " feature is disabled");
+  }
+
+  @Test
+  public void testUpdateOwnerRepositoryConnectionStatus_InvalidContent() throws Exception {
+    String appId = tempEntity.newApplicationWithParent().getId();
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    dto.enabled = null;
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+        .parameter(OwnerType.APPLICATION, appId)
+        .body(dto)
+        .put();
     assertThat(response.getStatusCode()).isEqualTo(400);
   }
 }

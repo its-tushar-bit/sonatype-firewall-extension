@@ -17,9 +17,14 @@ import javax.inject.Singleton;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
@@ -48,10 +53,18 @@ public class ApiRepositoryConnectionService
   public static final String REPOSITORY_URL_AUDIT_KEY = "repositoryBaseUrl";
 
   public static final String REPOSITORY_FORMAT_AUDIT_KEY = "repositoryFormat";
-  
+
+  public static final String ENABLED_AUDIT_KEY = "enabled";
+
+  public static final String ALLOW_OVERRIDE_AUDIT_KEY = "allowOverride";
+
   private final OwnerDAO ownerDAO;
 
   private final RepositoryConnectionDAO repositoryConnectionDAO;
+
+  private final ApplicationDAO applicationDAO;
+
+  private final OrganizationDAO organizationDAO;
 
   private final PasswordHandler passwordHandler;
 
@@ -61,11 +74,15 @@ public class ApiRepositoryConnectionService
   public ApiRepositoryConnectionService(
       final OwnerDAO ownerDAO,
       final RepositoryConnectionDAO repositoryConnectionDAO,
+      final ApplicationDAO applicationDAO,
+      final OrganizationDAO organizationDAO,
       final PasswordHandler passwordHandler,
       final RepositoryClientFactory repositoryClientFactory)
   {
     this.ownerDAO = ownerDAO;
     this.repositoryConnectionDAO = repositoryConnectionDAO;
+    this.applicationDAO = applicationDAO;
+    this.organizationDAO = organizationDAO;
     this.passwordHandler = passwordHandler;
     this.repositoryClientFactory = repositoryClientFactory;
   }
@@ -127,6 +144,44 @@ public class ApiRepositoryConnectionService
     updateRepositoryConnectionData(dto, storedConnection);
     repositoryConnectionDAO.update(storedConnection);
     return toRepositoryConnectionDTO(storedConnection);
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public void updateOwnerRepositoryConnectionStatus(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId,
+      ApiRepositoryConnectionStatusDTO dto)
+  {
+    if (dto == null ||
+        (ownerType == OwnerType.APPLICATION && dto.enabled == null) ||
+        (ownerType == OwnerType.ORGANIZATION && dto.enabled == null && dto.allowOverride == null)) {
+      throw new BadRequestException("missing repository connection configuration data for update");
+    }
+
+    AuditData.get().setData(ENABLED_AUDIT_KEY, dto.enabled);
+    if (dto.allowOverride != null) {
+      AuditData.get().setData(ALLOW_OVERRIDE_AUDIT_KEY, dto.allowOverride);
+    }
+
+    switch (ownerType) {
+      case APPLICATION:
+        Application app = applicationDAO.getByIdNotNull(ownerId);
+        app.setRepositoryConnectionEnabled(dto.enabled);
+        applicationDAO.update(app);
+        break;
+      case ORGANIZATION:
+        Organization org = organizationDAO.getByIdNotNull(ownerId);
+        if (dto.enabled != null) {
+          org.setRepositoryConnectionEnabled(dto.enabled);
+        }
+        if (dto.allowOverride != null) {
+          org.setAllowRepositoryConnectionOverride(dto.allowOverride);
+        }
+        organizationDAO.update(org);
+        break;
+      default:
+        throw new IllegalStateException("Unknown owner type: " + ownerType);
+    }
   }
 
   private void validateUpdateConnectionData(final ApiRepositoryConnectionDTO dto) {

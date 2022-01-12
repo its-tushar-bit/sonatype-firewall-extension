@@ -56,6 +56,12 @@ public class Application
   @Column(name = "policy_violation_grandfathering_enabled")
   private Boolean policyViolationGrandfatheringEnabled;
 
+  /**
+   * @since 1.132
+   */
+  @Column(name = "repository_connection_enabled")
+  private Boolean repositoryConnectionEnabled = true;
+
   public Application() {
   }
 
@@ -193,5 +199,13 @@ public class Application
 
   public void setOrganization(final Organization organization) {
     this.organization = organization;
+  }
+
+  public Boolean isRepositoryConnectionEnabled() {
+    return repositoryConnectionEnabled;
+  }
+
+  public void setRepositoryConnectionEnabled(Boolean repositoryConnectionEnabled) {
+    this.repositoryConnectionEnabled = repositoryConnectionEnabled;
   }
 }

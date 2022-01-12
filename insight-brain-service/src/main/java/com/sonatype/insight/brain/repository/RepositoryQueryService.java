@@ -18,12 +18,17 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.security.PasswordHandler;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -67,15 +72,19 @@ public class RepositoryQueryService
 
   private final RepositoryConnectionDAO repositoryConnectionDAO;
 
+  private final OwnerDAO ownerDAO;
+
   @Inject
   public RepositoryQueryService(
       final RepositoryClientFactory clientFactory,
       final PasswordHandler passwordHandler,
-      final RepositoryConnectionDAO repositoryConnectionDAO)
+      final RepositoryConnectionDAO repositoryConnectionDAO,
+      final OwnerDAO ownerDAO)
   {
     this.clientFactory = clientFactory;
     this.passwordHandler = passwordHandler;
     this.repositoryConnectionDAO = repositoryConnectionDAO;
+    this.ownerDAO = ownerDAO;
   }
 
   public Pair<RepositoryAllVersionsResponse, String> getAllVersions(
@@ -91,11 +100,14 @@ public class RepositoryQueryService
       repositoryFormat = RepositoryFormat.GENERIC;
     }
     RepositoryFormat finalRepositoryFormat = repositoryFormat;
-    List<RepositoryConnection> repoConnections = repositoryConnectionDAO.getByOwnerIdWithHierarchy(ownerId).stream()
-        .filter(repositoryConnection -> finalRepositoryFormat.equals(repositoryConnection.getFormat()) ||
-            RepositoryFormat.GENERIC.equals(repositoryConnection.getFormat()))
-        .sorted(REPOSITORY_CONNECTION_COMPARATOR)
-        .collect(Collectors.toList());
+    List<RepositoryConnection> repoConnections = null;
+    if (isRepositoryConnectionAllowedForOwner(ownerId)) {
+      repoConnections = repositoryConnectionDAO.getByOwnerIdWithHierarchy(ownerId).stream()
+          .filter(repositoryConnection -> finalRepositoryFormat.equals(repositoryConnection.getFormat()) ||
+              RepositoryFormat.GENERIC.equals(repositoryConnection.getFormat()))
+          .sorted(REPOSITORY_CONNECTION_COMPARATOR)
+          .collect(Collectors.toList());
+    }
     if (CollectionUtils.isEmpty(repoConnections)) {
       return Pair.of(new RepositoryAllVersionsResponse(Collections.emptyList()), null);
     }
@@ -103,6 +115,35 @@ public class RepositoryQueryService
     //for the time being we only support one repository connection - cf. CLM-19789
     RepositoryConnection connection = repoConnections.get(0);
     return Pair.of(searchRepositoryForAllVersions(connection, componentIdentifier), connection.getBaseUrl());
+  }
+
+  @VisibleForTesting
+  boolean isRepositoryConnectionAllowedForOwner(String ownerId) {
+    Boolean isEnabled = null;
+    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+      switch (owner.getType()) {
+        case APPLICATION: {
+          Application application = (Application) owner;
+          isEnabled = application.isRepositoryConnectionEnabled();
+          break;
+        }
+        case ORGANIZATION: {
+          Organization organization = (Organization) owner;
+          if (isEnabled != null && organization.isAllowRepositoryConnectionOverride()) {
+            return isEnabled;
+          }
+          isEnabled = organization.isRepositoryConnectionEnabled();
+          break;
+        }
+        default: {
+          throw new IllegalStateException("Unknown owner type: " + owner.getType());
+        }
+      }
+    }
+    if (isEnabled == null) {
+      isEnabled = false;
+    }
+    return isEnabled;
   }
 
   private RepositoryAllVersionsResponse searchRepositoryForAllVersions(

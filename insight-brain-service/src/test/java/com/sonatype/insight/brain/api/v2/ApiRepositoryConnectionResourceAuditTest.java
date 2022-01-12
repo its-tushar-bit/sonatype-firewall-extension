@@ -9,10 +9,12 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRepositoryConnectionService;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
@@ -103,5 +105,41 @@ public class ApiRepositoryConnectionResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_REPOSITORY_CONNECTION, null);
     assertApplicationData(auditDTO, app);
+  }
+
+  @Test
+  public void testAudit_UpdateRepositoryConnectionStatus_Organization() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    dto.enabled = true;
+    dto.allowOverride = false;
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+        .parameter(OwnerType.ORGANIZATION, organization.getId())
+        .body(dto)
+        .put();
+    assertResponseStatus(204, response);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_CONNECTION, null);
+    assertOrganizationData(auditDTO, organization);
+    assertCustomData(auditDTO, ApiRepositoryConnectionService.ENABLED_AUDIT_KEY, dto.enabled);
+    assertCustomData(auditDTO, ApiRepositoryConnectionService.ALLOW_OVERRIDE_AUDIT_KEY, dto.allowOverride);
+  }
+
+  @Test
+  public void testAudit_UpdateRepositoryConnectionStatus_Application() throws Exception {
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    dto.enabled = true;
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
+        .parameter(OwnerType.APPLICATION, app.getId())
+        .body(dto)
+        .put();
+    assertResponseStatus(204, response);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_CONNECTION, null);
+    assertApplicationData(auditDTO, app);
+    assertCustomData(auditDTO, ApiRepositoryConnectionService.ENABLED_AUDIT_KEY, dto.enabled);
+    assertCustomData(auditDTO, ApiRepositoryConnectionService.ALLOW_OVERRIDE_AUDIT_KEY, dto.allowOverride);
   }
 }

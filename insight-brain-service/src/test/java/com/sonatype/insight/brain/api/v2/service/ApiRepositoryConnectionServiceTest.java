@@ -13,6 +13,9 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -70,6 +73,8 @@ public class ApiRepositoryConnectionServiceTest
 
   @Mock
   private RepositoryClient client;
+
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   @Override
   public void configure(final Binder binder) {
@@ -594,6 +599,108 @@ public class ApiRepositoryConnectionServiceTest
     dto.baseUrl = "baseUrl";
     dto.password = "pass";
     testTestRepositoryConnection_MissingData(dto, "missing username/password for repository connection");
+  }
+
+  @Test
+  public void testUpdateOwnerRepositoryConnectionStatus_Organization() {
+    String orgId = tempEntity.newOrganization().getId();
+
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    dto.allowOverride = false;
+    dto.enabled = false;
+    repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION, orgId, dto);
+
+    Organization org = organizationDAO.getByIdNotNull(orgId);
+    assertThat(org.isAllowRepositoryConnectionOverride()).isEqualTo(dto.allowOverride);
+    assertThat(org.isRepositoryConnectionEnabled()).isEqualTo(dto.enabled);
+  }
+
+  @Test
+  public void testUpdateOwnerRepositoryConnectionStatus_Application() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    dto.allowOverride = null;
+    dto.enabled = false;
+    repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.APPLICATION, app.getId(), dto);
+
+    Application application = new ApplicationDAO().getByIdNotNull(app.getId());
+    assertThat(application.isRepositoryConnectionEnabled()).isEqualTo(dto.enabled);
+  }
+
+  @Test
+  public void testUpdateOwnerRepositoryConnectionStatus_Organization_OnlyEnable() {
+    Organization org = tempEntity.newOrganization();
+    org.setAllowRepositoryConnectionOverride(false);
+    org.setRepositoryConnectionEnabled(false);
+    organizationDAO.update(org);
+
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    dto.enabled = true;
+    repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION, org.getId(), dto);
+
+    Organization updatedOrg = organizationDAO.getByIdNotNull(org.getId());
+    assertThat(updatedOrg.isAllowRepositoryConnectionOverride()).isEqualTo(false);
+    assertThat(updatedOrg.isRepositoryConnectionEnabled()).isEqualTo(dto.enabled);
+  }
+
+  @Test
+  public void testUpdateOwnerRepositoryConnectionStatus_Organization_OnlyOverride() {
+    Organization org = tempEntity.newOrganization();
+    org.setAllowRepositoryConnectionOverride(false);
+    org.setRepositoryConnectionEnabled(false);
+    organizationDAO.update(org);
+
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    dto.allowOverride = true;
+    repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION, org.getId(), dto);
+
+    Organization updatedOrg = organizationDAO.getByIdNotNull(org.getId());
+    assertThat(updatedOrg.isAllowRepositoryConnectionOverride()).isEqualTo(dto.allowOverride);
+    assertThat(updatedOrg.isRepositoryConnectionEnabled()).isEqualTo(false);
+  }
+
+  @Test
+  public void testUpdateOwnerRepositoryConnectionStatus_MissingPayload() {
+    String orgId = tempEntity.newOrganization().getId();
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> repositoryConnectionService
+                .updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION, orgId, null))
+        .withMessage("missing repository connection configuration data for update");
+  }
+
+  @Test
+  public void testUpdateOwnerRepositoryConnectionStatus_AllowedForOwner_MissingUpdateData() {
+    String orgId = tempEntity.newOrganization().getId();
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION, orgId, dto))
+        .withMessage("missing repository connection configuration data for update");
+  }
+
+  @Test
+  public void testUpdateOwnerRepositoryConnectionStatus_AllowedForOwner_InvalidOrgId() {
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    dto.enabled = true;
+    dto.allowOverride = false;
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> repositoryConnectionService
+            .updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION, "irrelevant", dto))
+        .withMessage(
+            "Cannot find organization with ID irrelevant.");
+  }
+
+  @Test
+  public void testUpdateOwnerRepositoryConnectionStatus_AllowedForOwner_InvalidAppId() {
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    dto.enabled = true;
+    dto.allowOverride = false;
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> repositoryConnectionService
+            .updateOwnerRepositoryConnectionStatus(OwnerType.APPLICATION, "irrelevant", dto))
+        .withMessage("Could not find an application with ID irrelevant.");
   }
 
   private void testTestRepositoryConnection_MissingData(

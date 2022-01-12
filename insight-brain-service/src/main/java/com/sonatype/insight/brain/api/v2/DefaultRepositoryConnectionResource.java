@@ -25,6 +25,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRepositoryConnectionService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -147,5 +148,20 @@ public class DefaultRepositoryConnectionResource
       throw new NotAuthorizedException(
           ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag() + " feature is disabled");
     }
+  }
+
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(BY_OWNER)
+  @Audited(AuditEvent.CONFIGURE_REPOSITORY_CONNECTION)
+  public void upateOwnerRepositoryConnectionStatus(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("internalOwnerId") String internalOwnerId,
+      ApiRepositoryConnectionStatusDTO repositoryConnectionStatusDTO)
+  {
+    checkInnerSourceRepositoryIntegrationEnabled();
+    repositoryConnectionService
+        .updateOwnerRepositoryConnectionStatus(ownerType, internalOwnerId, repositoryConnectionStatusDTO);
   }
 }

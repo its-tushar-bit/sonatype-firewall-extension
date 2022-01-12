@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.repository.RepositoryClient;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory.RepositoryClientBuilder;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -208,6 +209,23 @@ public class ApiRepositoryConnectionServiceAuthzTest
     Status status = repositoryConnectionService.testRepositoryConnection(OwnerType.APPLICATION, app.getId(), dto);
 
     assertThat(status).isEqualTo(Status.OK);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdateOwnerRepositoryConnectionStatus_Unauthenticated() {
+    repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.APPLICATION, app.getId(), null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdateOwnerRepositoryConnectionStatus_Unauthorized() {
+    login();
+    repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.APPLICATION, app.getId(), null);
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testUpdateOwnerRepositoryConnectionStatus_Authorized() {
+    grantWritePermission(app.getId());
+    repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.APPLICATION, app.getId(), null);
   }
 
   private void testTestRepositoryConnection() {

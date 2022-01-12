@@ -13,9 +13,13 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory.RepositoryClientBuilder;
@@ -41,6 +45,15 @@ public class RepositoryQueryServiceTest
   @Inject
   private RepositoryConnectionDAO dao;
 
+  @Inject
+  private OwnerDAO ownerDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
+
   @Mock
   private PasswordHandler passwordHandler;
 
@@ -55,7 +68,7 @@ public class RepositoryQueryServiceTest
 
   @Before
   public void before() {
-    repositoryQueryService = new RepositoryQueryService(clientFactory, passwordHandler, dao);
+    repositoryQueryService = new RepositoryQueryService(clientFactory, passwordHandler, dao, ownerDAO);
   }
 
   @Test
@@ -255,5 +268,59 @@ public class RepositoryQueryServiceTest
 
     //then
     assertThat(results.getLeft().getComponents()).isEmpty();
+  }
+
+  @Test
+  public void testIsRepositoryConnectionAllowedForOwner()
+      throws Exception
+  {
+    RepositoryConnection repositoryConnection = createRepositoryConnection(true, true, true);
+    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
+        .isTrue();
+
+    repositoryConnection = createRepositoryConnection(false, true, true);
+    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
+        .isTrue();
+
+    repositoryConnection = createRepositoryConnection(true, false, true);
+    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
+        .isTrue();
+
+    repositoryConnection = createRepositoryConnection(false, false, true);
+    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
+        .isFalse();
+
+    repositoryConnection = createRepositoryConnection(true, true, false);
+    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
+        .isFalse();
+
+    repositoryConnection = createRepositoryConnection(false, true, false);
+    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
+        .isTrue();
+
+    repositoryConnection = createRepositoryConnection(true, false, false);
+    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
+        .isFalse();
+
+    repositoryConnection = createRepositoryConnection(false, false, false);
+    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
+        .isFalse();
+  }
+
+  private RepositoryConnection createRepositoryConnection(
+      boolean allowOverride,
+      boolean orgEnabled,
+      boolean appEnabled)
+  {
+    Organization organization = tempEntity.newOrganization();
+    organization.setAllowRepositoryConnectionOverride(allowOverride);
+    organization.setRepositoryConnectionEnabled(orgEnabled);
+    organizationDAO.update(organization);
+
+    Application application = tempEntity.newApplication(organization.getId());
+    application.setRepositoryConnectionEnabled(appEnabled);
+    applicationDAO.update(application);
+
+    return tempEntity.newRepositoryConnection(application.getId());
   }
 }

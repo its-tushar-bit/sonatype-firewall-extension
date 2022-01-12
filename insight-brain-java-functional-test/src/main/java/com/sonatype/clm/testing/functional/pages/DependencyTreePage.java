@@ -39,6 +39,10 @@ public class DependencyTreePage
     return child(".nx-p");
   }
 
+  public SelenideElement emptyMessage() {
+    return child(".nx-alert--warning");
+  }
+
   public SelenideElement componentNameFilterInput() {
     return child("#iq-dependency-tree-component-name-filter-input");
   }

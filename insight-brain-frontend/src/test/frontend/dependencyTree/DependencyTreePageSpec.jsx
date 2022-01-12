@@ -62,11 +62,20 @@ describe('DependencyTreePage', () => {
     expect(within(breadcrumbs).getByText(`${reportMetadata.reportTitle} ${expectedRenderedReportTime}`)).toBeVisible();
   });
 
-  it('renders NxErrorAlert if no dependency tree available', () => {
+  it('renders NxErrorAlert if an error is thrown', () => {
+    spyOn(applicationReportSelectors, 'selectIsDependenciesLoading').and.returnValue(false);
+    spyOn(applicationReportSelectors, 'selectLoadError').and.returnValue('loaded error');
+    renderComponent();
+    expect(screen.getByText('An error occurred loading data.', { exact: false })).toBeVisible();
+    expect(screen.getByText('loaded error', { exact: false })).toBeVisible();
+  });
+
+  it('renders NxWarningAlert if no dependency tree available', () => {
     spyOn(applicationReportSelectors, 'selectIsDependenciesLoading').and.returnValue(false);
     spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(false);
     renderComponent();
-    expect(screen.getByRole('alert')).toBeVisible();
+    expect(screen.getByText('Dependency tree not available.')).toBeVisible();
+    expect(screen.queryByTestId('dependency-tree-tile')).toBeNull();
   });
 
   it('renders tile if dependency tree is available', () => {

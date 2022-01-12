@@ -330,4 +330,19 @@ public class DependencyTreeTest
       item.shouldHave(attribute("aria-expanded", "true"));
     });
   }
+
+  @Test
+  public void testDependencyTree_EmptyMessage() throws IOException {
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/empty-report", tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    evaluator.evaluatePolicy();
+
+    refreshOrOpen(DependencyTreePage.url(app, SCAN_ID));
+    SelenideElement emptyMessage = dependencyTreePage.emptyMessage();
+    emptyMessage.shouldBe(visible);
+    emptyMessage.shouldHave(text("Dependency tree not available."));
+
+    eyesWatcher.eyesCheck("dependency tree page empty");
+  }
 }

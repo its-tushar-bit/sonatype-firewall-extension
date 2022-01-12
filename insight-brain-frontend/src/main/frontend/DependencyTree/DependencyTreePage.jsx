@@ -5,7 +5,7 @@
  */
 import React, { useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { NxLoadWrapper, NxPageMain, NxTile, NxP, NxTextLink } from '@sonatype/react-shared-components';
+import { NxLoadWrapper, NxPageMain, NxTile, NxP, NxTextLink, NxWarningAlert } from '@sonatype/react-shared-components';
 import { debounce } from 'debounce';
 
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
@@ -23,6 +23,7 @@ import {
   selectDependencyTreeIsAvailable,
   selectDisplayedDependencyTree,
   selectDependencyTreeSearchTerm,
+  selectLoadError,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import IqStatefulFilterInput from 'MainRoot/react/IqStatefulFilterInput';
@@ -34,12 +35,13 @@ export default function DependencyTreePage() {
 
   const setCurrentRouterParams = () => dispatch(setDependencyTreeRouterParamsForBackButton());
   const dependencyTreeSearchTerm = useSelector(selectDependencyTreeSearchTerm);
-  const dependencyTree = useSelector(selectDisplayedDependencyTree),
-    applicationInfo = useSelector(selectApplicationInfo),
-    metadata = useSelector(selectComponentMetaData),
-    loading = useSelector(selectIsDependenciesLoading),
-    dependencyTreeIsAvailable = useSelector(selectDependencyTreeIsAvailable),
-    loadReport = () => dispatch(loadReportIfNeeded());
+  const dependencyTree = useSelector(selectDisplayedDependencyTree);
+  const applicationInfo = useSelector(selectApplicationInfo);
+  const metadata = useSelector(selectComponentMetaData);
+  const loading = useSelector(selectIsDependenciesLoading);
+  const error = useSelector(selectLoadError);
+  const dependencyTreeIsAvailable = useSelector(selectDependencyTreeIsAvailable);
+  const loadReport = () => dispatch(loadReportIfNeeded());
   const debouncedSetDependencyTreeSearchTerm = useCallback(
     debounce((value) => dispatch(setDependencyTreeSearchTerm(value)), INPUT_DEBOUNCE_TIME),
     []
@@ -55,13 +57,11 @@ export default function DependencyTreePage() {
       <MenuBarBackButton stateName="applicationReport.policy" />
       <header className="nx-page-title">
         <h1 className="nx-h1 iq-dependency-tree__title">Dependency Tree</h1>
-        {dependencyTreeIsAvailable && (
-          <ComponentDetailsReportInfo
-            data-testid="dependency-tree-page-header-breadcrumbs"
-            className="nx-page-title__description"
-            {...(metadata || {})}
-          />
-        )}
+        <ComponentDetailsReportInfo
+          data-testid="dependency-tree-page-header-breadcrumbs"
+          className="nx-page-title__description"
+          {...(metadata || {})}
+        />
       </header>
       <NxP>
         Only supported ecosystem components are displayed in dependency tree.{' '}
@@ -69,32 +69,32 @@ export default function DependencyTreePage() {
           View more details here.
         </NxTextLink>
       </NxP>
-      <NxTile data-testid="dependency-tree-tile">
-        <NxTile.Content>
-          <NxLoadWrapper
-            loading={loading}
-            retryHandler={loadReport}
-            error={!loading && !dependencyTreeIsAvailable ? 'Dependency tree not available.' : null}
-          >
-            <IqStatefulFilterInput
-              id="iq-dependency-tree-component-name-filter-input"
-              placeholder="component name"
-              onChange={debouncedSetDependencyTreeSearchTerm}
-              defaultValue={dependencyTreeSearchTerm}
-            />
-            {dependencyTreeSearchTerm && isNilOrEmpty(dependencyTree) ? (
-              <p className="iq-dependency-tree__empty">No matching components</p>
-            ) : (
-              <DependencyTree
-                items={dependencyTree}
-                rootName={applicationInfo?.applicationName}
-                treePathToggleAction={toggleTreePathAction}
-                searchTerm={dependencyTreeSearchTerm}
+      {dependencyTreeIsAvailable || error || loading ? (
+        <NxTile data-testid="dependency-tree-tile">
+          <NxTile.Content>
+            <NxLoadWrapper loading={loading} retryHandler={loadReport} error={error}>
+              <IqStatefulFilterInput
+                id="iq-dependency-tree-component-name-filter-input"
+                placeholder="component name"
+                onChange={debouncedSetDependencyTreeSearchTerm}
+                defaultValue={dependencyTreeSearchTerm}
               />
-            )}
-          </NxLoadWrapper>
-        </NxTile.Content>
-      </NxTile>
+              {dependencyTreeSearchTerm && isNilOrEmpty(dependencyTree) ? (
+                <p className="iq-dependency-tree__empty">No matching components</p>
+              ) : (
+                <DependencyTree
+                  items={dependencyTree}
+                  rootName={applicationInfo?.applicationName}
+                  treePathToggleAction={toggleTreePathAction}
+                  searchTerm={dependencyTreeSearchTerm}
+                />
+              )}
+            </NxLoadWrapper>
+          </NxTile.Content>
+        </NxTile>
+      ) : (
+        <NxWarningAlert>Dependency tree not available.</NxWarningAlert>
+      )}
     </NxPageMain>
   );
 }

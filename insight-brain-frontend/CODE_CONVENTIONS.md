@@ -76,15 +76,15 @@ The following section details the common etiquette for dealing with both providi
 
 - All new UI components should be implemented in React and the state managed with Redux.
 - Any changes to existing pages should follow the patterns of the modified code.
-- All React components should be Capitalized — both the component definition _and_ the file where it lives. i.e. `const AddWaiverPageContainer` in `AddWaiverPageContainer.jsx`.
+- All React components should be Capitalized — both the component definition _and_ the file where it lives. i.e. `DependencyTreePage` in `DependencyTreePage.jsx`.
 - All the other files should use camelCase. i.e. `export function loadAddWaiverData` in `waiverActions.js`
 - Prefer `default` exports for Components.
 - Before building a visual component check if the [React Shared Components Library](https://gallery.sonatype.dev/) already has it.
 - When building modals or popovers consider if it’s at all possible to make the component self-managed in terms of its display.
   - that is, the component itself should read the relevant state slice/prop and decide wether or not it should render or return null.
   - Consider creating a Slice dedicated only to the modal/popover.
-  - See as example `insight-brain-frontend/src/main/frontend/dashboard/filter/deleteFilterModal/DeleteFilterModal.jsx`
-  - The main benefit of this is that the consumer code doesn't need to pass around the prop that controls the rendering of the modal — this makes the component more reusable.
+  - See as example `insight-brain-frontend/src/main/frontend/componentDetails/overview/ComponentCoordinatesPopover/ComponentCoordinatesPopover.jsx`
+  - The main benefit of this is that the consumer code doesn't need to pass around the prop that controls the rendering of the modal.
   - Another benefit is that the unit-testing of the rendering is done only in the modal spec file, and consumer code doesn't need to worry about re-testing this.
 - When using an [`NxLoadWrapper`](https://gallery.sonatype.dev/#/pages/NxLoadWrapper) special attention should be given to the `loading` prop and the values it goes through while loading.
   - The usual use case is to show a loading indicator while some async request completes. This usually means that the `loading` flag goes from `false` to `true` and then `false` again — not loading, loading, fulfilled.
@@ -97,7 +97,7 @@ The following section details the common etiquette for dealing with both providi
 There are several helpful utility files and functions that have been implemented to help with IQ front-end development. Here is a listing of some of them, all located in the `insight-brain-frontend/src/main/frontend/util` directory
 
 - `jsUtil.js` - Helper functions for basic JavaScript manipulation and conversion. Capitalization, converting Sets to Arrays, and setting and looking up properties in nested objects
-- `reduxUtil.js` - Several helper functions for creating Redux actions and reducers
+- `reduxUtil.js` - Several helper functions for creating Redux actions and reducers. Note, `createSlice` from Redux Toolkit should be the preferred approach for creating actions and reducers.
 - `urlUtil.js` - functions to help with getting and setting URLs and their parameters
 - `validationUtil.js` - validation functions for form elements
 - `componentIdentifierUtils.js` - Helper function to serialize component identifiers
@@ -106,13 +106,13 @@ If you find yourself implementing a simple pattern that is or may be reusable, p
 
 ### React Sample component
 
-One example or template that you can use when creating new React components is the Add Waiver Page. There are other React examples in the IQ codebase that you can also inspect.
+One example or template that you can use when creating new React components is the [DependencyTreePage](https://github.com/sonatype/insight-brain/blob/master/insight-brain-frontend/src/main/frontend/DependencyTree/DependencyTreePage.jsx) component.
 
-- First, a container component such as `AddWaiverPageContainer` is created. This container component is responsible for wiring any external state (most typically state stored in redux) and callbacks into the UI. Two important functions that should be created are [mapStateToProps](https://react-redux.js.org/using-react-redux/connect-mapstate) and [mapDispatchToProps](https://react-redux.js.org/using-react-redux/connect-mapdispatch). Here we use the [react-redux](https://react-redux.js.org/) library to follow a standard pattern for passing state to and from React components. These methods, along with the [connect](https://react-redux.js.org/api/connect) method from the same library, allow us to pass state between the Redux store and our React components in a conventional way. The container component then passes the needed properties to the presentational component, with code similar to `const AddWaiverPageContainer = connect(mapStateToProps, mapDispatchToProps)(AddWaiverPage);`
-- The presentational component (`AddWaiverPage`) may have internal logic that helps it decide what to render. But it should not directly interact with the global state or actions. Instead, it should receive all data it needs, and all callbacks for user interaction that it supports, as React props. It is up to the container component to set these props to the correct data from the redux store and the correct action creators.
-- Relevant actions (`waiverActions.js`) and reducers (`addWaiverReducer.js`) for the component are also created in separate files. Any new reducers should be added to `insight-brain-frontend/src/main/frontend/reduxConfig/reducers.js`
-- Finally, in `waivers/module.js`, an Angular module is created pointing to the `AddWaiverPageContainer` component using [react2angular](https://www.npmjs.com/package/react2angular). This is what converts the React component into something that the rest of IQ (AngularJS) can interact with. There is a helper function called `withStoreProvider` that provides the redux store to the React components. It is wired into angular with code similar to
-  `.component('addWaiverPage', react2angular(withStoreProvider(AddWaiverPageContainer), [], ['$ngRedux', '$state']))`
+⚠️ Note, we no longer use `connect` HOC to create components connected to Redux store. Use redux hooks instead: `import { useSelector, useDispatch } from 'react-redux';`
+Also, there is no need to provide a "container" wrapper for each connected component.
+
+In `DependencyTree/module.js`, an Angular module is created pointing to the `DependencyTreePage` component using [react2angular](https://www.npmjs.com/package/react2angular). This is what converts the React component into something that the rest of IQ (AngularJS) can interact with. There are two helper functions `withStoreProvider` and `withRouterStateProvider` that provide the Redux store and RouterStateContext to the React components. The react component is converted to angular component with the code similar to
+`react2angular(withStoreProvider(withRouterStateProvider(DependencyTreePage)), [], ['$ngRedux', '$state'])`
 
 We implement runtime type-safety in React components using the [prop-types](https://www.npmjs.com/package/prop-types) library and all properties should be appropriately typed. This is usually done at the bottom of each component, by specifying various `PropTypes` from the `prop-types` project.
 
@@ -121,9 +121,6 @@ We implement runtime type-safety in React components using the [prop-types](http
 - There are places of the application where we have actions and reducers in separate files — this is the old approach. The new preferred approach is to use [redux-toolkit](https://redux-toolkit.js.org/).
 - Files created using [redux-toolkit](https://redux-toolkit.js.org/) should be named `*Slice`. i.e. `OverviewSlice.js` or `PolicyViolationsSlice.js`.
 - Slice files must have individual exports for both the reducer part and the actions.
-- Test files for these slices must still be separated.
-  - One `*ActionsSpec.js` file for testing the actions
-  - One `*ReducerSpec.js` file for testing the reducers.
 - Before creating a utility function check if it already exists in `insight-brain-frontend/src/main/frontend/util/reduxToolkitUtil.js`.
 
 ### Miscelaneous
@@ -153,26 +150,26 @@ For example, if you store your the "isDirty" flag in the `addWaiver` reducer in 
 
 ## Testing
 
-- Every exported item should be unit tested — Be it a Component, a reducer, or an utility function, they _all_ need unit testing.
-  - The only caveat to the above rule is for actions: simple action creators don't need to be tested; only _async_ actions creators (thunks) need to.
+- Every exported item should be unit tested — Be it a Component, a reducer, or a utility function, they _all_ need unit testing.
+  - We no longer require testing async actions and selectors since with React Testing Library we test connected component as a whole, so actions and selectors are considered to be implementation details.
 - Unit tests should be included in the PR along with the source code they're testing — do not break them down into separate PRs as that makes it harder to review.
 - Every story should include functional testing.
-- If you're testing a react component —`.jsx` extension— make sure that your corresponding spec file is also using the `.jsx` extension.
+- If you're testing a React component —`.jsx` extension— make sure that your corresponding spec file is also using the `.jsx` extension.
 - Spec files should be named equal to the source file they’re testing and with the "Spec" suffix. i.e. for `Source.jsx` the corresponding spec file should be `SourceSpec.jsx` — this makes the files easier to find.
 - Avoid using `setTimeout` in test files if possible, this increases test suite's runtime. The alternative is to use `jasmine's` `clock` for simulating time.
 
 ### Writing tests for React components
 
-It is IMPERATIVE that JavaScript unit tests be written for all front end code. Java integration and functional tests alone do not sufficiently ensure proper functionality.
+⚠️ We no longer use Enzyme for testing. Please use **React Testing Library**.
 
-JavaScript unit tests should be created for the presentational component, and all actions and reducers. Examples of how to wire up mock state and properties can be found in the tests for the Add Waiver Page.
+React Testing Library promotes testing of Redux connected components as a whole. Instead of writing separate unit test for components, async actions and reducers, we test components integrated with Redux as a whole. Action creators are considered to be implementation details and don't need tests. We still encourage providing unit tests for Reducers since they are extremely easy to test (pure functions) and usually contain important application logic.
+
+For en example of a test with React Testing Library see `insight-brain-frontend/src/test/frontend/configuration/successMetricsConfiguration/SuccessMetricsConfigurationSpec.jsx`
 
 There are several helper functions in `insight-brain-frontend/src/test/frontend/SpecUtil.js` to help you with writing unit tests for React components. Here are some of the most common:
 
-- `mockNgRedux` and `mockReduxStore` provide helpful interfaces for interacting with a mock Redux store / state
-- `axiosMockerGenerator` can help to interact with the various Axios HTTP verbs (get / post / put / delete)
-- You should typically use [enzyme's](https://enzymejs.github.io/enzyme/docs/api/shallow.html) `shallow` and `mount` functions to test the DOM that your React component renders
-- If you use `mount` make sure that you're unmounting the components in the `afterAll` section of your tests.
+- `render` wrapper for React Testing Library API that configures Redux Store and Jasmine matchers.
+- `axiosMockerGenerator` can be used to mock Axios HTTP requests (get / post / put / delete)
 
 ### Mocking Rejected Promises
 
@@ -217,7 +214,7 @@ In a nutshell: don't create the rejected promise until you need it.
 
 - Keep screenshots at a minimum.
   - Usually one screenshot per page of the application is enough, unless the page in question has very complex and visually-distinct states.
-- Only enable Visual Testing (Applitools) _after_ the Pull-Reques has gotten two approvals but _before_ merging it.
+- Only enable Visual Testing (Applitools) _after_ the Pull-Request has gotten two approvals but _before_ merging it.
 - Make sure that Applitools passes _before_ merging your Pull-Request.
 - If there are any expected applitools changes, accept them, and remember to click save so the baseline is updated.
 - If the changes you are seeing are NOT expected then it is a sign that something unintended is happening in the PR and needs to be addressed.

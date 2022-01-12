@@ -20,8 +20,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 
 import com.codeborne.selenide.Condition;
 import org.apache.commons.io.IOUtils;
@@ -161,6 +161,8 @@ public class LegalDashboardPageTest
     refreshOrOpen(LegalDashboardPage.url(true));
     LegalDashboardPage ldp = new LegalDashboardPage();
     this.changeToComponentsTab(ldp);
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
     ldp.tableRows().shouldHaveSize(10);
     ldp.tableRows().get(0).click();
     waitUntilUrl(BaseUrl.resolvePageUrl("/legal/component/hash2"));
@@ -237,8 +239,8 @@ public class LegalDashboardPageTest
     refreshOrOpen(LegalDashboardPage.url(true));
     LegalDashboardPage ldp = new LegalDashboardPage();
     this.changeToComponentsTab(ldp);
-    ldp.componentsSearchInput().setValue("1.0");
-    ldp.componentsSearchButton().click();
+    ldp.componentsSearchInput().setValue("package");
+    ldp.componentsSearchInput().pressEnter();
     ldp.componentsSearchButton().shouldBe(Condition.disabled);
     Wait<WebDriver> wait = getWebDriverAwait();
     wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
@@ -357,6 +359,9 @@ public class LegalDashboardPageTest
     ldp.tableRows().get(0).shouldHave(Condition.text("org.package : component : 1.0 Apache-1.0 1 - / -"));
     ldp.tableRows().get(6).shouldHave(
             Condition.text("org.package : component : 9.0 GreenSock-Commercial-License 1 - / -"));
+    ldp.filterCollapsibleItems().get(0).click();
+    ldp.filterOrganizationsCheckBoxes().get(3).click();
+    ldp.filterApplyButton().click();
   }
 
   @Test
@@ -372,8 +377,11 @@ public class LegalDashboardPageTest
     wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
     ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
     ldp.tableRows().shouldHaveSize(6);
-    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 1 1 / 4"));
-    ldp.tableRows().get(5).shouldHave(Condition.text("org.package : component : 8.0 GPL-2.0+ or LGPL-3.0+ 1 - / -"));
+    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 1 0 / 4"));
+    ldp.tableRows().get(4).shouldHave(Condition.text("org.package : component : 7.0 CMRL-1.0 1 - / -"));
+    ldp.filterCollapsibleItems().get(1).click();
+    ldp.filterApplicationsCheckBoxes().get(1).click();
+    ldp.filterApplyButton().click();
   }
 
   @Test
@@ -389,9 +397,12 @@ public class LegalDashboardPageTest
     wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
     ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
     ldp.tableRows().shouldHaveSize(10);
-    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 2 1 / 4"));
+    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 2 0 / 4"));
     ldp.tableRows().get(9).shouldHave(
-            Condition.text("org.package : component : 8.0 GPL-2.0, GPL-2.0+ or LGPL-3.0+, GPL-3.0, LGPL-3.0 2 - / -"));
+        Condition.text("org.package : component : 8.0 GPL-2.0+ or LGPL-3.0+ 2 - / -"));
+    ldp.filterCollapsibleItems().get(2).click();
+    ldp.filterApplicationCategoriesCheckBoxes().get(1).click();
+    ldp.filterApplyButton().click();
   }
 
   @Test
@@ -416,7 +427,7 @@ public class LegalDashboardPageTest
     wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
     ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
     ldp.tableRows().shouldHaveSize(6);
-    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 1 1 / 4"));
+    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 1 0 / 4"));
     ldp.tableRows().get(5).shouldHave(Condition.text("org.package : component : 8.0 GPL-2.0+ or LGPL-3.0+ 1 - / -"));
 
     ldp.filterStagesCheckBoxes().get(2).click();
@@ -425,9 +436,12 @@ public class LegalDashboardPageTest
     wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
     ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
     ldp.tableRows().shouldHaveSize(9);
-    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 1 1 / 4"));
+    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 1 0 / 4"));
     ldp.tableRows().get(8).shouldHave(
             Condition.text("org.package : component : 9.0 GreenSock-Commercial-License 2 - / -"));
+    ldp.filterCollapsibleItems().get(3).click();
+    ldp.filterStagesCheckBoxes().get(4).click();
+    ldp.filterApplyButton().click();
   }
 
   @Test
@@ -442,9 +456,12 @@ public class LegalDashboardPageTest
     Wait<WebDriver> wait = getWebDriverAwait();
     wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
     ldp.selectedPaginationPage().shouldHave(Condition.text("1"));
-    ldp.tableRows().shouldHaveSize(10);
-    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : #$%&/ : 2.0 MIT 2 1 / 4"));
-    ldp.tableRows().get(9).shouldHave(
-            Condition.text("org.package : component : 8.0 GPL-2.0, GPL-2.0+ or LGPL-3.0+, GPL-3.0, LGPL-3.0 2 - / -"));
+    ldp.tableRows().shouldHaveSize(9);
+    ldp.tableRows().get(0).shouldHave(Condition.text("org.package : component : 1.0 Apache-1.0 1 - / -"));
+    ldp.tableRows().get(8).shouldHave(
+        Condition.text("org.package : component : 9.0 GreenSock-Commercial-License  2 - / -"));
+    ldp.filterCollapsibleItems().get(4).click();
+    ldp.filterReviewProgressCheckBoxes().get(2).click();
+    ldp.filterApplyButton().click();
   }
 }

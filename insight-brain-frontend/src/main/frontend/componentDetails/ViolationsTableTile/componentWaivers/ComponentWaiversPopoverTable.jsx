@@ -77,7 +77,7 @@ export default function ComponentWaiversPopoverTable({ componentName, waivers = 
         </NxTableRow>
       </NxTableHead>
       <NxTableBody emptyMessage="No existing component waivers">
-        {waivers.map((waiver) => (
+        {waivers?.map((waiver) => (
           <ComponentWaiversTableRow
             key={waiver.policyWaiverId}
             {...{

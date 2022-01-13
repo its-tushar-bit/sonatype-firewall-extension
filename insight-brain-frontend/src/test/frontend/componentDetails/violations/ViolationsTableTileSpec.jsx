@@ -123,6 +123,13 @@ describe('ViolationsTableTile', () => {
       expect(button).not.toExist();
     });
 
+    it('is not rendered if `loading` is true', () => {
+      const component = getShallow({ isLoadingComponentDetails: true });
+      const button = component.find(ViewAllComponentWaiversButton);
+
+      expect(button).not.toExist();
+    });
+
     it('calls `toggleComponentWaiversPopover` when clicked', () => {
       const component = getShallow();
       const button = component.find(ViewAllComponentWaiversButton).dive().find(NxButton);

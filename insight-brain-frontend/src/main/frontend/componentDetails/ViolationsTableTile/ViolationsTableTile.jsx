@@ -62,6 +62,8 @@ export default function ViolationsTableTile({
     setViolationType(violationType);
   }, [violationType]);
 
+  const loading = isLoadingComponentDetails || !tableProps.componentName;
+
   return (
     <section className="nx-tile">
       <header className="nx-tile-header">
@@ -81,18 +83,14 @@ export default function ViolationsTableTile({
                 hash={hash}
               />
             )}
-            {showViewAllComponents && (
+            {showViewAllComponents && !loading && (
               <ViewAllComponentWaiversButton toggleComponentWaiversPopover={tableProps.toggleComponentWaiversPopover} />
             )}
           </div>
         )}
       </header>
       <div className="nx-tile-content">
-        <NxLoadWrapper
-          loading={isLoadingComponentDetails || !tableProps.componentName}
-          error={componentDetailsLoadError}
-          retryHandler={loadComponentDetails}
-        >
+        <NxLoadWrapper loading={loading} error={componentDetailsLoadError} retryHandler={loadComponentDetails}>
           {() => <PolicyViolationsTable {...tableProps} />}
         </NxLoadWrapper>
       </div>

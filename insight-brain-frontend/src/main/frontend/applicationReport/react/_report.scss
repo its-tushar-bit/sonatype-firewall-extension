@@ -74,6 +74,10 @@ app-report {
   }
 }
 
+.nx-binary-donut-chart.iq-report-status-bar__coverage-indicator-chart {
+  height: 26px;
+}
+
 .iq-app-report__results-table-tile {
   $component-cell-max-width: 610px;
 

@@ -8,6 +8,7 @@ import * as PropTypes from 'prop-types';
 import NxFontAwesomeIcon from '@sonatype/react-shared-components/components/NxFontAwesomeIcon/NxFontAwesomeIcon';
 import { faHistory } from '@fortawesome/pro-solid-svg-icons';
 import { propOr } from 'ramda';
+import { NxBinaryDonutChart } from '@sonatype/react-shared-components';
 
 export default function ReportStatusBar(props) {
   const { selectedReport } = props;
@@ -49,6 +50,11 @@ export default function ReportStatusBar(props) {
             </div>
           </div>
           <div className="iq-coverage-indicator">
+            <NxBinaryDonutChart
+              className="iq-report-status-bar__coverage-indicator-chart"
+              percent={coveragePercent()}
+              role="presentation"
+            />
             <div className="iq-caption">
               <h3 className="iq-caption__text">{totalArtifactCount} COMPONENTS</h3>
               <p className="iq-caption__sub-text">{coveragePercent()}% of all components identified</p>

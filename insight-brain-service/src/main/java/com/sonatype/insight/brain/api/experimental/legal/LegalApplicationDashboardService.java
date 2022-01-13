@@ -215,6 +215,8 @@ public class LegalApplicationDashboardService
       }
     }
 
+    Collections.sort(result, Comparator.comparing(dto -> dto.displayName, String.CASE_INSENSITIVE_ORDER));
+
     return result;
   }
 

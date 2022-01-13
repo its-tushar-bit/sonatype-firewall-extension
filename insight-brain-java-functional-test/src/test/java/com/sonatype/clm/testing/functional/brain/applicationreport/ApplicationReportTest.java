@@ -776,34 +776,6 @@ public class ApplicationReportTest
     waitUntilUrl(ReportListPage.url());
   }
 
-  @Test
-  public void testNoDependencyTreeAvailable() {
-    refreshOrOpen(ApplicationReportPage.urlWithDepencyTreeEnabled(app, SCAN_ID));
-
-    eyesWatcher.eyesCheck("go To Dependency Tree Button disabled");
-    reportPage.goToDependencyTreeButton().shouldHave(cssClass("disabled"));
-    reportPage.goToDependencyTreeButton().click();
-    DependencyTreePage dependencyTreePage = new DependencyTreePage();
-    dependencyTreePage.shouldNotBe(visible);
-  }
-
-  @Test
-  public void testNavigateToDependencyTree() throws IOException {
-    URL zippedReport = ReportHelper.zipReport("/canned-reports/report-with-dependency-tree", tempDir);
-    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
-    evaluator.evaluatePolicy();
-
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
-    refreshOrOpen(ApplicationReportPage.urlWithDepencyTreeEnabled(app, SCAN_ID));
-
-    eyesWatcher.eyesCheck("go To Dependency Tree Button enabled");
-
-    reportPage.goToDependencyTreeButton().click();
-    DependencyTreePage dependencyTreePage = new DependencyTreePage();
-    dependencyTreePage.shouldBe(visible);
-  }
-
   private void checkSecondarySortByNameDescending(final ElementsCollection violations) {
     violations.filterBy(matchesText("License-Banned")).shouldHave(texts("com.mycila", "com.vaadin"));
     violations.filterBy(matchesText("Security-High")).shouldHave(

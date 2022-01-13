@@ -21,12 +21,10 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
-import com.sonatype.clm.testing.functional.elements.NxTree;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentCoordinatesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationDefinitionList;
-import com.sonatype.clm.testing.functional.elements.componentdetails.DependencyTreeTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LegalTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
@@ -76,7 +74,6 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 
-import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
@@ -466,161 +463,6 @@ public class ComponentDetailsTest
 
     similarMatchesPopover.closeButton().click();
     similarMatchesPopover.shouldNotBe(visible);
-  }
-
-  @Test
-  public void testOverviewTab_DependencyTreeTile() throws IOException {
-    URL zippedReport = ReportHelper.zipReport("/canned-reports/report-with-dependency-tree", tempDir);
-    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
-    evaluator.evaluatePolicy();
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
-    refreshOrOpen(
-        ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "494308fc2d433720c778"));
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-
-    DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
-    dependencyTreeTile.shouldBe(visible);
-    dependencyTreeTile.title().shouldHave(text("Dependency Tree"));
-
-    final String THREAT_CRITICAL_CLASS = "nx-threat-indicator--critical";
-    final String THREAT_NONE_CLASS = "nx-threat-indicator--none";
-    final NxTree nxTree = dependencyTreeTile.tree();
-
-    ElementsCollection clickableTreeItems = nxTree.clickableTreeItems();
-    ElementsCollection nonClickableTreeItems = nxTree.nonClickableTreeItems();
-    ElementsCollection threatIndicators = nxTree.threatIndicators();
-
-    nxTree.treeItems().get(0).shouldHave(text("ApplicationReportTest"));
-    clickableTreeItems.shouldHaveSize(4);
-    scrollIntoView(clickableTreeItems.get(0), true);
-
-    clickableTreeItems.get(0).shouldHave(text("ch.qos.logback : logback-access : 0.6"));
-    threatIndicators.get(0).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
-
-    clickableTreeItems.get(1).shouldHave(text("org.apache.flume : flume-ng-node : 1.0.0-incubating"));
-    threatIndicators.get(1).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
-
-    clickableTreeItems.get(2).shouldHave(text("org.apache.flume : flume-ng-core : 1.0.0-incubating"));
-    threatIndicators.get(2).shouldHave(cssClass(THREAT_NONE_CLASS));
-
-    clickableTreeItems.get(3).shouldHave(text("org.apache.avro : avro-ipc : 1.5.0"));
-    threatIndicators.get(3).shouldHave(cssClass(THREAT_NONE_CLASS));
-
-    nonClickableTreeItems.shouldHaveSize(2);
-
-    nonClickableTreeItems.get(0).shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
-    threatIndicators.get(1).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
-    nonClickableTreeItems.get(0).shouldNotHave(attribute("a"));
-
-    nonClickableTreeItems.get(1).shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
-    threatIndicators.get(5).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
-    nonClickableTreeItems.get(1).shouldNotHave(attribute("a"));
-
-    eyesWatcher.eyesCheck("Overview tab with dependency tree tile");
-  }
-
-  @Test
-  public void testOverviewTab_dependencyTreeTile_emptyTree() {
-    refreshOrOpen(
-        ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "dc810b3d25f9e8c930f5"));
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-
-    DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
-    dependencyTreeTile.unavailableAlert().shouldBe(visible);
-
-    eyesWatcher.eyesCheck("Overview tab with unavailable dependency tree");
-  }
-
-  @Test
-  public void testOverviewTab_DependencyTreeTile_InitialState() throws IOException {
-    URL zippedReport = ReportHelper.zipReport("/canned-reports/report-with-dependency-tree", tempDir);
-    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
-    evaluator.evaluatePolicy();
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
-    refreshOrOpen(
-            ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "ae81d32288bf8419181f"));
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-
-    DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
-    dependencyTreeTile.shouldBe(visible);
-    dependencyTreeTile.title().shouldHave(text("Dependency Tree"));
-
-    final NxTree nxTree = dependencyTreeTile.tree();
-
-    ElementsCollection clickableTreeItems = nxTree.clickableTreeItems();
-    ElementsCollection nonClickableTreeItems = nxTree.nonClickableTreeItems();
-    ElementsCollection clickableIcons = nxTree.collapseIcons();
-
-    nxTree.treeItems().get(0).shouldHave(text("ApplicationReportTest"));
-    clickableTreeItems.shouldHaveSize(4);
-    scrollIntoView(clickableTreeItems.get(0), true);
-
-    clickableTreeItems.get(0).shouldHave(text("org.apache.flume : flume-ng-node : 1.0.0-incubating"));
-
-    clickableTreeItems.get(1).shouldHave(text("org.apache.flume : flume-ng-core : 1.0.0-incubating"));
-
-    clickableTreeItems.get(0).shouldBe(visible);
-    clickableTreeItems.get(1).shouldBe(visible);
-    clickableTreeItems.get(2).shouldNotBe(visible);
-    clickableTreeItems.get(3).shouldNotBe(visible);
-
-    nonClickableTreeItems.shouldHaveSize(1);
-
-    nonClickableTreeItems.get(0).shouldHave(text("org.apache.avro : avro-ipc : 1.5.0"));
-
-    eyesWatcher.eyesCheck("Overview tab with dependency tree tile collapsed");
-
-    clickableIcons.get(2).click();
-    clickableTreeItems.get(2).shouldBe(visible);
-    clickableTreeItems.get(3).shouldBe(visible);
-
-    clickableTreeItems.get(2).shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
-
-    clickableTreeItems.get(3).shouldHave(text("org.slf4j : slf4j-api : 1.6.1"));
-
-    eyesWatcher.eyesCheck("Overview tab with dependency tree tile expanded");
-  }
-
-  @Test
-  public void testOverviewTab_DependencyTreeTileInitialStateDirectDependency() throws IOException {
-    URL zippedReport = ReportHelper.zipReport("/canned-reports/report-with-dependency-tree", tempDir);
-    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
-    evaluator.evaluatePolicy();
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
-    refreshOrOpen(
-            ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "ad19001bd021002377c2"));
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-
-    DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
-    dependencyTreeTile.shouldBe(visible);
-    dependencyTreeTile.title().shouldHave(text("Dependency Tree"));
-
-    final NxTree nxTree = dependencyTreeTile.tree();
-
-    ElementsCollection clickableTreeItems = nxTree.clickableTreeItems();
-    ElementsCollection nonClickableTreeItems = nxTree.nonClickableTreeItems();
-
-    nxTree.treeItems().get(0).shouldHave(text("ApplicationReportTest"));
-    clickableTreeItems.shouldHaveSize(10);
-    scrollIntoView(clickableTreeItems.get(0), true);
-
-    clickableTreeItems.get(0).shouldBe(visible);
-    clickableTreeItems.get(1).shouldBe(visible);
-    clickableTreeItems.get(2).shouldBe(visible);
-    clickableTreeItems.get(4).shouldBe(visible);
-    clickableTreeItems.get(5).shouldBe(visible);
-    clickableTreeItems.get(6).shouldBe(visible);
-    clickableTreeItems.get(7).shouldBe(visible);
-    clickableTreeItems.get(8).shouldBe(visible);
-    clickableTreeItems.get(9).shouldBe(visible);
-
-    nonClickableTreeItems.shouldHaveSize(1);
-
-    eyesWatcher.eyesCheck("Overview tab with dependency tree direct dependency");
-
   }
 
   @Test

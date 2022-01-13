@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import RemoveLabelModal from 'MainRoot/componentDetails/ManageComponentLabels/RemoveLabelModal/RemoveLabelModal';
-import { NxButton, NxLoadError } from '@sonatype/react-shared-components';
+import { NxForm, NxWarningAlert } from '@sonatype/react-shared-components';
 
 describe('RemoveLabelModal', () => {
   let minimalProps, getShallow;
@@ -29,33 +29,30 @@ describe('RemoveLabelModal', () => {
     expect(content).toHaveText('Remove Label');
   });
 
-  it('renders a nx-modal-content', () => {
+  it('renders delete alert message', () => {
     const component = getShallow();
-    const content = component.find('.nx-modal-content').find('.nx-p');
+    const content = component.find(NxWarningAlert);
 
     expect(content).toHaveText('Are you sure you want to remove this label?');
   });
 
   it('calls removeLabel', () => {
-    const component = getShallow().find(NxButton).at(1);
-    component.simulate('click');
+    const component = getShallow().find(NxForm);
+    component.simulate('submit');
 
     expect(minimalProps.removeLabel).toHaveBeenCalled();
   });
 
   it('calls toggleShowRemoveLabelModal when user clicks cancel', () => {
-    const component = getShallow().find(NxButton).at(0);
-    component.simulate('click');
+    const component = getShallow().find(NxForm);
+    component.simulate('cancel');
 
     expect(minimalProps.toggleShowRemoveLabelModal).toHaveBeenCalled();
   });
 
   it('displays an error message if theres any error removing the label', () => {
-    const component = getShallow({ removeLabelError: 'some err' }),
-      error = component.find(NxLoadError);
+    const component = getShallow({ removeLabelError: 'some err' }).find(NxForm);
 
-    expect(error).toHaveProp('error', 'some err');
-    expect(error).toHaveProp('titleMessage', 'An error occurred removing label.');
-    expect(error).toHaveProp('retryHandler');
+    expect(component).toHaveProp('submitError', 'some err');
   });
 });

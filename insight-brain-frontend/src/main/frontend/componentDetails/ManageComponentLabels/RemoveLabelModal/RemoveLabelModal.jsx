@@ -5,7 +5,8 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxModal, NxButton, NxLoadError } from '@sonatype/react-shared-components';
+import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
+import { NxModal, NxFontAwesomeIcon, NxForm, NxWarningAlert } from '@sonatype/react-shared-components';
 
 const REMOVE_LABEL_ERR = 'An error occurred removing label.';
 
@@ -15,6 +16,7 @@ export default function RemoveLabelModal({
   selectedLabelDetails,
   showRemoveLabelModal,
   removeLabelError,
+  removeLabelMaskState,
 }) {
   const removeHandler = () => {
     removeLabel(selectedLabelDetails);
@@ -23,27 +25,25 @@ export default function RemoveLabelModal({
   return (
     showRemoveLabelModal && (
       <NxModal variant="narrow" onCancel={toggleShowRemoveLabelModal} aria-labelledby="iq-remove-label">
-        <header className="nx-modal-header">
-          <h2 className="nx-h2" id="iq-remove-label">
-            <span>Remove Label</span>
-          </h2>
-        </header>
-        <div className="nx-modal-content">
-          <p className="nx-p">Are you sure you want to remove this label?</p>
-        </div>
-        <footer className="nx-footer">
-          {removeLabelError && (
-            <NxLoadError error={removeLabelError} titleMessage={REMOVE_LABEL_ERR} retryHandler={removeHandler} />
-          )}
-          <div className="nx-btn-bar">
-            <NxButton onClick={toggleShowRemoveLabelModal}>Cancel</NxButton>
-            {!removeLabelError && (
-              <NxButton variant="primary" onClick={removeHandler}>
-                Remove
-              </NxButton>
-            )}
+        <NxForm
+          onSubmit={removeHandler}
+          submitMaskState={removeLabelMaskState}
+          submitMaskMessage="Removing label…"
+          onCancel={toggleShowRemoveLabelModal}
+          submitBtnText="Remove"
+          submitError={removeLabelError}
+          submitErrorTitleMessage={REMOVE_LABEL_ERR}
+        >
+          <header className="nx-modal-header">
+            <h2 className="nx-h2" id="iq-remove-label">
+              <NxFontAwesomeIcon icon={faTrashAlt} />
+              <span>Remove Label</span>
+            </h2>
+          </header>
+          <div className="nx-modal-content">
+            <NxWarningAlert>Are you sure you want to remove this label?</NxWarningAlert>
           </div>
-        </footer>
+        </NxForm>
       </NxModal>
     )
   );
@@ -55,4 +55,5 @@ RemoveLabelModal.propTypes = {
   selectedLabelDetails: PropTypes.object.isRequired,
   toggleShowRemoveLabelModal: PropTypes.func.isRequired,
   removeLabelError: PropTypes.string,
+  removeLabelMaskState: PropTypes.bool,
 };

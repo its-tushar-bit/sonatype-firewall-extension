@@ -51,6 +51,7 @@ export const initialState = Object.freeze({
   loadError: null,
   showApplyLabelModal: false,
   applyLabelMaskState: null,
+  removeLabelMaskState: null,
   labelModalMaskState: null,
   selectedLabelDetails: {},
   selectedLabelOwnerType: '',
@@ -398,8 +399,10 @@ const removeAppliedLabel = createAsyncThunk(
     return axios
       .delete(removeLabel(ownerType, ownerId, hash, id))
       .then(() => {
-        dispatch(actions.toggleShowRemoveLabelModal());
-        dispatch(loadComponentDetails());
+        setTimeout(() => {
+          dispatch(actions.toggleShowRemoveLabelModal());
+          dispatch(loadComponentDetails());
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
       })
       .catch(rejectWithValue);
   }
@@ -409,6 +412,7 @@ const removeAppliedLabelRequested = (state) => {
   return setPendingLoads(['removeAppliedLabel'], {
     ...state,
     removeAppliedLabelError: null,
+    removeLabelMaskState: false,
   });
 };
 
@@ -417,12 +421,14 @@ const removeAppliedLabelFulfilled = (state) => {
     ...state,
     selectedLabelDetails: {},
     removeAppliedLabelError: null,
+    removeLabelMaskState: true,
   });
 };
 
 const removeAppliedLabelFailed = (state, { payload }) => {
   return unsetPendingLoads(['removeAppliedLabel'], {
     ...state,
+    removeLabelMaskState: null,
     removeAppliedLabelError: Messages.getHttpErrorMessage(payload),
   });
 };
@@ -468,6 +474,7 @@ const showApplyLabelModalAction = (state) => {
 const toggleShowRemoveLabelModal = (state) => {
   return toggleBooleanProp('showRemoveLabelModal')({
     ...state,
+    removeLabelMaskState: null,
     removeAppliedLabelError: null,
   });
 };
@@ -490,6 +497,7 @@ const componentDetailsSlice = createSlice({
     toggleShowMatchersPopover: toggleBooleanProp('showMatchersPopover'),
     resetSubmitMaskState: pathSetConst(['setProprietaryMatchers', 'submitMaskState'], null),
     resetApplyLabelMaskState: propSet('applyLabelMaskState'),
+    resetRemoveLabelMaskState: propSet('removeLabelMaskState'),
     resetLabelModalMaskState: propSet('labelModalMaskState'),
     resetSubmitError: pathSetConst(['setProprietaryMatchers', 'submitError'], null),
     setComponentMatchersData: pathSet(['setProprietaryMatchers', 'data']),

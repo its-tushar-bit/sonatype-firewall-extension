@@ -440,10 +440,14 @@ describe('componentDetailsActions', function () {
       });
 
       store.dispatch(removeAppliedLabel(removeAppliedLabelPayload)).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
         expect(axios.delete).toHaveBeenCalledWith('/rest/label/component/ownerType/ownerId/my-component-hash/labelId');
         const actions = store.getActions();
-        expect(actions.length).toBe(7);
-        expect(actions).toHaveActionType(REMOVE_APPLIED_LABEL_REQUESTED);
+
+        expect(actions.length).toBe(6);
+        expect(actions).toHaveActionTypesInOrder([REMOVE_APPLIED_LABEL_REQUESTED, REMOVE_APPLIED_LABEL_FULFILLED]);
+
         done();
       });
     });
@@ -460,9 +464,13 @@ describe('componentDetailsActions', function () {
       });
 
       store.dispatch(removeAppliedLabel(removeAppliedLabelPayload)).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
         const actions = store.getActions();
-        expect(actions.length).toBe(7);
-        expect(actions).toHaveActionType(REMOVE_APPLIED_LABEL_FULFILLED);
+
+        expect(actions.length).toBe(6);
+        expect(actions).toHaveActionTypesInOrder([REMOVE_APPLIED_LABEL_REQUESTED, REMOVE_APPLIED_LABEL_FULFILLED]);
+
         done();
       });
     });

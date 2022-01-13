@@ -8,6 +8,7 @@ import {
   selectRemoveAppliedLabelError,
   selectSelectedLabelDetails,
   selectShowRemoveLabelModal,
+  selectRemoveLabelMaskState,
 } from '../../componentDetailsSelectors';
 import { actions } from '../../componentDetailsSlice';
 import RemoveLabelModal from './RemoveLabelModal';
@@ -19,6 +20,7 @@ function mapStateToProps(state) {
     selectedLabelDetails: selectSelectedLabelDetails(state),
     showRemoveLabelModal: selectShowRemoveLabelModal(state),
     removeLabelError: selectRemoveAppliedLabelError(state),
+    removeLabelMaskState: selectRemoveLabelMaskState(state),
   };
 }
 

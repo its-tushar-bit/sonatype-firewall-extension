@@ -78,51 +78,53 @@ export default function ReportContent(props) {
   const dirComponentName = getDirection(sortConfiguration, 'derivedComponentName');
 
   return (
-    <section className="nx-tile iq-app-report__results-table-tile">
-      <div className="nx-tile-content nx-scrollable nx-scrollable--table-container">
-        <NxTable className="nx-table--scrollable nx-table--fixed-layout">
-          <NxTableHead>
-            <NxTableRow>
-              <NxTableCell
-                className="iq-app-report__threat-cell"
-                isSortable
-                sortDir={dirPolicyThreatLevel}
-                onClick={() => requestSort(policyThreatLevelSettings)}
-              >
-                Threat
-              </NxTableCell>
-              <NxTableCell
-                className="iq-app-report__policy-name-cell"
-                isSortable
-                sortDir={dirPolicyName}
-                onClick={() => requestSort(policyNameSettings)}
-              >
-                Policy
-              </NxTableCell>
-              <NxTableCell
-                className="iq-app-report__component-name-cell"
-                isSortable
-                sortDir={dirComponentName}
-                onClick={() => requestSort(componentNameSettings)}
-              >
-                Component
-              </NxTableCell>
-            </NxTableRow>
-            <NxTableRow className="nx-table-row--filter-header">
-              <NxTableCell colSpan={2}>
-                <NxFilterInput placeholder="policy name" onChange={filterPolicyName} value={policyNameFilter} />
-              </NxTableCell>
-              <NxTableCell>
-                <NxFilterInput
-                  placeholder="component name"
-                  onChange={filterDerivedComponentName}
-                  value={derivedComponentNameFilter}
-                />
-              </NxTableCell>
-            </NxTableRow>
-          </NxTableHead>
-          <NxTableBody emptyMessage="No Results">{displayedEntries.map(createRow)}</NxTableBody>
-        </NxTable>
+    <section className="nx-tile iq-app-report__results-table-tile nx-viewport-sized__container">
+      <div className="nx-tile-content nx-viewport-sized__container">
+        <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
+          <NxTable className="nx-table--scrollable nx-table--fixed-layout">
+            <NxTableHead>
+              <NxTableRow>
+                <NxTableCell
+                  className="iq-app-report__threat-cell"
+                  isSortable
+                  sortDir={dirPolicyThreatLevel}
+                  onClick={() => requestSort(policyThreatLevelSettings)}
+                >
+                  Threat
+                </NxTableCell>
+                <NxTableCell
+                  className="iq-app-report__policy-name-cell"
+                  isSortable
+                  sortDir={dirPolicyName}
+                  onClick={() => requestSort(policyNameSettings)}
+                >
+                  Policy
+                </NxTableCell>
+                <NxTableCell
+                  className="iq-app-report__component-name-cell"
+                  isSortable
+                  sortDir={dirComponentName}
+                  onClick={() => requestSort(componentNameSettings)}
+                >
+                  Component
+                </NxTableCell>
+              </NxTableRow>
+              <NxTableRow className="nx-table-row--filter-header">
+                <NxTableCell colSpan={2}>
+                  <NxFilterInput placeholder="policy name" onChange={filterPolicyName} value={policyNameFilter} />
+                </NxTableCell>
+                <NxTableCell>
+                  <NxFilterInput
+                    placeholder="component name"
+                    onChange={filterDerivedComponentName}
+                    value={derivedComponentNameFilter}
+                  />
+                </NxTableCell>
+              </NxTableRow>
+            </NxTableHead>
+            <NxTableBody emptyMessage="No Results">{displayedEntries.map(createRow)}</NxTableBody>
+          </NxTable>
+        </div>
       </div>
     </section>
   );

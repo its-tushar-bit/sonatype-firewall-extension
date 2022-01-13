@@ -3,13 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { NxLoadWrapper } from '@sonatype/react-shared-components';
 import ReportStatusBar from './ReportStatusBar';
 import ReportContent from './ReportContent';
 import ReportFilters from './ReportFilters';
 import ReportTitle from './ReportTitle';
 import * as PropTypes from 'prop-types';
-import LoadWrapper from '../../react/LoadWrapper';
+import BackButton from 'MainRoot/react/BackButton';
 
 export default function ReportPage(props) {
   const {
@@ -48,38 +49,39 @@ export default function ReportPage(props) {
   }, [publicId, scanId]);
 
   return (
-    <Fragment>
-      <ReportFilters
-        {...{
-          $state,
-          setAggregateReportEntries,
-          setExactValueFilter,
-          exactValueFilters,
-          aggregate,
-        }}
-      />
-      <main className="nx-page-main iq-app-report">
-        <LoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
-          <ReportTitle
-            metadataDetails={metadata}
-            scanId={scanId}
-            publicId={publicId}
-            selectedReport={selectedReport}
-            reevaluateReport={reevaluateReport}
-            stateGo={stateGo}
+    <main id="app-report" className="nx-page-main nx-viewport-sized iq-app-report">
+      <BackButton stateName="violations" $state={$state} text="All Reports" />
+      <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
+        {false && (
+          <ReportFilters
+            {...{
+              $state,
+              setAggregateReportEntries,
+              setExactValueFilter,
+              exactValueFilters,
+              aggregate,
+            }}
           />
-          <ReportStatusBar selectedReport={selectedReport} />
-          <ReportContent
-            selectedReport={selectedReport}
-            substringFilters={substringFilters}
-            setSorting={setSorting}
-            sortConfiguration={sortConfiguration}
-            setStringFieldFilter={setStringFieldFilter}
-            setSortingParameters={setSortingParameters}
-          />
-        </LoadWrapper>
-      </main>
-    </Fragment>
+        )}
+        <ReportTitle
+          metadataDetails={metadata}
+          scanId={scanId}
+          publicId={publicId}
+          selectedReport={selectedReport}
+          reevaluateReport={reevaluateReport}
+          stateGo={stateGo}
+        />
+        <ReportStatusBar selectedReport={selectedReport} />
+        <ReportContent
+          selectedReport={selectedReport}
+          substringFilters={substringFilters}
+          setSorting={setSorting}
+          sortConfiguration={sortConfiguration}
+          setStringFieldFilter={setStringFieldFilter}
+          setSortingParameters={setSortingParameters}
+        />
+      </NxLoadWrapper>
+    </main>
   );
 }
 
@@ -140,7 +142,7 @@ ReportPage.propTypes = {
     ),
   }),
   loading: PropTypes.bool,
-  loadError: LoadWrapper.propTypes.error,
+  loadError: PropTypes.string,
   aggregate: PropTypes.bool.isRequired,
   exactValueFilters: PropTypes.object.isRequired,
   sortConfiguration: PropTypes.shape({

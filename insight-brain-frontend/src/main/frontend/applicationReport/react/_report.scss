@@ -7,6 +7,10 @@
 @use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
+app-report {
+  display: contents;
+}
+
 .iq-app-report {
   align-items: stretch;
   display: flex;

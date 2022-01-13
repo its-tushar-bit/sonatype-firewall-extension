@@ -5,9 +5,9 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import ReportPage from '../../../../main/frontend/applicationReport/react/ReportPage';
-import ReportFilters from '../../../../main/frontend/applicationReport/react/ReportFilters';
+//import ReportFilters from '../../../../main/frontend/applicationReport/react/ReportFilters';
 import ReportTitle from '../../../../main/frontend/applicationReport/react/ReportTitle';
-import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
+import { NxLoadWrapper } from '@sonatype/react-shared-components';
 
 describe('Report Page component', function () {
   let getShallowComponent, loadReportActionMock, setAggregateReportEntriesSpy, setExactValueFilterSpy, mock$State;
@@ -48,28 +48,28 @@ describe('Report Page component', function () {
     getShallowComponent = enzymeUtils.getShallowComponent(ReportPage, minimalProps);
   });
 
-  it('renders a ReportTitle wrapped in a LoadWrapper', function () {
+  it('renders a ReportTitle wrapped in a NxLoadWrapper', function () {
     const component = getShallowComponent();
 
-    expect(component.find(LoadWrapper)).toExist();
-    expect(component.find(LoadWrapper).find(ReportTitle)).toExist();
+    expect(component.find(NxLoadWrapper)).toExist();
+    expect(component.find(NxLoadWrapper).find(ReportTitle)).toExist();
   });
 
-  describe('LoadWraper', function () {
+  describe('NxLoadWrapper', function () {
     it('has the loading flag set based on the corresponding prop', function () {
-      expect(getShallowComponent().find(LoadWrapper)).toHaveProp('loading', false);
-      expect(getShallowComponent({ loading: true }).find(LoadWrapper)).toHaveProp('loading', true);
+      expect(getShallowComponent().find(NxLoadWrapper)).toHaveProp('loading', false);
+      expect(getShallowComponent({ loading: true }).find(NxLoadWrapper)).toHaveProp('loading', true);
     });
 
     it('has the error set to the loadError', function () {
-      expect(getShallowComponent().find(LoadWrapper)).toHaveProp('error', undefined);
-      expect(getShallowComponent({ loadError: 'foo' }).find(LoadWrapper)).toHaveProp('error', 'foo');
+      expect(getShallowComponent().find(NxLoadWrapper)).toHaveProp('error', undefined);
+      expect(getShallowComponent({ loadError: 'foo' }).find(NxLoadWrapper)).toHaveProp('error', 'foo');
     });
 
     it('has the retryHandler set to the loadReport prop', function () {
       const loadReportIfNeeded = jasmine.createSpy();
 
-      expect(getShallowComponent({ loadReportIfNeeded }).find(LoadWrapper)).toHaveProp(
+      expect(getShallowComponent({ loadReportIfNeeded }).find(NxLoadWrapper)).toHaveProp(
         'retryHandler',
         loadReportIfNeeded
       );
@@ -80,11 +80,11 @@ describe('Report Page component', function () {
     const shallowComponent = getShallowComponent();
     const reportTitle = shallowComponent.find('ReportTitle');
     const reportStatusBar = shallowComponent.find('ReportStatusBar');
-    const reportFilters = shallowComponent.find('ReportFilters');
+    //const reportFilters = shallowComponent.find('ReportFilters');
     const reportContent = shallowComponent.find('ReportContent');
     expect(reportTitle).toExist();
     expect(reportStatusBar).toExist();
-    expect(reportFilters).toExist();
+    //expect(reportFilters).toExist();
     expect(reportContent).toExist();
   });
 
@@ -115,7 +115,7 @@ describe('Report Page component', function () {
     expect(reportTitle).toHaveProp('selectedReport', selectedReport);
   });
 
-  it('renders a ReportFilters', function () {
+  /*it('renders a ReportFilters', function () {
     const component = getShallowComponent();
 
     const reportElement = component.find(ReportFilters);
@@ -123,7 +123,7 @@ describe('Report Page component', function () {
     expect(reportElement).toHaveProp('$state', mock$State);
     expect(reportElement).toHaveProp('setAggregateReportEntries', setAggregateReportEntriesSpy);
     expect(reportElement).toHaveProp('setExactValueFilter', setExactValueFilterSpy);
-  });
+  });*/
 
   it('renders ReportStatusBar with props, ', function () {
     const reportStatusBar = getShallowComponent().find('ReportStatusBar');
@@ -165,14 +165,14 @@ describe('Report Page component', function () {
     expect(reportContent).toHaveProp('substringFilters', props.substringFilters);
   });
 
-  it('renders a LoadWrapper', function () {
-    const loadWrapper = getShallowComponent().find('LoadWrapper');
+  it('renders a NxLoadWrapper', function () {
+    const loadWrapper = getShallowComponent().find(NxLoadWrapper);
     expect(loadWrapper).toExist();
   });
 
-  it('passes any error to the LoadWrapper', function () {
+  it('passes any error to the NxLoadWrapper', function () {
     const component = getShallowComponent({ loadError: 'error' });
-    const loadWrapper = component.find(LoadWrapper);
+    const loadWrapper = component.find(NxLoadWrapper);
     expect(loadWrapper).toHaveProp('error', 'error');
   });
 });

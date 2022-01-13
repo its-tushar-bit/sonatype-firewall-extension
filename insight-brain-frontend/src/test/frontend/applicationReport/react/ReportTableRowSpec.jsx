@@ -15,9 +15,10 @@ import ComponentDisplay from '../../../../main/frontend/ComponentDisplay/ReactCo
 import ReportTableRow from '../../../../main/frontend/applicationReport/react/ReportTableRow';
 
 describe('ReportTableRow component', function () {
-  let getShallowComponent;
+  let getShallowComponent, onClickSpy;
 
   beforeEach(function () {
+    onClickSpy = jasmine.createSpy('onClick');
     const minimalProps = {
       index: 0,
       component: {
@@ -25,6 +26,7 @@ describe('ReportTableRow component', function () {
         policyName: 'Security-High',
         policyThreatLevel: 9,
       },
+      onClick: onClickSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ReportTableRow, minimalProps);
@@ -39,6 +41,14 @@ describe('ReportTableRow component', function () {
     const shallowComponent = getShallowComponent();
     const cell = shallowComponent.find(NxTableCell);
     expect(cell).toExist();
+  });
+
+  it('calls onClick', () => {
+    const shallowComponent = getShallowComponent();
+
+    shallowComponent.simulate('click');
+
+    expect(onClickSpy).toHaveBeenCalledTimes(1);
   });
 
   it('renders minimal properties', function () {

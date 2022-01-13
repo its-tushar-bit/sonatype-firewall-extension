@@ -932,6 +932,28 @@ describe('applicationReportActions', function () {
     });
   });
 
+  describe('goToComponentDetailsPage', () => {
+    it('calls stateGo with the appropriate parameters', () => {
+      const mockRouterParams = {
+        scanId: 'scanId',
+        publicId: 'publicId',
+      };
+      spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue(mockRouterParams);
+      const store = SpecUtil.mockReduxStore({});
+
+      store.dispatch(applicationReportActions.goToComponentDetailsPage('hash'));
+
+      expect(store.getActions()).toHaveAction({
+        type: '@@reduxUiRouter/stateGo',
+        payload: {
+          to: 'applicationReport.componentDetails',
+          params: { ...mockRouterParams, hash: 'hash' },
+          options: undefined,
+        },
+      });
+    });
+  });
+
   function expectCommonDataCalls(isSuccess, additionalCalls = {}) {
     mockAxiosCalls({
       get: {

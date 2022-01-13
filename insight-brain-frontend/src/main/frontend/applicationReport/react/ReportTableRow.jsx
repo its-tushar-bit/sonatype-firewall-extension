@@ -18,7 +18,7 @@ import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 
 export default function ReportTableRow(props) {
-  const { index, component } = props;
+  const { index, component, onClick } = props;
 
   const dependencyTooltipTitle =
       component.derivedDependencyType === 'direct' ? 'Direct Dependency' : 'Transitive Dependency',
@@ -29,7 +29,7 @@ export default function ReportTableRow(props) {
     dependencyIndicator = component.derivedDependencyType === 'direct' ? 'D' : 'T';
 
   return (
-    <NxTableRow key={index}>
+    <NxTableRow key={index} isClickable onClick={onClick}>
       <NxTableCell className="iq-app-report__threat-cell">
         <NxThreatIndicator policyThreatLevel={component.policyThreatLevel} />
         <span className="nx-threat-number">{component.policyThreatLevel}</span>
@@ -61,6 +61,7 @@ export default function ReportTableRow(props) {
           <ComponentDisplay component={component} />
         </div>
       </NxTableCell>
+      <NxTableCell chevron />
     </NxTableRow>
   );
 }
@@ -76,4 +77,5 @@ ReportTableRow.propTypes = {
     grandfathered: PropTypes.bool,
     policyThreatLevel: PropTypes.number,
   }),
+  onClick: PropTypes.func.isRequired,
 };

@@ -43,6 +43,8 @@ export default function ReportContent(props) {
     setSortingParameters,
     setSorting,
     setStringFieldFilter,
+    selectComponent,
+    goToComponentDetailsPage,
   } = props;
   const displayedEntries = selectedReport ? selectedReport.displayedEntries : [];
   const getSubstringFiltersProp = (propName) => propOr('', propName, substringFilters);
@@ -76,6 +78,16 @@ export default function ReportContent(props) {
   const dirPolicyThreatLevel = getDirection(sortConfiguration, 'policyThreatLevel');
   const dirPolicyName = getDirection(sortConfiguration, 'policyName');
   const dirComponentName = getDirection(sortConfiguration, 'derivedComponentName');
+
+  const createRows = () =>
+    displayedEntries.map((component, index) => {
+      const onRowClick = () => {
+        selectComponent(index);
+        goToComponentDetailsPage(component.hash);
+      };
+
+      return <ReportTableRow key={index} index={index} component={component} onClick={onRowClick} />;
+    });
 
   return (
     <section className="nx-tile iq-app-report__results-table-tile nx-viewport-sized__container">
@@ -122,17 +134,13 @@ export default function ReportContent(props) {
                 </NxTableCell>
               </NxTableRow>
             </NxTableHead>
-            <NxTableBody emptyMessage="No Results">{displayedEntries.map(createRow)}</NxTableBody>
+            <NxTableBody emptyMessage="No Results">{createRows()}</NxTableBody>
           </NxTable>
         </div>
       </div>
     </section>
   );
 }
-
-const createRow = (component, index) => {
-  return <ReportTableRow key={index} index={index} component={component} />;
-};
 
 ReportContent.propTypes = {
   selectedReport: PropTypes.shape({
@@ -162,4 +170,6 @@ ReportContent.propTypes = {
   setSorting: PropTypes.func,
   setSortingParameters: PropTypes.func,
   setStringFieldFilter: PropTypes.func,
+  selectComponent: PropTypes.func.isRequired,
+  goToComponentDetailsPage: PropTypes.func.isRequired,
 };

@@ -23,6 +23,8 @@ export default function ReportPage(props) {
     setExactValueFilter,
     setAggregateReportEntries,
     setStringFieldFilter,
+    selectComponent,
+    goToComponentDetailsPage,
     // state
     publicId,
     scanId,
@@ -79,6 +81,8 @@ export default function ReportPage(props) {
           sortConfiguration={sortConfiguration}
           setStringFieldFilter={setStringFieldFilter}
           setSortingParameters={setSortingParameters}
+          selectComponent={selectComponent}
+          goToComponentDetailsPage={goToComponentDetailsPage}
         />
       </NxLoadWrapper>
     </main>
@@ -100,6 +104,8 @@ ReportPage.propTypes = {
   setSortingParameters: PropTypes.func,
   setExactValueFilter: PropTypes.func.isRequired,
   setAggregateReportEntries: PropTypes.func.isRequired,
+  selectComponent: PropTypes.func.isRequired,
+  goToComponentDetailsPage: PropTypes.func.isRequired,
   // state
   publicId: PropTypes.string,
   scanId: PropTypes.string,

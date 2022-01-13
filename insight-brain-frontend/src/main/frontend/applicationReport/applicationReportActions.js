@@ -27,6 +27,7 @@ import {
 } from '../util/CLMLocation';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedReport, selectReportParameters } from './applicationReportSelectors';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 
 export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
@@ -372,6 +373,14 @@ export const setDependencyTreeRouterParamsForBackButton = () => {
 export const SET_DEPENDENCY_TREE_SEARCH_TERM = 'SET_DEPENDENCY_TREE_SEARCH_TERM';
 export const setDependencyTreeSearchTerm = payloadParamActionCreator(SET_DEPENDENCY_TREE_SEARCH_TERM);
 
+export const goToComponentDetailsPage = (hash) => {
+  return (dispatch, getState) => {
+    const { publicId, scanId } = selectRouterCurrentParams(getState());
+
+    dispatch(stateGo('applicationReport.componentDetails', { hash, publicId, scanId }));
+  };
+};
+
 export default function applicationReportActions() {
   return {
     setReportParameters,
@@ -403,5 +412,6 @@ export default function applicationReportActions() {
     resetDependencyTreeRouterParams,
     setDependencyTreeRouterParamsForBackButton,
     setDependencyTreeSearchTerm,
+    goToComponentDetailsPage,
   };
 }

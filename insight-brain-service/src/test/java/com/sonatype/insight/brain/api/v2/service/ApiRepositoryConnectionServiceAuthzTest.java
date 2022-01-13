@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory.RepositoryClientBuilder;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -67,6 +68,23 @@ public class ApiRepositoryConnectionServiceAuthzTest
   public void before() {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetRepositoryConnection_Unauthenticated() {
+    repositoryConnectionService.getRepositoryConnection(OwnerType.ORGANIZATION, org.getId(), null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetRepositoryConnection_Unauthorized() {
+    login();
+    repositoryConnectionService.getRepositoryConnection(OwnerType.ORGANIZATION, org.getId(), null);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetRepositoryConnection_Authorized() {
+    grantReadPermission(org.getId());
+    repositoryConnectionService.getRepositoryConnection(OwnerType.ORGANIZATION, org.getId(), "doesNotExist");
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -210,7 +228,7 @@ public class ApiRepositoryConnectionServiceAuthzTest
 
     assertThat(status).isEqualTo(Status.OK);
   }
-
+  
   @Test(expected = UnauthenticatedException.class)
   public void testUpdateOwnerRepositoryConnectionStatus_Unauthenticated() {
     repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.APPLICATION, app.getId(), null);
@@ -238,5 +256,22 @@ public class ApiRepositoryConnectionServiceAuthzTest
   private void setupMocks() {
     when(mockFactory.create()).thenReturn(mockBuilder);
     when(mockBuilder.forNexus3(any(), any(), any())).thenReturn(client);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testTestRepositoryConnection_ByRepositoryConnectionId_Unauthenticated() {
+    repositoryConnectionService.testRepositoryConnection(app.getType(), app.getId(), (String) null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testTestRepositoryConnection_ByRepositoryConnectionId_Unauthorized() {
+    login();
+    repositoryConnectionService.testRepositoryConnection(app.getType(), app.getId(), (String) null);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testTestRepositoryConnection_ByRepositoryConnectionId_Authorized() {
+    grantReadPermission(app.getId());
+    repositoryConnectionService.testRepositoryConnection(app.getType(), app.getId(), "doesNotExist");
   }
 }

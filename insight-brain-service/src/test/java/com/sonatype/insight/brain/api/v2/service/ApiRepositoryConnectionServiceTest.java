@@ -83,6 +83,51 @@ public class ApiRepositoryConnectionServiceTest
   }
 
   @Test
+  public void testGetRepositoryConnection_Organization() {
+    Organization org = tempEntity.newOrganization();
+    RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(org.getId());
+
+    ApiRepositoryConnectionDTO dto =
+        repositoryConnectionService.getRepositoryConnection(org.getType(), org.getId(), repositoryConnection.getId());
+
+    assertRepositoryConnectionDTO(repositoryConnection, dto);
+  }
+  
+  @Test
+  public void testGetRepositoryConnection_Application() {
+    Application app = tempEntity.newApplicationWithParent();
+    RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(app.getId());
+
+    ApiRepositoryConnectionDTO dto =
+        repositoryConnectionService.getRepositoryConnection(app.getType(), app.getId(), repositoryConnection.getId());
+
+    assertRepositoryConnectionDTO(repositoryConnection, dto);
+  }
+
+  @Test
+  public void testGetRepositoryConnection_DoesNotExist() {
+    Application app = tempEntity.newApplicationWithParent();
+    String repositoryConnectionId = "doesNotExist";
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> repositoryConnectionService
+            .getRepositoryConnection(app.getType(), app.getId(), repositoryConnectionId))
+        .withMessageContaining(
+            String.format(ApiRepositoryConnectionService.REPOSITORY_CONNECTION_NOT_FOUND_ERROR, repositoryConnectionId,
+                app.getType(), app.getId()));
+  }
+
+  private void assertRepositoryConnectionDTO(RepositoryConnection expected, ApiRepositoryConnectionDTO actual) {
+    assertThat(actual.repositoryConnectionId).isEqualTo(expected.getId());
+    assertThat(actual.ownerType).isEqualTo(new OwnerDAO().getById(expected.getOwnerId()).getType());
+    assertThat(actual.ownerId).isEqualTo(expected.getOwnerId());
+    assertThat(actual.format).isEqualTo(expected.getFormat());
+    assertThat(actual.isAnonymous).isEqualTo(expected.getUsername() == null);
+    assertThat(actual.baseUrl).isEqualTo(expected.getBaseUrl());
+    assertThat(actual.username).isEqualTo(expected.getUsername());
+    assertThat(actual.password).isNull();
+  }
+
+  @Test
   public void testGetRepositoryConnections_Organization() {
     Organization org = tempEntity.newOrganization();
     testGetRepositoryConnections(org.getId(), OwnerType.ORGANIZATION);
@@ -404,6 +449,47 @@ public class ApiRepositoryConnectionServiceTest
   }
 
   @Test
+  public void testUpdateRepositoryConnection_ToAnonymous() {
+    String orgId = tempEntity.newOrganization().getId();
+    RepositoryConnection repositoryConnection =
+        tempEntity.newRepositoryConnection(orgId, "baseUrl", "user", "pass".toCharArray());
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+    dto.isAnonymous = true;
+
+    ApiRepositoryConnectionDTO result =
+        repositoryConnectionService.updateRepositoryConnection(OwnerType.ORGANIZATION, orgId,
+            repositoryConnection.getId(), dto);
+
+    RepositoryConnection storedRepositoryConnection = dao.getById(result.repositoryConnectionId);
+    assertThat(storedRepositoryConnection.getOwnerId()).isEqualTo(repositoryConnection.getOwnerId());
+    assertThat(storedRepositoryConnection.getBaseUrl()).isEqualTo(repositoryConnection.getBaseUrl());
+    assertThat(storedRepositoryConnection.getFormat()).isEqualTo(repositoryConnection.getFormat());
+    assertThat(storedRepositoryConnection.getUsername()).isNull();
+    assertThat(storedRepositoryConnection.getPassword()).isNull();
+  }
+
+  @Test
+  public void testUpdateRepositoryConnection_ToAnonymousAndDifferentBaseUrl() {
+    String orgId = tempEntity.newOrganization().getId();
+    RepositoryConnection repositoryConnection =
+        tempEntity.newRepositoryConnection(orgId, "baseUrl", "user", "pass".toCharArray());
+    ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
+    dto.baseUrl = repositoryConnection.getBaseUrl() + "2";
+    dto.isAnonymous = true;
+
+    ApiRepositoryConnectionDTO result =
+        repositoryConnectionService.updateRepositoryConnection(OwnerType.ORGANIZATION, orgId,
+            repositoryConnection.getId(), dto);
+
+    RepositoryConnection storedRepositoryConnection = dao.getById(result.repositoryConnectionId);
+    assertThat(storedRepositoryConnection.getOwnerId()).isEqualTo(repositoryConnection.getOwnerId());
+    assertThat(storedRepositoryConnection.getBaseUrl()).isEqualTo(dto.baseUrl);
+    assertThat(storedRepositoryConnection.getFormat()).isEqualTo(repositoryConnection.getFormat());
+    assertThat(storedRepositoryConnection.getUsername()).isNull();
+    assertThat(storedRepositoryConnection.getPassword()).isNull();
+  }
+
+  @Test
   public void testUpdateRepositoryConnection_MissingPayload() {
     String orgId = tempEntity.newOrganization().getId();
     RepositoryConnection existingConnection =
@@ -711,6 +797,45 @@ public class ApiRepositoryConnectionServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> repositoryConnectionService.testRepositoryConnection(OwnerType.APPLICATION, appId, dto))
         .withMessage(exectedMessage);
+  }
+
+  @Test
+  public void testTestRepositoryConnection_ByRepositoryId_DoesNotExist() {
+    Organization org = tempEntity.newOrganization();
+    String repositoryConnectionId = "doesNotExist";
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> repositoryConnectionService
+            .testRepositoryConnection(org.getType(), org.getId(), repositoryConnectionId))
+        .withMessageContaining(
+            String.format(ApiRepositoryConnectionService.REPOSITORY_CONNECTION_NOT_FOUND_ERROR, repositoryConnectionId,
+                org.getType(), org.getId()));
+  }
+
+  @Test
+  public void testTestRepositoryConnection_ByRepositoryId_WrongOwner() {
+    Organization org1 = tempEntity.newOrganization();
+    RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(org1.getId());
+    Organization org2 = tempEntity.newOrganization();
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> repositoryConnectionService
+            .testRepositoryConnection(org2.getType(), org2.getId(), repositoryConnection.getId()))
+        .withMessageContaining(String.format(ApiRepositoryConnectionService.REPOSITORY_CONNECTION_NOT_FOUND_ERROR,
+            repositoryConnection.getId(), org2.getType(), org2.getId()));
+  }
+
+  @Test
+  public void testTestRepositoryConnection_ByRepositoryId() throws Exception {
+    setupMocks();
+    when(client.getServerStatus()).thenThrow(new IOException("error"));
+    String appId = tempEntity.newApplicationWithParent().getId();
+    RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(appId);
+    repositoryConnection.setPassword(passwordHandler.encryptPassword(repositoryConnection.getPassword()));
+    dao.update(repositoryConnection);
+
+    Status response = repositoryConnectionService.testRepositoryConnection(OwnerType.APPLICATION, appId,
+        repositoryConnection.getId());
+
+    assertThat(response).isEqualTo(Status.BAD_GATEWAY);
   }
 
   private void setupMocks() {

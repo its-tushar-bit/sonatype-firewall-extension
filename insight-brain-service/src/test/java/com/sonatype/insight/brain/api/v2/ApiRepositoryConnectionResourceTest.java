@@ -280,7 +280,7 @@ public class ApiRepositoryConnectionResourceTest
     List<ApiRepositoryConnectionDTO> responseDtos = response.getBody(List.class);
     assertThat(responseDtos).isEmpty();
   }
-  
+
   @Test
   public void testGetRepositoryConnections_InheritDefault() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
@@ -294,6 +294,32 @@ public class ApiRepositoryConnectionResourceTest
     assertThat(response.getStatusCode()).isEqualTo(200);
     List<ApiRepositoryConnectionDTO> responseDtos = response.getBody(List.class);
     assertThat(responseDtos).isEmpty();
+  }
+
+  @Test
+  public void testGetRepositoryConnection() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    RepositoryConnection repositoryConnection =
+        tempEntity.newRepositoryConnection(org.getId(), "http://baseurl2.com", "user2", "pass2".toCharArray());
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
+        .parameter(org.getType(), org.getId(), repositoryConnection.getId())
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    ApiRepositoryConnectionDTO result = response.getBody(ApiRepositoryConnectionDTO.class);
+    assertThat(result.repositoryConnectionId).isEqualTo(repositoryConnection.getId());
+  }
+
+  @Test
+  public void testGetRepositoryConnection_FeatureDisabled() throws Exception {
+    insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, false));
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
+        .parameter("application", "appId", "repositoryConnectionId")
+        .get();
+    assertThat(response.getStatusCode()).isEqualTo(403);
+    assertThat(response.getBodyText()).isEqualTo(FEATURE_FLAG + " feature is disabled");
   }
 
   private void testDeleteRepositoryConnection(final String id, final OwnerType ownerType) throws Exception {
@@ -369,7 +395,7 @@ public class ApiRepositoryConnectionResourceTest
         .withBasicAuth("user", "pass")
         .willReturn(aResponse().withStatus(200)));
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.TEST_PATH)
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .post();
@@ -388,7 +414,7 @@ public class ApiRepositoryConnectionResourceTest
         .withBasicAuth("user", "pass")
         .willReturn(aResponse().withStatus(401)));
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.TEST_PATH)
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .post();
@@ -401,7 +427,7 @@ public class ApiRepositoryConnectionResourceTest
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
     dto.baseUrl = nxrm3MockSever.baseUrl();
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.TEST_PATH)
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, "appId")
         .body(dto)
         .post();
@@ -414,11 +440,60 @@ public class ApiRepositoryConnectionResourceTest
     String appId = tempEntity.newApplicationWithParent().getId();
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
 
-    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.TEST_PATH)
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .post();
     assertThat(response.getStatusCode()).isEqualTo(400);
+  }
+
+  @Test
+  public void testTestRepositoryConnection_ByRepositoryConnectionId() throws Exception {
+    String appId = tempEntity.newApplicationWithParent().getId();
+    RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(appId);
+    repositoryConnection.setBaseUrl(nxrm3MockSever.baseUrl());
+    repositoryConnection.setPassword(pwHandler.encryptPassword(repositoryConnection.getPassword()));
+    dao.update(repositoryConnection);
+
+    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE))
+        .withBasicAuth(repositoryConnection.getUsername(),
+            String.valueOf(pwHandler.decryptPassword(repositoryConnection.getPassword())))
+        .willReturn(aResponse().withStatus(200)));
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY_TEST_PATH)
+        .parameter(OwnerType.APPLICATION, appId, repositoryConnection.getId())
+        .post();
+    assertThat(response.getStatusCode()).isEqualTo(200);
+  }
+
+  @Test
+  public void testTestRepositoryConnection_ByRepositoryConnectionId_Unauthorized() throws Exception {
+    String appId = tempEntity.newApplicationWithParent().getId();
+    RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(appId);
+    repositoryConnection.setBaseUrl(nxrm3MockSever.baseUrl());
+    repositoryConnection.setPassword(pwHandler.encryptPassword(repositoryConnection.getPassword()));
+    dao.update(repositoryConnection);
+
+    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE))
+        .withBasicAuth(repositoryConnection.getUsername(),
+            String.valueOf(pwHandler.decryptPassword(repositoryConnection.getPassword())))
+        .willReturn(aResponse().withStatus(401)));
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY_TEST_PATH)
+        .parameter(OwnerType.APPLICATION, appId, repositoryConnection.getId())
+        .post();
+    assertThat(response.getStatusCode()).isEqualTo(401);
+  }
+
+  @Test
+  public void testTestRepositoryConnection_ByRepositoryConnectionId_FeatureDisabled() throws Exception {
+    insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, false));
+
+    HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY_TEST_PATH)
+        .parameter(OwnerType.APPLICATION, "appId", "repositoryConnectionId")
+        .post();
+    assertThat(response.getStatusCode()).isEqualTo(403);
+    assertThat(response.getBodyText()).isEqualTo(FEATURE_FLAG + " feature is disabled");
   }
 
   @Test

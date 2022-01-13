@@ -201,6 +201,31 @@ public class RepositoryConnectionDAOTest
     assertThat(connection).usingRecursiveComparison().isEqualTo(expectedConnection);
   }
 
+  @Test
+  public void testGetByIdAndOwnerId() {
+    Organization organization = tempEntity.newOrganization();
+    RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(organization.getId());
+
+    assertThat(dao.getByIdAndOwnerId(repositoryConnection.getId(), organization.getId())).usingRecursiveComparison()
+        .isEqualTo(repositoryConnection);
+  }
+
+  @Test
+  public void testGetByIdAndOwnerId_BadOwnerId() {
+    Organization organization = tempEntity.newOrganization();
+    RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(organization.getId());
+
+    assertThat(dao.getByIdAndOwnerId(repositoryConnection.getId(), tempEntity.newOrganization().getId())).isNull();
+  }
+
+  @Test
+  public void testGetByIdAndOwnerId_BadId() {
+    Organization organization = tempEntity.newOrganization();
+    tempEntity.newRepositoryConnection(organization.getId());
+
+    assertThat(dao.getByIdAndOwnerId("doesNotExist", organization.getId())).isNull();
+  }
+
   private void assertRepositoryConnection(
       RepositoryConnection connection,
       String ownerId,

@@ -21,6 +21,8 @@ public class ApiRepositoryConnectionDTO
 
   public RepositoryFormat format;
 
+  public Boolean isAnonymous;
+
   public String baseUrl;
 
   public String username;

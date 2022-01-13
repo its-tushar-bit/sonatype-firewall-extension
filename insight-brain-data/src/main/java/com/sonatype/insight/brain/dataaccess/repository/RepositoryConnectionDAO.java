@@ -77,4 +77,10 @@ public class RepositoryConnectionDAO
         " WHERE entity.ownerId=?1 AND entity.format=?2";
     return get(sQuery, ownerId, format);
   }
+
+  public RepositoryConnection getByIdAndOwnerId(String repositoryConnectionId, String ownerId) {
+    String sQuery = "SELECT entity FROM RepositoryConnection entity" + //
+        " WHERE entity.id=?1 AND entity.ownerId=?2";
+    return get(sQuery, repositoryConnectionId, ownerId);
+  }
 }

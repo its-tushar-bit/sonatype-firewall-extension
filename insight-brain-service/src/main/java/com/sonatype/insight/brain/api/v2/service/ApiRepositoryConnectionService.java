@@ -54,6 +54,9 @@ public class ApiRepositoryConnectionService
 
   public static final String REPOSITORY_FORMAT_AUDIT_KEY = "repositoryFormat";
 
+  public static final String REPOSITORY_CONNECTION_NOT_FOUND_ERROR =
+      "no repository connections found with connection id: %s for %s having id: %s";
+  
   public static final String ENABLED_AUDIT_KEY = "enabled";
 
   public static final String ALLOW_OVERRIDE_AUDIT_KEY = "allowOverride";
@@ -61,7 +64,7 @@ public class ApiRepositoryConnectionService
   private final OwnerDAO ownerDAO;
 
   private final RepositoryConnectionDAO repositoryConnectionDAO;
-
+  
   private final ApplicationDAO applicationDAO;
 
   private final OrganizationDAO organizationDAO;
@@ -124,11 +127,11 @@ public class ApiRepositoryConnectionService
         .setData(REPOSITORY_FORMAT_AUDIT_KEY, dto.format);
     dto.ownerType = ownerType;
     dto.ownerId = internalOwnerId;
-    RepositoryConnection storedConnection = repositoryConnectionDAO.getById(repositoryConnectionId);
+    RepositoryConnection storedConnection =
+        repositoryConnectionDAO.getByIdAndOwnerId(repositoryConnectionId, internalOwnerId);
     if (storedConnection == null) {
       throw new NotFoundException(
-          String.format("no repository connections found with connection id: %s for %s having id: %s",
-              repositoryConnectionId, ownerType, internalOwnerId));
+          String.format(REPOSITORY_CONNECTION_NOT_FOUND_ERROR, repositoryConnectionId, ownerType, internalOwnerId));
     }
     if (StringUtils.isNotBlank(dto.baseUrl)) {
       RepositoryFormat format = dto.format == null ? storedConnection.getFormat() : dto.format;
@@ -185,7 +188,8 @@ public class ApiRepositoryConnectionService
   }
 
   private void validateUpdateConnectionData(final ApiRepositoryConnectionDTO dto) {
-    if (dto == null || StringUtils.isAllBlank(dto.baseUrl, dto.username, dto.password)) {
+    if (dto == null || (dto.format == null && dto.isAnonymous == null &&
+        StringUtils.isAllBlank(dto.baseUrl, dto.username, dto.password))) {
       throw new BadRequestException("missing repository connection data for update");
     }
 
@@ -203,7 +207,10 @@ public class ApiRepositoryConnectionService
       ApiRepositoryConnectionDTO dto,
       RepositoryConnection storedConnection)
   {
-    if (StringUtils.isNoneEmpty(dto.baseUrl, storedConnection.getUsername())) {
+    if (!Boolean.TRUE.equals(dto.isAnonymous) &&
+        StringUtils.isNotEmpty(dto.baseUrl) &&
+        !dto.baseUrl.equals(storedConnection.getBaseUrl()) &&
+        StringUtils.isNotEmpty(storedConnection.getUsername())) {
       //the existing connection has auth config. so new auth data must be provided
       if (StringUtils.isAnyBlank(dto.username, dto.password)) {
         throw new BadRequestException("missing username/password for repository connection");
@@ -220,6 +227,10 @@ public class ApiRepositoryConnectionService
       storedConnection.setUsername(dto.username);
       storedConnection.setPassword(passwordHandler.encryptPassword(dto.password.toCharArray()));
     }
+    if (Boolean.TRUE.equals(dto.isAnonymous)) {
+      storedConnection.setUsername(null);
+      storedConnection.setPassword(null);
+    }
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -228,13 +239,27 @@ public class ApiRepositoryConnectionService
       @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       String repositoryConnectionId)
   {
-    RepositoryConnection conn = repositoryConnectionDAO.getById(repositoryConnectionId);
-    if (conn == null || !internalOwnerId.equals(conn.getOwnerId())) {
+    RepositoryConnection conn = repositoryConnectionDAO.getByIdAndOwnerId(repositoryConnectionId, internalOwnerId);
+    if (conn == null) {
       throw new NotFoundException(
-          String.format("no repository connections found with connection id: %s for %s having id: %s",
-              repositoryConnectionId, ownerType, internalOwnerId));
+          String.format(REPOSITORY_CONNECTION_NOT_FOUND_ERROR, repositoryConnectionId, ownerType, internalOwnerId));
     }
     repositoryConnectionDAO.delete(conn);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiRepositoryConnectionDTO getRepositoryConnection(
+      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+      String repositoryConnectionId)
+  {
+    RepositoryConnection repositoryConnection =
+        repositoryConnectionDAO.getByIdAndOwnerId(repositoryConnectionId, internalOwnerId);
+    if (repositoryConnection == null) {
+      throw new NotFoundException(
+          String.format(REPOSITORY_CONNECTION_NOT_FOUND_ERROR, repositoryConnectionId, ownerType, internalOwnerId));
+    }
+    return toRepositoryConnectionDTO(repositoryConnection);
   }
 
   @Authorize(permission = Permission.READ)
@@ -259,18 +284,39 @@ public class ApiRepositoryConnectionService
       ApiRepositoryConnectionDTO repositoryConnectionDTO)
   {
     validateRepositoryConnection(repositoryConnectionDTO);
-    AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, repositoryConnectionDTO.baseUrl)
-        .setData(REPOSITORY_FORMAT_AUDIT_KEY, repositoryConnectionDTO.format);
-    RepositoryClient client = repositoryClientFactory.create().forNexus3(
-        repositoryConnectionDTO.baseUrl,
+    return testRepositoryConnection(repositoryConnectionDTO.baseUrl, repositoryConnectionDTO.format,
         repositoryConnectionDTO.username,
         repositoryConnectionDTO.password == null ? null : repositoryConnectionDTO.password.toCharArray());
+  }
+
+  @Authorize(permission = Permission.READ)
+  public Status testRepositoryConnection(
+      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
+      String repositoryConnectionId)
+  {
+    RepositoryConnection repositoryConnection =
+        repositoryConnectionDAO.getByIdAndOwnerId(repositoryConnectionId, internalOwnerId);
+    if (repositoryConnection == null) {
+      throw new NotFoundException(
+          String.format(REPOSITORY_CONNECTION_NOT_FOUND_ERROR, repositoryConnectionId, ownerType, internalOwnerId));
+    }
+    return testRepositoryConnection(repositoryConnection.getBaseUrl(), repositoryConnection.getFormat(),
+        repositoryConnection.getUsername(),
+        repositoryConnection.getPassword() == null ? null : passwordHandler.decryptPassword(
+            repositoryConnection.getPassword()));
+  }
+
+  private Status testRepositoryConnection(String baseUrl, RepositoryFormat format, String username, char[] password) {
+    AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, baseUrl)
+        .setData(REPOSITORY_FORMAT_AUDIT_KEY, format);
+    RepositoryClient client = repositoryClientFactory.create()
+        .forNexus3(baseUrl, username, password);
     try {
       return client.getServerStatus();
     }
     catch (IOException e) {
-      log.debug(String.format("repository connection test failed for repository URL: %s",
-          repositoryConnectionDTO.baseUrl), e);
+      log.debug(String.format("repository connection test failed for repository URL: %s", baseUrl), e);
       return Status.BAD_GATEWAY;
     }
   }
@@ -284,6 +330,7 @@ public class ApiRepositoryConnectionService
     dto.format = repositoryConnection.getFormat();
     dto.baseUrl = repositoryConnection.getBaseUrl();
     dto.username = repositoryConnection.getUsername();
+    dto.isAnonymous = dto.username == null;
     return dto;
   }
 

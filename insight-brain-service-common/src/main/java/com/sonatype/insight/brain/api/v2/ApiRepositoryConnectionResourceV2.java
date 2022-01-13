@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
+
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
@@ -29,6 +30,11 @@ public interface ApiRepositoryConnectionResourceV2
 
   void deleteRepositoryConnection(OwnerType ownerType, String internalOwnerId, String repositoryConnectionId);
 
+  ApiRepositoryConnectionDTO getRepositoryConnection(
+      OwnerType ownerType,
+      String internalOwnerId,
+      String repositoryConnectionId);
+
   List<ApiRepositoryConnectionDTO> getRepositoryConnections(
       OwnerType ownerType,
       String internalOwnerId,
@@ -38,4 +44,9 @@ public interface ApiRepositoryConnectionResourceV2
       OwnerType ownerType,
       String internalOwnerId,
       ApiRepositoryConnectionDTO repositoryConnection);
+
+  Response testRepositoryConnection(
+      OwnerType ownerType,
+      String internalOwnerId,
+      String repositoryConnectionId);
 }

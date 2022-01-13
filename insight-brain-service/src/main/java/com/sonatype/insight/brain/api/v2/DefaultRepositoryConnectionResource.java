@@ -55,7 +55,9 @@ public class DefaultRepositoryConnectionResource
 
   static final String BY_REPOSITORY = BY_OWNER + "/" + REPOSITORY_CONNECTION_ID;
 
-  static final String TEST_PATH = BY_OWNER + "/test";
+  static final String BY_OWNER_TEST_PATH = BY_OWNER + "/test";
+
+  static final String BY_REPOSITORY_TEST_PATH = BY_REPOSITORY + "/test";
 
   private final ApiRepositoryConnectionService repositoryConnectionService;
 
@@ -118,6 +120,19 @@ public class DefaultRepositoryConnectionResource
   @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Path(BY_REPOSITORY)
+  public ApiRepositoryConnectionDTO getRepositoryConnection(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("internalOwnerId") String internalOwnerId,
+      @PathParam("repositoryConnectionId") String repositoryConnectionId)
+  {
+    checkInnerSourceRepositoryIntegrationEnabled();
+    return repositoryConnectionService.getRepositoryConnection(ownerType, internalOwnerId, repositoryConnectionId);
+  }
+
+  @Override
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER)
   public List<ApiRepositoryConnectionDTO> getRepositoryConnections(
       @PathParam("ownerType") OwnerType ownerType,
@@ -131,7 +146,7 @@ public class DefaultRepositoryConnectionResource
   @Override
   @POST
   @Produces(MediaType.APPLICATION_JSON)
-  @Path(TEST_PATH)
+  @Path(BY_OWNER_TEST_PATH)
   public Response testRepositoryConnection(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId,
@@ -140,6 +155,21 @@ public class DefaultRepositoryConnectionResource
     checkInnerSourceRepositoryIntegrationEnabled();
     Status status =
         repositoryConnectionService.testRepositoryConnection(ownerType, internalOwnerId, repositoryConnectionDTO);
+    return Response.status(status).build();
+  }
+
+  @Override
+  @POST
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(BY_REPOSITORY_TEST_PATH)
+  public Response testRepositoryConnection(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("internalOwnerId") String internalOwnerId,
+      @PathParam("repositoryConnectionId") String repositoryConnectionId)
+  {
+    checkInnerSourceRepositoryIntegrationEnabled();
+    Status status =
+        repositoryConnectionService.testRepositoryConnection(ownerType, internalOwnerId, repositoryConnectionId);
     return Response.status(status).build();
   }
 

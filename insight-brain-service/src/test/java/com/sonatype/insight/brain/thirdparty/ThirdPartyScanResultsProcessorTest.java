@@ -278,6 +278,18 @@ public class ThirdPartyScanResultsProcessorTest
         "DependencyGraph/scan-sbom-dependencies-multiformat-expected.xml");
   }
 
+  @Test
+  public void testHandle_SbomDependencyTree_multiformats_uuidRef() throws Exception {
+    testHandle_SbomDependencyTree("DependencyGraph/scan-sbom-dependencies-multiformat-uuid-ref.xml",
+        "DependencyGraph/scan-sbom-dependencies-multiformat-uuid-bom-ref-expected.xml");
+  }
+
+  @Test
+  public void testHandle_SbomDependencyTree_uuidRef_incomplete() throws Exception {
+    testHandle_SbomDependencyTree("DependencyGraph/scan-sbom-dependencies-uuid-ref-incomplete.xml",
+        "DependencyGraph/scan-sbom-dependencies-uuid-bom-ref-incomplete-expected.xml");
+  }
+
   private void testHandle_SbomDependencyTree(final String s, final String s2) throws Exception {
     File scanFile = getScanFile(s);
     File tempScanFile = tempDir.newFile();

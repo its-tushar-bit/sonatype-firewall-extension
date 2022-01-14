@@ -227,6 +227,7 @@ public class SbomResultHandler
       if (StringUtils.isNotBlank(sha1)) {
         Component component = new Component();
         component.setType(sourceComponent.getType());
+        component.setBomRef(sourceComponent.getBomRef());
         setHash(sha1, component);
         return Pair.of(null, component);
       }
@@ -276,6 +277,7 @@ public class SbomResultHandler
     ComponentIdentifier componentIdentifier;
     Component component = new Component();
     component.setType(sourceComponent.getType());
+    component.setBomRef(sourceComponent.getBomRef());
 
     String sha1 = getSha1(sourceComponent);
     boolean hasHash = StringUtils.isNotBlank(sha1);
@@ -489,32 +491,71 @@ public class SbomResultHandler
       List<ProjectScanItem> moduleDependencies,
       ThirdPartyFile thirdPartyFile)
   {
-    //including dependency data into the target bom.
-    // So we have a mechanism to verify the derived dependency graph from HDS end if needed
-    targetBom.setMetadata(getFilteredMetadata(sourceBom));
-    targetBom.setDependencies(sourceBom.getDependencies());
+    if (CollectionUtils.isNotEmpty(targetBom.getComponents())) {
+      //including dependency data into the target bom.
+      // So we have a mechanism to verify the derived dependency graph from HDS end if needed
+      targetBom.setMetadata(getFilteredMetadata(sourceBom));
+      targetBom.setDependencies(sourceBom.getDependencies());
 
-    List<Dependency> dependencies = sourceBom.getDependencies();
-    if (CollectionUtils.isNotEmpty(dependencies)) {
-      Iterator<Dependency> dependencyItr = dependencies.iterator();
-      Dependency rootModule = dependencyItr.next();
-      String modulePurl = isPurl(rootModule.getRef()) ? rootModule.getRef() : resolveModulePurl(sourceBom);
-      if (modulePurl != null) {
-        Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph = new HashMap<>();
-        ProjectScanItem project = new ProjectScanItem("sbom", modulePurl);
-        project.setPath(thirdPartyFile.getFilename());
-        //direct dependencies
-        for (Dependency dependency : rootModule.getDependencies()) {
-          dependencyGraph.put(dependency.getRef(), Pair.of(true, new ArrayList<>()));
+      List<Dependency> dependencies = sourceBom.getDependencies();
+      if (CollectionUtils.isNotEmpty(dependencies)) {
+        Iterator<Dependency> dependencyItr = dependencies.iterator();
+        Dependency rootModule = dependencyItr.next();
+        String modulePurl = isPurl(rootModule.getRef()) ? rootModule.getRef() : resolveModulePurl(sourceBom);
+        if (modulePurl != null) {
+          Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph =
+              new HashMap<>();
+          ProjectScanItem project = new ProjectScanItem("sbom", modulePurl);
+          project.setPath(thirdPartyFile.getFilename());
+
+          Map<String, String> bomRefsToPurls = new HashMap<>();
+          //direct dependencies
+          for (Dependency dependency : rootModule.getDependencies()) {
+            String ref = getPurlForDependency(dependency, bomRefsToPurls, targetBom);
+            if (ref != null) {
+              dependencyGraph.put(ref, Pair.of(true, new ArrayList<>()));
+            }
+          }
+
+          resolveSbomDependenciesAndTypes(thirdPartyFile, dependencyItr, dependencyGraph, bomRefsToPurls, targetBom);
+          constructProjectDependencyGraph(dependencyGraph, project);
+          moduleDependencies.add(project);
         }
-
-        resolveSbomDependenciesAndTypes(thirdPartyFile, dependencyItr, dependencyGraph);
-        constructProjectDependencyGraph(dependencyGraph, project);
-        moduleDependencies.add(project);
+        else {
+          log.debug(String.format("Unable to process dependency graph. " +
+              "The root component of the bom %s cannot be determined", thirdPartyFile.getFilename()));
+        }
       }
-      else {
-        log.debug(String.format("Unable to process dependency graph. " +
-            "The root component of the bom %s cannot be determined", thirdPartyFile.getFilename()));
+    }
+  }
+
+  private String getPurlForDependency(
+      final Dependency dependency,
+      final Map<String, String> bomRefsToPurls,
+      final Bom targetBom)
+  {
+    String ref = dependency.getRef();
+    if (isPurl(ref)) {
+      return ref;
+    }
+
+    if (bomRefsToPurls.isEmpty()) {
+      populateComponentPurlsWithBomRef(targetBom.getComponents(), bomRefsToPurls);
+    }
+    return bomRefsToPurls.get(ref);
+  }
+
+  private void populateComponentPurlsWithBomRef(
+      final List<Component> components,
+      final Map<String, String> bomRefPurlMap)
+  {
+    for (Component component : components) {
+      if (StringUtils.isNoneBlank(component.getBomRef(), component.getPurl()) && !isPurl(component.getBomRef())) {
+        bomRefPurlMap.put(component.getBomRef(), component.getPurl());
+
+        if (component.getComponents() != null) {
+          populateComponentPurlsWithBomRef(component.getComponents(), bomRefPurlMap);
+        }
       }
     }
   }
@@ -555,13 +596,16 @@ public class SbomResultHandler
   private void resolveSbomDependenciesAndTypes(
       final ThirdPartyFile thirdPartyFile,
       final Iterator<Dependency> dependencyItr,
-      final Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph)
+      final Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph,
+      final Map<String, String> bomRefPurlMap,
+      final Bom targetBom)
   {
     dependencyItr.forEachRemaining(dependency -> {
-      Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>> dependencyPair =
-          dependencyGraph.get(dependency.getRef());
+      String ref = getPurlForDependency(dependency, bomRefPurlMap, targetBom);
+      Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>> dependencyPair = dependencyGraph.get(ref);
       if (dependencyPair != null) {
-        copyChildDependenciesForDependency(thirdPartyFile, dependencyGraph, dependency, dependencyPair);
+        copyChildDependenciesForDependency(thirdPartyFile, dependencyGraph, dependency, dependencyPair, bomRefPurlMap,
+            targetBom);
       }
       else {
         log.debug(String.format(
@@ -575,15 +619,21 @@ public class SbomResultHandler
       final ThirdPartyFile thirdPartyFile,
       final Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph,
       final Dependency dependency,
-      final Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>> dependencyPair)
+      final Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>> dependencyPair,
+      final Map<String, String> bomRefsToPurls,
+      final Bom targetBom)
   {
     IterableUtils.forEach(dependency.getDependencies(), bomChild -> {
       com.sonatype.insight.scan.model.Dependency child = new com.sonatype.insight.scan.model.Dependency();
-      if (isPurl(bomChild.getRef())) {
-        child.setId(bomChild.getRef());
-        dependencyPair.getValue().add(child);
-        if (!dependencyGraph.containsKey(bomChild.getRef())) {
-          dependencyGraph.put(bomChild.getRef(), Pair.of(false, new ArrayList<>()));
+      if (StringUtils.isNotBlank(bomChild.getRef())) {
+
+        String ref = getPurlForDependency(bomChild, bomRefsToPurls, targetBom);
+        if (ref != null) {
+          child.setId(ref);
+          dependencyPair.getValue().add(child);
+          if (!dependencyGraph.containsKey(ref)) {
+            dependencyGraph.put(ref, Pair.of(false, new ArrayList<>()));
+          }
         }
       }
       else {

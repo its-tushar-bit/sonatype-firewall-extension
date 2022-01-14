@@ -648,6 +648,7 @@ public class SbomResultHandlerTest
   public void testProcessDependencyGraph() {
     Bom sourceBom = new Bom();
     Bom targetBom = new Bom();
+    targetBom.addComponent(new Component());
     Metadata metadata = new Metadata();
     Component rootComponent = new Component();
     rootComponent.setName("root");
@@ -688,6 +689,7 @@ public class SbomResultHandlerTest
   public void testProcessDependencyGraph_WithModulePurl_NoMetadata() {
     Bom sourceBom = new Bom();
     Bom targetBom = new Bom();
+    targetBom.addComponent(new Component());
     Dependency root = createDependencyList("pkg:npm/root@1.0", "pkg:npm/direct1@1.0", "pkg:npm/direct2@2.0");
     Dependency d1 = createDependencyList("pkg:npm/direct1@1.0", "pkg:npm/d1t1@1.1");
     Dependency d2 = createDependencyList("pkg:npm/direct2@2.0", "pkg:npm/d2t1@1.1");
@@ -724,6 +726,9 @@ public class SbomResultHandlerTest
     rootComponent.setName("root");
     rootComponent.setBomRef("root");
     rootComponent.setVersion("1.0");
+
+    targetBom.addComponent(new Component());
+
     metadata.setComponent(rootComponent);
     sourceBom.setMetadata(metadata);
     Dependency root = createDependencyList("root", "pkg:npm:/direct1@1.0", "pkg:npm:/direct2@2.0");
@@ -756,6 +761,8 @@ public class SbomResultHandlerTest
     metadata.setComponent(rootComponent);
     sourceBom.setMetadata(metadata);
 
+    targetBom.addComponent(new Component());
+
     List<ProjectScanItem> result = new ArrayList<>();
 
     sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
@@ -770,6 +777,7 @@ public class SbomResultHandlerTest
   public void testProcessDependencyGraph_SourceGraphMissingLeafNodes_StillWorks() {
     Bom sourceBom = new Bom();
     Bom targetBom = new Bom();
+    targetBom.addComponent(new Component());
     Metadata metadata = new Metadata();
     Component rootComponent = new Component();
     rootComponent.setName("root");
@@ -831,6 +839,7 @@ public class SbomResultHandlerTest
     //given
     Bom sourceBom = new Bom();
     Bom targetBom = new Bom();
+    targetBom.addComponent(new Component());
     Metadata metadata = new Metadata();
     Component rootComponent = new Component();
     rootComponent.setName("root");

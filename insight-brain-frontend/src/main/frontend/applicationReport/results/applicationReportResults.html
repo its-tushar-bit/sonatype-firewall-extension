@@ -123,13 +123,13 @@
                  toggle-label="vm.aggregateByComponentToggleLabel"
                  toggle-tooltip="vm.aggregateByComponentToggleTooltip"
                  class="aggregate-by-component-toggle"></iq-toggle>
-      <button id="go-to-dependency-tree" 
-              class="btn" 
+      <button id="go-to-dependency-tree"
+              class="btn"
               ng-if="!!vm.$state.params.dependencyTreeEnabled"
-              ng-click="vm.goToDependencyTree()" 
-              ng-class="{'disabled': !vm.dependencyTree}"
-              iq-tooltip 
-              tooltip-text="{{!vm.dependencyTree ? 'Dependency tree info is not available for this report' : ''}}">
+              ng-click="vm.goToDependencyTree()"
+              ng-class="{'disabled': vm.isDependencyTreeButtonDisabled()}"
+              iq-tooltip
+              tooltip-text="{{vm.getTooltipText()}}">
         View Dependency Tree
       </button><!--
      --><button id="filter-toggle" class="btn" ng-click="vm.toggleFilterSidebar(!vm.filterSidebarOpen)">

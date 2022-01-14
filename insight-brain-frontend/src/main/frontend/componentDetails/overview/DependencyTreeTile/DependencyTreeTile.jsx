@@ -7,13 +7,13 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { NxInfoAlert, NxTile } from '@sonatype/react-shared-components';
-
 import {
   selectApplicationInfo,
   selectDependencyTreeSubset,
   selectComponentDetails,
   selectIsLabelsLoading,
 } from 'MainRoot/componentDetails/componentDetailsSelectors';
+import { selectDependencyTreeIsOldReport } from 'MainRoot/applicationReport/applicationReportSelectors';
 import DependencyTree from 'MainRoot/DependencyTree/DependencyTree';
 import { actions } from 'MainRoot/componentDetails/componentDetailsSlice';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -24,17 +24,22 @@ export default function DependencyTreeTile() {
   const applicationInfo = useSelector(selectApplicationInfo);
   const componentDetails = useSelector(selectComponentDetails);
   const isLoading = useSelector(selectIsLabelsLoading);
+  const isOldReport = useSelector(selectDependencyTreeIsOldReport);
   const { dependencyTreeEnabled } = useSelector(selectRouterCurrentParams);
 
   if (!dependencyTreeEnabled || isLoading) {
     return null;
   }
 
-  const DependencyTreeSubset = isNilOrEmpty(dependencyTree) ? (
+  const DependencyTreeWarning = (
     <NxInfoAlert className="component-details-dependency-tree-tile__unavailable-tree-alert">
-      Dependency tree not available
+      {isOldReport
+        ? 'Dependency Tree not available for this report. Please re-scan the application'
+        : 'Dependency tree not available'}
     </NxInfoAlert>
-  ) : (
+  );
+
+  const DependencyTreeSubset = (
     <DependencyTree
       items={dependencyTree}
       hashToMatch={componentDetails.hash}
@@ -50,7 +55,7 @@ export default function DependencyTreeTile() {
           <h2 className="nx-h2">Dependency Tree</h2>
         </NxTile.HeaderTitle>
       </NxTile.Header>
-      <NxTile.Content>{DependencyTreeSubset}</NxTile.Content>
+      <NxTile.Content>{isNilOrEmpty(dependencyTree) ? DependencyTreeWarning : DependencyTreeSubset}</NxTile.Content>
     </NxTile>
   );
 }

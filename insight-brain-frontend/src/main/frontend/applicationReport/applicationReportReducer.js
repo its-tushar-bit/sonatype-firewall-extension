@@ -20,6 +20,8 @@ import {
   map,
   path,
   assoc,
+  isNil,
+  isEmpty,
 } from 'ramda';
 import {
   LOAD_COMMON_DATA_FAILED,
@@ -80,7 +82,7 @@ import {
   getVulnerabilities,
   extendRawDataWithKey,
 } from './applicationReportService';
-import { getKey, isNilOrEmpty, pathSet } from '../util/jsUtil';
+import { getKey, pathSet } from '../util/jsUtil';
 
 const initState = Object.freeze({
   pendingLoads: new Set(),
@@ -450,8 +452,12 @@ const setPendingLoads = mutatePendingLoads((set) => (val) => set.add(val)),
   unsetPendingLoads = mutatePendingLoads((set) => (val) => set.delete(val));
 
 function setExtendedTreeData(state, dependencies) {
-  if (isNilOrEmpty(dependencies?.dependencyTree?.children)) {
-    return state;
+  if (isNil(dependencies?.dependencyTree)) {
+    return { ...state, dependencyTree: null };
+  }
+
+  if (isEmpty(dependencies?.dependencyTree)) {
+    return { ...state, dependencyTree: [] };
   }
 
   const entriesByKey = map(populateEntryNodeKeys, state.selectedReport?.aggregatedEntries);

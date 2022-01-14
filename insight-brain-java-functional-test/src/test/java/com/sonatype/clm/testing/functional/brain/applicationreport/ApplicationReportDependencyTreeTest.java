@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.DependencyTreePage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
@@ -71,8 +72,11 @@ public class ApplicationReportDependencyTreeTest
     eyesWatcher.eyesCheck("go To Dependency Tree Button disabled");
 
     SelenideElement goToDependencyTreeButton = reportPage.goToDependencyTreeButton();
-    goToDependencyTreeButton.shouldBe(visible);
-    goToDependencyTreeButton.shouldHave(cssClass("disabled"));
+
+    goToDependencyTreeButton.hover();
+
+    Tooltip.get().shouldBe(visible).shouldHave(text("Please re-scan the application"));
+
     goToDependencyTreeButton.click();
     DependencyTreePage dependencyTreePage = new DependencyTreePage();
     dependencyTreePage.shouldNotBe(visible);

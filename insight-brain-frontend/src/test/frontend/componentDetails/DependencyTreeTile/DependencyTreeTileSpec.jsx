@@ -8,10 +8,15 @@ import { render, screen } from 'TestRoot/SpecUtil';
 import DependencyTreeTile from 'MainRoot/componentDetails/overview/DependencyTreeTile/DependencyTreeTile';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as componentDetailsSelectors from 'MainRoot/componentDetails/componentDetailsSelectors';
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import { dependencyTreeData } from 'TestRoot/dependencyTree/dependencyTreeMockData';
 
 describe('DependencyTreeTile', () => {
-  let selectRouterCurrentParamsSpy, renderComponent, selectDependencyTreeSubsetSpy, selectIsLabelsLoadingSpy;
+  let selectRouterCurrentParamsSpy,
+    renderComponent,
+    selectDependencyTreeSubsetSpy,
+    selectIsLabelsLoadingSpy,
+    selectDependencyTreeIsOldReportSpy;
 
   beforeEach(() => {
     selectDependencyTreeSubsetSpy = spyOn(componentDetailsSelectors, 'selectDependencyTreeSubset').and.returnValue(
@@ -23,6 +28,11 @@ describe('DependencyTreeTile', () => {
     spyOn(componentDetailsSelectors, 'selectComponentDetails').and.returnValue({
       hash: 'hash',
     });
+
+    selectDependencyTreeIsOldReportSpy = spyOn(
+      applicationReportSelectors,
+      'selectDependencyTreeIsOldReport'
+    ).and.returnValue(false);
 
     selectRouterCurrentParamsSpy = spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
       dependencyTreeEnabled: true,
@@ -44,6 +54,17 @@ describe('DependencyTreeTile', () => {
     renderComponent();
 
     expect(screen.getByText('Dependency tree not available')).toBeVisible();
+  });
+
+  it('renders alert if dependencyTree is empty (old report)', () => {
+    selectDependencyTreeSubsetSpy.and.returnValue([]);
+    selectDependencyTreeIsOldReportSpy.and.returnValue(true);
+
+    renderComponent();
+
+    expect(
+      screen.getByText('Dependency Tree not available for this report. Please re-scan the application')
+    ).toBeVisible();
   });
 
   it('does not render tile with title if dependencyTreeEnabled is falsy', () => {

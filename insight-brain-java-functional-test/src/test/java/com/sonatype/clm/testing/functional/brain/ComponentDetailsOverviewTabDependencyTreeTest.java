@@ -134,7 +134,7 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
 
     DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
     ScrollUtil.scrollIntoView(dependencyTreeTile.title());
-    dependencyTreeTile.unavailableAlert().shouldBe(visible);
+    dependencyTreeTile.unavailableAlert().shouldBe(visible).shouldHave(text("Dependency tree not available"));
 
     eyesWatcher.eyesCheck("Overview tab with unavailable dependency tree");
   }

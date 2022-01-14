@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { findIndex, includes, isNil, propEq, splitAt } from 'ramda';
+import { findIndex, includes, isNil, propEq, splitAt, isEmpty } from 'ramda';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 import template from './applicationReportResults.html';
 import cipModalWrapper from './cipModalWrapper.html';
@@ -93,6 +94,22 @@ function ApplicationReportResultsController(
       if (vm.dependencyTree) {
         $ngRedux.dispatch(stateGo('applicationReport.dependencyTree'));
       }
+    },
+
+    isDependencyTreeButtonDisabled() {
+      return isNilOrEmpty(vm.dependencyTree);
+    },
+
+    getTooltipText() {
+      if (isNil(vm.dependencyTree)) {
+        return 'Please re-scan the application';
+      }
+
+      if (isEmpty(vm.dependencyTree)) {
+        return 'Dependency tree not available';
+      }
+
+      return '';
     },
 
     openCipModal(componentIndex) {

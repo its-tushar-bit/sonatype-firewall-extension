@@ -22,6 +22,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -31,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -44,6 +46,7 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -127,6 +130,8 @@ public class IndexService
 
   public boolean disableForTesting;
 
+  private final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO;
+
   class IndexingContext
   {
     final IndexWriter indexWriter;
@@ -172,7 +177,8 @@ public class IndexService
       TelemetrySender telemetrySender,
       VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher,
       TaskScheduler taskScheduler,
-      LuceneComponents luceneComponents)
+      LuceneComponents luceneComponents,
+      ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO)
   {
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
@@ -187,6 +193,7 @@ public class IndexService
     this.vulnerabilityDescriptionFetcher = vulnerabilityDescriptionFetcher;
     this.taskScheduler = taskScheduler;
     this.luceneComponents = luceneComponents;
+    this.thirdPartyVulnerabilityDAO = thirdPartyVulnerabilityDAO;
   }
 
   @Override
@@ -644,13 +651,17 @@ public class IndexService
         .setVulnerabilityId(vulnerability.getRefId()) //
         .setVulnerabilitySeverity(vulnerability.getSeverity()) //
         .setVulnerabilityStatus(vulnerability.getStatus().getName()) //
-        .setVulnerabilityDescription(getDescription(indexingContext, vulnerability.getRefId())) //
+        .setVulnerabilityDescription(getDescription(indexingContext, vulnerability)) //
         .build();
   }
 
-  private String getDescription(IndexingContext indexingContext, String refId) {
+  private String getDescription(IndexingContext indexingContext, SecurityVulnerability vulnerability) {
+    if (IdentificationSource.SONATYPE_IAC.getId().equals(vulnerability.getSource())
+        || "Sonatype-C".equals(vulnerability.getSource())) {
+      return getThirdPartyVulnerabilityDescription(indexingContext, vulnerability);
+    }
     try {
-      return indexingContext.getVulnerabilityHtml(refId);
+      return indexingContext.getVulnerabilityHtml(vulnerability.getRefId());
     }
     catch (NotFoundException notFoundException) {
       log.warn(notFoundException.getMessage());
@@ -659,5 +670,25 @@ public class IndexService
       log.error(e.getMessage(), e);
     }
     return "";
+  }
+
+  private String getThirdPartyVulnerabilityDescription(
+      final IndexingContext indexingContext,
+      final SecurityVulnerability vulnerability)
+  {
+    if (indexingContext.vulnDescByVulnId.get(vulnerability.getRefId()) != null) {
+      return indexingContext.vulnDescByVulnId.get(vulnerability.getRefId());
+    }
+
+    ThirdPartyVulnerability thirdPartyVulnerability = thirdPartyVulnerabilityDAO.getByRefId(vulnerability.getRefId());
+    if (thirdPartyVulnerability == null || thirdPartyVulnerability.getDescription() == null) {
+      log.warn("Description not found for vulnerability with refid: {}", vulnerability.getRefId());
+      return "";
+    }
+    else {
+      String description = thirdPartyVulnerability.getDescription();
+      indexingContext.vulnDescByVulnId.put(vulnerability.getRefId(), description);
+      return description;
+    }
   }
 }

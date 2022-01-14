@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
@@ -56,6 +57,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class IndexServiceTest
@@ -204,6 +206,84 @@ public class IndexServiceTest
             TextField.class, true),
         field(FieldIdentifier.COMPONENT_COORDINATE + "Version", componentId.get(ComponentIdentifier.VERSION),
             TextField.class, true),
+        field(FieldIdentifier.COMPONENT_NAME, component.getDisplayNameFromIdentifier(), TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_ID, vuln.getRefId(), TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, vuln.getSeverity(), FloatPoint.class, false),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, vuln.getSeverity(), StoredField.class, true),
+        field(FieldIdentifier.VULNERABILITY_STATUS, vuln.getStatus().getName(), TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_DESCRIPTION, vulnDescription, TextField.class, true),
+        field(FieldIdentifier.POLICY_EVALUATION_STAGE, StageTypes.BUILD.getId(), TextField.class, true),
+        field(FieldIdentifier.REPORT_ID, reportId, TextField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true));
+  }
+
+  @Test
+  public void testBuildDocument_ThirdPartyVulnerability_IaC() {
+    String refId = "FG-1000";
+    float severity = 7.5f;
+    String iac = IdentificationSource.SONATYPE_IAC.getId();
+    tempEntity.newThirdPartyVulnerability(refId, severity, iac);
+
+    Application app = tempEntity.newApplicationWithParent();
+    String reportId = "report-id";
+    ComponentIdentifier componentId = ComponentIdentifier.createIacCoordinates("namespace", "name", "1");
+    Component component = new Component(componentId);
+    component.setHash("01234567890123456789");
+    SecurityVulnerability vuln = new SecurityVulnerability(iac, refId, severity);
+    String vulnDescription = "FG-1000 description";
+    verifyNoInteractions(vulnerabilityDescriptionFetcher);
+    Document document =
+        indexService.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component, vuln);
+    assertFields(document,
+        field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_HASH, component.getHash(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_FORMAT, componentId.getFormat(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Version", componentId.get(ComponentIdentifier.VERSION),
+            TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Name", componentId.get(ComponentIdentifier.IAC_NAME),
+            TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Namespace", componentId.get(ComponentIdentifier.IAC_NAMESPACE),
+            TextField.class, true),
+        field(FieldIdentifier.COMPONENT_NAME, component.getDisplayNameFromIdentifier(), TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_ID, vuln.getRefId(), TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, vuln.getSeverity(), FloatPoint.class, false),
+        field(FieldIdentifier.VULNERABILITY_SEVERITY, vuln.getSeverity(), StoredField.class, true),
+        field(FieldIdentifier.VULNERABILITY_STATUS, vuln.getStatus().getName(), TextField.class, true),
+        field(FieldIdentifier.VULNERABILITY_DESCRIPTION, vulnDescription, TextField.class, true),
+        field(FieldIdentifier.POLICY_EVALUATION_STAGE, StageTypes.BUILD.getId(), TextField.class, true),
+        field(FieldIdentifier.REPORT_ID, reportId, TextField.class, true),
+        field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
+        field(FieldIdentifier.APPLICATION_NAME, app.getName(), TextField.class, true));
+  }
+
+  @Test
+  public void testBuildDocument_ThirdPartyVulnerability_NexusContainer() {
+    String refId = "Container-1000";
+    float severity = 7.5f;
+    String sonatypeContainer = "Sonatype-C";
+    tempEntity.newThirdPartyVulnerability(refId, severity, sonatypeContainer);
+
+    Application app = tempEntity.newApplicationWithParent();
+    String reportId = "report-id";
+    ComponentIdentifier componentId = ComponentIdentifier.createContainerCoordinates("namespace", "name", "1");
+    Component component = new Component(componentId);
+    component.setHash("01234567890123456789");
+    SecurityVulnerability vuln = new SecurityVulnerability(sonatypeContainer, refId, severity);
+    String vulnDescription = "Container-1000 description";
+    verifyNoInteractions(vulnerabilityDescriptionFetcher);
+    assertFields(indexService.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component, vuln),
+        field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_HASH, component.getHash(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_FORMAT, componentId.getFormat(), TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Version", componentId.get(ComponentIdentifier.VERSION),
+            TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Name", componentId.get(ComponentIdentifier.CONTAINER_NAME),
+            TextField.class, true),
+        field(FieldIdentifier.COMPONENT_COORDINATE + "Namespace",
+            componentId.get(ComponentIdentifier.CONTAINER_NAMESPACE), TextField.class, true),
         field(FieldIdentifier.COMPONENT_NAME, component.getDisplayNameFromIdentifier(), TextField.class, true),
         field(FieldIdentifier.VULNERABILITY_ID, vuln.getRefId(), TextField.class, true),
         field(FieldIdentifier.VULNERABILITY_SEVERITY, vuln.getSeverity(), FloatPoint.class, false),

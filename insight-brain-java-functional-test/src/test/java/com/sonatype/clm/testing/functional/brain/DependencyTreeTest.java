@@ -332,6 +332,54 @@ public class DependencyTreeTest
   }
 
   @Test
+  public void testDependencyTree_expandAndCollapseAll() {
+    dependencyTreePage.tree().shouldBe(visible);
+    ElementsCollection treeItems = dependencyTreePage.tree().collapsibleTreeItems();
+
+    treeItems.forEach(item -> {
+      item.shouldHave(attribute("aria-expanded", "true"));
+    });
+
+    dependencyTreePage.collapseAllButton().click();
+
+    treeItems.forEach(item -> {
+      item.shouldHave(attribute("aria-expanded", "false"));
+    });
+
+    dependencyTreePage.expandAllButton().click();
+
+    treeItems.forEach(item -> {
+      item.shouldHave(attribute("aria-expanded", "true"));
+    });
+  }
+
+  @Test
+  public void testDependencyTree_expandAndCollapseAllInFilteredTree() {
+    dependencyTreePage.tree().shouldBe(visible);
+    SelenideElement filterInput = dependencyTreePage.componentNameFilterInput();
+    ElementsCollection treeItems = dependencyTreePage.tree().collapsibleTreeItems();
+
+    treeItems.forEach(item -> {
+      item.shouldHave(attribute("aria-expanded", "true"));
+    });
+
+    filterInput.setValue("geronimo-security");
+    dependencyTreePage.collapseAllButton().click();
+    filterInput.setValue("");
+
+    treeItems.forEach(item -> {
+      item.shouldHave(attribute("aria-expanded", "false"));
+    });
+
+    filterInput.setValue("geronimo-security");
+    dependencyTreePage.expandAllButton().click();
+    filterInput.setValue("");
+
+    treeItems.forEach(item -> {
+      item.shouldHave(attribute("aria-expanded", "true"));
+    });
+  }
+
   public void testDependencyTree_EmptyMessage() throws IOException {
     URL zippedReport = ReportHelper.zipReport("/canned-reports/empty-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());

@@ -92,4 +92,13 @@ describe('DependencyTreePage', () => {
     renderComponent();
     expect(screen.getByText('Only supported ecosystem components are displayed in dependency tree.')).toBeVisible();
   });
+
+  it('renders expand all and collapse all buttons', () => {
+    spyOn(applicationReportSelectors, 'selectIsDependenciesLoading').and.returnValue(false);
+    spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
+
+    renderComponent();
+    expect(screen.getByRole('button', { name: /expand all/i })).toBeVisible();
+    expect(screen.getByRole('button', { name: /collapse all/i })).toBeVisible();
+  });
 });

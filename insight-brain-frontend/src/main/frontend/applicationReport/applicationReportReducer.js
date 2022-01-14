@@ -61,6 +61,8 @@ import {
   SET_DEPENDENCY_TREE_ROUTER_PARAMS,
   RESET_DEPENDENCY_TREE_ROUTER_PARAMS,
   SET_DEPENDENCY_TREE_SEARCH_TERM,
+  EXPAND_ALL_DEPENDENCY_TREE_NODES,
+  COLLAPSE_ALL_DEPENDENCY_TREE_NODES,
 } from './applicationReportActions';
 import { populateDependencyNodeKeys as populateEntryNodeKeys } from 'MainRoot/applicationReport/DependencyInfoGenerator';
 import {
@@ -271,6 +273,12 @@ export default function applicationReportReducer(state = initState, { type, payl
 
     case SET_DEPENDENCY_TREE_SEARCH_TERM:
       return applyDependencyTreeSearchTermFilter(pathSet(['dependencyTreeSearchTerm'], payload, state));
+
+    case EXPAND_ALL_DEPENDENCY_TREE_NODES:
+      return setExpansionStatusForAllNodesInDependencyTree(state, true);
+
+    case COLLAPSE_ALL_DEPENDENCY_TREE_NODES:
+      return setExpansionStatusForAllNodesInDependencyTree(state, false);
 
     default:
       return state;
@@ -490,4 +498,15 @@ function applyDependencyTreeSearchTermFilter(state) {
   const stateWithUncollapsedTree = deepReduce(uncollapseBranch, stateWithUpdatedDependencyTree, visibleDependencyTree);
 
   return stateWithUncollapsedTree;
+}
+
+function setExpansionStatusForAllNodesInDependencyTree(state, isOpen) {
+  const { dependencyTree, displayedDependencyTree } = state;
+  const updateExpansionStatus = (tree, node) => pathSet(node.treePath, { ...node, isOpen }, tree);
+
+  return {
+    ...state,
+    dependencyTree: deepReduce(updateExpansionStatus, [], dependencyTree),
+    displayedDependencyTree: deepReduce(updateExpansionStatus, [], displayedDependencyTree),
+  };
 }

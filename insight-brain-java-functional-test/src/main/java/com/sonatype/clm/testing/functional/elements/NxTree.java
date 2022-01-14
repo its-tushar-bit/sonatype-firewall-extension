@@ -34,6 +34,10 @@ public class NxTree
     return children(".nx-tree__item .iq-matched-hash-tree-label");
   }
 
+  public ElementsCollection collapsibleTreeItems() {
+    return children(".nx-tree__item--collapsible");
+  }
+
   public ElementsCollection threatIndicators() {
     return children(".nx-threat-indicator");
   }

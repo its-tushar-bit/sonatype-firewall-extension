@@ -46,4 +46,12 @@ public class DependencyTreePage
   public SelenideElement componentNameFilterInput() {
     return child("#iq-dependency-tree-component-name-filter-input");
   }
+
+  public SelenideElement expandAllButton() {
+    return child("#iq-dependency-tree__expand-all-button");
+  }
+
+  public SelenideElement collapseAllButton() {
+    return child("#iq-dependency-tree__collapse-all-button");
+  }
 }

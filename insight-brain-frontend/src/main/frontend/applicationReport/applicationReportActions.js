@@ -373,6 +373,11 @@ export const setDependencyTreeRouterParamsForBackButton = () => {
 export const SET_DEPENDENCY_TREE_SEARCH_TERM = 'SET_DEPENDENCY_TREE_SEARCH_TERM';
 export const setDependencyTreeSearchTerm = payloadParamActionCreator(SET_DEPENDENCY_TREE_SEARCH_TERM);
 
+export const EXPAND_ALL_DEPENDENCY_TREE_NODES = 'EXPAND_ALL_DEPENDENCY_TREE_NODES';
+export const expandAllDependencyTreeNodes = noPayloadActionCreator(EXPAND_ALL_DEPENDENCY_TREE_NODES);
+
+export const COLLAPSE_ALL_DEPENDENCY_TREE_NODES = 'COLLAPSE_ALL_DEPENDENCY_TREE_NODES';
+export const collapseAllDependencyTreeNodes = noPayloadActionCreator(COLLAPSE_ALL_DEPENDENCY_TREE_NODES);
 export const goToComponentDetailsPage = (hash) => {
   return (dispatch, getState) => {
     const { publicId, scanId } = selectRouterCurrentParams(getState());
@@ -412,6 +417,8 @@ export default function applicationReportActions() {
     resetDependencyTreeRouterParams,
     setDependencyTreeRouterParamsForBackButton,
     setDependencyTreeSearchTerm,
+    expandAllDependencyTreeNodes,
+    collapseAllDependencyTreeNodes,
     goToComponentDetailsPage,
   };
 }

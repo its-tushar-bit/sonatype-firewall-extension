@@ -2518,4 +2518,94 @@ describe('applicationReportReducer', function () {
       expect(newState.displayedDependencyTree[0].children[0].isOpen).toBeTrue();
     });
   });
+
+  describe('EXPAND_ALL_DEPENDENCY_TREE_NODES action', () => {
+    it('expands all nodes in dependency tree', () => {
+      const state = Object.freeze({ dependencyTree: dependencyTreeData, displayedDependencyTree: dependencyTreeData });
+
+      const newState = reduce(state, { type: 'EXPAND_ALL_DEPENDENCY_TREE_NODES' });
+
+      newState.dependencyTree.forEach((node) => {
+        if (node.children) {
+          node.children.forEach((child) => expect(child.isOpen).toBeTrue());
+        }
+        expect(node.isOpen).toBeTrue();
+      });
+
+      newState.displayedDependencyTree.forEach((node) => {
+        if (node.children) {
+          node.children.forEach((child) => expect(child.isOpen).toBeTrue());
+        }
+        expect(node.isOpen).toBeTrue();
+      });
+    });
+
+    it('expands all nodes in dependency tree when dependency tree is filtered', () => {
+      const state = Object.freeze({
+        dependencyTree: dependencyTreeData,
+        displayedDependencyTree: [dependencyTreeData[0]],
+      });
+
+      const newState = reduce(state, { type: 'EXPAND_ALL_DEPENDENCY_TREE_NODES' });
+
+      newState.dependencyTree.forEach((node) => {
+        if (node.children) {
+          node.children.forEach((child) => expect(child.isOpen).toBeTrue());
+        }
+        expect(node.isOpen).toBeTrue();
+      });
+
+      newState.displayedDependencyTree.forEach((node) => {
+        if (node.children) {
+          node.children.forEach((child) => expect(child.isOpen).toBeTrue());
+        }
+        expect(node.isOpen).toBeTrue();
+      });
+    });
+  });
+
+  describe('COLLAPSE_ALL_DEPENDENCY_TREE_NODES action', () => {
+    it('collapse all nodes in dependency tree', () => {
+      const state = Object.freeze({ dependencyTree: dependencyTreeData, displayedDependencyTree: dependencyTreeData });
+
+      const newState = reduce(state, { type: 'COLLAPSE_ALL_DEPENDENCY_TREE_NODES' });
+
+      newState.dependencyTree.forEach((node) => {
+        if (node.children) {
+          node.children.forEach((child) => expect(child.isOpen).toBeFalse());
+        }
+        expect(node.isOpen).toBeFalse();
+      });
+
+      newState.displayedDependencyTree.forEach((node) => {
+        if (node.children) {
+          node.children.forEach((child) => expect(child.isOpen).toBeFalse());
+        }
+        expect(node.isOpen).toBeFalse();
+      });
+    });
+
+    it('collapse all nodes in dependency tree when dependency tree is filtered', () => {
+      const state = Object.freeze({
+        dependencyTree: dependencyTreeData,
+        displayedDependencyTree: [dependencyTreeData[0]],
+      });
+
+      const newState = reduce(state, { type: 'COLLAPSE_ALL_DEPENDENCY_TREE_NODES' });
+
+      newState.dependencyTree.forEach((node) => {
+        if (node.children) {
+          node.children.forEach((child) => expect(child.isOpen).toBeFalse());
+        }
+        expect(node.isOpen).toBeFalse();
+      });
+
+      newState.displayedDependencyTree.forEach((node) => {
+        if (node.children) {
+          node.children.forEach((child) => expect(child.isOpen).toBeFalse());
+        }
+        expect(node.isOpen).toBeFalse();
+      });
+    });
+  });
 });

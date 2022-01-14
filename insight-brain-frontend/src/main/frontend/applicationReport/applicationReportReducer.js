@@ -128,6 +128,7 @@ const initState = Object.freeze({
   dependencyTreePageRouterParams: null,
   dependencyTreeSearchTerm: '',
   displayedDependencyTree: null,
+  reevaluateMaskState: null,
 });
 
 export default function applicationReportReducer(state = initState, { type, payload }) {
@@ -175,11 +176,11 @@ export default function applicationReportReducer(state = initState, { type, payl
       return setPendingLoads(['common', 'raw', 'policy'], state);
 
     case REEVALUATE_REPORT_REQUESTED:
-      return { ...state, reevaluating: true, reevaluationError: null };
+      return { ...state, reevaluating: true, reevaluationError: null, reevaluateMaskState: false };
 
     case REEVALUATE_REPORT_FULFILLED:
     case REEVALUATE_REPORT_CANCELLED:
-      return { ...state, reevaluating: false, reevaluationError: null };
+      return { ...state, reevaluating: false, reevaluationError: null, reevaluateMaskState: true };
 
     case LOAD_REPORT_FAILED:
       return unsetPendingLoads(['policy'], { ...state, loadError: payload });
@@ -191,7 +192,7 @@ export default function applicationReportReducer(state = initState, { type, payl
       return unsetPendingLoads(['common'], { ...state, loadError: payload });
 
     case REEVALUATE_REPORT_FAILED:
-      return { ...state, reevaluating: false, reevaluationError: payload };
+      return { ...state, reevaluating: false, reevaluationError: payload, reevaluateMaskState: null };
 
     case LOAD_COMMON_DATA_UNNECESSARY:
       return unsetPendingLoads(['common'], state);

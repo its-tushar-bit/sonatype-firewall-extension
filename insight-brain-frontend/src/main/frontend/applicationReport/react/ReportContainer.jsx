@@ -20,6 +20,7 @@ function mapStateToProps({ applicationReport, router }) {
         'exactValueFilters',
         'substringFilters',
         'loadError',
+        'reevaluateMaskState',
       ],
       applicationReport
     ),

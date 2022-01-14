@@ -50,6 +50,7 @@ describe('applicationReportReducer', function () {
         dir: 'asc',
       });
       expect(newState.selectedRootAncestor).toBeNull();
+      expect(newState.reevaluateMaskState).toBeNull();
     });
 
     it('is immutable', function () {
@@ -155,6 +156,7 @@ describe('applicationReportReducer', function () {
         dependencyTreePageRouterParams: null,
         dependencyTreeSearchTerm: '',
         displayedDependencyTree: null,
+        reevaluateMaskState: null,
       });
     });
   });
@@ -1054,6 +1056,7 @@ describe('applicationReportReducer', function () {
         reevaluating: true,
         reevaluationError: null,
         other: otherObject,
+        reevaluateMaskState: false,
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -1071,6 +1074,7 @@ describe('applicationReportReducer', function () {
         reevaluating: false,
         reevaluationError: null,
         other: otherObject,
+        reevaluateMaskState: true,
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -1088,6 +1092,7 @@ describe('applicationReportReducer', function () {
         reevaluating: false,
         reevaluationError: null,
         other: otherObject,
+        reevaluateMaskState: true,
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -1109,6 +1114,7 @@ describe('applicationReportReducer', function () {
         reevaluating: false,
         reevaluationError: payload,
         other: otherObject,
+        reevaluateMaskState: null,
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });

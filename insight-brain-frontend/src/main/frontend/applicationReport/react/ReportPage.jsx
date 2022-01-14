@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
-import { NxLoadWrapper } from '@sonatype/react-shared-components';
+import React, { useEffect, Fragment } from 'react';
+import { NxLoadWrapper, NxStatefulSubmitMask } from '@sonatype/react-shared-components';
 import ReportStatusBar from './ReportStatusBar';
 import ReportContent from './ReportContent';
 import ReportFilters from './ReportFilters';
@@ -18,6 +18,7 @@ export default function ReportPage(props) {
     setReportParameters,
     loadReportIfNeeded: loadReport,
     reevaluateReport,
+    reevaluateMaskState,
     setSorting,
     setSortingParameters,
     setExactValueFilter,
@@ -51,41 +52,44 @@ export default function ReportPage(props) {
   }, [publicId, scanId]);
 
   return (
-    <main id="app-report" className="nx-page-main nx-viewport-sized iq-app-report">
-      <BackButton stateName="violations" $state={$state} text="All Reports" />
-      <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
-        {false && (
-          <ReportFilters
-            {...{
-              $state,
-              setAggregateReportEntries,
-              setExactValueFilter,
-              exactValueFilters,
-              aggregate,
-            }}
+    <Fragment>
+      {reevaluateMaskState !== null && <NxStatefulSubmitMask success={reevaluateMaskState} message="Re-Evaluating" />}
+      <main id="app-report" className="nx-page-main nx-viewport-sized iq-app-report">
+        <BackButton stateName="violations" $state={$state} text="All Reports" />
+        <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
+          {false && (
+            <ReportFilters
+              {...{
+                $state,
+                setAggregateReportEntries,
+                setExactValueFilter,
+                exactValueFilters,
+                aggregate,
+              }}
+            />
+          )}
+          <ReportTitle
+            metadataDetails={metadata}
+            scanId={scanId}
+            publicId={publicId}
+            selectedReport={selectedReport}
+            reevaluateReport={reevaluateReport}
+            stateGo={stateGo}
           />
-        )}
-        <ReportTitle
-          metadataDetails={metadata}
-          scanId={scanId}
-          publicId={publicId}
-          selectedReport={selectedReport}
-          reevaluateReport={reevaluateReport}
-          stateGo={stateGo}
-        />
-        <ReportStatusBar selectedReport={selectedReport} />
-        <ReportContent
-          selectedReport={selectedReport}
-          substringFilters={substringFilters}
-          setSorting={setSorting}
-          sortConfiguration={sortConfiguration}
-          setStringFieldFilter={setStringFieldFilter}
-          setSortingParameters={setSortingParameters}
-          selectComponent={selectComponent}
-          goToComponentDetailsPage={goToComponentDetailsPage}
-        />
-      </NxLoadWrapper>
-    </main>
+          <ReportStatusBar selectedReport={selectedReport} />
+          <ReportContent
+            selectedReport={selectedReport}
+            substringFilters={substringFilters}
+            setSorting={setSorting}
+            sortConfiguration={sortConfiguration}
+            setStringFieldFilter={setStringFieldFilter}
+            setSortingParameters={setSortingParameters}
+            selectComponent={selectComponent}
+            goToComponentDetailsPage={goToComponentDetailsPage}
+          />
+        </NxLoadWrapper>
+      </main>
+    </Fragment>
   );
 }
 
@@ -159,4 +163,5 @@ ReportPage.propTypes = {
     policyName: PropTypes.string,
     derivedComponentName: PropTypes.string,
   }),
+  reevaluateMaskState: PropTypes.bool,
 };

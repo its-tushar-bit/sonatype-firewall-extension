@@ -120,6 +120,7 @@ export default function ReportContent(props) {
                 >
                   Component
                 </NxTableCell>
+                <NxTableCell chevron />
               </NxTableRow>
               <NxTableRow className="nx-table-row--filter-header">
                 <NxTableCell colSpan={2}>
@@ -132,6 +133,7 @@ export default function ReportContent(props) {
                     value={derivedComponentNameFilter}
                   />
                 </NxTableCell>
+                <NxTableCell chevron />
               </NxTableRow>
             </NxTableHead>
             <NxTableBody emptyMessage="No Results">{createRows()}</NxTableBody>

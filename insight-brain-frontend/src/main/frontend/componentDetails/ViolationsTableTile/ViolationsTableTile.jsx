@@ -10,7 +10,7 @@ import { NxLoadWrapper, NxButton } from '@sonatype/react-shared-components';
 import PolicyViolationsTable from './PolicyViolationsTable';
 
 export const ViewAllComponentWaiversButton = ({ toggleComponentWaiversPopover }) => (
-  <NxButton id="component-details-view-waivers" variant="tertiary" onClick={toggleComponentWaiversPopover}>
+  <NxButton id="component-details-view-waivers" variant="tertiary" onClick={() => toggleComponentWaiversPopover()}>
     <span>View Existing Waivers</span>
   </NxButton>
 );

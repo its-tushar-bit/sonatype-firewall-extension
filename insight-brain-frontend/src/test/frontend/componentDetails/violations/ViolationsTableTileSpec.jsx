@@ -112,7 +112,6 @@ describe('ViolationsTableTile', () => {
 
       expect(button).toHaveProp('id', 'component-details-view-waivers');
       expect(button).toHaveProp('variant', 'tertiary');
-      expect(button).toHaveProp('onClick', minimalProps.toggleComponentWaiversPopover);
       expect(button).toHaveText('View Existing Waivers');
     });
 

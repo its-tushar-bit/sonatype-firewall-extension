@@ -6,6 +6,7 @@
 import { prop, isNil } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 import { selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 export const selectApplicationReportSlice = prop('applicationReport');
 export const selectSelectedReport = createSelector(selectApplicationReportSlice, prop('selectedReport'));
@@ -40,10 +41,7 @@ export const selectIsDependenciesLoading = createSelector(selectApplicationRepor
 export const selectReportParameters = createSelector(selectApplicationReportSlice, prop('reportParameters'));
 
 export const selectDependencyTreeData = createSelector(selectApplicationReportSlice, prop('dependencyTree'));
-export const selectDependencyTreeIsAvailable = createSelector(
-  selectApplicationReportSlice,
-  (report) => !!prop('dependencyTree', report)
-);
+export const selectDependencyTreeIsAvailable = createSelector(selectDependencyTreeData, (tree) => !isNilOrEmpty(tree));
 
 export const selectDependencyTreeIsOldReport = createSelector(selectDependencyTreeData, isNil);
 

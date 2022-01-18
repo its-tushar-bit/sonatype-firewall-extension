@@ -283,17 +283,32 @@ describe('applicationReportSelectors', () => {
     expect(actual).toEqual(expected);
   });
 
-  it('selectDependencyTreeIsAvailable', () => {
-    const state = {
-      ...mockState,
-      applicationReport: {
-        ...mockState.applicationReport,
-        dependencyTree: null,
-      },
-    };
-    const actual = selectDependencyTreeIsAvailable(state);
+  describe('selectDependencyTreeIsAvailable', () => {
+    it('returns false if dependencyTree is null', () => {
+      const state = {
+        ...mockState,
+        applicationReport: {
+          ...mockState.applicationReport,
+          dependencyTree: null,
+        },
+      };
+      const actual = selectDependencyTreeIsAvailable(state);
 
-    expect(actual).toEqual(false);
+      expect(actual).toEqual(false);
+    });
+
+    it('returns false if dependencyTree is empty', () => {
+      const state = {
+        ...mockState,
+        applicationReport: {
+          ...mockState.applicationReport,
+          dependencyTree: [],
+        },
+      };
+      const actual = selectDependencyTreeIsAvailable(state);
+
+      expect(actual).toEqual(false);
+    });
   });
 
   describe('selectReportParameters', () => {

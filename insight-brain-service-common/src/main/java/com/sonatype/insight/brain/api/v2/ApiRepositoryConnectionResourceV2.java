@@ -7,9 +7,8 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
 
-import javax.ws.rs.core.Response;
-
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.model.OwnerType;
 
 /**
@@ -40,12 +39,12 @@ public interface ApiRepositoryConnectionResourceV2
       String internalOwnerId,
       boolean inherit);
 
-  Response testRepositoryConnection(
+  ApiStatusDTO testRepositoryConnection(
       OwnerType ownerType,
       String internalOwnerId,
       ApiRepositoryConnectionDTO repositoryConnection);
 
-  Response testRepositoryConnection(
+  ApiStatusDTO testRepositoryConnection(
       OwnerType ownerType,
       String internalOwnerId,
       String repositoryConnectionId);

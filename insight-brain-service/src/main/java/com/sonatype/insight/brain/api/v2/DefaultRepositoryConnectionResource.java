@@ -20,12 +20,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRepositoryConnectionService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -147,7 +147,7 @@ public class DefaultRepositoryConnectionResource
   @POST
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER_TEST_PATH)
-  public Response testRepositoryConnection(
+  public ApiStatusDTO testRepositoryConnection(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId,
       ApiRepositoryConnectionDTO repositoryConnectionDTO)
@@ -155,14 +155,14 @@ public class DefaultRepositoryConnectionResource
     checkInnerSourceRepositoryIntegrationEnabled();
     Status status =
         repositoryConnectionService.testRepositoryConnection(ownerType, internalOwnerId, repositoryConnectionDTO);
-    return Response.status(status).build();
+    return ApiStatusDTO.fromStatus(status);
   }
 
   @Override
   @POST
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_REPOSITORY_TEST_PATH)
-  public Response testRepositoryConnection(
+  public ApiStatusDTO testRepositoryConnection(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId,
       @PathParam("repositoryConnectionId") String repositoryConnectionId)
@@ -170,7 +170,7 @@ public class DefaultRepositoryConnectionResource
     checkInnerSourceRepositoryIntegrationEnabled();
     Status status =
         repositoryConnectionService.testRepositoryConnection(ownerType, internalOwnerId, repositoryConnectionId);
-    return Response.status(status).build();
+    return ApiStatusDTO.fromStatus(status);
   }
 
   private void checkInnerSourceRepositoryIntegrationEnabled() {

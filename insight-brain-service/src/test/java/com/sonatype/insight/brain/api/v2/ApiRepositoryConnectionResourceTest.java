@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -418,7 +419,10 @@ public class ApiRepositoryConnectionResourceTest
         .parameter(OwnerType.APPLICATION, appId)
         .body(dto)
         .post();
-    assertThat(response.getStatusCode()).isEqualTo(401);
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    ApiStatusDTO statusDTO = response.getBody(ApiStatusDTO.class);
+    assertThat(statusDTO.code).isEqualTo(401);
+    assertThat(statusDTO.message).isEqualTo("Unauthorized");
   }
 
   @Test
@@ -464,6 +468,9 @@ public class ApiRepositoryConnectionResourceTest
         .parameter(OwnerType.APPLICATION, appId, repositoryConnection.getId())
         .post();
     assertThat(response.getStatusCode()).isEqualTo(200);
+    ApiStatusDTO statusDTO = response.getBody(ApiStatusDTO.class);
+    assertThat(statusDTO.code).isEqualTo(200);
+    assertThat(statusDTO.message).isEqualTo("OK");
   }
 
   @Test
@@ -482,7 +489,10 @@ public class ApiRepositoryConnectionResourceTest
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId, repositoryConnection.getId())
         .post();
-    assertThat(response.getStatusCode()).isEqualTo(401);
+    assertThat(response.getStatusCode()).isEqualTo(200);
+    ApiStatusDTO statusDTO = response.getBody(ApiStatusDTO.class);
+    assertThat(statusDTO.code).isEqualTo(401);
+    assertThat(statusDTO.message).isEqualTo("Unauthorized");
   }
 
   @Test

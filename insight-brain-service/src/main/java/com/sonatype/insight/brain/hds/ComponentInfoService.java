@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
 import com.sonatype.insight.brain.repository.RepositoryClient;
 import com.sonatype.insight.brain.repository.RepositoryComponentResult;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
+import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -445,7 +446,7 @@ public class ComponentInfoService
       String scanId,
       DependencyType dependencyType)
   {
-    Pair<List<ComponentDetailsDTO>, String> result =
+    Pair<List<ComponentDetailsDTO>, RepositorySourceResponseDTO> result =
         getComponentDetailsForAllVersionsNoAuth(ownerType, ownerId, componentIdentifier, stageId, identificationSource,
             scanId, dependencyType);
     List<ComponentDetailsDTO> componentDetailsDTOs = result.getLeft();
@@ -462,7 +463,7 @@ public class ComponentInfoService
     return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto, result.getRight());
   }
 
-  public Pair<List<ComponentDetailsDTO>, String> getComponentDetailsForAllVersionsNoAuth(
+  public Pair<List<ComponentDetailsDTO>, RepositorySourceResponseDTO> getComponentDetailsForAllVersionsNoAuth(
       OwnerType ownerType,
       String ownerId,
       ComponentIdentifier componentIdentifier,
@@ -472,7 +473,7 @@ public class ComponentInfoService
       DependencyType dependencyType)
   {
     final Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
-    Pair<ComponentDetailsList, String> componentDetailsListAndSource =
+    Pair<ComponentDetailsList, RepositorySourceResponseDTO> componentDetailsListAndSource =
         getComponentDetailsList(componentIdentifier, owner, identificationSource, scanId, dependencyType);
     List<ComponentDetails> componentDetailsList = componentDetailsListAndSource.getLeft().getList();
 
@@ -577,7 +578,7 @@ public class ComponentInfoService
     return getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest, identificationSource);
   }
 
-  Pair<ComponentDetailsList, String> getComponentDetailsList(
+  Pair<ComponentDetailsList, RepositorySourceResponseDTO> getComponentDetailsList(
       ComponentIdentifier identifier,
       Owner owner,
       String identificationSource,
@@ -591,7 +592,7 @@ public class ComponentInfoService
     }
 
     ComponentDetailsList componentDetailsList;
-    String source = null;
+    RepositorySourceResponseDTO sourceResponseDTO = null;
 
     if (isKnownFormat(identifier)) {
       if (identifier.isTerraform()) {
@@ -599,10 +600,10 @@ public class ComponentInfoService
         componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
       }
       else if (shouldGetFromRepositoryData(dependencyType, identifier)) {
-        Pair<RepositoryAllVersionsResponse, String> result =
+        Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> result =
             repositoryQueryService.getAllVersions(identifier, owner.getId());
         componentDetailsList = transformToComponentDetailsList(result.getLeft(), identifier);
-        source = result.getRight();
+        sourceResponseDTO = result.getRight();
       }
       else {
         componentDetailsList = getInformationVersionsHds(identifier, identificationSource, owner, scanId);
@@ -619,7 +620,7 @@ public class ComponentInfoService
       log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
           componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
     }
-    return Pair.of(componentDetailsList, source);
+    return Pair.of(componentDetailsList, sourceResponseDTO);
   }
 
   private ComponentDetailsList transformToComponentDetailsList(

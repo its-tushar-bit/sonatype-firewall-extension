@@ -34,8 +34,9 @@ export const RiskRemediation = ({
     loadVersionExplorerData();
   }, []);
 
-  const { loading, loadError, remediation, versions, source } = versionExplorerData;
+  const { loading, loadError, remediation, versions, sourceResponse } = versionExplorerData;
   const { loading: selectedVersionLoading, loadError: selectedVersionError, selectedVersion } = selectedVersionData;
+  const source = sourceResponse ? sourceResponse.source : null;
 
   const overviewComponentRiskRemediationTile_header = (
     <header className="nx-tile-header">
@@ -145,7 +146,10 @@ RiskRemediation.propTypes = {
   versionExplorerData: PropTypes.shape({
     versions: PropTypes.array,
     remediation: RemediationPropTypes,
-    source: PropTypes.string,
+    sourceResponse: PropTypes.shape({
+      source: PropTypes.string,
+      sourceError: PropTypes.string
+    }),
     loading: PropTypes.bool,
     loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),

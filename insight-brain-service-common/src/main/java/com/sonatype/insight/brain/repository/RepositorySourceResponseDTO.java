@@ -1,15 +1,13 @@
-/**
+/*
  * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+package com.sonatype.insight.brain.repository;
 
-.iq-identification-info-definition-list {
-  .nx-read-only__data:empty::before {
-    content: '-';
-  }
-}
+public class RepositorySourceResponseDTO
+{
+  public String source;
 
-.inner-source-repository-source-alert {
-  max-width: max-content !important;
+  public String sourceError;
 }

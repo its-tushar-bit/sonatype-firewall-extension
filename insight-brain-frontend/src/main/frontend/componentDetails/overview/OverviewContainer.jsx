@@ -15,6 +15,7 @@ import {
   selectComponentDetailsLoading,
   selectComponentDetailsLoadErrors,
 } from '../componentDetailsSelectors';
+import { selectVersionExplorerData } from './overviewSelectors';
 
 function mapStateToProps(state) {
   return {
@@ -22,6 +23,7 @@ function mapStateToProps(state) {
     loadError: selectComponentDetailsLoadErrors(state),
     componentInformation: selectSelectedComponent(state),
     similarMatches: selectComponentSimilarMatches(state),
+    versionExplorerData: selectVersionExplorerData(state),
   };
 }
 

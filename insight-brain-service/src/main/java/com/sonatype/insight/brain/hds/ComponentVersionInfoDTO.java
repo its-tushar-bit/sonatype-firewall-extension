@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.hds;
 import java.util.List;
 
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
+import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 
 public class ComponentVersionInfoDTO
 {
@@ -15,7 +16,7 @@ public class ComponentVersionInfoDTO
 
   public ApiComponentRemediationValueDTO remediation;
 
-  public String source;
+  public RepositorySourceResponseDTO sourceResponse;
 
   public ComponentVersionInfoDTO() {
     // for jackson
@@ -24,10 +25,10 @@ public class ComponentVersionInfoDTO
   public ComponentVersionInfoDTO(
       List<ComponentDetailsDTO> allVersions,
       ApiComponentRemediationValueDTO remediation,
-      String source)
+      RepositorySourceResponseDTO sourceResponse)
   {
     this.allVersions = allVersions;
     this.remediation = remediation;
-    this.source = source;
+    this.sourceResponse = sourceResponse;
   }
 }

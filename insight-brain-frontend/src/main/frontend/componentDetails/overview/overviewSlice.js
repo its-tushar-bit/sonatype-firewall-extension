@@ -41,7 +41,7 @@ const initialState = {
     versions: null,
     remediation: null,
     currentVersionDetails: null,
-    source: null,
+    sourceResponse: null,
   },
   innerSourceProducerData: {
     reportUrl: '',
@@ -146,7 +146,7 @@ const loadFulfilled = (state, { payload }) => ({
     versions: payload.componentVersionsData.allVersions,
     remediation: payload.componentVersionsData.remediation,
     currentVersionDetails: payload.currentVersionDetails,
-    source: payload.componentVersionsData.source,
+    sourceResponse: payload.componentVersionsData.sourceResponse,
   },
 });
 
@@ -155,7 +155,7 @@ function loadFailed(state, { payload }) {
     state.versionExplorerData.versions = null;
     state.versionExplorerData.remediation = null;
     state.versionExplorerData.currentVersionDetails = null;
-    state.versionExplorerData.source = null;
+    state.versionExplorerData.sourceResponse = null;
   } else {
     state.versionExplorerData.loading = false;
     state.versionExplorerData.loadError = Messages.getHttpErrorMessage(payload);

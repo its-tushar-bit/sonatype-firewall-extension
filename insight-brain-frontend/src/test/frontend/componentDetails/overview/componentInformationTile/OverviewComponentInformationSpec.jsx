@@ -28,6 +28,7 @@ describe('OverviewComponentInformation', () => {
         matchState: 'unknown',
         pathnames: ['componentPath'],
       },
+      versionExplorerData: {},
       toggleShowOccurrencesPopover: jasmine.createSpy('toggleShowOccurrencesPopover'),
       toggleShowComponentCoordinatesPopover: toggleShowComponentCoordinatesPopoverSpy,
       similarMatches: [],
@@ -73,6 +74,9 @@ describe('OverviewComponentInformation', () => {
     expect(innerSourcePermissionsContainer).toExist();
     expect(innerSourceAlertContainer).toExist();
 
+    const repositorySourceErrorAlert = component.find('.inner-source-repository-source-alert');
+    expect(repositorySourceErrorAlert).not.toExist();
+
     const props = {
       componentInformation: {
         ...minimalProps.componentInformation,
@@ -90,6 +94,21 @@ describe('OverviewComponentInformation', () => {
     expect(innerSourceReportContainer).toExist();
     expect(innerSourcePermissionsContainer).toExist();
     expect(innerSourceAlertContainer).toExist();
+  });
+
+  it('renders the repository source error alert for inner source component', () => {
+    const props = {
+      versionExplorerData: {
+        sourceResponse: {
+          source: 'source',
+          sourceError: 'source error',
+        },
+      },
+    };
+
+    const component = getShallow(props);
+    const repositorySourceErrorAlert = component.find('.inner-source-repository-source-alert');
+    expect(repositorySourceErrorAlert).toExist();
   });
 
   describe('when component is unknown', () => {

@@ -218,7 +218,7 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
         loadError: null,
         versions: null,
         remediation: remediation,
-        source: null,
+        sourceResponse: null,
       },
       selectedVersionData: {
         loading: false,
@@ -261,7 +261,7 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
         loading: false,
         loadError: null,
         versions: allVersions,
-        source: null,
+        sourceResponse: null,
       },
     });
 
@@ -281,7 +281,7 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
         loading: false,
         loadError: null,
         versions: allVersions,
-        source: 'https://repo.sonatype.com/',
+        sourceResponse: { source: 'https://repo.sonatype.com/' },
       },
     });
 

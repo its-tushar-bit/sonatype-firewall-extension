@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.repository;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -13,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -87,7 +85,7 @@ public class RepositoryQueryService
     this.ownerDAO = ownerDAO;
   }
 
-  public Pair<RepositoryAllVersionsResponse, String> getAllVersions(
+  public Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> getAllVersions(
       ComponentIdentifier componentIdentifier,
       String ownerId)
   {
@@ -114,7 +112,7 @@ public class RepositoryQueryService
 
     //for the time being we only support one repository connection - cf. CLM-19789
     RepositoryConnection connection = repoConnections.get(0);
-    return Pair.of(searchRepositoryForAllVersions(connection, componentIdentifier), connection.getBaseUrl());
+    return searchRepositoryForAllVersions(connection, componentIdentifier);
   }
 
   @VisibleForTesting
@@ -146,11 +144,13 @@ public class RepositoryQueryService
     return isEnabled;
   }
 
-  private RepositoryAllVersionsResponse searchRepositoryForAllVersions(
+  private Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> searchRepositoryForAllVersions(
       RepositoryConnection connection,
       ComponentIdentifier componentIdentifier)
   {
     RepositoryAllVersionsResponse response = new RepositoryAllVersionsResponse(Collections.emptyList());
+    RepositorySourceResponseDTO sourceResponseDTO = new RepositorySourceResponseDTO();
+    sourceResponseDTO.source = connection.getBaseUrl();
     Map<String, String> queryParams = getQueryCriteriaForNexus3(componentIdentifier);
     if (!queryParams.isEmpty()) {
       try {
@@ -159,12 +159,14 @@ public class RepositoryQueryService
                 passwordHandler.decryptPassword(connection.getPassword()));
         response = client.getAllVersions(queryParams);
       }
-      catch (IOException e) {
-        log.debug(String.format("unable to retrieve component versions from repository manager: %s",
-            connection.getBaseUrl()), e);
+      catch (Exception e) {
+        String errorMessage = String.format("unable to retrieve component versions from repository manager: %s",
+            connection.getBaseUrl());
+        sourceResponseDTO.sourceError = errorMessage;
+        log.debug(errorMessage, e);
       }
     }
-    return response;
+    return Pair.of(response, sourceResponseDTO);
   }
 
   private Map<String, String> getQueryCriteriaForNexus3(ComponentIdentifier componentIdentifier) {

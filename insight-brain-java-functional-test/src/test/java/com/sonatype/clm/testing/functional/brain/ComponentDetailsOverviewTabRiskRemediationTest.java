@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.Collections;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.componentdetails.InnerSourceRepositorySourceAlert;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.CompareVersionsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile.RecommendationElement;
@@ -52,6 +53,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -235,6 +237,28 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         .shouldBe(visible).shouldHave(text("Repository Source: " + repositoryConnection.getBaseUrl()));
     
     eyesWatcher.eyesCheck("component details overview tab risk remediation InnerSource dependency repository source");
+  }
+
+  @Test
+  public void testOverviewTab_innerSourceRepositorySourceErrorAlert() throws Exception {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+        .willReturn(aResponse()
+            .withStatus(401)));
+    testCLMServer.getHdsServer()
+        .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
+        .atUri("rest/component/dependencies");
+    tempEntity.newRepositoryConnection(Organization.ROOT_ORGANIZATION_ID, nxrm3MockSever.baseUrl(), null, null);
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
+    componentDetailsPage.overviewTab().shouldBe(visible);
+
+    InnerSourceRepositorySourceAlert repositorySourceAlert = new InnerSourceRepositorySourceAlert();
+    repositorySourceAlert.content().shouldBe(visible);
+    repositorySourceAlert.content().shouldHave(
+        exactText("Could not retrieve data from InnerSource repository. Check your repository configuration"));
+
+    eyesWatcher.eyesCheck("component details overview tab InnerSource repository source alert");
   }
 
   @Test

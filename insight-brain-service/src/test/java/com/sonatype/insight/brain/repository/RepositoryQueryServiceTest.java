@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -94,7 +93,7 @@ public class RepositoryQueryServiceTest
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
     //when
-    Pair<RepositoryAllVersionsResponse, String> results =
+    Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
@@ -123,7 +122,7 @@ public class RepositoryQueryServiceTest
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
     //when
-    Pair<RepositoryAllVersionsResponse, String> results =
+    Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
@@ -140,7 +139,7 @@ public class RepositoryQueryServiceTest
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
 
     //when
-    Pair<RepositoryAllVersionsResponse, String> results =
+    Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
@@ -169,7 +168,7 @@ public class RepositoryQueryServiceTest
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
     //when
-    Pair<RepositoryAllVersionsResponse, String> results =
+    Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
@@ -197,11 +196,13 @@ public class RepositoryQueryServiceTest
     when(mockClient.getAllVersions(params)).thenReturn(mockResults);
 
     //when
-    Pair<RepositoryAllVersionsResponse, String> results =
+    Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
+    assertThat(results.getRight().source).isEqualTo("baseUrl");
+    assertThat(results.getRight().sourceError).isNull();
   }
 
   @Test
@@ -214,11 +215,12 @@ public class RepositoryQueryServiceTest
     ComponentIdentifier identifier = ComponentIdentifier.createNpmCoordinates("p1", "1.2.0");
 
     //when
-    Pair<RepositoryAllVersionsResponse, String> results =
+    Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
     assertThat(results.getLeft().getComponents()).isEmpty();
+    assertThat(results.getRight()).isNull();
   }
 
   @Test
@@ -229,7 +231,7 @@ public class RepositoryQueryServiceTest
     ComponentIdentifier identifier = new ComponentIdentifier("unknown", coords);
 
     //when
-    Pair<RepositoryAllVersionsResponse, String> results =
+    Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
@@ -243,11 +245,12 @@ public class RepositoryQueryServiceTest
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
 
     //when
-    Pair<RepositoryAllVersionsResponse, String> results =
+    Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
     assertThat(results.getLeft().getComponents()).isEmpty();
+    assertThat(results.getRight()).isNull();
   }
 
   @Test
@@ -263,11 +266,14 @@ public class RepositoryQueryServiceTest
     when(mockClient.getAllVersions(params)).thenThrow(new IOException("error"));
 
     //when
-    Pair<RepositoryAllVersionsResponse, String> results =
+    Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
         repositoryQueryService.getAllVersions(identifier, app.getId());
 
     //then
     assertThat(results.getLeft().getComponents()).isEmpty();
+    assertThat(results.getRight().source).isEqualTo("baseUrl");
+    assertThat(results.getRight().sourceError).isEqualTo(
+        "unable to retrieve component versions from repository manager: baseUrl");
   }
 
   @Test

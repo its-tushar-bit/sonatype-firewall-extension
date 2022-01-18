@@ -76,7 +76,9 @@ describe('componentDetailsOverviewReducer', () => {
         expanded: false,
       });
       const allVersions = ['list'];
-      const source = 'https://repo.sonatype.com/';
+      const sourceResponse = {
+        source: 'https://repo.sonatype.com/',
+      };
       const remediation = {
         versionChanges: [
           {
@@ -126,7 +128,7 @@ describe('componentDetailsOverviewReducer', () => {
         componentVersionsData: {
           remediation,
           allVersions,
-          source,
+          sourceResponse,
         },
         currentVersionDetails,
       };
@@ -140,7 +142,7 @@ describe('componentDetailsOverviewReducer', () => {
       expect(newState.versionExplorerData.loadError).toBe(null);
       expect(newState.versionExplorerData.versions).toBe(allVersions);
       expect(newState.versionExplorerData.remediation).toBe(remediation);
-      expect(newState.versionExplorerData.source).toBe(source);
+      expect(newState.versionExplorerData.sourceResponse.source).toBe(sourceResponse.source);
       expect(newState.versionExplorerData.currentVersionDetails).toBe(currentVersionDetails);
       expect(newState.other).toBe(stateConstantObject);
       expect(newState.expanded).toBe(false);
@@ -176,12 +178,12 @@ describe('componentDetailsOverviewReducer', () => {
           versions: { version: 12 },
           remediation: {},
           currentVersionDetails: {},
-          source: 'source',
+          sourceResponse: { source: 'source' },
         },
       });
 
       const {
-        versionExplorerData: { versions, remediation, currentVersionDetails, source },
+        versionExplorerData: { versions, remediation, currentVersionDetails, sourceResponse },
       } = reducer(state, {
         type: 'componentDetailsOverview/loadVersionExplorerDataWithCancelToken/rejected',
         payload: { message: 499 },
@@ -190,7 +192,7 @@ describe('componentDetailsOverviewReducer', () => {
       expect(versions).toBeNull();
       expect(remediation).toBeNull();
       expect(currentVersionDetails).toBeNull();
-      expect(source).toBeNull();
+      expect(sourceResponse).toBeNull();
     });
   });
 

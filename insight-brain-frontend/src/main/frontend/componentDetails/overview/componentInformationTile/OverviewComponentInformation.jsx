@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { join } from 'ramda';
+import {join, path, isNil} from 'ramda';
 
 import { capitalize } from 'MainRoot/util/jsUtil';
 
@@ -13,13 +13,14 @@ import OccurrencesPopoverContainer from '../occurrencesPopover/OccurrencesPopove
 import InnerSourceProducerAlertContainer from '../InnerSourceProducerAlert/InnerSourceProducerAlertContainer';
 import InnerSourceProducerReportModalContainer from '../InnerSourceProducerReportModal/InnerSourceProducerReportModalContainer';
 import InnerSourceProducerPermissionsModalContainer from '../InnerSourceProducerPermissionsModal/InnerSourceProducerPermissionsModalContainer';
-import { NxButton, NxTextLink } from '@sonatype/react-shared-components';
+import { NxButton, NxTextLink, NxWarningAlert, useToggle } from '@sonatype/react-shared-components';
 import ComponentCoordinatesPopover from '../ComponentCoordinatesPopover/ComponentCoordinatesPopover';
 
 export default function OverviewComponentInformation({
   componentInformation,
   toggleShowOccurrencesPopover,
   similarMatches,
+  versionExplorerData,
   toggleShowSimilarMatches,
   loadInnerSourceProducerData,
   toggleShowComponentCoordinatesPopover,
@@ -38,6 +39,8 @@ export default function OverviewComponentInformation({
     loadInnerSourceProducerData();
   }, []);
 
+  const showRepositorySourceError = !isNil(path(['sourceResponse', 'sourceError'], versionExplorerData));
+  const [isRepositorySourceErrorOpen, dismissRepositorySourceError] = useToggle(true);
   const isUnknown = !matchState || matchState === 'unknown';
   const format = isUnknown ? '' : componentIdentifier.format;
   const joinedComponentCategories = join(
@@ -52,6 +55,13 @@ export default function OverviewComponentInformation({
         (View Similar Matches)
       </a>
     </span>
+  );
+
+  const repositorySourceErrorAlert = showRepositorySourceError && isRepositorySourceErrorOpen && (
+      <NxWarningAlert id="inner-source-repository-source-alert" className="inner-source-repository-source-alert"
+                      onClose={dismissRepositorySourceError}>
+        Could not retrieve data from InnerSource repository. Check your repository configuration
+      </NxWarningAlert>
   );
 
   const identificationInfoSectionContent = (
@@ -98,6 +108,7 @@ export default function OverviewComponentInformation({
   return (
     <>
       <InnerSourceProducerAlertContainer />
+      {repositorySourceErrorAlert}
       <section id="overview-component-information-tile" className="nx-tile iq-component-information-tile">
         <OccurrencesPopoverContainer occurrences={pathnames} />
         <InnerSourceProducerReportModalContainer />

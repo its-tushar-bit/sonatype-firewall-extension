@@ -80,6 +80,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
 import com.sonatype.insight.brain.repository.RepositoryComponentResult;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
+import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
@@ -1548,7 +1549,7 @@ public class ComponentInfoServiceTest
     assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES.createAlternativeVersion("v1"));
     assertGetComponentVersionsRepositoryResult(result.get(1), MAVEN_A1_COORDINATES.createAlternativeVersion("v2"));
     assertGetComponentVersionsRepositoryResult(result.get(2), MAVEN_A1_COORDINATES.createAlternativeVersion("v3"));
-    assertThat(dto.source).isEqualTo("https://repo.sonatype.com/");
+    assertThat(dto.sourceResponse.source).isEqualTo("https://repo.sonatype.com/");
   }
 
   @Test
@@ -1571,7 +1572,7 @@ public class ComponentInfoServiceTest
     assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES.createAlternativeVersion("v0"));
     assertGetComponentVersionsRepositoryResult(result.get(1), MAVEN_A1_COORDINATES.createAlternativeVersion("v1"));
     assertGetComponentVersionsRepositoryResult(result.get(2), MAVEN_A1_COORDINATES.createAlternativeVersion("v2"));
-    assertThat(dto.source).isEqualTo("https://repo.sonatype.com/");
+    assertThat(dto.sourceResponse.source).isEqualTo("https://repo.sonatype.com/");
   }
 
   @Test
@@ -1594,7 +1595,7 @@ public class ComponentInfoServiceTest
     assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES.createAlternativeVersion("v0.4"));
     assertGetComponentVersionsRepositoryResult(result.get(1), MAVEN_A1_COORDINATES.createAlternativeVersion("v0.8"));
     assertGetComponentVersionsRepositoryResult(result.get(2), MAVEN_A1_COORDINATES.createAlternativeVersion("v1"));
-    assertThat(dto.source).isEqualTo("https://repo.sonatype.com/");
+    assertThat(dto.sourceResponse.source).isEqualTo("https://repo.sonatype.com/");
   }
 
   @Test
@@ -1616,7 +1617,7 @@ public class ComponentInfoServiceTest
     assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES.createAlternativeVersion("v0"));
     assertGetComponentVersionsRepositoryResult(result.get(1), MAVEN_A1_COORDINATES);
     assertGetComponentVersionsRepositoryResult(result.get(2), MAVEN_A1_COORDINATES.createAlternativeVersion("v3"));
-    assertThat(dto.source).isEqualTo("https://repo.sonatype.com/");
+    assertThat(dto.sourceResponse.source).isEqualTo("https://repo.sonatype.com/");
   }
 
   @Test
@@ -1635,7 +1636,7 @@ public class ComponentInfoServiceTest
 
     assertThat(result).hasSize(1);
     assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES);
-    assertThat(dto.source).isEqualTo("https://repo.sonatype.com/");
+    assertThat(dto.sourceResponse.source).isEqualTo("https://repo.sonatype.com/");
   }
 
   @Test
@@ -1656,7 +1657,7 @@ public class ComponentInfoServiceTest
     assertGetComponentVersionsRepositoryResult(result.get(0), NPM_COORDINATES.createAlternativeVersion("v0"));
     assertGetComponentVersionsRepositoryResult(result.get(1), NPM_COORDINATES);
     assertGetComponentVersionsRepositoryResult(result.get(2), NPM_COORDINATES.createAlternativeVersion("v2"));
-    assertThat(dto.source).isEqualTo("https://repo.sonatype.com/");
+    assertThat(dto.sourceResponse.source).isEqualTo("https://repo.sonatype.com/");
   }
 
   private void assertGetComponentVersionsRepositoryResult(
@@ -1680,8 +1681,10 @@ public class ComponentInfoServiceTest
         .map(v -> new RepositoryComponentResult(componentIdentifier.createAlternativeVersion(v), "sha" + v))
         .collect(Collectors.toList());
     RepositoryAllVersionsResponse response = new RepositoryAllVersionsResponse(resultComponents);
+    RepositorySourceResponseDTO mockSource = new RepositorySourceResponseDTO();
+    mockSource.source = "https://repo.sonatype.com/";
     when(repositoryQueryService.getAllVersions(componentIdentifier, ownerId)).thenReturn(
-        Pair.of(response, "https://repo.sonatype.com/"));
+        Pair.of(response, mockSource));
   }
 
   @Test

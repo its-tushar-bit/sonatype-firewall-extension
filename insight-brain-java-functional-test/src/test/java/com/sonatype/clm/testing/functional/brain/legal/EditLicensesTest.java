@@ -67,6 +67,9 @@ public class EditLicensesTest
     testCLMServer.getHdsServer()
         .respondWith("[]")
         .atUri("/rest/legal/file");
+    testCLMServer.getHdsServer()
+        .respondWith("[]")
+        .atUri("/rest/legal/source-link");
 
     testCLMServer.getHdsServer()
         .respondWith(

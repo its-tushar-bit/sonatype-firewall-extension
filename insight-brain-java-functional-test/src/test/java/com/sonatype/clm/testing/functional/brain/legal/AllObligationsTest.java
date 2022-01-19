@@ -79,6 +79,9 @@ public class AllObligationsTest
     testCLMServer.getHdsServer()
         .respondWith("[]")
         .atUri("/rest/legal/file");
+    testCLMServer.getHdsServer()
+        .respondWith("[]")
+        .atUri("/rest/legal/source-link");
 
     testCLMServer.getHdsServer()
         .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetails.json"),

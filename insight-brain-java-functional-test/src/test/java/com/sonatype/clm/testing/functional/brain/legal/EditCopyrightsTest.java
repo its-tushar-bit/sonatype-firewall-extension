@@ -71,6 +71,9 @@ public class EditCopyrightsTest
       testCLMServer.getHdsServer()
           .respondWith("[]")
           .atUri("/rest/legal/file");
+      testCLMServer.getHdsServer()
+          .respondWith("[]")
+          .atUri("/rest/legal/source-link");
 
       testCLMServer.getHdsServer()
           .respondWith(IOUtils.toString(

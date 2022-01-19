@@ -68,6 +68,9 @@ public class CopyrightDetailsTest
         .respondWith("[]")
         .atUri("/rest/legal/file");
     testCLMServer.getHdsServer()
+        .respondWith("[]")
+        .atUri("/rest/legal/source-link");
+    testCLMServer.getHdsServer()
         .respondWith(IOUtils
             .toString(this.getClass().getResourceAsStream("/legal/legalCopyrightFilePaths" + testFileSuffix + ".json"),
                 StandardCharsets.UTF_8))

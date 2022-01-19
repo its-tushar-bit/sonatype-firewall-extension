@@ -83,6 +83,9 @@ public class EditAttributionsTest
             .toString(this.getClass().getResourceAsStream("/legal/legalFileHdsResponse.json"),
                 StandardCharsets.UTF_8))
         .atUri("/rest/legal/file");
+    testCLMServer.getHdsServer()
+        .respondWith("[]")
+        .atUri("/rest/legal/source-link");
     componentObligationAttributionDAO = new ComponentObligationAttributionDAO();
   }
 

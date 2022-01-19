@@ -85,6 +85,10 @@ public class LegalDashboardPageTest
         .atUri("/rest/legal/file");
 
     testCLMServer.getHdsServer()
+        .respondWith("[]")
+        .atUri("/rest/legal/source-link");
+
+    testCLMServer.getHdsServer()
         .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetails.json"),
             StandardCharsets.UTF_8))
         .atUri("rest/ci/componentDetails");

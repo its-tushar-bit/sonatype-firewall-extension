@@ -68,6 +68,9 @@ public class NoticeDetailsTest
         .respondWith("[]")
         .atUri("/rest/legal/comment");
     testCLMServer.getHdsServer()
+        .respondWith("[]")
+        .atUri("/rest/legal/source-link");
+    testCLMServer.getHdsServer()
         .respondWith(IOUtils
             .toString(this.getClass().getResourceAsStream("/legal/legalFileHdsResponse.json"),
                 StandardCharsets.UTF_8))

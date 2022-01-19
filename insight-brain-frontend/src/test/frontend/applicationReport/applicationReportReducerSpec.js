@@ -2499,6 +2499,17 @@ describe('applicationReportReducer', function () {
   });
 
   describe('SET_DEPENDENCY_TREE_SEARCH_TERM action', () => {
+    it('stores the search term in lower case', () => {
+      const state = Object.freeze({});
+
+      const newState = reduce(state, {
+        type: 'SET_DEPENDENCY_TREE_SEARCH_TERM',
+        payload: 'LANG',
+      });
+
+      expect(newState.dependencyTreeSearchTerm).toBe('lang');
+    });
+
     it('filters dependency tree by the provided search term', () => {
       const state = Object.freeze({ dependencyTree: dependencyTreeData, displayedDependencyTree: null });
 

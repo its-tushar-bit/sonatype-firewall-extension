@@ -22,6 +22,7 @@ import {
   assoc,
   isNil,
   isEmpty,
+  toLower,
 } from 'ramda';
 import {
   LOAD_COMMON_DATA_FAILED,
@@ -275,7 +276,7 @@ export default function applicationReportReducer(state = initState, { type, payl
       return { ...state, dependencyTreePageRouterParams: null };
 
     case SET_DEPENDENCY_TREE_SEARCH_TERM:
-      return applyDependencyTreeSearchTermFilter(pathSet(['dependencyTreeSearchTerm'], payload, state));
+      return applyDependencyTreeSearchTermFilter(pathSet(['dependencyTreeSearchTerm'], toLower(payload), state));
 
     case EXPAND_ALL_DEPENDENCY_TREE_NODES:
       return setExpansionStatusForAllNodesInDependencyTree(state, true);

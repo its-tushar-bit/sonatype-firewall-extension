@@ -83,4 +83,9 @@ public class RepositoryConnectionDAO
         " WHERE entity.id=?1 AND entity.ownerId=?2";
     return get(sQuery, repositoryConnectionId, ownerId);
   }
+
+  public void deleteAll() {
+    String sQuery = "DELETE FROM RepositoryConnection entity";
+    createQuery(sQuery).executeUpdate();
+  }
 }

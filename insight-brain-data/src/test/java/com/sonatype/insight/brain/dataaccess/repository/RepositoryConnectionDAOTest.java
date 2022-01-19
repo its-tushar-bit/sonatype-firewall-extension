@@ -226,6 +226,19 @@ public class RepositoryConnectionDAOTest
     assertThat(dao.getByIdAndOwnerId("doesNotExist", organization.getId())).isNull();
   }
 
+  @Test
+  public void testDeleteAll() {
+    RepositoryConnection repositoryConnection1 =
+        tempEntity.newRepositoryConnection("owner2", "url1", RepositoryFormat.MAVEN, "u1", "p1".toCharArray());
+    RepositoryConnection repositoryConnection2 =
+        tempEntity.newRepositoryConnection("owner1", "url1", RepositoryFormat.NPM, "u1", "p1".toCharArray());
+
+    dao.deleteAll();
+
+    assertThat(dao.getById(repositoryConnection1.getId())).isNull();
+    assertThat(dao.getById(repositoryConnection2.getId())).isNull();
+  }
+
   private void assertRepositoryConnection(
       RepositoryConnection connection,
       String ownerId,

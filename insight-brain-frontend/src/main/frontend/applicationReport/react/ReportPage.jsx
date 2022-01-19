@@ -121,6 +121,7 @@ ReportPage.propTypes = {
     reportTime: PropTypes.number.isRequired,
     commitHash: PropTypes.string,
     application: PropTypes.shape({
+      id: PropTypes.string,
       name: PropTypes.string.isRequired,
     }),
   }),

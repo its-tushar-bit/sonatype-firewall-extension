@@ -5,18 +5,23 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import classnames from 'classnames';
-import { NxStatefulDropdown, NxDropdownDivider, NxButton } from '@sonatype/react-shared-components';
-import NxFontAwesomeIcon from '@sonatype/react-shared-components/components/NxFontAwesomeIcon/NxFontAwesomeIcon';
-import { faFilePdf, faSync, faFile } from '@fortawesome/pro-solid-svg-icons';
-import { getDownloadPdfUrl } from '../../util/CLMLocation';
 import moment from 'moment';
-import NxTooltip from '@sonatype/react-shared-components/components/NxTooltip/NxTooltip';
+import classnames from 'classnames';
+import {
+  NxStatefulDropdown,
+  NxDropdownDivider,
+  NxButton,
+  NxTooltip,
+  NxFontAwesomeIcon,
+} from '@sonatype/react-shared-components';
+import { faFilePdf, faSync, faFile, faFileCode } from '@fortawesome/pro-solid-svg-icons';
+import { getDownloadPdfUrl, getViewSbomUrl } from 'MainRoot/util/CLMLocation';
 
 export default function ReportTitle(props) {
   const { stateGo, metadataDetails, publicId, scanId, selectedReport, reevaluateReport } = props;
 
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
+  const sbomUrl = getViewSbomUrl(metadataDetails.application.id, scanId);
   const vulnerabilitiesPageDisable = selectedReport && selectedReport.reportVersion < 5 ? true : false;
   const applyBtnClasses = classnames('nx-dropdown-link', {
     disabled: vulnerabilitiesPageDisable,
@@ -61,6 +66,10 @@ export default function ReportTitle(props) {
             <NxFontAwesomeIcon icon={faFilePdf} />
             <span>Generate PDF</span>
           </a>
+          <a className="nx-dropdown-button" href={sbomUrl}>
+            <NxFontAwesomeIcon icon={faFileCode} />
+            <span>View SBOM</span>
+          </a>
           <NxDropdownDivider />
           <a className="nx-dropdown-link" onClick={onRawDataClick}>
             <NxFontAwesomeIcon icon={faFile} />
@@ -99,6 +108,7 @@ ReportTitle.propTypes = {
     forMonitoring: PropTypes.bool.isRequired,
     commitHash: PropTypes.string,
     application: PropTypes.shape({
+      id: PropTypes.string,
       name: PropTypes.string.isRequired,
     }),
   }),

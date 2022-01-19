@@ -363,6 +363,10 @@ export function getDownloadPdfUrl(applicationPublicId, scanId) {
   return uriTemplate`/rest/report/${applicationPublicId}/${scanId}/printReport`;
 }
 
+export function getViewSbomUrl(applicationId, scanId) {
+  return uriTemplate`/ui/links/cycloneDx/${applicationId}/reports/${scanId}`;
+}
+
 /**
  * @param waiverScope {string} application|organization
  * @param ownerId {string}
@@ -1034,8 +1038,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       getReportPdfDownloadUrl: (applicationPublicId, scanId) =>
         getBaseReportUrl(applicationPublicId, scanId) + '/printReport',
 
-      getViewSbomUrl: (applicationId, scanId) =>
-        `${baseUrl.get()}/ui/links/cycloneDx/${applicationId}/reports/${scanId}`,
+      getViewSbomUrl,
 
       getClaimComponentUrl,
 

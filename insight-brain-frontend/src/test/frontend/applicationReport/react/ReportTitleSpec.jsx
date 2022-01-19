@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../enzymeUtils';
-import ReportTitle from '../../../../main/frontend/applicationReport/react/ReportTitle';
-import { NxButton, NxStatefulDropdown, NxTooltip } from '@sonatype/react-shared-components';
 import moment from 'moment-timezone';
+import { NxButton, NxStatefulDropdown, NxTooltip } from '@sonatype/react-shared-components';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import ReportTitle from 'MainRoot/applicationReport/react/ReportTitle';
 
 describe('ReportTitle component', function () {
   let getShallowComponent, mockedReevaluateReport;
@@ -27,6 +27,7 @@ describe('ReportTitle component', function () {
         reportTitle: 'Title',
         reportTime: moment('2018-11-11 15:13:11').toDate().getTime(),
         application: {
+          id: 'metadataApplicationId',
           name: 'App Name',
         },
       },
@@ -96,5 +97,19 @@ describe('ReportTitle component', function () {
     const component = getShallowComponent(),
       content = component.find('.nx-page-title__description');
     expect(content).toHaveText('2018-11-11 15:13:11 UTC-05:00');
+  });
+
+  it('renders dropdown with Generate PDF button', () => {
+    const component = getShallowComponent();
+    const pdfButton = component.find('.iq-report-actions').find('.nx-dropdown-button').get(0);
+
+    expect(pdfButton.props.href).toBe('/rest/report/publicId/scanId/printReport');
+  });
+
+  it('renders dropdown with View SBOM button', () => {
+    const component = getShallowComponent();
+    const sbomButton = component.find('.iq-report-actions').find('.nx-dropdown-button').get(1);
+
+    expect(sbomButton.props.href).toBe('/ui/links/cycloneDx/metadataApplicationId/reports/scanId');
   });
 });

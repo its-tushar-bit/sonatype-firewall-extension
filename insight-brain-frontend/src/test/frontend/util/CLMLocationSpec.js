@@ -579,4 +579,20 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getLicenseOverrideUrl('app', 'appId', stringComponentIdentifier)).toEqual(expectedUrl);
     });
   });
+
+  describe('getViewSbomUrl', function () {
+    it('should return SBOM url', () => {
+      expect(CLMLocation.getViewSbomUrl('applicationId', 'scanId')).toBe(
+        '/ui/links/cycloneDx/applicationId/reports/scanId'
+      );
+    });
+  });
+
+  describe('getDownloadPdfUrl', function () {
+    it('should return pdf url', () => {
+      expect(CLMLocation.getDownloadPdfUrl('applicationPublicId', 'scanId')).toBe(
+        '/rest/report/applicationPublicId/scanId/printReport'
+      );
+    });
+  });
 });

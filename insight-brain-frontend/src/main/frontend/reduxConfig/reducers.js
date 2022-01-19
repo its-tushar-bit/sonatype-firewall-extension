@@ -63,6 +63,7 @@ import vulnerabilitiesSlice from '../componentDetails/VulnerabilitiesTableTile/v
 import componentDetailsSlice from '../componentDetails/componentDetailsSlice';
 import claimSlice from '../componentDetails/claim/claimSlice';
 import quarantinedComponentReportReducer from 'MainRoot/quarantinedComponentReport/quarantinedComponentReportReducer';
+import innerSourceRepositoryConfigurationSlice from '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -124,4 +125,5 @@ export default combineReducers({
   productLicense: productLicenseReducer,
   occurrencesPopover: occurrencesPopoverReducer,
   quarantinedComponentReport: quarantinedComponentReportReducer,
+  innerSourceRepositoryConfiguration: innerSourceRepositoryConfigurationSlice,
 });

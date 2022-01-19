@@ -29,6 +29,7 @@ import reportModule from './applicationReport/react/module';
 import firewallModule from './firewall/module';
 import quarantinedComponentReportModule from './quarantinedComponentReport/module';
 import SystemNoticeContainer from './systemNotice/SystemNoticeContainer';
+import innerSourceRepositoryConfigurationModule from './innerSourceRepositoryConfiguration/module';
 
 export default angular
   .module('managementApp', [
@@ -54,6 +55,7 @@ export default angular
     componentDetailsModule.name,
     dependencyTreeModule.name,
     quarantinedComponentReportModule.name,
+    innerSourceRepositoryConfigurationModule.name,
   ])
   .component('advancedSearch', react2angular(withStoreProvider(AdvancedSearchContainer), [], ['$ngRedux', '$state']))
   .component('systemNotice', react2angular(withStoreProvider(SystemNoticeContainer), [], ['$ngRedux']))

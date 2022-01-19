@@ -595,4 +595,34 @@ describe('CLMLocation.js', function () {
       );
     });
   });
+
+  describe('getTestRepositoryConnectionUrl', function () {
+    it('should return a URL without a repositoryConnectionId if it is not provided', function () {
+      const expectedUrl = '/api/v2/config/repositoryConnection/some%3AOwnerType/some%3AOwnerId/test';
+      expect(clmLocation.getTestRepositoryConnectionUrl('some:OwnerType', 'some:OwnerId')).toEqual(expectedUrl);
+    });
+
+    it('should return a URL with a repositoryConnectionId if it is provided', function () {
+      const expectedUrl =
+        '/api/v2/config/repositoryConnection/some%3AOwnerType/some%3AOwnerId/some%3ARepositoryConnectionId/test';
+      expect(
+        clmLocation.getTestRepositoryConnectionUrl('some:OwnerType', 'some:OwnerId', 'some:RepositoryConnectionId')
+      ).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getRepositoryConnectionUrl', function () {
+    it('should return a URL without a repositoryConnectionId if it is not provided', function () {
+      const expectedUrl = '/api/v2/config/repositoryConnection/some%3AOwnerType/some%3AOwnerId';
+      expect(clmLocation.getRepositoryConnectionUrl('some:OwnerType', 'some:OwnerId')).toEqual(expectedUrl);
+    });
+
+    it('should return a URL with a repositoryConnectionId if it is provided', function () {
+      const expectedUrl =
+        '/api/v2/config/repositoryConnection/some%3AOwnerType/some%3AOwnerId/some%3ARepositoryConnectionId';
+      expect(
+        clmLocation.getRepositoryConnectionUrl('some:OwnerType', 'some:OwnerId', 'some:RepositoryConnectionId')
+      ).toEqual(expectedUrl);
+    });
+  });
 });

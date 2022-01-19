@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -61,6 +60,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalStageScanDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalReviewStatus;
@@ -1975,6 +1975,11 @@ public class ApiLicenseLegalServiceTest
       return new LinkedHashSet<>(Arrays.asList(createComponentLegalFileDTO(c), createComponentLegalFileDTO(c)));
     }).when(mockApiLicenseLegalHdsService).getComponentLegalFiles(any());
 
+    doAnswer(invocationOnMock -> {
+      ComponentIdentifier compIdentifier = invocationOnMock.getArgument(0, ComponentIdentifier.class);
+      return Sets.newHashSet(new LegalSourceLinkDTO("https://" + compIdentifier));
+    }).when(mockApiLicenseLegalHdsService).getSourceLinksFromComponentIdentifier(any());
+
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
             packageUrl, hash, null, identificationSource, scanId);
@@ -2009,6 +2014,9 @@ public class ApiLicenseLegalServiceTest
         .allMatch(licenseFile -> licenseFile.content.endsWith("contentLicense"));
     assertThat(licenseLegalComponent.licenseLegalData.noticeFiles).hasSize(4)
         .allMatch(noticeFile -> noticeFile.content.endsWith("contentNotice"));
+    assertThat(licenseLegalComponent.licenseLegalData.sourceLinks).hasSize(1)
+        .allMatch(legalSourceLinkDTO -> legalSourceLinkDTO.sourceLink.equals(
+            "https://" + licenseLegalComponent.componentIdentifier.toComponentIdentifier()));
 
     Map<ApiLicenseDTO, Set<com.sonatype.insight.brain.model.license.License>> multiLicenseToSingleLicense =
         Sets.newHashSet(Iterables.concat(

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.dto.legal;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
@@ -35,6 +36,8 @@ public class ApiLicenseLegalDataDTO
   public List<ApiLicenseLegalObligationDTO> obligations;
 
   public List<ComponentObligationAttributionDTO> attributions;
+
+  public Set<LegalSourceLinkDTO> sourceLinks;
 
   public String effectiveLicenseStatus;
 
@@ -94,6 +97,7 @@ public class ApiLicenseLegalDataDTO
       final List<ApiLicenseLegalFileDTO> noticeFiles,
       final List<ApiLicenseLegalObligationDTO> obligations,
       final List<ComponentObligationAttributionDTO> attributions,
+      final Set<LegalSourceLinkDTO> sourceLinks,
       final String effectiveLicenseStatus,
       final String componentCopyrightId,
       final String componentCopyrightScopeOwnerId,
@@ -117,6 +121,7 @@ public class ApiLicenseLegalDataDTO
     this.noticeFiles = noticeFiles;
     this.obligations = obligations;
     this.attributions = attributions;
+    this.sourceLinks = sourceLinks;
     this.effectiveLicenseStatus = effectiveLicenseStatus;
     this.componentCopyrightId = componentCopyrightId;
     this.componentCopyrightScopeOwnerId = componentCopyrightScopeOwnerId;
@@ -150,6 +155,7 @@ public class ApiLicenseLegalDataDTO
         Objects.equals(noticeFiles, that.noticeFiles) &&
         Objects.equals(obligations, that.obligations) &&
         Objects.equals(attributions, that.attributions) &&
+        Objects.equals(sourceLinks, that.sourceLinks) &&
         Objects.equals(effectiveLicenseStatus, that.effectiveLicenseStatus) &&
         Objects.equals(componentCopyrightId, that.componentCopyrightId) &&
         Objects.equals(componentCopyrightScopeOwnerId, that.componentCopyrightScopeOwnerId) &&
@@ -169,10 +175,10 @@ public class ApiLicenseLegalDataDTO
   public int hashCode() {
     return Objects
         .hash(declaredLicenses, observedLicenses, effectiveLicenses, highestEffectiveLicenseThreatGroup, copyrights,
-            licenseFiles, noticeFiles, obligations, attributions, effectiveLicenseStatus, componentCopyrightId,
-            componentCopyrightScopeOwnerId, componentCopyrightLastUpdatedByUsername, componentCopyrightLastUpdatedAt,
-            componentLicensesId, componentLicensesScopeOwnerId, componentLicensesLastUpdatedByUsername,
-            componentLicensesLastUpdatedAt, componentNoticesId, componentNoticesScopeOwnerId,
-            componentNoticesLastUpdatedByUsername, componentNoticesLastUpdatedAt);
+            licenseFiles, noticeFiles, obligations, attributions, sourceLinks, effectiveLicenseStatus,
+            componentCopyrightId, componentCopyrightScopeOwnerId, componentCopyrightLastUpdatedByUsername,
+            componentCopyrightLastUpdatedAt, componentLicensesId, componentLicensesScopeOwnerId,
+            componentLicensesLastUpdatedByUsername, componentLicensesLastUpdatedAt, componentNoticesId,
+            componentNoticesScopeOwnerId, componentNoticesLastUpdatedByUsername, componentNoticesLastUpdatedAt);
   }
 }

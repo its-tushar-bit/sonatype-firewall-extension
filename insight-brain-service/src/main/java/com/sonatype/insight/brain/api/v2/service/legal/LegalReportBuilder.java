@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
@@ -102,7 +103,7 @@ public class LegalReportBuilder
             licenseLegalMetadata,
             componentLegalCommentsByComponentIdentifier,
             componentLegalFilesByComponentIdentifier,
-            componentReportLegalMap);
+            componentReportLegalMap, null);
     return new ApiLicenseLegalApplicationReportDTO(components, licenseLegalMetadata);
   }
 
@@ -127,7 +128,8 @@ public class LegalReportBuilder
       Set<ComponentLegalCommentDTO> componentLegalComments,
       Set<ComponentLegalFileDTO> componentLegalFiles,
       Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense,
-      Map<String, LicenseMetadataDTO> licenseMetadataById
+      Map<String, LicenseMetadataDTO> licenseMetadataById,
+      Set<LegalSourceLinkDTO> sourceLinks
   )
   {
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = getLicenseLegalMetadata(
@@ -138,8 +140,8 @@ public class LegalReportBuilder
         licenseLegalMetadata,
         ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), componentLegalComments),
         ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), componentLegalFiles),
-        ImmutableMap.of(apiReportComponentDTOV2, componentIdentifierLegalData
-        )
+        ImmutableMap.of(apiReportComponentDTOV2, componentIdentifierLegalData),
+        sourceLinks
     ).get(0);
 
     return new ApiLicenseLegalComponentReportDTO(componentDTO, licenseLegalMetadata);
@@ -150,7 +152,8 @@ public class LegalReportBuilder
       Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata,
       Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier,
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
-      Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData> apiReportComponentDTOV2ComponentIdentifierLegalDataMap)
+      Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData> apiReportComponentDTOV2ComponentIdentifierLegalDataMap,
+      Set<LegalSourceLinkDTO> sourceLinks)
   {
     return apiComponentDTOV2s.stream()
         .filter(apiReportComponentDTOV2 -> apiReportComponentDTOV2.componentIdentifier != null)
@@ -173,7 +176,8 @@ public class LegalReportBuilder
                   componentIdentifierLegalData.getLicenseOverrides(),
                   componentIdentifierLegalData.getNoticeOverrides(),
                   componentIdentifierLegalData.getObligations(),
-                  componentIdentifierLegalData.getAttributions()),
+                  componentIdentifierLegalData.getAttributions(),
+                  sourceLinks),
               componentIdentifierLegalData.getStageScans());
         })
         .collect(Collectors.toList());
@@ -192,7 +196,8 @@ public class LegalReportBuilder
       List<LegalFileOverride> licenseOverrides,
       List<LegalFileOverride> noticeOverrides,
       List<ComponentObligation> obligations,
-      List<ComponentObligationAttribution> attributions)
+      List<ComponentObligationAttribution> attributions,
+      Set<LegalSourceLinkDTO> sourceLinks)
   {
     if (apiLicenseDataDTOV2 == null) {
       return null;
@@ -208,6 +213,7 @@ public class LegalReportBuilder
         getLegalFiles(LegalFileType.NOTICE, componentLegalFiles, noticeOverrides),
         getObligations(obligations, apiLicenseDataDTOV2.effectiveLicenses, licenseLegalMetadata),
         getAttributions(attributions),
+        sourceLinks,
         apiLicenseDataDTOV2.status,
         componentCopyright == null ? null : componentCopyright.getId(),
         componentCopyright == null ? null : componentCopyright.getOwnerId(),

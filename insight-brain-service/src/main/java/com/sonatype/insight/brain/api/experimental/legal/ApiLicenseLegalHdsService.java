@@ -14,17 +14,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.dto.model.AnameAggregateFileGroup;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentFilePathsDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
+import com.sonatype.insight.license.dto.model.ComponentSourceLinkDTO;
 import com.sonatype.insight.license.dto.model.LegalCommentDTO;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 
@@ -46,6 +47,8 @@ public class ApiLicenseLegalHdsService
   static final String LEGAL_ANAME_COMMENT_URL = "/rest/legal/aname/comment";
 
   public static final String LEGAL_FILE_URL = "/rest/legal/file";
+
+  public static final String SOURCE_LINK_URL = "/rest/legal/source-link";
 
   private final HdsClient hdsClient;
 
@@ -187,6 +190,15 @@ public class ApiLicenseLegalHdsService
         ComponentLegalCommentFilePathsDTO[].class,
         LEGAL_COMMENT_FILE_PATHS_URL,
         ImmutableList.of(componentIdentifier)));
+  }
+
+  public Set<LegalSourceLinkDTO> getSourceLinksFromComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    return ImmutableList.copyOf(
+            hdsClient.post(ComponentSourceLinkDTO[].class, SOURCE_LINK_URL, ImmutableList.of(componentIdentifier)))
+        .stream()
+        .flatMap(componentSourceLinkDTO -> componentSourceLinkDTO.getSourceLinks().stream())
+        .map(LegalSourceLinkDTO::new)
+        .collect(Collectors.toSet());
   }
 
   private static ComponentLegalCommentDTO entryToComponentLegalComment(

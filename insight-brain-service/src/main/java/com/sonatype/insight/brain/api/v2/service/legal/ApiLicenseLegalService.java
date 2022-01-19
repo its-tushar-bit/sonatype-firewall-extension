@@ -24,7 +24,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -46,6 +45,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashb
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalStageScanDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApplicationLicenseUsageTelemetry;
+import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalReviewStatus;
@@ -646,13 +646,18 @@ public class ApiLicenseLegalService
     // component.getHash() may not equal ApplicationComponent.getHash()
     componentIdentifierLegalData.setStageScans(getStageScans(owner, hash, compIdentifier));
 
+    //Get sourceLinks
+    Set<LegalSourceLinkDTO> sourceLinks =
+        apiLicenseLegalHdsService.getSourceLinksFromComponentIdentifier(compIdentifier);
+
     return legalReportBuilder.getLicenseLegalComponentReport(
         apiReportComponentDTOV2,
         componentIdentifierLegalData,
         componentLegalComments,
         componentLegalFiles,
         multiLicenseToSingleLicense,
-        licenseMetadataById
+        licenseMetadataById,
+        sourceLinks
     );
   }
 

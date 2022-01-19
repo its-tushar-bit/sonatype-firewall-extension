@@ -36,10 +36,6 @@ public class ComponentDetailsPage
     return BaseUrl.resolvePageUrl(BASE_URL + "/overview", app.getPublicId(), scanId, hash);
   }
 
-  public static String urlToOverviewWithDependencyTreeTileEnabled(Application app, String scanId, String hash) {
-    return BaseUrl.resolvePageUrl(BASE_URL + "/overview?dependencyTreeEnabled", app.getPublicId(), scanId, hash);
-  }
-
   public static String urlToViolations(Application app, String scanId, String hash) {
     return BaseUrl.resolvePageUrl(BASE_URL + "/violations", app.getPublicId(), scanId, hash);
   }

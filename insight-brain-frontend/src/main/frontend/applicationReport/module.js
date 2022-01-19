@@ -77,13 +77,10 @@ function routes($stateProvider, $urlRouterProvider) {
       },
     })
     .state('applicationReport.policy', {
-      url: '/policy?roarelSaysCip&componentHash&tabId&dependencyTreeEnabled',
+      url: '/policy?roarelSaysCip&componentHash&tabId',
       component: 'applicationReport',
       data: {
         title: 'Application Report',
-      },
-      params: {
-        dependencyTreeEnabled: { dynamic: true },
       },
     })
     .state('applicationReport.rawData', {
@@ -111,7 +108,7 @@ function routes($stateProvider, $urlRouterProvider) {
       },
     })
     .state('applicationReport.componentDetails.overview', {
-      url: '/overview?dependencyTreeEnabled',
+      url: '/overview',
       params: {
         tabId: 'overview',
       },

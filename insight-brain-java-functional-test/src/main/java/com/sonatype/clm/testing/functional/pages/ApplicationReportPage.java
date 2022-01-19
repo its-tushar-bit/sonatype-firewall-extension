@@ -45,14 +45,7 @@ public class ApplicationReportPage
     return BaseUrl.resolvePageUrl("/applicationReport/{applicationPublicId}/{scanId}/policy", app.getPublicId(),
         scanId);
   }
-
-  public static String urlWithDepencyTreeEnabled(Application app, String scanId) {
-    return BaseUrl
-      .resolvePageUrl("/applicationReport/{applicationPublicId}/{scanId}/policy?dependencyTreeEnabled=true",
-      app.getPublicId(),
-      scanId);
-  }
-
+  
   public ApplicationReportPage() {
     super(ROOT);
   }

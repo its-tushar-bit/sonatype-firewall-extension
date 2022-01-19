@@ -6,17 +6,12 @@
 import React from 'react';
 import { render, screen } from 'TestRoot/SpecUtil';
 import DependencyTreeTile from 'MainRoot/componentDetails/overview/DependencyTreeTile/DependencyTreeTile';
-import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as componentDetailsSelectors from 'MainRoot/componentDetails/componentDetailsSelectors';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import { dependencyTreeData } from 'TestRoot/dependencyTree/dependencyTreeMockData';
 
 describe('DependencyTreeTile', () => {
-  let selectRouterCurrentParamsSpy,
-    renderComponent,
-    selectDependencyTreeSubsetSpy,
-    selectIsLabelsLoadingSpy,
-    selectDependencyTreeIsOldReportSpy;
+  let renderComponent, selectDependencyTreeSubsetSpy, selectIsLabelsLoadingSpy, selectDependencyTreeIsOldReportSpy;
 
   beforeEach(() => {
     selectDependencyTreeSubsetSpy = spyOn(componentDetailsSelectors, 'selectDependencyTreeSubset').and.returnValue(
@@ -34,9 +29,6 @@ describe('DependencyTreeTile', () => {
       'selectDependencyTreeIsOldReport'
     ).and.returnValue(false);
 
-    selectRouterCurrentParamsSpy = spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
-      dependencyTreeEnabled: true,
-    });
     selectIsLabelsLoadingSpy = spyOn(componentDetailsSelectors, 'selectIsLabelsLoading').and.returnValue(false);
 
     renderComponent = () => render(<DependencyTreeTile />);
@@ -65,16 +57,6 @@ describe('DependencyTreeTile', () => {
     expect(
       screen.getByText('Dependency Tree not available for this report. Please re-scan the application')
     ).toBeVisible();
-  });
-
-  it('does not render tile with title if dependencyTreeEnabled is falsy', () => {
-    selectRouterCurrentParamsSpy.and.returnValue({
-      dependencyTreeEnabled: null,
-    });
-
-    renderComponent();
-
-    expect(screen.queryByText('Dependency Tree')).not.toBeInTheDocument();
   });
 
   it('does not render tile with title if data is still loading', () => {

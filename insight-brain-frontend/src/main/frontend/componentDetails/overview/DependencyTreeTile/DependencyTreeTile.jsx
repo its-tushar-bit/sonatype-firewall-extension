@@ -16,7 +16,6 @@ import {
 import { selectDependencyTreeIsOldReport } from 'MainRoot/applicationReport/applicationReportSelectors';
 import DependencyTree from 'MainRoot/DependencyTree/DependencyTree';
 import { actions } from 'MainRoot/componentDetails/componentDetailsSlice';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 export default function DependencyTreeTile() {
@@ -25,9 +24,8 @@ export default function DependencyTreeTile() {
   const componentDetails = useSelector(selectComponentDetails);
   const isLoading = useSelector(selectIsLabelsLoading);
   const isOldReport = useSelector(selectDependencyTreeIsOldReport);
-  const { dependencyTreeEnabled } = useSelector(selectRouterCurrentParams);
 
-  if (!dependencyTreeEnabled || isLoading) {
+  if (isLoading) {
     return null;
   }
 

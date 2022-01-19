@@ -70,9 +70,9 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
   @Test
   public void testOverviewTab_DependencyTreeTile() {
     refreshOrOpen(
-        ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "494308fc2d433720c778"));
+        ComponentDetailsPage.urlToOverview(app, SCAN_ID, "494308fc2d433720c778"));
     waitUntilUrl(
-        ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "494308fc2d433720c778"));
+        ComponentDetailsPage.urlToOverview(app, SCAN_ID, "494308fc2d433720c778"));
 
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
 
@@ -129,7 +129,7 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
     evaluator.evaluatePolicy();
 
     refreshOrOpen(
-        ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app2, SCAN_ID2, "dc810b3d25f9e8c930f5"));
+        ComponentDetailsPage.urlToOverview(app2, SCAN_ID2, "dc810b3d25f9e8c930f5"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
 
     DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
@@ -142,9 +142,9 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
   @Test
   public void testOverviewTab_DependencyTreeTile_InitialState() {
     refreshOrOpen(
-            ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "ae81d32288bf8419181f"));
+            ComponentDetailsPage.urlToOverview(app, SCAN_ID, "ae81d32288bf8419181f"));
     waitUntilUrl(
-        ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "ae81d32288bf8419181f"));
+        ComponentDetailsPage.urlToOverview(app, SCAN_ID, "ae81d32288bf8419181f"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
 
     DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
@@ -190,9 +190,9 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
   @Test
   public void testOverviewTab_DependencyTreeTileInitialStateDirectDependency() {
     refreshOrOpen(
-            ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "ad19001bd021002377c2"));
+            ComponentDetailsPage.urlToOverview(app, SCAN_ID, "ad19001bd021002377c2"));
     waitUntilUrl(
-        ComponentDetailsPage.urlToOverviewWithDependencyTreeTileEnabled(app, SCAN_ID, "ad19001bd021002377c2"));
+        ComponentDetailsPage.urlToOverview(app, SCAN_ID, "ad19001bd021002377c2"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
 
     DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();

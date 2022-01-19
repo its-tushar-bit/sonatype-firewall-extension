@@ -10,6 +10,7 @@ import EditLicensesPopover from 'MainRoot/componentDetails/ComponentDetailsLegal
 import * as enzymeUtils from '../../enzymeUtils';
 import { IqPopoverHeader } from 'MainRoot/react/IqPopover';
 import * as EditLicensesFormContainer from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesFormContainer';
+import UnsavedChangesModal from 'MainRoot/unsavedChangesModal/UnsavedChangesModal';
 
 describe('EditLicensesPopover', () => {
   let minimalProps, getShallowComponent;
@@ -20,6 +21,7 @@ describe('EditLicensesPopover', () => {
       onClose: () => {},
       resetFormFields: () => {},
       showEditLicensesPopover: true,
+      showUnsavedChangesModal: false,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(EditLicensesPopover, minimalProps);
@@ -44,5 +46,15 @@ describe('EditLicensesPopover', () => {
 
     expect(header).toExist();
     expect(header).toHaveProp('headerTitle', 'Edit Licenses');
+  });
+
+  it('renders a confirmation modal', () => {
+    const customMinimalProps = {
+      ...minimalProps,
+      showUnsavedChangesModal: true,
+    };
+
+    const component = enzymeUtils.getShallowComponent(EditLicensesPopover, customMinimalProps)();
+    expect(component.find(UnsavedChangesModal)).toExist();
   });
 });

@@ -51,6 +51,7 @@ const mapDispatchToProps = {
   setLicenseComment: actions.setLicenseFormComment,
   setLicenseScope: actions.setLicenseFormScope,
   setSelectedLicenses: actions.setLicenseFormLicenseIds,
+  setShowUnsavedChangesModal: actions.setShowUnsavedChangesModal,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditLicensesForm);

@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import {join, path, isNil} from 'ramda';
+import { join, path, isNil } from 'ramda';
 
 import { capitalize } from 'MainRoot/util/jsUtil';
 
@@ -58,10 +58,13 @@ export default function OverviewComponentInformation({
   );
 
   const repositorySourceErrorAlert = showRepositorySourceError && isRepositorySourceErrorOpen && (
-      <NxWarningAlert id="inner-source-repository-source-alert" className="inner-source-repository-source-alert"
-                      onClose={dismissRepositorySourceError}>
-        Could not retrieve data from InnerSource repository. Check your repository configuration
-      </NxWarningAlert>
+    <NxWarningAlert
+      id="inner-source-repository-source-alert"
+      className="inner-source-repository-source-alert"
+      onClose={dismissRepositorySourceError}
+    >
+      Could not retrieve data from InnerSource repository. Check your repository configuration
+    </NxWarningAlert>
   );
 
   const identificationInfoSectionContent = (

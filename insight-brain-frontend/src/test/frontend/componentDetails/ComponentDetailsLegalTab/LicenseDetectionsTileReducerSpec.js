@@ -72,6 +72,7 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
           submitError: null,
           submitMaskState: null,
           fieldsPristineState: null,
+          showUnsavedChangesModal: false,
         },
         otherState,
       });
@@ -109,6 +110,7 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
         status: null,
         licenseIds: [],
       });
+      expect(expectedState.editLicensesForm.showUnsavedChangesModal).toEqual(false);
       expect(expectedState.otherState).toEqual(otherState);
     });
 
@@ -141,6 +143,46 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
       });
 
       expect(editLicensesForm.submitMaskState).toBe(null);
+    });
+  });
+
+  describe('componentDetaulsLicenseDetectionsTile/setShowUnsavedChangesModal', () => {
+    const otherState = { foo: 'bar' };
+    const state = Object.freeze({
+      licenseOverride: null,
+      declaredlicenses: null,
+      effectiveLicenses: null,
+      observedlicenses: null,
+      selectableLicenses: null,
+      allLicenses: null,
+      loading: true,
+      loadError: 'error',
+      editLicensesForm: {
+        scope: null,
+        comment: {
+          value: '',
+          isPristine: true,
+        },
+        status: null,
+        licenseIds: [],
+        isDirty: false,
+        submitError: null,
+        submitMaskState: null,
+        fieldsPristineState: null,
+        showUnsavedChangesModal: false,
+      },
+      otherState,
+    });
+
+    it('changes showUnsavedChangesModal state', () => {
+      const action = {
+        payload: true,
+        type: 'componentDetailsLicenseDetectionsTile/setShowUnsavedChangesModal',
+      };
+
+      const expectedState = reducer(state, action);
+
+      expect(expectedState.editLicensesForm.showUnsavedChangesModal).toBe(true);
     });
   });
 

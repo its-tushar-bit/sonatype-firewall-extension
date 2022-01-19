@@ -36,3 +36,13 @@ export const selectEditLicensesForm = createSelector(
   selectComponentDetailsLicenseDetectionsTileSlice,
   prop('editLicensesForm')
 );
+
+export const selectEditLicensesFormIsDirty = createSelector(
+  selectComponentDetailsLicenseDetectionsTileSlice,
+  (state) => state.editLicensesForm.isDirty
+);
+
+export const selectIsUnsavedChangesModalActive = createSelector(
+  selectComponentDetailsLicenseDetectionsTileSlice,
+  (state) => state.editLicensesForm.showUnsavedChangesModal
+);

@@ -49,6 +49,7 @@ export const initialState = {
     submitError: null,
     submitMaskState: null,
     fieldsPristineState: null,
+    showUnsavedChangesModal: false,
   },
 };
 
@@ -279,7 +280,12 @@ const resetEditLicensesFormFields = (state) => {
     ...getInitialFormFieldsFromLicenseOverride(licenseOverride),
     isDirty: false,
     submitError: null,
+    showUnsavedChangesModal: false,
   };
+};
+
+const setShowUnsavedChangesModal = (state, { payload }) => {
+  state.editLicensesForm.showUnsavedChangesModal = payload;
 };
 
 const componentDetailsLicenseDetectionsTileSlice = createSlice({
@@ -293,6 +299,7 @@ const componentDetailsLicenseDetectionsTileSlice = createSlice({
     setLicenseFormLicenseIds,
     resetEditLicensesFormFields,
     resetSubmitMaskState: pathSetConst(['editLicensesForm', 'submitMaskState'], null),
+    setShowUnsavedChangesModal,
   },
   extraReducers: {
     [load.pending]: propSet('loading', true),

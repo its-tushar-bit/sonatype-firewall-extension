@@ -90,4 +90,12 @@ public class EditLicensesPopover
   public NxTransferList overriddenField() {
     return new NxTransferList(".iq-edit-licenses-form__overridden");
   }
+
+  public SelenideElement unsavedModal() { 
+    return child("#unsaved-modal"); 
+  }
+
+  public SelenideElement unsavedModalContinueButton() { 
+    return child("#unsaved-changes-modal-continue-button"); 
+  }
 }

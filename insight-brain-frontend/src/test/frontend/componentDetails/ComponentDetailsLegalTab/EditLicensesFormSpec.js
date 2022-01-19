@@ -28,7 +28,8 @@ describe('EditLicensesForm', () => {
     setLicenseCommentSpy,
     resetFormFieldsSpy,
     setSelectedLicensesSpy,
-    onCloseSpy;
+    onCloseSpy,
+    setShowUnsavedChangesModalSpy;
 
   beforeEach(() => {
     onCloseSpy = jasmine.createSpy('onClose');
@@ -39,6 +40,7 @@ describe('EditLicensesForm', () => {
     setSelectedLicensesSpy = jasmine.createSpy('setSelectedLicenses');
     saveFormSpy = jasmine.createSpy('saveForm');
     deleteLicenseOverrideSpy = jasmine.createSpy('deleteLicenseOverride');
+    setShowUnsavedChangesModalSpy = jasmine.createSpy('setShowUnsavedChangesModal');
     minimalProps = {
       onClose: onCloseSpy,
       resetFormFields: resetFormFieldsSpy,
@@ -48,6 +50,7 @@ describe('EditLicensesForm', () => {
       setLicenseScope: setLicenseScopeSpy,
       setLicenseComment: setLicenseCommentSpy,
       setSelectedLicenses: setSelectedLicensesSpy,
+      setShowUnsavedChangesModal: setShowUnsavedChangesModalSpy,
       identificationSource: 'Sonatype',
       status: 'ACKNOWLEDGED',
       comment: {
@@ -207,6 +210,22 @@ describe('EditLicensesForm', () => {
 
     expect(onCloseSpy).toHaveBeenCalledTimes(1);
     expect(resetFormFieldsSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls setShowUnsavedChangesModal when the form is dirty and the cancel button is clicked', () => {
+    const customMinimalProps = {
+      ...minimalProps,
+      isDirty: true,
+    };
+
+    const component = enzymeUtils.getShallowComponent(EditLicensesForm, customMinimalProps)(),
+      form = component.find(NxForm);
+
+    form.simulate('cancel');
+
+    expect(onCloseSpy).toHaveBeenCalledTimes(0);
+    expect(resetFormFieldsSpy).toHaveBeenCalledTimes(0);
+    expect(setShowUnsavedChangesModalSpy).toHaveBeenCalledWith(true);
   });
 
   it('renders a form group with a text area for the comments', () => {

@@ -40,6 +40,7 @@ import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import com.codeborne.selenide.Condition;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.enabled;
@@ -222,6 +223,138 @@ public class ComponentDetailsEditLicensesTest
     assertThat(override).isNull();
 
     eyesWatcher.eyesCheck("component details legal tab edit licenses popover");
+
+    editLicensesPopover.getCloseButton().click();
+    editLicensesPopover.shouldNotBe(visible);
+  }
+
+  private void testDefaultValuesAfterCloseWithoutSaving(
+      LicenseDetectionsTile licenseDetectionsTile, EditLicensesPopover editLicensesPopover) 
+  {
+    editLicensesPopover.getCloseButton().click();
+    // CHECK FOR CONFIRMATION MODAL
+    editLicensesPopover.unsavedModal().shouldBe(visible);
+    editLicensesPopover.unsavedModalContinueButton().click();
+    licenseDetectionsTile.shouldBe(visible);
+    licenseDetectionsTile.editLicenseButton().click();
+
+    ElementsCollection declaredLicenses = editLicensesPopover.getItems(editLicensesPopover.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection observedLicenses = editLicensesPopover.getItems(editLicensesPopover.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("GPL-2.0"));
+
+    ElementsCollection effectiveLicenses = editLicensesPopover.getItems(editLicensesPopover.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(2);
+    effectiveLicenses.first().shouldHave(text("Apache-2.0"));
+    effectiveLicenses.last().shouldHave(text("GPL-2.0"));
+
+    NxRadio secondScope = editLicensesPopover.scope(1);
+    SelenideElement statusSelect = editLicensesPopover.status();
+
+    editLicensesPopover.comment().shouldBe(Condition.empty);
+
+    // Default states
+    editLicensesPopover.availableScopes()
+        .shouldHave(texts("Application - ApplicationReportTest", "Organization - ApplicationReportTest",
+            "Organization - Root Organization"));
+    secondScope.label().shouldHave(text("Organization - ApplicationReportTest"));
+    editLicensesPopover.statuses().shouldHave(
+        texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
+    statusSelect.getSelectedOption().shouldHave(value("Open"));
+    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(0);
+  }
+
+  @Test
+  public void testLegalTab_editAndCloseLicensesPopover() {
+    mockHdsResponseForFirstComponent();
+    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, JAVANCSS_HASH));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.legalTabContent().shouldBe(visible);
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+    licenseDetectionsTile.editLicenseButton().click();
+
+    // License Info Section
+    EditLicensesPopover editLicensesPopover = new EditLicensesPopover();
+    editLicensesPopover.shouldBe(visible);
+    editLicensesPopover.popoverTitle().shouldHave(text("Edit Licenses"));
+
+    ElementsCollection declaredLicenses = editLicensesPopover.getItems(editLicensesPopover.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection observedLicenses = editLicensesPopover.getItems(editLicensesPopover.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("GPL-2.0"));
+
+    ElementsCollection effectiveLicenses = editLicensesPopover.getItems(editLicensesPopover.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(2);
+    effectiveLicenses.first().shouldHave(text("Apache-2.0"));
+    effectiveLicenses.last().shouldHave(text("GPL-2.0"));
+
+    NxRadio firstScope = editLicensesPopover.scope(0);
+    NxRadio secondScope = editLicensesPopover.scope(1);
+    SelenideElement statusSelect = editLicensesPopover.status();
+    Button saveButton = editLicensesPopover.saveButton();
+
+    // Default states
+    editLicensesPopover.availableScopes()
+        .shouldHave(texts("Application - ApplicationReportTest", "Organization - ApplicationReportTest",
+            "Organization - Root Organization"));
+    secondScope.label().shouldHave(text("Organization - ApplicationReportTest"));
+    editLicensesPopover.statuses().shouldHave(
+        texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
+    statusSelect.getSelectedOption().shouldHave(value("Open"));
+    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(0);
+    saveButton.shouldBe(CLM.DISABLED);
+
+    // Update to 'Acknowledged' status for ApplicationReportTest Organization
+    secondScope.click();
+    statusSelect.selectOptionContainingText("Acknowledged");
+    editLicensesPopover.comment().setValue("Some comments");
+    testDefaultValuesAfterCloseWithoutSaving(licenseDetectionsTile, editLicensesPopover);
+
+    // Check backend for 'Acknowledged' override
+    final LicenseOverrideDAO licenseOverrideDAO = new LicenseOverrideDAO();
+    LicenseOverride override =
+        licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getOrganizationId(),
+            JAVANCSS_IDENTIFIER);
+    
+    // Update to 'Overridden' status for ApplicationReportTest Organization
+    statusSelect.selectOptionContainingText("Overridden");
+    NxTransferList overriddenField = editLicensesPopover.overriddenField();
+    overriddenField.shouldBe(visible);
+    overriddenField.transferredItems().shouldHaveSize(0);
+    overriddenField.availableItems().first().click();
+    overriddenField.transferredItems().shouldHaveSize(1);
+    testDefaultValuesAfterCloseWithoutSaving(licenseDetectionsTile, editLicensesPopover);
+
+    // update to 'Selected' status for Application
+    firstScope.click();
+    statusSelect.selectOptionContainingText("Selected");
+    List<NxCheckbox> selectedLicensesCheckboxes = editLicensesPopover.selectedLicensesCheckbox();
+    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(2);
+
+    NxCheckbox firstCheckbox = selectedLicensesCheckboxes.get(0);
+    firstCheckbox.label().shouldBe(visible).shouldHave(text("Apache-2.0"));
+    firstCheckbox.shouldNotBe(selected);
+
+    NxCheckbox secondCheckbox = selectedLicensesCheckboxes.get(1);
+    secondCheckbox.label().shouldBe(visible).shouldHave(text("GPL-2.0"));
+    secondCheckbox.shouldNotBe(selected);
+
+    firstCheckbox.label().click();
+    firstCheckbox.shouldBe(selected);
+    testDefaultValuesAfterCloseWithoutSaving(licenseDetectionsTile, editLicensesPopover);
+
+    // Verify Application override has been removed on backend
+    override =
+        licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getId(), JAVANCSS_IDENTIFIER);
+    assertThat(override).isNull();
 
     editLicensesPopover.getCloseButton().click();
     editLicensesPopover.shouldNotBe(visible);

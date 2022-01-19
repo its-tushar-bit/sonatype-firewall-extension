@@ -7,15 +7,22 @@ import { connect } from 'react-redux';
 
 import EditLicensesPopover from './EditLicensesPopover';
 import { actions } from '../LicenseDetectionsTile/licenseDetectionsTileSlice';
-import { selectShowEditLicensesPopover } from '../LicenseDetectionsTile/licenseDetectionsTileSelectors';
+import {
+  selectShowEditLicensesPopover,
+  selectEditLicensesFormIsDirty,
+  selectIsUnsavedChangesModalActive,
+} from '../LicenseDetectionsTile/licenseDetectionsTileSelectors';
 
 function mapStateToProps(state) {
   return {
     showEditLicensesPopover: selectShowEditLicensesPopover(state),
+    isDirty: selectEditLicensesFormIsDirty(state),
+    showUnsavedChangesModal: selectIsUnsavedChangesModalActive(state),
   };
 }
 const mapDispatchToProps = {
   onClose: actions.toggleShowEditLicensesPopover,
+  setShowUnsavedChangesModal: actions.setShowUnsavedChangesModal,
   resetFormFields: actions.resetEditLicensesFormFields,
 };
 

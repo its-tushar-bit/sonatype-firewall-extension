@@ -57,6 +57,7 @@ export default function EditLicensesForm({
   submitError,
   submitMaskState,
   identificationSource,
+  setShowUnsavedChangesModal,
 }) {
   const [showLoadingSpinnerForOverrideField, setShowLoadingSpinnerForOverrideField] = useState(true);
   useEffect(() => {
@@ -106,8 +107,12 @@ export default function EditLicensesForm({
   };
 
   const handleOnCancel = () => {
-    onClose();
-    resetFormFields();
+    if (isDirty) {
+      setShowUnsavedChangesModal(true);
+    } else {
+      onClose();
+      resetFormFields();
+    }
   };
 
   const handleOnSubmit = () => {
@@ -276,4 +281,5 @@ EditLicensesForm.propTypes = {
   submitError: PropTypes.string,
   submitMaskState: PropTypes.bool,
   identificationSource: PropTypes.string,
+  setShowUnsavedChangesModal: PropTypes.func,
 };

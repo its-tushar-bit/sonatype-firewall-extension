@@ -8,6 +8,8 @@ import {
   selectShowEditLicensesPopover,
   selectLicenseDetectionsTileDataSlice,
   selectEditLicensesForm,
+  selectEditLicensesFormIsDirty,
+  selectIsUnsavedChangesModalActive,
 } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSelectors';
 
 describe('LicenseDetectionsTile Selectors', () => {
@@ -76,6 +78,22 @@ describe('LicenseDetectionsTile Selectors', () => {
 
       const actualSelection = selectEditLicensesForm(mockState);
 
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+  });
+
+  describe('selectEditLicensesFormIsDirty', () => {
+    it('selects editLicensesForm.isDirty', () => {
+      const expectedSelection = editLicensesForm.isDirty;
+      const actualSelection = selectEditLicensesFormIsDirty(mockState);
+      expect(actualSelection).toEqual(expectedSelection);
+    });
+  });
+
+  describe('selectIsUnsavedChangesModalActive', () => {
+    it('selects editLicensesForm.showUnsavedChangesModal', () => {
+      const expectedSelection = editLicensesForm.showUnsavedChangesModal;
+      const actualSelection = selectIsUnsavedChangesModalActive(mockState);
       expect(actualSelection).toEqual(expectedSelection);
     });
   });

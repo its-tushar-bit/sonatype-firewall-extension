@@ -17,6 +17,22 @@ import {
 import { faFilePdf, faSync, faFile, faFileCode } from '@fortawesome/pro-solid-svg-icons';
 import { getDownloadPdfUrl, getViewSbomUrl } from 'MainRoot/util/CLMLocation';
 
+import { compose, filter, join } from 'ramda';
+
+const renderDescription = (metadataDetails) => {
+  const { scanTriggerType, forMonitoring, reevaluation, reportTime, commitHash } = metadataDetails;
+
+  const formatDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss [UTC]Z');
+  const description = [
+    scanTriggerType && `Triggered by ${scanTriggerType}`,
+    forMonitoring && '(Continuous Monitoring)',
+    !forMonitoring && reevaluation && '(Re-evaluation)',
+    reportTime && `on ${formatDate(reportTime)}`,
+    commitHash && `- Commit ${commitHash}`,
+  ];
+
+  return compose(join(' '), filter(Boolean))(description);
+};
 export default function ReportTitle(props) {
   const { stateGo, metadataDetails, publicId, scanId, selectedReport, reevaluateReport } = props;
 
@@ -26,8 +42,6 @@ export default function ReportTitle(props) {
   const applyBtnClasses = classnames('nx-dropdown-link', {
     disabled: vulnerabilitiesPageDisable,
   });
-
-  const formatDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss [UTC]Z');
 
   const onRawDataClick = () => {
     stateGo('applicationReport.rawData', {
@@ -90,10 +104,7 @@ export default function ReportTitle(props) {
       <h1 className="nx-h1">
         {metadataDetails.application.name} {metadataDetails.reportTitle}
       </h1>
-      <div className="nx-page-title__description">
-        {metadataDetails.reportTime && <span>{formatDate(metadataDetails.reportTime)}</span>}
-        {metadataDetails.commitHash && <span> — Commit {metadataDetails.commitHash}</span>}
-      </div>
+      <div className="nx-page-title__description">{renderDescription(metadataDetails)}</div>
     </div>
   );
 }

@@ -9,7 +9,7 @@ import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import ReportTitle from 'MainRoot/applicationReport/react/ReportTitle';
 
 describe('ReportTitle component', function () {
-  let getShallowComponent, mockedReevaluateReport;
+  let getShallowComponent, mockedReevaluateReport, metadataDetails;
 
   beforeAll(function () {
     moment.tz.setDefault('America/New_York');
@@ -21,16 +21,17 @@ describe('ReportTitle component', function () {
 
   beforeEach(function () {
     mockedReevaluateReport = jasmine.createSpy('reevaluateReport');
-
-    const minimalProps = {
-      metadataDetails: {
-        reportTitle: 'Title',
-        reportTime: moment('2018-11-11 15:13:11').toDate().getTime(),
-        application: {
-          id: 'metadataApplicationId',
-          name: 'App Name',
-        },
+    metadataDetails = {
+      scanTriggerType: 'Unknown',
+      reportTitle: 'Title',
+      reportTime: moment('2018-11-11 15:13:11').toDate().getTime(),
+      application: {
+        id: 'metadataApplicationId',
+        name: 'App Name',
       },
+    };
+    const minimalProps = {
+      metadataDetails,
       publicId: 'publicId',
       scanId: 'scanId',
       selectedReport: {
@@ -94,9 +95,36 @@ describe('ReportTitle component', function () {
   });
 
   it('renders a description with time value', function () {
-    const component = getShallowComponent(),
+    const component = getShallowComponent({ metadataDetails: { ...metadataDetails, scanTriggerType: null } }),
       content = component.find('.nx-page-title__description');
-    expect(content).toHaveText('2018-11-11 15:13:11 UTC-05:00');
+    expect(content).toHaveText('on 2018-11-11 15:13:11 UTC-05:00');
+  });
+
+  it('renders a description with triggered by scan type', () => {
+    const component = getShallowComponent();
+    const content = component.find('.nx-page-title__description');
+
+    expect(content).toHaveText(`Triggered by ${metadataDetails.scanTriggerType} on 2018-11-11 15:13:11 UTC-05:00`);
+  });
+
+  it('renders a description with triggered by scan type from continuous monitoring', () => {
+    const component = getShallowComponent({
+      metadataDetails: { ...metadataDetails, forMonitoring: true },
+    });
+    const content = component.find('.nx-page-title__description');
+
+    expect(content).toHaveText(
+      `Triggered by ${metadataDetails.scanTriggerType} (Continuous Monitoring) on 2018-11-11 15:13:11 UTC-05:00`
+    );
+  });
+
+  it('renders a description with triggered by scan type from re-evaluation', () => {
+    const component = getShallowComponent({ metadataDetails: { ...metadataDetails, reevaluation: true } });
+    const content = component.find('.nx-page-title__description');
+
+    expect(content).toHaveText(
+      `Triggered by ${metadataDetails.scanTriggerType} (Re-evaluation) on 2018-11-11 15:13:11 UTC-05:00`
+    );
   });
 
   it('renders dropdown with Generate PDF button', () => {

@@ -91,7 +91,7 @@ function ApplicationReportResultsController(
     },
 
     goToDependencyTree() {
-      if (vm.dependencyTree) {
+      if (!vm.isDependencyTreeButtonDisabled()) {
         $ngRedux.dispatch(stateGo('applicationReport.dependencyTree'));
       }
     },

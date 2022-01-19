@@ -483,7 +483,7 @@ public class TransitiveViolationsTest
     appPolicyWaiverCells.get(2)
         .shouldHave(Condition.text(application.getType().name() + " - " + application.getName()));
     appPolicyWaiverCells.get(3).shouldHave(Condition.text("g : atransitivey : v"));
-    appPolicyWaiverCells.get(4).shouldHave(Condition.text("- -"));
+    appPolicyWaiverCells.get(4).shouldHave(Condition.text(appPolicyWaiver.getCreatorName()));
     appPolicyWaiverCells.get(5).shouldHave(Condition.text(appPolicyWaiver.getComment()));
 
     ElementsCollection orgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
@@ -494,7 +494,7 @@ public class TransitiveViolationsTest
     orgPolicyWaiverCells.get(2)
         .shouldHave(Condition.text(organization.getType().name() + " - " + organization.getName()));
     orgPolicyWaiverCells.get(3).shouldHave(Condition.text("g : ZtransitiveY : v"));
-    orgPolicyWaiverCells.get(4).shouldHave(Condition.text("- -"));
+    orgPolicyWaiverCells.get(4).shouldHave(Condition.text(orgPolicyWaiver.getCreatorName()));
     orgPolicyWaiverCells.get(5).shouldHave(Condition.text("- -"));
 
     ElementsCollection rootOrgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
@@ -505,7 +505,7 @@ public class TransitiveViolationsTest
         .shouldHave(Condition.text(simpleDateFormat.format(rootOrgPolicyWaiver.getCreateTime())));
     rootOrgPolicyWaiverCells.get(2).shouldHave(Condition.text(rootOrganization.getName()));
     rootOrgPolicyWaiverCells.get(3).shouldHave(Condition.text("All"));
-    rootOrgPolicyWaiverCells.get(4).shouldHave(Condition.text("- -"));
+    rootOrgPolicyWaiverCells.get(4).shouldHave(Condition.text(rootOrgPolicyWaiver.getCreatorName()));
     rootOrgPolicyWaiverCells.get(5).shouldHave(Condition.text("- -"));
 
     eyesWatcher.eyesCheck();

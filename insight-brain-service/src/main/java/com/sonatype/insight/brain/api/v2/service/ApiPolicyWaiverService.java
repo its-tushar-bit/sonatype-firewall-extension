@@ -302,6 +302,8 @@ public class ApiPolicyWaiverService
     result.scopeOwnerType = ScopeOwnerUtils.getScopeOwnerType(owner.getType(), owner.getId());
     result.hash = policyWaiver.getHash();
     result.createTime = policyWaiver.getCreateTime();
+    result.creatorId = policyWaiver.getCreatorId();
+    result.creatorName = policyWaiver.getCreatorName();
     result.comment = policyWaiver.getComment();
     result.constraintFacts = policyWaiver.getConstraintFacts();
     result.constraintFactsJson = policyWaiver.getConstraintFactsJson();

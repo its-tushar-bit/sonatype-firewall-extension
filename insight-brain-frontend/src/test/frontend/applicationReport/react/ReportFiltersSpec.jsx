@@ -6,7 +6,7 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import ReportFilters from '../../../../main/frontend/applicationReport/react/ReportFilters';
 import BackButton from '../../../../main/frontend/react/BackButton';
-import { NxStatefulTreeViewMultiSelect, NxRadio } from '@sonatype/react-shared-components';
+import { NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 import IqTreeViewPolicyThreatSlider from '../../../../main/frontend/react/IqTreeViewPolicyThreatSlider';
 
 describe('ReportFilters component', function () {
@@ -53,11 +53,10 @@ describe('ReportFilters component', function () {
     },
   ];
 
-  let setAggregateReportEntriesSpy, setExactValueFilterSpy, getShallowComponent, mock$State, minimalProps;
+  let setExactValueFilterSpy, getShallowComponent, mock$State, minimalProps;
 
   beforeEach(function () {
     const initSpies = () => {
-      setAggregateReportEntriesSpy = jasmine.createSpy('setAggregateReportEntries');
       setExactValueFilterSpy = jasmine.createSpy('setExactValueFilter');
       mock$State = jasmine.createSpyObj('$state', ['get', 'href']);
     };
@@ -65,11 +64,9 @@ describe('ReportFilters component', function () {
     minimalProps = () => {
       initSpies();
       return {
-        setAggregateReportEntries: setAggregateReportEntriesSpy,
         setExactValueFilter: setExactValueFilterSpy,
         $state: mock$State,
         exactValueFilters: {},
-        aggregate: true,
       };
     };
 
@@ -82,20 +79,6 @@ describe('ReportFilters component', function () {
     expect(backButton).toExist();
     expect(backButton).toHaveProp('stateName', 'violations');
     expect(backButton).toHaveProp('$state', mock$State);
-  });
-
-  it('renders view options radio', function () {
-    const targetRadios = getShallowComponent().find(NxRadio),
-      aggregateViewRadio = targetRadios.at(0),
-      allComponentsViewRadio = targetRadios.at(1);
-
-    expect(aggregateViewRadio).toExist();
-    expect(aggregateViewRadio).toHaveProp('value', 'aggregate');
-    expect(aggregateViewRadio).toHaveProp('isChecked', true);
-
-    expect(allComponentsViewRadio).toExist();
-    expect(allComponentsViewRadio).toHaveProp('value', 'all');
-    expect(allComponentsViewRadio).toHaveProp('isChecked', false);
   });
 
   it('renders filter contents', function () {
@@ -115,18 +98,6 @@ describe('ReportFilters component', function () {
     const policyThreatSlider = getShallowComponent().find(IqTreeViewPolicyThreatSlider).at(0);
     expect(policyThreatSlider).toExist();
     expect(policyThreatSlider).toHaveProp('value', [0, 10]);
-  });
-
-  it('dispatches correct action when toggeling view option', function () {
-    const targetRadios = getShallowComponent().find(NxRadio),
-      aggregateViewRadio = targetRadios.at(0),
-      allComponentsViewRadio = targetRadios.at(1);
-
-    allComponentsViewRadio.simulate('change', 'all');
-    expect(setAggregateReportEntriesSpy).toHaveBeenCalledWith(false);
-
-    aggregateViewRadio.simulate('change', 'aggregate');
-    expect(setAggregateReportEntriesSpy).toHaveBeenCalledWith(true);
   });
 
   it('dispatches correct actions when selecting filters', function () {

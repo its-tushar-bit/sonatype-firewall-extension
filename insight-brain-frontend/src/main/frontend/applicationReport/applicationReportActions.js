@@ -41,7 +41,7 @@ export const LOAD_COMMON_DATA_FULFILLED = 'LOAD_COMMON_DATA_FULFILLED';
 export const LOAD_COMMON_DATA_FAILED = 'LOAD_COMMON_DATA_FAILED';
 export const LOAD_COMMON_DATA_UNNECESSARY = 'LOAD_COMMON_DATA_UNNECESSARY';
 export const LOAD_REPORT_ALL_DATA_REQUESTED = 'LOAD_REPORT_ALL_DATA_REQUESTED';
-export const SET_AGGREGATE_REPORT_ENTRIES = 'SET_AGGREGATE_REPORT_ENTRIES';
+export const TOGGLE_AGGREGATE_REPORT_ENTRIES = 'TOGGLE_AGGREGATE_REPORT_ENTRIES';
 export const SET_REPORT_PARAMETERS = 'SET_REPORT_PARAMETERS';
 export const SELECT_ROOT_ANCESTOR = 'SELECT_ROOT_ANCESTOR';
 export const UNSELECT_ROOT_ANCESTOR = 'UNSELECT_ROOT_ANCESTOR';
@@ -262,7 +262,7 @@ const setSelectedComponent = payloadParamActionCreator(SELECT_COMPONENT);
 const toggleFilterSidebar = payloadParamActionCreator(APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR);
 export const setSorting = payloadParamActionCreator(SET_SORTING);
 
-export const setAggregateReportEntries = payloadParamActionCreator(SET_AGGREGATE_REPORT_ENTRIES);
+export const toggleAggregateReportEntries = noPayloadActionCreator(TOGGLE_AGGREGATE_REPORT_ENTRIES);
 
 export function setStringFieldFilter(fieldName, filterString) {
   return {
@@ -394,7 +394,7 @@ export default function applicationReportActions() {
     loadReportAllData,
     reevaluateReport,
     reevaluateReportCancelled,
-    setAggregateReportEntries,
+    toggleAggregateReportEntries,
     setStringFieldFilter,
     setExactValueFilter,
     setRawDataStringFieldFilter,

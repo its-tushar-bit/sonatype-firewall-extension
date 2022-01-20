@@ -495,13 +495,12 @@ describe('applicationReportActions', function () {
     });
   });
 
-  describe('setAggregateReportEntries', function () {
-    it('returns a SET_AGGREGATE_REPORT_ENTRIES action with the specified payload value', function () {
-      const payload = {},
-        action = applicationReportActions.setAggregateReportEntries(payload);
+  describe('toggleAggregateReportEntries', function () {
+    it('returns a TOGGLE_AGGREGATE_REPORT_ENTRIES action with no payload', function () {
+      const action = applicationReportActions.toggleAggregateReportEntries();
 
-      expect(action.type).toBe('SET_AGGREGATE_REPORT_ENTRIES');
-      expect(action.payload).toBe(payload);
+      expect(action.type).toBe('TOGGLE_AGGREGATE_REPORT_ENTRIES');
+      expect(action.payload).not.toBeDefined();
     });
   });
 

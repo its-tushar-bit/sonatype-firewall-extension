@@ -1234,13 +1234,13 @@ describe('applicationReportReducer', function () {
     });
   });
 
-  describe('SET_AGGREGATE_REPORT_ENTRIES', function () {
-    it('sets the aggregate flag from the payload', function () {
+  describe('TOGGLE_AGGREGATE_REPORT_ENTRIES', function () {
+    it('toggles the aggregate flag', function () {
       const state = Object.freeze({
           aggregate: false,
           other: otherObject,
         }),
-        action = { type: 'SET_AGGREGATE_REPORT_ENTRIES', payload: true },
+        action = { type: 'TOGGLE_AGGREGATE_REPORT_ENTRIES' },
         newState = reduce(state, action);
 
       expect(newState).toEqual({
@@ -1311,10 +1311,7 @@ describe('applicationReportReducer', function () {
           aggregate: false,
           sortFields: ['-policyThreatLevel'],
         }),
-        newState = reduce(state, {
-          type: 'SET_AGGREGATE_REPORT_ENTRIES',
-          payload: true,
-        });
+        newState = reduce(state, { type: 'TOGGLE_AGGREGATE_REPORT_ENTRIES' });
 
       expect(newState.selectedReport.displayedEntries).toEqual([
         {

@@ -60,7 +60,7 @@ function ApplicationReportResultsController(
     },
 
     aggregateByComponentToggle() {
-      vm.setAggregateReportEntries(!vm.aggregate);
+      vm.toggleAggregateReportEntries();
     },
 
     $onDestroy() {

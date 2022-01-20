@@ -11,6 +11,7 @@ import {
   NxTableCell,
   NxTableBody,
   NxFilterInput,
+  NxToggle,
 } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import ReportTableRow from './ReportTableRow';
@@ -37,6 +38,7 @@ const getDirection = (sortConfig, key) => {
 
 export default function ReportContent(props) {
   const {
+    aggregate,
     selectedReport,
     substringFilters,
     sortConfiguration,
@@ -45,6 +47,7 @@ export default function ReportContent(props) {
     setStringFieldFilter,
     selectComponent,
     goToComponentDetailsPage,
+    toggleAggregateReportEntries,
   } = props;
   const displayedEntries = selectedReport ? selectedReport.displayedEntries : [];
   const getSubstringFiltersProp = (propName) => propOr('', propName, substringFilters);
@@ -91,6 +94,9 @@ export default function ReportContent(props) {
 
   return (
     <section className="nx-tile iq-app-report__results-table-tile nx-viewport-sized__container">
+      <NxToggle isChecked={aggregate} onChange={toggleAggregateReportEntries}>
+        Aggregate by component
+      </NxToggle>
       <div className="nx-tile-content nx-viewport-sized__container">
         <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
           <NxTable className="nx-table--scrollable nx-table--fixed-layout">
@@ -145,6 +151,7 @@ export default function ReportContent(props) {
 }
 
 ReportContent.propTypes = {
+  aggregate: PropTypes.bool,
   selectedReport: PropTypes.shape({
     displayedEntries: PropTypes.arrayOf(
       PropTypes.shape({
@@ -173,5 +180,6 @@ ReportContent.propTypes = {
   setSortingParameters: PropTypes.func,
   setStringFieldFilter: PropTypes.func,
   selectComponent: PropTypes.func.isRequired,
+  toggleAggregateReportEntries: PropTypes.func.isRequired,
   goToComponentDetailsPage: PropTypes.func.isRequired,
 };

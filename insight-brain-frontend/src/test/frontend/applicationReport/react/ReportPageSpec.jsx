@@ -10,11 +10,11 @@ import ReportTitle from '../../../../main/frontend/applicationReport/react/Repor
 import { NxLoadWrapper } from '@sonatype/react-shared-components';
 
 describe('Report Page component', function () {
-  let getShallowComponent, loadReportActionMock, setAggregateReportEntriesSpy, setExactValueFilterSpy, mock$State;
+  let getShallowComponent, loadReportActionMock, toggleAggregateReportEntriesSpy, setExactValueFilterSpy, mock$State;
 
   beforeEach(function () {
     loadReportActionMock = jasmine.createSpy('loadReport');
-    setAggregateReportEntriesSpy = jasmine.createSpy('setAggregateReportEntries');
+    toggleAggregateReportEntriesSpy = jasmine.createSpy('toggleAggregateReportEntries');
     setExactValueFilterSpy = jasmine.createSpy('setExactValueFilter');
     mock$State = jasmine.createSpyObj('$state', ['get', 'href']);
 
@@ -40,7 +40,7 @@ describe('Report Page component', function () {
       },
       loading: false,
       loadReport: loadReportActionMock,
-      setAggregateReportEntries: setAggregateReportEntriesSpy,
+      toggleAggregateReportEntries: toggleAggregateReportEntriesSpy,
       setExactValueFilter: setExactValueFilterSpy,
       $state: mock$State,
     };
@@ -121,7 +121,6 @@ describe('Report Page component', function () {
     const reportElement = component.find(ReportFilters);
     expect(reportElement).toExist();
     expect(reportElement).toHaveProp('$state', mock$State);
-    expect(reportElement).toHaveProp('setAggregateReportEntries', setAggregateReportEntriesSpy);
     expect(reportElement).toHaveProp('setExactValueFilter', setExactValueFilterSpy);
   });*/
 

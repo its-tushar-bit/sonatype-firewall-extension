@@ -69,7 +69,7 @@ export function ApplicationReportFilterController($scope, $ngRedux, applicationR
       const actions = {
         ...pick(
           [
-            'setAggregateReportEntries',
+            'toggleAggregateReportEntries',
             'setExactValueFilter',
             'reevaluateReport',
             'loadInnerSourceReports',

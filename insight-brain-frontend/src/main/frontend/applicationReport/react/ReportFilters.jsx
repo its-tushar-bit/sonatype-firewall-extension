@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxFieldset, NxRadio, NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
+import { NxFieldset, NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 
 import IqTreeViewPolicyThreatSlider from '../../react/IqTreeViewPolicyThreatSlider';
 import { policyTypes } from '../../dashboard/filter/staticFilterEntries';
@@ -12,9 +12,6 @@ import { lookup, setToArray, union } from '../../util/jsUtil';
 import * as PropTypes from 'prop-types';
 import BackButton from '../../react/BackButton';
 import { equals, head, last, map, range, reduce, reject } from 'ramda';
-
-const VIEW_MODE_AGGREGATE = 'aggregate';
-const VIEW_MODE_ALL = 'all';
 
 const proprietaryFilterOptions = [
   { id: 'nonProprietary', name: 'Non-Proprietary' },
@@ -51,12 +48,10 @@ const violationStateCheckboxFilterMapping = {
 export default function ReportFilters(props) {
   const {
     //actions
-    setAggregateReportEntries,
     setExactValueFilter,
     //state
     $state,
     exactValueFilters,
-    aggregate,
   } = props;
 
   const { proprietary = [], derivedViolationState = new Set(), policyThreatLevel } = exactValueFilters;
@@ -118,27 +113,6 @@ export default function ReportFilters(props) {
   return (
     <aside className="nx-page-sidebar" id="report-sidebar">
       <BackButton stateName="violations" $state={$state} text="All Reports" />
-      <NxFieldset label="Application Report View">
-        <NxRadio
-          name="view-mode"
-          id="aggregate-by-component-radio"
-          value={VIEW_MODE_AGGREGATE}
-          isChecked={aggregate}
-          onChange={() => setAggregateReportEntries(true)}
-        >
-          Aggregated by Component
-        </NxRadio>
-        <NxRadio
-          name="view-mode"
-          id="no-aggregation-radio"
-          value={VIEW_MODE_ALL}
-          onChange={() => setAggregateReportEntries(false)}
-          isChecked={!aggregate}
-        >
-          All Violations
-        </NxRadio>
-      </NxFieldset>
-
       <NxFieldset label="Filters">
         <div className="report-filters">
           <NxStatefulTreeViewMultiSelect
@@ -210,7 +184,5 @@ ReportFilters.propTypes = {
     href: PropTypes.func.isRequired,
   }),
   exactValueFilters: PropTypes.object.isRequired,
-  aggregate: PropTypes.bool.isRequired,
-  setAggregateReportEntries: PropTypes.func.isRequired,
   setExactValueFilter: PropTypes.func.isRequired,
 };

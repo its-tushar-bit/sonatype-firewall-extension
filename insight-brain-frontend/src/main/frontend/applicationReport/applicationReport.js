@@ -28,7 +28,7 @@ export function ApplicationReportController($scope, $ngRedux, applicationReportA
       const actions = {
         ...pick(
           [
-            'setAggregateReportEntries',
+            'toggleAggregateReportEntries',
             'reevaluateReport',
             'reevaluateReportCancelled',
             'loadReportIfNeeded',

@@ -22,7 +22,7 @@ export default function ReportPage(props) {
     setSorting,
     setSortingParameters,
     setExactValueFilter,
-    setAggregateReportEntries,
+    toggleAggregateReportEntries,
     setStringFieldFilter,
     selectComponent,
     goToComponentDetailsPage,
@@ -61,10 +61,8 @@ export default function ReportPage(props) {
             <ReportFilters
               {...{
                 $state,
-                setAggregateReportEntries,
                 setExactValueFilter,
                 exactValueFilters,
-                aggregate,
               }}
             />
           )}
@@ -78,6 +76,7 @@ export default function ReportPage(props) {
           />
           <ReportStatusBar selectedReport={selectedReport} />
           <ReportContent
+            aggregate={aggregate}
             selectedReport={selectedReport}
             substringFilters={substringFilters}
             setSorting={setSorting}
@@ -86,6 +85,7 @@ export default function ReportPage(props) {
             setSortingParameters={setSortingParameters}
             selectComponent={selectComponent}
             goToComponentDetailsPage={goToComponentDetailsPage}
+            toggleAggregateReportEntries={toggleAggregateReportEntries}
           />
         </NxLoadWrapper>
       </main>
@@ -107,7 +107,7 @@ ReportPage.propTypes = {
   setStringFieldFilter: PropTypes.func,
   setSortingParameters: PropTypes.func,
   setExactValueFilter: PropTypes.func.isRequired,
-  setAggregateReportEntries: PropTypes.func.isRequired,
+  toggleAggregateReportEntries: PropTypes.func.isRequired,
   selectComponent: PropTypes.func.isRequired,
   goToComponentDetailsPage: PropTypes.func.isRequired,
   // state

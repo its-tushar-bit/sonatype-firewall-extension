@@ -3,7 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import React from 'react';
+
 import * as enzymeUtils from '../../enzymeUtils';
+import { render, screen, fireEvent } from '../../SpecUtil';
 import ReportContent from '../../../../main/frontend/applicationReport/react/ReportContent';
 import {
   NxTable,
@@ -15,21 +18,38 @@ import {
 } from '@sonatype/react-shared-components';
 
 describe('ReportContent component', function () {
-  let getShallowComponent;
+  let minimalProps, getShallowComponent, renderComponent;
 
   beforeEach(function () {
-    const minimalProps = {
+    minimalProps = {
+      toggleAggregateReportEntries: jasmine.createSpy('toggleAggregateReportEntries'),
       selectedReport: {
         displayedEntries: [],
       },
     };
 
+    renderComponent = (additionalProps = {}) => render(<ReportContent {...minimalProps} {...additionalProps} />);
     getShallowComponent = enzymeUtils.getShallowComponent(ReportContent, minimalProps);
   });
 
   it('renders a tile', function () {
     const shallowComponent = getShallowComponent();
     expect(shallowComponent).toMatchSelector('.nx-tile');
+  });
+
+  it('renders aggregate by component toggle', function () {
+    renderComponent();
+    const aggregateByComponentToggle = screen.getByLabelText('Aggregate by component');
+
+    expect(aggregateByComponentToggle).toBeVisible();
+  });
+
+  it('dispatches correct action when toggling aggregate by component toggle', function () {
+    renderComponent();
+    const aggregateByComponentToggle = screen.getByLabelText('Aggregate by component');
+
+    fireEvent.click(aggregateByComponentToggle);
+    expect(minimalProps.toggleAggregateReportEntries).toHaveBeenCalled();
   });
 
   it('renders table header and body', function () {

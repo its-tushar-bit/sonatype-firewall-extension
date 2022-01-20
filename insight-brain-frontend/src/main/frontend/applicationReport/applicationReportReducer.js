@@ -37,7 +37,7 @@ import {
   LOAD_REPORT_RAW_DATA_REQUESTED,
   LOAD_REPORT_RAW_DATA_UNNECESSARY,
   LOAD_REPORT_ALL_DATA_REQUESTED,
-  SET_AGGREGATE_REPORT_ENTRIES,
+  TOGGLE_AGGREGATE_REPORT_ENTRIES,
   SET_SUBSTRING_FIELD_FILTER,
   SET_RAW_DATA_SUBSTRING_FIELD_FILTER,
   SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER,
@@ -83,7 +83,7 @@ import {
   getVulnerabilities,
   extendRawDataWithKey,
 } from './applicationReportService';
-import { getKey, pathSet } from '../util/jsUtil';
+import { getKey, pathSet, togglePath } from '../util/jsUtil';
 
 const initState = Object.freeze({
   pendingLoads: new Set(),
@@ -206,8 +206,8 @@ export default function applicationReportReducer(state = initState, { type, payl
     case LOAD_REPORT_UNNECESSARY:
       return unsetPendingLoads(['policy'], state);
 
-    case SET_AGGREGATE_REPORT_ENTRIES:
-      return updateDisplayedEntries({ ...state, aggregate: payload });
+    case TOGGLE_AGGREGATE_REPORT_ENTRIES:
+      return updateDisplayedEntries(togglePath(['aggregate'], state));
 
     case SET_EXACT_VALUE_FILTER: {
       const { fieldName, allowedValues } = payload;

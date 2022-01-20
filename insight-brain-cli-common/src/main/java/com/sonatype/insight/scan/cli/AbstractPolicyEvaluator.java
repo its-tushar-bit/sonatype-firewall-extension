@@ -192,7 +192,10 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     try {
       Files.createDirectories(params.getOutputDirectory().toPath());
       File scanFile = Files.createTempFile(params.getOutputDirectory().toPath(), "scan-", ".xml.gz").toFile();
-      scanFile.deleteOnExit();
+      if (!params.isKeepScanFile()) {
+        scanFile.deleteOnExit();
+      }
+
       List<File> files = new ArrayList<>();
       for (String scanTarget : params.getScanTargets()) {
         files.add(new File(scanTarget));

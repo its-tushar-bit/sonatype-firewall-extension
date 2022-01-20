@@ -69,6 +69,20 @@ public class AbstractParametersTest
         .hasMessageContaining(" is invalid due to Unrecognized token 'commitHash'");
   }
 
+  @Test
+  public void testParse_KeepScanFileFlag() {
+    TestParameters params = new TestParameters();
+    params.parse("--keep-scan-file");
+    assertThat(params.isKeepScanFile()).isTrue();
+  }
+
+  @Test
+  public void testParse_KeepScanFileFlag_Short() {
+    TestParameters params = new TestParameters();
+    params.parse("-k");
+    assertThat(params.isKeepScanFile()).isTrue();
+  }
+
   private String getFilePath(String filename) {
     ClassLoader classLoader = getClass().getClassLoader();
     File file = new File(classLoader.getResource("AbstractParametersTest/" + filename).getFile());

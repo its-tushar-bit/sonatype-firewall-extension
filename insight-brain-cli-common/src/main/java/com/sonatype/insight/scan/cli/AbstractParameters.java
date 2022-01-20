@@ -105,6 +105,11 @@ public abstract class AbstractParameters
       hidden = true)
   private File baseDir = null;
 
+  @Parameter(names = { "-k", "--keep-scan-file" },
+      description = "Flag to determine if CLI should keep the scan file. by default scan file is deleted",
+      hidden = true)
+  private boolean keepScanFile;
+
   public AbstractParameters() {
   }
 
@@ -244,6 +249,10 @@ public abstract class AbstractParameters
 
   public File getBaseDir() {
     return baseDir;
+  }
+
+  public boolean isKeepScanFile() {
+    return keepScanFile;
   }
 
   /*

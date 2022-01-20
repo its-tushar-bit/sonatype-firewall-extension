@@ -8,15 +8,24 @@ import ReportPage from '../../../../main/frontend/applicationReport/react/Report
 //import ReportFilters from '../../../../main/frontend/applicationReport/react/ReportFilters';
 import ReportTitle from '../../../../main/frontend/applicationReport/react/ReportTitle';
 import { NxLoadWrapper } from '@sonatype/react-shared-components';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
 
 describe('Report Page component', function () {
-  let getShallowComponent, loadReportActionMock, toggleAggregateReportEntriesSpy, setExactValueFilterSpy, mock$State;
+  let getShallowComponent,
+    loadReportActionMock,
+    toggleAggregateReportEntriesSpy,
+    setExactValueFilterSpy,
+    routerContextMock;
 
   beforeEach(function () {
     loadReportActionMock = jasmine.createSpy('loadReport');
     toggleAggregateReportEntriesSpy = jasmine.createSpy('toggleAggregateReportEntries');
     setExactValueFilterSpy = jasmine.createSpy('setExactValueFilter');
-    mock$State = jasmine.createSpyObj('$state', ['get', 'href']);
+
+    routerContextMock = {
+      href: jasmine.createSpy('href').and.returnValue('mockValue'),
+    };
+    spyOn(routerContext, 'useRouterState').and.returnValue(routerContextMock);
 
     const minimalProps = {
       metadata: {
@@ -42,7 +51,6 @@ describe('Report Page component', function () {
       loadReport: loadReportActionMock,
       toggleAggregateReportEntries: toggleAggregateReportEntriesSpy,
       setExactValueFilter: setExactValueFilterSpy,
-      $state: mock$State,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ReportPage, minimalProps);

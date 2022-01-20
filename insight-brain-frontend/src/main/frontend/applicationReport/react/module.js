@@ -6,10 +6,14 @@
 import { react2angular } from 'react2angular';
 import ReportPageContainer from './ReportContainer';
 import withStoreProvider from '../../reactAdapter/StoreProvider';
+import withRouterStateProvider from 'MainRoot/reactAdapter/RouterStateProvider';
 
 export default angular
   .module('appReport', [])
-  .component('appReport', react2angular(withStoreProvider(ReportPageContainer), [], ['$ngRedux', '$state']))
+  .component(
+    'appReport',
+    react2angular(withStoreProvider(withRouterStateProvider(ReportPageContainer)), [], ['$ngRedux', '$state'])
+  )
   .config(routes);
 
 function routes($stateProvider) {

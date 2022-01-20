@@ -10,7 +10,7 @@ import ReportContent from './ReportContent';
 import ReportFilters from './ReportFilters';
 import ReportTitle from './ReportTitle';
 import * as PropTypes from 'prop-types';
-import BackButton from 'MainRoot/react/BackButton';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 export default function ReportPage(props) {
   const {
@@ -55,7 +55,7 @@ export default function ReportPage(props) {
     <Fragment>
       {reevaluateMaskState !== null && <NxStatefulSubmitMask success={reevaluateMaskState} message="Re-Evaluating" />}
       <main id="app-report" className="nx-page-main nx-viewport-sized iq-app-report">
-        <BackButton stateName="violations" $state={$state} text="All Reports" />
+        <MenuBarBackButton text="All Reports" stateName={'violations'} />
         <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
           {false && (
             <ReportFilters

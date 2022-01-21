@@ -36,14 +36,5 @@
 .component-details-header__tags {
   display: flex;
   flex-flow: wrap;
-  list-style: none;
   margin: 0;
-
-  dt {
-    @include mixins.visually-hidden;
-    margin: 0;
-  }
-  dd {
-    margin: 0;
-  }
 }

@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import ComponentLabelTag, { TagWithFontAwesomeIcon } from '../../../../main/frontend/react/tag/ComponentLabelTag';
+import ComponentLabelTag, { TagWithFontAwesomeIcon } from 'MainRoot/react/tag/ComponentLabelTag';
+import { NxTag } from '@sonatype/react-shared-components';
 
 describe('ComponentLabelTag', function () {
   let minimalProps, getShallowTag;
@@ -19,7 +20,7 @@ describe('ComponentLabelTag', function () {
 
   it('renders a TagWithFontAwesomeIcon with the given props', function () {
     expect(getShallowTag()).toMatchSelector(TagWithFontAwesomeIcon);
-    expect(getShallowTag()).toHaveProp('children', minimalProps.children);
+    expect(getShallowTag().dive().find(NxTag)).toHaveProp('aria-label', 'Label label');
   });
 
   it('should map old color names to the new rsc colors', function () {

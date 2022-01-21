@@ -45,7 +45,7 @@ export default function ComponentFormatTag({ name }) {
   const formatName = nameMapping[name] || name;
 
   return (
-    <NxTag className="iq-component-format-tag">
+    <NxTag className="iq-component-format-tag" aria-label={`Format ${formatName}`}>
       {icon}
       <span>{formatName}</span>
     </NxTag>

@@ -54,7 +54,7 @@ public class TransitiveViolationsPage
 
     public ElementsCollection tags() {
       SelenideElement child = child(".component-details-header__tags");
-      return child.findAll("dd");
+      return child.findAll("label");
     }
   }
 

@@ -19,6 +19,7 @@ describe('DependencyTypeTag', function () {
     const tag = component.find(NxTag);
 
     expect(tag).toHaveProp('children', 'Direct Dependency');
+    expect(tag).toHaveProp('aria-label', 'Dependency type is direct');
   });
 
   it('displays transitive dependency tag if passed type prop "transitive"', function () {
@@ -26,6 +27,7 @@ describe('DependencyTypeTag', function () {
     const tag = component.find(NxTag);
 
     expect(tag).toHaveProp('children', 'Transitive Dependency');
+    expect(tag).toHaveProp('aria-label', 'Dependency type is transitive');
   });
 
   it('displays innersource tag if passed type prop "innerSource"', function () {
@@ -33,5 +35,6 @@ describe('DependencyTypeTag', function () {
     const tag = component.find(NxTag);
 
     expect(tag).toHaveProp('children', 'InnerSource');
+    expect(tag).toHaveProp('aria-label', 'Dependency type is innerSource');
   });
 });

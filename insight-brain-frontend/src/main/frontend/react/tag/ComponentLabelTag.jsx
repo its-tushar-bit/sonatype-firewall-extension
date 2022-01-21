@@ -24,7 +24,7 @@ export const rscColorMap = {
 
 export function TagWithFontAwesomeIcon({ faIcon, color, children }) {
   return (
-    <NxTag color={color}>
+    <NxTag color={color} aria-label={`Label ${children}`}>
       <NxFontAwesomeIcon icon={faIcon} />
       <span>{children}</span>
     </NxTag>

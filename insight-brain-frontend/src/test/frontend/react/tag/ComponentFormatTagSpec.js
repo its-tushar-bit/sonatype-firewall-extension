@@ -27,6 +27,11 @@ describe('ComponentFormatTag', function () {
     expect(icon).not.toExist();
   });
 
+  it('has a aria-label property describing the associated format', () => {
+    const component = getShallow({ name: 'visible format' });
+    expect(component).toHaveProp('aria-label', 'Format visible format');
+  });
+
   describe('name mapping', function () {
     it('properly capitalizes the name of the a-name ecosystem', function () {
       const component = getShallow({ name: 'a-name' });

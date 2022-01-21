@@ -16,45 +16,28 @@ export const ComponentDetailsTags = ({ format, dependencyType, isInnerSource, la
   if (nothingToRender({ format, dependencyType, isInnerSource, labels })) {
     return null;
   }
-  const showDependancyTypeTags = (!!dependencyType && dependencyType !== 'unknown') || isInnerSource;
+  const showDependencyTypeTags = (!!dependencyType && dependencyType !== 'unknown') || isInnerSource;
   return (
-    <dl {...props} className={cx('component-details-header__tags', props.className)}>
-      {!!format && (
-        <Fragment>
-          <dt>Format</dt>
-          <dd>
-            <ComponentFormatTag name={format} />
-          </dd>
-        </Fragment>
-      )}
-      {showDependancyTypeTags && (
-        <Fragment>
-          <dt>Dependancy Type</dt>
-          {dependencyType && dependencyType !== 'unknown' && (
-            <dd>
-              <DependencyTypeTag type={dependencyType} />
-            </dd>
-          )}
-          {isInnerSource && (
-            <dd>
-              <DependencyTypeTag type="innerSource" />
-            </dd>
-          )}
-        </Fragment>
+    <div {...props} className={cx('component-details-header__tags', props.className)}>
+      {!!format && <ComponentFormatTag name={format} />}
+      {showDependencyTypeTags && (
+        <>
+          {dependencyType && dependencyType !== 'unknown' && <DependencyTypeTag type={dependencyType} />}
+          {isInnerSource && <DependencyTypeTag type="innerSource" />}
+        </>
       )}
       {labels.length > 0 && (
-        <Fragment>
-          <dt>Labels</dt>
+        <>
           {labels.map(({ id, color, label, description }) => (
             <NxTooltip key={id} title={description}>
-              <dd className="iq-component-details-tags__labels">
+              <div className="iq-component-details-tags__labels">
                 <ComponentLabelTag color={color}>{label}</ComponentLabelTag>
-              </dd>
+              </div>
             </NxTooltip>
           ))}
-        </Fragment>
+        </>
       )}
-    </dl>
+    </div>
   );
 };
 

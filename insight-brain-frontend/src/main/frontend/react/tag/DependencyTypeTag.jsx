@@ -15,7 +15,11 @@ const dependencyMap = new Map([
 ]);
 
 export default function DependencyTypeTag({ type }) {
-  return <NxTag className={type}>{dependencyMap.get(type)}</NxTag>;
+  return (
+    <NxTag className={type} aria-label={`Dependency type is ${type}`}>
+      {dependencyMap.get(type)}
+    </NxTag>
+  );
 }
 
 DependencyTypeTag.propTypes = {

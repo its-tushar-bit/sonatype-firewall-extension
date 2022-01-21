@@ -64,6 +64,7 @@ import {
   SET_DEPENDENCY_TREE_ROUTER_PARAMS,
   RESET_DEPENDENCY_TREE_ROUTER_PARAMS,
   SET_DEPENDENCY_TREE_SEARCH_TERM,
+  TOGGLE_SHOW_FILTER_POPOVER,
   EXPAND_ALL_DEPENDENCY_TREE_NODES,
   COLLAPSE_ALL_DEPENDENCY_TREE_NODES,
 } from './applicationReportActions';
@@ -131,6 +132,7 @@ const initState = Object.freeze({
   dependencyTreePageRouterParams: null,
   dependencyTreeSearchTerm: '',
   displayedDependencyTree: null,
+  showFilterPopover: false,
   reevaluateMaskState: null,
 });
 
@@ -253,6 +255,9 @@ export default function applicationReportReducer(state = initState, { type, payl
 
     case APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR:
       return { ...state, filterSidebarOpen: payload };
+
+    case TOGGLE_SHOW_FILTER_POPOVER:
+      return togglePath(['showFilterPopover'], state);
 
     case OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL:
       return pathSet(['selectedComponent', 'showInnerSourceProducerReportModal'], true, state);

@@ -124,6 +124,7 @@ describe('applicationReportReducer', function () {
         aggregate: true,
         sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
         exactValueFilters: {},
+        showFilterPopover: false,
         reportRawData: null,
         reportParameters: {
           appId: 'appId',
@@ -2384,6 +2385,26 @@ describe('applicationReportReducer', function () {
       });
       expect(newStateWithFalsePayload.filterSidebarOpen).toBe(false);
       expect(newStateWithFalsePayload.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('TOGGLE_SHOW_FILTER_POPOVER action', function () {
+    it('toggles showFilterPopover', function () {
+      const state = Object.freeze({
+        showFilterPopover: false,
+        other: otherObject,
+      });
+      let newState = reduce(state, {
+        type: 'TOGGLE_SHOW_FILTER_POPOVER',
+      });
+      expect(newState.showFilterPopover).toBe(true);
+      expect(newState.other).toBe(otherObject);
+
+      newState = reduce(newState, {
+        type: 'TOGGLE_SHOW_FILTER_POPOVER',
+      });
+      expect(newState.showFilterPopover).toBe(false);
+      expect(newState.other).toBe(otherObject);
     });
   });
 

@@ -9,6 +9,8 @@ import { selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 export const selectApplicationReportSlice = prop('applicationReport');
+export const selectExactValueFilters = createSelector(selectApplicationReportSlice, prop('exactValueFilters'));
+export const selectShowFilterPopover = createSelector(selectApplicationReportSlice, prop('showFilterPopover'));
 export const selectSelectedReport = createSelector(selectApplicationReportSlice, prop('selectedReport'));
 export const selectApplicationReportMetaData = createSelector(selectApplicationReportSlice, prop('metadata'));
 

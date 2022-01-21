@@ -215,4 +215,17 @@ describe('ReportContent component', function () {
     expect(tableRow.at(1)).toHaveProp('component', props.selectedReport.displayedEntries[1]);
     expect(tableRow.at(1)).toHaveProp('index', 1);
   });
+
+  it('dispatches action on filter`s click', function () {
+    const toggleShowFilterPopoverSpy = jasmine.createSpy('toggleShowFilterPopover');
+    const props = {
+      toggleShowFilterPopover: toggleShowFilterPopoverSpy,
+    };
+    const shallowComponent = getShallowComponent(props);
+    const button = shallowComponent.find('#filters-toggle-button');
+
+    expect(button).toExist();
+    button.simulate('click');
+    expect(toggleShowFilterPopoverSpy).toHaveBeenCalledTimes(1);
+  });
 });

@@ -58,6 +58,7 @@ export const OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL = 'OPEN_INNERSOURCE_PRODUCER
 export const CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL = 'CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL';
 export const OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL = 'OPEN_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL';
 export const CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL = 'CLOSE_INNERSOURCE_PRODUCER_PERMISSIONS_MODAL';
+export const TOGGLE_SHOW_FILTER_POPOVER = 'TOGGLE_SHOW_FILTER_POPOVER';
 
 // To be used for filters that are done by substring matching, as opposed to matching a discrete set of values
 export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
@@ -260,6 +261,7 @@ const loadReportRawDataUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_R
 const generateVulnerabilityEntries = noPayloadActionCreator(GENERATE_VULNERABILITY_ENTRIES);
 const setSelectedComponent = payloadParamActionCreator(SELECT_COMPONENT);
 const toggleFilterSidebar = payloadParamActionCreator(APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR);
+export const toggleShowFilterPopover = payloadParamActionCreator(TOGGLE_SHOW_FILTER_POPOVER);
 export const setSorting = payloadParamActionCreator(SET_SORTING);
 
 export const toggleAggregateReportEntries = noPayloadActionCreator(TOGGLE_AGGREGATE_REPORT_ENTRIES);
@@ -417,6 +419,7 @@ export default function applicationReportActions() {
     resetDependencyTreeRouterParams,
     setDependencyTreeRouterParamsForBackButton,
     setDependencyTreeSearchTerm,
+    toggleShowFilterPopover,
     expandAllDependencyTreeNodes,
     collapseAllDependencyTreeNodes,
     goToComponentDetailsPage,

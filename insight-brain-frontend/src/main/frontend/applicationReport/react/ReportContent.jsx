@@ -11,11 +11,14 @@ import {
   NxTableCell,
   NxTableBody,
   NxFilterInput,
+  NxButton,
+  NxFontAwesomeIcon,
   NxToggle,
 } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import ReportTableRow from './ReportTableRow';
 import { propOr } from 'ramda';
+import { faFilter } from '@fortawesome/pro-solid-svg-icons';
 
 const policyThreatLevelSettings = {
   key: 'policyThreatLevel',
@@ -45,6 +48,7 @@ export default function ReportContent(props) {
     setSortingParameters,
     setSorting,
     setStringFieldFilter,
+    toggleShowFilterPopover,
     selectComponent,
     goToComponentDetailsPage,
     toggleAggregateReportEntries,
@@ -94,9 +98,19 @@ export default function ReportContent(props) {
 
   return (
     <section className="nx-tile iq-app-report__results-table-tile nx-viewport-sized__container">
-      <NxToggle isChecked={aggregate} onChange={toggleAggregateReportEntries}>
-        Aggregate by component
-      </NxToggle>
+      <div className="nx-tile-header">
+        <div className="nx-tile-header__title">
+          <NxToggle isChecked={aggregate} onChange={toggleAggregateReportEntries}>
+            Aggregate by component
+          </NxToggle>
+        </div>
+        <div className="nx-tile__actions">
+          <NxButton onClick={toggleShowFilterPopover} variant="tertiary" id="filters-toggle-button">
+            <NxFontAwesomeIcon icon={faFilter} />
+            Filter
+          </NxButton>
+        </div>
+      </div>
       <div className="nx-tile-content nx-viewport-sized__container">
         <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
           <NxTable className="nx-table--scrollable nx-table--fixed-layout">
@@ -179,6 +193,7 @@ ReportContent.propTypes = {
   setSorting: PropTypes.func,
   setSortingParameters: PropTypes.func,
   setStringFieldFilter: PropTypes.func,
+  toggleShowFilterPopover: PropTypes.func.isRequired,
   selectComponent: PropTypes.func.isRequired,
   toggleAggregateReportEntries: PropTypes.func.isRequired,
   goToComponentDetailsPage: PropTypes.func.isRequired,

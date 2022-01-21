@@ -7,7 +7,7 @@ import React, { useEffect, Fragment } from 'react';
 import { NxLoadWrapper, NxStatefulSubmitMask } from '@sonatype/react-shared-components';
 import ReportStatusBar from './ReportStatusBar';
 import ReportContent from './ReportContent';
-import ReportFilters from './ReportFilters';
+import ReportFilterPopover from './ReportFilterPopover';
 import ReportTitle from './ReportTitle';
 import * as PropTypes from 'prop-types';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
@@ -24,6 +24,7 @@ export default function ReportPage(props) {
     setExactValueFilter,
     toggleAggregateReportEntries,
     setStringFieldFilter,
+    toggleShowFilterPopover,
     selectComponent,
     goToComponentDetailsPage,
     // state
@@ -41,7 +42,6 @@ export default function ReportPage(props) {
     aggregate,
     exactValueFilters,
     substringFilters,
-    $state,
   } = props;
 
   useEffect(() => {
@@ -57,15 +57,12 @@ export default function ReportPage(props) {
       <main id="app-report" className="nx-page-main nx-viewport-sized iq-app-report">
         <MenuBarBackButton text="All Reports" stateName={'violations'} />
         <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
-          {false && (
-            <ReportFilters
-              {...{
-                $state,
-                setExactValueFilter,
-                exactValueFilters,
-              }}
-            />
-          )}
+          <ReportFilterPopover
+            {...{
+              setExactValueFilter,
+              exactValueFilters,
+            }}
+          />
           <ReportTitle
             metadataDetails={metadata}
             scanId={scanId}
@@ -83,6 +80,7 @@ export default function ReportPage(props) {
             sortConfiguration={sortConfiguration}
             setStringFieldFilter={setStringFieldFilter}
             setSortingParameters={setSortingParameters}
+            toggleShowFilterPopover={toggleShowFilterPopover}
             selectComponent={selectComponent}
             goToComponentDetailsPage={goToComponentDetailsPage}
             toggleAggregateReportEntries={toggleAggregateReportEntries}
@@ -165,4 +163,5 @@ ReportPage.propTypes = {
     derivedComponentName: PropTypes.string,
   }),
   reevaluateMaskState: PropTypes.bool,
+  toggleShowFilterPopover: PropTypes.func.isRequired,
 };

@@ -10,7 +10,6 @@ import IqTreeViewPolicyThreatSlider from '../../react/IqTreeViewPolicyThreatSlid
 import { policyTypes } from '../../dashboard/filter/staticFilterEntries';
 import { lookup, setToArray, union } from '../../util/jsUtil';
 import * as PropTypes from 'prop-types';
-import BackButton from '../../react/BackButton';
 import { equals, head, last, map, range, reduce, reject } from 'ramda';
 
 const proprietaryFilterOptions = [
@@ -50,7 +49,6 @@ export default function ReportFilters(props) {
     //actions
     setExactValueFilter,
     //state
-    $state,
     exactValueFilters,
   } = props;
 
@@ -112,7 +110,6 @@ export default function ReportFilters(props) {
 
   return (
     <aside className="nx-page-sidebar" id="report-sidebar">
-      <BackButton stateName="violations" $state={$state} text="All Reports" />
       <NxFieldset label="Filters">
         <div className="report-filters">
           <NxStatefulTreeViewMultiSelect

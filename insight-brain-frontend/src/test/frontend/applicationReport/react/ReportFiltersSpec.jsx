@@ -5,7 +5,6 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import ReportFilters from '../../../../main/frontend/applicationReport/react/ReportFilters';
-import BackButton from '../../../../main/frontend/react/BackButton';
 import { NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 import IqTreeViewPolicyThreatSlider from '../../../../main/frontend/react/IqTreeViewPolicyThreatSlider';
 
@@ -71,14 +70,6 @@ describe('ReportFilters component', function () {
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ReportFilters, minimalProps());
-  });
-
-  it('renders a BackButton with the violations state name and the provided $state object, ', function () {
-    const backButton = getShallowComponent().find(BackButton);
-
-    expect(backButton).toExist();
-    expect(backButton).toHaveProp('stateName', 'violations');
-    expect(backButton).toHaveProp('$state', mock$State);
   });
 
   it('renders filter contents', function () {

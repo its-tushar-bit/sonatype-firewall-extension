@@ -66,8 +66,8 @@ function InnerSourceRepositoryTileController(
           }
         })
         .then(function (result) {
-          if (Array.isArray(result) && result.length > 0) {
-            vm.innerSourceRepositories = result;
+          if (result && Array.isArray(result.repositoryConnections) && result.repositoryConnections.length > 0) {
+            vm.innerSourceRepositories = result.repositoryConnections;
             if (vm.innerSourceRepositories[0].ownerId !== ownerId) {
               return OrganizationStore.getById(vm.innerSourceRepositories[0].ownerId).then(function (result) {
                 vm.innerSourceRepositoriesInheritedFrom = result.name;

@@ -12,6 +12,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -34,6 +35,7 @@ import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -43,6 +45,7 @@ import org.mockito.quality.Strictness;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -58,7 +61,7 @@ public class ApiRepositoryConnectionServiceTest
 
   @Inject
   private OwnerDAO ownerDAO;
-  
+
   @Inject
   private RepositoryConnectionDAO dao;
 
@@ -76,10 +79,20 @@ public class ApiRepositoryConnectionServiceTest
 
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
+  private final ApplicationDAO applicationDAO = new ApplicationDAO();
+
   @Override
   public void configure(final Binder binder) {
     binder.bind(RepositoryClientFactory.class).toInstance(mockFactory);
     super.configure(binder);
+  }
+
+  @After
+  public void after() {
+    Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    rootOrganization.setRepositoryConnectionEnabled(true);
+    rootOrganization.setAllowRepositoryConnectionOverride(true);
+    organizationDAO.update(rootOrganization);
   }
 
   @Test
@@ -92,7 +105,7 @@ public class ApiRepositoryConnectionServiceTest
 
     assertRepositoryConnectionDTO(repositoryConnection, dto);
   }
-  
+
   @Test
   public void testGetRepositoryConnection_Application() {
     Application app = tempEntity.newApplicationWithParent();
@@ -128,117 +141,150 @@ public class ApiRepositoryConnectionServiceTest
   }
 
   @Test
-  public void testGetRepositoryConnections_Organization() {
+  public void testGetOwnerRepositoryConnections_Organization() {
     Organization org = tempEntity.newOrganization();
-    testGetRepositoryConnections(org.getId(), OwnerType.ORGANIZATION);
+    testGetOwnerRepositoryConnections(org.getId(), OwnerType.ORGANIZATION);
   }
 
   @Test
-  public void testGetRepositoryConnections_Application() {
+  public void testGetOwnerRepositoryConnections_Application() {
     Application app = tempEntity.newApplicationWithParent();
-    testGetRepositoryConnections(app.getId(), OwnerType.APPLICATION);
+    testGetOwnerRepositoryConnections(app.getId(), OwnerType.APPLICATION);
   }
 
-  private void testGetRepositoryConnections(final String id, final OwnerType ownerType) {
+  private void testGetOwnerRepositoryConnections(final String id, final OwnerType ownerType) {
     tempEntity.newRepositoryConnection(id, "url1", "user1", "pass1".toCharArray());
     tempEntity.newRepositoryConnection(id, "url2", RepositoryFormat.MAVEN, "user2", "pass2".toCharArray());
 
     Owner owner = ownerDAO.getById(id);
     List<ApiRepositoryConnectionDTO> connections =
-        repositoryConnectionService.getRepositoryConnections(ownerType, id, false);
+        repositoryConnectionService.getOwnerRepositoryConnections(ownerType, id, false).repositoryConnections;
     assertThat(connections).hasSize(2).extracting("baseUrl", "username", "ownerType", "ownerId")
         .containsExactlyInAnyOrder(tuple("url1", "user1", owner.getType(), owner.getId()),
             tuple("url2", "user2", owner.getType(), owner.getId()));
   }
 
   @Test
-  public void testGetRepositoryConnections_InheritTrue_Application() {
+  public void testGetOwnerRepositoryConnections_InheritTrue_Application() {
     tempEntity.newRepositoryConnection("other");
-    Application application = tempEntity.newApplicationWithParent();
-    String rootOrgId = Organization.ROOT_ORGANIZATION_ID;
-    String orgId = application.getParentOwnerId();
+    Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    String rootOrgId = rootOrganization.getId();
+    String orgId = organization.getId();
     String appId = application.getId();
 
     // None
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true)).isEmpty();
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.APPLICATION, appId,
+        true).repositoryConnections).isEmpty();
 
     // Only root org
+    rootOrganization.setAllowRepositoryConnectionOverride(false);
+    organizationDAO.update(rootOrganization);
     RepositoryConnection rootOrgRepositoryConnection = tempEntity.newRepositoryConnection(rootOrgId);
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.APPLICATION, appId,
+        true).repositoryConnections)
         .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, rootOrgId));
 
     // Root org and org
+    rootOrganization.setAllowRepositoryConnectionOverride(true);
+    organizationDAO.update(rootOrganization);
+    organization.setAllowRepositoryConnectionOverride(false);
+    organizationDAO.update(organization);
     RepositoryConnection orgRepositoryConnection = tempEntity.newRepositoryConnection(orgId);
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.APPLICATION, appId,
+        true).repositoryConnections)
         .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, orgId));
 
     // Root org, org, and app
+    rootOrganization.setAllowRepositoryConnectionOverride(true);
+    organizationDAO.update(rootOrganization);
+    organization.setAllowRepositoryConnectionOverride(true);
+    organizationDAO.update(organization);
     RepositoryConnection appRepositoryConnection = tempEntity.newRepositoryConnection(appId);
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.APPLICATION, appId,
+        true).repositoryConnections)
         .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.APPLICATION, appId));
 
     // Org and app
     dao.delete(rootOrgRepositoryConnection);
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.APPLICATION, appId,
+        true).repositoryConnections)
         .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.APPLICATION, appId));
 
     // Only app
     dao.delete(orgRepositoryConnection);
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.APPLICATION, appId,
+        true).repositoryConnections)
         .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.APPLICATION, appId));
 
     // Root org and app
     rootOrgRepositoryConnection = tempEntity.newRepositoryConnection(rootOrgId);
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.APPLICATION, appId,
+        true).repositoryConnections)
         .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.APPLICATION, appId));
 
     // Only org
     dao.delete(rootOrgRepositoryConnection);
     dao.delete(appRepositoryConnection);
     tempEntity.newRepositoryConnection(orgId);
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, appId, true))
+    organization.setAllowRepositoryConnectionOverride(false);
+    organizationDAO.update(organization);
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.APPLICATION, appId,
+        true).repositoryConnections)
         .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, orgId));
   }
 
   @Test
-  public void testGetRepositoryConnections_InheritTrue_Organization() {
+  public void testGetOwnerRepositoryConnections_InheritTrue_Organization() {
     tempEntity.newRepositoryConnection("other");
+    Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Organization organization = tempEntity.newOrganization();
-    String rootOrgId = Organization.ROOT_ORGANIZATION_ID;
+    String rootOrgId = rootOrganization.getId();
     String orgId = organization.getId();
 
     // None
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, orgId, true))
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.ORGANIZATION, orgId,
+        true).repositoryConnections)
         .isEmpty();
 
     // Only root org
+    rootOrganization.setAllowRepositoryConnectionOverride(false);
+    organizationDAO.update(rootOrganization);
     RepositoryConnection rootOrgRepositoryConnection = tempEntity.newRepositoryConnection(rootOrgId);
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, orgId, true))
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.ORGANIZATION, orgId,
+        true).repositoryConnections)
         .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, rootOrgId));
 
     // Root org and org
+    rootOrganization.setAllowRepositoryConnectionOverride(true);
+    organizationDAO.update(rootOrganization);
     tempEntity.newRepositoryConnection(orgId);
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, orgId, true))
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.ORGANIZATION, orgId,
+        true).repositoryConnections)
         .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, orgId));
 
     // Only org
     dao.delete(rootOrgRepositoryConnection);
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, orgId, true))
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.ORGANIZATION, orgId,
+        true).repositoryConnections)
         .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, orgId));
   }
 
   @Test
-  public void testGetRepositoryConnections_InheritTrue_RootOrganization() {
+  public void testGetOwnerRepositoryConnections_InheritTrue_RootOrganization() {
     tempEntity.newRepositoryConnection("other");
     String rootOrgId = Organization.ROOT_ORGANIZATION_ID;
 
     // None
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, rootOrgId, true))
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.ORGANIZATION, rootOrgId,
+        true).repositoryConnections)
         .isEmpty();
 
     // Only root org
     tempEntity.newRepositoryConnection(rootOrgId);
-    assertThat(repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, rootOrgId, true))
+    assertThat(repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.ORGANIZATION, rootOrgId,
+        true).repositoryConnections)
         .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, rootOrgId));
   }
 
@@ -688,6 +734,92 @@ public class ApiRepositoryConnectionServiceTest
   }
 
   @Test
+  public void testGetOwnerRepositoryConnectionStatus() {
+    Owner root = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
+    setupOwner(root, true, true);
+    setupOwner(org, true, true);
+    setupOwner(app, true, null);
+    testGetOwnerRepositoryConnectionStatus(root, true, null, true, true);
+    testGetOwnerRepositoryConnectionStatus(org, true, null, true, true);
+    testGetOwnerRepositoryConnectionStatus(app, true, null, false, true);
+
+    setupOwner(root, true, true);
+    setupOwner(org, true, true);
+    setupOwner(app, false, null);
+    testGetOwnerRepositoryConnectionStatus(root, true, null, true, true);
+    testGetOwnerRepositoryConnectionStatus(org, true, null, true, true);
+    testGetOwnerRepositoryConnectionStatus(app, false, null, false, true);
+
+    setupOwner(root, true, false);
+    setupOwner(org, true, true);
+    setupOwner(app, true, null);
+    testGetOwnerRepositoryConnectionStatus(root, true, null, false, true);
+    testGetOwnerRepositoryConnectionStatus(org, true, root.getName(), true, false);
+    testGetOwnerRepositoryConnectionStatus(app, true, root.getName(), false, false);
+
+    setupOwner(root, false, false);
+    setupOwner(org, true, true);
+    setupOwner(app, true, null);
+    testGetOwnerRepositoryConnectionStatus(root, false, null, false, true);
+    testGetOwnerRepositoryConnectionStatus(org, false, root.getName(), true, false);
+    testGetOwnerRepositoryConnectionStatus(app, false, root.getName(), false, false);
+
+    setupOwner(root, true, true);
+    setupOwner(org, true, false);
+    setupOwner(app, true, null);
+    testGetOwnerRepositoryConnectionStatus(root, true, null, true, true);
+    testGetOwnerRepositoryConnectionStatus(org, true, null, false, true);
+    testGetOwnerRepositoryConnectionStatus(app, true, org.getName(), false, false);
+
+    setupOwner(root, true, true);
+    setupOwner(org, false, false);
+    setupOwner(app, true, null);
+    testGetOwnerRepositoryConnectionStatus(root, true, null, true, true);
+    testGetOwnerRepositoryConnectionStatus(org, false, null, false, true);
+    testGetOwnerRepositoryConnectionStatus(app, false, org.getName(), false, false);
+  }
+
+  private void setupOwner(Owner owner, Boolean enabled, Boolean allowOverride) {
+    switch (owner.getType()) {
+      case APPLICATION: {
+        Application application = (Application) owner;
+        application.setRepositoryConnectionEnabled(enabled);
+        applicationDAO.update(application);
+        break;
+      }
+      case ORGANIZATION: {
+        Organization organization = (Organization) owner;
+        organization.setRepositoryConnectionEnabled(enabled);
+        organization.setAllowRepositoryConnectionOverride(allowOverride);
+        organizationDAO.update(organization);
+        break;
+      }
+      default: {
+        fail("Unrecognized owner type");
+      }
+    }
+  }
+
+  private void testGetOwnerRepositoryConnectionStatus(
+      Owner owner,
+      Boolean expectedEnabled,
+      String expectedInheritedFromOrganizationName,
+      boolean expectedAllowOverride,
+      boolean expectedAllowChange)
+  {
+    ApiRepositoryConnectionStatusDTO result =
+        repositoryConnectionService.getOwnerRepositoryConnectionStatus(owner.getType(), owner.getId());
+    assertThat(result).isNotNull();
+    assertThat(result.enabled).isEqualTo(expectedEnabled);
+    assertThat(result.inheritedFromOrganizationName).isEqualTo(expectedInheritedFromOrganizationName);
+    assertThat(result.allowOverride).isEqualTo(expectedAllowOverride);
+    assertThat(result.allowChange).isEqualTo(expectedAllowChange);
+  }
+
+  @Test
   public void testUpdateOwnerRepositoryConnectionStatus_Organization() {
     String orgId = tempEntity.newOrganization().getId();
 
@@ -706,44 +838,11 @@ public class ApiRepositoryConnectionServiceTest
     Application app = tempEntity.newApplicationWithParent();
 
     ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
-    dto.allowOverride = null;
     dto.enabled = false;
     repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.APPLICATION, app.getId(), dto);
 
     Application application = new ApplicationDAO().getByIdNotNull(app.getId());
     assertThat(application.isRepositoryConnectionEnabled()).isEqualTo(dto.enabled);
-  }
-
-  @Test
-  public void testUpdateOwnerRepositoryConnectionStatus_Organization_OnlyEnable() {
-    Organization org = tempEntity.newOrganization();
-    org.setAllowRepositoryConnectionOverride(false);
-    org.setRepositoryConnectionEnabled(false);
-    organizationDAO.update(org);
-
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
-    dto.enabled = true;
-    repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION, org.getId(), dto);
-
-    Organization updatedOrg = organizationDAO.getByIdNotNull(org.getId());
-    assertThat(updatedOrg.isAllowRepositoryConnectionOverride()).isEqualTo(false);
-    assertThat(updatedOrg.isRepositoryConnectionEnabled()).isEqualTo(dto.enabled);
-  }
-
-  @Test
-  public void testUpdateOwnerRepositoryConnectionStatus_Organization_OnlyOverride() {
-    Organization org = tempEntity.newOrganization();
-    org.setAllowRepositoryConnectionOverride(false);
-    org.setRepositoryConnectionEnabled(false);
-    organizationDAO.update(org);
-
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
-    dto.allowOverride = true;
-    repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION, org.getId(), dto);
-
-    Organization updatedOrg = organizationDAO.getByIdNotNull(org.getId());
-    assertThat(updatedOrg.isAllowRepositoryConnectionOverride()).isEqualTo(dto.allowOverride);
-    assertThat(updatedOrg.isRepositoryConnectionEnabled()).isEqualTo(false);
   }
 
   @Test
@@ -753,16 +852,6 @@ public class ApiRepositoryConnectionServiceTest
         .isThrownBy(
             () -> repositoryConnectionService
                 .updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION, orgId, null))
-        .withMessage("missing repository connection configuration data for update");
-  }
-
-  @Test
-  public void testUpdateOwnerRepositoryConnectionStatus_AllowedForOwner_MissingUpdateData() {
-    String orgId = tempEntity.newOrganization().getId();
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(
-            () -> repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION, orgId, dto))
         .withMessage("missing repository connection configuration data for update");
   }
 
@@ -836,6 +925,34 @@ public class ApiRepositoryConnectionServiceTest
         repositoryConnection.getId());
 
     assertThat(response).isEqualTo(Status.BAD_GATEWAY);
+  }
+
+  @Test
+  public void testGetOwnerRepositoryConnections() {
+    Application application = tempEntity.newApplicationWithParent();
+    RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(application.getId());
+
+    ApiOwnerRepositoryConnectionsDTO dto =
+        repositoryConnectionService.getOwnerRepositoryConnections(application.getType(), application.getId(),
+            false);
+
+    assertThat(dto.repositoryConnections).hasSize(1);
+    ApiRepositoryConnectionDTO connectionDTO = dto.repositoryConnections.get(0);
+    assertRepositoryConnectionDTO(repositoryConnection, connectionDTO);
+    assertThat(dto.repositoryConnectionStatus.enabled).isTrue();
+    assertThat(dto.repositoryConnectionStatus.inheritedFromOrganizationName).isNull();
+    assertThat(dto.repositoryConnectionStatus.allowOverride).isFalse();
+    assertThat(dto.repositoryConnectionStatus.allowChange).isTrue();
+  }
+
+  @Test
+  public void testUpdateOwnerRepositoryConnectionStatus_RootOrgCannotInherit() {
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION,
+            Organization.ROOT_ORGANIZATION_ID, dto))
+        .withMessageContaining("root organization cannot inherit configuration");
   }
 
   private void setupMocks() {

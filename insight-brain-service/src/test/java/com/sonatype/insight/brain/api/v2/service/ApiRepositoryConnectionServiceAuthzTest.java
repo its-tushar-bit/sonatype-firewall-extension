@@ -5,12 +5,11 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
@@ -88,33 +87,33 @@ public class ApiRepositoryConnectionServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetRepositoryConnections_Unauthenticated() {
-    repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, org.getId(), false);
+  public void testGetOwnerRepositoryConnections_Unauthenticated() {
+    repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.ORGANIZATION, org.getId(), false);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetRepositoryConnections_Unauthorized() {
+  public void testGetOwnerRepositoryConnections_Unauthorized() {
     login();
-    repositoryConnectionService.getRepositoryConnections(OwnerType.ORGANIZATION, org.getId(), false);
+    repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.ORGANIZATION, org.getId(), false);
   }
 
   @Test
-  public void testGetRepositoryConnections_Authorized() {
+  public void testGetOwnerRepositoryConnections_Authorized() {
     grantGlobalPermission(Permission.READ);
-    assertGetRepositoryConnections();
+    assertGetOwnerRepositoryConnections();
   }
 
   @Test
   public void testGetRepositoryConnections_Authorized_ByOwner() {
     grantReadPermission(app.getId());
-    assertGetRepositoryConnections();
+    assertGetOwnerRepositoryConnections();
   }
 
-  private void assertGetRepositoryConnections() {
+  private void assertGetOwnerRepositoryConnections() {
     tempEntity.newRepositoryConnection(app.getId(), "url1", "user1", "pass1".toCharArray());
-    List<ApiRepositoryConnectionDTO> connections =
-        repositoryConnectionService.getRepositoryConnections(OwnerType.APPLICATION, app.getId(), false);
-    assertThat(connections).hasSize(1);
+    ApiOwnerRepositoryConnectionsDTO result =
+        repositoryConnectionService.getOwnerRepositoryConnections(OwnerType.APPLICATION, app.getId(), false);
+    assertThat(result.repositoryConnections).hasSize(1);
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -228,7 +227,7 @@ public class ApiRepositoryConnectionServiceAuthzTest
 
     assertThat(status).isEqualTo(Status.OK);
   }
-  
+
   @Test(expected = UnauthenticatedException.class)
   public void testUpdateOwnerRepositoryConnectionStatus_Unauthenticated() {
     repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.APPLICATION, app.getId(), null);

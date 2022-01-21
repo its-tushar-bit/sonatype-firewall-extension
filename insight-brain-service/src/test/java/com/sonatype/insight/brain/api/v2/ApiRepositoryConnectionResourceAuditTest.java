@@ -122,8 +122,8 @@ public class ApiRepositoryConnectionResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_CONNECTION, null);
     assertOrganizationData(auditDTO, organization);
-    assertCustomData(auditDTO, ApiRepositoryConnectionService.ENABLED_AUDIT_KEY, dto.enabled);
-    assertCustomData(auditDTO, ApiRepositoryConnectionService.ALLOW_OVERRIDE_AUDIT_KEY, dto.allowOverride);
+    assertCustomData(auditDTO, ApiRepositoryConnectionService.ENABLED_MODE_AUDIT_KEY, "enable");
+    assertCustomData(auditDTO, ApiRepositoryConnectionService.OVERRIDE_BY_CHILD_AUDIT_KEY, "disallow");
   }
 
   @Test
@@ -139,7 +139,6 @@ public class ApiRepositoryConnectionResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_REPOSITORY_CONNECTION, null);
     assertApplicationData(auditDTO, app);
-    assertCustomData(auditDTO, ApiRepositoryConnectionService.ENABLED_AUDIT_KEY, dto.enabled);
-    assertCustomData(auditDTO, ApiRepositoryConnectionService.ALLOW_OVERRIDE_AUDIT_KEY, dto.allowOverride);
+    assertCustomData(auditDTO, ApiRepositoryConnectionService.ENABLED_MODE_AUDIT_KEY, "enable");
   }
 }

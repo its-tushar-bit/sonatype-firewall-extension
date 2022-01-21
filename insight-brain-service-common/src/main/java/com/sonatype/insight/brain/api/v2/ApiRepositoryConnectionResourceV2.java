@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.util.List;
-
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.model.OwnerType;
 
@@ -34,10 +34,15 @@ public interface ApiRepositoryConnectionResourceV2
       String internalOwnerId,
       String repositoryConnectionId);
 
-  List<ApiRepositoryConnectionDTO> getRepositoryConnections(
+  ApiOwnerRepositoryConnectionsDTO getOwnerRepositoryConnections(
       OwnerType ownerType,
       String internalOwnerId,
       boolean inherit);
+
+  void upateOwnerRepositoryConnectionStatus(
+      OwnerType ownerType,
+      String internalOwnerId,
+      ApiRepositoryConnectionStatusDTO repositoryConnectionStatusDTO);
 
   ApiStatusDTO testRepositoryConnection(
       OwnerType ownerType,

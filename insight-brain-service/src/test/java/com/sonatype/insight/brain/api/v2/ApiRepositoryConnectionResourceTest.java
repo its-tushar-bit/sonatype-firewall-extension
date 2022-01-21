@@ -6,14 +6,15 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.Arrays;
-import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -239,8 +240,8 @@ public class ApiRepositoryConnectionResourceTest
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(200);
-    List<ApiRepositoryConnectionDTO> responseDtos = response.getBody(List.class);
-    assertThat(responseDtos).hasSize(2)
+    ApiOwnerRepositoryConnectionsDTO result = response.getBody(ApiOwnerRepositoryConnectionsDTO.class);
+    assertThat(result.repositoryConnections).hasSize(2)
         .extracting("repositoryConnectionId", "baseUrl", "username")
         .containsExactlyInAnyOrder(
             tuple(conn1.getId(), "http://baseurl1.com", "user1"),
@@ -249,10 +250,12 @@ public class ApiRepositoryConnectionResourceTest
 
   @Test
   public void testGetRepositoryConnections_InheritTrue() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
-    String orgId = application.getParentOwnerId();
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    organization.setAllowRepositoryConnectionOverride(false);
+    new OrganizationDAO().update(organization);
     RepositoryConnection orgRepositoryConnection =
-        tempEntity.newRepositoryConnection(orgId, "http://baseurl2.com", "user2", "pass2".toCharArray());
+        tempEntity.newRepositoryConnection(organization.getId(), "http://baseurl2.com", "user2", "pass2".toCharArray());
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
         .parameter(application.getType(), application.getId())
@@ -260,10 +263,10 @@ public class ApiRepositoryConnectionResourceTest
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(200);
-    List<ApiRepositoryConnectionDTO> responseDtos = response.getBody(List.class);
-    assertThat(responseDtos).hasSize(1)
+    ApiOwnerRepositoryConnectionsDTO result = response.getBody(ApiOwnerRepositoryConnectionsDTO.class);
+    assertThat(result.repositoryConnections).hasSize(1)
         .extracting("repositoryConnectionId", "ownerId", "baseUrl", "username")
-        .containsExactly(tuple(orgRepositoryConnection.getId(), orgId, "http://baseurl2.com", "user2"));
+        .containsExactly(tuple(orgRepositoryConnection.getId(), organization.getId(), "http://baseurl2.com", "user2"));
   }
 
   @Test
@@ -278,8 +281,8 @@ public class ApiRepositoryConnectionResourceTest
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(200);
-    List<ApiRepositoryConnectionDTO> responseDtos = response.getBody(List.class);
-    assertThat(responseDtos).isEmpty();
+    ApiOwnerRepositoryConnectionsDTO result = response.getBody(ApiOwnerRepositoryConnectionsDTO.class);
+    assertThat(result.repositoryConnections).isEmpty();
   }
 
   @Test
@@ -293,8 +296,8 @@ public class ApiRepositoryConnectionResourceTest
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(200);
-    List<ApiRepositoryConnectionDTO> responseDtos = response.getBody(List.class);
-    assertThat(responseDtos).isEmpty();
+    ApiOwnerRepositoryConnectionsDTO result = response.getBody(ApiOwnerRepositoryConnectionsDTO.class);
+    assertThat(result).isNotNull();
   }
 
   @Test
@@ -550,12 +553,10 @@ public class ApiRepositoryConnectionResourceTest
   @Test
   public void testUpdateOwnerRepositoryConnectionStatus_InvalidContent() throws Exception {
     String appId = tempEntity.newApplicationWithParent().getId();
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
-    dto.enabled = null;
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, appId)
-        .body(dto)
+        .body(null)
         .put();
     assertThat(response.getStatusCode()).isEqualTo(400);
   }

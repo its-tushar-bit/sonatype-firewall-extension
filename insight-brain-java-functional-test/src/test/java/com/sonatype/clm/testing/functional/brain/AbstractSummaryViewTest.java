@@ -34,6 +34,7 @@ import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -190,25 +191,35 @@ public abstract class AbstractSummaryViewTest
 
   @Test
   public void testInnerSourceRepositoryTile_Configured_Inherited() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
-    RepositoryConnection repositoryConnection1 = tempEntity.newRepositoryConnection(currentOwner.getParentOwnerId(),
-        "http://some.base.url.1", RepositoryFormat.MAVEN, null, null);
-    RepositoryConnection repositoryConnection2 = tempEntity.newRepositoryConnection(currentOwner.getParentOwnerId(),
-        "http://some.base.url.2", RepositoryFormat.NPM, null, null);
-    Owner parentOwner = new OwnerDAO().getById(currentOwner.getParentOwnerId());
-    refresh();
-    MainHeader.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
-    OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
-    InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
-    innerSourceRepositoryTile.should(exist);
-    innerSourceRepositoryTile.listTitle().shouldHave(text("Inherited from " + parentOwner.getName()));
-    ElementsCollection rows = innerSourceRepositoryTile.rows();
-    rows.shouldHaveSize(2);
-    rows.get(0).shouldBe(text(repositoryConnection1.getBaseUrl() + "\n" + repositoryConnection1.getFormat()));
-    rows.get(1).shouldBe(text(repositoryConnection2.getBaseUrl() + "\n" + repositoryConnection2.getFormat()));
-    innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
+    OrganizationDAO organizationDAO = new OrganizationDAO();
+    Organization parentOwner = organizationDAO.getById(currentOwner.getParentOwnerId());
+    try {
+      testCLMServer.getCLMServer().getConfiguration()
+          .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
+      RepositoryConnection repositoryConnection1 = tempEntity.newRepositoryConnection(currentOwner.getParentOwnerId(),
+          "http://some.base.url.1", RepositoryFormat.MAVEN, null, null);
+      RepositoryConnection repositoryConnection2 = tempEntity.newRepositoryConnection(currentOwner.getParentOwnerId(),
+          "http://some.base.url.2", RepositoryFormat.NPM, null, null);
+      parentOwner.setAllowRepositoryConnectionOverride(false);
+      organizationDAO.update(parentOwner);
+
+      refresh();
+      MainHeader.closeNavigationSidebar();
+      OwnerSummaryPage.summaryTile().dropdownButton().click();
+      OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
+      InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
+      innerSourceRepositoryTile.should(exist);
+      innerSourceRepositoryTile.listTitle().shouldHave(text("Inherited from " + parentOwner.getName()));
+      ElementsCollection rows = innerSourceRepositoryTile.rows();
+      rows.shouldHaveSize(2);
+      rows.get(0).shouldBe(text(repositoryConnection1.getBaseUrl() + "\n" + repositoryConnection1.getFormat()));
+      rows.get(1).shouldBe(text(repositoryConnection2.getBaseUrl() + "\n" + repositoryConnection2.getFormat()));
+      innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
+    }
+    finally {
+      parentOwner.setAllowRepositoryConnectionOverride(true);
+      organizationDAO.update(parentOwner);
+    }
   }
 
   @Test

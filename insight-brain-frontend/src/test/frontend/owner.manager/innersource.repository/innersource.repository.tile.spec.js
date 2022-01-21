@@ -166,10 +166,12 @@ describe('innerSourceRepositoryTile', function () {
           id: 'organizationId',
         });
         loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
-        getRepositoryConnectionsDeferred.resolve([
-          { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
-          { ownerId: 'organizationId', baseUrl: 'https://some.base.url.2' },
-        ]);
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnections: [
+            { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'organizationId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
 
         $scope.$digest();
 
@@ -199,10 +201,12 @@ describe('innerSourceRepositoryTile', function () {
           name: 'otherOwnerName',
         });
         loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
-        getRepositoryConnectionsDeferred.resolve([
-          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
-          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
-        ]);
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnections: [
+            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
 
         $scope.$digest();
 
@@ -224,10 +228,12 @@ describe('innerSourceRepositoryTile', function () {
       it('sets the error message on getById failure', function () {
         getByIdDeferred1.reject({ status: 404, data: 'not found' });
         loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
-        getRepositoryConnectionsDeferred.resolve([
-          { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
-          { ownerId: 'organizationId', baseUrl: 'https://some.base.url.2' },
-        ]);
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnections: [
+            { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'organizationId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
 
         $scope.$digest();
 
@@ -241,10 +247,12 @@ describe('innerSourceRepositoryTile', function () {
         });
         getByIdDeferred2.reject({ status: 404, data: 'not found' });
         loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
-        getRepositoryConnectionsDeferred.resolve([
-          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
-          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
-        ]);
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnections: [
+            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
 
         $scope.$digest();
 
@@ -257,10 +265,12 @@ describe('innerSourceRepositoryTile', function () {
           id: 'organizationId',
         });
         loadProductFeaturesDeferred.reject({ status: 404, data: 'not found' });
-        getRepositoryConnectionsDeferred.resolve([
-          { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
-          { ownerId: 'organizationId', baseUrl: 'https://some.base.url.2' },
-        ]);
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnections: [
+            { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'organizationId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
 
         $scope.$digest();
 
@@ -312,10 +322,12 @@ describe('innerSourceRepositoryTile', function () {
           id: 'applicationInternalId',
         });
         loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
-        getRepositoryConnectionsDeferred.resolve([
-          { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
-          { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.2' },
-        ]);
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnections: [
+            { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
 
         $scope.$digest();
 
@@ -345,10 +357,12 @@ describe('innerSourceRepositoryTile', function () {
           name: 'otherOwnerName',
         });
         loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
-        getRepositoryConnectionsDeferred.resolve([
-          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
-          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
-        ]);
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnections: [
+            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
 
         $scope.$digest();
 
@@ -370,10 +384,12 @@ describe('innerSourceRepositoryTile', function () {
       it('sets the error message on getById failure', function () {
         getByIdDeferred1.reject({ status: 404, data: 'not found' });
         loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
-        getRepositoryConnectionsDeferred.resolve([
-          { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
-          { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.2' },
-        ]);
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnections: [
+            { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
 
         $scope.$digest();
 
@@ -387,10 +403,12 @@ describe('innerSourceRepositoryTile', function () {
         });
         getByIdDeferred2.reject({ status: 404, data: 'not found' });
         loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
-        getRepositoryConnectionsDeferred.resolve([
-          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
-          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
-        ]);
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnections: [
+            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
 
         $scope.$digest();
 
@@ -403,10 +421,12 @@ describe('innerSourceRepositoryTile', function () {
           id: 'applicationInternalId',
         });
         loadProductFeaturesDeferred.reject({ status: 404, data: 'not found' });
-        getRepositoryConnectionsDeferred.resolve([
-          { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
-          { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.2' },
-        ]);
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnections: [
+            { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
 
         $scope.$digest();
 

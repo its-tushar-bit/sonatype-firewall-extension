@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -25,6 +23,7 @@ import javax.ws.rs.core.Response.Status;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRepositoryConnectionService;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -134,13 +133,13 @@ public class DefaultRepositoryConnectionResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER)
-  public List<ApiRepositoryConnectionDTO> getRepositoryConnections(
+  public ApiOwnerRepositoryConnectionsDTO getOwnerRepositoryConnections(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId,
       @QueryParam("inherit") @DefaultValue("false") boolean inherit)
   {
     checkInnerSourceRepositoryIntegrationEnabled();
-    return repositoryConnectionService.getRepositoryConnections(ownerType, internalOwnerId, inherit);
+    return repositoryConnectionService.getOwnerRepositoryConnections(ownerType, internalOwnerId, inherit);
   }
 
   @Override
@@ -180,6 +179,7 @@ public class DefaultRepositoryConnectionResource
     }
   }
 
+  @Override
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)

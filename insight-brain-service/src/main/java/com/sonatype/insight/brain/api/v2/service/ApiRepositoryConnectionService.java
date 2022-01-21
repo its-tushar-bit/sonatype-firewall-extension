@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,6 +15,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Response.Status;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -56,15 +56,15 @@ public class ApiRepositoryConnectionService
 
   public static final String REPOSITORY_CONNECTION_NOT_FOUND_ERROR =
       "no repository connections found with connection id: %s for %s having id: %s";
-  
-  public static final String ENABLED_AUDIT_KEY = "enabled";
 
-  public static final String ALLOW_OVERRIDE_AUDIT_KEY = "allowOverride";
+  public static final String OVERRIDE_BY_CHILD_AUDIT_KEY = "overrideByChild";
+
+  public static final String ENABLED_MODE_AUDIT_KEY = "enabledMode";
 
   private final OwnerDAO ownerDAO;
 
   private final RepositoryConnectionDAO repositoryConnectionDAO;
-  
+
   private final ApplicationDAO applicationDAO;
 
   private final OrganizationDAO organizationDAO;
@@ -155,17 +155,12 @@ public class ApiRepositoryConnectionService
       @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId,
       ApiRepositoryConnectionStatusDTO dto)
   {
-    if (dto == null ||
-        (ownerType == OwnerType.APPLICATION && dto.enabled == null) ||
-        (ownerType == OwnerType.ORGANIZATION && dto.enabled == null && dto.allowOverride == null)) {
+    if (dto == null) {
       throw new BadRequestException("missing repository connection configuration data for update");
     }
-
-    AuditData.get().setData(ENABLED_AUDIT_KEY, dto.enabled);
-    if (dto.allowOverride != null) {
-      AuditData.get().setData(ALLOW_OVERRIDE_AUDIT_KEY, dto.allowOverride);
+    if (Organization.ROOT_ORGANIZATION_ID.equals(ownerId) && dto.enabled == null) {
+      throw new BadRequestException("root organization cannot inherit configuration");
     }
-
     switch (ownerType) {
       case APPLICATION:
         Application app = applicationDAO.getByIdNotNull(ownerId);
@@ -174,17 +169,16 @@ public class ApiRepositoryConnectionService
         break;
       case ORGANIZATION:
         Organization org = organizationDAO.getByIdNotNull(ownerId);
-        if (dto.enabled != null) {
-          org.setRepositoryConnectionEnabled(dto.enabled);
-        }
-        if (dto.allowOverride != null) {
-          org.setAllowRepositoryConnectionOverride(dto.allowOverride);
-        }
+        org.setRepositoryConnectionEnabled(dto.enabled);
+        org.setAllowRepositoryConnectionOverride(dto.allowOverride);
         organizationDAO.update(org);
+        AuditData.get().setData(OVERRIDE_BY_CHILD_AUDIT_KEY, dto.allowOverride ? "allow" : "disallow");
         break;
       default:
         throw new IllegalStateException("Unknown owner type: " + ownerType);
     }
+    AuditData.get()
+        .setData(ENABLED_MODE_AUDIT_KEY, dto.enabled == null ? "inherit" : dto.enabled ? "enable" : "disable");
   }
 
   private void validateUpdateConnectionData(final ApiRepositoryConnectionDTO dto) {
@@ -263,18 +257,25 @@ public class ApiRepositoryConnectionService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<ApiRepositoryConnectionDTO> getRepositoryConnections(
+  public ApiOwnerRepositoryConnectionsDTO getOwnerRepositoryConnections(
       @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       boolean inherit)
   {
-    if (inherit) {
-      return repositoryConnectionDAO.getByOwnerIdWithHierarchy(internalOwnerId).stream()
-          .map(this::toRepositoryConnectionDTO).collect(Collectors.toList());
+    ApiOwnerRepositoryConnectionsDTO result = new ApiOwnerRepositoryConnectionsDTO();
+    result.repositoryConnectionStatus = getOwnerRepositoryConnectionStatus(ownerType, internalOwnerId);
+    if (inherit && result.repositoryConnectionStatus.inheritedFromOrganizationId != null) {
+      result.repositoryConnections =
+          repositoryConnectionDAO.getByOwnerId(result.repositoryConnectionStatus.inheritedFromOrganizationId).stream()
+              .map(this::toRepositoryConnectionDTO)
+              .collect(Collectors.toList());
     }
-    return repositoryConnectionDAO.getByOwnerId(internalOwnerId).stream()
-        .map(this::toRepositoryConnectionDTO)
-        .collect(Collectors.toList());
+    else {
+      result.repositoryConnections = repositoryConnectionDAO.getByOwnerId(internalOwnerId).stream()
+          .map(this::toRepositoryConnectionDTO)
+          .collect(Collectors.toList());
+    }
+    return result;
   }
 
   @Authorize(permission = Permission.READ)
@@ -305,6 +306,52 @@ public class ApiRepositoryConnectionService
         repositoryConnection.getUsername(),
         repositoryConnection.getPassword() == null ? null : passwordHandler.decryptPassword(
             repositoryConnection.getPassword()));
+  }
+
+  // Visible for testing
+  public ApiRepositoryConnectionStatusDTO getOwnerRepositoryConnectionStatus(
+      OwnerType ownerType,
+      String internalOwnerId)
+  {
+    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    dto.allowChange = true;
+
+    String parentOrgId;
+    switch (ownerType) {
+      case APPLICATION:
+        Application app = applicationDAO.getByIdNotNull(internalOwnerId);
+        dto.enabled = app.isRepositoryConnectionEnabled();
+        parentOrgId = app.getOrganizationId();
+        break;
+      case ORGANIZATION:
+        Organization org = organizationDAO.getByIdNotNull(internalOwnerId);
+        dto.enabled = org.isRepositoryConnectionEnabled();
+        dto.allowOverride = org.isAllowRepositoryConnectionOverride();
+        parentOrgId = org.getParentOrganizationId();
+        break;
+      default:
+        throw new IllegalStateException("Unknown owner type: " + ownerType);
+    }
+
+    while (parentOrgId != null) {
+      Organization org = organizationDAO.getByIdNotNull(parentOrgId);
+
+      if (!org.isAllowRepositoryConnectionOverride()) {
+        dto.enabled = org.isRepositoryConnectionEnabled();
+        dto.inheritedFromOrganizationId = org.getId();
+        dto.inheritedFromOrganizationName = org.getName();
+        dto.allowChange = false;
+      }
+      else if (dto.enabled == null) {
+        dto.enabled = org.isRepositoryConnectionEnabled();
+        dto.inheritedFromOrganizationId = org.getId();
+        dto.inheritedFromOrganizationName = org.getName();
+      }
+
+      parentOrgId = org.getParentOrganizationId();
+    }
+
+    return dto;
   }
 
   private Status testRepositoryConnection(String baseUrl, RepositoryFormat format, String username, char[] password) {

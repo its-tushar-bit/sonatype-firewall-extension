@@ -51,6 +51,9 @@ export default function ReportContent(props) {
     toggleShowFilterPopover,
     selectComponent,
     goToComponentDetailsPage,
+    goToDependencyTreePage,
+    dependencyTreeIsAvailable,
+    dependencyTreeUnavailableMessage,
     toggleAggregateReportEntries,
   } = props;
   const displayedEntries = selectedReport ? selectedReport.displayedEntries : [];
@@ -96,6 +99,9 @@ export default function ReportContent(props) {
       return <ReportTableRow key={index} index={index} component={component} onClick={onRowClick} />;
     });
 
+  const redirectToDependencyTree = () => {
+    if (dependencyTreeIsAvailable) goToDependencyTreePage();
+  };
   return (
     <section className="nx-tile iq-app-report__results-table-tile nx-viewport-sized__container">
       <div className="nx-tile-header">
@@ -105,6 +111,15 @@ export default function ReportContent(props) {
           </NxToggle>
         </div>
         <div className="nx-tile__actions">
+          <NxButton
+            onClick={redirectToDependencyTree}
+            variant="tertiary"
+            id="dependency-tree-button"
+            className={dependencyTreeIsAvailable ? '' : 'disabled'}
+            title={dependencyTreeUnavailableMessage}
+          >
+            View Dependency Tree
+          </NxButton>
           <NxButton onClick={toggleShowFilterPopover} variant="tertiary" id="filters-toggle-button">
             <NxFontAwesomeIcon icon={faFilter} />
             Filter
@@ -189,6 +204,8 @@ ReportContent.propTypes = {
     policyName: PropTypes.string,
     derivedComponentName: PropTypes.string,
   }),
+  dependencyTreeIsAvailable: PropTypes.bool,
+  dependencyTreeUnavailableMessage: PropTypes.string,
   // actions
   setSorting: PropTypes.func,
   setSortingParameters: PropTypes.func,
@@ -197,4 +214,5 @@ ReportContent.propTypes = {
   selectComponent: PropTypes.func.isRequired,
   toggleAggregateReportEntries: PropTypes.func.isRequired,
   goToComponentDetailsPage: PropTypes.func.isRequired,
+  goToDependencyTreePage: PropTypes.func.isRequired,
 };

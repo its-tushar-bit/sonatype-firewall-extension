@@ -8,8 +8,10 @@ import * as applicationReportActions from '../applicationReportActions';
 import { connect } from 'react-redux';
 import ReportPage from './ReportPage';
 import { stateGo } from '../../reduxUiRouter/routerActions';
+import { selectDependencyTreeIsAvailable, selectDependencyTreeUnavailableMessage } from '../applicationReportSelectors';
 
-function mapStateToProps({ applicationReport, router }) {
+function mapStateToProps(state) {
+  const { applicationReport, router } = state;
   return {
     ...pick(
       [
@@ -26,9 +28,10 @@ function mapStateToProps({ applicationReport, router }) {
     ),
     ...pick(['publicId', 'scanId', 'unknownjs', 'embeddable', 'policyViolationId'], router.currentParams),
     loading: !applicationReport.loadError && (!!applicationReport.pendingLoads.size || !applicationReport.metadata),
+    dependencyTreeIsAvailable: selectDependencyTreeIsAvailable(state),
+    dependencyTreeUnavailableMessage: selectDependencyTreeUnavailableMessage(state),
   };
 }
-
 const mapDispatchToProps = { ...applicationReportActions, stateGo };
 
 const ReportPageContainer = connect(mapStateToProps, mapDispatchToProps)(ReportPage);

@@ -228,4 +228,37 @@ describe('ReportContent component', function () {
     button.simulate('click');
     expect(toggleShowFilterPopoverSpy).toHaveBeenCalledTimes(1);
   });
+
+  it('when there is a DT dispatches action on DT button click and is enabled', function () {
+    const goToDependencyTreePageSpy = jasmine.createSpy('goToDependencyTreePage');
+    const props = {
+      goToDependencyTreePage: goToDependencyTreePageSpy,
+      dependencyTreeIsAvailable: true,
+      dependencyTreeUnavailableMessage: '',
+    };
+    const shallowComponent = getShallowComponent(props);
+    const button = shallowComponent.find('#dependency-tree-button');
+
+    expect(button).toExist();
+    expect(button).not.toHaveClassName('disabled');
+    button.simulate('click');
+    expect(goToDependencyTreePageSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('when there is not a DT does not dispatches action on DT button click and is disabled ', function () {
+    const goToDependencyTreePageSpy = jasmine.createSpy('goToDependencyTreePage');
+    const props = {
+      goToDependencyTreePage: goToDependencyTreePageSpy,
+      dependencyTreeIsAvailable: false,
+      dependencyTreeUnavailableMessage: 'some text',
+    };
+    const shallowComponent = getShallowComponent(props);
+    const button = shallowComponent.find('#dependency-tree-button');
+
+    expect(button).toExist();
+    expect(button).toHaveClassName('disabled');
+    button.simulate('click');
+    expect(goToDependencyTreePageSpy).toHaveBeenCalledTimes(0);
+    expect(button).toHaveProp('title', 'some text');
+  });
 });

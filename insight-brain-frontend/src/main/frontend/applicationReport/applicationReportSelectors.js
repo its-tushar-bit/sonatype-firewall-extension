@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { prop, isNil } from 'ramda';
+import { prop, isNil, isEmpty } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 import { selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -44,6 +44,18 @@ export const selectReportParameters = createSelector(selectApplicationReportSlic
 
 export const selectDependencyTreeData = createSelector(selectApplicationReportSlice, prop('dependencyTree'));
 export const selectDependencyTreeIsAvailable = createSelector(selectDependencyTreeData, (tree) => !isNilOrEmpty(tree));
+
+export const selectDependencyTreeUnavailableMessage = createSelector(selectDependencyTreeData, (tree) => {
+  if (isNil(tree)) {
+    return 'Please re-scan the application';
+  }
+
+  if (isEmpty(tree)) {
+    return 'Dependency tree not available';
+  }
+
+  return '';
+});
 
 export const selectDependencyTreeIsOldReport = createSelector(selectDependencyTreeData, isNil);
 

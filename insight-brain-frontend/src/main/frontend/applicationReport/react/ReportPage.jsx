@@ -27,6 +27,7 @@ export default function ReportPage(props) {
     toggleShowFilterPopover,
     selectComponent,
     goToComponentDetailsPage,
+    goToDependencyTreePage,
     // state
     publicId,
     scanId,
@@ -42,6 +43,8 @@ export default function ReportPage(props) {
     aggregate,
     exactValueFilters,
     substringFilters,
+    dependencyTreeIsAvailable,
+    dependencyTreeUnavailableMessage,
   } = props;
 
   useEffect(() => {
@@ -83,6 +86,9 @@ export default function ReportPage(props) {
             toggleShowFilterPopover={toggleShowFilterPopover}
             selectComponent={selectComponent}
             goToComponentDetailsPage={goToComponentDetailsPage}
+            goToDependencyTreePage={goToDependencyTreePage}
+            dependencyTreeIsAvailable={dependencyTreeIsAvailable}
+            dependencyTreeUnavailableMessage={dependencyTreeUnavailableMessage}
             toggleAggregateReportEntries={toggleAggregateReportEntries}
           />
         </NxLoadWrapper>
@@ -163,5 +169,8 @@ ReportPage.propTypes = {
     derivedComponentName: PropTypes.string,
   }),
   reevaluateMaskState: PropTypes.bool,
+  goToDependencyTreePage: PropTypes.func.isRequired,
+  dependencyTreeIsAvailable: PropTypes.bool,
+  dependencyTreeUnavailableMessage: PropTypes.string,
   toggleShowFilterPopover: PropTypes.func.isRequired,
 };

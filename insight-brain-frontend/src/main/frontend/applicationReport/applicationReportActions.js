@@ -380,6 +380,14 @@ export const expandAllDependencyTreeNodes = noPayloadActionCreator(EXPAND_ALL_DE
 
 export const COLLAPSE_ALL_DEPENDENCY_TREE_NODES = 'COLLAPSE_ALL_DEPENDENCY_TREE_NODES';
 export const collapseAllDependencyTreeNodes = noPayloadActionCreator(COLLAPSE_ALL_DEPENDENCY_TREE_NODES);
+
+export const goToDependencyTreePage = (hash) => {
+  return (dispatch, getState) => {
+    const { publicId, scanId } = selectRouterCurrentParams(getState());
+    dispatch(stateGo('applicationReport.dependencyTree', { hash, publicId, scanId }));
+  };
+};
+
 export const goToComponentDetailsPage = (hash) => {
   return (dispatch, getState) => {
     const { publicId, scanId } = selectRouterCurrentParams(getState());
@@ -423,5 +431,6 @@ export default function applicationReportActions() {
     expandAllDependencyTreeNodes,
     collapseAllDependencyTreeNodes,
     goToComponentDetailsPage,
+    goToDependencyTreePage,
   };
 }

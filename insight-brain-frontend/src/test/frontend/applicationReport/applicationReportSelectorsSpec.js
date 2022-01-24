@@ -18,6 +18,7 @@ import {
   selectDependencyTreeIsAvailable,
   selectApplicationReportSlice,
   selectDependencyTreeRouterParams,
+  selectDependencyTreeUnavailableMessage,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { dependencyTreeData } from '../dependencyTree/dependencyTreeMockData';
 
@@ -308,6 +309,46 @@ describe('applicationReportSelectors', () => {
       const actual = selectDependencyTreeIsAvailable(state);
 
       expect(actual).toEqual(false);
+    });
+  });
+
+  describe('selectDependencyTreeUnavailableMessage', () => {
+    it('returns Please re-scan the application if dependencyTree is null', () => {
+      const state = {
+        ...mockState,
+        applicationReport: {
+          ...mockState.applicationReport,
+          dependencyTree: null,
+        },
+      };
+      const actual = selectDependencyTreeUnavailableMessage(state);
+
+      expect(actual).toEqual('Please re-scan the application');
+    });
+
+    it('returns Dependency tree not available if dependencyTree is empty', () => {
+      const state = {
+        ...mockState,
+        applicationReport: {
+          ...mockState.applicationReport,
+          dependencyTree: [],
+        },
+      };
+      const actual = selectDependencyTreeUnavailableMessage(state);
+
+      expect(actual).toEqual('Dependency tree not available');
+    });
+    it('returns empty if dependencyTree is not empty', () => {
+      const state = {
+        ...mockState,
+        applicationReport: {
+          ...mockState.applicationReport,
+          dependencyTree: { tree: 'sometree' },
+        },
+      };
+      const actual = selectDependencyTreeUnavailableMessage(state);
+
+      expect(actual).toEqual('');
     });
   });
 

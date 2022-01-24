@@ -80,7 +80,7 @@ export default function ReportTitle(props) {
             <NxFontAwesomeIcon icon={faFilePdf} />
             <span>Generate PDF</span>
           </a>
-          <a className="nx-dropdown-button" href={sbomUrl}>
+          <a className="nx-dropdown-button" href={sbomUrl} target="_blank">
             <NxFontAwesomeIcon icon={faFileCode} />
             <span>View SBOM</span>
           </a>

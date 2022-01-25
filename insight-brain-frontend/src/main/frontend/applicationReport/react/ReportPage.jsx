@@ -74,7 +74,7 @@ export default function ReportPage(props) {
             reevaluateReport={reevaluateReport}
             stateGo={stateGo}
           />
-          <ReportStatusBar selectedReport={selectedReport} />
+          <ReportStatusBar />
           <ReportContent
             aggregate={aggregate}
             selectedReport={selectedReport}

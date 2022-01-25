@@ -9,9 +9,12 @@ import NxFontAwesomeIcon from '@sonatype/react-shared-components/components/NxFo
 import { faHistory } from '@fortawesome/pro-solid-svg-icons';
 import { propOr } from 'ramda';
 import { NxBinaryDonutChart } from '@sonatype/react-shared-components';
+import { useSelector } from 'react-redux';
 
-export default function ReportStatusBar(props) {
-  const { selectedReport } = props;
+import { selectSelectedReport } from '../applicationReportSelectors';
+
+export default function ReportStatusBar() {
+  const selectedReport = useSelector(selectSelectedReport);
 
   const getReportProp = (propName) => propOr(0, propName, selectedReport);
   const criticalViolationCount = getReportProp('criticalViolationCount');

@@ -7,6 +7,7 @@ import React from 'react';
 
 import { render, screen } from 'TestRoot/SpecUtil';
 import ReportStatusBar from 'MainRoot/applicationReport/react/ReportStatusBar';
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 
 describe('ReportStatusBar', () => {
   let renderComponent, selectedReport;
@@ -22,11 +23,9 @@ describe('ReportStatusBar', () => {
       moderateViolationCount: 333,
       nonLowViolationCount: 123,
     };
-    const minimalProps = {
-      selectedReport,
-    };
+    spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue(selectedReport);
 
-    renderComponent = () => render(<ReportStatusBar {...minimalProps} />);
+    renderComponent = () => render(<ReportStatusBar />);
   });
 
   it('renders critical threat indicator with count', () => {

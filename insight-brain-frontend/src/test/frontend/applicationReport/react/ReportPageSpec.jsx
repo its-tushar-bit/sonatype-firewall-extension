@@ -134,19 +134,7 @@ describe('Report Page component', function () {
 
   it('renders ReportStatusBar with props, ', function () {
     const reportStatusBar = getShallowComponent().find('ReportStatusBar');
-    const selectedReport = {
-      reportVersion: 3,
-      knownArtifactCount: 1,
-      totalArtifactCount: 2,
-      policyComponentCount: 1,
-      grandfatheredPolicyViolationCount: 0,
-      criticalViolationCount: 1,
-      severeViolationCount: 2,
-      moderateViolationCount: 3,
-      nonLowViolationCount: 0,
-    };
     expect(reportStatusBar).toExist();
-    expect(reportStatusBar).toHaveProp('selectedReport', selectedReport);
   });
 
   it('renders ReportContent with props, ', function () {

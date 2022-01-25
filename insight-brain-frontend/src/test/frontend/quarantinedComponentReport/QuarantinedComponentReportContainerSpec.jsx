@@ -26,6 +26,8 @@ describe('QuarantinedComponentContainer', function () {
 
     state = {
       loadError: 'this is the error',
+      violationsLoadError: null,
+      violationsLoading: false,
       router: {
         currentParams: {
           token: 'token',
@@ -36,6 +38,9 @@ describe('QuarantinedComponentContainer', function () {
           loadError: null,
           componentOverviewLoading: false,
           componentOverview: {},
+          violationsLoadError: null,
+          violationsLoading: false,
+          violations: { activePolicyViolations: [] },
         },
       },
     };
@@ -48,6 +53,7 @@ describe('QuarantinedComponentContainer', function () {
     let wrapper = shallow(vdom).dive();
 
     expect(wrapper).toHaveProp('loadError', null);
+    expect(wrapper).toHaveProp('violationsLoadError', null);
 
     state = {
       ...state,
@@ -64,6 +70,7 @@ describe('QuarantinedComponentContainer', function () {
     wrapper = shallow(vdom).dive();
 
     expect(wrapper).toHaveProp('loadError', 'error');
+    expect(wrapper).toHaveProp('violationsLoadError', null);
   });
 
   it('maps action creators to props', function () {
@@ -82,5 +89,6 @@ describe('QuarantinedComponentContainer', function () {
 
     expect(quarantinedComponentReport).toExist();
     expect(quarantinedComponentReport).toHaveProp('loadError', null);
+    expect(quarantinedComponentReport).toHaveProp('violationsLoadError', null);
   });
 });

@@ -10,6 +10,7 @@ import { formatDate } from '../util/dateUtils';
 
 import QuarantineComponentOverviewTile from './componentOverviewTile/QuarantineComponentOverviewTile';
 import QuarantineComponentOverviewDescriptionTile from './componentOverviewTile/QuarantinedComponentOverviewDescriptionTile';
+import PolicyViolationsTile from 'MainRoot/quarantinedComponentReport/policyViolationsTile/PolicyViolationsTile';
 
 export default function QuarantinedComponentReport(props) {
   // Url parameter
@@ -19,7 +20,7 @@ export default function QuarantinedComponentReport(props) {
   const { loadQuarantineReportData } = props;
 
   // viewState
-  const { loadError, componentOverview } = props;
+  const { loadError, componentOverview, violations, violationsLoading, violationsLoadError } = props;
 
   const dataLoading = componentOverview.componentOverviewLoading || !componentOverview.componentDisplayName;
 
@@ -37,6 +38,13 @@ export default function QuarantinedComponentReport(props) {
       <LoadWrapper retryHandler={() => loadQuarantineReportData(token)} error={loadError} loading={dataLoading}>
         <QuarantineComponentOverviewTile componentOverview={componentOverview} />
       </LoadWrapper>
+      <LoadWrapper
+        retryHandler={() => loadQuarantineReportData(token)}
+        error={violationsLoadError}
+        loading={violationsLoading}
+      >
+        <PolicyViolationsTile violations={violations} />
+      </LoadWrapper>
     </main>
   );
 }
@@ -45,4 +53,6 @@ QuarantinedComponentReport.propTypes = {
   token: PropTypes.string.isRequired,
   loadQuarantineReportData: PropTypes.func.isRequired,
   loadError: PropTypes.string,
+  violationsLoading: PropTypes.bool,
+  violationsLoadError: PropTypes.string,
 };

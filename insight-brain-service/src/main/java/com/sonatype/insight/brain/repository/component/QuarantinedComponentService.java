@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
 import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -106,11 +105,6 @@ public class QuarantinedComponentService
     final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
     final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
     final List<RepositoryPolicyViolation> policyViolations = getQuarantinedPolicyViolations(repositoryComponent);
-    if (policyViolations.size() == 0) {
-      log.error("Could not find policy violations causing quarantine for the component with repository component id {}",
-          repositoryComponentId);
-      throw new NotFoundException("No policy violations causing quarantine exist for the requested component.");
-    }
 
     final RepositoryPolicyThreatDTO repositoryPolicyThreatDTO = new RepositoryPolicyThreatDTO();
     repositoryPolicyThreatDTO.activePolicyViolations =

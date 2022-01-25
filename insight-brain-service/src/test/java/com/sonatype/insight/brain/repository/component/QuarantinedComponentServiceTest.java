@@ -26,7 +26,6 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.joda.time.DateTime;
@@ -208,34 +207,6 @@ public class QuarantinedComponentServiceTest
         conditionFact.getReason());
     assertThat(policyViolationDTO.constraints.get(0).conditions.get(0).conditionSummary).isEqualTo(
         conditionFact.getSummary());
-  }
-
-  @Test
-  public void testGetQuarantinedComponentPolicyViolations_noPolicyViolations() {
-    // setup
-    Date date = new Date();
-    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    final Repository repository = tempEntity.newRepository(repositoryManager, "repositoryPublicId");
-    final RepositoryComponent repositoryComponent =
-        tempEntity.newRepositoryComponent(repository.getId(), "path", date, null);
-    List<ConstraintFact> constraintFacts = new ArrayList<>();
-    ConstraintFact constraintFact =
-        new ConstraintFact(UUID.randomUUID().toString(), "constraintName", "and");
-    ConditionFact conditionFact = new ConditionFact(LicenseThreatGroupConditionType.ID,
-        0, "some summary", "some reason");
-    conditionFact.setTriggerJson("some trigger");
-    constraintFact.addConditionFact(conditionFact);
-    constraintFacts.add(constraintFact);
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent.getPathname(),
-        "hash", constraintFacts, true, "fail", "policyid", "policyname",
-        repositoryComponent.getComponentIdentifier(), date, null, null, null);
-    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token"))
-        .thenReturn(repositoryComponent.getId());
-
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentPolicyViolations("token");
-    }).isInstanceOf(NotFoundException.class)
-        .hasMessage("No policy violations causing quarantine exist for the requested component.");
   }
 
   @Test

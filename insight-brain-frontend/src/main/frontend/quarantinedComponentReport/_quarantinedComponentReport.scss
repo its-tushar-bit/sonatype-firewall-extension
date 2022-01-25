@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 quarantined-component-report {
   display: contents;
 }
@@ -21,5 +23,11 @@ quarantined-component-report {
     .iq-component-data-col {
       flex: none;
     }
+  }
+}
+
+.iq-quarantine-report-component-violations {
+  .iq-quarantine-report-component-violations__policy-name {
+    @include nx-text-helpers.bold;
   }
 }

@@ -737,6 +737,10 @@ export function getQuarantinedComponentOverviewUrl(token) {
   return uriTemplate`/rest/repositories/quarantinedComponent/${token}/overview`;
 }
 
+export function getQuarantinedComponentPolicyViolationsUrl(token) {
+  return uriTemplate`/rest/repositories/quarantinedComponent/${token}/policyViolations`;
+}
+
 export const getVulnerabilityOverrideUrl = (ownerType, ownerId, hash, vulnerability) => {
   if (hash && vulnerability) {
     const { source, refId } = vulnerability;

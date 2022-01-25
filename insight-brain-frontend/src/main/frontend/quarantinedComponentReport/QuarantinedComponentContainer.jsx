@@ -11,7 +11,10 @@ import { loadQuarantineReportData } from './quarantinedComponentReportActions';
 function mapStateToProps({ router, quarantinedComponentReport }) {
   return {
     ...pick(['token'], router.currentParams),
-    ...pick(['loadError', 'componentOverview'], quarantinedComponentReport.viewState),
+    ...pick(
+      ['loadError', 'componentOverview', 'violations', 'violationsLoading', 'violationsLoadError'],
+      quarantinedComponentReport.viewState
+    ),
   };
 }
 

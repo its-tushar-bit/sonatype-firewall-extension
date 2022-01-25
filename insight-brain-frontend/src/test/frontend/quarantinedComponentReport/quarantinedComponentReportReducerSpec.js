@@ -18,6 +18,7 @@ describe('quarantinedComponentReportReducer', function () {
         quarantinedDate: '',
         cataloguedDate: '',
       },
+      violations: { activePolicyViolations: [] },
     }),
   });
 
@@ -131,24 +132,77 @@ describe('quarantinedComponentReportReducer', function () {
         },
       });
     });
+  });
 
-    it('does not update loadError if it exists', function () {
-      let newState = reduce(minimumState, {
-        type: 'QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED',
-        payload: 'old error!',
+  describe('LOAD_POLICY_VIOLATIONS_REQUESTED action', function () {
+    let minimumState = {
+      viewState: {
+        violations: { activePolicyViolations: [] },
+      },
+    };
+
+    it('resets the state used for quarantine report policy violations', function () {
+      expect(reduce(minimumState, { type: 'LOAD_POLICY_VIOLATIONS_REQUESTED' })).toEqual({
+        ...minimumState,
+        viewState: {
+          ...minimumState.viewState,
+          violationsLoading: true,
+        },
       });
+    });
+  });
+
+  describe('LOAD_POLICY_VIOLATIONS_FULFILLED action', function () {
+    let minimumState = {
+      viewState: {
+        violations: { activePolicyViolations: [] },
+      },
+    };
+
+    it('updates the state', function () {
+      let payload = {
+        activePolicyViolations: [],
+      };
 
       expect(
-        reduce(newState, { type: 'QUARANTINED_REPORT_LOAD_QUARANTINE_COMPONENT_OVERVIEW_FAILED', payload: 'error!' })
+        reduce(minimumState, {
+          type: 'LOAD_POLICY_VIOLATIONS_FULFILLED',
+          payload: payload,
+        })
       ).toEqual({
         ...minimumState,
         viewState: {
           ...minimumState.viewState,
-          loadError: 'old error!',
-          componentOverview: {
-            ...minimumState.viewState.componentOverview,
-            componentOverviewLoading: false,
+          violationsLoadError: null,
+          violations: {
+            ...payload,
           },
+          violationsLoading: false,
+        },
+      });
+    });
+  });
+
+  describe('LOAD_POLICY_VIOLATIONS_FAILED action', function () {
+    let minimumState = {
+      viewState: {
+        violationsLoadError: null,
+        violations: { activePolicyViolations: [] },
+      },
+    };
+
+    it('updates the state', function () {
+      expect(
+        reduce(minimumState, {
+          type: 'LOAD_POLICY_VIOLATIONS_FAILED',
+          payload: 'error!',
+        })
+      ).toEqual({
+        ...minimumState,
+        viewState: {
+          ...minimumState.viewState,
+          violationsLoadError: 'error!',
+          violationsLoading: false,
         },
       });
     });

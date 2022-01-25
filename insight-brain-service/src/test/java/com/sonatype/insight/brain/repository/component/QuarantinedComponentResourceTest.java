@@ -354,9 +354,10 @@ public class QuarantinedComponentResourceTest
             QuarantinedComponentResource.QUARANTINED_COMPONENT_POLICY_VIOLATIONS_PATH).parameter(encodedToken).get();
 
     // then
-    assertThat(response.getStatusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-    assertThat(response.getBodyText())
-        .isEqualTo("No policy violations causing quarantine exist for the requested component.");
+    assertThat(response.getStatusCode()).isEqualTo(Status.OK.getStatusCode());
+    RepositoryPolicyThreatDTO dto = response.getBody(RepositoryPolicyThreatDTO.class);
+    assertThat(dto).isNotNull();
+    assertThat(dto.activePolicyViolations).isEmpty();
   }
 
   @Test

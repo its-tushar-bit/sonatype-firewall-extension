@@ -3,78 +3,118 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../enzymeUtils';
-import ReportStatusBar from '../../../../main/frontend/applicationReport/react/ReportStatusBar';
+import React from 'react';
 
-describe('ReportStatusBar component', function () {
-  let getShallowComponent;
+import { render, screen } from 'TestRoot/SpecUtil';
+import ReportStatusBar from 'MainRoot/applicationReport/react/ReportStatusBar';
+
+describe('ReportStatusBar', () => {
+  let renderComponent, selectedReport;
 
   beforeEach(function () {
+    selectedReport = {
+      knownArtifactCount: 250,
+      totalArtifactCount: 500,
+      policyComponentCount: 555,
+      grandfatheredPolicyViolationCount: 33,
+      criticalViolationCount: 111,
+      severeViolationCount: 222,
+      moderateViolationCount: 333,
+      nonLowViolationCount: 123,
+    };
     const minimalProps = {
-      selectedReport: {
-        knownArtifactCount: 1,
-        totalArtifactCount: 2,
-        policyComponentCount: 1,
-        grandfatheredPolicyViolationCount: 0,
-        criticalViolationCount: 1,
-        severeViolationCount: 2,
-        moderateViolationCount: 3,
-        nonLowViolationCount: 0,
-      },
+      selectedReport,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(ReportStatusBar, minimalProps);
+    renderComponent = () => render(<ReportStatusBar {...minimalProps} />);
   });
 
-  it('renders a tile', function () {
-    const shallowComponent = getShallowComponent();
-    expect(shallowComponent).toMatchSelector('.nx-tile');
+  it('renders critical threat indicator with count', () => {
+    renderComponent();
+    const criticalThreatIndicator = screen.getByText(selectedReport.criticalViolationCount);
+
+    expect(criticalThreatIndicator).toBeVisible();
+    expect(criticalThreatIndicator).toHaveClassName('iq-threat-indicator critical');
   });
 
-  it('renders a div for threats', function () {
-    const shallowComponent = getShallowComponent();
-    const indicator = shallowComponent.find('.iq-threat-indicators');
-    const critical = shallowComponent.find('.iq-threat-indicator.critical');
-    const severe = shallowComponent.find('.iq-threat-indicator.severe');
-    const moderate = shallowComponent.find('.iq-threat-indicator.moderate');
+  it('renders severe threat indicator with count', () => {
+    renderComponent();
+    const severeThreatIndicator = screen.getByText(selectedReport.severeViolationCount);
 
-    expect(indicator).toExist();
-    expect(critical).toExist();
-    expect(critical).toHaveText('1');
-    expect(severe).toExist();
-    expect(severe).toHaveText('2');
-    expect(moderate).toExist();
-    expect(moderate).toHaveText('3');
+    expect(severeThreatIndicator).toBeVisible();
+    expect(severeThreatIndicator).toHaveClassName('iq-threat-indicator severe');
   });
 
-  it('renders a div for violations counts', function () {
-    const shallowComponent = getShallowComponent();
-    const indicator = shallowComponent.find('.iq-threat-indicators');
-    const captionText = indicator.find('.iq-caption').find('h3');
-    const captionSubtext = indicator.find('.iq-caption').find('p');
+  it('renders moderate threat indicator with count', () => {
+    renderComponent();
+    const moderateThreatIndicator = screen.getByText(selectedReport.moderateViolationCount);
 
-    expect(indicator).toExist();
-    expect(captionText).toHaveText('0 VIOLATIONS');
-    expect(captionSubtext).toHaveText('Affecting 1 component');
+    expect(moderateThreatIndicator).toBeVisible();
+    expect(moderateThreatIndicator).toHaveClassName('iq-threat-indicator moderate');
   });
 
-  it('renders a div for coverage', function () {
-    const shallowComponent = getShallowComponent();
-    const indicator = shallowComponent.find('.iq-coverage-indicator');
-    const captionText = indicator.find('.iq-caption').find('h3');
-    const captionSubtext = indicator.find('.iq-caption').find('p');
+  it('renders total violation', () => {
+    selectedReport.nonLowViolationCount = 1;
 
-    expect(indicator).toExist();
-    expect(captionText).toHaveText('2 COMPONENTS');
-    expect(captionSubtext).toHaveText('50% of all components identified');
+    renderComponent();
+    const totalViolationText = screen.getByText(`${selectedReport.nonLowViolationCount} VIOLATION`);
+
+    expect(totalViolationText).toBeVisible();
   });
 
-  it('renders a div for grandfathering', function () {
-    const shallowComponent = getShallowComponent();
-    const indicator = shallowComponent.find('.iq-grandfathering-indicator');
-    const captionText = indicator.find('.iq-caption').find('h3');
+  it('renders total violations', () => {
+    renderComponent();
+    const totalViolationText = screen.getByText(`${selectedReport.nonLowViolationCount} VIOLATIONS`);
 
-    expect(indicator).toExist();
-    expect(captionText).toHaveText('0 Grandfathered');
+    expect(totalViolationText).toBeVisible();
+  });
+
+  it('renders affected component', () => {
+    selectedReport.policyComponentCount = 1;
+
+    renderComponent();
+    const affectedComponentText = screen.getByText(`Affecting ${selectedReport.policyComponentCount} component`);
+
+    expect(affectedComponentText).toBeVisible();
+  });
+
+  it('renders affected components', () => {
+    renderComponent();
+    const affectedComponentText = screen.getByText(`Affecting ${selectedReport.policyComponentCount} components`);
+
+    expect(affectedComponentText).toBeVisible();
+  });
+
+  it('renders total artifact count', () => {
+    renderComponent();
+    const totalArtifactText = screen.getByText(`${selectedReport.totalArtifactCount} COMPONENTS`);
+
+    expect(totalArtifactText).toBeVisible();
+  });
+
+  it('renders coverage percentage', () => {
+    renderComponent();
+    const coveragePercentageText = screen.getByText('50% of all components identified');
+
+    expect(coveragePercentageText).toBeVisible();
+  });
+
+  it('renders empty coverage percentage', () => {
+    selectedReport.knownArtifactCount = 0;
+    selectedReport.totalArtifactCount = 0;
+
+    renderComponent();
+    const totalArtifactText = screen.getByText('0% of all components identified');
+
+    expect(totalArtifactText).toBeVisible();
+  });
+
+  it('renders grandfathered count', () => {
+    renderComponent();
+    const grandfatheredCountText = screen.getByText(
+      `${selectedReport.grandfatheredPolicyViolationCount} Grandfathered`
+    );
+
+    expect(grandfatheredCountText).toBeVisible();
   });
 });

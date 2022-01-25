@@ -95,9 +95,8 @@ public class DataSourceConditionType
           : analyzerFeatures.isHasLicense();
       return HAS_SUPPORT_FOR.equals(operator) ? result : !result;
     }
-    // True return when the component does not have metadata results, this is because is likely to be a component from
-    // an old report so it's assumed it has identity
-    return true;
+    //If Metadata is not present we are returning false so the condition is not triggered
+    return false;
   }
 
   @Override

@@ -37,6 +37,10 @@ public class DefaultComponentDetailsLoader extends ComponentDetailsLoader
       component.setConflictingProprietaryName(
           proprietaryComponentNameDetector.findProprietaryComponentName(component.getComponentIdentifier()));
     }
+
+    if (componentDetails.getAnalyzerFeatures() != null) {
+      component.setAnalyzerFeatures(componentDetails.getAnalyzerFeatures());
+    }
     return component;
   }
 

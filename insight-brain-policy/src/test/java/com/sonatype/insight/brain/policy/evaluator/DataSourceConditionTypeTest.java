@@ -165,6 +165,12 @@ public class DataSourceConditionTypeTest
     assertThat(policyAlerts).hasSize(0);
   }
 
+  @Test
+  public void testEvaluatehasNoSupportForLicense_NoMetadata_License_Maven() {
+    Constraint constraint = createConstraint(HAS_NO_SUPPORT_FOR, LICENSE.getId());
+    assertNoViolations(ComponentIdentifier.FORMAT_MAVEN, constraint,null);
+  }
+
   private void testEvaluateDataSource(
       String format,
       Constraint constraint,
@@ -198,6 +204,29 @@ public class DataSourceConditionTypeTest
     String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
         .getConditionFacts().get(0).getReason();
     assertThat(actualReason).isEqualTo(expectedConditionMessage);
+  }
+
+  private void assertNoViolations(
+      final String format,
+      final Constraint constraint,
+      final AnalyzerFeatures analyzerFeatures)
+  {
+    List<Constraint> constraints = new ArrayList<>();
+    constraints.add(constraint);
+
+    // Create policy
+    Policy policy = new Policy("PolicyId", "Policy Name");
+    policy.setConstraints(constraints);
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    List<Component> components = new ArrayList<>();
+    Component component1 = forCoordinatesPackageUrl(format, "g", "a", "v", "q", "t");
+    component1.setAnalyzerFeatures(analyzerFeatures);
+    components.add(component1);
+
+    // Evaluate the policy
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+    assertThat(policyAlerts).isEmpty();
   }
 
   private AnalyzerFeatures fromHds() {

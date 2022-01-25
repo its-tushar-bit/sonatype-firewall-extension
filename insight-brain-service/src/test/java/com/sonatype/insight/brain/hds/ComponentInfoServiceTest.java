@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.ComponentDataSource;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -63,6 +64,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
@@ -91,6 +93,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.util.MetadataRecorderUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
@@ -678,6 +681,61 @@ public class ComponentInfoServiceTest
     assertThat(policyMaxThreatLevel).isNotNull();
     assertThat(policyMaxThreatLevel).hasSize(1);
     assertThat(policyMaxThreatLevel.get("security")).isEqualTo(8);
+  }
+
+  @Test
+  public void testGetComponentDetails_PolicyAlerts_Metadata() throws Exception {
+    String hash = "01234567890123456789";
+
+    Constraint constraint1 = new Constraint("C1", "C1", LogicalOperator.AND);
+    Condition condition1 =
+        new Condition(DataSourceConditionType.ID, "has support for", ComponentDataSource.IDENTITY.getId());
+    constraint1.addCondition(condition1);
+    Policy policy1 = new Policy("PolicyId1", "Policy1");
+    policy1.setThreatLevel(8);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, policy1);
+
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setHash(hash);
+    hdsComponentDetails.setAnalyzerFeatures(
+        MetadataRecorderUtils.createAnalyzerFeatures(MAVEN_A1_COORDINATES.getFormat()));
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_A1_COORDINATES,
+        MatchState.EXACT.getId(), hash, false /* proprietary */, httpRequestMock);
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
+
+    List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
+    assertThat(policyAlerts).hasSize(1);
+    assertThat(policyAlerts.get(0).getTrigger().getPolicyName()).isEqualTo("Policy1");
+  }
+
+  @Test
+  public void testGetComponentDetails_PolicyAlerts_NoMetadata() throws Exception {
+    String hash = "01234567890123456789";
+
+    Constraint constraint1 = new Constraint("C1", "C1", LogicalOperator.AND);
+    Condition condition1 =
+        new Condition(DataSourceConditionType.ID, "has support for", ComponentDataSource.IDENTITY.getId());
+    constraint1.addCondition(condition1);
+    Policy policy1 = new Policy("PolicyId1", "Policy1");
+    policy1.setThreatLevel(8);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(BuildStageType.ID, FailActionType.ID);
+    addPolicy(applicationPublicId, policy1);
+
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setHash(hash);
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails(application, MAVEN_A1_COORDINATES,
+        MatchState.EXACT.getId(), hash, false /* proprietary */, httpRequestMock);
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
+
+    List<PolicyAlert> policyAlerts = componentDetails.getPolicyAlerts();
+    assertThat(policyAlerts).isEmpty();
   }
 
   @Test

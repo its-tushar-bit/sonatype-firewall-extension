@@ -48,6 +48,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.HealthCheckReportRowDTO;
 import com.sonatype.insight.scan.HealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.util.MetadataRecorderUtils;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -268,6 +269,7 @@ public class ThirdPartyComponentDAO
     componentDetails.setHash(componentDTO.bomRow.hash);
     componentDetails.setMatchState(componentDTO.bomRow.matchState);
     componentDetails.setIdentificationSource(componentDTO.bomRow.identificationSource);
+    componentDetails.setAnalyzerFeatures(MetadataRecorderUtils.fromThirdParty(null));
     componentDetails.setSecurityVulnerabilities(
         componentDTO.securityRows.stream().map(this::toSecurityVulnerability).collect(Collectors.toList()));
     componentDetails.setDeclaredLicenses(

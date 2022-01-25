@@ -85,17 +85,17 @@ export default function ReportTitle(props) {
             <span>View SBOM</span>
           </a>
           <NxDropdownDivider />
-          <a className="nx-dropdown-link" onClick={onRawDataClick}>
+          <a className="nx-dropdown-link" onClick={onRawDataClick} role="link">
             <NxFontAwesomeIcon icon={faFile} />
             <span>View raw data</span>
           </a>
           <NxTooltip title={vulnPageTooltip} placement="top">
-            <a className={applyBtnClasses} onClick={onVulnerabilitiesDetailsClick} id="viewVulnBtn">
+            <a className={applyBtnClasses} onClick={onVulnerabilitiesDetailsClick} id="viewVulnBtn" role="link">
               <NxFontAwesomeIcon icon={faFile} />
               <span>View vulnerabilities</span>
             </a>
           </NxTooltip>
-          <a className="nx-dropdown-link" onClick={onLegacyReportClick}>
+          <a className="nx-dropdown-link" onClick={onLegacyReportClick} role="link">
             <NxFontAwesomeIcon icon={faFile} />
             <span>View legacy report</span>
           </a>

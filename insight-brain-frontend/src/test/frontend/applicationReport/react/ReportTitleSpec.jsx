@@ -3,23 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import React from 'react';
 import moment from 'moment-timezone';
-import { NxButton, NxStatefulDropdown, NxTooltip } from '@sonatype/react-shared-components';
-import * as enzymeUtils from 'TestRoot/enzymeUtils';
+
+import { render, screen, fireEvent } from '../../SpecUtil';
 import ReportTitle from 'MainRoot/applicationReport/react/ReportTitle';
 
-describe('ReportTitle component', function () {
-  let getShallowComponent, mockedReevaluateReport, metadataDetails;
+describe('ReportTitle', () => {
+  let renderComponent, minimalProps, mockedReevaluateReport, metadataDetails;
 
-  beforeAll(function () {
+  beforeAll(() => {
     moment.tz.setDefault('America/New_York');
   });
 
-  afterAll(function () {
+  afterAll(() => {
     moment.tz.setDefault();
   });
 
-  beforeEach(function () {
+  beforeEach(() => {
     mockedReevaluateReport = jasmine.createSpy('reevaluateReport');
     metadataDetails = {
       scanTriggerType: 'Unknown',
@@ -30,7 +31,7 @@ describe('ReportTitle component', function () {
         name: 'App Name',
       },
     };
-    const minimalProps = {
+    minimalProps = {
       metadataDetails,
       publicId: 'publicId',
       scanId: 'scanId',
@@ -40,28 +41,46 @@ describe('ReportTitle component', function () {
       reevaluateReport: mockedReevaluateReport,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(ReportTitle, minimalProps);
+    renderComponent = (optionalProps) => {
+      render(<ReportTitle {...minimalProps} {...optionalProps} />);
+    };
   });
 
-  it('renders a div a dropdown and a button', function () {
-    const shallowComponent = getShallowComponent();
-    const div = shallowComponent.find('div');
-    const button = shallowComponent.find(NxButton);
-    const dropdown = shallowComponent.find(NxStatefulDropdown);
-    expect(div).toExist();
-    expect(dropdown).toExist();
-    expect(button).toExist();
+  it('renders a title a dropdown and a button', () => {
+    renderComponent();
+    expect(screen.getByRole('heading', { name: 'App Name Title' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Re-Evaluate Report' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Options' })).toBeVisible();
   });
 
-  it('renders a disabled link if report version is less than 5', function () {
-    const shallowComponent = getShallowComponent();
-    const tooltip = shallowComponent.find(NxTooltip);
-    const link = tooltip.find('a');
-    expect(tooltip).toHaveProp('title', 'Reevaluate the report in order to enable Vulnerabilities view');
-    expect(link).toHaveClassName('disabled', true);
+  it('options dropdown render 5 links', () => {
+    renderComponent();
+    const options = screen.getByRole('button', { name: 'Options' });
+    expect(options).toBeInTheDocument();
+    fireEvent.click(options);
+
+    expect(screen.getByRole('link', { name: 'Generate PDF' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'View SBOM' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'View raw data' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'View vulnerabilities' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'View legacy report' })).toBeVisible();
   });
 
-  it('renders an enabled link if report version is greater than 5', function () {
+  it('renders a disabled view vulnerabilities link if report version is less than 5', async () => {
+    renderComponent();
+    const options = screen.getByRole('button', { name: 'Options' });
+    expect(options).toBeVisible();
+    fireEvent.click(options);
+
+    const vulnerabilities = screen.getByRole('link', { name: 'View vulnerabilities' });
+    expect(vulnerabilities).toHaveClassName('disabled');
+
+    fireEvent.mouseOver(vulnerabilities);
+    const tooltip = await screen.findByText('Reevaluate the report in order to enable Vulnerabilities view');
+    expect(tooltip).not.toBeNull();
+  });
+
+  it('renders an enabled view vulnerabilities link if report version is greater than 5', () => {
     const props = {
       metadataDetails: {
         reportTitle: 'Title',
@@ -75,69 +94,51 @@ describe('ReportTitle component', function () {
         reportVersion: 7,
       },
     };
-    const shallowComponent = getShallowComponent(props);
-    const button = shallowComponent.find(NxTooltip).find('a');
-    expect(button).toHaveClassName('nx-dropdown-link');
-    expect(button).not.toHaveClassName('disabled');
+
+    renderComponent(props);
+    const options = screen.getByText('Options');
+    expect(options).toBeVisible();
+    fireEvent.click(options);
+
+    const vulnerabilities = screen.getByRole('link', { name: 'View vulnerabilities' });
+    expect(vulnerabilities).not.toHaveClassName('disabled');
   });
 
-  it('calls reevaluateReport when the reevaluateReport button is pressed', function () {
-    const shallowComponent = getShallowComponent();
-    const button = shallowComponent.find(NxButton);
-    button.simulate('click');
+  it('calls reevaluateReport when the reevaluateReport button is pressed', () => {
+    renderComponent();
+    const reevaluateReport = screen.getByRole('button', { name: 'Re-Evaluate Report' });
+    expect(reevaluateReport).toBeVisible();
+    fireEvent.click(reevaluateReport);
     expect(mockedReevaluateReport).toHaveBeenCalled();
   });
 
-  it('renders a page title value', function () {
-    const component = getShallowComponent(),
-      title = component.find('.nx-page-title').find('.nx-h1');
-    expect(title).toHaveText('App Name Title');
-  });
-
-  it('renders a description with time value', function () {
-    const component = getShallowComponent({ metadataDetails: { ...metadataDetails, scanTriggerType: null } }),
-      content = component.find('.nx-page-title__description');
-    expect(content).toHaveText('on 2018-11-11 15:13:11 UTC-05:00');
-  });
-
-  it('renders a description with triggered by scan type', () => {
-    const component = getShallowComponent();
-    const content = component.find('.nx-page-title__description');
-
-    expect(content).toHaveText(`Triggered by ${metadataDetails.scanTriggerType} on 2018-11-11 15:13:11 UTC-05:00`);
+  it('renders a description with time value and triggered by scan type', () => {
+    renderComponent();
+    const description = screen.getByText(
+      `Triggered by ${metadataDetails.scanTriggerType} on 2018-11-11 15:13:11 UTC-05:00`
+    );
+    expect(description).toBeVisible();
   });
 
   it('renders a description with triggered by scan type from continuous monitoring', () => {
-    const component = getShallowComponent({
+    const props = {
       metadataDetails: { ...metadataDetails, forMonitoring: true },
-    });
-    const content = component.find('.nx-page-title__description');
-
-    expect(content).toHaveText(
+    };
+    renderComponent(props);
+    const description = screen.getByText(
       `Triggered by ${metadataDetails.scanTriggerType} (Continuous Monitoring) on 2018-11-11 15:13:11 UTC-05:00`
     );
+    expect(description).toBeVisible();
   });
 
   it('renders a description with triggered by scan type from re-evaluation', () => {
-    const component = getShallowComponent({ metadataDetails: { ...metadataDetails, reevaluation: true } });
-    const content = component.find('.nx-page-title__description');
-
-    expect(content).toHaveText(
+    const props = {
+      metadataDetails: { ...metadataDetails, reevaluation: true },
+    };
+    renderComponent(props);
+    const description = screen.getByText(
       `Triggered by ${metadataDetails.scanTriggerType} (Re-evaluation) on 2018-11-11 15:13:11 UTC-05:00`
     );
-  });
-
-  it('renders dropdown with Generate PDF button', () => {
-    const component = getShallowComponent();
-    const pdfButton = component.find('.iq-report-actions').find('.nx-dropdown-button').get(0);
-
-    expect(pdfButton.props.href).toBe('/rest/report/publicId/scanId/printReport');
-  });
-
-  it('renders dropdown with View SBOM button', () => {
-    const component = getShallowComponent();
-    const sbomButton = component.find('.iq-report-actions').find('.nx-dropdown-button').get(1);
-
-    expect(sbomButton.props.href).toBe('/ui/links/cycloneDx/metadataApplicationId/reports/scanId');
+    expect(description).toBeVisible();
   });
 });

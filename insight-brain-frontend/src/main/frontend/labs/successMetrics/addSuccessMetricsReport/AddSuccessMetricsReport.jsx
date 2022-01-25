@@ -87,7 +87,7 @@ function AddSuccessMetricsReport({
               onChange={() => setIncludeLatestData(false)}
               id="add-success-metrics-monthly"
             >
-              Only full calendar weeks and moths
+              Only full calendar weeks and months
             </NxRadio>
             <NxRadio
               name="includeLatestData"

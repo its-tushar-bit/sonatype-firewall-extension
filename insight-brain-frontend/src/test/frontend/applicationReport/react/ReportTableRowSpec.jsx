@@ -3,183 +3,112 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../enzymeUtils';
-import {
-  NxTableCell,
-  NxTableRow,
-  NxThreatIndicator,
-  NxTooltip,
-  NxFontAwesomeIcon,
-} from '@sonatype/react-shared-components';
-import ComponentDisplay from '../../../../main/frontend/ComponentDisplay/ReactComponentDisplay';
-import ReportTableRow from '../../../../main/frontend/applicationReport/react/ReportTableRow';
+import React from 'react';
+
+import ReportTableRow from 'MainRoot/applicationReport/react/ReportTableRow';
+import { render, screen, fireEvent } from '../../SpecUtil';
 
 describe('ReportTableRow component', function () {
-  let getShallowComponent, onClickSpy;
+  let renderComponent, onClickSpy;
 
   beforeEach(function () {
     onClickSpy = jasmine.createSpy('onClick');
     const minimalProps = {
       index: 0,
       component: {
-        derivedComponentName: 'Component B',
+        derivedComponentName: 'cryptiles : 3.1.4',
+        displayName: {
+          name: 'cryptiles : 3.1.4',
+          parts: [{ field: 'packageId', value: 'cryptiles' }, { value: ' : ' }, { field: 'version', value: '3.1.4' }],
+        },
         policyName: 'Security-High',
         policyThreatLevel: 9,
+        filenames: ['cryptiles:3.1.4'],
       },
       onClick: onClickSpy,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(ReportTableRow, minimalProps);
+    renderComponent = (additionalProps = {}) => render(<ReportTableRow {...minimalProps} {...additionalProps} />);
   });
 
-  it('renders a NxTableRow', function () {
-    const shallowComponent = getShallowComponent();
-    expect(shallowComponent).toMatchSelector(NxTableRow);
-  });
-
-  it('renders table cell', function () {
-    const shallowComponent = getShallowComponent();
-    const cell = shallowComponent.find(NxTableCell);
-    expect(cell).toExist();
+  it('renders a the policy, threat and component cells', function () {
+    renderComponent();
+    const threat = screen.getByText('9');
+    const policy = screen.getByText('Security-High');
+    const component = screen.getByText('cryptiles : 3.1.4');
+    expect(threat).toBeVisible();
+    expect(policy).toBeVisible();
+    expect(component).toBeVisible();
   });
 
   it('calls onClick', () => {
-    const shallowComponent = getShallowComponent();
-
-    shallowComponent.simulate('click');
-
+    renderComponent();
+    const clickable = screen.getByRole('row');
+    fireEvent.click(clickable);
     expect(onClickSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders minimal properties', function () {
-    const props = {
-        index: 0,
-        component: {
-          derivedComponentName: 'Component A',
-          policyName: 'None',
-          policyThreatLevel: 0,
-          derivedDependencyType: 'unknown',
-        },
-      },
-      shallowComponent = getShallowComponent(props),
-      rows = shallowComponent.find(NxTableRow),
-      cells = rows.find(NxTableCell),
-      firstTd = cells.at(0).find(NxTableCell),
-      secondTd = cells.at(1).find(NxTableCell),
-      thirdTd = cells.at(2).find(NxTableCell);
-
-    assertMinimalProperties(rows, cells, firstTd, secondTd, thirdTd, props.component);
   });
 
   it('renders properties with direct dependency type', function () {
     const props = {
-        index: 0,
-        component: {
-          derivedComponentName: 'Component A',
-          policyName: 'None',
-          policyThreatLevel: 0,
-          derivedDependencyType: 'direct',
-        },
+      component: {
+        derivedComponentName: 'Component A',
+        policyName: 'None',
+        policyThreatLevel: 0,
+        derivedDependencyType: 'direct',
       },
-      shallowComponent = getShallowComponent(props),
-      rows = shallowComponent.find(NxTableRow);
+    };
+    renderComponent(props);
+    const directDependencyIndicator = screen.getByText('D');
 
-    assertWithDependencyType(rows, props.component, true);
+    expect(directDependencyIndicator).toBeVisible();
+    expect(directDependencyIndicator.closest('div')).toHaveClassName('iq-dependency-indicator direct');
   });
 
   it('renders properties with transitive dependency type', function () {
     const props = {
-        index: 0,
-        component: {
-          derivedComponentName: 'Component A',
-          policyName: 'None',
-          policyThreatLevel: 0,
-          derivedDependencyType: 'transitive',
-        },
+      component: {
+        derivedComponentName: 'Component A',
+        policyName: 'None',
+        policyThreatLevel: 0,
+        derivedDependencyType: 'transitive',
       },
-      shallowComponent = getShallowComponent(props),
-      rows = shallowComponent.find(NxTableRow);
+    };
+    renderComponent(props);
+    const transitiveDependencyIndicator = screen.getByText('T');
 
-    assertWithDependencyType(rows, props.component, false);
+    expect(transitiveDependencyIndicator).toBeVisible();
+    expect(transitiveDependencyIndicator.closest('div')).toHaveClassName('iq-dependency-indicator transitive');
   });
 
   it('renders properties waived', function () {
     const props = {
-        index: 0,
-        component: {
-          derivedComponentName: 'Component A',
-          policyName: 'None',
-          policyThreatLevel: 0,
-          derivedDependencyType: 'unknown',
-          waived: true,
-        },
+      component: {
+        derivedComponentName: 'Component A',
+        policyName: 'None',
+        policyThreatLevel: 0,
+        derivedDependencyType: 'unknown',
+        waived: true,
       },
-      shallowComponent = getShallowComponent(props),
-      rows = shallowComponent.find(NxTableRow),
-      cells = rows.find(NxTableCell),
-      firstTd = cells.at(0).find(NxTableCell),
-      secondTd = cells.at(1).find(NxTableCell),
-      thirdTd = cells.at(2).find(NxTableCell);
+    };
+    renderComponent(props);
+    const waivedIndicator = screen.getByText('Waived');
 
-    assertMinimalProperties(rows, cells, firstTd, secondTd, thirdTd, props.component);
-    expect(thirdTd.find(NxFontAwesomeIcon)).toExist();
-    expect(thirdTd.find('span').first()).toHaveClassName('iq-text-indicator iq-text-indicator--waived iq-pull-right');
-    expect(thirdTd.find('span').last()).toHaveText('Waived');
+    expect(waivedIndicator).toBeVisible();
   });
 
-  it('renders properties grandfathered', function () {
+  it('renders grandfathered text', function () {
     const props = {
-        index: 0,
-        component: {
-          derivedComponentName: 'Component A',
-          policyName: 'None',
-          policyThreatLevel: 0,
-          derivedDependencyType: 'unknown',
-          grandfathered: true,
-        },
+      component: {
+        derivedComponentName: 'Component A',
+        policyName: 'None',
+        policyThreatLevel: 0,
+        derivedDependencyType: 'unknown',
+        grandfathered: true,
       },
-      shallowComponent = getShallowComponent(props),
-      rows = shallowComponent.find(NxTableRow),
-      cells = rows.find(NxTableCell),
-      firstTd = cells.at(0).find(NxTableCell),
-      secondTd = cells.at(1).find(NxTableCell),
-      thirdTd = cells.at(2).find(NxTableCell);
+    };
+    renderComponent(props);
+    const grandfatheredIndicator = screen.getByText('Grandfathered');
 
-    assertMinimalProperties(rows, cells, firstTd, secondTd, thirdTd, props.component);
-    expect(thirdTd.find(NxFontAwesomeIcon)).toExist();
-    expect(thirdTd.find('span').first()).toHaveClassName(
-      'iq-text-indicator iq-text-indicator--grandfathered iq-pull-right'
-    );
-    expect(thirdTd.find('span').last()).toHaveText('Grandfathered');
+    expect(grandfatheredIndicator).toBeVisible();
   });
-
-  const assertMinimalProperties = (rows, cells, firstTd, secondTd, thirdTd, component) => {
-    expect(rows).toExist();
-    expect(cells).toExist();
-    expect(firstTd).toExist();
-    expect(secondTd).toExist();
-
-    expect(firstTd.find(NxThreatIndicator)).toHaveProp('policyThreatLevel', 0);
-    expect(firstTd.find('.nx-threat-number')).toHaveText('0');
-    expect(secondTd.find('span').first()).toHaveText('None');
-    expect(thirdTd.find(ComponentDisplay)).toHaveProp('component', component);
-  };
-
-  const assertWithDependencyType = (rows, component, direct) => {
-    const cells = rows.find(NxTableCell),
-      firstTd = cells.at(0).find(NxTableCell),
-      secondTd = cells.at(1).find(NxTableCell),
-      thirdTd = cells.at(2).find(NxTableCell);
-    assertMinimalProperties(rows, cells, firstTd, secondTd, thirdTd, component);
-    let toolTip = thirdTd.find(NxTooltip);
-    if (direct) {
-      expect(toolTip).toHaveProp('title', 'Direct Dependency');
-      expect(toolTip.find('span').first()).toHaveText('D');
-      expect(toolTip.find('.iq-dependency-indicator.direct')).toExist();
-    } else {
-      expect(toolTip).toHaveProp('title', 'Transitive Dependency');
-      expect(toolTip.find('span').first()).toHaveText('T');
-      expect(toolTip.find('.iq-dependency-indicator.transitive')).toExist();
-    }
-  };
 });

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.experimental.legal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -30,6 +31,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightFilePathsDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalApplicationComponentsFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
@@ -57,6 +59,8 @@ public class ApiLicenseLegalResource
   public static final String COMPONENT_PATH = "{ownerType: application|organization}/{ownerId}/component";
 
   public static final String COMPONENT_COPYRIGHT_PATH = COMPONENT_PATH + "/copyright";
+
+  public static final String COMPONENT_SOURCE_LINK_PATH = COMPONENT_PATH + "/sourceLink";
 
   public static final String COMPONENT_LEGAL_FILE_PATH = COMPONENT_PATH + "/legalFile";
 
@@ -377,5 +381,21 @@ public class ApiLicenseLegalResource
         ownerId,
         apiLicenseLegalService.getComponentIdentifier(componentIdentifier, packageUrl),
         componentHash);
+  }
+
+  /**
+   * @since 1.133
+   */
+  @POST
+  @Path(COMPONENT_SOURCE_LINK_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_COMPONENT_SOURCE_LINK)
+  public ComponentSourceLinkDTO saveComponentSourceLink(
+      ComponentSourceLinkDTO componentSourceLinkDTO,
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId)
+  {
+    return componentLegalService.saveComponentSourceLink(ownerType, ownerId, componentSourceLinkDTO);
   }
 }

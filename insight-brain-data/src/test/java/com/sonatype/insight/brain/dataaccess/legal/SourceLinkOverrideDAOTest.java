@@ -1,0 +1,73 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.dataaccess.legal;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.model.legal.ComponentSourceLink;
+import com.sonatype.insight.brain.model.legal.SourceLinkOverride;
+import com.sonatype.insight.error.exception.BadRequestException;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
+public class SourceLinkOverrideDAOTest
+    extends AbstractDbDAOTest
+{
+  private SourceLinkOverrideDAO dao;
+
+  @Before
+  public void before() {
+    dao = new SourceLinkOverrideDAO();
+  }
+
+  @Test
+  public void testCRUD() {
+    // Create
+    ComponentSourceLink componentSourceLink = tempEntity.newComponentSourceLink(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId());
+    SourceLinkOverride sourceLinkOverride = new SourceLinkOverride( "content",
+        ComponentLegalPartStatus.ENABLED, componentSourceLink.getId());
+    dao.insert(sourceLinkOverride);
+    assertThat(sourceLinkOverride.getId()).isNotNull();
+
+    // Read
+    assertThat(dao.getById(sourceLinkOverride.getId())).usingRecursiveComparison().isEqualTo(sourceLinkOverride);
+
+    // Update
+    sourceLinkOverride.setContent(sourceLinkOverride.getContent() + "2");
+    sourceLinkOverride.setStatus(ComponentLegalPartStatus.DISABLED);
+    ComponentSourceLink componentSourceLink2 = tempEntity.newComponentSourceLink(
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), application.getId());
+    sourceLinkOverride.setComponentSourceLinkId(componentSourceLink2.getId());
+    dao.update(sourceLinkOverride);
+    assertThat(dao.getById(sourceLinkOverride.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(sourceLinkOverride);
+
+    // Delete
+    dao.delete(sourceLinkOverride);
+    assertThat(dao.getById(sourceLinkOverride.getId())).isNull();
+  }
+
+  @Test
+  public void testUpdate_DoesNotExist() {
+    ComponentSourceLink componentSourceLink = tempEntity
+        .newComponentSourceLink(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId());
+    SourceLinkOverride sourceLinkOverride =
+        new SourceLinkOverride("content", ComponentLegalPartStatus.ENABLED, componentSourceLink.getId());
+    sourceLinkOverride.setId("doesNotExist");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dao.update(sourceLinkOverride))
+        .withMessageContaining(
+            "Cannot update source link override with id " + sourceLinkOverride.getId() + " because it does not exist.");
+  }
+}

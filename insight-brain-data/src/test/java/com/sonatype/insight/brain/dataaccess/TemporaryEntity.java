@@ -60,8 +60,10 @@ import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentSourceLinkDAO;
 import com.sonatype.insight.brain.dataaccess.legal.CopyrightOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.legal.LegalFileOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.legal.SourceLinkOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
@@ -146,10 +148,12 @@ import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.brain.model.legal.ComponentSourceLink;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
+import com.sonatype.insight.brain.model.legal.SourceLinkOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -407,6 +411,10 @@ public class TemporaryEntity
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = new QuarantinedComponentAccessDAO();
 
   private final RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
+  
+  private final ComponentSourceLinkDAO componentSourceLinkDAO = new ComponentSourceLinkDAO();
+  
+  private final SourceLinkOverrideDAO sourceLinkOverrideDAO = new SourceLinkOverrideDAO();
 
   private MailConfiguration savedMailConfiguration;
 
@@ -641,6 +649,7 @@ public class TemporaryEntity
     autoUnquarantinePolicyConditionTypeDAO.getAll().forEach(autoUnquarantinePolicyConditionTypeDAO::delete);
     attributionReportTemplateDAO.getAll().forEach(attributionReportTemplateDAO::delete);
     quarantinedComponentAccessDAO.getAll().forEach(quarantinedComponentAccessDAO::delete);
+    componentSourceLinkDAO.getAll().forEach(componentSourceLinkDAO::delete);
   }
 
   private <E> void detachEntity(E entity) {
@@ -3242,5 +3251,26 @@ public class TemporaryEntity
     repositoryConnectionDAO.insert(connection);
     repositoryConnections.add(connection);
     return connection;
+  }
+  
+  public ComponentSourceLink newComponentSourceLink(
+      ComponentIdentifier componentIdentifier,
+      String ownerId)
+  {
+    ComponentSourceLink componentSourceLink =
+        new ComponentSourceLink(componentIdentifier, ownerId, "username");
+    componentSourceLinkDAO.insert(componentSourceLink);
+    return componentSourceLink;
+  }
+  
+  public SourceLinkOverride newSourceLinkOverride(
+      String content,
+      ComponentLegalPartStatus status,
+      String componentSourceLinkId)
+  {
+    SourceLinkOverride sourceLinkOverride =
+        new SourceLinkOverride(content, status, componentSourceLinkId);
+    sourceLinkOverrideDAO.insert(sourceLinkOverride);
+    return sourceLinkOverride;
   }
 }

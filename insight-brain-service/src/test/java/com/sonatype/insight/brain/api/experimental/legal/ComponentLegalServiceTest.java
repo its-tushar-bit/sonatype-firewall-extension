@@ -21,14 +21,18 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LegalFileOverrideDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.SourceLinkOverrideDTO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentSourceLinkDAO;
 import com.sonatype.insight.brain.dataaccess.legal.CopyrightOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.legal.LegalFileOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.legal.SourceLinkOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -38,10 +42,12 @@ import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.brain.model.legal.ComponentSourceLink;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
+import com.sonatype.insight.brain.model.legal.SourceLinkOverride;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -84,7 +90,13 @@ public class ComponentLegalServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
-
+  
+  @Inject
+  private ComponentSourceLinkDAO componentSourceLinkDAO;
+  
+  @Inject
+  private SourceLinkOverrideDAO sourceLinkOverrideDAO;
+  
   @Test
   public void testSaveComponentCopyright_Unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
@@ -1882,5 +1894,379 @@ public class ComponentLegalServiceTest
     assertThat(actual.getComment()).isEqualTo(expected.getComment());
     assertThat(actual.getLastUpdatedByUsername()).isEqualTo(expected.getLastUpdatedByUsername());
     assertThat(actual.getLastUpdatedAt()).isEqualTo(expected.getLastUpdatedAt());
+  }
+  
+  @Test
+  public void testSaveComponentSourceLink_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> componentLegalService.saveComponentSourceLink(null, null, null));
+  }
+
+  @Test
+  public void testSaveNewComponentSourceLink() {
+    Application application = tempEntity.newApplicationWithParent();
+    ApiComponentIdentifierDTOV2 componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
+
+    ComponentSourceLinkDTO componentSourceLinkDTO = new ComponentSourceLinkDTO(
+        null,
+        componentIdentifier,
+        Lists.newArrayList(new SourceLinkOverrideDTO(
+                null,
+                "content",
+                ComponentLegalPartStatus.ENABLED
+            ),
+            new SourceLinkOverrideDTO(
+                null,
+                "content2",
+                ComponentLegalPartStatus.DISABLED
+            ),
+            new SourceLinkOverrideDTO(
+                null,
+                null,
+                ComponentLegalPartStatus.ENABLED
+            )
+        ),
+        null,
+        null
+    );
+
+    ComponentSourceLinkDTO returnedComponentSourceLinkDTO =
+        componentLegalService
+            .saveComponentSourceLink(OwnerType.APPLICATION, application.getPublicId(), componentSourceLinkDTO);
+
+    assertThat(returnedComponentSourceLinkDTO.getId()).isNotNull();
+    assertThat(returnedComponentSourceLinkDTO.getSourceLinkOverrides()).hasSize(2);
+    returnedComponentSourceLinkDTO.getSourceLinkOverrides().forEach(co ->
+        assertThat(co.getId()).isNotNull());
+    assertThat(returnedComponentSourceLinkDTO.getLastUpdatedAt()).isNotNull();
+    assertThat(returnedComponentSourceLinkDTO.getLastUpdatedByUsername()).isEqualTo(USERNAME);
+    assertThat(returnedComponentSourceLinkDTO.getComponentIdentifier()).usingRecursiveComparison()
+        .isEqualTo(componentIdentifier);
+
+    SourceLinkOverrideDTO sourceLinkOverrideDTO0 = returnedComponentSourceLinkDTO.getSourceLinkOverrides().get(0);
+    SourceLinkOverrideDTO sourceLinkOverrideDTO1 = returnedComponentSourceLinkDTO.getSourceLinkOverrides().get(1);
+
+    assertThat(sourceLinkOverrideDTO0.getContent()).isEqualTo("content");
+    assertThat(sourceLinkOverrideDTO0.getStatus()).isEqualTo(ComponentLegalPartStatus.ENABLED);
+
+    assertThat(sourceLinkOverrideDTO1.getContent()).isEqualTo("content2");
+    assertThat(sourceLinkOverrideDTO1.getStatus()).isEqualTo(ComponentLegalPartStatus.DISABLED);
+  }
+
+  @Test
+  public void testUpdatedExistingComponentSourceLink() {
+    Application application = tempEntity.newApplicationWithParent();
+    Organization organization = tempEntity.newOrganization();
+
+    ApiComponentIdentifierDTOV2 componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
+
+    ComponentSourceLinkDTO componentSourceLinkDTO = new ComponentSourceLinkDTO(
+        null,
+        componentIdentifier,
+        Lists.newArrayList(new SourceLinkOverrideDTO(
+                null,
+                "content",
+                ComponentLegalPartStatus.ENABLED
+            ),
+            new SourceLinkOverrideDTO(
+                null,
+                "content2",
+                ComponentLegalPartStatus.DISABLED
+            )
+        ),
+        null,
+        null
+    );
+
+    //Persist original componentSourceLink
+    ComponentSourceLinkDTO existingComponentSourceLink =
+        componentLegalService
+            .saveComponentSourceLink(OwnerType.APPLICATION, application.getPublicId(), componentSourceLinkDTO);
+
+    //Modify certain properties
+    existingComponentSourceLink.getSourceLinkOverrides().get(0).setContent("updated content");
+    existingComponentSourceLink.getSourceLinkOverrides().add(
+        new SourceLinkOverrideDTO(
+            null,
+            "content3",
+            ComponentLegalPartStatus.ENABLED
+        ));
+    assertThat(componentSourceLinkDAO
+        .getByOwnerIdAndComponentIdentifier(application.getId(), componentIdentifier.toComponentIdentifier()))
+        .isNotNull();
+
+    //Persist the updated values
+    ComponentSourceLinkDTO updatedComponentSourceLinkDTO =
+        componentLegalService
+            .saveComponentSourceLink(OwnerType.ORGANIZATION, organization.getPublicId(), existingComponentSourceLink);
+
+    assertThat(updatedComponentSourceLinkDTO.getId()).isNotNull();
+    assertThat(updatedComponentSourceLinkDTO.getSourceLinkOverrides()).hasSize(3);
+    updatedComponentSourceLinkDTO.getSourceLinkOverrides().forEach(co ->
+        assertThat(co.getId()).isNotNull());
+    assertThat(updatedComponentSourceLinkDTO.getComponentIdentifier()).usingRecursiveComparison()
+        .isEqualTo(componentIdentifier);
+
+    SourceLinkOverrideDTO sourceLinkOverrideDTO0 = updatedComponentSourceLinkDTO.getSourceLinkOverrides().get(0);
+    SourceLinkOverrideDTO sourceLinkOverrideDTO1 = updatedComponentSourceLinkDTO.getSourceLinkOverrides().get(1);
+    SourceLinkOverrideDTO sourceLinkOverrideDTO2 = updatedComponentSourceLinkDTO.getSourceLinkOverrides().get(2);
+
+    assertThat(sourceLinkOverrideDTO0.getContent()).isEqualTo("updated content");
+    assertThat(sourceLinkOverrideDTO0.getStatus()).isEqualTo(ComponentLegalPartStatus.ENABLED);
+
+    assertThat(sourceLinkOverrideDTO1.getContent()).isEqualTo("content2");
+    assertThat(sourceLinkOverrideDTO1.getStatus()).isEqualTo(ComponentLegalPartStatus.DISABLED);
+
+    assertThat(sourceLinkOverrideDTO2.getContent()).isEqualTo("content3");
+
+    ComponentSourceLink componentSourceLink = componentSourceLinkDAO.getById(updatedComponentSourceLinkDTO.getId());
+    assertThat(componentSourceLink.getOwnerId()).isEqualTo(organization.getId());
+    assertThat(componentSourceLinkDAO
+        .getByOwnerIdAndComponentIdentifier(application.getId(), componentIdentifier.toComponentIdentifier())).isNull();
+  }
+
+  /**
+   * Removing a SourceLinkOverride from an existing ComponentSourceLink should delete
+   */
+  @Test
+  public void testBlankSourceLinkOverrideInsert() {
+    Application application = tempEntity.newApplicationWithParent();
+    ApiComponentIdentifierDTOV2 componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
+
+    ComponentSourceLinkDTO componentSourceLinkDTO = new ComponentSourceLinkDTO(
+        null,
+        componentIdentifier,
+        Lists.newArrayList(new SourceLinkOverrideDTO(
+                null,
+                "content",
+                ComponentLegalPartStatus.ENABLED
+            )
+        ),
+        null,
+        null
+    );
+
+    ComponentSourceLinkDTO returnedComponentSourceLinkDTO =
+        componentLegalService
+            .saveComponentSourceLink(OwnerType.APPLICATION, application.getPublicId(), componentSourceLinkDTO);
+
+    returnedComponentSourceLinkDTO.getSourceLinkOverrides().get(0).setContent("");
+
+    ComponentSourceLinkDTO updatedComponentSourceLinkDTO =
+        componentLegalService
+            .saveComponentSourceLink(OwnerType.APPLICATION, application.getPublicId(), returnedComponentSourceLinkDTO);
+
+    assertThat(updatedComponentSourceLinkDTO.getSourceLinkOverrides()).isEmpty();
+  }
+
+  /**
+   * The scenario is the following: - a ComponentSourceLink with ID A exists at the OrgScope - a ComponentSourceLink
+   * with ID B exists at the ApplicationScope - user modifies ComponentSourceLink B to OrgScope. ComponentSourceLink A
+   * is updated to match ComponentSourceLink B except in scope and ComponentSourceLink A is deleted.
+   */
+  @Test
+  public void testConflictingComponentSourceLinkWhileUpdating() {
+    ApiComponentIdentifierDTOV2 componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
+
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+
+    ComponentSourceLink orgComponentSourceLink =
+        tempEntity.newComponentSourceLink(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+            organization.getId());
+    ComponentSourceLink appComponentSourceLink =
+        tempEntity.newComponentSourceLink(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+            application.getId());
+
+    assertThat(componentSourceLinkDAO.getById(appComponentSourceLink.getId())).isNotNull();
+
+    ComponentSourceLinkDTO componentSourceLinkDTO = new ComponentSourceLinkDTO(
+        appComponentSourceLink.getId(),
+        componentIdentifier,
+        Lists.newArrayList(new SourceLinkOverrideDTO(
+                null,
+                "content",
+                ComponentLegalPartStatus.ENABLED
+            ),
+            new SourceLinkOverrideDTO(
+                null,
+                "content2",
+                ComponentLegalPartStatus.DISABLED
+            )
+        ),
+        null,
+        null
+    );
+
+    ComponentSourceLinkDTO returnedComponentSourceLinkDTO = componentLegalService
+        .saveComponentSourceLink(OwnerType.ORGANIZATION, organization.getPublicId(), componentSourceLinkDTO);
+
+    assertThat(componentSourceLinkDAO.getById(appComponentSourceLink.getId())).isNull();
+    assertThat(returnedComponentSourceLinkDTO.getSourceLinkOverrides()).hasSize(2);
+    assertThat(returnedComponentSourceLinkDTO.getId()).isEqualTo(orgComponentSourceLink.getId());
+
+    ComponentSourceLink persistedComponentSourceLink =
+        componentSourceLinkDAO.getById(returnedComponentSourceLinkDTO.getId());
+    assertThat(persistedComponentSourceLink.getOwnerId()).isEqualTo(organization.getId());
+  }
+
+  /**
+   * The scenario is the following: Inserting a new ComponentSourceLink at an existing scope. A ComponentSourceLink with
+   * ID A exists at the OrgScope. The user inserts a new ComponentSourceLink from the application scope at the OrgScope.
+   * There is a conflict. The ComponentSourceLink A is updated to match the new ComponentSourceLink.
+   */
+  @Test
+  public void testConflictingComponentSourceLinkWhileInserting() {
+    ApiComponentIdentifierDTOV2 componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
+
+    Organization organization = tempEntity.newOrganization();
+
+    tempEntity.newComponentSourceLink(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"),
+        organization.getId());
+
+    ComponentSourceLinkDTO componentSourceLinkDTO = new ComponentSourceLinkDTO(
+        null, //null ID signifies we are creating a new ComponentSourceLink
+        componentIdentifier,
+        Lists.newArrayList(new SourceLinkOverrideDTO(
+                null,
+                "content",
+                ComponentLegalPartStatus.ENABLED
+            ),
+            new SourceLinkOverrideDTO(
+                null,
+                "content2",
+                ComponentLegalPartStatus.DISABLED
+            )
+        ),
+        null,
+        null
+    );
+
+    ComponentSourceLinkDTO returnedComponentSourceLinkDTO = componentLegalService
+        .saveComponentSourceLink(OwnerType.ORGANIZATION, organization.getPublicId(), componentSourceLinkDTO);
+
+    assertThat(componentSourceLinkDAO.getAll()).hasSize(1);
+    assertThat(returnedComponentSourceLinkDTO.getSourceLinkOverrides()).hasSize(2);
+
+    ComponentSourceLink persistedComponentSourceLink =
+        componentSourceLinkDAO.getById(returnedComponentSourceLinkDTO.getId());
+    assertThat(persistedComponentSourceLink.getOwnerId()).isEqualTo(organization.getId());
+  }
+
+  @Test(expected = InvalidComponentIdentifierException.class)
+  public void testInvalidComponentIdentifierSourceLink() throws IOException {
+    Application application = tempEntity.newApplicationWithParent();
+    ApiComponentIdentifierDTOV2 componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(JsonUtils.parse("{}", ComponentIdentifier.class));
+
+    ComponentSourceLinkDTO componentSourceLinkDTO = new ComponentSourceLinkDTO(
+        null,
+        componentIdentifier,
+        Lists.newArrayList(new SourceLinkOverrideDTO(
+                null,
+                "content",
+                ComponentLegalPartStatus.ENABLED
+            )
+        ),
+        null,
+        null
+    );
+
+    componentLegalService
+        .saveComponentSourceLink(OwnerType.APPLICATION, application.getPublicId(), componentSourceLinkDTO);
+  }
+
+  @Test(expected = InvalidComponentSourceLinkException.class)
+  public void testInvalidComponentSourceLink() {
+    Application application = tempEntity.newApplicationWithParent();
+    ApiComponentIdentifierDTOV2 componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
+
+    ComponentSourceLinkDTO componentSourceLinkDTO = new ComponentSourceLinkDTO(
+        null,
+        componentIdentifier,
+        Lists.newArrayList(new SourceLinkOverrideDTO(
+                null,
+                "content",
+                null
+            )
+        ),
+        null,
+        null
+    );
+
+    componentLegalService
+        .saveComponentSourceLink(OwnerType.APPLICATION, application.getPublicId(), componentSourceLinkDTO);
+  }
+  
+  @Test
+  public void testSaveComponentSourceLink_Update_NotFound() {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentSourceLinkDTO componentSourceLinkDTO = new ComponentSourceLinkDTO();
+    componentSourceLinkDTO.setId("doesNotExist");
+    componentSourceLinkDTO.setComponentIdentifier(
+        ApiComponentIdentifierDTOV2
+            .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v")));
+    OwnerType ownerType = application.getType();
+    String publicId = application.getPublicId();
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
+        componentLegalService.saveComponentSourceLink(
+            ownerType,
+            publicId,
+            componentSourceLinkDTO
+        )
+    ).withMessageContaining("ComponentSourceLink with ID " + componentSourceLinkDTO.getId() + " does not exist.");
+  }
+  
+  @Test
+  public void testSaveComponentSourceLink_Update_OverrideNotFound() {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentSourceLink componentSourceLink = tempEntity
+        .newComponentSourceLink(componentIdentifier, application.getId());
+    ComponentSourceLinkDTO componentSourceLinkDTO = new ComponentSourceLinkDTO();
+    componentSourceLinkDTO.setId(componentSourceLink.getId());
+    componentSourceLinkDTO
+        .setComponentIdentifier(ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier));
+    SourceLinkOverrideDTO sourceLinkOverrideDTO = new SourceLinkOverrideDTO();
+    sourceLinkOverrideDTO.setId("doesNotExist");
+    sourceLinkOverrideDTO.setContent("content");
+    sourceLinkOverrideDTO.setStatus(ComponentLegalPartStatus.ENABLED);
+    componentSourceLinkDTO.setSourceLinkOverrides(Collections.singletonList(sourceLinkOverrideDTO));
+    OwnerType ownerType = application.getType();
+    String publicId = application.getPublicId();
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
+        componentLegalService.saveComponentSourceLink(
+            ownerType,
+            publicId,
+            componentSourceLinkDTO
+        )
+    ).withMessageContaining("SourceLinkOverride with ID " + sourceLinkOverrideDTO.getId() + " does not exist.");
+  }
+  
+  @Test
+  public void testSaveComponentSourceLink_DeletesExistingOverridesIfNeeded() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentSourceLink existingComponentSourceLink =
+        tempEntity.newComponentSourceLink(componentIdentifier, app.getId());
+    SourceLinkOverride existingSourceLinkOverride1 = tempEntity.newSourceLinkOverride("content1",
+        ComponentLegalPartStatus.ENABLED, existingComponentSourceLink.getId());
+    SourceLinkOverride existingSourceLinkOverride2 = tempEntity.newSourceLinkOverride("content2",
+        ComponentLegalPartStatus.ENABLED, existingComponentSourceLink.getId());
+    ComponentSourceLinkDTO componentSourceLinkDTO = new ComponentSourceLinkDTO(existingComponentSourceLink.getId(),
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier),
+        Collections.singletonList(SourceLinkOverrideDTO.fromSourceLinkOverride(existingSourceLinkOverride1)), null,
+        null);
+
+    componentLegalService.saveComponentSourceLink(app.getType(), app.getPublicId(), componentSourceLinkDTO);
+
+    assertThat(sourceLinkOverrideDAO.getById(existingSourceLinkOverride2.getId())).isNull();
   }
 }

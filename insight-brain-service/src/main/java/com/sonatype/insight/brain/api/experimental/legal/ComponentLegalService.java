@@ -25,8 +25,10 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentCopyrightWithOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ComponentSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LegalFileOverrideDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.SourceLinkOverrideDTO;
 import com.sonatype.insight.brain.api.v2.service.legal.LegalReportBuilder;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -38,8 +40,10 @@ import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentSourceLinkDAO;
 import com.sonatype.insight.brain.dataaccess.legal.CopyrightOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.legal.LegalFileOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.legal.SourceLinkOverrideDAO;
 import com.sonatype.insight.brain.model.HasOwnerId;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -48,10 +52,12 @@ import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
+import com.sonatype.insight.brain.model.legal.ComponentSourceLink;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
+import com.sonatype.insight.brain.model.legal.SourceLinkOverride;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
@@ -77,12 +83,18 @@ public class ComponentLegalService
 
   public static final int ATTRIBUTION_CONTENT_MAX_CHARACTER = 1000;
 
+  private static final int SOURCE_LINK_CONTENT_MAX_CHARACTER = 1000;
+
   //TODO: Temporary placeholder until legalContentHash is implemented
   static final String NOT_IMPLEMENTED = "NA";
 
   private final CopyrightOverrideDAO copyrightOverrideDAO;
 
   private final ComponentCopyrightDAO componentCopyrightDAO;
+
+  private final SourceLinkOverrideDAO sourceLinkOverrideDAO;
+
+  private final ComponentSourceLinkDAO componentSourceLinkDAO;
 
   private final LegalFileOverrideDAO legalFileOverrideDAO;
 
@@ -102,6 +114,8 @@ public class ComponentLegalService
   public ComponentLegalService(
       final CopyrightOverrideDAO copyrightOverrideDAO,
       final ComponentCopyrightDAO componentCopyrightDAO,
+      final SourceLinkOverrideDAO sourceLinkOverrideDAO,
+      final ComponentSourceLinkDAO componentSourceLinkDAO,
       final LegalFileOverrideDAO legalFileOverrideDAO,
       final ComponentLegalFileDAO componentLegalFileDAO,
       final ComponentObligationDAO componentObligationDAO,
@@ -112,6 +126,8 @@ public class ComponentLegalService
   {
     this.copyrightOverrideDAO = copyrightOverrideDAO;
     this.componentCopyrightDAO = componentCopyrightDAO;
+    this.sourceLinkOverrideDAO = sourceLinkOverrideDAO;
+    this.componentSourceLinkDAO = componentSourceLinkDAO;
     this.legalFileOverrideDAO = legalFileOverrideDAO;
     this.componentLegalFileDAO = componentLegalFileDAO;
     this.componentObligationDAO = componentObligationDAO;
@@ -525,6 +541,64 @@ public class ComponentLegalService
   }
 
   /**
+   * Save or update a {@link SourceLink} and its {@link SourceLinkOverride}s. If the given list of
+   * SourceLinkOverride is missing entries that are present in the database they will not be removed and will still be
+   * associated with the ComponentSourceLink. To remove a SourceLinkOverride we need to "rollback" the
+   * ComponentSourceLink
+   * to the original HDS data, that is delete the ComponentSourceLink and all of its children.
+   *
+   * @param ownerType - the owner type we are applying the ComponentSourceLink from.
+   * @param ownerId - the owner id we are applying the ComponentSourceLink from.
+   * @param componentSourceLinkDTO - the ComponentSourceLinkDTO to be persisted
+   * @return the persisted ComponentSourceLinkDTO.
+   * 
+   * @since 1.133
+   */
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public ComponentSourceLinkDTO saveComponentSourceLink(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      final ComponentSourceLinkDTO componentSourceLinkDTO)
+  {
+    LegalServiceUtil.checkLicense(productLicense, log);
+    validateComponentSourceLinkDTO(componentSourceLinkDTO);
+    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    ComponentSourceLink componentSourceLink =
+        new ComponentSourceLink(componentSourceLinkDTO.getComponentIdentifier().toComponentIdentifier(), owner.getId(),
+            currentUser.getUsername());
+    componentSourceLink.setId(componentSourceLinkDTO.getId());
+    List<SourceLinkOverride> sourceLinkOverrides = componentSourceLinkDTO.getSourceLinkOverrides().stream().map(dto -> {
+      final String content = StringUtils.isBlank(dto.getContent()) ? "" : dto.getContent();
+      SourceLinkOverride sourceLinkOverride =
+          new SourceLinkOverride(content, dto.getStatus(), componentSourceLinkDTO.getId());
+      sourceLinkOverride.setId(dto.getId());
+      return sourceLinkOverride;
+    }).collect(Collectors.toList());
+    try (TransactionContext tx = componentSourceLinkDAO.createTransactionContext()) {
+      tx.begin();
+      save(tx,
+          componentSourceLink, 
+          componentSourceLinkDAO.getById(tx, componentSourceLink.getId()),
+          componentSourceLinkDAO.getByOwnerIdAndComponentIdentifier(tx, componentSourceLink.getOwnerId(),
+              componentSourceLink.getComponentIdentifier()),
+          componentSourceLinkDAO, 
+          sourceLinkOverrides, 
+          SourceLinkOverride::setComponentSourceLinkId);
+      saveOverrides(tx, 
+          sourceLinkOverrides,
+          sourceLinkOverrideDAO.getByComponentSourceLinkId(tx, componentSourceLink.getId()), 
+          sourceLinkOverrideDAO,
+          sourceLinkOverrideDAO::getById, 
+          SourceLinkOverride::getContent, 
+          SourceLinkOverride::isUserCreated);
+      tx.commit();
+    }
+    auditComponentSourceLink(componentSourceLink, sourceLinkOverrides);
+    return ComponentSourceLinkDTO.fromComponentSourceLink(componentSourceLink,
+        sourceLinkOverrides.stream().map(SourceLinkOverrideDTO::fromSourceLinkOverride).collect(Collectors.toList()));
+  }
+
+  /**
    * Saves a legal entity.
    * <p>
    * If an id was given, but no corresponding old entity was found, then a NotFoundException is thrown.
@@ -694,6 +768,21 @@ public class ComponentLegalService
     }
   }
 
+  private void validateComponentSourceLinkDTO(final ComponentSourceLinkDTO componentSourceLinkDTO) {
+    validateApiComponentIdentifierDTOV2(componentSourceLinkDTO.getComponentIdentifier());
+
+    for (SourceLinkOverrideDTO sourceLinkOverrideDTO : componentSourceLinkDTO.getSourceLinkOverrides()) {
+      if (sourceLinkOverrideDTO.getStatus() == null) {
+        throw new InvalidComponentSourceLinkException("SourceLinkOverride must have a status.");
+      }
+      if (sourceLinkOverrideDTO.getContent() != null
+          && sourceLinkOverrideDTO.getContent().length() > SOURCE_LINK_CONTENT_MAX_CHARACTER) {
+        throw new InvalidComponentSourceLinkException(String
+            .format("SourceLinkOverride content must be less than %s characters", SOURCE_LINK_CONTENT_MAX_CHARACTER));
+      }
+    }
+  }
+
   private void validateComponentLegalFileDTO(ComponentLegalFileDTO componentLegalFileDTO) {
     validateApiComponentIdentifierDTOV2(componentLegalFileDTO.getComponentIdentifier());
 
@@ -746,6 +835,17 @@ public class ComponentLegalService
         copyrightOverrides.stream()
             .filter(c -> c.getStatus() == ComponentLegalPartStatus.ENABLED)
             .map(CopyrightOverride::getContent).collect(Collectors.toList()));
+  }
+  
+  private void auditComponentSourceLink(
+      final ComponentSourceLink componentSourceLink,
+      final List<SourceLinkOverride> sourceLinkOverrides)
+  {
+    AuditData.get().setComponentIdentifier(componentSourceLink.getComponentIdentifier());
+    AuditData.get().setData("Source Link",
+        sourceLinkOverrides.stream()
+            .filter(c -> c.getStatus() == ComponentLegalPartStatus.ENABLED)
+            .map(SourceLinkOverride::getContent).collect(Collectors.toList()));
   }
 
   private void auditComponentLegalFile(

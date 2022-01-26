@@ -79,6 +79,8 @@
     <class>com.sonatype.insight.brain.model.legal.ComponentObligation</class>
     <class>com.sonatype.insight.brain.model.legal.ComponentObligationAttribution</class>
     <class>com.sonatype.insight.brain.model.legal.AttributionReportTemplate</class>
+    <class>com.sonatype.insight.brain.model.legal.ComponentSourceLink</class>
+    <class>com.sonatype.insight.brain.model.legal.SourceLinkOverride</class>
     <class>com.sonatype.insight.brain.model.filter.UserFilter</class>
     <class>com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType</class>
     <class>com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess</class>

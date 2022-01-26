@@ -19,15 +19,7 @@ export default function ReportPage(props) {
     loadReportIfNeeded: loadReport,
     reevaluateReport,
     reevaluateMaskState,
-    setSorting,
-    setSortingParameters,
     setExactValueFilter,
-    toggleAggregateReportEntries,
-    setStringFieldFilter,
-    toggleShowFilterPopover,
-    selectComponent,
-    goToComponentDetailsPage,
-    goToDependencyTreePage,
     // state
     publicId,
     scanId,
@@ -39,12 +31,7 @@ export default function ReportPage(props) {
     loadError,
     selectedReport,
     stateGo,
-    sortConfiguration,
-    aggregate,
     exactValueFilters,
-    substringFilters,
-    dependencyTreeIsAvailable,
-    dependencyTreeUnavailableMessage,
   } = props;
 
   useEffect(() => {
@@ -75,22 +62,7 @@ export default function ReportPage(props) {
             stateGo={stateGo}
           />
           <ReportStatusBar />
-          <ReportContent
-            aggregate={aggregate}
-            selectedReport={selectedReport}
-            substringFilters={substringFilters}
-            setSorting={setSorting}
-            sortConfiguration={sortConfiguration}
-            setStringFieldFilter={setStringFieldFilter}
-            setSortingParameters={setSortingParameters}
-            toggleShowFilterPopover={toggleShowFilterPopover}
-            selectComponent={selectComponent}
-            goToComponentDetailsPage={goToComponentDetailsPage}
-            goToDependencyTreePage={goToDependencyTreePage}
-            dependencyTreeIsAvailable={dependencyTreeIsAvailable}
-            dependencyTreeUnavailableMessage={dependencyTreeUnavailableMessage}
-            toggleAggregateReportEntries={toggleAggregateReportEntries}
-          />
+          <ReportContent />
         </NxLoadWrapper>
       </main>
     </Fragment>
@@ -107,13 +79,7 @@ ReportPage.propTypes = {
   loadReportIfNeeded: PropTypes.func.isRequired,
   reevaluateReport: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
-  setSorting: PropTypes.func,
-  setStringFieldFilter: PropTypes.func,
-  setSortingParameters: PropTypes.func,
   setExactValueFilter: PropTypes.func.isRequired,
-  toggleAggregateReportEntries: PropTypes.func.isRequired,
-  selectComponent: PropTypes.func.isRequired,
-  goToComponentDetailsPage: PropTypes.func.isRequired,
   // state
   publicId: PropTypes.string,
   scanId: PropTypes.string,
@@ -158,16 +124,7 @@ ReportPage.propTypes = {
   }),
   loading: PropTypes.bool,
   loadError: PropTypes.string,
-  aggregate: PropTypes.bool.isRequired,
   exactValueFilters: PropTypes.object.isRequired,
-  sortConfiguration: PropTypes.shape({
-    sortFields: PropTypes.arrayOf(PropTypes.string),
-    dir: PropTypes.string,
-  }),
-  substringFilters: PropTypes.shape({
-    policyName: PropTypes.string,
-    derivedComponentName: PropTypes.string,
-  }),
   reevaluateMaskState: PropTypes.bool,
   goToDependencyTreePage: PropTypes.func.isRequired,
   dependencyTreeIsAvailable: PropTypes.bool,

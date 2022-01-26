@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { propOr } from 'ramda';
 import {
   NxTable,
   NxTableHead,
@@ -15,10 +17,26 @@ import {
   NxFontAwesomeIcon,
   NxToggle,
 } from '@sonatype/react-shared-components';
-import * as PropTypes from 'prop-types';
-import ReportTableRow from './ReportTableRow';
-import { propOr } from 'ramda';
 import { faFilter } from '@fortawesome/pro-solid-svg-icons';
+import ReportTableRow from './ReportTableRow';
+import {
+  setSorting,
+  setSortingParameters,
+  setStringFieldFilter,
+  goToComponentDetailsPage,
+  selectComponent,
+  toggleAggregateReportEntries,
+  toggleShowFilterPopover,
+  goToDependencyTreePage,
+} from 'MainRoot/applicationReport/applicationReportActions';
+import {
+  selectIsAggregated,
+  selectDisplayedComponentList,
+  selectSubstringFilters,
+  selectSortConfiguration,
+  selectDependencyTreeIsAvailable,
+  selectDependencyTreeUnavailableMessage,
+} from 'MainRoot/applicationReport/applicationReportSelectors';
 
 const policyThreatLevelSettings = {
   key: 'policyThreatLevel',
@@ -39,24 +57,24 @@ const getDirection = (sortConfig, key) => {
   return sortConfig && sortConfig.key === key ? sortConfig.dir : null;
 };
 
-export default function ReportContent(props) {
-  const {
-    aggregate,
-    selectedReport,
-    substringFilters,
-    sortConfiguration,
-    setSortingParameters,
-    setSorting,
-    setStringFieldFilter,
-    toggleShowFilterPopover,
-    selectComponent,
-    goToComponentDetailsPage,
-    goToDependencyTreePage,
-    dependencyTreeIsAvailable,
-    dependencyTreeUnavailableMessage,
-    toggleAggregateReportEntries,
-  } = props;
-  const displayedEntries = selectedReport ? selectedReport.displayedEntries : [];
+export default function ReportContent() {
+  const dispatch = useDispatch();
+  const toggleAggregateByComponent = () => dispatch(toggleAggregateReportEntries());
+  const setSortingParams = (key, sortingOrder, direction) =>
+    dispatch(setSortingParameters(key, sortingOrder, direction));
+  const setSortingOrder = (order, entries) => dispatch(setSorting(order, entries));
+  const setFieldFilter = (colName, filter) => dispatch(setStringFieldFilter(colName, filter));
+  const goToCDPPage = (hash) => dispatch(goToComponentDetailsPage(hash));
+  const setSelectedComponent = (idx) => dispatch(selectComponent(idx));
+  const toggleShowFilter = () => dispatch(toggleShowFilterPopover());
+  const goToDependencyTree = () => dispatch(goToDependencyTreePage());
+  const isAggregated = useSelector(selectIsAggregated);
+  const displayedEntries = useSelector(selectDisplayedComponentList);
+  const substringFilters = useSelector(selectSubstringFilters);
+  const sortConfiguration = useSelector(selectSortConfiguration);
+  const dependencyTreeIsAvailable = useSelector(selectDependencyTreeIsAvailable);
+  const dependencyTreeUnavailableMessage = useSelector(selectDependencyTreeUnavailableMessage);
+
   const getSubstringFiltersProp = (propName) => propOr('', propName, substringFilters);
   const policyNameFilter = getSubstringFiltersProp('policyName');
   const derivedComponentNameFilter = getSubstringFiltersProp('derivedComponentName');
@@ -73,40 +91,44 @@ export default function ReportContent(props) {
     if (direction === 'asc' && sortingOrder[0].startsWith('-')) {
       sortingOrder[0] = sortingOrder[0].substring(1);
     }
-    setSortingParameters(settings.key, sortingOrder, direction);
-    setSorting(sortingOrder, displayedEntries);
+    setSortingParams(settings.key, sortingOrder, direction);
+    setSortingOrder(sortingOrder, displayedEntries || []);
   }
 
   const filterPolicyName = (filter) => {
-    setStringFieldFilter('policyName', filter);
+    setFieldFilter('policyName', filter);
   };
 
   const filterDerivedComponentName = (filter) => {
-    setStringFieldFilter('derivedComponentName', filter);
+    setFieldFilter('derivedComponentName', filter);
   };
 
   const dirPolicyThreatLevel = getDirection(sortConfiguration, 'policyThreatLevel');
   const dirPolicyName = getDirection(sortConfiguration, 'policyName');
   const dirComponentName = getDirection(sortConfiguration, 'derivedComponentName');
 
-  const createRows = () =>
-    displayedEntries.map((component, index) => {
+  const createRows = () => {
+    return displayedEntries.map((component, index) => {
+      const { policyViolationId, hash } = component;
+
       const onRowClick = () => {
-        selectComponent(index);
-        goToComponentDetailsPage(component.hash);
+        setSelectedComponent(index);
+        goToCDPPage(hash);
       };
 
-      return <ReportTableRow key={index} index={index} component={component} onClick={onRowClick} />;
+      return <ReportTableRow key={policyViolationId || hash} component={component} onClick={onRowClick} />;
     });
+  };
 
   const redirectToDependencyTree = () => {
-    if (dependencyTreeIsAvailable) goToDependencyTreePage();
+    if (dependencyTreeIsAvailable) goToDependencyTree();
   };
+
   return (
     <section className="nx-tile iq-app-report__results-table-tile nx-viewport-sized__container">
       <div className="nx-tile-header">
         <div className="nx-tile-header__title">
-          <NxToggle isChecked={aggregate} onChange={toggleAggregateReportEntries}>
+          <NxToggle isChecked={isAggregated} onChange={toggleAggregateByComponent}>
             Aggregate by component
           </NxToggle>
         </div>
@@ -120,7 +142,7 @@ export default function ReportContent(props) {
           >
             View Dependency Tree
           </NxButton>
-          <NxButton onClick={toggleShowFilterPopover} variant="tertiary" id="filters-toggle-button">
+          <NxButton onClick={toggleShowFilter} variant="tertiary" id="filters-toggle-button">
             <NxFontAwesomeIcon icon={faFilter} />
             Filter
           </NxButton>
@@ -178,41 +200,3 @@ export default function ReportContent(props) {
     </section>
   );
 }
-
-ReportContent.propTypes = {
-  aggregate: PropTypes.bool,
-  selectedReport: PropTypes.shape({
-    displayedEntries: PropTypes.arrayOf(
-      PropTypes.shape({
-        derivedComponentName: PropTypes.string,
-        policyName: PropTypes.string,
-        hash: PropTypes.string,
-        derivedDependencyType: PropTypes.string,
-        waived: PropTypes.bool,
-        filenames: PropTypes.array,
-        grandfathered: PropTypes.bool,
-        policyThreatLevel: PropTypes.number,
-      })
-    ),
-  }),
-  sortConfiguration: PropTypes.shape({
-    sortFields: PropTypes.arrayOf(PropTypes.string),
-    dir: PropTypes.string,
-    key: PropTypes.string,
-  }),
-  substringFilters: PropTypes.shape({
-    policyName: PropTypes.string,
-    derivedComponentName: PropTypes.string,
-  }),
-  dependencyTreeIsAvailable: PropTypes.bool,
-  dependencyTreeUnavailableMessage: PropTypes.string,
-  // actions
-  setSorting: PropTypes.func,
-  setSortingParameters: PropTypes.func,
-  setStringFieldFilter: PropTypes.func,
-  toggleShowFilterPopover: PropTypes.func.isRequired,
-  selectComponent: PropTypes.func.isRequired,
-  toggleAggregateReportEntries: PropTypes.func.isRequired,
-  goToComponentDetailsPage: PropTypes.func.isRequired,
-  goToDependencyTreePage: PropTypes.func.isRequired,
-};

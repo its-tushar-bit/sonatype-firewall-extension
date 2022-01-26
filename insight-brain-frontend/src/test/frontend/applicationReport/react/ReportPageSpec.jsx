@@ -137,27 +137,9 @@ describe('Report Page component', function () {
     expect(reportStatusBar).toExist();
   });
 
-  it('renders ReportContent with props, ', function () {
-    const props = {
-      selectedReport: {
-        reportVersion: 3,
-      },
-      sortConfiguration: {
-        key: 'policyThreatLevel',
-        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
-        dir: 'desc',
-      },
-      substringFilters: {
-        policyName: 'policyName',
-        derivedComponentName: 'derivedComponentName',
-      },
-    };
-
-    const reportContent = getShallowComponent(props).find('ReportContent');
+  it('renders ReportContent', function () {
+    const reportContent = getShallowComponent().find('ReportContent');
     expect(reportContent).toExist();
-    expect(reportContent).toHaveProp('selectedReport', props.selectedReport);
-    expect(reportContent).toHaveProp('sortConfiguration', props.sortConfiguration);
-    expect(reportContent).toHaveProp('substringFilters', props.substringFilters);
   });
 
   it('renders a NxLoadWrapper', function () {

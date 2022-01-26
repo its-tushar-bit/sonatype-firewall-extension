@@ -24,12 +24,7 @@ describe('ReportContainer component', function () {
         scanId: 'scanId',
         metadata: { reportTitle: 'title' },
         selectedReport: { reportVersion: 5 },
-        aggregate: true,
         exactValueFilters: { matchState: 'unknown' },
-        substringFilters: {
-          policyName: 'policyName',
-          derivedComponentName: 'derivedComponentName',
-        },
         pendingLoads: new Set(),
         loadError: null,
       },
@@ -58,13 +53,8 @@ describe('ReportContainer component', function () {
     expect(wrapper).toHaveProp('policyViolationId', 'CVE-123');
     expect(wrapper).toHaveProp('metadata', { reportTitle: 'title' });
     expect(wrapper).toHaveProp('selectedReport', { reportVersion: 5 });
-    expect(wrapper).toHaveProp('aggregate', true);
     expect(wrapper).toHaveProp('loadError', null);
     expect(wrapper).toHaveProp('exactValueFilters', { matchState: 'unknown' });
-    expect(wrapper).toHaveProp('substringFilters', {
-      policyName: 'policyName',
-      derivedComponentName: 'derivedComponentName',
-    });
   });
 
   it('maps the loading flag as true if the metadata is not defined', function () {

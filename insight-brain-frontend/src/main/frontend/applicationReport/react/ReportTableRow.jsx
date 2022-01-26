@@ -3,7 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
+import React from 'react';
+import * as PropTypes from 'prop-types';
+import classnames from 'classnames';
 import {
   NxFontAwesomeIcon,
   NxTableCell,
@@ -12,14 +14,9 @@ import {
   NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faCheck, faHistory } from '@fortawesome/pro-solid-svg-icons';
-import ComponentDisplay from '../../ComponentDisplay/ReactComponentDisplay';
-import React from 'react';
-import * as PropTypes from 'prop-types';
-import classnames from 'classnames';
+import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
 
-export default function ReportTableRow(props) {
-  const { index, component, onClick } = props;
-
+export default function ReportTableRow({ onClick, component }) {
   const dependencyTooltipTitle =
       component.derivedDependencyType === 'direct' ? 'Direct Dependency' : 'Transitive Dependency',
     dependencyIndicatorClasses = classnames('iq-dependency-indicator', {
@@ -29,7 +26,7 @@ export default function ReportTableRow(props) {
     dependencyIndicator = component.derivedDependencyType === 'direct' ? 'D' : 'T';
 
   return (
-    <NxTableRow key={index} isClickable onClick={onClick}>
+    <NxTableRow isClickable onClick={onClick}>
       <NxTableCell className="iq-app-report__threat-cell">
         <NxThreatIndicator policyThreatLevel={component.policyThreatLevel} />
         <span className="nx-threat-number">{component.policyThreatLevel}</span>
@@ -67,7 +64,6 @@ export default function ReportTableRow(props) {
 }
 
 ReportTableRow.propTypes = {
-  index: PropTypes.number.isRequired,
   component: PropTypes.shape({
     derivedComponentName: PropTypes.string,
     policyName: PropTypes.string,

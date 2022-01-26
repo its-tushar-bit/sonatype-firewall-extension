@@ -8,28 +8,13 @@ import * as applicationReportActions from '../applicationReportActions';
 import { connect } from 'react-redux';
 import ReportPage from './ReportPage';
 import { stateGo } from '../../reduxUiRouter/routerActions';
-import { selectDependencyTreeIsAvailable, selectDependencyTreeUnavailableMessage } from '../applicationReportSelectors';
 
 function mapStateToProps(state) {
   const { applicationReport, router } = state;
   return {
-    ...pick(
-      [
-        'metadata',
-        'selectedReport',
-        'sortConfiguration',
-        'aggregate',
-        'exactValueFilters',
-        'substringFilters',
-        'loadError',
-        'reevaluateMaskState',
-      ],
-      applicationReport
-    ),
+    ...pick(['metadata', 'selectedReport', 'exactValueFilters', 'loadError', 'reevaluateMaskState'], applicationReport),
     ...pick(['publicId', 'scanId', 'unknownjs', 'embeddable', 'policyViolationId'], router.currentParams),
     loading: !applicationReport.loadError && (!!applicationReport.pendingLoads.size || !applicationReport.metadata),
-    dependencyTreeIsAvailable: selectDependencyTreeIsAvailable(state),
-    dependencyTreeUnavailableMessage: selectDependencyTreeUnavailableMessage(state),
   };
 }
 const mapDispatchToProps = { ...applicationReportActions, stateGo };

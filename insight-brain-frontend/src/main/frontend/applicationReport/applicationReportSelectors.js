@@ -71,3 +71,7 @@ export const selectDisplayedDependencyTree = createSelector(
   selectApplicationReportSlice,
   prop('displayedDependencyTree')
 );
+
+export const selectIsAggregated = createSelector(selectApplicationReportSlice, prop('aggregate'));
+export const selectSubstringFilters = createSelector(selectApplicationReportSlice, prop('substringFilters'));
+export const selectSortConfiguration = createSelector(selectApplicationReportSlice, prop('sortConfiguration'));

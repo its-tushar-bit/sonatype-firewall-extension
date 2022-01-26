@@ -9,12 +9,12 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Response.Status;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
@@ -264,17 +264,14 @@ public class ApiRepositoryConnectionService
   {
     ApiOwnerRepositoryConnectionsDTO result = new ApiOwnerRepositoryConnectionsDTO();
     result.repositoryConnectionStatus = getOwnerRepositoryConnectionStatus(ownerType, internalOwnerId);
-    if (inherit && result.repositoryConnectionStatus.inheritedFromOrganizationId != null) {
-      result.repositoryConnections =
-          repositoryConnectionDAO.getByOwnerId(result.repositoryConnectionStatus.inheritedFromOrganizationId).stream()
-              .map(this::toRepositoryConnectionDTO)
-              .collect(Collectors.toList());
-    }
-    else {
-      result.repositoryConnections = repositoryConnectionDAO.getByOwnerId(internalOwnerId).stream()
-          .map(this::toRepositoryConnectionDTO)
-          .collect(Collectors.toList());
-    }
+    result.ownerDTO = ApiOwnerDTO.fromOwner(ownerDAO.getById(internalOwnerId));
+    String effectiveOwnerId = (inherit && result.repositoryConnectionStatus.inheritedFromOrganizationId != null) ?
+        result.repositoryConnectionStatus.inheritedFromOrganizationId
+        : internalOwnerId;
+
+    result.repositoryConnections = repositoryConnectionDAO.getByOwnerId(effectiveOwnerId).stream()
+        .map(this::toRepositoryConnectionDTO)
+        .collect(Collectors.toList());
     return result;
   }
 
@@ -337,15 +334,15 @@ public class ApiRepositoryConnectionService
       Organization org = organizationDAO.getByIdNotNull(parentOrgId);
 
       if (!org.isAllowRepositoryConnectionOverride()) {
-        dto.enabled = org.isRepositoryConnectionEnabled();
+        dto.inheritedFromOrgEnabled = org.isRepositoryConnectionEnabled();
         dto.inheritedFromOrganizationId = org.getId();
         dto.inheritedFromOrganizationName = org.getName();
         dto.allowChange = false;
       }
-      else if (dto.enabled == null) {
-        dto.enabled = org.isRepositoryConnectionEnabled();
+      else if (dto.enabled == null && dto.inheritedFromOrgEnabled == null) {
         dto.inheritedFromOrganizationId = org.getId();
         dto.inheritedFromOrganizationName = org.getName();
+        dto.inheritedFromOrgEnabled = org.isRepositoryConnectionEnabled();
       }
 
       parentOrgId = org.getParentOrganizationId();

@@ -12,13 +12,12 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.service.ApiRepositoryConnectionService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory.RepositoryClientBuilder;
@@ -27,6 +26,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.tuple.Pair;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -45,13 +45,13 @@ public class RepositoryQueryServiceTest
   private RepositoryConnectionDAO dao;
 
   @Inject
-  private OwnerDAO ownerDAO;
-
-  @Inject
-  private ApplicationDAO applicationDAO;
+  private ApiRepositoryConnectionService repositoryConnectionService;
 
   @Inject
   private OrganizationDAO organizationDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
 
   @Mock
   private PasswordHandler passwordHandler;
@@ -67,13 +67,22 @@ public class RepositoryQueryServiceTest
 
   @Before
   public void before() {
-    repositoryQueryService = new RepositoryQueryService(clientFactory, passwordHandler, dao, ownerDAO);
+    repositoryQueryService = new RepositoryQueryService(clientFactory, passwordHandler, dao,
+        repositoryConnectionService);
+  }
+
+  @After
+  public void after() {
+    Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    rootOrganization.setAllowRepositoryConnectionOverride(true);
+    rootOrganization.setRepositoryConnectionEnabled(true);
+    organizationDAO.update(rootOrganization);
   }
 
   @Test
   public void testGetAllVersions_Maven() throws Exception {
     //given
-    Application app = tempEntity.newApplicationWithParent();
+    Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.MAVEN, "user", "pass".toCharArray());
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl3", RepositoryFormat.NPM, "user2", "pass2".toCharArray());
@@ -94,7 +103,43 @@ public class RepositoryQueryServiceTest
 
     //when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
-        repositoryQueryService.getAllVersions(identifier, app.getId());
+        repositoryQueryService.getAllVersions(identifier, app);
+
+    //then
+    assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
+  }
+
+  @Test
+  public void testGetAllVersions_Inherited_Org() throws Exception {
+    //given
+    Organization org = tempEntity.newOrganization();
+    org.setRepositoryConnectionEnabled(true);
+    organizationDAO.update(org);
+    Application app = tempEntity.newApplication(org.getId());
+    app.setRepositoryConnectionEnabled(null);
+    applicationDAO.update(app);
+
+    tempEntity.newRepositoryConnection(org.getId(), "baseUrl", RepositoryFormat.MAVEN, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(org.getId(), "baseUrl2", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(org.getId(), "baseUrl3", RepositoryFormat.NPM, "user2", "pass2".toCharArray());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
+    when(clientFactory.create()).thenReturn(mockBuilder);
+    when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
+    Map<String, String> params =
+        ImmutableMap.of("group", "g1", "name", "n1", "maven.extension", "jar", "maven.classifier", "");
+    RepositoryComponentResult c1 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
+    RepositoryComponentResult c2 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
+    RepositoryComponentResult c3 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
+    List<RepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
+    RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
+    when(mockClient.getAllVersions(params)).thenReturn(mockResults);
+
+    //when
+    Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
+        repositoryQueryService.getAllVersions(identifier, app);
 
     //then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
@@ -103,7 +148,7 @@ public class RepositoryQueryServiceTest
   @Test
   public void testGetAllVersions_Maven_OnlyGeneric() throws Exception {
     //given
-    Application app = tempEntity.newApplicationWithParent();
+    Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.NPM, "user2", "pass2".toCharArray());
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
@@ -123,7 +168,7 @@ public class RepositoryQueryServiceTest
 
     //when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
-        repositoryQueryService.getAllVersions(identifier, app.getId());
+        repositoryQueryService.getAllVersions(identifier, app);
 
     //then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
@@ -140,7 +185,7 @@ public class RepositoryQueryServiceTest
 
     //when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
-        repositoryQueryService.getAllVersions(identifier, app.getId());
+        repositoryQueryService.getAllVersions(identifier, app);
 
     //then
     assertThat(results.getLeft().getComponents()).isEmpty();
@@ -149,7 +194,7 @@ public class RepositoryQueryServiceTest
   @Test
   public void testGetAllVersions_Npm() throws Exception {
     //given
-    Application app = tempEntity.newApplicationWithParent();
+    Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.NPM, "user", "pass".toCharArray());
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl3", RepositoryFormat.MAVEN, "user2", "pass2".toCharArray());
@@ -169,7 +214,7 @@ public class RepositoryQueryServiceTest
 
     //when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
-        repositoryQueryService.getAllVersions(identifier, app.getId());
+        repositoryQueryService.getAllVersions(identifier, app);
 
     //then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
@@ -178,7 +223,7 @@ public class RepositoryQueryServiceTest
   @Test
   public void testGetAllVersions_Npm_OnlyGeneric() throws Exception {
     //given
-    Application app = tempEntity.newApplicationWithParent();
+    Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.MAVEN, "user2", "pass2".toCharArray());
     ComponentIdentifier identifier = ComponentIdentifier.createNpmCoordinates("p1", "1.2.0");
@@ -197,7 +242,7 @@ public class RepositoryQueryServiceTest
 
     //when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
-        repositoryQueryService.getAllVersions(identifier, app.getId());
+        repositoryQueryService.getAllVersions(identifier, app);
 
     //then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
@@ -216,7 +261,7 @@ public class RepositoryQueryServiceTest
 
     //when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
-        repositoryQueryService.getAllVersions(identifier, app.getId());
+        repositoryQueryService.getAllVersions(identifier, app);
 
     //then
     assertThat(results.getLeft().getComponents()).isEmpty();
@@ -232,7 +277,7 @@ public class RepositoryQueryServiceTest
 
     //when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
-        repositoryQueryService.getAllVersions(identifier, app.getId());
+        repositoryQueryService.getAllVersions(identifier, app);
 
     //then
     assertThat(results.getLeft().getComponents()).isEmpty();
@@ -246,7 +291,7 @@ public class RepositoryQueryServiceTest
 
     //when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
-        repositoryQueryService.getAllVersions(identifier, app.getId());
+        repositoryQueryService.getAllVersions(identifier, app);
 
     //then
     assertThat(results.getLeft().getComponents()).isEmpty();
@@ -256,7 +301,7 @@ public class RepositoryQueryServiceTest
   @Test
   public void testGetAllVersions_RepositoryApiError() throws Exception {
     //given
-    Application app = tempEntity.newApplicationWithParent();
+    Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", "user", "pass".toCharArray());
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
     Map<String, String> params =
@@ -267,7 +312,7 @@ public class RepositoryQueryServiceTest
 
     //when
     Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
-        repositoryQueryService.getAllVersions(identifier, app.getId());
+        repositoryQueryService.getAllVersions(identifier, app);
 
     //then
     assertThat(results.getLeft().getComponents()).isEmpty();
@@ -276,57 +321,10 @@ public class RepositoryQueryServiceTest
         "unable to retrieve component versions from repository manager: baseUrl");
   }
 
-  @Test
-  public void testIsRepositoryConnectionAllowedForOwner()
-      throws Exception
-  {
-    RepositoryConnection repositoryConnection = createRepositoryConnection(true, true, true);
-    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
-        .isTrue();
-
-    repositoryConnection = createRepositoryConnection(false, true, true);
-    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
-        .isTrue();
-
-    repositoryConnection = createRepositoryConnection(true, false, true);
-    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
-        .isTrue();
-
-    repositoryConnection = createRepositoryConnection(false, false, true);
-    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
-        .isFalse();
-
-    repositoryConnection = createRepositoryConnection(true, true, false);
-    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
-        .isFalse();
-
-    repositoryConnection = createRepositoryConnection(false, true, false);
-    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
-        .isTrue();
-
-    repositoryConnection = createRepositoryConnection(true, false, false);
-    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
-        .isFalse();
-
-    repositoryConnection = createRepositoryConnection(false, false, false);
-    assertThat(repositoryQueryService.isRepositoryConnectionAllowedForOwner(repositoryConnection.getOwnerId()))
-        .isFalse();
-  }
-
-  private RepositoryConnection createRepositoryConnection(
-      boolean allowOverride,
-      boolean orgEnabled,
-      boolean appEnabled)
-  {
-    Organization organization = tempEntity.newOrganization();
-    organization.setAllowRepositoryConnectionOverride(allowOverride);
-    organization.setRepositoryConnectionEnabled(orgEnabled);
-    organizationDAO.update(organization);
-
-    Application application = tempEntity.newApplication(organization.getId());
-    application.setRepositoryConnectionEnabled(appEnabled);
-    applicationDAO.update(application);
-
-    return tempEntity.newRepositoryConnection(application.getId());
+  private Application getApplicationWithConnectionsEnabled() {
+    Application app = tempEntity.newApplicationWithParent();
+    app.setRepositoryConnectionEnabled(true);
+    applicationDAO.update(app);
+    return app;
   }
 }

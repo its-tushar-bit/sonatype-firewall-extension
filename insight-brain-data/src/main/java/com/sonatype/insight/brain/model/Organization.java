@@ -50,7 +50,7 @@ public class Organization
    * @since 1.132
    */
   @Column(name = "repository_connection_enabled")
-  private Boolean repositoryConnectionEnabled = true;
+  private Boolean repositoryConnectionEnabled;
 
   /**
    * @since 1.132

@@ -60,7 +60,7 @@ public class Application
    * @since 1.132
    */
   @Column(name = "repository_connection_enabled")
-  private Boolean repositoryConnectionEnabled = true;
+  private Boolean repositoryConnectionEnabled;
 
   public Application() {
   }

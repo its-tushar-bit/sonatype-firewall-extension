@@ -23,9 +23,11 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -119,7 +121,10 @@ public class CIComponentInfoResourceTest
   public void testGetComponentVersionInfo_FromInnerSourceRepository() throws Exception {
     getCLMServer().getConfiguration().setExperimentalFeatures(
         ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
-    tempEntity.newRepositoryConnection(getOwner().getId(), nxrm3MockSever.baseUrl(), null, null);
+    Application app = tempEntity.newApplicationWithParent();
+    app.setRepositoryConnectionEnabled(true);
+    new ApplicationDAO().update(app);
+    tempEntity.newRepositoryConnection(app.getId(), nxrm3MockSever.baseUrl(), null, null);
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1.2.0", "", "jar");
     nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .withQueryParam(RepositoryQueryService.NEXUS3_QUERY_MAVEN_GROUP_KEY,
@@ -134,7 +139,7 @@ public class CIComponentInfoResourceTest
             .withStatus(200)
             .withBody(getCannedResponse("maven_nopaging.json"))));
 
-    HttpRequest request = allVersionsRequest(getOwnerId(), identifier)
+    HttpRequest request = allVersionsRequest(app.getPublicId(), identifier)
         .query("dependencyType", DependencyType.INNER_SOURCE.getId());
 
     HttpResponse response = request.get();

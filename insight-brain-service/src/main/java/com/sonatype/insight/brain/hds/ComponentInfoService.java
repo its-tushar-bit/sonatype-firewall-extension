@@ -601,7 +601,7 @@ public class ComponentInfoService
       }
       else if (shouldGetFromRepositoryData(dependencyType, identifier)) {
         Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> result =
-            repositoryQueryService.getAllVersions(identifier, owner.getId());
+            repositoryQueryService.getAllVersions(identifier, owner);
         componentDetailsList = transformToComponentDetailsList(result.getLeft(), identifier);
         sourceResponseDTO = result.getRight();
       }

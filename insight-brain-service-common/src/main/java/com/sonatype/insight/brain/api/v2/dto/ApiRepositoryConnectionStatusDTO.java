@@ -28,6 +28,11 @@ public class ApiRepositoryConnectionStatusDTO
   public boolean allowOverride;
 
   /**
+   * Whether the configuration of the inheriting owner is enabled/disabled.
+   */
+  public Boolean inheritedFromOrgEnabled;
+
+  /**
    * Whether enabled/allowOverride can be changed for this org/app (a parent org may not allow it to be overridden).
    */
   public boolean allowChange;

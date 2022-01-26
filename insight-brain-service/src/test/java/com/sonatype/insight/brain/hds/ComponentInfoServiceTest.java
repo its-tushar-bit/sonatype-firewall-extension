@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -1594,7 +1593,7 @@ public class ComponentInfoServiceTest
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
 
-    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId(), "v1",
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v1",
         "v2", "v3");
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
@@ -1617,7 +1616,7 @@ public class ComponentInfoServiceTest
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
 
-    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId(), "v0",
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v0",
         "v1", "v2");
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
@@ -1640,7 +1639,7 @@ public class ComponentInfoServiceTest
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
 
-    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId(), "v0.4",
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v0.4",
         "v0.8", "v1");
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
@@ -1662,7 +1661,7 @@ public class ComponentInfoServiceTest
         ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
-    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId(), "v0",
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v0",
         "v3");
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
@@ -1684,7 +1683,7 @@ public class ComponentInfoServiceTest
         ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
-    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, application.getId());
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES);
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
         application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
@@ -1703,7 +1702,7 @@ public class ComponentInfoServiceTest
         ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
-    mockRepositoryQueryServiceAllVersionResponse(NPM_COORDINATES, application.getId(), "v0", "v1", "v2");
+    mockRepositoryQueryServiceAllVersionResponse(NPM_COORDINATES, "v0", "v1", "v2");
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
         application.getPublicId(), NPM_COORDINATES, null, identificationSource, scanId,
@@ -1732,7 +1731,6 @@ public class ComponentInfoServiceTest
 
   private void mockRepositoryQueryServiceAllVersionResponse(
       ComponentIdentifier componentIdentifier,
-      String ownerId,
       String... mockVersions)
   {
     List<RepositoryComponentResult> resultComponents = Stream.of(mockVersions)
@@ -1741,7 +1739,7 @@ public class ComponentInfoServiceTest
     RepositoryAllVersionsResponse response = new RepositoryAllVersionsResponse(resultComponents);
     RepositorySourceResponseDTO mockSource = new RepositorySourceResponseDTO();
     mockSource.source = "https://repo.sonatype.com/";
-    when(repositoryQueryService.getAllVersions(componentIdentifier, ownerId)).thenReturn(
+    when(repositoryQueryService.getAllVersions(eq(componentIdentifier), any(Owner.class))).thenReturn(
         Pair.of(response, mockSource));
   }
 

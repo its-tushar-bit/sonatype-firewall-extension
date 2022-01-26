@@ -10,10 +10,11 @@ import java.util.Arrays;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -64,7 +65,11 @@ public class ApiRepositoryConnectionResourceTest
     insightConfig = getCLMServer().getInstance(InsightConfig.class);
     insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, true));
     app = tempEntity.newApplicationWithParent();
+    app.setRepositoryConnectionEnabled(true);
+    new ApplicationDAO().update(app);
     org = tempEntity.newOrganization();
+    org.setRepositoryConnectionEnabled(true);
+    new OrganizationDAO().update(org);
   }
 
   @Override
@@ -253,6 +258,7 @@ public class ApiRepositoryConnectionResourceTest
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
     organization.setAllowRepositoryConnectionOverride(false);
+    organization.setRepositoryConnectionEnabled(true);
     new OrganizationDAO().update(organization);
     RepositoryConnection orgRepositoryConnection =
         tempEntity.newRepositoryConnection(organization.getId(), "http://baseurl2.com", "user2", "pass2".toCharArray());

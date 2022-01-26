@@ -34,10 +34,12 @@ import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -171,22 +173,42 @@ public abstract class AbstractSummaryViewTest
   public void testInnerSourceRepositoryTile_Configured() {
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
-    RepositoryConnection repositoryConnection1 = tempEntity.newRepositoryConnection(currentOwner.getId(),
-        "http://some.base.url.1", RepositoryFormat.MAVEN, null, null);
-    RepositoryConnection repositoryConnection2 = tempEntity.newRepositoryConnection(currentOwner.getId(),
-        "http://some.base.url.2", RepositoryFormat.NPM, null, null);
-    refresh();
-    MainHeader.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
-    OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
-    InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
-    innerSourceRepositoryTile.should(exist);
-    innerSourceRepositoryTile.listTitle().shouldHave(text("Local"));
-    ElementsCollection rows = innerSourceRepositoryTile.rows();
-    rows.shouldHaveSize(2);
-    rows.get(0).shouldBe(text(repositoryConnection1.getBaseUrl() + "\n" + repositoryConnection1.getFormat()));
-    rows.get(1).shouldBe(text(repositoryConnection2.getBaseUrl() + "\n" + repositoryConnection2.getFormat()));
-    innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
+    try {
+      setCurrentOwnerRepositoryConnectionStatus(currentOwner, true);
+      RepositoryConnection repositoryConnection1 = tempEntity.newRepositoryConnection(currentOwner.getId(),
+          "http://some.base.url.1", RepositoryFormat.MAVEN, null, null);
+      RepositoryConnection repositoryConnection2 = tempEntity.newRepositoryConnection(currentOwner.getId(),
+          "http://some.base.url.2", RepositoryFormat.NPM, null, null);
+
+      refresh();
+      MainHeader.closeNavigationSidebar();
+      OwnerSummaryPage.summaryTile().dropdownButton().click();
+      OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
+      InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
+      innerSourceRepositoryTile.should(exist);
+      innerSourceRepositoryTile.listTitle().shouldHave(text("Local"));
+      ElementsCollection rows = innerSourceRepositoryTile.rows();
+      rows.shouldHaveSize(2);
+      rows.get(0).shouldBe(text(repositoryConnection1.getBaseUrl() + "\n" + repositoryConnection1.getFormat()));
+      rows.get(1).shouldBe(text(repositoryConnection2.getBaseUrl() + "\n" + repositoryConnection2.getFormat()));
+      innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
+    }
+    finally {
+      setCurrentOwnerRepositoryConnectionStatus(currentOwner, null);
+    }
+  }
+
+  private void setCurrentOwnerRepositoryConnectionStatus(Owner currentOwner, Boolean repoConnectionsEnabled) {
+    if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
+      Application app = (Application) currentOwner;
+      app.setRepositoryConnectionEnabled(repoConnectionsEnabled);
+      new ApplicationDAO().update(app);
+    }
+    else if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
+      Organization org = (Organization) currentOwner;
+      org.setRepositoryConnectionEnabled(repoConnectionsEnabled);
+      new OrganizationDAO().update(org);
+    }
   }
 
   @Test
@@ -201,6 +223,7 @@ public abstract class AbstractSummaryViewTest
       RepositoryConnection repositoryConnection2 = tempEntity.newRepositoryConnection(currentOwner.getParentOwnerId(),
           "http://some.base.url.2", RepositoryFormat.NPM, null, null);
       parentOwner.setAllowRepositoryConnectionOverride(false);
+      parentOwner.setRepositoryConnectionEnabled(true);
       organizationDAO.update(parentOwner);
 
       refresh();
@@ -218,6 +241,7 @@ public abstract class AbstractSummaryViewTest
     }
     finally {
       parentOwner.setAllowRepositoryConnectionOverride(true);
+      parentOwner.setRepositoryConnectionEnabled(null);
       organizationDAO.update(parentOwner);
     }
   }

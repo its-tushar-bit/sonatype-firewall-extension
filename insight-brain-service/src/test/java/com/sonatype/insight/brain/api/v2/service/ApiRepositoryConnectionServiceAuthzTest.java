@@ -10,6 +10,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
@@ -67,6 +68,8 @@ public class ApiRepositoryConnectionServiceAuthzTest
   public void before() {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
+    app.setRepositoryConnectionEnabled(true);
+    new ApplicationDAO().update(app);
   }
 
   @Test(expected = UnauthenticatedException.class)

@@ -5,12 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -18,8 +15,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class RepositoryConnectionDAO
     extends AbstractOperationalSqlDAO<RepositoryConnection>
 {
-  private final OwnerDAO ownerDAO = new OwnerDAO();
-
   @Override
   public RepositoryConnection getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM RepositoryConnection entity" + //
@@ -53,17 +48,6 @@ public class RepositoryConnectionDAO
     String sQuery = "SELECT entity FROM RepositoryConnection entity" + //
         " WHERE entity.ownerId=?1 AND entity.format IN (?2)";
     return getList(tx, sQuery, ownerId, formats);
-  }
-
-  public List<RepositoryConnection> getByOwnerIdWithHierarchy(String ownerId) {
-    List<RepositoryConnection> repositoryConnections = new ArrayList<>();
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      repositoryConnections.addAll(getByOwnerId(owner.getId()));
-      if (!repositoryConnections.isEmpty()) {
-        break;
-      }
-    }
-    return repositoryConnections;
   }
 
   public RepositoryConnection getByOwnerIdAndBaseUrl(String ownerId, String baseUrl) {

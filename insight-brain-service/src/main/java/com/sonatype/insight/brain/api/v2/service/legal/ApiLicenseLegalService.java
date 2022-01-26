@@ -367,7 +367,7 @@ public class ApiLicenseLegalService
     }
 
     List<ApplicationComponentLicensesDTO> applicationComponentLicenses = applicationComponentLicenseDAO
-        .getApplicationComponentEffectiveLicenses(applicationIdsToCheck, stageTypeIdsToCheck);
+        .getApplicationComponentEffectiveLicenses(applicationIdsToCheck, stageTypeIdsToCheck, true);
 
     Map<String, ApiLicenseLegalComponentDashboardDTO> componentDtoByHash = new HashMap<>();
     Map<String, Set<String>> multiLicenseIdsByHash = new HashMap<>();

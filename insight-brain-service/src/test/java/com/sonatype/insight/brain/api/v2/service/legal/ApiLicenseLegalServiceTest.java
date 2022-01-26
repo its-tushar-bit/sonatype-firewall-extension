@@ -964,10 +964,11 @@ public class ApiLicenseLegalServiceTest
   @Test
   public void testGetLicenseLegalComponentsDashboard_ByLicenseWithOverride() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
-    Application app = setupComponentDashboardEntities("Tag1", BuildStageType.ID, "somHash", componentIdentifier,
+    setupComponentDashboardEntities("Tag1", BuildStageType.ID, "somHash", componentIdentifier,
         "license-test-1", "license-test-2").getLeft();
 
-    tempEntity.newLicenseOverride(app.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
+    tempEntity.newLicenseOverride(Organization.ROOT_ORGANIZATION_ID, componentIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
 
     ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService
         .getLicenseLegalComponentsDashboard(new LicenseLegalFilterDTO(
@@ -977,6 +978,26 @@ public class ApiLicenseLegalServiceTest
     assertThat(resultDto.results).hasSize(1);
     ApiLicenseLegalComponentDashboardDTO dto = resultDto.results.get(0);
     assertLegalLicenseComponentDashboardDTO(dto, "somHash", componentIdentifier, Sets.newHashSet("Apache-2.0"), 1, 0,
+        0, "Liberal");
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentsDashboard_OverrideAppScopeIgnored() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    Application app = setupComponentDashboardEntities("Tag1", BuildStageType.ID, "somHash", componentIdentifier,
+        "MIT").getLeft();
+
+    tempEntity.newLicenseOverride(app.getId(), componentIdentifier,
+        LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
+
+    ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService
+        .getLicenseLegalComponentsDashboard(new LicenseLegalFilterDTO(
+            null, null, null, null, null, null, 1, 1, null));
+
+    assertThat(resultDto.totalResultsCount).isEqualTo(1);
+    assertThat(resultDto.results).hasSize(1);
+    ApiLicenseLegalComponentDashboardDTO dto = resultDto.results.get(0);
+    assertLegalLicenseComponentDashboardDTO(dto, "somHash", componentIdentifier, Sets.newHashSet("MIT"), 1, 0,
         0, "Liberal");
   }
 
@@ -1189,7 +1210,7 @@ public class ApiLicenseLegalServiceTest
     setupComponentDashboardEntities("Tag4", BuildStageType.ID, "somHash4", componentIdentifier4, "PUBLIC-DOMAIN");
 
     List<String> licenses = Arrays.asList("MIT");
-    
+
     applicationTagPair1.getLeft().setId(Organization.ROOT_ORGANIZATION_ID);
     applicationTagPair2.getLeft().setId(Organization.ROOT_ORGANIZATION_ID);
     applicationTagPair3.getLeft().setId(Organization.ROOT_ORGANIZATION_ID);

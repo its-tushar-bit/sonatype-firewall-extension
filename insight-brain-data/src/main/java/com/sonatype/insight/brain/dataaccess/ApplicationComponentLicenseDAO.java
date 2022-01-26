@@ -68,7 +68,7 @@ public class ApplicationComponentLicenseDAO
       String applicationId,
       Set<String> stageTypeIds)
   {
-    return getApplicationComponentEffectiveLicenses(Collections.singleton(applicationId), stageTypeIds);
+    return getApplicationComponentEffectiveLicenses(Collections.singleton(applicationId), stageTypeIds, false);
   }
 
   /**
@@ -85,18 +85,20 @@ public class ApplicationComponentLicenseDAO
   @SuppressWarnings("unchecked")
   public List<ApplicationComponentLicensesDTO> getApplicationComponentEffectiveLicenses(
       Set<String> applicationIds,
-      Set<String> stageTypeIds)
+      Set<String> stageTypeIds,
+      boolean isOnlyOrganizationRootScope)
   {
     try (TransactionContext tx = createTransactionContext()) {
       boolean requiresManualFilter = requiresManualFilter(applicationIds);
 
       String sQuery = "SELECT ac.application_id, ac.hash, ac.component_id_format," + //
           "  ac.component_id_coordinates_json," + //
-          "  STRING_AGG(DISTINCT COALESCE(li.license_id, li2.license_id, li3.license_id, acl.effective_license_id)," +
-          "    CHR(10)) licenses" +
+          "  STRING_AGG(DISTINCT COALESCE(" + (!isOnlyOrganizationRootScope ? "li.license_id, li2.license_id, " : "") +
+          "    li3.license_id, acl.effective_license_id), CHR(10)) licenses" +
           " FROM insight_brain_ods.application_component ac" + //
           "   INNER JOIN insight_brain_ods.application a" + //
           "     ON a.application_id = ac.application_id" + //
+          (!isOnlyOrganizationRootScope ?
           "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
           "              FROM insight_brain_ods.license_override lo, insight_brain_ods.license_override_license lol" +
           "              WHERE lol.license_override_id = lo.license_override_id) li" + //
@@ -108,7 +110,7 @@ public class ApplicationComponentLicenseDAO
           "              WHERE lol.license_override_id = lo.license_override_id) li2" + //
           "     ON li2.owner_id = a.organization_id" + //
           "     AND li2.component_id_format = ac.component_id_format" + //
-          "     AND li2.component_id_coordinates_json = ac.component_id_coordinates_json" + //
+          "     AND li2.component_id_coordinates_json = ac.component_id_coordinates_json" : "") + //
           "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
           "              FROM insight_brain_ods.license_override lo, insight_brain_ods.license_override_license lol" +
           "              WHERE lol.license_override_id = lo.license_override_id) li3" + //

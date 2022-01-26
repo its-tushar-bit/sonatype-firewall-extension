@@ -141,6 +141,18 @@ public class ApplicationComponentLicenseDAOTest
             newApplicationComponentLicensesDTO(applicationComponent3, "MIT"),
             newApplicationComponentLicensesDTO(applicationComponent4, "Apache-2.0"),
             newApplicationComponentLicensesDTO(applicationComponent5, "Apache-2.0"));
+
+    //Only overrides in root scope
+    assertThat(dao.getApplicationComponentEffectiveLicenses(Sets.newHashSet(application.getId(),
+        otherApplication.getId()), Sets.newHashSet(stageType.getId()), true))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            newApplicationComponentLicensesDTO(applicationComponent1, "license-1"),
+            newApplicationComponentLicensesDTO(applicationComponent2, "license-1", "license-2"),
+            newApplicationComponentLicensesDTO(applicationComponent3, "license-1"),
+            newApplicationComponentLicensesDTO(applicationComponent4, "license-1"),
+            newApplicationComponentLicensesDTO(applicationComponent5, "Apache-2.0"),
+            newApplicationComponentLicensesDTO(applicationComponent7, "license-7"));
   }
 
   @Test
@@ -200,7 +212,7 @@ public class ApplicationComponentLicenseDAOTest
         new HashSet<>(Arrays.asList(app1.getId(), app2.getId(), app3.getId(), app4.getId(), app5.getId(), app6.getId(),
             otherApplication.getId()));
 
-    assertThat(dao.getApplicationComponentEffectiveLicenses(applicationsIds, Sets.newHashSet(stageType.getId())))
+    assertThat(dao.getApplicationComponentEffectiveLicenses(applicationsIds, Sets.newHashSet(stageType.getId()), false))
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(newApplicationComponentLicensesDTO(applicationComponent1, "license-1"),
             newApplicationComponentLicensesDTO(applicationComponent2, "license-1", "license-2"),

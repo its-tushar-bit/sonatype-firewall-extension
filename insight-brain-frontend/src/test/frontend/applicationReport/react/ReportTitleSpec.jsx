@@ -6,11 +6,19 @@
 import React from 'react';
 import moment from 'moment-timezone';
 
-import { render, screen, fireEvent } from '../../SpecUtil';
+import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import ReportTitle from 'MainRoot/applicationReport/react/ReportTitle';
 
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
+
 describe('ReportTitle', () => {
-  let renderComponent, minimalProps, mockedReevaluateReport, metadataDetails;
+  let renderComponent,
+    mockedReevaluateReport,
+    metadataDetails,
+    selectApplicationReportMetaDataSpy,
+    selectSelectedReportSpy;
 
   beforeAll(() => {
     moment.tz.setDefault('America/New_York');
@@ -21,7 +29,6 @@ describe('ReportTitle', () => {
   });
 
   beforeEach(() => {
-    mockedReevaluateReport = jasmine.createSpy('reevaluateReport');
     metadataDetails = {
       scanTriggerType: 'Unknown',
       reportTitle: 'Title',
@@ -31,18 +38,30 @@ describe('ReportTitle', () => {
         name: 'App Name',
       },
     };
-    minimalProps = {
-      metadataDetails,
+
+    selectApplicationReportMetaDataSpy = spyOn(
+      applicationReportSelectors,
+      'selectApplicationReportMetaData'
+    ).and.returnValue(metadataDetails);
+
+    selectSelectedReportSpy = spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue({
+      reportVersion: 3,
+    });
+
+    mockedReevaluateReport = spyOn(applicationReportActions, 'reevaluateReport').and.callThrough();
+
+    spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
       publicId: 'publicId',
       scanId: 'scanId',
-      selectedReport: {
-        reportVersion: 3,
-      },
-      reevaluateReport: mockedReevaluateReport,
-    };
+    });
 
-    renderComponent = (optionalProps) => {
-      render(<ReportTitle {...minimalProps} {...optionalProps} />);
+    spyOn(applicationReportSelectors, 'selectReportParameters').and.returnValue({
+      appId: 'appId',
+      scanId: 'scanId',
+    });
+
+    renderComponent = () => {
+      render(<ReportTitle />);
     };
   });
 
@@ -57,6 +76,7 @@ describe('ReportTitle', () => {
     renderComponent();
     const options = screen.getByRole('button', { name: 'Options' });
     expect(options).toBeInTheDocument();
+
     fireEvent.click(options);
 
     expect(screen.getByRole('link', { name: 'Generate PDF' })).toBeVisible();
@@ -70,6 +90,7 @@ describe('ReportTitle', () => {
     renderComponent();
     const options = screen.getByRole('button', { name: 'Options' });
     expect(options).toBeVisible();
+
     fireEvent.click(options);
 
     const vulnerabilities = screen.getByRole('link', { name: 'View vulnerabilities' });
@@ -81,23 +102,13 @@ describe('ReportTitle', () => {
   });
 
   it('renders an enabled view vulnerabilities link if report version is greater than 5', () => {
-    const props = {
-      metadataDetails: {
-        reportTitle: 'Title',
-        application: {
-          name: 'App Name',
-        },
-      },
-      publicId: 'publicId',
-      scanId: 'scanId',
-      selectedReport: {
-        reportVersion: 7,
-      },
-    };
-
-    renderComponent(props);
+    selectSelectedReportSpy.and.returnValue({
+      reportVersion: 7,
+    });
+    renderComponent();
     const options = screen.getByText('Options');
     expect(options).toBeVisible();
+
     fireEvent.click(options);
 
     const vulnerabilities = screen.getByRole('link', { name: 'View vulnerabilities' });
@@ -108,7 +119,9 @@ describe('ReportTitle', () => {
     renderComponent();
     const reevaluateReport = screen.getByRole('button', { name: 'Re-Evaluate Report' });
     expect(reevaluateReport).toBeVisible();
+
     fireEvent.click(reevaluateReport);
+
     expect(mockedReevaluateReport).toHaveBeenCalled();
   });
 
@@ -121,10 +134,8 @@ describe('ReportTitle', () => {
   });
 
   it('renders a description with triggered by scan type from continuous monitoring', () => {
-    const props = {
-      metadataDetails: { ...metadataDetails, forMonitoring: true },
-    };
-    renderComponent(props);
+    selectApplicationReportMetaDataSpy.and.returnValue({ ...metadataDetails, forMonitoring: true });
+    renderComponent();
     const description = screen.getByText(
       `Triggered by ${metadataDetails.scanTriggerType} (Continuous Monitoring) on 2018-11-11 15:13:11 UTC-05:00`
     );
@@ -132,10 +143,8 @@ describe('ReportTitle', () => {
   });
 
   it('renders a description with triggered by scan type from re-evaluation', () => {
-    const props = {
-      metadataDetails: { ...metadataDetails, reevaluation: true },
-    };
-    renderComponent(props);
+    selectApplicationReportMetaDataSpy.and.returnValue({ ...metadataDetails, reevaluation: true });
+    renderComponent();
     const description = screen.getByText(
       `Triggered by ${metadataDetails.scanTriggerType} (Re-evaluation) on 2018-11-11 15:13:11 UTC-05:00`
     );

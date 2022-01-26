@@ -98,39 +98,9 @@ describe('Report Page component', function () {
 
   it('renders ReportTitle with props, ', function () {
     const reportTitle = getShallowComponent().find('ReportTitle');
-    const metadata = {
-      reportTitle: 'Title',
-      application: {
-        name: 'App Name',
-      },
-    };
-    const selectedReport = {
-      reportVersion: 3,
-      knownArtifactCount: 1,
-      totalArtifactCount: 2,
-      policyComponentCount: 1,
-      grandfatheredPolicyViolationCount: 0,
-      criticalViolationCount: 1,
-      severeViolationCount: 2,
-      moderateViolationCount: 3,
-      nonLowViolationCount: 0,
-    };
 
     expect(reportTitle).toExist();
-    expect(reportTitle).toHaveProp('metadataDetails', metadata);
-    expect(reportTitle).toHaveProp('scanId', 'scanId');
-    expect(reportTitle).toHaveProp('publicId', 'publicId');
-    expect(reportTitle).toHaveProp('selectedReport', selectedReport);
   });
-
-  /*it('renders a ReportFilters', function () {
-    const component = getShallowComponent();
-
-    const reportElement = component.find(ReportFilters);
-    expect(reportElement).toExist();
-    expect(reportElement).toHaveProp('$state', mock$State);
-    expect(reportElement).toHaveProp('setExactValueFilter', setExactValueFilterSpy);
-  });*/
 
   it('renders ReportStatusBar with props, ', function () {
     const reportStatusBar = getShallowComponent().find('ReportStatusBar');

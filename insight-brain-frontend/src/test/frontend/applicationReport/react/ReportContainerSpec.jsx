@@ -51,7 +51,6 @@ describe('ReportContainer component', function () {
     expect(wrapper).toHaveProp('unknownjs', true);
     expect(wrapper).toHaveProp('embeddable', true);
     expect(wrapper).toHaveProp('policyViolationId', 'CVE-123');
-    expect(wrapper).toHaveProp('metadata', { reportTitle: 'title' });
     expect(wrapper).toHaveProp('selectedReport', { reportVersion: 5 });
     expect(wrapper).toHaveProp('loadError', null);
     expect(wrapper).toHaveProp('exactValueFilters', { matchState: 'unknown' });

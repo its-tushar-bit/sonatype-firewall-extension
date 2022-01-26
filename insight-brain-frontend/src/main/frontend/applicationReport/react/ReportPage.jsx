@@ -17,7 +17,6 @@ export default function ReportPage(props) {
     // actions
     setReportParameters,
     loadReportIfNeeded: loadReport,
-    reevaluateReport,
     reevaluateMaskState,
     setExactValueFilter,
     // state
@@ -26,11 +25,8 @@ export default function ReportPage(props) {
     unknownjs,
     embeddable,
     policyViolationId,
-    metadata,
     loading,
     loadError,
-    selectedReport,
-    stateGo,
     exactValueFilters,
   } = props;
 
@@ -53,14 +49,7 @@ export default function ReportPage(props) {
               exactValueFilters,
             }}
           />
-          <ReportTitle
-            metadataDetails={metadata}
-            scanId={scanId}
-            publicId={publicId}
-            selectedReport={selectedReport}
-            reevaluateReport={reevaluateReport}
-            stateGo={stateGo}
-          />
+          <ReportTitle />
           <ReportStatusBar />
           <ReportContent />
         </NxLoadWrapper>
@@ -77,8 +66,6 @@ ReportPage.propTypes = {
   // actions
   setReportParameters: PropTypes.func.isRequired,
   loadReportIfNeeded: PropTypes.func.isRequired,
-  reevaluateReport: PropTypes.func.isRequired,
-  stateGo: PropTypes.func.isRequired,
   setExactValueFilter: PropTypes.func.isRequired,
   // state
   publicId: PropTypes.string,
@@ -86,15 +73,6 @@ ReportPage.propTypes = {
   unknownjs: PropTypes.bool,
   embeddable: PropTypes.bool,
   policyViolationId: PropTypes.string,
-  metadata: PropTypes.shape({
-    reportTitle: PropTypes.string.isRequired,
-    reportTime: PropTypes.number.isRequired,
-    commitHash: PropTypes.string,
-    application: PropTypes.shape({
-      id: PropTypes.string,
-      name: PropTypes.string.isRequired,
-    }),
-  }),
   selectedReport: PropTypes.shape({
     reportVersion: PropTypes.number.isRequired,
     knownArtifactCount: PropTypes.number.isRequired,

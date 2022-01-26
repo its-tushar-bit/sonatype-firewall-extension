@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import * as PropTypes from 'prop-types';
+import { useSelector, useDispatch } from 'react-redux';
+
 import moment from 'moment';
 import classnames from 'classnames';
 import {
@@ -14,7 +15,14 @@ import {
   NxTooltip,
   NxFontAwesomeIcon,
 } from '@sonatype/react-shared-components';
+
 import { faFilePdf, faSync, faFile, faFileCode } from '@fortawesome/pro-solid-svg-icons';
+
+import { selectApplicationReportMetaData, selectSelectedReport } from '../applicationReportSelectors';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { reevaluateReport as reevaluateR } from '../applicationReportActions';
+import { stateGo as stateG } from 'MainRoot/reduxUiRouter/routerActions';
+
 import { getDownloadPdfUrl, getViewSbomUrl } from 'MainRoot/util/CLMLocation';
 
 import { compose, filter, join } from 'ramda';
@@ -33,8 +41,13 @@ const renderDescription = (metadataDetails) => {
 
   return compose(join(' '), filter(Boolean))(description);
 };
-export default function ReportTitle(props) {
-  const { stateGo, metadataDetails, publicId, scanId, selectedReport, reevaluateReport } = props;
+export default function ReportTitle() {
+  const dispatch = useDispatch();
+  const metadataDetails = useSelector(selectApplicationReportMetaData);
+  const { publicId, scanId } = useSelector(selectRouterCurrentParams);
+  const selectedReport = useSelector(selectSelectedReport);
+  const stateGo = (...args) => dispatch(stateG(...args));
+  const reevaluateReport = (...args) => dispatch(reevaluateR(...args));
 
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
   const sbomUrl = getViewSbomUrl(metadataDetails.application.id, scanId);
@@ -80,7 +93,7 @@ export default function ReportTitle(props) {
             <NxFontAwesomeIcon icon={faFilePdf} />
             <span>Generate PDF</span>
           </a>
-          <a className="nx-dropdown-button" href={sbomUrl} target="_blank">
+          <a className="nx-dropdown-button" href={sbomUrl} target="_blank" rel="noreferrer">
             <NxFontAwesomeIcon icon={faFileCode} />
             <span>View SBOM</span>
           </a>
@@ -108,27 +121,3 @@ export default function ReportTitle(props) {
     </div>
   );
 }
-
-ReportTitle.propTypes = {
-  // state
-  metadataDetails: PropTypes.shape({
-    reportTitle: PropTypes.string.isRequired,
-    reportTime: PropTypes.number.isRequired,
-    scanTriggerType: PropTypes.string.isRequired,
-    reevaluation: PropTypes.bool.isRequired,
-    forMonitoring: PropTypes.bool.isRequired,
-    commitHash: PropTypes.string,
-    application: PropTypes.shape({
-      id: PropTypes.string,
-      name: PropTypes.string.isRequired,
-    }),
-  }),
-  publicId: PropTypes.string,
-  scanId: PropTypes.string,
-  selectedReport: PropTypes.shape({
-    reportVersion: PropTypes.number.isRequired,
-  }),
-  stateGo: PropTypes.func.isRequired,
-  // actions
-  reevaluateReport: PropTypes.func.isRequired,
-};

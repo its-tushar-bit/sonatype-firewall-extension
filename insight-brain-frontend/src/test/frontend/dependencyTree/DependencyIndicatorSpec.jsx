@@ -42,4 +42,10 @@ describe('DependencyIndicator ', () => {
       expect(screen.getByText(label).closest('div')).toHaveClassName(type);
     });
   });
+
+  it('renders null for unknown dependency types', () => {
+    const { container } = renderComponent();
+
+    expect(container).toBeEmptyDOMElement();
+  });
 });

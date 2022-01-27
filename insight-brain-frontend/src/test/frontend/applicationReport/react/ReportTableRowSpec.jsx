@@ -80,6 +80,42 @@ describe('ReportTableRow component', function () {
     expect(transitiveDependencyIndicator.closest('div')).toHaveClassName('iq-dependency-indicator transitive');
   });
 
+  it('renders dependency indicators for a transitive inner source dependency type', function () {
+    const component = {
+      derivedDependencyType: 'transitive',
+      isOnlyInnerSourceTransitiveDependency: true,
+    };
+
+    renderComponent({ component });
+
+    expect(screen.getByText('T')).toBeVisible();
+    expect(screen.getByText('IS')).toBeVisible();
+  });
+
+  it('renders dependency indicators for a direct inner source dependency type', function () {
+    const component = {
+      derivedDependencyType: 'direct',
+      innerSource: true,
+    };
+
+    renderComponent({ component });
+
+    expect(screen.getByText('D')).toBeVisible();
+    expect(screen.getByText('IS')).toBeVisible();
+  });
+
+  it('should not render dependency indicators for an unknown dependency type', function () {
+    const component = {
+      derivedDependencyType: 'unknown',
+    };
+
+    renderComponent({ component });
+
+    expect(screen.queryByText('D')).toBeNull();
+    expect(screen.queryByText('T')).toBeNull();
+    expect(screen.queryByText('IS')).toBeNull();
+  });
+
   it('renders properties waived', function () {
     const props = {
       component: {

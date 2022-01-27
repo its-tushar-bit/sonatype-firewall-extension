@@ -3,28 +3,39 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
-import classnames from 'classnames';
-import {
-  NxFontAwesomeIcon,
-  NxTableCell,
-  NxTableRow,
-  NxThreatIndicator,
-  NxTooltip,
-} from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
 import { faCheck, faHistory } from '@fortawesome/pro-solid-svg-icons';
+
 import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
+import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
+
+const DependencyIndicators = ({ component }) => {
+  const { derivedDependencyType, isOnlyInnerSourceTransitiveDependency, innerSource } = component;
+
+  if (derivedDependencyType === 'unknown') {
+    return null;
+  }
+
+  const showInnerSourceIndicator = innerSource || isOnlyInnerSourceTransitiveDependency;
+  return (
+    <Fragment>
+      <DependencyIndicator type={derivedDependencyType} />
+      {showInnerSourceIndicator && <DependencyIndicator type="inner-source" />}
+    </Fragment>
+  );
+};
+
+DependencyIndicators.propTypes = {
+  component: PropTypes.shape({
+    derivedDependencyType: PropTypes.string,
+    isOnlyInnerSourceTransitiveDependency: PropTypes.bool,
+    innerSource: PropTypes.bool,
+  }),
+};
 
 export default function ReportTableRow({ onClick, component }) {
-  const dependencyTooltipTitle =
-      component.derivedDependencyType === 'direct' ? 'Direct Dependency' : 'Transitive Dependency',
-    dependencyIndicatorClasses = classnames('iq-dependency-indicator', {
-      direct: component.derivedDependencyType === 'direct',
-      transitive: component.derivedDependencyType === 'transitive',
-    }),
-    dependencyIndicator = component.derivedDependencyType === 'direct' ? 'D' : 'T';
-
   return (
     <NxTableRow isClickable onClick={onClick}>
       <NxTableCell className="iq-app-report__threat-cell">
@@ -48,13 +59,7 @@ export default function ReportTableRow({ onClick, component }) {
               <NxFontAwesomeIcon icon={faHistory} />
             </span>
           )}
-          {component.derivedDependencyType !== 'unknown' && (
-            <NxTooltip title={dependencyTooltipTitle} placement="top">
-              <div className={dependencyIndicatorClasses}>
-                <span>{dependencyIndicator}</span>
-              </div>
-            </NxTooltip>
-          )}
+          <DependencyIndicators component={component} />
           <ComponentDisplay component={component} />
         </div>
       </NxTableCell>
@@ -72,6 +77,8 @@ ReportTableRow.propTypes = {
     waived: PropTypes.bool,
     grandfathered: PropTypes.bool,
     policyThreatLevel: PropTypes.number,
+    isOnlyInnerSourceTransitiveDependency: PropTypes.bool,
+    innerSource: PropTypes.bool,
   }),
   onClick: PropTypes.func.isRequired,
 };

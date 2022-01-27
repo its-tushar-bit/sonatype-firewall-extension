@@ -14,6 +14,10 @@ const DEPENDENCY_TYPE_MAP = {
 };
 
 export default function DependencyIndicator({ type }) {
+  if (!DEPENDENCY_TYPE_MAP.hasOwnProperty(type)) {
+    return null;
+  }
+
   const { label, toolTipTitle } = DEPENDENCY_TYPE_MAP[type];
   return (
     <NxTooltip title={toolTipTitle}>

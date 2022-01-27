@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
@@ -36,15 +37,15 @@ public class InnerSourceRepositoryConfigurationPage
   public NxFormSelect format() {
     return new NxFormSelect(this.selector, ".nx-form-select");
   }
-  
+
   public Option generic() {
     return new Option(0, "generic (all formats)");
   }
-  
+
   public Option maven() {
     return new Option(1, "maven");
   }
-  
+
   public Option npm() {
     return new Option(2, "npm");
   }
@@ -123,5 +124,9 @@ public class InnerSourceRepositoryConfigurationPage
     public SelenideElement cancel() {
       return child(".nx-form__cancel-btn");
     }
+  }
+
+  public NxBackButton back() {
+    return new NxBackButton("#menu-bar__back-button-container");
   }
 }

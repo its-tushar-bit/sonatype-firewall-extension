@@ -30,8 +30,10 @@ import {
   selectInnerSourceRepositoryConfigurationSlice,
   selectIsDirty,
   selectIsUpdate,
+  selectOwnerTypeAndOwnerId,
   selectValidationErrors,
 } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSelectors';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 export default function InnerSourceRepositoryConfiguration() {
   const dispatch = useDispatch();
@@ -53,6 +55,9 @@ export default function InnerSourceRepositoryConfiguration() {
     submitMaskState,
     submitMaskMessage,
   } = innerSourceRepositoryConfiguration;
+  const ownerTypeAndOwnerId = useSelector(selectOwnerTypeAndOwnerId);
+  const ownerType = ownerTypeAndOwnerId?.ownerType;
+  const ownerId = ownerTypeAndOwnerId?.ownerId;
 
   const setFormat = (value) => dispatch(actions.setFormat(value));
   const setBaseUrl = (value) => dispatch(actions.setBaseUrl(value));
@@ -74,6 +79,7 @@ export default function InnerSourceRepositoryConfiguration() {
 
   return (
     <main id="innersource-repository-configuration-page-container" className="nx-page-main">
+      <MenuBarBackButton href={`#/management/edit/${ownerType}/${ownerId}/repositoryBaseConfigurations`} text="Back" />
       <header className="nx-page-title">
         <h1 className="nx-h1">{isUpdate ? 'Edit' : 'Add'} Repository Configuration</h1>
       </header>

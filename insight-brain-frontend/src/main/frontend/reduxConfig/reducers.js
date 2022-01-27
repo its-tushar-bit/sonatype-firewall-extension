@@ -64,6 +64,7 @@ import componentDetailsSlice from '../componentDetails/componentDetailsSlice';
 import claimSlice from '../componentDetails/claim/claimSlice';
 import quarantinedComponentReportReducer from 'MainRoot/quarantinedComponentReport/quarantinedComponentReportReducer';
 import innerSourceRepositoryConfigurationSlice from '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
+import innerSourceRepositoryBaseConfigurationsSlice from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -126,4 +127,5 @@ export default combineReducers({
   occurrencesPopover: occurrencesPopoverReducer,
   quarantinedComponentReport: quarantinedComponentReportReducer,
   innerSourceRepositoryConfiguration: innerSourceRepositoryConfigurationSlice,
+  innerSourceRepositoryBaseConfigurations: innerSourceRepositoryBaseConfigurationsSlice,
 });

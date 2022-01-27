@@ -117,6 +117,7 @@
 @use '../quarantinedComponentReport/quarantinedComponentReport';
 @use '../owner.manager/innersource.repository/innersourceRepositoryTile';
 @use '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfiguration';
+@use '../innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurations';
 
 // CIP
 @use '../version-graph/icons' as version-graph-icons;

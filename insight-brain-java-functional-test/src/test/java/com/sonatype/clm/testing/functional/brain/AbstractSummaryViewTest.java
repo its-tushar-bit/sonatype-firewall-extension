@@ -166,7 +166,7 @@ public abstract class AbstractSummaryViewTest
     ElementsCollection rows = innerSourceRepositoryTile.rows();
     rows.shouldHaveSize(1);
     rows.get(0).shouldBe(text("No repositories are configured"));
-    innerSourceRepositoryTile.editButton().shouldHave(text("Add"));
+    innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
   }
 
   @Test

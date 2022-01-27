@@ -5,9 +5,8 @@
      reload="vm.load()"
      ng-if="vm.isInnerSourceRepositorySupported && (vm.isOrg || vm.isApp)">
   <div class="iq-tile__actions">
-    <button id="innersource-repositories-edit" class="iq-btn iq-btn--tertiary">
-      <span ng-if="vm.innerSourceRepositories.length === 0"><i class="fa fa-plus"></i> Add</span>
-      <span ng-if="vm.innerSourceRepositories.length > 0"><i class="fa fa-edit"></i> Edit</span>
+    <button id="innersource-repositories-edit" class="iq-btn iq-btn--tertiary" ui-sref="{{vm.editLink}}">
+      <span><i class="fa fa-edit"></i> Edit</span>
     </button>
   </div>
   <div class="iq-tile-header">

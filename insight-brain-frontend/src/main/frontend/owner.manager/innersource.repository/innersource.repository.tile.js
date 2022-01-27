@@ -33,6 +33,7 @@ function InnerSourceRepositoryTileController(
   vm.isInnerSourceRepositorySupported = undefined;
   vm.innerSourceRepositories = [];
   vm.innerSourceRepositoriesInheritedFrom = undefined;
+  vm.editLink = undefined;
   vm.load();
 
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, function () {
@@ -60,6 +61,7 @@ function InnerSourceRepositoryTileController(
       $q.all(promises)
         .then(function (results) {
           ownerId = results[0].id;
+          vm.editLink = 'repositoryBaseConfigurations.' + ownerType + '({' + ownerType + "Id:'" + ownerId + "'})";
           vm.isInnerSourceRepositorySupported = ProductFeatures.isAvailable('inner-source-repository-integration');
           if (vm.isInnerSourceRepositorySupported) {
             return InnerSourceRepositoryService.getRepositoryConnections(ownerType, ownerId, true);

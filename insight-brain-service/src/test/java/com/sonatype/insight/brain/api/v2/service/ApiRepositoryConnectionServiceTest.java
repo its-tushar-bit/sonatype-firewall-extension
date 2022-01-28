@@ -160,6 +160,30 @@ public class ApiRepositoryConnectionServiceTest
   }
 
   @Test
+  public void testGetOwnerRepositoryConnections_Organization_Inherit_Disabled() {
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newRepositoryConnection(org.getId(), "url1", "user1", "pass1".toCharArray());
+    org.setRepositoryConnectionEnabled(false);
+    organizationDAO.update(org);
+
+    List<ApiRepositoryConnectionDTO> connections = repositoryConnectionService
+        .getOwnerRepositoryConnections(OwnerType.ORGANIZATION, org.getId(), true).repositoryConnections;
+    assertThat(connections).isEmpty();
+  }
+
+  @Test
+  public void testGetOwnerRepositoryConnections_Root_Inherit_Disabled() {
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newRepositoryConnection(rootOrg.getId(), "url2", "user2", "pass2".toCharArray());
+    rootOrg.setRepositoryConnectionEnabled(null);
+    organizationDAO.update(rootOrg);
+
+    List<ApiRepositoryConnectionDTO> connections = repositoryConnectionService
+        .getOwnerRepositoryConnections(OwnerType.ORGANIZATION, rootOrg.getId(), true).repositoryConnections;
+    assertThat(connections).isEmpty();
+  }
+
+  @Test
   public void testGetOwnerRepositoryConnections_Application() {
     Application app = tempEntity.newApplicationWithParent();
     app.setRepositoryConnectionEnabled(true);
@@ -177,6 +201,18 @@ public class ApiRepositoryConnectionServiceTest
         .getOwnerRepositoryConnections(OwnerType.APPLICATION, app.getId(), true).repositoryConnections;
     assertThat(connections).hasSize(1).extracting("baseUrl", "username", "ownerType", "ownerId")
         .containsExactly(tuple("url2", "user2", OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID));
+  }
+
+  @Test
+  public void testGetOwnerRepositoryConnections_Application_Inherit_Disabled() {
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newRepositoryConnection(app.getId(), "url1", "user1", "pass1".toCharArray());
+    app.setRepositoryConnectionEnabled(false);
+    applicationDAO.update(app);
+
+    List<ApiRepositoryConnectionDTO> connections = repositoryConnectionService
+        .getOwnerRepositoryConnections(OwnerType.APPLICATION, app.getId(), true).repositoryConnections;
+    assertThat(connections).isEmpty();
   }
 
   private void testGetOwnerRepositoryConnections(final String id, final OwnerType ownerType) {

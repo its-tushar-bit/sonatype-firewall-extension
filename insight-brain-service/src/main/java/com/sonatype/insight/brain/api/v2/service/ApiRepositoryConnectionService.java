@@ -265,14 +265,31 @@ public class ApiRepositoryConnectionService
     ApiOwnerRepositoryConnectionsDTO result = new ApiOwnerRepositoryConnectionsDTO();
     result.repositoryConnectionStatus = getOwnerRepositoryConnectionStatus(ownerType, internalOwnerId);
     result.ownerDTO = ApiOwnerDTO.fromOwner(ownerDAO.getById(internalOwnerId));
-    String effectiveOwnerId = (inherit && result.repositoryConnectionStatus.inheritedFromOrganizationId != null) ?
-        result.repositoryConnectionStatus.inheritedFromOrganizationId
-        : internalOwnerId;
+    String effectiveOwnerId = resolveEffectiveOwnerId(internalOwnerId, inherit, result);
 
-    result.repositoryConnections = repositoryConnectionDAO.getByOwnerId(effectiveOwnerId).stream()
-        .map(this::toRepositoryConnectionDTO)
-        .collect(Collectors.toList());
+    if (effectiveOwnerId != null) {
+      result.repositoryConnections = repositoryConnectionDAO.getByOwnerId(effectiveOwnerId).stream()
+          .map(this::toRepositoryConnectionDTO)
+          .collect(Collectors.toList());
+    }
     return result;
+  }
+
+  private String resolveEffectiveOwnerId(
+      final String internalOwnerId,
+      final boolean inherit, final ApiOwnerRepositoryConnectionsDTO result)
+  {
+    if (inherit) {
+      if (result.repositoryConnectionStatus.inheritedFromOrganizationId != null) {
+        return result.repositoryConnectionStatus.inheritedFromOrganizationId;
+      }
+      else {
+        return Boolean.TRUE.equals(result.repositoryConnectionStatus.enabled) ? internalOwnerId : null;
+      }
+    }
+    else {
+      return internalOwnerId;
+    }
   }
 
   @Authorize(permission = Permission.READ)

@@ -261,6 +261,9 @@ public abstract class AbstractPolicyEvaluationTest
       case ComponentIdentifier.FORMAT_CONDA:
         componentIdentifier = createCondaIdentifier(coord);
         break;
+      case ComponentIdentifier.FORMAT_COMPOSER:
+        componentIdentifier =  ComponentIdentifier.createComposerCoordinates(coord[0], coord[1], coord[2]);
+        break;
       default:
         componentIdentifier = createLqaComponentIdentifier(format, coord);
     }
@@ -287,7 +290,6 @@ public abstract class AbstractPolicyEvaluationTest
           coords = ImmutableMap.of("name", coord[1], "version", coord[2]);
           return new ComponentIdentifier(format, coords);
         case DEBIAN:
-        case COMPOSER:
           coords = ImmutableMap.of("namespace", coord[0], "name", coord[1], "version", coord[2]);
           return new ComponentIdentifier(format, coords);
         default:

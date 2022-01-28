@@ -450,8 +450,9 @@ public class PackageUrlConditionTypeTest
 
   @Test
   public void testEvaluate_Composer_MatchWildcard() {
-    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.COMPOSER.format + "/g2/a2@v*");
-    testEvaluate_MatchExact(LqaFormat.COMPOSER.format, constraint, "(matches package URL pkg:composer/g2/a2@v*)");
+    Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_COMPOSER + "/g2/a2@v*");
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_COMPOSER, constraint,
+        "(matches package URL pkg:composer/g2/a2@v*)");
   }
 
   @Test

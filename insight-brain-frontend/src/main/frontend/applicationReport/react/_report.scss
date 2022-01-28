@@ -103,6 +103,10 @@ app-report {
   .nx-table-row--filter-header .nx-filter-input {
     width: 100%;
   }
+
+  .nx-tile-header__title {
+    overflow: initial;
+  }
 }
 
 .iq-app-report__threat-cell {

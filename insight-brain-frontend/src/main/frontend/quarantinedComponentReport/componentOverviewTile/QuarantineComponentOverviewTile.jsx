@@ -17,7 +17,7 @@ export default function QuarantineComponentOverviewTile(props) {
       <div className="nx-read-only__item">
         <dt className="nx-read-only__label">Status</dt>
         <dd className="nx-read-only__data">
-          <NxThreatIndicator threatLevelCategory="critical" />
+          <NxThreatIndicator threatLevelCategory={componentOverview.isQuarantined ? 'critical' : 'none'} />
           <span>{getQuarantineLabel(componentOverview.isQuarantined)}</span>
         </dd>
       </div>

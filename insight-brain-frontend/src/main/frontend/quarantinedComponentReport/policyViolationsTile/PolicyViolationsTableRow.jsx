@@ -6,7 +6,6 @@
 import React from 'react';
 import { NxTable, NxThreatIndicator } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
-import { chain } from 'ramda';
 
 export default function PolicyViolationsTableRow({ violation }) {
   const { policyThreatLevel, policyName, constraints } = violation;

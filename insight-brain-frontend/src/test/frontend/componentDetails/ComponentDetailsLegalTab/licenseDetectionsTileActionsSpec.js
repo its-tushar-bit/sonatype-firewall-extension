@@ -11,6 +11,7 @@ import {
   getBaseLicenseOverrideUrl,
   getComponentLicensesUrl,
   getDeleteLicenseOverrideUrl,
+  getLicenseLegalComponentUrl,
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
 } from 'MainRoot/util/CLMLocation';
@@ -78,6 +79,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         scanId: 'currentScanId',
       }),
       licensesOverrideUrl = getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier),
+      licenseLegalComponentUrl = getLicenseLegalComponentUrl(ownerType, ownerId, 'currentComponentHash'),
       licenses = [
         {
           id: '0BSD',
@@ -91,7 +93,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         },
       ],
       componentLicenses = {
-        declaredlicenses: [
+        declaredLicenses: [
           { license: { licenseId: 'CDDL-1.1', licenseName: 'CDDL-1.1' }, threatLevel: 2 },
           {
             license: {
@@ -101,7 +103,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
             threatLevel: 9,
           },
         ],
-        observedlicenses: [
+        observedLicenses: [
           { license: { licenseId: 'CDDL-1.1', licenseName: 'CDDL-1.1' }, threatLevel: 2 },
           {
             license: {
@@ -171,6 +173,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
           [licenseUrl]: Promise.resolve({}),
           [componentlicensUrl]: Promise.resolve({}),
           [licensesOverrideUrl]: Promise.resolve({}),
+          [licenseLegalComponentUrl]: Promise.resolve({}),
         },
       });
 
@@ -180,13 +183,16 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
       expect(actions).toHaveAction({
         type: 'componentDetailsLicenseDetectionsTile/load/pending',
       });
-      expect(axios.get).toHaveBeenCalledTimes(3);
+      expect(axios.get).toHaveBeenCalledTimes(4);
       expect(axios.get).toHaveBeenCalledWith('/rest/license?filterSynthetic=true');
       expect(axios.get).toHaveBeenCalledWith(
         '/rest/ci/componentDetails/application/appPublicId/licenses?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D&identificationSource=identificationSource&scanId=currentScanId'
       );
       expect(axios.get).toHaveBeenCalledWith(
         '/rest/licenseOverride/application/appPublicId?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D'
+      );
+      expect(axios.get).toHaveBeenCalledWith(
+        '/api/v2/licenseLegalMetadata/application/appPublicId/component?hash=currentComponentHash'
       );
     });
 
@@ -201,6 +207,18 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
           }),
           [licensesOverrideUrl]: Promise.resolve({
             data: licensesOverride,
+          }),
+          [licenseLegalComponentUrl]: Promise.resolve({
+            data: {
+              component: {
+                licenseLegalData: {
+                  declaredLicenses: 'declaredLicenses',
+                  effectiveLicenses: 'effectiveLicenses',
+                  observedLicenses: 'observedLicenses',
+                },
+              },
+              licenseLegalMetadata: 'licenseLegalMetadata',
+            },
           }),
         },
       });
@@ -224,11 +242,12 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         type: 'componentDetailsLicenseDetectionsTile/load/fulfilled',
         payload: {
           licenseOverride: licensesOverride.licenseOverridesByOwner,
-          declaredlicenses: componentLicenses.declaredlicenses,
-          effectiveLicenses: componentLicenses.effectiveLicenses,
-          observedlicenses: componentLicenses.observedlicenses,
+          declaredLicenses: 'declaredLicenses',
+          effectiveLicenses: 'effectiveLicenses',
+          observedLicenses: 'observedLicenses',
           selectableLicenses: componentLicenses.selectableLicenses,
           allLicenses: transformedAllLicenses,
+          licenseLegalMetadata: 'licenseLegalMetadata',
         },
       };
       store.dispatch(load()).then(() => {

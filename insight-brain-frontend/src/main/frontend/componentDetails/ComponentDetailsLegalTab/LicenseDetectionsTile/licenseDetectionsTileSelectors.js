@@ -15,10 +15,11 @@ export const selectLicenseDetectionsTileDataSlice = createSelector(
     pick(
       [
         'licenseOverride',
-        'declaredlicenses',
+        'declaredLicenses',
         'effectiveLicenses',
-        'observedlicenses',
+        'observedLicenses',
         'selectableLicenses',
+        'licenseLegalMetadata',
         'allLicenses',
         'loading',
         'loadError',

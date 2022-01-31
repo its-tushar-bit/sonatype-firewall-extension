@@ -20,6 +20,7 @@ import { getStatusName } from 'MainRoot/legal/legalUtility';
 import { isOverriddenOrSelected, renderLicensesList } from '../LegalTabUtils';
 import { licensesPropTypes, licenseOverridePropTypes } from '../LicenseDetectionsTile/LicenseDetections';
 import OverriddenField from './OverriddenField';
+import { licenseLegalMetadataPropType } from 'MainRoot/legal/advancedLegalPropTypes';
 
 const NOT_DIRTY_ERROR_MESSAGE = 'There are no changes to update';
 const NO_SELECTED_LICENSES_ERROR_MESSAGE = 'There must be at least one selected license';
@@ -49,9 +50,10 @@ export default function EditLicensesForm({
   saveForm,
   deleteLicenseOverride,
   allLicenses,
-  declaredlicenses,
+  declaredLicenses,
   effectiveLicenses,
-  observedlicenses,
+  observedLicenses,
+  licenseLegalMetadata,
   selectableLicenses,
   availableLicenseScopes,
   submitError,
@@ -175,15 +177,15 @@ export default function EditLicensesForm({
     <dl className="nx-read-only">
       <dt className="nx-read-only__label">Declared Licenses</dt>
       <dd className="nx-read-only__data" id="declared-licenses-container">
-        {renderLicensesList(declaredlicenses, isClaimed)}
+        <ul>{renderLicensesList(declaredLicenses, licenseLegalMetadata, isClaimed)}</ul>
       </dd>
       <dt className="nx-read-only__label">Observed Licenses</dt>
       <dd className="nx-read-only__data " id="observed-licenses-container">
-        {renderLicensesList(observedlicenses, isClaimed)}
+        <ul>{renderLicensesList(observedLicenses, licenseLegalMetadata, isClaimed)}</ul>
       </dd>
       <dt className="nx-read-only__label">Effective Licenses</dt>
       <dd className="nx-read-only__data" id="effective-licenses-container">
-        {renderLicensesList(effectiveLicenses, isClaimed, true)}
+        <ul>{renderLicensesList(effectiveLicenses, licenseLegalMetadata, isClaimed, true)}</ul>
       </dd>
     </dl>
   );
@@ -257,10 +259,11 @@ export default function EditLicensesForm({
 
 EditLicensesForm.propTypes = {
   allLicenses: PropTypes.arrayOf(licensesPropTypes),
-  declaredlicenses: PropTypes.arrayOf(licensesPropTypes),
-  effectiveLicenses: PropTypes.arrayOf(licensesPropTypes),
-  observedlicenses: PropTypes.arrayOf(licensesPropTypes),
+  declaredLicenses: PropTypes.arrayOf(PropTypes.string),
+  effectiveLicenses: PropTypes.arrayOf(PropTypes.string),
+  observedLicenses: PropTypes.arrayOf(PropTypes.string),
   selectableLicenses: PropTypes.arrayOf(licensesPropTypes),
+  licenseLegalMetadata: licenseLegalMetadataPropType,
   availableLicenseScopes: PropTypes.arrayOf(licenseOverridePropTypes),
   licenseIds: PropTypes.arrayOf(PropTypes.string),
   scope: licenseOverridePropTypes,

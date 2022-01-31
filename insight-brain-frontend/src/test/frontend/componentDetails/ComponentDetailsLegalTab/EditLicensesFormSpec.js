@@ -152,39 +152,67 @@ describe('EditLicensesForm', () => {
 
   describe('renders license info section', () => {
     const licensesProps = {
-      declaredlicenses: [{ license: { licenseId: 'Apache-2.0', licenseName: 'Apache-2.0' }, threatLevel: 10 }],
-      observedlicenses: [{ license: { licenseId: 'No-Sources', licenseName: 'No Sources' }, threatLevel: 5 }],
-      effectiveLicenses: [{ license: { licenseId: 'Apache-2.0', licenseName: 'Apache-2.0' }, threatLevel: 9 }],
+      declaredLicenses: ['Apache-2.0'],
+      observedLicenses: ['No-Sources'],
+      effectiveLicenses: ['Apache-2.0'],
+      licenseLegalMetadata: [
+        {
+          licenseId: 'Apache-2.0',
+          licenseName: 'Apache-2.0',
+          isMulti: false,
+          threatGroup: {
+            threatLevel: 10,
+          },
+        },
+        {
+          licenseId: 'No-Sources',
+          licenseName: 'No Sources',
+          isMulti: false,
+          threatGroup: {
+            threatLevel: 5,
+          },
+        },
+      ],
     };
 
     it('renders license name', () => {
       const wrapper = getShallowComponent({ ...licensesProps }),
         ddList = wrapper.find('dd'),
-        declaredlicenses = ddList.at(0),
-        observedlicenses = ddList.at(1),
+        declaredLicenses = ddList.at(0),
+        observedLicenses = ddList.at(1),
         effectiveLicenses = ddList.at(2);
 
       expect(ddList.length).toBe(3);
-      expect(declaredlicenses.text()).toContain('Apache-2.0');
-      expect(observedlicenses.text()).toContain('No Sources');
+      expect(declaredLicenses.text()).toContain('Apache-2.0');
+      expect(observedLicenses.text()).toContain('No Sources');
       expect(effectiveLicenses.text()).toContain('Apache-2.0');
     });
 
     it('renders Not Provided as license name if component was claimed', () => {
       const component = getShallowComponent({
-        effectiveLicenses: [{ license: { licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' }, threatLevel: 5 }],
-        declaredlicenses: [{ license: { licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' }, threatLevel: 5 }],
-        observedlicenses: [{ license: { licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' }, threatLevel: 5 }],
+        effectiveLicenses: ['UNSPECIFIED'],
+        declaredLicenses: ['UNSPECIFIED'],
+        observedLicenses: ['UNSPECIFIED'],
+        licenseLegalMetadata: [
+          {
+            licenseId: 'UNSPECIFIED',
+            licenseName: 'Not Provided',
+            isMulti: false,
+            threatGroup: {
+              threatLevel: 5,
+            },
+          },
+        ],
         identificationSource: 'Manual',
       });
       const ddList = component.find('dd'),
-        declaredlicenses = ddList.at(0),
-        observedlicenses = ddList.at(1),
+        declaredLicenses = ddList.at(0),
+        observedLicenses = ddList.at(1),
         effectiveLicenses = ddList.at(2);
 
       expect(ddList.length).toBe(3);
-      expect(declaredlicenses.text()).toContain('Not Provided (Claimed Component)');
-      expect(observedlicenses.text()).toContain('Not Provided (Claimed Component)');
+      expect(declaredLicenses.text()).toContain('Not Provided (Claimed Component)');
+      expect(observedLicenses.text()).toContain('Not Provided (Claimed Component)');
       expect(effectiveLicenses.text()).toContain('Not Provided');
     });
 
@@ -198,7 +226,7 @@ describe('EditLicensesForm', () => {
       expect(threatIndicators.at(1)).toExist();
       expect(threatIndicators.at(1)).toHaveProp('policyThreatLevel', 5);
       expect(threatIndicators.at(2)).toExist();
-      expect(threatIndicators.at(2)).toHaveProp('policyThreatLevel', 9);
+      expect(threatIndicators.at(2)).toHaveProp('policyThreatLevel', 10);
     });
   });
 

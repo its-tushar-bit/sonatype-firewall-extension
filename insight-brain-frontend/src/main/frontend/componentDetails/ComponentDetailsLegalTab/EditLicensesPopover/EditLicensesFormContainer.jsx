@@ -16,9 +16,10 @@ import { selectComponentIdentificationSource } from '../../componentDetailsSelec
 function mapStateToProps(state) {
   const { status, comment, licenseIds, isDirty, scope, submitError, submitMaskState } = selectEditLicensesForm(state);
   const {
-    declaredlicenses,
+    declaredLicenses,
     effectiveLicenses,
-    observedlicenses,
+    observedLicenses,
+    licenseLegalMetadata,
     licenseOverride,
     selectableLicenses,
     allLicenses,
@@ -32,10 +33,11 @@ function mapStateToProps(state) {
     isDirty,
     scope,
     allLicenses,
-    declaredlicenses,
+    declaredLicenses,
     effectiveLicenses,
-    observedlicenses,
+    observedLicenses,
     selectableLicenses,
+    licenseLegalMetadata,
     availableLicenseScopes: licenseOverride,
     submitMaskState,
     submitError,

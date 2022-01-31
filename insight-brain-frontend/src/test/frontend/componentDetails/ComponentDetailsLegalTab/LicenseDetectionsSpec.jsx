@@ -14,9 +14,9 @@ describe('LicenseDetections', function () {
     loadLicenses = jasmine.createSpy('loadLicenses');
     toggleShowEditLicensesPopoverSpy = jasmine.createSpy('toggleShowEditLicensesPopover');
     minimalProps = {
-      declaredlicenses: null,
+      declaredLicenses: null,
       effectiveLicenses: null,
-      observedlicenses: null,
+      observedLicenses: null,
       loadLicenses: loadLicenses,
       loading: false,
       loadError: null,
@@ -172,21 +172,79 @@ describe('LicenseDetections', function () {
   describe('renders the licenses sections', () => {
     it('Effective Licenses section', () => {
       const component = getShallow({
-        effectiveLicenses: [
-          { license: { licenseId: 'Id1', licenseName: 'ELicense 1' }, threatLevel: 2 },
-          { license: { licenseId: 'Id2', licenseName: 'ELicense 2' }, threatLevel: 7 },
-        ],
-        declaredlicenses: [{ license: { licenseId: 'Id3', licenseName: 'DLicense 1' }, threatLevel: 5 }],
-        observedlicenses: [
-          { license: { licenseId: 'Id4', licenseName: 'OLicense 1' }, threatLevel: null },
-          { license: { licenseId: 'Id5', licenseName: 'OLicense 2' }, threatLevel: 0 },
-          { license: { licenseId: 'Id6', licenseName: 'OLicense 3' }, threatLevel: 6 },
+        effectiveLicenses: ['Id1', 'Id2'],
+        declaredLicenses: ['Id3'],
+        observedLicenses: ['Id4', 'Id5', 'Id6', 'Id7'],
+        licenseLegalMetadata: [
+          {
+            licenseId: 'Id1',
+            licenseName: 'ELicense 1',
+            isMulti: false,
+            threatGroup: {
+              threatLevel: 2,
+            },
+          },
+          {
+            licenseId: 'Id2',
+            licenseName: 'ELicense 2',
+            isMulti: false,
+            threatGroup: {
+              threatLevel: 7,
+            },
+          },
+          {
+            licenseId: 'Id3',
+            licenseName: 'DLicense 1',
+            isMulti: false,
+            threatGroup: {
+              threatLevel: 5,
+            },
+          },
+          {
+            licenseId: 'Id4',
+            licenseName: 'OLicense 1',
+            isMulti: false,
+            threatGroup: {
+              threatLevel: null,
+            },
+          },
+          {
+            licenseId: 'Id5',
+            licenseName: 'OLicense 2',
+            isMulti: false,
+            threatGroup: {
+              threatLevel: 0,
+            },
+          },
+          {
+            licenseId: 'Id6',
+            licenseName: 'OLicense 3',
+            isMulti: false,
+            threatGroup: {
+              threatLevel: 6,
+            },
+          },
+          {
+            licenseId: 'Id7',
+            licenseName: 'OLicense 4',
+            isMulti: true,
+            singleLicenseIds: ['Id1', 'Id6'],
+            threatGroup: {
+              threatLevel: 3,
+            },
+          },
         ],
       });
       const loadWrapperContents = component.find(NxLoadWrapper).dive();
-      const effectiveLicensesList = loadWrapperContents.find('#effective-licenses-container .license-list-item'),
-        declaredlicenses = loadWrapperContents.find('#declared-licenses-container .license-list-item'),
-        observedlicenses = loadWrapperContents.find('#observed-licenses-container .license-list-item');
+      const effectiveLicensesList = loadWrapperContents.find(
+          '#effective-licenses-container ul li div.license-list-item div.license-list-item__license'
+        ),
+        declaredLicenses = loadWrapperContents.find(
+          '#declared-licenses-container ul li div.license-list-item div.license-list-item__license'
+        ),
+        observedLicenses = loadWrapperContents.find(
+          '#observed-licenses-container ul li div.license-list-item div.license-list-item__license'
+        );
 
       expect(effectiveLicensesList.length).toBe(2);
 
@@ -196,49 +254,65 @@ describe('LicenseDetections', function () {
       expect(effectiveLicensesList.at(1).find(NxThreatIndicator)).toHaveProp('policyThreatLevel', 7);
       expect(effectiveLicensesList.at(1).find('span')).toHaveText('ELicense 2');
 
-      expect(declaredlicenses.length).toBe(1);
+      expect(declaredLicenses.length).toBe(1);
 
-      expect(declaredlicenses.at(0).find(NxThreatIndicator)).toHaveProp('policyThreatLevel', 5);
-      expect(declaredlicenses.at(0).find('span')).toHaveText('DLicense 1');
+      expect(declaredLicenses.at(0).find(NxThreatIndicator)).toHaveProp('policyThreatLevel', 5);
+      expect(declaredLicenses.at(0).find('span')).toHaveText('DLicense 1');
 
-      expect(observedlicenses.length).toBe(3);
+      expect(observedLicenses.length).toBe(5);
 
-      expect(observedlicenses.at(0).find(NxThreatIndicator)).toHaveProp('policyThreatLevel', null);
-      expect(observedlicenses.at(0).find('span')).toHaveText('OLicense 1');
+      expect(observedLicenses.at(0).find(NxThreatIndicator)).toHaveProp('policyThreatLevel', null);
+      expect(observedLicenses.at(0).find('span')).toHaveText('OLicense 1');
 
-      expect(observedlicenses.at(1).find(NxThreatIndicator)).toHaveProp('policyThreatLevel', 0);
-      expect(observedlicenses.at(1).find('span')).toHaveText('OLicense 2');
+      expect(observedLicenses.at(1).find(NxThreatIndicator)).toHaveProp('policyThreatLevel', 0);
+      expect(observedLicenses.at(1).find('span')).toHaveText('OLicense 2');
 
-      expect(observedlicenses.at(2).find(NxThreatIndicator)).toHaveProp('policyThreatLevel', 6);
-      expect(observedlicenses.at(2).find('span')).toHaveText('OLicense 3');
+      expect(observedLicenses.at(2).find(NxThreatIndicator)).toHaveProp('policyThreatLevel', 6);
+      expect(observedLicenses.at(2).find('span')).toHaveText('OLicense 3');
+
+      expect(observedLicenses.at(3).find(NxThreatIndicator)).toHaveProp('policyThreatLevel', 2);
+      expect(observedLicenses.at(3).find('span')).toHaveText('ELicense 1');
+
+      expect(observedLicenses.at(4).find(NxThreatIndicator)).toHaveProp('policyThreatLevel', 6);
+      expect(observedLicenses.at(4).find('span')).toHaveText('OLicense 3');
     });
 
     it('renders licences for claimed component', () => {
       const component = getShallow({
-        effectiveLicenses: [{ license: { licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' }, threatLevel: 5 }],
-        declaredlicenses: [{ license: { licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' }, threatLevel: 5 }],
-        observedlicenses: [{ license: { licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' }, threatLevel: 5 }],
+        effectiveLicenses: ['UNSPECIFIED'],
+        declaredLicenses: ['UNSPECIFIED'],
+        observedLicenses: ['UNSPECIFIED'],
+        licenseLegalMetadata: [
+          {
+            licenseId: 'UNSPECIFIED',
+            licenseName: 'Not Provided',
+            isMulti: false,
+            threatGroup: {
+              threatLevel: 5,
+            },
+          },
+        ],
         identificationSource: 'Manual',
       });
 
       const loadWrapperContents = component.find(NxLoadWrapper).dive();
       const effectiveLicensesList = loadWrapperContents.find('#effective-licenses-container .license-list-item'),
-        declaredlicenses = loadWrapperContents.find('#declared-licenses-container .license-list-item'),
-        observedlicenses = loadWrapperContents.find('#observed-licenses-container .license-list-item');
+        declaredLicenses = loadWrapperContents.find('#declared-licenses-container .license-list-item'),
+        observedLicenses = loadWrapperContents.find('#observed-licenses-container .license-list-item');
 
       expect(effectiveLicensesList.length).toBe(1);
 
       expect(effectiveLicensesList.find('span')).toHaveText('Not Provided');
 
-      expect(declaredlicenses.length).toBe(1);
+      expect(declaredLicenses.length).toBe(1);
 
-      expect(declaredlicenses.find('span').at(0)).toHaveText('Not Provided');
-      expect(declaredlicenses.find('span').at(1)).toHaveText(' (Claimed Component)');
+      expect(declaredLicenses.find('span').at(0)).toHaveText('Not Provided');
+      expect(declaredLicenses.find('span').at(1)).toHaveText(' (Claimed Component)');
 
-      expect(observedlicenses.length).toBe(1);
+      expect(observedLicenses.length).toBe(1);
 
-      expect(observedlicenses.find('span').at(0)).toHaveText('Not Provided');
-      expect(observedlicenses.find('span').at(1)).toHaveText(' (Claimed Component)');
+      expect(observedLicenses.find('span').at(0)).toHaveText('Not Provided');
+      expect(observedLicenses.find('span').at(1)).toHaveText(' (Claimed Component)');
     });
   });
 });

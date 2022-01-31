@@ -8,8 +8,10 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Button;
@@ -37,6 +39,7 @@ import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -83,7 +86,7 @@ public class ComponentDetailsEditLicensesTest
   }
 
   @Test
-  public void testLegalTab_editLicensesPopover() {
+  public void testLegalTab_editLicensesPopover() throws Exception {
     mockHdsResponseForFirstComponent();
     refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, JAVANCSS_HASH));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
@@ -229,7 +232,7 @@ public class ComponentDetailsEditLicensesTest
   }
 
   private void testDefaultValuesAfterCloseWithoutSaving(
-      LicenseDetectionsTile licenseDetectionsTile, EditLicensesPopover editLicensesPopover) 
+      LicenseDetectionsTile licenseDetectionsTile, EditLicensesPopover editLicensesPopover)
   {
     editLicensesPopover.getCloseButton().click();
     // CHECK FOR CONFIRMATION MODAL
@@ -268,7 +271,7 @@ public class ComponentDetailsEditLicensesTest
   }
 
   @Test
-  public void testLegalTab_editAndCloseLicensesPopover() {
+  public void testLegalTab_editAndCloseLicensesPopover() throws Exception {
     mockHdsResponseForFirstComponent();
     refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, JAVANCSS_HASH));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
@@ -323,7 +326,7 @@ public class ComponentDetailsEditLicensesTest
     LicenseOverride override =
         licenseOverrideDAO.getByOwnerIdAndComponentIdentifier(app.getOrganizationId(),
             JAVANCSS_IDENTIFIER);
-    
+
     // Update to 'Overridden' status for ApplicationReportTest Organization
     statusSelect.selectOptionContainingText("Overridden");
     NxTransferList overriddenField = editLicensesPopover.overriddenField();
@@ -360,12 +363,33 @@ public class ComponentDetailsEditLicensesTest
     editLicensesPopover.shouldNotBe(visible);
   }
 
-  private void mockHdsResponseForFirstComponent() {
+  private void mockHdsResponseForFirstComponent() throws Exception {
     testCLMServer.getHdsServer()
         .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-29.50.json"))
         .atUri("rest/ci/componentDetails");
     testCLMServer.getHdsServer()
         .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
         .atUri("rest/component/dependencies");
+    testCLMServer.getHdsServer()
+        .respondWith(IOUtils
+            .toString(Objects.requireNonNull(
+                    this.getClass().getResourceAsStream("/legal/legalLicenseMetadataHdsResponse.json")),
+                StandardCharsets.UTF_8))
+        .atUri("/rest/license/metadata");
+    testCLMServer.getHdsServer()
+        .respondWith(IOUtils
+            .toString(
+                Objects.requireNonNull(this.getClass().getResourceAsStream("/legal/legalCommentHdsResponse.json")),
+                StandardCharsets.UTF_8))
+        .atUri("/rest/legal/comment");
+    testCLMServer.getHdsServer()
+        .respondWith(IOUtils
+            .toString(Objects.requireNonNull(this.getClass()
+                    .getResourceAsStream("/legal/ApplicationAttributionReportTest-legalFileHdsResponse.json")),
+                StandardCharsets.UTF_8))
+        .atUri("/rest/legal/file");
+    testCLMServer.getHdsServer()
+        .respondWith("[]")
+        .atUri("/rest/legal/source-link");
   }
 }

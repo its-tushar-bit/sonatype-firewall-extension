@@ -53,11 +53,12 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
       const otherState = { foo: 'bar' };
       const state = Object.freeze({
         licenseOverride: null,
-        declaredlicenses: null,
+        declaredLicenses: null,
         effectiveLicenses: null,
-        observedlicenses: null,
+        observedLicenses: null,
         selectableLicenses: null,
         allLicenses: null,
+        licenseLegalMetadata: null,
         loading: true,
         loadError: 'error',
         editLicensesForm: {
@@ -79,11 +80,12 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
       const firstLicenseOverride = { license1: { id: 'id1' }, licenseOverride: { comment: 'some comment' } };
       const payload = {
         licenseOverride: [firstLicenseOverride, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
-        declaredlicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
+        declaredLicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
         effectiveLicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
-        observedlicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
+        observedLicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
         selectableLicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
         allLicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
+        licenseLegalMetadata: 'licenseLegalMetadata',
       };
       const action = {
         payload,
@@ -95,11 +97,12 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
       expect(expectedState.loading).toBe(false);
       expect(expectedState.loadError).toBeNull();
       expect(expectedState.licenseOverride).toEqual(payload.licenseOverride);
-      expect(expectedState.declaredlicenses).toEqual(payload.declaredlicenses);
+      expect(expectedState.declaredLicenses).toEqual(payload.declaredLicenses);
       expect(expectedState.effectiveLicenses).toEqual(payload.effectiveLicenses);
-      expect(expectedState.observedlicenses).toEqual(payload.observedlicenses);
+      expect(expectedState.observedLicenses).toEqual(payload.observedLicenses);
       expect(expectedState.selectableLicenses).toEqual(payload.selectableLicenses);
       expect(expectedState.allLicenses).toEqual(payload.allLicenses);
+      expect(expectedState.licenseLegalMetadata).toEqual(payload.licenseLegalMetadata);
       expect(expectedState.editLicensesForm.isDirty).toBeFalse();
       expect(expectedState.editLicensesForm.scope).toBe(firstLicenseOverride);
       expect(expectedState.editLicensesForm.status).toBe(null);
@@ -146,13 +149,13 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
     });
   });
 
-  describe('componentDetaulsLicenseDetectionsTile/setShowUnsavedChangesModal', () => {
+  describe('componentDetailsLicenseDetectionsTile/setShowUnsavedChangesModal', () => {
     const otherState = { foo: 'bar' };
     const state = Object.freeze({
       licenseOverride: null,
-      declaredlicenses: null,
+      declaredLicenses: null,
       effectiveLicenses: null,
-      observedlicenses: null,
+      observedLicenses: null,
       selectableLicenses: null,
       allLicenses: null,
       loading: true,
@@ -502,12 +505,12 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
   });
 
   describe('SELECT_COMPONENT', () => {
-    it('resets scurrent tate to initialState', () => {
+    it('resets current tate to initialState', () => {
       const state = Object.freeze({
         licenseOverride: {},
-        declaredlicenses: [],
+        declaredLicenses: [],
         effectiveLicenses: [],
-        observedlicenses: [],
+        observedLicenses: [],
         selectableLicenses: [],
         allLicenses: [],
         loading: true,

@@ -7,10 +7,12 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Objects;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.MatchStateFilter;
@@ -68,6 +70,7 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -97,6 +100,27 @@ public class ComponentDetailsTest
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
     PolicyImportExport policyImportExport = new PolicyImportExport();
+    testCLMServer.getHdsServer()
+        .respondWith(IOUtils
+            .toString(Objects.requireNonNull(
+                    this.getClass().getResourceAsStream("/legal/legalLicenseMetadataHdsResponse.json")),
+                StandardCharsets.UTF_8))
+        .atUri("/rest/license/metadata");
+    testCLMServer.getHdsServer()
+        .respondWith(IOUtils
+            .toString(
+                Objects.requireNonNull(this.getClass().getResourceAsStream("/legal/legalCommentHdsResponse.json")),
+                StandardCharsets.UTF_8))
+        .atUri("/rest/legal/comment");
+    testCLMServer.getHdsServer()
+        .respondWith(IOUtils
+            .toString(Objects.requireNonNull(this.getClass()
+                    .getResourceAsStream("/legal/ApplicationAttributionReportTest-legalFileHdsResponse.json")),
+                StandardCharsets.UTF_8))
+        .atUri("/rest/legal/file");
+    testCLMServer.getHdsServer()
+        .respondWith("[]")
+        .atUri("/rest/legal/source-link");
 
     Organization org = tempEntity.newOrganization("Test Organization");
     policyImportExport.importOrganization(org, referencePolicies);

@@ -15,6 +15,7 @@ import {
   getBaseLicenseOverrideUrl,
   getComponentLicensesUrl,
   getDeleteLicenseOverrideUrl,
+  getLicenseLegalComponentUrl,
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
 } from 'MainRoot/util/CLMLocation';
@@ -32,10 +33,11 @@ const REDUCER_NAME = 'componentDetailsLicenseDetectionsTile';
 
 export const initialState = {
   licenseOverride: null,
-  declaredlicenses: null,
+  declaredLicenses: null,
   effectiveLicenses: null,
-  observedlicenses: null,
+  observedLicenses: null,
   selectableLicenses: null,
+  licenseLegalMetadata: null,
   allLicenses: null,
   loading: false,
   loadError: null,
@@ -75,18 +77,20 @@ const getScopeWithLicenseOverride = find(prop('licenseOverride'));
 const loadFulfilled = (state, { payload }) => {
   const {
     licenseOverride,
-    declaredlicenses,
+    declaredLicenses,
     effectiveLicenses,
-    observedlicenses,
+    observedLicenses,
     selectableLicenses,
     allLicenses,
+    licenseLegalMetadata,
   } = payload;
   state.licenseOverride = licenseOverride ?? null;
-  state.declaredlicenses = declaredlicenses ?? null;
+  state.declaredLicenses = declaredLicenses ?? null;
   state.effectiveLicenses = effectiveLicenses ?? null;
-  state.observedlicenses = observedlicenses ?? null;
+  state.observedLicenses = observedLicenses ?? null;
   state.selectableLicenses = selectableLicenses ?? null;
   state.allLicenses = allLicenses ?? null;
+  state.licenseLegalMetadata = licenseLegalMetadata ?? null;
   state.loading = false;
   state.loadError = null;
 
@@ -117,6 +121,7 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWith
     identificationSource,
     componentIdentifier,
     scanId,
+    hash,
   } = selectComponentDetailsRequestData(getState());
   const promises = [
     axios.get(getLicensesWithSyntheticFilterUrl()),
@@ -131,20 +136,24 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWith
       })
     ),
     axios.get(getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier)),
+    axios.get(getLicenseLegalComponentUrl(ownerType, ownerId, hash)),
   ];
 
   return Promise.all(promises)
     .then((results) => {
       const allLicenses = map(({ id, shortDisplayName }) => ({ id, displayName: shortDisplayName }), results[0].data);
-      const { declaredlicenses, effectiveLicenses, observedlicenses, selectableLicenses } = results[1].data;
+      const { selectableLicenses } = results[1].data;
+      const { declaredLicenses, effectiveLicenses, observedLicenses } = results[3].data.component.licenseLegalData;
       const licenseOverride = results[2].data.licenseOverridesByOwner;
+      const licenseLegalMetadata = results[3].data.licenseLegalMetadata;
       return {
         licenseOverride,
-        declaredlicenses,
+        declaredLicenses,
         effectiveLicenses,
-        observedlicenses,
+        observedLicenses,
         selectableLicenses,
         allLicenses,
+        licenseLegalMetadata,
       };
     })
     .catch(rejectWithValue);

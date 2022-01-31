@@ -113,6 +113,10 @@ export const licenseLegalMetadataPropType = PropTypes.arrayOf(
   PropTypes.shape({
     licenseId: PropTypes.string.isRequired,
     licenseName: PropTypes.string.isRequired,
+    singleLicenseIds: PropTypes.arrayOf(PropTypes.string),
+    threatGroup: PropTypes.shape({
+      threatLevel: PropTypes.number,
+    }),
     obligations: PropTypes.arrayOf(
       PropTypes.shape({
         licenseObligation: PropTypes.shape({

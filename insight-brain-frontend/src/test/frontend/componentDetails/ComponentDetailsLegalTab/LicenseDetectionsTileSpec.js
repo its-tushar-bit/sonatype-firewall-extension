@@ -15,9 +15,9 @@ describe('LicenseDetectionsTile', function () {
   beforeEach(function () {
     licenseDetectionsProps = {
       licenseOverride: null,
-      declaredlicenses: null,
+      declaredLicenses: null,
       effectiveLicenses: null,
-      observedlicenses: null,
+      observedLicenses: null,
       loadLicenses: () => {},
       loading: false,
       loadError: null,

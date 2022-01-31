@@ -5,36 +5,28 @@
  */
 import React from 'react';
 
-import * as enzymeUtils from '../../enzymeUtils';
-import { render, screen, fireEvent } from '../../SpecUtil';
-import ReportContent from '../../../../main/frontend/applicationReport/react/ReportContent';
-import {
-  NxTable,
-  NxTableBody,
-  NxTableCell,
-  NxTableHead,
-  NxTableRow,
-  NxFilterInput,
-} from '@sonatype/react-shared-components';
+import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
+import ReportContent from 'MainRoot/applicationReport/react/ReportContent';
+import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 
-xdescribe('ReportContent component', function () {
-  let minimalProps, getShallowComponent, renderComponent;
+const displayedEntries = [
+  { filename: 'Component 1', policyThreatLevel: 10, policyName: 'Security-High' },
+  { filename: 'Component 2', policyThreatLevel: 9, policyName: 'Security-High' },
+  { filename: 'Component 3', policyThreatLevel: 8, policyName: 'Security-Medium' },
+  { filename: 'Component 4', policyThreatLevel: 7, policyName: 'Security-Medium' },
+];
+
+describe('ReportContent component', function () {
+  let renderComponent;
 
   beforeEach(function () {
-    minimalProps = {
-      toggleAggregateReportEntries: jasmine.createSpy('toggleAggregateReportEntries'),
-      selectedReport: {
-        displayedEntries: [],
-      },
-    };
+    spyOn(applicationReportActions, 'goToDependencyTreePage').and.returnValue({ type: 'type' });
+    spyOn(applicationReportSelectors, 'selectIsAggregated').and.returnValue(true);
+    spyOn(applicationReportSelectors, 'selectDisplayedComponentList').and.returnValue(displayedEntries);
+    spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
 
-    renderComponent = (additionalProps = {}) => render(<ReportContent {...minimalProps} {...additionalProps} />);
-    getShallowComponent = enzymeUtils.getShallowComponent(ReportContent, minimalProps);
-  });
-
-  it('renders a tile', function () {
-    const shallowComponent = getShallowComponent();
-    expect(shallowComponent).toMatchSelector('.nx-tile');
+    renderComponent = (additionalProps = {}) => render(<ReportContent {...additionalProps} />);
   });
 
   it('renders aggregate by component toggle', function () {
@@ -45,220 +37,113 @@ xdescribe('ReportContent component', function () {
   });
 
   it('dispatches correct action when toggling aggregate by component toggle', function () {
+    spyOn(applicationReportActions, 'toggleAggregateReportEntries').and.returnValue({ type: 'type' });
     renderComponent();
     const aggregateByComponentToggle = screen.getByLabelText('Aggregate by component');
 
     fireEvent.click(aggregateByComponentToggle);
-    expect(minimalProps.toggleAggregateReportEntries).toHaveBeenCalled();
+    expect(applicationReportActions.toggleAggregateReportEntries).toHaveBeenCalled();
   });
 
-  it('renders table header and body', function () {
-    const shallowComponent = getShallowComponent();
-    const table = shallowComponent.find(NxTable);
-    const header = shallowComponent.find(NxTableHead);
-    const body = shallowComponent.find(NxTableBody);
-    expect(table).toExist();
-    expect(header).toExist();
-    expect(body).toExist();
+  it('renders entries from selected report', function () {
+    renderComponent();
+    displayedEntries.forEach((component) => {
+      const row = screen.getByText(component.filename).closest('tr');
+      expect(within(row).getByText(component.policyThreatLevel)).toBeVisible();
+      expect(within(row).getByText(component.policyName)).toBeVisible();
+    });
   });
 
-  it('sets the emptyMessage prop on the NxTableBody', function () {
-    const tableBody = getShallowComponent().find(NxTableBody);
-    expect(tableBody).toHaveProp('emptyMessage', 'No Results');
+  it('renders emptyMessage when there are no results', function () {
+    applicationReportSelectors.selectDisplayedComponentList.and.returnValue([]);
+
+    renderComponent();
+    expect(screen.getByText('No Results')).toBeVisible();
   });
 
-  it('render the table header with sordir desc', function () {
-    const props = {
-      selectedReport: {
-        displayedEntries: [
-          {
-            derivedComponentName: 'Component A',
-            policyName: 'None',
-            policyThreatLevel: 0,
-          },
-          {
-            derivedComponentName: 'Component B',
-            policyName: 'Security-High',
-            policyThreatLevel: 9,
-          },
-        ],
-      },
-      sortConfiguration: {
-        key: 'policyThreatLevel',
-        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
-        dir: 'desc',
-      },
-    };
+  it('render the table with descendent sort direction', function () {
+    spyOn(applicationReportSelectors, 'selectSortConfiguration').and.returnValue({
+      key: 'policyThreatLevel',
+      sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
+      dir: 'desc',
+    });
+    renderComponent();
 
-    const shallowComponent = getShallowComponent(props),
-      head = shallowComponent.find(NxTableHead),
-      rows = head.find(NxTableRow),
-      firstRowTds = rows.at(0).find(NxTableCell);
-
-    expect(firstRowTds.at(0)).toHaveProp('isSortable', true);
-    expect(firstRowTds.at(0)).toHaveProp('sortDir', 'desc');
-    expect(firstRowTds.at(1)).toHaveProp('isSortable', true);
-    expect(firstRowTds.at(2)).toHaveProp('isSortable', true);
+    expect(screen.getByRole('columnheader', { name: /threat/i })).toHaveAttribute('aria-sort', 'descending');
+    expect(screen.getByRole('columnheader', { name: /policy/i })).toHaveAttribute('aria-sort', 'none');
+    expect(screen.getByRole('columnheader', { name: /component/i })).toHaveAttribute('aria-sort', 'none');
   });
 
-  it('render the table header with sordir asc', function () {
-    const props = {
-      selectedReport: {
-        displayedEntries: [
-          {
-            derivedComponentName: 'Component A',
-            policyName: 'None',
-            policyThreatLevel: 0,
-          },
-          {
-            derivedComponentName: 'Component B',
-            policyName: 'Security-High',
-            policyThreatLevel: 9,
-          },
-        ],
-      },
-      sortConfiguration: {
-        key: 'policyName',
-        sortFields: ['policyName', '-policyThreatLevel', 'derivedComponentName'],
-        dir: 'asc',
-      },
-    };
+  it('render the table with ascendant sort direction', function () {
+    spyOn(applicationReportSelectors, 'selectSortConfiguration').and.returnValue({
+      key: 'policyName',
+      sortFields: ['policyName', '-policyThreatLevel', 'derivedComponentName'],
+      dir: 'asc',
+    });
+    renderComponent();
 
-    const shallowComponent = getShallowComponent(props),
-      head = shallowComponent.find(NxTableHead),
-      rows = head.find(NxTableRow),
-      firstRowTds = rows.at(0).find(NxTableCell);
-
-    expect(firstRowTds.at(0)).toHaveProp('isSortable', true);
-    expect(firstRowTds.at(1)).toHaveProp('isSortable', true);
-    expect(firstRowTds.at(1)).toHaveProp('sortDir', 'asc');
-    expect(firstRowTds.at(2)).toHaveProp('isSortable', true);
+    expect(screen.getByRole('columnheader', { name: /threat/i })).toHaveAttribute('aria-sort', 'none');
+    expect(screen.getByRole('columnheader', { name: /policy/i })).toHaveAttribute('aria-sort', 'ascending');
+    expect(screen.getByRole('columnheader', { name: /component/i })).toHaveAttribute('aria-sort', 'none');
   });
 
   it('render the table header with filters', function () {
-    const setStringFieldFilterSpy = jasmine.createSpy('setStringFieldFilter');
+    spyOn(applicationReportActions, 'setStringFieldFilter').and.returnValue({ type: 'type' });
+    spyOn(applicationReportSelectors, 'selectSortConfiguration').and.returnValue({
+      key: 'policyThreatLevel',
+      sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
+      dir: 'desc',
+    });
+    spyOn(applicationReportSelectors, 'selectSubstringFilters').and.returnValue({
+      policyName: 'policyName',
+      derivedComponentName: 'derivedComponentName',
+    });
+    renderComponent();
 
-    const props = {
-      setStringFieldFilter: setStringFieldFilterSpy,
-      selectedReport: {
-        displayedEntries: [
-          {
-            derivedComponentName: 'Component A',
-            policyName: 'None',
-            policyThreatLevel: 0,
-          },
-          {
-            derivedComponentName: 'Component B',
-            policyName: 'Security-High',
-            policyThreatLevel: 9,
-          },
-        ],
-      },
-      sortConfiguration: {
-        key: 'policyThreatLevel',
-        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
-        dir: 'desc',
-      },
-      substringFilters: {
-        policyName: 'policyName',
-        derivedComponentName: 'derivedComponentName',
-      },
-    };
+    const policyNameFilter = screen.getByPlaceholderText('policy name');
+    const derivedComponentNameFilter = screen.getByPlaceholderText('component name');
 
-    const shallowComponent = getShallowComponent(props),
-      head = shallowComponent.find(NxTableHead),
-      rows = head.find(NxTableRow),
-      secondRowTds = rows.at(1).find(NxTableCell),
-      policyNameFilter = secondRowTds.at(0).find(NxFilterInput),
-      derivedComponentNameFilter = secondRowTds.at(1).find(NxFilterInput);
-
-    expect(policyNameFilter).toHaveProp('placeholder', 'policy name');
-    expect(policyNameFilter).toHaveProp('value', 'policyName');
-    expect(derivedComponentNameFilter).toHaveProp('placeholder', 'component name');
-    expect(derivedComponentNameFilter).toHaveProp('value', 'derivedComponentName');
-    policyNameFilter.simulate('change', 'High');
-    derivedComponentNameFilter.simulate('change', 'A');
-    expect(setStringFieldFilterSpy).toHaveBeenCalledWith('policyName', 'High');
-    expect(setStringFieldFilterSpy).toHaveBeenCalledWith('derivedComponentName', 'A');
-  });
-
-  it('renders a ReportTableRow for each entry', function () {
-    const props = {
-        selectedReport: {
-          displayedEntries: [
-            {
-              derivedComponentName: 'Component B',
-              policyName: 'Security-Critical',
-              policyThreatLevel: 9,
-            },
-            {
-              derivedComponentName: 'Component A',
-              policyName: 'None',
-              policyThreatLevel: 0,
-            },
-          ],
-        },
-        sortConfiguration: {
-          key: 'policyThreatLevel',
-          sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
-          dir: 'desc',
-        },
-      },
-      shallowComponent = getShallowComponent(props),
-      body = shallowComponent.find(NxTableBody),
-      tableRow = body.find('ReportTableRow');
-
-    expect(body).toExist();
-    expect(tableRow).toExist();
-    expect(tableRow.at(0)).toHaveProp('component', props.selectedReport.displayedEntries[0]);
-    expect(tableRow.at(0)).toHaveProp('index', 0);
-    expect(tableRow.at(1)).toHaveProp('component', props.selectedReport.displayedEntries[1]);
-    expect(tableRow.at(1)).toHaveProp('index', 1);
+    expect(policyNameFilter).toHaveAttribute('value', 'policyName');
+    expect(derivedComponentNameFilter).toHaveAttribute('value', 'derivedComponentName');
+    fireEvent.change(policyNameFilter, { target: { value: 'High' } });
+    fireEvent.change(derivedComponentNameFilter, { target: { value: 'A' } });
+    expect(applicationReportActions.setStringFieldFilter).toHaveBeenCalledWith('policyName', 'High');
+    expect(applicationReportActions.setStringFieldFilter).toHaveBeenCalledWith('derivedComponentName', 'A');
   });
 
   it('dispatches action on filter`s click', function () {
-    const toggleShowFilterPopoverSpy = jasmine.createSpy('toggleShowFilterPopover');
-    const props = {
-      toggleShowFilterPopover: toggleShowFilterPopoverSpy,
-    };
-    const shallowComponent = getShallowComponent(props);
-    const button = shallowComponent.find('#filters-toggle-button');
+    spyOn(applicationReportActions, 'toggleShowFilterPopover').and.returnValue({ type: 'type' });
+    renderComponent();
+    const button = screen.getByRole('button', { name: /filter/i });
 
-    expect(button).toExist();
-    button.simulate('click');
-    expect(toggleShowFilterPopoverSpy).toHaveBeenCalledTimes(1);
+    expect(button).toBeVisible();
+    fireEvent.click(button);
+    expect(applicationReportActions.toggleShowFilterPopover).toHaveBeenCalledTimes(1);
   });
 
-  it('when there is a DT dispatches action on DT button click and is enabled', function () {
-    const goToDependencyTreePageSpy = jasmine.createSpy('goToDependencyTreePage');
-    const props = {
-      goToDependencyTreePage: goToDependencyTreePageSpy,
-      dependencyTreeIsAvailable: true,
-      dependencyTreeUnavailableMessage: '',
-    };
-    const shallowComponent = getShallowComponent(props);
-    const button = shallowComponent.find('#dependency-tree-button');
+  it('when there is a dependency tree available the "view dependency tree" button is enabled', function () {
+    renderComponent();
+    const button = screen.getByRole('button', { name: /view dependency tree/i });
 
-    expect(button).toExist();
-    expect(button).not.toHaveClassName('disabled');
-    button.simulate('click');
-    expect(goToDependencyTreePageSpy).toHaveBeenCalledTimes(1);
+    expect(button).toBeVisible();
+    expect(button).not.toHaveClass('disabled');
+    fireEvent.click(button);
+    expect(applicationReportActions.goToDependencyTreePage).toHaveBeenCalledTimes(1);
   });
 
-  it('when there is not a DT does not dispatches action on DT button click and is disabled ', function () {
-    const goToDependencyTreePageSpy = jasmine.createSpy('goToDependencyTreePage');
-    const props = {
-      goToDependencyTreePage: goToDependencyTreePageSpy,
-      dependencyTreeIsAvailable: false,
-      dependencyTreeUnavailableMessage: 'some text',
-    };
-    const shallowComponent = getShallowComponent(props);
-    const button = shallowComponent.find('#dependency-tree-button');
+  it('when there is not a dependency tree available the "view dependency tree" button is disabled', async function () {
+    applicationReportSelectors.selectDependencyTreeIsAvailable.and.returnValue(false);
+    spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').and.returnValue(
+      'some random tooltip text'
+    );
+    renderComponent();
+    const button = screen.getByRole('button', { name: /view dependency tree/i });
 
-    expect(button).toExist();
-    expect(button).toHaveClassName('disabled');
-    button.simulate('click');
-    expect(goToDependencyTreePageSpy).toHaveBeenCalledTimes(0);
-    expect(button).toHaveProp('title', 'some text');
+    expect(button).toBeVisible();
+    expect(button).toHaveClass('disabled');
+    fireEvent.click(button);
+    expect(applicationReportActions.goToDependencyTreePage).toHaveBeenCalledTimes(0);
+    fireEvent.mouseOver(button);
+    expect(await screen.findByText('some random tooltip text')).toBeInTheDocument();
   });
 });

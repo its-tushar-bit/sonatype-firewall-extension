@@ -45,7 +45,7 @@ describe('ReportContent component', function () {
       await screen.findByText(
         'By default the Application Report aggregates violations by component. To see all violations not Aggregated by Component, please switch the toggle off.'
       )
-    ).toBeInTheDocument();
+    ).toBeVisible();
   });
 
   it('dispatches correct action when toggling aggregate by component toggle', function () {

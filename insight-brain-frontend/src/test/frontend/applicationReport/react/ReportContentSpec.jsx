@@ -39,13 +39,16 @@ describe('ReportContent component', function () {
   it('renders aggregate by component toggle tooltip', async function () {
     renderComponent();
     const aggregateByComponentToggle = screen.getByLabelText('Aggregate by component');
+
     fireEvent.mouseOver(aggregateByComponentToggle);
 
+    const tooltip = await screen.findByRole('tooltip');
+
     expect(
-      await screen.findByText(
+      within(tooltip).getByText(
         'By default the Application Report aggregates violations by component. To see all violations not Aggregated by Component, please switch the toggle off.'
       )
-    ).toBeVisible();
+    ).toBeInTheDocument();
   });
 
   it('dispatches correct action when toggling aggregate by component toggle', function () {

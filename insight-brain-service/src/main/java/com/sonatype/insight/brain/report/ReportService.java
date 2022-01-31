@@ -102,7 +102,7 @@ public class ReportService
       if (!reportDownloader.downloadReport(scanId, tempFile, reportTimeoutInSeconds, 5)) {
         throw new NotFoundException("Could not download the report for scan ID " + scanId);
       }
-      processThirdPartyData(scanId, tempFile);
+      processThirdPartyData(scanId, tempFile, appId);
       FileUtils.rename(tempFile, reportFile);
     }
 
@@ -139,10 +139,10 @@ public class ReportService
   }
 
   @VisibleForTesting
-  void processThirdPartyData(final String scanId, final File tempFile) throws IOException {
+  void processThirdPartyData(final String scanId, final File tempFile, final String appId) throws IOException {
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = thirdPartyDataService.getScanData(scanId);
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportForInfrastructureAsCodeDTO =
-        thirdPartyDataService.loadThirdPartyInfrastructureAsCodeData(tempFile);
+        thirdPartyDataService.loadThirdPartyInfrastructureAsCodeData(tempFile, appId);
     if (thirdPartyApplicationReportDTO != null) {
       thirdPartyApplicationReportDTO.billOfMaterials
           .addAll(thirdPartyApplicationReportForInfrastructureAsCodeDTO.billOfMaterials);

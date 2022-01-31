@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -18,6 +19,9 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -41,7 +45,11 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.common.annotations.VisibleForTesting;
+import io.dropwizard.util.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +75,8 @@ public class ThirdPartyDataService
 
   private final ThirdPartyComponentDAO thirdPartyComponentDAO;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public ThirdPartyDataService(
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
@@ -76,7 +86,8 @@ public class ThirdPartyDataService
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
       final LicenseDAO licenseDAO,
       final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO,
-      final ThirdPartyComponentDAO thirdPartyComponentDAO)
+      final ThirdPartyComponentDAO thirdPartyComponentDAO,
+      final TelemetrySender telemetrySender)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -86,6 +97,7 @@ public class ThirdPartyDataService
     this.licenseDAO = licenseDAO;
     this.thirdPartyVulnerabilityDAO = thirdPartyVulnerabilityDAO;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
+    this.telemetrySender = telemetrySender;
   }
 
   public ThirdPartyApplicationReportDTO getScanData(final String scanId) {
@@ -217,7 +229,7 @@ public class ThirdPartyDataService
     }
     thirdPartyApplicationReportDTO.licenseRows.add(dto);
   }
-  
+
   private void addLicense(
       final ThirdPartyCoordinateLicense thirdPartyCoordinateLicense,
       final ThirdPartyLicenseRowDTO dto)
@@ -255,16 +267,28 @@ public class ThirdPartyDataService
     thirdPartyVulnerabilityDAO.saveOrUpdate(vulnerabilityList);
   }
 
-  public ThirdPartyApplicationReportDTO loadThirdPartyInfrastructureAsCodeData(final File report) {
+  public ThirdPartyApplicationReportDTO loadThirdPartyInfrastructureAsCodeData(final File report, final String appId) {
+    // Collect data for telemetry within the loop
+    Map<String, Integer> inputTypeCount = new HashMap<>();
+    Map<String, Integer> providerCount = new HashMap<>();
+
+    int numberOfIacComponents = 0;
+    // End telemetry related fields
+
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = new ThirdPartyApplicationReportDTO();
     Map<String, ThirdPartyReportComponentDTO> data = thirdPartyComponentDAO.getData(report);
     if (data == null) {
       return thirdPartyApplicationReportDTO;
     }
     Set<ThirdPartyVulnerability> vulnerabilities = new HashSet<>();
-    for (ThirdPartyReportComponentDTO componentDTO : data.values()) {
-      if ("Sonatype-IaC".equals(componentDTO.bomRow.identificationSource)
-          || "IaC".equals(componentDTO.bomRow.identificationSource)) {
+    Collection<ThirdPartyReportComponentDTO> thirdPartyReportComponentDtos = data.values();
+    for (ThirdPartyReportComponentDTO componentDTO : thirdPartyReportComponentDtos) {
+      if (IdentificationSource.SONATYPE_IAC.getName().equals(componentDTO.bomRow.identificationSource)) {
+        // Collect telemetry data
+        numberOfIacComponents++;
+        collectTelemetryData(inputTypeCount, providerCount, componentDTO);
+
+        // Create security rows
         for (ThirdPartyHealthCheckReportSecurityRowDTO securityRow : componentDTO.securityRows) {
           ThirdPartyVulnerability thirdPartyVulnerability = new ThirdPartyVulnerability();
           thirdPartyVulnerability.setRefId(securityRow.reference);
@@ -280,6 +304,71 @@ public class ThirdPartyDataService
       }
     }
     saveOrUpdate(vulnerabilities);
+
+    // Send telemetry from collected data
+    if (numberOfIacComponents > 0) {
+      sendIacMetricsTelemetry(appId, inputTypeCount, providerCount, numberOfIacComponents);
+    }
+
     return thirdPartyApplicationReportDTO;
+  }
+
+  private void collectTelemetryData(
+      final Map<String, Integer> inputTypeCount,
+      final Map<String, Integer> providerCount,
+      final ThirdPartyReportComponentDTO iacComponent)
+  {
+    final Set<String> knownInputTypes = Sets.of("tf", "tf_plan", "cfn", "k8s", "arm");
+    final Set<String> knownProviders = Sets.of("aws", "kubernetes", "azureerm");
+
+    if (iacComponent.securityRows == null || iacComponent.securityRows.isEmpty()) {
+      return;
+    }
+
+    String inputType = iacComponent.securityRows.get(0).inputType;
+    if (!knownInputTypes.contains(inputType)) {
+      log.info("Unknown inputType: {}", inputType);
+      inputType = "unknown";
+    }
+    if (!inputTypeCount.containsKey(inputType)) {
+      inputTypeCount.put(inputType, 0);
+    }
+    inputTypeCount.put(inputType, inputTypeCount.get(inputType) + 1);
+
+    String provider = iacComponent.securityRows.get(0).provider;
+    if (!knownProviders.contains(provider)) {
+      log.info("Unknown provider: {}", provider);
+      provider = "unknown";
+    }
+    if (!providerCount.containsKey(provider)) {
+      providerCount.put(provider, 0);
+    }
+    providerCount.put(provider, providerCount.get(provider) + 1);
+  }
+
+  @VisibleForTesting
+  void sendIacMetricsTelemetry(
+      String applicationId,
+      Map<String, Integer> inputTypeCount,
+      Map<String, Integer> providerCount,
+      int numberOfIacComponents)
+  {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.IAC_METRICS);
+
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
+
+    for (String provider : providerCount.keySet()) {
+      attributes.put("number_of_components_with_provider_" + provider, String.valueOf(providerCount.get(provider)));
+    }
+
+    for (String inputType : inputTypeCount.keySet()) {
+      attributes.put("number_of_components_with_input_type_" + inputType,
+          String.valueOf(inputTypeCount.get(inputType)));
+    }
+
+    attributes.put("number_of_iac_components", String.valueOf(numberOfIacComponents));
+    telemetryData.setAttributes(attributes);
+    telemetrySender.send(telemetryData);
   }
 }

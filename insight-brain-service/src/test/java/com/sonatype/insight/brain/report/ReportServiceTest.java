@@ -409,7 +409,7 @@ public class ReportServiceTest
     dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "existing1"));
 
     when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
-    reportService.processThirdPartyData(scanId, reportZip);
+    reportService.processThirdPartyData(scanId, reportZip, "app-id");
 
     assertThat(dto.billOfMaterials).hasSize(3);
     assertThat(dto.billOfMaterials.get(0).componentIdentifier.getFormat()).isEqualTo("sbom");

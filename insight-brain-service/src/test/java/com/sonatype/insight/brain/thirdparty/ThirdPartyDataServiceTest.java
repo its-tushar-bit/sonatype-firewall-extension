@@ -10,12 +10,16 @@ import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -29,12 +33,18 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.inject.Binder;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.withinPercentage;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class ThirdPartyDataServiceTest
     extends AbstractComponentTest
@@ -45,6 +55,15 @@ public class ThirdPartyDataServiceTest
   private ThirdPartyDataService handler;
 
   private static final String SCAN_ID = "scanId";
+
+  private TelemetrySender mockTelemetrySender;
+
+  @Override
+  public void configure(Binder binder) {
+    mockTelemetrySender = mock(TelemetrySender.class);
+    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
+    super.configure(binder);
+  }
 
   @Test
   public void testGetScanData() {
@@ -229,7 +248,7 @@ public class ThirdPartyDataServiceTest
   public void testProcessThirdPartyData_withInfrastructureAsCodeSavesVulnerabilities() throws Exception {
     final File reportZip = zipReportDir("/ThirdPartyDataServiceTest/report-with-third-party-iac");
 
-    ThirdPartyApplicationReportDTO dto = handler.loadThirdPartyInfrastructureAsCodeData(reportZip);
+    ThirdPartyApplicationReportDTO dto = handler.loadThirdPartyInfrastructureAsCodeData(reportZip, "app-id");
     assertThat(dto).isNotNull();
 
     ThirdPartyVulnerability vulnerability =
@@ -237,6 +256,21 @@ public class ThirdPartyDataServiceTest
     assertThat(vulnerability).isNotNull();
     assertThat(vulnerability.getAdvisories()).isEqualTo("https://docs.fugue.co/FG_R00229.html");
     assertThat(vulnerability.getUpdateTime()).isCloseTo(new Date(), Duration.ofMinutes(1).toMillis());
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("application_id", "082f05c0fe6c7be532ad651cecccde481f9f63d0");
+    expectedAttributes.put("number_of_components_with_input_type_tf", "2");
+    expectedAttributes.put("number_of_components_with_provider_kubernetes", "2");
+    expectedAttributes.put("number_of_iac_components", "2");
+
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.IAC_METRICS);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
   }
 
   @Test
@@ -259,6 +293,37 @@ public class ThirdPartyDataServiceTest
     assertThat(coordinateSecurities).hasSize(2);
     assertThat(coordinateSecurities.stream().map(ThirdPartyCoordinateSecurity::getRefId))
         .containsExactlyInAnyOrder("r1", "r2");
+  }
+
+  @Test
+  public void testSendIacMetricsTelemetry() {
+    Map<String, Integer> inputTypeCount = new HashMap<>();
+    Map<String, Integer> providerCount = new HashMap<>();
+
+    inputTypeCount.put("tf", 1);
+    inputTypeCount.put("yaml", 1);
+
+    providerCount.put("aws", 1);
+    providerCount.put("kubernetes", 1);
+
+    handler.sendIacMetricsTelemetry("applicationId", inputTypeCount, providerCount, 2);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate("applicationId"));
+    expectedAttributes.put("number_of_components_with_provider_aws", "1");
+    expectedAttributes.put("number_of_components_with_input_type_tf", "1");
+    expectedAttributes.put("number_of_components_with_provider_kubernetes", "1");
+    expectedAttributes.put("number_of_components_with_input_type_yaml", "1");
+    expectedAttributes.put("number_of_iac_components", "2");
+
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.IAC_METRICS);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
   }
 
   private File zipReportDir(String reportResourceName) throws URISyntaxException {

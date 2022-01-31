@@ -27,7 +27,9 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : "https://docs.fugue.co/FG_R00229.html"
+    "advisories" : "https://docs.fugue.co/FG_R00229.html",
+    "provider" : "kubernetes",
+    "inputType" : "tf"
   }, {
     "componentIdentifier" : {
       "format" : "terraform",
@@ -56,7 +58,9 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : "https://docs.fugue.co/FG_R00229.html"
+    "advisories" : "https://docs.fugue.co/FG_R00229.html",
+    "provider" : "kubernetes",
+    "inputType" : "tf"
   }, {
     "componentIdentifier" : {
       "format" : "terraform",
@@ -85,7 +89,9 @@
     "severity" : "Medium",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
   }, {
     "componentIdentifier" : {
       "format" : "terraform",
@@ -114,7 +120,9 @@
     "severity" : "Medium",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
   }, {
     "componentIdentifier" : {
       "format" : "terraform",
@@ -143,7 +151,9 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
   }, {
     "componentIdentifier" : {
       "format" : "terraform",
@@ -172,7 +182,9 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
   }, {
     "componentIdentifier" : {
       "format" : "terraform",
@@ -201,7 +213,9 @@
     "severity" : "Medium",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
   }, {
     "componentIdentifier" : {
       "format" : "terraform",
@@ -230,7 +244,9 @@
     "severity" : "Medium",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
   }, {
     "componentIdentifier" : {
       "format" : "terraform",
@@ -259,7 +275,9 @@
     "severity" : "Medium",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
   }, {
     "componentIdentifier" : {
       "format" : "terraform",
@@ -288,7 +306,9 @@
     "severity" : "Medium",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
   }, {
     "componentIdentifier" : {
       "format" : "terraform",
@@ -317,7 +337,9 @@
     "severity" : "Medium",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
   }, {
     "componentIdentifier" : {
       "format" : "terraform",
@@ -346,6 +368,8 @@
     "severity" : "Medium",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null
+    "advisories" : null,
+    "provider" : "kubernetes",
+    "inputType" : "tf"
   } ]
 }

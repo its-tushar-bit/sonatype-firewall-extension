@@ -16,6 +16,7 @@ import {
   NxButton,
   NxFontAwesomeIcon,
   NxToggle,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faFilter } from '@fortawesome/pro-solid-svg-icons';
 import ReportTableRow from './ReportTableRow';
@@ -56,6 +57,10 @@ const componentNameSettings = {
 const getDirection = (sortConfig, key) => {
   return sortConfig && sortConfig.key === key ? sortConfig.dir : null;
 };
+
+const aggregateByComponentToggleTooltip =
+  'By default the Application Report aggregates violations by component. ' +
+  'To see all violations not Aggregated by Component, please switch the toggle off.';
 
 export default function ReportContent() {
   const dispatch = useDispatch();
@@ -128,9 +133,11 @@ export default function ReportContent() {
     <section className="nx-tile iq-app-report__results-table-tile nx-viewport-sized__container">
       <div className="nx-tile-header">
         <div className="nx-tile-header__title">
-          <NxToggle isChecked={isAggregated} onChange={toggleAggregateByComponent}>
-            Aggregate by component
-          </NxToggle>
+          <NxTooltip title={aggregateByComponentToggleTooltip}>
+            <NxToggle isChecked={isAggregated} onChange={toggleAggregateByComponent}>
+              Aggregate by component
+            </NxToggle>
+          </NxTooltip>
         </div>
         <div className="nx-tile__actions">
           <NxButton

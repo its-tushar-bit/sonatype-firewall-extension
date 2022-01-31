@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import LicenseDetections from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/LicenseDetections';
-import { NxLoadWrapper, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { NxList, NxLoadWrapper, NxThreatIndicator } from '@sonatype/react-shared-components';
 
 describe('LicenseDetections', function () {
   let getShallow, getMounted, minimalProps, mountedComponent, toggleShowEditLicensesPopoverSpy, loadLicenses;
@@ -28,7 +28,7 @@ describe('LicenseDetections', function () {
   });
 
   afterEach(() => {
-    if (mountedComponent.length > 0) mountedComponent.unmount();
+    if (mountedComponent && mountedComponent.length > 0) mountedComponent.unmount();
   });
 
   it('calls loadLicenses on mount', function () {
@@ -236,15 +236,18 @@ describe('LicenseDetections', function () {
         ],
       });
       const loadWrapperContents = component.find(NxLoadWrapper).dive();
-      const effectiveLicensesList = loadWrapperContents.find(
-          '#effective-licenses-container ul li div.license-list-item div.license-list-item__license'
-        ),
-        declaredLicenses = loadWrapperContents.find(
-          '#declared-licenses-container ul li div.license-list-item div.license-list-item__license'
-        ),
-        observedLicenses = loadWrapperContents.find(
-          '#observed-licenses-container ul li div.license-list-item div.license-list-item__license'
-        );
+      const effectiveLicensesList = loadWrapperContents
+          .find('#effective-licenses-container')
+          .find(NxList)
+          .find('div.license-list-item__license'),
+        declaredLicenses = loadWrapperContents
+          .find('#declared-licenses-container')
+          .find(NxList)
+          .find('div.license-list-item__license'),
+        observedLicenses = loadWrapperContents
+          .find('#observed-licenses-container')
+          .find(NxList)
+          .find('div.license-list-item__license');
 
       expect(effectiveLicensesList.length).toBe(2);
 

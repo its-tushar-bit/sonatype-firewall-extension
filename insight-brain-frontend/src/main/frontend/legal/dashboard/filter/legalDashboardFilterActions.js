@@ -35,7 +35,7 @@ export const LEGAL_DASHBOARD_REVERT_FILTER = 'LEGAL_DASHBOARD_REVERT_FILTER';
 export const LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL = 'LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL';
 export const LEGAL_DASHBOARD_TOGGLE_FILTER_SIDEBAR = 'LEGAL_DASHBOARD_TOGGLE_FILTER_SIDEBAR';
 
-export function loadFilter(resultsType = null) {
+export function loadFilter() {
   return (dispatch, getState) => {
     dispatch({ type: LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED });
 
@@ -63,7 +63,7 @@ export function loadFilter(resultsType = null) {
             dashboard.stageTypes
           )
         );
-        return dispatch(fetchCurrentFilterFulfilled(filterData.data, resultsType));
+        return dispatch(fetchCurrentFilterFulfilled(filterData.data));
       })
       .catch((error) => {
         dispatch(loadFilterFailed(error));
@@ -84,16 +84,7 @@ function fetchAvailableFilterOptionsFulfilled(applications, organizations, categ
   };
 }
 
-function fetchCurrentFilterFulfilled(filter, resultsType) {
-  return (dispatch) => {
-    resultsType = resultsType || 'applications';
-    dispatch({
-      type: LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED,
-      payload: filter,
-    });
-    return Promise.resolve();
-  };
-}
+const fetchCurrentFilterFulfilled = payloadParamActionCreator(LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED);
 
 const loadFilterFailed = payloadParamActionCreator(LEGAL_DASHBOARD_LOAD_FILTER_FAILED);
 

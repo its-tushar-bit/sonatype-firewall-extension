@@ -27,8 +27,8 @@ export default function LegalDashboardPage(props) {
     applications,
     components,
     filtersAreDirty,
-    loadFilter,
     loadResults,
+    loadDashboardUI,
     loading,
     loadError,
     fetchBackendPage,
@@ -37,7 +37,6 @@ export default function LegalDashboardPage(props) {
     toggleFilterSidebar,
     filterSidebarOpen,
     showDirtyAsterisk,
-    filterLoading,
     router,
     searchByComponentName,
     legalDashboardSetPage,
@@ -50,14 +49,8 @@ export default function LegalDashboardPage(props) {
   const defaultActiveTab = tabIndexes.findIndex((tab) => router.currentState?.data?.activeTab === tab);
 
   useEffect(() => {
-    loadFilter();
+    loadDashboardUI(tabIndexes[defaultActiveTab]);
   }, []);
-
-  useEffect(() => {
-    if (!filterLoading) {
-      loadResults(tabIndexes[defaultActiveTab]);
-    }
-  }, [filterLoading]);
 
   const loadTabContents = (index) => {
     stateGo(stateIndexes[index], { legalComponentsTabEnabled: 'true' });
@@ -136,9 +129,9 @@ LegalDashboardPage.propTypes = {
   applications: applicationsTabPropType,
   components: PropTypes.any,
   filtersAreDirty: PropTypes.bool,
-  loadFilter: PropTypes.func,
   filterLoading: PropTypes.bool,
   loadResults: PropTypes.func,
+  loadDashboardUI: PropTypes.func,
   isAuthorized: PropTypes.bool,
   loading: PropTypes.bool.isRequired,
   loadError: LoadWrapper.propTypes.error,

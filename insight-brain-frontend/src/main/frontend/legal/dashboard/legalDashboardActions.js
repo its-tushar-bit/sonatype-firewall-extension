@@ -8,6 +8,7 @@ import axios from 'axios';
 import { getLegalDashboardApplicationsUrl, getLegalDashboardComponentsUrl } from '../../util/CLMLocation';
 import { payloadParamActionCreator } from '../../util/reduxUtil';
 import { DASHBOARD } from '../advancedLegalConstants';
+import { loadFilter } from 'MainRoot/legal/dashboard/filter/legalDashboardFilterActions';
 
 export const LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED = 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED';
 export const LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED = 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED';
@@ -43,6 +44,19 @@ export function searchByComponentName() {
       type: LEGAL_DASHBOARD_COMPONENT_SEARCH,
     });
     return dispatchResults(dispatch, 'components', getState);
+  };
+}
+
+export function loadDashboardUI(resultsType) {
+  return (dispatch, getState) => {
+    const { applications, categories, organizations, stages } = getState().legalDashboardFilter;
+    const areFiltersEmpty = organizations.length + applications.length + categories.length + stages.length === 0;
+    if (areFiltersEmpty) {
+      //In this case LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED must be dispatched only after all
+      //the async operations executed in loadFilter() are completed otherwise, the filters UI pane will break
+      return dispatch(loadFilter()).finally(() => dispatch(loadResults(resultsType)));
+    }
+    return dispatch(loadResults(resultsType));
   };
 }
 

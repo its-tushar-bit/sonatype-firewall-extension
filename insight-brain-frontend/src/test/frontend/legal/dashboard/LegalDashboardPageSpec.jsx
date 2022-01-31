@@ -14,6 +14,7 @@ describe('LegalDashboardPage', function () {
     LegalDashboardPage,
     LegalDashboardFilterContainerMock,
     loadResultsSpy,
+    loadDashboardUISpy,
     loadFilterSpy,
     getShallowComponent,
     getMountedComponent;
@@ -37,11 +38,13 @@ describe('LegalDashboardPage', function () {
 
     loadResultsSpy = jasmine.createSpy('loadResults');
     loadFilterSpy = jasmine.createSpy('loadFilter');
+    loadDashboardUISpy = jasmine.createSpy('loadDashboardUISpy');
     minimalProps = {
       applications: mockApplications,
       components: mockComponents,
       loadResults: loadResultsSpy,
       loadFilter: loadFilterSpy,
+      loadDashboardUI: loadDashboardUISpy,
       isAuthorized: true,
       loading: true,
       loadError: 'loadError',
@@ -68,21 +71,10 @@ describe('LegalDashboardPage', function () {
     getMountedComponent = enzymeUtils.getMountedComponent(LegalDashboardPage, minimalProps);
   });
 
-  it('calls loadFilter', function () {
-    expect(loadFilterSpy).not.toHaveBeenCalled();
+  it('calls loadDashboardUI', function () {
+    expect(loadDashboardUISpy).not.toHaveBeenCalled();
     getMountedComponent();
-    expect(loadFilterSpy).toHaveBeenCalled();
-  });
-
-  it('calls loadResults if filterLoading is false', function () {
-    expect(loadResultsSpy).not.toHaveBeenCalled();
-    getMountedComponent();
-    expect(loadResultsSpy).toHaveBeenCalledWith('applications');
-  });
-
-  it('does not call loadResults if filterLoading is true', function () {
-    getMountedComponent({ filterLoading: true });
-    expect(loadResultsSpy).not.toHaveBeenCalled();
+    expect(loadDashboardUISpy).toHaveBeenCalled();
   });
 
   it('is wrapped by a LoadWrapper with appropriate parameters', function () {

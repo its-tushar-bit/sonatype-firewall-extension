@@ -5,6 +5,7 @@
  */
 import {
   loadResults,
+  loadDashboardUI,
   fetchBackendPage,
   changeSortField,
   legalDashboardSetPage,
@@ -12,26 +13,37 @@ import {
 } from '../../../../main/frontend/legal/dashboard/legalDashboardActions';
 import axios from 'axios';
 import {
+  getApplicationsUrl,
+  getApplicationTagsUrl,
   getLegalDashboardApplicationsUrl,
   getLegalDashboardComponentsUrl,
+  getLegalDashboardFilters,
+  getLegalDashboardSavedFilters,
+  getOrganizationsUrl,
 } from '../../../../main/frontend/util/CLMLocation';
+import { DASHBOARD } from 'MainRoot/legal/advancedLegalConstants';
 
 describe('legalDashboardActions', function () {
+  let legalDashboardApplicationsUrlSpy, legalDashboardComponentsUrlSpy, mockAxiosCalls;
+  const tabs = [
+    {
+      resultsType: 'applications',
+      serviceMethod: legalDashboardApplicationsUrlSpy,
+    },
+    {
+      resultsType: 'components',
+      componentNameToSearch: 'searchString',
+      serviceMethod: legalDashboardComponentsUrlSpy,
+    },
+  ];
+
+  beforeEach(() => {
+    legalDashboardApplicationsUrlSpy = jasmine.createSpy('getLegalDashboardApplicationsUrl');
+    legalDashboardComponentsUrlSpy = jasmine.createSpy('getLegalDashboardComponentsUrl');
+    mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  });
+
   describe('loadResults', function () {
-    const legalDashboardApplicationsUrlSpy = jasmine.createSpy('getLegalDashboardApplicationsUrl');
-    const legalDashboardComponentsUrlSpy = jasmine.createSpy('getLegalDashboardComponentsUrl');
-    const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-    const tabs = [
-      {
-        resultsType: 'applications',
-        serviceMethod: legalDashboardApplicationsUrlSpy,
-      },
-      {
-        resultsType: 'components',
-        componentNameToSearch: 'searchString',
-        serviceMethod: legalDashboardComponentsUrlSpy,
-      },
-    ];
     const initialState = {
       legalDashboardFilter: {
         appliedFilter: {
@@ -179,7 +191,7 @@ describe('legalDashboardActions', function () {
       });
     }
 
-    function testlegalDashboardSetPage(tab) {
+    function testLegalDashboardSetPage(tab) {
       describe('legalDashboardSetPage for ' + tab.resultsType, function () {
         it('sets the page', function () {
           const store = SpecUtil.mockReduxStore(initialState);
@@ -287,8 +299,175 @@ describe('legalDashboardActions', function () {
 
     tabs.forEach(testLoadResultsAction);
     testSearchByComponentNameAction(tabs[1]);
-    testlegalDashboardSetPage(tabs[0]);
+    testLegalDashboardSetPage(tabs[0]);
     testFetchBackendPageAction(tabs[0]);
     testChangeSortFieldAction(tabs[0]);
+  });
+
+  describe('loadDashboardUI', function () {
+    const initialState = {
+      legalDashboardFilter: {
+        appliedFilter: {
+          applications: [],
+          organizations: [],
+          stages: [],
+          categories: [],
+          progressOptions: [],
+        },
+        applications: [],
+        organizations: [],
+        stages: [],
+        categories: [],
+        progressOptions: [],
+      },
+      stages: {
+        dashboard: {
+          stageTypes: [{ stageTypeId: 1, stageName: 'stage' }],
+        },
+      },
+      legalDashboard: {
+        applications: {},
+        components: {
+          componentNameToSearch: '',
+          componentSearchInput: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+        },
+      },
+      router: {
+        currentState: {
+          data: {
+            activeTab: 'applications',
+          },
+        },
+      },
+    };
+
+    const filterJson = {
+      name: 'nameTest',
+      basedOnFilterName: 'Test1',
+      filter: 'filter data',
+    };
+
+    const mockGetData = {
+      [getApplicationsUrl()]: Promise.resolve({ data: 'applications data' }),
+      [getOrganizationsUrl()]: Promise.resolve({ data: 'organizations data' }),
+      [getApplicationTagsUrl()]: Promise.resolve({ data: 'tag data' }),
+      [getLegalDashboardFilters()]: Promise.resolve({ data: filterJson }),
+      [getLegalDashboardSavedFilters()]: Promise.resolve({ data: 'saved filters data' }),
+    };
+
+    function getEndpointUrl(activeTab) {
+      return activeTab === 'components' ? getLegalDashboardComponentsUrl() : getLegalDashboardApplicationsUrl();
+    }
+
+    function getRequestPayload(activeTab) {
+      const payload = {
+        applicationIds: [],
+        organizationIds: [],
+        stageTypeIds: [],
+        tagIds: [],
+        reviewStatus: [],
+        page: 1,
+        pageSize: DASHBOARD[activeTab].itemsPerPage * DASHBOARD[activeTab].pagesToFill,
+        order: undefined,
+      };
+
+      return activeTab === 'components' ? { ...payload, componentName: '', order: undefined } : payload;
+    }
+
+    function testLoadDashboardUI(tab) {
+      const endpointUrl = getEndpointUrl(tab.resultsType);
+
+      describe('loadDashboardUI for ' + tab.resultsType, function () {
+        it('loads the filters and then the filtered data', function (done) {
+          const store = SpecUtil.mockReduxStore(initialState);
+          mockAxiosCalls({
+            get: {
+              ...mockGetData,
+            },
+            post: {
+              [getLegalDashboardApplicationsUrl()]: Promise.resolve({
+                data: 'results',
+              }),
+              [getLegalDashboardComponentsUrl()]: Promise.resolve({
+                data: 'results',
+              }),
+            },
+          });
+
+          store.dispatch(loadDashboardUI(tab.resultsType)).then(() => {
+            expect(axios.post).toHaveBeenCalledWith(endpointUrl, getRequestPayload(tab.resultsType));
+            expect(store.getActions().length).toBe(6);
+
+            expect(store.getActions()[0]).toEqual({
+              type: 'LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED',
+            });
+
+            expect(store.getActions()[4]).toEqual({
+              type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
+              payload: tab.resultsType,
+            });
+
+            expect(store.getActions()[5]).toEqual({
+              type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED',
+              payload: {
+                resultsType: tab.resultsType,
+                results: 'results',
+              },
+            });
+
+            done();
+          });
+        });
+
+        it('loads dashboard results without trying to retrieve saved filters when filters are already populated', function (done) {
+          const nonEmptyFilters = {
+            applications: ['aTestApp'],
+            organizations: [],
+            stages: [],
+            categories: [],
+            progressOptions: [],
+          };
+
+          const nonEmptyFiltersInitialState = {
+            ...initialState,
+            legalDashboardFilter: {
+              appliedFilter: initialState.legalDashboardFilter.appliedFilter,
+              ...nonEmptyFilters,
+            },
+          };
+
+          const store = SpecUtil.mockReduxStore(nonEmptyFiltersInitialState);
+          mockAxiosCalls({
+            post: {
+              [getLegalDashboardApplicationsUrl()]: Promise.resolve({
+                data: 'results',
+              }),
+              [getLegalDashboardComponentsUrl()]: Promise.resolve({
+                data: 'results',
+              }),
+            },
+          });
+
+          store.dispatch(loadDashboardUI(tab.resultsType)).then(() => {
+            expect(store.getActions().length).toBe(2);
+            expect(store.getActions()[0]).toEqual({
+              type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
+              payload: tab.resultsType,
+            });
+            expect(store.getActions()[1]).toEqual({
+              type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED',
+              payload: {
+                resultsType: tab.resultsType,
+                results: 'results',
+              },
+            });
+
+            done();
+          });
+        });
+      });
+    }
+
+    tabs.forEach(testLoadDashboardUI);
   });
 });

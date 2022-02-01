@@ -24,6 +24,4 @@ public class QuarantinedComponentOverviewDto
 
   @ApiDateFormat
   public Date cataloguedDate;
-
-  public long otherVersionsCount;
 }

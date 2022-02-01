@@ -180,7 +180,6 @@ public class QuarantinedComponentResourceTest
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo("repositoryPublicId");
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
-    assertThat(quarantinedComponentOverviewDto.otherVersionsCount).isEqualTo(1);
   }
 
   @Test

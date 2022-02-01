@@ -5,6 +5,7 @@
  */
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-table-helpers';
 
 quarantined-component-report {
   display: contents;
@@ -30,4 +31,8 @@ quarantined-component-report {
   .iq-quarantine-report-component-violations__policy-name {
     @include nx-text-helpers.bold;
   }
+}
+
+.iq-quarantine-report-component-other-versions {
+  height: nx-table-helpers.pagination-table-height(5);
 }

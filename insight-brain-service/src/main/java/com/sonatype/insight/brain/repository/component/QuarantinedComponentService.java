@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,9 +83,6 @@ public class QuarantinedComponentService
   public QuarantinedComponentOverviewDto getQuarantinedComponentOverview(final String token) {
     final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
-    String repositoryId = repositoryComponent.getRepositoryId();
-    String pathname = repositoryComponent.getPathname();
-    String pathnamePrefix = getPathnamePrefix(pathname);
 
     final QuarantinedComponentOverviewDto quarantinedComponentOverviewDto = new QuarantinedComponentOverviewDto();
     quarantinedComponentOverviewDto.componentDisplayName = getComponentDisplayName(repositoryComponent);
@@ -94,9 +92,6 @@ public class QuarantinedComponentService
     quarantinedComponentOverviewDto.repositoryName = getRepositoryName(repositoryComponent);
     quarantinedComponentOverviewDto.quarantinedDate = repositoryComponent.getQuarantineTime();
     quarantinedComponentOverviewDto.cataloguedDate = repositoryComponent.getTime();
-    quarantinedComponentOverviewDto.otherVersionsCount =
-        repositoryComponentDAO.getTotalOtherVersionRepositoryComponents(repositoryId, pathnamePrefix, pathname);
-
     return quarantinedComponentOverviewDto;
   }
 
@@ -126,24 +121,34 @@ public class QuarantinedComponentService
   public ApiPageResult<String> getQuarantinedComponentOtherVersions(
       final String token, int page, int pageSize, boolean asc)
   {
+    if (page <= 0 || pageSize <= 0) {
+      throw new BadRequestException("Page and Page size must be greater than 0");
+    }
 
     final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
     String repositoryId = repositoryComponent.getRepositoryId();
     String pathname = repositoryComponent.getPathname();
     String pathnamePrefix = getPathnamePrefix(pathname);
+    int skipCount = (page - 1) * pageSize;
 
     List<RepositoryComponent> otherVersionComponents = repositoryComponentDAO
-        .getOtherVersionRepositoryComponentsByPathnameFilter(repositoryId, pathnamePrefix, pathname, page,
-            pageSize, asc);
+        .getOtherVersionRepositoryComponentsByPathnameFilter(repositoryId, pathnamePrefix, pathname);
+
+    Comparator<RepositoryComponent> comparator = Comparator.comparing(component -> new ComparableVersion(
+        component.getComponentIdentifier().get(ComponentIdentifier.VERSION)));
+
+    if (!asc) {
+      comparator = comparator.reversed();
+    }
 
     List<String> otherVersionComponentDisplayNames =
-        otherVersionComponents.stream().map(this::getComponentDisplayName).collect(Collectors.toList());
+        otherVersionComponents.stream()
+            .sorted(comparator)
+            .map(this::getComponentDisplayName)
+            .skip(skipCount).limit(pageSize).collect(Collectors.toList());
 
-    long total =
-        repositoryComponentDAO.getTotalOtherVersionRepositoryComponents(repositoryId, pathnamePrefix, pathname);
-
-    return new ApiPageResult<>(total, page, pageSize, otherVersionComponentDisplayNames);
+    return new ApiPageResult<>(otherVersionComponents.size(), page, pageSize, otherVersionComponentDisplayNames);
   }
 
   String getPathnamePrefix(String pathname) {

@@ -22,7 +22,7 @@ const initialState = Object.freeze({
       componentOverviewLoading: true,
       componentDisplayName: '',
       isQuarantined: false,
-      quarantinedPolicyViolationsCount: '',
+      quarantinedPolicyViolationsCount: 0,
       repositoryName: '',
       quarantinedDate: '',
       cataloguedDate: '',

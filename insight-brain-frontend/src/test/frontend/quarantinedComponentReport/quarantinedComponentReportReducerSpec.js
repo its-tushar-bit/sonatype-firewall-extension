@@ -13,7 +13,7 @@ describe('quarantinedComponentReportReducer', function () {
         componentOverviewLoading: true,
         componentDisplayName: '',
         isQuarantined: false,
-        quarantinedPolicyViolationsCount: '',
+        quarantinedPolicyViolationsCount: 0,
         repositoryName: '',
         quarantinedDate: '',
         cataloguedDate: '',

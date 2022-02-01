@@ -6,14 +6,111 @@
 import React from 'react';
 
 import ReportTableRow from 'MainRoot/applicationReport/react/ReportTableRow';
-import { render, screen, fireEvent } from '../../SpecUtil';
+import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+import { remove } from 'ramda';
 
 describe('ReportTableRow component', function () {
-  let renderComponent, onClickSpy;
+  let renderComponent, onClickSpy, minimalProps, selectSelectedReportSpy, selectIsAggregatedSpy;
+  const mockReportData = [
+    {
+      policyThreatLevel: 9,
+      waived: false,
+      grandfathered: false,
+      dependencyInfo: {
+        isDirectDependency: false,
+        rootAncestors: [
+          {
+            format: 'npm',
+            coordinates: {
+              packageId: 'npm-producer',
+              version: 'file:../npm-producer',
+            },
+          },
+        ],
+      },
+    },
+    {
+      policyThreatLevel: 9,
+      waived: false,
+      grandfathered: false,
+      dependencyInfo: {
+        isDirectDependency: false,
+        rootAncestors: [
+          {
+            format: 'npm',
+            coordinates: {
+              packageId: 'npm-producer',
+              version: 'file:../npm-producer',
+            },
+          },
+        ],
+      },
+    },
+    {
+      policyThreatLevel: 9,
+      waived: true,
+      grandfathered: false,
+      dependencyInfo: {
+        isDirectDependency: false,
+        rootAncestors: [
+          {
+            format: 'npm',
+            coordinates: {
+              packageId: 'npm-producer',
+              version: 'file:../npm-producer',
+            },
+          },
+        ],
+      },
+    },
+    {
+      policyThreatLevel: 9,
+      waived: false,
+      grandfathered: true,
+      dependencyInfo: {
+        isDirectDependency: false,
+        rootAncestors: [
+          {
+            format: 'npm',
+            coordinates: {
+              packageId: 'npm-producer',
+              version: 'file:../npm-producer',
+            },
+          },
+        ],
+      },
+    },
+    {
+      policyThreatLevel: 0,
+      waived: false,
+      grandfathered: false,
+      dependencyInfo: {
+        isDirectDependency: false,
+        rootAncestors: [
+          {
+            format: 'npm',
+            coordinates: {
+              packageId: 'npm-producer',
+              version: 'file:../npm-producer',
+            },
+          },
+        ],
+      },
+    },
+    {
+      policyThreatLevel: 9,
+      waived: false,
+      grandfathered: false,
+      dependencyInfo: {
+        isDirectDependency: false,
+      },
+    },
+  ];
 
   beforeEach(function () {
     onClickSpy = jasmine.createSpy('onClick');
-    const minimalProps = {
+    minimalProps = {
       index: 0,
       component: {
         derivedComponentName: 'cryptiles : 3.1.4',
@@ -24,9 +121,22 @@ describe('ReportTableRow component', function () {
         policyName: 'Security-High',
         policyThreatLevel: 9,
         filenames: ['cryptiles:3.1.4'],
+        componentIdentifier: {
+          format: 'npm',
+          coordinates: {
+            packageId: 'npm-producer',
+            version: 'file:../npm-producer',
+          },
+        },
+        innerSource: false,
       },
       onClick: onClickSpy,
     };
+
+    selectSelectedReportSpy = spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue({
+      allEntries: mockReportData,
+    });
+    selectIsAggregatedSpy = spyOn(applicationReportSelectors, 'selectIsAggregated').and.returnValue(false);
 
     renderComponent = (additionalProps = {}) => render(<ReportTableRow {...minimalProps} {...additionalProps} />);
   });
@@ -78,6 +188,56 @@ describe('ReportTableRow component', function () {
 
     expect(transitiveDependencyIndicator).toBeVisible();
     expect(transitiveDependencyIndicator.closest('div')).toHaveClassName('iq-dependency-indicator transitive');
+  });
+  describe('transitive violations indicator', function () {
+    it('renders transitive violations indicator when selectIsAggregated is set, plural scenario', function () {
+      selectIsAggregatedSpy.and.returnValue(true);
+      const props = {
+        component: {
+          ...minimalProps.component,
+          innerSource: true,
+        },
+      };
+      renderComponent(props);
+      const transitiveViolationsIndicator = screen.getByText('2 transitive violations');
+
+      expect(transitiveViolationsIndicator).toBeVisible();
+    });
+    it('renders transitive violations indicator when selectIsAggregated is set, singular scenario', function () {
+      selectIsAggregatedSpy.and.returnValue(true);
+      selectSelectedReportSpy.and.returnValue({
+        allEntries: remove(0, 1, mockReportData),
+      });
+      const props = {
+        component: {
+          ...minimalProps.component,
+          innerSource: true,
+        },
+      };
+      renderComponent(props);
+      const transitiveViolationsIndicator = screen.getByText('1 transitive violation');
+
+      expect(transitiveViolationsIndicator).toBeVisible();
+    });
+    it('does not render transitive violations indicator when selectIsAggregated is cleared', function () {
+      const props = {
+        component: {
+          ...minimalProps.component,
+          innerSource: true,
+        },
+      };
+      renderComponent(props);
+      const transitiveViolationsIndicator = screen.queryByText('transitive violation', { exact: false });
+
+      expect(transitiveViolationsIndicator).toBeNull();
+    });
+    it('does not render transitive violations indicator when innerSource is false', function () {
+      selectIsAggregatedSpy.and.returnValue(true);
+      renderComponent();
+      const transitiveViolationsIndicator = screen.queryByText('transitive violation', { exact: false });
+
+      expect(transitiveViolationsIndicator).toBeNull();
+    });
   });
 
   it('renders dependency indicators for a transitive inner source dependency type', function () {

@@ -4,11 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment } from 'react';
+import { useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import { NxFontAwesomeIcon, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
 import { faCheck, faHistory } from '@fortawesome/pro-solid-svg-icons';
 
 import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
+import { selectIsAggregated, selectSelectedReport } from '../applicationReportSelectors';
+import { allPass, filter, includes, length, not, compose, pathOr, prop } from 'ramda';
+
 import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
 
 const DependencyIndicators = ({ component }) => {
@@ -36,6 +40,23 @@ DependencyIndicators.propTypes = {
 };
 
 export default function ReportTableRow({ onClick, component }) {
+  const selectedReport = useSelector(selectSelectedReport);
+  const isAggregated = useSelector(selectIsAggregated);
+
+  const getTransitiveViolationsCount = () => {
+    const transitiveComponentViolations = compose(
+      length,
+      filter(
+        allPass([
+          prop('policyThreatLevel'),
+          compose(not, prop('waived')),
+          compose(not, prop('grandfathered')),
+          compose(includes(component.componentIdentifier), pathOr('', ['dependencyInfo', 'rootAncestors'])),
+        ])
+      )
+    )(selectedReport.allEntries);
+    return `${transitiveComponentViolations} transitive violation${transitiveComponentViolations === 1 ? '' : 's'}`;
+  };
   return (
     <NxTableRow isClickable onClick={onClick}>
       <NxTableCell className="iq-app-report__threat-cell">
@@ -47,6 +68,11 @@ export default function ReportTableRow({ onClick, component }) {
       </NxTableCell>
       <NxTableCell className="iq-app-report__component-name-cell">
         <div className="nx-truncate-ellipsis">
+          {isAggregated && component.innerSource && (
+            <span className="iq-text-indicator iq-text-indicator--grandfathered iq-pull-right">
+              {getTransitiveViolationsCount()}
+            </span>
+          )}
           {component.waived && (
             <span className="iq-text-indicator iq-text-indicator--waived iq-pull-right">
               <span>Waived</span>
@@ -77,6 +103,7 @@ ReportTableRow.propTypes = {
     waived: PropTypes.bool,
     grandfathered: PropTypes.bool,
     policyThreatLevel: PropTypes.number,
+    componentIdentifier: PropTypes.object,
     isOnlyInnerSourceTransitiveDependency: PropTypes.bool,
     innerSource: PropTypes.bool,
   }),

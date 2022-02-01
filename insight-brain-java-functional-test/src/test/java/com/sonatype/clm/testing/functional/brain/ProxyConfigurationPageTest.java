@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ProxyConfigurationPage;
 import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
@@ -154,6 +155,7 @@ public class ProxyConfigurationPageTest
     proxyConfigurationPage.hostName().setValue("a.hostname");
     proxyConfigurationPage.save().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Hostname and Port are required details."));
+    cancel();
   }
 
   @Test
@@ -162,6 +164,7 @@ public class ProxyConfigurationPageTest
     proxyConfigurationPage.port().setValue("8080");
     proxyConfigurationPage.save().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Hostname and Port are required details."));
+    cancel();
   }
 
   @Test
@@ -171,6 +174,7 @@ public class ProxyConfigurationPageTest
     proxyConfigurationPage.hostName().setValue("new-host");
     proxyConfigurationPage.save().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Password must be provided when updating Hostname or Port."));
+    cancel();
   }
 
   @Test
@@ -180,6 +184,17 @@ public class ProxyConfigurationPageTest
     proxyConfigurationPage.port().setValue("9090");
     proxyConfigurationPage.save().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Password must be provided when updating Hostname or Port."));
+    cancel();
+  }
+
+  @Test
+  public void testUnsavedChangesModal() {
+    refreshOrOpen(ProxyConfigurationPage.url());
+    proxyConfigurationPage.port().setValue("8080");
+    proxyConfigurationPage.hostName().setValue("new-host");
+
+    testUnsavedChangesModal_Cancel();
+    testUnsavedChangesModal_Continue();
   }
 
   @Test
@@ -318,6 +333,7 @@ public class ProxyConfigurationPageTest
 
     proxyConfigurationPage.save().hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Hostname and Port are required details."));
+    cancel();
   }
 
   private void assertNoProxyServerConfigured() {
@@ -349,5 +365,29 @@ public class ProxyConfigurationPageTest
 
   private String decryptPassword(ProxyServerConfiguration configuration) {
     return String.valueOf(pwHandler.decryptPassword(configuration.getPassword()));
+  }
+
+  private void testUnsavedChangesModal_Cancel() {
+    refreshOrOpen(DashboardPage.url());
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.shouldBe(visible);
+    unsavedChangesModal.cancelButton().click();
+
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+
+    proxyConfigurationPage.title().shouldBe(visible).shouldHave(text("Configure Proxy"));
+  }
+
+  private void testUnsavedChangesModal_Continue() {
+    refreshOrOpen(DashboardPage.url());
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.shouldBe(visible);
+    unsavedChangesModal.continueButton().click();
+
+    DashboardPage.dashboardContainer().shouldBe(visible);
   }
 }

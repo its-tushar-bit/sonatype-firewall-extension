@@ -23,6 +23,10 @@ public class ProxyConfigurationPage
     return BaseUrl.resolvePageUrl("/proxyConfig");
   }
 
+  public SelenideElement title() {
+    return child(".nx-h2");
+  }
+
   public SelenideElement hostName() {
     return child("#proxy-config-hostname");
   }

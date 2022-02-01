@@ -128,6 +128,7 @@ function routes($stateProvider) {
       url: '/proxyConfig',
       data: {
         title: 'Proxy',
+        isDirty: ['proxyConfig', 'isDirty'],
       },
     })
     .state('advancedSearchConfig', {

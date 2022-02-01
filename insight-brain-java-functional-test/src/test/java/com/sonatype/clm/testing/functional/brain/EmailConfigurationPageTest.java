@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.EmailConfigurationPage;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
@@ -188,6 +189,7 @@ public class EmailConfigurationPageTest
     // Save is enabled with empty password
     emailConfigurationPage.password().clear();
     assertConfigurationCanBeSaved();
+    resetForm();
   }
 
   // I must be able to update fields I am allowed to without providing my password
@@ -371,6 +373,41 @@ public class EmailConfigurationPageTest
     emailConfigurationPage.systemEmail().shouldBe(value("nexus@iq.com"));
 
     assertTestConfigurationEmail("localhost", "465", null, null, "nexus@iq.com", false, false, "admin@company.com");
+    resetForm();
+  }
+
+  @Test
+  public void testUnsavedChangesModal() {
+    refreshOrOpen(EmailConfigurationPage.url());
+    emailConfigurationPage.hostName().setValue("localhost");
+    emailConfigurationPage.port().setValue("465");
+
+    testUnsavedChangesModal_Cancel();
+    testUnsavedChangesModal_Continue();
+  }
+
+  private void testUnsavedChangesModal_Cancel() {
+    refreshOrOpen(DashboardPage.url());
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.shouldBe(visible);
+    unsavedChangesModal.cancelButton().click();
+
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+
+    emailConfigurationPage.title().shouldBe(visible).shouldHave(text("Email"));
+  }
+
+  private void testUnsavedChangesModal_Continue() {
+    refreshOrOpen(DashboardPage.url());
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.shouldBe(visible);
+    unsavedChangesModal.continueButton().click();
+
+    DashboardPage.dashboardContainer().shouldBe(visible);
   }
 
   @Test
@@ -400,6 +437,7 @@ public class EmailConfigurationPageTest
     emailConfigurationPage.startTlsEnabled().shouldBe(selected);
 
     assertTestConfigurationEmail("localhost", "465", "u", "p", "nexus@iq.com", true, true, "admin@company.com");
+    resetForm();
   }
 
   @Test
@@ -434,6 +472,7 @@ public class EmailConfigurationPageTest
     assertTestConfigurationEmail(mailConfiguration.getHostname(), String.valueOf(mailConfiguration.getPort()),
         "u", "p", mailConfiguration.getSystemEmail(), !mailConfiguration.isStartTlsEnabled(),
         mailConfiguration.isSslEnabled(), "john@doe");
+    resetForm();
   }
 
   @Test
@@ -454,6 +493,7 @@ public class EmailConfigurationPageTest
     assertTestConfigurationEmail("another-host", String.valueOf(mailConfiguration.getPort()), "u",
         "not-same-password", mailConfiguration.getSystemEmail(), mailConfiguration.isStartTlsEnabled(),
         mailConfiguration.isSslEnabled(), "john@doe");
+    resetForm();
   }
 
   @Test
@@ -474,6 +514,7 @@ public class EmailConfigurationPageTest
     assertTestConfigurationEmail("smtp.hostname.com", "25", "u",
         "not-same-password", mailConfiguration.getSystemEmail(), mailConfiguration.isStartTlsEnabled(),
         mailConfiguration.isSslEnabled(), "john@doe");
+    resetForm();
   }
 
   @Test
@@ -492,6 +533,7 @@ public class EmailConfigurationPageTest
     assertTestConfigurationEmail(mailConfiguration.getHostname(), String.valueOf(mailConfiguration.getPort()), null,
         null, "modified@system.com", !mailConfiguration.isStartTlsEnabled(), !mailConfiguration.isSslEnabled(),
         "koray@tugay.biz");
+    resetForm();
   }
 
   @Test
@@ -634,5 +676,9 @@ public class EmailConfigurationPageTest
     assertThat(email.getSubject()).isEqualTo("Test Email Configuration");
     String emailBody = IOUtil.toString(email.getInputStream(), StandardCharsets.UTF_8.name());
     assertThat(emailBody).contains("Success! This is a test mail from");
+  }
+
+  private void resetForm() {
+    emailConfigurationPage.cancel().shouldBe(enabled).click();
   }
 }

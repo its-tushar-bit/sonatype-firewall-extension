@@ -113,6 +113,7 @@ function routes($stateProvider) {
       url: '/mailConfig',
       data: {
         title: 'Mail Config',
+        isDirty: ['mailConfig', 'isDirty'],
       },
       resolve: {
         isAuthorized: [

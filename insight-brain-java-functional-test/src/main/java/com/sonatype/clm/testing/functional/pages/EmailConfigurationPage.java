@@ -46,6 +46,10 @@ public class EmailConfigurationPage
     return BaseUrl.resolvePageUrl("/mailConfig");
   }
 
+  public SelenideElement title() {
+    return child(".nx-h2");
+  }
+
   public SelenideElement hostName() {
     return child("#email-config-hostname");
   }

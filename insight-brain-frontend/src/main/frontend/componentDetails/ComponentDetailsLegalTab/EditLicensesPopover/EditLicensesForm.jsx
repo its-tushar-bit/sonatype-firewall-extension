@@ -9,6 +9,7 @@ import { find, propEq, compose, toLower, findIndex, __ } from 'ramda';
 import {
   NxForm,
   NxFieldset,
+  NxList,
   NxTextInput,
   NxRadio,
   NxCheckbox,
@@ -177,15 +178,15 @@ export default function EditLicensesForm({
     <dl className="nx-read-only">
       <dt className="nx-read-only__label">Declared Licenses</dt>
       <dd className="nx-read-only__data" id="declared-licenses-container">
-        <ul>{renderLicensesList(declaredLicenses, licenseLegalMetadata, isClaimed)}</ul>
+        <NxList bulleted>{renderLicensesList(declaredLicenses, licenseLegalMetadata, isClaimed)}</NxList>
       </dd>
       <dt className="nx-read-only__label">Observed Licenses</dt>
       <dd className="nx-read-only__data " id="observed-licenses-container">
-        <ul>{renderLicensesList(observedLicenses, licenseLegalMetadata, isClaimed)}</ul>
+        <NxList bulleted>{renderLicensesList(observedLicenses, licenseLegalMetadata, isClaimed)}</NxList>
       </dd>
       <dt className="nx-read-only__label">Effective Licenses</dt>
       <dd className="nx-read-only__data" id="effective-licenses-container">
-        <ul>{renderLicensesList(effectiveLicenses, licenseLegalMetadata, isClaimed, true)}</ul>
+        <NxList bulleted>{renderLicensesList(effectiveLicenses, licenseLegalMetadata, isClaimed, true)}</NxList>
       </dd>
     </dl>
   );

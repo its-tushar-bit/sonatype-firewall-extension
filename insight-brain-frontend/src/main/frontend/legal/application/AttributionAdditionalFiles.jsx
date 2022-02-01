@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { inc } from 'ramda';
 import { NxButton, NxFieldset, NxFontAwesomeIcon, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import { faTrash } from '@fortawesome/pro-solid-svg-icons';
+import * as PropTypes from 'prop-types';
 
 const NO_FILE_TO_DELETE_INDEX = -1;
 const FORM_FIELD_NAME = 'noticeFiles';
@@ -18,7 +19,8 @@ const FORM_FIELD_NAME = 'noticeFiles';
  * is crucial that a given input stay the same instance throughout its life - if it gets removed and recreated, its
  * state is lost
  */
-export default function AttributionAdditionalFiles() {
+export default function AttributionAdditionalFiles(props) {
+  const { onFilesChange } = props;
   // a div which holds all inputs where files have been selected
   const usedInputContainerRef = useRef(),
     // a div which holds an input where a file selection has not yet been made
@@ -47,6 +49,7 @@ export default function AttributionAdditionalFiles() {
     usedInputContainerRef.current.appendChild(evt.target);
     createNewInput();
     setFileInputChangeCount(inc);
+    onFilesChange(usedInputContainerRef.current.children);
   }
 
   function openDeleteFilePrompt(index) {
@@ -67,6 +70,7 @@ export default function AttributionAdditionalFiles() {
     // note that aside from closing the modal, this state update is crucial to having the effects of the line above
     // reflected in the UI
     setFileIndexToDelete(NO_FILE_TO_DELETE_INDEX);
+    onFilesChange(usedInputContainerRef.current.children);
   }
 
   const fileInputs = usedInputContainerRef.current ? Array.from(usedInputContainerRef.current.children) : [];
@@ -137,3 +141,7 @@ export default function AttributionAdditionalFiles() {
     </NxFieldset>
   );
 }
+
+AttributionAdditionalFiles.propTypes = {
+  onFilesChange: PropTypes.func.isRequired,
+};

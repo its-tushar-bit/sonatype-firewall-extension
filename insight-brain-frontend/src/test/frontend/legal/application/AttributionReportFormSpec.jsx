@@ -6,12 +6,14 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import AttributionReportForm from 'MainRoot/legal/application/AttributionReportForm';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import { NxTextInput } from '@sonatype/react-shared-components';
 
 describe('AttributionReportForm component', function () {
   let getShallowComponent, getMountedComponent, minimalProps, spy$State;
 
   let spyGetAttributionReportTemplates = jasmine.createSpy('getAttributionReportTemplates');
   let spyApplyAttributionReportTemplateByIndex = jasmine.createSpy('applyAttributionReportTemplateByIndex');
+  let spySetDirtyFlagToAttributionReport = jasmine.createSpy('setDirtyFlagToAttributionReport');
 
   beforeEach(function () {
     spy$State = jasmine.createSpyObj('$state', ['get', 'href']);
@@ -60,6 +62,7 @@ describe('AttributionReportForm component', function () {
       attributionReports: { selectedTemplateIndex: -1 },
       getAttributionReportTemplates: spyGetAttributionReportTemplates,
       applyAttributionReportTemplateByIndex: spyApplyAttributionReportTemplateByIndex,
+      setDirtyFlagToAttributionReport: spySetDirtyFlagToAttributionReport,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(AttributionReportForm, minimalProps);
@@ -105,6 +108,13 @@ describe('AttributionReportForm component', function () {
     dropDown.simulate('click');
     expect(wrapper.find('.nx-dropdown-button').length).toBe(2);
     expect(spyGetAttributionReportTemplates).toHaveBeenCalled();
+  });
+
+  it('renders a confirmation modal when user tries to go back with non saved form changes', function () {
+    const wrapper = getShallowComponent();
+    var reportTitle = wrapper.find(NxTextInput).at(0);
+    reportTitle.simulate('change', 'report name');
+    expect(spySetDirtyFlagToAttributionReport).toHaveBeenCalledWith(true);
   });
 
   it('renders a disabled dropdown on empty templates list', function () {

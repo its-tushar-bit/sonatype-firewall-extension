@@ -32,6 +32,7 @@ export default function AttributionReportTemplateForm(props) {
     deleteAttributionReportTemplateById,
     selectAttributionReportTemplate,
     $state,
+    setDirtyFlagToAttributionReportTemplate,
   } = props;
   const { initialState, userInput } = nxTextInputStateHelpers;
   const defaultFormState = {
@@ -86,7 +87,10 @@ export default function AttributionReportTemplateForm(props) {
 
     if (isTemplatePristine.current) {
       isTemplatePristine.current = getTemplatePristinity(inputName);
+    } else {
+      setDirtyFlagToAttributionReportTemplate(true);
     }
+
     setFormState({
       ...formState,
       [inputName]: newCheckState,
@@ -155,7 +159,7 @@ export default function AttributionReportTemplateForm(props) {
   const getTemplatePristinity = (inputToOmit) => {
     let stateTemplate = getStateTemplate() || defaultFormState;
     let currentTemplate = getCurrentTemplateData();
-    return (
+    const isPristine =
       !!stateTemplate &&
       !Object.keys(currentTemplate).find((templateProperty) => {
         if (templateProperty === 'lastUpdatedAt' || templateProperty === 'id' || inputToOmit === templateProperty)
@@ -165,8 +169,9 @@ export default function AttributionReportTemplateForm(props) {
             ? stateTemplate[templateProperty].value
             : stateTemplate[templateProperty]) !== currentTemplate[templateProperty]
         );
-      })
-    );
+      });
+    setDirtyFlagToAttributionReportTemplate(!isPristine);
+    return isPristine;
   };
 
   const textInputChangeHandler = (inputName) => (val) => {
@@ -180,7 +185,10 @@ export default function AttributionReportTemplateForm(props) {
 
     if (isTemplatePristine.current) {
       isTemplatePristine.current = getTemplatePristinity(inputName);
+    } else {
+      setDirtyFlagToAttributionReportTemplate(true);
     }
+
     textInputSetter(inputName)(userInput(validator(inputName), val));
   };
 
@@ -491,4 +499,5 @@ AttributionReportTemplateForm.propTypes = {
   deleteAttributionReportTemplateById: PropTypes.func,
   selectAttributionReportTemplate: PropTypes.func,
   $state: PropTypes.object.isRequired,
+  setDirtyFlagToAttributionReportTemplate: PropTypes.func.isRequired,
 };

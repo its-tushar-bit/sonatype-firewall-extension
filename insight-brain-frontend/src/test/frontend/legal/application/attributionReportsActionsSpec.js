@@ -17,12 +17,16 @@ import {
   SELECT_ATTRIBUTION_REPORT_TEMPLATE,
   ATTRIBUTION_REPORT_TEMPLATE_SUBMIT_MASK_DONE,
   APPLY_ATTRIBUTION_REPORT_TEMPLATE,
+  ATTRIBUTION_REPORT_SET_DIRTY_FLAG,
+  ATTRIBUTION_REPORT_TEMPLATE_SET_DIRTY_FLAG,
   getAttributionReportTemplates,
   saveAttributionReportTemplate,
   selectAttributionReportTemplate,
   deleteAttributionReportTemplateById,
   startAttributionReportTemplateSubmitMaskDoneTimer,
   applyAttributionReportTemplateByIndex,
+  setDirtyFlagToAttributionReport,
+  setDirtyFlagToAttributionReportTemplate,
 } from '../../../../main/frontend/legal/application/attributionReportsActions';
 import {
   getAttributionReportTemplatesUrl,
@@ -33,12 +37,21 @@ describe('attributionReportsActions', function () {
   let store,
     mockAxiosCalls,
     initialState = {
+      attributionReports: {
+        results: [],
+        error: null,
+        loading: false,
+        selectedTemplateIndex: 0,
+        submitMaskState: null,
+        isFormDirty: false,
+      },
       attributionReportTemplates: {
         results: [],
         error: null,
         loading: false,
         selectedTemplateIndex: 0,
         submitMaskState: null,
+        isFormDirty: false,
       },
     };
 
@@ -249,6 +262,38 @@ describe('attributionReportsActions', function () {
     expect(store.getActions()[0]).toEqual({
       type: APPLY_ATTRIBUTION_REPORT_TEMPLATE,
       payload: 0,
+    });
+  });
+
+  it('changes isFormDirty flag from attributionReports', function () {
+    store = SpecUtil.mockReduxStore({
+      ...initialState,
+      attributionReports: {
+        ...initialState.attributionReports,
+        isFormDirty: false,
+      },
+    });
+    store.dispatch(setDirtyFlagToAttributionReport(true));
+    expect(store.getActions().length).toBe(1);
+    expect(store.getActions()[0]).toEqual({
+      type: ATTRIBUTION_REPORT_SET_DIRTY_FLAG,
+      payload: true,
+    });
+  });
+
+  it('changes isFormDirty flag from attributionReportsTemplates', function () {
+    store = SpecUtil.mockReduxStore({
+      ...initialState,
+      attributionReportTemplates: {
+        ...initialState.attributionReportTemplates,
+        isFormDirty: false,
+      },
+    });
+    store.dispatch(setDirtyFlagToAttributionReportTemplate(true));
+    expect(store.getActions().length).toBe(1);
+    expect(store.getActions()[0]).toEqual({
+      type: ATTRIBUTION_REPORT_TEMPLATE_SET_DIRTY_FLAG,
+      payload: true,
     });
   });
 });

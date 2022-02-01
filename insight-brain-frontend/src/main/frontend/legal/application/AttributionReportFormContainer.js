@@ -7,7 +7,11 @@ import { connect } from 'react-redux';
 import { pick } from 'ramda';
 import AttributionReportForm from './AttributionReportForm';
 import { stateGo } from '../../reduxUiRouter/routerActions';
-import { getAttributionReportTemplates, applyAttributionReportTemplateByIndex } from './attributionReportsActions';
+import {
+  getAttributionReportTemplates,
+  applyAttributionReportTemplateByIndex,
+  setDirtyFlagToAttributionReport,
+} from './attributionReportsActions';
 
 function mapStateToProps(state) {
   const {
@@ -25,6 +29,7 @@ const mapDispatchToProps = {
   stateGo,
   getAttributionReportTemplates,
   applyAttributionReportTemplateByIndex,
+  setDirtyFlagToAttributionReport,
 };
 
 const AttributionReportFormContainer = connect(mapStateToProps, mapDispatchToProps)(AttributionReportForm);

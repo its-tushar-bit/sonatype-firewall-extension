@@ -18,6 +18,8 @@ import {
   SELECT_ATTRIBUTION_REPORT_TEMPLATE,
   ATTRIBUTION_REPORT_TEMPLATE_SUBMIT_MASK_DONE,
   APPLY_ATTRIBUTION_REPORT_TEMPLATE,
+  ATTRIBUTION_REPORT_TEMPLATE_SET_DIRTY_FLAG,
+  ATTRIBUTION_REPORT_SET_DIRTY_FLAG,
 } from '../../../../main/frontend/legal/application/attributionReportsActions';
 const initialState = {
   results: [],
@@ -25,6 +27,7 @@ const initialState = {
   loading: false,
   selectedTemplateIndex: -1,
   submitMaskState: null,
+  isFormDirty: false,
 };
 
 const allReportTemplates = [
@@ -216,6 +219,42 @@ describe('attributionReportsReducer', function () {
       };
       const newState = attributionReportsReducer(initialState, action);
       expect(newState.attributionReports.selectedTemplateIndex).toBe(0);
+    });
+  });
+
+  describe(ATTRIBUTION_REPORT_SET_DIRTY_FLAG, function () {
+    const customInitialState = {
+      ...initialState,
+      attributionReports: {
+        ...initialState.attributionReports,
+        isFormDirty: false,
+      },
+    };
+    it('sets isFormDirty flag state on attributionReport', function () {
+      const action = {
+        type: ATTRIBUTION_REPORT_SET_DIRTY_FLAG,
+        payload: true,
+      };
+      const newState = attributionReportsReducer(customInitialState, action);
+      expect(newState.attributionReports.isFormDirty).toBe(true);
+    });
+  });
+
+  describe(ATTRIBUTION_REPORT_TEMPLATE_SET_DIRTY_FLAG, function () {
+    const customInitialState = {
+      ...initialState,
+      attributionReportTemplates: {
+        ...initialState.attributionReportTemplates,
+        isFormDirty: false,
+      },
+    };
+    it('sets isFormDirty flag state on attributionReportTemplates', function () {
+      const action = {
+        type: ATTRIBUTION_REPORT_TEMPLATE_SET_DIRTY_FLAG,
+        payload: true,
+      };
+      const newState = attributionReportsReducer(customInitialState, action);
+      expect(newState.attributionReportTemplates.isFormDirty).toBe(true);
     });
   });
 });

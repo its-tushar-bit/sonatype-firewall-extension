@@ -11,6 +11,7 @@ import {
   saveAttributionReportTemplate,
   selectAttributionReportTemplate,
   deleteAttributionReportTemplateById,
+  setDirtyFlagToAttributionReportTemplate,
 } from './attributionReportsActions';
 
 function mapStateToProps(state) {
@@ -29,6 +30,7 @@ const mapDispatchToProps = {
   saveAttributionReportTemplate,
   selectAttributionReportTemplate,
   deleteAttributionReportTemplateById,
+  setDirtyFlagToAttributionReportTemplate,
 };
 
 const AttributionReportTemplateFormContainer = connect(

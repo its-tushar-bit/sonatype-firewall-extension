@@ -29,6 +29,9 @@ export const APPLY_ATTRIBUTION_REPORT_TEMPLATE = 'APPLY_ATTRIBUTION_REPORT_TEMPL
 
 export const ATTRIBUTION_REPORT_TEMPLATE_SUBMIT_MASK_DONE = 'ATTRIBUTION_REPORT_TEMPLATE_SUBMIT_MASK_DONE';
 
+export const ATTRIBUTION_REPORT_SET_DIRTY_FLAG = 'ATTRIBUTION_REPORT_SET_DIRTY_FLAG';
+export const ATTRIBUTION_REPORT_TEMPLATE_SET_DIRTY_FLAG = 'ATTRIBUTION_REPORT_TEMPLATE_SET_DIRTY_FLAG';
+
 // load templates
 const attributionReportTemplatesRequested = noPayloadActionCreator(LOAD_ATTRIBUTION_REPORT_TEMPLATES_REQUESTED);
 const loadAttributionReportTemplates = payloadParamActionCreator(LOAD_ATTRIBUTION_REPORT_TEMPLATES_FULLFILED);
@@ -48,6 +51,11 @@ const selectAttributionReportTemplates = payloadParamActionCreator(SELECT_ATTRIB
 const applyAttributionReportTemplate = payloadParamActionCreator(APPLY_ATTRIBUTION_REPORT_TEMPLATE);
 
 const attributionReportTemplatesSubmitMaskDone = noPayloadActionCreator(ATTRIBUTION_REPORT_TEMPLATE_SUBMIT_MASK_DONE);
+
+export const setDirtyFlagToAttributionReport = payloadParamActionCreator(ATTRIBUTION_REPORT_SET_DIRTY_FLAG);
+export const setDirtyFlagToAttributionReportTemplate = payloadParamActionCreator(
+  ATTRIBUTION_REPORT_TEMPLATE_SET_DIRTY_FLAG
+);
 
 export function getAttributionReportTemplates() {
   return (dispatch) => {

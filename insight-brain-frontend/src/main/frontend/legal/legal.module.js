@@ -176,6 +176,7 @@ function routes($stateProvider) {
       component: 'attributionReportForm',
       data: {
         title: 'Attribution Report',
+        isDirty: ['attributionReports', 'attributionReports', 'isFormDirty'],
       },
     })
     .state('legal.attributionReportTemplate', {
@@ -183,6 +184,7 @@ function routes($stateProvider) {
       component: 'attributionReportTemplateForm',
       data: {
         title: 'Attribution Report Templates',
+        isDirty: ['attributionReports', 'attributionReportTemplates', 'isFormDirty'],
       },
     })
     .state('legal.componentCopyrightDetails', {

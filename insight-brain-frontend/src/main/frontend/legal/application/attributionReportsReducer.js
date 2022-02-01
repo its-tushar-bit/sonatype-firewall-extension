@@ -16,10 +16,13 @@ import {
   SELECT_ATTRIBUTION_REPORT_TEMPLATE,
   ATTRIBUTION_REPORT_TEMPLATE_SUBMIT_MASK_DONE,
   APPLY_ATTRIBUTION_REPORT_TEMPLATE,
+  ATTRIBUTION_REPORT_SET_DIRTY_FLAG,
+  ATTRIBUTION_REPORT_TEMPLATE_SET_DIRTY_FLAG,
 } from './attributionReportsActions';
 
 const initialState = {
   attributionReportTemplates: {
+    isFormDirty: false,
     results: Object.freeze([]),
     error: null,
     loading: false,
@@ -27,6 +30,7 @@ const initialState = {
     submitMaskState: null,
   },
   attributionReports: {
+    isFormDirty: false,
     selectedTemplateIndex: -1,
   },
 };
@@ -99,6 +103,7 @@ export default function (state = initialState, { type, payload }) {
           results: newResults,
           selectedTemplateIndex: payload.id ? newIndex : newResults.length - 1,
           submitMaskState: true,
+          isFormDirty: false,
         },
       };
     }
@@ -110,6 +115,7 @@ export default function (state = initialState, { type, payload }) {
           error: { type: 'saveError', message: payload.toString() },
           loading: false,
           submitMaskState: null,
+          isFormDirty: false,
         },
       };
 
@@ -155,6 +161,7 @@ export default function (state = initialState, { type, payload }) {
       return {
         ...state,
         attributionReports: {
+          ...state.attributionReports,
           selectedTemplateIndex: payload,
         },
       };
@@ -167,6 +174,24 @@ export default function (state = initialState, { type, payload }) {
           error: null,
           submitMaskState: null,
           loading: false,
+        },
+      };
+
+    case ATTRIBUTION_REPORT_SET_DIRTY_FLAG:
+      return {
+        ...state,
+        attributionReports: {
+          ...state.attributionReports,
+          isFormDirty: payload,
+        },
+      };
+
+    case ATTRIBUTION_REPORT_TEMPLATE_SET_DIRTY_FLAG:
+      return {
+        ...state,
+        attributionReportTemplates: {
+          ...state.attributionReportTemplates,
+          isFormDirty: payload,
         },
       };
 

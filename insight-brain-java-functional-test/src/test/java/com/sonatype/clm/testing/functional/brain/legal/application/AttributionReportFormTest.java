@@ -13,7 +13,9 @@ import java.time.Duration;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.AttributionReportFormPage;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -180,6 +182,22 @@ public class AttributionReportFormTest
     this.testFilesUpload(attrReportFormPage, true);
   }
 
+  @Test
+  public void testAddNoticeFilesAndGoBack() throws IOException {
+    AttributionReportFormPage attrReportFormPage = new AttributionReportFormPage();
+    refreshOrOpen(AttributionReportFormPage.url(app.getPublicId(), BuildStageType.ID));
+    Path file1 = Files.createTempFile("file1", ".txt");
+    file1.toFile().deleteOnExit();
+    Condition innerText1 = text(file1.getFileName().toString());
+    attrReportFormPage.getFileInputs().get(0).uploadFile(file1.toFile());
+    SelenideElement firstListItem = attrReportFormPage.getUploadedFileListItems().get(0);
+    firstListItem.has(innerText1);
+    MainHeader mainHeader = new MainHeader();
+    mainHeader.backButton().click();
+    UnsavedModal unsavedModal = new UnsavedModal();
+    unsavedModal.getElement().should(exist);
+  }
+
   private void triggerFormSubmit(AttributionReportFormPage attrReportFormPage) {
     Wait<WebDriver> wait = new FluentWait<>(getWebDriver())
             .withTimeout(Duration.ofSeconds(240))
@@ -211,6 +229,27 @@ public class AttributionReportFormTest
     firstListItem.has(text("file1"));
     eyesWatcher.eyesCheck();
     this.triggerFormSubmit(attrReportFormPage);
+  }
+
+  @Test
+  public void testFormEditAndGoBack() throws IOException {
+    AttributionReportFormPage attrReportFormPage = new AttributionReportFormPage();
+    refreshOrOpen(AttributionReportFormPage.url(app.getPublicId(), BuildStageType.ID));
+    String headerText = "My Header";
+    String footerText = "My Footer";
+
+    attrReportFormPage.getHeaderInput().setValue(headerText);
+    attrReportFormPage.getFooterInput().setValue(footerText);
+    attrReportFormPage.getTableOfContentsCheck().click();
+    Path file1 = Files.createTempFile("file1", ".txt");
+    file1.toFile().deleteOnExit();
+    attrReportFormPage.getFileInputs().get(0).uploadFile(file1.toFile());
+    SelenideElement firstListItem = attrReportFormPage.getUploadedFileListItems().get(0);
+    firstListItem.has(text("file1"));
+    MainHeader mainHeader = new MainHeader();
+    mainHeader.backButton().click();
+    UnsavedModal unsavedModal = new UnsavedModal();
+    unsavedModal.getElement().should(exist);
   }
 
   private void testCustomValuesToTemplate(AttributionReportFormPage attrReportFormPage) {

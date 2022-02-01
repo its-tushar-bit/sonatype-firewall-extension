@@ -31,6 +31,7 @@ export default function AttributionReportForm(props) {
     attributionReportTemplates,
     getAttributionReportTemplates,
     applyAttributionReportTemplateByIndex,
+    setDirtyFlagToAttributionReport,
   } = props;
   // no way to set name on RSC checkboxes, so we need to create named hidden inputs to send values
   const { initialState, userInput } = nxTextInputStateHelpers;
@@ -109,6 +110,8 @@ export default function AttributionReportForm(props) {
 
     if (isTemplatePristine.current) {
       isTemplatePristine.current = getTemplatePristinity(inputName);
+    } else {
+      setDirtyFlagToAttributionReport(true);
     }
     textInputSetter(inputName)(userInput(validator(inputName), val));
   };
@@ -125,7 +128,7 @@ export default function AttributionReportForm(props) {
   const getTemplatePristinity = (inputToOmit) => {
     let stateTemplate = getStateTemplate() || defaultFormState;
     let currentTemplate = getCurrentTemplateData();
-    return (
+    const isPristine =
       !!stateTemplate &&
       !Object.keys(currentTemplate).find((templateProperty) => {
         if (
@@ -140,8 +143,9 @@ export default function AttributionReportForm(props) {
             ? stateTemplate[templateProperty].value
             : stateTemplate[templateProperty]) !== currentTemplate[templateProperty]
         );
-      })
-    );
+      });
+    setDirtyFlagToAttributionReport(!isPristine);
+    return isPristine;
   };
 
   const toggle = (inputName) => () => {
@@ -163,6 +167,8 @@ export default function AttributionReportForm(props) {
 
     if (isTemplatePristine.current) {
       isTemplatePristine.current = getTemplatePristinity(inputName);
+    } else {
+      setDirtyFlagToAttributionReport(true);
     }
     setFormState({
       ...formState,
@@ -216,6 +222,14 @@ export default function AttributionReportForm(props) {
     return attributionReports.selectedTemplateIndex === NEW_TEMPLATE_INDEX
       ? 'Templates'
       : attributionReportTemplates.results[attributionReports.selectedTemplateIndex].templateName + notPristineMark;
+  };
+
+  const fileInputsChangeHandler = (fileInputs = []) => {
+    if (fileInputs.length > 0) {
+      setDirtyFlagToAttributionReport(true);
+    } else {
+      getTemplatePristinity();
+    }
   };
 
   return (
@@ -352,7 +366,7 @@ export default function AttributionReportForm(props) {
                 }}
               />
             )}
-            <AttributionAdditionalFiles />
+            <AttributionAdditionalFiles onFilesChange={fileInputsChangeHandler} />
           </div>
         </NxForm>
       </section>
@@ -369,4 +383,5 @@ AttributionReportForm.propTypes = {
   attributionReportTemplates: PropTypes.object,
   getAttributionReportTemplates: PropTypes.func.isRequired,
   applyAttributionReportTemplateByIndex: PropTypes.func.isRequired,
+  setDirtyFlagToAttributionReport: PropTypes.func.isRequired,
 };

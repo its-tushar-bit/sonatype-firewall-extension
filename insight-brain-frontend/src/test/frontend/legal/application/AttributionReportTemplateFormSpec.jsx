@@ -6,9 +6,15 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import AttributionReportTemplateForm from 'MainRoot/legal/application/AttributionReportTemplateForm';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import { NxTextInput } from '@sonatype/react-shared-components';
 
 describe('AttributionReportTemplateForm component', function () {
-  let getShallowComponent, getMountedComponent, minimalProps, spy$State, spyGetAttributionReportTemplates;
+  let getShallowComponent,
+    getMountedComponent,
+    minimalProps,
+    spy$State,
+    spyGetAttributionReportTemplates,
+    spySetDirtyFlagToAttributionReportTemplate;
 
   beforeEach(function () {
     spy$State = jasmine.createSpyObj('$state', ['get', 'href']);
@@ -21,6 +27,7 @@ describe('AttributionReportTemplateForm component', function () {
     });
 
     spyGetAttributionReportTemplates = jasmine.createSpy('getAttributionReportTemplates');
+    spySetDirtyFlagToAttributionReportTemplate = jasmine.createSpy('setDirtyFlagToAttributionReportTemplate');
 
     minimalProps = {
       applicationPublicId: 'legal-detection-service',
@@ -57,6 +64,7 @@ describe('AttributionReportTemplateForm component', function () {
       },
       $state: spy$State,
       getAttributionReportTemplates: spyGetAttributionReportTemplates,
+      setDirtyFlagToAttributionReportTemplate: spySetDirtyFlagToAttributionReportTemplate,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(AttributionReportTemplateForm, minimalProps);
@@ -204,5 +212,12 @@ describe('AttributionReportTemplateForm component', function () {
     const wrapper = enzymeUtils.getMountedComponent(AttributionReportTemplateForm, customMinimalProps)();
     expect(spyGetAttributionReportTemplates).toHaveBeenCalled();
     expect(wrapper.find('.nx-submit-mask__message')).toBeDefined();
+  });
+
+  it('renders a confirmation modal when user tries to go back with non saved form changes', function () {
+    const wrapper = getShallowComponent();
+    var reportTitle = wrapper.find(NxTextInput).at(0);
+    reportTitle.simulate('change', 'report name');
+    expect(spySetDirtyFlagToAttributionReportTemplate).toHaveBeenCalledWith(true);
   });
 });

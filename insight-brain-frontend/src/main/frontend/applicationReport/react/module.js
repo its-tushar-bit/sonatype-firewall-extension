@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { react2angular } from 'react2angular';
-import ReportPageContainer from './ReportContainer';
+import ReportPage from './ReportPage';
 import withStoreProvider from '../../reactAdapter/StoreProvider';
 import withRouterStateProvider from 'MainRoot/reactAdapter/RouterStateProvider';
 
@@ -12,7 +12,7 @@ export default angular
   .module('appReport', [])
   .component(
     'appReport',
-    react2angular(withStoreProvider(withRouterStateProvider(ReportPageContainer)), [], ['$ngRedux', '$state'])
+    react2angular(withStoreProvider(withRouterStateProvider(ReportPage)), [], ['$ngRedux', '$state'])
   )
   .config(routes);
 

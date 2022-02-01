@@ -3,123 +3,275 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../enzymeUtils';
-import ReportPage from '../../../../main/frontend/applicationReport/react/ReportPage';
-//import ReportFilters from '../../../../main/frontend/applicationReport/react/ReportFilters';
-import ReportTitle from '../../../../main/frontend/applicationReport/react/ReportTitle';
-import { NxLoadWrapper } from '@sonatype/react-shared-components';
+import React from 'react';
+import moment from 'moment-timezone';
+
+import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import ReportPage from 'MainRoot/applicationReport/react/ReportPage';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 
-describe('Report Page component', function () {
-  let getShallowComponent,
-    loadReportActionMock,
-    toggleAggregateReportEntriesSpy,
-    setExactValueFilterSpy,
-    routerContextMock;
+describe('Report Page component', () => {
+  let renderComponent,
+    loadReportIfNeededSpy,
+    routerContextMock,
+    applicationReport,
+    displayedEntries,
+    selectedReport,
+    metadata,
+    router;
 
-  beforeEach(function () {
-    loadReportActionMock = jasmine.createSpy('loadReport');
-    toggleAggregateReportEntriesSpy = jasmine.createSpy('toggleAggregateReportEntries');
-    setExactValueFilterSpy = jasmine.createSpy('setExactValueFilter');
+  beforeAll(() => {
+    moment.tz.setDefault('America/New_York');
+  });
+
+  afterAll(() => {
+    moment.tz.setDefault();
+  });
+
+  beforeEach(() => {
+    displayedEntries = [
+      {
+        derivedComponentName: 'componentA : 1.0.0',
+        displayName: {
+          name: 'componentA : 1.0.0',
+          parts: [{ field: 'packageId', value: 'componentA' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
+        },
+        policyName: 'Security-Critical',
+        policyThreatLevel: 10,
+      },
+      {
+        derivedComponentName: 'componentB : 1.0.0',
+        displayName: {
+          name: 'componentB : 1.0.0',
+          parts: [{ field: 'packageId', value: 'componentB' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
+        },
+        policyName: 'Security-Medium',
+        policyThreatLevel: 7,
+      },
+      {
+        derivedComponentName: 'componentC : 1.0.0',
+        displayName: {
+          name: 'componentC : 1.0.0',
+          parts: [{ field: 'packageId', value: 'componentC' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
+        },
+        policyName: 'Component-Unknown',
+        policyThreatLevel: 2,
+      },
+      {
+        derivedComponentName: 'componentD : 1.0.0',
+        displayName: {
+          name: 'componentD : 1.0.0',
+          parts: [{ field: 'packageId', value: 'componentD' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
+        },
+        policyName: 'Architecture-Quality',
+        policyThreatLevel: 1,
+      },
+      {
+        derivedComponentName: 'componentE : 1.0.0',
+        displayName: {
+          name: 'componentE : 1.0.0',
+          parts: [{ field: 'packageId', value: 'componentE' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
+        },
+        policyName: 'None',
+        policyThreatLevel: 0,
+      },
+    ];
+    selectedReport = {
+      displayedEntries: displayedEntries,
+      reportVersion: 3,
+      knownArtifactCount: 250,
+      totalArtifactCount: 500,
+      policyComponentCount: 555,
+      grandfatheredPolicyViolationCount: 33,
+      criticalViolationCount: 111,
+      severeViolationCount: 222,
+      moderateViolationCount: 333,
+      nonLowViolationCount: 123,
+    };
+
+    metadata = {
+      scanTriggerType: 'Unknown',
+      reportTitle: 'Title',
+      reportTime: moment('2018-11-11 15:13:11').toDate().getTime(),
+      application: {
+        id: '704e2674ffe845a7ac037524ce32ae89',
+        publicId: 'App Name',
+        name: 'App Name',
+        organizationId: '8637a3377e8f40748e263474d4a131c5',
+      },
+    };
+
+    router = {
+      currentParams: {
+        publicId: 'publicId',
+        scanId: 'scanId',
+      },
+    };
+
+    applicationReport = {
+      selectedReport: selectedReport,
+      metadata: metadata,
+      exactValueFilters: {},
+      reevaluating: false,
+      loadError: null,
+      pendingLoads: {},
+    };
+
+    spyOn(routerSelectors, 'selectRouterSlice').and.returnValue(router);
+    spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue(router.currentParams);
+    spyOn(applicationReportSelectors, 'selectApplicationReportSlice').and.returnValue(applicationReport);
+    spyOn(applicationReportSelectors, 'selectApplicationReportMetaData').and.returnValue(metadata);
+    spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue(selectedReport);
+    spyOn(applicationReportSelectors, 'selectIsAggregated').and.returnValue(true);
+    spyOn(applicationReportSelectors, 'selectDisplayedComponentList').and.returnValue(selectedReport.displayedEntries);
+    spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
+
+    loadReportIfNeededSpy = spyOn(applicationReportActions, 'loadReportIfNeeded').and.callThrough();
+    spyOn(applicationReportActions, 'toggleAggregateReportEntries');
+    spyOn(applicationReportActions, 'goToDependencyTreePage').and.returnValue({ type: 'type' });
 
     routerContextMock = {
       href: jasmine.createSpy('href').and.returnValue('mockValue'),
+      get: jasmine.createSpy('get').and.returnValue('mockGetValue'),
     };
     spyOn(routerContext, 'useRouterState').and.returnValue(routerContextMock);
 
-    const minimalProps = {
-      metadata: {
-        reportTitle: 'Title',
-        application: {
-          name: 'App Name',
-        },
-      },
-      publicId: 'publicId',
-      scanId: 'scanId',
-      selectedReport: {
-        reportVersion: 3,
-        knownArtifactCount: 1,
-        totalArtifactCount: 2,
-        policyComponentCount: 1,
-        grandfatheredPolicyViolationCount: 0,
-        criticalViolationCount: 1,
-        severeViolationCount: 2,
-        moderateViolationCount: 3,
-        nonLowViolationCount: 0,
-      },
-      loading: false,
-      loadReport: loadReportActionMock,
-      toggleAggregateReportEntries: toggleAggregateReportEntriesSpy,
-      setExactValueFilter: setExactValueFilterSpy,
+    renderComponent = () => {
+      render(<ReportPage />);
     };
-
-    getShallowComponent = enzymeUtils.getShallowComponent(ReportPage, minimalProps);
   });
 
-  it('renders a ReportTitle wrapped in a NxLoadWrapper', function () {
-    const component = getShallowComponent();
+  it('renders an alert and retry button if there is an issue while loading information', () => {
+    applicationReport.metadata = null;
+    applicationReport.loadError = 'Server Error';
+    renderComponent();
 
-    expect(component.find(NxLoadWrapper)).toExist();
-    expect(component.find(NxLoadWrapper).find(ReportTitle)).toExist();
+    const retryAlert = screen.getByRole('alert');
+    expect(retryAlert).toBeVisible();
+    expect(retryAlert).toHaveTextContent(`An error occurred loading data. ${applicationReport.loadError}`);
+
+    const retryButton = screen.getByRole('button', { name: 'Retry' });
+    expect(retryButton).toBeVisible();
+    fireEvent.click(retryButton);
+    expect(loadReportIfNeededSpy).toHaveBeenCalled();
   });
 
-  describe('NxLoadWrapper', function () {
-    it('has the loading flag set based on the corresponding prop', function () {
-      expect(getShallowComponent().find(NxLoadWrapper)).toHaveProp('loading', false);
-      expect(getShallowComponent({ loading: true }).find(NxLoadWrapper)).toHaveProp('loading', true);
-    });
+  it('renders an All Reports back button', () => {
+    applicationReportSelectors.selectDisplayedComponentList.and.returnValue([]);
+    renderComponent();
 
-    it('has the error set to the loadError', function () {
-      expect(getShallowComponent().find(NxLoadWrapper)).toHaveProp('error', undefined);
-      expect(getShallowComponent({ loadError: 'foo' }).find(NxLoadWrapper)).toHaveProp('error', 'foo');
-    });
-
-    it('has the retryHandler set to the loadReport prop', function () {
-      const loadReportIfNeeded = jasmine.createSpy();
-
-      expect(getShallowComponent({ loadReportIfNeeded }).find(NxLoadWrapper)).toHaveProp(
-        'retryHandler',
-        loadReportIfNeeded
-      );
-    });
+    const backToAllReports = screen.getByRole('link', { name: 'All Reports' });
+    expect(backToAllReports).toBeVisible();
   });
 
-  it('renders a ReportTitle ReportStatusBar ReportFilters ReportContent', function () {
-    const shallowComponent = getShallowComponent();
-    const reportTitle = shallowComponent.find('ReportTitle');
-    const reportStatusBar = shallowComponent.find('ReportStatusBar');
-    //const reportFilters = shallowComponent.find('ReportFilters');
-    const reportContent = shallowComponent.find('ReportContent');
-    expect(reportTitle).toExist();
-    expect(reportStatusBar).toExist();
-    //expect(reportFilters).toExist();
-    expect(reportContent).toExist();
+  it('renders a ReportTitle', () => {
+    applicationReportSelectors.selectDisplayedComponentList.and.returnValue([]);
+    renderComponent();
+
+    const header = screen.getByRole('heading', { name: 'App Name Title' });
+    const reevaluateButton = screen.getByRole('button', { name: 'Re-Evaluate Report' });
+    const options = screen.getByRole('button', { name: 'Options' });
+    const description = screen.getByText(`Triggered by ${metadata.scanTriggerType} on 2018-11-11 15:13:11 UTC-05:00`);
+
+    expect(header).toBeVisible();
+    expect(description).toBeVisible();
+    expect(reevaluateButton).toBeVisible();
+    expect(options).toBeVisible();
+
+    fireEvent.click(options);
+    expect(screen.getByRole('link', { name: 'Generate PDF' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'View SBOM' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'View raw data' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'View vulnerabilities' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'View legacy report' })).toBeVisible();
   });
 
-  it('renders ReportTitle with props, ', function () {
-    const reportTitle = getShallowComponent().find('ReportTitle');
+  it('renders a ReportStatusBar', () => {
+    applicationReportSelectors.selectDisplayedComponentList.and.returnValue([]);
+    selectedReport.nonLowViolationCount = 1;
+    selectedReport.policyComponentCount = 1;
+    renderComponent();
 
-    expect(reportTitle).toExist();
+    const criticalThreatIndicator = screen.getByText(selectedReport.criticalViolationCount);
+    const severeThreatIndicator = screen.getByText(selectedReport.severeViolationCount);
+    const moderateThreatIndicator = screen.getByText(selectedReport.moderateViolationCount);
+    const totalViolationText = screen.getByText(`${selectedReport.nonLowViolationCount} VIOLATION`);
+    const affectedComponentText = screen.getByText(`Affecting ${selectedReport.policyComponentCount} component`);
+    const totalArtifactText = screen.getByText(`${selectedReport.totalArtifactCount} COMPONENTS`);
+    const coveragePercentageText = screen.getByText('50% of all components identified');
+    const grandfatheredCountText = screen.getByText(
+      `${selectedReport.grandfatheredPolicyViolationCount} Grandfathered`
+    );
+
+    expect(criticalThreatIndicator).toBeVisible();
+    expect(criticalThreatIndicator).toHaveClassName('iq-threat-indicator critical');
+    expect(severeThreatIndicator).toBeVisible();
+    expect(severeThreatIndicator).toHaveClassName('iq-threat-indicator severe');
+    expect(moderateThreatIndicator).toBeVisible();
+    expect(moderateThreatIndicator).toHaveClassName('iq-threat-indicator moderate');
+    expect(totalViolationText).toBeVisible();
+    expect(affectedComponentText).toBeVisible();
+    expect(totalArtifactText).toBeVisible();
+    expect(coveragePercentageText).toBeVisible();
+    expect(grandfatheredCountText).toBeVisible();
   });
 
-  it('renders ReportStatusBar with props, ', function () {
-    const reportStatusBar = getShallowComponent().find('ReportStatusBar');
-    expect(reportStatusBar).toExist();
+  it('renders ReportContent with 3 actions', () => {
+    renderComponent();
+
+    const aggregateByComponentToggle = screen.getByRole('switch', { name: 'Aggregate by component' });
+    const viewDependencyTreeButton = screen.getByRole('button', { name: 'View Dependency Tree' });
+    const filterButton = screen.getByRole('button', { name: 'Filter' });
+
+    expect(aggregateByComponentToggle).toBeVisible();
+    expect(viewDependencyTreeButton).toBeVisible();
+    expect(filterButton).toBeVisible();
   });
 
-  it('renders ReportContent', function () {
-    const reportContent = getShallowComponent().find('ReportContent');
-    expect(reportContent).toExist();
+  it('renders ReportContent content table with 3 headers', () => {
+    renderComponent();
+
+    expect(screen.getByRole('table')).toBeVisible();
+    expect(screen.getByRole('columnheader', { name: 'Threat' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Threat descending' })).toBeVisible();
+    expect(screen.getByRole('columnheader', { name: 'Policy' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Policy unsorted' })).toBeVisible();
+    expect(screen.getByRole('columnheader', { name: 'Component' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Component unsorted' })).toBeVisible();
   });
 
-  it('renders a NxLoadWrapper', function () {
-    const loadWrapper = getShallowComponent().find(NxLoadWrapper);
-    expect(loadWrapper).toExist();
-  });
+  it('renders ReportContent with information', () => {
+    renderComponent();
 
-  it('passes any error to the NxLoadWrapper', function () {
-    const component = getShallowComponent({ loadError: 'error' });
-    const loadWrapper = component.find(NxLoadWrapper);
-    expect(loadWrapper).toHaveProp('error', 'error');
+    const componentRaws = screen.getAllByRole('row');
+    expect(componentRaws.length).toBeGreaterThanOrEqual(6);
+
+    expect(screen.getByRole('img', { name: 'threat level critical' })).toBeVisible();
+    expect(screen.getByText(`${displayedEntries[0].policyThreatLevel}`)).toBeVisible();
+    expect(screen.getByRole('cell', { name: `${displayedEntries[0].policyName}` })).toBeVisible();
+    expect(screen.getByRole('cell', { name: `${displayedEntries[0].derivedComponentName}` })).toBeVisible();
+
+    expect(screen.getByRole('img', { name: 'threat level severe' })).toBeVisible();
+    expect(screen.getByText(`${displayedEntries[1].policyThreatLevel}`)).toBeVisible();
+    expect(screen.getByRole('cell', { name: `${displayedEntries[1].policyName}` })).toBeVisible();
+    expect(screen.getByRole('cell', { name: `${displayedEntries[1].derivedComponentName}` })).toBeVisible();
+
+    expect(screen.getByRole('img', { name: 'threat level moderate' })).toBeVisible();
+    expect(screen.getByText(`${displayedEntries[2].policyThreatLevel}`)).toBeVisible();
+    expect(screen.getByRole('cell', { name: `${displayedEntries[2].policyName}` })).toBeVisible();
+    expect(screen.getByRole('cell', { name: `${displayedEntries[2].derivedComponentName}` })).toBeVisible();
+
+    expect(screen.getByRole('img', { name: 'threat level low' })).toBeVisible();
+    expect(screen.getByText(`${displayedEntries[3].policyThreatLevel}`)).toBeVisible();
+    expect(screen.getByRole('cell', { name: `${displayedEntries[3].policyName}` })).toBeVisible();
+    expect(screen.getByRole('cell', { name: `${displayedEntries[3].derivedComponentName}` })).toBeVisible();
+
+    expect(screen.getByRole('img', { name: 'threat level none' })).toBeVisible();
+    expect(screen.getByText(`${displayedEntries[4].policyThreatLevel}`)).toBeVisible();
+    expect(screen.getByRole('cell', { name: `${displayedEntries[4].policyName}` })).toBeVisible();
+    expect(screen.getByRole('cell', { name: `${displayedEntries[4].derivedComponentName}` })).toBeVisible();
   });
 });

@@ -9,26 +9,37 @@ import ReportStatusBar from './ReportStatusBar';
 import ReportContent from './ReportContent';
 import ReportFilterPopover from './ReportFilterPopover';
 import ReportTitle from './ReportTitle';
-import * as PropTypes from 'prop-types';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import { selectApplicationReportSlice } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as applicationReportActions from '../applicationReportActions';
+import { useDispatch, useSelector } from 'react-redux';
+import { pick } from 'ramda';
 
-export default function ReportPage(props) {
-  const {
-    // actions
-    setReportParameters,
-    loadReportIfNeeded: loadReport,
-    reevaluateMaskState,
-    setExactValueFilter,
-    // state
-    publicId,
-    scanId,
-    unknownjs,
-    embeddable,
-    policyViolationId,
-    loading,
-    loadError,
-    exactValueFilters,
-  } = props;
+export default function ReportPage() {
+  const applicationReport = useSelector(selectApplicationReportSlice);
+  const routerCurrentParams = useSelector(selectRouterCurrentParams);
+
+  const { loadError, reevaluateMaskState } = pick(['loadError', 'reevaluateMaskState'], applicationReport);
+
+  const { publicId, scanId, unknownjs, embeddable, policyViolationId } = routerCurrentParams
+  const loading =
+    !applicationReport.loadError && (!!applicationReport.pendingLoads.size || !applicationReport.metadata);
+
+  const dispatch = useDispatch();
+  const loadReport = () => dispatch(applicationReportActions.loadReportIfNeeded());
+  const setReportParameters = (appId, scanId, isUnknownJs, embeddable, policyViolationId, componentHash, tabId) =>
+    dispatch(
+      applicationReportActions.setReportParameters(
+        appId,
+        scanId,
+        isUnknownJs,
+        embeddable,
+        policyViolationId,
+        componentHash,
+        tabId
+      )
+    );
 
   useEffect(() => {
     if (publicId && scanId) {
@@ -43,12 +54,7 @@ export default function ReportPage(props) {
       <main id="app-report" className="nx-page-main nx-viewport-sized iq-app-report">
         <MenuBarBackButton text="All Reports" stateName={'violations'} />
         <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
-          <ReportFilterPopover
-            {...{
-              setExactValueFilter,
-              exactValueFilters,
-            }}
-          />
+          <ReportFilterPopover />
           <ReportTitle />
           <ReportStatusBar />
           <ReportContent />
@@ -57,55 +63,3 @@ export default function ReportPage(props) {
     </Fragment>
   );
 }
-
-ReportPage.propTypes = {
-  $state: PropTypes.shape({
-    get: PropTypes.func.isRequired,
-    href: PropTypes.func.isRequired,
-  }),
-  // actions
-  setReportParameters: PropTypes.func.isRequired,
-  loadReportIfNeeded: PropTypes.func.isRequired,
-  setExactValueFilter: PropTypes.func.isRequired,
-  // state
-  publicId: PropTypes.string,
-  scanId: PropTypes.string,
-  unknownjs: PropTypes.bool,
-  embeddable: PropTypes.bool,
-  policyViolationId: PropTypes.string,
-  selectedReport: PropTypes.shape({
-    reportVersion: PropTypes.number.isRequired,
-    knownArtifactCount: PropTypes.number.isRequired,
-    totalArtifactCount: PropTypes.number.isRequired,
-    policyComponentCount: PropTypes.number.isRequired,
-    grandfatheredPolicyViolationCount: PropTypes.number.isRequired,
-    criticalViolationCount: PropTypes.number.isRequired,
-    severeViolationCount: PropTypes.number.isRequired,
-    moderateViolationCount: PropTypes.number.isRequired,
-    nonLowViolationCount: PropTypes.number.isRequired,
-    displayedEntries: PropTypes.arrayOf(
-      PropTypes.shape({
-        derivedComponentName: PropTypes.string,
-        policyName: PropTypes.string,
-        hash: PropTypes.string,
-        derivedDependencyType: PropTypes.string,
-        filenames: PropTypes.array,
-        displayName: PropTypes.shape({
-          name: PropTypes.string,
-          parts: PropTypes.array,
-        }),
-        waived: PropTypes.bool,
-        grandfathered: PropTypes.bool,
-        policyThreatLevel: PropTypes.number,
-      })
-    ),
-  }),
-  loading: PropTypes.bool,
-  loadError: PropTypes.string,
-  exactValueFilters: PropTypes.object.isRequired,
-  reevaluateMaskState: PropTypes.bool,
-  goToDependencyTreePage: PropTypes.func.isRequired,
-  dependencyTreeIsAvailable: PropTypes.bool,
-  dependencyTreeUnavailableMessage: PropTypes.string,
-  toggleShowFilterPopover: PropTypes.func.isRequired,
-};

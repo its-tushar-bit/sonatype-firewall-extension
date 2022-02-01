@@ -17,7 +17,7 @@ class AdvancedLegalPackDashboardFilter
 
   private List<String> categoryFilters = new ArrayList<>();
 
-  private List<String> stageTypeFilter = new ArrayList<>();
+  private List<String> stageTypeFilters = new ArrayList<>();
 
   private List<String> progressOptionsFilters = new ArrayList<>();
 
@@ -26,12 +26,12 @@ class AdvancedLegalPackDashboardFilter
 
   public AdvancedLegalPackDashboardFilter(
       final List<String> organizationFilters, final List<String> applicationFilters, final List<String> categoryFilters,
-      final List<String> stageTypeFilter, final List<String> progressOptionsFilters)
+      final List<String> stageTypeFilters, final List<String> progressOptionsFilters)
   {
     this.organizationFilters = organizationFilters;
     this.applicationFilters = applicationFilters;
     this.categoryFilters = categoryFilters;
-    this.stageTypeFilter = stageTypeFilter;
+    this.stageTypeFilters = stageTypeFilters;
     this.progressOptionsFilters = progressOptionsFilters;
   }
 
@@ -59,12 +59,12 @@ class AdvancedLegalPackDashboardFilter
     this.categoryFilters = categoryFilters;
   }
 
-  public List<String> getStageTypeFilter() {
-    return stageTypeFilter;
+  public List<String> getStageTypeFilters() {
+    return stageTypeFilters;
   }
 
-  public void setStageTypeFilter(final List<String> stageTypeFilter) {
-    this.stageTypeFilter = stageTypeFilter;
+  public void setStageTypeFilters(final List<String> stageTypeFilter) {
+    this.stageTypeFilters = stageTypeFilter;
   }
 
   public List<String> getProgressOptionsFilters() {
@@ -87,13 +87,13 @@ class AdvancedLegalPackDashboardFilter
     return Objects.equals(getOrganizationFilters(), that.getOrganizationFilters()) &&
         Objects.equals(getApplicationFilters(), that.getApplicationFilters()) &&
         Objects.equals(getCategoryFilters(), that.getCategoryFilters()) &&
-        Objects.equals(getStageTypeFilter(), that.getStageTypeFilter()) &&
+        Objects.equals(getStageTypeFilters(), that.getStageTypeFilters()) &&
         Objects.equals(getProgressOptionsFilters(), that.getProgressOptionsFilters());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getOrganizationFilters(), getApplicationFilters(), getCategoryFilters(), getStageTypeFilter(),
+    return Objects.hash(getOrganizationFilters(), getApplicationFilters(), getCategoryFilters(), getStageTypeFilters(),
         getProgressOptionsFilters());
   }
 }

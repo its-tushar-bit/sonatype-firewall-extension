@@ -85,6 +85,8 @@ public class DependencyResolver
 
   public static final String FIELD_ANALYZER_FEATURES = "analyzerFeatures";
 
+  public static final String FIELD_DEPENDENCY_INDICATOR = "dependencyDataIncluded";
+
   private final JsonNode dependenciesJson;
 
   private final JsonNode bomJson;
@@ -181,9 +183,15 @@ public class DependencyResolver
           else if (CollectionUtils.isNotEmpty(tree.getChildren())) {
             updateDependencyInfoForComponentChildren(tree.getChildren(), true, false, null);
           }
+          addBomDependencyDataIndicator(bomJson);
         }
       }
     }
+  }
+
+  private void addBomDependencyDataIndicator(JsonNode bomJson) {
+    ObjectNode bomNode = (ObjectNode) bomJson;
+    bomNode.put(FIELD_DEPENDENCY_INDICATOR, true);
   }
 
   //visible for testing

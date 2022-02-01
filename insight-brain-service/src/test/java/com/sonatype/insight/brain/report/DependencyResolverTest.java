@@ -234,6 +234,7 @@ public class DependencyResolverTest
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -280,6 +281,7 @@ public class DependencyResolverTest
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -346,6 +348,7 @@ public class DependencyResolverTest
     innerSourceIds.add(archive.getApplicationId());
     innerSourceIds.add(utils.getApplicationId());
     assertTelemetryInformation(app.getId(), innerSourceIds);
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -392,6 +395,7 @@ public class DependencyResolverTest
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -436,6 +440,7 @@ public class DependencyResolverTest
     innerSourceIds.add(archive.getApplicationId());
     innerSourceIds.add(utils.getApplicationId());
     assertTelemetryInformation(app.getId(), innerSourceIds);
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -468,6 +473,7 @@ public class DependencyResolverTest
     innerSourceIds.add(archive.getApplicationId());
     innerSourceIds.add(utils.getApplicationId());
     assertTelemetryInformation(app.getId(), innerSourceIds);
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -502,6 +508,7 @@ public class DependencyResolverTest
     assertSummaryCounters(summaryJson, dataJson, 2);
 
     assertTelemetryInformation(app.getId(), Sets.newHashSet(model.getApplicationId()));
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -523,6 +530,7 @@ public class DependencyResolverTest
     assertSummaryCounters(summaryJson, dataJson, 3);
 
     verify(telemetrySender, never()).send(Mockito.any(TelemetryData.class));
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR)).isNull();
   }
 
   @Test
@@ -611,6 +619,7 @@ public class DependencyResolverTest
     assertSummaryCounters(summaryJson, dataJson, 3);
 
     verify(telemetrySender, never()).send(Mockito.any(TelemetryData.class));
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -642,6 +651,7 @@ public class DependencyResolverTest
     assertBomNodeDependencyInfo(bomJson, unknownTransitive1, false, Collections.singleton(knownDirect));
     assertBomNodeDependencyInfo(bomJson, unknownDirect, true, null);
     assertBomNodeDependencyInfo(bomJson, knownTransitive3, false, Collections.singleton(unknownDirect));
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -689,6 +699,7 @@ public class DependencyResolverTest
         Collections.singleton(isDataForProducer));
     assertBomNodeDependencyInfo(bomJson, producerTransitive1, false, false, Collections.singleton(innerSourceProducer),
         Collections.singleton(isDataForProducerTransitive));
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -705,6 +716,7 @@ public class DependencyResolverTest
     ComponentIdentifier knownTransitiveAndDirect = ComponentIdentifier
         .createMavenCoordinates("com.innersource", "known-transitive-and-direct", "2.8.1", "", "jar");
     assertBomNodeDependencyInfo(bomJson, knownTransitiveAndDirect, true, Collections.singleton(knownDirect));
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -738,6 +750,7 @@ public class DependencyResolverTest
         .createMavenCoordinates("commons-io", "commons-io", "2.6", "", "jar");
     assertBomNodeDependencyInfo(bomJson, knownTransitiveTransitive, false, false,
         Collections.singleton(knownTransitive), expectedInnerSourceData);
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -784,6 +797,7 @@ public class DependencyResolverTest
     assertThat(analyzerFeatures.isHasIdentity()).isFalse();
     assertThat(analyzerFeatures.isHasLicense()).isFalse();
     assertThat(analyzerFeatures.isHasSecurity()).isFalse();
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -800,6 +814,7 @@ public class DependencyResolverTest
     ComponentIdentifier innerSourceId = ComponentIdentifier.createNpmCoordinates("producer", "file:../producer");
     JsonNode newIsNode = findNodeById(bomJson, innerSourceId);
     assertThat(newIsNode.get("proprietary").asBoolean()).isFalse();
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -817,6 +832,7 @@ public class DependencyResolverTest
     ComponentIdentifier innerSourceId = ComponentIdentifier.createNpmCoordinates("producer", "file:../producer");
     JsonNode newIsNode = findNodeById(bomJson, innerSourceId);
     assertThat(newIsNode.get("proprietary").asBoolean()).isTrue();
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -846,6 +862,7 @@ public class DependencyResolverTest
     innerSourceIds.add(producerOne.getApplicationId());
     innerSourceIds.add(producerTwo.getApplicationId());
     assertTelemetryInformation(app.getId(), innerSourceIds);
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -871,6 +888,7 @@ public class DependencyResolverTest
     Set<String> innerSourceIds = new HashSet<>();
     innerSourceIds.add(producerOne.getApplicationId());
     assertTelemetryInformation(app.getId(), innerSourceIds);
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test
@@ -910,6 +928,7 @@ public class DependencyResolverTest
     assertThat(bomNodeEmptyPathnames.get("innerSource")).isNull();
     assertThat(bomNodeBadPathnames.get("directDependency")).isNull();
     assertThat(bomNodeBadPathnames.get("innerSource")).isNull();
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
   @Test

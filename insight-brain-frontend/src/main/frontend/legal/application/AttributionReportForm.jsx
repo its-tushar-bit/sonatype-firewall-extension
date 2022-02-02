@@ -63,6 +63,7 @@ export default function AttributionReportForm(props) {
   React.useEffect(() => {
     getAttributionReportTemplates();
     applyAttributionReportTemplateByIndex(NEW_TEMPLATE_INDEX);
+    return () => setDirtyFlagToAttributionReport(false);
   }, []);
 
   React.useEffect(() => {

@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.AdvancedSearchConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -25,6 +26,7 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static java.lang.Boolean.parseBoolean;
@@ -184,6 +186,16 @@ public class AdvancedSearchConfigurationPageTest
     }
   }
 
+  @Test
+  public void testUnsavedChangesModal() {
+    refreshOrOpen(AdvancedSearchConfigurationPage.url());
+
+    page.isEnabledCheckbox().click();
+
+    testUnsavedChangesModal_Cancel();
+    testUnsavedChangesModal_Continue();
+  }
+
   private boolean isAdvancedSearchEnabled() {
     return parseBoolean(dao.getByName(ADVANCED_SEARCH_ENABLED).getValue());
   }
@@ -191,5 +203,29 @@ public class AdvancedSearchConfigurationPageTest
   private void saveForm() {
     page.saveButton().shouldBe(enabled).click();
     FormMask.seeAndWaitForDismissal();
+  }
+
+  private void testUnsavedChangesModal_Cancel() {
+    refreshOrOpen(DashboardPage.url());
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.shouldBe(visible);
+    unsavedChangesModal.cancelButton().click();
+
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+
+    page.title().shouldBe(visible).shouldHave(text("Advanced Search Configuration"));
+  }
+
+  private void testUnsavedChangesModal_Continue() {
+    refreshOrOpen(DashboardPage.url());
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.shouldBe(visible);
+    unsavedChangesModal.continueButton().click();
+
+    DashboardPage.dashboardContainer().shouldBe(visible);
   }
 }

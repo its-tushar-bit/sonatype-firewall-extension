@@ -43,4 +43,8 @@ public class AdvancedSearchConfigurationPage
   public SelenideElement lastIndexTime() {
     return child("#advanced-search-last-index-time");
   }
+
+  public SelenideElement title() {
+    return child(".nx-h2");
+  }
 }

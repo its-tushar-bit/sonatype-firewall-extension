@@ -137,6 +137,7 @@ function routes($stateProvider) {
       url: '/advancedSearchConfig',
       data: {
         title: 'Advanced Search Config',
+        isDirty: ['advancedSearchConfig', 'viewState', 'isDirty'],
       },
       resolve: {
         isAuthorized: [

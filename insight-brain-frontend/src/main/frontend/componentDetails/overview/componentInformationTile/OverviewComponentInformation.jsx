@@ -15,6 +15,7 @@ import InnerSourceProducerReportModalContainer from '../InnerSourceProducerRepor
 import InnerSourceProducerPermissionsModalContainer from '../InnerSourceProducerPermissionsModal/InnerSourceProducerPermissionsModalContainer';
 import { NxButton, NxTextLink, NxWarningAlert, useToggle } from '@sonatype/react-shared-components';
 import ComponentCoordinatesPopover from '../ComponentCoordinatesPopover/ComponentCoordinatesPopover';
+import { componentInformationPropType } from 'MainRoot/componentDetails/overview/overviewTypes';
 
 export default function OverviewComponentInformation({
   componentInformation,
@@ -141,26 +142,7 @@ export default function OverviewComponentInformation({
 
 OverviewComponentInformation.propTypes = {
   loadInnerSourceProducerData: PropTypes.func.isRequired,
-  componentInformation: PropTypes.shape({
-    componentIdentifier: PropTypes.shape({
-      format: PropTypes.string,
-    }),
-    displayName: PropTypes.shape({
-      parts: PropTypes.array,
-    }).isRequired,
-    matchState: PropTypes.string.isRequired,
-    identificationSource: PropTypes.string,
-    componentCategories: PropTypes.arrayOf(
-      PropTypes.shape({
-        path: PropTypes.string.isRequired,
-      })
-    ),
-    pathnames: PropTypes.arrayOf(PropTypes.string).isRequired,
-    dependencyInfo: PropTypes.shape({
-      isDirectDependency: PropTypes.bool.isRequired,
-    }),
-    website: PropTypes.string,
-  }),
+  componentInformation: componentInformationPropType,
   toggleShowOccurrencesPopover: PropTypes.func.isRequired,
   toggleShowComponentCoordinatesPopover: PropTypes.func.isRequired,
   toggleShowSimilarMatches: PropTypes.func.isRequired,

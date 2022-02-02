@@ -13,7 +13,7 @@ describe('AncestorsList', () => {
 
   beforeEach(function () {
     minimalProps = {
-      ancestors: [],
+      dependencyTreeSubset: [],
       routeName: 'applicationReport.componentDetails.overview',
     };
 
@@ -25,23 +25,17 @@ describe('AncestorsList', () => {
   });
 
   it('returns a list with one ancestor link', () => {
-    const ancestors = [
+    const dependencyTreeSubset = [
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'spring-data-rest-hal-explorer',
-          },
-        },
         hash: '502f98a535313e13cf18',
-        derivedComponentName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
+        displayName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
       },
     ];
     const component = getMounted({
-      ancestors: ancestors,
+      dependencyTreeSubset,
     });
     expect(component).not.toBeNull();
-    expect(component).toHaveProp('ancestors', ancestors);
+    expect(component).toHaveProp('dependencyTreeSubset', dependencyTreeSubset);
     expect(component).toHaveProp('routeName', 'applicationReport.componentDetails.overview');
     const listElements = component.find('li');
     expect(listElements.length).toBe(1);
@@ -54,24 +48,18 @@ describe('AncestorsList', () => {
   });
 
   it('returns a list with one ancestor link with an InnerSource label', () => {
-    const ancestors = [
+    const dependencyTreeSubset = [
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'some-innersource-parent',
-          },
-        },
         hash: 'some-innersource-parent-hash',
-        derivedComponentName: 'innersource-parent',
-        innerSource: true,
+        displayName: 'innersource-parent',
+        isInnerSource: true,
       },
     ];
     const component = getMounted({
-      ancestors: ancestors,
+      dependencyTreeSubset,
     });
     expect(component).not.toBeNull();
-    expect(component).toHaveProp('ancestors', ancestors);
+    expect(component).toHaveProp('dependencyTreeSubset', dependencyTreeSubset);
     expect(component).toHaveProp('routeName', 'applicationReport.componentDetails.overview');
     const listElements = component.find('li');
     expect(listElements.length).toBe(1);

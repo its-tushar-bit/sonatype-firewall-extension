@@ -27,7 +27,6 @@ import {
   selectRemoveAppliedLabelError,
   selectComponentIdentificationSource,
   selectIsProprietary,
-  selectComponentAncestors,
   selectSaveLabelError,
   selectDependencyTreeSubset,
 } from 'MainRoot/componentDetails/componentDetailsSelectors';
@@ -661,42 +660,6 @@ describe('componentDetailsSelectors', () => {
     it('derives identificationSource', () => {
       const actual = selectComponentIdentificationSource(mockState);
       expect(actual).toEqual('Sonatype');
-    });
-  });
-
-  describe('selectComponentAncestors', () => {
-    it('derives component ancestors', () => {
-      const state = {
-        ...mockState,
-        router: {
-          ...mockState.router,
-          currentParams: {
-            hash: 'some-child-hash',
-          },
-        },
-      };
-      const expected = [
-        {
-          hash: 'some-innersource-parent-hash',
-          componentIdentifier: { format: 'maven', coordinates: 'direct1' },
-          derivedComponentName: 'innersource-parent',
-          innerSource: true,
-        },
-        {
-          hash: 'some-parent-hash',
-          componentIdentifier: { format: 'maven', coordinates: 'direct2' },
-          derivedComponentName: 'parent',
-          innerSource: false,
-        },
-        {
-          hash: 'some-other-parent-hash',
-          componentIdentifier: { format: 'maven', coordinates: 'direct3' },
-          derivedComponentName: 'other-parent',
-          innerSource: false,
-        },
-      ];
-      const actual = selectComponentAncestors(state);
-      expect(actual).toEqual(expected);
     });
   });
 

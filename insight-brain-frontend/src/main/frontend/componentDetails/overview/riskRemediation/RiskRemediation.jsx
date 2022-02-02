@@ -13,10 +13,12 @@ import { CompareVersions } from './CompareVersions';
 import { RecommendedRemediation } from './RecommendedRemediation';
 import { VersionExplorer } from './VersionExplorer';
 import { RecommendedVersions } from './RecommendedVersions';
-import { AncestorPropTypes, RemediationPropTypes } from '../overviewTypes';
+import { componentInformationPropType, RemediationPropTypes } from '../overviewTypes';
+import { dependencyTreeNodePropType } from 'MainRoot/DependencyTree/DependencyTree';
 
 export const RiskRemediation = ({
-  ancestors,
+  componentInformation,
+  dependencyTreeSubset,
   stageId,
   versionExplorerData,
   selectedVersionData,
@@ -37,7 +39,7 @@ export const RiskRemediation = ({
   const { loading, loadError, remediation, versions, sourceResponse } = versionExplorerData;
   const { loading: selectedVersionLoading, loadError: selectedVersionError, selectedVersion } = selectedVersionData;
   const source = sourceResponse ? sourceResponse.source : null;
-
+  const isTransitiveDependency = componentInformation.dependencyInfo?.isDirectDependency === false;
   const overviewComponentRiskRemediationTile_header = (
     <header className="nx-tile-header">
       <div className="nx-tile-header__title">
@@ -58,9 +60,9 @@ export const RiskRemediation = ({
     <Fragment>
       <div className="nx-grid-row">
         <div className="nx-grid-col nx-grid-col--50">
-          {ancestors?.length > 0 && (
+          {isTransitiveDependency && (
             <RecommendedRemediation
-              ancestors={ancestors}
+              dependencyTreeSubset={dependencyTreeSubset}
               ancestorOnClick={ancestorOnClick}
               toggleAncestorsList={toggleAncestorsList}
               expanded={expanded}
@@ -131,7 +133,9 @@ export const RiskRemediation = ({
 };
 
 RiskRemediation.propTypes = {
-  ancestors: PropTypes.arrayOf(AncestorPropTypes),
+  componentInformation: componentInformationPropType,
+  dependencyTreeSubset: PropTypes.arrayOf(dependencyTreeNodePropType),
+  dependencyTreeNotAvailable: PropTypes.bool,
   currentVersion: PropTypes.string.isRequired,
   stageId: PropTypes.string.isRequired,
   loadVersionExplorerData: PropTypes.func,

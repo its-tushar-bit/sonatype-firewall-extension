@@ -65,3 +65,24 @@ export const RemediationPropTypes = PropTypes.shape({
     }).isRequired
   ),
 });
+
+export const componentInformationPropType = PropTypes.shape({
+  componentIdentifier: PropTypes.shape({
+    format: PropTypes.string,
+  }),
+  displayName: PropTypes.shape({
+    parts: PropTypes.array,
+  }).isRequired,
+  matchState: PropTypes.string.isRequired,
+  identificationSource: PropTypes.string,
+  componentCategories: PropTypes.arrayOf(
+    PropTypes.shape({
+      path: PropTypes.string.isRequired,
+    })
+  ),
+  pathnames: PropTypes.arrayOf(PropTypes.string).isRequired,
+  dependencyInfo: PropTypes.shape({
+    isDirectDependency: PropTypes.bool.isRequired,
+  }),
+  website: PropTypes.string,
+});

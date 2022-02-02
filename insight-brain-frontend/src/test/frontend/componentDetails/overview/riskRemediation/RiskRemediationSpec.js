@@ -7,7 +7,7 @@ import * as enzymeUtils from '../../../enzymeUtils';
 import VersionGraphExplorer from 'MainRoot/componentDetails/overview/VersionGraphExplorer/VersionGraphExplorer';
 import { RiskRemediation } from 'MainRoot/componentDetails/overview/riskRemediation/RiskRemediation';
 
-describe('ComponentDetailsOverviewRiskRemediation', () => {
+describe('RiskRemediation', () => {
   let minimalProps, getMounted;
 
   const allVersions = [
@@ -197,16 +197,10 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
   beforeEach(function () {
     minimalProps = {
       currentVersion: '123',
-      ancestors: [
+      dependencyTreeSubset: [
         {
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              artifactId: 'spring-data-rest-hal-explorer',
-            },
-          },
           hash: '502f98a535313e13cf18',
-          derivedComponentName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
+          displayName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
         },
       ],
       actualVersion: '2.4.19',
@@ -226,24 +220,46 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
         selectedVersionDetails: null,
         selectedVersion: null,
       },
+      componentInformation: {},
     };
 
     getMounted = enzymeUtils.getMountedComponent(RiskRemediation, minimalProps);
   });
 
-  it('renders dependency information tile if it is not a direct dependency', () => {
-    const component = getMounted(),
+  it('renders Recommended Remediation section if it is a transitive dependency', () => {
+    const component = getMounted({
+        componentInformation: { dependencyInfo: { isDirectDependency: false } },
+      }),
       dependencyInfoTile = component.find('.iq-dependency-information');
 
-    expect(dependencyInfoTile).not.toBeNull();
+    expect(dependencyInfoTile.length).toBe(1);
     const ancestorsList = dependencyInfoTile.find('.nx-list');
     expect(ancestorsList.length).toBe(1);
     const listElements = ancestorsList.find('li');
     expect(listElements.length).toBe(1);
   });
 
-  it('does not render dependency information tile if it does not have ancestors', () => {
-    const component = getMounted({ ancestors: [] }),
+  it('renders Recommended Remediation section even if dependencyTreeSubset is empty', () => {
+    const component = getMounted({
+        dependencyTreeSubset: [],
+        componentInformation: { dependencyInfo: { isDirectDependency: false } },
+      }),
+      dependencyInfoTile = component.find('.iq-dependency-information');
+
+    expect(dependencyInfoTile.length).toBe(1);
+  });
+
+  it('does not render Recommended Remediation section if it is a direct dependency', () => {
+    const component = getMounted({
+        componentInformation: { dependencyInfo: { isDirectDependency: true } },
+      }),
+      dependencyInfoTile = component.find('.iq-dependency-information');
+
+    expect(dependencyInfoTile.length).toBe(0);
+  });
+
+  it('does not render Recommended Remediation section if it has no dependencyInfo', () => {
+    const component = getMounted(),
       dependencyInfoTile = component.find('.iq-dependency-information');
 
     expect(dependencyInfoTile.length).toBe(0);

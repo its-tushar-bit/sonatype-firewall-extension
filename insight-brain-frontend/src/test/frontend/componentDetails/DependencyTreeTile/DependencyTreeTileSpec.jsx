@@ -55,7 +55,7 @@ describe('DependencyTreeTile', () => {
     renderComponent();
 
     expect(
-      screen.getByText('Dependency Tree not available for this report. Please re-scan the application')
+      screen.getByText('Dependency Tree not available for this report. Please re-scan the application.')
     ).toBeVisible();
   });
 

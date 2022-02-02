@@ -7,16 +7,25 @@ import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 
 import { NxTextLink } from '@sonatype/react-shared-components';
-import { AncestorPropTypes } from '../overviewTypes';
 import { DependencyTypeTag } from 'MainRoot/react/tag';
+import { dependencyTreeNodePropType } from 'MainRoot/DependencyTree/DependencyTree';
 
-export const AncestorsList = ({ ancestors, ancestorOnClick, itemsToShow, expanded, toggleAncestorsList }) => {
-  const ancestorsElements = !expanded && ancestors.length > itemsToShow ? ancestors.slice(0, itemsToShow) : ancestors;
+export const AncestorsList = ({
+  dependencyTreeSubset,
+  ancestorOnClick,
+  itemsToShow,
+  expanded,
+  toggleAncestorsList,
+}) => {
+  const ancestorsElements =
+    !expanded && dependencyTreeSubset.length > itemsToShow
+      ? dependencyTreeSubset.slice(0, itemsToShow)
+      : dependencyTreeSubset;
 
   return (
     <Fragment>
       <ul className="nx-list">
-        {ancestorsElements.map(({ hash, derivedComponentName, innerSource }) => (
+        {ancestorsElements.map(({ hash, displayName, isInnerSource }) => (
           <li className="nx-list__item" key={hash}>
             <span>
               <NxTextLink
@@ -24,14 +33,14 @@ export const AncestorsList = ({ ancestors, ancestorOnClick, itemsToShow, expande
                   ancestorOnClick(hash);
                 }}
               >
-                {derivedComponentName}
+                {displayName}
               </NxTextLink>
-              {innerSource && <DependencyTypeTag type="innerSource" />}
+              {isInnerSource && <DependencyTypeTag type="innerSource" />}
             </span>
           </li>
         ))}
       </ul>
-      {ancestors.length > itemsToShow && (
+      {dependencyTreeSubset.length > itemsToShow && (
         <NxTextLink className="iq-toggle-list" onClick={toggleAncestorsList}>
           {expanded ? 'Show less' : 'Show more'}
         </NxTextLink>
@@ -41,7 +50,7 @@ export const AncestorsList = ({ ancestors, ancestorOnClick, itemsToShow, expande
 };
 
 AncestorsList.propTypes = {
-  ancestors: PropTypes.arrayOf(AncestorPropTypes).isRequired,
+  dependencyTreeSubset: PropTypes.arrayOf(dependencyTreeNodePropType).isRequired,
   ancestorOnClick: PropTypes.func.isRequired,
   toggleAncestorsList: PropTypes.func.isRequired,
   itemsToShow: PropTypes.number.isRequired,

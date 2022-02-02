@@ -5,7 +5,7 @@
  */
 import { connect } from 'react-redux';
 
-import { selectComponentAncestors } from '../../componentDetailsSelectors';
+import { selectDependencyTreeSubset } from '../../componentDetailsSelectors';
 import { selectCurrentRouteName } from '../../../reduxUiRouter/routerSelectors';
 import { actions } from '../overviewSlice';
 import { actions as componenDetailsActions } from '../../componentDetailsSlice';
@@ -18,13 +18,15 @@ import {
   selectSelectedVersionComparisonData,
 } from '../overviewSelectors';
 import { RiskRemediation } from './RiskRemediation';
+import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 const { visitAncestorAction } = componenDetailsActions;
 
 function mapStateToProps(state) {
   const { currentVersion, stageId } = selectRemediationData(state);
   return {
-    ancestors: selectComponentAncestors(state),
+    componentInformation: selectSelectedComponent(state),
+    dependencyTreeSubset: selectDependencyTreeSubset(state),
     routeName: selectCurrentRouteName(state),
     currentVersion,
     stageId,

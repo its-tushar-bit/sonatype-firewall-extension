@@ -32,7 +32,7 @@ export default function DependencyTreeTile() {
   const DependencyTreeWarning = (
     <NxInfoAlert className="component-details-dependency-tree-tile__unavailable-tree-alert">
       {isOldReport
-        ? 'Dependency Tree not available for this report. Please re-scan the application'
+        ? 'Dependency Tree not available for this report. Please re-scan the application.'
         : 'Dependency tree not available'}
     </NxInfoAlert>
   );

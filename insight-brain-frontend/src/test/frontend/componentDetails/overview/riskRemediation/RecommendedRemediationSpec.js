@@ -39,23 +39,17 @@ describe('RecommendedRemediation', () => {
   });
 
   it('The Tile contains a list with one ancestor link', () => {
-    const ancestors = [
+    const dependencyTreeSubset = [
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'spring-data-rest-hal-explorer',
-          },
-        },
         hash: '502f98a535313e13cf18',
-        derivedComponentName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
+        displayName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
       },
     ];
     const component = getMounted({
-      ancestors: ancestors,
+      dependencyTreeSubset,
     });
     expect(component).not.toBeNull();
-    expect(component).toHaveProp('ancestors', ancestors);
+    expect(component).toHaveProp('dependencyTreeSubset', dependencyTreeSubset);
     expect(component).toHaveProp('routeName', 'applicationReport.componentDetails.overview');
 
     const content = component.find('AncestorsList');
@@ -68,43 +62,25 @@ describe('RecommendedRemediation', () => {
   });
 
   it('The Tile contains a list with three ancestor links', () => {
-    const ancestors = [
+    const dependencyTreeSubset = [
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'spring-data-rest-hal-explorer',
-          },
-        },
         hash: '502f98a535313e13cf18',
-        derivedComponentName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
+        displayName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
       },
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'spring-boot-actuator-autoconfigure',
-          },
-        },
         hash: '502f98a535313e13cf18',
-        derivedComponentName: 'org.springframework.boot : spring-boot-actuator-autoconfigure : 2.4.9',
+        displayName: 'org.springframework.boot : spring-boot-actuator-autoconfigure : 2.4.9',
       },
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'jackson-module-parameter-names',
-          },
-        },
         hash: '502f98a535313e13cf18',
-        derivedComponentName: 'com.fasterxml.jackson.module : jackson-module-parameter-names : 2.11.4',
+        displayName: 'com.fasterxml.jackson.module : jackson-module-parameter-names : 2.11.4',
       },
     ];
     const component = getMounted({
-      ancestors,
+      dependencyTreeSubset,
     });
     expect(component).not.toBeNull();
-    expect(component).toHaveProp('ancestors', ancestors);
+    expect(component).toHaveProp('dependencyTreeSubset', dependencyTreeSubset);
     expect(component).toHaveProp('routeName', 'applicationReport.componentDetails.overview');
 
     const content = component.find('AncestorsList');
@@ -121,54 +97,30 @@ describe('RecommendedRemediation', () => {
   });
 
   it('The Tile contains a list with three ancestor links and a show more link', () => {
-    const ancestors = [
+    const dependencyTreeSubset = [
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'spring-data-rest-hal-explorer',
-          },
-        },
         hash: '502f98a535313e13cf18',
-        derivedComponentName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
+        displayName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
       },
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'spring-boot-actuator-autoconfigure',
-          },
-        },
         hash: '502f98a535313e13cf18',
-        derivedComponentName: 'org.springframework.boot : spring-boot-actuator-autoconfigure : 2.4.9',
+        displayName: 'org.springframework.boot : spring-boot-actuator-autoconfigure : 2.4.9',
       },
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'jackson-module-parameter-names',
-          },
-        },
         hash: '502f98a535313e13cf18',
-        derivedComponentName: 'com.fasterxml.jackson.module : jackson-module-parameter-names : 2.11.4',
+        displayName: 'com.fasterxml.jackson.module : jackson-module-parameter-names : 2.11.4',
       },
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'jackson-datatype-jdk8',
-          },
-        },
         hash: '502f98a535313e13cf18',
-        derivedComponentName: 'com.fasterxml.jackson.datatype : jackson-datatype-jdk8 : 2.11.4',
+        displayName: 'com.fasterxml.jackson.datatype : jackson-datatype-jdk8 : 2.11.4',
       },
     ];
     const component = getMounted({
-      ancestors,
+      dependencyTreeSubset,
       expanded: false,
     });
     expect(component).not.toBeNull();
-    expect(component).toHaveProp('ancestors', ancestors);
+    expect(component).toHaveProp('dependencyTreeSubset', dependencyTreeSubset);
     expect(component).toHaveProp('routeName', 'applicationReport.componentDetails.overview');
 
     const content = component.find('AncestorsList');
@@ -187,54 +139,30 @@ describe('RecommendedRemediation', () => {
   });
 
   it('The Tile contains a list with four ancestor links and a show less link', () => {
-    const ancestors = [
+    const dependencyTreeSubset = [
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'spring-data-rest-hal-explorer',
-          },
-        },
         hash: '502f98a535313e13cf18',
-        derivedComponentName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
+        displayName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
       },
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'spring-boot-actuator-autoconfigure',
-          },
-        },
         hash: '502f98a535313e13cf18',
-        derivedComponentName: 'org.springframework.boot : spring-boot-actuator-autoconfigure : 2.4.9',
+        displayName: 'org.springframework.boot : spring-boot-actuator-autoconfigure : 2.4.9',
       },
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'jackson-module-parameter-names',
-          },
-        },
         hash: '502f98a535313e13cf18',
-        derivedComponentName: 'com.fasterxml.jackson.module : jackson-module-parameter-names : 2.11.4',
+        displayName: 'com.fasterxml.jackson.module : jackson-module-parameter-names : 2.11.4',
       },
       {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'jackson-datatype-jdk8',
-          },
-        },
         hash: '502f98a535313e13cf18',
-        derivedComponentName: 'com.fasterxml.jackson.datatype : jackson-datatype-jdk8 : 2.11.4',
+        displayName: 'com.fasterxml.jackson.datatype : jackson-datatype-jdk8 : 2.11.4',
       },
     ];
     const component = getMounted({
-      ancestors: ancestors,
+      dependencyTreeSubset,
       expanded: true,
     });
     expect(component).not.toBeNull();
-    expect(component).toHaveProp('ancestors', ancestors);
+    expect(component).toHaveProp('dependencyTreeSubset', dependencyTreeSubset);
     expect(component).toHaveProp('routeName', 'applicationReport.componentDetails.overview');
 
     const content = component.find('AncestorsList');
@@ -252,5 +180,14 @@ describe('RecommendedRemediation', () => {
     expect(element3).toHaveText('com.fasterxml.jackson.datatype : jackson-datatype-jdk8 : 2.11.4');
     const showLess = content.find('.iq-toggle-list').last();
     expect(showLess).toHaveText('Show less');
+  });
+
+  it('renders alert if dependencyTreeSubset is empty (old report)', () => {
+    const component = getMounted({
+      dependencyTreeSubset: [],
+    });
+
+    expect(component.find('AncestorsList')).not.toExist();
+    expect(component.find('.iq-dependency-information__unavailable-tree-alert')).toExist();
   });
 });

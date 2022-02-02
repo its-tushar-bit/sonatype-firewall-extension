@@ -283,7 +283,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   }
 
   @Test
-  public void testRiskRemediationTile_DependencyInformation_showMore() {
+  public void testRiskRemediationTile_RecommendedRemediation_showMore() {
     mockHdsResponseForSecondComponent();
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1,SECOND_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
@@ -321,7 +321,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   }
 
   @Test
-  public void testRiskRemediationTile_DependencyInformation_showLess() {
+  public void testRiskRemediationTile_RecommendedRemediation_showLess() {
     mockHdsResponseForSecondComponent();
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(1,SECOND_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
@@ -350,7 +350,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     recommendedRemediationSection.shouldBe(visible);
     ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
     ancestors = recommendedRemediationSection.contentAncestorsList();
-    ancestors.shouldHaveSize(5);
+    ancestors.shouldHaveSize(4);
     SelenideElement ancestor = ancestors.get(0);
     ancestor.find(".nx-text-link").shouldHave(text("javancss : javancss : 29.50"));
     ancestor.find(".nx-tag").shouldNot(exist);
@@ -367,10 +367,6 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     ancestor.find(".nx-text-link").shouldHave(text("org.apache.tiles : tiles-core : 2.2.2"));
     ancestor.find(".nx-tag").shouldNot(exist);
 
-    ancestor = ancestors.get(4);
-    ancestor.find(".nx-text-link").shouldHave(text("org.example : test-business : 1.0-snapshot"));
-    ancestor.find(".nx-tag").shouldHave(text("InnerSource"));
-
     showMore = recommendedRemediationSection.toggleListLink();
     showMore.shouldHave(text("Show less"));
 
@@ -380,7 +376,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   }
 
   @Test
-  public void testRiskRemediationTile_FooterBackButton() {
+  public void testRiskRemediationTile_RecommendedRemediation_FooterBackButton() {
     mockHdsResponseForFirstComponent();
     mockHdsResponseForSecondComponent();
 

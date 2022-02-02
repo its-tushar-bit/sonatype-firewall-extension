@@ -7,8 +7,9 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 
 import { AncestorsList } from './AncestorsList';
+import { NxInfoAlert } from '@sonatype/react-shared-components';
 
-export const RecommendedRemediation = ({ ancestors, ancestorOnClick, expanded, toggleAncestorsList }) => {
+export const RecommendedRemediation = ({ dependencyTreeSubset, ancestorOnClick, expanded, toggleAncestorsList }) => {
   return (
     <section className="iq-dependency-information nx-grid-col__section">
       <header className="nx-grid-header">
@@ -19,13 +20,19 @@ export const RecommendedRemediation = ({ ancestors, ancestorOnClick, expanded, t
           The direct dependencies that brought in this component are listed below. Clicking on a component will take you
           to its Component Details Page.
         </p>
-        <AncestorsList
-          ancestors={ancestors}
-          ancestorOnClick={ancestorOnClick}
-          toggleAncestorsList={toggleAncestorsList}
-          itemsToShow={3}
-          expanded={expanded}
-        />
+        {dependencyTreeSubset?.length > 0 ? (
+          <AncestorsList
+            dependencyTreeSubset={dependencyTreeSubset}
+            ancestorOnClick={ancestorOnClick}
+            toggleAncestorsList={toggleAncestorsList}
+            itemsToShow={3}
+            expanded={expanded}
+          />
+        ) : (
+          <NxInfoAlert className="iq-dependency-information__unavailable-tree-alert">
+            Dependency info not available for this report. Please re-scan the application.
+          </NxInfoAlert>
+        )}
       </div>
     </section>
   );

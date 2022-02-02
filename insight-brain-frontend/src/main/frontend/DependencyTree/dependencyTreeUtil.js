@@ -27,7 +27,7 @@ export const extendDependencyTreeData = (dependencyTreeData, indexedEntries, tre
       hash: matcher.hash,
       policyThreatLevel: matcher.policyThreatLevel,
       displayName: matcher.derivedComponentName,
-      isInnerSource: matcher.innerSource && matcher.directDependency,
+      isInnerSource: matcher.innerSource && matcher.dependencyInfo?.isDirectDependency,
     };
 
     return childData;

@@ -69,7 +69,7 @@ function TreeNode({ items, treePathToggleAction, hashToMatch, searchTerm }) {
   return <Fragment>{renderNode(items)}</Fragment>;
 }
 
-const treeItemPropTypes = PropTypes.shape({
+export const dependencyTreeNodePropType = PropTypes.shape({
   children: PropTypes.arrayOf(PropTypes.object),
   isOpen: PropTypes.bool,
   displayName: PropTypes.string,
@@ -81,7 +81,7 @@ const treeItemPropTypes = PropTypes.shape({
 TreeNode.propTypes = {
   hashToMatch: PropTypes.string,
   searchTerm: PropTypes.string,
-  items: PropTypes.arrayOf(treeItemPropTypes),
+  items: PropTypes.arrayOf(dependencyTreeNodePropType),
   treePathToggleAction: PropTypes.func.isRequired,
 };
 

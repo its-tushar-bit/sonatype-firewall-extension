@@ -376,6 +376,53 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   }
 
   @Test
+  public void testRiskRemediationTile_DependencyInformation_withReportFiltering_showMore() {
+    ApplicationReportPage.AppReportHeaders headers = reportPage.headers();
+    ElementsCollection violations = reportPage.resultRows();
+
+    headers.componentNameFilterInput().setValue("ch.qos.logback : logback-access : 0.6");
+
+    violations.first().click();
+
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, SECOND_COMPONENT_HASH));
+    mockHdsResponseForSecondComponent();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.overviewTab().shouldBe(visible);
+    componentDetailsPage.overviewTabContent().shouldBe(visible);
+
+    RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
+    riskRemediation.shouldBe(visible);
+    riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
+
+    RecommendedRemediationSection recommendedRemediationSection = riskRemediation.dependencyInformationSection();
+    recommendedRemediationSection.shouldBe(visible);
+    ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
+    recommendedRemediationSection.getTitle().shouldHave(text("Recommended Remediation"));
+    recommendedRemediationSection.contentParagraph().shouldHave(
+            text("The direct dependencies that brought in this component are listed below. Clicking on a component" +
+                    " will take you to its Component Details Page.")
+    );
+
+    ElementsCollection ancestors = recommendedRemediationSection.contentAncestorsList();
+    ancestors.shouldHaveSize(3);
+    SelenideElement ancestor = ancestors.get(0);
+    ancestor.shouldHave(text("javancss : javancss : 29.50"));
+
+    ancestor = ancestors.get(1);
+    ancestor.shouldHave(text("aopalliance : aopalliance : 1.0"));
+
+    ancestor = ancestors.get(2);
+    ancestor.shouldHave(text("java2html : j2h : 1.3.1"));
+
+    SelenideElement showMore = recommendedRemediationSection.toggleListLink();
+    showMore.shouldHave(text("Show more"));
+
+    eyesWatcher.eyesCheck(
+            "component details overview tab risk remediation dependency " +
+                    "information with prior report filtering - transitive dependency show more");
+  }
+
+  @Test
   public void testRiskRemediationTile_RecommendedRemediation_FooterBackButton() {
     mockHdsResponseForFirstComponent();
     mockHdsResponseForSecondComponent();

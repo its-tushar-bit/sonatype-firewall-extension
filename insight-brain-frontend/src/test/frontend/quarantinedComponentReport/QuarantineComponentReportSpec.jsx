@@ -18,7 +18,7 @@ import QuarantineComponentReport from 'MainRoot/quarantinedComponentReport/Quara
 
 import { formatTimeAgo } from 'MainRoot/util/dateUtils';
 
-fdescribe('QuarantineComponentReport', () => {
+describe('QuarantineComponentReport', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const componentDisplayName = 'org.codehaus.plexus : plexus-utils : 1.1';
   const minimalProps = {

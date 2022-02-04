@@ -10,9 +10,12 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
@@ -25,6 +28,15 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplications
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
+import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
+import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
+import com.sonatype.insight.brain.model.policy.notifications.Notification;
+import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
+import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.model.ArtifactId;
@@ -524,6 +536,66 @@ public abstract class DefaultPolicyEvaluatorTest
     assertThat(resultData.policyEvaluationResult.getCriticalPolicyViolationCount()).isEqualTo(4);
     assertThat(resultData.policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(4);
     assertThat(resultData.policyEvaluationResult.getModeratePolicyViolationCount()).isEqualTo(4);
+  }
+
+  @Test
+  public void testRun_JsonExportWithPolicyViolationsAndNotifications() throws Exception {
+    // Creating some notifications for the policies
+    Role role = tempEntity.newRole(true, Permission.WRITE, Permission.EVALUATE_COMPONENT);
+    Notification roleNotification = new RoleNotification(role.getId(), Stage.ID_BUILD);
+    Webhook webhook = tempEntity.newWebhook(Stream.of(WebhookEventType.POLICY_ALERT)
+        .collect(Collectors.toCollection(HashSet::new)));
+    Notification webhookNotification = new WebhookNotification(webhook.getId(), Stage.ID_BUILD);
+    Notification jiraNotification = new JiraNotification("PROJECT_KEY", 1000, Stage.ID_BUILD);
+
+    // Creating apps and policies
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    createPolicyWithNotifications(app.getId(), "Policy 1", Action.ID_WARN, 9, roleNotification);
+    createPolicyWithNotifications(app.getId(), "Policy 2", Action.ID_FAIL, 5, webhookNotification);
+    createPolicyWithNotifications(app.getId(), "Policy 3", Action.ID_WARN, 2, jiraNotification);
+
+    // Executing CLI
+    File jsonFile = new File(tempDir.getRoot(), "not-yet-existent/results.json");
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
+        "-r", jsonFile.getAbsolutePath(), //
+        "src/test/data/artifact.jar");
+
+    PolicyEvaluationResult expectedPolicyEvaluationResult = newPolicyEvaluationResultForOneComponent();
+    expectedPolicyEvaluationResult.setCriticalComponentCount(4);
+    expectedPolicyEvaluationResult.setCriticalPolicyViolationCount(4);
+    expectedPolicyEvaluationResult.setSeverePolicyViolationCount(4);
+    expectedPolicyEvaluationResult.setModeratePolicyViolationCount(4);
+
+    // Check result
+    withTestRunner(params)
+        .expectFailExit()
+        .expectInfoLog("Policy Action: Failure")
+        .expectPolicyEvaluationResult(expectedPolicyEvaluationResult)
+        .expectWarnLog("The IQ Server reports policy warning due to \nPolicy(Policy 1)") //
+        .expectErrorLog("The IQ Server reports policy failing due to \nPolicy(Policy 2)") //
+        .expectWarnLog("The IQ Server reports policy warning due to \nPolicy(Policy 3)")
+        .doPolicyEvaluationRun();
+
+    // Check exported JSON
+    ResultData resultData = JsonUtils.parse(Files.readAllBytes(jsonFile.toPath()), ResultData.class);
+    assertThat(resultData.policyEvaluationResult.getTotalComponentCount()).isEqualTo(1);
+    assertThat(resultData.policyEvaluationResult.getCriticalComponentCount()).isEqualTo(4);
+    assertThat(resultData.policyEvaluationResult.getCriticalPolicyViolationCount()).isEqualTo(4);
+    assertThat(resultData.policyEvaluationResult.getSeverePolicyViolationCount()).isEqualTo(4);
+    assertThat(resultData.policyEvaluationResult.getModeratePolicyViolationCount()).isEqualTo(4);
+
+    // Check notifications are part of evaluation result
+    checkNotificationActionTypeExists(resultData, NotifyActionType.TARGET_TYPE_ROLE);
+    checkNotificationActionTypeExists(resultData, NotifyActionType.TARGET_TYPE_WEBHOOK);
+    checkNotificationActionTypeExists(resultData, NotifyActionType.TARGET_TYPE_JIRA);
+  }
+
+  private void checkNotificationActionTypeExists(ResultData resultData, String notificationType) {
+    assertThat(resultData.policyEvaluationResult.getAlerts().stream()
+        .flatMap(policyAlert -> policyAlert.getActions().stream())
+        .anyMatch(action -> notificationType.equals(action.getTargetType())))
+        .isTrue();
   }
 
   @Test

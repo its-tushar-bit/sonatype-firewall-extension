@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
+import com.sonatype.insight.brain.model.policy.notifications.Notification;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -116,6 +118,27 @@ public abstract class AbstractPolicyEvaluatorTest
     Constraint constraint = new Constraint();
     constraint.setName("test constraint");
     constraint.addCondition(condition);
+    policy.addConstraint(constraint);
+    policy.setAction(Stage.ID_BUILD, actionId);
+    policy.setThreatLevel(threatLevel);
+    tempEntity.newPolicy(policy);
+  }
+
+  protected void createPolicyWithNotifications(String ownerId,
+                                               String policyName,
+                                               String actionId,
+                                               int threatLevel,
+                                               Notification ...notifications)
+  {
+    Policy policy = new Policy();
+    policy.setName(policyName);
+    policy.setOwnerId(ownerId);
+    Condition condition = new Condition(MatchStateConditionType.ID, "is");
+    condition.setValue(MatchState.EXACT.getId());
+    Constraint constraint = new Constraint();
+    constraint.setName("test constraint");
+    constraint.addCondition(condition);
+    policy.setNotifications(new Notifications(notifications));
     policy.addConstraint(constraint);
     policy.setAction(Stage.ID_BUILD, actionId);
     policy.setThreatLevel(threatLevel);

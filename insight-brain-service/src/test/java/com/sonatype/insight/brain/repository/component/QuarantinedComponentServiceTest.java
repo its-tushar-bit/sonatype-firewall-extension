@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -83,6 +82,7 @@ public class QuarantinedComponentServiceTest
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo("repositoryPublicId");
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
+    assertThat(quarantinedComponentOverviewDto.componentVersion).isEqualTo("0.5.2");
   }
 
   @Test
@@ -240,7 +240,6 @@ public class QuarantinedComponentServiceTest
 
   @Test
   public void testGetPathnamePrefix() throws Exception {
-
     assertThat(quarantinedComponentService.getPathnamePrefix("a")).isEqualTo("a");
     assertThat(quarantinedComponentService.getPathnamePrefix("a/b")).isEqualTo("a/b");
     assertThat(quarantinedComponentService.getPathnamePrefix("a/b/c/d/version/file")).isEqualTo("a/b/c/d/");

@@ -17,12 +17,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpResponse;
@@ -43,6 +43,7 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.time.DateUtils;
@@ -180,6 +181,7 @@ public class QuarantinedComponentResourceTest
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo("repositoryPublicId");
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
+    assertThat(quarantinedComponentOverviewDto.componentVersion).isEqualTo("0.5.2");
   }
 
   @Test
@@ -361,7 +363,6 @@ public class QuarantinedComponentResourceTest
 
   @Test
   public void testGetQuarantinedComponentOtherVersions() throws Exception {
-
     // setup
     getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
         ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
@@ -410,7 +411,6 @@ public class QuarantinedComponentResourceTest
 
   @Test
   public void testGetQuarantinedComponentOtherVersions_otherVersionsDoesNotExist() throws Exception {
-
     // setup
     getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
         ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
@@ -444,6 +444,41 @@ public class QuarantinedComponentResourceTest
     assertThat(responseDTO.getPageSize()).isEqualTo(2);
     assertThat(responseDTO.getPageCount()).isZero();
     assertThat(responseDTO.getResults()).isEmpty();
+  }
+
+  @Test
+  public void testGetComponentVersionDetails() throws Exception {
+    // setup
+    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
+        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
+    final Repository repository = tempEntity.newRepository("repo");
+    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    final QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+    final String encodedToken = Base64.getUrlEncoder().withoutPadding()
+        .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
+
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
+
+    NamedComponentDetails namedComponentDetails = new NamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+
+    hdsRespondWith(namedComponentDetails).atUri("/rest/ci/componentDetails");
+
+    // when
+    final HttpResponse response =
+        restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_DETAILS_PATH).parameter(encodedToken).get();
+
+    // then
+    // Have to configure an object mapper this way because of how NamedComponentDetails works.
+    ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    NamedComponentDetails namedComponentDetailsResponse =
+        objectMapper.readValue(response.getBodyStream(), NamedComponentDetails.class);
+
+    assertThat(response.getStatusCode()).isEqualTo(Status.OK.getStatusCode());
+    assertThat(namedComponentDetailsResponse).isNotNull();
   }
 
   private <T> T getBodyByTypeReference(byte[] bodyBytes, final TypeReference<T> typeRef) {

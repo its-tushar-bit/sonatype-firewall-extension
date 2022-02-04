@@ -753,6 +753,16 @@ export function getQuarantinedComponentOtherVersionsUrl(token, page, pageSize, s
   return uriTemplate`/rest/repositories/quarantinedComponent/${token}/otherVersions` + params;
 }
 
+export function getQuarantinedComponentRemediationUrl(token) {
+  return uriTemplate`/rest/repositories/quarantinedComponent/${token}/remediation`;
+}
+
+export function getQuarantinedComponentDetailsUrl(token, version) {
+  const params = toURIParams({ version });
+
+  return uriTemplate`/rest/repositories/quarantinedComponent/${token}/details?` + params;
+}
+
 export const getVulnerabilityOverrideUrl = (ownerType, ownerId, hash, vulnerability) => {
   if (hash && vulnerability) {
     const { source, refId } = vulnerability;

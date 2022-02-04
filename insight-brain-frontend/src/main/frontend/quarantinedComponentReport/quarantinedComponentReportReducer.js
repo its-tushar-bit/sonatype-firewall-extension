@@ -26,6 +26,7 @@ const initialState = Object.freeze({
       repositoryName: '',
       quarantinedDate: '',
       cataloguedDate: '',
+      componentVersion: '',
     },
     violations: { activePolicyViolations: [] },
   }),

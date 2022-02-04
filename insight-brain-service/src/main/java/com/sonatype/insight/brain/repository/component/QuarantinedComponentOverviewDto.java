@@ -13,6 +13,8 @@ public class QuarantinedComponentOverviewDto
 {
   public String componentDisplayName;
 
+  public String componentVersion;
+
   public boolean isQuarantined;
 
   public int quarantinedPolicyViolationsCount;

@@ -20,8 +20,8 @@ export default function PolicyViolationsTable({ violations }) {
         </NxTable.Row>
       </NxTable.Head>
       <NxTable.Body emptyMessage="No policy violations">
-        {violations.activePolicyViolations.map((violation) => (
-          <PolicyViolationsTableRow key={violation.policyViolationId} violation={violation} />
+        {violations.activePolicyViolations.map((violation, index) => (
+          <PolicyViolationsTableRow key={index} violation={violation} />
         ))}
       </NxTable.Body>
     </NxTable>

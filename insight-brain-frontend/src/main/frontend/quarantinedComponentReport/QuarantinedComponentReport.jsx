@@ -4,21 +4,41 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
-import LoadWrapper from '../react/LoadWrapper';
-import { formatDate } from '../util/dateUtils';
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
+import { formatDate } from 'MainRoot/util/dateUtils';
 
 import QuarantineComponentOverviewTile from './componentOverviewTile/QuarantineComponentOverviewTile';
 import QuarantineComponentOverviewDescriptionTile from './componentOverviewTile/QuarantinedComponentOverviewDescriptionTile';
 import PolicyViolationsTile from 'MainRoot/quarantinedComponentReport/policyViolationsTile/PolicyViolationsTile';
 import OtherVersionsTile from 'MainRoot/quarantinedComponentReport/otherVersionsTile/OtherVersionsTile';
+import { RiskRemediation } from 'MainRoot/componentDetails/overview/riskRemediation/RiskRemediation';
+
+import { actions as riskRemediationActions } from './riskRemediationTile/riskRemediationSlice';
+import {
+  selectVersionExplorerData,
+  selectSelectedVersionData,
+  selectCurrentVersionComparisonData,
+  selectSelectedVersionComparisonData,
+} from './riskRemediationTile/riskRemediationSelectors';
 
 export default function QuarantinedComponentReport(props) {
-  // Url parameter
-  const { token } = props;
+  const dispatch = useDispatch();
+
+  // Props
+  const { token, loadQuarantineReportData } = props;
 
   // Actions
-  const { loadQuarantineReportData } = props;
+  const loadVersionExplorerData = () => dispatch(riskRemediationActions.loadVersionExplorerData(token));
+  const loadSelectedVersionData = (version) =>
+    dispatch(riskRemediationActions.loadSelectedVersionData({ token: token, version: version }));
+
+  // Selectors
+  const selectedVersionData = useSelector(selectSelectedVersionData);
+  const selectedVersionExplorerData = useSelector(selectVersionExplorerData);
+  const currentVersionDetails = useSelector(selectCurrentVersionComparisonData);
+  const selectedVersionDetails = useSelector(selectSelectedVersionComparisonData);
 
   // viewState
   const { loadError, componentOverview, violations, violationsLoading, violationsLoadError } = props;
@@ -35,10 +55,13 @@ export default function QuarantinedComponentReport(props) {
         <h1 className="nx-h1">Quarantine Report</h1>
         <div className="nx-page-title__description">{formatDate(new Date())}</div>
       </div>
+
       <QuarantineComponentOverviewDescriptionTile />
+
       <LoadWrapper retryHandler={() => loadQuarantineReportData(token)} error={loadError} loading={dataLoading}>
         <QuarantineComponentOverviewTile componentOverview={componentOverview} />
       </LoadWrapper>
+
       <LoadWrapper
         retryHandler={() => loadQuarantineReportData(token)}
         error={violationsLoadError}
@@ -46,6 +69,20 @@ export default function QuarantinedComponentReport(props) {
       >
         <PolicyViolationsTile violations={violations} />
       </LoadWrapper>
+
+      <RiskRemediation
+        stageId="proxy"
+        currentVersion={componentOverview.componentVersion}
+        routeName=""
+        componentInformation={{}}
+        versionExplorerData={selectedVersionExplorerData}
+        selectedVersionData={selectedVersionData}
+        loadVersionExplorerData={loadVersionExplorerData}
+        loadSelectedVersionData={loadSelectedVersionData}
+        currentVersionComparisonData={currentVersionDetails}
+        selectedVersionComparisonData={selectedVersionDetails}
+      />
+
       <OtherVersionsTile />
     </main>
   );
@@ -54,7 +91,11 @@ export default function QuarantinedComponentReport(props) {
 QuarantinedComponentReport.propTypes = {
   token: PropTypes.string.isRequired,
   loadQuarantineReportData: PropTypes.func.isRequired,
-  loadError: PropTypes.string,
+  loadError: PropTypes.object,
+  componentOverview: PropTypes.object,
+  violations: PropTypes.shape({
+    activePolicyViolations: PropTypes.array.isRequired,
+  }).isRequired,
   violationsLoading: PropTypes.bool,
-  violationsLoadError: PropTypes.string,
+  violationsLoadError: PropTypes.object,
 };

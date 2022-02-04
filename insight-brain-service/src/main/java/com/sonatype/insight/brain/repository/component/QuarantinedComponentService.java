@@ -5,15 +5,17 @@
  */
 package com.sonatype.insight.brain.repository.component;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
@@ -23,13 +25,16 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
 import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -86,6 +91,8 @@ public class QuarantinedComponentService
 
     final QuarantinedComponentOverviewDto quarantinedComponentOverviewDto = new QuarantinedComponentOverviewDto();
     quarantinedComponentOverviewDto.componentDisplayName = getComponentDisplayName(repositoryComponent);
+    quarantinedComponentOverviewDto.componentVersion =
+        repositoryComponent.getComponentIdentifier().get(ComponentIdentifier.VERSION);
     quarantinedComponentOverviewDto.isQuarantined = repositoryComponent.isQuarantined();
     quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount =
         getQuarantinedPolicyViolationsCount(repositoryComponent);
@@ -111,11 +118,29 @@ public class QuarantinedComponentService
 
   public ComponentVersionInfoDTO getQuarantineComponentVersionRemediation(final String token) {
     final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
-    RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+    final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
 
     return componentInfoService.getComponentVersionInfoNoAuth(OwnerType.REPOSITORY,
         repositoryComponent.getRepositoryId(), repositoryComponent.getComponentIdentifier(), Stage.ID_PROXY,
         repositoryComponent.getIdentificationSourceId(), null, null);
+  }
+
+  public NamedComponentDetails getComponentVersionDetails(final String token, final HttpServletRequest httpRequest,
+                                                          final String version)
+      throws IOException
+  {
+    final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
+    final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+    final Owner owner = IdUtils.getOwnerNotNull(OwnerType.REPOSITORY, repositoryComponent.getRepositoryId());
+
+    ComponentIdentifier componentIdentifier = repositoryComponent.getComponentIdentifier();
+
+    if (version != null && !version.isEmpty()) {
+      componentIdentifier = repositoryComponent.getComponentIdentifier().createAlternativeVersion(version);
+    }
+
+    return componentInfoService.getComponentDetails(owner, componentIdentifier, MatchState.EXACT.getId(),
+        repositoryComponent.getHash(), false, httpRequest);
   }
 
   public ApiPageResult<String> getQuarantinedComponentOtherVersions(

@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.repository.component;
 
+import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -18,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
@@ -43,12 +46,18 @@ public class QuarantinedComponentResource
   public static final String QUARANTINED_COMPONENT_VERSION_REMEDIATION_PATH =
       QUARANTINED_COMPONENT_PATH + "/remediation";
 
+  public static final String QUARANTINED_COMPONENT_VERSION_DETAILS_PATH =
+      QUARANTINED_COMPONENT_PATH + "/details";
+
   public static final String QUARANTINED_COMPONENT_POLICY_VIOLATIONS_PATH =
       QUARANTINED_COMPONENT_PATH + "/policyViolations";
 
   public static final String QUARANTINED_COMPONENT_OTHER_VERSIONS_PATH = QUARANTINED_COMPONENT_PATH + "/otherVersions";
 
   private final QuarantinedComponentService quarantinedComponentService;
+
+  @Context
+  private HttpServletRequest httpRequest;
 
   @Inject
   public QuarantinedComponentResource(final QuarantinedComponentService quarantinedComponentService) {
@@ -81,6 +90,17 @@ public class QuarantinedComponentResource
   @Produces(MediaType.APPLICATION_JSON)
   public ComponentVersionInfoDTO getQuarantinedComponentVersionRemediation(@PathParam("token") String token) {
     return quarantinedComponentService.getQuarantineComponentVersionRemediation(token);
+  }
+
+  @GET
+  @Path(QUARANTINED_COMPONENT_VERSION_DETAILS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public NamedComponentDetails getQuarantinedComponentVersionDetails(
+      @PathParam("token") String token,
+      @QueryParam("version") String version)
+      throws IOException
+  {
+    return quarantinedComponentService.getComponentVersionDetails(token, httpRequest, version);
   }
 
   @GET

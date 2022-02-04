@@ -177,7 +177,7 @@ public class ComponentInfoService
         identificationSource, scanId, dependencyType);
   }
 
-  NamedComponentDetails getComponentDetails(Owner owner,
+  public NamedComponentDetails getComponentDetails(Owner owner,
                                             final ComponentIdentifier identifier,
                                             String matchState,
                                             String hash,

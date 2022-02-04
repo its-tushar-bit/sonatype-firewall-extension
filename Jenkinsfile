@@ -45,8 +45,42 @@ make(
     },
     onUnstable: {
         pushDockerImageIfDeployBranch()
+        createJiraIssueIfNeeded() 
+    },
+    onFailure: {
+      createJiraIssueIfNeeded()
     }
 )
+
+/**
+ * On unstable builds of the main branch, create a Jira ticket.
+ */
+def createJiraIssueIfNeeded() {
+  // Only create the ticket on main branch failures.
+  if (currentBuild.fullProjectName.contains('master') && getTestResults(currentBuild).failCount) {
+    echo "The build is entering the unstable condition to create a jira ticket, " +
+        "current build #: ${currentBuild.displayName} ${currentBuild.number}"
+
+    List commits = getBuildRecentCommits(currentBuild)
+    String commitMsg = ''
+    if (commits.size() > 0) {
+      commitMsg = commits[0].replace("\n", "\\n")
+    }
+    String desc = "This build had a failure. Please fix the failure and rebuild.\n" +
+        "The latest commit is: ${commitMsg ?: 'unknown'}"
+    Map issue = [fields: [project    : [key: 'CLM'],
+                          labels     : ['master-build-failure'],
+                          summary    : "Failure of Insight Brain main branch build ${currentBuild.displayName}",
+                          description: desc,
+                          issuetype  : [name: 'Bug']]]
+
+    def newIssue = jiraNewIssue issue: issue, site: 'issues.sonatype.com'
+    echo "New issue created: ${newIssue.data.key}"
+  }
+  else if (currentBuild.currentResult != 'SUCCESS') {
+    echo "The build is unstable but this is not on the master branch - no jira ticket is created as a result."
+  }
+}
 
 def configureBranchJob() {
     properties([copyArtifactPermission("/${currentBuild.fullProjectName}")])

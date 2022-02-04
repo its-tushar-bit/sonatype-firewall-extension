@@ -94,7 +94,7 @@ function routes($stateProvider) {
       abstract: true,
     })
     .state('legal.dashboard', {
-      url: '/legal/dashboard?legalComponentsTabEnabled',
+      url: '/legal/dashboard',
       component: 'legalDashboard',
       data: {
         title: 'Legal Dashboard',
@@ -102,7 +102,7 @@ function routes($stateProvider) {
       },
     })
     .state('legal.applicationsDashboard', {
-      url: '/legal/applicationsDashboard?legalComponentsTabEnabled',
+      url: '/legal/applicationsDashboard',
       component: 'legalDashboard',
       data: {
         title: 'Legal Dashboard',
@@ -110,7 +110,7 @@ function routes($stateProvider) {
       },
     })
     .state('legal.componentsDashboard', {
-      url: '/legal/componentsDashboard?legalComponentsTabEnabled',
+      url: '/legal/componentsDashboard',
       component: 'legalDashboard',
       data: {
         title: 'Legal Dashboard',

@@ -45,7 +45,6 @@ export default function LegalDashboardPage(props) {
 
   const tabIndexes = ['applications', 'components'];
   const stateIndexes = ['legal.applicationsDashboard', 'legal.componentsDashboard'];
-  const componentTabEnabled = router.currentParams.legalComponentsTabEnabled;
   const defaultActiveTab = tabIndexes.findIndex((tab) => router.currentState?.data?.activeTab === tab);
 
   useEffect(() => {
@@ -53,7 +52,7 @@ export default function LegalDashboardPage(props) {
   }, []);
 
   const loadTabContents = (index) => {
-    stateGo(stateIndexes[index], { legalComponentsTabEnabled: 'true' });
+    stateGo(stateIndexes[index]);
   };
 
   return (
@@ -84,7 +83,7 @@ export default function LegalDashboardPage(props) {
         >
           <NxTabList>
             <NxTab>Applications</NxTab>
-            {componentTabEnabled && <NxTab>Components</NxTab>}
+            <NxTab>Components</NxTab>
           </NxTabList>
           <NxTabPanel className="nx-viewport-sized__container">
             <div className="nx-tile nx-viewport-sized__container">
@@ -100,24 +99,23 @@ export default function LegalDashboardPage(props) {
               </div>
             </div>
           </NxTabPanel>
-          {componentTabEnabled && (
-            <NxTabPanel className="nx-viewport-sized__container">
-              <div className="  nx-tile nx-viewport-sized__container">
-                <div className="nx-tile-content nx-viewport-sized__container">
-                  <LegalDashboardComponentsTab
-                    components={components}
-                    fetchBackendPage={fetchBackendPage}
-                    changeSortField={changeSortField}
-                    stateGo={stateGo}
-                    loadResults={loadResults}
-                    setComponentSearchInputValue={setComponentSearchInputValue}
-                    searchByComponentName={searchByComponentName}
-                    legalDashboardSetPage={legalDashboardSetPage}
-                  />
-                </div>
+
+          <NxTabPanel className="nx-viewport-sized__container">
+            <div className="  nx-tile nx-viewport-sized__container">
+              <div className="nx-tile-content nx-viewport-sized__container">
+                <LegalDashboardComponentsTab
+                  components={components}
+                  fetchBackendPage={fetchBackendPage}
+                  changeSortField={changeSortField}
+                  stateGo={stateGo}
+                  loadResults={loadResults}
+                  setComponentSearchInputValue={setComponentSearchInputValue}
+                  searchByComponentName={searchByComponentName}
+                  legalDashboardSetPage={legalDashboardSetPage}
+                />
               </div>
-            </NxTabPanel>
-          )}
+            </div>
+          </NxTabPanel>
         </NxStatefulTabs>
       </LoadWrapper>
     </main>

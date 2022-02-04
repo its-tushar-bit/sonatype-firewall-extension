@@ -29,7 +29,7 @@ public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
     if (!enableComponentDetails) {
       return url();
     }
-    return BaseUrl.resolvePageUrl("/legal/dashboard?legalComponentsTabEnabled");
+    return BaseUrl.resolvePageUrl("/legal/dashboard");
   }
 
   public SelenideElement componentsTab() {

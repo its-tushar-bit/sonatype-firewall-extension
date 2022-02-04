@@ -50,9 +50,6 @@ describe('LegalDashboardPage', function () {
       loadError: 'loadError',
       filtersAreDirty: true,
       router: {
-        currentParams: {
-          legalComponentsTabEnabled: 'true',
-        },
         currentState: {
           data: {
             activeTab: 'applications',

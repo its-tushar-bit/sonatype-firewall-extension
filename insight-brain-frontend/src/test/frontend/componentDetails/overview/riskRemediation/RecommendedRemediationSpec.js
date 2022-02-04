@@ -182,12 +182,28 @@ describe('RecommendedRemediation', () => {
     expect(showLess).toHaveText('Show less');
   });
 
-  it('renders alert if dependencyTreeSubset is empty (old report)', () => {
+  it('renders alert if dependencyTreeSubset is empty and dependencyTree is supported', () => {
     const component = getMounted({
       dependencyTreeSubset: [],
     });
 
     expect(component.find('AncestorsList')).not.toExist();
     expect(component.find('.iq-dependency-information__unavailable-tree-alert')).toExist();
+    expect(component.find('.iq-dependency-information__unavailable-tree-alert').at(0)).toHaveText(
+      'Dependency info not available for this report.'
+    );
+  });
+
+  it('renders alert prompting to re-scan if dependencyTreeSubset is empty and dependencyTree is not supported', () => {
+    const component = getMounted({
+      dependencyTreeSubset: [],
+      dependencyTreeIsNotSupported: true,
+    });
+
+    expect(component.find('AncestorsList')).not.toExist();
+    expect(component.find('.iq-dependency-information__unavailable-tree-alert')).toExist();
+    expect(component.find('.iq-dependency-information__unavailable-tree-alert').at(0)).toHaveText(
+      'Dependency info not available for this report. Please re-scan the application.'
+    );
   });
 });

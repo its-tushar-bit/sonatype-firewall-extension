@@ -19,6 +19,7 @@ import { dependencyTreeNodePropType } from 'MainRoot/DependencyTree/DependencyTr
 export const RiskRemediation = ({
   componentInformation,
   dependencyTreeSubset,
+  dependencyTreeIsNotSupported,
   stageId,
   versionExplorerData,
   selectedVersionData,
@@ -63,6 +64,7 @@ export const RiskRemediation = ({
           {isTransitiveDependency && (
             <RecommendedRemediation
               dependencyTreeSubset={dependencyTreeSubset}
+              dependencyTreeIsNotSupported={dependencyTreeIsNotSupported}
               ancestorOnClick={ancestorOnClick}
               toggleAncestorsList={toggleAncestorsList}
               expanded={expanded}
@@ -135,7 +137,7 @@ export const RiskRemediation = ({
 RiskRemediation.propTypes = {
   componentInformation: componentInformationPropType,
   dependencyTreeSubset: PropTypes.arrayOf(dependencyTreeNodePropType),
-  dependencyTreeNotAvailable: PropTypes.bool,
+  dependencyTreeIsNotSupported: PropTypes.bool,
   currentVersion: PropTypes.string.isRequired,
   stageId: PropTypes.string.isRequired,
   loadVersionExplorerData: PropTypes.func,

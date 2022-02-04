@@ -18,7 +18,10 @@ import {
   selectSelectedVersionComparisonData,
 } from '../overviewSelectors';
 import { RiskRemediation } from './RiskRemediation';
-import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
+import {
+  selectDependencyTreeIsOldReport,
+  selectSelectedComponent,
+} from 'MainRoot/applicationReport/applicationReportSelectors';
 
 const { visitAncestorAction } = componenDetailsActions;
 
@@ -27,6 +30,7 @@ function mapStateToProps(state) {
   return {
     componentInformation: selectSelectedComponent(state),
     dependencyTreeSubset: selectDependencyTreeSubset(state),
+    dependencyTreeIsNotSupported: selectDependencyTreeIsOldReport(state),
     routeName: selectCurrentRouteName(state),
     currentVersion,
     stageId,

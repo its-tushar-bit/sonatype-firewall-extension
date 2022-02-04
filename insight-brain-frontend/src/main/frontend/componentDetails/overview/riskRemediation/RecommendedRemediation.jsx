@@ -9,7 +9,13 @@ import * as PropTypes from 'prop-types';
 import { AncestorsList } from './AncestorsList';
 import { NxInfoAlert } from '@sonatype/react-shared-components';
 
-export const RecommendedRemediation = ({ dependencyTreeSubset, ancestorOnClick, expanded, toggleAncestorsList }) => {
+export const RecommendedRemediation = ({
+  dependencyTreeSubset,
+  ancestorOnClick,
+  expanded,
+  toggleAncestorsList,
+  dependencyTreeIsNotSupported,
+}) => {
   return (
     <section className="iq-dependency-information nx-grid-col__section">
       <header className="nx-grid-header">
@@ -30,7 +36,9 @@ export const RecommendedRemediation = ({ dependencyTreeSubset, ancestorOnClick, 
           />
         ) : (
           <NxInfoAlert className="iq-dependency-information__unavailable-tree-alert">
-            Dependency info not available for this report. Please re-scan the application.
+            {dependencyTreeIsNotSupported
+              ? 'Dependency info not available for this report. Please re-scan the application.'
+              : 'Dependency info not available for this report.'}
           </NxInfoAlert>
         )}
       </div>
@@ -41,4 +49,5 @@ export const RecommendedRemediation = ({ dependencyTreeSubset, ancestorOnClick, 
 RecommendedRemediation.propTypes = {
   ...AncestorsList.PropTypes,
   ancestorOnClick: PropTypes.func.isRequired,
+  dependencyTreeIsNotSupported: PropTypes.bool,
 };

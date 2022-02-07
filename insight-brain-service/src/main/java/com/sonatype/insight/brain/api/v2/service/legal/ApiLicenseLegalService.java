@@ -24,12 +24,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
+import com.sonatype.insight.brain.api.experimental.legal.ComponentLegalService;
 import com.sonatype.insight.brain.api.experimental.legal.LegalComponentIdentifierUtil;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTOV2;
@@ -190,6 +192,8 @@ public class ApiLicenseLegalService
 
   private final LegalDashboardsService legalDashboardService;
 
+  private final ComponentLegalService componentLegalService;
+
   @Inject
   public ApiLicenseLegalService(
       MultiLicenseDAO multiLicenseDAO,
@@ -216,7 +220,8 @@ public class ApiLicenseLegalService
       AggregateFileDAO aggregateFileDAO,
       LicenseThreatGroupDAO licenseThreatGroupDAO,
       InnerSourceComponentDAO innerSourceComponentDAO,
-      LegalDashboardsService legalDashboardService)
+      LegalDashboardsService legalDashboardService,
+      ComponentLegalService componentLegalService)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -244,6 +249,7 @@ public class ApiLicenseLegalService
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.innerSourceComponentDAO = innerSourceComponentDAO;
     this.legalDashboardService = legalDashboardService;
+    this.componentLegalService = componentLegalService;
   }
 
   public ApiLicenseLegalApplicationDashboardResultDTO getLicenseLegalApplicationsDashboard(
@@ -646,9 +652,8 @@ public class ApiLicenseLegalService
     // component.getHash() may not equal ApplicationComponent.getHash()
     componentIdentifierLegalData.setStageScans(getStageScans(owner, hash, compIdentifier));
 
-    //Get sourceLinks
-    Set<LegalSourceLinkDTO> sourceLinks =
-        apiLicenseLegalHdsService.getSourceLinksFromComponentIdentifier(compIdentifier);
+    // Get sourceLinks
+    Set<LegalSourceLinkDTO> sourceLinks = mergeLegalSourceLinkAndSourceLinkOverride(compIdentifier, owner);
 
     return legalReportBuilder.getLicenseLegalComponentReport(
         apiReportComponentDTOV2,
@@ -659,6 +664,24 @@ public class ApiLicenseLegalService
         licenseMetadataById,
         sourceLinks
     );
+  }
+
+  private Set<LegalSourceLinkDTO> mergeLegalSourceLinkAndSourceLinkOverride(
+      ComponentIdentifier compIdentifier,
+      Owner owner)
+  {
+    Set<LegalSourceLinkDTO> sourceLinks =
+        apiLicenseLegalHdsService.getSourceLinksFromComponentIdentifier(compIdentifier);
+    Set<LegalSourceLinkDTO> sourceLinkOverrides =
+        componentLegalService.getSourceLinksOverridesFromComponentIdentifier(owner.getId(), compIdentifier);
+    sourceLinks = sourceLinks.stream()
+        .filter(sourceLinkHDS -> sourceLinkOverrides.stream()
+            .noneMatch(customSourceLink -> customSourceLink.sourceLink.equals(sourceLinkHDS.sourceLink)))
+        .sorted(
+            Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.sourceLink, String.CASE_INSENSITIVE_ORDER))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+    sourceLinks.addAll(sourceLinkOverrides);
+    return sourceLinks;
   }
 
   /**

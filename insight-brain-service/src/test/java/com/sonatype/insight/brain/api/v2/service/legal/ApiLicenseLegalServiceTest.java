@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -40,6 +41,7 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
+import com.sonatype.insight.brain.api.experimental.legal.ComponentLegalService;
 import com.sonatype.insight.brain.api.experimental.legal.LegalComponentIdentifierUtil;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
@@ -87,6 +89,7 @@ import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
+import com.sonatype.insight.brain.model.legal.SourceLinkOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -196,6 +199,9 @@ public class ApiLicenseLegalServiceTest
   private ApiLicenseLegalHdsService mockApiLicenseLegalHdsService;
 
   @Mock
+  private ComponentLegalService mockComponentLegalService;
+
+  @Mock
   private TelemetrySender telemetrySenderMock;
 
   @Captor
@@ -239,6 +245,7 @@ public class ApiLicenseLegalServiceTest
         mockThirdPartyComponentDAO, insightConfig, repositoryQueryService));
     binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceSpy);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(mockThirdPartyComponentDAO);
+    binder.bind(ComponentLegalService.class).toInstance(mockComponentLegalService);
     super.configure(binder);
   }
 
@@ -1998,8 +2005,17 @@ public class ApiLicenseLegalServiceTest
 
     doAnswer(invocationOnMock -> {
       ComponentIdentifier compIdentifier = invocationOnMock.getArgument(0, ComponentIdentifier.class);
-      return Sets.newHashSet(new LegalSourceLinkDTO("https://" + compIdentifier));
+      return Sets.newHashSet(new LegalSourceLinkDTO("https://" + compIdentifier), new LegalSourceLinkDTO("contentB"),
+          new LegalSourceLinkDTO("contentC"));
     }).when(mockApiLicenseLegalHdsService).getSourceLinksFromComponentIdentifier(any());
+
+    doAnswer(invocationOnMock -> {
+      SourceLinkOverride sourceLinkOverride = new SourceLinkOverride("content", ComponentLegalPartStatus.ENABLED, "1");
+      SourceLinkOverride sourceLinkOverrideExtra =
+          new SourceLinkOverride("contentB", ComponentLegalPartStatus.ENABLED, "1");
+      return Sets.newHashSet(new LegalSourceLinkDTO(sourceLinkOverride),
+          new LegalSourceLinkDTO(sourceLinkOverrideExtra));
+    }).when(mockComponentLegalService).getSourceLinksOverridesFromComponentIdentifier(any(), any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
@@ -2011,6 +2027,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(licenseLegalComponentReport).isNotNull();
 
     ApiLicenseLegalComponentDTO licenseLegalComponent = licenseLegalComponentReport.component;
+
     assertThat(licenseLegalComponent).isNotNull();
     assertThat(licenseLegalComponent.componentIdentifier).isNotNull();
     assertThat(licenseLegalComponent.componentIdentifier.toComponentIdentifier()).isEqualTo(componentIdentifier);
@@ -2035,10 +2052,12 @@ public class ApiLicenseLegalServiceTest
         .allMatch(licenseFile -> licenseFile.content.endsWith("contentLicense"));
     assertThat(licenseLegalComponent.licenseLegalData.noticeFiles).hasSize(4)
         .allMatch(noticeFile -> noticeFile.content.endsWith("contentNotice"));
-    assertThat(licenseLegalComponent.licenseLegalData.sourceLinks).hasSize(1)
-        .allMatch(legalSourceLinkDTO -> legalSourceLinkDTO.sourceLink.equals(
-            "https://" + licenseLegalComponent.componentIdentifier.toComponentIdentifier()));
-
+    assertThat(licenseLegalComponent.licenseLegalData.sourceLinks).hasSize(4).containsExactlyInAnyOrder(
+        new LegalSourceLinkDTO("contentC"), new LegalSourceLinkDTO(
+            "https://" + licenseLegalComponent.componentIdentifier.toComponentIdentifier()),
+        new LegalSourceLinkDTO(new SourceLinkOverride("content", ComponentLegalPartStatus.ENABLED, "1")),
+        new LegalSourceLinkDTO(new SourceLinkOverride("contentB", ComponentLegalPartStatus.ENABLED, "1")));
+    
     Map<ApiLicenseDTO, Set<com.sonatype.insight.brain.model.license.License>> multiLicenseToSingleLicense =
         Sets.newHashSet(Iterables.concat(
                 licenseLegalComponent.licenseLegalData.effectiveLicenses,

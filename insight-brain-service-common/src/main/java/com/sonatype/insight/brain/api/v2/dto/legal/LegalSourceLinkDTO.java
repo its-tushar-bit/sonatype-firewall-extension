@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.dto.legal;
 import java.util.Objects;
 
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.model.legal.SourceLinkOverride;
 
 public class LegalSourceLinkDTO
 {
@@ -29,6 +30,10 @@ public class LegalSourceLinkDTO
 
   public LegalSourceLinkDTO(final String sourceLink) {
     this(null, sourceLink, ComponentLegalPartStatus.ENABLED);
+  }
+
+  public LegalSourceLinkDTO(final SourceLinkOverride sourceLink) {
+    this(sourceLink.getId(), sourceLink.getContent(), sourceLink.getStatus());
   }
 
   @Override

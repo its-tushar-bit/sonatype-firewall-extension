@@ -7,8 +7,11 @@ package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -28,6 +31,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributio
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LegalFileOverrideDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.SourceLinkOverrideDTO;
 import com.sonatype.insight.brain.api.v2.service.legal.LegalReportBuilder;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -885,5 +889,16 @@ public class ComponentLegalService
         .setComponentIdentifier(componentIdentifier)
         .setData("obligationName", obligationName)
         .setData("content", content);
+  }
+
+  public Set<LegalSourceLinkDTO> getSourceLinksOverridesFromComponentIdentifier(
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    return sourceLinkOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(ownerId, componentIdentifier).stream()
+        .map(sourceLinkOverride -> sourceLinkOverride).map(LegalSourceLinkDTO::new)
+        .sorted(
+            Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.sourceLink, String.CASE_INSENSITIVE_ORDER))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 }

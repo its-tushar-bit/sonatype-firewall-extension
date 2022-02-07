@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributio
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightOverrideDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LegalFileOverrideDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.SourceLinkOverrideDTO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
@@ -2264,9 +2265,21 @@ public class ComponentLegalServiceTest
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier),
         Collections.singletonList(SourceLinkOverrideDTO.fromSourceLinkOverride(existingSourceLinkOverride1)), null,
         null);
-
     componentLegalService.saveComponentSourceLink(app.getType(), app.getPublicId(), componentSourceLinkDTO);
-
     assertThat(sourceLinkOverrideDAO.getById(existingSourceLinkOverride2.getId())).isNull();
+  }
+
+  @Test
+  public void testGetSourceLinkOverridesFromComponentIdentifier() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentSourceLink componentSourceLink =
+        tempEntity.newComponentSourceLink(componentIdentifier, Organization.ROOT_ORGANIZATION_ID);
+    SourceLinkOverride sourceLinkOverride =
+        tempEntity.newSourceLinkOverride("contentA", ComponentLegalPartStatus.ENABLED, componentSourceLink.getId());
+    SourceLinkOverride sourceLinkOverrideTwo =
+        tempEntity.newSourceLinkOverride("contentB", ComponentLegalPartStatus.ENABLED, componentSourceLink.getId());
+    assertThat(componentLegalService.getSourceLinksOverridesFromComponentIdentifier(Organization.ROOT_ORGANIZATION_ID,
+        componentSourceLink.getComponentIdentifier())).hasSize(2)
+            .containsExactly(new LegalSourceLinkDTO(sourceLinkOverride), new LegalSourceLinkDTO(sourceLinkOverrideTwo));
   }
 }

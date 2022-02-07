@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.legal;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentSourceLink;
 import com.sonatype.insight.brain.model.legal.SourceLinkOverride;
@@ -55,6 +56,53 @@ public class SourceLinkOverrideDAOTest
     // Delete
     dao.delete(sourceLinkOverride);
     assertThat(dao.getById(sourceLinkOverride.getId())).isNull();
+  }
+
+  @Test
+  public void testGetByOwnerIdAndComponentIdentifierWithHierarchy() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+
+    // Start with a sourceLink override at just the root org level
+    ComponentSourceLink componentSourceLinkForRootOrganization =
+        tempEntity.newComponentSourceLink(componentIdentifier, Organization.ROOT_ORGANIZATION_ID);
+    SourceLinkOverride sourceLinkOverrideForRootOrganization = tempEntity.newSourceLinkOverride("content1",
+        ComponentLegalPartStatus.ENABLED, componentSourceLinkForRootOrganization.getId());
+
+    assertThat(
+        dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
+            .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
+
+    // Add another sourceLink override at the org level
+    ComponentSourceLink componentSourceLinkForOrganization =
+        tempEntity.newComponentSourceLink(componentIdentifier, organization.getId());
+    SourceLinkOverride sourceLinkOverrideForOrganization = tempEntity.newSourceLinkOverride("content2",
+        ComponentLegalPartStatus.ENABLED, componentSourceLinkForOrganization.getId());
+
+    assertThat(
+        dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
+            .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForOrganization);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForOrganization);
+
+    // Add another sourceLink override at the app level
+    ComponentSourceLink componentSourceLinkForApplication =
+        tempEntity.newComponentSourceLink(componentIdentifier, application.getId());
+    SourceLinkOverride sourceLinkOverrideForApplication = tempEntity.newSourceLinkOverride("content3",
+        ComponentLegalPartStatus.ENABLED, componentSourceLinkForApplication.getId());
+
+    assertThat(
+        dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
+            .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForOrganization);
+    assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForApplication);
   }
 
   @Test

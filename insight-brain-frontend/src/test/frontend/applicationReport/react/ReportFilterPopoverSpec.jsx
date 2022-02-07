@@ -13,7 +13,8 @@ describe('ReportFilterPopover', () => {
   let renderComponent, selectShowFilterPopoverSpy;
   beforeEach(() => {
     selectShowFilterPopoverSpy = spyOn(applicationReportSelectors, 'selectShowFilterPopover').and.returnValue(true);
-    renderComponent = () => render(<ReportFilterPopover />);
+    spyOn(applicationReportSelectors, 'selectIsPolicyTypeFilterEnabled').and.returnValue(true);
+    renderComponent = (props) => render(<ReportFilterPopover {...props} />);
   });
 
   it('does not render the tree when selectShowFilterPopover is false', () => {
@@ -25,6 +26,23 @@ describe('ReportFilterPopover', () => {
   it('renders the tree with the correct title', () => {
     renderComponent();
     expect(screen.getByText('Filter')).toBeVisible();
+  });
+
+  it('enables policy types filter by default', () => {
+    renderComponent();
+    expect(screen.getByRole('button', { name: /policy types/i, exact: false })).toBeEnabled();
+  });
+
+  it('enables policy types filter when isPolicyTypeFilterEnabled flag is true', () => {
+    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.and.returnValue(true);
+    renderComponent();
+    expect(screen.getByRole('button', { name: /policy types/i, exact: false })).toBeEnabled();
+  });
+
+  it('disables policy types filter when isPolicyTypeFilterEnabled flag is false', () => {
+    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.and.returnValue(false);
+    renderComponent();
+    expect(screen.getByRole('button', { name: /policy types/i, exact: false })).toBeDisabled();
   });
 
   describe('handles clicks on teh checkboxes', () => {

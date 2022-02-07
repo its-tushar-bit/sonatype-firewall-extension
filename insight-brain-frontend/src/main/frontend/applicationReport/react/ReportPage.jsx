@@ -4,21 +4,25 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect, Fragment } from 'react';
-import { NxLoadWrapper, NxStatefulSubmitMask } from '@sonatype/react-shared-components';
+import { useDispatch, useSelector } from 'react-redux';
+import { pick } from 'ramda';
+import { NxLoadWrapper, NxStatefulSubmitMask, NxWarningAlert } from '@sonatype/react-shared-components';
 import ReportStatusBar from './ReportStatusBar';
 import ReportContent from './ReportContent';
 import ReportFilterPopover from './ReportFilterPopover';
 import ReportTitle from './ReportTitle';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
-import { selectApplicationReportSlice } from 'MainRoot/applicationReport/applicationReportSelectors';
+import {
+  selectApplicationReportSlice,
+  selectIsPolicyTypeFilterEnabled,
+} from 'MainRoot/applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportActions from '../applicationReportActions';
-import { useDispatch, useSelector } from 'react-redux';
-import { pick } from 'ramda';
 
 export default function ReportPage() {
   const applicationReport = useSelector(selectApplicationReportSlice);
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
+  const isPolicyTypeFilterEnabled = useSelector(selectIsPolicyTypeFilterEnabled);
 
   const { loadError, reevaluateMaskState } = pick(['loadError', 'reevaluateMaskState'], applicationReport);
 
@@ -56,6 +60,12 @@ export default function ReportPage() {
         <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
           <ReportFilterPopover />
           <ReportTitle />
+          {!isPolicyTypeFilterEnabled && (
+            <NxWarningAlert>
+              This report has not been upgraded for the new Policy Types filter introduced in release 61. Re-evaluate in
+              order to enable the Policy Types filter.
+            </NxWarningAlert>
+          )}
           <ReportStatusBar />
           <ReportContent />
         </NxLoadWrapper>

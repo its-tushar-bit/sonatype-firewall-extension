@@ -19,6 +19,7 @@ import {
   selectApplicationReportSlice,
   selectDependencyTreeRouterParams,
   selectDependencyTreeUnavailableMessage,
+  selectIsPolicyTypeFilterEnabled,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { dependencyTreeData } from '../dependencyTree/dependencyTreeMockData';
 
@@ -381,6 +382,20 @@ describe('applicationReportSelectors', () => {
       const actualSelection = selectDependencyTreeRouterParams.resultFunc({ dependencyTreePageRouterParams: null });
 
       expect(actualSelection).toBeNull();
+    });
+  });
+
+  describe('selectIsPolicyTypeFilterEnabled', () => {
+    it('selects policyTypeFilterEnabled', () => {
+      const state = {
+        ...mockState,
+        applicationReport: {
+          ...mockState.applicationReport,
+          policyTypeFilterEnabled: true,
+        },
+      };
+
+      expect(selectIsPolicyTypeFilterEnabled(state)).toBe(true);
     });
   });
 });

@@ -128,6 +128,7 @@ describe('Report Page component', () => {
     spyOn(applicationReportSelectors, 'selectIsAggregated').and.returnValue(true);
     spyOn(applicationReportSelectors, 'selectDisplayedComponentList').and.returnValue(selectedReport.displayedEntries);
     spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
+    spyOn(applicationReportSelectors, 'selectIsPolicyTypeFilterEnabled').and.returnValue(true);
 
     loadReportIfNeededSpy = spyOn(applicationReportActions, 'loadReportIfNeeded').and.callThrough();
     spyOn(applicationReportActions, 'toggleAggregateReportEntries');
@@ -273,5 +274,27 @@ describe('Report Page component', () => {
     expect(screen.getByText(`${displayedEntries[4].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[4].policyName}` })).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[4].derivedComponentName}` })).toBeVisible();
+  });
+
+  it('does not render warning message when policy types filter is enabled', () => {
+    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.and.returnValue(true);
+    renderComponent();
+    expect(
+      screen.queryByText(
+        'This report has not been upgraded for the new Policy Types filter introduced in release 61. ' +
+          'Re-evaluate in order to enable the Policy Types filter.'
+      )
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders warning message when policy types filter is not enabled', () => {
+    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.and.returnValue(false);
+    renderComponent();
+    expect(
+      screen.getByText(
+        'This report has not been upgraded for the new Policy Types filter introduced in release 61. ' +
+          'Re-evaluate in order to enable the Policy Types filter.'
+      )
+    ).toBeVisible();
   });
 });

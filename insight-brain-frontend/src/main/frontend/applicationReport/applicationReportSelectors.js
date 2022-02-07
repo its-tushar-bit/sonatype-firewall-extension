@@ -13,6 +13,10 @@ export const selectExactValueFilters = createSelector(selectApplicationReportSli
 export const selectShowFilterPopover = createSelector(selectApplicationReportSlice, prop('showFilterPopover'));
 export const selectSelectedReport = createSelector(selectApplicationReportSlice, prop('selectedReport'));
 export const selectApplicationReportMetaData = createSelector(selectApplicationReportSlice, prop('metadata'));
+export const selectIsPolicyTypeFilterEnabled = createSelector(
+  selectApplicationReportSlice,
+  prop('policyTypeFilterEnabled')
+);
 
 export const selectAllComponentsList = createSelector(selectSelectedReport, prop('allEntries'));
 export const selectDisplayedComponentList = createSelector(selectSelectedReport, prop('displayedEntries'));

@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { equals, head, last, map, range, reduce, reject } from 'ramda';
 
 import { NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 import { IqPopover } from 'MainRoot/react/IqPopover';
@@ -12,8 +13,11 @@ import IqTreeViewPolicyThreatSlider from '../../react/IqTreeViewPolicyThreatSlid
 import { policyTypes } from '../../dashboard/filter/staticFilterEntries';
 import { lookup, setToArray, union } from '../../util/jsUtil';
 import * as applicationReportActions from '../applicationReportActions';
-import { equals, head, last, map, range, reduce, reject } from 'ramda';
-import { selectExactValueFilters, selectShowFilterPopover } from '../applicationReportSelectors';
+import {
+  selectExactValueFilters,
+  selectShowFilterPopover,
+  selectIsPolicyTypeFilterEnabled,
+} from '../applicationReportSelectors';
 
 const proprietaryFilterOptions = [
   { id: 'nonProprietary', name: 'Non-Proprietary' },
@@ -57,6 +61,7 @@ export default function ReportFilterPopover() {
 
   const exactValueFilters = useSelector(selectExactValueFilters);
   const showFilterPopover = useSelector(selectShowFilterPopover);
+  const isPolicyTypeFilterEnabled = useSelector(selectIsPolicyTypeFilterEnabled);
 
   if (!showFilterPopover) return null;
 
@@ -192,6 +197,7 @@ export default function ReportFilterPopover() {
           onChange={setSelectedPolicyTypeOptions}
           name="policy-type-filter"
           id="policy-type-filter"
+          disabled={!isPolicyTypeFilterEnabled}
         >
           <span>Policy Types</span>
         </NxStatefulTreeViewMultiSelect>

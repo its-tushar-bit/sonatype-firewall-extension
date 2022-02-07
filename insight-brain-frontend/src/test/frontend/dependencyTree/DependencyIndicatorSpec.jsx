@@ -16,8 +16,8 @@ describe('DependencyIndicator ', () => {
   });
 
   const testCases = [
-    { type: 'direct', label: 'D', toolTipTitle: 'Direct' },
-    { type: 'transitive', label: 'T', toolTipTitle: 'Transitive' },
+    { type: 'direct', label: 'D', toolTipTitle: 'Direct Dependency' },
+    { type: 'transitive', label: 'T', toolTipTitle: 'Transitive Dependency' },
     { type: 'inner-source', label: 'IS', toolTipTitle: 'InnerSource' },
   ];
 

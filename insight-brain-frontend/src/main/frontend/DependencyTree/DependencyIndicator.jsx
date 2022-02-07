@@ -8,8 +8,8 @@ import * as PropTypes from 'prop-types';
 import { NxTooltip } from '@sonatype/react-shared-components';
 
 const DEPENDENCY_TYPE_MAP = {
-  direct: { label: 'D', toolTipTitle: 'Direct' },
-  transitive: { label: 'T', toolTipTitle: 'Transitive' },
+  direct: { label: 'D', toolTipTitle: 'Direct Dependency' },
+  transitive: { label: 'T', toolTipTitle: 'Transitive Dependency' },
   'inner-source': { label: 'IS', toolTipTitle: 'InnerSource' },
 };
 

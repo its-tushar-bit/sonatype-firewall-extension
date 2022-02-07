@@ -41,6 +41,14 @@ describe('DependencyIndicator ', () => {
 
       expect(screen.getByText(label).closest('div')).toHaveClassName(type);
     });
+
+    it(`renders a tooltip for dependency type: '${type}' with a custom tooltip message`, async () => {
+      renderComponent({ type, tooltip: 'Custom tooltip message' });
+      fireEvent.mouseOver(screen.getByText(label));
+      const tooltip = await screen.findByRole('tooltip');
+
+      expect(within(tooltip).getByText('Custom tooltip message')).toBeInTheDocument();
+    });
   });
 
   it('renders null for unknown dependency types', () => {

@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { remove } from 'ramda';
 
 import ReportTableRow from 'MainRoot/applicationReport/react/ReportTableRow';
-import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
-import { remove } from 'ramda';
 
 describe('ReportTableRow component', function () {
   let renderComponent, onClickSpy, minimalProps, selectSelectedReportSpy, selectIsAggregatedSpy;
@@ -203,6 +203,7 @@ describe('ReportTableRow component', function () {
 
       expect(transitiveViolationsIndicator).toBeVisible();
     });
+
     it('renders transitive violations indicator when selectIsAggregated is set, singular scenario', function () {
       selectIsAggregatedSpy.and.returnValue(true);
       selectSelectedReportSpy.and.returnValue({
@@ -219,6 +220,7 @@ describe('ReportTableRow component', function () {
 
       expect(transitiveViolationsIndicator).toBeVisible();
     });
+
     it('does not render transitive violations indicator when selectIsAggregated is cleared', function () {
       const props = {
         component: {
@@ -231,6 +233,7 @@ describe('ReportTableRow component', function () {
 
       expect(transitiveViolationsIndicator).toBeNull();
     });
+
     it('does not render transitive violations indicator when innerSource is false', function () {
       selectIsAggregatedSpy.and.returnValue(true);
       renderComponent();
@@ -306,5 +309,28 @@ describe('ReportTableRow component', function () {
     const grandfatheredIndicator = screen.getByText('Grandfathered');
 
     expect(grandfatheredIndicator).toBeVisible();
+  });
+
+  it('renders inner source parents tooltip message when the component is brought in by an inner source dependency', async function () {
+    const props = {
+      component: {
+        policyName: 'None',
+        policyThreatLevel: 0,
+        innerSourceParentsDerivedComponentNames: ['Component A', 'Component B'],
+        isOnlyInnerSourceTransitiveDependency: true,
+      },
+    };
+    renderComponent(props);
+    const indicator = screen.getByText('IS');
+
+    fireEvent.mouseOver(indicator);
+
+    const tooltip = await screen.findByRole('tooltip');
+
+    expect(
+      within(tooltip).getByText('This component was brought in by the following InnerSource components:', {
+        exact: false,
+      })
+    ).toBeInTheDocument();
   });
 });

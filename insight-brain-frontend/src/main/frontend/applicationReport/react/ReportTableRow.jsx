@@ -15,6 +15,21 @@ import { allPass, filter, includes, length, not, compose, pathOr, prop } from 'r
 
 import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
 
+const getInnerSourceParentsTooltipMessage = (component) => {
+  const { innerSourceParentsDerivedComponentNames = [] } = component;
+  const componentWord = innerSourceParentsDerivedComponentNames.length > 1 ? 'components' : 'component';
+  return (
+    <Fragment>
+      This component was brought in by the following InnerSource {componentWord}:
+      <ul>
+        {innerSourceParentsDerivedComponentNames.map((name) => (
+          <li>{name}</li>
+        ))}
+      </ul>
+    </Fragment>
+  );
+};
+
 const DependencyIndicators = ({ component }) => {
   const { derivedDependencyType, isOnlyInnerSourceTransitiveDependency, innerSource } = component;
 
@@ -23,10 +38,15 @@ const DependencyIndicators = ({ component }) => {
   }
 
   const showInnerSourceIndicator = innerSource || isOnlyInnerSourceTransitiveDependency;
+  const innerSourceDependencyIndicatorTooltipMessage =
+    isOnlyInnerSourceTransitiveDependency && getInnerSourceParentsTooltipMessage(component);
+
   return (
     <Fragment>
       <DependencyIndicator type={derivedDependencyType} />
-      {showInnerSourceIndicator && <DependencyIndicator type="inner-source" />}
+      {showInnerSourceIndicator && (
+        <DependencyIndicator type="inner-source" tooltip={innerSourceDependencyIndicatorTooltipMessage} />
+      )}
     </Fragment>
   );
 };

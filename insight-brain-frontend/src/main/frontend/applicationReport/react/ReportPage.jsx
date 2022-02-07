@@ -22,7 +22,7 @@ export default function ReportPage() {
 
   const { loadError, reevaluateMaskState } = pick(['loadError', 'reevaluateMaskState'], applicationReport);
 
-  const { publicId, scanId, unknownjs, embeddable, policyViolationId } = routerCurrentParams
+  const { publicId, scanId, unknownjs, embeddable, policyViolationId } = routerCurrentParams;
   const loading =
     !applicationReport.loadError && (!!applicationReport.pendingLoads.size || !applicationReport.metadata);
 

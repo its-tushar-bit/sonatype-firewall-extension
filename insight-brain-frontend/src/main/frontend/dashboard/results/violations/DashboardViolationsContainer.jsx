@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 
 import DashboardViolations from './DashboardViolations';
 import { stateGo } from '../../../reduxUiRouter/routerActions';
-import { loadResults, sortResults } from '../dashboardResultsActions';
+import { loadResults, sortViolationResults } from '../dashboardResultsActions';
 
 function mapStateToProps({ dashboard, dashboardFilter }) {
   const { loading, needsAcknowledgement, filtersAreDirty, appliedFilter } = dashboardFilter;
@@ -22,9 +22,9 @@ function mapStateToProps({ dashboard, dashboardFilter }) {
 }
 
 const mapDispatchToProps = {
+  sortViolations: sortViolationResults,
   stateGo,
   loadResults,
-  sortResults,
 };
 
 const DashboardViolationsContainer = connect(mapStateToProps, mapDispatchToProps)(DashboardViolations);

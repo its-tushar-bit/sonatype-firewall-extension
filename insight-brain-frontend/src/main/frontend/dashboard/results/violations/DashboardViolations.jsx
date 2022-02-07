@@ -5,7 +5,6 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { partial } from 'ramda';
 
 import DashboardViolationsTable from './DashboardViolationsTable';
 import DashboardMask from '../dashboardMask/DashboardMask';
@@ -18,13 +17,12 @@ export default function DashboardViolations(props) {
       needsAcknowledgement,
       filtersAreDirty,
       loadResults,
-      sortResults,
+      sortViolations,
       stateGo,
       appliedFilter: { maxDaysOld },
     } = props,
     violations = results && results[VIOLATIONS_RESULTS_TYPE],
-    isLoading = !violations.results && !violations.error,
-    sortViolations = partial(sortResults, [VIOLATIONS_RESULTS_TYPE]);
+    isLoading = !violations.results && !violations.error;
 
   const doLoad = () => {
     loadResults(VIOLATIONS_RESULTS_TYPE);
@@ -65,7 +63,7 @@ DashboardViolations.propTypes = {
   needsAcknowledgement: PropTypes.bool.isRequired,
   filtersAreDirty: PropTypes.bool.isRequired,
   loadResults: PropTypes.func.isRequired,
-  sortResults: PropTypes.func.isRequired,
+  sortViolations: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   appliedFilter: PropTypes.shape({
     maxDaysOld: PropTypes.number,

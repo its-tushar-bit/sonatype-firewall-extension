@@ -4,8 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import * as dashboardActions from 'MainRoot/dashboard/results/dashboardResultsActions';
+import * as dashboardDataServices from 'MainRoot/dashboard/services/dashboard.data.service';
+import {
+  sortApplicationResults,
+  sortComponentResults,
+  sortViolationResults,
+} from 'MainRoot/dashboard/results/dashboardResultsActions';
+
 describe('dashboardResultsActions', function () {
-  let loadResults, sortResults;
+  let loadResults;
 
   const newRisksSpy = jasmine.createSpy('getNewestRisks'),
     applicationsRiskSpy = jasmine.createSpy('getApplicationRisks'),
@@ -36,7 +44,6 @@ describe('dashboardResultsActions', function () {
       },
     });
     loadResults = module.loadResults;
-    sortResults = module.sortResults;
   });
 
   const initialState = {
@@ -122,8 +129,8 @@ describe('dashboardResultsActions', function () {
         { foo: 1, bar: 1 },
         { foo: 3, bar: 3 },
       ];
-      var store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(sortResults('applications', ['-foo', 'bar']));
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(dashboardActions.sortApplicationResults(['-foo', 'bar']));
 
       expect(store.getActions().length).toBe(2);
 
@@ -153,8 +160,8 @@ describe('dashboardResultsActions', function () {
       initialState.dashboard.applications.results = ['-foo', 'bar'];
       initialState.dashboard.components.numResults = 100;
 
-      var store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(sortResults('applications', ['-foo', 'bar']));
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(dashboardActions.sortApplicationResults(['-foo', 'bar']));
 
       expect(store.getActions().length).toBe(2);
 
@@ -182,7 +189,7 @@ describe('dashboardResultsActions', function () {
 
       const expectedSortFields = initialState.dashboard.components.sortFields;
 
-      componentRisksSpy.and.returnValue(
+      spyOn(dashboardDataServices, 'getComponentRisks').and.returnValue(
         Promise.resolve({
           results: 'sorted results',
           numResults: 3,
@@ -191,7 +198,7 @@ describe('dashboardResultsActions', function () {
       );
 
       const store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(sortResults('components', initialState.dashboard.components.results)).then(() => {
+      store.dispatch(dashboardActions.sortComponentResults(initialState.dashboard.components.results)).then(() => {
         expect(componentRisksSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
         expect(store.getActions().length).toBe(3);
         expect(store.getActions()[2]).toEqual({
@@ -225,7 +232,7 @@ describe('dashboardResultsActions', function () {
       initialState.dashboard.components.results = null;
       const expectedSortFields = initialState.dashboard.components.sortFields;
 
-      componentRisksSpy.and.returnValue(
+      spyOn(dashboardDataServices, 'getComponentRisks').and.returnValue(
         Promise.resolve({
           results: 'sorted results',
           numResults: 3,
@@ -234,7 +241,7 @@ describe('dashboardResultsActions', function () {
       );
 
       const store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(sortResults('components', ['-foo', 'bar'])).then(() => {
+      store.dispatch(dashboardActions.sortComponentResults(['-foo', 'bar'])).then(() => {
         expect(componentRisksSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
         expect(store.getActions().length).toBe(3);
         expect(store.getActions()[2]).toEqual({
@@ -261,6 +268,78 @@ describe('dashboardResultsActions', function () {
       expect(store.getActions()[1]).toEqual({
         type: 'LOAD_RESULTS_REQUESTED',
         payload: 'components',
+      });
+    });
+  });
+
+  describe('sortViolationResults', () => {
+    it('calls sortResults with the violations resultType', (done) => {
+      initialState.dashboard.violations.results = ['-foo', 'bar'];
+      initialState.dashboard.violations.numResults = 10;
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(sortViolationResults(['time', 'threatLevel'])).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'SORT_RESULTS_REQUESTED',
+            payload: { resultsType: 'violations', sortFields: ['time', 'threatLevel'] },
+          },
+          {
+            type: 'SORT_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'violations',
+              results: ['-foo', 'bar'],
+            },
+          },
+        ]);
+        done();
+      });
+    });
+  });
+
+  describe('sortComponentResults', () => {
+    it('calls sortResults with the components resultType', (done) => {
+      initialState.dashboard.components.results = ['-foo', 'bar'];
+      initialState.dashboard.components.numResults = 10;
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(sortComponentResults(['score'])).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'SORT_RESULTS_REQUESTED',
+            payload: { resultsType: 'components', sortFields: ['score'] },
+          },
+          {
+            type: 'SORT_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'components',
+              results: ['-foo', 'bar'],
+            },
+          },
+        ]);
+        done();
+      });
+    });
+  });
+
+  describe('sortApplicationResults', () => {
+    it('calls sortResults with the applications resultType', (done) => {
+      initialState.dashboard.applications.results = ['-foo', 'bar'];
+      initialState.dashboard.applications.numResults = 10;
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(sortApplicationResults(['totalApplicationRisk.totalRisk'])).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'SORT_RESULTS_REQUESTED',
+            payload: { resultsType: 'applications', sortFields: ['totalApplicationRisk.totalRisk'] },
+          },
+          {
+            type: 'SORT_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'applications',
+              results: ['-foo', 'bar'],
+            },
+          },
+        ]);
+        done();
       });
     });
   });

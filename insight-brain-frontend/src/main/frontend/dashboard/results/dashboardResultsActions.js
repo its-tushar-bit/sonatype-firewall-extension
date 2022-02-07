@@ -11,12 +11,17 @@ import {
   MAX_RESULTS,
 } from '../services/dashboard.data.service';
 import dashboardServicesModule from '../services/module';
+import { partial } from 'ramda';
 
 export const LOAD_RESULTS_REQUESTED = 'LOAD_RESULTS_REQUESTED';
 export const LOAD_RESULTS_FULFILLED = 'LOAD_RESULTS_FULFILLED';
 export const LOAD_RESULTS_FAILED = 'LOAD_RESULTS_FAILED';
 export const SORT_RESULTS_REQUESTED = 'SORT_RESULTS_REQUESTED';
 export const SORT_RESULTS_FULFILLED = 'SORT_RESULTS_FULFILLED';
+
+const COMPONENTS_RESULTS_TYPE = 'components';
+const APPLICATIONS_RESULTS_TYPE = 'applications';
+const VIOLATIONS_RESULTS_TYPE = 'violations';
 
 function loadResultsFulfilled(resultsType, results, numResults, classyBrew) {
   return {
@@ -51,7 +56,7 @@ export function loadResults(resultsType) {
   };
 }
 
-export function sortResults(resultsType, sortFields) {
+function sortResults(resultsType, sortFields) {
   return (dispatch, getState) => {
     dispatch({
       type: SORT_RESULTS_REQUESTED,
@@ -71,6 +76,10 @@ export function sortResults(resultsType, sortFields) {
     }
   };
 }
+
+export const sortViolationResults = partial(sortResults, [VIOLATIONS_RESULTS_TYPE]);
+export const sortComponentResults = partial(sortResults, [COMPONENTS_RESULTS_TYPE]);
+export const sortApplicationResults = partial(sortResults, [APPLICATIONS_RESULTS_TYPE]);
 
 function sortResultsFulfilled(resultsType, results) {
   return {

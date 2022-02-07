@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../../enzymeUtils';
-import DashboardApplications from '../../../../../main/frontend/dashboard/results/applications/DashboardApplications';
-import DashboardApplicationsTable from '../../../../../main/frontend/dashboard/results/applications/DashboardApplicationsTable';
-import DashboardMask from '../../../../../main/frontend/dashboard/results/dashboardMask/DashboardMask';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import DashboardApplications from 'MainRoot/dashboard/results/applications/DashboardApplications';
+import DashboardApplicationsTable from 'MainRoot//dashboard/results/applications/DashboardApplicationsTable';
+import DashboardMask from 'MainRoot/dashboard/results/dashboardMask/DashboardMask';
 
 describe('DashboardApplications', function () {
   let minimalProps, getShallowComponent, getMountedComponent;
@@ -14,7 +14,7 @@ describe('DashboardApplications', function () {
   beforeEach(function () {
     minimalProps = {
       loadResults: jasmine.createSpy('loadResults'),
-      sortResults: jasmine.createSpy('sortResults'),
+      sortApplications: jasmine.createSpy('sortApplications'),
       applicationResults: {
         results: [
           { applicationId: 'app1', totalApplicationRisk: {}, stageRisks: [] },
@@ -60,7 +60,7 @@ describe('DashboardApplications', function () {
     expect(minimalProps.loadResults).toHaveBeenCalledWith('applications');
 
     table.prop('sortApplications')();
-    expect(minimalProps.sortResults).toHaveBeenCalledWith('applications');
+    expect(minimalProps.sortApplications).toHaveBeenCalled();
   });
 
   it('renders a mask over the table when filters are dirty', function () {

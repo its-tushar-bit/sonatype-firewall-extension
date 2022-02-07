@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../enzymeUtils';
-import DashboardViolations from '../../../../main/frontend/dashboard/results/violations/DashboardViolations';
-import DashboardViolationsTable from '../../../../main/frontend/dashboard/results/violations/DashboardViolationsTable';
-import DashboardMask from '../../../../main/frontend/dashboard/results/dashboardMask/DashboardMask';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import DashboardViolations from 'MainRoot//dashboard/results/violations/DashboardViolations';
+import DashboardViolationsTable from 'MainRoot//dashboard/results/violations/DashboardViolationsTable';
+import DashboardMask from 'MainRoot/dashboard/results/dashboardMask/DashboardMask';
 
 describe('DashboardViolations', function () {
   let minimalProps, getShallowComponent, getMountedComponent, loadResultsSpy;
@@ -27,7 +27,7 @@ describe('DashboardViolations', function () {
       filterLoading: false,
       needsAcknowledgement: false,
       loadResults: loadResultsSpy,
-      sortResults: () => {},
+      sortViolations: () => {},
       stateGo: () => {},
     };
 

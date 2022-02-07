@@ -5,7 +5,6 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { partial } from 'ramda';
 
 import DashboardComponentsTable from './DashboardComponentsTable';
 import { heatMapColorStylerPropTypes } from '../DashboardHeatMapCell';
@@ -13,10 +12,9 @@ import DashboardMask from '../dashboardMask/DashboardMask';
 
 export default function DashboardComponents(props) {
   const COMPONENTS_RESULTS_TYPE = 'components';
-  const { results, filterLoading, needsAcknowledgement, filtersAreDirty, loadResults, sortResults, stateGo } = props,
+  const { results, filterLoading, needsAcknowledgement, filtersAreDirty, loadResults, sortComponents, stateGo } = props,
     componentResults = results && results[COMPONENTS_RESULTS_TYPE],
-    isLoading = !componentResults.results && !componentResults.error,
-    sortComponents = partial(sortResults, [COMPONENTS_RESULTS_TYPE]);
+    isLoading = !componentResults.results && !componentResults.error;
 
   const doLoad = () => {
     loadResults(COMPONENTS_RESULTS_TYPE);
@@ -61,6 +59,6 @@ DashboardComponents.propTypes = {
   needsAcknowledgement: PropTypes.bool.isRequired,
   filtersAreDirty: PropTypes.bool.isRequired,
   loadResults: PropTypes.func.isRequired,
-  sortResults: PropTypes.func.isRequired,
+  sortComponents: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
 };

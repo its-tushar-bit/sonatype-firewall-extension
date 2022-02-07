@@ -5,7 +5,6 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { partial } from 'ramda';
 
 import DashboardApplicationsTable from './DashboardApplicationsTable';
 import { heatMapColorStylerPropTypes } from '../DashboardHeatMapCell';
@@ -14,7 +13,14 @@ import DashboardMask from '../dashboardMask/DashboardMask';
 export const APPLICATIONS_RESULTS_TYPE = 'applications';
 
 export default function DashboardApplications(props) {
-  const { applicationResults, filterLoading, needsAcknowledgement, filtersAreDirty, loadResults, sortResults } = props,
+  const {
+      applicationResults,
+      filterLoading,
+      needsAcknowledgement,
+      filtersAreDirty,
+      loadResults,
+      sortApplications,
+    } = props,
     isLoading = !applicationResults.results && !applicationResults.error;
 
   const doLoad = () => {
@@ -30,7 +36,7 @@ export default function DashboardApplications(props) {
   const tableProps = {
     reload: doLoad,
     colorStyler: applicationResults && applicationResults.classyBrew,
-    sortApplications: partial(sortResults, [APPLICATIONS_RESULTS_TYPE]),
+    sortApplications,
     applicationResults,
     needsAcknowledgement,
   };
@@ -56,5 +62,5 @@ DashboardApplications.propTypes = {
   needsAcknowledgement: PropTypes.bool.isRequired,
   filtersAreDirty: PropTypes.bool.isRequired,
   loadResults: PropTypes.func.isRequired,
-  sortResults: PropTypes.func.isRequired,
+  sortApplications: PropTypes.func.isRequired,
 };

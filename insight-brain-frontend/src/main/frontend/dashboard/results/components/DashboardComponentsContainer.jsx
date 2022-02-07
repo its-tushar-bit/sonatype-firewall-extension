@@ -6,7 +6,7 @@
 import { connect } from 'react-redux';
 
 import DashboardComponents from './DashboardComponents';
-import { loadResults, sortResults } from '../dashboardResultsActions';
+import { loadResults, sortComponentResults } from '../dashboardResultsActions';
 import { stateGo } from '../../../reduxUiRouter/routerActions';
 
 function mapStateToProps({ dashboard, dashboardFilter }) {
@@ -21,8 +21,8 @@ function mapStateToProps({ dashboard, dashboardFilter }) {
 }
 
 const mapDispatchToProps = {
+  sortComponents: sortComponentResults,
   loadResults,
-  sortResults,
   stateGo,
 };
 

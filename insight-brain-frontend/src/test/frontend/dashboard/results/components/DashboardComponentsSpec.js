@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../../enzymeUtils';
-import DashboardComponents from '../../../../../main/frontend/dashboard/results/components/DashboardComponents';
-import DashboardComponentsTable from '../../../../../main/frontend/dashboard/results/components/DashboardComponentsTable';
-import DashboardMask from '../../../../../main/frontend/dashboard/results/dashboardMask/DashboardMask';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import DashboardComponents from 'MainRoot/dashboard/results/components/DashboardComponents';
+import DashboardComponentsTable from 'MainRoot/dashboard/results/components/DashboardComponentsTable';
+import DashboardMask from 'MainRoot/dashboard/results/dashboardMask/DashboardMask';
 
 describe('DashboardComponents', function () {
   let minimalProps, getShallowComponent, getMountedComponent;
@@ -14,7 +14,7 @@ describe('DashboardComponents', function () {
   beforeEach(function () {
     minimalProps = {
       loadResults: jasmine.createSpy('loadResults'),
-      sortResults: jasmine.createSpy('sortResults'),
+      sortComponents: jasmine.createSpy('sortComponents'),
       stateGo: jasmine.createSpy('stateGo'),
       results: {
         components: {
@@ -53,7 +53,7 @@ describe('DashboardComponents', function () {
     expect(minimalProps.stateGo).toHaveBeenCalled();
 
     table.prop('sortComponents')();
-    expect(minimalProps.sortResults).toHaveBeenCalledWith('components');
+    expect(minimalProps.sortComponents).toHaveBeenCalled();
   });
 
   it('renders a mask over the table when filters are dirty', function () {

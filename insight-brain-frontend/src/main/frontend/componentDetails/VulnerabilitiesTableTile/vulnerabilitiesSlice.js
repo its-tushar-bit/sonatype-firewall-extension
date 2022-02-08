@@ -57,6 +57,7 @@ export const initialState = {
     loadError: null,
     submitMaskState: null,
     saveError: null,
+    isDisabled: true,
   },
 };
 
@@ -180,6 +181,9 @@ const componentDetailsVulnerabilitiesSlice = createSlice({
     },
     saveVulnerabilityOverrideMaskDone: (state) => {
       state.vulnerabilitySecurityOverride.submitMaskState = null;
+    },
+    setVulnerabilityOverrideFormDisabled: (state, { payload }) => {
+      state.vulnerabilitySecurityOverride.isDisabled = payload;
     },
   },
   extraReducers: {

@@ -403,6 +403,23 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
     });
   });
 
+  describe('setVulnerabilityOverrideFormDisabled', () => {
+    it('sets the isDisabled of vulnerabilitySecurityOverride to false', () => {
+      const state = Object.freeze({
+        vulnerabilitySecurityOverride: {
+          isDisabled: true,
+        },
+      });
+
+      const { vulnerabilitySecurityOverride } = reducer(state, {
+        type: 'componentDetailsVulnerabilities/setVulnerabilityOverrideFormDisabled',
+        payload: false,
+      });
+
+      expect(vulnerabilitySecurityOverride.isDisabled).toBe(false);
+    });
+  });
+
   describe('saveVulnerabilityOverride', () => {
     describe('componentDetailsVulnerabilities/saveVulnerabilityOverride/pending action', () => {
       it('sets the submitMaskState flag to false', () => {

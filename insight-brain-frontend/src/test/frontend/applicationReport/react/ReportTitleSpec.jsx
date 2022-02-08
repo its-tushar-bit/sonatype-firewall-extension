@@ -12,6 +12,7 @@ import ReportTitle from 'MainRoot/applicationReport/react/ReportTitle';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
+import * as routerActions from 'MainRoot/reduxUiRouter/routerActions';
 
 describe('ReportTitle', () => {
   let renderComponent,
@@ -49,6 +50,7 @@ describe('ReportTitle', () => {
     });
 
     mockedReevaluateReport = spyOn(applicationReportActions, 'reevaluateReport').and.callThrough();
+    spyOn(routerActions, 'stateGo').and.callThrough();
 
     spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
       publicId: 'publicId',
@@ -111,8 +113,31 @@ describe('ReportTitle', () => {
 
     fireEvent.click(options);
 
-    const vulnerabilities = screen.getByRole('link', { name: 'View vulnerabilities' });
-    expect(vulnerabilities).not.toHaveClassName('disabled');
+    const vulnerabilitiesLink = screen.getByRole('link', { name: 'View vulnerabilities' });
+    expect(vulnerabilitiesLink).not.toHaveClassName('disabled');
+
+    fireEvent.click(vulnerabilitiesLink);
+    expect(routerActions.stateGo).toHaveBeenCalledWith('applicationReport.vulnerabilities', {
+      publicId: 'publicId',
+      scanId: 'scanId',
+    });
+  });
+
+  it('renders a disabled view vulnerabilities link if report version is lower than 5', () => {
+    selectSelectedReportSpy.and.returnValue({
+      reportVersion: 4,
+    });
+    renderComponent();
+    const options = screen.getByText('Options');
+    expect(options).toBeVisible();
+
+    fireEvent.click(options);
+
+    const vulnerabilitiesLink = screen.getByRole('link', { name: 'View vulnerabilities' });
+    expect(vulnerabilitiesLink).toHaveClassName('disabled');
+
+    fireEvent.click(vulnerabilitiesLink);
+    expect(routerActions.stateGo).not.toHaveBeenCalled();
   });
 
   it('calls reevaluateReport when the reevaluateReport button is pressed', () => {

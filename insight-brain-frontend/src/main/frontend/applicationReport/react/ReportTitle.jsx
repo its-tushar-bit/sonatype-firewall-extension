@@ -52,9 +52,7 @@ export default function ReportTitle() {
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
   const sbomUrl = getViewSbomUrl(metadataDetails.application.id, scanId);
   const vulnerabilitiesPageDisable = selectedReport && selectedReport.reportVersion < 5 ? true : false;
-  const applyBtnClasses = classnames('nx-dropdown-link', {
-    disabled: vulnerabilitiesPageDisable,
-  });
+  const viewVulnerabilitiesLinkClasses = classnames('nx-dropdown-link', { disabled: vulnerabilitiesPageDisable });
 
   const onRawDataClick = () => {
     stateGo('applicationReport.rawData', {
@@ -63,11 +61,8 @@ export default function ReportTitle() {
     });
   };
 
-  const onVulnerabilitiesDetailsClick = () => {
-    stateGo('applicationReport.vulnerabilities', {
-      publicId: publicId,
-      scanId: scanId,
-    });
+  const goToVulnerabilitiesPage = () => {
+    stateGo('applicationReport.vulnerabilities', { publicId, scanId });
   };
 
   const onLegacyReportClick = () => {
@@ -103,7 +98,12 @@ export default function ReportTitle() {
             <span>View raw data</span>
           </a>
           <NxTooltip title={vulnPageTooltip} placement="top">
-            <a className={applyBtnClasses} onClick={onVulnerabilitiesDetailsClick} id="viewVulnBtn" role="link">
+            <a
+              id="viewVulnBtn"
+              role="link"
+              className={viewVulnerabilitiesLinkClasses}
+              onClick={!vulnerabilitiesPageDisable && goToVulnerabilitiesPage}
+            >
               <NxFontAwesomeIcon icon={faFile} />
               <span>View vulnerabilities</span>
             </a>

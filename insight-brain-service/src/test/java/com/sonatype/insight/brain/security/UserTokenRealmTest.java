@@ -6,23 +6,32 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.security.Group;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.google.inject.Binder;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.when;
 
 public class UserTokenRealmTest
     extends AbstractComponentTest
@@ -32,6 +41,15 @@ public class UserTokenRealmTest
 
   @Inject
   private PasswordService passwordService;
+
+  @Mock
+  private ProductLicense mockProductLicense;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(ProductLicense.class).toInstance(mockProductLicense);
+    super.configure(binder);
+  }
 
   @Test
   public void testDoGetAuthenticationInfo() {
@@ -137,5 +155,119 @@ public class UserTokenRealmTest
     assertThatExceptionOfType(IncorrectCredentialsException.class).isThrownBy(() -> {
       realm.getAuthenticationInfo(usernamePasswordToken);
     });
+  }
+
+  @Test
+  public void testGetAuthenticationInfo_Saml_SamlUserTokensEnabled() {
+    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    SamlUser samlUser = tempEntity.newSamlUser();
+    UserToken userToken =
+        tempEntity.newUserToken(samlUser.getUsername(), "TestUserCode", hashedUserTokenPassword, SamlRealm.ID);
+    UsernamePasswordToken usernamePasswordToken =
+        new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+
+    AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
+
+    PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
+    Iterator<?> principalIterator = principalCollection.iterator();
+    Object principal = principalIterator.next();
+    Set<String> expectedGroups = new LinkedHashSet<>(samlUser.getGroups());
+    expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
+    assertThat(principal).usingRecursiveComparison().isEqualTo(
+        new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), UserTokenRealm.ID, expectedGroups));
+    assertThat(principalIterator.hasNext()).isFalse();
+    assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
+    assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
+  }
+
+  @Test
+  public void testGetAuthenticationInfo_Saml_SamlUserTokensEnabled_WrongPassword() {
+    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    SamlUser samlUser = tempEntity.newSamlUser();
+    UserToken userToken =
+        tempEntity.newUserToken(samlUser.getUsername(), "TestUserCode", hashedUserTokenPassword, SamlRealm.ID);
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "WrongPassword");
+
+    assertThatExceptionOfType(IncorrectCredentialsException.class).isThrownBy(
+        () -> realm.getAuthenticationInfo(usernamePasswordToken));
+  }
+
+  @Test
+  public void testGetAuthenticationInfo_Saml_SamlUserTokensDisabled() {
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    SamlUser samlUser = tempEntity.newSamlUser();
+    UserToken userToken =
+        tempEntity.newUserToken(samlUser.getUsername(), "TestUserCode", hashedUserTokenPassword, SamlRealm.ID);
+    UsernamePasswordToken usernamePasswordToken =
+        new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+
+    assertThat(realm.getAuthenticationInfo(usernamePasswordToken)).isNull();
+  }
+
+  @Test
+  public void testDoGetAuthenticationInfo_Saml_SamlUserTokensEnabled() {
+    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    SamlUser samlUser = tempEntity.newSamlUser();
+    UserToken userToken =
+        tempEntity.newUserToken(samlUser.getUsername(), "TestUserCode", hashedUserTokenPassword, SamlRealm.ID);
+    UsernamePasswordToken usernamePasswordToken =
+        new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+
+    AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
+
+    PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
+    Iterator<?> principalIterator = principalCollection.iterator();
+    Object principal = principalIterator.next();
+    Set<String> expectedGroups = new LinkedHashSet<>(samlUser.getGroups());
+    expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
+    assertThat(principal).usingRecursiveComparison().isEqualTo(
+        new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), UserTokenRealm.ID, expectedGroups));
+    assertThat(principalIterator.hasNext()).isFalse();
+    assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
+    assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
+  }
+
+  @Test
+  public void testDoGetAuthenticationInfo_Saml_SamlUserTokensEnabled_WrongPassword() {
+    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    SamlUser samlUser = tempEntity.newSamlUser();
+    UserToken userToken =
+        tempEntity.newUserToken(samlUser.getUsername(), "TestUserCode", hashedUserTokenPassword, SamlRealm.ID);
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "WrongPassword");
+
+    AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
+
+    PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
+    Iterator<?> principalIterator = principalCollection.iterator();
+    Object principal = principalIterator.next();
+    Set<String> expectedGroups = new LinkedHashSet<>(samlUser.getGroups());
+    expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
+    assertThat(principal).usingRecursiveComparison().isEqualTo(
+        new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), UserTokenRealm.ID, expectedGroups));
+    assertThat(principalIterator.hasNext()).isFalse();
+    assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
+    assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
+  }
+
+  @Test
+  public void testDoGetAuthenticationInfo_Saml_SamlUserTokensDisabled() {
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    SamlUser samlUser = tempEntity.newSamlUser();
+    UserToken userToken =
+        tempEntity.newUserToken(samlUser.getUsername(), "TestUserCode", hashedUserTokenPassword, SamlRealm.ID);
+    UsernamePasswordToken usernamePasswordToken =
+        new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+
+    assertThat(realm.doGetAuthenticationInfo(usernamePasswordToken)).isNull();
   }
 }

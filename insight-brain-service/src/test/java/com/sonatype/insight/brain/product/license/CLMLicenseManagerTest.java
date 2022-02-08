@@ -726,6 +726,17 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testInstallLicense_SamlUserTokensFeatureFromHds() throws Exception {
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.SAML_USER_TOKENS);
+
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.SAML_USER_TOKENS));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.SAML_USER_TOKENS);
+  }
+
+  @Test
   public void testNotifyListener_LoadLicense() throws Exception {
     ProductLicenseListener listener = mock(ProductLicenseListener.class);
     clmLicenseManager.addListener(listener);

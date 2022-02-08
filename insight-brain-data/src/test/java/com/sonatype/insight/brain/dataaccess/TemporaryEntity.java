@@ -19,6 +19,7 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -88,6 +89,7 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
@@ -187,6 +189,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -259,6 +262,8 @@ public class TemporaryEntity
   private final OrganizationDAO orgDAO = new OrganizationDAO();
 
   private final UserDAO userDAO = new UserDAO();
+
+  private final SamlUserDAO samlUserDAO = new SamlUserDAO();
 
   private final RoleDAO roleDAO = new RoleDAO(true);
 
@@ -428,6 +433,8 @@ public class TemporaryEntity
 
   private Collection<User> users;
 
+  private Collection<SamlUser> samlUsers;
+
   private Collection<String> usernames;
 
   private Collection<Role> roles;
@@ -503,6 +510,7 @@ public class TemporaryEntity
     orgs = new ArrayList<>();
     licenseOverrides = new ArrayList<>();
     users = new ArrayList<>();
+    samlUsers = new ArrayList<>();
     usernames = new ArrayList<>();
     roles = new ArrayList<>();
     ldapServers = new ArrayList<>();
@@ -566,6 +574,7 @@ public class TemporaryEntity
     delete(licenseOverrides, entity -> licenseOverrideDAO.getById(entity.getId()), licenseOverrideDAO::delete);
     delete(securityVulnerabilityOverrides, securityVulnerabilityOverrideDAO);
     delete(users, userDAO);
+    delete(samlUsers, samlUserDAO);
     delete(usernames, userDAO);
     delete(roles, roleDAO);
     delete(ldapServers, ldapServerDAO);
@@ -833,6 +842,10 @@ public class TemporaryEntity
     Collections.addAll(this.users, users);
   }
 
+  public void register(SamlUser... samlUsers) {
+    Collections.addAll(this.samlUsers, samlUsers);
+  }
+
   public void registerUsernames(String... usernames) {
     Collections.addAll(this.usernames, usernames);
   }
@@ -948,6 +961,19 @@ public class TemporaryEntity
     userDAO.insert(user);
     users.add(user);
     return user;
+  }
+
+  public SamlUser newSamlUser() {
+    String uuid = uuid();
+    return newSamlUser("username" + uuid, "firstName" + uuid, "lastName" + uuid, "email@domain" + uuid + ".com",
+        new LinkedHashSet<>(Arrays.asList("group1" + uuid, "group2" + uuid)));
+  }
+
+  public SamlUser newSamlUser(String username, String firstName, String lastName, String email, Set<String> groups) {
+    SamlUser samlUser = new SamlUser(username, firstName, lastName, email, groups);
+    samlUserDAO.insert(samlUser);
+    samlUsers.add(samlUser);
+    return samlUser;
   }
 
   public Role newRole(boolean global, Permission... permissions) {

@@ -13,12 +13,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -38,12 +43,19 @@ public class SamlRealm
 {
   private static final Logger log = LoggerFactory.getLogger(SamlRealm.class);
 
-  public static final String ID = "SAML";
+  public static final String ID = SamlUser.SAML_REALM_ID;
 
-  public SamlRealm() {
+  private final ProductLicense productLicense;
+
+  private final SamlUserDAO samlUserDAO;
+
+  @Inject
+  public SamlRealm(ProductLicense productLicense, SamlUserDAO samlUserDAO) {
     super(new AllowAllCredentialsMatcher());
     setName("SAML");
     setAuthenticationTokenClass(SamlAuthenticationToken.class);
+    this.productLicense = productLicense;
+    this.samlUserDAO = samlUserDAO;
   }
 
   @Override
@@ -61,22 +73,21 @@ public class SamlRealm
           "A username is required either from a " + samlConfiguration.getUsernameAttributeName() +
               " basic attribute or a SAML NameID.");
     }
-    // email is unused at the moment
-    // String email = getFirstAttribute(samlPrincipal, samlConfiguration.getEmailAttributeName());
-    String firstName =
-        Optional.ofNullable(getFirstAttribute(samlPrincipal, samlConfiguration.getFirstNameAttributeName())).orElse("");
-    String lastName =
-        Optional.ofNullable(getFirstAttribute(samlPrincipal, samlConfiguration.getLastNameAttributeName())).orElse("");
-    String displayName = firstName + " " + lastName;
-    displayName = displayName.trim();
-    if (displayName.isEmpty()) {
-      displayName = username;
-    }
+    String firstName = getFirstAttribute(samlPrincipal, samlConfiguration.getFirstNameAttributeName());
+    String lastName = getFirstAttribute(samlPrincipal, samlConfiguration.getLastNameAttributeName());
+    String email = getFirstAttribute(samlPrincipal, samlConfiguration.getEmailAttributeName());
     Set<String> groups =
         new LinkedHashSet<>(getAllAttributes(samlPrincipal, samlConfiguration.getGroupsAttributeName()));
     groups.removeIf(StringUtils::isBlank);
+    SamlUser samlUser = new SamlUser(username, firstName, lastName, email, groups);
 
-    return new SimpleAuthenticationInfo(new UserPrincipal(username, displayName, ID, groups), null, getName());
+    if (productLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)) {
+      samlUserDAO.upsertByUsername(samlUser);
+    }
+
+    return new SimpleAuthenticationInfo(
+        new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), ID, samlUser.getGroups()), null,
+        getName());
   }
 
   private String getFirstAttribute(SamlPrincipal samlPrincipal, String attributeName) {

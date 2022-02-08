@@ -68,6 +68,10 @@ public class UserToken
     return User.INTERNAL_REALM_ID.equals(realmId);
   }
 
+  public boolean isSamlUser() {
+    return SamlUser.SAML_REALM_ID.equals(realmId);
+  }
+
   public String getUserCode() {
     return userCode;
   }

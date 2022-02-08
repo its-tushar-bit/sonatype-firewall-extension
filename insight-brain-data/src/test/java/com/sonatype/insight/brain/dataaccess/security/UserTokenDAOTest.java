@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.security.SamlUser;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 
 import org.junit.Test;
@@ -21,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class UserTokenDAOTest
     extends AbstractDbDAOTest
 {
-  private UserTokenDAO userTokenDAO = new UserTokenDAO();
+  private final UserTokenDAO userTokenDAO = new UserTokenDAO();
 
   private final Date december30 = new GregorianCalendar(2019, Calendar.DECEMBER, 30).getTime();
 
@@ -135,5 +137,16 @@ public class UserTokenDAOTest
 
     userTokenDAO.delete(userToken);
     assertThat(userTokenDAO.userTokenExists(username, realmId)).isFalse();
+  }
+
+  @Test
+  public void testGetAllLdap() {
+    UserToken userToken1 = tempEntity.newUserToken("username1", tempEntity.uuid());
+    UserToken userToken2 = tempEntity.newUserToken("username2", tempEntity.uuid());
+    tempEntity.newUserToken("username3", User.INTERNAL_REALM_ID);
+    tempEntity.newUserToken("username4", SamlUser.SAML_REALM_ID);
+
+    assertThat(userTokenDAO.getAllLdap()).extracting(UserToken::getUsername)
+        .containsExactlyInAnyOrder(userToken1.getUsername(), userToken2.getUsername());
   }
 }

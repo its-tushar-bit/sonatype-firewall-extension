@@ -17,12 +17,16 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.LdapUser;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
@@ -53,8 +57,15 @@ public class UserTokenRealm
 
   private final UserTokenService userTokenService;
 
+  private final ProductLicense productLicense;
+
   @Inject
-  public UserTokenRealm(PasswordService passwordService, LdapService ldapService, UserTokenService userTokenService) {
+  public UserTokenRealm(
+      PasswordService passwordService,
+      LdapService ldapService,
+      UserTokenService userTokenService,
+      ProductLicense productLicense)
+  {
     setName("UserTokenRealm");
 
     this.ldapService = ldapService;
@@ -64,6 +75,7 @@ public class UserTokenRealm
     PasswordMatcher passwordMatcher = new PasswordMatcher();
     passwordMatcher.setPasswordService(passwordService);
     setCredentialsMatcher(passwordMatcher);
+    this.productLicense = productLicense;
   }
 
   @Override
@@ -85,6 +97,9 @@ public class UserTokenRealm
     if (userToken.isInternalUser()) {
       return doGetInternalRealmAuthenticationInfo(userToken);
     }
+    else if (userToken.isSamlUser()) {
+      return doGetSamlRealmAuthenticationInfo(userToken);
+    }
     else {
       return doGetLdapRealmAuthenticationInfo(userToken);
     }
@@ -94,6 +109,17 @@ public class UserTokenRealm
     User user = new UserDAO().getByUsername(userToken.getUsername());
     return new SimpleAuthenticationInfo( //
         new UserPrincipal(userToken.getUsername(), user.calculateDisplayName(), ID), //
+        userToken.getPassCode(), //
+        getName());
+  }
+
+  private SimpleAuthenticationInfo doGetSamlRealmAuthenticationInfo(UserToken userToken) {
+    if (!productLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)) {
+      return null;
+    }
+    SamlUser samlUser = new SamlUserDAO().getByUsername(userToken.getUsername());
+    return new SimpleAuthenticationInfo( //
+        new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), ID, samlUser.getGroups()), //
         userToken.getPassCode(), //
         getName());
   }

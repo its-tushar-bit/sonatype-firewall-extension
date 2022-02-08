@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.security;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Assume;
 import org.junit.Before;
@@ -49,26 +51,32 @@ public class UserTokenAuthcTest
 
   private boolean isInternalUser;
 
+  private boolean isSamlUser;
+
   private String realmId = "testRealmId";
 
   private String userTokenPassword = "TestPassword";
 
   private UserToken userToken;
 
-  public UserTokenAuthcTest(boolean setupLdap, boolean isLdapUser, boolean isInternalUser) {
+  public UserTokenAuthcTest(boolean setupLdap, boolean isLdapUser, boolean isInternalUser, boolean isSamlUser) {
     this.setupLdap = setupLdap;
     this.isLdapUser = isLdapUser;
     this.isInternalUser = isInternalUser;
+    this.isSamlUser = isSamlUser;
   }
 
-  @Parameterized.Parameters(name = "setupLdap={0}, isLdapUser={1}, isInternalUser={2}")
+  @Parameterized.Parameters(name = "setupLdap={0}, isLdapUser={1}, isInternalUser={2}, isSamlUser={3}")
   public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][]{{false, false, false}, // totally unknown user, no LDAP configured
-        {true, false, false}, // totally unknown user, LDAP configured
-        {false, false, true}, // user only present in local db, no LDAP configured
-        {true, false, true}, // user only present in local db, LDAP configured
-        {true, true, false}, // user only present in LDAP
-        {true, true, true} // user present in local db and LDAP
+    return Arrays.asList(new Object[][]{
+        {false, false, false, false}, // totally unknown user, no LDAP configured
+        {true, false, false, false}, // totally unknown user, LDAP configured
+        {false, false, true, false}, // user only present in local db, no LDAP configured
+        {true, false, true, false}, // user only present in local db, LDAP configured
+        {true, true, false, false}, // user only present in LDAP
+        {true, true, true, false}, // user present in local db and LDAP
+        {false, false, false, true}, // user only present in SAML
+        {false, false, true, true} // user present in local db and SAML
     });
   }
 
@@ -95,6 +103,12 @@ public class UserTokenAuthcTest
         realmId = ldapServer2.getId();
       }
     }
+    if (isSamlUser) {
+      getTestProductLicenseManager().setFeatures(LicensedFeature.SAML_USER_TOKENS);
+      tempEntity.newSamlUser("testuser", "John", "Doe", "test.user@company.com",
+          new LinkedHashSet<>(Arrays.asList("group1", "group2")));
+      realmId = SamlRealm.ID;
+    }
     if (isInternalUser) {
       // Be sure to keep the detail in-sync with the ldap defined user details for the testuser
       tempEntity.newUser("testuser", "John", "Doe", "test.user@company.com");
@@ -112,6 +126,10 @@ public class UserTokenAuthcTest
     if (isLdapUser && !isInternalUser) {
       groupNames.add("Alpha2");
     }
+    if (isSamlUser && !isInternalUser) {
+      groupNames.add("group1");
+      groupNames.add("group2");
+    }
     return groupNames;
   }
 
@@ -121,7 +139,7 @@ public class UserTokenAuthcTest
     HttpResponse response =
         request.subpath(UserSessionResource.RESOURCE_PATH).auth(userToken.getUserCode(), userTokenPassword).get();
 
-    if (isInternalUser || isLdapUser) {
+    if (isInternalUser || isLdapUser || isSamlUser) {
       assertResponseStatus(200, response);
       assertThat(response.getSessionCookie()).isNotNull();
       AuthenticationStatus authStatus = response.getBody(AuthenticationStatus.class);

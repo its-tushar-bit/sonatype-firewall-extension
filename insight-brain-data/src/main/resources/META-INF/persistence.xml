@@ -86,6 +86,7 @@
     <class>com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess</class>
     <class>com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration</class>
     <class>com.sonatype.insight.brain.model.repository.RepositoryConnection</class>
+    <class>com.sonatype.insight.brain.model.security.SamlUser</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

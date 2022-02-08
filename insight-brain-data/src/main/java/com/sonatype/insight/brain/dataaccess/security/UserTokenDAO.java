@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -33,10 +34,10 @@ public class UserTokenDAO
     super.insert(tx, userToken);
   }
 
-  public List<UserToken> getAllNotInternal() {
+  public List<UserToken> getAllLdap() {
     String sQuery = "SELECT userToken FROM UserToken userToken" + //
-        " WHERE userToken.realmId<>?1";
-    return getList(sQuery, User.INTERNAL_REALM_ID);
+        " WHERE userToken.realmId<>?1 AND userToken.realmId<>?2";
+    return getList(sQuery, User.INTERNAL_REALM_ID, SamlUser.SAML_REALM_ID);
   }
 
   public UserToken getInternalByUsername(TransactionContext tx, String username) {
@@ -45,16 +46,28 @@ public class UserTokenDAO
     return get(tx, sQuery, username, User.INTERNAL_REALM_ID);
   }
 
-  public UserToken getByUsernameAndRealmId(String username, String realmId) {
+  public UserToken getByUsernameAndRealmId(TransactionContext tx, String username, String realmId) {
     String sQuery = "SELECT userToken FROM UserToken userToken" + //
         " WHERE userToken.username=?1 AND userToken.realmId=?2";
-    return get(sQuery, username, realmId);
+    return get(tx, sQuery, username, realmId);
+  }
+
+  public UserToken getByUsernameAndRealmId(String username, String realmId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByUsernameAndRealmId(tx, username, realmId);
+    }
+  }
+
+  public UserToken getByUserCode(TransactionContext tx, String userCode) {
+    String sQuery = "SELECT userToken FROM UserToken userToken" + //
+        " WHERE userToken.userCode=?1";
+    return get(tx, sQuery, userCode);
   }
 
   public UserToken getByUserCode(String userCode) {
-    String sQuery = "SELECT userToken FROM UserToken userToken" + //
-        " WHERE userToken.userCode=?1";
-    return get(sQuery, userCode);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByUserCode(tx, userCode);
+    }
   }
 
   private List<UserToken> getByRealmId(TransactionContext tx, String realmId) {

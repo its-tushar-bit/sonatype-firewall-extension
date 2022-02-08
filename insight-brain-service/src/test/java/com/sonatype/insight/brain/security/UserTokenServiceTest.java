@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,19 +18,31 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
+import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.google.inject.Binder;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class UserTokenServiceTest
@@ -50,6 +64,19 @@ public class UserTokenServiceTest
 
   @Inject
   private UserTokenDAO userTokenDAO;
+
+  @Mock
+  private ProductLicense mockProductLicense;
+
+  private SamlUserDAO spySamlUserDAO;
+
+  @Override
+  public void configure(Binder binder) {
+    spySamlUserDAO = spy(new SamlUserDAO());
+    binder.bind(ProductLicense.class).toInstance(mockProductLicense);
+    binder.bind(SamlUserDAO.class).toInstance(spySamlUserDAO);
+    super.configure(binder);
+  }
 
   @Test
   public void testCreateUserToken_InternalUser() {
@@ -104,6 +131,53 @@ public class UserTokenServiceTest
     }
     finally {
       userTokenDAO.delete(userTokenDAO.getByUsernameAndRealmId(username, realmId));
+    }
+  }
+
+  @Test
+  public void testCreateUserToken_SamlUser_DoesNotExist_SamlUserTokensEnabled() {
+    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+    SamlUser samlUser = new SamlUser("someUsername", "someFirstName", "someLastName", "someEmail@someDomain.com",
+        new LinkedHashSet<>(Arrays.asList("someGroup1", "someGroup2")));
+    when(subject.getPrincipal()).thenReturn(
+        new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), SamlUser.SAML_REALM_ID,
+            samlUser.getGroups()));
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> userTokenService.createUserToken())
+        .withMessageContaining("Unable to get user session details, you must relogin before generating a user token.");
+  }
+
+  @Test
+  public void testCreateUserToken_SamlUser_Exists_SamlUserTokensEnabled() {
+    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+    SamlUser samlUser = tempEntity.newSamlUser();
+    try {
+      when(subject.getPrincipal()).thenReturn(
+          new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), SamlUser.SAML_REALM_ID,
+              samlUser.getGroups()));
+      Date start = new Date();
+
+      ApiUserTokenDTO apiUserTokenDTO = userTokenService.createUserToken();
+
+      Date end = new Date();
+      assertThat(apiUserTokenDTO.userCode).hasSize(8);
+      assertThat(apiUserTokenDTO.passCode).hasSize(44);
+      UserToken persistedToken = userTokenDAO.getByUsernameAndRealmId(samlUser.getUsername(), SamlUser.SAML_REALM_ID);
+      assertThat(persistedToken).isNotNull();
+      assertThat(persistedToken.getUsername()).isEqualTo(samlUser.getUsername());
+      assertThat(persistedToken.getUserCode()).isEqualTo(apiUserTokenDTO.userCode);
+      assertThat(persistedToken.getPassCode()).isNotNull();
+      assertThat(persistedToken.getRealmId()).isEqualTo(SamlUser.SAML_REALM_ID);
+      assertThat(persistedToken.getCreateTime()).isBetween(start, end, true, true);
+      assertThat(persistedToken.isInternalUser()).isFalse();
+      assertThat(persistedToken.getPassCode()).isNotEqualTo(apiUserTokenDTO.passCode);
+
+      assertThat(spySamlUserDAO.getByUsername(samlUser.getUsername())).usingRecursiveComparison().ignoringFields(
+          JPA.IGNORE_FIELDS).isEqualTo(samlUser);
+      verify(spySamlUserDAO, never()).insert(any(), any());
+    }
+    finally {
+      userTokenDAO.delete(userTokenDAO.getByUsernameAndRealmId(samlUser.getUsername(), SamlUser.SAML_REALM_ID));
     }
   }
 

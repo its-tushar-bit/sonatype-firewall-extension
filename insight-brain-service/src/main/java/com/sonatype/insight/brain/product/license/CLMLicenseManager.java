@@ -551,7 +551,8 @@ public class CLMLicenseManager
         LicensedFeature.ADVANCED_LEGAL_PACK, //
         LicensedFeature.DATA_INSIGHTS, //
         LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK, //
-        LicensedFeature.BREAKING_CHANGE
+        LicensedFeature.BREAKING_CHANGE, //
+        LicensedFeature.SAML_USER_TOKENS
     );
     for (LicensedFeature feature : hdsControlledFeatures) {
       if (licenseDetails.features.contains(feature.name())) {

@@ -25,13 +25,17 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -48,35 +52,43 @@ public class UserTokenService
 
   private final UserTokenDAO userTokenDAO;
 
+  private final SamlUserDAO samlUserDAO;
+
   private final PasswordService passwordService;
 
   private final LdapService ldapService;
 
   private final CurrentUser currentUser;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public UserTokenService(
       UserTokenDAO userTokenDAO,
+      SamlUserDAO samlUserDAO,
       PasswordService passwordService,
       LdapService ldapService,
-      CurrentUser currentUser)
+      CurrentUser currentUser,
+      ProductLicense productLicense)
   {
     this.userTokenDAO = userTokenDAO;
+    this.samlUserDAO = samlUserDAO;
     this.passwordService = passwordService;
     this.ldapService = ldapService;
     this.currentUser = currentUser;
+    this.productLicense = productLicense;
   }
 
   public ApiUserTokenDTO createUserToken() {
     UserPrincipal userPrincipal = currentUser.getUserPrincipal();
     String username = userPrincipal.getUsername();
+    String realmId = userPrincipal.getRealmId();
 
-    if (UserTokenRealm.ID.equals(userPrincipal.getRealmId())) {
+    if (UserTokenRealm.ID.equals(realmId)) {
       // The user authenticated using a user token... so the user token already exists for this user.
       throw new BadRequestException("UserToken already exists for user: " + username);
     }
 
-    String realmId = userPrincipal.getRealmId();
     if (userTokenDAO.getByUsernameAndRealmId(username, realmId) != null) {
       throw new BadRequestException("UserToken already exists for user: " + username);
     }
@@ -86,31 +98,39 @@ public class UserTokenService
           "The login method that has been utilized for authentication does not support the creation of user tokens");
     }
 
-    String userCode;
-    // We should also ensure that the userCode generated is unique.
-    // We can't have two user tokens with the same userCode.
-    do {
-      userCode = RandomStringUtils.randomAlphanumeric(8);
+    try (TransactionContext tx = userTokenDAO.createTransactionContext()) {
+      tx.begin();
+      if (SamlRealm.ID.equals(realmId) && samlUserDAO.getByUsername(tx, username) == null) {
+        throw new BadRequestException(
+            "Unable to get user session details, you must relogin before generating a user token.");
+      }
+
+      String userCode;
+      // We should also ensure that the userCode generated is unique.
+      // We can't have two user tokens with the same userCode.
+      do {
+        userCode = RandomStringUtils.randomAlphanumeric(8);
+      }
+      while (userTokenDAO.getByUserCode(tx, userCode) != null);
+
+      String passCode = RandomStringUtils.randomAlphanumeric(44);
+      String hashed = passwordService.hashPassword(passCode);
+
+      UserToken userToken = new UserToken();
+      userToken.setUsername(username);
+      userToken.setUserCode(userCode);
+      userToken.setPassCode(hashed);
+      userToken.setRealmId(realmId);
+
+      audit(userToken);
+      userTokenDAO.insert(tx, userToken);
+      tx.commit();
+      ApiUserTokenDTO apiUserTokenDTO = new ApiUserTokenDTO();
+      apiUserTokenDTO.userCode = userToken.getUserCode();
+      apiUserTokenDTO.passCode = passCode;
+
+      return apiUserTokenDTO;
     }
-    while (userTokenDAO.getByUserCode(userCode) != null);
-
-    String passCode = RandomStringUtils.randomAlphanumeric(44);
-    String hashed = passwordService.hashPassword(passCode);
-
-    UserToken userToken = new UserToken();
-    userToken.setUsername(username);
-    userToken.setUserCode(userCode);
-    userToken.setPassCode(hashed);
-    userToken.setRealmId(realmId);
-
-    audit(userToken);
-    userTokenDAO.insert(userToken);
-
-    ApiUserTokenDTO apiUserTokenDTO = new ApiUserTokenDTO();
-    apiUserTokenDTO.userCode = userToken.getUserCode();
-    apiUserTokenDTO.passCode = passCode;
-
-    return apiUserTokenDTO;
   }
 
   public ApiUserTokenExistsDTO userTokenExistsForCurrentUser() {
@@ -126,6 +146,9 @@ public class UserTokenService
 
   private boolean isRealmAllowed(String realmId) {
     if (InternalRealm.ID.equals(realmId)) {
+      return true;
+    }
+    if (SamlRealm.ID.equals(realmId) && productLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)) {
       return true;
     }
 
@@ -147,7 +170,7 @@ public class UserTokenService
     Map<String, LdapServer> ldapServersById =
         new LdapServerDAO().getAll().stream().collect(Collectors.toMap(LdapServer::getId, Function.identity()));
 
-    for (UserToken userToken : userTokenDAO.getAllNotInternal()) {
+    for (UserToken userToken : userTokenDAO.getAllLdap()) {
       String username = userToken.getUsername();
       try {
         ldapService.getUserByName(ldapServersById.get(userToken.getRealmId()), username);

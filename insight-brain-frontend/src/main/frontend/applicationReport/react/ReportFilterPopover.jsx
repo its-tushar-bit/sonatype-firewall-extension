@@ -198,6 +198,7 @@ export default function ReportFilterPopover() {
           name="policy-type-filter"
           id="policy-type-filter"
           disabled={!isPolicyTypeFilterEnabled}
+          disabledTooltip="Reevaluate the report in order to enable Policy Types filter"
         >
           <span>Policy Types</span>
         </NxStatefulTreeViewMultiSelect>

@@ -7,7 +7,7 @@ import React from 'react';
 import ReportFilterPopover from 'MainRoot/applicationReport/react/ReportFilterPopover';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 
-import { render, screen, fireEvent, getAllByRole } from '../../SpecUtil';
+import { render, screen, fireEvent, within, getAllByRole } from '../../SpecUtil';
 
 describe('ReportFilterPopover', () => {
   let renderComponent, selectShowFilterPopoverSpy;
@@ -43,6 +43,17 @@ describe('ReportFilterPopover', () => {
     applicationReportSelectors.selectIsPolicyTypeFilterEnabled.and.returnValue(false);
     renderComponent();
     expect(screen.getByRole('button', { name: /policy types/i, exact: false })).toBeDisabled();
+  });
+
+  it('renders tooltip when policy types filter is disabled', async () => {
+    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.and.returnValue(false);
+    renderComponent();
+    fireEvent.mouseOver(screen.getByRole('button', { name: /policy types/i, exact: false }));
+    const tooltip = await screen.findByRole('tooltip');
+
+    expect(
+      within(tooltip).getByText('Reevaluate the report in order to enable Policy Types filter')
+    ).toBeInTheDocument();
   });
 
   describe('handles clicks on teh checkboxes', () => {

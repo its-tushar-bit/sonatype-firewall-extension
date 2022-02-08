@@ -112,4 +112,6 @@ public class PublicApiPaths
   public static final String REPOSITORIES_RESOURCE_PATH = API_VERSION_PATH_V2 + "repositories";
 
   public static final String FIREWALL_RESOURCE_PATH = API_VERSION_PATH_V2 + "firewall";
+
+  public static final String EXTERNAL_TELEMETRY_PATH = API_VERSION_PATH_V2 + "telemetry";
 }

@@ -67,6 +67,7 @@ import innerSourceRepositoryConfigurationSlice from '../innerSourceRepositoryCon
 import innerSourceRepositoryBaseConfigurationsSlice from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSlice';
 import otherVersionsSlice from 'MainRoot/quarantinedComponentReport/otherVersionsTile/otherVersionsSlice';
 import quarantinedRiskRemediationSlice from 'MainRoot/quarantinedComponentReport/riskRemediationTile/riskRemediationSlice';
+import orgsAndPoliciesSlice from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -132,4 +133,5 @@ export default combineReducers({
   innerSourceRepositoryBaseConfigurations: innerSourceRepositoryBaseConfigurationsSlice,
   quarantinedComponentReportOtherVersions: otherVersionsSlice,
   quarantinedReportRiskRemediation: quarantinedRiskRemediationSlice,
+  orgsAndPolicies: orgsAndPoliciesSlice,
 });

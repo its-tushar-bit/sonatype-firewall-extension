@@ -130,6 +130,14 @@ pipeline {
           parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
+    stage('Update Test Instance') {
+      steps {
+        build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/main', propagate: false,
+          parameters: [string(name: 'IQ_VERSION', value: 'latest')])
+
+        build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging', propagate: false)
+      }
+    }
   }
 }
 

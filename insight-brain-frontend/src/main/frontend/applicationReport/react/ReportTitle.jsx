@@ -62,7 +62,9 @@ export default function ReportTitle() {
   };
 
   const goToVulnerabilitiesPage = () => {
-    stateGo('applicationReport.vulnerabilities', { publicId, scanId });
+    if (!vulnerabilitiesPageDisable) {
+      stateGo('applicationReport.vulnerabilities', { publicId, scanId });
+    }
   };
 
   const onLegacyReportClick = () => {
@@ -102,7 +104,7 @@ export default function ReportTitle() {
               id="viewVulnBtn"
               role="link"
               className={viewVulnerabilitiesLinkClasses}
-              onClick={!vulnerabilitiesPageDisable && goToVulnerabilitiesPage}
+              onClick={goToVulnerabilitiesPage}
             >
               <NxFontAwesomeIcon icon={faFile} />
               <span>View vulnerabilities</span>

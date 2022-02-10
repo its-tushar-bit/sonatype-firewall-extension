@@ -1072,6 +1072,7 @@ public class DependencyResolverTest
     JsonNode bomNode = findNodeById(bomJson, componentIdentifier);
     PackageUrlIdentifier purlId = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
     assertThat(ComponentIdentifierAdapter.getPackageUrlIdentifier(bomNode)).isEqualTo(purlId);
+    assertThat(ComponentIdentifierAdapter.getComponentIdentifier(bomNode)).isEqualTo(componentIdentifier);
     assertThat(bomNode.get("directDependency").asBoolean()).isEqualTo(isDirect);
     assertThat(bomNode.get("innerSource").asBoolean()).isEqualTo(isInnerSource);
     Set<ComponentIdentifier> actualParentIds = null;
@@ -1164,7 +1165,8 @@ public class DependencyResolverTest
     assertSummaryCounters(summaryJson, dataJson, expectedCount, null);
   }
 
-  private void assertSummaryCounters(JsonNode summaryJson, JsonNode dataJson, int expectedCount,
+  private void assertSummaryCounters(
+      JsonNode summaryJson, JsonNode dataJson, int expectedCount,
       Integer totalArtifactCount)
   {
     assertThat(summaryJson).isNotNull();

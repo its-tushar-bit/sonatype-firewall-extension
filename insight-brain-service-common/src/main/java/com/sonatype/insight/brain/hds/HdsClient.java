@@ -39,6 +39,8 @@ public interface HdsClient
 
   <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams);
 
+  <T> T get(Class<T> clazz, String path, String clientUserAgent, Map<String, String> queryParams, String... uriParams);
+
   <T> T get(Class<T> clazz, String url);
 
   <T> RelayResponse<T> relay(

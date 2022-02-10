@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.integration.repository;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
@@ -26,10 +27,11 @@ public class ArtifactoryRepositoryService extends AbstractRepositoryService
       ProductLicense productLicense,
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
       RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
-      DbQuarantinedComponentAccessManager quarantinedComponentAccessManager)
+      DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
+      FirewallQuarantineHdsClient quarantineHdsClient)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY, repositoryComponentTelemetryCreator,
-        quarantinedComponentAccessManager);
+        quarantinedComponentAccessManager, quarantineHdsClient);
   }
 }

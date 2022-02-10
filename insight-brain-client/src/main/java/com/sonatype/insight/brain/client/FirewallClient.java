@@ -43,6 +43,8 @@ public class FirewallClient
 
   private static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = "evaluate/quarantine";
 
+  private static final String EVALUATE_COMPONENT_METADATA_PATH = "evaluate/componentMetadata";
+
   private static final String PROPRIETARY_NAMES_PATH = "proprietary/names";
 
   static final String QUARANTINED_COMPONENT_REPORT_URL_PATH =  "quarantinedComponentReportUrl";
@@ -120,6 +122,25 @@ public class FirewallClient
 
     Result result =
         path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_COMPONENT_WITH_QUARANTINE_PATH)
+            .post(entity);
+    return parseResult(result, RepositoryComponentEvaluationDataList.class);
+  }
+
+  /**
+   * Evaluates policies on versions of the same component.
+   * The specified componentEvaluationDataRequestList must contain only versions of the same component
+   * Only the npm format is supported.
+   * 
+   * @since 1.133
+   */
+  public RepositoryComponentEvaluationDataList evaluateComponentMetadata(
+      RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList) throws IOException
+  {
+    ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(repositoryComponentEvaluationDataRequestList),
+        ContentType.APPLICATION_JSON);
+
+    Result result =
+        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_COMPONENT_METADATA_PATH)
             .post(entity);
     return parseResult(result, RepositoryComponentEvaluationDataList.class);
   }

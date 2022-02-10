@@ -145,12 +145,33 @@ public class RepositoryPolicyEvaluator
       boolean persistEvaluationResults,
       String clientUserAgent)
   {
+    long start = System.currentTimeMillis();
+
+    ComponentEvaluationDataList componentDetailsFromHdsList =
+        getComponentDetailsFromHds(repository, withQuarantine, componentEvaluationDataRequestList, clientUserAgent);
+
+    RepositoryComponentEvaluationDataList result = evaluate(repository, componentEvaluationDataRequestList,
+        componentDetailsFromHdsList, withQuarantine, persistEvaluationResults);
+
+    log.debug("Evaluated {} components with quarantine {} for repository {}:{} ({}) because of {} in {} ms.",
+        componentEvaluationDataRequestList.components.size(), withQuarantine, repository.getRepositoryManagerId(),
+        repository.getPublicId(), repository.getId(), componentEvaluationDataRequestList.cause,
+        System.currentTimeMillis() - start);
+
+    return result;
+  }
+
+  public RepositoryComponentEvaluationDataList evaluate(
+      Repository repository,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      ComponentEvaluationDataList componentDetailsFromHds,
+      boolean withQuarantine,
+      boolean persistEvaluationResults)
+  {
     RepositoryComponentEvaluationDataList componentEvaluationResultList = new RepositoryComponentEvaluationDataList();
 
     Date now = new Date();
 
-    ComponentEvaluationDataList componentEvaluationDataList = getComponentDetailsFromHds(repository, withQuarantine,
-        componentEvaluationDataRequestList, clientUserAgent);
     Predicate<String> componentPathnameMatchesIgnorePattern =
         firewallIgnorePatternService.componentPathnameMatchesIgnorePattern(repository);
     List<Component> components = new ArrayList<>();
@@ -158,7 +179,7 @@ public class RepositoryPolicyEvaluator
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationRequest =
           componentEvaluationDataRequestList.components.get(requestIndex);
-      ComponentEvaluationData componentEvaluationData = componentEvaluationDataList.components.get(requestIndex);
+      ComponentEvaluationData componentEvaluationData = componentDetailsFromHds.components.get(requestIndex);
       if (componentEvaluationData.requestIndex != requestIndex) {
         throw new IllegalStateException("The request index does not match. Expected " + requestIndex + ", but found "
             + componentEvaluationData.requestIndex + ".");
@@ -211,6 +232,10 @@ public class RepositoryPolicyEvaluator
         }
         else {
           repositoryComponentEvaluationResult.policyAlerts = getPolicyAlerts(policyResults, component);
+          if (withQuarantine) {
+            repositoryComponentEvaluationResult.quarantine =
+                canQuarantine(repository, repositoryComponentEvaluationResult.policyAlerts, component);
+          }
         }
       }
       componentEvaluationResultList.componentEvalResults.add(repositoryComponentEvaluationResult);
@@ -220,8 +245,21 @@ public class RepositoryPolicyEvaluator
     if (shouldSendNotifications) {
       repositoryPolicyAlertEmailer.sendNotifications(repository, policyResults.getActiveNotifications());
     }
-
     return componentEvaluationResultList;
+  }
+
+  /**
+   * If the specified component exists in the db, then return its existing quarantine status.
+   * Otherwise, return quarantine status based on policy alerts.
+   */
+  private boolean canQuarantine(Repository repository, List<PolicyAlert> policyAlerts, Component component) {
+    String pathname = component.getPathnames().get(0);
+    RepositoryComponent repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname);
+    if (repositoryComponent != null && repositoryComponent.getHash().equals(component.getHash())) {
+      return repositoryComponent.isQuarantined();
+    }
+    return shouldQuarantine(policyAlerts, component);
   }
 
   private List<PolicyAlert> getPolicyAlerts(final PolicyResults policyResults, final Component component) {
@@ -478,7 +516,7 @@ public class RepositoryPolicyEvaluator
     return null;
   }
 
-  private ComponentEvaluationDataList getComponentDetailsFromHds(
+  public ComponentEvaluationDataList getComponentDetailsFromHds(
       Repository repository,
       boolean withQuarantine,
       final RepositoryComponentEvaluationDataRequestList hdsRequest,

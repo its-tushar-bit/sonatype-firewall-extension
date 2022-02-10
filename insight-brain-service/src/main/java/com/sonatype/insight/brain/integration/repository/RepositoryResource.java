@@ -59,6 +59,8 @@ public class RepositoryResource
 
   static final String EVALUATE_COMPONENTS_WITH_QUARANTINE_PATH = REPOSITORY_PATH + "evaluate/quarantine";
 
+  static final String EVALUATE_COMPONENT_METADATA = REPOSITORY_PATH + "evaluate/componentMetadata";
+
   static final String UNQUARANTINED_COMPONENTS_PATH = REPOSITORY_PATH + "components/unquarantined";
 
   static final String PROPRIETARY_NAMES_PATH = REPOSITORY_PATH + "proprietary/names";
@@ -87,6 +89,7 @@ public class RepositoryResource
    */
   @POST
   @Path(ENABLE_PATH)
+  @Timed
   public void setEnabled(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                          @PathParam("repositoryPublicId") String repositoryPublicId,
                          @PathParam("enabled") boolean enabled)
@@ -98,6 +101,7 @@ public class RepositoryResource
   @GET
   @Path(SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
   public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(
       @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") final String repositoryPublicId)
@@ -109,6 +113,7 @@ public class RepositoryResource
   @Path(EVALUATE_COMPONENTS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_REPOSITORY)
+  @Timed
   public void evaluateComponents(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                                  @PathParam("repositoryPublicId") String repositoryPublicId,
                                  RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
@@ -126,6 +131,7 @@ public class RepositoryResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_AD_HOC)
+  @Timed
   public RepositoryComponentEvaluationDataList evaluateComponentsAdhoc(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,
@@ -141,6 +147,7 @@ public class RepositoryResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_REPOSITORY)
+  @Timed
   public RepositoryComponentEvaluationDataList evaluateComponentsWithQuarantine(
       @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") final String repositoryPublicId,
@@ -151,9 +158,32 @@ public class RepositoryResource
         componentEvaluationDataRequestList, true, DefaultHdsClient.getClientUserAgent(request));
   }
 
+  /**
+   * Evaluates policies on versions of the same component.
+   * The specified componentEvaluationDataRequestList must contain only versions of the same component
+   * Only the npm format is supported.
+   * 
+   * @since 1.133
+   */
+  @POST
+  @Path(EVALUATE_COMPONENT_METADATA)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  public RepositoryComponentEvaluationDataList evaluateComponentMetadata(
+      @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") final String repositoryPublicId,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      @Context final HttpServletRequest request)
+  {
+    return repositoryService.evaluateComponentMetadata(repositoryManagerInstanceId, repositoryPublicId,
+        componentEvaluationDataRequestList, DefaultHdsClient.getClientUserAgent(request));
+  }
+
   @Path(QUARANTINE_PATH)
   @POST
   @Audited(AuditEvent.CONFIGURE_QUARANTINE)
+  @Timed
   public void setQuarantine(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                             @PathParam("repositoryPublicId") String repositoryPublicId,
                             @PathParam("enabled") boolean enabled)
@@ -163,6 +193,7 @@ public class RepositoryResource
 
   @DELETE
   @Path(COMPONENTS_PATH)
+  @Timed
   public void removeComponent(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                               @PathParam("repositoryPublicId") String repositoryPublicId,
                               @PathParam("pathname") String pathname)
@@ -176,6 +207,7 @@ public class RepositoryResource
   @GET
   @Path(UNQUARANTINED_COMPONENTS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
   public UnquarantinedComponentList getUnquarantinedComponents(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,
@@ -191,6 +223,7 @@ public class RepositoryResource
   @GET
   @Path(IGNORE_PATTERNS_PATH)
   @Produces({ MediaType.APPLICATION_JSON })
+  @Timed
   public FirewallIgnorePatterns getIgnorePatterns() {
     return firewallIgnorePatternService.getIgnorePatterns();
   }
@@ -202,6 +235,7 @@ public class RepositoryResource
   @Path(PROPRIETARY_NAMES_PATH)
   @Consumes({MediaType.APPLICATION_JSON})
   @Audited(AuditEvent.ADD_PROPRIETARY_COMPONENT_NAMES)
+  @Timed
   public void addProprietaryComponentNames(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,
@@ -217,6 +251,7 @@ public class RepositoryResource
   @DELETE
   @Path(PROPRIETARY_NAMES_PATH)
   @Audited(AuditEvent.REMOVE_PROPRIETARY_COMPONENT_NAMES)
+  @Timed
   public void removeProprietaryComponentNames(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId)
@@ -230,6 +265,7 @@ public class RepositoryResource
   @GET
   @Path(QUARANTINED_COMPONENT_REPORT_URL_PATH)
   @Produces({MediaType.APPLICATION_JSON})
+  @Timed
   public QuarantinedComponentReport getQuarantinedComponentReportUrl(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,

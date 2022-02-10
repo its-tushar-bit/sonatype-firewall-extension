@@ -106,6 +106,17 @@ public class DefaultHdsClientTest
 
     Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
 
+    String clientUserAgent = "testClientUserAgent";
+    client.get(InputStream.class, testPath, clientUserAgent, null, new String[]{});
+    assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(clientUserAgent);
+  }
+
+  @Test
+  public void testGet_ClientUserAgentOnRequests_NoClientUserAgent() throws Exception {
+    String testPath = "/rest/test";
+
+    Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
     // Method does not pass an original request, hence the null header.
     client.get(InputStream.class, testPath, null, new String[]{});
     assertThat(headers.get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isNull();

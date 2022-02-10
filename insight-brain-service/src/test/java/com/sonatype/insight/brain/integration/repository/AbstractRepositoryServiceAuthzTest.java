@@ -255,4 +255,26 @@ public abstract class AbstractRepositoryServiceAuthzTest
     getRepositoryService()
         .getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "path");
   }
+
+  @Test
+  public void testEvaluateComponentMetadata_Authorized() {
+    grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(MANUAL_REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true, true);
+    getRepositoryService().evaluateComponentMetadata(MANUAL_REPO_MAN_INSTANCE_ID, repository.getPublicId(),
+        null /* componentEvaluationDataRequestList */, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testEvaluateComponentMetadata_Unauthenticated() {
+    getRepositoryService().evaluateComponentMetadata(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
+        null /* componentEvaluationDataRequestList */, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testEvaluateComponentMetadata_Unauthorized() {
+    grantWritePermission();
+    getRepositoryService().evaluateComponentMetadata(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(),
+        null /* componentEvaluationDataRequestList */, null);
+  }
 }

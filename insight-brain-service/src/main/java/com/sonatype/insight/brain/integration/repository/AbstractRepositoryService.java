@@ -6,13 +6,17 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
@@ -28,8 +32,10 @@ import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -59,9 +65,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.stream.Collectors.toMap;
+
 public abstract class AbstractRepositoryService
 {
   private static final Logger log = LoggerFactory.getLogger(AbstractRepositoryService.class);
+
+  static final String HDS_COMPONENT_DETAILS_ALL_VERSIONS_PATH = "rest/component/details/firewall/allVersions";
 
   private static final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
@@ -83,6 +93,8 @@ public abstract class AbstractRepositoryService
 
   private final QuarantinedComponentAccessManager quarantinedComponentAccessManager;
 
+  private final FirewallQuarantineHdsClient quarantineHdsClient;
+
   // Visible for tests
   final LicensedFeature requiredFeature;
 
@@ -94,7 +106,8 @@ public abstract class AbstractRepositoryService
       PolicyViolationLoggerFactory policyViolationLoggerFactory,
       LicensedFeature requiredFeature,
       RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
-      DbQuarantinedComponentAccessManager quarantinedComponentAccessManager)
+      DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
+      FirewallQuarantineHdsClient quarantineHdsClient)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
@@ -103,6 +116,7 @@ public abstract class AbstractRepositoryService
     this.requiredFeature = requiredFeature;
     this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
     this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
+    this.quarantineHdsClient = quarantineHdsClient;
   }
 
   private void checkLicenseFeature() {
@@ -229,6 +243,140 @@ public abstract class AbstractRepositoryService
 
     return evaluateComponents(repository, repositoryManagerInstanceId, componentEvaluationDataRequestList,
         withQuarantine, true, clientUserAgent);
+  }
+
+  /**
+   * Evaluates policies on versions of the same component.
+   * The specified componentEvaluationDataRequestList must contain only versions of the same component
+   * Only the npm format is supported.
+   * 
+   * @since 1.133
+   */
+  RepositoryComponentEvaluationDataList evaluateComponentMetadata(
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      String clientUserAgent)
+  {
+    checkLicenseFeature();
+
+    Repository repository = repositoryDAO
+        .getByRepositoryManagerInstanceIdAndPublicIdNotNull(repositoryManagerInstanceId, repositoryPublicId);
+
+    log.debug("Evaluating component metadata for repository {}:{} ({})", repositoryManagerInstanceId,
+        repositoryPublicId, repository.getId());
+
+    return evaluateComponentMetadata(repository, componentEvaluationDataRequestList, clientUserAgent);
+  }
+
+  /**
+   * Evaluates policies on versions of the same component.
+   * The specified componentEvaluationDataRequestList must contain only versions of the same component
+   * Only the npm format is supported.
+   * 
+   * @since 1.133
+   */
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  RepositoryComponentEvaluationDataList evaluateComponentMetadata(
+      @AuthzContext(Key.REPOSITORY) Repository repository,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      String clientUserAgent)
+  {
+    long start = System.currentTimeMillis();
+
+    if (!repository.isEnabled() || !repository.isQuarantineEnabled()) {
+      throw new BadRequestException("The repository must be enabled in quarantine mode.");
+    }
+
+    if (componentEvaluationDataRequestList == null || componentEvaluationDataRequestList.isEmpty()) {
+      return new RepositoryComponentEvaluationDataList();
+    }
+    validateEvaluateRequest(componentEvaluationDataRequestList);
+
+    String format = componentEvaluationDataRequestList.components.get(0).format;
+    normalizeComponents(componentEvaluationDataRequestList);
+    if (!ComponentIdentifier.FORMAT_NPM.equals(format)) {
+      throw new BadRequestException("The repository format must be " + ComponentIdentifier.FORMAT_NPM + ".");
+    }
+
+    if (StringUtils.isBlank(repository.getFormat())) {
+      repository.setFormat(componentEvaluationDataRequestList.components.get(0).format);
+      repositoryDAO.update(repository);
+    }
+
+    // HDS will return data for all versions for the pathname, so it doesn't matter which pathname we send to HDS.
+    String pathname = componentEvaluationDataRequestList.components.get(0).pathname;
+    ComponentEvaluationDataList componentDetailsFromHds =
+        getComponentDetailsAllVersionsFromHds(repository.getFormat(), pathname, clientUserAgent);
+    componentDetailsFromHds =
+        matchHdsComponentDetailsToRequestListByPathname(componentDetailsFromHds, componentEvaluationDataRequestList);
+    RepositoryComponentEvaluationDataList result =
+        repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, componentDetailsFromHds,
+            true /* withQuarantine */, false /* persistEvaluationResults */);
+
+    log.debug("Evaluated component metadata for repository {}:{} ({}) for {} components in {} ms.",
+        repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId(),
+        result.componentEvalResults.size(), System.currentTimeMillis() - start);
+
+    return result;
+  }
+
+  private static String toNpmPath(ComponentIdentifier componentIdentifier) {
+    String packageId = componentIdentifier.get(ComponentIdentifier.NPM_PACKAGE_ID);
+    return packageId + "/-/" + packageId + "-" + componentIdentifier.get(ComponentIdentifier.VERSION) + ".tgz";
+  }
+  
+  private ComponentEvaluationDataList matchHdsComponentDetailsToRequestListByPathname(
+      ComponentEvaluationDataList componentDetailsFromHdsList,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
+  {
+    ComponentEvaluationDataList result = new ComponentEvaluationDataList();
+    Map<String, ComponentEvaluationData> componentDetailsFromHdsByPathname =
+        componentDetailsFromHdsList.components.stream()
+            .collect(toMap(componentEvaluationData -> toNpmPath(componentEvaluationData.componentIdentifier),
+                Function.identity()));
+    
+    for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
+      RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest =
+          componentEvaluationDataRequestList.components.get(requestIndex);
+      ComponentEvaluationData componentDetailsFromHds =
+          componentDetailsFromHdsByPathname.get(componentEvaluationDataRequest.pathname);
+      if (componentDetailsFromHds == null) {
+        // There are no HDS details for this pathname.
+        // Add an entry for the unknown component, so it will be included in the policy evaluation.
+        componentDetailsFromHds = new ComponentEvaluationData();
+        componentDetailsFromHds.declaredLicenses = Collections.emptySet();
+        componentDetailsFromHds.observedLicenses = Collections.emptySet();
+        componentDetailsFromHds.securityVulnerabilities = Collections.emptyList();
+        componentDetailsFromHds.matchState = MatchState.UNKNOWN.toString();
+        componentDetailsFromHdsList.components.add(componentDetailsFromHds);
+      }
+      componentDetailsFromHds.hash = componentEvaluationDataRequest.hash;
+      componentDetailsFromHds.requestIndex = requestIndex;
+
+      result.components.add(componentDetailsFromHds);
+    }
+
+    return result;
+  }
+
+  private ComponentEvaluationDataList getComponentDetailsAllVersionsFromHds(
+      String format,
+      String pathname,
+      String clientUserAgent)
+  {
+    long start = System.currentTimeMillis();
+
+    Map<String, String> queryParams = new HashMap<>();
+    queryParams.put("format", format);
+    queryParams.put("pathname", pathname);
+    ComponentEvaluationDataList result = quarantineHdsClient.get(ComponentEvaluationDataList.class,
+        HDS_COMPONENT_DETAILS_ALL_VERSIONS_PATH, clientUserAgent, queryParams);
+
+    log.debug("Got component details (all versions) from HDS for {} components in {} ms.", result.components.size(),
+        System.currentTimeMillis() - start);
+
+    return result;
   }
 
   protected void auditRepoComponentEvalList(RepositoryComponentEvaluationDataRequestList repoComponentEvalList) {

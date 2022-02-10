@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.client;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
@@ -288,6 +289,44 @@ public class FirewallClientTest
 
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResult = client
         .evaluateComponentWithQuarantine(componentEvaluationDataRequestList);
+    assertThat(repositoryComponentEvaluationResult.componentEvalResults).hasSize(1);
+    assertThat(repositoryComponentEvaluationResult.componentEvalResults.get(0).quarantine).isFalse();
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata() throws Exception {
+    assumeThat(resourcePath).as("evaluateComponentMetadata is not available for Artifactory")
+        .isEqualTo(FirewallClient.NEXUS_RESOURCE_PATH);
+
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
+
+    client.setEnabled(true);
+    client.setQuarantine(true);
+
+    // Setup the mocked hds return
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
+    componentEvaluationData.hash = "hash";
+    componentEvaluationData.componentIdentifier = ComponentIdentifier.createNpmCoordinates("npm", "1.0.0");
+    componentEvaluationData.matchState = MatchState.EXACT.getId();
+    componentEvaluationData.declaredLicenses = Collections.emptySet();
+    componentEvaluationData.observedLicenses = Collections.emptySet();
+    hdsResult.components.add(componentEvaluationData);
+    hdsRespondWith(hdsResult).atUri("/rest/component/details/firewall/allVersions");
+
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest();
+    repositoryComponentEvaluationDataRequest.format = "npm";
+    repositoryComponentEvaluationDataRequest.pathname = "/npm/-/npm-1.0.0.tgz";
+    repositoryComponentEvaluationDataRequest.hash = componentEvaluationData.hash;
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.components = new ArrayList<>();
+    componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
+
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResult =
+        client.evaluateComponentMetadata(componentEvaluationDataRequestList);
     assertThat(repositoryComponentEvaluationResult.componentEvalResults).hasSize(1);
     assertThat(repositoryComponentEvaluationResult.componentEvalResults.get(0).quarantine).isFalse();
   }

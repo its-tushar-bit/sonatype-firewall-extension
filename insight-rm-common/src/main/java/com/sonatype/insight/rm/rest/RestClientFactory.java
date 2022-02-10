@@ -285,6 +285,21 @@ public class RestClientFactory
       return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
           .getQuarantinedComponentReport(pathname);
     }
+
+    /**
+     * Evaluates policies on versions of the same component.
+     * The specified componentEvaluationDataRequestList must contain only versions of the same component
+     * Only the npm format is supported.
+     * 
+     * @since 1.133
+     */
+    @Override
+    public RepositoryComponentEvaluationDataList evaluateComponentMetadata(
+        RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequestList) throws IOException
+    {
+      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
+          .evaluateComponentMetadata(repositoryComponentEvaluationDataRequestList);
+    }
   }
 
   private class ScanSpecificClient

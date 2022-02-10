@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.Componen
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -96,8 +97,11 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -1623,6 +1627,14 @@ public abstract class AbstractRepositoryServiceTest
             isNull(), eq(hdsRequest))).thenReturn(hdsResult);
   }
 
+  void mockHdsRequestForMetadata(ComponentEvaluationDataList hdsResult) {
+    doReturn(hdsResult).when(quarantineHdsClient).get( //
+        eq(ComponentEvaluationDataList.class), //
+        eq(AbstractRepositoryService.HDS_COMPONENT_DETAILS_ALL_VERSIONS_PATH), //
+        anyString(), //
+        anyMap());
+  }
+
   protected ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier,
                                                                 String hash,
                                                                 MatchState matchState,
@@ -2061,6 +2073,315 @@ public abstract class AbstractRepositoryServiceTest
     // when
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> getRepositoryService()
         .getQuarantinedComponentReportUrl("repmanid", "repid", ""));
+  }
+
+  public void testEvaluateComponentMetadata_MissingLicenseFeature() throws Exception {
+    testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, null);
+    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_ClaimedComponent() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    // Create a policy that fails for claimed components
+    Condition condition =
+        new Condition(IdentificationSourceConditionType.ID, "is", IdentificationSource.MANUAL.getId());
+    Constraint constraint = new Constraint("id", "name", LogicalOperator.AND);
+    constraint.addCondition(condition);
+    Policy policy = new Policy("id", "name");
+    policy.setOwnerId(repository.getParentOwnerId());
+    policy.addConstraint(constraint);
+    policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
+    tempEntity.newPolicy(policy);
+
+    ComponentIdentifier claimedComponentIdentifier =
+        ComponentIdentifier.createNpmCoordinates("claimedPackageId", "claimedVersion");
+    tempEntity.newClaimedComponent("testHash", claimedComponentIdentifier);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Prepare request and mock the HDS request
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("testPackageId", "testVersion");
+    componentEvaluationDataRequestList.cause = "metadata";
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("npm",
+        "/testPackageId/-/testPackageId-testVersion.tgz", "testHash"));
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, null, MatchState.EXACT, 0 /* index */,
+        null /* declaredLicenseSet */, null /* observedLicenseSet */, null /* securityVulnerabilities */,
+        0 /* popularity */));
+    mockHdsRequestForMetadata(hdsResult);
+
+    // Call the service
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = getRepositoryService()
+        .evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
+            "testClientUserAgent");
+
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(1);
+    RepositoryComponentEvaluationData repositoryComponentEvaluationData =
+        repositoryComponentEvaluationResultList.componentEvalResults.get(0);
+    assertThat(repositoryComponentEvaluationData.requestIndex).isEqualTo(0);
+    assertThat(repositoryComponentEvaluationData.quarantine).isTrue();
+
+    assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_EmptyFormat() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = "metadata";
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest(" " /* format */, "pathname", "hash"));
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+          componentEvaluationDataRequestList, null);
+    }).withMessage("The format cannot be null or empty.");
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_NullFormat() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = "metadata";
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest(null /* format */, "pathname", "hash"));
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+          componentEvaluationDataRequestList, null);
+    }).withMessage("The format cannot be null or empty.");
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_EmptyHash() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = "metadata";
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("npm", "path", " " /* hash */));
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+          componentEvaluationDataRequestList, null);
+    }).withMessage("The hash cannot be null or empty.");
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_NullHash() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = "metadata";
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("npm", "path", null /* hash */));
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+          componentEvaluationDataRequestList, null);
+    }).withMessage("The hash cannot be null or empty.");
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_EmptyPathname() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = "metadata";
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("npm", " "/* pathname */, "hash"));
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+          componentEvaluationDataRequestList, null);
+    }).withMessage("The pathname cannot be null or empty.");
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_NullPathname() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = "metadata";
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("npm", null /* pathname */, "hash"));
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+          componentEvaluationDataRequestList, null);
+    }).withMessage("The pathname cannot be null or empty.");
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_ExistingRepository_NotEnabled() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, false);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+          null /* componentEvaluationDataRequestList */, null);
+    }).withMessage("The repository must be enabled in quarantine mode.");
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_ExistingRepository_QuarantineNotEnabled() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, false);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+          null /* componentEvaluationDataRequestList */, null);
+    }).withMessage("The repository must be enabled in quarantine mode.");
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_FormatIsNpm() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = "metadata";
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", "path", "hash"));
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+          componentEvaluationDataRequestList, null);
+    }).withMessage("The repository format must be npm.");
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_MultipleComponents() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
+    policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
+    new PolicyDAO().update(policy);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Prepare request and mock the HDS request
+    int componentCount = 2;
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    String packageId = "testPackageId";
+    for (int i = 0; i < componentCount; i++) {
+      String version = "testVersion" + i;
+      String hash = "testHash" + i;
+      ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates(packageId, version);
+      componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("npm",
+          "/" + packageId + "/-/" + packageId + "-" + version + ".tgz", hash));
+      List<SecurityVulnerability> securityVulnerabilities = null;
+      // Add security vulnerabilities only to the first version/component,
+      // so only the first one should be quarantined.
+      if (i == 0) {
+        securityVulnerabilities = createSecurityVulnerabilities();
+      }
+      hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT,
+          i /* index */, null, null, securityVulnerabilities, 0 /* popularity */));
+    }
+    mockHdsRequestForMetadata(hdsResult);
+
+    // Call the service
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
+        getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, "testClientUserAgent");
+
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(2);
+
+    for (int i = 0; i < componentCount; i++) {
+      RepositoryComponentEvaluationData repositoryComponentEvaluationData =
+          repositoryComponentEvaluationResultList.componentEvalResults.get(i);
+      assertThat(repositoryComponentEvaluationData.requestIndex).isEqualTo(i);
+      if (i == 0) {
+        assertThat(repositoryComponentEvaluationData.quarantine).isTrue();
+      }
+      else {
+        assertThat(repositoryComponentEvaluationData.quarantine).isFalse();
+      }
+    }
+
+    assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
+  }
+
+  @Test
+  public void testEvaluateComponentMetadata_UnknownComponent() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    Condition condition = new Condition(MatchStateConditionType.ID, "is", MatchState.UNKNOWN.getId());
+    Constraint constraint = new Constraint("id", "name", LogicalOperator.AND);
+    constraint.addCondition(condition);
+    Policy policy = new Policy("id", "name");
+    policy.setOwnerId(repository.getParentOwnerId());
+    policy.addConstraint(constraint);
+    tempEntity.newPolicy(policy);
+    policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
+    new PolicyDAO().update(policy);
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Prepare request and mock the HDS request.
+    // HDS only knows about the first version, so the second version should be quarantined.
+    int componentCount = 2;
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    String packageId = "testPackageId";
+    String version = "testVersion";
+    String hash = "testHash";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates(packageId, version);
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("npm",
+        "/" + packageId + "/-/" + packageId + "-" + version + ".tgz", hash));
+    componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("npm",
+        "/" + packageId + "/-/" + packageId + "-UnknownVersion.tgz", hash));
+    hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
+        null, null, null, 0 /* popularity */));
+    mockHdsRequestForMetadata(hdsResult);
+
+    // Call the service
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
+        getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, "testClientUserAgent");
+
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(2);
+
+    for (int i = 0; i < componentCount; i++) {
+      RepositoryComponentEvaluationData repositoryComponentEvaluationData =
+          repositoryComponentEvaluationResultList.componentEvalResults.get(i);
+      assertThat(repositoryComponentEvaluationData.requestIndex).isEqualTo(i);
+      if (i == 0) {
+        assertThat(repositoryComponentEvaluationData.quarantine).isFalse();
+      }
+      else {
+        assertThat(repositoryComponentEvaluationData.quarantine).isTrue();
+      }
+    }
+
+    assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
   }
 
   private void testAddProprietaryComponentNames_FormatTranslation(String repoFormat, String componentFormat) {

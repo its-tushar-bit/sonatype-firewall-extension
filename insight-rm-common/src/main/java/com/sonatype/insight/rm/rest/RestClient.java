@@ -87,6 +87,16 @@ public interface RestClient
     RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
         final RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequest) throws IOException;
 
+    /**
+     * Evaluates policies on versions of the same component.
+     * The specified componentEvaluationDataRequestList must contain only versions of the same component
+     * Only the npm format is supported.
+     * 
+     * @since 1.133
+     */
+    RepositoryComponentEvaluationDataList evaluateComponentMetadata(
+        RepositoryComponentEvaluationDataRequestList repositoryComponentEvaluationDataRequest) throws IOException;
+
     RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException;
 
     UnquarantinedComponentList getUnquarantinedComponents(long sinceUtcTimestamp) throws IOException;

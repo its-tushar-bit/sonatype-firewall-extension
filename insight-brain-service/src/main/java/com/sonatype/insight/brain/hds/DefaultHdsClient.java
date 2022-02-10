@@ -185,16 +185,28 @@ public class DefaultHdsClient
 
   @Override
   public <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams) {
-    return internalGet(clazz, buildUri(null, path, queryParams, uriParams));
+    return internalGet(clazz, buildUri(null, path, queryParams, uriParams), null /* clientUserAgent */);
+  }
+
+  @Override
+  public <T> T get(
+      Class<T> clazz,
+      String path,
+      String clientUserAgent,
+      Map<String, String> queryParams,
+      String... uriParams)
+  {
+    return internalGet(clazz, buildUri(null, path, queryParams, uriParams), clientUserAgent);
   }
 
   @Override
   public <T> T get(Class<T> clazz, String url) {
-    return internalGet(clazz, buildUri(url));
+    return internalGet(clazz, buildUri(url), null /* clientUserAgent */);
   }
 
-  private <T> T internalGet(Class<T> clazz, String url) {
+  private <T> T internalGet(Class<T> clazz, String url, String clientUserAgent) {
     HttpGet cloudReq = createGetRequest(url, null, null);
+    setClientUserAgentHeader(cloudReq, clientUserAgent);
     return execute(cloudReq, clazz);
   }
 

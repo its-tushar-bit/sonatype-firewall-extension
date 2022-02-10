@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.repository;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -23,6 +25,7 @@ import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory.RepositoryClientBuilder;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.tuple.Pair;
@@ -32,6 +35,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -319,6 +323,77 @@ public class RepositoryQueryServiceTest
     assertThat(results.getRight().source).isEqualTo("baseUrl");
     assertThat(results.getRight().sourceError).isEqualTo(
         "unable to retrieve component versions from repository manager: baseUrl");
+  }
+
+  @Test
+  public void testGetAllVersions_Maven_MissingGroupId() {
+    testGetAllVersions_BadRequestException_Maven(ComponentIdentifier.MAVEN_GROUP_ID, true);
+  }
+
+  @Test
+  public void testGetAllVersions_Maven_MissingArtifactId() {
+    testGetAllVersions_BadRequestException_Maven(ComponentIdentifier.MAVEN_ARTIFACT_ID, true);
+  }
+
+  @Test
+  public void testGetAllVersions_Maven_MissingVersion() {
+    testGetAllVersions_BadRequestException_Maven(ComponentIdentifier.VERSION, false);
+  }
+
+  @Test
+  public void testGetAllVersions_Maven_MissingClassifier() {
+    testGetAllVersions_BadRequestException_Maven(ComponentIdentifier.MAVEN_CLASSIFIER, false);
+  }
+
+  @Test
+  public void testGetAllVersions_Maven_MissingExtension() {
+    testGetAllVersions_BadRequestException_Maven(ComponentIdentifier.MAVEN_EXTENSION, false);
+  }
+
+  @Test
+  public void testGetAllVersions_Npm_MissingPackageId() {
+    testGetAllVersions_BadRequestException_Npm(ComponentIdentifier.NPM_PACKAGE_ID, true);
+  }
+
+  @Test
+  public void testGetAllVersions_Npm_MissingVersion() {
+    testGetAllVersions_BadRequestException_Npm(ComponentIdentifier.VERSION, false);
+  }
+
+  private void testGetAllVersions_BadRequestException_Npm(
+      String missingCoordinate,
+      boolean expectBadRequestException)
+  {
+    testGetAllVersions_BadRequestException(ComponentIdentifier.createNpmCoordinates("p", "v"),
+        missingCoordinate, expectBadRequestException);
+  }
+
+  private void testGetAllVersions_BadRequestException_Maven(
+      String missingCoordinate,
+      boolean expectBadRequestException)
+  {
+    testGetAllVersions_BadRequestException(ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"),
+        missingCoordinate, expectBadRequestException);
+  }
+
+  private void testGetAllVersions_BadRequestException(
+      ComponentIdentifier completeComponentIdentifier,
+      String missingCoordinate,
+      boolean expectBadRequestException)
+  {
+    Application app = tempEntity.newApplicationWithParent();
+    Map<String, String> coordinates = new HashMap<>(completeComponentIdentifier.getCoordinates());
+    coordinates.remove(missingCoordinate);
+    ComponentIdentifier componentIdentifier =
+        new ComponentIdentifier(completeComponentIdentifier.getFormat(), coordinates);
+
+    if (expectBadRequestException) {
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+          () -> repositoryQueryService.getAllVersions(componentIdentifier, app));
+    }
+    else {
+      assertThat(repositoryQueryService.getAllVersions(componentIdentifier, app)).isNotNull();
+    }
   }
 
   private Application getApplicationWithConnectionsEnabled() {

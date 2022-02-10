@@ -11,10 +11,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRepositoryConnectionService;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
@@ -23,6 +25,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -86,6 +89,7 @@ public class RepositoryQueryService
       ComponentIdentifier componentIdentifier,
       Owner owner)
   {
+    validateComponentIdentifier(componentIdentifier);
     RepositoryFormat repositoryFormat;
     try {
       repositoryFormat = RepositoryFormat.fromString(componentIdentifier.getFormat());
@@ -121,6 +125,23 @@ public class RepositoryQueryService
     }
     else {
       return Pair.of(new RepositoryAllVersionsResponse(Collections.emptyList()), null);
+    }
+  }
+
+  private void validateComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    try {
+      componentIdentifier.createAlternativeVersion("*").ensureRequired();
+    }
+    catch (InvalidComponentIdentifierException e) {
+      if (componentIdentifier.isMaven()) {
+        if (componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID) == null ||
+            componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID) == null) {
+          throw new BadRequestException(e.getMessage(), e);
+        }
+      }
+      else {
+        throw new BadRequestException(e.getMessage(), e);
+      }
     }
   }
 

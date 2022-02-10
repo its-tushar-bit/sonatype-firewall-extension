@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -22,6 +23,7 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -43,8 +45,10 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -101,7 +105,12 @@ public class ComponentRemediationService
 
   private ComponentIdentifier ensureCompleteIfNeeded(ComponentIdentifier componentIdentifier) {
     if (ComponentIdentifier.FORMAT_CONAN.equals(componentIdentifier.getFormat())) {
-      componentIdentifier.ensureComplete();
+      try {
+        componentIdentifier.ensureComplete();
+      }
+      catch (InvalidComponentIdentifierException e) {
+        throw new BadRequestException(e.getMessage(), e);
+      }
     }
     return componentIdentifier;
   }
@@ -274,6 +283,15 @@ public class ComponentRemediationService
         .collect(Collectors.toList());
   }
 
+  private ComponentIdentifier tryEnsureCompleteIdentifier(PackageUrlIdentifier versionPurl) {
+    try {
+      return versionPurl.ensureCompleteIdentifier();
+    }
+    catch (InvalidPackageURLException e) {
+      throw new BadRequestException(e.getMessage(), e);
+    }
+  }
+
   private Optional<ComponentIdentifier> nonViolatingWithDependencies(
       Collection<PackageUrlIdentifier> nonViolatingVersions,
       Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts)
@@ -281,7 +299,7 @@ public class ComponentRemediationService
     for (PackageUrlIdentifier versionPurl : nonViolatingVersions) {
       if (CollectionUtils.isEmpty(dependencyAlerts.get(versionPurl)))
       {
-        return Optional.of(versionPurl.ensureCompleteIdentifier());
+        return Optional.of(tryEnsureCompleteIdentifier(versionPurl));
       }
     }
     return Optional.empty();
@@ -295,7 +313,7 @@ public class ComponentRemediationService
       List<PolicyAlert> policyAlerts = dependencyAlerts.get(versionPurl);
       if (policyAlerts == null || !hasFailAction(policyAlerts))
       {
-        return Optional.of(versionPurl.ensureCompleteIdentifier());
+        return Optional.of(tryEnsureCompleteIdentifier(versionPurl));
       }
     }
     return Optional.empty();

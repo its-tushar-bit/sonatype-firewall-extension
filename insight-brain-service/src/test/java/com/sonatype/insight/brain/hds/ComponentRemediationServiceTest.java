@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -52,6 +53,7 @@ import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersi
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -933,5 +935,35 @@ public class ComponentRemediationServiceTest
     assertThat(dto.versionChanges).hasSize(2);
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, conanDto));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, conanDto));
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_InvalidPackageURLException_BadRequestException() {
+    ComponentIdentifier currentComponent = ComponentIdentifier.createMavenCoordinates("g", "a", null, null, null);
+    ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
+    componentDetailsDTO.componentIdentifier = currentComponent;
+    componentDetailsDTO.violatedPolicyCount = 0;
+    List<ComponentDetailsDTO> allVersions = Collections.singletonList(componentDetailsDTO);
+    mockHdsGetComponentDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
+    mockLicenseFeature(true);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> componentRemediationService.getSuggestedRemediation(currentComponent,
+            allVersions, org.getType(), org.getId(), DevelopStageType.ID));
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_InvalidComponentIdentifierException_BadRequestException() {
+    ComponentIdentifier currentComponent = ComponentIdentifier.createConanCoordinates(null, null, null, "c");
+    ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
+    componentDetailsDTO.componentIdentifier = currentComponent;
+    componentDetailsDTO.violatedPolicyCount = 0;
+    List<ComponentDetailsDTO> allVersions = Collections.singletonList(componentDetailsDTO);
+    mockHdsGetComponentDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
+    mockLicenseFeature(true);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> componentRemediationService.getSuggestedRemediation(currentComponent,
+            allVersions, org.getType(), org.getId(), DevelopStageType.ID));
   }
 }

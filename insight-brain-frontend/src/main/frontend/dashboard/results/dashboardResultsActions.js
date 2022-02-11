@@ -5,23 +5,24 @@
  */
 import { sortItemsByFields } from '../../util/sortUtils';
 import {
-  getNewestRisks,
   getApplicationRisks,
   getComponentRisks,
+  getNewestRisks,
   MAX_RESULTS,
 } from '../services/dashboard.data.service';
 import dashboardServicesModule from '../services/module';
 import { partial } from 'ramda';
+import {
+  APPLICATIONS_RESULTS_TYPE,
+  COMPONENTS_RESULTS_TYPE,
+  VIOLATIONS_RESULTS_TYPE,
+} from 'MainRoot/dashboard/results/dashboardResultsTypes';
 
 export const LOAD_RESULTS_REQUESTED = 'LOAD_RESULTS_REQUESTED';
 export const LOAD_RESULTS_FULFILLED = 'LOAD_RESULTS_FULFILLED';
 export const LOAD_RESULTS_FAILED = 'LOAD_RESULTS_FAILED';
 export const SORT_RESULTS_REQUESTED = 'SORT_RESULTS_REQUESTED';
 export const SORT_RESULTS_FULFILLED = 'SORT_RESULTS_FULFILLED';
-
-const COMPONENTS_RESULTS_TYPE = 'components';
-const APPLICATIONS_RESULTS_TYPE = 'applications';
-const VIOLATIONS_RESULTS_TYPE = 'violations';
 
 function loadResultsFulfilled(resultsType, results, numResults, classyBrew) {
   return {
@@ -55,6 +56,10 @@ export function loadResults(resultsType) {
       });
   };
 }
+
+export const loadViolationResults = partial(loadResults, [VIOLATIONS_RESULTS_TYPE]);
+export const loadComponentResults = partial(loadResults, [COMPONENTS_RESULTS_TYPE]);
+export const loadApplicationResults = partial(loadResults, [APPLICATIONS_RESULTS_TYPE]);
 
 function sortResults(resultsType, sortFields) {
   return (dispatch, getState) => {

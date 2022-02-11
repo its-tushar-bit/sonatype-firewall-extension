@@ -5,15 +5,17 @@
  */
 import { connect } from 'react-redux';
 
-import { loadResults, sortApplicationResults } from '../dashboardResultsActions';
-import { stateGo } from '../../../reduxUiRouter/routerActions';
-import DashboardApplications, { APPLICATIONS_RESULTS_TYPE } from './DashboardApplications';
+import { loadApplicationResults, sortApplicationResults } from '../dashboardResultsActions';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import DashboardApplications from './DashboardApplications';
+import { selectApplicationResults } from 'MainRoot/dashboard/dashboardSelectors';
 
-function mapStateToProps({ dashboard, dashboardFilter }) {
+function mapStateToProps(state) {
+  const { dashboardFilter } = state;
   const { loading, needsAcknowledgement, filtersAreDirty } = dashboardFilter;
 
   return {
-    applicationResults: dashboard[APPLICATIONS_RESULTS_TYPE],
+    applicationResults: selectApplicationResults(state),
     filterLoading: loading,
     needsAcknowledgement,
     filtersAreDirty,
@@ -22,7 +24,7 @@ function mapStateToProps({ dashboard, dashboardFilter }) {
 
 const mapDispatchToProps = {
   sortApplications: sortApplicationResults,
-  loadResults,
+  loadApplicationResults,
   stateGo,
 };
 

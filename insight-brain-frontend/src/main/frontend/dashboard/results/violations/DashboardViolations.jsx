@@ -10,22 +10,20 @@ import DashboardViolationsTable from './DashboardViolationsTable';
 import DashboardMask from '../dashboardMask/DashboardMask';
 
 export default function DashboardViolations(props) {
-  const VIOLATIONS_RESULTS_TYPE = 'violations';
   const {
-      results,
+      violations,
       filterLoading,
       needsAcknowledgement,
       filtersAreDirty,
-      loadResults,
+      loadViolationResults,
       sortViolations,
       stateGo,
       appliedFilter: { maxDaysOld },
     } = props,
-    violations = results && results[VIOLATIONS_RESULTS_TYPE],
     isLoading = !violations.results && !violations.error;
 
   const doLoad = () => {
-    loadResults(VIOLATIONS_RESULTS_TYPE);
+    loadViolationResults();
   };
 
   useEffect(() => {
@@ -62,13 +60,11 @@ DashboardViolations.propTypes = {
   filterLoading: PropTypes.bool.isRequired,
   needsAcknowledgement: PropTypes.bool.isRequired,
   filtersAreDirty: PropTypes.bool.isRequired,
-  loadResults: PropTypes.func.isRequired,
+  loadViolationResults: PropTypes.func.isRequired,
   sortViolations: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   appliedFilter: PropTypes.shape({
     maxDaysOld: PropTypes.number,
   }).isRequired,
-  results: PropTypes.shape({
-    violations: dashboardResultsShape,
-  }),
+  violations: dashboardResultsShape,
 };

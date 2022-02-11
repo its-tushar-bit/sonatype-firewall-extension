@@ -5,12 +5,15 @@
  */
 
 import * as dashboardActions from 'MainRoot/dashboard/results/dashboardResultsActions';
-import * as dashboardDataServices from 'MainRoot/dashboard/services/dashboard.data.service';
 import {
+  loadApplicationResults,
+  loadComponentResults,
+  loadViolationResults,
   sortApplicationResults,
   sortComponentResults,
   sortViolationResults,
 } from 'MainRoot/dashboard/results/dashboardResultsActions';
+import * as dashboardDataServices from 'MainRoot/dashboard/services/dashboard.data.service';
 
 describe('dashboardResultsActions', function () {
   let loadResults;
@@ -121,6 +124,102 @@ describe('dashboardResultsActions', function () {
   }
 
   tabs.forEach(testLoadResultsAction);
+
+  describe('loadViolationResults', () => {
+    it('calls loadResults with the violations resultsType', (done) => {
+      spyOn(dashboardDataServices, 'getNewestRisks').and.returnValue(
+        Promise.resolve({
+          results: 'violationResults',
+          numResults: 3,
+          classyBrew: 'classyBrew',
+        })
+      );
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(loadViolationResults()).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'violations',
+          },
+          {
+            type: 'LOAD_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'violations',
+              results: 'violationResults',
+              numResults: 3,
+              classyBrew: 'classyBrew',
+            },
+          },
+        ]);
+        done();
+      });
+    });
+  });
+
+  describe('loadComponentResults', () => {
+    it('calls loadResults with the components resultsType', (done) => {
+      spyOn(dashboardDataServices, 'getComponentRisks').and.returnValue(
+        Promise.resolve({
+          results: 'componentResults',
+          numResults: 3,
+          classyBrew: 'classyBrew',
+        })
+      );
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(loadComponentResults()).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'components',
+          },
+          {
+            type: 'LOAD_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'components',
+              results: 'componentResults',
+              numResults: 3,
+              classyBrew: 'classyBrew',
+            },
+          },
+        ]);
+        done();
+      });
+    });
+  });
+
+  describe('loadApplicationResults', () => {
+    it('calls loadResults with the applications resultsType', (done) => {
+      spyOn(dashboardDataServices, 'getApplicationRisks').and.returnValue(
+        Promise.resolve({
+          results: 'applicationResults',
+          numResults: 3,
+          classyBrew: 'classyBrew',
+        })
+      );
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(loadApplicationResults()).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'applications',
+          },
+          {
+            type: 'LOAD_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'applications',
+              results: 'applicationResults',
+              numResults: 3,
+              classyBrew: 'classyBrew',
+            },
+          },
+        ]);
+        done();
+      });
+    });
+  });
 
   describe('sortResults', function () {
     it('updates sortFields and sorts on front end if results < 100', function () {

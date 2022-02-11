@@ -10,31 +10,25 @@ import DashboardApplicationsTable from './DashboardApplicationsTable';
 import { heatMapColorStylerPropTypes } from '../DashboardHeatMapCell';
 import DashboardMask from '../dashboardMask/DashboardMask';
 
-export const APPLICATIONS_RESULTS_TYPE = 'applications';
-
 export default function DashboardApplications(props) {
   const {
       applicationResults,
       filterLoading,
       needsAcknowledgement,
       filtersAreDirty,
-      loadResults,
+      loadApplicationResults,
       sortApplications,
     } = props,
     isLoading = !applicationResults.results && !applicationResults.error;
 
-  const doLoad = () => {
-    loadResults(APPLICATIONS_RESULTS_TYPE);
-  };
-
   useEffect(() => {
     if (!filterLoading && !needsAcknowledgement) {
-      doLoad();
+      loadApplicationResults();
     }
   }, [filterLoading, needsAcknowledgement]);
 
   const tableProps = {
-    reload: doLoad,
+    reload: loadApplicationResults,
     colorStyler: applicationResults && applicationResults.classyBrew,
     sortApplications,
     applicationResults,
@@ -61,6 +55,6 @@ DashboardApplications.propTypes = {
   filterLoading: PropTypes.bool.isRequired,
   needsAcknowledgement: PropTypes.bool.isRequired,
   filtersAreDirty: PropTypes.bool.isRequired,
-  loadResults: PropTypes.func.isRequired,
+  loadApplicationResults: PropTypes.func.isRequired,
   sortApplications: PropTypes.func.isRequired,
 };

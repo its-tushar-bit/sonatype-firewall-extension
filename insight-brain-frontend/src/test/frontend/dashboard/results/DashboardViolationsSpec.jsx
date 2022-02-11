@@ -9,24 +9,22 @@ import DashboardViolationsTable from 'MainRoot//dashboard/results/violations/Das
 import DashboardMask from 'MainRoot/dashboard/results/dashboardMask/DashboardMask';
 
 describe('DashboardViolations', function () {
-  let minimalProps, getShallowComponent, getMountedComponent, loadResultsSpy;
+  let minimalProps, getShallowComponent, getMountedComponent, loadViolationResultsSpy;
 
   beforeEach(function () {
-    loadResultsSpy = jasmine.createSpy('loadResults');
+    loadViolationResultsSpy = jasmine.createSpy('loadViolationResults');
 
     minimalProps = {
-      results: {
-        violations: {
-          results: {},
-          sortFields: ['field'],
-        },
+      violations: {
+        results: {},
+        sortFields: ['field'],
       },
       appliedFilter: {
         maxDaysOld: 0,
       },
       filterLoading: false,
       needsAcknowledgement: false,
-      loadResults: loadResultsSpy,
+      loadViolationResults: loadViolationResultsSpy,
       sortViolations: () => {},
       stateGo: () => {},
     };
@@ -41,20 +39,17 @@ describe('DashboardViolations', function () {
 
   it('calls loadResults if filters are not loading and needsAcknowledgement is false', () => {
     getMountedComponent();
-    expect(loadResultsSpy).toHaveBeenCalledWith('violations');
+    expect(loadViolationResultsSpy).toHaveBeenCalledTimes(1);
   });
 
   it('does not load results if filters are loading', () => {
     getMountedComponent({ filterLoading: true });
-    expect(loadResultsSpy).not.toHaveBeenCalled();
+    expect(loadViolationResultsSpy).not.toHaveBeenCalled();
   });
 
   it('does not load results if needs acknowledgement', () => {
     getMountedComponent({ needsAcknowledgement: true });
-    expect(loadResultsSpy).not.toHaveBeenCalled();
-
-    getMountedComponent({ filterLoading: false, needsAcknowledgement: true });
-    expect(loadResultsSpy).not.toHaveBeenCalled();
+    expect(loadViolationResultsSpy).not.toHaveBeenCalled();
   });
 
   it('renders a form mask if filters are dirty', () => {
@@ -75,11 +70,9 @@ describe('DashboardViolations', function () {
   it('does not render a mask over the table when filters are dirty but there are no results', () => {
     const component = getMountedComponent({
       filtersAreDirty: true,
-      results: {
-        violations: {
-          results: null,
-          sortFields: ['field'],
-        },
+      violations: {
+        results: null,
+        sortFields: ['field'],
       },
     });
     expect(component.find('.form-mask')).not.toExist();
@@ -88,12 +81,10 @@ describe('DashboardViolations', function () {
   it('renders a mask over the table when there are no results but there is an error', () => {
     const component = getMountedComponent({
       filtersAreDirty: true,
-      results: {
-        violations: {
-          results: null,
-          error: 'error',
-          sortFields: ['field'],
-        },
+      violations: {
+        results: null,
+        error: 'error',
+        sortFields: ['field'],
       },
     });
     expect(component.find('.form-mask')).toExist();
@@ -104,7 +95,7 @@ describe('DashboardViolations', function () {
       table = component.find(DashboardViolationsTable);
 
     expect(table).toExist();
-    expect(table).toHaveProp('violations', minimalProps.results.violations);
+    expect(table).toHaveProp('violations', minimalProps.violations);
     expect(table).toHaveProp('needsAcknowledgement', minimalProps.needsAcknowledgement);
     expect(table).toHaveProp('maxDaysOld', minimalProps.appliedFilter.maxDaysOld);
     expect(table).toHaveProp('stateGo', minimalProps.stateGo);

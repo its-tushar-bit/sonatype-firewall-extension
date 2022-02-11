@@ -13,7 +13,7 @@ describe('DashboardApplications', function () {
 
   beforeEach(function () {
     minimalProps = {
-      loadResults: jasmine.createSpy('loadResults'),
+      loadApplicationResults: jasmine.createSpy('loadApplicationResults'),
       sortApplications: jasmine.createSpy('sortApplications'),
       applicationResults: {
         results: [
@@ -57,7 +57,7 @@ describe('DashboardApplications', function () {
     expect(table).toHaveProp('sortApplications', jasmine.any(Function));
 
     table.prop('reload')();
-    expect(minimalProps.loadResults).toHaveBeenCalledWith('applications');
+    expect(minimalProps.loadApplicationResults).toHaveBeenCalled();
 
     table.prop('sortApplications')();
     expect(minimalProps.sortApplications).toHaveBeenCalled();
@@ -106,7 +106,7 @@ describe('DashboardApplications', function () {
     };
 
     getMountedComponent(dashboardApplicationsProps);
-    expect(minimalProps.loadResults).toHaveBeenCalledWith('applications');
+    expect(minimalProps.loadApplicationResults).toHaveBeenCalledTimes(1);
   });
 
   it('Does not load applications results on render if the filter is loading', function () {
@@ -116,7 +116,7 @@ describe('DashboardApplications', function () {
     };
 
     getMountedComponent(dashboardApplicationsProps);
-    expect(minimalProps.loadResults).not.toHaveBeenCalled();
+    expect(minimalProps.loadApplicationResults).not.toHaveBeenCalled();
   });
 
   it('Does not load applications results on render if the filter needs acknowledgment', function () {
@@ -126,6 +126,6 @@ describe('DashboardApplications', function () {
     };
 
     getMountedComponent(dashboardApplicationsProps);
-    expect(minimalProps.loadResults).not.toHaveBeenCalled();
+    expect(minimalProps.loadApplicationResults).not.toHaveBeenCalled();
   });
 });

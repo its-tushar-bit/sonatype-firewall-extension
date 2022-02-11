@@ -3,13 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { getComponentRisksExportUrl, getNewestRisksExportUrl, getApplicationRisksExportUrl } from '../util/CLMLocation';
+import { prop } from 'ramda';
+import { createSelector } from '@reduxjs/toolkit';
+
+import { getApplicationRisksExportUrl, getComponentRisksExportUrl, getNewestRisksExportUrl } from '../util/CLMLocation';
 import {
-  translateViolationsSortFields,
-  translateComponentsSortFields,
   translateApplicationsSortFields,
+  translateComponentsSortFields,
+  translateViolationsSortFields,
 } from './services/sortFieldsUtils';
 import { createDashboardDataRequestPayload } from './utils/dashboard.utils.module';
+import {
+  APPLICATIONS_RESULTS_TYPE,
+  COMPONENTS_RESULTS_TYPE,
+  VIOLATIONS_RESULTS_TYPE,
+} from 'MainRoot/dashboard/results/dashboardResultsTypes';
 
 export const selectExportTitle = (state) => state.router.currentState.data.exportTitle;
 
@@ -52,3 +60,8 @@ export const selectExportUrl = (state) => {
       return '';
   }
 };
+
+const selectDashboardSlice = prop('dashboard');
+export const selectViolationResults = createSelector(selectDashboardSlice, prop(VIOLATIONS_RESULTS_TYPE));
+export const selectComponentResults = createSelector(selectDashboardSlice, prop(COMPONENTS_RESULTS_TYPE));
+export const selectApplicationResults = createSelector(selectDashboardSlice, prop(APPLICATIONS_RESULTS_TYPE));

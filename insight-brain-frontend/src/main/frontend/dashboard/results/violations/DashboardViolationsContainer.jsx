@@ -6,14 +6,16 @@
 import { connect } from 'react-redux';
 
 import DashboardViolations from './DashboardViolations';
-import { stateGo } from '../../../reduxUiRouter/routerActions';
-import { loadResults, sortViolationResults } from '../dashboardResultsActions';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { loadViolationResults, sortViolationResults } from '../dashboardResultsActions';
+import { selectViolationResults } from 'MainRoot/dashboard/dashboardSelectors';
 
-function mapStateToProps({ dashboard, dashboardFilter }) {
+function mapStateToProps(state) {
+  const { dashboardFilter } = state;
   const { loading, needsAcknowledgement, filtersAreDirty, appliedFilter } = dashboardFilter;
 
   return {
-    results: dashboard,
+    violations: selectViolationResults(state),
     filterLoading: loading,
     needsAcknowledgement,
     filtersAreDirty,
@@ -23,8 +25,8 @@ function mapStateToProps({ dashboard, dashboardFilter }) {
 
 const mapDispatchToProps = {
   sortViolations: sortViolationResults,
+  loadViolationResults,
   stateGo,
-  loadResults,
 };
 
 const DashboardViolationsContainer = connect(mapStateToProps, mapDispatchToProps)(DashboardViolations);

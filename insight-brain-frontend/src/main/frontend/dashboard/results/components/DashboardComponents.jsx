@@ -11,23 +11,25 @@ import { heatMapColorStylerPropTypes } from '../DashboardHeatMapCell';
 import DashboardMask from '../dashboardMask/DashboardMask';
 
 export default function DashboardComponents(props) {
-  const COMPONENTS_RESULTS_TYPE = 'components';
-  const { results, filterLoading, needsAcknowledgement, filtersAreDirty, loadResults, sortComponents, stateGo } = props,
-    componentResults = results && results[COMPONENTS_RESULTS_TYPE],
+  const {
+      componentResults,
+      filterLoading,
+      needsAcknowledgement,
+      filtersAreDirty,
+      loadComponentResults,
+      sortComponents,
+      stateGo,
+    } = props,
     isLoading = !componentResults.results && !componentResults.error;
-
-  const doLoad = () => {
-    loadResults(COMPONENTS_RESULTS_TYPE);
-  };
 
   useEffect(() => {
     if (!filterLoading && !needsAcknowledgement) {
-      doLoad();
+      loadComponentResults();
     }
   }, [filterLoading, needsAcknowledgement]);
 
   const tableProps = {
-    reload: doLoad,
+    reload: loadComponentResults,
     colorStyler: componentResults && componentResults.classyBrew,
     componentResults,
     needsAcknowledgement,
@@ -52,13 +54,11 @@ const dashboardResultsShape = PropTypes.shape({
 });
 
 DashboardComponents.propTypes = {
-  results: PropTypes.shape({
-    components: dashboardResultsShape,
-  }),
+  componentResults: dashboardResultsShape,
   filterLoading: PropTypes.bool.isRequired,
   needsAcknowledgement: PropTypes.bool.isRequired,
   filtersAreDirty: PropTypes.bool.isRequired,
-  loadResults: PropTypes.func.isRequired,
+  loadComponentResults: PropTypes.func.isRequired,
   sortComponents: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
 };

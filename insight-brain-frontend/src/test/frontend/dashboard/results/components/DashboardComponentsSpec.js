@@ -13,14 +13,12 @@ describe('DashboardComponents', function () {
 
   beforeEach(function () {
     minimalProps = {
-      loadResults: jasmine.createSpy('loadResults'),
+      loadComponentResults: jasmine.createSpy('loadComponentResults'),
       sortComponents: jasmine.createSpy('sortComponents'),
       stateGo: jasmine.createSpy('stateGo'),
-      results: {
-        components: {
-          results: ['hash1', 'hash2'],
-          sortFields: ['-score'],
-        },
+      componentResults: {
+        results: ['hash1', 'hash2'],
+        sortFields: ['-score'],
       },
     };
 
@@ -47,7 +45,7 @@ describe('DashboardComponents', function () {
     expect(table).toHaveProp('stateGo', jasmine.any(Function));
 
     table.prop('reload')();
-    expect(minimalProps.loadResults).toHaveBeenCalledWith('components');
+    expect(minimalProps.loadComponentResults).toHaveBeenCalled();
 
     table.prop('stateGo')();
     expect(minimalProps.stateGo).toHaveBeenCalled();
@@ -80,10 +78,8 @@ describe('DashboardComponents', function () {
   it('does not render a mask over the table when filters are dirty but there are no results', function () {
     const dashboardComponentProps = {
       filtersAreDirty: true,
-      results: {
-        components: {
-          results: null,
-        },
+      componentResults: {
+        results: null,
       },
     };
 
@@ -95,11 +91,9 @@ describe('DashboardComponents', function () {
   it('renders a mask over the table when there are no results but there is an error', function () {
     const dashboardComponentProps = {
       filtersAreDirty: true,
-      results: {
-        components: {
-          results: null,
-          error: 'error',
-        },
+      componentResults: {
+        results: null,
+        error: 'error',
       },
     };
 
@@ -115,7 +109,7 @@ describe('DashboardComponents', function () {
     };
 
     getMountedComponent(dashboardComponentProps);
-    expect(minimalProps.loadResults).toHaveBeenCalledWith('components');
+    expect(minimalProps.loadComponentResults).toHaveBeenCalledTimes(1);
   });
 
   it('Does not load component results on render if the filter is loading', function () {
@@ -125,7 +119,7 @@ describe('DashboardComponents', function () {
     };
 
     getMountedComponent(dashboardComponentProps);
-    expect(minimalProps.loadResults).not.toHaveBeenCalled();
+    expect(minimalProps.loadComponentResults).not.toHaveBeenCalled();
   });
 
   it('Does not load component results on render if the filter needs acknowledgment', function () {
@@ -135,6 +129,6 @@ describe('DashboardComponents', function () {
     };
 
     getMountedComponent(dashboardComponentProps);
-    expect(minimalProps.loadResults).not.toHaveBeenCalled();
+    expect(minimalProps.loadComponentResults).not.toHaveBeenCalled();
   });
 });

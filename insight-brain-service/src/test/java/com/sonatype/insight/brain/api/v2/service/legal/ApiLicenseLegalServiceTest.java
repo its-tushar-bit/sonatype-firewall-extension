@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -134,6 +133,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
+import org.assertj.core.api.Condition;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -1445,12 +1445,27 @@ public class ApiLicenseLegalServiceTest
     when(mockApiLicenseLegalHdsService.getComponentLegalFiles(componentIdentifiersArgumentCaptor.capture()))
         .thenReturn(new LinkedHashSet<>(Arrays.asList(componentLegalFiles)));
 
+    ArgumentCaptor<ComponentIdentifier> componentIdentifierArgumentCaptor =
+        ArgumentCaptor.forClass(ComponentIdentifier.class);
+
+    LegalSourceLinkDTO[] legalSourceLinks =
+        getContent("lls-legal-source-links.json", LegalSourceLinkDTO[].class);
+    when(mockApiLicenseLegalHdsService.getSourceLinksFromComponentIdentifier(
+        componentIdentifierArgumentCaptor.capture()))
+        .thenAnswer(invocation -> {
+          String sourceLink = "https://mockrepository.com/component.jar";
+          return Sets.newHashSet(new LegalSourceLinkDTO(null, sourceLink, ComponentLegalPartStatus.ENABLED));
+        });
+    when(mockComponentLegalService.getSourceLinksOverridesFromComponentIdentifier(anyString(),
+            any(ComponentIdentifier.class)))
+        .thenReturn(new LinkedHashSet<>(Arrays.asList(legalSourceLinks)));
+
     ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
         stageId == null ? apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app) : apiLicenseLegalServiceSpy
             .getLicenseLegalApplicationReport(app, stageId);
 
     assertThat(licenseMetadataReport).isNotNull();
-    assertlicenseLegalMetadata(licenseMetadataReport.components, licenseMetadataReport.licenseLegalMetadata, rawReport,
+    assertLicenseLegalMetadata(licenseMetadataReport.components, licenseMetadataReport.licenseLegalMetadata, rawReport,
         expectedLicenseFiles);
     assertObligationsArePresent(licenseMetadataReport.licenseLegalMetadata, Arrays.asList(licenseMetadata));
     assertComponentLegalComments(licenseMetadataReport.components,
@@ -1466,6 +1481,15 @@ public class ApiLicenseLegalServiceTest
             .containsExactlyInAnyOrder(expectedComponentIdentifiers));
 
     assertApplicationTelemetry(app, rawReport);
+
+    List<ComponentIdentifier> sourceLinkComponents = componentIdentifierArgumentCaptor.getAllValues();
+    assertThat(sourceLinkComponents).hasSize(expectedComponentIdentifiers.length);
+    assertThat(sourceLinkComponents).containsExactlyInAnyOrder(
+        Arrays.stream(expectedComponentIdentifiers).map(LegalComponentIdentifierUtil::removeClassifierAndExtension)
+            .toArray(ComponentIdentifier[]::new));
+    assertThat(licenseMetadataReport.components.stream().flatMap(c -> c.licenseLegalData.sourceLinks.stream())
+        .collect(Collectors.toSet())).hasSize(3).map(sl -> sl.status).areExactly(3,
+        new Condition<>(status -> status == ComponentLegalPartStatus.ENABLED, "All source links are enabled"));
   }
 
   @Test
@@ -2733,7 +2757,7 @@ public class ApiLicenseLegalServiceTest
     return legalFileDTO;
   }
 
-  private void assertlicenseLegalMetadata(
+  private void assertLicenseLegalMetadata(
       List<ApiLicenseLegalComponentDTO> components,
       Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata,
       ApiReportRawDataDTOV2 rawReport,

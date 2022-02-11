@@ -24,7 +24,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -82,6 +81,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
+import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.license.License;
@@ -532,6 +532,9 @@ public class ApiLicenseLegalService
     Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier =
         getComponentLegalFilesByComponentIdentifier(Collections.singleton(latestRawReport));
 
+    Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> sourceLinksByComponentIdentifier =
+        getSourceLinksByComponentIdentifier(application, Collections.singleton(latestRawReport));
+
     log.info("Building license metadata report for {}.", application.getName());
     return legalReportBuilder
         .getLicenseLegalApplicationReport(
@@ -540,7 +543,8 @@ public class ApiLicenseLegalService
             componentLegalCommentsByComponentIdentifier,
             componentLegalFilesByComponentIdentifier,
             multiLicenseToSingleLicense,
-            licenseMetadataById);
+            licenseMetadataById,
+            sourceLinksByComponentIdentifier);
   }
 
   private void filterInnerSourceComponents(final ApiReportRawDataDTOV2 latestRawReport) {
@@ -1033,6 +1037,20 @@ public class ApiLicenseLegalService
         .collect(Collectors
             .groupingBy(c -> LegalComponentIdentifierUtil.removeClassifierAndExtension(c.getComponentIdentifier()),
                 Collectors.toCollection(LinkedHashSet::new)));
+  }
+
+  private Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> getSourceLinksByComponentIdentifier(
+      final Owner owner,
+      final Collection<ApiReportRawDataDTOV2> rawReports)
+  {
+    return getComponentIdentifiers(rawReports).stream()
+        .map(LegalComponentIdentifierUtil::removeClassifierAndExtension)
+        .distinct()
+        .collect(Collectors.toMap(Function.identity(),
+            compIdentifier -> mergeLegalSourceLinkAndSourceLinkOverride(compIdentifier, owner).stream()
+                .filter(sl -> sl.status == ComponentLegalPartStatus.ENABLED)
+                .collect(Collectors.toSet()))
+        );
   }
 
   @VisibleForTesting

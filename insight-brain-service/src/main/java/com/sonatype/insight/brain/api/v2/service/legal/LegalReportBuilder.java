@@ -18,7 +18,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -92,7 +91,8 @@ public class LegalReportBuilder
       Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier,
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
       Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense,
-      Map<String, LicenseMetadataDTO> licenseMetadataById)
+      Map<String, LicenseMetadataDTO> licenseMetadataById,
+      Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> componentSourceLinksMap)
   {
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata =
         getLicenseLegalMetadata(multiLicenseToSingleLicense, licenseMetadataById);
@@ -103,7 +103,8 @@ public class LegalReportBuilder
             licenseLegalMetadata,
             componentLegalCommentsByComponentIdentifier,
             componentLegalFilesByComponentIdentifier,
-            componentReportLegalMap, null);
+            componentReportLegalMap,
+            componentSourceLinksMap);
     return new ApiLicenseLegalApplicationReportDTO(components, licenseLegalMetadata);
   }
 
@@ -141,7 +142,7 @@ public class LegalReportBuilder
         ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), componentLegalComments),
         ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), componentLegalFiles),
         ImmutableMap.of(apiReportComponentDTOV2, componentIdentifierLegalData),
-        sourceLinks
+        ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), sourceLinks)
     ).get(0);
 
     return new ApiLicenseLegalComponentReportDTO(componentDTO, licenseLegalMetadata);
@@ -153,7 +154,7 @@ public class LegalReportBuilder
       Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier,
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
       Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData> apiReportComponentDTOV2ComponentIdentifierLegalDataMap,
-      Set<LegalSourceLinkDTO> sourceLinks)
+      Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> sourceLinks)
   {
     return apiComponentDTOV2s.stream()
         .filter(apiReportComponentDTOV2 -> apiReportComponentDTOV2.componentIdentifier != null)
@@ -177,7 +178,7 @@ public class LegalReportBuilder
                   componentIdentifierLegalData.getNoticeOverrides(),
                   componentIdentifierLegalData.getObligations(),
                   componentIdentifierLegalData.getAttributions(),
-                  sourceLinks),
+                  sourceLinks.getOrDefault(key, new LinkedHashSet<>())),
               componentIdentifierLegalData.getStageScans());
         })
         .collect(Collectors.toList());

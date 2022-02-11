@@ -91,6 +91,12 @@ public class ApplicationAttributionReportTest
                     .getResourceAsStream("/legal/ApplicationAttributionReportTest-legalFileHdsResponse.json")),
                 StandardCharsets.UTF_8))
         .atUri("/rest/legal/file");
+    testCLMServer.getHdsServer()
+        .respondWith(IOUtils
+            .toString(Objects.requireNonNull(this.getClass()
+                    .getResourceAsStream("/legal/legalSourceLinkHdsResponse.json")),
+                StandardCharsets.UTF_8))
+        .atUri("/rest/legal/source-link");
 
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);

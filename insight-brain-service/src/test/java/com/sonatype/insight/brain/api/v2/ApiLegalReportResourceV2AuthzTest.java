@@ -34,6 +34,7 @@ public class ApiLegalReportResourceV2AuthzTest
     hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
     hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
     hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
   }
 
   @Test

@@ -1,0 +1,15 @@
+[
+  {
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "a",
+        "classifier": "",
+        "extension": "jar",
+        "groupId": "g",
+        "version": "v"
+      }
+    },
+    "sourceLinks": []
+  }
+]

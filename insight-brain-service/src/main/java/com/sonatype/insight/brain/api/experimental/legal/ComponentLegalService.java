@@ -896,7 +896,7 @@ public class ComponentLegalService
       ComponentIdentifier componentIdentifier)
   {
     return sourceLinkOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(ownerId, componentIdentifier).stream()
-        .map(sourceLinkOverride -> sourceLinkOverride).map(LegalSourceLinkDTO::new)
+        .map(LegalSourceLinkDTO::new)
         .sorted(
             Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.sourceLink, String.CASE_INSENSITIVE_ORDER))
         .collect(Collectors.toCollection(LinkedHashSet::new));

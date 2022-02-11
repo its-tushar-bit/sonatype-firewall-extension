@@ -27,28 +27,28 @@ server:
   applicationContextPath: /
 
   applicationConnectors:
-  
+
     - type: http
-    
+
       # The port on which the HTTP server listens for service requests.
       # Because Java cannot drop privileges in a POSIX system, these
       # ports cannot be in the range 1-1024. A port value of 0 will
       # make the OS use an arbitrary unused port.
       port: 8070
-      
+
       # The hostname of the interface to which the application HTTP server socket
       # will be bound. If omitted, the socket will listen on all
       # interfaces.
       #bindHost: 127.0.0.1  # only bind to loopback
-  
+
   adminConnectors:
-  
+
     - type: http
-    
+
       # The port on which the HTTP server listens for administrative
       # requests. Subject to the same limitations as "port".
       port: 8071
-      
+
       # The hostname of the interface to which the admin HTTP server socket
       # will be bound. If omitted, the socket will listen on all
       # interfaces.
@@ -56,15 +56,15 @@ server:
 
   # HTTP request log settings.
   requestLog:
-  
+
     appenders:
-    
+
         # Settings for logging to a file.
       - type: file
 
         # The file to which current statements will be logged.
         currentLogFilename: ./log/request.log
-        
+
         logFormat: "%clientHost %l %user [%date] \"%requestURL\" %statusCode %bytesSent %elapsedTime \"%header{User-Agent}\""
 
         # When the log file rotates, the archived log will be renamed to this and gzipped. The
@@ -173,31 +173,31 @@ logging:
         #- type: file
           # The file to which policy violations will be logged.
           #currentLogFilename: ./log/policy-violation.log
-          # When the policy violation log file rotates, the archived policy violation log will be renamed to this 
+          # When the policy violation log file rotates, the archived policy violation log will be renamed to this
           # and gzipped. The %d is replaced with the previous day (yyyy-MM-dd). Custom rolling windows can be created
           # by passing a SimpleDateFormat-compatible format as an argument: "%d{yyyy-MM-dd-hh}".
           #
           # If archive is true, this must be specified.
           #archivedLogFilenamePattern: ./log/policy-violation-%d.log.gz
           # The number of archived policy violation log files to keep.
-          #archivedFileCount: 5
+          #archivedFileCount: 50
 
   appenders:
-  
+
       # Settings for logging to stdout.
     - type: console
-    
+
       # Do not display log statements below this threshold to stdout.
       threshold: INFO
-      
+
       logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
-      
+
       # Settings for logging to a file.
     - type: file
 
       # Do not write log statements below this threshold to the file.
       threshold: ALL
-      
+
       logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
 
       # The file to which current statements will be logged.

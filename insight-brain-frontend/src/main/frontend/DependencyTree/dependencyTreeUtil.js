@@ -56,6 +56,22 @@ const filterDependencyTreeBy = curry((predicate, tree) =>
   }, [])
 );
 
+export const flattenModuleDirectDependencies = (dependencyTree) => {
+  const newChildren = [];
+  dependencyTree.children.forEach((child) => {
+    if (child.module) {
+      if (child.children) {
+        child.children.forEach((grandchild) => {
+          newChildren.push(grandchild);
+        });
+      }
+    } else {
+      newChildren.push(child);
+    }
+  });
+  return { ...dependencyTree, children: newChildren };
+};
+
 export const filterDependencyTree = (dependencies, entries) => {
   if (!dependencies?.children) return null;
 

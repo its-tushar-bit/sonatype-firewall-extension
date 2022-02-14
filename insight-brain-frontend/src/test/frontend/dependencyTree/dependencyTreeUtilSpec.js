@@ -7,6 +7,7 @@ import {
   deepReduce,
   extendDependencyTreeData,
   filterDependencyTreeBySearchTerm,
+  flattenModuleDirectDependencies,
   getDependencyTreeSubset,
 } from 'MainRoot/DependencyTree/dependencyTreeUtil';
 import { dependencyTreeData, unextendedDependencyTreeData, indexedEntries } from './dependencyTreeMockData';
@@ -129,6 +130,25 @@ describe('dependencyTreeUtil', () => {
       dependencyTreeData.forEach((node) => {
         if (node.children) node.children.forEach((node) => expect(callback).toHaveBeenCalledWith(0, node));
         expect(callback).toHaveBeenCalledWith(0, node);
+      });
+    });
+  });
+
+  describe('flattenModuleDirectDependencies', () => {
+    it('flattens direct module dependencies in the tree', () => {
+      const dependencyTree = {
+        packageUrl: 'a',
+        children: [
+          { packageUrl: 'a1', module: true },
+          { packageUrl: 'a2', module: true, children: [] },
+          { packageUrl: 'a3', module: true, children: [{ packageUrl: 'a31' }, { packageUrl: 'a32' }] },
+          { packageUrl: 'a4' },
+        ],
+      };
+      const result = flattenModuleDirectDependencies(dependencyTree);
+      expect(result).toEqual({
+        packageUrl: 'a',
+        children: [{ packageUrl: 'a31' }, { packageUrl: 'a32' }, { packageUrl: 'a4' }],
       });
     });
   });

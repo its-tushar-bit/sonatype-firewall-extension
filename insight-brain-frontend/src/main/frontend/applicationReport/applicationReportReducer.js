@@ -74,6 +74,7 @@ import {
   extendDependencyTreeData,
   filterDependencyTree,
   filterDependencyTreeBySearchTerm,
+  flattenModuleDirectDependencies,
 } from 'MainRoot/DependencyTree/dependencyTreeUtil';
 
 import { sortItemsByFields } from '../util/sortUtils';
@@ -468,7 +469,9 @@ function setExtendedTreeData(state, dependencies) {
 
   const entriesByKey = map(populateEntryNodeKeys, state.selectedReport?.aggregatedEntries);
   const indexedEntries = indexBy(getKey, entriesByKey);
-  const filteredDependencyTree = filterDependencyTree(dependencies.dependencyTree, indexedEntries);
+  // In a multi-module project direct dependencies can be modules without corresponding bom entries, so we flatten them
+  const dependencyTree = flattenModuleDirectDependencies(dependencies.dependencyTree);
+  const filteredDependencyTree = filterDependencyTree(dependencyTree, indexedEntries);
   const dependencyTreeWithExtendedData = extendDependencyTreeData(filteredDependencyTree, indexedEntries);
 
   return {

@@ -241,18 +241,18 @@ public class UserServiceAuthzTest
   @Test
   public void testGetAllApiUserDTOs_Authorized() {
     grantConfigureSystemPermission();
-    assertThat(userService.getAllApiUserDTOs()).isNotNull();
+    assertThat(userService.getAllApiUserDTOs(User.INTERNAL_REALM_ID)).isNotNull();
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetAllApiUserDTOs_Unauthorized() {
     login();
-    userService.getAllApiUserDTOs();
+    userService.getAllApiUserDTOs(User.INTERNAL_REALM_ID);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAllApiUserDTOs_Unauthenticated() {
-    userService.getAllApiUserDTOs();
+    userService.getAllApiUserDTOs(User.INTERNAL_REALM_ID);
   }
 
   @Test(expected = UnauthenticatedException.class)

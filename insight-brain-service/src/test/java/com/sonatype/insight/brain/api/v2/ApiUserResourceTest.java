@@ -11,9 +11,14 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserListDTO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertEqualExceptNullDTOPassword;
@@ -76,15 +81,58 @@ public class ApiUserResourceTest
   }
 
   @Test
-  public void testGetAll() throws Exception {
-    User user = tempEntity.newUser();
+  public void testGetAll_SamlUserTokensDisabled() throws Exception {
+    setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
+    testGetAll(null, null);
+  }
 
-    HttpResponse response = restRequest().get();
+  @Test
+  public void testGetAll_SamlUserTokensDisabled_Saml() throws Exception {
+    setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
+    testGetAll("saml", null);
+  }
+
+  @Test
+  public void testGetAll_SamlUserTokensEnabled() throws Exception {
+    setFeatures(LicensedFeature.SAML_USER_TOKENS);
+    testGetAll(null, User.INTERNAL_REALM_ID);
+  }
+
+  @Test
+  public void testGetAll_SamlUserTokensEnabled_Saml() throws Exception {
+    setFeatures(LicensedFeature.SAML_USER_TOKENS);
+    testGetAll("saml", SamlUser.SAML_REALM_ID);
+  }
+
+  private void testGetAll(String queryRealm, String expectedRealm) throws Exception {
+    User user = tempEntity.newUser();
+    SamlUser samlUser1 = tempEntity.newSamlUser();
+    SamlUser samlUser2 = tempEntity.newSamlUser();
+
+    HttpResponse response = restRequest().query("realm", queryRealm).get();
 
     assertResponseStatus(200, response);
     ApiUserListDTO apiUserListDTO = response.getBody(ApiUserListDTO.class);
     assertThat(apiUserListDTO).isNotNull();
-    assertThat(apiUserListDTO.users).extracting(apiUserDTO -> apiUserDTO.username)
-        .containsExactlyInAnyOrder(User.ADMIN_USERNAME, user.getUsername());
+    if (SamlUser.SAML_REALM_ID.equals(expectedRealm)) {
+      assertThat(apiUserListDTO.users).extracting(apiUserDTO -> apiUserDTO.username)
+          .containsExactlyInAnyOrder(samlUser1.getUsername(), samlUser2.getUsername());
+    }
+    else {
+      assertThat(apiUserListDTO.users).extracting(apiUserDTO -> apiUserDTO.username)
+          .containsExactlyInAnyOrder(User.ADMIN_USERNAME, user.getUsername());
+    }
+    assertThat(apiUserListDTO.users).allSatisfy(apiUserDTO -> assertThat(apiUserDTO.realm).isEqualTo(expectedRealm));
+    assertPresenceOfRealmField(expectedRealm, response);
+  }
+
+  private void assertPresenceOfRealmField(final String expectedRealm, final HttpResponse response)
+      throws JsonProcessingException
+  {
+    ObjectMapper objectMapper = new ObjectMapper();
+    JsonNode jsonNode = objectMapper.readTree(response.getBodyText()).get("users");
+    for (JsonNode child : jsonNode) {
+      assertThat(child.has("realm")).isEqualTo(expectedRealm != null);
+    }
   }
 }

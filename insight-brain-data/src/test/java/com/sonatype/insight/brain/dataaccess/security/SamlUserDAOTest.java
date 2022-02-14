@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.security;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -187,6 +188,24 @@ public class SamlUserDAOTest
     assertThat(userViewedProductNotificationDAO.getById(userViewedProductNotification3.getId())).isNotNull();
     assertThat(userViewedProductNotificationDAO.getById(userViewedProductNotification4.getId())).isNotNull();
     assertThat(userViewedProductNotificationDAO.getById(userViewedProductNotification5.getId())).isNotNull();
+  }
+
+  @Test
+  public void testGetAll() throws Exception {
+    SamlUser samlUser1 = tempEntity.newSamlUser();
+    SamlUser samlUser2 = tempEntity.newSamlUser();
+
+    List<SamlUser> users = samlUserDAO.getAll();
+    assertThat(users).hasSize(2);
+    assertSamlUser(samlUser1, users);
+    assertSamlUser(samlUser2, users);
+  }
+
+  private void assertSamlUser(SamlUser expectedSamlUser, List<SamlUser> users) {
+    SamlUser foundUser = users.stream()
+        .filter(samlUser -> expectedSamlUser.getUsername().equals(samlUser.getUsername())).findFirst().orElse(null);
+    assertThat(foundUser).isNotNull().usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(expectedSamlUser);
   }
 
   private SamlUser createSamlUser() {

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.util.List;
+
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
@@ -79,5 +81,11 @@ public class SamlUserDAO
     userViewedProductNotificationDAO.deleteByUsernameAndRealmId(tx, entity.getUsername(), SamlUser.SAML_REALM_ID);
 
     super.delete(tx, entity);
+  }
+
+  public List<SamlUser> getAll() {
+    String sQuery = "SELECT entity FROM SamlUser entity" + //
+        " ORDER BY entity.username";
+    return getList(sQuery);
   }
 }

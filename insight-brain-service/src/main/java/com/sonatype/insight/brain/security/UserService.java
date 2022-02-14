@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NamingException;
@@ -16,15 +15,19 @@ import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserListDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -65,9 +68,13 @@ public class UserService
 
   private final UserDAO userDAO = new UserDAO();
 
+  private final SamlUserDAO samlUserDAO = new SamlUserDAO();
+
   private final CurrentUser currentUser;
   
   private final DefaultWebSessionManager defaultWebSessionManager;
+
+  private final ProductLicense productLicense;
 
   @Inject
   public UserService(
@@ -77,7 +84,8 @@ public class UserService
       UserDirectory userDirectory,
       InsightConfig insightConfig,
       CurrentUser currentUser,
-      DefaultWebSessionManager defaultWebSessionManager)
+      DefaultWebSessionManager defaultWebSessionManager,
+      ProductLicense productLicense)
   {
     this.clmRealm = clmRealm;
     this.passwordService = passwordService;
@@ -86,6 +94,7 @@ public class UserService
     this.insightConfig = insightConfig;
     this.currentUser = currentUser;
     this.defaultWebSessionManager = defaultWebSessionManager;
+    this.productLicense = productLicense;
   }
 
   // Authorization is checked in findMembersForNonGlobalRoles and findMembersForGlobalRoles
@@ -344,9 +353,16 @@ public class UserService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public ApiUserListDTO getAllApiUserDTOs() {
+  public ApiUserListDTO getAllApiUserDTOs(String realmId) {
     ApiUserListDTO apiUserListDTO = new ApiUserListDTO();
-    apiUserListDTO.users = userDAO.getAll().stream().map(this::convert).collect(Collectors.toList());
+    if (hasSamlUserTokenSupport() && SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+      apiUserListDTO.users = samlUserDAO.getAll().stream().map(this::convert).collect(Collectors.toList());
+    }
+    else {
+      apiUserListDTO.users = userDAO.getAll().stream()
+          .map(user -> convert(user, hasSamlUserTokenSupport()))
+          .collect(Collectors.toList());
+    }
     return apiUserListDTO;
   }
 
@@ -392,13 +408,30 @@ public class UserService
     deleteUser(userDAO.getByUsernameNotNull(username));
   }
 
+  private ApiUserDTO convert(SamlUser user) {
+    ApiUserDTO userDTO = new ApiUserDTO();
+    userDTO.username = user.getUsername();
+    userDTO.firstName = user.getFirstName();
+    userDTO.lastName = user.getLastName();
+    userDTO.email = user.getEmail();
+    userDTO.realm = SamlUser.SAML_REALM_ID;
+    return userDTO;
+  }
+
   private ApiUserDTO convert(User user) {
+    return convert(user, false);
+  }
+
+  private ApiUserDTO convert(User user, boolean withRealm) {
     ApiUserDTO userDTO = new ApiUserDTO();
     userDTO.username = user.getUsername();
     // exclude password
     userDTO.firstName = user.getFirstName();
     userDTO.lastName = user.getLastName();
     userDTO.email = user.getEmail();
+    if (withRealm) {
+      userDTO.realm = User.INTERNAL_REALM_ID;
+    }
     return userDTO;
   }
 
@@ -414,5 +447,9 @@ public class UserService
     user.setLastName(userDTO.lastName);
     user.setEmail(userDTO.email);
     return user;
+  }
+
+  private boolean hasSamlUserTokenSupport() {
+    return productLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS);
   }
 }

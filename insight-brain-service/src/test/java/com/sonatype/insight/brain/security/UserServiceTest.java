@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
@@ -19,13 +18,16 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +42,7 @@ import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTO
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToUpdate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.when;
 
 public class UserServiceTest
     extends AbstractComponentTest
@@ -56,9 +59,13 @@ public class UserServiceTest
   @Mock
   private SessionDAO sessionDAOMock;
 
+  @Mock
+  private ProductLicense productLicenseMock;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(SessionDAO.class).toInstance(sessionDAOMock);
+    binder.bind(ProductLicense.class).toInstance(productLicenseMock);
     super.configure(binder);
   }
 
@@ -388,23 +395,65 @@ public class UserServiceTest
   }
 
   @Test
-  public void testGetAllApiUserDTOs() {
-    User admin = new UserDAO().getByUsername(User.ADMIN_USERNAME);
-    User user = tempEntity.newUser();
+  public void testGetAllApiUserDTOs_SamlUserTokensDisabled_Internal() {
+    testGetAllApiUserDTOs_User(User.INTERNAL_REALM_ID, null);
+  }
 
-    ApiUserListDTO apiUserListDTO = userService.getAllApiUserDTOs();
+  @Test
+  public void testGetAllApiUserDTOs_SamlUserTokensEnabled_Internal() {
+    when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+    testGetAllApiUserDTOs_User(User.INTERNAL_REALM_ID, User.INTERNAL_REALM_ID);
+  }
+
+  @Test
+  public void testGetAllApiUserDTOs_SamlUserTokensDisabled_Saml() {
+    testGetAllApiUserDTOs_User(SamlUser.SAML_REALM_ID, null);
+  }
+
+  @Test
+  public void testGetAllApiUserDTOs_SamlUserTokensEnabled_Saml() {
+    when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+    SamlUser user1 = tempEntity.newSamlUser();
+    SamlUser user2 = tempEntity.newSamlUser();
+
+    ApiUserListDTO apiUserListDTO = userService.getAllApiUserDTOs(SamlUser.SAML_REALM_ID);
 
     assertThat(apiUserListDTO).isNotNull();
     assertThat(apiUserListDTO.users).hasSize(2);
-    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, admin);
-    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, user);
+    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, user1);
+    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, user2);
   }
 
-  private void assertContainsApiUserDTOMatchingUser(List<ApiUserDTO> apiUserDTOs, User user) {
+  private void testGetAllApiUserDTOs_User(String queryRealm, String expectedRealm) {
+    User admin = new UserDAO().getByUsername(User.ADMIN_USERNAME);
+    User user = tempEntity.newUser();
+
+    ApiUserListDTO apiUserListDTO = userService.getAllApiUserDTOs(queryRealm);
+
+    assertThat(apiUserListDTO).isNotNull();
+    assertThat(apiUserListDTO.users).hasSize(2);
+    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, admin, expectedRealm);
+    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, user, expectedRealm);
+  }
+
+  private void assertContainsApiUserDTOMatchingUser(List<ApiUserDTO> apiUserDTOs, User user, String realm) {
     ApiUserDTO apiUserDTO =
         apiUserDTOs.stream().filter(dto -> dto.username.equals(user.getUsername())).findFirst().orElse(null);
     assertThat(apiUserDTO).isNotNull();
     assertEqualExceptNullDTOPassword(user, apiUserDTO);
+    assertThat(apiUserDTO.realm).isEqualTo(realm);
+  }
+
+  private void assertContainsApiUserDTOMatchingUser(List<ApiUserDTO> apiUserDTOs, SamlUser user) {
+    ApiUserDTO userDTO =
+        apiUserDTOs.stream().filter(dto -> dto.username.equals(user.getUsername())).findFirst().orElse(null);
+    assertThat(userDTO).isNotNull();
+    assertThat(userDTO.username).isEqualTo(user.getUsername());
+    assertThat(userDTO.password).isNull();
+    assertThat(userDTO.firstName).isEqualTo(user.getFirstName());
+    assertThat(userDTO.lastName).isEqualTo(user.getLastName());
+    assertThat(userDTO.email).isEqualTo(user.getEmail());
+    assertThat(userDTO.realm).isEqualTo(SamlUser.SAML_REALM_ID);
   }
 
   @Test

@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiUserListDTO;
  */
 public interface ApiUserResource
 {
-  ApiUserListDTO getAll();
+  ApiUserListDTO getAll(String realmId);
 
   ApiUserDTO get(String username);
 

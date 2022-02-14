@@ -178,9 +178,9 @@ describe('EditLicensesForm', () => {
     it('renders license name', () => {
       const wrapper = getShallowComponent({ ...licensesProps }),
         ddList = wrapper.find('dd'),
-        declaredLicenses = ddList.at(0),
-        observedLicenses = ddList.at(1),
-        effectiveLicenses = ddList.at(2);
+        effectiveLicenses = ddList.at(0),
+        declaredLicenses = ddList.at(1),
+        observedLicenses = ddList.at(2);
 
       expect(ddList.length).toBe(3);
       expect(declaredLicenses.text()).toContain('Apache-2.0');
@@ -206,9 +206,9 @@ describe('EditLicensesForm', () => {
         identificationSource: 'Manual',
       });
       const ddList = component.find('dd'),
-        declaredLicenses = ddList.at(0),
-        observedLicenses = ddList.at(1),
-        effectiveLicenses = ddList.at(2);
+        effectiveLicenses = ddList.at(0),
+        declaredLicenses = ddList.at(1),
+        observedLicenses = ddList.at(2);
 
       expect(ddList.length).toBe(3);
       expect(declaredLicenses.text()).toContain('Not Provided (Claimed Component)');
@@ -224,9 +224,9 @@ describe('EditLicensesForm', () => {
       expect(threatIndicators.at(0)).toExist();
       expect(threatIndicators.at(0)).toHaveProp('policyThreatLevel', 10);
       expect(threatIndicators.at(1)).toExist();
-      expect(threatIndicators.at(1)).toHaveProp('policyThreatLevel', 5);
+      expect(threatIndicators.at(1)).toHaveProp('policyThreatLevel', 10);
       expect(threatIndicators.at(2)).toExist();
-      expect(threatIndicators.at(2)).toHaveProp('policyThreatLevel', 10);
+      expect(threatIndicators.at(2)).toHaveProp('policyThreatLevel', 5);
     });
   });
 

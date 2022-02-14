@@ -175,27 +175,45 @@ export default function EditLicensesForm({
   );
 
   const licenseInfoSection = (
-    <dl className="nx-read-only">
-      <dt className="nx-read-only__label">Declared Licenses</dt>
-      <dd className="nx-read-only__data" id="declared-licenses-container">
-        <NxList bulleted>{renderLicensesList(declaredLicenses, licenseLegalMetadata, isClaimed)}</NxList>
-      </dd>
-      <dt className="nx-read-only__label">Observed Licenses</dt>
-      <dd className="nx-read-only__data " id="observed-licenses-container">
-        <NxList bulleted>{renderLicensesList(observedLicenses, licenseLegalMetadata, isClaimed)}</NxList>
-      </dd>
-      <dt className="nx-read-only__label">Effective Licenses</dt>
-      <dd className="nx-read-only__data" id="effective-licenses-container">
-        <NxList bulleted>{renderLicensesList(effectiveLicenses, licenseLegalMetadata, isClaimed, true)}</NxList>
-      </dd>
-    </dl>
+    <div className="nx-grid-row iq-license-info-section">
+      <div className="nx-grid-col nx-grid-col--33">
+        <dl className="nx-read-only">
+          <dt className="nx-read-only__label">Effective Licenses</dt>
+          <dd className="nx-read-only__data" id="effective-licenses-container">
+            <NxList bulleted>{renderLicensesList(effectiveLicenses, licenseLegalMetadata, isClaimed, true)}</NxList>
+          </dd>
+        </dl>
+      </div>
+      <div className="nx-grid-col nx-grid-col--33">
+        <dl className="nx-read-only">
+          <dt className="nx-read-only__label">Declared Licenses</dt>
+          <dd className="nx-read-only__data" id="declared-licenses-container">
+            <NxList bulleted>{renderLicensesList(declaredLicenses, licenseLegalMetadata, isClaimed)}</NxList>
+          </dd>
+        </dl>
+      </div>
+      <div className="nx-grid-col nx-grid-col--33">
+        <dl className="nx-read-only">
+          <dt className="nx-read-only__label">Observed Licenses</dt>
+          <dd className="nx-read-only__data" id="observed-licenses-container">
+            <NxList bulleted>{renderLicensesList(observedLicenses, licenseLegalMetadata, isClaimed)}</NxList>
+          </dd>
+        </dl>
+      </div>
+    </div>
   );
 
   const commentField = (
     <div className="nx-form-group iq-edit-licenses-form__comment">
       <label className="nx-label">
         <span className="nx-label__text">Comment</span>
-        <NxTextInput type="textarea" maxLength={1000} {...comment} onChange={setLicenseComment} />
+        <NxTextInput
+          type="textarea"
+          maxLength={1000}
+          {...comment}
+          className="nx-text-input--long"
+          onChange={setLicenseComment}
+        />
       </label>
     </div>
   );
@@ -244,16 +262,12 @@ export default function EditLicensesForm({
       validationErrors={getValidationErrors()}
       onCancel={handleOnCancel}
     >
-      <div className="nx-grid-row">
-        <div className="nx-grid-col iq-license-info-section">{licenseInfoSection}</div>
-        <div className="nx-grid-col iq-license-form-fields">
-          {scopeField}
-          {statusField}
-          {status === 'SELECTED' && selectedLicensesField}
-          {overriddenFormField}
-          {commentField}
-        </div>
-      </div>
+      {licenseInfoSection}
+      <div>{scopeField}</div>
+      <div>{statusField}</div>
+      {status === 'SELECTED' && <div>{selectedLicensesField}</div>}
+      {status === 'OVERRIDDEN' && <div>{overriddenFormField}</div>}
+      <div>{commentField}</div>
     </NxForm>
   );
 }

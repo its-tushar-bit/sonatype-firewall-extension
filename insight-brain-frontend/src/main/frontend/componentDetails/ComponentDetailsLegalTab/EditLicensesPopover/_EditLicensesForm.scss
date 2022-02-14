@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 .iq-edit-licenses-form {
   &__comment .nx-text-input {
     min-height: 200px;
-    width: 100%;
   }
 
   &__scope-status {
@@ -18,10 +18,10 @@
 }
 
 #iq-edit-licenses-form {
-  .iq-license-info-section {
-    max-width: 200px;
+  .nx-read-only__data {
+    @include nx-container-helpers.container-vertical;
   }
-  .iq-license-form-fields {
-    padding-left: var(--nx-spacing-6x);
+  .license-list-item__license {
+    display: inline-block;
   }
 }

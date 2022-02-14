@@ -344,6 +344,9 @@ public class InsightConfig
   @JsonProperty
   private int maxApplicationsToQueryOnDashboard = 0;
 
+  @JsonProperty
+  private String initialAdminPassword;
+
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -1050,5 +1053,13 @@ public class InsightConfig
 
   public void setMaxApplicationsToQueryOnDashboard(int maxApplicationsToQueryOnDashboard) {
     this.maxApplicationsToQueryOnDashboard = maxApplicationsToQueryOnDashboard;
+  }
+
+  public String getInitialAdminPassword() {
+    return initialAdminPassword;
+  }
+
+  public void setInitialAdminPassword(String initialAdminPassword) {
+    this.initialAdminPassword = initialAdminPassword;
   }
 }

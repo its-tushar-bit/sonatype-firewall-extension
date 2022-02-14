@@ -44,6 +44,8 @@ public class DataMigrator
 
   private final SourceControlFileStorageMigrator sourceControlFileStorageMigrator;
 
+  private final AdminInitialPasswordMigrator adminInitialPasswordMigrator;
+
   @Inject
   public DataMigrator(
       PolicyJsonMigrator policyJsonMigrator,
@@ -58,7 +60,8 @@ public class DataMigrator
       ProductLicenseMigrator productLicenseMigrator,
       PullRequestCommentingConfigMigrator pullRequestCommentingConfigMigrator,
       InternalSourceControlPolicyEvaluationsConfigMigrator internalSourceControlEvaluationsConfigMigrator,
-      SourceControlFileStorageMigrator sourceControlFileStorageMigrator)
+      SourceControlFileStorageMigrator sourceControlFileStorageMigrator,
+      AdminInitialPasswordMigrator adminInitialPasswordMigrator)
   {
     this.policyJsonMigrator = policyJsonMigrator;
     this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
@@ -73,6 +76,7 @@ public class DataMigrator
     this.pullRequestCommentingConfigMigrator = pullRequestCommentingConfigMigrator;
     this.internalSourceControlEvaluationsConfigMigrator = internalSourceControlEvaluationsConfigMigrator;
     this.sourceControlFileStorageMigrator = sourceControlFileStorageMigrator;
+    this.adminInitialPasswordMigrator = adminInitialPasswordMigrator;
   }
 
   /**
@@ -92,5 +96,6 @@ public class DataMigrator
     pullRequestCommentingConfigMigrator.migrate();
     internalSourceControlEvaluationsConfigMigrator.migrate();
     sourceControlFileStorageMigrator.migrate();
+    adminInitialPasswordMigrator.migrate();
   }
 }

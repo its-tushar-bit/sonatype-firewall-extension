@@ -48,17 +48,24 @@ public class AdminInitialPasswordMigratorTest
 
   @After
   public void after() {
+    // tracker must always be present after migrator runs
+    assertThat(migrationTrackerDAO.getById(ADMIN_PASSWORD_MIGRATOR_ID)).isNotNull();
+
+    // reset admin password
     User admin = userDAO.getById(adminId);
     admin.setPassword(defaultAdminPasswordHashed);
     userDAO.update(admin);
 
-    migrationTrackerDAO.deleteById(ADMIN_PASSWORD_MIGRATOR_ID);
+    // reset config and db
     config.setInitialAdminPassword(null);
+    migrationTrackerDAO.deleteById(ADMIN_PASSWORD_MIGRATOR_ID);
   }
 
   @Test
-  public void testMigrate() {
+  public void testMigrate_NoTacker_CustomPasswordProvided() {
+    migrationTrackerDAO.deleteById(ADMIN_PASSWORD_MIGRATOR_ID);
     config.setInitialAdminPassword(customPassword);
+
     adminInitialPasswordMigrator.migrate();
 
     User admin = userDAO.getById(adminId);
@@ -66,19 +73,34 @@ public class AdminInitialPasswordMigratorTest
   }
 
   @Test
-  public void testMigrate_TrackerPresent_ShouldNotModifyAdminPassword() {
-    migrationTrackerDAO.insertTracker(ADMIN_PASSWORD_MIGRATOR_ID);
+  public void testMigrate_NoTracker_CustomPasswordNotProvided() {
+    migrationTrackerDAO.deleteById(ADMIN_PASSWORD_MIGRATOR_ID);
+    config.setInitialAdminPassword(null);
 
-    config.setInitialAdminPassword(customPassword);
     adminInitialPasswordMigrator.migrate();
 
-    User admin = userDAO.getById("ADMIN");
+    User admin = userDAO.getById(adminId);
     assertThat(admin.getPassword()).isEqualTo(defaultAdminPasswordHashed);
   }
 
   @Test
-  public void testMigrate_NoTracker_CustomPasswordNotProvided() {
+  public void testMigrate_TrackerPresent_CustomPasswordProvided() {
+    migrationTrackerDAO.insertTracker(ADMIN_PASSWORD_MIGRATOR_ID);
+    config.setInitialAdminPassword(customPassword);
+
     adminInitialPasswordMigrator.migrate();
+
+    User admin = userDAO.getById(adminId);
+    assertThat(admin.getPassword()).isEqualTo(defaultAdminPasswordHashed);
+  }
+
+  @Test
+  public void testMigrate_TrackerPresent_CustomPasswordNotProvided() {
+    migrationTrackerDAO.insertTracker(ADMIN_PASSWORD_MIGRATOR_ID);
+    config.setInitialAdminPassword(null);
+
+    adminInitialPasswordMigrator.migrate();
+
     User admin = userDAO.getById(adminId);
     assertThat(admin.getPassword()).isEqualTo(defaultAdminPasswordHashed);
   }

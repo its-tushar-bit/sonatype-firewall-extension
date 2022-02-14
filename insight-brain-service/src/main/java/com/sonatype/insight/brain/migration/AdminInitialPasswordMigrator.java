@@ -61,6 +61,7 @@ public class AdminInitialPasswordMigrator
 
     if (StringUtils.isEmpty(insightWork.getInitialAdminPassword())) {
       log.info("Using the default initial password for admin user.");
+      migrationTrackerDAO.insertTracker(ADMIN_PASSWORD_MIGRATOR_ID);
       return;
     }
 

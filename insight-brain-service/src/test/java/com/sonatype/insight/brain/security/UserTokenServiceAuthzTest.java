@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -75,5 +76,22 @@ public class UserTokenServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testUserTokenExistsForCurrentUser_Unauthenticated() throws Exception {
     userTokenService.userTokenExistsForCurrentUser();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetUserTokenByUsernameAndRealmId_Unauthenticated() {
+    userTokenService.getUserTokenByUsernameAndRealmId(null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetUserTokenByUsernameAndRealmId_Unauthorized() {
+    login();
+    userTokenService.getUserTokenByUsernameAndRealmId(null, null);
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testGetUserTokenByUsernameAndRealmId_Authorized() {
+    grantConfigureSystemPermission();
+    userTokenService.getUserTokenByUsernameAndRealmId(null, null);
   }
 }

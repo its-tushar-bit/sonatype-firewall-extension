@@ -29,6 +29,8 @@ import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.SamlUser;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -38,6 +40,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -161,8 +164,34 @@ public class UserTokenService
     return userTokenDAO
         .getByCreateDateBetween(parse(createdAfter), parse(createdBefore))
         .stream()
-        .map(userToken -> new ApiUserTokenDTO(userToken.getUserCode()))
+        .map(this::createApiUserTokenDTO)
         .collect(Collectors.toList());
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public ApiUserTokenDTO getUserTokenByUsernameAndRealmId(String username, String realmId) {
+    if (StringUtils.isBlank(username)) {
+      throw new BadRequestException("A username is required.");
+    }
+    if (!hasSamlUserTokenSupport()) {
+      realmId = User.INTERNAL_REALM_ID;
+    }
+    else {
+      realmId = normalizeRealmId(realmId);
+    }
+    UserToken userToken = userTokenDAO.getByUsernameAndRealmId(username, realmId);
+    if (userToken == null) {
+      throw new NotFoundException(
+          "No user token found for " + (hasSamlUserTokenSupport() ? realmId + " " : "") + "user " + username + ".");
+    }
+    return createApiUserTokenDTO(userToken);
+  }
+
+  private String normalizeRealmId(String realmId) {
+    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+      return SamlUser.SAML_REALM_ID;
+    }
+    return User.INTERNAL_REALM_ID;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -228,5 +257,19 @@ public class UserTokenService
     catch (ParseException e) {
       throw new BadRequestException(String.format("Could not parse: %s. Expected format is: yyyy-MM-dd.", dateString));
     }
+  }
+
+  private boolean hasSamlUserTokenSupport() {
+    return productLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS);
+  }
+
+  private ApiUserTokenDTO createApiUserTokenDTO(UserToken userToken) {
+    ApiUserTokenDTO apiUserTokenDTO = new ApiUserTokenDTO();
+    apiUserTokenDTO.userCode = userToken.getUserCode();
+    apiUserTokenDTO.username = userToken.getUsername();
+    if (hasSamlUserTokenSupport()) {
+      apiUserTokenDTO.realm = userToken.getRealmId();
+    }
+    return apiUserTokenDTO;
   }
 }

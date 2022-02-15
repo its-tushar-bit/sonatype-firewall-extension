@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.SamlUser;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -351,5 +352,106 @@ public class UserTokenServiceTest
     apiUserTokenExistsDTO = userTokenService.userTokenExistsForCurrentUser();
     assertThat(apiUserTokenExistsDTO).isNotNull();
     assertThat(apiUserTokenExistsDTO.userTokenExists).isFalse();
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_NullUsernameAndNullRealmId() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> userTokenService.getUserTokenByUsernameAndRealmId(null, null))
+        .withMessageContaining("A username is required.");
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_NullUsername() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> userTokenService.getUserTokenByUsernameAndRealmId(null, User.INTERNAL_REALM_ID))
+        .withMessageContaining("A username is required.");
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_EmptyUsername() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> userTokenService.getUserTokenByUsernameAndRealmId("", User.INTERNAL_REALM_ID))
+        .withMessageContaining("A username is required.");
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_BlankUsername() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> userTokenService.getUserTokenByUsernameAndRealmId(" ", User.INTERNAL_REALM_ID))
+        .withMessageContaining("A username is required.");
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_NullRealmId() {
+    testGetUserTokenByUsernameAndRealmId(true, null);
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_UnknownRealmId() {
+    testGetUserTokenByUsernameAndRealmId(true, "unknown");
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_InternalRealmId() {
+    testGetUserTokenByUsernameAndRealmId(true, "InTeRnAl");
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_SamlRealmId() {
+    testGetUserTokenByUsernameAndRealmId(true, "SaMl");
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_NullRealmId() {
+    testGetUserTokenByUsernameAndRealmId(false, null);
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_UnknownRealmId() {
+    testGetUserTokenByUsernameAndRealmId(false, "unknown");
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_InternalRealmId() {
+    testGetUserTokenByUsernameAndRealmId(false, "InTeRnAl");
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_SamlRealmId() {
+    testGetUserTokenByUsernameAndRealmId(false, "SaMl");
+  }
+
+  private void testGetUserTokenByUsernameAndRealmId(boolean isSamlUserTokensEnabled, String realmId) {
+    UserToken internalUserToken1 =
+        tempEntity.newUserToken("username1", "userCode1", "passCode", User.INTERNAL_REALM_ID);
+    tempEntity.newUserToken("username2", User.INTERNAL_REALM_ID);
+    UserToken samlUserToken1 = tempEntity.newUserToken("username1", "userCode2", "passCode", SamlUser.SAML_REALM_ID);
+    tempEntity.newUserToken("username2", "userCode3", "passCode", SamlUser.SAML_REALM_ID);
+    tempEntity.newUserToken("username1", "userCode4", "passCode", "other");
+    tempEntity.newUserToken("username2", "userCode5", "passCode", "other");
+    if (isSamlUserTokensEnabled) {
+      when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+    }
+
+    ApiUserTokenDTO result = userTokenService.getUserTokenByUsernameAndRealmId("username1", realmId);
+
+    String expectedRealmId;
+    if (isSamlUserTokensEnabled && SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+      assertThat(result.userCode).isEqualTo(samlUserToken1.getUserCode());
+      expectedRealmId = SamlUser.SAML_REALM_ID;
+    }
+    else {
+      assertThat(result.userCode).isEqualTo(internalUserToken1.getUserCode());
+      expectedRealmId = User.INTERNAL_REALM_ID;
+    }
+    assertThat(result.passCode).isNull();
+    assertThat(result.username).isEqualTo("username1");
+    if (isSamlUserTokensEnabled) {
+      assertThat(result.realm).isEqualTo(expectedRealmId);
+    }
+    else {
+      assertThat(result.realm).isNull();
+    }
   }
 }

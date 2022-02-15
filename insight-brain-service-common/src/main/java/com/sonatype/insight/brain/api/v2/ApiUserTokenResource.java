@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
+
 import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
@@ -29,6 +30,11 @@ public interface ApiUserTokenResource
    * @since 1.87
    */
   List<ApiUserTokenDTO> getUserTokensCreatedBetween(String createdAfter, String createdBefore);
+
+  /**
+   * @since 1.133
+   */
+  ApiUserTokenDTO getUserTokenByUsernameAndRealmId(String username, String realmId);
 
   ApiUserTokenDTO createUserToken();
 

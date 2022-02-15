@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NamingException;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -43,6 +44,8 @@ public class DefaultApiUserTokenResource implements ApiUserTokenResource
   public static final String CURRENT_USER_HAS_TOKEN = CURRENT_USER + "/hasToken";
 
   public static final String USER_CODE = "userCode/{userCode}";
+  
+  public static final String USERNAME = "{username}";
 
   public static final String PURGE = "purge";
   
@@ -67,6 +70,17 @@ public class DefaultApiUserTokenResource implements ApiUserTokenResource
       @QueryParam("createdBefore") String createdBefore)
   {
     return userTokenService.getUserTokensCreatedBetween(createdAfter, createdBefore);
+  }
+
+  @Override
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(USERNAME)
+  public ApiUserTokenDTO getUserTokenByUsernameAndRealmId(
+      @PathParam("username") String username,
+      @QueryParam("realm") @DefaultValue("Internal") String realmId)
+  {
+    return userTokenService.getUserTokenByUsernameAndRealmId(username, realmId);
   }
 
   @Override

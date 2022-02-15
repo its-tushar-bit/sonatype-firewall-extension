@@ -83,7 +83,16 @@ def createJiraIssueIfNeeded() {
 }
 
 def configureBranchJob() {
-    properties([copyArtifactPermission("/${currentBuild.fullProjectName}")])
+  // Use the project name to determine the branch
+  def projName = currentBuild.fullProjectName
+  boolean applitoolsEnabledByDefault = (projName.endsWith('master') || projName.endsWith('_ui'))
+
+  properties([
+      copyArtifactPermission("/${projName}"),
+      parameters([booleanParam(defaultValue: applitoolsEnabledByDefault,
+          description: 'If checked will enable Applitools EyesCheck.',
+          name: 'applitoolsEnabled')])
+  ])
 }
 
 def pushDockerImageIfDeployBranch() {
@@ -200,6 +209,7 @@ def functionalTests(String browser, String testRegex) {
     mavenOptions += ' -Drun-functional-tests=docker'
     mavenOptions += " -Dbrowser=${browser}"
     mavenOptions += " -DapplitoolsKey=${applitoolsKey}"
+    mavenOptions += " -DapplitoolsEnabled=${params.applitoolsEnabled}"
     mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
     Map<String, String> testConfig = testConfig(mavenOptions, 'insight-brain-java-functional-test/pom.xml')
     mvn testConfig, 'verify'

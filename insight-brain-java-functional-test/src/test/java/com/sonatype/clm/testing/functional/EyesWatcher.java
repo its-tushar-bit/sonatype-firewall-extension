@@ -23,6 +23,8 @@ import org.openqa.selenium.WrapsDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.lang.Boolean.parseBoolean;
+
 public class EyesWatcher
     extends TestWatcher
 {
@@ -40,9 +42,11 @@ public class EyesWatcher
 
   private static final String APPLITOOLS_LOG_FILE_NAME = System.getProperty("applitoolsLogFileName");
 
+  private static final boolean APPLITOOLS_ENABLED = parseBoolean(System.getProperty("applitoolsEnabled", "false"));
+
   static {
     localBranchName = System.getProperty("branchName", System.getenv("GIT_LOCAL_BRANCH"));
-    eyes.setIsDisabled(APPLITOOLS_KEY == null || !isApplitoolsEnabled());
+    eyes.setIsDisabled(APPLITOOLS_KEY == null || !APPLITOOLS_ENABLED);
 
     if (!eyes.getIsDisabled()) {
       batchId = System.getenv("APPLITOOLS_BATCH_ID"); // APPLITOOLS_BATCH_ID is mapped to COMMIT_ID in the Jenkinsfile
@@ -159,9 +163,5 @@ public class EyesWatcher
 
   private static boolean isMaster() {
     return "master".equals(localBranchName);
-  }
-
-  private static boolean isApplitoolsEnabled() {
-    return isMaster() || new VisualTestBranchEnabler().isVisualTestingEnabledForBranch(localBranchName);
   }
 }

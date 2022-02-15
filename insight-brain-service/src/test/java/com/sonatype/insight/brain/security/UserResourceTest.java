@@ -229,7 +229,7 @@ public class UserResourceTest
     // try to delete the user using the same user's session/cookie
     response = restRequest().path("{userId}").parameter(user.getId()).cookie(userCookie).anon().delete();
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("Cannot delete the currently logged in user.");
+    assertThat(response.getBodyText()).isEqualTo("A user who is logged in cannot delete themself.");
   }
 
   @Test

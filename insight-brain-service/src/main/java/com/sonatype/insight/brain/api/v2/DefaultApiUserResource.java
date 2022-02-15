@@ -86,7 +86,10 @@ public class DefaultApiUserResource implements ApiUserResource
   @DELETE
   @Path(USERNAME_PATH)
   @Audited(AuditEvent.DELETE_USER)
-  public void delete(@PathParam("username") String username) {
-    userService.deleteUserByUsername(username);
+  public void delete(
+      @PathParam("username") String username,
+      @QueryParam("realm") @DefaultValue("Internal") String realmId)
+  {
+    userService.deleteUserByRealmIdAndUsername(realmId, username);
   }
 }

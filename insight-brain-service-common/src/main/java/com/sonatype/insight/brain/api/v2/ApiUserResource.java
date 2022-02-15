@@ -21,5 +21,5 @@ public interface ApiUserResource
 
   ApiUserDTO update(String username, ApiUserDTO userDTO);
 
-  void delete(String username);
+  void delete(String username, String realmId);
 }

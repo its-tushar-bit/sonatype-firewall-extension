@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotif
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 /**
  * @since 1.133
@@ -38,6 +39,14 @@ public class SamlUserDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByUsername(tx, username);
     }
+  }
+
+  public SamlUser getByUsernameNotNull(String username) {
+    SamlUser samlUser = getByUsername(username);
+    if (samlUser == null) {
+      throw new NotFoundException("Cannot find a SAML user with username " + username + ".");
+    }
+    return samlUser;
   }
 
   public void upsertByUsername(TransactionContext tx, SamlUser samlUser) {

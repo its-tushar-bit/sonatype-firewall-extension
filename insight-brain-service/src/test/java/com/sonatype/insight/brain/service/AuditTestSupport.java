@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.test.LogOutput;
@@ -255,9 +256,30 @@ public interface AuditTestSupport
   }
 
   default void assertUserData(AuditDTO auditDTO, User user) {
-    assertCustomData(auditDTO, "username", user.getUsername());
-    assertCustomData(auditDTO, "firstName", user.getFirstName());
-    assertCustomData(auditDTO, "lastName", user.getLastName());
-    assertCustomData(auditDTO, "emailAddress", user.getEmail());
+    assertUserData(auditDTO, null, user);
+  }
+
+  default void assertUserData(AuditDTO auditDTO, String realmId, User user) {
+    assertUserData(auditDTO, realmId, user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail());
+  }
+
+  default void assertUserData(AuditDTO auditDTO, String realmId, SamlUser samlUser) {
+    assertUserData(auditDTO, realmId, samlUser.getUsername(), samlUser.getFirstName(), samlUser.getLastName(),
+        samlUser.getEmail());
+  }
+
+  default void assertUserData(
+      AuditDTO auditDTO,
+      String realmId,
+      String username,
+      String firstName,
+      String lastName,
+      String email)
+  {
+    assertCustomData(auditDTO, "realm", realmId);
+    assertCustomData(auditDTO, "username", username);
+    assertCustomData(auditDTO, "firstName", firstName);
+    assertCustomData(auditDTO, "lastName", lastName);
+    assertCustomData(auditDTO, "emailAddress", email);
   }
 }

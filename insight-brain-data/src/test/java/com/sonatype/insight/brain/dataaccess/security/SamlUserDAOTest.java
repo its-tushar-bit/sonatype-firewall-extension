@@ -21,10 +21,12 @@ import com.sonatype.insight.brain.model.notification.UserViewedProductNotificati
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class SamlUserDAOTest
     extends AbstractDbDAOTest
@@ -206,6 +208,22 @@ public class SamlUserDAOTest
         .filter(samlUser -> expectedSamlUser.getUsername().equals(samlUser.getUsername())).findFirst().orElse(null);
     assertThat(foundUser).isNotNull().usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(expectedSamlUser);
+  }
+
+  @Test
+  public void testGetByUsernameNotNull_Exists() {
+    SamlUser samlUser = tempEntity.newSamlUser();
+
+    assertThat(samlUserDAO.getByUsernameNotNull(samlUser.getUsername())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(samlUser);
+  }
+
+  @Test
+  public void testGetByUsernameNotNull_DoesNotExist() {
+    String username = "doesNotExist";
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> samlUserDAO.getByUsernameNotNull(username))
+        .withMessageContaining("Cannot find a SAML user with username " + username + ".");
   }
 
   private SamlUser createSamlUser() {

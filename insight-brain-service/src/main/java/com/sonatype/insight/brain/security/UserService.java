@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NamingException;
@@ -66,12 +67,12 @@ public class UserService
 
   private final InsightConfig insightConfig;
 
-  private final UserDAO userDAO = new UserDAO();
+  private final UserDAO userDAO;
 
-  private final SamlUserDAO samlUserDAO = new SamlUserDAO();
+  private final SamlUserDAO samlUserDAO;
 
   private final CurrentUser currentUser;
-  
+
   private final DefaultWebSessionManager defaultWebSessionManager;
 
   private final ProductLicense productLicense;
@@ -81,6 +82,8 @@ public class UserService
       InternalRealm clmRealm,
       PasswordService passwordService,
       SessionDAO sessionDAO,
+      UserDAO userDAO,
+      SamlUserDAO samlUserDAO,
       UserDirectory userDirectory,
       InsightConfig insightConfig,
       CurrentUser currentUser,
@@ -90,6 +93,8 @@ public class UserService
     this.clmRealm = clmRealm;
     this.passwordService = passwordService;
     this.sessionDAO = sessionDAO;
+    this.userDAO = userDAO;
+    this.samlUserDAO = samlUserDAO;
     this.userDirectory = userDirectory;
     this.insightConfig = insightConfig;
     this.currentUser = currentUser;
@@ -200,15 +205,11 @@ public class UserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   void deleteUser(String userId) {
-    deleteUser(userDAO.getByIdNotNull(userId));
+    deleteInternalUser(userDAO.getByIdNotNull(userId));
   }
 
-  private void deleteUser(User user) {
-    String username = currentUser.getUsername();
-    if (user.getUsername().equalsIgnoreCase(username)) {
-      throw new BadRequestException("Cannot delete the currently logged in user.");
-    }
-
+  private void deleteInternalUser(User user) {
+    validateUserToDeleteIsNotCurrentlyLoggedIn(User.INTERNAL_REALM_ID, user.getUsername());
     userDAO.delete(user);
     auditUser(user);
     try {
@@ -219,7 +220,30 @@ public class UserService
     catch (NamingException e) {
       log.error(e.getMessage(), e);
     }
+    logoutUser(User.INTERNAL_REALM_ID, user.getUsername());
+  }
 
+  private void deleteSamlUser(SamlUser samlUser) {
+    validateUserToDeleteIsNotCurrentlyLoggedIn(SamlUser.SAML_REALM_ID, samlUser.getUsername());
+    samlUserDAO.delete(samlUser);
+    auditUser(samlUser);
+    logoutUser(SamlUser.SAML_REALM_ID, samlUser.getUsername());
+  }
+
+  private void validateUserToDeleteIsNotCurrentlyLoggedIn(String realmId, String username) {
+    if (areUsernamesEqual(realmId, currentUser.getUsername(), username)) {
+      throw new BadRequestException("A user who is logged in cannot delete themself.");
+    }
+  }
+
+  private boolean areUsernamesEqual(String realmId, String username1, String username2) {
+    if (SamlUser.SAML_REALM_ID.equals(realmId)) {
+      return username1.equals(username2);
+    }
+    return username1.equalsIgnoreCase(username2);
+  }
+
+  private void logoutUser(String realmId, String username) {
     for (Session session : sessionDAO.getActiveSessions()) {
       // Use a delegating session to ensure the session manager handles and persists session changes
       DelegatingSession delegatingSession =
@@ -228,17 +252,28 @@ public class UserService
       Object principal = subject.getPrincipal();
       // if the principal is null, then session either has an anonymous Subject,
       // or the subject has already been invalidated by shiro
-      if (principal != null && user.getUsername().equalsIgnoreCase(principal.toString())) {
+      if (principal != null && areUsernamesEqual(realmId, username, principal.toString())) {
         subject.logout();
       }
     }
   }
 
+  private void auditUser(SamlUser user) {
+    auditUser(SamlUser.SAML_REALM_ID, user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail());
+  }
+
   private void auditUser(User user) {
+    auditUser(User.INTERNAL_REALM_ID, user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail());
+  }
+
+  private void auditUser(String realmId, String username, String firstName, String lastName, String email) {
     AuditData.get() //
-        .setData("username", user.getUsername()) //
-        .setData("firstName", user.getFirstName()).setData("lastName", user.getLastName()) //
-        .setData("emailAddress", user.getEmail());
+        .setData("username", username) //
+        .setData("firstName", firstName).setData("lastName", lastName) //
+        .setData("emailAddress", email);
+    if (hasSamlUserTokenSupport()) {
+      AuditData.get().setData("realm", realmId);
+    }
   }
 
   void changeMyPassword(ChangePasswordDTO password) {
@@ -404,8 +439,16 @@ public class UserService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public void deleteUserByUsername(String username) {
-    deleteUser(userDAO.getByUsernameNotNull(username));
+  public void deleteUserByRealmIdAndUsername(String realmId, String username) {
+    if (!hasSamlUserTokenSupport()) {
+      realmId = User.INTERNAL_REALM_ID;
+    }
+    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+      deleteSamlUser(samlUserDAO.getByUsernameNotNull(username));
+    }
+    else {
+      deleteInternalUser(userDAO.getByUsernameNotNull(username));
+    }
   }
 
   private ApiUserDTO convert(SamlUser user) {

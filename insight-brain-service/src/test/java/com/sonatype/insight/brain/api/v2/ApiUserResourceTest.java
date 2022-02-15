@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserListDTO;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
@@ -32,6 +33,8 @@ public class ApiUserResourceTest
     extends AbstractResourceTest
 {
   private final UserDAO userDAO = new UserDAO();
+
+  private final SamlUserDAO samlUserDAO = new SamlUserDAO();
 
   @Override
   protected HttpRequest restRequest() {
@@ -133,6 +136,80 @@ public class ApiUserResourceTest
     JsonNode jsonNode = objectMapper.readTree(response.getBodyText()).get("users");
     for (JsonNode child : jsonNode) {
       assertThat(child.has("realm")).isEqualTo(expectedRealm != null);
+    }
+  }
+
+  @Test
+  public void testDelete_SamlUserTokensEnabled_NoRealmId() throws Exception {
+    testDelete(true, null);
+  }
+
+  @Test
+  public void testDelete_SamlUserTokensEnabled_UnknownRealmId() throws Exception {
+    testDelete(true, "unknown");
+  }
+
+  @Test
+  public void testDelete_SamlUserTokensEnabled_InternalRealmId() throws Exception {
+    testDelete(true, "InTeRnAl");
+  }
+
+  @Test
+  public void testDelete_SamlUserTokensEnabled_SamlRealmId() throws Exception {
+    testDelete(true, "SaMl");
+  }
+
+  @Test
+  public void testDelete_SamlUserTokensDisabled_NoRealmId() throws Exception {
+    testDelete(false, null);
+  }
+
+  @Test
+  public void testDelete_SamlUserTokensDisabled_UnknownRealmId() throws Exception {
+    testDelete(false, "unknown");
+  }
+
+  @Test
+  public void testDelete_SamlUserTokensDisabled_InternalRealmId() throws Exception {
+    testDelete(false, "InTeRnAl");
+  }
+
+  @Test
+  public void testDelete_SamlUserTokensDisabled_SamlRealmId() throws Exception {
+    testDelete(false, "SaMl");
+  }
+
+  private void testDelete(boolean isSamlUserTokensEnabled, String realmId) throws Exception {
+    SamlUser samlUser1 = tempEntity.newSamlUser();
+    SamlUser samlUser2 = tempEntity.newSamlUser();
+    User user = tempEntity.newUser(samlUser1.getUsername());
+
+    if (isSamlUserTokensEnabled) {
+      setFeatures(LicensedFeature.SAML_USER_TOKENS);
+    }
+    else {
+      setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
+    }
+    HttpRequest httpRequest =
+        restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(samlUser1.getUsername());
+    if (realmId != null) {
+      httpRequest.query("realm", realmId);
+    }
+
+    HttpResponse response = httpRequest.delete();
+
+    assertResponseStatus(204, response);
+    if (isSamlUserTokensEnabled && SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+      assertThat(samlUserDAO.getById(samlUser1.getId())).isNull();
+      assertThat(samlUserDAO.getById(samlUser2.getId())).isNotNull();
+      assertThat(userDAO.getById(user.getId())).isNotNull();
+      assertThat(userDAO.getByUsername(User.ADMIN_USERNAME)).isNotNull();
+    }
+    else {
+      assertThat(samlUserDAO.getById(samlUser1.getId())).isNotNull();
+      assertThat(samlUserDAO.getById(samlUser2.getId())).isNotNull();
+      assertThat(userDAO.getById(user.getId())).isNull();
+      assertThat(userDAO.getByUsername(User.ADMIN_USERNAME)).isNotNull();
     }
   }
 }

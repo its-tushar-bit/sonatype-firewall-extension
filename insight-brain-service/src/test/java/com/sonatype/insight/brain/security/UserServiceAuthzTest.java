@@ -316,19 +316,19 @@ public class UserServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testDeleteUserByUsername_Unauthenticated() {
-    userService.deleteUserByUsername(tempEntity.newUser().getUsername());
+  public void testDeleteUserByRealmIdAndUsername_Unauthenticated() {
+    userService.deleteUserByRealmIdAndUsername(User.INTERNAL_REALM_ID, tempEntity.newUser().getUsername());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testDeleteUserByUsername_Unauthorized() {
+  public void testDeleteUserByRealmIdAndUsername_Unauthorized() {
     login();
-    userService.deleteUserByUsername(tempEntity.newUser().getUsername());
+    userService.deleteUserByRealmIdAndUsername(User.INTERNAL_REALM_ID, tempEntity.newUser().getUsername());
   }
 
   @Test
-  public void testDeleteUserByUsername_Authorized() {
+  public void testDeleteUserByRealmIdAndUsername_Authorized() {
     grantConfigureSystemPermission();
-    userService.deleteUserByUsername(tempEntity.newUser().getUsername());
+    userService.deleteUserByRealmIdAndUsername(User.INTERNAL_REALM_ID, tempEntity.newUser().getUsername());
   }
 }

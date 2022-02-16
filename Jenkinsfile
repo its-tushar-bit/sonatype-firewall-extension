@@ -192,7 +192,7 @@ Map<String, String> testConfig(String mavenOptions, String pomFile = null, Strin
 def copyRepo() {
   copyArtifacts(projectName: currentBuild.fullProjectName, filter: 'workspace.zip', selector: specific(currentBuild.id),
       flatten: false)
-  runSafely 'unzip -q workspace.zip'
+  runSafely 'unzip -q -o workspace.zip'
 }
 
 def gebTests() {
@@ -240,7 +240,7 @@ boolean isEyesEnabled() {
   // use the project name to determine the branch, a git checkout hasn't happened yet.  Multi-branch builds use
   // the branch name as the last part of the project name.
   def projName = currentBuild.fullProjectName
-
   // if the params value isn't set (or hasn't been added to the job yet) use the branch name default)
-  return params.eyes_check ?: (projName.toLowerCase().contains('master') || projName.endsWith('_ui'))
+  return params.eyes_check == null ? (projName.toLowerCase().contains('master') || projName.endsWith('_ui')) :
+      params.eyes_check
 }

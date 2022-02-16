@@ -12,7 +12,6 @@ import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
@@ -40,6 +39,7 @@ import org.mockito.Mock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -269,17 +269,39 @@ public class UserTokenServiceTest
   }
 
   @Test
-  public void testGetUserTokensCreatedBetween() {
-    tempEntity.newUserToken("foo", december27);
-    UserToken bar = tempEntity.newUserToken("bar", december28);
-    tempEntity.newUserToken("baz", december29);
-    tempEntity.newUserToken("qux", december30);
+  public void testGetUserTokensCreatedBetweenAndRealm_SamlUserTokensDisabled() {
+    tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID, december27);
+    UserToken bar = tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID, december28);
+    tempEntity.newUserToken("baz", User.INTERNAL_REALM_ID, december29);
+    tempEntity.newUserToken("qux", SamlUser.SAML_REALM_ID, december28);
 
-    List<ApiUserTokenDTO> userTokenDTOs = userTokenService.getUserTokensCreatedBetween("2019-12-28", "2019-12-28");
-    assertThat(userTokenDTOs)
-        .extracting(apiUserTokenDTO -> apiUserTokenDTO.userCode)
-        .containsExactlyInAnyOrder(bar.getUserCode());
+    List<ApiUserTokenDTO> userTokenDTOs =
+        userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", User.INTERNAL_REALM_ID);
+    assertUserTokens(userTokenDTOs, bar, false);
 
+    userTokenDTOs =
+        userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", SamlUser.SAML_REALM_ID);
+    assertUserTokens(userTokenDTOs, bar, false);
+
+  }
+
+  private void assertUserTokens(List<ApiUserTokenDTO> userTokenDTOs, UserToken token, boolean samlUserTokensEnabled) {
+    if (samlUserTokensEnabled) {
+      assertThat(userTokenDTOs)
+          .hasSize(1)
+          .extracting("userCode", "username", "realm")
+          .containsExactlyInAnyOrder(tuple(token.getUserCode(), token.getUsername(), token.getRealmId()));
+    }
+    else {
+      assertThat(userTokenDTOs)
+          .hasSize(1)
+          .extracting("userCode", "username")
+          .containsExactlyInAnyOrder(tuple(token.getUserCode(), token.getUsername()));
+      assertThat(userTokenDTOs)
+          .extracting(apiUserTokenDTO -> apiUserTokenDTO.realm)
+          .filteredOn(Objects::nonNull)
+          .isEmpty();
+    }
     // Assert passcode are not returned
     assertThat(userTokenDTOs)
         .extracting(apiUserTokenDTO -> apiUserTokenDTO.passCode)
@@ -288,17 +310,61 @@ public class UserTokenServiceTest
   }
 
   @Test
-  public void testGetUserTokensCreatedBetween_MustHandleNullArguments() {
-    UserToken foo = tempEntity.newUserToken("foo", december27);
-    UserToken bar = tempEntity.newUserToken("bar", december28);
-    UserToken baz = tempEntity.newUserToken("baz", december29);
-    UserToken qux = tempEntity.newUserToken("qux", december30);
+  public void testGetUserTokensByCreatedBetweenAndRealmId_SamlUserTokensEnabled() throws Exception {
+    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+    tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID, december27);
+    UserToken bar = tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID, december28);
+    tempEntity.newUserToken("baz", User.INTERNAL_REALM_ID, december29);
+    UserToken qux = tempEntity.newUserToken("qux", SamlUser.SAML_REALM_ID, december28);
+    tempEntity.newUserToken("sam27", SamlUser.SAML_REALM_ID, december27);
+    tempEntity.newUserToken("sam29", SamlUser.SAML_REALM_ID, december29);
+
+    List<ApiUserTokenDTO> userTokenDTOs =
+        userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", "iNTeRnaL");
+    assertUserTokens(userTokenDTOs, bar, true);
+
+    userTokenDTOs =
+        userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", "unKnOWn");
+    assertUserTokens(userTokenDTOs, bar, true);
+
+    userTokenDTOs =
+        userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", null);
+    assertUserTokens(userTokenDTOs, bar, true);
+
+    userTokenDTOs =
+        userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", "sAMl");
+    assertUserTokens(userTokenDTOs, qux, true);
+  }
+
+  @Test
+  public void testGetUserTokensByCreatedBetweenAndRealmId_SamlUserTokensEnabled_MustHandleNullArguments() {
+    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+    tempEntity.newUserToken("foo", december27);
+    UserToken sam1 = tempEntity.newUserToken("sam1", SamlUser.SAML_REALM_ID, december27);
+    tempEntity.newUserToken("bar", december28);
+    UserToken sam2 = tempEntity.newUserToken("sam2", SamlUser.SAML_REALM_ID, december28);
+    tempEntity.newUserToken("baz", december29);
+    UserToken sam3 = tempEntity.newUserToken("sam3", SamlUser.SAML_REALM_ID, december29);
+    tempEntity.newUserToken("qux", december30);
+    UserToken sam4 = tempEntity.newUserToken("sam4", SamlUser.SAML_REALM_ID, december30);
 
     // Assert all user tokens are returned with user code
-    List<ApiUserTokenDTO> userTokenDTOs = userTokenService.getUserTokensCreatedBetween(null, null);
+    List<ApiUserTokenDTO> userTokenDTOs = userTokenService.getUserTokensCreatedBetweenAndRealmId(null, null, "SAML");
+    assertGetUserTokensResults(userTokenDTOs, sam1, sam2, sam3, sam4);
+  }
+
+  private void assertGetUserTokensResults(
+      final List<ApiUserTokenDTO> userTokenDTOs,
+      final UserToken t1,
+      final UserToken t2,
+      final UserToken t3,
+      final UserToken t4)
+  {
     assertThat(userTokenDTOs)
-        .extracting(apiUserTokenDTO -> apiUserTokenDTO.userCode)
-        .containsExactlyInAnyOrder(foo.getUserCode(), bar.getUserCode(), baz.getUserCode(), qux.getUserCode());
+        .extracting("userCode", "username")
+        .containsExactlyInAnyOrder(tuple(t1.getUserCode(), t1.getUsername()),
+            tuple(t2.getUserCode(), t2.getUsername()), tuple(t3.getUserCode(), t3.getUsername()),
+            tuple(t4.getUserCode(), t4.getUsername()));
 
     // Assert passcode are not returned
     assertThat(userTokenDTOs)
@@ -309,14 +375,14 @@ public class UserTokenServiceTest
 
   @Test
   public void testGetUserTokensCreatedBetween_CanNotParseCreatedAfter() {
-    assertThatThrownBy(() -> userTokenService.getUserTokensCreatedBetween("foo", null))
+    assertThatThrownBy(() -> userTokenService.getUserTokensCreatedBetweenAndRealmId("foo", null, null))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Could not parse: foo. Expected format is: yyyy-MM-dd.");
   }
 
   @Test
   public void testGetUserTokensCreatedBetween_CanNotParseCreatedBefore() {
-    assertThatThrownBy(() -> userTokenService.getUserTokensCreatedBetween(null, "bar"))
+    assertThatThrownBy(() -> userTokenService.getUserTokensCreatedBetweenAndRealmId(null, "bar", null))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Could not parse: bar. Expected format is: yyyy-MM-dd.");
   }

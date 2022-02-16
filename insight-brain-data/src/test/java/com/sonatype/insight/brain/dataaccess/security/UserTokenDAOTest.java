@@ -19,6 +19,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class UserTokenDAOTest
     extends AbstractDbDAOTest
@@ -84,7 +85,7 @@ public class UserTokenDAOTest
     tempEntity.newUserToken("baz", december29);
     tempEntity.newUserToken("qux", december30);
 
-    assertThat(userTokenDAO.getByCreateDateBetween(null, null))
+    assertThat(userTokenDAO.getByCreateDateBetweenAndRealmId(null, null, null))
         .extracting(UserToken::getCreateTime)
         .containsExactlyInAnyOrder(december27, december28, december29, december30);
   }
@@ -96,7 +97,7 @@ public class UserTokenDAOTest
     tempEntity.newUserToken("baz", december29);
     tempEntity.newUserToken("qux", december30);
 
-    assertThat(userTokenDAO.getByCreateDateBetween(december28, null))
+    assertThat(userTokenDAO.getByCreateDateBetweenAndRealmId(december28, null, null))
         .extracting(UserToken::getCreateTime)
         .containsExactlyInAnyOrder(december28, december29, december30);
   }
@@ -108,21 +109,54 @@ public class UserTokenDAOTest
     tempEntity.newUserToken("baz", december29);
     tempEntity.newUserToken("qux", december30);
 
-    assertThat(userTokenDAO.getByCreateDateBetween(null, december28))
+    assertThat(userTokenDAO.getByCreateDateBetweenAndRealmId(null, december28, null))
         .extracting(UserToken::getCreateTime)
         .containsExactlyInAnyOrder(december27, december28);
   }
 
   @Test
-  public void testGetByCreateDateBetween_CreatedAfterAndBefore() {
-    tempEntity.newUserToken("foo", december27);
-    tempEntity.newUserToken("bar", december28);
-    tempEntity.newUserToken("baz", december29);
-    tempEntity.newUserToken("qux", december30);
+  public void testGetByCreateDateBetweenAndRealmId_All() {
+    tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID);
+    tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID);
+    tempEntity.newUserToken("baz", SamlUser.SAML_REALM_ID);
+    tempEntity.newUserToken("qux", "ldapServerId");
 
-    assertThat(userTokenDAO.getByCreateDateBetween(december27, december28))
-        .extracting(UserToken::getCreateTime)
-        .containsExactlyInAnyOrder(december27, december28);
+    assertThat(userTokenDAO.getByCreateDateBetweenAndRealmId(null, null, User.INTERNAL_REALM_ID))
+        .hasSize(2)
+        .extracting(UserToken::getRealmId)
+        .containsOnly(User.INTERNAL_REALM_ID);
+    assertThat(userTokenDAO.getByCreateDateBetweenAndRealmId(null, null, SamlUser.SAML_REALM_ID))
+        .hasSize(1)
+        .extracting(UserToken::getRealmId)
+        .containsOnly(SamlUser.SAML_REALM_ID);
+  }
+
+  @Test
+  public void testGetByCreateDateBetweenAndRealmId_BetweenDates() {
+    UserToken internal1 = tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID, december27);
+    UserToken internal2 = tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID, december29);
+    UserToken internal3 = tempEntity.newUserToken("baz", User.INTERNAL_REALM_ID, december30);
+    UserToken saml1 = tempEntity.newUserToken("pid", SamlUser.SAML_REALM_ID, december27);
+    tempEntity.newUserToken("qux", SamlUser.SAML_REALM_ID, december29);
+
+    assertThat(userTokenDAO.getByCreateDateBetweenAndRealmId(december27, december28, User.INTERNAL_REALM_ID))
+        .hasSize(1)
+        .extracting("id", "realmId")
+        .containsOnly(tuple(internal1.getId(), User.INTERNAL_REALM_ID));
+    assertThat(userTokenDAO.getByCreateDateBetweenAndRealmId(december27, december28, SamlUser.SAML_REALM_ID))
+        .hasSize(1)
+        .extracting("id", "realmId")
+        .containsOnly(tuple(saml1.getId(), SamlUser.SAML_REALM_ID));
+    assertThat(userTokenDAO.getByCreateDateBetweenAndRealmId(december28, null, User.INTERNAL_REALM_ID))
+        .hasSize(2)
+        .extracting("id", "realmId")
+        .containsOnly(tuple(internal2.getId(), User.INTERNAL_REALM_ID),
+            tuple(internal3.getId(), User.INTERNAL_REALM_ID));
+    assertThat(userTokenDAO.getByCreateDateBetweenAndRealmId(null, december30, User.INTERNAL_REALM_ID))
+        .hasSize(3)
+        .extracting("id", "realmId")
+        .containsOnly(tuple(internal1.getId(), User.INTERNAL_REALM_ID),
+            tuple(internal2.getId(), User.INTERNAL_REALM_ID), tuple(internal3.getId(), User.INTERNAL_REALM_ID));
   }
 
   @Test

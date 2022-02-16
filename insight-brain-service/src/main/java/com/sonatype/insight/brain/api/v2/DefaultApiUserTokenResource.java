@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NamingException;
@@ -25,6 +24,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserTokenService;
 
 import com.codahale.metrics.annotation.Timed;
@@ -65,11 +65,12 @@ public class DefaultApiUserTokenResource implements ApiUserTokenResource
   @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<ApiUserTokenDTO> getUserTokensCreatedBetween(
+  public List<ApiUserTokenDTO> getUserTokensByCreatedBetweenAndRealmId(
       @QueryParam("createdAfter") String createdAfter,
-      @QueryParam("createdBefore") String createdBefore)
+      @QueryParam("createdBefore") String createdBefore,
+      @DefaultValue(User.INTERNAL_REALM_ID) @QueryParam("realm") String realmId)
   {
-    return userTokenService.getUserTokensCreatedBetween(createdAfter, createdBefore);
+    return userTokenService.getUserTokensCreatedBetweenAndRealmId(createdAfter, createdBefore, realmId);
   }
 
   @Override

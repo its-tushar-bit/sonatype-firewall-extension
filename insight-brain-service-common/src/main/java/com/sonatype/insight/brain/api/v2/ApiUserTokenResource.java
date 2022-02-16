@@ -29,7 +29,10 @@ public interface ApiUserTokenResource
    * @param createdBefore Expected format: yyyy-MM-dd (For example: 2019-09-03)
    * @since 1.87
    */
-  List<ApiUserTokenDTO> getUserTokensCreatedBetween(String createdAfter, String createdBefore);
+  List<ApiUserTokenDTO> getUserTokensByCreatedBetweenAndRealmId(
+      String createdAfter,
+      String createdBefore,
+      String realmId);
 
   /**
    * @since 1.133

@@ -39,20 +39,20 @@ public class UserTokenServiceAuthzTest
   }
 
   @Test
-  public void testGetUserTokensCreatedBetween_Authorized() throws Exception {
+  public void testGetUserTokensCreatedBetweenAndRealmId_Authorized() throws Exception {
     grantConfigureSystemPermission();
-    userTokenService.getUserTokensCreatedBetween(null, null);
+    userTokenService.getUserTokensCreatedBetweenAndRealmId(null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetUserTokensCreatedBetween_Unauthorized() throws Exception {
+  public void testGetUserTokensCreatedBetweenAndRealmId_Unauthorized() throws Exception {
     login();
-    userTokenService.getUserTokensCreatedBetween(null, null);
+    userTokenService.getUserTokensCreatedBetweenAndRealmId(null, null, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetUserTokensCreatedBetween_Unauthenticated() throws Exception {
-    userTokenService.getUserTokensCreatedBetween(null, null);
+  public void testGetUserTokensCreatedBetweenAndRealmId_Unauthenticated() throws Exception {
+    userTokenService.getUserTokensCreatedBetweenAndRealmId(null, null, null);
   }
 
   @Test

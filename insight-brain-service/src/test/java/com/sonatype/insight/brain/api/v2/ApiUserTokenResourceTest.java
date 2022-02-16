@@ -26,6 +26,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -38,6 +39,12 @@ public class ApiUserTokenResourceTest
   public TestLdapServer embeddedTestLdapServer = new TestLdapServer();
 
   private final UserTokenDAO userTokenDAO = new UserTokenDAO();
+
+  private final Date december01 = new GregorianCalendar(2019, Calendar.DECEMBER, 1).getTime();
+
+  private final Date december15 = new GregorianCalendar(2019, Calendar.DECEMBER, 15).getTime();
+
+  private final Date december31 = new GregorianCalendar(2019, Calendar.DECEMBER, 31).getTime();
 
   @Test
   public void testCreateUserToken() throws Exception {
@@ -88,26 +95,56 @@ public class ApiUserTokenResourceTest
   }
 
   @Test
-  public void testGetUserTokensCreatedBetween() throws Exception {
-    Date december01 = new GregorianCalendar(2019, Calendar.DECEMBER, 1).getTime();
-    Date december15 = new GregorianCalendar(2019, Calendar.DECEMBER, 15).getTime();
-    Date december31 = new GregorianCalendar(2019, Calendar.DECEMBER, 31).getTime();
+  public void testGetUserTokensByCreatedBetweenAndRealmId_SamlUserTokensDisabled() throws Exception {
+    setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
+    tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID , december01);
+    UserToken userToken = tempEntity.newUserToken("marcus.miller", User.INTERNAL_REALM_ID, december15);
+    tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID ,december31);
+    tempEntity.newUserToken("zak.crawly", SamlUser.SAML_REALM_ID, december15);
 
-    tempEntity.newUserToken("victor.wooten", december01);
-    UserToken userToken = tempEntity.newUserToken("marcus.miller", december15);
-    tempEntity.newUserToken("stanley.clarke", december31);
+    assertUserToken(userToken, null, false);
+    assertUserToken(userToken, "InterNaL", false);
+    assertUserToken(userToken, SamlUser.SAML_REALM_ID, false);
+  }
 
-    HttpResponse response = restRequest()
+  @Test
+  public void testGetUserTokensByCreatedBetweenAndRealmId_SamlUserTokensEnabled() throws Exception {
+    setFeatures(LicensedFeature.SAML_USER_TOKENS);
+    tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID , december01);
+    UserToken internalToken = tempEntity.newUserToken("marcus.miller", User.INTERNAL_REALM_ID, december15);
+    tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID ,december31);
+    UserToken samlToken = tempEntity.newUserToken("zak.crawly", SamlUser.SAML_REALM_ID, december15);
+
+    assertUserToken(internalToken, null, true);
+    assertUserToken(internalToken, "InterNaL", true);
+    assertUserToken(samlToken, "saMl", true);
+  }
+
+  private void assertUserToken(UserToken userToken, String realmId, boolean samlUserTokensEnabled) throws Exception {
+    HttpRequest httpRequest = restRequest()
         .query("createdAfter", "2019-12-10") //
-        .query("createdBefore", "2019-12-20") //
-        .get();
+        .query("createdBefore", "2019-12-20");
+    if (realmId != null) {
+      httpRequest.query("realm", realmId);
+    }
+    HttpResponse response = httpRequest.get();
 
     assertResponseStatus(200, response);
 
     ApiUserTokenDTO[] responseBody = response.getBody(ApiUserTokenDTO[].class);
     assertThat(responseBody.length).isEqualTo(1);
     assertThat(responseBody[0].userCode).isEqualTo(userToken.getUserCode());
+    assertThat(responseBody[0].username).isEqualTo(userToken.getUsername());
     assertThat(responseBody[0].passCode).isNull();
+    ArrayNode json = (ArrayNode) new ObjectMapper().readTree(response.getBodyText());
+    if (samlUserTokensEnabled) {
+      assertThat(json.get(0).has("realm")).isTrue();
+      assertThat(responseBody[0].realm).isEqualTo(userToken.getRealmId());
+    }
+    else {
+      assertThat(json.get(0).has("realm")).isFalse();
+      assertThat(responseBody[0].realm).isNull();
+    }
   }
 
   @Test
@@ -159,7 +196,7 @@ public class ApiUserTokenResourceTest
     assertResponseStatus(404, httpResponse);
     assertThat(httpResponse.getBodyText()).contains("No user token found for SAML user unknown.");
   }
-  
+
   @Test
   public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_Unknown() throws Exception {
     setMissingFeature(LicensedFeature.SAML_USER_TOKENS);

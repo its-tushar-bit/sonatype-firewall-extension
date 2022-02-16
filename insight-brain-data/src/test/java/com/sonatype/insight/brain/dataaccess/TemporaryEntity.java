@@ -2900,6 +2900,10 @@ public class TemporaryEntity
     return samlConfiguration;
   }
 
+  public UserToken newUserToken(String username, String realmId, Date createTime) {
+    return newUserToken(username, username + "-code", "a-pass-code", realmId, createTime);
+  }
+
   public UserToken newUserToken(String username, String realmId) {
     return newUserToken(username, username + "-code", "a-pass-code", realmId);
   }

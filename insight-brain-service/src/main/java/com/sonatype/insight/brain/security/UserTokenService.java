@@ -151,7 +151,7 @@ public class UserTokenService
     if (InternalRealm.ID.equals(realmId)) {
       return true;
     }
-    if (SamlRealm.ID.equals(realmId) && productLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)) {
+    if (SamlRealm.ID.equals(realmId) && hasSamlUserTokenSupport()) {
       return true;
     }
 
@@ -159,10 +159,19 @@ public class UserTokenService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public List<ApiUserTokenDTO> getUserTokensCreatedBetween(String createdAfter, String createdBefore) {
-    log.debug("Querying user tokens with createTime between {} and {}.", createdAfter, createdBefore);
+  public List<ApiUserTokenDTO> getUserTokensCreatedBetweenAndRealmId(
+      String createdAfter,
+      String createdBefore,
+      String realmId)
+  {
+    realmId = (hasSamlUserTokenSupport() && SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) ?
+        SamlUser.SAML_REALM_ID :
+        User.INTERNAL_REALM_ID;
+
+    log.debug("Querying user tokens with createTime between {} and {} and realm {}.", createdAfter, createdBefore,
+        realmId);
     return userTokenDAO
-        .getByCreateDateBetween(parse(createdAfter), parse(createdBefore))
+        .getByCreateDateBetweenAndRealmId(parse(createdAfter), parse(createdBefore), realmId)
         .stream()
         .map(this::createApiUserTokenDTO)
         .collect(Collectors.toList());

@@ -209,7 +209,7 @@ def functionalTests(String browser, String testRegex) {
     mavenOptions += ' -Drun-functional-tests=docker'
     mavenOptions += " -Dbrowser=${browser}"
     mavenOptions += " -DapplitoolsKey=${applitoolsKey}"
-    mavenOptions += " -DapplitoolsEnabled=${params.applitoolsEnabled}"
+    mavenOptions += " -DapplitoolsEnabled=${isEyesEnabled()}"
     mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
     Map<String, String> testConfig = testConfig(mavenOptions, 'insight-brain-java-functional-test/pom.xml')
     mvn testConfig, 'verify'
@@ -229,4 +229,18 @@ def captureResultsAndCleanup() {
   archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/*.xml, **/*-output.txt')
   collectTestResults(['**/target/*-reports/*.xml'])
   deleteDir()
+}
+
+/**
+ * Check to see if the Eyes Check should be enabled.  Defaults to true for the 'main' and any branch that ends in '_ui'
+ * Can be overridden if a parameter has been defined and specified for the job.
+ * @return true if enabled
+ */
+boolean isEyesEnabled() {
+  // use the project name to determine the branch, a git checkout hasn't happened yet.  Multi-branch builds use
+  // the branch name as the last part of the project name.
+  def projName = currentBuild.fullProjectName
+
+  // if the params value isn't set (or hasn't been added to the job yet) use the branch name default)
+  return params.eyes_check ?: (projName.toLowerCase().contains('master') || projName.endsWith('_ui'))
 }

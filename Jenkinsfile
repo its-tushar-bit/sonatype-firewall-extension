@@ -85,7 +85,7 @@ def createJiraIssueIfNeeded() {
 def configureBranchJob() {
   // Use the project name to determine the branch
   def projName = currentBuild.fullProjectName
-  boolean applitoolsEnabledByDefault = (projName.endsWith('master') || projName.endsWith('_ui'))
+  boolean applitoolsEnabledByDefault = (projName.toLowerCase().contains('master') || projName.endsWith('_ui'))
 
   properties([
       copyArtifactPermission("/${projName}"),

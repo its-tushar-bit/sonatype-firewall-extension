@@ -137,6 +137,7 @@ public class SbomResultHandler
     try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
       tx.begin();
       Set<ComponentIdentifier> resolvedComponents = new HashSet<>();
+      targetBom.setMetadata(getFilteredMetadata(sourceBom));
       for (Component component : sourceBom.getComponents()) {
         processComponent(component, thirdPartyFile.getId(), targetBom, identificationSource, resolvedComponents, tx);
       }
@@ -486,40 +487,20 @@ public class SbomResultHandler
 
   //visible for testing
   void processDependencyGraph(
-      Bom sourceBom,
-      Bom targetBom,
-      List<ProjectScanItem> moduleDependencies,
-      ThirdPartyFile thirdPartyFile)
+      final Bom sourceBom,
+      final Bom targetBom,
+      final List<ProjectScanItem> moduleDependencies,
+      final ThirdPartyFile thirdPartyFile)
   {
     if (CollectionUtils.isNotEmpty(targetBom.getComponents())) {
-      //including dependency data into the target bom.
-      // So we have a mechanism to verify the derived dependency graph from HDS end if needed
-      targetBom.setMetadata(getFilteredMetadata(sourceBom));
-      targetBom.setDependencies(sourceBom.getDependencies());
-
       List<Dependency> dependencies = sourceBom.getDependencies();
       if (CollectionUtils.isNotEmpty(dependencies)) {
         Iterator<Dependency> dependencyItr = dependencies.iterator();
         Dependency rootModule = dependencyItr.next();
-        String modulePurl = isPurl(rootModule.getRef()) ? rootModule.getRef() : resolveModulePurl(sourceBom);
-        if (modulePurl != null) {
-          Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph =
-              new HashMap<>();
-          ProjectScanItem project = new ProjectScanItem("sbom", modulePurl);
-          project.setPath(thirdPartyFile.getFilename());
-
-          Map<String, String> bomRefsToPurls = new HashMap<>();
-          //direct dependencies
-          for (Dependency dependency : rootModule.getDependencies()) {
-            String ref = getPurlForDependency(dependency, bomRefsToPurls, targetBom);
-            if (ref != null) {
-              dependencyGraph.put(ref, Pair.of(true, new ArrayList<>()));
-            }
-          }
-
-          resolveSbomDependenciesAndTypes(thirdPartyFile, dependencyItr, dependencyGraph, bomRefsToPurls, targetBom);
-          constructProjectDependencyGraph(dependencyGraph, project);
-          moduleDependencies.add(project);
+        String moduleRef = resolveModuleRef(rootModule, targetBom);
+        if (moduleRef != null) {
+          processValidDependencyGraph(moduleRef, thirdPartyFile, rootModule, targetBom, dependencyItr,
+              moduleDependencies);
         }
         else {
           log.debug(String.format("Unable to process dependency graph. " +
@@ -527,6 +508,66 @@ public class SbomResultHandler
         }
       }
     }
+  }
+
+  private void processValidDependencyGraph(
+      final String moduleRef,
+      final ThirdPartyFile thirdPartyFile,
+      final Dependency rootModule,
+      final Bom targetBom,
+      final Iterator<Dependency> dependencyItr,
+      final List<ProjectScanItem> moduleDependencies)
+  {
+    Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph =
+        new HashMap<>();
+    ProjectScanItem project = new ProjectScanItem("sbom", moduleRef);
+    project.setPath(thirdPartyFile.getFilename());
+
+    if (CollectionUtils.isNotEmpty(rootModule.getDependencies())) {
+      Map<String, String> bomRefsToPurls = new HashMap<>();
+      //direct dependencies
+      for (Dependency dependency : rootModule.getDependencies()) {
+        String ref = getPurlForDependency(dependency, bomRefsToPurls, targetBom);
+        if (ref != null) {
+          dependencyGraph.put(ref, Pair.of(true, new ArrayList<>()));
+        }
+      }
+
+      resolveSbomDependenciesAndTypes(thirdPartyFile, dependencyItr, dependencyGraph, bomRefsToPurls, targetBom);
+      constructProjectDependencyGraph(dependencyGraph, project);
+      moduleDependencies.add(project);
+    }
+  }
+
+  private String resolveModuleRef(final Dependency firstDep, final Bom targetBom) {
+    // Check we have the first dep ref to compare
+    if (StringUtils.isBlank(firstDep.getRef())) {
+      return null;
+    }
+
+    // Check we have the metadata component to compare
+    if (targetBom.getMetadata() == null) {
+      return null;
+    }
+    Component metadataComponent = targetBom.getMetadata().getComponent();
+    if (metadataComponent == null) {
+      return null;
+    }
+
+    // If the first dep ref matches the metadata component purl just return the latter
+    if (firstDep.getRef().equalsIgnoreCase(metadataComponent.getPurl())) {
+      return metadataComponent.getPurl();
+    }
+    // Otherwise, if the first dep ref matches the metadata component bom ref (it could be a purl or a UUID)
+    if (firstDep.getRef().equalsIgnoreCase(metadataComponent.getBomRef())) {
+      // Return the metadata component purl if it exists
+      if (StringUtils.isNotBlank(metadataComponent.getPurl())) {
+        return metadataComponent.getPurl();
+      }
+      // Otherwise, just return the first dep ref
+      return firstDep.getRef();
+    }
+    return null;
   }
 
   private String getPurlForDependency(
@@ -650,13 +691,6 @@ public class SbomResultHandler
     catch (InvalidPackageURLException e) {
       return false;
     }
-  }
-
-  private String resolveModulePurl(Bom bom) {
-    if (bom.getMetadata() != null && bom.getMetadata().getComponent() != null) {
-      return bom.getMetadata().getComponent().getPurl();
-    }
-    return null;
   }
 
   String generateFilteredSbom(Bom sbom)

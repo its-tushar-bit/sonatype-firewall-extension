@@ -181,6 +181,7 @@ public class DependencyResolver
             }
           }
           // no root ComponentIdentifier refers to a tree derived based on HDS data
+          // or SBOM File where the parent component does not have a purl
           else if (CollectionUtils.isNotEmpty(tree.getChildren())) {
             updateDependencyInfoForComponentChildren(tree.getChildren(), true, false, null);
           }

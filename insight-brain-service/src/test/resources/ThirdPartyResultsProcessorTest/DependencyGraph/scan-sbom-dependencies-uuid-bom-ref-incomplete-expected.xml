@@ -53,16 +53,6 @@
       <purl>pkg:cran/crandep@3.0.0</purl>
     </component>
   </components>
-  <dependencies>
-    <dependency ref="acme-app">
-      <dependency ref="af6bfccd-3efd-4fad-a035-355c45ef884b"/>
-      <dependency ref="56e214a7-af84-4068-8c23-256802b51baf"/>
-    </dependency>
-    <dependency ref="af6bfccd-3efd-4fad-a035-355c45ef884b">
-      <dependency ref="d94c966b-c8ec-452a-acbf-584906d551b3"/>
-    </dependency>
-    <dependency ref="56e214a7-af84-4068-8c23-256802b51baf"/>
-  </dependencies>
 </bom>
 ]]></content>
   </item>

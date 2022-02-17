@@ -53,16 +53,6 @@
       <purl>pkg:cran/crandep@3.0.0</purl>
     </component>
   </components>
-  <dependencies>
-    <dependency ref="acme-app">
-      <dependency ref="pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar"/>
-      <dependency ref="pkg:cran/crandep@3.0.0"/>
-    </dependency>
-    <dependency ref="pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar">
-      <dependency ref="pkg:pypi/pydep@3.1.0?extension=tgz&amp;qualifier=cp27_win"/>
-    </dependency>
-    <dependency ref="pkg:cran/crandep@3.0.0"/>
-  </dependencies>
 </bom>
 ]]></content>
   </item>

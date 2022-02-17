@@ -92,9 +92,6 @@ public class QuarantinedComponentResourceTest
 
   @Test
   public void testGetQuarantinedComponent_featureDisabled() throws Exception {
-    // setup
-    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(Collections.emptyMap());
-
     // when
     final HttpResponse response =
         restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,

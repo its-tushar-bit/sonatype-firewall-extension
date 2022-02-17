@@ -60,8 +60,6 @@ public class InnerSourceRepositoryConfigurationPageTest
   @After
   public void after() {
     repositoryConnectionDAO.deleteAll();
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(
-        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
   }
 
   @Test

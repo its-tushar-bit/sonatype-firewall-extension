@@ -66,8 +66,6 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
 
   @After
   public void after() {
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(
-        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
     rootOrg.setRepositoryConnectionEnabled(null);
     rootOrg.setAllowRepositoryConnectionOverride(true);
     organizationDAO.update(rootOrg);

@@ -40,7 +40,6 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,7 +60,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.google.common.collect.ImmutableMap.of;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature.SCM_ONBOARDING;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static java.util.Collections.singleton;
@@ -95,11 +93,6 @@ public class ScmOnboardingTest
 
   @Rule
   public final WireMockRule secondaryGitService = new WireMockRule(wireMockConfig().dynamicPort());
-
-  @AfterClass
-  public static void cleanup() {
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(SCM_ONBOARDING.getFlag(), false));
-  }
 
   @After
   public void clearCookies() {

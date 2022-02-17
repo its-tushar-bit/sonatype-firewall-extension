@@ -52,13 +52,11 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportTestUtils;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
-import com.google.common.collect.ImmutableMap;
 import org.apache.tools.ant.util.DateUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Before;
@@ -97,8 +95,6 @@ public class TransitiveViolationsTest
 
   @Before
   public void before() throws Exception {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
     rootOrganization = new OrganizationDAO().getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
     organization = tempEntity.newOrganization("Test Org 0af5aa00a2424db19b115f70b6f873d9");
     application = tempEntity.newApplication("Test App 56770d0ec3da47b0aa8eab53d874efdb",

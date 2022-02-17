@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
@@ -258,6 +259,11 @@ public abstract class AbstractFunctionalTest
   @After
   public final void afterTest() throws Exception {
     log.info("After: {}", testName.getMethodName());
+    InsightConfig insightConfig = testCLMServer.getCLMServer().getConfiguration();
+    if (insightConfig != null) {
+      insightConfig.setFeatures(Collections.emptyMap());
+      insightConfig.setExperimentalFeatures(Collections.emptyMap());
+    }
     tryOpenSidebarNav();
     TaskScheduler taskScheduler = testCLMServer.getCLMServer().getInstance(TaskScheduler.class);
     if (taskScheduler != null) {

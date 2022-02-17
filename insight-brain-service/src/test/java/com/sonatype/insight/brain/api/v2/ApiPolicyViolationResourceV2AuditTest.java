@@ -19,11 +19,8 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 
-import com.google.common.collect.ImmutableMap;
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
@@ -32,12 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiPolicyViolationResourceV2AuditTest
     extends AbstractAuditTest
 {
-  @Before
-  public void before() {
-    getCLMServer().getConfiguration()
-        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
-  }
-
   @Test
   public void testGetPolicyViolations() throws Exception {
     Organization org = tempEntity.newOrganization();

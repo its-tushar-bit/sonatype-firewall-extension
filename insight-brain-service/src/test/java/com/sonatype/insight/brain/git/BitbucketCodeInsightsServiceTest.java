@@ -111,7 +111,6 @@ public class BitbucketCodeInsightsServiceTest
   public void before() throws URISyntaxException, IOException {
     MockitoAnnotations.openMocks(this);
 
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.CODE_INSIGHTS.getFlag(), Boolean.TRUE));
     config.setBaseUrl("http://localhost:1122");
     application = tempEntity.newApplicationWithParent();
     service =

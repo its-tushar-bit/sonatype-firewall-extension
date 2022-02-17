@@ -12,7 +12,6 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,11 +29,6 @@ public class ScmOnboardingConfigServiceTest
   @Before
   public void setup() {
     config.setExperimentalFeatures(ImmutableMap.of(ExperimentalFeature.SCM_ONBOARDING.getFlag(), true));
-  }
-
-  @After
-  public void cleanup() {
-    config.setExperimentalFeatures(ImmutableMap.of(ExperimentalFeature.SCM_ONBOARDING.getFlag(), false));
   }
 
   @Test

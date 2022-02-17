@@ -55,12 +55,11 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
@@ -69,7 +68,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -79,7 +77,15 @@ import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.disappear;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.matchText;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 
 public class ComponentDetailsTest
@@ -664,8 +670,6 @@ public class ComponentDetailsTest
 
   @Test
   public void testPolicyViolationsTab_viewTransitiveViolations() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ElementsCollection violations = reportPage.resultRows();
     SelenideElement violation = violations.get(15);

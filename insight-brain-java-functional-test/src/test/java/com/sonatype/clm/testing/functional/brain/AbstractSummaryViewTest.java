@@ -248,8 +248,6 @@ public abstract class AbstractSummaryViewTest
 
   @Test
   public void testInnerSourceRepositoryTile_FeatureDisabled() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
     refresh();
     MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();

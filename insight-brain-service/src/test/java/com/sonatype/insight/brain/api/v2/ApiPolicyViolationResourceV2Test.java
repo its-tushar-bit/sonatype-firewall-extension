@@ -251,8 +251,6 @@ public class ApiPolicyViolationResourceV2Test
 
   @Test
   public void testGetTransitivePolicyViolationsByOwnerStageComponent() throws Exception {
-    getCLMServer().getConfiguration()
-        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
     Application application = tempEntity.newApplicationWithParent();
     String scanId = "scanId";
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
@@ -293,8 +291,6 @@ public class ApiPolicyViolationResourceV2Test
   
   @Test
   public void testGetTransitivePolicyViolationsByAppScanComponent() throws Exception {
-    getCLMServer().getConfiguration()
-        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
     Application application = tempEntity.newApplicationWithParent();
     String scanId = "scanId";
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);

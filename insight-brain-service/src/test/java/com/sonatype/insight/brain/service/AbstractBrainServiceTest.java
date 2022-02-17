@@ -220,6 +220,11 @@ public abstract class AbstractBrainServiceTest
         taskScheduler.clear();
       }
       getCLMServer().resetDisableForTesting();
+      InsightConfig insightConfig = getCLMServer().getConfiguration();
+      if (insightConfig != null) {
+        getCLMServer().getConfiguration().setFeatures(Collections.emptyMap());
+        getCLMServer().getConfiguration().setExperimentalFeatures(Collections.emptyMap());
+      }
     }
     releaseScmPerpetualLock();
   }

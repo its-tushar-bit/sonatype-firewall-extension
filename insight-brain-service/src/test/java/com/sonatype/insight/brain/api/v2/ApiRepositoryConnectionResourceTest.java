@@ -44,8 +44,6 @@ import static org.assertj.core.groups.Tuple.tuple;
 public class ApiRepositoryConnectionResourceTest
     extends AbstractResourceTest
 {
-  public static final String FEATURE_FLAG = ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag();
-
   @Rule
   public WireMockRule nxrm3MockSever = new WireMockRule(wireMockConfig().dynamicPort());
 
@@ -63,7 +61,8 @@ public class ApiRepositoryConnectionResourceTest
   public void before() {
     pwHandler = getCLMServer().getInstance(PasswordHandler.class);
     insightConfig = getCLMServer().getInstance(InsightConfig.class);
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, true));
+    insightConfig.setExperimentalFeatures(ImmutableMap.of(
+        ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     app = tempEntity.newApplicationWithParent();
     app.setRepositoryConnectionEnabled(true);
     new ApplicationDAO().update(app);
@@ -89,7 +88,8 @@ public class ApiRepositoryConnectionResourceTest
 
   @Test
   public void testAddRepositoryConnection_FeatureDisabled() throws Exception {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, false));
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
     dto.ownerId = app.getId();
     dto.baseUrl = "http://baseurl.com";
@@ -101,7 +101,8 @@ public class ApiRepositoryConnectionResourceTest
         .body(dto)
         .post();
     assertThat(response.getStatusCode()).isEqualTo(403);
-    assertThat(response.getBodyText()).isEqualTo(FEATURE_FLAG + " feature is disabled");
+    assertThat(response.getBodyText()).isEqualTo(
+        ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag() + " feature is disabled");
   }
 
   @Test
@@ -132,7 +133,8 @@ public class ApiRepositoryConnectionResourceTest
 
   @Test
   public void testUpdateRepositoryConnection_FeatureDisabled() throws Exception {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, false));
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
     tempEntity.newRepositoryConnection(app.getId(), "http://baseurl1.com", "user1", "pass1".toCharArray());
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
     dto.ownerId = app.getId();
@@ -143,7 +145,8 @@ public class ApiRepositoryConnectionResourceTest
         .body(dto)
         .put();
     assertThat(response.getStatusCode()).isEqualTo(403);
-    assertThat(response.getBodyText()).isEqualTo(FEATURE_FLAG + " feature is disabled");
+    assertThat(response.getBodyText()).isEqualTo(
+        ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag() + " feature is disabled");
   }
 
   @Test
@@ -182,7 +185,8 @@ public class ApiRepositoryConnectionResourceTest
 
   @Test
   public void testDeleteRepositoryConnection_FeatureDisabled() throws Exception {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, false));
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
 
     RepositoryConnection existingConnection =
         tempEntity.newRepositoryConnection(app.getId(), "http://baseurl.com", "user", "pass".toCharArray());
@@ -191,7 +195,8 @@ public class ApiRepositoryConnectionResourceTest
         .delete();
 
     assertThat(response.getStatusCode()).isEqualTo(403);
-    assertThat(response.getBodyText()).isEqualTo(FEATURE_FLAG + " feature is disabled");
+    assertThat(response.getBodyText()).isEqualTo(
+        ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag() + " feature is disabled");
   }
 
   @Test
@@ -214,7 +219,8 @@ public class ApiRepositoryConnectionResourceTest
 
   @Test
   public void testGetRepositoryConnections_FeatureDisabled() throws Exception {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, false));
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
 
     tempEntity.newRepositoryConnection(app.getId(), "http://baseurl.com", "user", "pass".toCharArray());
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
@@ -222,7 +228,8 @@ public class ApiRepositoryConnectionResourceTest
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(403);
-    assertThat(response.getBodyText()).isEqualTo(FEATURE_FLAG + " feature is disabled");
+    assertThat(response.getBodyText()).isEqualTo(
+        ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag() + " feature is disabled");
   }
 
   @Test
@@ -323,13 +330,15 @@ public class ApiRepositoryConnectionResourceTest
 
   @Test
   public void testGetRepositoryConnection_FeatureDisabled() throws Exception {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, false));
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY)
         .parameter("application", "appId", "repositoryConnectionId")
         .get();
     assertThat(response.getStatusCode()).isEqualTo(403);
-    assertThat(response.getBodyText()).isEqualTo(FEATURE_FLAG + " feature is disabled");
+    assertThat(response.getBodyText()).isEqualTo(
+        ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag() + " feature is disabled");
   }
 
   private void testDeleteRepositoryConnection(final String id, final OwnerType ownerType) throws Exception {
@@ -436,7 +445,9 @@ public class ApiRepositoryConnectionResourceTest
 
   @Test
   public void testTestRepositoryConnection_FeatureDisabled() throws Exception {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, false));
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
+
     ApiRepositoryConnectionDTO dto = new ApiRepositoryConnectionDTO();
     dto.baseUrl = nxrm3MockSever.baseUrl();
 
@@ -445,7 +456,8 @@ public class ApiRepositoryConnectionResourceTest
         .body(dto)
         .post();
     assertThat(response.getStatusCode()).isEqualTo(403);
-    assertThat(response.getBodyText()).isEqualTo(FEATURE_FLAG + " feature is disabled");
+    assertThat(response.getBodyText()).isEqualTo(
+        ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag() + " feature is disabled");
   }
 
   @Test
@@ -506,13 +518,15 @@ public class ApiRepositoryConnectionResourceTest
 
   @Test
   public void testTestRepositoryConnection_ByRepositoryConnectionId_FeatureDisabled() throws Exception {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, false));
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY_TEST_PATH)
         .parameter(OwnerType.APPLICATION, "appId", "repositoryConnectionId")
         .post();
     assertThat(response.getStatusCode()).isEqualTo(403);
-    assertThat(response.getBodyText()).isEqualTo(FEATURE_FLAG + " feature is disabled");
+    assertThat(response.getBodyText()).isEqualTo(
+        ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag() + " feature is disabled");
   }
 
   @Test
@@ -545,7 +559,8 @@ public class ApiRepositoryConnectionResourceTest
 
   @Test
   public void testUpdateOwnerRepositoryConnectionStatus_FeatureDisabled() throws Exception {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(FEATURE_FLAG, false));
+    insightConfig.setExperimentalFeatures(
+        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
     ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
@@ -553,7 +568,8 @@ public class ApiRepositoryConnectionResourceTest
         .body(dto)
         .put();
     assertThat(response.getStatusCode()).isEqualTo(403);
-    assertThat(response.getBodyText()).isEqualTo(FEATURE_FLAG + " feature is disabled");
+    assertThat(response.getBodyText()).isEqualTo(
+        ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag() + " feature is disabled");
   }
 
   @Test

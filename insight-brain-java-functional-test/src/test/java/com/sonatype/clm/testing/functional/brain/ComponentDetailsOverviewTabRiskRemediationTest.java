@@ -274,8 +274,6 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   @Test
   public void testRiskRemediationTile_RepositorySource_InnerSourceDependency_FeatureDisabled() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().riskRemediationTile().versionExplorerSection().repositorySource()

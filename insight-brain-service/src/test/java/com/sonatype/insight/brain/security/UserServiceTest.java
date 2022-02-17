@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -462,17 +463,65 @@ public class UserServiceTest
   }
 
   @Test
-  public void testGetApiUserDTOByUsername() {
+  public void testGetApiUserDTOByUsernameAndRealmId() {
     User user = tempEntity.newUser();
 
-    assertEqualExceptNullDTOPassword(user, userService.getApiUserDTOByUsername(user.getUsername()));
+    assertEqualExceptNullDTOPassword(user, userService.getApiUserDTOByUsernameAndRealmId(
+        user.getUsername(), User.INTERNAL_REALM_ID));
   }
 
   @Test
-  public void testGetApiUserDTOByUsername_UserDoesNotExist() {
+  public void testGetApiUserDTOByUsernameAndRealmId_SamlUserTokensEnabled_Saml() {
+    when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+
+    SamlUser samlUser = tempEntity.newSamlUser();
+    List<ApiUserDTO> apiUserDTOs = new ArrayList<>();
+
+    ApiUserDTO apiUserDTO = userService.getApiUserDTOByUsernameAndRealmId(samlUser.getUsername(),
+        SamlUser.SAML_REALM_ID);
+    apiUserDTOs.add(apiUserDTO);
+    assertContainsApiUserDTOMatchingUser(apiUserDTOs, samlUser);
+  }
+
+  @Test
+  public void testGetApiUserDTOByUsernameAndRealmId_SamlUserTokensDisabled_Saml() {
+    testGetApiUserDTOByUsernameAndRealmId(SamlUser.SAML_REALM_ID, null);
+  }
+
+  @Test
+  public void testGetApiUserDTOByUsernameAndRealmId_SamlUserTokensDisabled_Internal() {
+    testGetApiUserDTOByUsernameAndRealmId(User.INTERNAL_REALM_ID, null);
+  }
+
+  @Test
+  public void testGetApiUserDTOByUsernameAndRealmId_SamlUserTokensEnabled_Internal() {
+    when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+    testGetApiUserDTOByUsernameAndRealmId(User.INTERNAL_REALM_ID, null);
+  }
+
+  private void testGetApiUserDTOByUsernameAndRealmId(String queryRealm, String expectedRealm) {
+    User user = tempEntity.newUser();
+    List<ApiUserDTO> apiUserDTOs = new ArrayList<>();
+
+    ApiUserDTO apiUserDTO = userService.getApiUserDTOByUsernameAndRealmId(user.getUsername(), queryRealm);
+    apiUserDTOs.add(apiUserDTO);
+    assertContainsApiUserDTOMatchingUser(apiUserDTOs, user, expectedRealm);
+
+  }
+
+  @Test
+  public void testGetApiUserDTOByUsernameAndRealmId_UserDoesNotExist() {
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> userService.getApiUserDTOByUsername("doesNotExist"))
+        .isThrownBy(() -> userService.getApiUserDTOByUsernameAndRealmId("doesNotExist", User.INTERNAL_REALM_ID))
         .withMessage("Cannot find a user with username doesNotExist.");
+  }
+
+  @Test
+  public void testGetApiUserDTOByUsernameAndRealmId_UserDoesNotExist_SamlEnabled() {
+    when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> userService.getApiUserDTOByUsernameAndRealmId("doesNotExist", SamlUser.SAML_REALM_ID))
+        .withMessage("Cannot find a SAML user with username doesNotExist.");
   }
 
   @Test

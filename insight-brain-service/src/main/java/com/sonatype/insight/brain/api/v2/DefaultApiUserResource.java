@@ -60,8 +60,11 @@ public class DefaultApiUserResource implements ApiUserResource
   @GET
   @Path(USERNAME_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiUserDTO get(@PathParam("username") String username) {
-    return userService.getApiUserDTOByUsername(username);
+  public ApiUserDTO get(@PathParam("username") String username,
+                        @DefaultValue(User.INTERNAL_REALM_ID)
+                        @QueryParam("realm") String realmId)
+  {
+    return userService.getApiUserDTOByUsernameAndRealmId(username, realmId);
   }
 
   @Override

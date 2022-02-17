@@ -256,20 +256,20 @@ public class UserServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetApiUserDTOByUsername_Unauthenticated() {
-    userService.getApiUserDTOByUsername(tempEntity.newUser().getUsername());
+  public void testGetApiUserDTOByUsernameAndRealmId_Unauthenticated() {
+    userService.getApiUserDTOByUsernameAndRealmId(tempEntity.newUser().getUsername(), User.INTERNAL_REALM_ID);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetApiUserDTOByUsername_Unauthorized() {
+  public void testGetApiUserDTOByUsernameAndRealmId_Unauthorized() {
     login();
-    userService.getApiUserDTOByUsername(tempEntity.newUser().getUsername());
+    userService.getApiUserDTOByUsernameAndRealmId(tempEntity.newUser().getUsername(), User.INTERNAL_REALM_ID);
   }
 
   @Test
-  public void testGetApiUserDTOByUsername_Authorized() {
+  public void testGetApiUserDTOByUsernameAndRealmId_Authorized() {
     grantConfigureSystemPermission();
-    userService.getApiUserDTOByUsername(tempEntity.newUser().getUsername());
+    userService.getApiUserDTOByUsernameAndRealmId(tempEntity.newUser().getUsername(), User.INTERNAL_REALM_ID);
   }
 
   @Test(expected = UnauthenticatedException.class)

@@ -402,8 +402,13 @@ public class UserService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public ApiUserDTO getApiUserDTOByUsername(String username) {
-    return convert(userDAO.getByUsernameNotNull(username));
+  public ApiUserDTO getApiUserDTOByUsernameAndRealmId(String username, String realmId) {
+    if (hasSamlUserTokenSupport() && SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+      return convert(samlUserDAO.getByUsernameNotNull(username));
+    }
+    else {
+      return convert(userDAO.getByUsernameNotNull(username));
+    }
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

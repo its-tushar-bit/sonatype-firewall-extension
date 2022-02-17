@@ -129,13 +129,87 @@ public class ApiUserResourceTest
     assertPresenceOfRealmField(expectedRealm, response);
   }
 
+  @Test
+  public void testGet_SamlUserTokensDisabled() throws Exception {
+    testGet(null, null, false);
+  }
+
+  @Test
+  public void testGet_SamlUserTokensDisabled_Saml() throws Exception {
+    testGet("saml", null, false);
+  }
+
+  @Test
+  public void testGet_SamlUserTokensEnabled() throws Exception {
+    testGet(null, null, true);
+  }
+
+  @Test
+  public void testGet_SamlUserTokensEnabled_Saml() throws Exception {
+    testGet("saml", SamlUser.SAML_REALM_ID, true);
+  }
+
+  @Test
+  public void testGet_SamlUserTokensEnabled_Internal() throws Exception {
+    testGet(User.INTERNAL_REALM_ID, null, true);
+  }
+
+  @Test
+  public void testGet_SamlUserTokensDisabled_Internal() throws Exception {
+    testGet(User.INTERNAL_REALM_ID, null, false);
+  }
+
+  @Test
+  public void testGet_SamlUserTokensEnabled_Other() throws Exception {
+    testGet("AnyRealm", null, true);
+  }
+
+  @Test
+  public void testGet_SamlUserTokensDisabled_Other() throws Exception {
+    testGet("AnyRealm", null, false);
+  }
+
+  private void testGet(String queryRealm, String expectedRealm, boolean samlUserTokenEnabled) throws Exception {
+    User user = tempEntity.newUser();
+    SamlUser samlUser = tempEntity.newSamlUser();
+    if (samlUserTokenEnabled) {
+      setFeatures(LicensedFeature.SAML_USER_TOKENS);
+    }
+    else {
+      setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
+    }
+    HttpResponse response = restRequest()
+        .path(samlUserTokenEnabled
+            && SamlUser.SAML_REALM_ID.equalsIgnoreCase(queryRealm)
+            ? samlUser.getUsername()
+            : user.getUsername())
+        .query("realm", queryRealm).get();
+
+    assertResponseStatus(200, response);
+    ApiUserDTO apiUserDTO = response.getBody(ApiUserDTO.class);
+    assertThat(apiUserDTO).isNotNull();
+    if (SamlUser.SAML_REALM_ID.equals(expectedRealm)) {
+      assertThat(apiUserDTO.username).isEqualTo(samlUser.getUsername());
+    }
+    else {
+      assertThat(apiUserDTO.username).isEqualTo(user.getUsername());
+    }
+    assertThat(apiUserDTO.realm).isEqualTo(expectedRealm);
+    assertPresenceOfRealmField(expectedRealm, response);
+  }
+
   private void assertPresenceOfRealmField(final String expectedRealm, final HttpResponse response)
       throws JsonProcessingException
   {
     ObjectMapper objectMapper = new ObjectMapper();
-    JsonNode jsonNode = objectMapper.readTree(response.getBodyText()).get("users");
-    for (JsonNode child : jsonNode) {
-      assertThat(child.has("realm")).isEqualTo(expectedRealm != null);
+    JsonNode jsonNode = objectMapper.readTree(response.getBodyText());
+    if (jsonNode.has("users")) {
+      for (JsonNode child : jsonNode.get("users")) {
+        assertThat(child.has("realm")).isEqualTo(expectedRealm != null);
+      }
+    }
+    else {
+      assertThat(jsonNode.has("realm")).isEqualTo(expectedRealm != null);
     }
   }
 

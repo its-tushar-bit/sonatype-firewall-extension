@@ -15,7 +15,7 @@ public interface ApiUserResource
 {
   ApiUserListDTO getAll(String realmId);
 
-  ApiUserDTO get(String username);
+  ApiUserDTO get(String username, String realmId);
 
   void add(ApiUserDTO userDTO);
 

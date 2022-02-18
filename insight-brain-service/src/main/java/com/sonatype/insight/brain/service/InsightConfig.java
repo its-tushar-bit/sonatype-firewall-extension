@@ -988,6 +988,7 @@ public class InsightConfig
     ORCHESTRATED_EVENT_PROCESSING("orchestratedEventProcessing"),
     PR_COMMENTING("prCommenting"),
     PR_LINE_COMMENTING("prLineCommenting"),
+    ANONYMOUS_QUARANTINED_COMPONENT_VIEW("anonymousQuarantinedComponentView"),
     NO_AUTH_VULNERABILITY_LOOKUP("noAuthVulnerabilityLookup"),
 
     /**
@@ -1026,7 +1027,6 @@ public class InsightConfig
       implements com.sonatype.insight.license.model.Feature
   {
     SCM_ONBOARDING("scmOnboarding"),
-    ANONYMOUS_QUARANTINED_COMPONENT_VIEW("anonymousQuarantinedComponentView"),
     INNER_SOURCE_REPOSITORY_INTEGRATION("innerSourceRepositoryIntegration");
 
     private final String flag;

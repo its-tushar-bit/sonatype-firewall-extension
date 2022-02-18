@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
@@ -38,7 +39,8 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -69,8 +71,6 @@ public class QuarantinedComponentResourceTest
   @Test
   public void testGetQuarantinedComponent() throws Exception {
     // setup
-    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
         tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
@@ -92,21 +92,21 @@ public class QuarantinedComponentResourceTest
 
   @Test
   public void testGetQuarantinedComponent_featureDisabled() throws Exception {
+    // setup
+    getCLMServer().getInstance(InsightConfig.class)
+        .setFeatures(ImmutableMap.of(Feature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), false));
+
     // when
     final HttpResponse response =
         restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
             QuarantinedComponentResource.QUARANTINED_COMPONENT_PATH).parameter("token").get();
 
     // then
-    assertThat(response.getStatusCode()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+    assertThat(response.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
   }
 
   @Test
   public void testGetQuarantinedComponent_invalidToken() throws Exception {
-    // setup
-    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
-
     // when
     final HttpResponse response =
         restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
@@ -120,8 +120,6 @@ public class QuarantinedComponentResourceTest
   public void testGetQuarantinedComponent_expiredToken() throws Exception {
     // setup
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
-    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final QuarantinedComponentAccess quarantinedComponentAccess =
         tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(),
             DateUtils.addDays(new Date(), -3));
@@ -140,8 +138,6 @@ public class QuarantinedComponentResourceTest
   @Test
   public void testGetQuarantinedComponent_tokenDoesNotExist() throws Exception {
     // setup
-    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString("token".getBytes(StandardCharsets.UTF_8));
 
@@ -199,8 +195,6 @@ public class QuarantinedComponentResourceTest
   @Test
   public void testGetQuarantinedComponentVersionRemediation() throws Exception {
     // setup
-    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final Repository repository = tempEntity.newRepository("repo");
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
@@ -247,8 +241,6 @@ public class QuarantinedComponentResourceTest
   }
 
   private String setupTestData(ComponentIdentifier componentIdentifier, Date date) {
-    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     final Repository repository = tempEntity.newRepository(repositoryManager, "repositoryPublicId");
     final RepositoryComponent repositoryComponent =
@@ -272,8 +264,6 @@ public class QuarantinedComponentResourceTest
   @Test
   public void testGetQuarantinedComponentPolicyViolations() throws Exception {
     // setup
-    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     Date date = new Date();
     final RepositoryComponent repositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "path", date, null);
@@ -324,8 +314,6 @@ public class QuarantinedComponentResourceTest
   @Test
   public void testGetQuarantinedComponentPolicyViolations_policyViolationsDoesNotExist() throws Exception {
     // setup
-    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     Date date = new Date();
     final RepositoryComponent repositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "path", date, null);
@@ -361,8 +349,6 @@ public class QuarantinedComponentResourceTest
   @Test
   public void testGetQuarantinedComponentOtherVersions() throws Exception {
     // setup
-    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     Date date = new Date();
     final RepositoryComponent repositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
@@ -409,8 +395,6 @@ public class QuarantinedComponentResourceTest
   @Test
   public void testGetQuarantinedComponentOtherVersions_otherVersionsDoesNotExist() throws Exception {
     // setup
-    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     Date date = new Date();
     final RepositoryComponent repositoryComponent =
         tempEntity.newRepositoryComponent(repository.getId(), "com/lingocoder/abi.cli/0.5.1/abi.cli-0.5.1.jar",
@@ -446,8 +430,6 @@ public class QuarantinedComponentResourceTest
   @Test
   public void testGetComponentVersionDetails() throws Exception {
     // setup
-    getTestCLMServer().getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final Repository repository = tempEntity.newRepository("repo");
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =

@@ -16,12 +16,11 @@ import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAcce
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang.time.DateUtils;
-import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ public class DbQuarantinedComponentAccessManager
 {
   private static final Logger log = LoggerFactory.getLogger(DbQuarantinedComponentAccessManager.class);
 
-  private static final int EXPIRATION_TIME_IN_DAYS = 2;
+  private static final int EXPIRATION_TIME_IN_HOURS = 12;
 
   private final InsightConfig insightConfig;
 
@@ -96,7 +95,7 @@ public class DbQuarantinedComponentAccessManager
       throw new NotFoundException(String.format("Component report with identifier %s could not be found", token));
     }
 
-    if (DateUtils.addDays(quarantinedComponentAccess.getGenerateTime(), EXPIRATION_TIME_IN_DAYS)
+    if (DateUtils.addHours(quarantinedComponentAccess.getGenerateTime(), EXPIRATION_TIME_IN_HOURS)
         .before(new Date())) {
       log.error("Access to quarantined component report entry with expired id: {} was attempted", decodedInput);
       throw new NotFoundException(String.format("Component report with identifier %s is expired", token));
@@ -111,9 +110,9 @@ public class DbQuarantinedComponentAccessManager
   }
 
   private void checkFeatureFlag() {
-    if (!insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW)) {
-      throw new UnauthorizedException(
-          ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag() + " feature is disabled.");
+    if (!insightConfig.isFeatureEnabled(Feature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW)) {
+      throw new BadRequestException(
+          Feature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag() + " feature is disabled.");
     }
   }
 }

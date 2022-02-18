@@ -17,13 +17,12 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.time.DateUtils;
-import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,9 +45,6 @@ public class DbQuarantinedComponentAccessManagerTest
     // Setup
     final Repository repository = tempEntity.newRepository("repo");
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
-    insightConfig
-        .setExperimentalFeatures(
-            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
 
     final String token = quarantinedComponentAccessManager.createToken(repositoryComponent);
 
@@ -62,8 +58,9 @@ public class DbQuarantinedComponentAccessManagerTest
     assertThat(quarantinedComponentAccess.getRepositoryComponentId()).isEqualTo(repositoryComponent.getId());
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test(expected = BadRequestException.class)
   public void testCreateToken_featureNotEnabled() {
+    insightConfig.setFeatures(ImmutableMap.of(Feature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), false));
     quarantinedComponentAccessManager.createToken(new RepositoryComponent());
   }
 
@@ -72,9 +69,6 @@ public class DbQuarantinedComponentAccessManagerTest
     // Setup
     final Repository repository = tempEntity.newRepository("repo");
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
-    insightConfig
-        .setExperimentalFeatures(
-            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final QuarantinedComponentAccess quarantinedComponentAccess =
         tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
@@ -84,16 +78,14 @@ public class DbQuarantinedComponentAccessManagerTest
         .isEqualTo(repositoryComponent.getId());
   }
 
-  @Test(expected = UnauthorizedException.class)
+  @Test(expected = BadRequestException.class)
   public void testGetRepositoryComponentIdFromToken_featureNotEnabled() {
+    insightConfig.setFeatures(ImmutableMap.of(Feature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), false));
     quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token");
   }
 
   @Test
   public void testGetRepositoryComponentIdFromToken_tokenDoesNotExist() {
-    insightConfig
-        .setExperimentalFeatures(
-            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString("fakeToken".getBytes(StandardCharsets.UTF_8));
 
@@ -106,12 +98,9 @@ public class DbQuarantinedComponentAccessManagerTest
     // Setup
     final Repository repository = tempEntity.newRepository("repo");
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
-    insightConfig
-        .setExperimentalFeatures(
-            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final QuarantinedComponentAccess quarantinedComponentAccess =
         tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(),
-            DateUtils.addDays(new Date(), -3));
+            DateUtils.addHours(new Date(), -13));
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
@@ -121,10 +110,6 @@ public class DbQuarantinedComponentAccessManagerTest
 
   @Test
   public void testGetRepositoryComponentIdFromToken_invalidToken() {
-    insightConfig
-        .setExperimentalFeatures(
-            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
-
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token"));
   }

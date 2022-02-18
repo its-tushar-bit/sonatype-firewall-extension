@@ -214,7 +214,6 @@ In a nutshell: don't create the rejected promise until you need it.
 
 - Keep screenshots at a minimum.
   - Usually one screenshot per page of the application is enough, unless the page in question has very complex and visually-distinct states.
-- Only enable Visual Testing (Applitools) _after_ the Pull-Request has gotten two approvals but _before_ merging it.
 - Make sure that Applitools passes _before_ merging your Pull-Request.
 - If there are any expected applitools changes, accept them, and remember to click save so the baseline is updated.
 - If the changes you are seeing are NOT expected then it is a sign that something unintended is happening in the PR and needs to be addressed.

@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.features.FeaturesResource.NO_AUTH_VULNERABILITY_LOOKUP_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FeaturesResourceTest
@@ -38,5 +39,13 @@ public class FeaturesResourceTest
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
     assertThat(features).isEmpty();
+  }
+
+  @Test
+  public void testGetNoAuthVulnerabilityLookup() throws Exception {
+    HttpResponse response = restRequest().path(NO_AUTH_VULNERABILITY_LOOKUP_PATH).anon().get();
+    assertResponseStatus(200, response);
+    String[] features = response.getBody(String[].class);
+    assertThat(features).hasSize(1).containsOnly("no-auth-vulnerability-lookup");
   }
 }

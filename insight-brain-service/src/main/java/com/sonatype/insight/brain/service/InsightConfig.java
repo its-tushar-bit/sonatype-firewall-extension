@@ -988,6 +988,7 @@ public class InsightConfig
     ORCHESTRATED_EVENT_PROCESSING("orchestratedEventProcessing"),
     PR_COMMENTING("prCommenting"),
     PR_LINE_COMMENTING("prLineCommenting"),
+    NO_AUTH_VULNERABILITY_LOOKUP("noAuthVulnerabilityLookup"),
 
     /**
      * @deprecated Use {@link SourceControl#getSourceControlEvaluationsEnabled() instead}

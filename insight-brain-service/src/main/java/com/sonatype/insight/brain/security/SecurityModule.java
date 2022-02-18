@@ -89,6 +89,8 @@ public class SecurityModule
     manager.createChain("/rest/user-telemetry/events/**", anonFilters); // user-telemetry events
     manager.createChain("/rest/product/version", anonFilters); // product version info
     manager.createChain("/rest/product/license/validate", anonFilters); // product license info
+    // endpoint used by login modal to decide whether to show link to vulnerability lookup page or not without a login
+    manager.createChain("/rest/product/features/noAuthVulnerabilityLookup", anonFilters);
     manager.createChain("/rest/version", anonFilters); // product version info
     manager.createChain("/tasks/**", anonFilters); // DW tasks exposed on admin port
     manager.createChain("/ui/links/**", anonFilters); // only redirects

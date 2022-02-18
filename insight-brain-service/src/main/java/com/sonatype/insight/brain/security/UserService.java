@@ -407,7 +407,7 @@ public class UserService
       return convert(samlUserDAO.getByUsernameNotNull(username));
     }
     else {
-      return convert(userDAO.getByUsernameNotNull(username));
+      return convert(userDAO.getByUsernameNotNull(username), hasSamlUserTokenSupport());
     }
   }
 

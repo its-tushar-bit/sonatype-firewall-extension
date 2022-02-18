@@ -496,7 +496,7 @@ public class UserServiceTest
   @Test
   public void testGetApiUserDTOByUsernameAndRealmId_SamlUserTokensEnabled_Internal() {
     when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
-    testGetApiUserDTOByUsernameAndRealmId(User.INTERNAL_REALM_ID, null);
+    testGetApiUserDTOByUsernameAndRealmId(User.INTERNAL_REALM_ID, User.INTERNAL_REALM_ID);
   }
 
   private void testGetApiUserDTOByUsernameAndRealmId(String queryRealm, String expectedRealm) {

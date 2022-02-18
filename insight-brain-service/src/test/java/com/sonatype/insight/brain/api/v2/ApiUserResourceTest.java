@@ -141,7 +141,7 @@ public class ApiUserResourceTest
 
   @Test
   public void testGet_SamlUserTokensEnabled() throws Exception {
-    testGet(null, null, true);
+    testGet(null, User.INTERNAL_REALM_ID, true);
   }
 
   @Test
@@ -151,7 +151,7 @@ public class ApiUserResourceTest
 
   @Test
   public void testGet_SamlUserTokensEnabled_Internal() throws Exception {
-    testGet(User.INTERNAL_REALM_ID, null, true);
+    testGet(User.INTERNAL_REALM_ID, User.INTERNAL_REALM_ID, true);
   }
 
   @Test
@@ -161,7 +161,7 @@ public class ApiUserResourceTest
 
   @Test
   public void testGet_SamlUserTokensEnabled_Other() throws Exception {
-    testGet("AnyRealm", null, true);
+    testGet("AnyRealm", User.INTERNAL_REALM_ID, true);
   }
 
   @Test

@@ -35,7 +35,6 @@ import './stores/resource.utils';
 import './stores/access/access.mock.data';
 import './stores/store.utils';
 import './stores/policy/policy.mock.data';
-import './stores/label/label.mock.data';
 import './stores/proprietary/proprietary.mock.data';
 import './mock.data/sidebar.resource.mock.data';
 import './mock.data/jira.service.mock.data';

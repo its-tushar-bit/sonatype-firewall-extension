@@ -3,72 +3,119 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import { mapStateToThis } from 'MainRoot/owner.manager/label/label.tile.controller';
 
-describe('label.tile.controller.spec.js', function () {
-  var vm, scope, $httpBackend, $rootScope, EventNameConstant, CLMContextLocations;
+describe('label.tile.controller', () => {
+  var vm, scope, EventNameConstant;
 
   beforeEach(
-    angular.mock.module(ownerManagerModule.name, function ($provide) {
-      $provide.value('$cookies', {
-        get: angular.noop,
-      });
+    angular.mock.module(ownerManagerModule.name, ($provide) => {
+      SpecUtil.mockNgRedux($provide);
     })
   );
 
-  beforeEach(inject(function (_$rootScope_, $injector, $controller, _$httpBackend_, _CLMContextLocations_) {
-    $rootScope = _$rootScope_;
-    $httpBackend = _$httpBackend_;
-    CLMContextLocations = _CLMContextLocations_;
+  beforeEach(inject(($rootScope, $injector, $controller) => {
     scope = $rootScope.$new();
     EventNameConstant = $injector.get('event.name.constant');
 
     vm = $controller('LabelTileController', {
       $scope: scope,
     });
+    scope.vm = vm;
+    vm.$onInit();
   }));
 
-  afterEach(function () {
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
-  });
+  describe('mapStateToThis', () => {
+    it('sets applicableLabels, error, loading and ownerName', () => {
+      const state = {
+        orgsAndPolicies: {
+          root: {
+            ownerName: 'owner',
+          },
+          labels: {
+            loading: false,
+            loadError: null,
+            applicableLabels: [
+              {
+                ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+                ownerName: 'dfgdf',
+                ownerType: 'application',
+                labels: [
+                  {
+                    color: 'light-green',
+                    description: null,
+                    id: 'ae63051b2e304c3bbabf94c2443b03fb',
+                    label: 'n3',
+                    ownerId: '6b365e8a8000449aa924f194a7ed0d21',
+                    ownerType: 'APPLICATION',
+                  },
+                ],
+                inherited: false,
+              },
+            ],
+          },
+        },
+      };
 
-  it('Properly Loading Labels', function () {
-    $httpBackend.expectGET(CLMContextLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
-    $httpBackend.flush();
+      const output = mapStateToThis(state);
 
-    expect(vm.ownerName).toEqual(LabelMockData.getApplicableLabels().labelsByOwner[0].ownerName);
-    expect(vm.applicableLabels.length).toEqual(LabelMockData.getApplicableLabels().labelsByOwner.length);
-    vm.applicableLabels.forEach(function (labels, index) {
-      expect(labels.label).toEqual(LabelMockData.getApplicableLabels().labelsByOwner[index].label);
+      expect(output.ownerName).toBe('owner');
+      expect(output.loading).toBeFalse();
+      expect(output.error).toBeNull();
+      expect(output.applicableLabels).toEqual(state.orgsAndPolicies.labels.applicableLabels);
     });
   });
 
-  it('Missing Labels', function () {
-    $httpBackend.expectGET(CLMContextLocations.getApplicableLabelsUrl()).respond(400, 'Bad Request');
-    $httpBackend.flush();
+  describe('$onInit()', () => {
+    it('subscribes to the redux store', () => {
+      expect(vm.unsubscribe).toBeDefined();
+    });
 
-    expect(vm.error).toBeDefined();
+    it('calls loadApplicableLabels', () => {
+      expect(vm.loadApplicableLabels).toHaveBeenCalled();
+    });
   });
 
-  it('Reloads on broadcasted owner summary reload event', function () {
-    $httpBackend.expectGET(CLMContextLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
-    expect($httpBackend.flush).not.toThrow();
-
-    $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
-
-    $httpBackend.expectGET(CLMContextLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
-    expect($httpBackend.flush).not.toThrow();
+  describe('$onDestroy()', () => {
+    it('unsubscribes from redux store', () => {
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
+      vm.$onDestroy();
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('Updates Owner name on broadcasted updated owner event', function () {
-    $httpBackend.expectGET(CLMContextLocations.getApplicableLabelsUrl()).respond(LabelMockData.getApplicableLabels());
-    $httpBackend.flush();
+  describe('broadcast events', () => {
+    it('calls loadApplicableLabels on policy.imported event', () => {
+      expect(vm.loadApplicableLabels).toHaveBeenCalledTimes(1);
+      scope.$emit('policy.imported');
+      expect(vm.loadApplicableLabels).toHaveBeenCalledTimes(2);
+    });
 
-    expect(vm.ownerName).not.toEqual('Bob');
+    it('calls loadApplicableLabels on broadcasted owner summary reload event', () => {
+      expect(vm.loadApplicableLabels).toHaveBeenCalledTimes(1);
+      scope.$emit(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
+      expect(vm.loadApplicableLabels).toHaveBeenCalledTimes(2);
+    });
 
-    $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, { name: 'Bob' });
+    it('calls updateOwnerName on broadcasted policy.imported event', () => {
+      expect(vm.updateOwnerName).not.toHaveBeenCalled();
+      scope.$emit(EventNameConstant.OWNER_UPDATED, { name: 'Bob' });
+      expect(vm.updateOwnerName).toHaveBeenCalledTimes(1);
+    });
+  });
 
-    expect(vm.ownerName).toEqual('Bob');
+  describe('editLabel', () => {
+    it('calls goToEditLabel if label can be edited', () => {
+      expect(vm.goToEditLabel).not.toHaveBeenCalled();
+      vm.editLabel('labelId', false);
+      expect(vm.goToEditLabel).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call goToEditLabel if label can not be edited', () => {
+      expect(vm.goToEditLabel).not.toHaveBeenCalled();
+      vm.editLabel('labelId', true);
+      expect(vm.goToEditLabel).not.toHaveBeenCalled();
+    });
   });
 });

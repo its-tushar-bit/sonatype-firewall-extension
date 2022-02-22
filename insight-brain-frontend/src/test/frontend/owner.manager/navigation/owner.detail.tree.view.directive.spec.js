@@ -118,6 +118,35 @@ describe('owner.detail.tree.view.directive.spec.js', function () {
       expect(vm.error).toBeUndefined();
     }));
 
+    it('Properly Updating Data via broadcast of label.saved event', inject(function ($rootScope) {
+      resolveGet(owner, [400, 'Bad Request']);
+
+      expect(vm.details).toBeUndefined();
+      expect(vm.error).toBeDefined();
+      expect(vm.error.data).toEqual('Bad Request');
+
+      $rootScope.$broadcast('label.saved');
+      if (mockOwnerStore) {
+        mockOwnerStore.resolveGetById(owner);
+      }
+      $httpBackend
+        .expectGET(CLMContextLocations.getOwnerDetailsUrl())
+        .respond(SidebarResourceMockData.getOwnerDetailsUrl());
+
+      if (vm.isApp) {
+        $httpBackend
+          .expectGET(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId()))
+          .respond([]);
+      }
+
+      $httpBackend.flush();
+      $timeout.flush();
+
+      expect(vm.ownerName).toBe(owner.name);
+      expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
+      expect(vm.error).toBeUndefined();
+    }));
+
     function resolveGet(ownerData, detailsDataArray) {
       if (mockOwnerStore) {
         if (ownerData) {

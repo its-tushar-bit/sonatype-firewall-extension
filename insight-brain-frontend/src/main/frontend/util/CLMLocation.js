@@ -571,6 +571,14 @@ export function getApplicableLabelsUrl(ownerType, ownerId) {
   return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}/applicable`;
 }
 
+export function getLabelsUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}`;
+}
+
+export function getDeleteLabelsUrl(ownerType, ownerId, labelId) {
+  return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}/${encodeURIComponent(labelId)}`;
+}
+
 export function getApplicableLabelScopesUrl(ownerType, ownerId, labelId) {
   return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}/applicable/context/${labelId}`;
 }

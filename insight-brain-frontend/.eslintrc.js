@@ -28,7 +28,6 @@ module.exports = {
     ProprietaryMockData: false,
     MockData: false,
     SidebarResourceMockData: false,
-    LabelMockData: false,
     AccessMockData: false,
     WebhookMockData: false,
     ApplicationMockData: false,

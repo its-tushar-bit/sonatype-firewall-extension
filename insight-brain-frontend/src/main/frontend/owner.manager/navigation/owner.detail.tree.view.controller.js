@@ -81,6 +81,7 @@ export default function OwnerDetailTreeViewController(
   }
 
   $scope.$on('resource.data.modified', vm.doLoad);
+  $scope.$on('label.saved', vm.doLoad);
 }
 
 OwnerDetailTreeViewController.$inject = [

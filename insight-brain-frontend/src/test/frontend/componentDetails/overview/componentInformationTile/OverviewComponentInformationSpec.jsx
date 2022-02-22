@@ -74,8 +74,8 @@ describe('OverviewComponentInformation', () => {
     expect(innerSourcePermissionsContainer).toExist();
     expect(innerSourceAlertContainer).toExist();
 
-    const repositorySourceErrorAlert = component.find('.inner-source-repository-source-alert');
-    expect(repositorySourceErrorAlert).not.toExist();
+    const repositorySourceAlert = component.find('.inner-source-repository-source-alert');
+    expect(repositorySourceAlert).not.toExist();
 
     const props = {
       componentInformation: {
@@ -96,19 +96,20 @@ describe('OverviewComponentInformation', () => {
     expect(innerSourceAlertContainer).toExist();
   });
 
-  it('renders the repository source error alert for inner source component', () => {
+  it('renders the repository source alert for an inner source component', () => {
     const props = {
       versionExplorerData: {
         sourceResponse: {
           source: 'source',
-          sourceError: 'source error',
+          sourceMessage: 'message',
         },
       },
     };
 
     const component = getShallow(props);
-    const repositorySourceErrorAlert = component.find('.inner-source-repository-source-alert');
-    expect(repositorySourceErrorAlert).toExist();
+    const repositorySourceAlert = component.find('.inner-source-repository-source-alert');
+    expect(repositorySourceAlert).toExist();
+    expect(repositorySourceAlert).toHaveText(props.versionExplorerData.sourceResponse.sourceMessage);
   });
 
   describe('when component is unknown', () => {

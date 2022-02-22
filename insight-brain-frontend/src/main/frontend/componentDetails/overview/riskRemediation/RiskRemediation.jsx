@@ -154,7 +154,7 @@ RiskRemediation.propTypes = {
     remediation: RemediationPropTypes,
     sourceResponse: PropTypes.shape({
       source: PropTypes.string,
-      sourceError: PropTypes.string,
+      sourceMessage: PropTypes.string,
     }),
     loading: PropTypes.bool,
     loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),

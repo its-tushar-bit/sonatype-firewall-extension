@@ -9,5 +9,5 @@ public class RepositorySourceResponseDTO
 {
   public String source;
 
-  public String sourceError;
+  public String sourceMessage;
 }

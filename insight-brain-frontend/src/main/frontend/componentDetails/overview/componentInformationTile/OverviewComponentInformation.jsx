@@ -40,8 +40,8 @@ export default function OverviewComponentInformation({
     loadInnerSourceProducerData();
   }, []);
 
-  const showRepositorySourceError = !isNil(path(['sourceResponse', 'sourceError'], versionExplorerData));
-  const [isRepositorySourceErrorOpen, dismissRepositorySourceError] = useToggle(true);
+  const repositorySourceMessage = path(['sourceResponse', 'sourceMessage'], versionExplorerData);
+  const [isRepositorySourceAlertOpen, dismissRepositorySourceAlert] = useToggle(true);
   const isUnknown = !matchState || matchState === 'unknown';
   const format = isUnknown ? '' : componentIdentifier.format;
   const joinedComponentCategories = join(
@@ -58,13 +58,13 @@ export default function OverviewComponentInformation({
     </span>
   );
 
-  const repositorySourceErrorAlert = showRepositorySourceError && isRepositorySourceErrorOpen && (
+  const repositorySourceAlert = !isNil(repositorySourceMessage) && isRepositorySourceAlertOpen && (
     <NxWarningAlert
       id="inner-source-repository-source-alert"
       className="inner-source-repository-source-alert"
-      onClose={dismissRepositorySourceError}
+      onClose={dismissRepositorySourceAlert}
     >
-      Could not retrieve data from InnerSource repository. Check your repository configuration
+      {repositorySourceMessage}
     </NxWarningAlert>
   );
 
@@ -112,7 +112,7 @@ export default function OverviewComponentInformation({
   return (
     <>
       <InnerSourceProducerAlertContainer />
-      {repositorySourceErrorAlert}
+      {repositorySourceAlert}
       <section id="overview-component-information-tile" className="nx-tile iq-component-information-tile">
         <OccurrencesPopoverContainer occurrences={pathnames} />
         <InnerSourceProducerReportModalContainer />

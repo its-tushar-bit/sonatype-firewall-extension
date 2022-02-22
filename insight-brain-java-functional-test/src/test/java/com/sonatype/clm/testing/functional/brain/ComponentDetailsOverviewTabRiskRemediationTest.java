@@ -240,7 +240,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   }
 
   @Test
-  public void testOverviewTab_innerSourceRepositorySourceErrorAlert() throws Exception {
+  public void testOverviewTab_innerSourceRepositorySourceAlert() {
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
@@ -256,7 +256,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     InnerSourceRepositorySourceAlert repositorySourceAlert = new InnerSourceRepositorySourceAlert();
     repositorySourceAlert.content().shouldBe(visible);
     repositorySourceAlert.content().shouldHave(
-        exactText("Could not retrieve data from InnerSource repository. Check your repository configuration"));
+        exactText("Could not retrieve data from InnerSource repository. Check your repository configuration."));
 
     eyesWatcher.eyesCheck("component details overview tab InnerSource repository source alert");
   }

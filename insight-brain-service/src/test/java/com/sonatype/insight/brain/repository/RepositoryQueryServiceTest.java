@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.repository;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -251,7 +252,7 @@ public class RepositoryQueryServiceTest
     //then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
     assertThat(results.getRight().source).isEqualTo("baseUrl");
-    assertThat(results.getRight().sourceError).isNull();
+    assertThat(results.getRight().sourceMessage).isNull();
   }
 
   @Test
@@ -321,8 +322,31 @@ public class RepositoryQueryServiceTest
     //then
     assertThat(results.getLeft().getComponents()).isEmpty();
     assertThat(results.getRight().source).isEqualTo("baseUrl");
-    assertThat(results.getRight().sourceError).isEqualTo(
-        "unable to retrieve component versions from repository manager: baseUrl");
+    assertThat(results.getRight().sourceMessage).isEqualTo(
+        "Could not retrieve data from InnerSource repository. Check your repository configuration.");
+  }
+  
+  @Test
+  public void testGetAllVersions_NoResults() throws Exception {
+    //given
+    Application app = getApplicationWithConnectionsEnabled();
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl", null, null);
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
+    Map<String, String> params =
+        ImmutableMap.of("group", "g1", "name", "n1", "maven.extension", "jar", "maven.classifier", "");
+    when(clientFactory.create()).thenReturn(mockBuilder);
+    when(mockBuilder.forNexus3(eq("baseUrl"), any(), any())).thenReturn(mockClient);
+    when(mockClient.getAllVersions(params)).thenReturn(new RepositoryAllVersionsResponse(Collections.emptyList()));
+
+    //when
+    Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
+        repositoryQueryService.getAllVersions(identifier, app);
+
+    //then
+    assertThat(results.getLeft().getComponents()).isEmpty();
+    assertThat(results.getRight().source).isEqualTo("baseUrl");
+    assertThat(results.getRight().sourceMessage).isEqualTo(
+        "No component versions returned from InnerSource repository. This may be due to insufficient privileges.");
   }
 
   @Test

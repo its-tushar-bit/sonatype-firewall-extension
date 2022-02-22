@@ -163,9 +163,14 @@ public class RepositoryQueryService
       catch (Exception e) {
         String errorMessage = String.format("unable to retrieve component versions from repository manager: %s",
             connection.getBaseUrl());
-        sourceResponseDTO.sourceError = errorMessage;
+        sourceResponseDTO.sourceMessage =
+            "Could not retrieve data from InnerSource repository. Check your repository configuration.";
         log.debug(errorMessage, e);
       }
+    }
+    if (sourceResponseDTO.sourceMessage == null && response.getComponents().isEmpty()) {
+      sourceResponseDTO.sourceMessage =
+          "No component versions returned from InnerSource repository. This may be due to insufficient privileges.";
     }
     return Pair.of(response, sourceResponseDTO);
   }

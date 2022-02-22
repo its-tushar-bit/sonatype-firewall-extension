@@ -49,8 +49,15 @@ public class UserTokenDAO
 
   public UserToken getByUsernameAndRealmId(TransactionContext tx, String username, String realmId) {
     String sQuery = "SELECT userToken FROM UserToken userToken" + //
-        " WHERE userToken.username=?1 AND userToken.realmId=?2";
-    return get(tx, sQuery, username, realmId);
+        " WHERE userToken.realmId=?1";
+    if (User.INTERNAL_REALM_ID.equals(realmId)) {
+      username = User.normalizeUsername(username);
+      sQuery += " AND LOWER(userToken.username)=?2";
+    }
+    else {
+      sQuery += " AND userToken.username=?2";
+    }
+    return get(tx, sQuery, realmId, username);
   }
 
   public UserToken getByUsernameAndRealmId(String username, String realmId) {

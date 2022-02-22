@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
@@ -182,5 +183,33 @@ public class UserTokenDAOTest
 
     assertThat(userTokenDAO.getAllLdap()).extracting(UserToken::getUsername)
         .containsExactlyInAnyOrder(userToken1.getUsername(), userToken2.getUsername());
+  }
+
+  @Test
+  public void testGetByUsernameAndRealmId_Internal() {
+    UserToken internalUserToken1 =
+        tempEntity.newUserToken("username1", "userCode1", "passCode", User.INTERNAL_REALM_ID);
+    tempEntity.newUserToken("username2", "userCode2", "passCode", User.INTERNAL_REALM_ID);
+    tempEntity.newUserToken("username1", "userCode3", "passCode", "other");
+
+    assertThat(userTokenDAO.getByUsernameAndRealmId("USERNAME1", User.INTERNAL_REALM_ID)).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(internalUserToken1);
+    assertThat(userTokenDAO.getByUsernameAndRealmId("username1", User.INTERNAL_REALM_ID)).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(internalUserToken1);
+    assertThat(userTokenDAO.getByUsernameAndRealmId("UsErNaMe1", User.INTERNAL_REALM_ID)).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(internalUserToken1);
+  }
+
+  @Test
+  public void testGetByUsernameAndRealmId_NotInternal() {
+    UserToken samlUserToken1 =
+        tempEntity.newUserToken("username1", "userCode1", "passCode", SamlUser.SAML_REALM_ID);
+    tempEntity.newUserToken("username2", "userCode2", "passCode", SamlUser.SAML_REALM_ID);
+    tempEntity.newUserToken("username1", "userCode3", "passCode", "other");
+
+    assertThat(userTokenDAO.getByUsernameAndRealmId("USERNAME1", SamlUser.SAML_REALM_ID)).isNull();
+    assertThat(userTokenDAO.getByUsernameAndRealmId("username1", SamlUser.SAML_REALM_ID)).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(samlUserToken1);
+    assertThat(userTokenDAO.getByUsernameAndRealmId("UsErNaMe1", SamlUser.SAML_REALM_ID)).isNull();
   }
 }

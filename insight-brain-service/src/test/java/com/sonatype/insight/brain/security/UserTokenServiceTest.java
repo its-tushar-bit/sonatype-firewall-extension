@@ -11,7 +11,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
@@ -489,18 +491,25 @@ public class UserTokenServiceTest
   }
 
   private void testGetUserTokenByUsernameAndRealmId(boolean isSamlUserTokensEnabled, String realmId) {
+    String usernameToQuery = "username1";
+    tempEntity.newUser("username1");
     UserToken internalUserToken1 =
         tempEntity.newUserToken("username1", "userCode1", "passCode", User.INTERNAL_REALM_ID);
+    tempEntity.newUser("username2");
     tempEntity.newUserToken("username2", User.INTERNAL_REALM_ID);
     UserToken samlUserToken1 = tempEntity.newUserToken("username1", "userCode2", "passCode", SamlUser.SAML_REALM_ID);
     tempEntity.newUserToken("username2", "userCode3", "passCode", SamlUser.SAML_REALM_ID);
     tempEntity.newUserToken("username1", "userCode4", "passCode", "other");
     tempEntity.newUserToken("username2", "userCode5", "passCode", "other");
+
     if (isSamlUserTokensEnabled) {
       when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
     }
+    if (!SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+      usernameToQuery = usernameToQuery.toUpperCase(Locale.ENGLISH);
+    }
 
-    ApiUserTokenDTO result = userTokenService.getUserTokenByUsernameAndRealmId("username1", realmId);
+    ApiUserTokenDTO result = userTokenService.getUserTokenByUsernameAndRealmId(usernameToQuery, realmId);
 
     String expectedRealmId;
     if (isSamlUserTokensEnabled && SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {

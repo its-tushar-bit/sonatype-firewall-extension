@@ -3,59 +3,59 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function LabelTileController(
-  $scope,
-  $http,
-  CLMContextLocations,
-  SameOwnerStateNavigationService,
-  EventNameConstant
-) {
-  var vm = this;
-  vm.ownerName = undefined;
-  vm.applicableLabels = undefined;
-  vm.error = undefined;
-  vm.doLoad = doLoad;
-  vm.editLabel = editLabel;
+import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSlice';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
+import { selectOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import {
+  selectApplicableLabels,
+  selectLabelsLoading,
+  selectLabelsLoadError,
+} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
 
-  vm.doLoad();
+export default function LabelTileController($scope, EventNameConstant, $ngRedux) {
+  const vm = this;
 
-  $scope.$on('policy.imported', doLoad);
-  $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
-  $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
+  Object.assign(vm, {
+    $onInit() {
+      vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+        updateOwnerName: rootActions.updatedOwnerHandler,
+        loadApplicableLabels: actions.loadApplicableLabels,
+        goToEditLabel: actions.goToEditLabel,
+      })(vm);
 
-  function doLoad() {
-    $http.get(CLMContextLocations.getApplicableLabelsUrl()).then(
-      function (result) {
-        vm.applicableLabels = result.data.labelsByOwner;
-        vm.applicableLabels.forEach(function (labels, index) {
-          labels.inherited = index > 0;
-        });
+      // TODO: next three lines should be migrated when appropriate piece of state is created
+      $scope.$on('policy.imported', vm.doLoad);
+      $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, vm.doLoad);
+      $scope.$on(EventNameConstant.OWNER_UPDATED, vm.updatedOwnerHandler);
 
-        vm.ownerName = vm.applicableLabels[0].ownerName;
-      },
-      function (error) {
-        vm.error = error;
+      vm.doLoad();
+    },
+
+    $onDestroy() {
+      vm.unsubscribe();
+    },
+
+    doLoad() {
+      vm.loadApplicableLabels();
+    },
+
+    editLabel(labelId, inherited) {
+      if (!inherited) {
+        vm.goToEditLabel(labelId);
       }
-    );
+    },
 
-    delete vm.error;
-  }
-
-  function editLabel(labelId, inherited) {
-    if (!inherited) {
-      SameOwnerStateNavigationService.goEdit('label', { labelId: labelId });
-    }
-  }
-
-  function updatedOwnerHandler(event, newOwner) {
-    vm.ownerName = newOwner.name;
-  }
+    updatedOwnerHandler(_, newOwner) {
+      vm.updateOwnerName(newOwner.name);
+    },
+  });
 }
 
-LabelTileController.$inject = [
-  '$scope',
-  '$http',
-  'CLMContextLocations',
-  'SameOwnerStateNavigationService',
-  'event.name.constant',
-];
+export const mapStateToThis = (state) => ({
+  applicableLabels: angular.copy(selectApplicableLabels(state)),
+  error: selectLabelsLoadError(state),
+  loading: selectLabelsLoading(state),
+  ownerName: selectOwnerName(state),
+});
+
+LabelTileController.$inject = ['$scope', 'event.name.constant', '$ngRedux'];

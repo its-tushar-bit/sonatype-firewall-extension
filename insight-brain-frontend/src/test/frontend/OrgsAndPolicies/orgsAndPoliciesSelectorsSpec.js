@@ -3,10 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
-import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectOrgsAndPoliciesSlice, selectOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 describe('orgsAndPoliciesSelectors', () => {
+  let mockState;
+
+  beforeEach(() => {
+    mockState = {
+      orgsAndPolicies: {
+        root: {
+          ownerName: 'ownerName',
+        },
+      },
+    };
+  });
+
   describe('selectOrgsAndPoliciesSlice', () => {
     it('selects orgsAndPolicies', () => {
       const appState = {
@@ -16,6 +27,12 @@ describe('orgsAndPoliciesSelectors', () => {
       const selected = selectOrgsAndPoliciesSlice(appState);
 
       expect(selected).toBeNull();
+    });
+  });
+
+  describe('selectOwnerName', () => {
+    it('returns ownerName', () => {
+      expect(selectOwnerName(mockState)).toBe('ownerName');
     });
   });
 });

@@ -3,19 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createSlice } from '@reduxjs/toolkit';
+import { combineReducers } from 'redux';
+import labelsSlice from './orgsAndPoliciesLabelsSlice';
+import rootSlice from './orgsAndPoliciesRootSlice';
 
-const REDUCER_NAME = 'orgsAndPolicies';
-
-export const initialState = {};
-
-const orgsAndPoliciesSlice = createSlice({
-  name: REDUCER_NAME,
-  initialState,
-  reducers: {},
+export default combineReducers({
+  root: rootSlice,
+  labels: labelsSlice,
 });
-
-export default orgsAndPoliciesSlice.reducer;
-export const actions = {
-  ...orgsAndPoliciesSlice.actions,
-};

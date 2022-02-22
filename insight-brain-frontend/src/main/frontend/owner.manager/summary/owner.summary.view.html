@@ -383,7 +383,7 @@
   </div>
   <div class="iq-tile" id="owner-pill-comp-labels" ng-controller="LabelTileController as labelTile">
     <div load-wrapper="labelTile.error"
-         loading="!(labelTile.ownerName && labelTile.applicableLabels)"
+         loading="labelTile.loading"
          reload="labelTile.doLoad()">
       <div class="iq-tile__actions">
         <button id="add-label-button" same-owner-edit-sref="create-label" class="iq-btn iq-btn--tertiary">

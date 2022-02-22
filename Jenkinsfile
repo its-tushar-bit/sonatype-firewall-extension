@@ -241,6 +241,6 @@ boolean isEyesEnabled() {
   // the branch name as the last part of the project name.
   def projName = currentBuild.fullProjectName
   // if the params value isn't set (or hasn't been added to the job yet) use the branch name default)
-  return params.eyes_check == null ? (projName.toLowerCase().contains('master') || projName.endsWith('_ui')) :
-      params.eyes_check
+  return params.applitoolsEnabled == null ? (projName.toLowerCase().contains('master') || projName.endsWith('_ui')) :
+      params.applitoolsEnabled
 }

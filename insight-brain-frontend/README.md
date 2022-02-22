@@ -46,6 +46,8 @@ The following tools should be installed locally to enable front-end development:
 
 #### Setup
 
+NOTE: For M1/ARM64 architectures, if you encounter error "Node Sass does not yet support your current environment: OS X Unsupported architecture (arm64) with Node.js 12.x", you can run the following from insight-brain-frontend directory as a workaround and then continue the steps below: `npm install node-sass@npm:sass`
+
 First, [build](../readme.md#building) the `insight-brain` project, and then [deploy](../insight-brain-service/README.md#deploying-iq-server-locally) it to port 8072 using the following command (executed from the `insight-brain-service` directory):
 
 `mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainService -Dexec.args='server src/test/resources/config-dev.yml' -Ddw.server.applicationConnectors[0].port=8072`

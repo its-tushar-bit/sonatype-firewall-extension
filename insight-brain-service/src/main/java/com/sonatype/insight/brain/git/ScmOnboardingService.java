@@ -258,11 +258,12 @@ public class ScmOnboardingService
         sourceControlDAO.getAll().stream()
             .map(SourceControl::getNormalizedRepositoryUrl)
             .filter(Objects::nonNull)
+            .map(String::toLowerCase)
             .distinct()
             .collect(Collectors.toList());
 
     return allRepositories.stream()
-        .filter(repo -> !existing.contains(SourceControl.normalizeRepositoryUrl(repo.getHttpCloneUrl())))
+        .filter(repo -> !existing.contains(SourceControl.normalizeRepositoryUrl(repo.getHttpCloneUrl()).toLowerCase()))
         .collect(Collectors.toList());
   }
 

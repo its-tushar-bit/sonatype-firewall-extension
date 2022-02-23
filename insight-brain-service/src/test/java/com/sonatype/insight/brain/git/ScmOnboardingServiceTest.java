@@ -255,11 +255,47 @@ public class ScmOnboardingServiceTest
     SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     assertThat(repositories.totalRepositories).isEqualTo(13);
     assertThat(repositories.availableRepositories.size()).isEqualTo(12);
+    assertThat(repositories.availableRepositories.stream()
+        .map(scmRepo -> scmRepo.getHttpCloneUrl().toLowerCase(Locale.ENGLISH))
+        .filter(url -> url.contains("mixedcase"))
+        .findAny().isPresent())
+        .isFalse();
+
+    // and: no source control evaluation events
+    verifyNoSourceControlEvaluationEventsCreated();
+  }
+
+  @Test
+  public void testLoadRepositories_trimExistingConfiguredRepositories_caseInsensitive() throws Exception {
+    // given a mock SCM server is configured
+    mockRepoForPage(gitService, 0, getResourceAsString(PAGE_0));
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+
+    // then loading repositories returns the trimmed results (i.e. not including the already configured one)
+    SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+    assertThat(repositories.totalRepositories).isEqualTo(13);
+    assertThat(repositories.availableRepositories.size()).isEqualTo(13);
     assertThat(repositories.availableRepositories.stream() //
-        .map(scmRepo -> scmRepo.getHttpCloneUrl().toLowerCase(Locale.ENGLISH)) //
-        .filter(url -> url.contains("mixedcase")) //
+        .map(scmRepo -> scmRepo.getHttpCloneUrl()) //
+        .filter(url -> url.contains("MixedCase")) //
         .findAny().isPresent()) //
-            .isFalse();
+        .isTrue();
+
+    // when the repo is added with lower-case
+    String repoUrl = "https://localhost/org/mixedcase.git";
+    tempEntity.newSourceControl(app.getId(), repoUrl, new Date());
+
+    // then loading repositories returns the trimmed results without the already-added one, even though the case
+    // doesn't match
+    repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+    assertThat(repositories.totalRepositories).isEqualTo(13);
+    // avail repos is one fewer to account for the existing repo getting filtered out
+    assertThat(repositories.availableRepositories.size()).isEqualTo(12);
+    assertThat(repositories.availableRepositories.stream() //
+        .map(scmRepo -> scmRepo.getHttpCloneUrl()) //
+        .filter(url -> url.contains("MixedCase")) //
+        .findAny().isPresent()) //
+        .isFalse();
 
     // and: no source control evaluation events
     verifyNoSourceControlEvaluationEventsCreated();

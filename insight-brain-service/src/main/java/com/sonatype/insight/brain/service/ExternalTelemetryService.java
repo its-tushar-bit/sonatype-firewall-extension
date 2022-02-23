@@ -71,7 +71,13 @@ public class ExternalTelemetryService
     telemetryData.put("ssc_integration_service_version", sscIntegrationServiceVersion);
     telemetryData.put("application_id", HdsClientAnalytics.obfuscate(telemetryValues.get("application_id")));
     telemetryData.put("overwrite", Boolean.valueOf(telemetryValues.get("overwrite")));
-    telemetryData.put("force_upload", Boolean.valueOf(telemetryValues.get("force_upload")));
+    String forceUpload = telemetryValues.get("force_upload");
+    if (forceUpload != null) {
+      telemetryData.put("force_upload", Boolean.valueOf(forceUpload));
+    }
+    else {
+      telemetryData.put("force_upload", null);
+    }
 
     if (userAgent != null && userAgent.length() > 500) {
       userAgent = userAgent.substring(0, 500);

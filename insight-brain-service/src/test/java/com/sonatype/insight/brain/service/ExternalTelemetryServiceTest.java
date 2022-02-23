@@ -96,7 +96,7 @@ public class ExternalTelemetryServiceTest
     telemetryValues.put("ssc_integration_service_version", "1");
     telemetryValues.put("application_id", "1234-foo");
     telemetryValues.put("overwrite", "true");
-    telemetryValues.put("force_upload", "false");
+    telemetryValues.put("force_upload", null);
 
     externalTelemetryService.sendTelemetry("user-agent", telemetryValues);
 
@@ -107,7 +107,7 @@ public class ExternalTelemetryServiceTest
     expectedAttributes.put("ssc_integration_service_version", "1");
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate("1234-foo"));
     expectedAttributes.put("overwrite", true);
-    expectedAttributes.put("force_upload", false);
+    expectedAttributes.put("force_upload", null);
     expectedAttributes.put("user_agent", "user-agent");
 
     TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();

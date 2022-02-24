@@ -10,6 +10,7 @@ import { faPen } from '@fortawesome/pro-solid-svg-icons';
 
 import { renderLicensesList } from '../LegalTabUtils';
 import { licenseLegalMetadataPropType } from 'MainRoot/legal/advancedLegalPropTypes';
+
 export default function LicenseDetections({
   licenseOverride,
   declaredLicenses,
@@ -21,9 +22,16 @@ export default function LicenseDetections({
   loadError,
   toggleShowEditLicensesPopover,
   identificationSource,
+  applicationId,
+  stageId,
+  componentHash,
+  stateGo,
+  fetchAdvanceLegalPackFeatures,
+  reviewObligationsButtonIsVisible,
 }) {
   useEffect(() => {
     loadLicenses();
+    fetchAdvanceLegalPackFeatures();
   }, []);
 
   const isClaimed = identificationSource === 'Manual';
@@ -33,6 +41,14 @@ export default function LicenseDetections({
       ?.find((override) => !!override.licenseOverride?.status)
       ?.licenseOverride.status.toLowerCase();
     return status ?? 'open';
+  };
+
+  const reviewObligations = () => {
+    stateGo('legal.applicationStageTypeComponentOverview', {
+      applicationPublicId: applicationId,
+      stageTypeId: stageId,
+      hash: componentHash,
+    });
   };
 
   return (
@@ -55,6 +71,12 @@ export default function LicenseDetections({
                   <NxFontAwesomeIcon icon={faPen} />
                   <span>Edit</span>
                 </NxButton>
+
+                {reviewObligationsButtonIsVisible && (
+                  <NxButton id="component-details-review-obligations" variant="primary" onClick={reviewObligations}>
+                    <span>Review Obligations</span>
+                  </NxButton>
+                )}
               </div>
               <h3 className="nx-tile-header__subtitle" id="status-container">
                 Status:{' '}
@@ -157,4 +179,10 @@ LicenseDetections.propTypes = {
   loadError: PropTypes.string,
   toggleShowEditLicensesPopover: PropTypes.func.isRequired,
   identificationSource: PropTypes.string,
+  applicationId: PropTypes.string,
+  stageId: PropTypes.string,
+  componentHash: PropTypes.string,
+  stateGo: PropTypes.func.isRequired,
+  fetchAdvanceLegalPackFeatures: PropTypes.func.isRequired,
+  reviewObligationsButtonIsVisible: PropTypes.bool,
 };

@@ -6,7 +6,10 @@
 import axios from 'axios';
 import { omit } from 'ramda';
 
-import { actions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
+import {
+  actions,
+  fetchAdvanceLegalPackFeatures,
+} from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
 import {
   getBaseLicenseOverrideUrl,
   getComponentLicensesUrl,
@@ -14,6 +17,7 @@ import {
   getLicenseLegalComponentUrl,
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
+  getProductFeaturesUrl,
 } from 'MainRoot/util/CLMLocation';
 import * as licenseDetectionTileSelectors from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSelectors';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
@@ -495,6 +499,51 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/load/pending');
 
         done();
+      });
+    });
+  });
+
+  describe('fetchAdvanceLegalPackFeatures', () => {
+    let store;
+    beforeEach(() => {
+      const editWebhookState = {
+        reviewObligationsButtonIsVisible: false,
+      };
+
+      store = SpecUtil.mockReduxStore({ webhooks: editWebhookState });
+    });
+
+    it('retrieves from backend features and found that Advance Legal Pack feature is enabled', () => {
+      mockAxiosCalls({
+        get: {
+          [getProductFeaturesUrl()]: () => Promise.resolve({ data: ['advanced-legal-pack'] }),
+        },
+      });
+
+      store.dispatch(fetchAdvanceLegalPackFeatures()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+        expect(store.getActions()[0]).toEqual({
+          type: 'componentDetailsLicenseDetectionsTile/fetchAdvanceLegalPackFeatures/fulfilled',
+          payload: true,
+        });
+      });
+    });
+
+    it('retrieves from backend features and found that Advance Legal Pack feature is NOT enabled', () => {
+      mockAxiosCalls({
+        get: {
+          [getProductFeaturesUrl()]: () => Promise.resolve({ data: [] }),
+        },
+      });
+
+      store.dispatch(fetchAdvanceLegalPackFeatures()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+        expect(store.getActions()[0]).toEqual({
+          type: 'componentDetailsLicenseDetectionsTile/fetchAdvanceLegalPackFeatures/fulfilled',
+          payload: false,
+        });
       });
     });
   });

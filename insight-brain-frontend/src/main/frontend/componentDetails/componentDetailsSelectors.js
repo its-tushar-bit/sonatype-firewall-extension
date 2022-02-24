@@ -48,6 +48,7 @@ export const selectApplicationInfo = createSelector(selectApplicationReportMetaD
     ? {
         applicationName: metadata.application.name,
         applicationId: metadata.application.publicId,
+        stageId: metadata.stageId,
       }
     : null
 );

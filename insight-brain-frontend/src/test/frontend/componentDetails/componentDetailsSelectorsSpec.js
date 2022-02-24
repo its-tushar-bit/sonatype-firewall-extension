@@ -52,6 +52,7 @@ describe('componentDetailsSelectors', () => {
         },
         reportTime: 1623135382098,
         reportTitle: 'Title of Report',
+        stageId: 'test',
       },
       selectedReport: {
         allEntries: [
@@ -259,6 +260,7 @@ describe('componentDetailsSelectors', () => {
       expect(actual).toEqual({
         applicationName: 'The App',
         applicationId: 'TheApp',
+        stageId: 'test',
       });
     });
   });

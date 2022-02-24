@@ -8,11 +8,20 @@ import LicenseDetections from 'MainRoot/componentDetails/ComponentDetailsLegalTa
 import { NxList, NxLoadWrapper, NxThreatIndicator } from '@sonatype/react-shared-components';
 
 describe('LicenseDetections', function () {
-  let getShallow, getMounted, minimalProps, mountedComponent, toggleShowEditLicensesPopoverSpy, loadLicenses;
+  let getShallow,
+    getMounted,
+    minimalProps,
+    mountedComponent,
+    toggleShowEditLicensesPopoverSpy,
+    loadLicenses,
+    fetchAdvanceLegalPackFeaturesSpy,
+    stateGoSpy;
 
   beforeEach(function () {
+    fetchAdvanceLegalPackFeaturesSpy = jasmine.createSpy('fetchAdvanceLegalPackFeatures');
     loadLicenses = jasmine.createSpy('loadLicenses');
     toggleShowEditLicensesPopoverSpy = jasmine.createSpy('toggleShowEditLicensesPopover');
+    stateGoSpy = jasmine.createSpy('stateGo');
     minimalProps = {
       declaredLicenses: null,
       effectiveLicenses: null,
@@ -22,6 +31,9 @@ describe('LicenseDetections', function () {
       loadError: null,
       toggleShowEditLicensesPopover: toggleShowEditLicensesPopoverSpy,
       identificationSource: 'Sonatype',
+      reviewObligationsButtonIsVisible: false,
+      fetchAdvanceLegalPackFeatures: fetchAdvanceLegalPackFeaturesSpy,
+      stateGo: stateGoSpy,
     };
     getShallow = enzymeUtils.getShallowComponent(LicenseDetections, minimalProps);
     getMounted = enzymeUtils.getMountedComponent(LicenseDetections, minimalProps);
@@ -34,6 +46,12 @@ describe('LicenseDetections', function () {
   it('calls loadLicenses on mount', function () {
     mountedComponent = getMounted();
     expect(loadLicenses).toHaveBeenCalledTimes(1);
+    mountedComponent.unmount();
+  });
+
+  it('calls fetchAdvanceLegalPackFeatures on mount', function () {
+    mountedComponent = getMounted();
+    expect(fetchAdvanceLegalPackFeaturesSpy).toHaveBeenCalled();
     mountedComponent.unmount();
   });
 
@@ -52,6 +70,38 @@ describe('LicenseDetections', function () {
     const loadWrapperContents = getShallow().find(NxLoadWrapper).dive();
     const button = loadWrapperContents.find('#component-details-edit-licenses');
     expect(button.text()).toContain('Edit');
+  });
+
+  it('renders an NxButton with label `Review Obligations` if ALP feature is enabled', () => {
+    const loadWrapperContents = getShallow({ reviewObligationsButtonIsVisible: true }).find(NxLoadWrapper).dive();
+    const button = loadWrapperContents.find('#component-details-review-obligations');
+    expect(button.text()).toContain('Review Obligations');
+  });
+
+  it('will not render an NxButton with label `Review Obligations` if ALP feature is not enabled', () => {
+    const loadWrapperContents = getShallow({ reviewObligationsButtonIsVisible: false }).find(NxLoadWrapper).dive();
+    const button = loadWrapperContents.find('#component-details-review-obligations');
+    expect(button.exists()).toBe(false);
+  });
+
+  it('will navigate to ALP after clicking `Review Obligations`', () => {
+    const applicationReportMetadataProps = { applicationId: 'test', stageId: 'test', componentHash: 'abc' };
+    const expectedStateGoParams = {
+      applicationPublicId: applicationReportMetadataProps.applicationId,
+      stageTypeId: applicationReportMetadataProps.stageId,
+      hash: applicationReportMetadataProps.componentHash,
+    };
+    const loadWrapperContents = getShallow({
+      reviewObligationsButtonIsVisible: true,
+      ...applicationReportMetadataProps,
+    })
+      .find(NxLoadWrapper)
+      .dive();
+    const button = loadWrapperContents.find('#component-details-review-obligations');
+    expect(button.exists()).toBe(true);
+
+    button.simulate('click');
+    expect(stateGoSpy).toHaveBeenCalledOnceWith('legal.applicationStageTypeComponentOverview', expectedStateGoParams);
   });
 
   it('calls `toggleShowEditLicensesPopoverSpy` when `Edit` button clicked', () => {

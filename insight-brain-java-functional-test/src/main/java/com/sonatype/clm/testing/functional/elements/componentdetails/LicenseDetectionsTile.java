@@ -29,6 +29,10 @@ public class LicenseDetectionsTile
     return child("#component-details-edit-licenses");
   }
 
+  public SelenideElement reviewObligationsButton() {
+    return child("#component-details-review-obligations");
+  }
+
   public SelenideElement status() {
     return child("#status-container");
   }

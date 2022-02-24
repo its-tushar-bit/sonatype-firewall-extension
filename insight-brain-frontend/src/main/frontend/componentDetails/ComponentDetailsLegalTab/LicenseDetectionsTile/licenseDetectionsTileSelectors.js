@@ -23,6 +23,7 @@ export const selectLicenseDetectionsTileDataSlice = createSelector(
         'allLicenses',
         'loading',
         'loadError',
+        'reviewObligationsButtonIsVisible',
       ],
       data
     )

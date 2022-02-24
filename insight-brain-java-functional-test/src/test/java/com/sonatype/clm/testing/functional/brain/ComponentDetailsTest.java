@@ -42,9 +42,11 @@ import com.sonatype.clm.testing.functional.pages.AddProprietaryComponentMatchers
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.AuditLogContent;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
+import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
@@ -923,6 +925,21 @@ public class ComponentDetailsTest
     licenseDetectionsTile.status().shouldHave(text("Status: Open"));
   }
 
+  @Test
+  public void testLegalTab_licenseDetectionTileClickReviewObligationsButton() {
+    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "fa78f54738ccf77379d1"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.legalTabContent().shouldBe(visible);
+
+    componentDetailsPage.legalTab().click();
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    licenseDetectionsTile.reviewObligationsButton().shouldBe(visible);
+    licenseDetectionsTile.reviewObligationsButton().shouldHave(text("Review Obligations"));
+    navigateToLegalObligationsPage(licenseDetectionsTile);
+  }
+
   /* Part of testPolicyViolationsTab_violationTableEntries. */
   private void testGrandfatheringIndicator(final ComponentDetailsPage componentDetailsPage) {
     // Configure grandfathering indicator for the first violation in the report and reload it
@@ -1193,6 +1210,13 @@ public class ComponentDetailsTest
     componentDetailsPage.securityTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, HASH));
     componentDetailsPage.securityTabContent().shouldBe(visible);
+  }
+
+  private void navigateToLegalObligationsPage(final LicenseDetectionsTile licenseDetectionsTile) {
+    licenseDetectionsTile.reviewObligationsButton().click();
+    waitUntilUrl(LegalApplicationDetailsPage.urlToApplicationScope(app.getPublicId(), "build") + "/component/"
+        + HASH);
+    ComponentLegalOverviewPage.editLicenseFilesButton().shouldBe(visible);
   }
 
   private void waiveFirstReportRow() {

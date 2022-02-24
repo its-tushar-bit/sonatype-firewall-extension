@@ -54,17 +54,7 @@ export default function LabelEditorController($rootScope, $scope, DeleteModalSer
       const message = `You are about to permanently remove ${vm.dirtyLabel.label}. This action cannot be undone.`;
       vm.resetDeleteModalState();
 
-      DeleteModalService.deleteRedux(
-        'Delete Label',
-        message,
-        'Deleting',
-        () => {
-          vm.removeLabel(() => {
-            $rootScope.$broadcast('label.saved');
-          });
-        },
-        selectLabelsSlice
-      );
+      DeleteModalService.deleteRedux('Delete Label', message, 'Deleting', vm.removeLabel, selectLabelsSlice);
     },
 
     onDescriptionChange() {
@@ -80,20 +70,13 @@ export default function LabelEditorController($rootScope, $scope, DeleteModalSer
     },
 
     save() {
-      vm.labelEditorMask
-        .wrap(
-          vm.saveLabel({
-            setPristine: () => {
-              vm.labelEditor.$setPristine();
-            },
-          })
-        )
-        .then(({ payload }) => {
-          if (payload.label) {
-            // TODO: should be removed once OwnerDetailTreeViewController is updated to use Redux
-            $rootScope.$broadcast('label.saved');
-          }
-        });
+      vm.labelEditorMask.wrap(
+        vm.saveLabel({
+          setPristine: () => {
+            vm.labelEditor.$setPristine();
+          },
+        })
+      );
     },
   });
 }

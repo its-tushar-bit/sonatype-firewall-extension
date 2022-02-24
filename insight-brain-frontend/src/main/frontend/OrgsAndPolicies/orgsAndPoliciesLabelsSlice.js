@@ -223,25 +223,21 @@ const saveLabel = createAsyncThunk(`${REDUCER_NAME}/saveLabel`, ({ setPristine }
     .catch(rejectWithValue);
 });
 
-const removeLabel = createAsyncThunk(
-  `${REDUCER_NAME}/removeLabel`,
-  (broadcastCB, { getState, dispatch, rejectWithValue }) => {
-    const state = getState();
-    const { ownerType, ownerId } = getOwnerProperties(state);
-    const label = selectLabelsCurrentLabel(state);
+const removeLabel = createAsyncThunk(`${REDUCER_NAME}/removeLabel`, (_, { getState, dispatch, rejectWithValue }) => {
+  const state = getState();
+  const { ownerType, ownerId } = getOwnerProperties(state);
+  const label = selectLabelsCurrentLabel(state);
 
-    return axios
-      .delete(getDeleteLabelsUrl(ownerType, ownerId, label.id))
-      .then(() => {
-        dispatch(actions.resetIsDirty());
-        dispatch(goToCreateLabel());
-        broadcastCB();
+  return axios
+    .delete(getDeleteLabelsUrl(ownerType, ownerId, label.id))
+    .then(() => {
+      dispatch(actions.resetIsDirty());
+      dispatch(goToCreateLabel());
 
-        return label.id;
-      })
-      .catch(rejectWithValue);
-  }
-);
+      return label.id;
+    })
+    .catch(rejectWithValue);
+});
 
 const computeIsDirty = (state) => {
   const { currentLabel, serverCurrentLabel } = state;

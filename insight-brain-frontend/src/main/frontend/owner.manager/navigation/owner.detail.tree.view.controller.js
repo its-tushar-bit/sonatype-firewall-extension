@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { selectLabelsSiblings } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
+
 export default function OwnerDetailTreeViewController(
   $scope,
   $q,
@@ -13,7 +15,8 @@ export default function OwnerDetailTreeViewController(
   ApplicationStore,
   OrganizationStore,
   LocalRoleService,
-  ProductFeatures
+  ProductFeatures,
+  $ngRedux
 ) {
   var vm = this;
 
@@ -37,6 +40,14 @@ export default function OwnerDetailTreeViewController(
   vm.policyState = { isExpanded: vm.state.$current.name.endsWith('policy') };
   vm.ltgState = {
     isExpanded: vm.state.$current.name.endsWith('license-threat-group'),
+  };
+
+  vm.$onInit = function () {
+    vm.unsubscribe = $ngRedux.connect(mapStateToThis, null)(vm);
+  };
+
+  vm.$onDestroy = function () {
+    vm.unsubscribe();
   };
 
   vm.doLoad();
@@ -81,8 +92,18 @@ export default function OwnerDetailTreeViewController(
   }
 
   $scope.$on('resource.data.modified', vm.doLoad);
-  $scope.$on('label.saved', vm.doLoad);
+  $scope.$watch('vm.labels', (labels) => {
+    if (labels) {
+      vm.doLoad();
+    }
+  });
 }
+
+const mapStateToThis = (state) => {
+  return {
+    labels: selectLabelsSiblings(state),
+  };
+};
 
 OwnerDetailTreeViewController.$inject = [
   '$scope',
@@ -95,4 +116,5 @@ OwnerDetailTreeViewController.$inject = [
   'OrganizationStore',
   'local.role.service',
   'ProductFeatures',
+  '$ngRedux',
 ];

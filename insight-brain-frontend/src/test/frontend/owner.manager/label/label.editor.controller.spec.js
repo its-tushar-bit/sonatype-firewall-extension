@@ -13,10 +13,9 @@ describe('label.editor.controller', () => {
     })
   );
 
-  let vm, scope, $rootScope;
+  let vm, scope;
 
   beforeEach(inject((_$rootScope_, $controller) => {
-    $rootScope = _$rootScope_;
     scope = _$rootScope_.$new();
 
     vm = $controller('label.editor.controller', {
@@ -106,7 +105,6 @@ describe('label.editor.controller', () => {
   });
 
   describe('on save', () => {
-    let rootScopeSpy;
     beforeEach(() => {
       vm.dirtyLabel = {
         color: 'light-green',
@@ -118,10 +116,9 @@ describe('label.editor.controller', () => {
       };
       vm.saveLabel = jasmine.createSpy('vm.saveLabel');
       vm.isEditMode = true;
-      rootScopeSpy = spyOn($rootScope, '$broadcast').and.callThrough();
     });
 
-    it('calls saveLabels and broadcasts label.saved event if labels was saved/updated sucessfully', (done) => {
+    it('calls saveLabels', () => {
       vm.labelEditorMask = {
         wrap: jasmine
           .createSpy('wrap')
@@ -131,26 +128,6 @@ describe('label.editor.controller', () => {
       vm.save();
 
       expect(vm.saveLabel).toHaveBeenCalledTimes(1);
-
-      vm.labelEditorMask.wrap().then(() => {
-        expect(rootScopeSpy).toHaveBeenCalledWith('label.saved');
-        done();
-      });
-    });
-
-    it('calls saveLabels and does not broadcasts label.saved event if labels was not saved/updated', (done) => {
-      vm.labelEditorMask = {
-        wrap: jasmine.createSpy('wrap').and.callFake(() => Promise.reject('rejection')),
-      };
-
-      vm.save();
-
-      expect(vm.saveLabel).toHaveBeenCalledTimes(1);
-
-      vm.labelEditorMask.wrap().catch(() => {
-        expect(rootScopeSpy).not.toHaveBeenCalled();
-        done();
-      });
     });
   });
 

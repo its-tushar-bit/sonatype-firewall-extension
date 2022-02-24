@@ -989,7 +989,7 @@ public class InsightConfig
     PR_COMMENTING("prCommenting"),
     PR_LINE_COMMENTING("prLineCommenting"),
     ANONYMOUS_QUARANTINED_COMPONENT_VIEW("anonymousQuarantinedComponentView"),
-    NO_AUTH_VULNERABILITY_LOOKUP("noAuthVulnerabilityLookup"),
+    ENABLE_UNAUTHENTICATED_PAGES("enableUnauthenticatedPages"),
 
     /**
      * @deprecated Use {@link SourceControl#getSourceControlEvaluationsEnabled() instead}

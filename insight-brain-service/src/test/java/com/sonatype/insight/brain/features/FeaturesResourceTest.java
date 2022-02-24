@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.features.FeaturesResource.NO_AUTH_VULNERABILITY_LOOKUP_PATH;
+import static com.sonatype.insight.brain.features.FeaturesResource.ENABLE_UNAUTHENTICATED_PAGES;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FeaturesResourceTest
@@ -42,10 +42,10 @@ public class FeaturesResourceTest
   }
 
   @Test
-  public void testGetNoAuthVulnerabilityLookup() throws Exception {
-    HttpResponse response = restRequest().path(NO_AUTH_VULNERABILITY_LOOKUP_PATH).anon().get();
+  public void testGetEnableUnauthenticatedPages() throws Exception {
+    HttpResponse response = restRequest().path(ENABLE_UNAUTHENTICATED_PAGES).anon().get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
-    assertThat(features).hasSize(1).containsOnly("no-auth-vulnerability-lookup");
+    assertThat(features).hasSize(1).containsOnly("enable-unauthenticated-pages");
   }
 }

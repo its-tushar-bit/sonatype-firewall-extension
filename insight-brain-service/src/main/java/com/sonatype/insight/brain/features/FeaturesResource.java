@@ -28,7 +28,7 @@ public class FeaturesResource
 {
   public static final String RESOURCE_PATH = "rest/product/features";
 
-  public static final String NO_AUTH_VULNERABILITY_LOOKUP_PATH = "/noAuthVulnerabilityLookup";
+  public static final String ENABLE_UNAUTHENTICATED_PAGES = "/enableUnauthenticatedPages";
 
   private final FeaturesService featuresService;
 
@@ -44,24 +44,24 @@ public class FeaturesResource
   }
 
   /**
-   * This endpoint returns whether or not vulnerability lookup without authentication feature is enabled. It
-   * needs to be accessible before the user is logged in (in contrast to `getFeatures` above) since we need to decide
-   * whether or not to show the link to Vulnerability Lookup page in the login modal.
+   * This endpoint returns whether or not pages like vulnerability lookup are allowed to be accessible without
+   * authentication. It needs to be accessible before the user is logged in (in contrast to `getFeatures` above) since
+   * we may want to show links to the pages in places such as Login Modal where user is not logged in yet.
    * <p>
    * This endpoint re-uses the `featuresService.getFeatures()` but removes any features from the response that are not
-   * NO_AUTH_VULNERABILITY_LOOKUP.
+   * ENABLE_UNAUTHENTICATED_PAGES.
    * <p>
-   * In other words this endpoint returns <code>[ "no-auth-vulnerability-lookup" ]</code> if vulnerability lookup is
+   * In other words this endpoint returns <code>[ "enable-unauthenticated-pages" ]</code> if pages are
    * allowed without authentication, otherwise it returns an empty list.
    * <p>
    * This endpoint does not return any information about any other features.
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Path(NO_AUTH_VULNERABILITY_LOOKUP_PATH)
-  public Set<Feature> getNoAuthVulnerabilityLookup() {
+  @Path(ENABLE_UNAUTHENTICATED_PAGES)
+  public Set<Feature> getEnableUnauthenticatedPages() {
     Set<Feature> features = featuresService.getFeatures();
-    features.removeIf(feature -> feature != InsightConfig.Feature.NO_AUTH_VULNERABILITY_LOOKUP);
+    features.removeIf(feature -> feature != InsightConfig.Feature.ENABLE_UNAUTHENTICATED_PAGES);
     return features;
   }
 }

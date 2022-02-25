@@ -9,7 +9,7 @@ import PolicyViolationsTableRow from './PolicyViolationsTableRow';
 
 export default function PolicyViolationsTable({ violations }) {
   return (
-    <NxTable>
+    <NxTable className="iq-policy-violations-table">
       <NxTable.Head>
         <NxTable.Row>
           <NxTable.Cell>THREAT</NxTable.Cell>

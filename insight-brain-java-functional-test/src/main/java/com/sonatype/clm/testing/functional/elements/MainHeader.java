@@ -93,6 +93,10 @@ public class MainHeader
     return new HelpMenu();
   }
 
+  public static NotificationMenu notificationsMenu() {
+    return new NotificationMenu();
+  }
+
   public static SelenideElement mainHeaderButtons() {
     return $("#main-header-buttons");
   }

@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.notification.ProductNotificationList;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
  * @since 1.14.0
@@ -58,10 +59,14 @@ public class HdsProductNotificationService
   }
 
   private void deleteOldUserViewedProductNotification(final Set<String> notificationIdsToKeep) {
-    for (UserViewedProductNotification notification : userViewedProductNotificationDAO.getAll()) {
-      if (!notificationIdsToKeep.contains(notification.getNotificationId())) {
-        userViewedProductNotificationDAO.delete(notification);
+    try (TransactionContext tx = userViewedProductNotificationDAO.createTransactionContext()) {
+      tx.begin();
+      for (UserViewedProductNotification notification : userViewedProductNotificationDAO.getAll(tx)) {
+        if (!notificationIdsToKeep.contains(notification.getNotificationId())) {
+          userViewedProductNotificationDAO.delete(tx, notification);
+        }
       }
+      tx.commit();
     }
   }
 }

@@ -51,9 +51,9 @@ public class UserViewedProductNotificationDAO
     return get(tx, sQuery, username, realmId, notificationId);
   }
 
-  public List<UserViewedProductNotification> getAll() {
+  public List<UserViewedProductNotification> getAll(TransactionContext tx) {
     String sQuery = "SELECT entity FROM UserViewedProductNotification entity";
-    return getList(sQuery);
+    return getList(tx, sQuery);
   }
 
   @Override

@@ -62,7 +62,7 @@ describe('LegalDashboardComponentRow component', function () {
     let cells = tableRow.find(NxTableCell);
     expect(cells.length).toEqual(5);
     expect(cells.at(0).children().text()).toEqual('Component Name');
-    expect(cells.at(1).children().text()).toEqual('Apache-2.0, GPL 1');
+    expect(cells.at(1).children().find('span').text()).toEqual('Apache-2.0, GPL 1');
     expect(cells.at(1).children().find(NxThreatIndicator).prop('policyThreatLevel')).toEqual(0);
     expect(cells.at(2).children().text()).toEqual('1');
     let donutChart = cells.at(3).find(NxBinaryDonutChart);

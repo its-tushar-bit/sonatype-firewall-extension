@@ -17,6 +17,7 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class DashboardPage
 {
@@ -52,15 +53,15 @@ public class DashboardPage
   }
 
   public static DashboardTab violationsTab() {
-    return new DashboardTab("#nx-tabs-0-tab-0");
+    return new DashboardTab(createSelector(".nx-tab", nthChild(1)));
   }
 
   public static DashboardTab componentsTab() {
-    return new DashboardTab("#nx-tabs-0-tab-1");
+    return new DashboardTab(createSelector(".nx-tab", nthChild(2)));
   }
 
   public static DashboardTab applicationsTab() {
-    return new DashboardTab("#nx-tabs-0-tab-2");
+    return new DashboardTab(createSelector(".nx-tab", nthChild(3)));
   }
 
   public static SelenideElement exportResultsLink() {

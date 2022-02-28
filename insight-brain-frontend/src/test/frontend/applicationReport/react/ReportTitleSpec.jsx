@@ -84,7 +84,13 @@ describe('ReportTitle', () => {
     expect(screen.getByRole('link', { name: 'Generate PDF' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'View SBOM' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'View raw data' })).toBeVisible();
-    expect(screen.getByRole('link', { name: 'View vulnerabilities' })).toBeVisible();
+
+    const viewVulnerabilitiesLink = screen.getByRole('link', {
+      name: 'Reevaluate the report in order to enable Vulnerabilities view',
+    });
+    expect(viewVulnerabilitiesLink).toBeVisible();
+    expect(viewVulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
+
     expect(screen.getByRole('link', { name: 'View legacy report' })).toBeVisible();
   });
 
@@ -95,8 +101,11 @@ describe('ReportTitle', () => {
 
     fireEvent.click(options);
 
-    const vulnerabilities = screen.getByRole('link', { name: 'View vulnerabilities' });
+    const vulnerabilities = screen.getByRole('link', {
+      name: 'Reevaluate the report in order to enable Vulnerabilities view',
+    });
     expect(vulnerabilities).toHaveClassName('disabled');
+    expect(vulnerabilities).toHaveTextContent(/view vulnerabilities/i);
 
     fireEvent.mouseOver(vulnerabilities);
     const tooltip = await screen.findByText('Reevaluate the report in order to enable Vulnerabilities view');
@@ -115,6 +124,7 @@ describe('ReportTitle', () => {
 
     const vulnerabilitiesLink = screen.getByRole('link', { name: 'View vulnerabilities' });
     expect(vulnerabilitiesLink).not.toHaveClassName('disabled');
+    expect(vulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
 
     fireEvent.click(vulnerabilitiesLink);
     expect(routerActions.stateGo).toHaveBeenCalledWith('applicationReport.vulnerabilities', {
@@ -133,8 +143,11 @@ describe('ReportTitle', () => {
 
     fireEvent.click(options);
 
-    const vulnerabilitiesLink = screen.getByRole('link', { name: 'View vulnerabilities' });
+    const vulnerabilitiesLink = screen.getByRole('link', {
+      name: 'Reevaluate the report in order to enable Vulnerabilities view',
+    });
     expect(vulnerabilitiesLink).toHaveClassName('disabled');
+    expect(vulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
 
     fireEvent.click(vulnerabilitiesLink);
     expect(routerActions.stateGo).not.toHaveBeenCalled();
@@ -146,7 +159,6 @@ describe('ReportTitle', () => {
     expect(reevaluateReport).toBeVisible();
 
     fireEvent.click(reevaluateReport);
-
     expect(mockedReevaluateReport).toHaveBeenCalled();
   });
 

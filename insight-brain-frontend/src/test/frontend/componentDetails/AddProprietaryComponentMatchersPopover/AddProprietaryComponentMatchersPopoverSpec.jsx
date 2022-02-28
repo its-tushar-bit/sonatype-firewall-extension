@@ -133,19 +133,19 @@ describe('AddProprietaryComponentMatchersPopover', () => {
     mountedComponent = getMountedComponent();
 
     let submitBtn = mountedComponent.find('.nx-form__submit-btn').at(0).find('button');
-    expect(submitBtn).toHaveProp('aria-disabled', false);
+    expect(submitBtn.props()['aria-disabled']).toBeFalsy();
 
     mountedComponent.unmount();
     mountedComponent = getMountedComponent({ data: { paths: [], regex: 'some regex' } });
 
     submitBtn = mountedComponent.find('.nx-form__submit-btn').at(0).find('button');
-    expect(submitBtn).toHaveProp('aria-disabled', false);
+    expect(submitBtn.props()['aria-disabled']).toBeFalsy();
 
     mountedComponent.unmount();
     mountedComponent = getMountedComponent({ data: { paths: [], regex: '' } });
 
     submitBtn = mountedComponent.find('.nx-form__submit-btn').at(0).find('button');
-    expect(submitBtn).toHaveProp('aria-disabled', true);
+    expect(submitBtn.props()['aria-disabled']).toBeTruthy();
   });
 
   it('sends the right information on submit', () => {

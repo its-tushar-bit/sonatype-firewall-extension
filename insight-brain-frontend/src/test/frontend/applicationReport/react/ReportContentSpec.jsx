@@ -24,6 +24,7 @@ describe('ReportContent component', function () {
     spyOn(applicationReportActions, 'goToDependencyTreePage').and.returnValue({ type: 'type' });
     spyOn(applicationReportSelectors, 'selectIsAggregated').and.returnValue(true);
     spyOn(applicationReportSelectors, 'selectDisplayedComponentList').and.returnValue(displayedEntries);
+    spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').and.returnValue('');
     spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
 
     renderComponent = (additionalProps = {}) => render(<ReportContent {...additionalProps} />);
@@ -148,17 +149,17 @@ describe('ReportContent component', function () {
 
   it('when there is not a dependency tree available the "view dependency tree" button is disabled', async function () {
     applicationReportSelectors.selectDependencyTreeIsAvailable.and.returnValue(false);
-    spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').and.returnValue(
-      'some random tooltip text'
-    );
+    const tooltipText = 'some random tooltip text';
+    applicationReportSelectors.selectDependencyTreeUnavailableMessage.and.returnValue(tooltipText);
     renderComponent();
-    const button = screen.getByRole('button', { name: /view dependency tree/i });
+    const button = screen.getByRole('button', { name: tooltipText });
 
+    expect(button).toHaveTextContent(/view dependency tree/i);
     expect(button).toBeVisible();
     expect(button).toHaveClass('disabled');
     fireEvent.click(button);
     expect(applicationReportActions.goToDependencyTreePage).toHaveBeenCalledTimes(0);
     fireEvent.mouseOver(button);
-    expect(await screen.findByText('some random tooltip text')).toBeInTheDocument();
+    expect(await screen.findByText(tooltipText)).toBeInTheDocument();
   });
 });

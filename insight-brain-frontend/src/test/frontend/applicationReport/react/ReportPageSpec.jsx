@@ -129,6 +129,7 @@ describe('Report Page component', () => {
     spyOn(applicationReportSelectors, 'selectDisplayedComponentList').and.returnValue(selectedReport.displayedEntries);
     spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
     spyOn(applicationReportSelectors, 'selectIsPolicyTypeFilterEnabled').and.returnValue(true);
+    spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').and.returnValue('');
 
     loadReportIfNeededSpy = spyOn(applicationReportActions, 'loadReportIfNeeded').and.callThrough();
     spyOn(applicationReportActions, 'toggleAggregateReportEntries');
@@ -186,7 +187,13 @@ describe('Report Page component', () => {
     expect(screen.getByRole('link', { name: 'Generate PDF' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'View SBOM' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'View raw data' })).toBeVisible();
-    expect(screen.getByRole('link', { name: 'View vulnerabilities' })).toBeVisible();
+
+    const viewVulnerabilitiesLink = screen.getByRole('link', {
+      name: 'Reevaluate the report in order to enable Vulnerabilities view',
+    });
+    expect(viewVulnerabilitiesLink).toBeVisible();
+    expect(viewVulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
+
     expect(screen.getByRole('link', { name: 'View legacy report' })).toBeVisible();
   });
 
@@ -223,7 +230,11 @@ describe('Report Page component', () => {
   it('renders ReportContent with 3 actions', () => {
     renderComponent();
 
-    const aggregateByComponentToggle = screen.getByRole('switch', { name: 'Aggregate by component' });
+    const aggregateByComponentToggleTooltip =
+      'By default the Application Report aggregates violations by component. ' +
+      'To see all violations not Aggregated by Component, please switch the toggle off.';
+
+    const aggregateByComponentToggle = screen.getByRole('switch', { name: aggregateByComponentToggleTooltip });
     const viewDependencyTreeButton = screen.getByRole('button', { name: 'View Dependency Tree' });
     const filterButton = screen.getByRole('button', { name: 'Filter' });
 
@@ -250,27 +261,27 @@ describe('Report Page component', () => {
     const componentRaws = screen.getAllByRole('row');
     expect(componentRaws.length).toBeGreaterThanOrEqual(6);
 
-    expect(screen.getByRole('img', { name: 'threat level critical' })).toBeVisible();
+    expect(screen.getByRole('img', { name: 'Critical' })).toBeVisible();
     expect(screen.getByText(`${displayedEntries[0].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[0].policyName}` })).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[0].derivedComponentName}` })).toBeVisible();
 
-    expect(screen.getByRole('img', { name: 'threat level severe' })).toBeVisible();
+    expect(screen.getByRole('img', { name: 'Severe' })).toBeVisible();
     expect(screen.getByText(`${displayedEntries[1].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[1].policyName}` })).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[1].derivedComponentName}` })).toBeVisible();
 
-    expect(screen.getByRole('img', { name: 'threat level moderate' })).toBeVisible();
+    expect(screen.getByRole('img', { name: 'Moderate' })).toBeVisible();
     expect(screen.getByText(`${displayedEntries[2].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[2].policyName}` })).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[2].derivedComponentName}` })).toBeVisible();
 
-    expect(screen.getByRole('img', { name: 'threat level low' })).toBeVisible();
+    expect(screen.getByRole('img', { name: 'Low' })).toBeVisible();
     expect(screen.getByText(`${displayedEntries[3].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[3].policyName}` })).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[3].derivedComponentName}` })).toBeVisible();
 
-    expect(screen.getByRole('img', { name: 'threat level none' })).toBeVisible();
+    expect(screen.getByRole('img', { name: 'None' })).toBeVisible();
     expect(screen.getByText(`${displayedEntries[4].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[4].policyName}` })).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[4].derivedComponentName}` })).toBeVisible();

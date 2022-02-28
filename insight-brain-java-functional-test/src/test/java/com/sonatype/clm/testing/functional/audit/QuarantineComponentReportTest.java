@@ -55,11 +55,13 @@ import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
@@ -240,6 +242,8 @@ public class QuarantineComponentReportTest
   }
 
   private String setupAllTestDataButPolicyViolationsTable() {
+    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
+        InsightConfig.ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     componentDetailsArrayList.add(createComponentDetail(createComponentIdentifier("0.5.2")));
     componentDetailsArrayList.add(createComponentDetail(createComponentIdentifier("0.5.3")));
 
@@ -253,6 +257,8 @@ public class QuarantineComponentReportTest
   }
 
   private String setupAllTestDataWithSingleComponentVersion() {
+    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
+        InsightConfig.ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     ComponentIdentifier mainComponentIdentifier = createComponentIdentifier("0.5.2");
     componentDetailsArrayList.add(createComponentDetail(mainComponentIdentifier));
 
@@ -266,6 +272,8 @@ public class QuarantineComponentReportTest
   }
 
   private String setupAllTestData() {
+    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
+        InsightConfig.ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     ComponentIdentifier mainComponentIdentifier = createComponentIdentifier("0.5.2");
     componentDetailsArrayList.add(createComponentDetail(mainComponentIdentifier));
     componentDetailsArrayList.add(createComponentDetail(createComponentIdentifier("0.5.3")));

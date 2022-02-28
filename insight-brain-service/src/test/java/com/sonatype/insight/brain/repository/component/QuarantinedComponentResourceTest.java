@@ -39,8 +39,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -66,6 +65,8 @@ public class QuarantinedComponentResourceTest
   public void setup() {
     repositoryManager = tempEntity.newRepositoryManager();
     repository = tempEntity.newRepository(repositoryManager, "repositoryPublicId");
+    getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
+        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
   }
 
   @Test
@@ -93,8 +94,8 @@ public class QuarantinedComponentResourceTest
   @Test
   public void testGetQuarantinedComponent_featureDisabled() throws Exception {
     // setup
-    getCLMServer().getInstance(InsightConfig.class)
-        .setFeatures(ImmutableMap.of(Feature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), false));
+    getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
+        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), false));
 
     // when
     final HttpResponse response =
@@ -137,7 +138,7 @@ public class QuarantinedComponentResourceTest
 
   @Test
   public void testGetQuarantinedComponent_tokenDoesNotExist() throws Exception {
-    // setup
+    //setup
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString("token".getBytes(StandardCharsets.UTF_8));
 

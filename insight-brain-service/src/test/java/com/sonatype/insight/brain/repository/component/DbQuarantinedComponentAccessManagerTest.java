@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -43,6 +43,9 @@ public class DbQuarantinedComponentAccessManagerTest
   @Test
   public void testCreateToken() {
     // Setup
+    insightConfig
+        .setExperimentalFeatures(
+            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final Repository repository = tempEntity.newRepository("repo");
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
 
@@ -60,13 +63,15 @@ public class DbQuarantinedComponentAccessManagerTest
 
   @Test(expected = BadRequestException.class)
   public void testCreateToken_featureNotEnabled() {
-    insightConfig.setFeatures(ImmutableMap.of(Feature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), false));
     quarantinedComponentAccessManager.createToken(new RepositoryComponent());
   }
 
   @Test
   public void testGetRepositoryComponentIdFromToken() {
     // Setup
+    insightConfig
+        .setExperimentalFeatures(
+            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final Repository repository = tempEntity.newRepository("repo");
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
@@ -80,12 +85,14 @@ public class DbQuarantinedComponentAccessManagerTest
 
   @Test(expected = BadRequestException.class)
   public void testGetRepositoryComponentIdFromToken_featureNotEnabled() {
-    insightConfig.setFeatures(ImmutableMap.of(Feature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), false));
     quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token");
   }
 
   @Test
   public void testGetRepositoryComponentIdFromToken_tokenDoesNotExist() {
+    insightConfig
+        .setExperimentalFeatures(
+            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString("fakeToken".getBytes(StandardCharsets.UTF_8));
 
@@ -96,6 +103,9 @@ public class DbQuarantinedComponentAccessManagerTest
   @Test
   public void testGetRepositoryComponentIdFromToken_tokenExpired() {
     // Setup
+    insightConfig
+        .setExperimentalFeatures(
+            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final Repository repository = tempEntity.newRepository("repo");
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
@@ -110,6 +120,9 @@ public class DbQuarantinedComponentAccessManagerTest
 
   @Test
   public void testGetRepositoryComponentIdFromToken_invalidToken() {
+    insightConfig
+        .setExperimentalFeatures(
+            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token"));
   }

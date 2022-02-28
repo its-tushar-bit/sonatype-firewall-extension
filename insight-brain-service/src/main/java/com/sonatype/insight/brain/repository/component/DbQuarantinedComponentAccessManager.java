@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAcce
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -110,9 +110,9 @@ public class DbQuarantinedComponentAccessManager
   }
 
   private void checkFeatureFlag() {
-    if (!insightConfig.isFeatureEnabled(Feature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW)) {
+    if (!insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW)) {
       throw new BadRequestException(
-          Feature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag() + " feature is disabled.");
+          ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag() + " feature is disabled.");
     }
   }
 }

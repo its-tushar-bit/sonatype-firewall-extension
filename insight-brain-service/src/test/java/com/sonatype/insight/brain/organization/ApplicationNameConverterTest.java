@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.organization;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
@@ -20,32 +21,34 @@ public class ApplicationNameConverterTest
   private ApplicationNameConverter applicationNameConverter;
 
   @Test
-  public void testConvertName_removesNonWordCharacters() {
-    String actual = applicationNameConverter.toName("n*a%m@e!");
-    assertThat(actual).isEqualTo("name");
+  public void testToName_removesNonWordCharacters() {
+    String actual = applicationNameConverter.toName("n*a%m@e!.fo*o-ba@r_baz#");
+    assertThat(actual).isEqualTo("name.foo-bar_baz");
   }
 
   @Test
-  public void testConvertName_removesWhitespace_keepsSingleSpace() {
+  public void testToName_removesWhitespace_keepsSingleSpace() {
     String actual = applicationNameConverter.toName(" l1 2  3   t\tnl\n ");
     assertThat(actual).isEqualTo("l1 2 3 tnl");
   }
 
   @Test
-  public void testConvertPublicId_removesWhitespace() {
+  public void testToPublicId_removesWhitespace() {
     String actual = applicationNameConverter.toPublicId(" l1 2  3   t\tnl\n ");
     assertThat(actual).isEqualTo("l123tnl");
   }
 
   @Test
-  public void testConvertName_stripAccents() {
+  public void testToName_retainsAccents() {
     String actualName = applicationNameConverter.toName("hélló cömpütër");
-    assertThat(actualName).isEqualTo("hello coempueter");
+    assertThat(actualName).isEqualTo("hélló cömpütër");
+    NameHelper.validate(actualName);
   }
 
   @Test
-  public void testConvertPublicId_stripAccents() {
+  public void testToPublicId_retainsAccents() {
     String actualId = applicationNameConverter.toPublicId("hélló cömpütër");
-    assertThat(actualId).isEqualTo("hellocoempueter");
+    assertThat(actualId).isEqualTo("héllócömpütër");
+    NameHelper.validate(actualId);
   }
 }

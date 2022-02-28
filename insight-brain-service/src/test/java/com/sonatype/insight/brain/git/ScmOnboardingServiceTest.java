@@ -563,7 +563,7 @@ public class ScmOnboardingServiceTest
     assertThat(allApps.stream().map(Application::getPublicId))
         .containsExactlyInAnyOrder("repo1__org", "repo2__org", "repo3__org", "--bad_name_99--__--bad-__-org");
     assertThat(allApps.stream().map(Application::getName))
-        .containsExactlyInAnyOrder("Repo1 - Org", "Repo2 - Org", "Repo3 - Org", "Bad_name_99 - Bad __ Org");
+        .containsExactlyInAnyOrder("Repo1 - Org", "Repo2 - Org", "Repo3 - Org", "Bad Name 99 - Bad Org");
 
     // and that all the clone URLs were added
     assertThat(sourceControlDAO.getAll().stream()

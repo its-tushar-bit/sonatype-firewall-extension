@@ -484,6 +484,12 @@ public class ApplicationServiceTest
         .containsExactlyElementsOf(orgs.stream().map(Organization::getName).collect(Collectors.toList()));
   }
 
+  @Test
+  public void testGetByPublicIdsNoAuthz() {
+    List<Application> apps = applicationService.getByPublicIdsNoAuthz(Collections.singleton(app1.getPublicId()));
+    assertThat(apps).extracting(Application::getPublicId).containsExactlyInAnyOrder(app1.getPublicId());
+  }
+
   private void createAlphabeticalOrgsAndApps(List<Organization> orgs, List<Application> apps) {
     orgs.addAll(new OrganizationDAO().getAll().stream()
         .filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID)).collect(Collectors.toList()));

@@ -8,9 +8,12 @@ package com.sonatype.insight.brain.api.v2.service.legal.report;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -21,11 +24,13 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalCopyrightDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.inject.Binder;
@@ -45,12 +50,16 @@ public class ApplicationAttributionReportBuilderTest
   @Mock
   private ApiLicenseLegalService mockApiLicenseLegalService;
 
+  @Mock
+  private ApplicationService mockApplicationService;
+
   @Inject
   private ApplicationAttributionReportBuilder reportBuilder;
 
   @Override
   public void configure(final Binder binder) {
     binder.bind(ApiLicenseLegalService.class).toInstance(mockApiLicenseLegalService);
+    binder.bind(ApplicationService.class).toInstance(mockApplicationService);
     super.configure(binder);
   }
 
@@ -79,6 +88,91 @@ public class ApplicationAttributionReportBuilderTest
     assertThat(doc.select("#additional-notices")).isEmpty();
 
     //Ensures that the appendix contains this license
+    assertThat(doc.select("#standard-LicenseOne")).isNotEmpty();
+  }
+
+  @Test
+  public void testDefaultSuccessfulReportMultiApp() throws IOException {
+    Set<AttributionReportApplicationDTO> applicationsAndStages = new HashSet<>();
+    Application application = tempEntity.newApplicationWithParent("appId");
+    AttributionReportApplicationDTO app1 = new AttributionReportApplicationDTO();
+    app1.applicationPublicId = application.getPublicId();
+    app1.stageTypeName = BuildStageType.ID;
+    applicationsAndStages.add(app1);
+    Application application2 = tempEntity.newApplicationWithParent("appId2");
+    AttributionReportApplicationDTO app2 = new AttributionReportApplicationDTO();
+    app2.applicationPublicId = application2.getPublicId();
+    app2.stageTypeName = BuildStageType.ID;
+    applicationsAndStages.add(app2);
+    generateReportDataAndMocks(application);
+    generateReportDataAndMocks(application2);
+    when(mockApplicationService
+        .getByPublicIdsNoAuthz(new HashSet<>(Arrays.asList(application.getPublicId(), application2.getPublicId()))))
+            .thenReturn(Arrays.asList(application, application2));
+    LegalCustomReportParameters reportParameters =
+        LegalCustomReportParameters.builder().buildMultiApplicationWithDefaults(
+            new LinkedHashSet<>(Arrays.asList(application.getPublicId(), application2.getPublicId())));
+    String content =
+        reportBuilder.generateCustomLegalMultiApplicationAttributionReport(applicationsAndStages, reportParameters);
+    Document doc = Jsoup.parse(content);
+    String bodyContent = doc.select("body").first().toString();
+    String expectedContent = IOUtils.toString(
+        Objects.requireNonNull(getClass().getClassLoader()
+            .getResource("ApplicationAttributionReportTest/expectedMultiApplicationAttributionReport.html")),
+        StandardCharsets.UTF_8);
+
+    assertThat(bodyContent).isEqualToIgnoringWhitespace(expectedContent);
+    assertThat(doc.select("#table-of-contents")).isNotEmpty();
+    assertThat(doc.select("h1").first()).hasToString("<h1>Attribution Report for appId,appId2</h1>");
+    assertThat(doc.select("#appendix")).isNotEmpty();
+    assertThat(doc.select("#header")).isEmpty();
+    assertThat(doc.select("#footer")).isEmpty();
+    assertThat(doc.select("#additional-notices")).isEmpty();
+
+    // Ensures that the appendix contains this license
+    assertThat(doc.select("#standard-LicenseOne")).isNotEmpty();
+  }
+  
+  @Test
+  public void testDefaultSuccessfulReportMultiAppWithNoticeFile() throws IOException {
+    Set<AttributionReportApplicationDTO> applicationsAndStages = new HashSet<>();
+    Application application = tempEntity.newApplicationWithParent("appId");
+    AttributionReportApplicationDTO app1 = new AttributionReportApplicationDTO();
+    app1.applicationPublicId = application.getPublicId();
+    app1.stageTypeName = BuildStageType.ID;
+    applicationsAndStages.add(app1);
+    Application application2 = tempEntity.newApplicationWithParent("appId2");
+    AttributionReportApplicationDTO app2 = new AttributionReportApplicationDTO();
+    app2.applicationPublicId = application2.getPublicId();
+    app2.stageTypeName = BuildStageType.ID;
+    applicationsAndStages.add(app2);
+    generateReportDataAndMocks(application);
+    generateReportDataAndMocks(application2);
+    when(mockApplicationService
+        .getByPublicIdsNoAuthz(new HashSet<>(Arrays.asList(application.getPublicId(), application2.getPublicId()))))
+            .thenReturn(Arrays.asList(application, application2));
+    LegalCustomReportParameters reportParameters = LegalCustomReportParameters.builder()
+        .withNoticeFiles(Lists.newArrayList("First Notice File Content", "Second Notice File Content"))
+        .buildMultiApplicationWithDefaults(
+            new LinkedHashSet<>(Arrays.asList(application.getPublicId(), application2.getPublicId())));
+    String content =
+        reportBuilder.generateCustomLegalMultiApplicationAttributionReport(applicationsAndStages, reportParameters);
+    Document doc = Jsoup.parse(content);
+    String bodyContent = doc.select("body").first().toString();
+    String expectedContent = IOUtils.toString(
+        Objects.requireNonNull(getClass().getClassLoader()
+            .getResource("ApplicationAttributionReportTest/expectedMultiApplicationAttributionReportWithNotice.html")),
+        StandardCharsets.UTF_8);
+    assertThat(bodyContent).isEqualToIgnoringWhitespace(expectedContent);
+    assertThat(doc.select("#table-of-contents")).isNotEmpty();
+    assertThat(doc.select("h1").first()).hasToString("<h1>Attribution Report for appId,appId2</h1>");
+    assertThat(doc.select("#appendix")).isNotEmpty();
+    assertThat(doc.select("#header")).isEmpty();
+    assertThat(doc.select("#footer")).isEmpty();
+    assertThat(doc.select("#additional-notices")).isNotEmpty();
+    assertThat(doc.select("#additional-notices").first().toString()).contains("First Notice File Content");
+    assertThat(doc.select("#additional-notices").first().toString()).contains("Second Notice File Content");
+    // Ensures that the appendix contains this license
     assertThat(doc.select("#standard-LicenseOne")).isNotEmpty();
   }
 

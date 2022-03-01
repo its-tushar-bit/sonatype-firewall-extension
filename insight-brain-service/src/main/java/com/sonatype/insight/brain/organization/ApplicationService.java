@@ -204,6 +204,10 @@ public class ApplicationService
     }
   }
 
+  public List<Application> getByPublicIdsNoAuthz(Set<String> applicationPublicIds) {
+    return applicationDAO.getByPublicIds(applicationPublicIds);
+  }
+
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
   public List<Application> getApplications() {
     return applicationDAO.getAll();

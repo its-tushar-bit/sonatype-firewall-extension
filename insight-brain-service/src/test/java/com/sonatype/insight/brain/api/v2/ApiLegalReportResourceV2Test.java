@@ -162,6 +162,67 @@ public class ApiLegalReportResourceV2Test
   }
 
   @Test
+  public void testGetLicenseLegalMultiApplicationHTMLReport() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    Application application2 = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+    PolicyEvaluation policyEvaluation2 =
+        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluation, getClass().getSimpleName());
+    mockReport(policyEvaluation2, getClass().getSimpleName());
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
+
+    HttpResponse response = restRequest().path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_PATH)
+        .part("applications", application.getPublicId() + "," + application2.getPublicId())
+        .part("stages", BuildStageType.ID + "," + BuildStageType.ID)
+        .post();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).contains(application.getPublicId());
+    assertThat(response.getBodyText()).contains(application2.getPublicId());
+  }
+  
+  @Test
+  public void testGetLicenseLegalCustomMultiApplicationHTMLReport() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    Application application2 = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+    PolicyEvaluation policyEvaluation2 =
+        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluation, getClass().getSimpleName());
+    mockReport(policyEvaluation2, getClass().getSimpleName());
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
+    
+    File noticeFile = createNoticeFile();
+    
+    HttpResponse response = restRequest().path(DefaultApiLegalReportResourceV2.CUSTOM_MULTI_APPLICATION_REPORT_PATH)
+        .part("applications", application.getPublicId() + "," + application2.getPublicId())
+        .part("stages", BuildStageType.ID + "," + BuildStageType.ID)
+        .part("title", "Report title")
+        .part("header", "Report header")
+        .part("footer", "Report footer")
+        .part("noticeFiles", noticeFile)
+        .post();
+
+    assertResponseStatus(200, response);
+    final String bodyText = response.getBodyText();
+
+    assertThat(bodyText)
+        .contains("notice file content")
+        .contains("Report title")
+        .contains("Report header")
+        .contains("Report footer");
+  }
+
+  @Test
   public void testGetLicenseLegalApplicationHTMLReport_withNoticeFile() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =
@@ -390,6 +451,42 @@ public class ApiLegalReportResourceV2Test
         restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
             .parameter(application.getId(), BuildStageType.ID, template.getId())
             .post();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).contains("testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE");
+    assertThat(response.getBodyText()).contains("testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER");
+    assertThat(response.getBodyText()).contains("testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER");
+  }
+
+  @Test
+  public void testPostCustomLicenseLegalMultiApplicationReport_FromTemplate() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    Application application2 = tempEntity.newApplicationWithParent();
+
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+    PolicyEvaluation policyEvaluation2 =
+        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluation, getClass().getSimpleName());
+    mockReport(policyEvaluation2, getClass().getSimpleName());
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
+
+    AttributionReportTemplate template = tempEntity.createNewAttributionReportTemplate("Template Name",
+        "testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE",
+        "testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER",
+        "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER", false, false, false);
+
+    File file = createNoticeFile();
+
+    HttpResponse response = restRequest()
+        .path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_PATH_FROM_TEMPLATE_PATH)
+        .parameter(template.getId()).part("noticeFiles", file)
+        .part("applications", application.getPublicId() + "," + application2.getPublicId())
+        .part("stages", BuildStageType.ID + "," + BuildStageType.ID)
+        .post();
 
     assertResponseStatus(200, response);
     assertThat(response.getBodyText()).contains("testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE");

@@ -7,14 +7,18 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -29,6 +33,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.legal.AttributionReportService;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentReportDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportTemplateDTO;
 import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;
 import com.sonatype.insight.brain.api.v2.service.legal.report.ApplicationAttributionReportBuilder;
@@ -56,7 +61,16 @@ public class DefaultApiLegalReportResourceV2
 
   public static final String APPLICATION_PATH_STAGE = APPLICATION_PATH + "/stage/{stageId}";
 
-  public static final String APPLICATION_REPORT_PATH = APPLICATION_PATH_STAGE + "/report";
+  public static final String REPORT = "/report";
+
+  public static final String APPLICATION_REPORT_PATH = APPLICATION_PATH_STAGE + REPORT;
+
+  public static final String MULTI_APPLICATION_REPORT_PATH = "multiApplication" + REPORT;
+
+  public static final String CUSTOM_MULTI_APPLICATION_REPORT_PATH = "customMultiApplication" + REPORT;
+
+  public static final String MULTI_APPLICATION_REPORT_PATH_FROM_TEMPLATE_PATH =
+      MULTI_APPLICATION_REPORT_PATH + "/templateId/{templateId}";
 
   public static final String APPLICATION_REPORT_FROM_TEMPLATE_PATH =
       APPLICATION_REPORT_PATH + "/templateId/{templateId}";
@@ -76,6 +90,10 @@ public class DefaultApiLegalReportResourceV2
   static final String REPORT_FORM_APPENDIX = "includeAppendix";
 
   static final String REPORT_FORM_NOTICE_FILES = "noticeFiles";
+
+  static final String FORM_DATA_APPLICATIONS = "applications";
+
+  static final String FORM_DATA_STAGES = "stages";
 
   private final ApiLicenseLegalService apiLicenseLegalServiceV2;
 
@@ -170,6 +188,90 @@ public class DefaultApiLegalReportResourceV2
 
   @Override
   @POST
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Path(CUSTOM_MULTI_APPLICATION_REPORT_PATH)
+  @Produces(MediaType.TEXT_HTML)
+  public String getLicenseLegalCustomMultiApplicationHTMLReport(FormDataMultiPart formData) {
+    Set<AttributionReportApplicationDTO> applicationsAndStages = new HashSet<>();
+    final LegalCustomReportParameters.Builder reportParametersBuilder = LegalCustomReportParameters.builder();
+    try {
+      reportParametersBuilder.withTitle(requireMultiPartValue(formData, REPORT_FORM_TITLE))
+          .withHeader(getMultiPartValue(formData, REPORT_FORM_HEADER, ""))
+          .withFooter(getMultiPartValue(formData, REPORT_FORM_FOOTER, ""))
+          .withIncludeToc(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_TOC, "true")))
+          .withIncludeStandardLicenseTexts(
+              Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
+          .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
+          .withNoticeFiles(getNoticeFilesFromFormData(formData)).build();
+      applicationsAndStages = getApplicationsAndStagesFromFormData(formData);
+    }
+    catch (final Exception ex) { // if we got exception at this point it's because of invalid request
+      Throwables.throwIfInstanceOf(ex, BadRequestException.class);
+      throw new BadRequestException(ex.getMessage());
+    }
+    return applicationAttributionReportBuilder
+        .generateCustomLegalMultiApplicationAttributionReport(applicationsAndStages, reportParametersBuilder.build());
+  }
+
+  @Override
+  @POST
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Path(MULTI_APPLICATION_REPORT_PATH)
+  @Produces(MediaType.TEXT_HTML)
+  public String getLicenseLegalMultiApplicationHTMLReport(
+      @Context ContainerRequest requestForm)
+  {
+    List<String> noticeFilesList = new ArrayList<>();
+    Set<AttributionReportApplicationDTO> applicationsAndStagesSet = new HashSet<>();
+    if (requestForm != null && requestForm.getLength() > 0) {
+      final FormDataMultiPart multiPart = requestForm.readEntity(FormDataMultiPart.class);
+      try {
+        noticeFilesList = getNoticeFilesFromFormData(multiPart);
+        applicationsAndStagesSet = getApplicationsAndStagesFromFormData(multiPart);
+      }
+      catch (final Exception exc) { // if we got exception at this point it's because of invalid request
+        Throwables.throwIfInstanceOf(exc, BadRequestException.class);
+        throw new BadRequestException(exc.getMessage());
+      }
+    }
+    LegalCustomReportParameters reportParameters =
+        LegalCustomReportParameters.builder().withNoticeFiles(noticeFilesList).buildMultiApplicationWithDefaults(
+            applicationsAndStagesSet.stream().map(n -> n.applicationPublicId).collect(Collectors.toSet()));
+    return applicationAttributionReportBuilder
+        .generateCustomLegalMultiApplicationAttributionReport(applicationsAndStagesSet, reportParameters);
+  }
+
+  @Override
+  @POST
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Path(MULTI_APPLICATION_REPORT_PATH_FROM_TEMPLATE_PATH)
+  @Produces(MediaType.TEXT_HTML)
+  public String getLicenseLegalCustomMultiApplicationHTMLReport(
+      @PathParam("templateId") String templateId,
+      @Context ContainerRequest request)
+  {
+    AttributionReportTemplateDTO templateDTO = attributionReportService.getAttributionReportTemplateById(templateId)
+        .orElseThrow(() -> new NotFoundException(String.format("No template with id %s found", templateId)));
+    List<String> noticeFiles = new ArrayList<>();
+    Set<AttributionReportApplicationDTO> applicationsAndStages = new HashSet<>();
+    if (request != null && request.getLength() > 0) {
+      final FormDataMultiPart multiPart = request.readEntity(FormDataMultiPart.class);
+      try {
+        noticeFiles = getNoticeFilesFromFormData(multiPart);
+        applicationsAndStages = getApplicationsAndStagesFromFormData(multiPart);
+      }
+      catch (final Exception ex) { // if we got exception at this point it's because of invalid request
+        Throwables.throwIfInstanceOf(ex, BadRequestException.class);
+        throw new BadRequestException(ex.getMessage());
+      }
+    }
+    return applicationAttributionReportBuilder
+        .generateCustomLegalMultiApplicationAttributionReport(applicationsAndStages, LegalCustomReportParameters
+            .builder().fromAttributionReportTemplateDTO(templateDTO).withNoticeFiles(noticeFiles).build());
+  }
+
+  @Override
+  @POST
   @Path(APPLICATION_REPORT_FROM_TEMPLATE_PATH)
   @Produces(MediaType.TEXT_HTML)
   public String getLicenseLegalCustomApplicationHTMLReport(
@@ -240,6 +342,39 @@ public class DefaultApiLegalReportResourceV2
           + String.join(", ", invalidMime));
     }
     return files;
+  }
+
+  private Set<AttributionReportApplicationDTO> getApplicationsAndStagesFromFormData(
+      final FormDataMultiPart formData)
+  {
+    final List<FormDataBodyPart> applications =
+        Optional.ofNullable(formData.getFields(FORM_DATA_APPLICATIONS)).orElse(Collections.emptyList());
+    final List<FormDataBodyPart> stages =
+        Optional.ofNullable(formData.getFields(FORM_DATA_STAGES)).orElse(Collections.emptyList());
+    if (applications.isEmpty() || stages.isEmpty()) {
+      return Collections.emptySet();
+    }
+    
+    Set<String> applicationIds = applications.stream()
+        .map(FormDataBodyPart::getValue)
+        .map(app -> app.split(","))
+        .flatMap(Arrays::stream)
+        .collect(Collectors.toSet());
+    
+    Set<String> stageIds = stages.stream()
+        .map(FormDataBodyPart::getValue)
+        .map(app -> app.split(","))
+        .flatMap(Arrays::stream)
+        .collect(Collectors.toSet());
+
+    return resourceDTOFromSet(applicationIds, stageIds);
+  }
+  
+  private Set<AttributionReportApplicationDTO> resourceDTOFromSet(Set<String> applicationIds, Set<String> stageIds) {
+    Set<AttributionReportApplicationDTO> legalReportResourceApplicationDTO = new HashSet<>();
+    applicationIds.forEach(applicationId -> stageIds.forEach(
+        stageId -> legalReportResourceApplicationDTO.add(new AttributionReportApplicationDTO(applicationId, stageId))));
+    return legalReportResourceApplicationDTO;
   }
 
   @Override

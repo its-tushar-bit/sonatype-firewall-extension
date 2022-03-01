@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service.legal.report;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportTemplateDTO;
 
@@ -18,6 +19,8 @@ public final class LegalCustomReportParameters
   private final String header;
 
   private final String footer;
+
+  private static final String ATTRIBUTION_REPORT_FOR = "Attribution Report for ";
 
   private final boolean includeToc;
 
@@ -154,10 +157,15 @@ public final class LegalCustomReportParameters
 
     public LegalCustomReportParameters buildWithDefaults(final String applicationId) {
       return new LegalCustomReportParameters(
-          "Attribution Report for " + applicationId,
+          ATTRIBUTION_REPORT_FOR + applicationId,
           "", "",
           true, true, true, Collections.emptyList()
       );
+    }
+
+    public LegalCustomReportParameters buildMultiApplicationWithDefaults(final Set<String> applicationId) {
+      return new LegalCustomReportParameters(ATTRIBUTION_REPORT_FOR + String.join(",", applicationId), "", "", true,
+          true, true, this.noticeFiles);
     }
   }
 }

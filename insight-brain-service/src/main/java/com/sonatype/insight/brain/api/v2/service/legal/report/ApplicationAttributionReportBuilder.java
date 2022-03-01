@@ -7,9 +7,13 @@ package com.sonatype.insight.brain.api.v2.service.legal.report;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -17,13 +21,19 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportApplicationDTO;
 import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotAuthorizedException;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,9 +52,15 @@ public class ApplicationAttributionReportBuilder
 
   private final TemplateEngine templateEngine;
 
+  private final ApplicationService applicationService;
+
   @Inject
-  public ApplicationAttributionReportBuilder(final ApiLicenseLegalService apiLicenseLegalService) {
+  public ApplicationAttributionReportBuilder(
+      final ApiLicenseLegalService apiLicenseLegalService,
+      final ApplicationService applicationService)
+  {
     this.apiLicenseLegalService = apiLicenseLegalService;
+    this.applicationService = applicationService;
 
     ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver(this.getClass().getClassLoader());
     templateResolver.setTemplateMode(TemplateMode.HTML);
@@ -68,6 +84,42 @@ public class ApplicationAttributionReportBuilder
     return templateEngine.process("application_attribution_report", new Context(Locale.getDefault(), contextMap));
   }
 
+  public String generateCustomLegalMultiApplicationAttributionReport(
+      Set<AttributionReportApplicationDTO> applicationsAndStages,
+      LegalCustomReportParameters reportParameters)
+  {
+    Set<String> applicationPublicIds =
+        applicationsAndStages.stream().map(n -> n.applicationPublicId).collect(Collectors.toSet());
+    List<Application> applicationsAuthz = getApplicationsByIds(applicationPublicIds);
+    validateAuthorizedApplications(applicationPublicIds, applicationsAuthz);
+    validateReportParameters(reportParameters);
+    Map<String, Application> applicationMap =
+        applicationsAuthz.stream().collect(Collectors.toMap(Application::getPublicId, Function.identity()));
+    Set<ApiLicenseLegalApplicationReportDTO> applicationReportDTOSet = applicationsAndStages.stream()
+        .map(applicationReportDTO -> apiLicenseLegalService.getLicenseLegalApplicationReport(
+            applicationMap.get(applicationReportDTO.applicationPublicId), applicationReportDTO.stageTypeName))
+        .collect(Collectors.toSet());
+    ApiLicenseLegalApplicationReportDTO applicationReportDTO = mergeApplicationReports(applicationReportDTOSet);
+    Map<String, Object> contextMap = buildContextMap(null, applicationReportDTO, reportParameters);
+    return templateEngine.process("application_attribution_report", new Context(Locale.getDefault(), contextMap));
+  }
+
+  private ApiLicenseLegalApplicationReportDTO mergeApplicationReports(
+      Set<ApiLicenseLegalApplicationReportDTO> applicationReportDTOS)
+  {
+    List<ApiLicenseLegalComponentDTO> components = new ArrayList<>();
+    Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = new HashSet<>();
+    for (ApiLicenseLegalApplicationReportDTO apiLicenseLegalApplicationReportDTO : applicationReportDTOS) {
+      if (apiLicenseLegalApplicationReportDTO != null) {
+        components.addAll(apiLicenseLegalApplicationReportDTO.components.stream().filter(Objects::nonNull)
+            .collect(Collectors.toList()));
+        licenseLegalMetadata.addAll(apiLicenseLegalApplicationReportDTO.licenseLegalMetadata.stream()
+            .filter(Objects::nonNull).collect(Collectors.toSet()));
+      }
+    }
+    return new ApiLicenseLegalApplicationReportDTO(components, licenseLegalMetadata);
+  }
+
   private Map<String, Object> buildContextMap(
       final Owner application,
       final ApiLicenseLegalApplicationReportDTO applicationReportDTO,
@@ -83,7 +135,9 @@ public class ApplicationAttributionReportBuilder
     //Map application data
     Map<String, Object> contextMap = new HashMap<>(3);
     contextMap.put("applicationReport", applicationReportDTO);
-    contextMap.put("applicationPublicId", application.getPublicId());
+    if (application != null) {
+      contextMap.put("applicationPublicId", application.getPublicId());
+    }
     contextMap.put("obligationNameMap", obligationNameMap);
 
     //Map Custom Report data
@@ -153,6 +207,26 @@ public class ApplicationAttributionReportBuilder
   private void validateReportParameters(final LegalCustomReportParameters reportParameters) {
     if (isBlank(reportParameters.getTitle())) {
       throw new BadRequestException("Report must have title");
+    }
+  }
+
+  @AuthzFilter(permission = Permission.LEGAL_REVIEWER, context = AuthzFilter.Context.APPLICATION)
+  protected List<Application> getApplicationsByIds(Set<String> applicationPublicIds) {
+    return applicationService.getByPublicIdsNoAuthz(applicationPublicIds);
+  }
+
+  private void validateAuthorizedApplications(Set<String> applicationIds, List<Application> applicationsAuthz) {
+    List<String> authorizedApplicationIds =
+        applicationsAuthz.stream().map(Application::getPublicId).collect(Collectors.toList());
+
+    @SuppressWarnings("unchecked")
+    List<String> unauthorizedApplicationIds =
+        (List<String>) CollectionUtils.subtract(applicationIds, authorizedApplicationIds);
+
+    if (!unauthorizedApplicationIds.isEmpty()) {
+      throw new NotAuthorizedException(
+          "Insufficient permissions to generate reports for applications: "
+              + (String.join(",", unauthorizedApplicationIds)));
     }
   }
 }

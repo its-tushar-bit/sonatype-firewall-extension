@@ -28,9 +28,18 @@ public interface ApiLegalReportResourceV2
 
   String getLicenseLegalCustomApplicationHTMLReport(String applicationId, String stageId, FormDataMultiPart formData);
 
+  String getLicenseLegalCustomMultiApplicationHTMLReport(FormDataMultiPart formData);
+  
+  String getLicenseLegalMultiApplicationHTMLReport(
+      ContainerRequest request);
+
   String getLicenseLegalCustomApplicationHTMLReport(
       String applicationId,
       String stageId,
+      String templateId,
+      ContainerRequest request);
+
+  String getLicenseLegalCustomMultiApplicationHTMLReport(
       String templateId,
       ContainerRequest request);
 

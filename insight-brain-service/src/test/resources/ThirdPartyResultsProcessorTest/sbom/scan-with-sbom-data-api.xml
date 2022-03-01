@@ -24,7 +24,7 @@
     <property name="resourceNames" value="true"/>
   </properties>
 </configuration>
-<item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf">
+<item contentType="SBOM" lastModified="1571788783929" path="test-bom.xml" sha1="80d8ce5924b4b67314bf">
   <content>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
 &lt;bom xmlns=&quot;http://cyclonedx.org/schema/bom/1.1&quot; serialNumber=&quot;urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79&quot; version=&quot;1&quot;&gt;
   &lt;components&gt;

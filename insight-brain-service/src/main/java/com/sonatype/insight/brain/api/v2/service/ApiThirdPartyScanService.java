@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.InvalidSbomException;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -53,7 +54,6 @@ import com.sonatype.insight.scan.model.ItemContentType;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.exception.ParseException;
-import org.cyclonedx.model.Bom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,7 +101,8 @@ public class ApiThirdPartyScanService
       final String source,
       final String stageTypeId,
       final String sbom,
-      final String clientUserAgent)
+      final String clientUserAgent,
+      final String encodingType)
   {
     if (!Stage.isValidStageTypeId(stageTypeId)) {
       throw new InvalidStageException(stageTypeId);
@@ -110,14 +111,14 @@ public class ApiThirdPartyScanService
       throw new InvalidLicenseException("Stage '" + stageTypeId + "' is not supported by your license.");
     }
 
-    validateSbom(sbom);
+    validateSbom(sbom, encodingType);
     String scanRequestId = UUID.randomUUID().toString().replace("-", "");
     ApiThirdPartyScanTicketDTO scanTicketDTO = createScanTicket(applicationId, scanRequestId);
 
     log.debug("Received request to scan SBOM for app id {}, source {}, stageTypeId {}. "
         + "The status ID of the operation is {}.", applicationId, source, stageTypeId, scanRequestId);
     Application app = new ApplicationDAO().getById(applicationId);
-    ScanResult scanResult = createScanFile(app, sbom, source);
+    ScanResult scanResult = createScanFile(app, sbom, source, encodingType);
 
     policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY,
         new Stage(stageTypeId), ScanTriggerType.THIRD_PARTY, scanResult.getScanFile(), "api",
@@ -126,27 +127,27 @@ public class ApiThirdPartyScanService
     return scanTicketDTO;
   }
 
-  private void validateSbom(final String sbom) {
+  private void validateSbom(final String sbom, final String type) {
     if (StringUtils.isBlank(sbom)) {
       throw new BadRequestException("sbom content is null or empty");
     }
     try {
-      Bom bom = ThirdPartyUtils.parseBom(sbom);
-      if (ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS.get(bom.getSpecVersion()) == null) {
-        throw new NotAcceptableException("Cyclone version " + bom.getSpecVersion() + " is not supported");
-      }
+      ThirdPartyUtils.parseAndValidateSbom(sbom, type);
     }
-    catch (ParseException e) {
+    catch (ParseException | IOException e) {
       throw new BadRequestException("sbom content cannot be parsed", e);
+    }
+    catch (InvalidSbomException e) {
+      throw new NotAcceptableException(e.getMessage());
     }
   }
 
-  private ScanResult createScanFile(final Application app, final String sbom, final String source) {
+  private ScanResult createScanFile(final Application app, final String sbom, final String source, final String type) {
     try {
       ProprietaryConfig proprietaryConfig =
           proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION, app.getPublicId());
-      return scanner.scanContent(sbom, work.getScanDir(app.getId()), ItemContentType.SBOM, source, proprietaryConfig,
-          ScannerDriver.THIRD_PARTY_API.getValue());
+      return scanner.scanContent(sbom, work.getScanDir(app.getId()), ItemContentType.SBOM, source, type,
+          proprietaryConfig, ScannerDriver.THIRD_PARTY_API.getValue());
     }
     catch (IOException ex) {
       log.error("Error processing sbom content", ex);

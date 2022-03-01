@@ -1,6 +1,8 @@
 <bom version="1" serialNumber="urn:uuid:5981ab6d-88f4-43f3-9e98-2a442afa8e3d" xmlns="http://cyclonedx.org/schema/bom/1.1" xmlns:v="http://cyclonedx.org/schema/ext/vulnerability/1.0">
   <components>
     <component type="file" bom-ref="75874d9f-5db1-4995-ad79-641bfb4ca952">
+      <name></name>
+      <version></version>
       <hashes>
         <hash alg="SHA-1">9188560f22e0b73070d2efce670c74af2bdf30af</hash>
       </hashes>

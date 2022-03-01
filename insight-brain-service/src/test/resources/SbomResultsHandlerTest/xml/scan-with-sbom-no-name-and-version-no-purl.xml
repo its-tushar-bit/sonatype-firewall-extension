@@ -3,6 +3,8 @@
   <components>
     <component type="library">
       <group>org.apache.tomcat</group>
+      <name></name>
+      <version></version>
       <hashes>
         <hash alg="MD5">3942447fac867ae5cdb3229b658f4d48</hash>
         <hash alg="SHA-1">e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a</hash>

@@ -34,7 +34,6 @@ import org.cyclonedx.model.Component.Type;
 import org.cyclonedx.model.ExtensibleType;
 import org.cyclonedx.model.Extension;
 import org.cyclonedx.model.Extension.ExtensionType;
-import org.cyclonedx.model.Source;
 import org.cyclonedx.model.vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability10;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Recommendation;
@@ -62,7 +61,7 @@ public class ContainerResultHandler extends SbomResultHandler
         Bom targetBom = new Bom();
         List<ProjectScanItem> moduleDependencies = new ArrayList<>();
         log.info("Processing container analysis content");
-        processSbom(content, sourceBom, targetBom, thirdPartyFile, moduleDependencies);
+        processSbom(content.getPath(), sourceBom, targetBom, thirdPartyFile, moduleDependencies);
 
         if (targetBom.getComponents() != null && targetBom.getComponents().isEmpty()) {
           return new FilteredThirdPartyContent(content.getContent(), moduleDependencies);
@@ -126,7 +125,7 @@ public class ContainerResultHandler extends SbomResultHandler
             rating.setVector(vulnerability.getVectors_v3());
             vulnerability10.setRatings(Arrays.asList(rating));
 
-            Source source = new Source();
+            Vulnerability10.Source source = new Vulnerability10.Source();
             source.setName(IdentificationSource.SONATYPE_CONTAINER.getName());
             source.setUrl(getUrl(vulnerability));
             vulnerability10.setSource(source);
@@ -161,11 +160,12 @@ public class ContainerResultHandler extends SbomResultHandler
   }
 
   @Override
-  ThirdPartyCoordinateSecurity parseVulnerability(
+  ThirdPartyCoordinateSecurity parseVulnerabilityExtension(
       final Vulnerability10 vulnerability,
       final String fileCoordinateId)
   {
-    ThirdPartyCoordinateSecurity coordinateSecurity = super.parseVulnerability(vulnerability, fileCoordinateId);
+    ThirdPartyCoordinateSecurity coordinateSecurity =
+        super.parseVulnerabilityExtension(vulnerability, fileCoordinateId);
     coordinateSecurity.setFixedBy(coordinateSecurity.getRecommendations());
     return coordinateSecurity;
   }

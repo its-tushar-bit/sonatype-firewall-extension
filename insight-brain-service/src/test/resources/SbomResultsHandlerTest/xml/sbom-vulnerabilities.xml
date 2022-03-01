@@ -116,10 +116,10 @@
       <group>test</group>
       <name>test</name>
       <version>1.2</version>
-      <purl>pkg:test/test@1.2</purl>
       <hashes>
         <hash alg="SHA-1">e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a</hash>
       </hashes>
+      <purl>pkg:test/test@1.2</purl>
       <v:vulnerabilities>
         <v:vulnerability ref="abc">
           <v:id>CVE-2018-7489</v:id>
@@ -190,7 +190,7 @@
       </v:vulnerabilities>
     </component>
 
-    <component type="file" bom-ref="882870c4-4227-4036-b04c-b4d2f4164ee5">
+    <component type="file" bom-ref="882870c4-4227-4036-b04c-b4d2f4164ee7">
       <group>test</group>
       <name>test</name>
       <version>1.1</version>
@@ -226,14 +226,14 @@
         </v:vulnerability>
       </v:vulnerabilities>
     </component>
-    <component type="file" bom-ref="882870c4-4227-4036-b04c-b4d2f4164ee6">
+    <component type="file" bom-ref="882870c4-4227-4036-b04c-b4d2f4164ee8">
       <group>test</group>
       <name>test</name>
       <version>1.2</version>
-      <purl>pkg:golang/test@1.2</purl>
       <hashes>
         <hash alg="SHA-1">e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a</hash>
       </hashes>
+      <purl>pkg:golang/test@1.2</purl>
       <v:vulnerabilities>
         <v:vulnerability ref="abc">
           <v:id>CVE-2018-7489</v:id>

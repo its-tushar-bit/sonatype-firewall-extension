@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -77,9 +78,11 @@ public class ApiThirdPartyScanServiceTest
   @Test
   public void testScanComponents_bom_v1_0() throws Exception {
     String bom = getBomFile("valid_bom_1_0.xml");
+    String appId = app.getId();
     assertThatExceptionOfType(NotAcceptableException.class)
-        .isThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null))
-        .withMessage("Cyclone version 1.0 is not supported");
+        .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", Stage.ID_BUILD, bom, null,
+            ThirdPartyUtils.XML_SBOM))
+        .withMessage("CycloneDX XML 1.0 version is not supported");
   }
 
   @Test
@@ -108,7 +111,7 @@ public class ApiThirdPartyScanServiceTest
     String bom = getBomFile(fileName);
 
     ApiThirdPartyScanTicketDTO scanResult =
-        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
+        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null, ThirdPartyUtils.XML_SBOM);
     assertThat(scanResult).isNotNull();
     assertThat(scanResult.statusUrl).isNotNull();
     assertThat(new URI(scanResult.statusUrl)).isNotNull();
@@ -236,7 +239,7 @@ public class ApiThirdPartyScanServiceTest
 
     String bom = getBomFile(fileName);
 
-    thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null);
+    thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null, ThirdPartyUtils.XML_SBOM);
 
     ApiThirdPartyScanResultDTO resultDTO = thirdPartyScanService.getScanStatus(app.getId(), scanId);
     assertThat(resultDTO.policyAction).isEqualTo(policyAction);
@@ -290,7 +293,7 @@ public class ApiThirdPartyScanServiceTest
     String bom = getBomFile("invalid_bom_id_vulnerability.xml");
 
     ApiThirdPartyScanTicketDTO scanResult =
-        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
+        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null, ThirdPartyUtils.XML_SBOM);
     assertThat(scanResult).isNotNull();
     assertThat(scanResult.statusUrl).isNotNull();
     assertThat(new URI(scanResult.statusUrl)).isNotNull();
@@ -301,7 +304,7 @@ public class ApiThirdPartyScanServiceTest
     String bom = getBomFile("invalid_bom_base_score_vulnerability.xml");
 
     ApiThirdPartyScanTicketDTO scanResult =
-        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
+        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null, ThirdPartyUtils.XML_SBOM);
     assertThat(scanResult).isNotNull();
     assertThat(scanResult.statusUrl).isNotNull();
     assertThat(new URI(scanResult.statusUrl)).isNotNull();
@@ -310,25 +313,29 @@ public class ApiThirdPartyScanServiceTest
   @Test
   public void testScanComponents_StageNotLicensed() {
     productLicenseManager.setStageTypes(StageTypes.RELEASE);
-
+    String appId = app.getId();
     assertThatExceptionOfType(InvalidLicenseException.class)
-        .isThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, "bom", null))
+        .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", Stage.ID_BUILD, "bom", null,
+            ThirdPartyUtils.XML_SBOM))
         .withMessage("Stage 'build' is not supported by your license.");
   }
 
   @Test
   public void testScanComponents_NullBom() {
+    String appId = app.getId();
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, null, null))
+        .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", Stage.ID_BUILD, null, null,
+            ThirdPartyUtils.XML_SBOM))
         .withMessage("sbom content is null or empty");
   }
 
   @Test
   public void testScanComponents_InvalidStage() throws Exception {
     String bom = getBomFile("invalid_bom.xml");
-
+    String appId = app.getId();
     assertThatExceptionOfType(InvalidStageException.class)
-        .isThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "invalidStage", bom, null))
+        .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", "invalidStage", bom, null,
+            ThirdPartyUtils.XML_SBOM))
         .withMessage("Invalid stage id=invalidStage");
   }
 
@@ -350,23 +357,27 @@ public class ApiThirdPartyScanServiceTest
   @Test
   public void testScanComponents_Invalid_Content_Json() throws Exception {
     String bom = getBomFile("invalid_bom.json");
+    String appId = app.getId();
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
+        .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", "build", bom, null,
+            ThirdPartyUtils.JSON_SBOM))
         .withMessage("sbom content cannot be parsed");
   }
 
   @Test
   public void testScanComponents_Invalid_Content_Xml() throws Exception {
     String bom = getBomFile("invalid_xml_bom.xml");
+    String appId = app.getId();
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
+        .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", "build", bom, null,
+            ThirdPartyUtils.XML_SBOM))
         .withMessage("sbom content cannot be parsed");
   }
 
   private void testScanComponents_Invalid_Content(String fileName) throws Exception {
     String bom = getBomFile(fileName);
     ApiThirdPartyScanTicketDTO scanResult =
-        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
+        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null, ThirdPartyUtils.XML_SBOM);
     assertThat(scanResult).isNotNull();
     assertThat(scanResult.statusUrl).isNotNull();
     assertThat(new URI(scanResult.statusUrl)).isNotNull();

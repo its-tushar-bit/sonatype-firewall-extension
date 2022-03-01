@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -179,6 +180,7 @@ public class Scanner
       File scanDir,
       ItemContentType contentType,
       String source,
+      String encodingType,
       ProprietaryConfig proprietaryConfig,
       String scannerDriver) throws IOException
   {
@@ -200,7 +202,7 @@ public class Scanner
 
         ScanItem scanItem = new ScanItem();
         scanItem.setContentType(contentType);
-        scanItem.setPath(String.format("%s-bom.xml", source));
+        scanItem.setPath(String.format("%s-bom.%s", source, encodingType.toLowerCase(Locale.ROOT)));
         scanItem.setContent(content);
         scanItem.setLastModified(new Date().getTime());
         scanItem.setSha1(getHashForContent(content));

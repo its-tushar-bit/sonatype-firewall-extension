@@ -6,6 +6,7 @@
       <group>org.apache.tomcat</group>
       <name>tomcat-catalina</name>
       <!-- missing version -->
+      <version></version>
       <hashes>
         <hash alg="MD5">3942447fac867ae5cdb3229b658f4d48</hash>
         <hash alg="SHA-1">e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a</hash>
@@ -21,6 +22,7 @@
     <component type="library" bom-ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar">
       <group>com.fasterxml.jackson.core</group>
       <!-- missing name -->
+      <name></name>
       <version>2.9.9</version>
     </component>
   </components>

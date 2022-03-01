@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -31,18 +32,18 @@ public class ApiThirdPartyScanServiceAuthzTest
     String bom = getBomFile("/ApiThirdPartyEvaluationServiceAuthzTest/valid_sbom.xml");
 
     grantEvaluateApplicationPermission(app.getId());
-    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", bom, null);
+    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", bom, null, ThirdPartyUtils.XML_SBOM);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testEvaluateComponents_Unauthenticated() {
-    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", "", null);
+    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", "", null, ThirdPartyUtils.XML_SBOM);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testEvaluateComponents_UnauthorizedButAuthenticated() {
     login();
-    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", "", null);
+    apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", "", null, ThirdPartyUtils.XML_SBOM);
   }
   
   @Test(expected = UnauthenticatedException.class)

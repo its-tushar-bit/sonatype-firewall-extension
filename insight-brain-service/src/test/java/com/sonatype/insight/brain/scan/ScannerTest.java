@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
@@ -126,20 +127,44 @@ public class ScannerTest extends InjectedTest
 
     String scannerDriver = "thirdPartyApiTest";
     ScanResult scanResult = scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD",
-        null, scannerDriver);
+        ThirdPartyUtils.XML_SBOM, null, scannerDriver);
     assertThat(scanResult.getScanFile()).isFile();
     assertThat(scanResult.hasThirdPartyScanContent()).isTrue();
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getSummary().getScannerDriver()).isEqualTo(scannerDriver);
-    assertThat(scan.getSummary().getClientInfo().get("insight.scannerDriver")).isEqualTo(scannerDriver);
+    assertThat(scan.getSummary().getClientInfo()).containsEntry("insight.scannerDriver", scannerDriver);
     assertThat(scan.getItems()).hasSize(1);
     ScanItem item = scan.getItems().get(0);
     assertThat(item.getPath()).isEqualTo("ABCD-bom.xml");
-    assertThat(item.getItems()).hasSize(0);
+    assertThat(item.getItems()).isEmpty();
     assertThat(item.getContentType()).isEqualTo(ItemContentType.SBOM);
 
     assertThat(item.getSha1()).isEqualTo("6e263804dcfedb414bf3");
+  }
+
+  @Test
+  public void testScanContent_SbomFile_Json() throws Exception {
+    String sbom =
+        readFileToString(new File("src/test/resources/ScannerTest/iq-scan-sbom.json"), UTF_8)
+            .replace("\r\n", "\n");
+
+    String scannerDriver = "thirdPartyApiTest";
+    ScanResult scanResult = scanner.scanContent(sbom, new File(tempDir.getRoot(), "sbom"), ItemContentType.SBOM, "ABCD",
+        ThirdPartyUtils.JSON_SBOM, null, scannerDriver);
+    assertThat(scanResult.getScanFile()).isFile();
+    assertThat(scanResult.hasThirdPartyScanContent()).isTrue();
+    Scan scan = scanReader.read(scanResult.getScanFile());
+    assertThat(scan).isNotNull();
+    assertThat(scan.getSummary().getScannerDriver()).isEqualTo(scannerDriver);
+    assertThat(scan.getSummary().getClientInfo()).containsEntry("insight.scannerDriver", scannerDriver);
+    assertThat(scan.getItems()).hasSize(1);
+    ScanItem item = scan.getItems().get(0);
+    assertThat(item.getPath()).isEqualTo("ABCD-bom.json");
+    assertThat(item.getItems()).isEmpty();
+    assertThat(item.getContentType()).isEqualTo(ItemContentType.SBOM);
+
+    assertThat(item.getSha1()).isEqualTo("54bffc1f3407804ceccb");
   }
 
   @Test

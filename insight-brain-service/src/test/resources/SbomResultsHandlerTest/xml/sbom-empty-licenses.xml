@@ -5,8 +5,8 @@
       <group>com.fasterxml.jackson.core</group>
       <name>jackson-databind</name>
       <version>2.9.9</version>
-      <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</purl>
       <licenses></licenses>
+      <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</purl>
     </component>
   </components>
 </bom>

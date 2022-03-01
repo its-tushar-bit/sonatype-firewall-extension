@@ -38,7 +38,7 @@ bcrypt==3.1.7</content>
 <item path="path2/go.sum" contentType="GO_MODULE" lastModified="1543337377271" sha1="fd96d0a29d3e5888f1f8">
     <content>github.com/unknown/unknown v1.1.0</content>
 </item>
-<item contentType="SBOM" lastModified="1571789481391" sha1="c963081e41394dfafc76">
+<item contentType="SBOM" lastModified="1571789481391" path="test-bom.xml" sha1="c963081e41394dfafc76">
 <content><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.3">
   <components>

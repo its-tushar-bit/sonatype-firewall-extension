@@ -74,7 +74,7 @@ public class ApiCycloneDxResourceV2
       @PathParam("cdxVersion") String cycloneDxVersion)
   {
     return apiCycloneDxService.getLatest(applicationId, stageId, MediaType.APPLICATION_XML,
-        ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS.get(cycloneDxVersion));
+        ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS_XML.get(cycloneDxVersion));
   }
 
   @GET
@@ -100,6 +100,6 @@ public class ApiCycloneDxResourceV2
   {
     return apiCycloneDxService
         .getByScanId(applicationId, reportId, MediaType.APPLICATION_XML,
-            ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS.get(cycloneDxVersion));
+            ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS_XML.get(cycloneDxVersion));
   }
 }

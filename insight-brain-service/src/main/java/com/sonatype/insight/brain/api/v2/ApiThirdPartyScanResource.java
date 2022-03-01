@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyScanService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -51,7 +52,7 @@ public class ApiThirdPartyScanResource
 
   @Path(SCAN_COMPONENTS)
   @POST
-  @Consumes(MediaType.APPLICATION_XML)
+  @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_THIRD_PARTY)
   public Response scanComponents(
@@ -61,8 +62,10 @@ public class ApiThirdPartyScanResource
       @Context final HttpServletRequest request,
       final String sbom)
   {
+    String type = request.getContentType().equalsIgnoreCase(MediaType.APPLICATION_XML) ? ThirdPartyUtils.XML_SBOM
+        : ThirdPartyUtils.JSON_SBOM;
     ApiThirdPartyScanTicketDTO ticket = thirdPartyScanService.scanComponents(applicationId, source, stageId, sbom,
-        DefaultHdsClient.getClientUserAgent(request));
+        DefaultHdsClient.getClientUserAgent(request), type);
     return Response.status(Response.Status.ACCEPTED).entity(ticket).build();
   }
 

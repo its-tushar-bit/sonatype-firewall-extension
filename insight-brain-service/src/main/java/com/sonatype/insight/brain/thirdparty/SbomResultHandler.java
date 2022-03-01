@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
@@ -39,6 +41,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -57,11 +60,13 @@ import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
-import org.cyclonedx.model.Source;
 import org.cyclonedx.model.vulnerability.Rating;
+import org.cyclonedx.model.vulnerability.Vulnerability;
+import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.cyclonedx.model.vulnerability.Vulnerability10;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Advisory;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Recommendation;
+import org.cyclonedx.model.vulnerability.Vulnerability10.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,8 +105,8 @@ public class SbomResultHandler
         Bom sourceBom = parseBom(content);
         Bom targetBom = new Bom();
         List<ProjectScanItem> moduleDependencies = new ArrayList<>();
-        log.info("Processing SBOM content");
-        processSbom(content, sourceBom, targetBom, thirdPartyFile, moduleDependencies);
+        log.info("Processing SBOM content for file: {}", content.getPath());
+        processSbom(content.getPath(), sourceBom, targetBom, thirdPartyFile, moduleDependencies);
         if (targetBom.getComponents() != null && targetBom.getComponents().isEmpty()) {
           return new FilteredThirdPartyContent(content.getContent(), moduleDependencies);
         }
@@ -117,41 +122,88 @@ public class SbomResultHandler
   }
 
   //visible for testing
-  Bom parseBom(final ThirdPartyScanContent content) throws ParseException, RuntimeException {
-    Bom bom = ThirdPartyUtils.parseBom(content.getContent());
-    Version version = ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS.get(bom.getSpecVersion());
-    if (version == null) {
-      throw new RuntimeException("Cyclone " + bom.getSpecVersion() + " version is not supported");
-    }
-    return bom;
+  Bom parseBom(final ThirdPartyScanContent content) throws ParseException, IOException {
+    String extension = FilenameUtils.getExtension(content.getPath());
+    return ThirdPartyUtils.parseAndValidateSbom(content.getContent(), extension);
   }
 
   void processSbom(
-      final ThirdPartyScanContent content,
+      final String contentPath,
       final Bom sourceBom,
       final Bom targetBom,
       final ThirdPartyFile thirdPartyFile,
       final List<ProjectScanItem> dependencyGraph)
   {
-    String identificationSource = getTruncatedIdentificationSource(determineIdentificationSource(content.getPath()));
+    String identificationSource = getTruncatedIdentificationSource(determineIdentificationSource(contentPath));
     try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
       tx.begin();
-      Set<ComponentIdentifier> resolvedComponents = new HashSet<>();
       targetBom.setMetadata(getFilteredMetadata(sourceBom));
-      for (Component component : sourceBom.getComponents()) {
-        processComponent(component, thirdPartyFile.getId(), targetBom, identificationSource, resolvedComponents, tx);
-      }
+
+      Map<String, String> componentRefs = new HashMap<>();
+      processComponents(sourceBom, targetBom, componentRefs, identificationSource, thirdPartyFile, tx);
+      processVulnerabilities(sourceBom, targetBom, componentRefs, tx);
       tx.commit();
     }
     processDependencyGraph(sourceBom, targetBom, dependencyGraph, thirdPartyFile);
+  }
+
+  private void processComponents(
+      final Bom sourceBom,
+      final Bom targetBom,
+      final Map<String, String> componentRefs,
+      final String identificationSource,
+      final ThirdPartyFile thirdPartyFile,
+      final TransactionContext tx)
+  {
+    if (CollectionUtils.isNotEmpty(sourceBom.getComponents())) {
+      String specVersion = sourceBom.getSpecVersion();
+      Set<ComponentIdentifier> resolvedComponents = new HashSet<>();
+      for (Component component : sourceBom.getComponents()) {
+        processComponent(component, thirdPartyFile.getId(), targetBom, identificationSource, resolvedComponents,
+            componentRefs, specVersion, tx);
+      }
+    }
+  }
+
+  private void processVulnerabilities(
+      final Bom sourceBom,
+      final Bom targetBom,
+      final Map<String, String> componentRefs,
+      final TransactionContext tx)
+  {
+    if (CollectionUtils.isNotEmpty(targetBom.getComponents()) &&
+        CollectionUtils.isNotEmpty(sourceBom.getVulnerabilities()) && !componentRefs.isEmpty()) {
+      for (Vulnerability vulnerability : sourceBom.getVulnerabilities()) {
+        try {
+          List<Affect> affects = vulnerability.getAffects();
+          for (Affect affect : affects) {
+            if (StringUtils.isNotBlank(affect.getRef()) && componentRefs.containsKey(affect.getRef())) {
+              String fileCoordinateId = componentRefs.get(affect.getRef());
+              saveVulnerability(vulnerability, fileCoordinateId, tx);
+            }
+          }
+        }
+        catch (Exception e) {
+          log.debug("There was an error parsing Vulnerability with ID {}", vulnerability.getId());
+        }
+      }
+    }
+  }
+
+  private void saveVulnerability(Vulnerability vulnerability, String fileCoordinateId, TransactionContext tx) {
+    ThirdPartyCoordinateSecurity coordinateSecurity = parseVulnerability(vulnerability, fileCoordinateId);
+    if (coordinateSecurity != null) {
+      thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
+    }
   }
 
   //visible for testing
   String determineIdentificationSource(final String contentPath) {
     String fileName = StringUtils.contains(contentPath, "/") ?
         StringUtils.substringAfterLast(contentPath, "/") : contentPath;
-    String identificationSource = RegExUtils.removePattern(fileName, "-(?i)bom.xml(?i)$");
-    if (StringUtils.isBlank(identificationSource) || StringUtils.endsWithIgnoreCase(identificationSource, "bom.xml")) {
+    String identificationSource = RegExUtils.removePattern(fileName, "-(?i)bom\\.(xml|json)(?i)$");
+    if (StringUtils.isBlank(identificationSource) || StringUtils.endsWithIgnoreCase(identificationSource, "bom.xml") ||
+        StringUtils.endsWithIgnoreCase(identificationSource, "bom.json")) {
       return "Third-Party";
     }
     else {
@@ -165,6 +217,8 @@ public class SbomResultHandler
       final Bom targetBom,
       final String identificationSource,
       final Set<ComponentIdentifier> resolvedComponents,
+      final Map<String, String> componentRefs,
+      final String schemaVersion,
       final TransactionContext tx)
   {
     try {
@@ -176,7 +230,12 @@ public class SbomResultHandler
         }
         else if (resolvedComponents.add(componentIdentifier)) {
           PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).ensureCompleteIdentifier();
-          saveComponent(thirdPartyFileId, identificationSource, sourceComponent, resolvedComponent, tx);
+          String coordinateId =
+              saveComponent(thirdPartyFileId, identificationSource, sourceComponent, resolvedComponent, schemaVersion,
+                  tx);
+          if (StringUtils.isNotBlank(sourceComponent.getBomRef())) {
+            componentRefs.put(sourceComponent.getBomRef(), coordinateId);
+          }
           targetBom.addComponent(resolvedComponent.getRight());
         }
       }
@@ -233,7 +292,8 @@ public class SbomResultHandler
         return Pair.of(null, component);
       }
       else {
-        log.debug("Component with invalid information {} {}", sourceComponent.getName(), sourceComponent.getVersion());
+        log.debug("Component with invalid information, name {} and version {}", sourceComponent.getName(),
+            sourceComponent.getVersion());
       }
     }
     return null;
@@ -331,11 +391,12 @@ public class SbomResultHandler
     }
   }
 
-  private void saveComponent(
+  private String saveComponent(
       final String thirdPartyFileId,
       final String identificationSource,
       final Component sourceComponent,
       final Pair<ComponentIdentifier, Component> resolvedComponent,
+      final String schemaVersion,
       final TransactionContext tx)
   {
     Component component = resolvedComponent.getRight();
@@ -355,41 +416,58 @@ public class SbomResultHandler
     fileCoordinate.setPackageUrl(component.getPurl());
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
     saveLicenses(sourceComponent.getLicenseChoice(), fileCoordinate.getId(), component.getPurl(), tx);
-    saveVulnerabilities(sourceComponent.getExtensions(), fileCoordinate.getId(), tx);
+    saveVulnerabilitiesExtension(sourceComponent.getExtensions(), fileCoordinate.getId(), schemaVersion, tx);
+    return fileCoordinate.getId();
   }
 
-  private void saveVulnerabilities(
-      Map<String, Extension> extensions,
-      String fileCoordinateId,
-      TransactionContext tx)
+  private void saveVulnerabilitiesExtension(
+      final Map<String, Extension> extensions,
+      final String fileCoordinateId,
+      final String bomVersion,
+      final TransactionContext tx)
   {
-    if (MapUtils.isNotEmpty(extensions)) {
+    //Vulnerability extension is unsupported from 1.4+
+    if (MapUtils.isNotEmpty(extensions) &&
+        (!Version.VERSION_14.getVersionString().equals(bomVersion) || StringUtils.isBlank(bomVersion))) {
       Extension vulnerabilityExtension = extensions.get(VULNERABILITY_KEY);
       if (vulnerabilityExtension != null && CollectionUtils.isNotEmpty(vulnerabilityExtension.getExtensions())) {
         Set<String> vulnerabilityMap = new HashSet<>();
         for (ExtensibleType extensibleType : vulnerabilityExtension.getExtensions()) {
-          if (extensibleType instanceof Vulnerability10) {
-            Vulnerability10 vulnerability = (Vulnerability10) extensibleType;
-            String refId = vulnerability.getId();
-            if (StringUtils.isNotBlank(refId) && !vulnerabilityMap.contains(refId)) {
-              saveVulnerability(vulnerability, fileCoordinateId, tx);
-              vulnerabilityMap.add(refId);
-            }
-          }
+          processVulnerabilityExtension(extensibleType, fileCoordinateId, vulnerabilityMap, tx);
         }
       }
     }
   }
 
-  private void saveVulnerability(Vulnerability10 vulnerability, String fileCoordinateId, TransactionContext tx) {
-    ThirdPartyCoordinateSecurity coordinateSecurity = parseVulnerability(vulnerability, fileCoordinateId);
+  private void processVulnerabilityExtension(
+      final ExtensibleType extensibleType,
+      final String fileCoordinateId,
+      final Set<String> vulnerabilityMap,
+      final TransactionContext tx)
+  {
+    if (extensibleType instanceof Vulnerability10) {
+      Vulnerability10 vulnerability = (Vulnerability10) extensibleType;
+      String refId = vulnerability.getId();
+      if (StringUtils.isNotBlank(refId) && !vulnerabilityMap.contains(refId)) {
+        saveVulnerabilityExtension(vulnerability, fileCoordinateId, tx);
+        vulnerabilityMap.add(refId);
+      }
+    }
+  }
+
+  private void saveVulnerabilityExtension(
+      final Vulnerability10 vulnerability,
+      final String fileCoordinateId,
+      final TransactionContext tx)
+  {
+    ThirdPartyCoordinateSecurity coordinateSecurity = parseVulnerabilityExtension(vulnerability, fileCoordinateId);
     if (coordinateSecurity != null) {
       thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
     }
   }
 
-  @VisibleForTesting
-  ThirdPartyCoordinateSecurity parseVulnerability(
+  //Visible for testing
+  ThirdPartyCoordinateSecurity parseVulnerabilityExtension(
       final Vulnerability10 vulnerability,
       final String fileCoordinateId)
   {
@@ -414,15 +492,17 @@ public class SbomResultHandler
         if (vulnerability.getCwes() != null) {
           coordinateSecurity.setCwes(
               vulnerability.getCwes().stream().filter(cwe -> cwe.getText() != null).map(cwe -> cwe.getText().toString())
-                  .collect(Collectors.joining()));
+                  .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR)));
         }
         if (vulnerability.getRecommendations() != null) {
           coordinateSecurity.setRecommendations(
-              vulnerability.getRecommendations().stream().map(Recommendation::getText).collect(Collectors.joining()));
+              vulnerability.getRecommendations().stream().map(Recommendation::getText)
+                  .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR)));
         }
         if (vulnerability.getAdvisories() != null) {
           coordinateSecurity.setAdvisories(
-              vulnerability.getAdvisories().stream().map(Advisory::getText).collect(Collectors.joining()));
+              vulnerability.getAdvisories().stream().map(Advisory::getText)
+                  .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR)));
         }
         Source source = vulnerability.getSource();
         if (source != null) {
@@ -434,6 +514,61 @@ public class SbomResultHandler
         coordinateSecurity.setRefId(getTruncatedRefId(vulnerability.getId()));
         coordinateSecurity.setDescription(vulnerability.getDescription());
         return coordinateSecurity;
+      }
+    }
+    return null;
+  }
+
+  @VisibleForTesting
+  ThirdPartyCoordinateSecurity parseVulnerability(
+      final Vulnerability vulnerability,
+      final String fileCoordinateId)
+  {
+    List<Vulnerability.Rating> ratingsElements = vulnerability.getRatings();
+    if (CollectionUtils.isNotEmpty(ratingsElements)) {
+      ThirdPartyCoordinateSecurity coordinateSecurity = new ThirdPartyCoordinateSecurity();
+      Vulnerability.Rating rating = ratingsElements.get(0);
+
+      if (rating != null) {
+        Double baseScore = rating.getScore();
+        if (baseScore != null) {
+          coordinateSecurity.setSeverity(baseScore.floatValue());
+          if (rating.getVector() != null) {
+            coordinateSecurity.setAttackVector(getTruncatedAttackVector(rating.getVector()));
+          }
+          if (rating.getMethod() != null) {
+            coordinateSecurity.setRatingMethod(getTruncatedRatingMethod(rating.getMethod().getMethodName()));
+          }
+          if (rating.getSeverity() != null) {
+            coordinateSecurity
+                .setSeverityDescription(getTruncatedSeverityDescription(rating.getSeverity().getSeverityName()));
+          }
+          coordinateSecurity.setFileCoordinateId(fileCoordinateId);
+          if (vulnerability.getCwes() != null) {
+            coordinateSecurity.setCwes(vulnerability.getCwes().stream().filter(Objects::nonNull).map(Object::toString)
+                .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR)));
+          }
+          if (vulnerability.getRecommendation() != null) {
+            coordinateSecurity.setRecommendations(vulnerability.getRecommendation());
+          }
+          if (vulnerability.getAdvisories() != null) {
+            String advisory = vulnerability.getAdvisories()
+                .stream()
+                .map(adv -> adv.getTitle() + ThirdPartyVulnerabilityDataAdapter.ADVISORY_SEPARATOR + adv.getUrl())
+                .collect(Collectors.joining(ThirdPartyVulnerabilityDataAdapter.LIST_SEPARATOR));
+            coordinateSecurity.setAdvisories(advisory);
+          }
+          Vulnerability.Source source = vulnerability.getSource();
+          if (source != null) {
+            coordinateSecurity.setVulnerabilitySource(getTruncatedVulnerabilitySource(source.getName()));
+            if (source.getUrl() != null) {
+              coordinateSecurity.setLink(getTruncatedLink(source.getUrl()));
+            }
+          }
+          coordinateSecurity.setRefId(getTruncatedRefId(vulnerability.getId()));
+          coordinateSecurity.setDescription(vulnerability.getDescription());
+          return coordinateSecurity;
+        }
       }
     }
     return null;
@@ -696,8 +831,7 @@ public class SbomResultHandler
   String generateFilteredSbom(Bom sbom)
       throws ParserConfigurationException, GeneratorException
   {
-    BomXmlGenerator generator =
-        BomGeneratorFactory.createXml(Version.VERSION_13, sbom);
+    BomXmlGenerator generator = BomGeneratorFactory.createXml(Version.VERSION_13, sbom);
     generator.generate();
     return generator.toXmlString();
   }

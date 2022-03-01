@@ -18,8 +18,8 @@
               <v:impact>5.9</v:impact>
               <v:exploitability>3.0</v:exploitability>
             </v:score>
-            <v:severity>CriticalCritical</v:severity>
-            <v:method>CVSSv3CVSSv3</v:method>
+            <v:severity>Critical</v:severity>
+            <v:method>CVSSv3</v:method>
             <v:vector>AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:HAV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:HAV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:HAV:N/AC:L/PR:N/UI:N/S:</v:vector>
           </v:rating>
         </v:ratings>

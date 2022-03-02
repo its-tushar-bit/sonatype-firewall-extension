@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -104,8 +105,8 @@ public class ApplicationAttributionReportBuilderTest
     app2.applicationPublicId = application2.getPublicId();
     app2.stageTypeName = BuildStageType.ID;
     applicationsAndStages.add(app2);
-    generateReportDataAndMocks(application);
-    generateReportDataAndMocks(application2);
+    generateReportDataAndMocks(application, true, true);
+    generateReportDataAndMocks(application2, true, true);
     when(mockApplicationService
         .getByPublicIdsNoAuthz(new HashSet<>(Arrays.asList(application.getPublicId(), application2.getPublicId()))))
             .thenReturn(Arrays.asList(application, application2));
@@ -123,7 +124,7 @@ public class ApplicationAttributionReportBuilderTest
 
     assertThat(bodyContent).isEqualToIgnoringWhitespace(expectedContent);
     assertThat(doc.select("#table-of-contents")).isNotEmpty();
-    assertThat(doc.select("h1").first()).hasToString("<h1>Attribution Report for appId,appId2</h1>");
+    assertThat(doc.select("h1").first()).hasToString("<h1>Attribution Report for appId, appId2</h1>");
     assertThat(doc.select("#appendix")).isNotEmpty();
     assertThat(doc.select("#header")).isEmpty();
     assertThat(doc.select("#footer")).isEmpty();
@@ -146,11 +147,12 @@ public class ApplicationAttributionReportBuilderTest
     app2.applicationPublicId = application2.getPublicId();
     app2.stageTypeName = BuildStageType.ID;
     applicationsAndStages.add(app2);
-    generateReportDataAndMocks(application);
-    generateReportDataAndMocks(application2);
+    generateReportDataAndMocks(application, true, true);
+    generateReportDataAndMocks(application2, true, true);
     when(mockApplicationService
         .getByPublicIdsNoAuthz(new HashSet<>(Arrays.asList(application.getPublicId(), application2.getPublicId()))))
             .thenReturn(Arrays.asList(application, application2));
+
     LegalCustomReportParameters reportParameters = LegalCustomReportParameters.builder()
         .withNoticeFiles(Lists.newArrayList("First Notice File Content", "Second Notice File Content"))
         .buildMultiApplicationWithDefaults(
@@ -165,7 +167,7 @@ public class ApplicationAttributionReportBuilderTest
         StandardCharsets.UTF_8);
     assertThat(bodyContent).isEqualToIgnoringWhitespace(expectedContent);
     assertThat(doc.select("#table-of-contents")).isNotEmpty();
-    assertThat(doc.select("h1").first()).hasToString("<h1>Attribution Report for appId,appId2</h1>");
+    assertThat(doc.select("h1").first()).hasToString("<h1>Attribution Report for appId, appId2</h1>");
     assertThat(doc.select("#appendix")).isNotEmpty();
     assertThat(doc.select("#header")).isEmpty();
     assertThat(doc.select("#footer")).isEmpty();
@@ -362,6 +364,14 @@ public class ApplicationAttributionReportBuilderTest
   }
 
   private void generateReportDataAndMocks(final Application application, boolean addStandardLicenseTextToMetadata) {
+    generateReportDataAndMocks(application, addStandardLicenseTextToMetadata, false);
+  }
+
+  private void generateReportDataAndMocks(
+      final Application application,
+      boolean addStandardLicenseTextToMetadata,
+      boolean addMultiApp)
+  {
 
     ApiLicenseLegalApplicationReportDTO reportDTO = new ApiLicenseLegalApplicationReportDTO();
 
@@ -433,8 +443,14 @@ public class ApplicationAttributionReportBuilderTest
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component2, licenseLegalData2, null));
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component3, licenseLegalData3, null));
 
-    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID))
-        .thenReturn(reportDTO);
+    if (addMultiApp) {
+      when(mockApiLicenseLegalService.getLicenseLegalApplicationReportNoException(application, BuildStageType.ID))
+          .thenReturn(Optional.of(reportDTO));
+    }
+    else {
+      when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID))
+          .thenReturn(reportDTO);
+    }
 
     reportDTO.licenseLegalMetadata = new HashSet<>();
     ApiLicenseLegalMetadataDTO licenseLegalMetadataDTO =

@@ -187,6 +187,24 @@ public class ApiLegalReportResourceV2Test
   }
   
   @Test
+  public void testGetLicenseLegalMultiApplicationHTMLWithoutReport() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    Application application2 = tempEntity.newApplicationWithParent();
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
+
+    HttpResponse response = restRequest().path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_PATH)
+        .part("applications", application.getPublicId() + "," + application2.getPublicId())
+        .part("stages", BuildStageType.ID + "," + BuildStageType.ID).post();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).contains(application.getPublicId());
+    assertThat(response.getBodyText()).contains(application2.getPublicId());
+  }
+
+  @Test
   public void testGetLicenseLegalCustomMultiApplicationHTMLReport() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     Application application2 = tempEntity.newApplicationWithParent();

@@ -8,11 +8,14 @@ package com.sonatype.insight.brain.api.v2.service.legal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Optional;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardResultDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
@@ -168,6 +171,14 @@ public class ApiLicenseLegalServiceAuthzTest
   public void testGetLicenseLegalApplicationReportByStage_Authorized() {
     grantLegalReviewerPermission(app.getId());
     apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationReportNoException() {
+    grantLegalReviewerPermission(app.getId());
+    Optional<ApiLicenseLegalApplicationReportDTO> report =
+        apiLicenseLegalService.getLicenseLegalApplicationReportNoException(app, BuildStageType.ID);
+    assertThat(report).isEmpty();
   }
 
   @Test(expected = UnauthenticatedException.class)

@@ -24,6 +24,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -141,6 +142,8 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 public class ApiLicenseLegalService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiLicenseLegalService.class);
+
+  private static final String PROCESSING_LICENSE_METADATA_REQUEST = "Processing license metadata request for {}";
 
   private final MultiLicenseDAO multiLicenseDAO;
 
@@ -473,11 +476,24 @@ public class ApiLicenseLegalService
       @AuthzContext(Key.OWNER) Owner application, String stageId)
   {
     checkLicense();
-    log.info("Processing license metadata request for {}", application.getId());
+    log.info(PROCESSING_LICENSE_METADATA_REQUEST, application.getId());
     ApiReportRawDataDTOV2 latestRawReport = getLastRawApplicationReportByStageId(application.getPublicId(), stageId)
         .orElseThrow(() -> new NotFoundException(
             "Report for application " + application.getId() + " at stage " + stageId + " not found."));
     return getApplicationReportFromReportRawData(application, latestRawReport);
+  }
+
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public Optional<ApiLicenseLegalApplicationReportDTO> getLicenseLegalApplicationReportNoException(
+      @AuthzContext(Key.OWNER) Owner application,
+      String stageId)
+  {
+    try {
+      return Optional.of(getLicenseLegalApplicationReport(application, stageId));
+    }
+    catch (NotFoundException e) {
+      return Optional.empty();
+    }
   }
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
@@ -486,7 +502,7 @@ public class ApiLicenseLegalService
   {
     checkLicense();
 
-    log.info("Processing license metadata request for {}", application.getId());
+    log.info(PROCESSING_LICENSE_METADATA_REQUEST, application.getId());
     ApiReportRawDataDTOV2 latestRawReport = getLastRawApplicationReport(application.getPublicId())
         .orElseThrow(() -> new NotFoundException("Report for application " + application.getId() + " not found."));
     return getApplicationReportFromReportRawData(application, latestRawReport);

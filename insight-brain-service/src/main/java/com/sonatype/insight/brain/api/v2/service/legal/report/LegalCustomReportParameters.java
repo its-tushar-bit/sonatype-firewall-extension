@@ -164,7 +164,7 @@ public final class LegalCustomReportParameters
     }
 
     public LegalCustomReportParameters buildMultiApplicationWithDefaults(final Set<String> applicationId) {
-      return new LegalCustomReportParameters(ATTRIBUTION_REPORT_FOR + String.join(",", applicationId), "", "", true,
+      return new LegalCustomReportParameters(ATTRIBUTION_REPORT_FOR + String.join(", ", applicationId), "", "", true,
           true, true, this.noticeFiles);
     }
   }

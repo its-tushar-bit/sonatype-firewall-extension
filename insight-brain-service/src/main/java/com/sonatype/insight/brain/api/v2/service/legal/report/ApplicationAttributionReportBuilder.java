@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,6 +35,7 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -95,27 +97,32 @@ public class ApplicationAttributionReportBuilder
     validateReportParameters(reportParameters);
     Map<String, Application> applicationMap =
         applicationsAuthz.stream().collect(Collectors.toMap(Application::getPublicId, Function.identity()));
-    Set<ApiLicenseLegalApplicationReportDTO> applicationReportDTOSet = applicationsAndStages.stream()
-        .map(applicationReportDTO -> apiLicenseLegalService.getLicenseLegalApplicationReport(
+    Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOSet = applicationsAndStages.stream()
+        .map(applicationReportDTO -> apiLicenseLegalService.getLicenseLegalApplicationReportNoException(
             applicationMap.get(applicationReportDTO.applicationPublicId), applicationReportDTO.stageTypeName))
         .collect(Collectors.toSet());
-    ApiLicenseLegalApplicationReportDTO applicationReportDTO = mergeApplicationReports(applicationReportDTOSet);
+    ApiLicenseLegalApplicationReportDTO applicationReportDTO =
+        mergeApplicationReports(applicationReportDTOSet, applicationPublicIds);
     Map<String, Object> contextMap = buildContextMap(null, applicationReportDTO, reportParameters);
     return templateEngine.process("application_attribution_report", new Context(Locale.getDefault(), contextMap));
   }
 
   private ApiLicenseLegalApplicationReportDTO mergeApplicationReports(
-      Set<ApiLicenseLegalApplicationReportDTO> applicationReportDTOS)
+      Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOS,
+      Set<String> applicationPublicIds)
   {
     List<ApiLicenseLegalComponentDTO> components = new ArrayList<>();
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = new HashSet<>();
-    for (ApiLicenseLegalApplicationReportDTO apiLicenseLegalApplicationReportDTO : applicationReportDTOS) {
-      if (apiLicenseLegalApplicationReportDTO != null) {
-        components.addAll(apiLicenseLegalApplicationReportDTO.components.stream().filter(Objects::nonNull)
+    for (Optional<ApiLicenseLegalApplicationReportDTO> apiLicenseLegalApplicationReportDTO : applicationReportDTOS) {
+      if (apiLicenseLegalApplicationReportDTO.isPresent()) {
+        components.addAll(apiLicenseLegalApplicationReportDTO.get().components.stream().filter(Objects::nonNull)
             .collect(Collectors.toList()));
-        licenseLegalMetadata.addAll(apiLicenseLegalApplicationReportDTO.licenseLegalMetadata.stream()
+        licenseLegalMetadata.addAll(apiLicenseLegalApplicationReportDTO.get().licenseLegalMetadata.stream()
             .filter(Objects::nonNull).collect(Collectors.toSet()));
       }
+    }
+    if (components.isEmpty() && licenseLegalMetadata.isEmpty()) {
+      throw new NotFoundException("Report for applications " + String.join(", ", applicationPublicIds) + " not found.");
     }
     return new ApiLicenseLegalApplicationReportDTO(components, licenseLegalMetadata);
   }
@@ -226,7 +233,7 @@ public class ApplicationAttributionReportBuilder
     if (!unauthorizedApplicationIds.isEmpty()) {
       throw new NotAuthorizedException(
           "Insufficient permissions to generate reports for applications: "
-              + (String.join(",", unauthorizedApplicationIds)));
+              + (String.join(", ", unauthorizedApplicationIds)));
     }
   }
 }

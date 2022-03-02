@@ -12,6 +12,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -23,6 +25,7 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
 
 import com.codahale.metrics.annotation.Timed;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cyclonedx.CycloneDxSchema.Version;
 
 /**
@@ -36,7 +39,7 @@ public class ApiCycloneDxResourceV2
 {
   static final String GET_BY_STAGE_PATH = "{applicationId}/stages/{stageId}";
 
-  static final String GET_BY_STAGE_PATH_WITH_VERSION = "{cdxVersion: 1.1|1.2|1.3}/{applicationId}/stages/{stageId}";
+  static final String GET_BY_STAGE_PATH_WITH_VERSION = "{cdxVersion: 1.1|1.2|1.3|1.4}/{applicationId}/stages/{stageId}";
 
   static final String GET_BY_REPORT_PATH = "{applicationId}/reports/{reportId}";
 
@@ -44,7 +47,8 @@ public class ApiCycloneDxResourceV2
    * When adding a new version or changing this path, please update
    * {@link UserInterfaceLinksResource#linkToSbom(String, String)} as well.
    */
-  static final String GET_BY_REPORT_PATH_WITH_VERSION = "{cdxVersion: 1.1|1.2|1.3}/{applicationId}/reports/{reportId}";
+  static final String GET_BY_REPORT_PATH_WITH_VERSION =
+      "{cdxVersion: 1.1|1.2|1.3|1.4}/{applicationId}/reports/{reportId}";
 
   private final ApiCycloneDxServiceV2 apiCycloneDxService;
 
@@ -66,15 +70,17 @@ public class ApiCycloneDxResourceV2
 
   @GET
   @Path(GET_BY_STAGE_PATH_WITH_VERSION)
-  @Produces(MediaType.APPLICATION_XML)
+  @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
   public Response getLatest(
       @PathParam("applicationId") String applicationId,
       @PathParam("stageId") String stageId,
-      @PathParam("cdxVersion") String cycloneDxVersion)
+      @PathParam("cdxVersion") String cycloneDxVersion,
+      @Context HttpHeaders headers)
   {
-    return apiCycloneDxService.getLatest(applicationId, stageId, MediaType.APPLICATION_XML,
-        ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS_XML.get(cycloneDxVersion));
+    String acceptType = determineAcceptableMediaType(headers);
+    return apiCycloneDxService.getLatest(applicationId, stageId, acceptType,
+        ThirdPartyUtils.getSchemaVersion(cycloneDxVersion));
   }
 
   @GET
@@ -91,15 +97,25 @@ public class ApiCycloneDxResourceV2
 
   @GET
   @Path(GET_BY_REPORT_PATH_WITH_VERSION)
-  @Produces(MediaType.APPLICATION_XML)
+  @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
   public Response getByReportId(
       @PathParam("applicationId") String applicationId,
       @PathParam("reportId") String reportId,
-      @PathParam("cdxVersion") String cycloneDxVersion)
+      @PathParam("cdxVersion") String cycloneDxVersion,
+      @Context HttpHeaders headers)
   {
-    return apiCycloneDxService
-        .getByScanId(applicationId, reportId, MediaType.APPLICATION_XML,
-            ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS_XML.get(cycloneDxVersion));
+    String acceptType = determineAcceptableMediaType(headers);
+    return apiCycloneDxService.getByScanId(applicationId, reportId, acceptType,
+        ThirdPartyUtils.getSchemaVersion(cycloneDxVersion));
+  }
+
+  private String determineAcceptableMediaType(final HttpHeaders headers) {
+    if (headers != null && CollectionUtils.isNotEmpty(headers.getAcceptableMediaTypes())) {
+      if (MediaType.APPLICATION_JSON_TYPE.equals(headers.getAcceptableMediaTypes().get(0))) {
+        return MediaType.APPLICATION_JSON_TYPE.toString();
+      }
+    }
+    return MediaType.APPLICATION_XML_TYPE.toString();
   }
 }

@@ -57,7 +57,7 @@ public final class ThirdPartyUtils
     return bom;
   }
 
-  private static Version getSchemaVersion(final String versionBom) {
+  public static Version getSchemaVersion(final String versionBom) {
     for (final Version version : Version.values()) {
       if (version.getVersionString().equals(versionBom)) {
         return version;

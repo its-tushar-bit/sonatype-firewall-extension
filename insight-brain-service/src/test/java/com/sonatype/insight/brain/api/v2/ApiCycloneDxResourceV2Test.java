@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
@@ -59,23 +58,66 @@ public class ApiCycloneDxResourceV2Test
 
   @Test
   public void testGetLatest_With_Version_1_1_Xml() throws Exception {
-    HttpResponse response = getHttpRequestLatest("1.1/" + ApiCycloneDxResourceV2.GET_BY_STAGE_PATH, Version.VERSION_11,
-        MediaType.APPLICATION_XML).get();
+    HttpResponse response =
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_STAGE_PATH_WITH_VERSION, Version.VERSION_11,
+            MediaType.APPLICATION_XML).get();
     assertValidResponse(response, Version.VERSION_11, MediaType.APPLICATION_XML);
   }
 
   @Test
   public void testGetLatest_With_Version_1_2_Xml() throws Exception {
-    HttpResponse response = getHttpRequestLatest("1.2/" + ApiCycloneDxResourceV2.GET_BY_STAGE_PATH, Version.VERSION_12,
-        MediaType.APPLICATION_XML).get();
+    HttpResponse response =
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_STAGE_PATH_WITH_VERSION, Version.VERSION_12,
+            MediaType.APPLICATION_XML).get();
     assertValidResponse(response, Version.VERSION_12, MediaType.APPLICATION_XML);
   }
 
   @Test
   public void testGetLatest_With_Version_1_3_Xml() throws Exception {
-    HttpResponse response = getHttpRequestLatest("1.3/" + ApiCycloneDxResourceV2.GET_BY_STAGE_PATH, Version.VERSION_13,
-        MediaType.APPLICATION_XML).get();
+    HttpResponse response =
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_STAGE_PATH_WITH_VERSION, Version.VERSION_13,
+            MediaType.APPLICATION_XML).get();
     assertValidResponse(response, Version.VERSION_13, MediaType.APPLICATION_XML);
+  }
+
+  @Test
+  public void testGetLatest_With_Version_14_Xml() throws Exception {
+    HttpResponse response =
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_STAGE_PATH_WITH_VERSION, Version.VERSION_14,
+            MediaType.APPLICATION_XML).get();
+    assertValidResponse(response, Version.VERSION_14, MediaType.APPLICATION_XML);
+  }
+
+  @Test
+  public void testGetLatest_With_Version_11_Json() throws Exception {
+    HttpResponse response =
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_STAGE_PATH_WITH_VERSION, Version.VERSION_11,
+            MediaType.APPLICATION_JSON).get();
+    assertThat(response.getStatusCode()).isEqualTo(406);
+  }
+
+  @Test
+  public void testGetLatest_With_Version_12_Json() throws Exception {
+    HttpResponse response =
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_STAGE_PATH_WITH_VERSION, Version.VERSION_12,
+            MediaType.APPLICATION_JSON).get();
+    assertValidResponse(response, Version.VERSION_12, MediaType.APPLICATION_JSON);
+  }
+
+  @Test
+  public void testGetLatest_With_Version_13_Json() throws Exception {
+    HttpResponse response =
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_STAGE_PATH_WITH_VERSION, Version.VERSION_13,
+            MediaType.APPLICATION_JSON).get();
+    assertValidResponse(response, Version.VERSION_13, MediaType.APPLICATION_JSON);
+  }
+
+  @Test
+  public void testGetLatest_With_Version_14_Json() throws Exception {
+    HttpResponse response =
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_STAGE_PATH_WITH_VERSION, Version.VERSION_14,
+            MediaType.APPLICATION_JSON).get();
+    assertValidResponse(response, Version.VERSION_14, MediaType.APPLICATION_JSON);
   }
 
   @Test
@@ -87,7 +129,7 @@ public class ApiCycloneDxResourceV2Test
   @Test
   public void testGetByReportId_With_Version_1_1_Xml() throws Exception {
     HttpResponse response =
-        getHttpRequestByReportId("1.1/" + ApiCycloneDxResourceV2.GET_BY_REPORT_PATH, Version.VERSION_11,
+        getHttpRequestByReportId(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_11,
             MediaType.APPLICATION_XML).get();
     assertValidResponse(response, Version.VERSION_11, MediaType.APPLICATION_XML);
   }
@@ -95,7 +137,7 @@ public class ApiCycloneDxResourceV2Test
   @Test
   public void testGetByReportId_With_Version_1_2_Xml() throws Exception {
     HttpResponse response =
-        getHttpRequestByReportId("1.2/" + ApiCycloneDxResourceV2.GET_BY_REPORT_PATH, Version.VERSION_12,
+        getHttpRequestByReportId(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_12,
             MediaType.APPLICATION_XML).get();
     assertValidResponse(response, Version.VERSION_12, MediaType.APPLICATION_XML);
   }
@@ -103,9 +145,49 @@ public class ApiCycloneDxResourceV2Test
   @Test
   public void testGetByReportId_With_Version_1_3_Xml() throws Exception {
     HttpResponse response =
-        getHttpRequestByReportId("1.3/" + ApiCycloneDxResourceV2.GET_BY_REPORT_PATH, Version.VERSION_13,
+        getHttpRequestByReportId(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_13,
             MediaType.APPLICATION_XML).get();
     assertValidResponse(response, Version.VERSION_13, MediaType.APPLICATION_XML);
+  }
+
+  @Test
+  public void testGetByReportId_With_Version_1_4_Xml() throws Exception {
+    HttpResponse response =
+        getHttpRequestByReportId(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_14,
+            MediaType.APPLICATION_XML).get();
+    assertValidResponse(response, Version.VERSION_14, MediaType.APPLICATION_XML);
+  }
+
+  @Test
+  public void testGetByReportId_With_Version_11() throws Exception {
+    HttpResponse response =
+        getHttpRequestByReportId(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_11,
+            MediaType.APPLICATION_JSON).get();
+    assertThat(response.getStatusCode()).isEqualTo(406);
+  }
+
+  @Test
+  public void testGetByReportId_With_Version_12_Json() throws Exception {
+    HttpResponse response =
+        getHttpRequestByReportId(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_12,
+            MediaType.APPLICATION_JSON).get();
+    assertValidResponse(response, Version.VERSION_12, MediaType.APPLICATION_JSON);
+  }
+
+  @Test
+  public void testGetByReportId_With_Version_13_Json() throws Exception {
+    HttpResponse response =
+        getHttpRequestByReportId(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_13,
+            MediaType.APPLICATION_JSON).get();
+    assertValidResponse(response, Version.VERSION_13, MediaType.APPLICATION_JSON);
+  }
+
+  @Test
+  public void testGetByReportId_With_Version_14_Json() throws Exception {
+    HttpResponse response =
+        getHttpRequestByReportId(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_14,
+            MediaType.APPLICATION_JSON).get();
+    assertValidResponse(response, Version.VERSION_14, MediaType.APPLICATION_JSON);
   }
 
   @Test
@@ -117,22 +199,25 @@ public class ApiCycloneDxResourceV2Test
 
   @Test
   public void testGetLatest_With_Version_1_1_Invalid_AcceptType() throws Exception {
-    HttpResponse response = getHttpRequestLatest("1.1/" + ApiCycloneDxResourceV2.GET_BY_STAGE_PATH, Version.VERSION_11,
-        MediaType.APPLICATION_ATOM_XML).get();
+    HttpResponse response =
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_STAGE_PATH_WITH_VERSION, Version.VERSION_11,
+            MediaType.APPLICATION_ATOM_XML).get();
     assertThat(response.getStatusCode()).isEqualTo(406);
   }
 
   @Test
   public void testGetLatest_With_Version_1_2_Invalid_AcceptType() throws Exception {
-    HttpResponse response = getHttpRequestLatest("1.2/" + ApiCycloneDxResourceV2.GET_BY_STAGE_PATH, Version.VERSION_12,
-        MediaType.APPLICATION_ATOM_XML).get();
+    HttpResponse response =
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_STAGE_PATH_WITH_VERSION, Version.VERSION_12,
+            MediaType.APPLICATION_ATOM_XML).get();
     assertThat(response.getStatusCode()).isEqualTo(406);
   }
 
   @Test
   public void testGetLatest_With_Version_1_3_Invalid_AcceptType() throws Exception {
-    HttpResponse response = getHttpRequestLatest("1.3/" + ApiCycloneDxResourceV2.GET_BY_STAGE_PATH, Version.VERSION_12,
-        MediaType.APPLICATION_ATOM_XML).get();
+    HttpResponse response =
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_STAGE_PATH_WITH_VERSION, Version.VERSION_12,
+            MediaType.APPLICATION_ATOM_XML).get();
     assertThat(response.getStatusCode()).isEqualTo(406);
   }
 
@@ -146,7 +231,7 @@ public class ApiCycloneDxResourceV2Test
   @Test
   public void testGetByReportId_With_Version_1_1_Invalid_AcceptType() throws Exception {
     HttpResponse response =
-        getHttpRequestLatest("1.1/" + ApiCycloneDxResourceV2.GET_BY_REPORT_PATH, Version.VERSION_11,
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_11,
             MediaType.APPLICATION_ATOM_XML).get();
     assertThat(response.getStatusCode()).isEqualTo(406);
   }
@@ -154,7 +239,7 @@ public class ApiCycloneDxResourceV2Test
   @Test
   public void testGetByReportId_With_Version_1_2_Invalid_AcceptType() throws Exception {
     HttpResponse response =
-        getHttpRequestLatest("1.2/" + ApiCycloneDxResourceV2.GET_BY_REPORT_PATH, Version.VERSION_12,
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_12,
             MediaType.APPLICATION_ATOM_XML).get();
     assertThat(response.getStatusCode()).isEqualTo(406);
   }
@@ -162,7 +247,7 @@ public class ApiCycloneDxResourceV2Test
   @Test
   public void testGetByReportId_With_Version_1_3_Invalid_AcceptType() throws Exception {
     HttpResponse response =
-        getHttpRequestLatest("1.3/" + ApiCycloneDxResourceV2.GET_BY_REPORT_PATH, Version.VERSION_13,
+        getHttpRequestLatest(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_13,
             MediaType.APPLICATION_ATOM_XML).get();
     assertThat(response.getStatusCode()).isEqualTo(406);
   }
@@ -170,7 +255,7 @@ public class ApiCycloneDxResourceV2Test
   @Test
   public void testGetByReportId_With_Invalid_Version() throws Exception {
     HttpResponse response =
-        getHttpRequestByReportId("1.4/" + ApiCycloneDxResourceV2.GET_BY_REPORT_PATH, Version.VERSION_12,
+        getHttpRequestByReportId("1.5/" + ApiCycloneDxResourceV2.GET_BY_REPORT_PATH, Version.VERSION_12,
             MediaType.APPLICATION_ATOM_XML).get();
     assertThat(response.getStatusCode()).isEqualTo(404);
   }
@@ -178,7 +263,7 @@ public class ApiCycloneDxResourceV2Test
   @Test
   public void testGetLatest_With_Invalid_Version() throws Exception {
     HttpResponse response =
-        getHttpRequestLatest("1.4/" + ApiCycloneDxResourceV2.GET_BY_STAGE_PATH, Version.VERSION_12,
+        getHttpRequestLatest("1.5/" + ApiCycloneDxResourceV2.GET_BY_STAGE_PATH, Version.VERSION_12,
             MediaType.APPLICATION_ATOM_XML).get();
     assertThat(response.getStatusCode()).isEqualTo(404);
   }
@@ -210,7 +295,7 @@ public class ApiCycloneDxResourceV2Test
   private HttpRequest getHttpRequestLatest(String path, Version version, String mediaType) throws Exception {
     HttpRequest request = getHttpRequest(path, mediaType);
     if (version != null) {
-      request.parameter(app.getId(), Stage.ID_BUILD, version.getVersionString());
+      request.parameter(version.getVersionString(), app.getId(), Stage.ID_BUILD);
     }
     else {
       request.parameter(app.getId(), Stage.ID_BUILD);
@@ -225,7 +310,7 @@ public class ApiCycloneDxResourceV2Test
   private HttpRequest getHttpRequestByReportId(String path, Version version, String mediaType) throws Exception {
     HttpRequest request = getHttpRequest(path, mediaType);
     if (version != null) {
-      request.parameter(app.getId(), scanId, version.getVersionString());
+      request.parameter(version.getVersionString(), app.getId(), scanId);
     }
     else {
       request.parameter(app.getId(), scanId);

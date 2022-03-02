@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -29,6 +28,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
@@ -120,6 +120,10 @@ public class ApiCycloneDxServiceV2
 
   private Response getByScanId(Application application, String scanId, String acceptType, Version version) {
     AuditData.get().setReportId(scanId);
+    if (MediaType.APPLICATION_JSON.equals(acceptType) && version.getVersion() < 1.2) {
+      throw new NotAcceptableException("CycloneDX json schema does not support versions less than 1.2");
+    }
+
     try {
       ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(application.getPublicId(), scanId);
 
@@ -149,7 +153,7 @@ public class ApiCycloneDxServiceV2
           .collect(Collectors.toList())).forEach(bom::addComponent);
 
       if (MediaType.APPLICATION_JSON.equals(acceptType)) {
-        BomJsonGenerator generator = BomGeneratorFactory.createJson(Version.VERSION_12, bom);
+        BomJsonGenerator generator = BomGeneratorFactory.createJson(version, bom);
         return Response.ok(generator.toJsonString(), MediaType.APPLICATION_JSON)
             .header(HttpHeaders.CONTENT_DISPOSITION,
                 "Content-Disposition: attachment; filename=\"" + application.getPublicId() + '-' + scanId + ".json\"")

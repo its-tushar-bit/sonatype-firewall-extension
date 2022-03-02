@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -95,18 +95,44 @@ public class ApiCycloneDxServiceV2Test
   }
 
   @Test
-  public void testGetByScanId_Xml() throws Exception {
+  public void testGetByScanId_xml() throws Exception {
     testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_11);
   }
 
   @Test
-  public void testGetByScanId_Xml_V1_2() throws Exception {
+  public void testGetByScanId_xml_12() throws Exception {
     testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_12);
   }
 
   @Test
-  public void testGetByScanId_Json() throws Exception {
+  public void testGetByScanId_xml_13() throws Exception {
+    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_13);
+  }
+
+  @Test
+  public void testGetByScanId_xml_14() throws Exception {
+    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_14);
+  }
+
+  @Test
+  public void testGetByScanId_json_12() throws Exception {
     testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_12);
+  }
+
+  @Test
+  public void testGetByScanId_json_13() throws Exception {
+    testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_13);
+  }
+
+  @Test
+  public void testGetByScanId_json_11() {
+    assertThatExceptionOfType(NotAcceptableException.class).isThrownBy(
+        () -> service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_JSON, Version.VERSION_11));
+  }
+
+  @Test
+  public void testGetByScanId_json_14() throws Exception {
+    testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_14);
   }
 
   private void testGetByScanId(String contentType, Version version) throws Exception {

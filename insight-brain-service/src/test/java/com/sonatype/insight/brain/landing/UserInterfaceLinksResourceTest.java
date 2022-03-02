@@ -70,7 +70,7 @@ public class UserInterfaceLinksResourceTest
   @Test
   public void testLinkToSbom() throws Exception {
     HttpResponse response = get(UserInterfaceLinksHelper.LATEST_VERSION_SBOM_REPORT_PATH, "appId", "scanId");
-    assertRedirect(response, "api/v2/cycloneDx/1.3/appId/reports/scanId");
+    assertRedirect(response, "api/v2/cycloneDx/1.4/appId/reports/scanId");
   }
 
   @Test

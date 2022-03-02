@@ -172,7 +172,7 @@ public class UserInterfaceLinksResource
   @Path(LATEST_VERSION_SBOM_REPORT_PATH)
   public Response linkToSbom(@PathParam("applicationId") String applicationId, @PathParam("scanId") String scanId) {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(PublicApiPaths.CYCLONE_DX_RESOURCE_PATH).path("1.3/{applicationId}/reports/{reportId}");
+    uriBuilder.path(PublicApiPaths.CYCLONE_DX_RESOURCE_PATH).path("1.4/{applicationId}/reports/{reportId}");
     return redirect(uriBuilder, applicationId, scanId);
   }
 

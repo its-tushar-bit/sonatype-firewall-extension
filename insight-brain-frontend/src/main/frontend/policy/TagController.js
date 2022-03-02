@@ -17,30 +17,6 @@ var tagTemplate = {
 
 var tagModule = angular.module('Tags', [CLMContextLocationModule.name, CLMLocationModule.name, storesModule.name]);
 
-tagModule.service('TagStore', [
-  'CachedHierarchyStore',
-  'CLMContextLocations',
-  'CLMLocations',
-  '$http',
-  function (CachedHierarchyStore, CLMContextLocations, CLMLocations, $http) {
-    var tagStoreTemplate = {
-      getUrl: CLMContextLocations.getApplicableCategoriesUrl,
-      crudUrl: CLMContextLocations.getCategoriesUrl,
-      template: tagTemplate,
-      field: 'applicationCategoriesByOwner',
-      storeField: 'applicationCategories',
-      type: 'application category',
-    };
-    var tagStores = CachedHierarchyStore.get(tagStoreTemplate);
-
-    return angular.extend(tagStores, {
-      getApplied: function () {
-        return $http.get(CLMLocations.getOrganizationAppliedTagUrl(CLMContextLocations.getEntityId()));
-      },
-    });
-  },
-]);
-
 tagModule.service('PolicyTagStore', [
   '$http',
   'CachedStore',

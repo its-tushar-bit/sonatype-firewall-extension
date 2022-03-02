@@ -793,6 +793,24 @@ export const getTestRepositoryConnectionUrl = (ownerType, ownerId, repositoryCon
   return getRepositoryConnectionUrl(ownerType, ownerId, repositoryConnectionId) + '/test';
 };
 
+export const getOrganizationAppliedTagUrl = (organizationId) => {
+  return getCategoriesUrl('organization', organizationId) + '/applied';
+};
+
+export const getCategoriesUrl = (ownerType, ownerId) => {
+  return uriTemplate`/api/v2/applicationCategories/${ownerType}/${ownerId}`;
+};
+
+export const getApplicableCategoriesUrl = (ownerType, ownerId) => {
+  const getApplicableParam = ownerType === 'organization' ? '/applicable' : '';
+
+  return getCategoriesUrl(ownerType, ownerId) + getApplicableParam;
+};
+
+export const getDeleteCategoriesUrl = (ownerType, ownerId, categoryId) => {
+  return getCategoriesUrl(ownerType, ownerId) + `/${categoryId}`;
+};
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

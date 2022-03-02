@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+import { selectSiblings } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
 import { selectLabelsSiblings } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
 
 export default function OwnerDetailTreeViewController(
@@ -97,11 +99,17 @@ export default function OwnerDetailTreeViewController(
       vm.doLoad();
     }
   });
+  $scope.$watch('vm.categories', (categories) => {
+    if (categories) {
+      vm.doLoad();
+    }
+  });
 }
 
 const mapStateToThis = (state) => {
   return {
     labels: selectLabelsSiblings(state),
+    categories: selectSiblings(state),
   };
 };
 

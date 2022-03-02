@@ -10,6 +10,7 @@ import {
   selectRouterPrevState,
   selectCurrentRouteName,
   selectPreviousRouteName,
+  selectIsOrganization,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('routerSelectors', function () {
@@ -77,6 +78,18 @@ describe('routerSelectors', function () {
       const actualSelection = selectPreviousRouteName.resultFunc({ name: 'name' });
 
       expect(actualSelection).toBe('name');
+    });
+  });
+
+  describe('selectIsOrganization', () => {
+    it('is composed from the following selector', () => {
+      expect(selectIsOrganization.dependencies).toEqual([selectCurrentRouteName]);
+    });
+
+    it('selects if current url name includes `organization`', () => {
+      const actualSelection = selectIsOrganization.resultFunc('management.edit.organization.policy');
+
+      expect(actualSelection).toBeTrue();
     });
   });
 });

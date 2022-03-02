@@ -17,6 +17,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
 import { actions as rootActions } from './orgsAndPoliciesRootSlice';
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
+import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 
 const REDUCER_NAME = 'orgsAndPoliciesLabels';
 
@@ -112,14 +113,6 @@ const resetDeleteModalState = (state) => {
   state.errorState = null;
 };
 
-const getOwnerProperties = (state) => {
-  const { applicationPublicId, organizationId } = selectRouterCurrentParams(state);
-  return {
-    ownerType: applicationPublicId ? 'application' : 'organization',
-    ownerId: applicationPublicId || organizationId,
-  };
-};
-
 const goToCreateLabel = createAsyncThunk(`${REDUCER_NAME}/goToCreateLabel`, (_, { getState, dispatch }) => {
   const router = selectRouterSlice(getState());
   const { to, params } = deriveEditRoute(router, 'create-label');
@@ -135,14 +128,14 @@ const goToEditLabel = createAsyncThunk(`${REDUCER_NAME}/goToEditLabel`, (labelId
 });
 
 const loadLabels = createAsyncThunk(`${REDUCER_NAME}/loadLabels`, (_, { getState, rejectWithValue }) => {
-  const { ownerType, ownerId } = getOwnerProperties(getState());
+  const { ownerType, ownerId } = selectOwnerProperties(getState());
   return axios.get(getLabelsUrl(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
 });
 
 const loadApplicableLabelsByOwner = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicableLabelsByOwner`,
   (_, { getState, rejectWithValue }) => {
-    const { ownerType, ownerId } = getOwnerProperties(getState());
+    const { ownerType, ownerId } = selectOwnerProperties(getState());
     return axios.get(getApplicableLabelsUrl(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
   }
 );
@@ -207,7 +200,7 @@ const loadLabelsEditor = createAsyncThunk(
 
 const saveLabel = createAsyncThunk(`${REDUCER_NAME}/saveLabel`, ({ setPristine }, { getState, rejectWithValue }) => {
   const state = getState();
-  const { ownerType, ownerId } = getOwnerProperties(state);
+  const { ownerType, ownerId } = selectOwnerProperties(state);
   const isEditMode = selectLabelsIsEditMode(getState());
   const label = selectLabelsCurrentLabel(state);
 
@@ -225,7 +218,7 @@ const saveLabel = createAsyncThunk(`${REDUCER_NAME}/saveLabel`, ({ setPristine }
 
 const removeLabel = createAsyncThunk(`${REDUCER_NAME}/removeLabel`, (_, { getState, dispatch, rejectWithValue }) => {
   const state = getState();
-  const { ownerType, ownerId } = getOwnerProperties(state);
+  const { ownerType, ownerId } = selectOwnerProperties(state);
   const label = selectLabelsCurrentLabel(state);
 
   return axios

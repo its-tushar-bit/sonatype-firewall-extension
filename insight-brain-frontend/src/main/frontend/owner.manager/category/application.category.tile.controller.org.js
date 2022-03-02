@@ -3,73 +3,63 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function ApplicationCategoryTileControllerOrg(
-  $scope,
-  CLMContextLocations,
-  SameOwnerStateNavigationService,
-  TagStore,
-  EventNameConstant
-) {
+import {
+  selectLoadError,
+  selectIsLoading,
+  selectAppCategoryOwners,
+} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
+
+import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSlice';
+import { actions as orgsAndPoliciesRootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
+import { selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+export default function ApplicationCategoryTileControllerOrg($scope, EventNameConstant, $ngRedux) {
   var vm = this;
 
-  vm.appCategoryOwners = [];
-  vm.doLoad = doLoad;
-  vm.editCategory = editCategory;
-  vm.error = undefined;
-  vm.isOrg = CLMContextLocations.isOrganization();
-  vm.ownerName = undefined;
+  Object.assign(vm, {
+    $onInit() {
+      vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+        loadApplicableCategories: actions.loadApplicableCategories,
+        updateOwnerHandler: orgsAndPoliciesRootActions.updatedOwnerHandler,
+        goToEditCategory: actions.goToEditCategory,
+      })(vm);
 
-  vm.doLoad();
+      // TODO: next three lines should be migrated when appropriate peace of state is created
+      $scope.$on(EventNameConstant.POLICY_IMPORTED, vm.doLoad);
+      $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, vm.doLoad);
+      $scope.$on(EventNameConstant.OWNER_UPDATED, vm.updatedOwnerHandler);
 
-  $scope.$on('policy.imported', function () {
-    doLoad(true);
+      vm.doLoad();
+    },
+
+    $onDestroy() {
+      vm.unsubscribe();
+    },
+
+    doLoad() {
+      if (vm.isOrg) {
+        vm.loadApplicableCategories();
+      }
+    },
+
+    updatedOwnerHandler(_, newOwner) {
+      vm.updateOwnerHandler(newOwner.name);
+    },
+
+    editCategory(categoryId, inherited) {
+      if (!inherited) {
+        vm.goToEditCategory(categoryId);
+      }
+    },
   });
-  $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, function () {
-    doLoad(true);
-  });
-  $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
-
-  function doLoad(reload) {
-    if (vm.isOrg) {
-      (reload ? TagStore.refresh() : TagStore.get()).then(
-        function (tagsByOwner) {
-          vm.appCategoryOwners = [];
-          tagsByOwner.forEach(function (owner, index) {
-            vm.appCategoryOwners.push(owner);
-
-            if (index === 0) {
-              vm.ownerName = owner.ownerName;
-            } else {
-              vm.appCategoryOwners[index].parent = true;
-            }
-          });
-        },
-        function (error) {
-          vm.error = error;
-        }
-      );
-
-      delete vm.error;
-    }
-  }
-
-  function editCategory(categoryId, inherited) {
-    if (!inherited) {
-      SameOwnerStateNavigationService.goEdit('category', {
-        categoryId: categoryId,
-      });
-    }
-  }
-
-  function updatedOwnerHandler(event, newOwner) {
-    vm.ownerName = newOwner.name;
-  }
 }
 
-ApplicationCategoryTileControllerOrg.$inject = [
-  '$scope',
-  'CLMContextLocations',
-  'SameOwnerStateNavigationService',
-  'TagStore',
-  'event.name.constant',
-];
+export const mapStateToThis = (state) => ({
+  appCategoryOwners: angular.copy(selectAppCategoryOwners(state)),
+  error: selectLoadError(state),
+  loading: selectIsLoading(state),
+  ownerName: selectOwnerName(state),
+  isOrg: selectIsOrganization(state),
+});
+
+ApplicationCategoryTileControllerOrg.$inject = ['$scope', 'event.name.constant', '$ngRedux'];

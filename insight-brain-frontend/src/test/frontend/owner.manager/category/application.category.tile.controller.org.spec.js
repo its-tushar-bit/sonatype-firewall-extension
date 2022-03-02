@@ -3,121 +3,118 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
-import OwnerUtils from '../owner.utils';
-import TagResourceMockData from '../mock.data/tag.resource.mock.data';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import * as orgsAndPoliciesApplicationCategoriesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
+import * as orgsAndPoliciesRootSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { mapStateToThis } from 'MainRoot/owner.manager/category/application.category.tile.controller.org';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('application.category.tile.controller.org.spec.js', function () {
-  var $state;
+  let vm, scope, EventNameConstant;
 
   beforeEach(
-    angular.mock.module(ownerManagerModule.name, function ($provide) {
-      $provide.value('$cookies', {
-        get: angular.noop,
-      });
-
-      $state = {
-        current: {
-          name: '',
-        },
-        params: {},
-      };
-      $provide.value('$state', $state);
-      $provide.value('$stateParams', $state.params);
+    angular.mock.module(ownerManagerModule.name, ($provide) => {
+      SpecUtil.mockNgRedux($provide);
     })
   );
 
-  function createTests(type, storeName, owner) {
-    var vm,
-      scope,
-      $httpBackend,
-      $rootScope,
-      EventNameConstant,
-      isOrg = type === 'organization';
+  beforeEach(inject(function (_$rootScope_, $controller, $injector) {
+    scope = _$rootScope_.$new();
+    EventNameConstant = $injector.get('event.name.constant');
+    vm = $controller('ApplicationCategoryTileControllerOrg', {
+      $scope: scope,
+    });
+    scope.vm = vm;
+    vm.$onInit();
+  }));
 
-    beforeEach(inject(function (_$rootScope_, $controller, $injector, _$httpBackend_) {
-      $rootScope = _$rootScope_;
-      scope = $rootScope.$new();
-      $httpBackend = _$httpBackend_;
-      EventNameConstant = $injector.get('event.name.constant');
+  describe('mapStateToThis', () => {
+    it('maps redux properties to component', () => {
+      spyOn(orgsAndPoliciesApplicationCategoriesSelectors, 'selectAppCategoryOwners').and.returnValue(null);
+      spyOn(orgsAndPoliciesApplicationCategoriesSelectors, 'selectLoadError').and.returnValue(null);
+      spyOn(orgsAndPoliciesApplicationCategoriesSelectors, 'selectIsLoading').and.returnValue(false);
+      spyOn(orgsAndPoliciesRootSelectors, 'selectOwnerName').and.returnValue(null);
+      spyOn(routerSelectors, 'selectIsOrganization').and.returnValue(true);
 
-      $state.current.name = type;
-      if (type === 'application') {
-        $state.params.applicationPublicId = owner.publicId;
-      } else if (type === 'organization') {
-        $state.params.organizationId = owner.id;
-      }
+      const output = mapStateToThis({});
 
-      vm = $controller('ApplicationCategoryTileControllerOrg', {
-        $scope: scope,
-      });
-    }));
+      expect(output.appCategoryOwners).toBeNull();
+      expect(output.error).toBeNull();
+      expect(output.loading).toBeFalse();
+      expect(output.ownerName).toBeNull();
+      expect(output.isOrg).toBeTrue();
+    });
+  });
 
-    afterEach(function () {
-      $httpBackend.verifyNoOutstandingExpectation();
-      $httpBackend.verifyNoOutstandingRequest();
+  describe('$onInit()', () => {
+    it('subscribes to the redux store', () => {
+      expect(vm.unsubscribe).toBeDefined();
     });
 
-    if (isOrg) {
-      it('Properly Loading Applicable Categories and Org Name', inject(function (CLMContextLocations) {
-        var mockAppCategoryOwners = TagResourceMockData.getApplicationCategoriesUrl();
+    it('does not calls loadApplicableCategories if owner is not organization', () => {
+      expect(vm.loadApplicableCategories).not.toHaveBeenCalled();
+    });
 
-        $httpBackend
-          .expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable')
-          .respond(mockAppCategoryOwners);
-        $httpBackend.flush();
+    it('calls loadApplicableCategories if owner is organization', () => {
+      vm.isOrg = true;
 
-        expect(vm.ownerName).toEqual(mockAppCategoryOwners.applicationCategoriesByOwner[0].ownerName);
-        expect(vm.appCategoryOwners.length).toEqual(mockAppCategoryOwners.applicationCategoriesByOwner.length);
-        vm.appCategoryOwners.forEach(function (owner, index) {
-          expect(
-            angular.equals(
-              owner.applicationCategories,
-              mockAppCategoryOwners.applicationCategoriesByOwner[index].applicationCategories
-            )
-          ).toBeTruthy();
-        });
-      }));
+      vm.$onInit();
 
-      it('Missing Categories', inject(function (CLMContextLocations) {
-        $httpBackend
-          .expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable')
-          .respond(400, 'Bad Request');
-        $httpBackend.flush();
+      expect(vm.loadApplicableCategories).toHaveBeenCalledTimes(1);
+    });
+  });
 
-        expect(vm.error).toBeDefined();
-        expect(vm.ownerName).toBeUndefined();
-        expect(vm.appCategoryOwners).toEqual([]);
-      }));
+  describe('$onDestroy()', () => {
+    it('unsubscribes from the redux store', () => {
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
 
-      it('Reloads on broadcasted owner summary reload event', inject(function (CLMContextLocations) {
-        $httpBackend
-          .expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable')
-          .respond(TagResourceMockData.getApplicationCategoriesUrl());
-        expect($httpBackend.flush).not.toThrow();
+      vm.$onDestroy();
 
-        $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+    });
+  });
 
-        $httpBackend
-          .expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable')
-          .respond(TagResourceMockData.getApplicationCategoriesUrl());
-        expect($httpBackend.flush).not.toThrow();
-      }));
+  describe('editCategory', () => {
+    it('calls goToEditCategory if not inherited', () => {
+      let inherited = false;
+      vm.editCategory('categoryId', inherited);
 
-      it('Updates Owner name on broadcasted updated owner event', inject(function (CLMContextLocations) {
-        $httpBackend
-          .expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable')
-          .respond(TagResourceMockData.getApplicationCategoriesUrl());
-        $httpBackend.flush();
+      expect(vm.goToEditCategory).toHaveBeenCalledOnceWith('categoryId');
+    });
 
-        expect(vm.ownerName).not.toEqual('Bob');
+    it('does not call goToEditCategory if inherited', () => {
+      let inherited = true;
+      vm.editCategory('categoryId', inherited);
 
-        $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, { name: 'Bob' });
+      expect(vm.goToEditCategory).not.toHaveBeenCalled();
+    });
+  });
 
-        expect(vm.ownerName).toEqual('Bob');
-      }));
-    }
-  }
+  describe('handles broadcast events', () => {
+    it('calls loadApplicableCategories on policy.imported event', () => {
+      expect(vm.loadApplicableCategories).not.toHaveBeenCalled();
 
-  OwnerUtils.runTestsForOwnerTypes(createTests);
+      vm.isOrg = true;
+      scope.$emit(EventNameConstant.POLICY_IMPORTED);
+
+      expect(vm.loadApplicableCategories).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls loadApplicableCategories on broadcasted owner summary reload event', () => {
+      expect(vm.loadApplicableCategories).not.toHaveBeenCalled();
+
+      vm.isOrg = true;
+      scope.$emit(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
+
+      expect(vm.loadApplicableCategories).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls updateOwnerHandler on broadcasted policy.imported event', () => {
+      expect(vm.updateOwnerHandler).not.toHaveBeenCalled();
+
+      scope.$emit(EventNameConstant.OWNER_UPDATED, { name: 'Bob' });
+
+      expect(vm.updateOwnerHandler).toHaveBeenCalledTimes(1);
+    });
+  });
 });

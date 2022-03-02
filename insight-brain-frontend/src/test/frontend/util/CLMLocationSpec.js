@@ -639,4 +639,42 @@ describe('CLMLocation.js', function () {
       ).toEqual(expectedUrl);
     });
   });
+
+  describe('getCategoriesUrl', () => {
+    it('returns url for applicationCategories', () => {
+      const expectedUrl = '/api/v2/applicationCategories/organization/ROOT_ORGANIZATION_ID';
+
+      expect(clmLocation.getCategoriesUrl('organization', 'ROOT_ORGANIZATION_ID')).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getOrganizationAppliedTagUrl', () => {
+    it('returns url for organization applied categories', () => {
+      const expectedUrl = '/api/v2/applicationCategories/organization/ROOT_ORGANIZATION_ID/applied';
+
+      expect(clmLocation.getOrganizationAppliedTagUrl('ROOT_ORGANIZATION_ID')).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getApplicableCategoriesUrl', () => {
+    it('returns url for applicationCategories', () => {
+      const expectedUrl = '/api/v2/applicationCategories/application/someApplication';
+
+      expect(clmLocation.getApplicableCategoriesUrl('application', 'someApplication')).toEqual(expectedUrl);
+    });
+
+    it('returns url for applicable applicationCategories', () => {
+      const expectedUrl = '/api/v2/applicationCategories/organization/someOrganization/applicable';
+
+      expect(clmLocation.getApplicableCategoriesUrl('organization', 'someOrganization')).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getDeleteCategoriesUrl', () => {
+    it('returns url for delete category', () => {
+      const expectedUrl = '/api/v2/applicationCategories/organization/someOrganization/categoryId';
+
+      expect(clmLocation.getDeleteCategoriesUrl('organization', 'someOrganization', 'categoryId')).toEqual(expectedUrl);
+    });
+  });
 });

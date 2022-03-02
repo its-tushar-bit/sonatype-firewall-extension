@@ -3,7 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { prop } from 'ramda';
+import { omit, prop } from 'ramda';
+import axios from 'axios';
+
+import { getApplicableCategoriesUrl } from 'MainRoot/util/CLMLocation';
+import { selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function PolicyEditorController(
   $scope,
@@ -11,14 +15,14 @@ export default function PolicyEditorController(
   $http,
   $stateParams,
   PolicyHierarchyStore,
-  TagStore,
   DeleteModalService,
   SameOwnerStateNavigationService,
   CLMContextLocations,
   $rootScope,
   EventNameConstant,
   $state,
-  ProductFeatures
+  ProductFeatures,
+  $ngRedux
 ) {
   var vm = this,
     originalCategories,
@@ -44,8 +48,12 @@ export default function PolicyEditorController(
   vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.isGrandfatheringSupported = undefined;
   vm.originalProxyStageAction = undefined;
-
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
   vm.doLoad();
+
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
 
   $scope.$on('pageChangeStarted', function (event) {
     if (!isReloading && vm.isPolicyDirty()) {
@@ -107,7 +115,9 @@ export default function PolicyEditorController(
         vm.categories = [];
 
         if (vm.isOrgOwner) {
-          var promises = [TagStore.get()];
+          var promises = [
+            axios.get(getApplicableCategoriesUrl(vm.ownerProperties.ownerType, vm.ownerProperties.ownerId)),
+          ];
 
           // A newly created policy won't have any tags associated with it
           if ($stateParams.policyId) {
@@ -116,7 +126,10 @@ export default function PolicyEditorController(
 
           $q.all(promises).then(
             function (results) {
-              loadCategories(results[0], results.length > 1 ? results[1].data : undefined);
+              loadCategories(
+                results[0]?.data?.applicationCategoriesByOwner,
+                results.length > 1 ? results[1].data : undefined
+              );
             },
             function (error) {
               vm.loadError = error;
@@ -179,7 +192,8 @@ export default function PolicyEditorController(
       var isNew = vm.dirtyPolicy.$new;
       delete vm.submitError;
 
-      var appliedCategories = vm.categories.filter(prop('isApplied')).map((c) => c.$getOriginal());
+      // original shape of categories does not contain 'isApplied' property
+      var appliedCategories = vm.categories.filter(prop('isApplied')).map(omit(['isApplied']));
 
       vm.policyEditorMask.wrap(savePolicy).then(function () {
         if (isNew) {
@@ -211,13 +225,16 @@ export default function PolicyEditorController(
   }
 }
 
+export const mapStateToThis = (state) => ({
+  ownerProperties: selectOwnerProperties(state),
+});
+
 PolicyEditorController.$inject = [
   '$scope',
   '$q',
   '$http',
   '$stateParams',
   'PolicyHierarchyStore',
-  'TagStore',
   'DeleteModalService',
   'SameOwnerStateNavigationService',
   'CLMContextLocations',
@@ -225,4 +242,5 @@ PolicyEditorController.$inject = [
   'event.name.constant',
   '$state',
   'ProductFeatures',
+  '$ngRedux',
 ];

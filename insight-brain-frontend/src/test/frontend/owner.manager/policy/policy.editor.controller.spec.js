@@ -3,14 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+import { any, propEq } from 'ramda';
+import axios from 'axios';
+
 import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
 import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
 import OwnerUtils from '../owner.utils';
 import PolicyResourceMockData from '../mock.data/policy.resource.mock.data';
 import TagResourceMockData from '../mock.data/tag.resource.mock.data';
-import { any, propEq } from 'ramda';
 
-describe('policy.editor.controller.spec.js', function () {
+describe('policy.editor.controller', function () {
   var $state;
 
   beforeEach(
@@ -28,8 +31,11 @@ describe('policy.editor.controller.spec.js', function () {
       };
       $provide.value('$state', $state);
       $provide.value('$stateParams', $state.params);
+      SpecUtil.mockNgRedux($provide);
     })
   );
+
+  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
   function createTests(type, storeName, owner) {
     var vm,
@@ -38,6 +44,7 @@ describe('policy.editor.controller.spec.js', function () {
       $timeout,
       CLMContextLocations,
       deleteServiceResourceDefer,
+      ownerProperties,
       isApp = type === 'application',
       mockDeleteService,
       mockCategoryOwners,
@@ -80,11 +87,19 @@ describe('policy.editor.controller.spec.js', function () {
       } else if (type === 'organization') {
         $state.params.organizationId = owner.id;
       }
+      ownerProperties = {
+        ownerType: type,
+        ownerId: owner.id,
+      };
     }));
 
     afterEach(function () {
       $httpBackend.verifyNoOutstandingExpectation();
       $httpBackend.verifyNoOutstandingRequest();
+
+      if (scope && scope.$destroy) {
+        scope.$destroy();
+      }
     });
 
     it('Creates new on load', inject(function ($controller) {
@@ -157,6 +172,7 @@ describe('policy.editor.controller.spec.js', function () {
       $state.params.policyId = '456';
 
       vm = $controller('policy.editor.controller', { $scope: scope });
+      vm.ownerProperties = ownerProperties;
       mockPolicy.id = '456';
       mockPolicy.ownerId = owner.id;
       mockPolicy.actions = [];
@@ -233,6 +249,8 @@ describe('policy.editor.controller.spec.js', function () {
         DeleteModalService: mockDeleteService,
       });
 
+      vm.ownerProperties = ownerProperties;
+
       mockPolicy.id = '1';
       mockPolicy.actions = [];
       resolveLoadData(
@@ -258,8 +276,8 @@ describe('policy.editor.controller.spec.js', function () {
 
     it('Properly loads categories', inject(function ($controller) {
       $state.params.policyId = '456';
-
       vm = $controller('policy.editor.controller', { $scope: scope });
+      vm.ownerProperties = ownerProperties;
       mockPolicy.id = '456';
       mockPolicy.actions = [];
 
@@ -303,6 +321,8 @@ describe('policy.editor.controller.spec.js', function () {
       $state.params.policyId = '456';
 
       vm = $controller('policy.editor.controller', { $scope: scope });
+      vm.ownerProperties = ownerProperties;
+
       mockPolicy.id = '456';
       mockPolicy.actions = [];
 
@@ -349,10 +369,11 @@ describe('policy.editor.controller.spec.js', function () {
     });
 
     if (!isApp) {
-      it('Proper ownerName and ownerType get set loading heirarchy', inject(function ($controller) {
+      it('Proper ownerName and ownerType get set loading hierarchy', inject(function ($controller) {
         $state.params.policyId = '456';
 
         vm = $controller('policy.editor.controller', { $scope: scope });
+        vm.ownerProperties = ownerProperties;
         mockPolicy.id = '456';
 
         resolveLoadData(
@@ -412,9 +433,12 @@ describe('policy.editor.controller.spec.js', function () {
         !expectError &&
         (!isApp || (policyStoreData.length > 1 && any(propEq('id', policyId), policyStoreData[1].policies)));
       if (respondWithCategories) {
-        $httpBackend
-          .expectGET(CLMContextLocations.getCategoriesUrl() + isApp ? '' : '/applicable')
-          .respond(mockCategoryOwners);
+        const url = `${CLMContextLocations.getCategoriesUrl()}${isApp ? '' : '/applicable'}`;
+        mockAxiosCalls({
+          get: {
+            [url]: { data: mockCategoryOwners },
+          },
+        });
 
         if (policyId) {
           $httpBackend.expectGET(CLMContextLocations.getPolicyTagUrl(mockPolicy.id)).respond(mockPolicyTags);

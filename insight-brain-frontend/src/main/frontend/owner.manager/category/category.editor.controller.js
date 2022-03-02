@@ -4,159 +4,125 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import deleteTemplate from './delete.application.category.error.modal.html';
+import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSlice';
+import {
+  selectIsDirty,
+  selectIsEditMode,
+  selectLoadError,
+  selectIsLoading,
+  selectSiblings,
+  selectTagPolicyList,
+  selectAssociatedApplicationNames,
+  selectCurrentCategory,
+  selectDeleteModal,
+} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
 
 export default function CategoryEditorController(
   $scope,
-  $stateParams,
   Modal,
-  TagStore,
   DeleteModalService,
-  SameOwnerStateNavigationService,
-  $q,
   PolicyTagStore,
   PolicyHierarchyStore,
-  ApplicationStore
+  ApplicationStore,
+  $ngRedux
 ) {
-  var vm = this,
-    store,
-    associatedAppNames = [],
-    warningMessage;
+  var vm = this;
 
-  vm.dirtyCategory = undefined;
-  vm.deleteCategory = deleteCategory;
-  vm.doLoad = doLoad;
-  vm.loadError = undefined;
-  vm.categoryEditor = undefined;
-  vm.categoryEditorMask = undefined;
-  vm.siblings = [];
-  vm.save = save;
-  vm.submitError = undefined;
-  vm.tagPolicyList = [];
+  Object.assign(vm, {
+    categoryEditor: undefined,
+    categoryEditorMask: undefined,
+    $onInit() {
+      vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+        loadCategoryEditor: actions.loadCategoryEditor,
+        saveApplicationCategory: actions.saveApplicationCategory,
+        removeApplicationCategory: actions.removeApplicationCategory,
+        setCategoryDescription: actions.setCategoryDescription,
+        setCategoryName: actions.setCategoryName,
+        setCategoryColor: actions.setCategoryColor,
+      })(vm);
 
-  vm.doLoad();
-
-  $scope.$on('pageChangeStarted', function (event) {
-    if (vm.dirtyCategory.isDirty()) {
-      event.preventDefault();
-    }
-  });
-
-  function deleteCategory() {
-    if (vm.tagPolicyList.length) {
-      Modal.open({
-        animation: false,
-        backdrop: 'static',
-        keyboard: false,
-        template: deleteTemplate,
-        scope: $scope,
+      $scope.$on('pageChangeStarted', (event) => {
+        if (vm.isDirty) {
+          event.preventDefault();
+        }
       });
-    } else {
-      DeleteModalService.deleteCustom(
-        'Delete Application Category',
-        warningMessage,
-        'Deleting',
-        angular.bind(vm.dirtyCategory, vm.dirtyCategory.$delete)
-      ).then(function () {
-        // Model needs to be clean in order to navigate
-        vm.dirtyCategory.$revert();
-        SameOwnerStateNavigationService.goEdit('create-category');
-      });
-    }
-  }
+      vm.doLoad();
+    },
 
-  function doLoad() {
-    var promises = [
-        TagStore[vm.loadError ? 'refresh' : 'get'](),
-        TagStore.getApplied(),
-        ApplicationStore.get(),
-        PolicyHierarchyStore.get(),
-        PolicyTagStore.getApplied(),
-      ],
-      policyMap = {};
+    $onDestroy() {
+      vm.unsubscribe();
+    },
 
-    if ($stateParams.categoryId) {
-      promises.push(TagStore.getById($stateParams.categoryId));
-    }
-
-    $q.all(promises).then(
-      function (results) {
-        results[0].forEach(function (owner) {
-          vm.siblings = vm.siblings.concat(owner.applicationCategories);
+    deleteCategory() {
+      const showCannotDeleteModal = vm.tagPolicyList.length;
+      if (showCannotDeleteModal) {
+        Modal.open({
+          animation: false,
+          backdrop: 'static',
+          keyboard: false,
+          template: deleteTemplate,
+          scope: $scope,
         });
-
-        //the first owner is the local one
-        var owner = results[0][0];
-        store = owner.store;
-        if (!$stateParams.categoryId) {
-          vm.dirtyCategory = store.create();
-        } else {
-          vm.dirtyCategory = results[5].$clone();
-
-          // gather the names of associated applications
-          results[1].data.applicationTagsByOwner[0].applicationTags.forEach(function (applicationTag) {
-            if (applicationTag.tagId === vm.dirtyCategory.id) {
-              results[2].forEach(function (application) {
-                if (application.id === applicationTag.applicationId) {
-                  associatedAppNames.push(application.name);
-                }
-              });
-            }
-          });
-          warningMessage = 'Are you sure you want to delete this application category?';
-          if (associatedAppNames.length > 0) {
-            warningMessage += ' It is in use by the following applications: ' + associatedAppNames.join(', ') + '.';
-          }
-          //gather a map of policy id/names
-          results[3].forEach(function (owner) {
-            owner.policies.forEach(function (policy) {
-              policyMap[policy.id] = policy.name;
-            });
-          });
-          //gather list of policy names using this application category
-          vm.tagPolicyList = [];
-
-          results[4].data.forEach(function (policyTag) {
-            if (policyTag.tagId === $stateParams.categoryId) {
-              vm.tagPolicyList.push(policyMap[policyTag.policyId]);
-            }
-          });
+      } else {
+        let warningMessage = 'Are you sure you want to delete this application category? ';
+        if (vm.associatedApplicationNames.length) {
+          warningMessage += `It is in use by the following applications: ${vm.associatedApplicationNames.join(', ')}.`;
         }
-      },
-      function (error) {
-        vm.loadError = error;
+        DeleteModalService.deleteRedux(
+          'Delete Application Category',
+          warningMessage,
+          'Deleting',
+          vm.removeApplicationCategory,
+          selectDeleteModal
+        );
       }
-    );
-    delete vm.loadError;
-  }
+    },
 
-  function save() {
-    var isNew = vm.dirtyCategory.$new;
-    delete vm.submitError;
+    doLoad() {
+      const categoryEditorPromises = [ApplicationStore.get(), PolicyHierarchyStore.get(), PolicyTagStore.getApplied()];
 
-    vm.categoryEditorMask.wrap(vm.dirtyCategory.$save()).then(
-      function () {
-        if (isNew) {
-          vm.siblings.push(vm.dirtyCategory);
-          vm.dirtyCategory = store.create();
-        }
-        vm.categoryEditor.$setPristine();
-      },
-      function (error) {
-        vm.submitError = error;
-      }
-    );
-  }
+      vm.loadCategoryEditor({ categoryEditorPromises });
+    },
+    onDescriptionChange() {
+      vm.setCategoryDescription(vm.dirtyCategory.description);
+    },
+
+    onNameChange() {
+      vm.setCategoryName(vm.dirtyCategory.name);
+    },
+
+    onColorChange() {
+      vm.setCategoryColor(vm.dirtyCategory.color);
+    },
+    save() {
+      vm.categoryEditorMask.wrap(
+        vm.saveApplicationCategory({
+          resetCategoryEditor: () => {
+            vm.categoryEditor.$setPristine();
+          },
+        })
+      );
+    },
+  });
 }
+
+export const mapStateToThis = (state) => ({
+  dirtyCategory: angular.copy(selectCurrentCategory(state)),
+  isDirty: selectIsDirty(state),
+  loadError: selectLoadError(state),
+  loading: selectIsLoading(state),
+  isEditMode: selectIsEditMode(state),
+  siblings: selectSiblings(state),
+  tagPolicyList: selectTagPolicyList(state),
+  associatedApplicationNames: selectAssociatedApplicationNames(state),
+});
 
 CategoryEditorController.$inject = [
   '$scope',
-  '$stateParams',
   'Modal',
-  'TagStore',
   'DeleteModalService',
-  'SameOwnerStateNavigationService',
-  '$q',
   'PolicyTagStore',
   'PolicyHierarchyStore',
   'ApplicationStore',
+  '$ngRedux',
 ];

@@ -1639,8 +1639,9 @@ public abstract class AbstractPolicyEditorTest
     actionsTable.stageRelease().noActionRadio().input().shouldBe(selected);
 
     if (actionsReadOnly) {
-      String expectedText = "Actions are not supported by your license. " +
-          (!proxyActionReadOnly ? "(Exclusions apply for firewall supported licenses)" : "");
+      String expectedText = !proxyActionReadOnly ?
+              "Only Proxy Actions are supported with your Firewall product license." :
+              "Actions are not supported by your product license.";
       PolicyEditorPage.disabledActionsMessage().shouldBe(text(expectedText));
     }
     else {
@@ -1690,6 +1691,16 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notificationFor("Developer").proxy().input().shouldNotBe(selected).shouldBe(disabledOrEnabled);
     NotificationsSection.notificationFor("test@foo.com").proxy().input().shouldNotBe(selected)
         .shouldBe(disabledOrEnabled);
+
+    if (notificationsReadOnly) {
+      String expectedText =
+              !proxyActionReadOnly ? "Only Proxy Notifications are supported with your Firewall product license."
+                      : "Notifications are not supported by your product license.";
+      PolicyEditorPage.disabledNotificationsMessage().shouldHave(text(expectedText));
+    }
+    else {
+      PolicyEditorPage.disabledNotificationsMessage().shouldBe(hidden);
+    }
   }
 
   private void assertThreatLevelSelectorState(int selectedThreatLevel, boolean isReadOnly) {

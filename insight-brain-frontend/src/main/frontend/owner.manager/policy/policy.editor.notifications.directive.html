@@ -2,8 +2,9 @@
   <div id="notifications-disabled-message"
        ng-if="!vm.isNotificationsSupported"
        class="iq-alert iq-alert--info iq-alert--form-item">
-    <i class="fa fa-info-circle"></i>Notifications are not supported by your license.
-    <span ng-if="vm.isFirewallSupported">(Exclusions apply for firewall supported licenses)</span>
+    <i class="fa fa-info-circle"></i>
+    <span ng-if="!vm.isFirewallSupported">Notifications are not supported by your product license.</span>
+    <span ng-if="vm.isFirewallSupported">Only Proxy Notifications are supported with your Firewall product license.</span>
   </div>
   <table id="policy-edit-notifications" class="iq-table">
     <thead>

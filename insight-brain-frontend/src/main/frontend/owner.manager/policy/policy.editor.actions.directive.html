@@ -2,8 +2,9 @@
   <div id="actions-disabled-message"
        ng-if="!vm.isEnforcementSupported"
        class="iq-alert iq-alert--info iq-alert--form-item">
-    <i class="fa fa-info-circle"></i>Actions are not supported by your license.
-    <span ng-if="vm.isFirewallSupported">(Exclusions apply for firewall supported licenses)</span>
+    <i class="fa fa-info-circle"></i>
+    <span ng-if="!vm.isFirewallSupported">Actions are not supported by your product license.</span>
+    <span ng-if="vm.isFirewallSupported">Only Proxy Actions are supported with your Firewall product license.</span>
   </div>
   <table id="edit-policy-actions-table" class="iq-table">
     <thead>

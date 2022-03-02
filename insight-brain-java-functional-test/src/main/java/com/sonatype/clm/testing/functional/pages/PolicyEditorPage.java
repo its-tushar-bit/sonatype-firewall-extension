@@ -95,6 +95,10 @@ public class PolicyEditorPage
     return $("#actions-disabled-message");
   }
 
+  public static SelenideElement disabledNotificationsMessage() {
+    return $("#notifications-disabled-message");
+  }
+
   public static SelenideElement disabledGrandfatheringMessage() {
     return $("#grandfathering-disabled-message");
   }

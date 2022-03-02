@@ -6,7 +6,7 @@
 import React from 'react';
 
 import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
-import ReportContent from 'MainRoot/applicationReport/react/ReportContent';
+import ReportContent from 'MainRoot/applicationReport/ReportContent';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 

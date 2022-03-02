@@ -10,7 +10,7 @@ import { NxFontAwesomeIcon, NxTableCell, NxTableRow, NxThreatIndicator } from '@
 import { faCheck, faHistory } from '@fortawesome/pro-solid-svg-icons';
 
 import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
-import { selectIsAggregated, selectSelectedReport } from '../applicationReportSelectors';
+import { selectIsAggregated, selectSelectedReport } from './applicationReportSelectors';
 import { allPass, filter, includes, length, not, compose, pathOr, prop } from 'ramda';
 
 import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
@@ -89,7 +89,7 @@ export default function ReportTableRow({ onClick, component }) {
       <NxTableCell className="iq-app-report__component-name-cell">
         <div className="nx-truncate-ellipsis">
           {isAggregated && component.innerSource && (
-            <span className="iq-text-indicator iq-text-indicator--grandfathered iq-pull-right">
+            <span className="iq-transitive-violations-count iq-text-indicator iq-pull-right">
               {getTransitiveViolationsCount()}
             </span>
           )}

@@ -11,7 +11,7 @@ import { propOr } from 'ramda';
 import { NxBinaryDonutChart } from '@sonatype/react-shared-components';
 import { useSelector } from 'react-redux';
 
-import { selectSelectedReport } from '../applicationReportSelectors';
+import { selectSelectedReport } from './applicationReportSelectors';
 
 export default function ReportStatusBar() {
   const selectedReport = useSelector(selectSelectedReport);

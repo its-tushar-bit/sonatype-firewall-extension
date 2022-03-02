@@ -17,7 +17,7 @@ import {
   selectIsPolicyTypeFilterEnabled,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import * as applicationReportActions from '../applicationReportActions';
+import * as applicationReportActions from './applicationReportActions';
 
 export default function ReportPage() {
   const applicationReport = useSelector(selectApplicationReportSlice);
@@ -61,7 +61,7 @@ export default function ReportPage() {
           <ReportFilterPopover />
           <ReportTitle />
           {!isPolicyTypeFilterEnabled && (
-            <NxWarningAlert>
+            <NxWarningAlert id="application-report-policy-type-filter-warning">
               This report has not been upgraded for the new Policy Types filter introduced in release 61. Re-evaluate in
               order to enable the Policy Types filter.
             </NxWarningAlert>

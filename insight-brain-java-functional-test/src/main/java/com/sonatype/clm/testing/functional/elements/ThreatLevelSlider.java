@@ -7,7 +7,7 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 
-import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.SelenideElement;
 
 public class ThreatLevelSlider extends BasicElement<ThreatLevelSlider>
 {
@@ -16,7 +16,49 @@ public class ThreatLevelSlider extends BasicElement<ThreatLevelSlider>
   }
 
   public void setValues(int min, int max) {
-    Selenide.executeJavaScript("$('body').find('" + this.selector +
-        " div[slider]').trigger({type:'slide',value: [" + min + ", " + max + "]});");
+    if (currentMin() == currentMax()) {
+      if (currentMin() < min) {
+        setThumbValue(maxThumb(), minThumb(), max);
+        setThumbValue(minThumb(), maxThumb(), min);
+      }
+      else {
+        setThumbValue(minThumb(), maxThumb(), min);
+        setThumbValue(maxThumb(), minThumb(), max);
+      }
+
+    }
+    else {
+      setThumbValue(maxThumb(), minThumb(), max);
+      setThumbValue(minThumb(), maxThumb(), min);
+    }
+  }
+
+  private void setThumbValue(SelenideElement thumbToMove, SelenideElement secondThumb, int value) {
+    if (currentValueFor(secondThumb) == value) {
+      thumbToMove.dragAndDropTo(secondThumb);
+    }
+    else {
+      thumbToMove.dragAndDropTo(".MuiSlider-mark[data-index='" + value + "']");
+    }
+  }
+
+  private SelenideElement minThumb() {
+    return child(".MuiSlider-thumb[data-index='0']");
+  }
+
+  private SelenideElement maxThumb() {
+    return child(".MuiSlider-thumb[data-index='1']");
+  }
+
+  private int currentMin() {
+    return currentValueFor(minThumb());
+  }
+
+  private int currentMax() {
+    return currentValueFor(maxThumb());
+  }
+
+  private int currentValueFor(SelenideElement element) {
+    return Integer.parseInt(element.attr("aria-valuenow"));
   }
 }

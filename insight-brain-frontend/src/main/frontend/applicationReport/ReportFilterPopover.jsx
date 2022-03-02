@@ -9,15 +9,15 @@ import { equals, head, last, map, range, reduce, reject } from 'ramda';
 
 import { NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 import { IqPopover } from 'MainRoot/react/IqPopover';
-import IqTreeViewPolicyThreatSlider from '../../react/IqTreeViewPolicyThreatSlider';
-import { policyTypes } from '../../dashboard/filter/staticFilterEntries';
-import { lookup, setToArray, union } from '../../util/jsUtil';
-import * as applicationReportActions from '../applicationReportActions';
+import IqTreeViewPolicyThreatSlider from 'MainRoot/react/IqTreeViewPolicyThreatSlider';
+import { policyTypes } from 'MainRoot/dashboard/filter/staticFilterEntries';
+import { lookup, setToArray, union } from 'MainRoot/util/jsUtil';
+import * as applicationReportActions from './applicationReportActions';
 import {
   selectExactValueFilters,
   selectShowFilterPopover,
   selectIsPolicyTypeFilterEnabled,
-} from '../applicationReportSelectors';
+} from './applicationReportSelectors';
 
 const proprietaryFilterOptions = [
   { id: 'nonProprietary', name: 'Non-Proprietary' },

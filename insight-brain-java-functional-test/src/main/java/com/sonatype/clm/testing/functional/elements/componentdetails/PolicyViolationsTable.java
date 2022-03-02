@@ -30,7 +30,7 @@ public class PolicyViolationsTable
   }
 
   public SelenideElement getRow(int rowIndex) {
-    return child("tbody > tr:nth-child(" + rowIndex + ")");
+    return child("tbody > tr.nx-clickable:nth-child(" + rowIndex + ")");
   }
 
   public SelenideElement waiversDropdownButton(int rowIndex) {

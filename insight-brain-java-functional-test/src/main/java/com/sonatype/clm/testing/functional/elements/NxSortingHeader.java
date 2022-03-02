@@ -31,16 +31,22 @@ public class NxSortingHeader
   public static class NxSortArrows
       extends BasicElement<NxSortArrows>
   {
+    private static final String ARROW_SELECTOR = ".svg-inline--fa";
+
     NxSortArrows(String selector) {
       super(selector);
     }
 
     public SelenideElement shouldBeUp() {
-      return child(createSelector(".svg-inline--fa", nthChild(2))).shouldHave(UP);
+      return child(createSelector(ARROW_SELECTOR, nthChild(2))).shouldHave(UP);
     }
 
     public SelenideElement shouldBeDown() {
-      return child(createSelector(".svg-inline--fa", nthChild(2))).shouldHave(DOWN);
+      return child(createSelector(ARROW_SELECTOR, nthChild(2))).shouldHave(DOWN);
+    }
+
+    public SelenideElement shouldNotBeUp() {
+      return child(createSelector(ARROW_SELECTOR, nthChild(2))).shouldNotHave(UP);
     }
   }
 }

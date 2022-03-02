@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import ReportFilterPopover from 'MainRoot/applicationReport/react/ReportFilterPopover';
+import ReportFilterPopover from 'MainRoot/applicationReport/ReportFilterPopover';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 
-import { render, screen, fireEvent, within, getAllByRole } from '../../SpecUtil';
+import { render, screen, fireEvent, within, getAllByRole } from 'TestRoot/SpecUtil';
 
 describe('ReportFilterPopover', () => {
   let renderComponent, selectShowFilterPopoverSpy;

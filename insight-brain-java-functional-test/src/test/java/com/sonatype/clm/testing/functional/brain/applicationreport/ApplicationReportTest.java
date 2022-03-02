@@ -18,7 +18,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.PolicyTypeFilter;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.ViolationStateFilter;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.IQDropdown;
+import com.sonatype.clm.testing.functional.elements.NxDropdown;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxTooltip;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
@@ -27,6 +27,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReport
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQGrandfatheringIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ResultRow;
+import com.sonatype.clm.testing.functional.utils.InputUtils;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
@@ -62,7 +63,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
@@ -72,7 +72,7 @@ import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.TR
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationReportTest
-    extends AbstractFunctionalTest
+        extends AbstractFunctionalTest
 {
   public static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
 
@@ -99,7 +99,7 @@ public class ApplicationReportTest
   @Before
   public void start() throws IOException {
     policyViolationGrandfatheringService =
-        testCLMServer.getCLMServer().getInstance(PolicyViolationGrandfatheringService.class);
+            testCLMServer.getCLMServer().getInstance(PolicyViolationGrandfatheringService.class);
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
     PolicyImportExport policyImportExport = new PolicyImportExport();
@@ -127,15 +127,15 @@ public class ApplicationReportTest
     Date policyEvaluationTime = policyEvaluation.getTime();
 
     String policyEvaluationTimeStr = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z")
-        .print(policyEvaluationTime.getTime());
+            .print(policyEvaluationTime.getTime());
     reportPage.shouldBe(visible);
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
-    reportPage.scanTriggerType()
-        .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
-    reportPage.forContinuousMonitoring().shouldBe(hidden);
-    reportPage.reevaluation().shouldBe(hidden);
-    reportPage.reportDate().shouldHave(text(" on " + policyEvaluationTimeStr));
-    reportPage.commitHash().shouldHave(text(policyEvaluation.getCommitHash()));
+    reportPage.reportDescription()
+            .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+    reportPage.reportDescription().shouldNotHave(text("(Continuous Monitoring)"));
+    reportPage.reportDescription().shouldNotHave(text("(Re-evaluation)"));
+    reportPage.reportDescription().shouldHave(text("on " + policyEvaluationTimeStr));
+    reportPage.reportDescription().shouldHave(text(policyEvaluation.getCommitHash()));
 
     reportPage.policyTypeFilterWarning().shouldNot(exist);
 
@@ -163,29 +163,29 @@ public class ApplicationReportTest
     policyEvaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     policyEvaluationTime = policyEvaluation.getTime();
     policyEvaluationTimeStr =
-        DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
+            DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
     refresh();
     reportPage.shouldBe(visible);
-    reportPage.scanTriggerType()
-        .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
-    reportPage.forContinuousMonitoring().shouldBe(hidden);
-    reportPage.reevaluation().shouldHave(text("(Re-evaluation)"));
-    reportPage.reportDate().shouldHave(text(" on " + policyEvaluationTimeStr));
-    reportPage.commitHash().shouldHave(text(policyEvaluation.getCommitHash()));
+    reportPage.reportDescription()
+            .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+    reportPage.reportDescription().shouldNotHave(text("(Continuous Monitoring)"));
+    reportPage.reportDescription().shouldHave(text("(Re-evaluation)"));
+    reportPage.reportDescription().shouldHave(text("on " + policyEvaluationTimeStr));
+    reportPage.reportDescription().shouldHave(text(policyEvaluation.getCommitHash()));
 
     // Update the policy evaluation to look like it was for monitoring
     policyEvaluation = updateForMonitoring(policyEvaluation);
     policyEvaluationTime = policyEvaluation.getTime();
     policyEvaluationTimeStr =
-        DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
+            DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss 'UTC'Z").print(policyEvaluationTime.getTime());
     refresh();
     reportPage.shouldBe(visible);
-    reportPage.scanTriggerType()
-        .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
-    reportPage.forContinuousMonitoring().shouldHave(text("(Continuous Monitoring)"));
-    reportPage.reevaluation().shouldBe(hidden);
-    reportPage.reportDate().shouldHave(text(" on " + policyEvaluationTimeStr));
-    reportPage.commitHash().shouldHave(text(policyEvaluation.getCommitHash()));
+    reportPage.reportDescription()
+            .shouldHave(text("Triggered by " + policyEvaluation.getScanTriggerType().getDisplayName()));
+    reportPage.reportDescription().shouldHave(text("(Continuous Monitoring)"));
+    reportPage.reportDescription().shouldNotHave(text("(Re-evaluation)"));
+    reportPage.reportDescription().shouldHave(text("on " + policyEvaluationTimeStr));
+    reportPage.reportDescription().shouldHave(text(policyEvaluation.getCommitHash()));
   }
 
   private PolicyEvaluation updateForMonitoring(PolicyEvaluation policyEvaluation) {
@@ -205,7 +205,7 @@ public class ApplicationReportTest
 
   @Test
   public void testOptionsMenu() {
-    IQDropdown optionsDropdown = reportPage.optionsDropdown();
+    NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);
     optionsDropdown.button().shouldHave(text("Options")).click();
     optionsDropdown.menu().shouldBe(visible).entries().shouldHaveSize(5);
@@ -215,7 +215,7 @@ public class ApplicationReportTest
 
   @Test
   public void testDownloadPdf() throws Exception {
-    IQDropdown optionsDropdown = reportPage.optionsDropdown();
+    NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
 
     long currentTimeout = Configuration.timeout;
@@ -241,7 +241,7 @@ public class ApplicationReportTest
 
   @Test
   public void testViewSbom() throws Exception {
-    IQDropdown optionsDropdown = reportPage.optionsDropdown();
+    NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
 
     File downloadedSbom = optionsDropdown.menu().entries().get(1).shouldHave(text("View SBOM")).download();
@@ -257,7 +257,7 @@ public class ApplicationReportTest
 
   @Test
   public void testRawDataLink() {
-    IQDropdown optionsDropdown = reportPage.optionsDropdown();
+    NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
     optionsDropdown.menu().entries().get(2).shouldHave(text("View raw data")).click();
 
@@ -267,7 +267,7 @@ public class ApplicationReportTest
 
   @Test
   public void testVulnerabilitiesLink() {
-    IQDropdown optionsDropdown = reportPage.optionsDropdown();
+    NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
     optionsDropdown.menu().entries().get(3).shouldHave(text("View vulnerabilities")).click();
 
@@ -277,7 +277,7 @@ public class ApplicationReportTest
 
   @Test
   public void testLinkToOldReport() {
-    IQDropdown optionsDropdown = reportPage.optionsDropdown();
+    NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
     optionsDropdown.menu().entries().last().shouldHave(text("View legacy report")).click();
 
@@ -297,7 +297,7 @@ public class ApplicationReportTest
     refresh();
 
     // test that indicators are shown when aggregating
-    reportPage.headers().policyNameFilterInput().clear();
+    InputUtils.clearInput(reportPage.headers().policyNameFilterInput());
     reportPage.headers().componentNameFilterInput().setValue("mycila");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
@@ -309,7 +309,7 @@ public class ApplicationReportTest
 
     // test that indicators are shown when not aggregating
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
-    reportPage.headers().componentNameFilterInput().clear();
+    InputUtils.clearInput(reportPage.headers().componentNameFilterInput());
     reportPage.aggregateByComponentToggle().shouldBeOn().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
     reportPage.resultRows().shouldHaveSize(2);
@@ -334,7 +334,7 @@ public class ApplicationReportTest
     reportPage.aggregateByComponentToggle().shouldBeOn().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
-    reportPage.headers().componentNameFilterInput().clear();
+    InputUtils.clearInput(reportPage.headers().componentNameFilterInput());
     reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
     reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
@@ -343,7 +343,7 @@ public class ApplicationReportTest
 
     // a test to catch CLM-12064. When aggregating, the policy name for these rows should change back to None
     reportPage.headers().componentNameFilterInput().setValue("vaadin");
-    reportPage.headers().policyNameFilterInput().clear();
+    InputUtils.clearInput(reportPage.headers().policyNameFilterInput());
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.resultRow(1).policyName().shouldHave(text(licenseBanned.getName()));
     reportPage.resultRow(1).threatNumber().shouldHave(text("10"));
@@ -370,7 +370,7 @@ public class ApplicationReportTest
     reportPage.aggregateByComponentToggle().shouldBeOn().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
-    reportPage.headers().componentNameFilterInput().clear();
+    InputUtils.clearInput(reportPage.headers().componentNameFilterInput());
     reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
     reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
@@ -380,38 +380,38 @@ public class ApplicationReportTest
   public void testInnerSourceTransitiveViolationsCount() {
     reportPage.aggregateByComponentToggle().shouldBeOn();
     reportPage.resultRow(16).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-        .transitiveViolationsCount().shouldHaveSize(1).get(0).shouldHave(text("2 transitive violations"));
+            .transitiveViolationsCount().shouldHaveSize(1).get(0).shouldHave(text("2 transitive violations"));
     reportPage.aggregateByComponentToggle().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
     reportPage.resultRow(21).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-        .transitiveViolationsCount().shouldHaveSize(0);
+            .transitiveViolationsCount().shouldHaveSize(0);
   }
 
   @Test
   public void testDependencyIndicators() {
     reportPage.rowsWithDependencyInfo().shouldHaveSize(6);
     reportPage.resultRow(5).shouldHave(text("apache-httpclient : commons-httpclient : 3.1"))
-        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(DIRECT_DEPENDENCY_CLASS);
+            .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(DIRECT_DEPENDENCY_CLASS);
     ResultRow resultRow = reportPage.resultRow(6).shouldHave(text("apache-taglibs : standard : 1.1.2"));
     ElementsCollection dependencyIndicators = resultRow.dependencyIndicators().shouldHaveSize(2);
     dependencyIndicators.get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS).shouldHave(text("T"));
     dependencyIndicators.get(1).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS).shouldHave(text("IS")).hover();
     Tooltip.get().shouldBe(visible)
-        .shouldHave(text("This component was brought in by the following InnerSource component:"))
-        .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"));
+            .shouldHave(text("This component was brought in by the following InnerSource component:"))
+            .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"));
     dependencyIndicators = reportPage.resultRow(16)
-        .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-        .dependencyIndicators().shouldHaveSize(2);
+            .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
+            .dependencyIndicators().shouldHaveSize(2);
     dependencyIndicators.get(0).shouldHave(DIRECT_DEPENDENCY_CLASS).shouldHave(text("D")).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Direct Dependency"));
     dependencyIndicators.get(1).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS).shouldHave(text("IS")).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("InnerSource"));
     reportPage.resultRow(26).shouldHave(text("org.springframework : spring-core : 3.2.8.RELEASE"))
-        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+            .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
     reportPage.resultRow(57).shouldHave(text("org.springframework : spring-aop : 3.2.8.RELEASE"))
-        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+            .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
     reportPage.resultRow(58).shouldHave(text("org.springframework : spring-beans : 3.2.4.RELEASE"))
-        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+            .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
   }
 
   @Test
@@ -421,8 +421,8 @@ public class ApplicationReportTest
     reportPage.aggregateByComponentToggle().label().hover();
     NxTooltip aggregateByComponentToggleToolTip = new NxTooltip();
     aggregateByComponentToggleToolTip.getElement()
-        .shouldHave(text("By default the Application Report aggregates violations by component. " +
-            "To see all violations not Aggregated by Component, please switch the toggle off."));
+            .shouldHave(text("By default the Application Report aggregates violations by component. " +
+                    "To see all violations not Aggregated by Component, please switch the toggle off."));
 
     // By default the "Aggregate by Component" toggle should be ON
     reportPage.aggregateByComponentToggle().shouldBeOn();
@@ -430,8 +430,8 @@ public class ApplicationReportTest
     reportPage.getThreatBars("critical").shouldHaveSize(17);
     reportPage.getThreatBars("severe").shouldHaveSize(9);
     reportPage.getThreatBars("moderate").shouldHaveSize(1);
-    reportPage.getThreatBars("low").shouldHaveSize(0);
-    reportPage.getThreatBars("ignore").shouldHaveSize(36);
+    reportPage.getThreatBars("low").shouldHaveSize(1);
+    reportPage.getThreatBars("none").shouldHaveSize(36);
     reportPage.headers().componentNameFilterInput().setValue("commons-fileupload");
     reportPage.resultRows().shouldHaveSize(1);
     reportPage.getThreatBars("critical").shouldHaveSize(1);
@@ -444,13 +444,13 @@ public class ApplicationReportTest
     reportPage.getThreatBars("severe").shouldHaveSize(1);
     reportPage.getThreatBars("moderate").shouldHaveSize(1);
 
-    reportPage.headers().componentNameFilterInput().clear();
+    InputUtils.clearInput(reportPage.headers().componentNameFilterInput());
     reportPage.resultRows().shouldHaveSize(102);
     reportPage.getThreatBars("critical").shouldHaveSize(22);
     reportPage.getThreatBars("severe").shouldHaveSize(39);
     reportPage.getThreatBars("moderate").shouldHaveSize(4);
-    reportPage.getThreatBars("low").shouldHaveSize(0);
-    reportPage.getThreatBars("ignore").shouldHaveSize(36);
+    reportPage.getThreatBars("low").shouldHaveSize(1);
+    reportPage.getThreatBars("none").shouldHaveSize(36);
   }
 
   @Test
@@ -462,25 +462,25 @@ public class ApplicationReportTest
     violations.shouldHaveSize(8);
 
     // by threat level
-    headers.threatHeader().sortArrowDown().shouldBeSelected();
+    headers.threatHeader().sortArrows().shouldBeDown();
     violations.shouldHave(texts("10", "10", "9", "9", "0", "0", "0", "0"));
     // check that entries have also been sorted by component name
     checkSecondarySortByNameDescending(violations);
     // reverse threat level
     headers.threatHeader().click();
-    headers.threatHeader().sortArrowUp().shouldBeSelected();
+    headers.threatHeader().sortArrows().shouldBeUp();
     violations.shouldHave(texts("0", "0", "0", "0", "9", "9", "10", "10"));
     // the secondary sort should remain unchanged
     checkSecondarySortByNameDescending(violations);
 
     // by policy name
     headers.policyNameHeader().click();
-    headers.policyNameHeader().sortArrowUp().shouldBeSelected();
+    headers.policyNameHeader().sortArrows().shouldBeUp();
     violations.shouldHave(
         texts("License-Banned", "License-Banned", "None", "None", "None", "None", "Security-High", "Security-High"));
     checkSecondarySortByNameDescending(violations);
     headers.policyNameHeader().click();
-    headers.policyNameHeader().sortArrowDown().shouldBeSelected();
+    headers.policyNameHeader().sortArrows().shouldBeDown();
     violations.shouldHave(
         texts("Security-High", "Security-High", "None", "None", "None", "None", "License-Banned", "License-Banned"));
     checkSecondarySortByNameDescending(violations);
@@ -489,7 +489,7 @@ public class ApplicationReportTest
     reportPage.aggregateByComponentToggle().shouldBeOn().click(); // un-aggregate in order to check secondary sort
     reportPage.aggregateByComponentToggle().shouldBeOff();
     headers.componentNameHeader().click();
-    headers.componentNameHeader().sortArrowUp().shouldBeSelected();
+    headers.componentNameHeader().sortArrows().shouldBeUp();
     String[] componentNamesAlpha = {
         "com.adobe.acrobat", "com.adobe.pdf", "com.fasterxml.jackson.core : jackson-annotations",
         "com.fasterxml.jackson.core : jackson-core", "com.fasterxml.jackson.core : jackson-core",
@@ -500,7 +500,7 @@ public class ApplicationReportTest
     // secondary sort by threat level descending
     violations.filterBy(matchesText("jackson-core")).shouldHave(texts("9", "7"));
     headers.componentNameHeader().click();
-    headers.componentNameHeader().sortArrowDown().shouldBeSelected();
+    headers.componentNameHeader().sortArrows().shouldBeDown();
     ArrayUtils.reverse(componentNamesAlpha);
     violations.shouldHave(texts(componentNamesAlpha));
     // secondary sort should remain unchanged
@@ -556,10 +556,11 @@ public class ApplicationReportTest
     reportPage.filterToggle().click();
 
     ViolationStateFilter violationStateFilter = reportPage.filterPanel().violationStateFilter();
-    violationStateFilter.counter().shouldHave(exactText("4"));
-    violationStateFilter.multiSelectList().shouldBe(empty);
-    violationStateFilter.twisty().click();
     violationStateFilter.multiSelectList().shouldHaveSize(5);
+    violationStateFilter.counter().shouldHave(exactText("4"));
+    violationStateFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
+    violationStateFilter.twisty().click();
+    violationStateFilter.multiSelectList().forEach(child -> child.shouldBe(visible));
 
     violationStateFilter.open().click();
     violationStateFilter.open().shouldBe(selected);
@@ -576,9 +577,11 @@ public class ApplicationReportTest
 
     reportPage.filterToggle().click();
     violationStateFilter = reportPage.filterPanel().violationStateFilter();
-    violationStateFilter.multiSelectList().shouldBe(empty);
+    violationStateFilter.multiSelectList().shouldHaveSize(5);
+    violationStateFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     violationStateFilter.twisty().click();
     violationStateFilter.multiSelectList().shouldHaveSize(5);
+    violationStateFilter.multiSelectList().forEach(child -> child.shouldBe(visible));
 
     violationStateFilter.open().click();
     violationStateFilter.open().shouldBe(selected);
@@ -674,7 +677,7 @@ public class ApplicationReportTest
     reportPage.aggregateByComponentToggle().shouldBeOn().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
     headers.policyNameHeader().click();
-    headers.policyNameHeader().sortArrowUp().shouldBeSelected();
+    headers.policyNameHeader().sortArrows().shouldBeUp();
 
     reportPage.filterToggle().click();
     reportPage.filterPanel().proprietaryFilter().twisty().click();
@@ -687,7 +690,7 @@ public class ApplicationReportTest
 
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));
     reportPage.aggregateByComponentToggle().shouldBeOn();
-    headers.policyNameHeader().sortArrowUp().shouldNotBeSelected();
+    headers.policyNameHeader().sortArrows().shouldNotBeUp();
     reportPage.filterPanel().proprietaryFilter().nonProprietary().shouldNotBe(selected);
     reportPage.filterPanel().closeButton();
   }
@@ -721,11 +724,10 @@ public class ApplicationReportTest
 
     reportPage.policyTypeFilterWarning().shouldBe(visible);
     policyTypeFilter.counter().shouldHave(exactText("4"));
-    policyTypeFilter.multiSelectList().shouldBe(empty);
+    policyTypeFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     violations.shouldHaveSize(63);
     policyTypeFilter.hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Reevaluate the report in order to enable Policy Types filter"));
-    policyTypeFilter.twisty().click();
     policyTypeFilter.multiSelectList().shouldHaveSize(5);
     policyTypeFilter.allItems().shouldBe(disabled);
     policyTypeFilter.security().shouldBe(disabled);
@@ -733,9 +735,13 @@ public class ApplicationReportTest
     policyTypeFilter.license().shouldBe(disabled);
     policyTypeFilter.other().shouldBe(disabled);
     // Assert no changes on click.
-    policyTypeFilter.security().click();
+    policyTypeFilter.twisty().click();
+    policyTypeFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
+    policyTypeFilter.allItems().shouldBe(disabled);
     policyTypeFilter.security().shouldBe(disabled);
-    policyTypeFilter.security().shouldNotBe(selected);
+    policyTypeFilter.quality().shouldBe(disabled);
+    policyTypeFilter.license().shouldBe(disabled);
+    policyTypeFilter.other().shouldBe(disabled);
     violations.shouldHaveSize(63);
 
     reportPage.filterPanel().closeButton().click();
@@ -755,7 +761,7 @@ public class ApplicationReportTest
 
     reportPage.shouldBe(visible);
     // Assertions
-    IQDropdown optionsDropdown = reportPage.optionsDropdown();
+    NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
     optionsDropdown.menu().entries().get(3).shouldHave(DISABLED).click();
     // should remain on report page
@@ -779,10 +785,10 @@ public class ApplicationReportTest
   private void checkSecondarySortByNameDescending(final ElementsCollection violations) {
     violations.filterBy(matchesText("License-Banned")).shouldHave(texts("com.mycila", "com.vaadin"));
     violations.filterBy(matchesText("Security-High")).shouldHave(
-        texts("com.fasterxml.jackson.core : jackson-core : 2.0.4",
-            "com.fasterxml.jackson.core : jackson-databind : 2.0.4"));
+            texts("com.fasterxml.jackson.core : jackson-core : 2.0.4",
+                    "com.fasterxml.jackson.core : jackson-databind : 2.0.4"));
     violations.filterBy(matchesText("None"))
-        .shouldHave(texts("com.adobe.acrobat", "com.adobe.pdf", "com.fasterxml", "com.palominolabs"));
+            .shouldHave(texts("com.adobe.acrobat", "com.adobe.pdf", "com.fasterxml", "com.palominolabs"));
   }
 
   private void activateGrandfathering() throws Exception {
@@ -802,11 +808,11 @@ public class ApplicationReportTest
 
     if (CollectionUtils.isNotEmpty(policyViolations)) {
       return policyViolations.stream()
-          .filter(pv -> pv.getPolicyName().equals(policyName)
-              && pv.getComponentIdentifier().equals(componentIdentifier))
-          .findFirst()
-          .map(PolicyViolation::getId)
-          .orElse(null);
+              .filter(pv -> pv.getPolicyName().equals(policyName)
+                      && pv.getComponentIdentifier().equals(componentIdentifier))
+              .findFirst()
+              .map(PolicyViolation::getId)
+              .orElse(null);
     }
 
     return null;

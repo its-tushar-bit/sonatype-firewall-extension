@@ -231,3 +231,109 @@ tbody .iq-cell--application-report-component-display {
   max-width: 400px;
   text-align: left;
 }
+
+.iq-app-report {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .nx-alert {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  // these grid styles largely copy the nx-tile-header styles, since RSC doesn't yet have
+  // styles for action buttons in the page title area
+  .nx-page-title {
+    align-items: center;
+    display: grid;
+    display: -ms-grid;
+    grid-template-columns: 1fr auto;
+    -ms-grid-columns: 1fr auto;
+
+    .nx-h1 {
+      @include nx-text-helpers.truncate-ellipsis;
+      grid-column-start: 1;
+      grid-column-end: 1;
+      grid-row-start: 1;
+      grid-row-end: 1;
+      -ms-grid-row: 1;
+      -ms-grid-column: 1;
+      margin: 0;
+    }
+
+    .nx-page-title__description {
+      @include nx-text-helpers.semi-bold;
+
+      grid-column-start: 1;
+      grid-column-end: 2;
+      grid-row-start: 2;
+      grid-row-end: 2;
+      -ms-grid-row: 2;
+      -ms-grid-column: 1;
+      -ms-grid-column-span: 2;
+    }
+
+    .iq-page-title__actions {
+      @include nx-container-helpers.container-horizontal;
+
+      float: none;
+      grid-column-start: 2;
+      grid-column-end: 2;
+      grid-row-start: 1;
+      grid-row-end: 1;
+      -ms-grid-row: 1;
+      -ms-grid-column: 2;
+      margin-left: var(--nx-spacing-6x);
+    }
+  }
+
+  .nx-tile {
+    // since parent is a flexbox, margin collapsing won't work
+    margin-top: 0;
+  }
+}
+
+.nx-binary-donut-chart.iq-report-status-bar__coverage-indicator-chart {
+  height: 26px;
+}
+
+.iq-app-report__results-table-tile {
+  $component-cell-max-width: 610px;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  white-space: nowrap;
+
+  > .nx-tile-content {
+    flex: 1;
+    max-height: none;
+  }
+
+  .iq-component-display {
+    display: inline;
+  }
+
+  .iq-dependency-indicator {
+    margin-right: 8px;
+  }
+
+  .nx-table-row--filter-header .nx-filter-input {
+    width: 100%;
+  }
+
+  .nx-tile-header__title {
+    overflow: initial;
+  }
+}
+
+.iq-app-report__threat-cell {
+  width: 90px;
+}
+
+.iq-app-report__policy-name-cell {
+  width: 225px;
+}

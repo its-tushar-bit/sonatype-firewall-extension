@@ -8,6 +8,8 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.checked;
+
 public class NxToggle
     extends BasicElement<NxToggle>
 {
@@ -21,5 +23,15 @@ public class NxToggle
 
   public SelenideElement input() {
     return child(".nx-toggle__input");
+  }
+
+  public SelenideElement shouldBeOn() {
+    input().shouldBe(checked);
+    return this.getElement();
+  }
+
+  public SelenideElement shouldBeOff() {
+    input().shouldNotBe(checked);
+    return this.getElement();
   }
 }

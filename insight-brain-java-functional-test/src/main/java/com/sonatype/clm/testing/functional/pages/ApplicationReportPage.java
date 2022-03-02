@@ -6,11 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter;
-import com.sonatype.clm.testing.functional.elements.IQDropdown;
-import com.sonatype.clm.testing.functional.elements.IqBackButton;
-import com.sonatype.clm.testing.functional.elements.IqSortingHeader;
-import com.sonatype.clm.testing.functional.elements.IqToggle;
+import com.sonatype.clm.testing.functional.elements.*;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
@@ -26,7 +22,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class ApplicationReportPage
     extends BasicElement<ApplicationReportPage>
 {
-  public static final String ROOT = "application-report";
+  public static final String ROOT = "#app-report";
 
   public static final Condition DIRECT_DEPENDENCY_CLASS = cssClass("direct");
 
@@ -39,7 +35,7 @@ public class ApplicationReportPage
   private static final String TRANSITIVE_VIOLATIONS_COUNT_SELECTOR =
       ".iq-transitive-violations-count";
 
-  private static final String ROW_SELECTOR = ".iq-table--application-report tbody .iq-table-row";
+  private static final String ROW_SELECTOR = ".nx-table tbody .nx-table-row";
 
   public static String url(Application app, String scanId) {
     return BaseUrl.resolvePageUrl("/applicationReport/{applicationPublicId}/{scanId}/policy", app.getPublicId(),
@@ -54,36 +50,20 @@ public class ApplicationReportPage
     return child(".nx-page-title .nx-h1");
   }
 
-  public SelenideElement scanTriggerType() {
-    return child("#application-report-scan-trigger-type");
+  public SelenideElement reportDescription() {
+    return child(".nx-page-title__description");
   }
 
-  public SelenideElement forContinuousMonitoring() {
-    return child("#application-report-for-monitoring");
-  }
-
-  public SelenideElement reevaluation() {
-    return child("#application-report-reevaluation");
-  }
-
-  public SelenideElement reportDate() {
-    return child("#application-report-time");
-  }
-
-  public SelenideElement commitHash() {
-    return child("#application-report-commit");
-  }
-
-  public IqBackButton backButton() {
-    return new IqBackButton(ROOT);
+  public NxBackButton backButton() {
+    return new NxBackButton("#menu-bar__back-button-container");
   }
 
   public SelenideElement reevaluateButton() {
-    return child("#reevaluate-button");
+    return child("#reevaluate-report-button");
   }
 
-  public IQDropdown optionsDropdown() {
-    return new IQDropdown("#options-dropdown");
+  public NxDropdown optionsDropdown() {
+    return new NxDropdown("#iq-report-options-dropdown");
   }
 
   public IQThreatIndicators threatIndicators() {
@@ -99,11 +79,11 @@ public class ApplicationReportPage
   }
 
   public SelenideElement filterToggle() {
-    return child("#filter-toggle");
+    return child("#filters-toggle-button");
   }
 
   public SelenideElement goToDependencyTreeButton() {
-    return child("#go-to-dependency-tree");
+    return child("#dependency-tree-button");
   }
 
   public ApplicationReportFilter filterPanel() {
@@ -123,7 +103,7 @@ public class ApplicationReportPage
   }
 
   public ElementsCollection getThreatBars(String threatLevel) {
-    return children(ROW_SELECTOR, ".iq-threat-indication." + threatLevel);
+    return children(ROW_SELECTOR, ".nx-threat-indicator--" + threatLevel);
   }
 
   public ElementsCollection rowsWithDependencyInfo() {
@@ -139,8 +119,8 @@ public class ApplicationReportPage
     return new CipModal("#cip-modal");
   }
 
-  public IqToggle aggregateByComponentToggle() {
-    return new IqToggle(child("iq-toggle"));
+  public NxToggle aggregateByComponentToggle() {
+    return new NxToggle("#report-aggregate-by-component-toggle");
   }
 
   public AppReportHeaders headers() {
@@ -155,19 +135,19 @@ public class ApplicationReportPage
     }
 
     public SelenideElement threatBar() {
-      return child(".iq-threat-indication");
+      return child(".nx-threat-indicator");
     }
 
     public SelenideElement threatNumber() {
-      return child(".iq-threat-number");
+      return child(".iq-app-report__threat-cell");
     }
 
     public SelenideElement policyName() {
-      return child(".iq-cell--application-report-policy-name");
+      return child(".iq-app-report__policy-name-cell");
     }
 
     public SelenideElement componentName() {
-      return child(".iq-cell--application-report-component-display");
+      return child(".iq-app-report__component-name-cell");
     }
 
     public SelenideElement grandfatheredIndicator() {
@@ -231,7 +211,7 @@ public class ApplicationReportPage
     }
 
     public SelenideElement donutChart() {
-      return child("span[coverage-donut] svg");
+      return child("svg");
     }
   }
 
@@ -380,24 +360,24 @@ public class ApplicationReportPage
       return "tbody > tr:nth-child(" + (index + 1) + ") td";
     }
 
-    public IqSortingHeader dateHeader() {
-      return new IqSortingHeader(selector + " thead > tr > th:nth-child(1)");
+    public NxSortingHeader dateHeader() {
+      return new NxSortingHeader(selector + " thead > tr > th:nth-child(1)");
     }
 
-    public IqSortingHeader userHeader() {
-      return new IqSortingHeader(selector + " thead > tr > th:nth-child(2)");
+    public NxSortingHeader userHeader() {
+      return new NxSortingHeader(selector + " thead > tr > th:nth-child(2)");
     }
 
-    public IqSortingHeader actionHeader() {
-      return new IqSortingHeader(selector + " thead > tr > th:nth-child(3)");
+    public NxSortingHeader actionHeader() {
+      return new NxSortingHeader(selector + " thead > tr > th:nth-child(3)");
     }
 
-    public IqSortingHeader detailHeader() {
-      return new IqSortingHeader(selector + " thead > tr > th:nth-child(4)");
+    public NxSortingHeader detailHeader() {
+      return new NxSortingHeader(selector + " thead > tr > th:nth-child(4)");
     }
 
-    public IqSortingHeader commentHeader() {
-      return new IqSortingHeader(selector + " thead > tr > th:nth-child(5)");
+    public NxSortingHeader commentHeader() {
+      return new NxSortingHeader(selector + " thead > tr > th:nth-child(5)");
     }
   }
 
@@ -453,27 +433,27 @@ public class ApplicationReportPage
       extends BasicElement<AppReportHeaders>
   {
     public AppReportHeaders() {
-      super(ROOT, ".iq-table--application-report thead");
+      super(ROOT, ".nx-table thead");
     }
 
-    public IqSortingHeader threatHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--application-report-policy-threat-level a"));
+    public NxSortingHeader threatHeader() {
+      return new NxSortingHeader(childSelector(".iq-app-report__threat-cell"));
     }
 
-    public IqSortingHeader policyNameHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--application-report-policy-name a"));
+    public NxSortingHeader policyNameHeader() {
+      return new NxSortingHeader(childSelector(".iq-app-report__policy-name-cell"));
     }
 
-    public IqSortingHeader componentNameHeader() {
-      return new IqSortingHeader(childSelector(" .iq-cell--application-report-component-display a"));
+    public NxSortingHeader componentNameHeader() {
+      return new NxSortingHeader(childSelector(".iq-app-report__component-name-cell"));
     }
 
     public SelenideElement policyNameFilterInput() {
-      return child(".iq-cell--application-report-policy-name-filter input");
+      return child("#report-policy-name-filter");
     }
 
     public SelenideElement componentNameFilterInput() {
-      return child(".iq-cell--application-report-component-name-filter input");
+      return child("#report-component-name-filter");
     }
   }
 

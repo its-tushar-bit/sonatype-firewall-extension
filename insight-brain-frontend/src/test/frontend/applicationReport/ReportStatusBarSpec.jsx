@@ -6,7 +6,7 @@
 import React from 'react';
 
 import { render, screen } from 'TestRoot/SpecUtil';
-import ReportStatusBar from 'MainRoot/applicationReport/react/ReportStatusBar';
+import ReportStatusBar from 'MainRoot/applicationReport/ReportStatusBar';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 
 describe('ReportStatusBar', () => {

@@ -100,11 +100,11 @@ export default function ReportContent() {
     setSortingOrder(sortingOrder, displayedEntries || []);
   }
 
-  const filterPolicyName = (filter) => {
+  const filterByPolicyName = (filter) => {
     setFieldFilter('policyName', filter);
   };
 
-  const filterDerivedComponentName = (filter) => {
+  const filterByDerivedComponentName = (filter) => {
     setFieldFilter('derivedComponentName', filter);
   };
 
@@ -113,6 +113,7 @@ export default function ReportContent() {
   const dirComponentName = getDirection(sortConfiguration, 'derivedComponentName');
 
   const createRows = () => {
+    if (!displayedEntries) return [];
     return displayedEntries.map((component, index) => {
       const { policyViolationId, hash } = component;
 
@@ -134,7 +135,11 @@ export default function ReportContent() {
       <div className="nx-tile-header">
         <div className="nx-tile-header__title">
           <NxTooltip title={aggregateByComponentToggleTooltip}>
-            <NxToggle isChecked={isAggregated} onChange={toggleAggregateByComponent}>
+            <NxToggle
+              id="report-aggregate-by-component-toggle"
+              isChecked={isAggregated}
+              onChange={toggleAggregateByComponent}
+            >
               Aggregate by component
             </NxToggle>
           </NxTooltip>
@@ -188,12 +193,18 @@ export default function ReportContent() {
               </NxTableRow>
               <NxTableRow className="nx-table-row--filter-header">
                 <NxTableCell colSpan={2}>
-                  <NxFilterInput placeholder="policy name" onChange={filterPolicyName} value={policyNameFilter} />
+                  <NxFilterInput
+                    id="report-policy-name-filter"
+                    placeholder="policy name"
+                    onChange={filterByPolicyName}
+                    value={policyNameFilter}
+                  />
                 </NxTableCell>
                 <NxTableCell>
                   <NxFilterInput
+                    id="report-component-name-filter"
                     placeholder="component name"
-                    onChange={filterDerivedComponentName}
+                    onChange={filterByDerivedComponentName}
                     value={derivedComponentNameFilter}
                   />
                 </NxTableCell>

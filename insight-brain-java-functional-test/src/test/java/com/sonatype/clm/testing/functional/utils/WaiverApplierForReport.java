@@ -22,6 +22,7 @@ public class WaiverApplierForReport
 {
   public static void waiveViolationFromTable(PolicyViolationsTable violationsTable, int rowNumber) {
     SelenideElement row = violationsTable.getRow(rowNumber);
+    row.shouldBe(visible);
     row.click();
     PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
     violationDetailPopover.shouldBe(visible);

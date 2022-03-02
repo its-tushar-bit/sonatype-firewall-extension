@@ -15,13 +15,10 @@ import withStoreProvider from '../reactAdapter/StoreProvider';
 import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 import waiversModule from '../waivers/module';
 
-import applicationReport from './applicationReport';
-import applicationReportResults from './results/applicationReportResults';
+import ReportPage from './ReportPage';
 import applicationReportActions from './applicationReportActions';
-import reevaluationErrorModal from './reevaluationErrorModal/reevaluationErrorModal';
 import applicationReportRoot from './applicationReportRoot';
 import applicationReportVulnerabilities from './vulnerabilities/ApplicationReportVulnerabilities';
-import applicationReportFilter from './applicationReportFilter';
 import ApplicationReportRawDataContainer from './rawData/ApplicationReportRawDataContainer';
 
 export default angular
@@ -35,11 +32,11 @@ export default angular
     waiversModule.name,
     'ngRedux',
   ])
-  .component('applicationReport', applicationReport)
-  .component('applicationReportFilter', applicationReportFilter)
+  .component(
+    'applicationReport',
+    react2angular(withStoreProvider(withRouterStateProvider(ReportPage)), [], ['$ngRedux', '$state'])
+  )
   .component('applicationReportRoot', applicationReportRoot)
-  .component('applicationReportResults', applicationReportResults)
-  .component('reevaluationErrorModal', reevaluationErrorModal)
   .component(
     'applicationReportRawData',
     react2angular(

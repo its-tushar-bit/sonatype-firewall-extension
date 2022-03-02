@@ -6,13 +6,13 @@
 package com.sonatype.clm.testing.functional.elements;
 
 public class PolicyThreatLevelFilter
-    extends IqTreeViewMultiSelect
+    extends NxTreeViewMultiSelect
 {
   public PolicyThreatLevelFilter(final String selector) {
     super(selector);
   }
 
   public ThreatLevelSlider slider() {
-    return new ThreatLevelSlider(childSelector(".iq-policy-threat-level-slider"));
+    return new ThreatLevelSlider(childSelector(".nx-policy-threat-slider"));
   }
 }

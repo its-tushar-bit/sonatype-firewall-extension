@@ -7,7 +7,7 @@ import React from 'react';
 import moment from 'moment-timezone';
 
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
-import ReportTitle from 'MainRoot/applicationReport/react/ReportTitle';
+import ReportTitle from 'MainRoot/applicationReport/ReportTitle';
 
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -165,8 +165,9 @@ describe('ReportTitle', () => {
   it('renders a description with time value and triggered by scan type', () => {
     renderComponent();
     const description = screen.getByText(
-      `Triggered by ${metadataDetails.scanTriggerType} on 2018-11-11 15:13:11 UTC-05:00`
+      `Triggered by ${metadataDetails.scanTriggerType} on 2018-11-11 15:13:11 UTC-0500`
     );
+
     expect(description).toBeVisible();
   });
 
@@ -174,8 +175,9 @@ describe('ReportTitle', () => {
     selectApplicationReportMetaDataSpy.and.returnValue({ ...metadataDetails, forMonitoring: true });
     renderComponent();
     const description = screen.getByText(
-      `Triggered by ${metadataDetails.scanTriggerType} (Continuous Monitoring) on 2018-11-11 15:13:11 UTC-05:00`
+      `Triggered by ${metadataDetails.scanTriggerType} (Continuous Monitoring) on 2018-11-11 15:13:11 UTC-0500`
     );
+
     expect(description).toBeVisible();
   });
 
@@ -183,8 +185,9 @@ describe('ReportTitle', () => {
     selectApplicationReportMetaDataSpy.and.returnValue({ ...metadataDetails, reevaluation: true });
     renderComponent();
     const description = screen.getByText(
-      `Triggered by ${metadataDetails.scanTriggerType} (Re-evaluation) on 2018-11-11 15:13:11 UTC-05:00`
+      `Triggered by ${metadataDetails.scanTriggerType} (Re-evaluation) on 2018-11-11 15:13:11 UTC-0500`
     );
+
     expect(description).toBeVisible();
   });
 });

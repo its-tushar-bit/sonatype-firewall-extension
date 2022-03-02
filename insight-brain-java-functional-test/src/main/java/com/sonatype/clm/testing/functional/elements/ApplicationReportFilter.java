@@ -13,11 +13,11 @@ public class ApplicationReportFilter
     extends BasicElement<ApplicationReportFilter>
 {
   public ApplicationReportFilter() {
-    super("#application-report-sidebar");
+    super("#iq-component-filter-popover");
   }
 
   public SelenideElement closeButton() {
-    return child("#application-report-filter-close-btn");
+    return child(".iq-popover-header__close-btn");
   }
 
   public ProprietaryFilter proprietaryFilter() {
@@ -45,121 +45,121 @@ public class ApplicationReportFilter
   }
 
   public static class ProprietaryFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public ProprietaryFilter(String selector) {
       super(selector);
     }
 
-    public IqCheckbox nonProprietary() {
+    public NxCheckbox nonProprietary() {
       return super.checkboxItem(2);
     }
 
-    public IqCheckbox proprietary() {
+    public NxCheckbox proprietary() {
       return super.checkboxItem(3);
     }
   }
 
   public static class InnerSourceFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public InnerSourceFilter(String selector) {
       super(selector);
     }
 
-    public IqCheckbox nonInnerSource() {
+    public NxCheckbox nonInnerSource() {
       return super.checkboxItem(2);
     }
 
-    public IqCheckbox innerSource() {
+    public NxCheckbox innerSource() {
       return super.checkboxItem(3);
     }
   }
 
   public static class MatchStateFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public MatchStateFilter(String selector) {
       super(selector);
     }
 
-    public IqCheckbox exact() {
+    public NxCheckbox exact() {
       return super.checkboxItem(2);
     }
 
-    public IqCheckbox similar() {
+    public NxCheckbox similar() {
       return super.checkboxItem(3);
     }
 
-    public IqCheckbox unknown() {
+    public NxCheckbox unknown() {
       return super.checkboxItem(4);
     }
   }
 
   public static class ViolationStateFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public ViolationStateFilter(String selector) {
       super(selector);
     }
 
-    public IqCheckbox notViolating() {
+    public NxCheckbox notViolating() {
       return super.checkboxItem(2);
     }
 
-    public IqCheckbox open() {
+    public NxCheckbox open() {
       return super.checkboxItem(3);
     }
 
-    public IqCheckbox waived() {
+    public NxCheckbox waived() {
       return super.checkboxItem(4);
     }
 
-    public IqCheckbox grandfathered() {
+    public NxCheckbox grandfathered() {
       return super.checkboxItem(5);
     }
   }
 
   public static class DependencyTypeFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public DependencyTypeFilter(final String selector) {
       super(selector);
     }
 
-    public IqCheckbox direct() {
+    public NxCheckbox direct() {
       return super.checkboxItem(2);
     }
 
-    public IqCheckbox transitive() {
+    public NxCheckbox transitive() {
       return super.checkboxItem(3);
     }
 
-    public IqCheckbox unknown() {
+    public NxCheckbox unknown() {
       return super.checkboxItem(4);
     }
   }
 
   public static class PolicyTypeFilter
-      extends IqTreeViewMultiSelect
+      extends NxTreeViewMultiSelect
   {
     public PolicyTypeFilter(String selector) {
       super(selector);
     }
 
-    public IqCheckbox security() {
+    public NxCheckbox security() {
       return super.checkboxItem(2);
     }
 
-    public IqCheckbox license() {
+    public NxCheckbox license() {
       return super.checkboxItem(3);
     }
 
-    public IqCheckbox quality() {
+    public NxCheckbox quality() {
       return super.checkboxItem(4);
     }
 
-    public IqCheckbox other() {
+    public NxCheckbox other() {
       return super.checkboxItem(5);
     }
   }

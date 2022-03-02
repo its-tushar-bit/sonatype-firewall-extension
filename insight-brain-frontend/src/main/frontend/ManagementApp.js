@@ -25,7 +25,6 @@ import violationPageModule from './violation/module';
 import withStoreProvider from './reactAdapter/StoreProvider';
 import AdvancedSearchContainer from './advancedSearch/AdvancedSearchContainer';
 import waiversModule from './waivers/module';
-import reportModule from './applicationReport/react/module';
 import firewallModule from './firewall/module';
 import quarantinedComponentReportModule from './quarantinedComponentReport/module';
 import SystemNoticeContainer from './systemNotice/SystemNoticeContainer';
@@ -50,7 +49,6 @@ export default angular
     vulnerabilitySearchModule.name,
     violationPageModule.name,
     waiversModule.name,
-    reportModule.name,
     firewallModule.name,
     componentDetailsModule.name,
     dependencyTreeModule.name,

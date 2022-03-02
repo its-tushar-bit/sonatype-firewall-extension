@@ -6,7 +6,7 @@
 import React from 'react';
 import { remove } from 'ramda';
 
-import ReportTableRow from 'MainRoot/applicationReport/react/ReportTableRow';
+import ReportTableRow from 'MainRoot/applicationReport/ReportTableRow';
 import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 

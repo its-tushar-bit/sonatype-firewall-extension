@@ -7,7 +7,7 @@ import React from 'react';
 import moment from 'moment-timezone';
 
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
-import ReportPage from 'MainRoot/applicationReport/react/ReportPage';
+import ReportPage from 'MainRoot/applicationReport/ReportPage';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -176,12 +176,12 @@ describe('Report Page component', () => {
     const header = screen.getByRole('heading', { name: 'App Name Title' });
     const reevaluateButton = screen.getByRole('button', { name: 'Re-Evaluate Report' });
     const options = screen.getByRole('button', { name: 'Options' });
-    const description = screen.getByText(`Triggered by ${metadata.scanTriggerType} on 2018-11-11 15:13:11 UTC-05:00`);
+    const description = screen.getByText(`Triggered by ${metadata.scanTriggerType} on 2018-11-11 15:13:11 UTC-0500`);
 
     expect(header).toBeVisible();
-    expect(description).toBeVisible();
     expect(reevaluateButton).toBeVisible();
     expect(options).toBeVisible();
+    expect(description).toBeVisible();
 
     fireEvent.click(options);
     expect(screen.getByRole('link', { name: 'Generate PDF' })).toBeVisible();

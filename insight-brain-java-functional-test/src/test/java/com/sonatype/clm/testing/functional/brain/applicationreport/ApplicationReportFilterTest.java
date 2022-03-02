@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.utils.InputUtils;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -37,7 +38,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
-import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.exactText;
@@ -100,7 +100,7 @@ public class ApplicationReportFilterTest
     violations.shouldHaveSize(1);
     violations.shouldHave(texts("No Results"));
 
-    headers.policyNameFilterInput().clear();
+    InputUtils.clearInput(headers.policyNameFilterInput());
     violations.shouldHaveSize(3);
     violations.shouldHave(texts("None", "None", "None"));
     violations.shouldHave(texts("org.slf4j : jcl-over-slf4j", "org.slf4j : slf4j-api", "org.slf4j : slf4j-log4j12"));
@@ -116,9 +116,11 @@ public class ApplicationReportFilterTest
     ProprietaryFilter proprietaryFilter = reportPage.filterPanel().proprietaryFilter();
 
     proprietaryFilter.counter().shouldHave(text("2"));
-    proprietaryFilter.multiSelectList().shouldBe(empty);
+    proprietaryFilter.multiSelectList().shouldHaveSize(3);
+    proprietaryFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     proprietaryFilter.twisty().click();
     proprietaryFilter.multiSelectList().shouldHaveSize(3);
+    proprietaryFilter.multiSelectList().forEach(child -> child.shouldBe(visible));
     proprietaryFilter.proprietary().click();
 
     proprietaryFilter.counter().shouldHave(text("1 of 2"));
@@ -128,7 +130,7 @@ public class ApplicationReportFilterTest
     violations.shouldHaveSize(1);
     violations.shouldHave(texts("No Results"));
 
-    headers.componentNameFilterInput().clear();
+    InputUtils.clearInput(headers.componentNameFilterInput());
 
     violations.shouldHaveSize(3);
     violations.shouldHave(texts("full.jar", "org.apache.tiles : tiles-api", "org.apache.tiles : tiles-core"));
@@ -158,9 +160,11 @@ public class ApplicationReportFilterTest
     // InnerSource filter
     InnerSourceFilter innerSourceFilter = reportPage.filterPanel().innerSourceFilter();
     innerSourceFilter.counter().shouldHave(exactText("2"));
-    innerSourceFilter.multiSelectList().shouldBe(empty);
+    innerSourceFilter.multiSelectList().shouldHaveSize(3);
+    innerSourceFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     innerSourceFilter.twisty().click();
     innerSourceFilter.multiSelectList().shouldHaveSize(3);
+    innerSourceFilter.multiSelectList().forEach(child -> child.shouldBe(visible));
 
     innerSourceFilter.innerSource().click();
     innerSourceFilter.innerSource().shouldBe(selected);
@@ -179,9 +183,11 @@ public class ApplicationReportFilterTest
     // match state filter
     MatchStateFilter matchStateFilter = reportPage.filterPanel().matchStateFilter();
     matchStateFilter.counter().shouldHave(exactText("3"));
-    matchStateFilter.multiSelectList().shouldBe(empty);
+    matchStateFilter.multiSelectList().shouldHaveSize(4);
+    matchStateFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     matchStateFilter.twisty().click();
     matchStateFilter.multiSelectList().shouldHaveSize(4);
+    matchStateFilter.multiSelectList().forEach(child -> child.shouldBe(visible));
 
     matchStateFilter.similar().click();
     matchStateFilter.similar().shouldBe(selected);
@@ -204,9 +210,11 @@ public class ApplicationReportFilterTest
     //policy type filter
     PolicyTypeFilter policyTypeFilter = reportPage.filterPanel().policyTypeFilter();
     policyTypeFilter.counter().shouldHave(exactText("4"));
-    policyTypeFilter.multiSelectList().shouldBe(empty);
+    policyTypeFilter.multiSelectList().shouldHaveSize(5);
+    policyTypeFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     policyTypeFilter.twisty().click();
     policyTypeFilter.multiSelectList().shouldHaveSize(5);
+    policyTypeFilter.multiSelectList().forEach(child -> child.shouldBe(visible));
 
     policyTypeFilter.quality().click();
     policyTypeFilter.quality().shouldBe(selected);
@@ -248,9 +256,11 @@ public class ApplicationReportFilterTest
     // dependency type filter
     DependencyTypeFilter dependencyTypeFilter = reportPage.filterPanel().dependencyTypeFilter();
     dependencyTypeFilter.counter().shouldHave(exactText("3"));
-    dependencyTypeFilter.multiSelectList().shouldBe(empty);
+    dependencyTypeFilter.multiSelectList().shouldHaveSize(4);
+    dependencyTypeFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     dependencyTypeFilter.twisty().click();
     dependencyTypeFilter.multiSelectList().shouldHaveSize(4);
+    dependencyTypeFilter.multiSelectList().forEach(child -> child.shouldBe(visible));
     dependencyTypeFilter.unknown().click();
     dependencyTypeFilter.unknown().shouldBe(selected);
     violations.shouldHaveSize(55);
@@ -278,7 +288,7 @@ public class ApplicationReportFilterTest
 
     // policy threat level filter
     PolicyThreatLevelFilter threatLevelFilter = DashboardFilters.iqPolicyThreatLevelFilter();
-    threatLevelFilter.counter().shouldBe(visible).shouldHave(cssClass("iq-counter--active")).shouldHave(text("0 – 10"));
+    threatLevelFilter.counter().shouldBe(visible).shouldHave(cssClass("nx-counter--active")).shouldHave(text("0 – 10"));
     threatLevelFilter.slider().shouldBe(hidden);
     threatLevelFilter.twisty().click();
     threatLevelFilter.slider().shouldBe(visible);

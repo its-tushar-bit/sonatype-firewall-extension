@@ -5,9 +5,10 @@
  */
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-
-import moment from 'moment';
 import classnames from 'classnames';
+import moment from 'moment';
+import { filter, join, pipe } from 'ramda';
+import { faFilePdf, faSync, faFile, faFileCode } from '@fortawesome/pro-solid-svg-icons';
 import {
   NxStatefulDropdown,
   NxDropdownDivider,
@@ -16,21 +17,17 @@ import {
   NxFontAwesomeIcon,
 } from '@sonatype/react-shared-components';
 
-import { faFilePdf, faSync, faFile, faFileCode } from '@fortawesome/pro-solid-svg-icons';
-
-import { selectApplicationReportMetaData, selectSelectedReport } from '../applicationReportSelectors';
+import { selectApplicationReportMetaData, selectSelectedReport } from './applicationReportSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { reevaluateReport as reevaluateR } from '../applicationReportActions';
+import { reevaluateReport as reevaluateR } from './applicationReportActions';
 import { stateGo as stateG } from 'MainRoot/reduxUiRouter/routerActions';
 
 import { getDownloadPdfUrl, getViewSbomUrl } from 'MainRoot/util/CLMLocation';
 
-import { compose, filter, join } from 'ramda';
-
 const renderDescription = (metadataDetails) => {
   const { scanTriggerType, forMonitoring, reevaluation, reportTime, commitHash } = metadataDetails;
 
-  const formatDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss [UTC]Z');
+  const formatDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss [UTC]ZZ');
   const description = [
     scanTriggerType && `Triggered by ${scanTriggerType}`,
     forMonitoring && '(Continuous Monitoring)',
@@ -39,8 +36,9 @@ const renderDescription = (metadataDetails) => {
     commitHash && `- Commit ${commitHash}`,
   ];
 
-  return compose(join(' '), filter(Boolean))(description);
+  return pipe(filter(Boolean), join(' '))(description);
 };
+
 export default function ReportTitle() {
   const dispatch = useDispatch();
   const metadataDetails = useSelector(selectApplicationReportMetaData);
@@ -81,11 +79,15 @@ export default function ReportTitle() {
   return (
     <div className="nx-page-title">
       <div className="nx-btn-bar">
-        <NxButton className="nx-btn--tertiary" onClick={reevaluateReport}>
+        <NxButton id="reevaluate-report-button" className="nx-btn--tertiary" onClick={reevaluateReport}>
           <NxFontAwesomeIcon icon={faSync} />
           <span>Re-Evaluate Report</span>
         </NxButton>
-        <NxStatefulDropdown label="Options" className="nx-dropdown--navigation iq-report-actions">
+        <NxStatefulDropdown
+          id="iq-report-options-dropdown"
+          label="Options"
+          className="nx-dropdown--navigation iq-report-actions"
+        >
           <a className="nx-dropdown-button" href={pdfUrl}>
             <NxFontAwesomeIcon icon={faFilePdf} />
             <span>Generate PDF</span>

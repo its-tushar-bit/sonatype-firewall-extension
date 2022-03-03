@@ -685,4 +685,12 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getDeleteCategoriesUrl('organization', 'someOrganization', 'categoryId')).toEqual(expectedUrl);
     });
   });
+
+  describe('getOrganizationPolicyTagUrl', () => {
+    it('returns url for delete category', () => {
+      const expectedUrl = '/api/v2/applicationCategories/organization/someOrganization/policy';
+
+      expect(clmLocation.getOrganizationPolicyTagUrl('someOrganization')).toEqual(expectedUrl);
+    });
+  });
 });

@@ -27,6 +27,7 @@ import {
   getCategoriesUrl,
   getDeleteCategoriesUrl,
   getOrganizationAppliedTagUrl,
+  getOrganizationPolicyTagUrl,
 } from '../util/CLMLocation';
 import { selectRouterCurrentParams, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsEditMode, selectCurrentCategory } from './orgsAndPoliciesApplicationCategoriesSelectors';
@@ -61,6 +62,16 @@ export const initialState = {
     errorState: null,
   },
 };
+
+const loadOrganizationPolicyTags = createAsyncThunk(
+  `${REDUCER_NAME}/loadOrganizationPolicyTags`,
+  (_, { getState, rejectWithValue }) => {
+    const { ownerId } = selectOwnerProperties(getState());
+    const url = getOrganizationPolicyTagUrl(ownerId);
+
+    return axios.get(url).then(prop('data')).catch(rejectWithValue);
+  }
+);
 
 const loadOrganizationAppliedTag = createAsyncThunk(
   `${REDUCER_NAME}/loadOrganizationAppliedTag`,
@@ -197,7 +208,7 @@ const loadCategoryEditor = createAsyncThunk(
     const isEditMode = selectIsEditMode(getState());
 
     const editCategoryPromises = isEditMode
-      ? [dispatch(loadOrganizationAppliedTag()), ...categoryEditorPromises]
+      ? [dispatch(loadOrganizationAppliedTag()), ...categoryEditorPromises, dispatch(loadOrganizationPolicyTags())]
       : [Promise.resolve({})];
     const promises = [dispatch(loadApplicableCategoriesByOwner()), ...editCategoryPromises];
 
@@ -224,7 +235,7 @@ const loadCategoryEditor = createAsyncThunk(
           },
           allApplication,
           policyHierarchy,
-          { data: policyTags = [] },
+          { payload: policyTags = [] },
         ] = results;
         const { categoryId } = selectRouterCurrentParams(getState());
         const categoryToEdit = findCategoryToEdit(categoryId, applicationCategoriesByOwner);
@@ -385,6 +396,7 @@ export default orgsAndPoliciesApplicationCategoriesSlice.reducer;
 export const actions = {
   ...orgsAndPoliciesApplicationCategoriesSlice.actions,
   loadOrganizationAppliedTag,
+  loadOrganizationPolicyTags,
   loadCategoryEditor,
   saveApplicationCategory,
   removeApplicationCategory,

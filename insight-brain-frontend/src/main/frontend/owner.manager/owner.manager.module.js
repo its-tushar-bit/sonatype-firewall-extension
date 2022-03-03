@@ -17,7 +17,6 @@ import storesModule from '../util/Stores';
 import ownerPolicyList from './summary/ownerPolicyList/ownerPolicyList';
 import ProductFeaturesModule from '../util/ProductFeatures';
 
-import tagsModule from '../policy/TagController';
 import licenseThreatGroupModule from '../policy/LicenseThreatGroupsController';
 import policyModule from '../policy/PolicyMonitoringStore';
 import roleMembershipModule from '../role.membership/role.membership.module';
@@ -91,7 +90,6 @@ import innerSourceRepositoryModule from './innersource.repository/module';
 export default angular
   .module('owner.manager.module', [
     storesModule.name,
-    tagsModule.name,
     licenseThreatGroupModule.name,
     'ui.bootstrap',
     'ui.router',

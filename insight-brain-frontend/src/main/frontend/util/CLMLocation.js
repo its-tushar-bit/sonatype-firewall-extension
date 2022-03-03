@@ -815,6 +815,10 @@ export const getDeleteCategoriesUrl = (ownerType, ownerId, categoryId) => {
   return getCategoriesUrl(ownerType, ownerId) + `/${categoryId}`;
 };
 
+export const getOrganizationPolicyTagUrl = (organizationId) => {
+  return getCategoriesUrl('organization', organizationId) + '/policy';
+};
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',
@@ -937,9 +941,6 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
 
       getOrganizationAppliedTagUrl: function (organizationId) {
         return this.getCategoriesUrl('organization', organizationId) + '/applied';
-      },
-      getOrganizationPolicyTagUrl: function (organizationId) {
-        return this.getCategoriesUrl('organization', organizationId) + '/policy';
       },
       getCategoriesUrl: function (ownerType, ownerId) {
         return baseUrl.get() + '/api/v2/applicationCategories/' + ownerType + '/' + encodeURIComponent(ownerId);

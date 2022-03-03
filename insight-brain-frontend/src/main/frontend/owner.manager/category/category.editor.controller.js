@@ -21,7 +21,6 @@ export default function CategoryEditorController(
   $scope,
   Modal,
   DeleteModalService,
-  PolicyTagStore,
   PolicyHierarchyStore,
   ApplicationStore,
   $ngRedux
@@ -79,7 +78,7 @@ export default function CategoryEditorController(
     },
 
     doLoad() {
-      const categoryEditorPromises = [ApplicationStore.get(), PolicyHierarchyStore.get(), PolicyTagStore.getApplied()];
+      const categoryEditorPromises = [ApplicationStore.get(), PolicyHierarchyStore.get()];
 
       vm.loadCategoryEditor({ categoryEditorPromises });
     },
@@ -121,7 +120,6 @@ CategoryEditorController.$inject = [
   '$scope',
   'Modal',
   'DeleteModalService',
-  'PolicyTagStore',
   'PolicyHierarchyStore',
   'ApplicationStore',
   '$ngRedux',

@@ -9,11 +9,16 @@ import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCate
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import * as selectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
-import { getOrganizationAppliedTagUrl } from 'MainRoot/util/CLMLocation';
-import { getApplicableCategoriesUrl, getCategoriesUrl, getDeleteCategoriesUrl } from 'MainRoot/util/CLMLocation';
+import {
+  getApplicableCategoriesUrl,
+  getCategoriesUrl,
+  getDeleteCategoriesUrl,
+  getOrganizationAppliedTagUrl,
+  getOrganizationPolicyTagUrl,
+} from 'MainRoot/util/CLMLocation';
 import TagResourceMockData from 'TestRoot/owner.manager/mock.data/tag.resource.mock.data';
 
-describe('orgsAndPoliciesApplicatioNCategoriesActions', () => {
+describe('orgsAndPoliciesApplicationCategoriesActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let store, mockOwnerId, mockOwnerType, mockOwnerName;
 
@@ -25,6 +30,53 @@ describe('orgsAndPoliciesApplicatioNCategoriesActions', () => {
     spyOn(orgsAndPoliciesSelectors, 'selectOwnerProperties').and.returnValue({
       ownerId: mockOwnerId,
       ownerType: 'ownerType',
+    });
+  });
+
+  describe('loadOrganizationPolicyTags', () => {
+    it('loads policy tags successfully', (done) => {
+      mockAxiosCalls({
+        get: {
+          [getOrganizationPolicyTagUrl(mockOwnerId)]: Promise.resolve({
+            data: {},
+          }),
+        },
+      });
+
+      store.dispatch(actions.loadOrganizationPolicyTags()).then(() => {
+        expect(axios.get).toHaveBeenCalledTimes(1);
+
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'applicationCategories/loadOrganizationPolicyTags/pending',
+          'applicationCategories/loadOrganizationPolicyTags/fulfilled',
+        ]);
+
+        done();
+      });
+    });
+
+    it('dispatches rejected action if loadOrganizationPolicyTags request fails', (done) => {
+      mockAxiosCalls({
+        get: {
+          [getOrganizationAppliedTagUrl(mockOwnerId)]: () => Promise.reject('something went wrong'),
+        },
+      });
+
+      store.dispatch(actions.loadOrganizationPolicyTags()).then(() => {
+        expect(axios.get).toHaveBeenCalledTimes(1);
+
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'applicationCategories/loadOrganizationPolicyTags/pending',
+          'applicationCategories/loadOrganizationPolicyTags/rejected',
+        ]);
+        done();
+      });
     });
   });
 
@@ -309,8 +361,7 @@ describe('orgsAndPoliciesApplicatioNCategoriesActions', () => {
     ];
     const getAllApplicationPromise = jasmine.createSpy().and.returnValue(allApplications);
     const getPolicyHierarchyPromise = jasmine.createSpy().and.returnValue(policyHierarchy);
-    const getPolicyTagsPromise = jasmine.createSpy().and.returnValue({ data: policyTags });
-    const editCategoryPromises = [getAllApplicationPromise(), getPolicyHierarchyPromise(), getPolicyTagsPromise()];
+    const editCategoryPromises = [getAllApplicationPromise(), getPolicyHierarchyPromise()];
 
     const applicationTagsByOwner = [
       {
@@ -410,6 +461,9 @@ describe('orgsAndPoliciesApplicatioNCategoriesActions', () => {
           [getOrganizationAppliedTagUrl(mockOwnerId)]: Promise.resolve({
             data: { applicationTagsByOwner },
           }),
+          [getOrganizationPolicyTagUrl(mockOwnerId)]: Promise.resolve({
+            data: policyTags,
+          }),
         },
       });
 
@@ -420,21 +474,23 @@ describe('orgsAndPoliciesApplicatioNCategoriesActions', () => {
           })
         )
         .then(() => {
-          expect(axios.get).toHaveBeenCalledTimes(2);
+          expect(axios.get).toHaveBeenCalledTimes(3);
 
           const actions = store.getActions();
 
-          expect(actions.length).toBe(6);
+          expect(actions.length).toBe(8);
           expect(actions).toHaveActionTypesInOrder([
             'applicationCategories/loadCategoryEditor/pending',
             'applicationCategories/loadOrganizationAppliedTag/pending',
+            'applicationCategories/loadOrganizationPolicyTags/pending',
             'applicationCategories/loadApplicableCategoriesByOwner/pending',
             'applicationCategories/loadOrganizationAppliedTag/fulfilled',
+            'applicationCategories/loadOrganizationPolicyTags/fulfilled',
             'applicationCategories/loadApplicableCategoriesByOwner/fulfilled',
             'applicationCategories/loadCategoryEditor/fulfilled',
           ]);
 
-          expect(actions[5].payload).toEqual({
+          expect(actions[7].payload).toEqual({
             siblings: flattenedApplicationCategories,
             associatedApplicationNames: ['activemq'],
             currentCategory: {

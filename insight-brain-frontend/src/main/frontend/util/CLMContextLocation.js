@@ -249,10 +249,6 @@ locationModule.factory('CLMContextLocations', [
 
       getPermissionContextTestUrl,
 
-      getProprietaryConfigUrl: function () {
-        return baseUrl.get() + '/rest/proprietary/' + getServicePathWithId();
-      },
-
       getLdapConnectionConfig: function () {
         return getLdapConfig($state.params.ldapId) + '/connection';
       },

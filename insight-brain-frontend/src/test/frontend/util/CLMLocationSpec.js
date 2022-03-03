@@ -596,6 +596,14 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getProprietaryConfigUrl', () => {
+    it('should return a URL with proper ownerType and ownerId', () => {
+      expect(CLMLocation.getProprietaryConfigUrl('application', 'ownerId')).toBe(
+        '/rest/proprietary/application/ownerId'
+      );
+    });
+  });
+
   describe('getLabelsUrl', () => {
     it('should return a URL with proper ownerType and ownerId', () => {
       expect(CLMLocation.getLabelsUrl('application', 'application')).toBe('/api/v2/labels/application/application');

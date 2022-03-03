@@ -3,294 +3,254 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import { mapStateToThis } from 'MainRoot/owner.manager/policy/proprietary.config.editor.controller';
+import * as proprietarySelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySelectors';
+import { matcherTypes } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySlice';
 
-describe('proprietary.config.editor.controller.spec.js', function () {
+describe('proprietary.config.editor.controller', () => {
   beforeEach(
-    angular.mock.module(ownerManagerModule.name, function ($provide) {
-      $provide.value('$cookies', {
-        get: angular.noop,
-      });
+    angular.mock.module(ownerManagerModule.name, ($provide) => {
+      SpecUtil.mockNgRedux($provide);
     })
   );
 
-  var vm,
-    $q,
-    scope,
-    $httpBackend,
-    $timeout,
-    $rootScope,
-    CLMContextLocations,
-    mockProprietaryConfig = ResourceUtils().createMockResource();
+  let vm, scope, $rootScope;
 
-  beforeEach(inject(function (
-    _$rootScope_,
-    $injector,
-    _$q_,
-    $controller,
-    _$timeout_,
-    _$httpBackend_,
-    _CLMContextLocations_
-  ) {
+  beforeEach(inject((_$rootScope_, $controller) => {
     $rootScope = _$rootScope_;
     scope = $rootScope.$new();
-    $q = _$q_;
-    $httpBackend = _$httpBackend_;
-    $timeout = _$timeout_;
-    CLMContextLocations = _CLMContextLocations_;
 
     vm = $controller('proprietary.config.editor.controller', {
       $scope: scope,
     });
 
-    vm.proprietaryConfigEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
+    scope.vm = vm;
+    vm.$onInit();
   }));
 
-  afterEach(function () {
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
+  describe('mapStateToThis', () => {
+    it('maps redux properties to component', () => {
+      spyOn(proprietarySelectors, 'selectLoadError').and.returnValue(null);
+      spyOn(proprietarySelectors, 'selectSubmitError').and.returnValue(null);
+      spyOn(proprietarySelectors, 'selectIsLoading').and.returnValue(false);
+      spyOn(proprietarySelectors, 'selectLocalMatchers').and.returnValue([
+        {
+          type: 'Package',
+          matcher: 'first',
+        },
+        {
+          type: 'Package',
+          matcher: 'second',
+        },
+        {
+          type: 'Regular Expression',
+          matcher: 'cuatro',
+        },
+      ]);
+
+      spyOn(proprietarySelectors, 'selectProprietaryConfigs').and.returnValue({
+        ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+        ownerName: 'dfgdf',
+        ownerType: 'application',
+        proprietaryConfig: {
+          id: 'f977bcf69fcb464b84837f643d8f93b7',
+          ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+          packages: ['first', 'second'],
+          regexes: ['cuatro'],
+        },
+      });
+      spyOn(proprietarySelectors, 'selectCurrentConfigs').and.returnValue({
+        id: 'f977bcf69fcb464b84837f643d8f93b7',
+        ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+        packages: ['first', 'second'],
+        regexes: ['cuatro'],
+      });
+      spyOn(proprietarySelectors, 'selectPackageMatcher').and.returnValue('packageMatcher');
+      spyOn(proprietarySelectors, 'selectRegexMatcher').and.returnValue('regexMatcher');
+      spyOn(proprietarySelectors, 'selectMatcherType').and.returnValue(matcherTypes.PACKAGE);
+      spyOn(proprietarySelectors, 'selectIsDirty').and.returnValue(false);
+
+      const output = mapStateToThis({});
+
+      expect(output.loadError).toBeNull();
+      expect(output.submitError).toBeNull();
+      expect(output.loading).toBeFalse();
+      expect(output.isDirty).toBeFalse();
+
+      expect(output.matcherType).toBe(matcherTypes.PACKAGE);
+      expect(output.regexMatcher).toBe('regexMatcher');
+      expect(output.packageMatcher).toBe('packageMatcher');
+      expect(output.dirtyProprietaryConfig).toEqual({
+        id: 'f977bcf69fcb464b84837f643d8f93b7',
+        ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+        packages: ['first', 'second'],
+        regexes: ['cuatro'],
+      });
+      expect(output.localMatchers).toEqual([
+        {
+          type: 'Package',
+          matcher: 'first',
+        },
+        {
+          type: 'Package',
+          matcher: 'second',
+        },
+        {
+          type: 'Regular Expression',
+          matcher: 'cuatro',
+        },
+      ]);
+      expect(output.proprietaryConfigs).toEqual({
+        ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+        ownerName: 'dfgdf',
+        ownerType: 'application',
+        proprietaryConfig: {
+          id: 'f977bcf69fcb464b84837f643d8f93b7',
+          ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+          packages: ['first', 'second'],
+          regexes: ['cuatro'],
+        },
+      });
+    });
   });
 
-  describe('Page Changes', function () {
-    beforeEach(inject(function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getProprietaryConfigUrl())
-        .respond(ProprietaryMockData.getProprietaryConfiguration());
-      $httpBackend.flush();
-      vm.dirtyProprietaryConfig = mockProprietaryConfig;
-      vm.dirtyProprietaryConfig.isDirty = angular.noop;
-    }));
+  describe('$onInit()', () => {
+    it('subscribes to the redux store', () => {
+      expect(vm.unsubscribe).toBeDefined();
+    });
 
-    it('clean', function () {
-      spyOn(vm.dirtyProprietaryConfig, 'isDirty').and.returnValue(false);
+    it('calls loadProprietaryConfig', () => {
+      expect(vm.load).toHaveBeenCalledTimes(1);
+    });
+  });
 
+  describe('$onDestroy()', () => {
+    it('unsubscribes from redux store', () => {
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
+      vm.$onDestroy();
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('on pageChangeStarted', () => {
+    it('navigates away if form is not dirty', () => {
+      vm.isDirty = false;
       SpecUtil.expectStateChangeNotPrevented(scope);
-      expect(vm.dirtyProprietaryConfig.isDirty).toHaveBeenCalled();
     });
 
-    it('dirty', function () {
-      spyOn(vm.dirtyProprietaryConfig, 'isDirty').and.returnValue(true);
-
+    it('does not navigate away if form is dirty', () => {
+      vm.isDirty = true;
       SpecUtil.expectStateChangePrevented(scope);
-      expect(vm.dirtyProprietaryConfig.isDirty).toHaveBeenCalled();
     });
   });
 
-  it('proprietary config editor loads properly', function () {
-    $httpBackend
-      .expectGET(CLMContextLocations.getProprietaryConfigUrl())
-      .respond(ProprietaryMockData.getProprietaryConfiguration());
-    $httpBackend.flush();
-
-    expect(vm.dirtyProprietaryConfig.$new).toBeFalsy();
-    expect(vm.localMatchers.length).toEqual(3);
-    expect(vm.proprietaryConfigs.length).toEqual(2);
-
-    expect(vm.proprietaryConfigs[0].proprietaryConfig[0].packages).toEqual(['com.sonatype', 'com.local']);
-    expect(vm.proprietaryConfigs[0].proprietaryConfig[0].regexes).toEqual(['.*/test\\.zip']);
-
-    expect(vm.proprietaryConfigs[1].proprietaryConfig[0].packages).toEqual([]);
-    expect(vm.proprietaryConfigs[1].proprietaryConfig[0].regexes).toEqual(['.*/foo\\.zip']);
-
-    expect(vm.dirtyProprietaryConfig.packages.length).toEqual(2);
-    expect(vm.dirtyProprietaryConfig.regexes.length).toEqual(1);
-
-    expect(vm.localMatchers[0].type).toEqual(vm.matcherTypes.PACKAGE);
-    expect(vm.localMatchers[0].matcher).toEqual('com.sonatype');
-    expect(vm.localMatchers[1].type).toEqual(vm.matcherTypes.PACKAGE);
-    expect(vm.localMatchers[1].matcher).toEqual('com.local');
-    expect(vm.localMatchers[2].type).toEqual(vm.matcherTypes.REGEX);
-    expect(vm.localMatchers[2].matcher).toEqual('.*/test\\.zip');
-  });
-
-  it('Save fails with successful retry', function () {
-    $httpBackend
-      .expectGET(CLMContextLocations.getProprietaryConfigUrl())
-      .respond(ProprietaryMockData.getProprietaryConfiguration());
-    $httpBackend.flush();
-
-    vm.dirtyProprietaryConfig = mockProprietaryConfig;
-    vm.save();
-    vm.dirtyProprietaryConfig.rejectSave('config error');
-
-    $timeout.flush();
-    expect(vm.submitError).toBe('config error');
-
-    vm.save();
-    expect(vm.submitError).toBeUndefined();
-  });
-
-  it('proprietary config editor fails to load data', function () {
-    $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl()).respond(500, 'foo');
-    $httpBackend.flush();
-    $timeout.flush();
-    expect(vm.loadError).toEqual('foo');
-  });
-
-  it('removes package matcher from local array and updates vm.dirtyProprietaryConfig.packages', function () {
-    $httpBackend
-      .expectGET(CLMContextLocations.getProprietaryConfigUrl())
-      .respond(ProprietaryMockData.getProprietaryConfiguration());
-    $httpBackend.flush();
-
-    expect(vm.localMatchers.length).toBe(3);
-    expect(vm.dirtyProprietaryConfig.packages).toEqual(['com.sonatype', 'com.local']);
-    expect(vm.dirtyProprietaryConfig.regexes).toEqual(['.*/test\\.zip']);
-    expect(vm.localMatchers[0].type).toBe(vm.matcherTypes.PACKAGE);
-    expect(vm.localMatchers[1].type).toBe(vm.matcherTypes.PACKAGE);
-    expect(vm.localMatchers[1].matcher).toBe('com.local');
-
-    vm.removeMatcher(vm.localMatchers[1]);
-    expect(vm.localMatchers.length).toBe(2);
-    expect(vm.dirtyProprietaryConfig.packages).toEqual(['com.sonatype']);
-    expect(vm.dirtyProprietaryConfig.regexes).toEqual(['.*/test\\.zip']);
-  });
-
-  it('removes regex matcher from local array and updates vm.dirtyProprietaryConfig.regexes', function () {
-    $httpBackend
-      .expectGET(CLMContextLocations.getProprietaryConfigUrl())
-      .respond(ProprietaryMockData.getProprietaryConfiguration());
-    $httpBackend.flush();
-
-    expect(vm.localMatchers.length).toBe(3);
-    expect(vm.dirtyProprietaryConfig.packages.length).toBe(2);
-    expect(vm.dirtyProprietaryConfig.regexes.length).toBe(1);
-    expect(vm.localMatchers[2].type).toBe(vm.matcherTypes.REGEX);
-
-    vm.removeMatcher(vm.localMatchers[2]);
-    expect(vm.localMatchers.length).toBe(2);
-    expect(vm.dirtyProprietaryConfig.packages.length).toBe(2);
-    expect(vm.dirtyProprietaryConfig.regexes.length).toBe(0);
-  });
-
-  it('removes same regex and package name', function () {
-    $httpBackend
-      .expectGET(CLMContextLocations.getProprietaryConfigUrl())
-      .respond(ProprietaryMockData.getProprietaryConfiguration());
-    $httpBackend.flush();
-
-    vm.proprietaryConfigEditor = jasmine.createSpyObj('proprietaryConfigEditor', ['$setPristine']);
-
-    // add a regex that matches the string of an existing package name
-    vm.matcherType = vm.matcherTypes.REGEX;
-    vm.regexMatcher = 'com.sonatype';
-    vm.addMatcher();
-
-    expect(vm.localMatchers.length).toBe(4);
-    expect(vm.dirtyProprietaryConfig.packages.length).toBe(2);
-    expect(vm.dirtyProprietaryConfig.regexes.length).toBe(2);
-    expect(vm.localMatchers[0]).toEqual({
-      type: vm.matcherTypes.PACKAGE,
-      matcher: 'com.sonatype',
+  describe('on remove matcher', () => {
+    it('calls removeMatcher on matcher remove', () => {
+      expect(vm.removeMatcher).not.toHaveBeenCalled();
+      vm.removeMatcher({ type: matcherTypes.PACKAGE, matcher: 'match' });
+      expect(vm.removeMatcher).toHaveBeenCalledOnceWith({ type: matcherTypes.PACKAGE, matcher: 'match' });
     });
-    expect(vm.localMatchers[3]).toEqual({
-      type: vm.matcherTypes.REGEX,
-      matcher: 'com.sonatype',
+  });
+
+  describe('on add matcher', () => {
+    beforeEach(() => {
+      vm.proprietaryConfigEditor = {
+        $setPristine: jasmine.createSpy('$setPristine'),
+      };
+      vm.matcherType = matcherTypes.REGEX;
+      vm.regexMatcher = '';
     });
 
-    vm.removeMatcher(vm.localMatchers[3]);
-    expect(vm.localMatchers.length).toBe(3);
-    expect(vm.dirtyProprietaryConfig.packages.length).toBe(2);
-    // only the regex to be deleted
-    expect(vm.dirtyProprietaryConfig.regexes.length).toBe(1);
-  });
-
-  it('Expect field to be cleared on add', function () {
-    $httpBackend
-      .expectGET(CLMContextLocations.getProprietaryConfigUrl())
-      .respond(ProprietaryMockData.getProprietaryConfiguration());
-    $httpBackend.flush();
-
-    vm.matcherType = vm.matcherTypes.PACKAGE;
-    vm.packageMatcher = 'foo';
-    vm.proprietaryConfigEditor = jasmine.createSpyObj('proprietaryConfigEditor', ['$setPristine']);
-
-    vm.addMatcher();
-    expect(vm.packageMatcher).toBeUndefined();
-
-    vm.matcherType = vm.matcherTypes.REGEX;
-    vm.regexMatcher = 'bar';
-    vm.addMatcher();
-    expect(vm.regexMatcher).toBeUndefined();
-  });
-
-  it('Add package updates arrays', function () {
-    $httpBackend
-      .expectGET(CLMContextLocations.getProprietaryConfigUrl())
-      .respond(ProprietaryMockData.getProprietaryConfiguration());
-    $httpBackend.flush();
-
-    vm.proprietaryConfigEditor = jasmine.createSpyObj('proprietaryConfigEditor', ['$setPristine']);
-
-    expect(vm.localMatchers.length).toBe(3);
-    expect(vm.dirtyProprietaryConfig.packages.length).toBe(2);
-    expect(vm.dirtyProprietaryConfig.regexes.length).toBe(1);
-    vm.matcherType = vm.matcherTypes.PACKAGE;
-    vm.packageMatcher = 'foo';
-    vm.addMatcher();
-    expect(vm.localMatchers.length).toBe(4);
-    expect(vm.dirtyProprietaryConfig.packages.length).toBe(3);
-    expect(vm.dirtyProprietaryConfig.regexes.length).toBe(1);
-  });
-
-  it('Add regex updates arrays', function () {
-    $httpBackend
-      .expectGET(CLMContextLocations.getProprietaryConfigUrl())
-      .respond(ProprietaryMockData.getProprietaryConfiguration());
-    $httpBackend.flush();
-
-    vm.proprietaryConfigEditor = jasmine.createSpyObj('proprietaryConfigEditor', ['$setPristine']);
-
-    expect(vm.localMatchers.length).toBe(3);
-    expect(vm.dirtyProprietaryConfig.packages.length).toBe(2);
-    expect(vm.dirtyProprietaryConfig.regexes.length).toBe(1);
-    vm.matcherType = vm.matcherTypes.REGEX;
-    vm.regexMatcher = 'foo';
-    vm.addMatcher();
-    expect(vm.localMatchers.length).toBe(4);
-    expect(vm.dirtyProprietaryConfig.packages.length).toBe(2);
-    expect(vm.dirtyProprietaryConfig.regexes.length).toBe(2);
-  });
-
-  it('Add button disabled toggles properly with regex', function () {
-    $httpBackend
-      .expectGET(CLMContextLocations.getProprietaryConfigUrl())
-      .respond(ProprietaryMockData.getProprietaryConfiguration());
-    $httpBackend.flush();
-
-    vm.matcherType = vm.matcherTypes.REGEX;
-    expect(vm.regexMatcher).toBeUndefined();
-    expect(vm.isAddButtonDisabled()).toBe(true);
-    vm.regexMatcher = 'foo';
-    expect(vm.isAddButtonDisabled()).toBeFalsy();
-    vm.regexMatcher = undefined;
-    expect(vm.isAddButtonDisabled()).toBe(true);
-  });
-
-  it('Add button disabled toggles properly with package', function () {
-    $httpBackend
-      .expectGET(CLMContextLocations.getProprietaryConfigUrl())
-      .respond(ProprietaryMockData.getProprietaryConfiguration());
-    $httpBackend.flush();
-
-    vm.matcherType = vm.matcherTypes.PACKAGE;
-    expect(vm.packageMatcher).toBe('');
-    expect(vm.isAddButtonDisabled()).toBe(true);
-    vm.packageMatcher = 'foo';
-    expect(vm.isAddButtonDisabled()).toBeFalsy();
-    vm.packageMatcher = undefined;
-    expect(vm.isAddButtonDisabled()).toBe(true);
-  });
-
-  describe('Validation of Inputs', function () {
-    beforeEach(function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getProprietaryConfigUrl())
-        .respond(ProprietaryMockData.getProprietaryConfiguration());
-      $httpBackend.flush();
+    it('does not call addLocalMatcher is there is no matcher to add', () => {
+      expect(vm.addLocalMatcher).not.toHaveBeenCalled();
     });
 
-    it('Good package inputs', function () {
+    it('calls addLocalMatcher, resetMatcher on matcher add', () => {
+      expect(vm.addLocalMatcher).not.toHaveBeenCalled();
+
+      vm.regexMatcher = 'value';
+
+      vm.addMatcher();
+
+      expect(vm.addLocalMatcher).toHaveBeenCalledOnceWith({ type: matcherTypes.REGEX, matcher: 'value' });
+      expect(vm.resetMatcher).toHaveBeenCalledTimes(1);
+      expect(vm.proprietaryConfigEditor.$setPristine).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('on save', () => {
+    it('calls saveConfig on configuration save', () => {
+      vm.proprietaryConfigEditorMask = {
+        wrap: jasmine.createSpy('wrap'),
+      };
+
+      vm.save();
+      expect(vm.saveConfig).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('on edit', () => {
+    beforeEach(() => {
+      vm.packageMatcher = 'packageMatcher';
+      vm.regexMatcher = 'regexMatcher';
+      vm.matcherType = matcherTypes.REGEX;
+    });
+
+    it('calls setMatcherRegexValue on regex field change', () => {
+      expect(vm.setMatcherRegexValue).not.toHaveBeenCalled();
+      vm.setRegexValue();
+      expect(vm.setMatcherRegexValue).toHaveBeenCalledOnceWith('regexMatcher');
+    });
+
+    it('calls setMatcherPackageValue on package field change', () => {
+      expect(vm.setMatcherPackageValue).not.toHaveBeenCalled();
+      vm.setPackageValue();
+      expect(vm.setMatcherPackageValue).toHaveBeenCalledOnceWith('packageMatcher');
+    });
+
+    it('calls setMatcherTypeValue on dropdown field change', () => {
+      expect(vm.setMatcherTypeValue).not.toHaveBeenCalled();
+      vm.setMatcherType();
+      expect(vm.setMatcherTypeValue).toHaveBeenCalledOnceWith(matcherTypes.REGEX);
+    });
+  });
+
+  describe('isAddButtonDisabled', () => {
+    beforeEach(() => {
+      vm.proprietaryConfigEditor = {
+        $valid: true,
+      };
+    });
+
+    it('returns true if form is valid and no value', () => {
+      vm.matcherType = matcherTypes.REGEX;
+      vm.regexMatcher = '';
+
+      expect(vm.isAddButtonDisabled()).toBeTrue();
+    });
+
+    it('returns false if form and field value are both valid', () => {
+      vm.matcherType = matcherTypes.REGEX;
+      vm.regexMatcher = 'value';
+
+      expect(vm.isAddButtonDisabled()).toBeFalse();
+    });
+
+    it('returns true if field has a value but form is invalid', () => {
+      vm.proprietaryConfigEditor = {
+        $valid: false,
+      };
+
+      vm.matcherType = matcherTypes.REGEX;
+      vm.regexMatcher = 'c';
+
+      expect(vm.isAddButtonDisabled()).toBeTrue();
+    });
+  });
+
+  describe('validatePackage', () => {
+    it('good package inputs', () => {
       expect(vm.validatePackage('com.sonatype')).toEqual({
         invalidPrefix: true,
         wildcards: true,
@@ -298,14 +258,14 @@ describe('proprietary.config.editor.controller.spec.js', function () {
     });
 
     //see CLM-1097
-    it('Should treat an empty entry as valid', function () {
+    it('should treat an empty entry as valid', () => {
       expect(vm.validatePackage('')).toEqual({
         invalidPrefix: true,
         wildcards: true,
       });
     });
 
-    it('Bad package inputs', function () {
+    it('bad package inputs', () => {
       expect(vm.validatePackage('com sonatype')).toEqual({
         invalidPrefix: false,
         wildcards: true,

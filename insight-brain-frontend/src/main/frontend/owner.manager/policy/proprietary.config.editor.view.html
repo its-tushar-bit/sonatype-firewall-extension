@@ -1,12 +1,12 @@
 <div id="proprietary-config-editor"
      class="iq-tile iq-tile--form"
      load-wrapper="vm.loadError"
-     loading="!vm.dirtyProprietaryConfig"
+     loading="vm.loading"
      reload="vm.doLoad()">
   <form class="iq-form iq-form--no-padding iq-form--no-border"
         name="vm.proprietaryConfigEditor"
         role="form"
-        ng-submit="vm.proprietaryConfigEditor.$valid  && vm.dirtyProprietaryConfig.isDirty() && vm.save()"
+        ng-submit="vm.proprietaryConfigEditor.$valid && vm.isDirty && vm.save()"
         novalidate
         form-mask="vm.proprietaryConfigEditorMask"
         mask-attach-to-body>
@@ -23,20 +23,20 @@
       </p>
       <div class="iq-list inherited-proprietary-component-matchers"
            ng-repeat="owner in vm.proprietaryConfigs.slice(1).reverse()"
-           ng-if="owner.proprietaryConfig[0].packages.length > 0 || owner.proprietaryConfig[0].regexes.length > 0">
+           ng-if="owner.proprietaryConfig.packages.length > 0 || owner.proprietaryConfig.regexes.length > 0">
         <h4 class="iq-list__title">
           INHERITED FROM {{::owner.ownerName}}
         </h4>
         <ul>
-          <li class="iq-list__item" ng-repeat="matcher in owner.proprietaryConfig[0].packages">
+          <li class="iq-list__item" ng-repeat="matcher in owner.proprietaryConfig.packages">
             {{::matcher}}
           </li>
-          <li class="iq-list__item" ng-repeat="matcher in owner.proprietaryConfig[0].regexes">
+          <li class="iq-list__item" ng-repeat="matcher in owner.proprietaryConfig.regexes">
             {{::matcher}} <i class="regular">(regex)</i>
           </li>
         </ul>
       </div>
-      
+
       <div class="iq-list local-proprietary-component-matchers">
         <h4 class="iq-list__title">
           LOCAL
@@ -67,7 +67,7 @@
                              ng-model="vm.matcherType"
                              name="matcher-type"
                              options="vm.matcherTypeOptions"
-                             ng-change="vm.resetMatcher()"
+                             ng-change="vm.setMatcherType()"
                              item-as-class="true"
                              ng-disabled="vm.disabled">
           </dropdown-selector>
@@ -80,6 +80,7 @@
                  name="matcher-value"
                  ng-if="vm.matcherType === vm.matcherTypes.PACKAGE"
                  ng-model="vm.packageMatcher"
+                 ng-change="vm.setPackageValue()"
                  type="text"
                  unique-validator="vm.dirtyProprietaryConfig.packages"
                  input-validator="vm.validatePackage"
@@ -96,6 +97,7 @@
                  name="matcher-value"
                  ng-if="vm.matcherType === vm.matcherTypes.REGEX"
                  ng-model="vm.regexMatcher"
+                 ng-change="vm.setRegexValue()"
                  type="text"
                  unique-validator="vm.dirtyProprietaryConfig.regexes"
                  placeholder="ex. com.sonatype.*"
@@ -121,7 +123,7 @@
       <button type="submit"
               class="iq-btn iq-btn--primary"
               submit-validation
-              submit-dirty="vm.dirtyProprietaryConfig.isDirty()"
+              submit-dirty="vm.isDirty"
               submit-type="update"
               submit-tooltip-target="body">
         Update

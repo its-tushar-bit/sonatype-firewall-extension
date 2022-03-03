@@ -579,6 +579,10 @@ export function getDeleteLabelsUrl(ownerType, ownerId, labelId) {
   return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}/${encodeURIComponent(labelId)}`;
 }
 
+export function getProprietaryConfigUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/proprietary/${ownerType}/${ownerId}`;
+}
+
 export function getApplicableLabelScopesUrl(ownerType, ownerId, labelId) {
   return uriTemplate`/api/v2/labels/${ownerType}/${ownerId}/applicable/context/${labelId}`;
 }

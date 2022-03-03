@@ -3,9 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import axios from 'axios';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import { getProprietaryConfigUrl } from 'MainRoot/util/CLMLocation';
 
-describe('policy.tile.controller.spec.js', function () {
+describe('policy.tile.controller', function () {
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
       $provide.value('$cookies', {
@@ -14,6 +16,8 @@ describe('policy.tile.controller.spec.js', function () {
       SpecUtil.mockNgRedux($provide);
     })
   );
+
+  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
   var vm,
     scope,
@@ -32,11 +36,30 @@ describe('policy.tile.controller.spec.js', function () {
     mockPolicyMonitoringStore = StoreUtils().createMockStore('PolicyMonitoringStore'),
     CLMLocations,
     CLMContextLocations,
-    mockProprietaryConfigurationHierarchyStore = StoreUtils().createMockStore('ProprietaryConfigHierarchyStore'),
-    mockProprietaryConfigurationHierarchyStoreData = StoreUtils().createMockHierarchyStoreData(
-      ProprietaryMockData.getProprietaryConfigurationStoreMockData(),
-      'proprietaryConfigByOwners'
-    ),
+    mockProprietaryConfigurationHierarchyStoreData = [
+      {
+        ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+        ownerName: 'dfgdf',
+        ownerType: 'application',
+        proprietaryConfig: {
+          id: 'f977bcf69fcb464b84837f643d8f93b7',
+          ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+          packages: ['com.sonatype', 'com.local'],
+          regexes: ['.*/test\\.zip'],
+        },
+      },
+      {
+        ownerId: 'ROOT_ORGANIZATION_ID',
+        ownerName: 'Root Organization',
+        ownerType: 'organization',
+        proprietaryConfig: {
+          id: null,
+          ownerId: 'ROOT_ORGANIZATION_ID',
+          packages: [],
+          regexes: ['.*/foo\\.zip'],
+        },
+      },
+    ],
     getGrandfatheringDefer,
     mockPolicyViolationGrandfatheringService;
 
@@ -74,7 +97,18 @@ describe('policy.tile.controller.spec.js', function () {
     };
     spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
     spyOn(StageTypeStore, 'getActionStages').and.returnValue(stageTypeStoreDefer.promise);
+
     $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
+
+    mockAxiosCalls({
+      get: {
+        [getProprietaryConfigUrl('application', 'ownerId')]: {
+          data: {
+            proprietaryConfigByOwners: mockProprietaryConfigurationHierarchyStoreData,
+          },
+        },
+      },
+    });
   }));
 
   afterEach(function () {
@@ -84,6 +118,7 @@ describe('policy.tile.controller.spec.js', function () {
 
   it('Properly Loading Owner Policies', function () {
     createController();
+
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     spyOn(MonitoredStageService, 'getMonitoredStage').and.returnValue({
@@ -91,7 +126,7 @@ describe('policy.tile.controller.spec.js', function () {
       stageTypeId: 'develop',
     });
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
+
     $timeout.flush();
     $httpBackend.flush();
 
@@ -122,7 +157,6 @@ describe('policy.tile.controller.spec.js', function () {
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
     $httpBackend.flush();
 
@@ -134,7 +168,6 @@ describe('policy.tile.controller.spec.js', function () {
     mockPolicyHierarchyStore.rejectGet('dagnabbit');
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
 
     $timeout.flush();
     $httpBackend.flush();
@@ -145,7 +178,6 @@ describe('policy.tile.controller.spec.js', function () {
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
 
     expect(vm.error).toBeUndefined();
@@ -184,7 +216,6 @@ describe('policy.tile.controller.spec.js', function () {
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
     $httpBackend.flush();
 
@@ -200,7 +231,6 @@ describe('policy.tile.controller.spec.js', function () {
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     getGrandfatheringDefer.resolve({});
 
     $httpBackend.flush();
@@ -225,7 +255,6 @@ describe('policy.tile.controller.spec.js', function () {
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     getGrandfatheringDefer.resolve(config);
 
     $httpBackend.flush();
@@ -250,7 +279,6 @@ describe('policy.tile.controller.spec.js', function () {
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
     mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     getGrandfatheringDefer.resolve(config);
 
     $httpBackend.flush();
@@ -269,6 +297,10 @@ describe('policy.tile.controller.spec.js', function () {
       $scope: scope,
       policyViolationGrandfatheringService: mockPolicyViolationGrandfatheringService,
     });
+    vm.ownerProperties = {
+      ownerType: 'application',
+      ownerId: 'ownerId',
+    };
     vm.$onInit();
   }
 });

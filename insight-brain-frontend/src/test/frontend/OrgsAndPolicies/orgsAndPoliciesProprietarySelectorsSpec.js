@@ -1,0 +1,188 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import {
+  selectProprietarySlice,
+  selectLoadError,
+  selectSubmitError,
+  selectIsDirty,
+  selectIsLoading,
+  selectLocalMatchers,
+  selectProprietaryConfigs,
+  selectCurrentConfigs,
+  selectPackageMatcher,
+  selectRegexMatcher,
+  selectMatcherType,
+} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySelectors';
+import { matcherTypes } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySlice';
+
+describe('orgsAndPoliciesProprietarySelectors', () => {
+  let mockState;
+
+  beforeEach(() => {
+    mockState = {
+      orgsAndPolicies: {
+        proprietary: {
+          isDirty: false,
+          loading: false,
+          loadError: 'loadError',
+          submitError: 'submitError',
+          currentConfig: {
+            id: 'f977bcf69fcb464b84837f643d8f93b7',
+            ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+            packages: ['first', 'second'],
+            regexes: ['cuatro', 'cinco'],
+          },
+          serverConfig: {},
+          proprietaryConfigs: [
+            {
+              ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+              ownerName: 'dfgdf',
+              ownerType: 'application',
+              proprietaryConfig: {
+                id: 'f977bcf69fcb464b84837f643d8f93b7',
+                ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+                packages: ['first', 'second'],
+                regexes: ['cuatro', 'cinco'],
+              },
+            },
+          ],
+          localMatchers: [
+            {
+              type: 'Package',
+              matcher: 'first',
+            },
+            {
+              type: 'Package',
+              matcher: 'second',
+            },
+            {
+              type: 'Regular Expression',
+              matcher: 'cuatro',
+            },
+            {
+              type: 'Regular Expression',
+              matcher: 'cinco',
+            },
+          ],
+          packageMatcher: 'packageMatcher value',
+          regexMatcher: 'regexMatcher value',
+          matcherType: matcherTypes.PACKAGE,
+        },
+      },
+    };
+  });
+
+  describe('selectProprietarySlice', () => {
+    it('returns slice', () => {
+      const mockState = {
+        orgsAndPolicies: {
+          proprietary: null,
+        },
+      };
+
+      expect(selectProprietarySlice(mockState)).toBeNull();
+    });
+  });
+
+  describe('selectLoadError', () => {
+    it('returns loadError', () => {
+      expect(selectLoadError(mockState)).toBe('loadError');
+    });
+  });
+
+  describe('selectSubmitError', () => {
+    it('returns submitError', () => {
+      expect(selectSubmitError(mockState)).toBe('submitError');
+    });
+  });
+
+  describe('selectIsDirty', () => {
+    it('returns isDirty', () => {
+      expect(selectIsDirty(mockState)).toBeFalse();
+    });
+  });
+
+  describe('selectIsLoading', () => {
+    it('returns true if loading', () => {
+      mockState.orgsAndPolicies.proprietary.loading = true;
+      expect(selectIsLoading(mockState)).toBeTrue();
+    });
+
+    it('returns false if not loading', () => {
+      expect(selectIsLoading(mockState)).toBeFalse();
+    });
+  });
+
+  describe('selectRegexMatcher', () => {
+    it('returns regexMatcher', () => {
+      expect(selectRegexMatcher(mockState)).toBe('regexMatcher value');
+    });
+  });
+
+  describe('selectPackageMatcher', () => {
+    it('returns packageMatcher', () => {
+      expect(selectPackageMatcher(mockState)).toBe('packageMatcher value');
+    });
+  });
+
+  describe('selectMatcherType', () => {
+    it('returns matcherType', () => {
+      expect(selectMatcherType(mockState)).toBe(matcherTypes.PACKAGE);
+    });
+  });
+
+  describe('selectCurrentConfigs', () => {
+    it('returns currentConfigs', () => {
+      expect(selectCurrentConfigs(mockState)).toEqual({
+        id: 'f977bcf69fcb464b84837f643d8f93b7',
+        ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+        packages: ['first', 'second'],
+        regexes: ['cuatro', 'cinco'],
+      });
+    });
+  });
+
+  describe('selectLocalMatchers', () => {
+    it('returns localMatchers', () => {
+      expect(selectLocalMatchers(mockState)).toEqual([
+        {
+          type: 'Package',
+          matcher: 'first',
+        },
+        {
+          type: 'Package',
+          matcher: 'second',
+        },
+        {
+          type: 'Regular Expression',
+          matcher: 'cuatro',
+        },
+        {
+          type: 'Regular Expression',
+          matcher: 'cinco',
+        },
+      ]);
+    });
+  });
+
+  describe('selectProprietaryConfigs', () => {
+    it('returns proprietaryConfigs', () => {
+      expect(selectProprietaryConfigs(mockState)).toEqual([
+        {
+          ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+          ownerName: 'dfgdf',
+          ownerType: 'application',
+          proprietaryConfig: {
+            id: 'f977bcf69fcb464b84837f643d8f93b7',
+            ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+            packages: ['first', 'second'],
+            regexes: ['cuatro', 'cinco'],
+          },
+        },
+      ]);
+    });
+  });
+});

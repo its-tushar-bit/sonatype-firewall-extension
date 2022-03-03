@@ -306,28 +306,6 @@ storesModule.service('WebhookStore', [
   },
 ]);
 
-storesModule.service('ProprietaryConfigHierarchyStore', [
-  'CLMContextLocations',
-  'CachedHierarchyStore',
-  function (CLMContextLocations, CachedHierarchyStore) {
-    var proprietaryConfigStoreTemplate = {
-      template: {
-        id: undefined,
-        packages: [],
-        regexes: [],
-      },
-      type: 'proprietary configuration',
-      getUrl: CLMContextLocations.getProprietaryConfigUrl,
-      crudUrl: CLMContextLocations.getProprietaryConfigUrl,
-      field: 'proprietaryConfigByOwners',
-      storeField: 'proprietaryConfig',
-      id: 'ownerId',
-    };
-
-    return CachedHierarchyStore.get(proprietaryConfigStoreTemplate);
-  },
-]);
-
 /* A service which allows stores to be cached by a key, or if not provided the entity id.
  * Stores and their contents will be cached across the SPA.
  * configuration is the same as Resource except:

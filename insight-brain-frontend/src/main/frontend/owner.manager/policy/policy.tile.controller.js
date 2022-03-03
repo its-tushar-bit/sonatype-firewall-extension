@@ -3,6 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import axios from 'axios';
+import { selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { getProprietaryConfigUrl } from 'MainRoot/util/CLMLocation';
+
 export default function PolicyTileController(
   $scope,
   $q,
@@ -12,10 +16,10 @@ export default function PolicyTileController(
   MonitoredStageService,
   EventNameConstant,
   PolicyHierarchyStore,
-  ProprietaryConfigHierarchyStore,
   CLMContextLocations,
   ProductFeatures,
-  PolicyViolationGrandfatheringService
+  PolicyViolationGrandfatheringService,
+  $ngRedux
 ) {
   var vm = this;
   vm.isAppOrOrg = CLMContextLocations.isApplication() || CLMContextLocations.isOrganization();
@@ -35,8 +39,13 @@ export default function PolicyTileController(
   vm.doLoad = doLoad;
 
   vm.$onInit = function () {
+    vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
     vm.doLoad();
   };
+
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
 
   $scope.$on('policy.imported', doLoad);
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
@@ -47,7 +56,7 @@ export default function PolicyTileController(
       PolicyHierarchyStore.get(),
       StageTypeStore.getActionStages(),
       PolicyMonitoringStore.getApplicable(),
-      ProprietaryConfigHierarchyStore.get(),
+      axios.get(getProprietaryConfigUrl(vm.ownerProperties.ownerType, vm.ownerProperties.ownerId)),
       ProductFeatures.load(),
     ];
     if (vm.isAppOrOrg) {
@@ -85,9 +94,9 @@ export default function PolicyTileController(
           );
         }
 
-        var proprietaryMatchers = results[3];
+        const proprietaryMatchers = results[3].data.proprietaryConfigByOwners;
         proprietaryMatchers.forEach(function (configOwner, index) {
-          var config = configOwner.proprietaryConfig[0],
+          const config = configOwner.proprietaryConfig,
             matcherTotal = config.packages.length + config.regexes.length;
           if (index === 0) {
             vm.localProprietaryCount += matcherTotal;
@@ -120,6 +129,10 @@ export default function PolicyTileController(
   }
 }
 
+export const mapStateToThis = (state) => ({
+  ownerProperties: selectOwnerProperties(state),
+});
+
 PolicyTileController.$inject = [
   '$scope',
   '$q',
@@ -129,8 +142,8 @@ PolicyTileController.$inject = [
   'monitored.stage.service',
   'event.name.constant',
   'PolicyHierarchyStore',
-  'ProprietaryConfigHierarchyStore',
   'CLMContextLocations',
   'ProductFeatures',
   'policyViolationGrandfatheringService',
+  '$ngRedux',
 ];

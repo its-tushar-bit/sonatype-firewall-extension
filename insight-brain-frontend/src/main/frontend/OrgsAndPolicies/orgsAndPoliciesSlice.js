@@ -7,9 +7,11 @@ import { combineReducers } from 'redux';
 import applicationCategoriesSlice from './orgsAndPoliciesApplicationCategoriesSlice';
 import labelsSlice from './orgsAndPoliciesLabelsSlice';
 import rootSlice from './orgsAndPoliciesRootSlice';
+import proprietarySlice from './orgsAndPoliciesProprietarySlice';
 
 export default combineReducers({
   root: rootSlice,
   applicationCategories: applicationCategoriesSlice,
   labels: labelsSlice,
+  proprietary: proprietarySlice,
 });

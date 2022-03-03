@@ -14,6 +14,7 @@ import FirewallQuarantineTable from './FirewallQuarantineTable';
 import * as PropTypes from 'prop-types';
 import FirewallConfigurationModalContainer from './config/FirewallConfigurationModalContainer';
 import FirewallAutoUnquarantineStatus from './FirewallAutoUnquarantineStatus';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function FirewallPage(props) {
   // Actions
@@ -29,7 +30,7 @@ export default function FirewallPage(props) {
   const { loadedQuarantineSummary } = props;
 
   // state
-  const { $state } = props;
+  const uiRouterState = useRouterState();
 
   const dataLoaded = isDataLoaded(loadedReleaseQuarantineSummary, loadedConfiguration, loadedQuarantineSummary);
 
@@ -48,7 +49,7 @@ export default function FirewallPage(props) {
           <FirewallQuarantine {...props} />
           <FirewallAutoReleaseQuarantine
             autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD}
-            $state={$state}
+            $state={uiRouterState}
           />
         </div>
         <FirewallQuarantineTable {...props} />
@@ -69,7 +70,7 @@ FirewallPage.propTypes = {
   loadedConfiguration: PropTypes.bool.isRequired,
   loadedQuarantineSummary: PropTypes.bool.isRequired,
   loadError: PropTypes.string,
-  $state: PropTypes.shape({
+  uiRouterState: PropTypes.shape({
     href: PropTypes.func.isRequired,
-  }).isRequired,
+  }),
 };

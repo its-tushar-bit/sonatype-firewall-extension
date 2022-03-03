@@ -16,10 +16,12 @@ import {
   NxTableCell,
   NxTableHead,
   NxTableRow,
+  NxTextLink,
   NxThreatIndicator,
 } from '@sonatype/react-shared-components';
 
 import { faSync } from '@fortawesome/pro-solid-svg-icons';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function FirewallQuarantineTable(props) {
   // actions
@@ -85,6 +87,8 @@ export default function FirewallQuarantineTable(props) {
 
     return chosenViolation;
   }
+
+  const uiRouterState = useRouterState();
 
   return (
     <section id="firewall-quarantine-table">
@@ -164,7 +168,7 @@ export default function FirewallQuarantineTable(props) {
                 let policyViolation = getHighestPolicyViolation(row.quarantinePolicyViolations);
 
                 return (
-                  <NxTableRow isClickable={true} key={index} onClick={() => selectQuarantineComponent(index)}>
+                  <NxTableRow key={index}>
                     <NxTableCell isNumeric>
                       <NxThreatIndicator policyThreatLevel={policyViolation ? policyViolation.threatLevel : 0} />
                       <span>{policyViolation ? policyViolation.threatLevel : 0}</span>
@@ -181,15 +185,30 @@ export default function FirewallQuarantineTable(props) {
                     </NxTableCell>
                     <NxTableCell>
                       <NxOverflowTooltip title={row.componentDisplayText}>
-                        <div className="nx-truncate-ellipsis">{row.componentDisplayText}</div>
+                        <div className="nx-truncate-ellipsis">
+                          <NxTextLink
+                            id="iq-firewall-quarantine-table--cip"
+                            onClick={() => selectQuarantineComponent(index)}
+                          >
+                            {row.componentDisplayText}
+                          </NxTextLink>
+                        </div>
                       </NxOverflowTooltip>
                     </NxTableCell>
                     <NxTableCell>
                       <NxOverflowTooltip title={row.repository}>
-                        <div className="nx-truncate-ellipsis">{row.repository}</div>
+                        <div className="nx-truncate-ellipsis">
+                          <NxTextLink
+                            id="iq-firewall-quarantine-table--repo-view-link"
+                            newTab
+                            external
+                            href={uiRouterState.href('repository-report', { repositoryId: row.repositoryId })}
+                          >
+                            {row.repository}
+                          </NxTextLink>
+                        </div>
                       </NxOverflowTooltip>
                     </NxTableCell>
-                    <NxTableCell chevron />
                   </NxTableRow>
                 );
               })}

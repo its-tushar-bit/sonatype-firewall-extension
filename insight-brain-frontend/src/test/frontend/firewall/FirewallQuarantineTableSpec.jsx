@@ -14,6 +14,7 @@ import {
   NxThreatIndicator,
 } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../enzymeUtils';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
 
 describe('FirewallQuarantineTable', function () {
   let minimalProps,
@@ -23,7 +24,9 @@ describe('FirewallQuarantineTable', function () {
     setQuarantineGridPage,
     setQuarantineGridSorting,
     setQuarantineGridPolicyFilter,
-    selectQuarantineComponentSpy;
+    selectQuarantineComponentSpy,
+    hrefSpy,
+    routerContextMock;
 
   selectQuarantineComponentSpy = jasmine.createSpy('selectQuarantineComponent');
 
@@ -35,6 +38,10 @@ describe('FirewallQuarantineTable', function () {
     setQuarantineGridPage = jasmine.createSpy('setQuarantineGridPage');
     setQuarantineGridSorting = jasmine.createSpy('setQuarantineGridSorting');
     setQuarantineGridPolicyFilter = jasmine.createSpy('setQuarantineGridPolicyFilter');
+
+    hrefSpy = jasmine.createSpy('href').and.callFake(() => 'someHref');
+    routerContextMock = { href: hrefSpy };
+    spyOn(routerContext, 'useRouterState').and.returnValue(routerContextMock);
 
     minimalProps = {
       selectQuarantineComponent: selectQuarantineComponentSpy,
@@ -69,6 +76,7 @@ describe('FirewallQuarantineTable', function () {
               constraintViolations: [],
             },
           ],
+          repositoryId: 'test-repository-id',
         },
       ],
       policies: [
@@ -207,6 +215,42 @@ describe('FirewallQuarantineTable', function () {
       refreshButton.simulate('click');
 
       expect(loadQuarantineList).toHaveBeenCalled();
+    });
+  });
+
+  describe('row is not clickable', () => {
+    it('no action is performed when a row is clicked', () => {
+      let component = getShallowComponent(),
+        row = component.find(NxTable).find(NxTableBody).find(NxTableRow);
+
+      expect(row).not.toHaveProp('onClick');
+      expect(row).not.toHaveProp('isClickable');
+    });
+  });
+
+  describe('renders CIP', () => {
+    it('calls the selectQuarantineComponent when Component cell is clicked', () => {
+      let component = getShallowComponent(),
+        link = component.find('#iq-firewall-quarantine-table--cip');
+
+      link.simulate('click');
+      expect(selectQuarantineComponentSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('renders repo results view page link', () => {
+    it('renders a NxTextLink for repo results view page', () => {
+      let component = getShallowComponent(),
+        link = component.find('#iq-firewall-quarantine-table--repo-view-link');
+
+      expect(routerContext.useRouterState).toHaveBeenCalled();
+      expect(hrefSpy).toHaveBeenCalledWith('repository-report', {
+        repositoryId: minimalProps.quarantineList[0].repositoryId,
+      });
+      expect(link).toHaveProp('href', 'someHref');
+      expect(link).toHaveProp('newTab', true);
+      expect(link).toHaveProp('external', true);
+      expect(link).toHaveText(minimalProps.quarantineList[0].repository);
     });
   });
 });

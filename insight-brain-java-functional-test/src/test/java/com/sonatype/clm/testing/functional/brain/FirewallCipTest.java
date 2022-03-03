@@ -607,7 +607,7 @@ public class FirewallCipTest
   }
 
   private void openCip(final int row, final int tab) {
-    firewallPage.firewallQuarantineTable().tableBodyRows().get(row).click();
+    firewallPage.firewallQuarantineTable().tableBodyRows().get(row).find("#iq-firewall-quarantine-table--cip").click();
     FirewallPageComponents.cipModal().tabLink(tab).click();
   }
 

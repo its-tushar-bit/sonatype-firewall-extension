@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.elements.NxTableHeader;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantine;
+import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,6 +36,7 @@ import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
 public class FirewallPageTest
@@ -187,5 +190,14 @@ public class FirewallPageTest
 
     quarantineTimeHeader.sortBtn().shouldHave(
         attribute("aria-label", "Quarantine Date unsorted"));
+  }
+
+  @Test
+  public void testFirewallQuarantineTable_RepoViewLink() {
+    refreshOrOpen(FirewallPage.url());
+    eyesWatcher.eyesCheck();
+    page.firewallQuarantineTable().tableBodyRows().get(0).find("#iq-firewall-quarantine-table--repo-view-link").click();
+    Selenide.switchTo().window(1);
+    RepositoryReportContainerPage.title().shouldHave(text("Repository results for central"));
   }
 }

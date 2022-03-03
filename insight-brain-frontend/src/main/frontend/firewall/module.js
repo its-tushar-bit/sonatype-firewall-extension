@@ -14,7 +14,10 @@ import firewall from './firewall';
 export default angular
   .module('firewallModule', [firewallCipModalModule.name, 'ngRedux'])
   .component('firewall', firewall)
-  .component('firewallPage', react2angular(withStoreProvider(FirewallPageContainer), [], ['$ngRedux', '$state']))
+  .component(
+    'firewallPage',
+    react2angular(withStoreProvider(withRouterStateProvider(FirewallPageContainer)), [], ['$ngRedux', '$state'])
+  )
   .component(
     'firewallAutoUnquarantinePage',
     react2angular(

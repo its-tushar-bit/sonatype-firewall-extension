@@ -7,6 +7,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from 'MainRoot/react/LoadWrapper';
+import { NxWarningAlert } from '@sonatype/react-shared-components';
 import { formatDate } from 'MainRoot/util/dateUtils';
 
 import QuarantineComponentOverviewTile from './componentOverviewTile/QuarantineComponentOverviewTile';
@@ -56,34 +57,40 @@ export default function QuarantinedComponentReport(props) {
         <div className="nx-page-title__description">{formatDate(new Date())}</div>
       </div>
 
-      <QuarantineComponentOverviewDescriptionTile />
+      {loadError != null ? (
+        <NxWarningAlert>{loadError?.response?.data}</NxWarningAlert>
+      ) : (
+        <>
+          <QuarantineComponentOverviewDescriptionTile />
 
-      <LoadWrapper retryHandler={() => loadQuarantineReportData(token)} error={loadError} loading={dataLoading}>
-        <QuarantineComponentOverviewTile componentOverview={componentOverview} />
-      </LoadWrapper>
+          <LoadWrapper retryHandler={() => loadQuarantineReportData(token)} error={loadError} loading={dataLoading}>
+            <QuarantineComponentOverviewTile componentOverview={componentOverview} />
+          </LoadWrapper>
 
-      <LoadWrapper
-        retryHandler={() => loadQuarantineReportData(token)}
-        error={violationsLoadError}
-        loading={violationsLoading}
-      >
-        <PolicyViolationsTile violations={violations} />
-      </LoadWrapper>
+          <LoadWrapper
+            retryHandler={() => loadQuarantineReportData(token)}
+            error={violationsLoadError}
+            loading={violationsLoading}
+          >
+            <PolicyViolationsTile violations={violations} />
+          </LoadWrapper>
 
-      <RiskRemediation
-        stageId="proxy"
-        currentVersion={componentOverview.componentVersion}
-        routeName=""
-        componentInformation={{}}
-        versionExplorerData={selectedVersionExplorerData}
-        selectedVersionData={selectedVersionData}
-        loadVersionExplorerData={loadVersionExplorerData}
-        loadSelectedVersionData={loadSelectedVersionData}
-        currentVersionComparisonData={currentVersionDetails}
-        selectedVersionComparisonData={selectedVersionDetails}
-      />
+          <RiskRemediation
+            stageId="proxy"
+            currentVersion={componentOverview.componentVersion}
+            routeName=""
+            componentInformation={{}}
+            versionExplorerData={selectedVersionExplorerData}
+            selectedVersionData={selectedVersionData}
+            loadVersionExplorerData={loadVersionExplorerData}
+            loadSelectedVersionData={loadSelectedVersionData}
+            currentVersionComparisonData={currentVersionDetails}
+            selectedVersionComparisonData={selectedVersionDetails}
+          />
 
-      <OtherVersionsTile />
+          <OtherVersionsTile />
+        </>
+      )}
     </main>
   );
 }

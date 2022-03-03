@@ -50,4 +50,8 @@ public class QuarantineComponentReportPage extends BasicElement<QuarantineCompon
   public SelenideElement getQuarantineReportComponentOverviewTileReadOnlyItemData(int index) {
     return children(".nx-read-only__item .nx-read-only__data").get(index);
   }
+
+  public SelenideElement getTokenWarningAlert() {
+    return child(".nx-alert.nx-alert--warning");
+  }
 }

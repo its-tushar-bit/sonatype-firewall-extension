@@ -54,6 +54,31 @@ describe('QuarantineComponentReport', () => {
     expect(screen.getByRole('heading', { name: /risk remediation/i })).toBeVisible();
   });
 
+  it('shows a warning replacing the quarantine report when there is a token issue', () => {
+    const errorMessage = 'Server error message';
+    const minimalLoadingProps = {
+      token: 'token',
+      loadError: {
+        response: {
+          data: errorMessage,
+        },
+      },
+      loadQuarantineReportData: loadQuarantineReportData,
+      componentOverview: {
+        componentOverviewLoading: true,
+        componentDisplayName: null,
+      },
+      violations: null,
+      violationsLoading: true,
+      violationsLoadError: null,
+    };
+
+    render(<QuarantineComponentReport {...minimalLoadingProps} />);
+
+    const warningAlert = screen.queryByText(errorMessage);
+    expect(warningAlert).toBeVisible();
+  });
+
   it('shows the loading wrappers', async () => {
     const minimalLoadingProps = {
       token: 'token',

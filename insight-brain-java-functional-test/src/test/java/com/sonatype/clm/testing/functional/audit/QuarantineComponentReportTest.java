@@ -61,6 +61,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.joda.time.DateTime;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -80,6 +81,16 @@ import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 public class QuarantineComponentReportTest
     extends AbstractFunctionalTest
 {
+  private static final String EXPIRED_TOKEN = "EXPIRED_TOKEN";
+
+  private static final String NOT_AVAILABLE_YET_TOKEN = "NOT_AVAILABLE_YET_TOKEN";
+
+  private static final String NOT_FOUND_TOKEN = "NOT_FOUND_TOKEN";
+
+  private static final String NOT_VALID_TOKEN = "NOT_VALID_TOKEN";
+
+  private static final String VALID_TOKEN_CONDITION = "VALID_TOKEN_CONDITION";
+
   private final List<ComponentDetails> componentDetailsArrayList = new ArrayList<>();
 
   private Repository repository;
@@ -234,9 +245,43 @@ public class QuarantineComponentReportTest
     createOtherPolicies();
   }
 
-  private String getQuarantinedComponentToken(RepositoryComponent repositoryComponent) {
-    final QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+  private QuarantinedComponentAccess newQuarantinedComponentAccessNotAvailableYetToken(
+      final String repositoryId,
+      final String repositoryComponentId)
+  {
+    DateTime now = DateTime.now();
+    return tempEntity.newQuarantinedComponentAccess(repositoryId, repositoryComponentId, now.plusDays(3).toDate());
+  }
+
+  private QuarantinedComponentAccess newQuarantinedComponentAccessExpiredToken(
+      final String repositoryId,
+      final String repositoryComponentId)
+  {
+    DateTime now = DateTime.now();
+    return tempEntity.newQuarantinedComponentAccess(repositoryId, repositoryComponentId, now.minusDays(3).toDate());
+  }
+
+  private String getQuarantinedComponentToken(RepositoryComponent repositoryComponent, String tokenCondition) {
+    final QuarantinedComponentAccess quarantinedComponentAccess;
+
+    if (tokenCondition == EXPIRED_TOKEN) {
+      quarantinedComponentAccess =
+          newQuarantinedComponentAccessExpiredToken(repository.getId(), repositoryComponent.getId());
+    }
+    else if (tokenCondition == NOT_AVAILABLE_YET_TOKEN) {
+      quarantinedComponentAccess =
+          newQuarantinedComponentAccessNotAvailableYetToken(repository.getId(), repositoryComponent.getId());
+    }
+    else if (tokenCondition == NOT_FOUND_TOKEN) {
+      return "YzgwZjk0NWMzY2E0NDgxODk4YTY0NmQ2ZWVjMzg4YzW";
+    }
+    else if (tokenCondition == NOT_VALID_TOKEN) {
+      return "YzgwZjk0NWMzY2E0NDgxODk4YTY0NmQ2ZWVjMzg4Yz{";
+    }
+    else {
+      quarantinedComponentAccess =
+          tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+    }
     return Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
   }
@@ -253,7 +298,7 @@ public class QuarantineComponentReportTest
 
     riskRemediationSetup(componentDetailsArrayList);
 
-    return getQuarantinedComponentToken(repositoryComponent);
+    return getQuarantinedComponentToken(repositoryComponent, VALID_TOKEN_CONDITION);
   }
 
   private String setupAllTestDataWithSingleComponentVersion() {
@@ -268,12 +313,13 @@ public class QuarantineComponentReportTest
     riskRemediationSetup(componentDetailsArrayList);
     policyViolationsTableSetup(mainComponentIdentifier, repositoryComponent);
 
-    return getQuarantinedComponentToken(repositoryComponent);
+    return getQuarantinedComponentToken(repositoryComponent, VALID_TOKEN_CONDITION);
   }
 
-  private String setupAllTestData() {
+  private String setupAllTestData(String tokenCondition) {
     testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
         InsightConfig.ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
+
     ComponentIdentifier mainComponentIdentifier = createComponentIdentifier("0.5.2");
     componentDetailsArrayList.add(createComponentDetail(mainComponentIdentifier));
     componentDetailsArrayList.add(createComponentDetail(createComponentIdentifier("0.5.3")));
@@ -285,7 +331,7 @@ public class QuarantineComponentReportTest
     riskRemediationSetup(componentDetailsArrayList);
     policyViolationsTableSetup(mainComponentIdentifier, repositoryComponent);
 
-    return getQuarantinedComponentToken(repositoryComponent);
+    return getQuarantinedComponentToken(repositoryComponent, tokenCondition);
   }
 
   private ConstraintFact createConstraintFact(
@@ -351,7 +397,7 @@ public class QuarantineComponentReportTest
   @Test
   public void testRiskRemediationTile_VersionGraphExplorer() {
     createAllTypePolicies();
-    encodedToken = setupAllTestData();
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
     waitUntilSpinnersGone();
 
@@ -369,7 +415,7 @@ public class QuarantineComponentReportTest
   @Test
   public void testRiskRemediationTile_RecommendedVersions_NoRecommendation() {
     createAllTypePolicies();
-    encodedToken = setupAllTestData();
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
     waitUntilSpinnersGone();
 
@@ -394,7 +440,7 @@ public class QuarantineComponentReportTest
   @Test
   public void testCompareVersionsTable() {
     createAllTypePolicies();
-    encodedToken = setupAllTestData();
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
     waitUntilSpinnersGone();
 
@@ -460,7 +506,7 @@ public class QuarantineComponentReportTest
   @Test
   public void testRiskRemediationTile() {
     createSecurityPolicies();
-    encodedToken = setupAllTestData();
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
     waitUntilSpinnersGone();
 
@@ -498,7 +544,7 @@ public class QuarantineComponentReportTest
 
   @Test
   public void testPolicyViolationsTile_ViolationsTableEntries() {
-    encodedToken = setupAllTestData();
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
     waitUntilSpinnersGone();
 
@@ -553,7 +599,7 @@ public class QuarantineComponentReportTest
 
   @Test
   public void testOtherVersionsTable() {
-    encodedToken = setupAllTestData();
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
     waitUntilSpinnersGone();
 
@@ -566,7 +612,7 @@ public class QuarantineComponentReportTest
   @Test
   public void testQuarantineReportComponentOverviewTile() {
     createAllTypePolicies();
-    encodedToken = setupAllTestData();
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
     waitUntilSpinnersGone();
 
@@ -588,7 +634,7 @@ public class QuarantineComponentReportTest
   @Test
   public void testQuarantineReportMenus_withAnonymousAccess() {
     createAllTypePolicies();
-    encodedToken = setupAllTestData();
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
     waitUntilSpinnersGone();
 
@@ -621,7 +667,7 @@ public class QuarantineComponentReportTest
   @Test
   public void testQuarantineReportMenus_withAuthenticatedAccess() {
     createAllTypePolicies();
-    encodedToken = setupAllTestData();
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
     MainHeader.loginButton().click();
     loginAsAdmin();
@@ -653,5 +699,48 @@ public class QuarantineComponentReportTest
     quarantineReportPage.getOtherVersionsTable().shouldBe(visible);
 
     logout();
+  }
+
+  @Test
+  public void testTokenExpirationWarningAlert() {
+    encodedToken = setupAllTestData(EXPIRED_TOKEN);
+    refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
+    waitUntilSpinnersGone();
+
+    SelenideElement warningAlert = quarantineReportPage.getTokenWarningAlert();
+    warningAlert.shouldHave(text("This report expired on"));
+    warningAlert.shouldHave(text("You may generate a new report by requesting the blocked component again."));
+  }
+
+  @Test
+  public void testNotAvailableYetTokenWarningAlert() {
+    encodedToken = setupAllTestData(NOT_AVAILABLE_YET_TOKEN);
+    refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
+    waitUntilSpinnersGone();
+
+    SelenideElement warningAlert = quarantineReportPage.getTokenWarningAlert();
+    warningAlert.shouldHave(text("The quarantined component view you are trying to access is not available yet."));
+  }
+
+  @Test
+  public void testNotFoundTokenWarningAlert() {
+    encodedToken = setupAllTestData(NOT_FOUND_TOKEN);
+    refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
+    waitUntilSpinnersGone();
+
+    SelenideElement warningAlert = quarantineReportPage.getTokenWarningAlert();
+    warningAlert.shouldHave(
+        text("The quarantined component view for the blocked component you are trying to view could not be found."));
+  }
+
+  @Test
+  public void testNotValidTokenWarningAlert() {
+    encodedToken = setupAllTestData(NOT_VALID_TOKEN);
+    refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
+    waitUntilSpinnersGone();
+
+    SelenideElement warningAlert = quarantineReportPage.getTokenWarningAlert();
+    warningAlert.shouldHave(
+        text("The quarantined component view cannot be retrieved because the URL contains invalid characters."));
   }
 }

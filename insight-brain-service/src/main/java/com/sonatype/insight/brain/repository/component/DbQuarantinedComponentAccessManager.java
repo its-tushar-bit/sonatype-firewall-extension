@@ -21,8 +21,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang.time.DateUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.125
@@ -31,8 +29,6 @@ import org.slf4j.LoggerFactory;
 public class DbQuarantinedComponentAccessManager
     implements QuarantinedComponentAccessManager
 {
-  private static final Logger log = LoggerFactory.getLogger(DbQuarantinedComponentAccessManager.class);
-
   private static final int EXPIRATION_TIME_IN_HOURS = 12;
 
   private final InsightConfig insightConfig;
@@ -83,27 +79,26 @@ public class DbQuarantinedComponentAccessManager
       decodedBytes = Base64.getUrlDecoder().decode(token);
     }
     catch (final IllegalArgumentException e) {
-      final String logToken = token.replaceAll("[\n\r\t]", "_");
-      log.error("Invalid supplied encoded token '{}' cannot be decoded", logToken);
-      throw new BadRequestException(String.format("Invalid supplied encoded token '%s' cannot be decoded", token));
+      throw new BadRequestException(
+          "The quarantined component view cannot be retrieved because the URL contains invalid characters.");
     }
 
     final String decodedInput = new String(decodedBytes);
     final QuarantinedComponentAccess quarantinedComponentAccess = quarantinedComponentAccessDAO.getById(decodedInput);
     if (quarantinedComponentAccess == null) {
-      log.error("Could not find quarantined component report access entry for id: {}", decodedInput);
-      throw new NotFoundException(String.format("Component report with identifier %s could not be found", token));
+      throw new NotFoundException(
+          "The quarantined component view for the blocked component you are trying to view could not be found.");
     }
 
-    if (DateUtils.addHours(quarantinedComponentAccess.getGenerateTime(), EXPIRATION_TIME_IN_HOURS)
-        .before(new Date())) {
-      log.error("Access to quarantined component report entry with expired id: {} was attempted", decodedInput);
-      throw new NotFoundException(String.format("Component report with identifier %s is expired", token));
+    Date expirationDate = DateUtils.addHours(quarantinedComponentAccess.getGenerateTime(), EXPIRATION_TIME_IN_HOURS);
+
+    if (expirationDate.before(new Date())) {
+      throw new NotFoundException("This report expired on " + expirationDate +
+          ". You may generate a new report by requesting the blocked component again.");
     }
 
     if (quarantinedComponentAccess.getGenerateTime().after(new Date())) {
-      log.error("Access to quarantined component report entry with future id: {} was attempted", decodedInput);
-      throw new NotFoundException(String.format("Component report with identifier %s is not available yet", token));
+      throw new NotFoundException("The quarantined component view you are trying to access is not available yet.");
     }
 
     return quarantinedComponentAccess.getRepositoryComponentId();

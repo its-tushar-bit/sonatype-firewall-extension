@@ -145,6 +145,14 @@ public class ApplicationSummaryService
    * current user and the specified goal to that application.
    * If such an application does not exist and automatic application creation is enabled, then the method creates the
    * new application and returns true to indicate the application will now be available.
+   * 
+   * This method does not return the reason when the verification fails. This is by design.
+   * If the method would return the verification failure reason, then an attacker could use that info to
+   * find more about the system.
+   * This is similar to login failure messages:
+   * The system is supposed to return a generic message for all causes the login fails.
+   * If the system tells back if the username or the password is incorrect,
+   * that can be use by an attacker to further its attack.
    *
    * @since 1.45
    */

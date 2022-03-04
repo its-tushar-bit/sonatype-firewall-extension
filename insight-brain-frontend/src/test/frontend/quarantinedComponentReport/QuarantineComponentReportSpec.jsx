@@ -100,6 +100,10 @@ describe('QuarantineComponentReport', () => {
   });
 
   it('renders the component overview tile', async () => {
+    const date = new Date();
+    const minus1Day = new Date(date.setDate(date.getDate() - 1));
+    const minus2Day = new Date(date.setDate(date.getDate() - 2));
+
     const componentOverviewProps = {
       ...minimalProps,
       componentOverview: {
@@ -108,8 +112,10 @@ describe('QuarantineComponentReport', () => {
         isQuarantined: false,
         quarantinedPolicyViolationsCount: 123,
         repositoryName: 'maven-central',
-        quarantinedDate: new Date('2/1/22'),
-        cataloguedDate: new Date('2/2/22'),
+        // the following dates need to be different, otherwise the asserttion should change getByText for getAllByText
+        // toBeVisible() is used for single elements not for an array of them.
+        quarantinedDate: minus2Day,
+        cataloguedDate: minus1Day,
         componentVersion: '',
       },
     };

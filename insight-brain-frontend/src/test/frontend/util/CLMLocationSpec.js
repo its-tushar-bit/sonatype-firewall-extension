@@ -618,6 +618,14 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getConditionValueTypeUrl', () => {
+    it('should return a URL with proper ownerType, ownerId', () => {
+      expect(CLMLocation.getConditionValueTypeUrl('application', 'ownerId')).toBe(
+        '/rest/conditionValueType/application/ownerId'
+      );
+    });
+  });
+
   describe('getTestRepositoryConnectionUrl', function () {
     it('should return a URL without a repositoryConnectionId if it is not provided', function () {
       const expectedUrl = '/api/v2/config/repositoryConnection/some%3AOwnerType/some%3AOwnerId/test';

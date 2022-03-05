@@ -819,6 +819,10 @@ export const getOrganizationPolicyTagUrl = (organizationId) => {
   return getCategoriesUrl('organization', organizationId) + '/policy';
 };
 
+export const getConditionTypeUrl = () => uriTemplate`/rest/policy/conditionType`;
+export const getConditionValueTypeUrl = (ownerType, ownerId) =>
+  uriTemplate`/rest/conditionValueType/${ownerType}/${ownerId}`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',
@@ -835,10 +839,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
         return baseUrl.get() + '/rest/license';
       },
 
-      getConditionTypeUrl: function () {
-        return baseUrl.get() + '/rest/policy/conditionType';
-      },
-
+      getConditionTypeUrl,
       getActionStageUrl,
       getDashboardStageUrl,
       getCliStageUrl,

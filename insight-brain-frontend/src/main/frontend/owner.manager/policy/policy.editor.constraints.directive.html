@@ -32,12 +32,12 @@
             <ul>
               <li ng-if="!vm.conditionTypesMap[condition.conditionTypeId].enabled">
                 <div class="test-summary-condition-type-unsupported-message iq-alert">
-                  <i class="fa fa-warning"></i>{{:: vm.conditionTypesMap[condition.conditionTypeId].name}} condition
+                  <i class="fa fa-warning"></i>{{vm.conditionTypesMap[condition.conditionTypeId].name}} condition
                   is not supported by your license. Please delete the condition.
                 </div>
               </li>
               <li class="iq-list__item test-constraint-summary-condition-text">
-                {{:: vm.conditionString(condition)}}
+                {{vm.conditionString(condition, vm.conditionTypesMap)}}
               </li>
             </ul>
           </div>

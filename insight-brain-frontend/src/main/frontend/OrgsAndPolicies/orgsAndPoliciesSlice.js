@@ -8,10 +8,12 @@ import applicationCategoriesSlice from './orgsAndPoliciesApplicationCategoriesSl
 import labelsSlice from './orgsAndPoliciesLabelsSlice';
 import rootSlice from './orgsAndPoliciesRootSlice';
 import proprietarySlice from './orgsAndPoliciesProprietarySlice';
+import constraintSlice from './orgsAndPoliciesConstraintSlice';
 
 export default combineReducers({
   root: rootSlice,
   applicationCategories: applicationCategoriesSlice,
   labels: labelsSlice,
   proprietary: proprietarySlice,
+  constraint: constraintSlice,
 });

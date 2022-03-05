@@ -145,10 +145,6 @@ locationModule.factory('CLMContextLocations', [
         return baseUrl.get() + '/rest/licenseThreatGroupLicense/' + getServicePathWithId() + '/' + group.id;
       },
 
-      getConditionValueTypeUrl: function () {
-        return baseUrl.get() + '/rest/conditionValueType/' + getServicePathWithId();
-      },
-
       getPolicyUrl: function (ownerType, ownerId) {
         return baseUrl.get() + '/rest/policy/' + (ownerType || getServicePath()) + '/' + (ownerId || getId());
       },

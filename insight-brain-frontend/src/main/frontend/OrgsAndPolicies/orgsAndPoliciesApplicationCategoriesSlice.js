@@ -57,7 +57,7 @@ export const initialState = {
     associatedApplicationNames: null,
     tagPolicyList: null,
     // deleting, success and errorState props are required by the Delete Modal and can't be renamed while using DeleteModalService
-    deleting: false,
+    deleting: null,
     success: null,
     errorState: null,
   },
@@ -138,6 +138,10 @@ const loadCategoryEditorRequested = (state) => {
 const loadCategoryEditorFulfilled = (state, { payload }) => {
   state.loading = false;
   state.loadError = null;
+  state.deleteModal.success = null;
+  state.deleteModal.deleting = null;
+  state.deleteModal.errorState = null;
+
   const { associatedApplicationNames, siblings, currentCategory, tagPolicyList } = payload;
   state.currentCategory = currentCategory;
   state.serverCategory = currentCategory;

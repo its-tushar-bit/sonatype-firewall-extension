@@ -366,7 +366,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
   });
 
   describe('applicationCategories/loadCategoryEditor/fulfilled', () => {
-    it('sets loading, loadError, currentCategory, serverCategory, siblings', () => {
+    it('sets loading, loadError, currentCategory, serverCategory, siblings, associatedApplicationNames, tagPolicyList and resets deleteModal statuses', () => {
       const state = Object.freeze({
         loading: true,
         loadError: 'error',
@@ -376,6 +376,9 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
         deleteModal: {
           associatedApplicationNames: null,
           tagPolicyList: null,
+          success: true,
+          deleting: true,
+          errorState: 'someError',
         },
       });
 
@@ -413,9 +416,12 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       expect(newState.loadError).toBeNull();
       expect(newState.currentCategory).toEqual(currentCategory);
       expect(newState.serverCategory).toEqual(currentCategory);
+      expect(newState.siblings).toEqual(siblings);
       expect(newState.deleteModal.associatedApplicationNames).toEqual(associatedApplicationNames);
       expect(newState.deleteModal.tagPolicyList).toEqual(tagPolicyList);
-      expect(newState.siblings).toEqual(siblings);
+      expect(newState.deleteModal.success).toBeNull();
+      expect(newState.deleteModal.deleting).toBeNull();
+      expect(newState.deleteModal.errorState).toBeNull();
     });
   });
 

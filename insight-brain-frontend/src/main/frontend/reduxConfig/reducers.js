@@ -66,6 +66,7 @@ import quarantinedComponentReportReducer from 'MainRoot/quarantinedComponentRepo
 import innerSourceRepositoryConfigurationSlice from '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
 import innerSourceRepositoryBaseConfigurationsSlice from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSlice';
 import otherVersionsSlice from 'MainRoot/quarantinedComponentReport/otherVersionsTile/otherVersionsSlice';
+import samlConfigurationSlice from '../configuration/saml/samlConfigurationSlice';
 import quarantinedRiskRemediationSlice from 'MainRoot/quarantinedComponentReport/riskRemediationTile/riskRemediationSlice';
 import orgsAndPoliciesSlice from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSlice';
 
@@ -120,6 +121,7 @@ export default combineReducers({
   gettingStarted: gettingStartedReducer,
   transitiveViolations: transitiveViolationsReducer,
   waiveTransitiveViolations: waiveTransitiveViolationsReducer,
+  samlConfiguration: samlConfigurationSlice,
   componentDetailsPolicyViolations: componentDetailsViolationsReducer,
   componentDetailsOverview: overviewSlice,
   componentDetailsVulnerabilities: vulnerabilitiesSlice,

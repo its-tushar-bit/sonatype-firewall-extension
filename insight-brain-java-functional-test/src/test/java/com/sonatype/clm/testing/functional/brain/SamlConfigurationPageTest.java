@@ -7,30 +7,28 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.Statement;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.SamlConfigurationPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
+import org.apache.commons.io.FileUtils;
 
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
@@ -43,53 +41,56 @@ public class SamlConfigurationPageTest
 {
   @Before
   public void before() {
-    refreshOrOpen(SamlConfigurationPage.url());
+    SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
+    refreshOrOpen(samlConfigurationPage.url());
     loginAsAdmin();
-    SamlConfigurationPage.scrollToTop();
+    samlConfigurationPage.scrollToTop();
   }
 
   @After
   public void after() {
     logout();
+    clearAlerts();
     new SamlConfigurationDAO().delete();
   }
 
   @Test
   public void testDefaultState() {
+    SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
     eyesWatcher.eyesCheck("saml configuration editor top");
-    SamlConfigurationPage.identityProviderName().shouldBe(value("identity provider"));
-    SamlConfigurationPage.identityProviderMetadataXmlTextArea().shouldBe(text(""));
+    samlConfigurationPage.identityProviderName().shouldBe(value("identity provider"));
+    samlConfigurationPage.identityProviderMetadataXmlTextArea().shouldBe(text(""));
 
-    SamlConfigurationPage.validateResponseSignatureDropdown().selectedItem().shouldBe(text("Default"));
-    SamlConfigurationPage.validateAssertionSignatureDropdown().selectedItem().shouldBe(text("Default"));
+    samlConfigurationPage.validateResponseSignatureDropdown().shouldBe(text("Default"));
+    samlConfigurationPage.validateAssertionSignatureDropdown().shouldBe(text("Default"));
 
-    SamlConfigurationPage.scrollToBottom();
-    SamlConfigurationPage.entityId().shouldHave(value(rootUriBuilder().build() + "api/v2/config/saml/metadata"));
+    samlConfigurationPage.scrollToBottom();
+    samlConfigurationPage.entityId().shouldHave(value(rootUriBuilder().build() + "api/v2/config/saml/metadata"));
 
-    SamlConfigurationPage.usernameAttribute().shouldBe(value("username"));
-    SamlConfigurationPage.firstNameAttribute().shouldBe(value("firstName"));
+    samlConfigurationPage.usernameAttribute().shouldBe(value("username"));
+    samlConfigurationPage.firstNameAttribute().shouldBe(value("firstName"));
     eyesWatcher.eyesCheck("saml configuration editor bottom");
-    SamlConfigurationPage.lastNameAttribute().shouldBe(value("lastName"));
-    SamlConfigurationPage.emailAttribute().shouldBe(value("email"));
-    SamlConfigurationPage.groupsAttribute().shouldBe(value("groups"));
+    samlConfigurationPage.lastNameAttribute().shouldBe(value("lastName"));
+    samlConfigurationPage.emailAttribute().shouldBe(value("email"));
+    samlConfigurationPage.groupsAttribute().shouldBe(value("groups"));
 
     // Save is shown if there is no existing configuration
-    SamlConfigurationPage.saveButton().shouldHave(DISABLED);
-    SamlConfigurationPage.saveButton().shouldBe(text("Save"));
+    samlConfigurationPage.saveButton().shouldHave(DISABLED);
+    samlConfigurationPage.saveButton().shouldBe(text("Save"));
 
-    SamlConfigurationPage.cancelButton().shouldBe(disabled);
-    SamlConfigurationPage.deleteButton().shouldBe(disabled);
+    // samlConfigurationPage.cancelButton().shouldBe(disabled);
+    samlConfigurationPage.deleteButton().shouldBe(disabled);
 
-    // If no configuration is saved, the download button is "disabled" and the popover shows.
-    SamlConfigurationPage.scrollToTop();
-    SamlConfigurationPage.downloadIqMetadataButton().shouldHave(DISABLED);
-    SamlConfigurationPage.downloadIqMetadataButton().hover();
+    // If no configuration is saved, the download button is "disabled" and the tooltip shows.
+    samlConfigurationPage.scrollToTop();
+    samlConfigurationPage.downloadIqMetadataButton().shouldHave(cssClass("disabled"));
+    samlConfigurationPage.downloadIqMetadataButton().hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Nothing to download until a SAML configuration is saved"));
 
     // The links are as expected.
-    SamlConfigurationPage.documentationLink().shouldBe(
+    samlConfigurationPage.documentationLink().shouldBe(
         attribute("href", "http://links.sonatype.com/products/nxiq/doc/saml-integration"));
-    SamlConfigurationPage.feedbackWelcomeLink().shouldBe(
+    samlConfigurationPage.feedbackWelcomeLink().shouldBe(
         attribute("href", "http://links.sonatype.com/products/nxiq/feedback/saml"));
   }
 
@@ -97,226 +98,223 @@ public class SamlConfigurationPageTest
   public void testDefaultValuesSetIfFieldEmptyAndTooltipsAreShown() {
     // If an input field with a default value is empty and loses focus, it gets set to its default value.
     // A popover shows for each input field which has a default value asserting the value of the value.
-    SamlConfigurationPage.identityProviderName().hover();
+    SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
+    samlConfigurationPage.identityProviderName().hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"identity provider\""));
-    SamlConfigurationPage.identityProviderName().clear();
-    ScrollUtil.scrollIntoView(SamlConfigurationPage.entityId());
-    SamlConfigurationPage.entityId().click();
-    SamlConfigurationPage.identityProviderName().shouldBe(value("identity provider"));
+    samlConfigurationPage.identityProviderName().clear();
+    ScrollUtil.scrollIntoView(samlConfigurationPage.entityId());
+    samlConfigurationPage.entityId().click();
+    samlConfigurationPage.identityProviderName().shouldBe(value("identity provider"));
 
-    SamlConfigurationPage.scrollToBottom();
+    samlConfigurationPage.scrollToBottom();
     String defaultEntityId = rootUriBuilder().build() + "api/v2/config/saml/metadata";
-    SamlConfigurationPage.entityId().hover();
+    samlConfigurationPage.entityId().hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"" + defaultEntityId + "\""));
-    SamlConfigurationPage.entityId().clear();
-    SamlConfigurationPage.usernameAttribute().click();
-    SamlConfigurationPage.entityId().shouldBe(value(defaultEntityId));
-    SamlConfigurationPage.usernameAttribute().hover();
+    samlConfigurationPage.entityId().clear();
+    samlConfigurationPage.usernameAttribute().click();
+    samlConfigurationPage.entityId().shouldBe(value(defaultEntityId));
+    samlConfigurationPage.usernameAttribute().hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"username\""));
-    SamlConfigurationPage.usernameAttribute().clear();
-    SamlConfigurationPage.firstNameAttribute().click();
-    SamlConfigurationPage.usernameAttribute().shouldBe(value("username"));
+    samlConfigurationPage.usernameAttribute().clear();
+    samlConfigurationPage.firstNameAttribute().click();
+    samlConfigurationPage.usernameAttribute().shouldBe(value("username"));
 
-    SamlConfigurationPage.firstNameAttribute().hover();
+    samlConfigurationPage.firstNameAttribute().hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"firstName\""));
-    SamlConfigurationPage.firstNameAttribute().clear();
-    SamlConfigurationPage.scrollToBottom();
-    SamlConfigurationPage.lastNameAttribute().click();
-    SamlConfigurationPage.firstNameAttribute().shouldBe(value("firstName"));
+    samlConfigurationPage.firstNameAttribute().clear();
+    samlConfigurationPage.scrollToBottom();
+    samlConfigurationPage.lastNameAttribute().click();
+    samlConfigurationPage.firstNameAttribute().shouldBe(value("firstName"));
 
-    SamlConfigurationPage.lastNameAttribute().hover();
+    samlConfigurationPage.lastNameAttribute().hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"lastName\""));
-    SamlConfigurationPage.lastNameAttribute().clear();
-    SamlConfigurationPage.emailAttribute().click();
-    SamlConfigurationPage.lastNameAttribute().shouldBe(value("lastName"));
+    samlConfigurationPage.lastNameAttribute().clear();
+    samlConfigurationPage.emailAttribute().click();
+    samlConfigurationPage.lastNameAttribute().shouldBe(value("lastName"));
 
-    SamlConfigurationPage.emailAttribute().hover();
+    samlConfigurationPage.emailAttribute().hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"email\""));
-    SamlConfigurationPage.emailAttribute().clear();
-    SamlConfigurationPage.groupsAttribute().click();
-    SamlConfigurationPage.emailAttribute().shouldBe(value("email"));
+    samlConfigurationPage.emailAttribute().clear();
+    samlConfigurationPage.groupsAttribute().click();
+    samlConfigurationPage.emailAttribute().shouldBe(value("email"));
 
-    SamlConfigurationPage.groupsAttribute().hover();
+    samlConfigurationPage.groupsAttribute().hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("If empty will default to \"groups\""));
-    SamlConfigurationPage.groupsAttribute().clear();
-    SamlConfigurationPage.entityId().click();
-    SamlConfigurationPage.groupsAttribute().shouldBe(value("groups"));
+    samlConfigurationPage.groupsAttribute().clear();
+    samlConfigurationPage.entityId().click();
+    samlConfigurationPage.groupsAttribute().shouldBe(value("groups"));
   }
 
   @Test
   public void testCancelRevertsAllFields() {
     // Cancel reverts the changed fields back to their original values.
-    SamlConfigurationPage.identityProviderName().clear();
-    SamlConfigurationPage.identityProviderName().sendKeys("My Awesome IdP");
-    SamlConfigurationPage.loadXmlInput().uploadFromClasspath(
+    SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
+    samlConfigurationPage.identityProviderName().clear();
+    samlConfigurationPage.identityProviderName().sendKeys("My Awesome IdP");
+    samlConfigurationPage.loadXmlInput().uploadFromClasspath(
         "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata.xml");
-    SamlConfigurationPage.validateResponseSignatureDropdown().chooseOption(new Option(1, "True"));
-    SamlConfigurationPage.validateAssertionSignatureDropdown().chooseOption(new Option(2, "False"));
-    SamlConfigurationPage.scrollToBottom();
-    SamlConfigurationPage.entityId().clear();
-    SamlConfigurationPage.entityId().sendKeys("http://my-iq-server/entity-id");
-    SamlConfigurationPage.usernameAttribute().clear();
-    SamlConfigurationPage.usernameAttribute().sendKeys("my-user-name");
-    SamlConfigurationPage.firstNameAttribute().clear();
-    SamlConfigurationPage.firstNameAttribute().sendKeys("my-first-name");
-    SamlConfigurationPage.lastNameAttribute().clear();
-    SamlConfigurationPage.lastNameAttribute().sendKeys("my-last-name");
-    SamlConfigurationPage.emailAttribute().clear();
-    SamlConfigurationPage.emailAttribute().sendKeys("my-email");
-    SamlConfigurationPage.groupsAttribute().clear();
-    SamlConfigurationPage.groupsAttribute().sendKeys("my-groups");
+    samlConfigurationPage.validateResponseSignatureDropdown().chooseOption(new Option(1, "True"));
+    samlConfigurationPage.validateAssertionSignatureDropdown().chooseOption(new Option(2, "False"));
+    samlConfigurationPage.scrollToBottom();
+    samlConfigurationPage.entityId().clear();
+    samlConfigurationPage.entityId().sendKeys("http://my-iq-server/entity-id");
+    samlConfigurationPage.usernameAttribute().clear();
+    samlConfigurationPage.usernameAttribute().sendKeys("my-user-name");
+    samlConfigurationPage.firstNameAttribute().clear();
+    samlConfigurationPage.firstNameAttribute().sendKeys("my-first-name");
+    samlConfigurationPage.lastNameAttribute().clear();
+    samlConfigurationPage.lastNameAttribute().sendKeys("my-last-name");
+    samlConfigurationPage.emailAttribute().clear();
+    samlConfigurationPage.emailAttribute().sendKeys("my-email");
+    samlConfigurationPage.groupsAttribute().clear();
+    samlConfigurationPage.groupsAttribute().sendKeys("my-groups");
 
-    SamlConfigurationPage.cancelButton().click();
+    samlConfigurationPage.cancelButton().click();
 
-    SamlConfigurationPage.identityProviderName().shouldBe(value("identity provider"));
-    SamlConfigurationPage.validateResponseSignatureDropdown().selectedItem().shouldBe(text("Default"));
-    SamlConfigurationPage.validateAssertionSignatureDropdown().selectedItem().shouldBe(text("Default"));
-    SamlConfigurationPage.usernameAttribute().shouldBe(value("username"));
-    SamlConfigurationPage.firstNameAttribute().shouldBe(value("firstName"));
-    SamlConfigurationPage.lastNameAttribute().shouldBe(value("lastName"));
-    SamlConfigurationPage.emailAttribute().shouldBe(value("email"));
-    SamlConfigurationPage.groupsAttribute().shouldBe(value("groups"));
-    SamlConfigurationPage.identityProviderMetadataXmlTextArea().shouldBe(text(""));
+    samlConfigurationPage.identityProviderName().shouldBe(value("identity provider"));
+    samlConfigurationPage.validateResponseSignatureDropdown().shouldBe(text("Default"));
+    samlConfigurationPage.validateAssertionSignatureDropdown().shouldBe(text("Default"));
+    samlConfigurationPage.usernameAttribute().shouldBe(value("username"));
+    samlConfigurationPage.firstNameAttribute().shouldBe(value("firstName"));
+    samlConfigurationPage.lastNameAttribute().shouldBe(value("lastName"));
+    samlConfigurationPage.emailAttribute().shouldBe(value("email"));
+    samlConfigurationPage.groupsAttribute().shouldBe(value("groups"));
+    samlConfigurationPage.identityProviderMetadataXmlTextArea().shouldBe(text(""));
   }
 
   @Test
   public void testCrud() throws Exception {
+    SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
     // Indicator for configured/not configured shows as expected.
-    SamlConfigurationPage.isConfiguredText().shouldBe(text("not configured"));
-    SamlConfigurationPage.isConfiguredIcon().shouldBe(cssClass("gray"));
+    samlConfigurationPage.isConfiguredText().shouldBe(text("* Currently not configured"));
 
     // Saving a new configuration requires Identity Provider XML.
-    SamlConfigurationPage.saveButton().shouldHave(DISABLED);
-    SamlConfigurationPage.loadXmlInput().uploadFromClasspath(
+    samlConfigurationPage.saveButton().shouldHave(DISABLED);
+    samlConfigurationPage.loadXmlInput().uploadFromClasspath(
         "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata.xml");
-    SamlConfigurationPage.saveButton().shouldHave(cssClass("iq-btn--primary"));
+    samlConfigurationPage.saveButton().shouldHave(cssClass("iq-saml-configuration-save-button"));
 
-    SamlConfigurationPage.identityProviderName().clear();
-    SamlConfigurationPage.identityProviderName().sendKeys("My Awesome IdP");
-    SamlConfigurationPage.validateResponseSignatureDropdown().chooseOption(new Option(2, "False"));
-    SamlConfigurationPage.validateAssertionSignatureDropdown().chooseOption(new Option(1, "True"));
-    SamlConfigurationPage.scrollToBottom();
-    SamlConfigurationPage.entityId().clear();
-    SamlConfigurationPage.entityId().sendKeys("http://my-iq-server/entity-id");
-    SamlConfigurationPage.usernameAttribute().clear();
-    SamlConfigurationPage.usernameAttribute().sendKeys("my-user-name");
-    SamlConfigurationPage.firstNameAttribute().clear();
-    SamlConfigurationPage.firstNameAttribute().sendKeys("my-first-name");
-    SamlConfigurationPage.lastNameAttribute().clear();
-    SamlConfigurationPage.lastNameAttribute().sendKeys("my-last-name");
-    SamlConfigurationPage.emailAttribute().clear();
-    SamlConfigurationPage.emailAttribute().sendKeys("my-email");
-    SamlConfigurationPage.groupsAttribute().clear();
-    SamlConfigurationPage.groupsAttribute().sendKeys("my-groups");
+    samlConfigurationPage.identityProviderName().clear();
+    samlConfigurationPage.identityProviderName().sendKeys("My Awesome IdP");
+    samlConfigurationPage.validateResponseSignatureDropdown().chooseOption(new Option(2, "False"));
+    samlConfigurationPage.validateAssertionSignatureDropdown().chooseOption(new Option(1, "True"));
+    samlConfigurationPage.scrollToBottom();
+    samlConfigurationPage.entityId().clear();
+    samlConfigurationPage.entityId().sendKeys("http://my-iq-server/entity-id");
+    samlConfigurationPage.usernameAttribute().clear();
+    samlConfigurationPage.usernameAttribute().sendKeys("my-user-name");
+    samlConfigurationPage.firstNameAttribute().clear();
+    samlConfigurationPage.firstNameAttribute().sendKeys("my-first-name");
+    samlConfigurationPage.lastNameAttribute().clear();
+    samlConfigurationPage.lastNameAttribute().sendKeys("my-last-name");
+    samlConfigurationPage.emailAttribute().clear();
+    samlConfigurationPage.emailAttribute().sendKeys("my-email");
+    samlConfigurationPage.groupsAttribute().clear();
+    samlConfigurationPage.groupsAttribute().sendKeys("my-groups");
 
-    SamlConfigurationPage.saveButton().click();
-
-    // Indicator for configured/not configured shows as expected.
-    SamlConfigurationPage.scrollToTop();
-    SamlConfigurationPage.isConfiguredText().shouldBe(text("configured"));
-    SamlConfigurationPage.isConfiguredIcon().shouldHave(cssClass("fa-check-circle"));
-
-    // Update is shown if there is an existing configuration.
-    SamlConfigurationPage.scrollToBottom();
-    SamlConfigurationPage.saveButton().shouldBe(text("Update"));
+    samlConfigurationPage.saveButton().click();
 
     // Save/Update actually sets the SAML configuration to the saved/updated values.
-    SamlConfigurationPage.scrollToTop();
-    SamlConfigurationPage.identityProviderName().shouldBe(value("My Awesome IdP"));
-    SamlConfigurationPage.validateResponseSignatureDropdown().selectedItem().shouldBe(text("False"));
-    SamlConfigurationPage.validateAssertionSignatureDropdown().selectedItem().shouldBe(text("True"));
-    SamlConfigurationPage.entityId().shouldBe(value("http://my-iq-server/entity-id"));
-    SamlConfigurationPage.usernameAttribute().shouldBe(value("my-user-name"));
-    SamlConfigurationPage.firstNameAttribute().shouldBe(value("my-first-name"));
-    SamlConfigurationPage.lastNameAttribute().shouldBe(value("my-last-name"));
-    SamlConfigurationPage.emailAttribute().shouldBe(value("my-email"));
-    SamlConfigurationPage.groupsAttribute().shouldBe(value("my-groups"));
-    assertThat(SamlConfigurationPage.identityProviderMetadataXmlTextArea().getValue()).startsWith("<?xml");
+    samlConfigurationPage.scrollToTop();
+    samlConfigurationPage.identityProviderName().shouldBe(value("My Awesome IdP"));
+    samlConfigurationPage.validateResponseSignatureDropdown().shouldBe(text("False"));
+    samlConfigurationPage.validateAssertionSignatureDropdown().shouldBe(text("True"));
+    samlConfigurationPage.entityId().shouldBe(value("http://my-iq-server/entity-id"));
+    samlConfigurationPage.usernameAttribute().shouldBe(value("my-user-name"));
+    samlConfigurationPage.firstNameAttribute().shouldBe(value("my-first-name"));
+    samlConfigurationPage.lastNameAttribute().shouldBe(value("my-last-name"));
+    samlConfigurationPage.emailAttribute().shouldBe(value("my-email"));
+    samlConfigurationPage.groupsAttribute().shouldBe(value("my-groups"));
+    assertThat(samlConfigurationPage.identityProviderMetadataXmlTextArea().getValue()).startsWith("<?xml");
 
     logout();
-    refreshOrOpen(SamlConfigurationPage.url());
+    refreshOrOpen(samlConfigurationPage.url());
     loginAsAdmin();
 
     // Any saved configuration is loaded when going to the page.
-    SamlConfigurationPage.identityProviderName().shouldBe(value("My Awesome IdP"));
-    SamlConfigurationPage.validateResponseSignatureDropdown().selectedItem().shouldBe(text("False"));
-    SamlConfigurationPage.validateAssertionSignatureDropdown().selectedItem().shouldBe(text("True"));
-    SamlConfigurationPage.entityId().shouldBe(value("http://my-iq-server/entity-id"));
-    SamlConfigurationPage.usernameAttribute().shouldBe(value("my-user-name"));
-    SamlConfigurationPage.firstNameAttribute().shouldBe(value("my-first-name"));
-    SamlConfigurationPage.lastNameAttribute().shouldBe(value("my-last-name"));
-    SamlConfigurationPage.emailAttribute().shouldBe(value("my-email"));
-    SamlConfigurationPage.groupsAttribute().shouldBe(value("my-groups"));
-    assertThat(SamlConfigurationPage.identityProviderMetadataXmlTextArea().getValue()).startsWith("<?xml");
+    samlConfigurationPage.identityProviderName().shouldBe(value("My Awesome IdP"));
+    samlConfigurationPage.validateResponseSignatureDropdown().shouldBe(text("False"));
+    samlConfigurationPage.validateAssertionSignatureDropdown().shouldBe(text("True"));
+    samlConfigurationPage.entityId().shouldBe(value("http://my-iq-server/entity-id"));
+    samlConfigurationPage.usernameAttribute().shouldBe(value("my-user-name"));
+    samlConfigurationPage.firstNameAttribute().shouldBe(value("my-first-name"));
+    samlConfigurationPage.lastNameAttribute().shouldBe(value("my-last-name"));
+    samlConfigurationPage.emailAttribute().shouldBe(value("my-email"));
+    samlConfigurationPage.groupsAttribute().shouldBe(value("my-groups"));
+    assertThat(samlConfigurationPage.identityProviderMetadataXmlTextArea().getValue()).startsWith("<?xml");
 
     // Downloading IQ Server's (our) service provider metadata requires a saved configuration.
-    SamlConfigurationPage.downloadIqMetadataButton().shouldHave(cssClass("iq-btn"));
+    samlConfigurationPage.downloadIqMetadataButton().shouldHave(cssClass("nx-btn"));
 
     // Downloading saves the metadata.xml file directly as expected.
-    File download = SamlConfigurationPage.downloadIqMetadataButton().download();
+    File download = samlConfigurationPage.downloadIqMetadataButton().download();
     String content = FileUtils.readFileToString(download, StandardCharsets.UTF_8);
     assertThat(content.trim()).startsWith("<?xml").endsWith("EntityDescriptor>");
 
-    // Save/Update are only enabled if valid changes are made.
-    SamlConfigurationPage.scrollToBottom();
-    SamlConfigurationPage.saveButton().shouldHave(DISABLED);
-    SamlConfigurationPage.saveButton().shouldBe(text("Update"));
-
     // Loading an XML file for the identity provider xml works as expected and overwrites anything already in the box.
-    SamlConfigurationPage.loadXmlInput().uploadFromClasspath(
+    samlConfigurationPage.loadXmlInput().uploadFromClasspath(
         "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata-modified.xml");
-    assertThat(SamlConfigurationPage.identityProviderMetadataXmlTextArea().getValue().trim())
+    assertThat(samlConfigurationPage.identityProviderMetadataXmlTextArea().getValue().trim())
         .endsWith("<!--modified-->");
 
-    SamlConfigurationPage.saveButton().shouldNotHave(DISABLED);
-    SamlConfigurationPage.saveButton().shouldBe(text("Update"));
+    samlConfigurationPage.saveButton().shouldNotHave(DISABLED);
+    samlConfigurationPage.saveButton().shouldBe(text("Save"));
 
     // Delete button is only enabled if a configuration exists.
-    SamlConfigurationPage.deleteButton().shouldBe(enabled);
-    SamlConfigurationPage.deleteButton().click();
-    SamlConfigurationPage.deleteButtonModal().click();
+    samlConfigurationPage.deleteButton().shouldBe(enabled);
+    samlConfigurationPage.deleteButton().click();
+    samlConfigurationPage.deleteButtonModal().click();
 
     // Deleting a configuration empties the identity provider xml and sets default values for all other fields.
-    SamlConfigurationPage.identityProviderName().shouldBe(value("identity provider"));
-    SamlConfigurationPage.validateResponseSignatureDropdown().selectedItem().shouldBe(text("Default"));
-    SamlConfigurationPage.validateAssertionSignatureDropdown().selectedItem().shouldBe(text("Default"));
-    SamlConfigurationPage.usernameAttribute().shouldBe(value("username"));
-    SamlConfigurationPage.firstNameAttribute().shouldBe(value("firstName"));
-    SamlConfigurationPage.lastNameAttribute().shouldBe(value("lastName"));
-    SamlConfigurationPage.emailAttribute().shouldBe(value("email"));
-    SamlConfigurationPage.groupsAttribute().shouldBe(value("groups"));
-    SamlConfigurationPage.identityProviderMetadataXmlTextArea().shouldBe(value(""));
+    samlConfigurationPage.identityProviderName().shouldBe(value("identity provider"));
+    samlConfigurationPage.validateResponseSignatureDropdown().shouldBe(text("Default"));
+    samlConfigurationPage.validateAssertionSignatureDropdown().shouldBe(text("Default"));
+    samlConfigurationPage.usernameAttribute().shouldBe(value("username"));
+    samlConfigurationPage.firstNameAttribute().shouldBe(value("firstName"));
+    samlConfigurationPage.lastNameAttribute().shouldBe(value("lastName"));
+    samlConfigurationPage.emailAttribute().shouldBe(value("email"));
+    samlConfigurationPage.groupsAttribute().shouldBe(value("groups"));
+    samlConfigurationPage.identityProviderMetadataXmlTextArea().shouldBe(value(""));
   }
 
   @Test
   public void testIdentityProviderName_MaximumLength() {
-    SamlConfigurationPage.loadXmlInput().uploadFromClasspath(
+    SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
+    samlConfigurationPage.loadXmlInput().uploadFromClasspath(
         "com/sonatype/clm/testing/functional/brain/SamlConfigurationTest/identity-provider-metadata.xml");
-    SamlConfigurationPage.identityProviderName().sendKeys(Keys.HOME, Keys.chord(Keys.SHIFT, Keys.END),
+    samlConfigurationPage.identityProviderName().sendKeys(Keys.HOME, Keys.chord(Keys.SHIFT, Keys.END),
         StringUtils.repeat('a', SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH));
-    popoverViolations(SamlConfigurationPage.identityProviderName()).shouldBe(hidden);
-    SamlConfigurationPage.scrollToBottom();
-    SamlConfigurationPage.saveButton().shouldNotHave(DISABLED);
-
-    SamlConfigurationPage.scrollToTop();
-    SamlConfigurationPage.identityProviderName().sendKeys("a");
-    popoverViolations(SamlConfigurationPage.identityProviderName()).shouldBe(visible)
-        .shouldHave(text("Maximum length"));
-    SamlConfigurationPage.scrollToBottom();
-    SamlConfigurationPage.saveButton().shouldHave(DISABLED);
+    samlConfigurationPage.scrollToBottom();
+    samlConfigurationPage.saveButton().shouldNotHave(DISABLED);
   }
 
   @Test
-  public void testLoadError_Delete() throws Exception {
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
-         Statement statement = connection.createStatement()) {
-      statement.execute("INSERT INTO insight_brain_ods.saml_configuration " +
-          "VALUES ('474878d8bfe44d2086ca8387e340692f', '{}', '', '');");
-    }
-    refreshOrOpen(SamlConfigurationPage.url());
-    SamlConfigurationPage.deleteButton().shouldBe(visible, enabled).click();
-    SamlConfigurationPage.deleteButtonModal().click();
-    SamlConfigurationPage.scrollToBottom();
-    SamlConfigurationPage.saveButton().shouldHave(text("Save"));
+  public void testUnsavedChangesModal_ContinueNavigation() {
+    SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
+    samlConfigurationPage.identityProviderName().clear();
+    samlConfigurationPage.identityProviderName().sendKeys("My Awesome IdP");
+    samlConfigurationPage.validateResponseSignatureDropdown().chooseOption(new Option(2, "False"));
+    samlConfigurationPage.validateAssertionSignatureDropdown().chooseOption(new Option(1, "True"));
+
+    refreshOrOpen(DashboardPage.urlToViolations());
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.shouldBe(visible);
+    unsavedChangesModal.continueButton().click();
+    DashboardPage.dashboardContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testUnsavedChangesModal_CancelNavigation() {
+    SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
+    samlConfigurationPage.validateResponseSignatureDropdown().chooseOption(new Option(2, "False"));
+    samlConfigurationPage.validateAssertionSignatureDropdown().chooseOption(new Option(1, "True"));
+
+    refreshOrOpen(DashboardPage.urlToViolations());
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.shouldBe(visible);
+    unsavedChangesModal.cancelButton().click();
+    DashboardPage.dashboardContainer().shouldNotBe(visible);
   }
 }

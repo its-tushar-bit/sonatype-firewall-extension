@@ -797,6 +797,14 @@ export const getTestRepositoryConnectionUrl = (ownerType, ownerId, repositoryCon
   return getRepositoryConnectionUrl(ownerType, ownerId, repositoryConnectionId) + '/test';
 };
 
+export const getSamlConfigurationUrl = () => {
+  return uriTemplate`/api/v2/config/saml`;
+};
+
+export const getSamlMetadataUrl = () => {
+  return uriTemplate`/api/v2/config/saml/metadata`;
+};
+
 export const getOrganizationAppliedTagUrl = (organizationId) => {
   return getCategoriesUrl('organization', organizationId) + '/applied';
 };

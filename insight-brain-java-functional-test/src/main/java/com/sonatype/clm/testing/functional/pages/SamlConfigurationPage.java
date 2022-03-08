@@ -7,7 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
-import com.sonatype.clm.testing.functional.elements.Dropdown;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 
@@ -19,102 +19,98 @@ import static com.codeborne.selenide.Selenide.$;
 public class SamlConfigurationPage
     extends BasicElement<SamlConfigurationPage>
 {
-  public static String url() {
+  public String url() {
     return BaseUrl.resolvePageUrl("/saml");
   }
 
-  public static SelenideElement downloadIqMetadataButton() {
+  public SelenideElement downloadIqMetadataButton() {
     return $("#saml-iq-server-metadata");
   }
 
-  public static SelenideElement identityProviderName() {
-    return $("#saml-identity-provider-name");
+  public SelenideElement identityProviderName() {
+    return $("#saml-identity-provider-name input");
   }
 
-  public static SelenideElement identityProviderMetadataXmlTextArea() {
+  public SelenideElement identityProviderMetadataXmlTextArea() {
     return $("#saml-identity-provider-metadata-xml");
   }
 
-  public static SelenideElement entityId() {
-    return $("#saml-entity-id");
+  public SelenideElement entityId() {
+    return $("#saml-entity-id input");
   }
 
-  public static SelenideElement usernameAttribute() {
-    return $("#saml-username-attribute-name");
+  public SelenideElement usernameAttribute() {
+    return $("#saml-username-attribute-name input");
   }
 
-  public static SelenideElement firstNameAttribute() {
-    return $("#saml-first-name-attribute-name");
+  public SelenideElement firstNameAttribute() {
+    return $("#saml-first-name-attribute-name input");
   }
 
-  public static SelenideElement lastNameAttribute() {
-    return $("#saml-last-name-attribute-name");
+  public SelenideElement lastNameAttribute() {
+    return $("#saml-last-name-attribute-name input");
   }
 
-  public static SelenideElement emailAttribute() {
-    return $("#saml-email-attribute-name");
+  public SelenideElement emailAttribute() {
+    return $("#saml-email-attribute-name input");
   }
 
-  public static SelenideElement groupsAttribute() {
-    return $("#saml-groups-attribute-name");
+  public SelenideElement groupsAttribute() {
+    return $("#saml-groups-attribute-name input");
   }
 
-  public static SelenideElement loadXmlInput() {
+  public SelenideElement loadXmlInput() {
     return $("#saml-identity-provider-metadata-xml-load");
   }
 
-  public static Dropdown validateResponseSignatureDropdown() {
-    return new Dropdown("#select-validate-response-signature");
+  public NxFormSelect validateResponseSignatureDropdown() {
+    return new NxFormSelect(childSelector("#select-validate-response-signature"));
   }
 
-  public static Dropdown validateAssertionSignatureDropdown() {
-    return new Dropdown("#select-validate-assertion-signature");
+  public NxFormSelect validateAssertionSignatureDropdown() {
+    return new NxFormSelect(childSelector("#select-validate-assertion-signature"));
   }
 
-  public static Button saveButton() {
-    return new Button("#saml-save");
+  public Button saveButton() {
+    return new Button(".iq-saml-configuration-save-button");
   }
 
-  public static Button cancelButton() {
+  public Button cancelButton() {
     return new Button("#saml-cancel");
   }
 
-  public static Button deleteButton() {
+  public Button deleteButton() {
     return new Button("#saml-delete");
   }
 
   // Are you sure you want to delete this SAML configuration?
-  public static SelenideElement deleteButtonModal() {
-    return $("#delete-saml-confirmation > div.iq-modal-footer > button.btn.btn-primary");
+  public SelenideElement deleteButtonModal() {
+    return $("#saml-configuration-delete-modal > .nx-footer > .nx-btn-bar > .nx-btn--secondary");
   }
 
   // Here you can configure SAML integration..
-  public static SelenideElement documentationLink() {
-    return $("#saml-explanation > a");
+  public SelenideElement documentationLink() {
+    return $("#saml-explanation");
   }
 
   // Feedback is welcome.
-  public static SelenideElement feedbackWelcomeLink() {
+  public SelenideElement feedbackWelcomeLink() {
     return $("#saml-feedback-link");
   }
 
-  public static SelenideElement isConfiguredIcon() {
-    return $("#saml-configuration > div.iq-tile-header.iq-tile-header--hrule > div.iq-tile-header__subtitle > i");
+  public SelenideElement isConfiguredText() {
+    return $("#saml-is-configured");
   }
 
-  public static SelenideElement isConfiguredText() {
-    return $("#saml-configuration > div.iq-tile-header.iq-tile-header--hrule > div.iq-tile-header__subtitle");
-  }
-
-  public static void scrollToTop() {
+  public void scrollToTop() {
     scrollIntoView(downloadIqMetadataButton());
   }
 
-  public static void scrollToBottom() {
+  public void scrollToBottom() {
     scrollIntoView(deleteButton().getElement());
   }
 
-  private static void scrollIntoView(SelenideElement element) {
+  private void scrollIntoView(SelenideElement element) {
     ScrollUtil.awaitEndOfScrolling(element.should(exist).scrollIntoView(true));
   }
 }

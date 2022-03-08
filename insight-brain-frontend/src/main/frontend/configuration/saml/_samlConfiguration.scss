@@ -3,23 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
-@use '../../scss/variables' as *;
-
-#saml-configuration {
-  .tooltip-inner {
-    max-width: 500px;
-  }
-
-  .fa-check-circle {
-    color: $iq-valid-color;
-  }
+saml-configuration-page {
+  display: contents;
 }
 
-textarea {
-  &.iq-textarea--saml {
-    box-sizing: border-box;
-    margin-top: 13px;
-    width: 100%;
-  }
+div.iq-saml-configuration-load-xml-button-bar {
+  justify-content: flex-start;
+}
+
+.iq-saml-configuration-metadata,
+.iq-saml-configuration-metadata:focus,
+.iq-saml-configuration-metadata:hover {
+  text-decoration: none;
+  cursor: pointer;
+  color: var(--nx-color-text-dark);
 }

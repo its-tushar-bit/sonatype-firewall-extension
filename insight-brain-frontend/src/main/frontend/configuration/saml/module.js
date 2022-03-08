@@ -3,29 +3,28 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import samlConfiguration from './samlConfiguration';
 import clmContextLocationModule from '../../util/CLMContextLocation';
 import utilityModule from '../../utility/utility.module';
+import SAMLConfigurationPage from './SAMLConfigurationPage';
+import { react2angular } from 'react2angular';
+import withStoreProvider from '../../reactAdapter/StoreProvider';
+import withRouterStateProvider from '../../reactAdapter/RouterStateProvider';
 
 export default angular
   .module('samlModule', [clmContextLocationModule.name, utilityModule.name])
-  .component('samlConfiguration', samlConfiguration)
+  .component(
+    'samlConfigurationPage',
+    react2angular(withStoreProvider(withRouterStateProvider(SAMLConfigurationPage)), [], ['$ngRedux', '$state'])
+  )
   .config([
     '$stateProvider',
     function ($stateProvider) {
       $stateProvider.state('saml', {
         url: '/saml',
-        component: 'samlConfiguration',
+        component: 'samlConfigurationPage',
         data: {
           title: 'SAML',
-        },
-        resolve: {
-          isAuthorized: [
-            'PermissionService',
-            function (PermissionService) {
-              return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-            },
-          ],
+          isDirty: ['samlConfiguration', 'isDirty'],
         },
       });
     },

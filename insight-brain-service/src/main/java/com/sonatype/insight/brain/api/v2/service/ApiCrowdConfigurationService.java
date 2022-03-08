@@ -1,0 +1,117 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2.service;
+
+import java.nio.CharBuffer;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import com.sonatype.insight.brain.api.v2.dto.ApiCrowdConfigurationDTO;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+
+import org.apache.commons.lang3.StringUtils;
+
+/**
+ * @since 1.134
+ */
+@Named
+public class ApiCrowdConfigurationService
+{
+  public static final String CROWD_SERVER_URL_AUDIT_KEY = "serverUrl";
+
+  public static final String CROWD_APPLICATION_NAME_AUDIT_KEY = "applicationName";
+
+  // Visible for testing
+  static final String CROWD_IS_NOT_CONFIGURED = "Crowd is not configured.";
+
+  // Visible for testing
+  static final String CROWD_CONFIGURATION_MUST_BE_SPECIFIED = "A Crowd configuration must be specified.";
+
+  // Visible for testing
+  static final String CROWD_SERVER_URL_UPDATE_NEEDS_APPLICATION_PASSWORD =
+      "A Crowd configuration server url must be updated with its application password.";
+
+  private final CrowdConfigurationDAO crowdConfigurationDAO;
+
+  private final PasswordHandler passwordHandler;
+
+  @Inject
+  public ApiCrowdConfigurationService(CrowdConfigurationDAO crowdConfigurationDAO, PasswordHandler passwordHandler) {
+    this.crowdConfigurationDAO = crowdConfigurationDAO;
+    this.passwordHandler = passwordHandler;
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public ApiCrowdConfigurationDTO getCrowdConfiguration() {
+    CrowdConfiguration crowdConfiguration = crowdConfigurationDAO.get();
+
+    if (crowdConfiguration == null) {
+      throw new NotFoundException(CROWD_IS_NOT_CONFIGURED);
+    }
+
+    return convertToDTO(crowdConfiguration);
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void insertOrUpdateCrowdConfiguration(ApiCrowdConfigurationDTO dto) {
+    if (dto == null) {
+      throw new BadRequestException(CROWD_CONFIGURATION_MUST_BE_SPECIFIED);
+    }
+    CrowdConfiguration crowdConfiguration = crowdConfigurationDAO.get();
+    if (crowdConfiguration == null) {
+      crowdConfiguration = new CrowdConfiguration();
+      crowdConfiguration.setServerUrl(dto.serverUrl);
+      crowdConfiguration.setApplicationName(dto.applicationName);
+      crowdConfiguration.setApplicationPassword(passwordHandler.encryptPassword(dto.applicationPassword));
+    }
+    else {
+      boolean passwordIsBlank =
+          dto.applicationPassword == null || StringUtils.isBlank(CharBuffer.wrap(dto.applicationPassword));
+      boolean serverUrlIsBlank = StringUtils.isBlank(dto.serverUrl);
+      if (passwordIsBlank && !serverUrlIsBlank && !crowdConfiguration.getServerUrl().equalsIgnoreCase(dto.serverUrl)) {
+        throw new BadRequestException(CROWD_SERVER_URL_UPDATE_NEEDS_APPLICATION_PASSWORD);
+      }
+      if (!serverUrlIsBlank) {
+        crowdConfiguration.setServerUrl(dto.serverUrl);
+      }
+      if (StringUtils.isNotBlank(dto.applicationName)) {
+        crowdConfiguration.setApplicationName(dto.applicationName);
+      }
+      if (!passwordIsBlank) {
+        crowdConfiguration.setApplicationPassword(passwordHandler.encryptPassword(dto.applicationPassword));
+      }
+    }
+    AuditData.get().setData(CROWD_SERVER_URL_AUDIT_KEY, crowdConfiguration.getServerUrl())
+        .setData(CROWD_APPLICATION_NAME_AUDIT_KEY, crowdConfiguration.getApplicationName());
+    crowdConfigurationDAO.set(crowdConfiguration);
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void deleteCrowdConfiguration() {
+    CrowdConfiguration crowdConfiguration = crowdConfigurationDAO.get();
+    if (crowdConfiguration == null) {
+      throw new NotFoundException(CROWD_IS_NOT_CONFIGURED);
+    }
+    AuditData.get().setData(CROWD_SERVER_URL_AUDIT_KEY, crowdConfiguration.getServerUrl())
+        .setData(CROWD_APPLICATION_NAME_AUDIT_KEY, crowdConfiguration.getApplicationName());
+    crowdConfigurationDAO.delete(crowdConfiguration);
+  }
+
+  private ApiCrowdConfigurationDTO convertToDTO(CrowdConfiguration crowdConfiguration) {
+    ApiCrowdConfigurationDTO dto = new ApiCrowdConfigurationDTO();
+    dto.serverUrl = crowdConfiguration.getServerUrl();
+    dto.applicationName = crowdConfiguration.getApplicationName();
+    return dto;
+  }
+}

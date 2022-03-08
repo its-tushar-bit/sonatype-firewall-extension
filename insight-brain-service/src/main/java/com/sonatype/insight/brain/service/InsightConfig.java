@@ -1027,7 +1027,8 @@ public class InsightConfig
   {
     SCM_ONBOARDING("scmOnboarding"),
     INNER_SOURCE_REPOSITORY_INTEGRATION("innerSourceRepositoryIntegration"),
-    ANONYMOUS_QUARANTINED_COMPONENT_VIEW("anonymousQuarantinedComponentView");
+    ANONYMOUS_QUARANTINED_COMPONENT_VIEW("anonymousQuarantinedComponentView"),
+    CROWD_INTEGRATION("crowdIntegration");
 
     private final String flag;
 

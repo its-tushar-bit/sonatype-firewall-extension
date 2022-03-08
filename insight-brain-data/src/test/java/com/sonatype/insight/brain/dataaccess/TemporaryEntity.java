@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
@@ -129,6 +130,7 @@ import com.sonatype.insight.brain.model.configuration.ProductLicense;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
@@ -421,6 +423,8 @@ public class TemporaryEntity
   
   private final SourceLinkOverrideDAO sourceLinkOverrideDAO = new SourceLinkOverrideDAO();
 
+  private final CrowdConfigurationDAO crowdConfigurationDAO = new CrowdConfigurationDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -659,6 +663,7 @@ public class TemporaryEntity
     attributionReportTemplateDAO.getAll().forEach(attributionReportTemplateDAO::delete);
     quarantinedComponentAccessDAO.getAll().forEach(quarantinedComponentAccessDAO::delete);
     componentSourceLinkDAO.getAll().forEach(componentSourceLinkDAO::delete);
+    crowdConfigurationDAO.delete();
   }
 
   private <E> void detachEntity(E entity) {
@@ -3302,5 +3307,15 @@ public class TemporaryEntity
         new SourceLinkOverride(content, status, componentSourceLinkId);
     sourceLinkOverrideDAO.insert(sourceLinkOverride);
     return sourceLinkOverride;
+  }
+
+  public CrowdConfiguration newCrowdConfiguration() {
+    return newCrowdConfiguration("http://localhost:8095/crowd", "iq server", "password".toCharArray());
+  }
+
+  public CrowdConfiguration newCrowdConfiguration(String serverUrl, String applicationName, char[] password) {
+    CrowdConfiguration crowdConfiguration = new CrowdConfiguration(serverUrl, applicationName, password);
+    crowdConfigurationDAO.insert(crowdConfiguration);
+    return crowdConfiguration;
   }
 }

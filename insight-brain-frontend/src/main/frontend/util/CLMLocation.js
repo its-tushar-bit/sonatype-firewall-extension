@@ -241,6 +241,22 @@ export const getComponentLicensesUrl = ({
   return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${ownerId}/licenses?` + params;
 };
 
+export const getComponentMultiLicensesUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  identificationSource,
+  scanId,
+}) => {
+  const params = toURIParams({
+    componentIdentifier,
+    identificationSource,
+    scanId,
+  });
+  return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${ownerId}/multiLicenses?` + params;
+};
+
 export function getSuccessMetricsConfigUrl() {
   return uriTemplate`/rest/successMetrics`;
 }

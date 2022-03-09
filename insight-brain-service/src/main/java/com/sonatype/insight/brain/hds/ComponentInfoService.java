@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -117,6 +118,8 @@ public class ComponentInfoService
 
   private final RepositoryQueryService repositoryQueryService;
 
+  private final MultiLicenseDAO multiLicenseDAO;
+
   private static final String OTHER_CATEGORY_ID = "113";
 
   private String toolName;
@@ -129,7 +132,8 @@ public class ComponentInfoService
       ComponentRemediationService componentRemediationService,
       ThirdPartyComponentDAO thirdPartyComponentDAO,
       InsightConfig insightConfig,
-      RepositoryQueryService repositoryQueryService)
+      RepositoryQueryService repositoryQueryService,
+      MultiLicenseDAO multiLicenseDAO)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
@@ -138,6 +142,7 @@ public class ComponentInfoService
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
     this.insightConfig = insightConfig;
     this.repositoryQueryService = repositoryQueryService;
+    this.multiLicenseDAO = multiLicenseDAO;
     initUnspecifiedLicense();
     initOtherCategory();
   }
@@ -788,6 +793,41 @@ public class ComponentInfoService
     return result;
   }
 
+  /**
+   *
+   * @since 1.134
+   */
+  @Authorize(permission = Permission.READ)
+  public ComponentMultiLicenses getMultiLicenses(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      ComponentIdentifier componentIdentifier,
+      HttpServletRequest httpRequest,
+      String identificationSource,
+      String scanId) throws IOException
+  {
+    auditComponentAccess(componentIdentifier, null);
+    if (componentIdentifier == null) {
+      throw new BadRequestException("componentIdentifier is required");
+    }
+
+    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+
+    ComponentMultiLicenses result = new ComponentMultiLicenses();
+
+    ComponentDetails componentDetails =
+        getUnaugmentedComponentDetails(owner, componentIdentifier, httpRequest, identificationSource, scanId);
+
+    augmentComponentDetails(owner, componentDetails);
+
+    result.declaredLicenses = getMultiLicenseWithThreatLevels(owner, componentDetails.getDeclaredLicenses());
+    result.observedLicenses = getMultiLicenseWithThreatLevels(owner, componentDetails.getObservedLicenses());
+    result.effectiveLicenses = getMultiLicenseWithThreatLevels(owner, componentDetails.getEffectiveLicenses());
+    result.selectableLicenses = new ArrayList<>(
+        getSelectableLicenses(componentDetails.getDeclaredLicenses(), componentDetails.getObservedLicenses()));
+    return result;
+  }
+
   public ComponentDetails getUnaugmentedComponentDetails(
       Owner owner,
       ComponentIdentifier componentIdentifier,
@@ -842,7 +882,6 @@ public class ComponentInfoService
   }
 
   private Set<License> getSelectableLicenses(Collection<License> declared, Collection<License> observed) {
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     Set<License> result = new LinkedHashSet<>();
     Set<License> licenses = new LinkedHashSet<>();
     licenses.addAll(declared);
@@ -878,7 +917,6 @@ public class ComponentInfoService
 
     if (multiLicenses != null) {
       Set<String> alreadyProcessedLicenseIds = new HashSet<>();
-      MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
       for (License multiLicense : multiLicenses) {
         Set<com.sonatype.insight.brain.model.license.License> licenses = multiLicenseDAO
             .getLicensesByMultiLicenseIdNotNull(multiLicense.getLicenseId());
@@ -904,6 +942,37 @@ public class ComponentInfoService
     licenseWithThreatLevel.threatLevel =
         licenseThreatGroupDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(owner, license.getId());
     return licenseWithThreatLevel;
+  }
+
+  private List<MultiLicenseWithThreatLevel> getMultiLicenseWithThreatLevels(Owner owner, Set<License> multiLicenses) {
+    List<MultiLicenseWithThreatLevel> result = new ArrayList<>();
+
+    if (multiLicenses != null) {
+      for (License multiLicense : multiLicenses) {
+        MultiLicenseWithThreatLevel multiLicenseWithThreatLevel = new MultiLicenseWithThreatLevel();
+        multiLicenseWithThreatLevel.licenseId = multiLicense.getLicenseId();
+        multiLicenseWithThreatLevel.licenseName = multiLicense.getLicenseName();
+
+        Set<com.sonatype.insight.brain.model.license.License> licenses =
+            multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicense.getLicenseId());
+
+        for (com.sonatype.insight.brain.model.license.License license : licenses) {
+          LicenseWithThreatLevel licenseWithThreatLevel = new LicenseWithThreatLevel();
+          licenseWithThreatLevel.license = new License(license.getId(), license.getShortDisplayName());
+          licenseWithThreatLevel.threatLevel =
+              licenseThreatGroupDAO.getLicenseThreatLevelByOwnerAndLicenseIdWithHierarchy(owner, license.getId());
+          multiLicenseWithThreatLevel.licenses.add(licenseWithThreatLevel);
+        }
+
+        Collections.sort(multiLicenseWithThreatLevel.licenses,
+            Comparator.comparing(licenseWithThreatLevel -> licenseWithThreatLevel.license.getLicenseName()));
+        result.add(multiLicenseWithThreatLevel);
+      }
+    }
+
+    Collections.sort(result, Comparator.comparing(
+        multiLicenseWithThreatLevel -> multiLicenseWithThreatLevel.licenses.get(0).license.getLicenseName()));
+    return result;
   }
 
   private static boolean isPackageManifestIdentificationSource(String identificationSource) {
@@ -953,6 +1022,32 @@ public class ComponentInfoService
     public License license;
 
     public Integer threatLevel;
+  }
+
+  /**
+   * @since 1.134
+   */
+  public static class ComponentMultiLicenses
+  {
+    public List<MultiLicenseWithThreatLevel> declaredLicenses;
+
+    public List<MultiLicenseWithThreatLevel> observedLicenses;
+
+    public List<MultiLicenseWithThreatLevel> effectiveLicenses;
+
+    public List<License> selectableLicenses;
+  }
+
+  /**
+   * @since 1.134
+   */
+  public static class MultiLicenseWithThreatLevel
+  {
+    public String licenseId;
+
+    public String licenseName;
+
+    public List<LicenseWithThreatLevel> licenses = new ArrayList<>();
   }
 
   public void setToolName(String toolName) {

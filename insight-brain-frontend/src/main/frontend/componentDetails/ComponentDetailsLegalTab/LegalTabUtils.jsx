@@ -15,37 +15,33 @@ const claimedComponentAlert = (isEffective, len) => {
   return <span> (Claimed Component)</span>;
 };
 
-const renderOneLicense = (licenseDetails) => {
+const renderOneLicense = (licenseItem) => {
   return (
-    <div key={licenseDetails.licenseId} className="license-list-item__license">
-      <NxThreatIndicator policyThreatLevel={licenseDetails.threatGroup?.threatLevel} />
-      <span>{licenseDetails.licenseName}</span>
+    <div key={licenseItem.license.licenseId} className="license-list-item__license">
+      <NxThreatIndicator policyThreatLevel={licenseItem.threatLevel} />
+      <span>{licenseItem.license.licenseName}</span>
     </div>
   );
 };
 
-export const renderLicensesList = (list, licenseLegalMetadata, claimed, isEffective = false) =>
-  list?.map((licenseKey) => {
-    const licenseDetails = (licenseLegalMetadata || []).find((license) => license.licenseId === licenseKey);
+export const renderLicensesList = (list, claimed, isEffective = false) =>
+  list?.map((item) => {
+    const { licenses } = item;
+    const licenseKey = licenses.map(licenseItem => licenseItem.license.licenseId).join();
 
-    const multiDisplay = (licenseDetails) => {
-      let multiDetails = licenseDetails.singleLicenseIds.map((licenseKey) => {
-        return (licenseLegalMetadata || []).find((license) => license.licenseId === licenseKey);
-      });
-      return multiDetails
-        .map((licenseDetails) => renderOneLicense(licenseDetails))
+    const multiDisplay = (multiLicenses) => {
+      return multiLicenses
+        .map((licenseItem) => renderOneLicense(licenseItem))
         .reduce((prev, curr) => [prev, ' or ', curr]);
     };
 
     return (
-      licenseDetails && (
-        <NxList.Item key={licenseKey}>
-          <NxList.Text className="license-list-item">
-            {licenseDetails.isMulti ? multiDisplay(licenseDetails) : renderOneLicense(licenseDetails)}
-            {claimed && claimedComponentAlert(isEffective, list.length)}
-          </NxList.Text>
-        </NxList.Item>
-      )
+      <NxList.Item key={licenseKey}>
+        <NxList.Text className="license-list-item">
+          {licenses.length > 1 ? multiDisplay(licenses) : renderOneLicense(licenses[0])}
+          {claimed && claimedComponentAlert(isEffective, list.length)}
+        </NxList.Text>
+      </NxList.Item>
     );
   });
 

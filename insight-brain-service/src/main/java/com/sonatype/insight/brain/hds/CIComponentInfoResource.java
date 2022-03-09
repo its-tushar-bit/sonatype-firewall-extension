@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
+import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentMultiLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.DependencyType;
@@ -40,6 +41,8 @@ public class CIComponentInfoResource
   static final String COMPONENT_DETAILS_PATH = "{ownerType: application|repository}/{ownerId}";
 
   public static final String LICENSES_PATH = COMPONENT_DETAILS_PATH + "/licenses";
+
+  public static final String MULTI_LICENSES_PATH = COMPONENT_DETAILS_PATH + "/multiLicenses";
 
   public static final String VULNERABILITIES_PATH = COMPONENT_DETAILS_PATH + "/vulnerabilities";
 
@@ -123,6 +126,21 @@ public class CIComponentInfoResource
   {
     return componentInfoService
         .getLicenses(ownerType, ownerId, componentIdentifier, httpRequest, identificationSource, scanId);
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(MULTI_LICENSES_PATH)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
+  public ComponentMultiLicenses getMultiLicenses(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
+      @QueryParam("identificationSource") String identificationSource,
+      @QueryParam("scanId") String scanId) throws IOException
+  {
+    return componentInfoService.getMultiLicenses(ownerType, ownerId, componentIdentifier, httpRequest,
+        identificationSource, scanId);
   }
 
   /**

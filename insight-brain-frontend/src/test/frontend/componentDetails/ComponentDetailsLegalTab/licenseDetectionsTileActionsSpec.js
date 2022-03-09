@@ -12,9 +12,8 @@ import {
 } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
 import {
   getBaseLicenseOverrideUrl,
-  getComponentLicensesUrl,
+  getComponentMultiLicensesUrl,
   getDeleteLicenseOverrideUrl,
-  getLicenseLegalComponentUrl,
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
   getProductFeaturesUrl,
@@ -74,7 +73,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
       ownerType = 'application',
       ownerId = 'appPublicId',
       licenseUrl = getLicensesWithSyntheticFilterUrl(),
-      componentlicensUrl = getComponentLicensesUrl({
+      componentMultiLicensesUrl = getComponentMultiLicensesUrl({
         clientType: 'ci',
         ownerType,
         ownerId,
@@ -83,7 +82,6 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         scanId: 'currentScanId',
       }),
       licensesOverrideUrl = getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier),
-      licenseLegalComponentUrl = getLicenseLegalComponentUrl(ownerType, ownerId, 'currentComponentHash'),
       licenses = [
         {
           id: '0BSD',
@@ -175,9 +173,8 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
       mockAxiosCalls({
         get: {
           [licenseUrl]: Promise.resolve({}),
-          [componentlicensUrl]: Promise.resolve({}),
+          [componentMultiLicensesUrl]: Promise.resolve({}),
           [licensesOverrideUrl]: Promise.resolve({}),
-          [licenseLegalComponentUrl]: Promise.resolve({}),
         },
       });
 
@@ -187,16 +184,13 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
       expect(actions).toHaveAction({
         type: 'componentDetailsLicenseDetectionsTile/load/pending',
       });
-      expect(axios.get).toHaveBeenCalledTimes(4);
+      expect(axios.get).toHaveBeenCalledTimes(3);
       expect(axios.get).toHaveBeenCalledWith('/rest/license?filterSynthetic=true');
       expect(axios.get).toHaveBeenCalledWith(
-        '/rest/ci/componentDetails/application/appPublicId/licenses?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D&identificationSource=identificationSource&scanId=currentScanId'
+        '/rest/ci/componentDetails/application/appPublicId/multiLicenses?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D&identificationSource=identificationSource&scanId=currentScanId'
       );
       expect(axios.get).toHaveBeenCalledWith(
         '/rest/licenseOverride/application/appPublicId?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D'
-      );
-      expect(axios.get).toHaveBeenCalledWith(
-        '/api/v2/licenseLegalMetadata/application/appPublicId/component?hash=currentComponentHash'
       );
     });
 
@@ -206,23 +200,11 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
           [licenseUrl]: Promise.resolve({
             data: licenses,
           }),
-          [componentlicensUrl]: Promise.resolve({
+          [componentMultiLicensesUrl]: Promise.resolve({
             data: componentLicenses,
           }),
           [licensesOverrideUrl]: Promise.resolve({
             data: licensesOverride,
-          }),
-          [licenseLegalComponentUrl]: Promise.resolve({
-            data: {
-              component: {
-                licenseLegalData: {
-                  declaredLicenses: 'declaredLicenses',
-                  effectiveLicenses: 'effectiveLicenses',
-                  observedLicenses: 'observedLicenses',
-                },
-              },
-              licenseLegalMetadata: 'licenseLegalMetadata',
-            },
           }),
         },
       });
@@ -246,12 +228,11 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         type: 'componentDetailsLicenseDetectionsTile/load/fulfilled',
         payload: {
           licenseOverride: licensesOverride.licenseOverridesByOwner,
-          declaredLicenses: 'declaredLicenses',
-          effectiveLicenses: 'effectiveLicenses',
-          observedLicenses: 'observedLicenses',
+          declaredLicenses: componentLicenses.declaredLicenses,
+          effectiveLicenses: componentLicenses.effectiveLicenses,
+          observedLicenses: componentLicenses.observedLicenses,
           selectableLicenses: componentLicenses.selectableLicenses,
           allLicenses: transformedAllLicenses,
-          licenseLegalMetadata: 'licenseLegalMetadata',
         },
       };
       store.dispatch(load()).then(() => {
@@ -267,7 +248,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         mockAxiosCalls({
           get: {
             [licenseUrl]: () => Promise.reject('errorMessage'),
-            [componentlicensUrl]: Promise.resolve({}),
+            [componentMultiLicensesUrl]: Promise.resolve({}),
             [licensesOverrideUrl]: Promise.resolve({}),
           },
         });
@@ -288,11 +269,11 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         });
       });
 
-      it('componentlicensUrl fails', (done) => {
+      it('componentMultiLicensesUrl fails', (done) => {
         mockAxiosCalls({
           get: {
             [licenseUrl]: Promise.resolve({}),
-            [componentlicensUrl]: () => Promise.reject('errorMessage'),
+            [componentMultiLicensesUrl]: () => Promise.reject('errorMessage'),
             [licensesOverrideUrl]: Promise.resolve({}),
           },
         });
@@ -317,7 +298,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         mockAxiosCalls({
           get: {
             [licenseUrl]: Promise.resolve({}),
-            [componentlicensUrl]: Promise.resolve({}),
+            [componentMultiLicensesUrl]: Promise.resolve({}),
             [licensesOverrideUrl]: () => Promise.reject('errorMessage'),
           },
         });

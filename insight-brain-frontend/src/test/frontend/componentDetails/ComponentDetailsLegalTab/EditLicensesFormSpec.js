@@ -152,25 +152,43 @@ describe('EditLicensesForm', () => {
 
   describe('renders license info section', () => {
     const licensesProps = {
-      declaredLicenses: ['Apache-2.0'],
-      observedLicenses: ['No-Sources'],
-      effectiveLicenses: ['Apache-2.0'],
-      licenseLegalMetadata: [
+      declaredLicenses: [
         {
-          licenseId: 'Apache-2.0',
-          licenseName: 'Apache-2.0',
-          isMulti: false,
-          threatGroup: {
-            threatLevel: 10,
-          },
+          licenses: [
+            {
+              license: {
+                licenseId: 'Apache-2.0',
+                licenseName: 'Apache-2.0',
+              },
+              threatLevel: 10,
+            },
+          ],
         },
+      ],
+      observedLicenses: [
         {
-          licenseId: 'No-Sources',
-          licenseName: 'No Sources',
-          isMulti: false,
-          threatGroup: {
-            threatLevel: 5,
-          },
+          licenses: [
+            {
+              license: {
+                licenseId: 'No Sources',
+                licenseName: 'No Sources',
+              },
+              threatLevel: 5,
+            },
+          ],
+        },
+      ],
+      effectiveLicenses: [
+        {
+          licenses: [
+            {
+              license: {
+                licenseId: 'Apache-2.0',
+                licenseName: 'Apache-2.0',
+              },
+              threatLevel: 10,
+            },
+          ],
         },
       ],
     };
@@ -189,20 +207,23 @@ describe('EditLicensesForm', () => {
     });
 
     it('renders Not Provided as license name if component was claimed', () => {
-      const component = getShallowComponent({
-        effectiveLicenses: ['UNSPECIFIED'],
-        declaredLicenses: ['UNSPECIFIED'],
-        observedLicenses: ['UNSPECIFIED'],
-        licenseLegalMetadata: [
-          {
-            licenseId: 'UNSPECIFIED',
-            licenseName: 'Not Provided',
-            isMulti: false,
-            threatGroup: {
+      const unspecifiedLicense = [
+        {
+          licenses: [
+            {
+              license: {
+                licenseId: 'UNSPECIFIED',
+                licenseName: 'Not Provided',
+              },
               threatLevel: 5,
             },
-          },
-        ],
+          ],
+        },
+      ];
+      const component = getShallowComponent({
+        effectiveLicenses: unspecifiedLicense,
+        declaredLicenses: unspecifiedLicense,
+        observedLicenses: unspecifiedLicense,
         identificationSource: 'Manual',
       });
       const ddList = component.find('dd'),
@@ -219,7 +240,6 @@ describe('EditLicensesForm', () => {
     it('renders license <NxThreatIndicator/>', () => {
       const wrapper = getShallowComponent({ ...licensesProps }),
         threatIndicators = wrapper.find(NxThreatIndicator);
-
       expect(threatIndicators.length).toBe(3);
       expect(threatIndicators.at(0)).toExist();
       expect(threatIndicators.at(0)).toHaveProp('policyThreatLevel', 10);

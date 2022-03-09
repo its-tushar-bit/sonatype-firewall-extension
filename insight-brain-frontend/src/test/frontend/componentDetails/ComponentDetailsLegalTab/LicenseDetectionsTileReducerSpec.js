@@ -58,7 +58,6 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
         observedLicenses: null,
         selectableLicenses: null,
         allLicenses: null,
-        licenseLegalMetadata: null,
         loading: true,
         loadError: 'error',
         editLicensesForm: {
@@ -85,7 +84,6 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
         observedLicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
         selectableLicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
         allLicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
-        licenseLegalMetadata: 'licenseLegalMetadata',
       };
       const action = {
         payload,
@@ -102,7 +100,6 @@ describe('componentDetailsLicenseDetectionsTile reducer', () => {
       expect(expectedState.observedLicenses).toEqual(payload.observedLicenses);
       expect(expectedState.selectableLicenses).toEqual(payload.selectableLicenses);
       expect(expectedState.allLicenses).toEqual(payload.allLicenses);
-      expect(expectedState.licenseLegalMetadata).toEqual(payload.licenseLegalMetadata);
       expect(expectedState.editLicensesForm.isDirty).toBeFalse();
       expect(expectedState.editLicensesForm.scope).toBe(firstLicenseOverride);
       expect(expectedState.editLicensesForm.status).toBe(null);

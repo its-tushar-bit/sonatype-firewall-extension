@@ -268,6 +268,48 @@ public class ComponentInfoServiceAuthzTest
   }
 
   @Test
+  public void testGetMultiLicensesApplication_Authorized() throws Exception {
+    configureHdsClientMock();
+    grantReadPermission(app.getId());
+    componentInfoService.getMultiLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER,
+        null /* httpRequest */, null, null);
+  }
+
+  @Test
+  public void testGetMultiLicensesRepository_Authorized() throws Exception {
+    configureHdsClientMock();
+    grantReadPermission(repository.getId());
+    componentInfoService.getMultiLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER,
+        null /* httpRequest */, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetMultiLicensesApplication_Unauthorized() throws Exception {
+    login();
+    componentInfoService.getMultiLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER,
+        null /* httpRequest */, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetMultiLicensesRepository_Unauthorized() throws Exception {
+    login();
+    componentInfoService.getMultiLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER,
+        null /* httpRequest */, null, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetMultiLicensesApplication_Unauthenticated() throws Exception {
+    componentInfoService.getMultiLicenses(OwnerType.APPLICATION, app.getPublicId(), COMPONENT_IDENTIFIER,
+        null /* httpRequest */, null, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetMultiLicensesRepository_Unauthenticated() throws Exception {
+    componentInfoService.getMultiLicenses(OwnerType.REPOSITORY, repository.getId(), COMPONENT_IDENTIFIER,
+        null /* httpRequest */, null, null);
+  }
+
+  @Test
   public void testGetSecurityVulnerabilities_Authorized() throws Exception {
     configureHdsClientMock();
     grantReadPermission(repository.getId());

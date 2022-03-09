@@ -19,7 +19,6 @@ export const selectLicenseDetectionsTileDataSlice = createSelector(
         'effectiveLicenses',
         'observedLicenses',
         'selectableLicenses',
-        'licenseLegalMetadata',
         'allLicenses',
         'loading',
         'loadError',

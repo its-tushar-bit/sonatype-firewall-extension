@@ -41,8 +41,10 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
+import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentMultiLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
 import com.sonatype.insight.brain.hds.ComponentInfoService.LicenseWithThreatLevel;
+import com.sonatype.insight.brain.hds.ComponentInfoService.MultiLicenseWithThreatLevel;
 import com.sonatype.insight.brain.hds.HdsClient.RelayResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -270,9 +272,22 @@ public class ComponentInfoServiceTest
   }
 
   @Test
+  public void testGetMultiLicenses_NoComponentIdentifier() throws Exception {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> 
+      componentInfoService.getMultiLicenses(null, null, null /* componentIdentifier */, httpRequestMock, null, null)
+    ).withMessage("componentIdentifier is required");
+  }
+
+  @Test
   public void testGetLicenses_BadOwnerId() throws Exception {
     testGetLicenses_BadOwnerId(OwnerType.APPLICATION, "Could not find an application with ID ");
     testGetLicenses_BadOwnerId(OwnerType.REPOSITORY, "Cannot find a repository with ID ");
+  }
+
+  @Test
+  public void testGetMultiLicenses_BadOwnerId() throws Exception {
+    testGetMultiLicenses_BadOwnerId(OwnerType.APPLICATION, "Could not find an application with ID ");
+    testGetMultiLicenses_BadOwnerId(OwnerType.REPOSITORY, "Cannot find a repository with ID ");
   }
 
   private void testGetLicenses_BadOwnerId(final OwnerType ownerType, final String expectedErrMsgPrefix)
@@ -283,14 +298,31 @@ public class ComponentInfoServiceTest
     }).withMessage(expectedErrMsgPrefix + "bogusOwnerId.");
   }
 
+  private void testGetMultiLicenses_BadOwnerId(OwnerType ownerType,String expectedErrMsgPrefix) throws Exception {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> 
+      componentInfoService.getMultiLicenses(ownerType, "bogusOwnerId", MAVEN_A1_COORDINATES, httpRequestMock, null,
+        null)
+    ).withMessage(expectedErrMsgPrefix + "bogusOwnerId.");
+  }
+
   @Test
   public void testGetLicensesApplication() throws Exception {
     testGetLicenses(OwnerType.APPLICATION, applicationPublicId);
   }
 
   @Test
+  public void testGetMultiLicensesApplication() throws Exception {
+    testGetMultiLicenses(OwnerType.APPLICATION, applicationPublicId);
+  }
+
+  @Test
   public void testGetLicensesRepository() throws Exception {
     testGetLicenses(OwnerType.REPOSITORY, repository.getId());
+  }
+
+  @Test
+  public void testGetMultiLicensesRepository() throws Exception {
+    testGetMultiLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
   @Test
@@ -314,6 +346,25 @@ public class ComponentInfoServiceTest
   }
 
   @Test
+  public void testGetMultiLicenses_ThirdParty() throws Exception {
+    String scanId = "scanId";
+    String identificationSource = IdentificationSource.CLAIR.getId();
+    NamedComponentDetails tpsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    tpsComponentDetails.setMatchState(MatchState.EXACT.getId());
+    tpsComponentDetails.setIdentificationSource(identificationSource);
+
+    when(thirdPartyComponentDAO.getComponentDetailsByIdentifier(MAVEN_A1_COORDINATES, application.getId(), scanId))
+        .thenReturn(tpsComponentDetails);
+
+    ComponentMultiLicenses licenses = componentInfoService.getMultiLicenses(OwnerType.APPLICATION, applicationPublicId,
+        MAVEN_A1_COORDINATES, httpRequestMock, identificationSource, scanId);
+
+    assertMultiLicenses(licenses.declaredLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertMultiLicenses(licenses.observedLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertMultiLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+  }
+
+  @Test
   public void testGetLicenses_PackageManifest() throws Exception {
     String scanId = "scanId";
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
@@ -329,6 +380,25 @@ public class ComponentInfoServiceTest
     assertLicenses(licenses.declaredlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertLicenses(licenses.observedlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertThat(licenses.selectableLicenses).isEmpty();
+  }
+
+  @Test
+  public void testGetMultiLicenses_PackageManifest() throws Exception {
+    String scanId = "scanId";
+    String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
+    NamedComponentDetails componentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    componentDetails.setMatchState(MatchState.EXACT.getId());
+    componentDetails.setIdentificationSource(identificationSource);
+
+    mockHdsGetComponentDetailsException(componentDetails);
+
+    ComponentMultiLicenses licenses = componentInfoService.getMultiLicenses(OwnerType.APPLICATION, applicationPublicId,
+        MAVEN_A1_COORDINATES, httpRequestMock, identificationSource, scanId);
+
+    assertMultiLicenses(licenses.declaredLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertMultiLicenses(licenses.observedLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertMultiLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertThat(licenses.selectableLicenses).isEmpty();
   }
 
@@ -368,14 +438,63 @@ public class ComponentInfoServiceTest
         "LGPL-2.0", "MPL-1.1", "GPL-2.0", "BSD-3-Clause", "AFL-2.1");
   }
 
+  private void testGetMultiLicenses(final OwnerType ownerType, final String ownerId) throws Exception {
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+
+    // Verify component without licenses
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentMultiLicenses licenses =
+        componentInfoService.getMultiLicenses(ownerType, ownerId, MAVEN_A1_COORDINATES, httpRequestMock, null, null);
+    assertMultiLicenses(licenses.declaredLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertMultiLicenses(licenses.observedLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertMultiLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertThat(licenses.selectableLicenses).isEmpty();
+
+    String privateOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+
+    // Verify component with licenses
+    tempEntity.newLicenseThreatGroup(
+        // Note: For now, only an Org or App (not a Repository) can contain a LTG
+        OwnerType.APPLICATION.equals(ownerType) ? privateOwnerId : Organization.ROOT_ORGANIZATION_ID,
+        "ComponentInfoServiceTest", 5, "LGPL-2.0", "BSD-3-Clause");
+
+    hdsComponentDetails.getEffectiveLicenses().clear();
+    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "LGPL-2.0-MPL-1.1"));
+    hdsComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    licenses =
+        componentInfoService.getMultiLicenses(ownerType, ownerId, MAVEN_A1_COORDINATES, httpRequestMock, null, null);
+    assertMultiLicenses(licenses.declaredLicenses, tuple("Apache-2.0", "Apache-2.0", 0),
+        tuple("LGPL-2.0", "LGPL-2.0", 5),
+        tuple("MPL-1.1", "MPL-1.1", 2));
+    assertMultiLicenses(licenses.observedLicenses, tuple("GPL-2.0", "GPL-2.0", 9), tuple("AFL-2.1", "AFL-2.1", 2),
+        tuple("BSD-3-Clause", "BSD-3-Clause", 5));
+    assertMultiLicenses(licenses.effectiveLicenses, tuple("Apache-2.0", "Apache-2.0", 0),
+        tuple("LGPL-2.0", "LGPL-2.0", 5),
+        tuple("MPL-1.1", "MPL-1.1", 2), tuple("GPL-2.0", "GPL-2.0", 9), tuple("AFL-2.1", "AFL-2.1", 2),
+        tuple("BSD-3-Clause", "BSD-3-Clause", 5));
+    assertThat(licenses.selectableLicenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-2.0",
+        "LGPL-2.0", "MPL-1.1", "GPL-2.0", "BSD-3-Clause", "AFL-2.1");
+  }
+
   @Test
   public void testGetLicensesApplication_withOverride() throws Exception {
     testGetLicenses_withOverride(OwnerType.APPLICATION, applicationPublicId);
   }
 
   @Test
+  public void testGetMultiLicensesApplication_withOverride() throws Exception {
+    testGetMultiLicenses_withOverride(OwnerType.APPLICATION, applicationPublicId);
+  }
+
+  @Test
   public void testGetLicensesRepository_withOverride() throws Exception {
     testGetLicenses_withOverride(OwnerType.REPOSITORY, repository.getId());
+  }
+
+  @Test
+  public void testGetMultiLicensesRepository_withOverride() throws Exception {
+    testGetMultiLicenses_withOverride(OwnerType.REPOSITORY, repository.getId());
   }
 
   private void testGetLicenses_withOverride(final OwnerType ownerType, final String ownerId) throws Exception {
@@ -402,10 +521,40 @@ public class ComponentInfoServiceTest
     assertLicenses(licenses.effectiveLicenses, tuple("BSD-3-Clause", "BSD-3-Clause", 5));
   }
 
+  private void testGetMultiLicenses_withOverride(OwnerType ownerType, String ownerId) throws Exception {
+    String privateOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+
+    // Verify component with licenses
+    // Note: For now, only an Org or App (not a Repository) can contain a LTG
+    String tempEntityOwnerId =
+        OwnerType.APPLICATION.equals(ownerType) ? privateOwnerId : Organization.ROOT_ORGANIZATION_ID;
+    tempEntity.newLicenseThreatGroup(tempEntityOwnerId, "ComponentInfoServiceTest", 5, "LGPL-2.0", "BSD-3-Clause");
+    tempEntity.newLicenseOverride(tempEntityOwnerId, MAVEN_A1_COORDINATES, LicenseOverrideStatus.SELECTED,
+        "BSD-3-Clause");
+
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "LGPL-2.0-MPL-1.1"));
+    hdsComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0", "AFL-2.1-BSD-3-Clause"));
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentMultiLicenses licenses =
+        componentInfoService.getMultiLicenses(ownerType, ownerId, MAVEN_A1_COORDINATES, httpRequestMock, null, null);
+    assertMultiLicenses(licenses.declaredLicenses, tuple("Apache-2.0", "Apache-2.0", 0),
+        tuple("LGPL-2.0", "LGPL-2.0", 5), tuple("MPL-1.1", "MPL-1.1", 2));
+    assertMultiLicenses(licenses.observedLicenses, tuple("GPL-2.0", "GPL-2.0", 9), tuple("AFL-2.1", "AFL-2.1", 2),
+        tuple("BSD-3-Clause", "BSD-3-Clause", 5));
+    assertMultiLicenses(licenses.effectiveLicenses, tuple("BSD-3-Clause", "BSD-3-Clause", 5));
+  }
+
   @Test
   public void testGetLicenses_withNotDeclaredForDeclaredLicenses() throws Exception {
     testGetLicenses_withNotDeclaredForDeclaredLicenses(OwnerType.APPLICATION, applicationPublicId);
     testGetLicenses_withNotDeclaredForDeclaredLicenses(OwnerType.REPOSITORY, repository.getId());
+  }
+
+  @Test
+  public void testGetMultiLicenses_withNotDeclaredForDeclaredLicenses() throws Exception {
+    testGetMultiLicenses_withNotDeclaredForDeclaredLicenses(OwnerType.APPLICATION, applicationPublicId);
+    testGetMultiLicenses_withNotDeclaredForDeclaredLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
   private void testGetLicenses_withNotDeclaredForDeclaredLicenses(final OwnerType ownerType, final String ownerId)
@@ -422,10 +571,31 @@ public class ComponentInfoServiceTest
     assertLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
   }
 
+  private void testGetMultiLicenses_withNotDeclaredForDeclaredLicenses(
+      OwnerType ownerType,
+      String ownerId) throws Exception
+  {
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Not-Declared"));
+    hdsComponentDetails.setObservedLicenses(toLicenseSet("GPL-2.0"));
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentMultiLicenses licenses =
+        componentInfoService.getMultiLicenses(ownerType, ownerId, MAVEN_A1_COORDINATES, httpRequestMock, null, null);
+    assertMultiLicenses(licenses.declaredLicenses, tuple("Not-Declared", "Not Declared", 5));
+    assertMultiLicenses(licenses.observedLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
+    assertMultiLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
+  }
+
   @Test
   public void testGetLicenses_withNoSourcesForObservedLicenses() throws Exception {
     testGetLicenses_withNoSourcesForObservedLicenses(OwnerType.APPLICATION, applicationPublicId);
     testGetLicenses_withNoSourcesForObservedLicenses(OwnerType.REPOSITORY, repository.getId());
+  }
+
+  @Test
+  public void testGetMultiLicenses_withNoSourcesForObservedLicenses() throws Exception {
+    testGetMultiLicenses_withNoSourcesForObservedLicenses(OwnerType.APPLICATION, applicationPublicId);
+    testGetMultiLicenses_withNoSourcesForObservedLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
   private void testGetLicenses_withNoSourcesForObservedLicenses(final OwnerType ownerType, final String ownerId)
@@ -442,10 +612,31 @@ public class ComponentInfoServiceTest
     assertLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
   }
 
+  private void testGetMultiLicenses_withNoSourcesForObservedLicenses(
+      OwnerType ownerType,
+      String ownerId) throws Exception
+  {
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("GPL-2.0"));
+    hdsComponentDetails.setObservedLicenses(toLicenseSet("No-Sources"));
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentMultiLicenses licenses =
+        componentInfoService.getMultiLicenses(ownerType, ownerId, MAVEN_A1_COORDINATES, httpRequestMock, null, null);
+    assertMultiLicenses(licenses.declaredLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
+    assertMultiLicenses(licenses.observedLicenses, tuple("No-Sources", "No Sources", 5));
+    assertMultiLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
+  }
+
   @Test
   public void testGetLicenses_withNoSourceLicenseForObservedLicenses() throws Exception {
     testGetLicenses_withNoSourceLicenseForObservedLicenses(OwnerType.APPLICATION, applicationPublicId);
     testGetLicenses_withNoSourceLicenseForObservedLicenses(OwnerType.REPOSITORY, repository.getId());
+  }
+
+  @Test
+  public void testGetMultiLicenses_withNoSourceLicenseForObservedLicenses() throws Exception {
+    testGetMultiLicenses_withNoSourceLicenseForObservedLicenses(OwnerType.APPLICATION, applicationPublicId);
+    testGetMultiLicenses_withNoSourceLicenseForObservedLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
   private void testGetLicenses_withNoSourceLicenseForObservedLicenses(final OwnerType ownerType, final String ownerId)
@@ -462,11 +653,34 @@ public class ComponentInfoServiceTest
     assertLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
   }
 
+  private void testGetMultiLicenses_withNoSourceLicenseForObservedLicenses(
+      OwnerType ownerType,
+      String ownerId) throws Exception
+  {
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("GPL-2.0"));
+    hdsComponentDetails.setObservedLicenses(toLicenseSet("No-Source-License"));
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentMultiLicenses licenses =
+        componentInfoService.getMultiLicenses(ownerType, ownerId, MAVEN_A1_COORDINATES, httpRequestMock, null, null);
+    assertMultiLicenses(licenses.declaredLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
+    assertMultiLicenses(licenses.observedLicenses, tuple("No-Source-License", "No Source License", 5));
+    assertMultiLicenses(licenses.effectiveLicenses, tuple("GPL-2.0", "GPL-2.0", 9));
+  }
+
   @Test
   public void testGetLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses() throws Exception {
     testGetLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses(OwnerType.APPLICATION,
         applicationPublicId);
     testGetLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses(OwnerType.REPOSITORY,
+        repository.getId());
+  }
+
+  @Test
+  public void testGetMultiLicenses_withNotDeclaredLicensesAndNoSourcesForObservedLicenses() throws Exception {
+    testGetMultiLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses(OwnerType.APPLICATION,
+        applicationPublicId);
+    testGetMultiLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses(OwnerType.REPOSITORY,
         repository.getId());
   }
 
@@ -486,12 +700,34 @@ public class ComponentInfoServiceTest
         tuple("No-Source-License", "No Source License", 5));
   }
 
+  private void testGetMultiLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses(
+      OwnerType ownerType,
+      String ownerId) throws Exception
+  {
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Not-Declared"));
+    hdsComponentDetails.setObservedLicenses(toLicenseSet("No-Source-License"));
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentMultiLicenses licenses =
+        componentInfoService.getMultiLicenses(ownerType, ownerId, MAVEN_A1_COORDINATES, httpRequestMock, null, null);
+    assertMultiLicenses(licenses.declaredLicenses, tuple("Not-Declared", "Not Declared", 5));
+    assertMultiLicenses(licenses.observedLicenses, tuple("No-Source-License", "No Source License", 5));
+    assertMultiLicenses(licenses.effectiveLicenses, tuple("Not-Declared", "Not Declared", 5),
+        tuple("No-Source-License", "No Source License", 5));
+  }
+
   @Test
   public void testGetLicenses_withNotSupportedLicense() throws Exception {
     testGetLicenses_withNotSupportedLicense(OwnerType.APPLICATION,
         applicationPublicId);
     testGetLicenses_withNotSupportedLicense(OwnerType.REPOSITORY,
         repository.getId());
+  }
+
+  @Test
+  public void testGetMultiLicenses_withNotSupportedLicense() throws Exception {
+    testGetMultiLicenses_withNotSupportedLicense(OwnerType.APPLICATION, applicationPublicId);
+    testGetMultiLicenses_withNotSupportedLicense(OwnerType.REPOSITORY, repository.getId());
   }
 
   private void testGetLicenses_withNotSupportedLicense(
@@ -512,14 +748,38 @@ public class ComponentInfoServiceTest
         .doesNotContain("Not-Supported");
   }
 
+  private void testGetMultiLicenses_withNotSupportedLicense(OwnerType ownerType, String ownerId) throws Exception {
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(NUGET_COORDINATES);
+    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("MIT"));
+    hdsComponentDetails.setObservedLicenses(toLicenseSet("Not-Supported"));
+    mockHdsGetComponentDetails(hdsComponentDetails);
+    ComponentMultiLicenses licenses =
+        componentInfoService.getMultiLicenses(ownerType, ownerId, NUGET_COORDINATES, httpRequestMock, null, null);
+    assertMultiLicenses(licenses.declaredLicenses, tuple("MIT", "MIT", 0));
+    assertMultiLicenses(licenses.observedLicenses, tuple("Not-Supported", "Not Supported", null));
+    assertMultiLicenses(licenses.effectiveLicenses, tuple("MIT", "MIT", 0));
+    assertThat(licenses.selectableLicenses).isNotEmpty().extracting(License::getLicenseId)
+        .doesNotContain("Not-Supported");
+  }
+
   @Test
   public void testGetLicensesApplication_claimedComponent() throws Exception {
     testGetLicenses_claimedComponent(OwnerType.APPLICATION, applicationPublicId);
   }
 
   @Test
+  public void testGetMultiLicensesApplication_claimedComponent() throws Exception {
+    testGetMultiLicenses_claimedComponent(OwnerType.APPLICATION, applicationPublicId);
+  }
+
+  @Test
   public void testGetLicensesRepository_claimedComponent() throws Exception {
     testGetLicenses_claimedComponent(OwnerType.REPOSITORY, repository.getId());
+  }
+
+  @Test
+  public void testGetMultiLicensesRepository_claimedComponent() throws Exception {
+    testGetMultiLicenses_claimedComponent(OwnerType.REPOSITORY, repository.getId());
   }
 
   private void testGetLicenses_claimedComponent(final OwnerType ownerType, final String ownerId) throws Exception {
@@ -536,6 +796,21 @@ public class ComponentInfoServiceTest
     assertLicenses(licenses.declaredlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertLicenses(licenses.observedlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+  }
+
+  private void testGetMultiLicenses_claimedComponent(OwnerType ownerType, String ownerId) throws Exception {
+    // Verify exception is not thrown if component is not known to HDS
+    Map<String, String> queryParams = new HashMap<>();
+    queryParams.put("componentIdentifier", ComponentIdentifierAdapter.toJson(MAVEN_A1_COORDINATES));
+
+    when(hdsClientMock.relay(httpRequestMock, NamedComponentDetails.class, "rest/" + TOOL_NAME + "/componentDetails",
+        queryParams)).thenThrow(new NotFoundException("test"));
+    ComponentMultiLicenses licenses =
+        componentInfoService.getMultiLicenses(ownerType, ownerId, MAVEN_A1_COORDINATES, httpRequestMock, null, null);
+    // if we got here, we are good, but let's do some sanity check
+    assertMultiLicenses(licenses.declaredLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertMultiLicenses(licenses.observedLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
+    assertMultiLicenses(licenses.effectiveLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
   }
 
   @Test
@@ -559,6 +834,14 @@ public class ComponentInfoServiceTest
   private void assertLicenses(Iterable<LicenseWithThreatLevel> actual, Tuple... tuples) {
     assertThat(actual).extracting(lwtl -> lwtl.license.getLicenseId(), lwtl -> lwtl.license.getLicenseName(),
         lwtl -> lwtl.threatLevel).containsExactlyInAnyOrder(tuples);
+  }
+
+  private void assertMultiLicenses(Iterable<MultiLicenseWithThreatLevel> actual, Tuple... tuples) {
+    assertThat(actual)
+        .flatExtracting(mlwtl -> mlwtl.licenses)
+        .extracting(
+            lwtl -> lwtl.license.getLicenseId(), lwtl -> lwtl.license.getLicenseName(), lwtl -> lwtl.threatLevel)
+        .containsExactlyInAnyOrder(tuples);
   }
 
   @Test

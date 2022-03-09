@@ -66,6 +66,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
@@ -938,6 +939,22 @@ public class ComponentDetailsTest
     licenseDetectionsTile.reviewObligationsButton().shouldBe(visible);
     licenseDetectionsTile.reviewObligationsButton().shouldHave(text("Review Obligations"));
     navigateToLegalObligationsPage(licenseDetectionsTile);
+  }
+
+  @Test
+  public void testLegalTab_licenseDetectionTileAlpDisabled() {
+    setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
+    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "fa78f54738ccf77379d1"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.legalTabContent().shouldBe(visible);
+
+    componentDetailsPage.legalTab().click();
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    licenseDetectionsTile.reviewObligationsButton().shouldNotBe(visible);
+    licenseDetectionsTile.editLicenseButton().shouldBe(visible);
+    licenseDetectionsTile.status().shouldHave(text("Status: Open"));
   }
 
   /* Part of testPolicyViolationsTab_violationTableEntries. */

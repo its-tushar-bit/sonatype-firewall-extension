@@ -7,7 +7,6 @@ import React, { useState, useEffect, memo } from 'react';
 import * as PropTypes from 'prop-types';
 import { eqProps } from 'ramda';
 import { NxTransferList } from '@sonatype/react-shared-components';
-import { licensesPropTypes } from '../LicenseDetectionsTile/LicenseDetections';
 
 const availableItemsCountFormatter = (number) => `${number} Licenses Available`;
 const selectedItemsCountFormatter = (number) => `${number} Licenses Selected`;
@@ -46,7 +45,12 @@ const OverriddenField = (props) => {
 
 OverriddenField.displayName = 'OverriddenField';
 OverriddenField.propTypes = {
-  allLicenses: PropTypes.arrayOf(licensesPropTypes),
+  allLicenses: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      displayName: PropTypes.string.isRequired,
+    })
+  ),
   licenseIds: PropTypes.arrayOf(PropTypes.string),
   setSelectedLicenses: PropTypes.func.isRequired,
   onUnmount: PropTypes.func.isRequired,

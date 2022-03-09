@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
+import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentMultiLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -93,8 +94,22 @@ public class CIComponentInfoResourceTest
         .query("scanId", scanId);
   }
 
+  protected HttpRequest multiLicensesRequest(
+      ComponentIdentifier componentIdentifier,
+      String identificationSource,
+      String scanId)
+  {
+    return restRequest().path(CIComponentInfoResource.MULTI_LICENSES_PATH).parameter(getOwner().getType(), getOwnerId())
+        .query("componentIdentifier", componentIdentifier).query("identificationSource", identificationSource)
+        .query("scanId", scanId);
+  }
+
   protected HttpRequest licensesRequest(ComponentIdentifier componentIdentifier) {
     return licensesRequest(componentIdentifier, null, null);
+  }
+
+  protected HttpRequest multiLicensesRequest(ComponentIdentifier componentIdentifier) {
+    return multiLicensesRequest(componentIdentifier, null, null);
   }
 
   @Before
@@ -223,9 +238,35 @@ public class CIComponentInfoResourceTest
   }
 
   @Test
+  public void testGetMultiLicenses_ThirdParty() throws Exception {
+    final String scanId = "ScanId";
+    createReportFile(getOwner().getId(), scanId, "/CIComponentInfoResourceTest/report");
+    final ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian", "glibc", "2.24-11+deb9u3");
+
+    HttpResponse response = multiLicensesRequest(tpComponentIdentifier, "Clair", scanId).get();
+    assertResponseStatus(200, response);
+    ComponentMultiLicenses licenses = response.getBody(ComponentMultiLicenses.class);
+    assertThat(licenses.declaredLicenses)
+        .flatExtracting(multiLicenses -> multiLicenses.licenses)
+        .extracting(license -> license.license.getLicenseId())
+        .containsExactly("Apache-2.0");
+    assertThat(licenses.observedLicenses).flatExtracting(multiLicenses -> multiLicenses.licenses)
+        .extracting(licenseWithThreatLevel -> licenseWithThreatLevel.license.getLicenseId(),
+            licenseWithThreatLevel -> licenseWithThreatLevel.license.getLicenseName())
+        .containsExactly(tuple(UNSPECIFIED_ID, "Not Provided"));
+  }
+
+  @Test
   public void testGetLicenses_Unlicensed() throws Exception {
     uninstallLicense();
     HttpResponse response = licensesRequest(ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv")).get();
+    assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testGetMultiLicenses_Unlicensed() throws Exception {
+    uninstallLicense();
+    HttpResponse response = multiLicensesRequest(ComponentIdentifier.createMavenCoordinates("ulg", "ula", "ulv")).get();
     assertResponseStatus(402, response);
   }
 
@@ -246,6 +287,27 @@ public class CIComponentInfoResourceTest
             licenseWithThreatLevel -> licenseWithThreatLevel.license.getLicenseName())
         .containsExactlyInAnyOrder(tuple(UNSPECIFIED_ID, "Not Provided"));
 
+  }
+
+  @Test
+  public void testGetMultiLicenses() throws Exception {
+    ComponentDetails hdsComponentDetails = new ComponentDetails(MAVEN_COORDINATES);
+    hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0"));
+    hdsRespondWith(hdsComponentDetails)
+        .atUri(convertToHdsUrl(detailsRequest(getOwnerId(), MAVEN_COORDINATES, null, null, null).getUrl()));
+
+    HttpResponse response = multiLicensesRequest(MAVEN_COORDINATES).get();
+    assertResponseStatus(200, response);
+    ComponentMultiLicenses licenses = response.getBody(ComponentMultiLicenses.class);
+    assertThat(licenses.declaredLicenses)
+        .flatExtracting(multiLicenses -> multiLicenses.licenses)
+        .extracting(license -> license.license.getLicenseId())
+        .containsExactlyInAnyOrder("Apache-2.0");
+    assertThat(licenses.observedLicenses)
+        .flatExtracting(multiLicenses -> multiLicenses.licenses)
+        .extracting(licenseWithThreatLevel -> licenseWithThreatLevel.license.getLicenseId(),
+            licenseWithThreatLevel -> licenseWithThreatLevel.license.getLicenseName())
+        .containsExactlyInAnyOrder(tuple(UNSPECIFIED_ID, "Not Provided"));
   }
 
   private Set<License> toLicenseSet(String... licenseIds) {

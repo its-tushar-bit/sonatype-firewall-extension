@@ -222,66 +222,94 @@ describe('LicenseDetections', function () {
   describe('renders the licenses sections', () => {
     it('Effective Licenses section', () => {
       const component = getShallow({
-        effectiveLicenses: ['Id1', 'Id2'],
-        declaredLicenses: ['Id3'],
-        observedLicenses: ['Id4', 'Id5', 'Id6', 'Id7'],
-        licenseLegalMetadata: [
+        effectiveLicenses: [
           {
-            licenseId: 'Id1',
-            licenseName: 'ELicense 1',
-            isMulti: false,
-            threatGroup: {
-              threatLevel: 2,
-            },
+            licenses: [
+              {
+                license: {
+                  licenseId: 'Id1',
+                  licenseName: 'ELicense 1',
+                },
+                threatLevel: 2,
+              },
+            ],
           },
           {
-            licenseId: 'Id2',
-            licenseName: 'ELicense 2',
-            isMulti: false,
-            threatGroup: {
-              threatLevel: 7,
-            },
+            licenses: [
+              {
+                license: {
+                  licenseId: 'Id2',
+                  licenseName: 'ELicense 2',
+                },
+                threatLevel: 7,
+              },
+            ],
+          },
+        ],
+        declaredLicenses: [
+          {
+            licenses: [
+              {
+                license: {
+                  licenseId: 'Id3',
+                  licenseName: 'DLicense 1',
+                },
+                threatLevel: 5,
+              },
+            ],
+          },
+        ],
+        observedLicenses: [
+          {
+            licenses: [
+              {
+                license: {
+                  licenseId: 'Id4',
+                  licenseName: 'OLicense 1',
+                },
+                threatLevel: null,
+              },
+            ],
           },
           {
-            licenseId: 'Id3',
-            licenseName: 'DLicense 1',
-            isMulti: false,
-            threatGroup: {
-              threatLevel: 5,
-            },
+            licenses: [
+              {
+                license: {
+                  licenseId: 'Id5',
+                  licenseName: 'OLicense 2',
+                },
+                threatLevel: 0,
+              },
+            ],
           },
           {
-            licenseId: 'Id4',
-            licenseName: 'OLicense 1',
-            isMulti: false,
-            threatGroup: {
-              threatLevel: null,
-            },
+            licenses: [
+              {
+                license: {
+                  licenseId: 'Id6',
+                  licenseName: 'OLicense 3',
+                },
+                threatLevel: 6,
+              },
+            ],
           },
           {
-            licenseId: 'Id5',
-            licenseName: 'OLicense 2',
-            isMulti: false,
-            threatGroup: {
-              threatLevel: 0,
-            },
-          },
-          {
-            licenseId: 'Id6',
-            licenseName: 'OLicense 3',
-            isMulti: false,
-            threatGroup: {
-              threatLevel: 6,
-            },
-          },
-          {
-            licenseId: 'Id7',
-            licenseName: 'OLicense 4',
-            isMulti: true,
-            singleLicenseIds: ['Id1', 'Id6'],
-            threatGroup: {
-              threatLevel: 3,
-            },
+            licenses: [
+              {
+                license: {
+                  licenseId: 'Id1',
+                  licenseName: 'ELicense 1',
+                },
+                threatLevel: 2,
+              },
+              {
+                license: {
+                  licenseId: 'Id6',
+                  licenseName: 'OLicense 3',
+                },
+                threatLevel: 6,
+              },
+            ],
           },
         ],
       });
@@ -331,20 +359,23 @@ describe('LicenseDetections', function () {
     });
 
     it('renders licences for claimed component', () => {
-      const component = getShallow({
-        effectiveLicenses: ['UNSPECIFIED'],
-        declaredLicenses: ['UNSPECIFIED'],
-        observedLicenses: ['UNSPECIFIED'],
-        licenseLegalMetadata: [
-          {
-            licenseId: 'UNSPECIFIED',
-            licenseName: 'Not Provided',
-            isMulti: false,
-            threatGroup: {
+      const unspecifiedLicense = [
+        {
+          licenses: [
+            {
+              license: {
+                licenseId: 'UNSPECIFIED',
+                licenseName: 'Not Provided',
+              },
               threatLevel: 5,
             },
-          },
-        ],
+          ],
+        },
+      ];
+      const component = getShallow({
+        effectiveLicenses: unspecifiedLicense,
+        declaredLicenses: unspecifiedLicense,
+        observedLicenses: unspecifiedLicense,
         identificationSource: 'Manual',
       });
 

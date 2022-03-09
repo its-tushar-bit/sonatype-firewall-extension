@@ -19,9 +19,12 @@ import {
 import { capitalize, isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { getStatusName } from 'MainRoot/legal/legalUtility';
 import { isOverriddenOrSelected, renderLicensesList } from '../LegalTabUtils';
-import { licensesPropTypes, licenseOverridePropTypes } from '../LicenseDetectionsTile/LicenseDetections';
+import {
+  licensePropTypes,
+  multiLicensesPropTypes,
+  licenseOverridePropTypes,
+} from '../LicenseDetectionsTile/LicenseDetections';
 import OverriddenField from './OverriddenField';
-import { licenseLegalMetadataPropType } from 'MainRoot/legal/advancedLegalPropTypes';
 
 const NOT_DIRTY_ERROR_MESSAGE = 'There are no changes to update';
 const NO_SELECTED_LICENSES_ERROR_MESSAGE = 'There must be at least one selected license';
@@ -54,7 +57,6 @@ export default function EditLicensesForm({
   declaredLicenses,
   effectiveLicenses,
   observedLicenses,
-  licenseLegalMetadata,
   selectableLicenses,
   availableLicenseScopes,
   submitError,
@@ -180,7 +182,7 @@ export default function EditLicensesForm({
         <dl className="nx-read-only">
           <dt className="nx-read-only__label">Effective Licenses</dt>
           <dd className="nx-read-only__data" id="effective-licenses-container">
-            <NxList bulleted>{renderLicensesList(effectiveLicenses, licenseLegalMetadata, isClaimed, true)}</NxList>
+            <NxList bulleted>{renderLicensesList(effectiveLicenses, isClaimed, true)}</NxList>
           </dd>
         </dl>
       </div>
@@ -188,7 +190,7 @@ export default function EditLicensesForm({
         <dl className="nx-read-only">
           <dt className="nx-read-only__label">Declared Licenses</dt>
           <dd className="nx-read-only__data" id="declared-licenses-container">
-            <NxList bulleted>{renderLicensesList(declaredLicenses, licenseLegalMetadata, isClaimed)}</NxList>
+            <NxList bulleted>{renderLicensesList(declaredLicenses, isClaimed)}</NxList>
           </dd>
         </dl>
       </div>
@@ -196,7 +198,7 @@ export default function EditLicensesForm({
         <dl className="nx-read-only">
           <dt className="nx-read-only__label">Observed Licenses</dt>
           <dd className="nx-read-only__data" id="observed-licenses-container">
-            <NxList bulleted>{renderLicensesList(observedLicenses, licenseLegalMetadata, isClaimed)}</NxList>
+            <NxList bulleted>{renderLicensesList(observedLicenses, isClaimed)}</NxList>
           </dd>
         </dl>
       </div>
@@ -273,12 +275,16 @@ export default function EditLicensesForm({
 }
 
 EditLicensesForm.propTypes = {
-  allLicenses: PropTypes.arrayOf(licensesPropTypes),
-  declaredLicenses: PropTypes.arrayOf(PropTypes.string),
-  effectiveLicenses: PropTypes.arrayOf(PropTypes.string),
-  observedLicenses: PropTypes.arrayOf(PropTypes.string),
-  selectableLicenses: PropTypes.arrayOf(licensesPropTypes),
-  licenseLegalMetadata: licenseLegalMetadataPropType,
+  allLicenses: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      displayName: PropTypes.string.isRequired,
+    })
+  ),
+  declaredLicenses: PropTypes.arrayOf(multiLicensesPropTypes),
+  effectiveLicenses: PropTypes.arrayOf(multiLicensesPropTypes),
+  observedLicenses: PropTypes.arrayOf(multiLicensesPropTypes),
+  selectableLicenses: PropTypes.arrayOf(licensePropTypes),
   availableLicenseScopes: PropTypes.arrayOf(licenseOverridePropTypes),
   licenseIds: PropTypes.arrayOf(PropTypes.string),
   scope: licenseOverridePropTypes,

@@ -21,6 +21,8 @@ public class CIComponentInfoResourceAuditTest
 {
   private static final String LICENSES_SUBPATH = "/licenses";
 
+  private static final String MULTI_LICENSES_SUBPATH = "/multiLicenses";
+
   private static final String ALL_VERSIONS_SUBPATH = "/allVersions";
 
   private static final String LIST_SUBPATH = "/list";
@@ -143,6 +145,28 @@ public class CIComponentInfoResourceAuditTest
   @Test
   public void testGetLicenses_Unauthorized() throws Exception {
     detailsRequestForSubpath(LICENSES_SUBPATH, repository, COMPONENT_IDENTIFIER).with(unauthorizedUser()).get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, "unauthorized");
+    assertRepositoryData(auditDTO, repository);
+  }
+
+  @Test
+  public void testGetMultiLicenses_Application() throws Exception {
+    detailsRequestForSubpath(MULTI_LICENSES_SUBPATH, application, COMPONENT_IDENTIFIER).get();
+
+    assertAuditComponentInfo(application, COMPONENT_IDENTIFIER);
+  }
+
+  @Test
+  public void testGetMultiLicenses_Repository() throws Exception {
+    detailsRequestForSubpath(MULTI_LICENSES_SUBPATH, repository, COMPONENT_IDENTIFIER).get();
+
+    assertAuditComponentInfo(repository, COMPONENT_IDENTIFIER);
+  }
+
+  @Test
+  public void testGetMultiLicenses_Unauthorized() throws Exception {
+    detailsRequestForSubpath(MULTI_LICENSES_SUBPATH, repository, COMPONENT_IDENTIFIER).with(unauthorizedUser()).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, "unauthorized");
     assertRepositoryData(auditDTO, repository);

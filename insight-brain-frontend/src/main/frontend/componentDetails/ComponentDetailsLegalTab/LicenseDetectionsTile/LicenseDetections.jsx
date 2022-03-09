@@ -9,14 +9,12 @@ import { NxButton, NxFontAwesomeIcon, NxList, NxLoadWrapper } from '@sonatype/re
 import { faPen } from '@fortawesome/pro-solid-svg-icons';
 
 import { renderLicensesList } from '../LegalTabUtils';
-import { licenseLegalMetadataPropType } from 'MainRoot/legal/advancedLegalPropTypes';
 
 export default function LicenseDetections({
   licenseOverride,
   declaredLicenses,
   effectiveLicenses,
   observedLicenses,
-  licenseLegalMetadata,
   loadLicenses,
   loading,
   loadError,
@@ -93,9 +91,7 @@ export default function LicenseDetections({
                   <div>
                     <dt className="nx-read-only__label">Effective Licenses</dt>
                     <dd className="nx-read-only__data" id="effective-licenses-container">
-                      <NxList bulleted>
-                        {renderLicensesList(effectiveLicenses, licenseLegalMetadata, isClaimed, true)}
-                      </NxList>
+                      <NxList bulleted>{renderLicensesList(effectiveLicenses, isClaimed, true)}</NxList>
                     </dd>
                   </div>
                 </dl>
@@ -105,7 +101,7 @@ export default function LicenseDetections({
                   <div>
                     <dt className="nx-read-only__label">Declared Licenses</dt>
                     <dd className="nx-read-only__data" id="declared-licenses-container">
-                      <NxList bulleted>{renderLicensesList(declaredLicenses, licenseLegalMetadata, isClaimed)}</NxList>
+                      <NxList bulleted>{renderLicensesList(declaredLicenses, isClaimed)}</NxList>
                     </dd>
                   </div>
                 </dl>
@@ -115,7 +111,7 @@ export default function LicenseDetections({
                   <div>
                     <dt className="nx-read-only__label">Observed Licenses</dt>
                     <dd className="nx-read-only__data" id="observed-licenses-container">
-                      <NxList bulleted>{renderLicensesList(observedLicenses, licenseLegalMetadata, isClaimed)}</NxList>
+                      <NxList bulleted>{renderLicensesList(observedLicenses, isClaimed)}</NxList>
                     </dd>
                   </div>
                 </dl>
@@ -136,6 +132,12 @@ export const licensePropTypes = PropTypes.shape({
 export const licensesPropTypes = PropTypes.shape({
   license: licensePropTypes,
   threatLevel: PropTypes.number,
+});
+
+export const multiLicensesPropTypes = PropTypes.shape({
+  licenseId: PropTypes.string.isRequired,
+  licenseName: PropTypes.string.isRequired,
+  licenses: PropTypes.arrayOf(licensesPropTypes).isRequired,
 });
 
 export const licenseOverridePropTypes = PropTypes.shape({
@@ -169,12 +171,11 @@ export const licenseOverridePropTypes = PropTypes.shape({
 });
 
 LicenseDetections.propTypes = {
-  declaredLicenses: PropTypes.arrayOf(PropTypes.string),
-  effectiveLicenses: PropTypes.arrayOf(PropTypes.string),
+  declaredLicenses: PropTypes.arrayOf(multiLicensesPropTypes),
+  effectiveLicenses: PropTypes.arrayOf(multiLicensesPropTypes),
   licenseOverride: PropTypes.arrayOf(licenseOverridePropTypes),
-  licenseLegalMetadata: licenseLegalMetadataPropType,
   loadLicenses: PropTypes.func.isRequired,
-  observedLicenses: PropTypes.arrayOf(PropTypes.string),
+  observedLicenses: PropTypes.arrayOf(multiLicensesPropTypes),
   loading: PropTypes.bool,
   loadError: PropTypes.string,
   toggleShowEditLicensesPopover: PropTypes.func.isRequired,

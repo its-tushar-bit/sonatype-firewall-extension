@@ -13,9 +13,8 @@ import {
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import {
   getBaseLicenseOverrideUrl,
-  getComponentLicensesUrl,
+  getComponentMultiLicensesUrl,
   getDeleteLicenseOverrideUrl,
-  getLicenseLegalComponentUrl,
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
   getProductFeaturesUrl,
@@ -38,7 +37,6 @@ export const initialState = {
   effectiveLicenses: null,
   observedLicenses: null,
   selectableLicenses: null,
-  licenseLegalMetadata: null,
   allLicenses: null,
   loading: false,
   loadError: null,
@@ -84,7 +82,6 @@ const loadFulfilled = (state, { payload }) => {
     observedLicenses,
     selectableLicenses,
     allLicenses,
-    licenseLegalMetadata,
   } = payload;
   state.licenseOverride = licenseOverride ?? null;
   state.declaredLicenses = declaredLicenses ?? null;
@@ -92,7 +89,6 @@ const loadFulfilled = (state, { payload }) => {
   state.observedLicenses = observedLicenses ?? null;
   state.selectableLicenses = selectableLicenses ?? null;
   state.allLicenses = allLicenses ?? null;
-  state.licenseLegalMetadata = licenseLegalMetadata ?? null;
   state.loading = false;
   state.loadError = null;
 
@@ -123,12 +119,11 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWith
     identificationSource,
     componentIdentifier,
     scanId,
-    hash,
   } = selectComponentDetailsRequestData(getState());
   const promises = [
     axios.get(getLicensesWithSyntheticFilterUrl()),
     axios.get(
-      getComponentLicensesUrl({
+      getComponentMultiLicensesUrl({
         clientType,
         ownerType,
         ownerId,
@@ -138,16 +133,13 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWith
       })
     ),
     axios.get(getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier)),
-    axios.get(getLicenseLegalComponentUrl(ownerType, ownerId, hash)),
   ];
 
   return Promise.all(promises)
     .then((results) => {
       const allLicenses = map(({ id, shortDisplayName }) => ({ id, displayName: shortDisplayName }), results[0].data);
-      const { selectableLicenses } = results[1].data;
-      const { declaredLicenses, effectiveLicenses, observedLicenses } = results[3].data.component.licenseLegalData;
+      const { declaredLicenses, observedLicenses, effectiveLicenses, selectableLicenses } = results[1].data;
       const licenseOverride = results[2].data.licenseOverridesByOwner;
-      const licenseLegalMetadata = results[3].data.licenseLegalMetadata;
       return {
         licenseOverride,
         declaredLicenses,
@@ -155,7 +147,6 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWith
         observedLicenses,
         selectableLicenses,
         allLicenses,
-        licenseLegalMetadata,
       };
     })
     .catch(rejectWithValue);

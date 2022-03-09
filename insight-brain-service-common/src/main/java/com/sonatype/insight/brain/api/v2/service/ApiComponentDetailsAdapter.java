@@ -112,6 +112,14 @@ public class ApiComponentDetailsAdapter
     }
     componentDetailsDTO.relativePopularity = componentDetailsFromHds.relativePopularity;
 
+    if (componentDetailsFromHds.integrityRating != null) {
+      componentDetailsDTO.integrityRating = componentDetailsFromHds.integrityRating.getLabel();
+    }
+
+    if (componentDetailsFromHds.hygieneRating != null) {
+      componentDetailsDTO.hygieneRating = componentDetailsFromHds.hygieneRating.getLabel();
+    }
+
     componentDetailsDTO.licenseData = licenseDataAdapter.convertToDTO(componentDetailsFromHds);
     componentDetailsDTO.securityData = securityDataAdapter.convertToDTO(componentDetailsFromHds);
     componentDetailsDTO.projectData = componentProjectDetailsAdapter.convertToDTO(componentDetailsFromHds);

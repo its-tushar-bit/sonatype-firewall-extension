@@ -29,6 +29,10 @@ public class ApiComponentDetailsDTOV2
 
   public ApiLicenseDataDTO licenseData;
 
+  public String integrityRating;
+
+  public String hygieneRating;
+
   public ApiSecurityDataDTO securityData;
 
   @JsonInclude(Include.NON_NULL)

@@ -22,13 +22,15 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.ComponentProjectDetails;
+import com.sonatype.clm.dto.model.component.HygieneRating;
+import com.sonatype.clm.dto.model.component.IntegrityRating;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentProjectDataDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -63,7 +65,7 @@ public class ComponentEvaluationV2Helper
       final Integer relativePopularity)
   {
     return createComponentEvaluationData(componentIdentifier, hash, matchState, index, declaredLicenses,
-        observedLicenses, securityVulnerabilities, relativePopularity, null);
+        observedLicenses, securityVulnerabilities, relativePopularity, null, null, null);
   }
 
   public ComponentEvaluationData createComponentEvaluationData(
@@ -75,7 +77,9 @@ public class ComponentEvaluationV2Helper
       final Set<License> observedLicenses,
       final List<SecurityVulnerability> securityVulnerabilities,
       final Integer relativePopularity,
-      final ComponentProjectDetails componentProjectDetails)
+      final ComponentProjectDetails componentProjectDetails,
+      final HygieneRating hygieneRating,
+      final IntegrityRating integrityRating)
   {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.requestIndex = index;
@@ -88,6 +92,8 @@ public class ComponentEvaluationV2Helper
     componentEvaluationData.securityVulnerabilities = securityVulnerabilities;
     componentEvaluationData.relativePopularity = relativePopularity;
     componentEvaluationData.componentProjectDetails = componentProjectDetails;
+    componentEvaluationData.hygieneRating = hygieneRating;
+    componentEvaluationData.integrityRating = integrityRating;
 
     return componentEvaluationData;
   }

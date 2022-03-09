@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -21,6 +20,8 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.Componen
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.ComponentProjectDetails;
+import com.sonatype.clm.dto.model.component.HygieneRating;
+import com.sonatype.clm.dto.model.component.IntegrityRating;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
@@ -94,6 +95,8 @@ public class ApiComponentDetailsServiceV2Test
     Set<License> observedLicenseSet = Collections.singleton(new License("ATT", "ATT"));
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
     ComponentProjectDetails componentProjectDetails = componentEvaluationV2Helper.createComponentProjectDetails();
+    HygieneRating hygieneRating = new HygieneRating(1, "Laggard");
+    IntegrityRating integrityRating = new IntegrityRating(1, "Pending");
 
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
@@ -114,7 +117,7 @@ public class ApiComponentDetailsServiceV2Test
         hdsResult.components.add(componentEvaluationV2Helper
             .createComponentEvaluationData(componentIdentifier, component.hash, MatchState.EXACT, i,
                 declaredLicenseSet, observedLicenseSet, securityVulnerabilities, componentIndex /* popularity */,
-                componentProjectDetails));
+                componentProjectDetails, hygieneRating, integrityRating));
       }
       mockHdsRequest(componentEvaluationV2Helper.toHdsRequest(requestChunk), hdsResult);
     }
@@ -131,7 +134,7 @@ public class ApiComponentDetailsServiceV2Test
       effectiveLicenseSet.addAll(observedLicenseSet);
       assertComponentDetails(componentDetailsDTOV2, request.components.get(i), MatchState.EXACT.getId(),
           declaredLicenseSet, observedLicenseSet, effectiveLicenseSet, securityVulnerabilities, i /* popularity */,
-          componentProjectDetails);
+          componentProjectDetails, hygieneRating, integrityRating);
       i++;
     }
   }
@@ -384,7 +387,9 @@ public class ApiComponentDetailsServiceV2Test
       Set<License> effectiveLicenses,
       List<SecurityVulnerability> securityVulnerabilities,
       Integer relativePopularity,
-      ComponentProjectDetails projectDetails)
+      ComponentProjectDetails projectDetails,
+      HygieneRating hygieneRating,
+      IntegrityRating integrityRating)
   {
     ApiComponentIdentifierDTOV2 expectedComponentIdentifier = requestComponentDTO.componentIdentifier;
     String expectedHash = requestComponentDTO.hash;
@@ -400,6 +405,9 @@ public class ApiComponentDetailsServiceV2Test
         ComponentDisplayNameUtil.fromIdentifier(expectedComponentIdentifier.toComponentIdentifier()).toString());
     assertThat(resultComponentDTO.matchState).isEqualTo(matchState);
     assertThat(resultComponentDTO.relativePopularity).isEqualTo(relativePopularity);
+
+    assertThat(resultComponentDTO.hygieneRating).isEqualTo(hygieneRating.getLabel());
+    assertThat(resultComponentDTO.integrityRating).isEqualTo(integrityRating.getLabel());
 
     assertThat(resultComponentDTO.licenseData).isNotNull();
     assertThat(resultComponentDTO.licenseData.declaredLicenses).extracting(dto -> dto.licenseId, dto -> dto.licenseName)

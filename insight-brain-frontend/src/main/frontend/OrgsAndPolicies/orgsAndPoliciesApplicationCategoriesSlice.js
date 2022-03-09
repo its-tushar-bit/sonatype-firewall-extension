@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import axios from 'axios';
 import {
   any,
@@ -97,7 +97,8 @@ const loadApplicableCategories = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicableCategories`,
   (_, { dispatch, rejectWithValue }) => {
     return dispatch(loadApplicableCategoriesByOwner())
-      .then(({ payload: { applicationCategoriesByOwner = [] } }) => {
+      .then((applicationCategoriesByOwnerActionPayload) => {
+        const { applicationCategoriesByOwner = [] } = unwrapResult(applicationCategoriesByOwnerActionPayload);
         const ownerName = path(['0', 'ownerName'], applicationCategoriesByOwner);
         dispatch(orgsAndPoliciesRootActions.updatedOwnerHandler(ownerName));
 
@@ -219,11 +220,14 @@ const loadCategoryEditor = createAsyncThunk(
     return Promise.all(promises)
       .then((results) => {
         const [
-          {
-            payload: { applicationCategoriesByOwner = [] },
-          },
+          applicationCategoriesByOwnerActionPayload,
+          applicationTagsByOwnerActionPayload,
+          allApplication,
+          policyHierarchy,
+          policyTagActionPayload,
         ] = results;
 
+        const { applicationCategoriesByOwner = [] } = unwrapResult(applicationCategoriesByOwnerActionPayload);
         const siblingsFromAllOwners = getAllApplicationCategories(applicationCategoriesByOwner);
 
         if (!isEditMode) {
@@ -232,15 +236,9 @@ const loadCategoryEditor = createAsyncThunk(
           };
         }
 
-        const [
-          ,
-          {
-            payload: { applicationTagsByOwner = [] },
-          },
-          allApplication,
-          policyHierarchy,
-          { payload: policyTags = [] },
-        ] = results;
+        const { applicationTagsByOwner = [] } = unwrapResult(applicationTagsByOwnerActionPayload);
+        const policyTags = unwrapResult(policyTagActionPayload);
+
         const { categoryId } = selectRouterCurrentParams(getState());
         const categoryToEdit = findCategoryToEdit(categoryId, applicationCategoriesByOwner);
         const associatedApplicationNames = getAssociatedApplicationNames(

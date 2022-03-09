@@ -222,13 +222,12 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(5);
+        expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
           'applicationCategories/loadApplicableCategories/pending',
           'applicationCategories/loadApplicableCategoriesByOwner/pending',
           'applicationCategories/loadApplicableCategoriesByOwner/rejected',
-          'orgsAndPolicies/updatedOwnerHandler',
-          'applicationCategories/loadApplicableCategories/fulfilled',
+          'applicationCategories/loadApplicableCategories/rejected',
         ]);
 
         done();

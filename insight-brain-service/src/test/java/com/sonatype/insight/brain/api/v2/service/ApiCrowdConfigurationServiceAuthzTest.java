@@ -71,4 +71,21 @@ public class ApiCrowdConfigurationServiceAuthzTest
     grantConfigureSystemPermission();
     service.deleteCrowdConfiguration();
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testTestCrowdConfiguration_Unauthenticated() {
+    service.testCrowdConfiguration(null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testTestCrowdConfiguration_Unauthorized() {
+    login();
+    service.testCrowdConfiguration(null);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testTestCrowdConfiguration_Authorized() {
+    grantConfigureSystemPermission();
+    service.testCrowdConfiguration(null);
+  }
 }

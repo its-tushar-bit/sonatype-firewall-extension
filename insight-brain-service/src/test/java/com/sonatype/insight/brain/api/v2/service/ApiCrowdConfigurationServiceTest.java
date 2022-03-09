@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiCrowdConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
+import com.sonatype.insight.brain.security.CrowdMockServerRule;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -18,22 +20,43 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.inject.Binder;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class ApiCrowdConfigurationServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public CrowdMockServerRule crowdMockServer = new CrowdMockServerRule();
+
   @Inject
   private ApiCrowdConfigurationService service;
 
   @Inject
   private CrowdConfigurationDAO dao;
 
+  private CrowdConfigurationDAO spyDAO;
+
+  @Captor
+  private ArgumentCaptor<CrowdConfiguration> crowdConfigurationArgumentCaptor;
+
   @Inject
   private PasswordHandler passwordHandler;
+
+  @Override
+  public void configure(Binder binder) {
+    spyDAO = spy(new CrowdConfigurationDAO());
+    binder.bind(CrowdConfigurationDAO.class).toInstance(spyDAO);
+    super.configure(binder);
+  }
 
   @Test
   public void testGetCrowdConfiguration_NotConfigured() {
@@ -206,5 +229,79 @@ public class ApiCrowdConfigurationServiceTest
     service.deleteCrowdConfiguration();
 
     assertThat(dao.get()).isNull();
+  }
+
+  @Test
+  public void testTestCrowdConfiguration_NoDTO_NotConfigured() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> service.testCrowdConfiguration(null))
+        .withMessageContaining(ApiCrowdConfigurationService.CROWD_IS_NOT_CONFIGURED);
+  }
+
+  @Test
+  public void testTestCrowdConfiguration_DTO_Success() throws Exception {
+    crowdMockServer.mockTestConnection();
+    ApiCrowdConfigurationDTO dto = new ApiCrowdConfigurationDTO();
+    dto.serverUrl = crowdMockServer.getBaseUrl() + "/crowd";
+    dto.applicationName = "applicationName";
+    dto.applicationPassword = "applicationPassword".toCharArray();
+
+    ApiStatusDTO result = service.testCrowdConfiguration(dto);
+
+    verify(spyDAO).validate(crowdConfigurationArgumentCaptor.capture());
+    CrowdConfiguration crowdConfiguration = crowdConfigurationArgumentCaptor.getValue();
+    assertThat(crowdConfiguration.getServerUrl()).isEqualTo(dto.serverUrl);
+    assertThat(crowdConfiguration.getApplicationName()).isEqualTo(dto.applicationName);
+    assertThat(passwordHandler.decryptPassword(crowdConfiguration.getApplicationPassword())).isEqualTo(
+        dto.applicationPassword);
+    assertThat(result).isNotNull();
+    assertThat(result.code).isEqualTo(200);
+    assertThat(result.message).isNull();
+  }
+
+  @Test
+  public void testTestCrowdConfiguration_DTO_Fail() {
+    crowdMockServer.mockTestConnectionError(401);
+    ApiCrowdConfigurationDTO dto = new ApiCrowdConfigurationDTO();
+    dto.serverUrl = crowdMockServer.getBaseUrl() + "/crowd";
+    dto.applicationName = "applicationName";
+    dto.applicationPassword = "applicationPassword".toCharArray();
+
+    ApiStatusDTO result = service.testCrowdConfiguration(dto);
+
+    verify(spyDAO).validate(crowdConfigurationArgumentCaptor.capture());
+    CrowdConfiguration crowdConfiguration = crowdConfigurationArgumentCaptor.getValue();
+    assertThat(crowdConfiguration.getServerUrl()).isEqualTo(dto.serverUrl);
+    assertThat(crowdConfiguration.getApplicationName()).isEqualTo(dto.applicationName);
+    assertThat(passwordHandler.decryptPassword(crowdConfiguration.getApplicationPassword())).isEqualTo(
+        dto.applicationPassword);
+    assertThat(result).isNotNull();
+    assertThat(result.code).isEqualTo(400);
+    assertThat(result.message).isEqualTo("Error");
+  }
+
+  @Test
+  public void testTestCrowdConfiguration_NoDTO_Configured_Success() throws Exception {
+    crowdMockServer.mockTestConnection();
+    tempEntity.newCrowdConfiguration(crowdMockServer.getBaseUrl() + "/crowd", "applicationName",
+        passwordHandler.encryptPassword("applicationPassword".toCharArray()));
+
+    ApiStatusDTO result = service.testCrowdConfiguration(null);
+
+    assertThat(result).isNotNull();
+    assertThat(result.code).isEqualTo(200);
+    assertThat(result.message).isNull();
+  }
+
+  @Test
+  public void testTestCrowdConfiguration_NoDTO_Configured_Fail() {
+    crowdMockServer.mockTestConnectionError(401);
+    tempEntity.newCrowdConfiguration(crowdMockServer.getBaseUrl() + "/crowd", "applicationName",
+        passwordHandler.encryptPassword("applicationPassword".toCharArray()));
+
+    ApiStatusDTO result = service.testCrowdConfiguration(null);
+
+    assertThat(result).isNotNull();
+    assertThat(result.code).isEqualTo(400);
+    assertThat(result.message).isEqualTo("Error");
   }
 }

@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiCrowdConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.atlassian.crowd.integration.rest.service.factory.RestCrowdClientFactory;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -50,10 +52,13 @@ public class ApiCrowdConfigurationService
 
   private final PasswordHandler passwordHandler;
 
+  private final RestCrowdClientFactory restCrowdClientFactory;
+
   @Inject
   public ApiCrowdConfigurationService(CrowdConfigurationDAO crowdConfigurationDAO, PasswordHandler passwordHandler) {
     this.crowdConfigurationDAO = crowdConfigurationDAO;
     this.passwordHandler = passwordHandler;
+    restCrowdClientFactory = new RestCrowdClientFactory();
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -111,6 +116,41 @@ public class ApiCrowdConfigurationService
     AuditData.get().setData(CROWD_SERVER_URL_AUDIT_KEY, crowdConfiguration.getServerUrl())
         .setData(CROWD_APPLICATION_NAME_AUDIT_KEY, crowdConfiguration.getApplicationName());
     crowdConfigurationDAO.delete(crowdConfiguration);
+  }
+
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public ApiStatusDTO testCrowdConfiguration(ApiCrowdConfigurationDTO dto) {
+    CrowdConfiguration crowdConfiguration;
+    if (dto == null) {
+      crowdConfiguration = crowdConfigurationDAO.get();
+      if (crowdConfiguration == null) {
+        throw new NotFoundException(CROWD_IS_NOT_CONFIGURED);
+      }
+    }
+    else {
+      crowdConfiguration = new CrowdConfiguration();
+      crowdConfiguration.setServerUrl(dto.serverUrl);
+      crowdConfiguration.setApplicationName(dto.applicationName);
+      if (dto.applicationPassword != null && StringUtils.isNotBlank(CharBuffer.wrap(dto.applicationPassword))) {
+        crowdConfiguration.setApplicationPassword(passwordHandler.encryptPassword(dto.applicationPassword));
+      }
+      crowdConfigurationDAO.validate(crowdConfiguration);
+    }
+    return testCrowdConfiguration(crowdConfiguration);
+  }
+
+  private ApiStatusDTO testCrowdConfiguration(CrowdConfiguration crowdConfiguration) {
+    ApiStatusDTO dto = new ApiStatusDTO();
+    try {
+      restCrowdClientFactory.newInstance(crowdConfiguration.getServerUrl(), crowdConfiguration.getApplicationName(),
+          new String(passwordHandler.decryptPassword(crowdConfiguration.getApplicationPassword()))).testConnection();
+      dto.code = 200;
+    }
+    catch (Exception e) {
+      dto.code = 400;
+      dto.message = e.getMessage();
+    }
+    return dto;
   }
 
   private ApiCrowdConfigurationDTO convertToDTO(CrowdConfiguration crowdConfiguration) {

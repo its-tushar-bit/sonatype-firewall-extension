@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.security;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -17,6 +18,7 @@ import com.atlassian.crowd.integration.rest.entity.GroupEntity;
 import com.atlassian.crowd.integration.rest.entity.GroupEntityList;
 import com.atlassian.crowd.integration.rest.entity.PasswordEntity;
 import com.atlassian.crowd.integration.rest.entity.UserEntity;
+import com.atlassian.crowd.integration.rest.entity.UserEntityList;
 import com.atlassian.crowd.model.group.GroupType;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.rules.ExternalResource;
@@ -94,6 +96,24 @@ public class CrowdMockServerRule
         get(urlPathMatching("/crowd/rest/usermanagement/1/user/group/nested")).withQueryParam("username",
                 equalTo(username)).withQueryParam("start-index", equalTo("0"))
             .withQueryParam("max-results", equalTo("-1")).withQueryParam("expand", equalTo("group")).willReturn(
+                aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody("Error").withStatus(status)));
+  }
+
+  public void mockTestConnection() throws Exception {
+    UserEntityList userEntityList = new UserEntityList(Collections.emptyList());
+    crowdMockServer.stubFor(
+        post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type",
+                equalTo("user")).withQueryParam("start-index", equalTo("0"))
+            .withQueryParam("max-results", equalTo("1")).withQueryParam("expand", equalTo("user")).willReturn(
+                aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody(marshall(userEntityList))
+                    .withStatus(200)));
+  }
+
+  public void mockTestConnectionError(int status) {
+    crowdMockServer.stubFor(
+        post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type",
+                equalTo("user")).withQueryParam("start-index", equalTo("0"))
+            .withQueryParam("max-results", equalTo("1")).withQueryParam("expand", equalTo("user")).willReturn(
                 aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody("Error").withStatus(status)));
   }
 

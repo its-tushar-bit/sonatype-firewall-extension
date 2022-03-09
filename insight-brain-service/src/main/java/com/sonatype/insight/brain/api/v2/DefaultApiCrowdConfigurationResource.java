@@ -10,6 +10,7 @@ import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -17,6 +18,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrowdConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiCrowdConfigurationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -32,6 +34,8 @@ import com.codahale.metrics.annotation.Timed;
 public class DefaultApiCrowdConfigurationResource
     implements ApiCrowdConfigurationResourceV2
 {
+  public static final String TEST_PATH = "test";
+
   private final ApiCrowdConfigurationService apiCrowdConfigurationService;
 
   private final InsightConfig insightConfig;
@@ -68,6 +72,16 @@ public class DefaultApiCrowdConfigurationResource
   public void deleteCrowdConfiguration() {
     checkCrowdEnabled();
     apiCrowdConfigurationService.deleteCrowdConfiguration();
+  }
+
+  @Override
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(TEST_PATH)
+  public ApiStatusDTO testCrowdConfiguration(ApiCrowdConfigurationDTO dto) {
+    checkCrowdEnabled();
+    return apiCrowdConfigurationService.testCrowdConfiguration(dto);
   }
 
   private void checkCrowdEnabled() {

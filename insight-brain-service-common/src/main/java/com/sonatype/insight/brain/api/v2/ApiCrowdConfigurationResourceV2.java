@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiCrowdConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 
 public interface ApiCrowdConfigurationResourceV2
 {
@@ -14,4 +15,6 @@ public interface ApiCrowdConfigurationResourceV2
   void insertOrUpdateCrowdConfiguration(ApiCrowdConfigurationDTO dto);
 
   void deleteCrowdConfiguration();
+
+  ApiStatusDTO testCrowdConfiguration(ApiCrowdConfigurationDTO dto);
 }

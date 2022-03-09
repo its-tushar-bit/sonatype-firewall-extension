@@ -577,6 +577,17 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>com.atlassian.crowd.client</groupId>
+      <artifactId>atlassian-crowd-rest-client</artifactId>
+      <version>1.4</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpclient</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
   </dependencies>
 

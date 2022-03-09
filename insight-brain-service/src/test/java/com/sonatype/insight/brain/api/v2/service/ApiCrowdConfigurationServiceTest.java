@@ -15,6 +15,9 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -151,6 +154,43 @@ public class ApiCrowdConfigurationServiceTest
     assertThat(storedCrowdConfiguration.getApplicationName()).isEqualTo(crowdConfiguration.getApplicationName());
     assertThat(passwordHandler.decryptPassword(storedCrowdConfiguration.getApplicationPassword())).isEqualTo(
         dto.applicationPassword);
+  }
+
+  @Test
+  public void testInsertOrUpdateCrowdConfiguration_Update_EmptyOrWhitespaceValue() throws Exception {
+    tempEntity.newCrowdConfiguration();
+    testInsertOrUpdateCrowdConfiguration_Update_EmptyOrWhitespaceValue("serverUrl", "",
+        "A Crowd server url is required.");
+    testInsertOrUpdateCrowdConfiguration_Update_EmptyOrWhitespaceValue("serverUrl", " ",
+        "A Crowd server url is required.");
+    testInsertOrUpdateCrowdConfiguration_Update_EmptyOrWhitespaceValue("applicationName", "",
+        "A Crowd application name is required.");
+    testInsertOrUpdateCrowdConfiguration_Update_EmptyOrWhitespaceValue("applicationName", " ",
+        "A Crowd application name is required.");
+    testInsertOrUpdateCrowdConfiguration_Update_EmptyOrWhitespaceValue("applicationPassword", "",
+        ApiCrowdConfigurationService.CROWD_APPLICATION_PASSWORD_CANNOT_BE_EMPTY_OR_WHITESPACE);
+    testInsertOrUpdateCrowdConfiguration_Update_EmptyOrWhitespaceValue("applicationPassword", " ",
+        ApiCrowdConfigurationService.CROWD_APPLICATION_PASSWORD_CANNOT_BE_EMPTY_OR_WHITESPACE);
+  }
+
+  private void testInsertOrUpdateCrowdConfiguration_Update_EmptyOrWhitespaceValue(
+      String fieldName,
+      String value,
+      String expectedErrorMessage)
+      throws Exception
+  {
+    CrowdConfiguration crowdConfiguration = dao.get();
+    ApiCrowdConfigurationDTO dto = new ApiCrowdConfigurationDTO();
+    dto.serverUrl = crowdConfiguration.getServerUrl() + "2";
+    dto.applicationName = crowdConfiguration.getApplicationName() + "2";
+    dto.applicationPassword = (new String(crowdConfiguration.getApplicationPassword()) + "2").toCharArray();
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode objectNode = (ObjectNode) objectMapper.readTree(objectMapper.writeValueAsString(dto));
+    objectNode.set(fieldName, new TextNode(value));
+    ApiCrowdConfigurationDTO dtoToTest = objectMapper.convertValue(objectNode, ApiCrowdConfigurationDTO.class);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> service.insertOrUpdateCrowdConfiguration(dtoToTest)).withMessageContaining(expectedErrorMessage);
   }
 
   @Test

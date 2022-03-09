@@ -40,7 +40,11 @@ public class ApiCrowdConfigurationService
 
   // Visible for testing
   static final String CROWD_SERVER_URL_UPDATE_NEEDS_APPLICATION_PASSWORD =
-      "A Crowd configuration server url must be updated with its application password.";
+      "A Crowd server url must be updated with its application password.";
+
+  // Visible for testing
+  static final String CROWD_APPLICATION_PASSWORD_CANNOT_BE_EMPTY_OR_WHITESPACE =
+      "A Crowd application password cannot be empty or only whitespace.";
 
   private final CrowdConfigurationDAO crowdConfigurationDAO;
 
@@ -68,6 +72,9 @@ public class ApiCrowdConfigurationService
     if (dto == null) {
       throw new BadRequestException(CROWD_CONFIGURATION_MUST_BE_SPECIFIED);
     }
+    if (dto.applicationPassword != null && StringUtils.isBlank(CharBuffer.wrap(dto.applicationPassword))) {
+      throw new BadRequestException(CROWD_APPLICATION_PASSWORD_CANNOT_BE_EMPTY_OR_WHITESPACE);
+    }
     CrowdConfiguration crowdConfiguration = crowdConfigurationDAO.get();
     if (crowdConfiguration == null) {
       crowdConfiguration = new CrowdConfiguration();
@@ -76,19 +83,17 @@ public class ApiCrowdConfigurationService
       crowdConfiguration.setApplicationPassword(passwordHandler.encryptPassword(dto.applicationPassword));
     }
     else {
-      boolean passwordIsBlank =
-          dto.applicationPassword == null || StringUtils.isBlank(CharBuffer.wrap(dto.applicationPassword));
-      boolean serverUrlIsBlank = StringUtils.isBlank(dto.serverUrl);
-      if (passwordIsBlank && !serverUrlIsBlank && !crowdConfiguration.getServerUrl().equalsIgnoreCase(dto.serverUrl)) {
+      if (dto.applicationPassword == null && dto.serverUrl != null &&
+          !crowdConfiguration.getServerUrl().equalsIgnoreCase(dto.serverUrl)) {
         throw new BadRequestException(CROWD_SERVER_URL_UPDATE_NEEDS_APPLICATION_PASSWORD);
       }
-      if (!serverUrlIsBlank) {
+      if (dto.serverUrl != null) {
         crowdConfiguration.setServerUrl(dto.serverUrl);
       }
-      if (StringUtils.isNotBlank(dto.applicationName)) {
+      if (dto.applicationName != null) {
         crowdConfiguration.setApplicationName(dto.applicationName);
       }
-      if (!passwordIsBlank) {
+      if (dto.applicationPassword != null) {
         crowdConfiguration.setApplicationPassword(passwordHandler.encryptPassword(dto.applicationPassword));
       }
     }

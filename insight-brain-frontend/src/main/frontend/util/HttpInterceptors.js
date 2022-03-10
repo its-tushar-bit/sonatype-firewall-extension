@@ -6,6 +6,7 @@
 import angularCommonModule from './AngularCommon';
 import CLMLocationModule from './CLMLocation';
 import utilityServicesModule from '../utility/services/utility.services.module';
+import loginModalModule from 'MainRoot/user/LoginModal/module';
 
 import isIqIframe from './isIqFrame';
 
@@ -82,16 +83,17 @@ export var unauthenticatedResponseHttpInterceptor = angular
     'ui.bootstrap',
     CLMLocationModule.name,
     utilityServicesModule.name,
+    loginModalModule.name,
   ])
   .run([
     '$rootScope',
     '$q',
     '$http',
-    'LoginModalService',
     'UnauthenticatedRequestQueueService',
-    function ($rootScope, $q, $http, LoginModalService, UnauthenticatedRequestQueueService) {
-      function authenticate(showSamlSso, identityProviderName) {
-        return LoginModalService.show(showSamlSso, identityProviderName);
+    'LoginModalService',
+    function ($rootScope, $q, $http, UnauthenticatedRequestQueueService, LoginModalService) {
+      function authenticate(showSamlSso) {
+        return LoginModalService.open(showSamlSso);
       }
 
       $rootScope.$on('userNeedsAuthentication', function (event, response, deferred) {
@@ -113,7 +115,7 @@ export var unauthenticatedResponseHttpInterceptor = angular
           // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
           // the other messages, the data will be added to the queue, but the dialog portion will be ignored
           if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-            authenticate(response.headers('WWW-Authenticate') === 'SAML', response.headers('X-SAML-IdP')).then(
+            authenticate(response.headers('WWW-Authenticate') === 'SAML').then(
               function () {
                 // retry failed requests and then clear the queue
                 $q.all(UnauthenticatedRequestQueueService.getPromises()).finally(function () {

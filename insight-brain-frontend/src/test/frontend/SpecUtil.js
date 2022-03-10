@@ -151,6 +151,7 @@ window.SpecUtil = {
         };
       });
       this.getState = jasmine.createSpy('getState');
+      this.subscribe = jasmine.createSpy('subscribe').and.returnValue(unsubscribeSpy);
     });
 
     return unsubscribeSpy;

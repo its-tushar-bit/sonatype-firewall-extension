@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
-import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
@@ -343,7 +343,7 @@ public abstract class AbstractFunctionalTest
     loginModal.username().setValue(username);
     loginModal.password().setValue(password);
     loginModal.loginButton().click();
-    FormMask.seeAndWaitForDismissal();
+    NxSubmitMask.seeAndWaitForDismissal();
     loginModal.shouldBe(hidden);
     staticTempEntity.initializePersistedUserSessions();
   }
@@ -464,10 +464,10 @@ public abstract class AbstractFunctionalTest
         // interim URL, unless ...
         // ... the login modal is shown
         try {
-          assertThat(webDriver.findElement(By.id("login-modal")).isDisplayed()).isTrue();
+          assertThat(webDriver.findElement(By.id("iq-login-modal")).isDisplayed()).isTrue();
           // ... and not currently performing a login
           try {
-            assertThat(webDriver.findElement(By.cssSelector(".form-mask")).isDisplayed()).isTrue();
+            assertThat(webDriver.findElement(By.cssSelector(".nx-submit-mask")).isDisplayed()).isTrue();
           }
           catch (AssertionError | NoSuchElementException | StaleElementReferenceException ignored) {
             return;

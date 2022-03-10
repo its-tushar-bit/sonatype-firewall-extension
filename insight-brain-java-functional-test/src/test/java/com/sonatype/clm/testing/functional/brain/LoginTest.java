@@ -5,31 +5,41 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.util.HashMap;
+
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
+import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.attribute;
+import static com.sonatype.clm.testing.functional.utils.InputUtils.clearInput;
 
 public class LoginTest
     extends AbstractFunctionalTest
 {
   private LoginModal loginModal = new LoginModal();
+
+  private VulnerabilitySearchPage vulnPage = new VulnerabilitySearchPage();
+
+  private InsightConfig insightConfig = testCLMServer.getCLMServer().getInstance(InsightConfig.class);
 
   @Before
   @After
@@ -43,10 +53,24 @@ public class LoginTest
   }
 
   @Test
+  public void testInitialLoginFormState_UnauthenticatedPagesDisabled() {
+    try {
+      insightConfig.setFeatures(new HashMap<>());
+      insightConfig.getFeatures().put(Feature.ENABLE_UNAUTHENTICATED_PAGES.getFlag(), false);
+
+      refreshOrOpen(ReportListPage.url());
+      loginModal.vulnerabilityLookupLink().shouldBe(hidden);
+    }
+    finally {
+      insightConfig.setFeatures(null);
+    }
+  }
+
+  @Test
   public void testInitialLoginFormState() {
     refreshOrOpen(ReportListPage.url());
     loginModal.shouldBe(visible);
-    loginModal.ssoText().shouldBe(hidden);
+    loginModal.ssoButton().shouldBe(hidden);
     loginModal.username().shouldBe(focused);
     loginModal.ssoButton().shouldBe(hidden);
     loginModal.loginButton().shouldBe(enabled);
@@ -55,24 +79,22 @@ public class LoginTest
   @Test
   public void testInitialLoginFormState_SamlSso() {
     SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration();
-    samlConfiguration.setIdentityProviderName("My Awesome IdP");
     new SamlConfigurationDAO().update(samlConfiguration);
     testCLMServer.getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
 
     refreshOrOpen(ReportListPage.url());
 
     loginModal.shouldBe(visible);
-    loginModal.ssoText().shouldBe(visible).shouldHave(text(samlConfiguration.getIdentityProviderName()));
-    loginModal.ssoButton().shouldBe(enabled, focused);
-    loginModal.loginButton().shouldBe(disabled);
+    loginModal.ssoButton().shouldBe(visible, focused);
+    loginModal.loginButton().shouldHave(attribute("aria-disabled", "true"));
     eyesWatcher.eyesCheck();
 
     loginModal.username().setValue("u");
-    loginModal.loginButton().shouldBe(disabled);
+    loginModal.loginButton().shouldHave(attribute("aria-disabled", "true"));
     loginModal.password().setValue("p");
-    loginModal.loginButton().shouldBe(enabled);
-    loginModal.username().clear();
-    loginModal.loginButton().shouldBe(disabled);
+    loginModal.loginButton().shouldNotHave(attribute("aria-disabled"));
+    clearInput(loginModal.username());
+    loginModal.loginButton().shouldHave(attribute("aria-disabled", "true"));
   }
 
   @Test
@@ -95,6 +117,49 @@ public class LoginTest
     loginModal.shouldBe(visible);
     loginModal.errorMessage().shouldBe(visible).shouldHave(text("Invalid credentials"));
     eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testErrorMessageClearOnNavigateToVulnerabilitySearchPage() {
+    refreshOrOpen(ReportListPage.url());
+    loginModal.shouldBe(visible);
+    loginModal.username().setValue("unknown");
+    loginModal.password().setValue("user");
+    loginModal.loginButton().shouldBe(enabled).click();
+    loginModal.shouldBe(visible);
+    loginModal.errorMessage().shouldBe(visible).shouldHave(text("Invalid credentials"));
+
+    loginModal.vulnerabilityLookupLink().shouldBe(visible).click();
+    waitUntilUrl(VulnerabilitySearchPage.url());
+    loginModal.shouldNotBe(visible);
+    vulnPage.shouldBe(visible);
+
+    MainHeader.loginButton().shouldBe(visible).click();
+    loginModal.shouldBe(visible);
+    loginModal.errorMessage().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testErrorMessageClearOnCancel() {
+    refreshOrOpen(ReportListPage.url());
+    loginModal.shouldBe(visible);
+    loginModal.vulnerabilityLookupLink().shouldBe(visible).click();
+    waitUntilUrl(VulnerabilitySearchPage.url());
+    loginModal.shouldNotBe(visible);
+    vulnPage.shouldBe(visible);
+
+    MainHeader.loginButton().shouldBe(visible).click();
+    loginModal.shouldBe(visible);
+    loginModal.username().setValue("unknown");
+    loginModal.password().setValue("user");
+    loginModal.loginButton().shouldBe(enabled).click();
+    loginModal.shouldBe(visible);
+    loginModal.errorMessage().shouldBe(visible).shouldHave(text("Invalid credentials"));
+    loginModal.cancelButton().shouldBe(visible).click();
+
+    MainHeader.loginButton().shouldBe(visible).click();
+    loginModal.shouldBe(visible);
+    loginModal.errorMessage().shouldNotBe(visible);
   }
 
   @Test

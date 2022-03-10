@@ -310,6 +310,12 @@ describe('CLMLocation.js', function () {
     expect(CLMLocation.getOwnerHierarchyUrl('ownerType', 'ownerId')).toBe('/rest/owner/ownerType/ownerId/hierarchy');
   });
 
+  it('should return the saml sso login url', function () {
+    expect(CLMLocation.getSamlSsoLoginUrl('http://localhost:8080/hola/mundo')).toBe(
+      '/saml/login?hash=http%3A%2F%2Flocalhost%3A8080%2Fhola%2Fmundo'
+    );
+  });
+
   it('should return the save component obligation attribution url', function () {
     expect(CLMLocation.getSaveComponentObligationAttributionUrl('ownerType', 'ownerId')).toBe(
       '/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation/attribution'

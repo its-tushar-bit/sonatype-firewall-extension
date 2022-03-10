@@ -273,6 +273,10 @@ export function getRoleListUrl() {
   return uriTemplate`/rest/security/roles`;
 }
 
+export function getSamlSsoLoginUrl(hash) {
+  return hash ? uriTemplate`/saml/login?hash=${hash}` : uriTemplate`/saml/login`;
+}
+
 export function getAutomaticApplicationsConfigurationUrl() {
   return uriTemplate`/rest/config/automaticApplications`;
 }
@@ -338,6 +342,10 @@ export function getFirewallQuarantineSummaryUrl() {
 
 export function getProductFeaturesUrl() {
   return uriTemplate`/rest/product/features`;
+}
+
+export function getEnableUnauthenticatedPages() {
+  return uriTemplate`/rest/product/features/enableUnauthenticatedPages`;
 }
 
 export const getReportBomUrl = getBrowseReportUrl('bom.json');
@@ -984,6 +992,8 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       },
 
       getProductFeaturesUrl,
+
+      getEnableUnauthenticatedPages,
 
       getComponentRisksUrl,
 

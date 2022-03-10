@@ -15,11 +15,11 @@ class LoginModule
     extends Module
 {
   static content = {
-    modal(required: false) { $('#login-modal') }
-    usernameInput { $('#login-username') }
-    passwordInput { $('#login-password') }
-    loginAction { $('#login-action').module(FormElement) }
-    errorMessage(required: false, wait: true) { $('#login-error') }
+    modal(required: false) { $('#iq-login-modal') }
+    usernameInput { $('#iq-login-modal-username-input') }
+    passwordInput { $('#iq-login-modal-password-input') }
+    loginAction { $('.nx-form__submit-btn').module(FormElement) }
+    errorMessage(required: false, wait: true) { $('.nx-alert--error') }
   }
 
   def login(username, password) {

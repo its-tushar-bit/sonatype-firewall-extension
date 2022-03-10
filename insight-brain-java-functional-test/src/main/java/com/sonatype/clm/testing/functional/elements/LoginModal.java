@@ -15,50 +15,46 @@ public class LoginModal
     extends BasicElement<LoginModal>
 {
   public LoginModal() {
-    super("#login-modal");
+    super("#iq-login-modal");
   }
 
-  public SelenideElement ssoText() {
-    return $("#sso-text");
+  public SelenideElement ssoButton() {
+    return $("#iq-login-modal-sso-button");
   }
 
   public SelenideElement username() {
-    return $("#login-username");
+    return $("#iq-login-modal-username-input");
   }
 
   public SelenideElement password() {
-    return $("#login-password");
+    return $("#iq-login-modal-password-input");
   }
 
   public SelenideElement loginButton() {
-    return $("#login-action");
+    return $(".nx-form__submit-btn");
   }
 
   public SelenideElement cancelButton() {
-    return $("#login-cancel");
-  }
-  
-  public SelenideElement ssoButton() {
-    return $("#sso-action");
+    return $(".nx-form__cancel-btn");
   }
 
   public SelenideElement systemNotice() {
-    return child("system-notice div");
+    return $(".iq-login-modal-system-notice");
   }
 
   public SelenideElement errorMessage() {
-    return $("#login-error");
+    return $(".nx-load-error__message");
   }
 
   public SelenideElement header() {
-    return $(".iq-modal-header");
+    return $(".nx-modal-header");
   }
 
   public SelenideElement vulnerabilityLookupText() {
-    return $("#login-vulnerability-link");
+    return $(".iq-login-modal-helper-text");
   }
 
   public SelenideElement vulnerabilityLookupLink() {
-    return $("#login-vulnerability-link a");
+    return $(".iq-login-modal-helper-text a");
   }
 }

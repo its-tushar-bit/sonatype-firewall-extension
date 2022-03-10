@@ -41,6 +41,7 @@ import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.focused;
 
 public class SamlTest
     extends AbstractFunctionalTest
@@ -96,7 +97,8 @@ public class SamlTest
     vulnPage.shouldBe(visible);
 
     MainHeader.loginButton().shouldBe(visible).click();
-    loginModal.ssoButton().shouldBe(visible);
+    loginModal.shouldBe(visible);
+    loginModal.ssoButton().shouldBe(visible, focused);
 
     String username = "koraytugay";
     String password = "my-password";
@@ -162,14 +164,14 @@ public class SamlTest
     keycloak.logoutUser(userId);
     logout();
     loginModal.loginButton().shouldBe(visible);
-    loginModal.ssoButton().shouldBe(visible);
+    loginModal.ssoButton().shouldBe(visible, focused);
 
     // Unsuccessful login due to wrong password
     loginModal.ssoButton().click();
     KeycloakLoginPage.login(username, "wrong-password");
     refreshOrOpen(IndexPage.url());
     loginModal.loginButton().shouldBe(visible);
-    loginModal.ssoButton().shouldBe(visible);
+    loginModal.ssoButton().shouldBe(visible, focused);
   }
 
   @Test
@@ -264,7 +266,7 @@ public class SamlTest
     refreshOrOpen(urlEncoded);
     LoginModal loginModal = new LoginModal();
     loginModal.loginButton().shouldBe(visible);
-    loginModal.ssoButton().shouldBe(visible).click();
+    loginModal.ssoButton().shouldBe(visible, focused).click();
     KeycloakLoginPage.login(username, password);
 
     waitUntilUrl(urlEncoded);

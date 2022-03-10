@@ -29,6 +29,10 @@ productFeatureModule.service('ProductFeatures', [
       return promise;
     }
 
+    function isUnauthenticatedPagesEnabled() {
+      return $http.get(CLMLocations.getEnableUnauthenticatedPages());
+    }
+
     function available(feature) {
       return productFeatures !== null && productFeatures[feature] === true;
     }
@@ -66,6 +70,7 @@ productFeatureModule.service('ProductFeatures', [
       isNotificationsSupportedForStage: isNotificationsSupportedForStage,
       isNotificationsSupportedForAnyStage: isNotificationsSupportedForAnyStage,
       isEvaluateApplicationAvailable: isEvaluateApplicationAvailable,
+      isUnauthenticatedPagesEnabled: isUnauthenticatedPagesEnabled,
     };
   },
 ]);

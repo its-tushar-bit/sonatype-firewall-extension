@@ -10,10 +10,10 @@ import CLMLocationModule from './util/CLMLocation';
 import { httpInterceptors, unauthenticatedResponseHttpInterceptor } from './util/HttpInterceptors';
 import IqHttpInterceptorsModule from './util/IqHttpInterceptors';
 import productFeaturesModule from './util/ProductFeatures';
-import { GETTING_STARTED_STATE } from './configuration/module';
+import configurationModule, { GETTING_STARTED_STATE } from './configuration/module';
 import {
-  REDIRECTED_ACTION,
   DEPARTED_ACTION,
+  REDIRECTED_ACTION,
   submitData,
 } from './configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
 import reduxConfigModule from './reduxConfig/module';
@@ -27,9 +27,9 @@ import pendoModule from './pendo/module';
 import externalLinkModule from './externalLink/module';
 import utilityServicesModule from './utility/services/utility.services.module';
 import unsavedChangesModalModule from './unsavedChangesModal/module';
-import configurationModule from './configuration/module';
+import loginModalModule from './user/LoginModal/module';
 import legalModule from './legal/legal.module';
-import { not, contains, path } from 'ramda';
+import { contains, not, path } from 'ramda';
 import { attachAxiosInterceptors } from './utility/axiosConfig';
 import { requestNotificationPermission } from './utility/services/notificationService';
 
@@ -74,6 +74,7 @@ export const InitModule = angular
       legalModule.name,
       reduxConfigModule.name,
       configurationModule.name,
+      loginModalModule.name,
     ],
     [
       '$stateProvider',
@@ -214,7 +215,7 @@ export const InitModule = angular
         }
       }
 
-      attachAxiosInterceptors(SessionSecurityService.setServerDate, $rootScope, $window, LoginModalService.show);
+      attachAxiosInterceptors(SessionSecurityService.setServerDate, $rootScope, $window, LoginModalService.open);
 
       function setRootError(err) {
         $rootScope.error = Messages.getHttpErrorMessage(err);
@@ -270,6 +271,18 @@ export const InitModule = angular
           .finally(cancelPreLicenseFetchStateHandler)
           .finally(registerPreLoginStateHandler)
           .then(onLicenseSuccess, onLicenseFailure);
+      }
+
+      function checkIsEnableUnauthenticatedPages() {
+        let responseHandler = function (response) {
+          const enabledFromServer = response.data && response.data.includes('enable-unauthenticated-pages');
+          LoginModalService.setUnauthenticatedPagesEnabled(enabledFromServer);
+        };
+        return ProductFeatures.isUnauthenticatedPagesEnabled()
+          .then(responseHandler)
+          .catch(() => {
+            $rootScope.isEnableUnauthenticatedPages = true;
+          });
       }
 
       function initSuccess() {
@@ -341,11 +354,10 @@ export const InitModule = angular
       }
 
       function doStart() {
-        $q.all([currentUser.waitForLogin(), checkLicenseInfo()])
+        $q.all([currentUser.waitForLogin(), checkLicenseInfo(), checkIsEnableUnauthenticatedPages()])
           .then(function ([authenticationStatus]) {
             $rootScope.username = authenticationStatus.username;
             cancelLoginDismissListener();
-
             // This was already called at the bottom of `doStart`, but call it again here now that the user is
             // logged in.  It is safe to call multiple times
             pendoService.start();
@@ -377,7 +389,7 @@ export const InitModule = angular
         // time, that means that the page navigated to must be one that allows unauthenticated use, so the login
         // modal should be closed without completing the login
         let cancelLoginDismissListener = $rootScope.$on('$stateChangeSuccess', function () {
-          LoginModalService.dismiss('Navigated to a page that does not require authentication');
+          LoginModalService.dismiss();
         });
 
         $rootScope.$on('$stateChangeError', function (event, toState, toParams, fromState, fromParams, error) {

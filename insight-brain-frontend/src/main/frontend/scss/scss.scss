@@ -32,8 +32,8 @@
 @use '../configuration/ldap/ldap';
 @use 'reports';
 @use '../mainHeader/mainHeader';
-@use '../utility/services/loginModal';
 @use '../react/iqViolationExclamation';
+@use '../user/LoginModal/loginModal';
 
 // Directives
 @use '../directives/directives';

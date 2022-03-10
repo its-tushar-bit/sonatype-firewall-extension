@@ -12,10 +12,10 @@ import UnauthenticatedRequestQueueService from './services/unauthenticated.reque
  * @param setServerDate   Angular service SessionSecurityService setServerDate method.
  * @param rootScope       Angular's $rootScope variable.
  * @param window     Angular's $window variable.
- * @param showModal     Angular service LoginModalService show method.
+ * @param loginModalService    LoginModalService (open login modal)
  **/
 
-export const attachAxiosInterceptors = (setServerDate, rootScope, window, showModal) => {
+export const attachAxiosInterceptors = (setServerDate, rootScope, window, loginModalService) => {
   // http interceptor
   axios.interceptors.response.use(
     (response) => {
@@ -40,15 +40,12 @@ export const attachAxiosInterceptors = (setServerDate, rootScope, window, showMo
               axios(error.response.config);
             });
 
-            const authenticate = (showSamlSso, identityProviderName) => {
-              return showModal(showSamlSso, identityProviderName);
+            const authenticate = (showSamlSso) => {
+              return loginModalService.open(showSamlSso);
             };
 
             if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-              authenticate(
-                error.response.headers('WWW-Authenticate') === 'SAML',
-                error.response.headers('X-SAML-IdP')
-              ).then(
+              authenticate(error.response.headers('WWW-Authenticate') === 'SAML').then(
                 () => {
                   Promise.all(UnauthenticatedRequestQueueService.getPromises()).finally(() =>
                     UnauthenticatedRequestQueueService.clearRequests()

@@ -63,6 +63,7 @@ import vulnerabilitiesSlice from '../componentDetails/VulnerabilitiesTableTile/v
 import componentDetailsSlice from '../componentDetails/componentDetailsSlice';
 import claimSlice from '../componentDetails/claim/claimSlice';
 import quarantinedComponentReportReducer from 'MainRoot/quarantinedComponentReport/quarantinedComponentReportReducer';
+import userLoginSlice from 'MainRoot/user/LoginModal/userLoginSlice';
 import innerSourceRepositoryConfigurationSlice from '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
 import innerSourceRepositoryBaseConfigurationsSlice from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSlice';
 import otherVersionsSlice from 'MainRoot/quarantinedComponentReport/otherVersionsTile/otherVersionsSlice';
@@ -131,6 +132,7 @@ export default combineReducers({
   productLicense: productLicenseReducer,
   occurrencesPopover: occurrencesPopoverReducer,
   quarantinedComponentReport: quarantinedComponentReportReducer,
+  userLogin: userLoginSlice,
   innerSourceRepositoryConfiguration: innerSourceRepositoryConfigurationSlice,
   innerSourceRepositoryBaseConfigurations: innerSourceRepositoryBaseConfigurationsSlice,
   quarantinedComponentReportOtherVersions: otherVersionsSlice,

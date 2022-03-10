@@ -81,6 +81,7 @@ public class MemberAttributeResolver
         member.setDisplayName(existingMember.getDisplayName());
         member.setEmail(existingMember.getEmail());
         member.setRealm(existingMember.getRealm());
+        member.setDn(existingMember.getDn());
         unresolvedMembers.remove(member);
       }
     }

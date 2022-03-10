@@ -135,6 +135,7 @@ public class UserDirectory
                 groupNames.toArray(new String[groupNames.size()]))) {
               final String groupName = group.getGroupname();
               Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapName);
+              member.setDn(group.getDn());
               result.get().add(member);
               groupNames.remove(groupName);
             }
@@ -210,8 +211,10 @@ public class UserDirectory
 
           for (LdapUser user : ldapService
               .getUsersByName(ldapServer, sortedUserNames.toArray(new String[sortedUserNames.size()]))) {
-            members.add(
-                new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName));
+            Member member =
+                new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
+            member.setDn(user.getDn());
+            members.add(member);
             sortedUserNames.remove(user.getUsername());
           }
         }
@@ -263,6 +266,7 @@ public class UserDirectory
             for (LdapUser user : ldapService.findUsersByName(ldapServer, query, 100)) {
               Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(),
                   ldapServer.getName());
+              member.setDn(user.getDn());
               String key = member.getInternalNameLowerCase();
               // Ignore any user that was already discovered in the other realms.
               if (!users.containsKey(key)) {
@@ -286,6 +290,7 @@ public class UserDirectory
               for (LdapGroup group : ldapService.findGroupsByName(ldapServer, query, 100)) {
                 final String groupName = group.getGroupname();
                 Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapServer.getName());
+                member.setDn(group.getDn());
                 String key = member.getInternalNameLowerCase();
                 // Ignore any group that was already discovered in the other realms.
                 if (!groups.containsKey(key)) {

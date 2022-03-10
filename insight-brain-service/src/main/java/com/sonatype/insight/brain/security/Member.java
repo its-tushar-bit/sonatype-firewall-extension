@@ -28,6 +28,8 @@ public class Member
 
   private String realm;
 
+  private String dn;
+
   public MemberType getType() {
     return type;
   }
@@ -71,6 +73,15 @@ public class Member
 
   public void setRealm(final String realm) {
     this.realm = realm;
+  }
+
+  @JsonIgnore
+  public String getDn() {
+    return dn;
+  }
+
+  public void setDn(String dn) {
+    this.dn = dn;
   }
 
   public Member() {

@@ -60,7 +60,7 @@ public class MemberAttributeResolverTest
 
     memberAttributeResolver.resolve(members);
 
-    assertMember(member, MemberType.USER, "clmUser", "John Doe", "clmUser@void.com", "IQ Server");
+    assertMember(member, MemberType.USER, "clmUser", "John Doe", "clmUser@void.com", "IQ Server", null);
   }
 
   // Test both user and group to reduce the overhead of starting an EmbeddedLdapServer
@@ -92,8 +92,10 @@ public class MemberAttributeResolverTest
 
     memberAttributeResolver.resolve(members);
 
-    assertMember(userMember1, MemberType.USER, "testuser1_1", "John Doe", "test.user1_1@company.com", "LDAP");
-    assertMember(userMember2, MemberType.USER, "testuser1_2", "John Doe", "test.user1_2@company.com", "LDAP2");
+    assertMember(userMember1, MemberType.USER, "testuser1_1", "John Doe",
+        "test.user1_1@company.com", "LDAP", "uid=testuser1_1,ou=users,dc=company,dc=com");
+    assertMember(userMember2, MemberType.USER, "testuser1_2", "John Doe",
+        "test.user1_2@company.com", "LDAP2", "uid=testuser1_2,ou=users,dc=company,dc=com");
 
     final Member groupMember1 = new Member();
     groupMember1.setType(MemberType.GROUP);
@@ -107,8 +109,10 @@ public class MemberAttributeResolverTest
 
     memberAttributeResolver.resolve(members);
 
-    assertMember(groupMember1, MemberType.GROUP, "Alpha1", "Alpha1", null, "LDAP");
-    assertMember(groupMember2, MemberType.GROUP, "Alpha2", "Alpha2", null, "LDAP2");
+    assertMember(groupMember1, MemberType.GROUP, "Alpha1", "Alpha1", null, "LDAP",
+        "cn=Alpha1,ou=groups,dc=company,dc=com");
+    assertMember(groupMember2, MemberType.GROUP, "Alpha2", "Alpha2", null, "LDAP2",
+        "cn=Alpha2,ou=groups,dc=company,dc=com");
   }
 
   @Test
@@ -142,8 +146,10 @@ public class MemberAttributeResolverTest
     memberAttributeResolver.resolve(members);
 
     assertThat(members).hasSize(2);
-    assertMember(groupMember1, MemberType.GROUP, "Alpha1", null, null, null);
-    assertMember(groupMember2, MemberType.GROUP, "Alpha2", "Alpha2", null, "LDAP2");
+    assertMember(groupMember1, MemberType.GROUP, "Alpha1", null, null, null,
+        null);
+    assertMember(groupMember2, MemberType.GROUP, "Alpha2", "Alpha2", null, "LDAP2",
+        "cn=Alpha2,ou=groups,dc=company,dc=com");
   }
 
   @Test
@@ -174,8 +180,10 @@ public class MemberAttributeResolverTest
 
     memberAttributeResolver.resolve(members);
 
-    assertMember(member1, MemberType.USER, "testuser1_1", "John Doe", "test.user1_1@company.com", "LDAP");
-    assertMember(member2, MemberType.USER, "testuser1_2", "John Doe", "test.user1_2@company.com", "LDAP2");
+    assertMember(member1, MemberType.USER, "testuser1_1", "John Doe",
+        "test.user1_1@company.com", "LDAP", "uid=testuser1_1,ou=users,dc=company,dc=com");
+    assertMember(member2, MemberType.USER, "testuser1_2", "John Doe",
+        "test.user1_2@company.com", "LDAP2", "uid=testuser1_2,ou=users,dc=company,dc=com");
 
     tempEntity.newUser("testuser1_1");
     tempEntity.newUser("testuser1_2");
@@ -185,8 +193,10 @@ public class MemberAttributeResolverTest
 
     memberAttributeResolver.resolve(members);
 
-    assertMember(member1, MemberType.USER, "testuser1_1", "John Doe", "testuser1_1@void.com", "IQ Server");
-    assertMember(member2, MemberType.USER, "testuser1_2", "John Doe", "testuser1_2@void.com", "IQ Server");
+    assertMember(member1, MemberType.USER, "testuser1_1", "John Doe",
+        "testuser1_1@void.com", "IQ Server", null);
+    assertMember(member2, MemberType.USER, "testuser1_2", "John Doe",
+        "testuser1_2@void.com", "IQ Server", null);
   }
 
   private void assertMember(Member member,
@@ -194,12 +204,14 @@ public class MemberAttributeResolverTest
                             String internalName,
                             String displayName,
                             String email,
-                            String realm)
+                            String realm,
+                            String dn)
   {
     assertThat(member.getType()).isEqualTo(type);
     assertThat(member.getInternalName()).isEqualTo(internalName);
     assertThat(member.getDisplayName()).isEqualTo(displayName);
     assertThat(member.getEmail()).isEqualTo(email);
     assertThat(member.getRealm()).isEqualTo(realm);
+    assertThat(member.getDn()).isEqualTo(dn);
   }
 }

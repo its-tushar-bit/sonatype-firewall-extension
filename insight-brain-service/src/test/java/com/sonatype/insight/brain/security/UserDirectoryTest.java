@@ -122,6 +122,9 @@ public class UserDirectoryTest
 
     assertThat(members).hasSize(4).extracting(Member::getInternalName)
         .usingElementComparator(String.CASE_INSENSITIVE_ORDER).containsExactlyInAnyOrderElementsOf(names);
+
+    assertThat(members.get(0).getDn()).isNull();
+    assertThat(members.get(1).getDn()).matches("uid=testuser1,ou=users,dc=company,dc=com");
   }
 
   @Test
@@ -309,6 +312,8 @@ public class UserDirectoryTest
     members = userDirectory.getMembersByQuery("John Doe", true).get();
 
     assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("testuser1", "testuser2");
+    assertThat(members).extracting(Member::getDn).containsExactlyInAnyOrder("uid=testuser1,ou=users,dc=company,dc=com",
+        "uid=testuser2,ou=users,dc=company,dc=com");
 
     // Get users, case insensitive.
     members = userDirectory.getMembersByQuery("JOHN DOE", true).get();
@@ -322,6 +327,9 @@ public class UserDirectoryTest
 
     assertThat(members).extracting(Member::getInternalName).containsExactlyInAnyOrder("alphabob", "Alpha", "Alpha1",
         "Alpha2");
+    assertThat(members).extracting(Member::getDn)
+        .containsExactlyInAnyOrder(null, "cn=Alpha,ou=groups,dc=company,dc=com",
+            "cn=Alpha1,ou=groups,dc=company,dc=com", "cn=Alpha2,ou=groups,dc=company,dc=com");
   }
 
   @Test
@@ -557,8 +565,10 @@ public class UserDirectoryTest
     assertThat(members).hasSize(2);
     assertThat(members.get(0).getInternalName()).isEqualTo("testuser1");
     assertThat(members.get(0).getRealm()).isEqualTo("LDAP1");
+    assertThat(members.get(0).getDn()).isEqualTo("uid=testuser1,ou=users,dc=company,dc=com");
     assertThat(members.get(1).getInternalName()).isEqualTo("testuser2");
     assertThat(members.get(1).getRealm()).isEqualTo("LDAP2");
+    assertThat(members.get(1).getDn()).isEqualTo("uid=testuser2,ou=users,dc=company,dc=com");
   }
 
   @Test
@@ -751,6 +761,7 @@ public class UserDirectoryTest
     assertThat(members).hasSize(1);
     assertThat(members.get(0).getDisplayName()).isEqualTo("Beta User");
     assertThat(members.get(0).getRealm()).isEqualTo("LDAP1");
+    assertThat(members.get(0).getDn()).isEqualTo("uid=Beta,ou=users,dc=company,dc=com");
 
     // Start testLdapServer2. Should still get back only the user from testLdapServer1 since it is higher priority.
     configureAndStartNewLdapServer(testLdapServer2, "LDAP2");
@@ -758,6 +769,7 @@ public class UserDirectoryTest
     assertThat(members).hasSize(1);
     assertThat(members.get(0).getDisplayName()).isEqualTo("Beta User");
     assertThat(members.get(0).getRealm()).isEqualTo("LDAP1");
+    assertThat(members.get(0).getDn()).isEqualTo("uid=Beta,ou=users,dc=company,dc=com");
   
     // Add a new IQ user. Should get back only the IQ user.
     tempEntity.newUser("beta", "Beta", "User", "betauser@example.com");
@@ -765,6 +777,7 @@ public class UserDirectoryTest
     assertThat(members).hasSize(1);
     assertThat(members.get(0).getDisplayName()).isEqualTo("Beta User");
     assertThat(members.get(0).getRealm()).isEqualTo("IQ Server");
+    assertThat(members.get(0).getDn()).isNull();
   }
 
   @Test

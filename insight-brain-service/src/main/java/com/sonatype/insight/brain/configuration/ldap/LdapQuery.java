@@ -464,13 +464,14 @@ class LdapQuery
     Map<String, LdapGroup> ldapGroups = new LinkedHashMap<>();
     while (results.hasMoreElements()) {
       SearchResult result = results.nextElement();
-      Set<String> groupNames = getSimpleNames(
-          getAttributeValues(result.getAttributes(), ldapUserMapping.getUserMemberOfGroupAttribute()));
-      if (groupNames != null) {
-        for (String groupName : groupNames) {
+      Set<String> groupDns =
+          getAttributeValues(result.getAttributes(), ldapUserMapping.getUserMemberOfGroupAttribute());
+      if (groupDns != null) {
+        for (String groupDn : groupDns) {
+          String groupName = getSimpleName(groupDn);
           if (groupNameMatches(groupName, queries, stringmatcher)
               && !ldapGroups.containsKey(groupName.toLowerCase(Locale.ENGLISH))) {
-            ldapGroups.put(groupName.toLowerCase(Locale.ENGLISH), createGroup(result, groupName));
+            ldapGroups.put(groupName.toLowerCase(Locale.ENGLISH), createGroup(groupDn, groupName));
 
             if (ldapGroups.size() == maxResults) {
               return new ArrayList<>(ldapGroups.values());
@@ -515,6 +516,13 @@ class LdapQuery
   private LdapGroup createGroup(SearchResult result, String groupName) {
     LdapGroup group = new LdapGroup();
     group.setDn(result.getNameInNamespace());
+    group.setGroupname(groupName);
+    return group;
+  }
+
+  private LdapGroup createGroup(String groupDn, String groupName) {
+    LdapGroup group = new LdapGroup();
+    group.setDn(groupDn);
     group.setGroupname(groupName);
     return group;
   }

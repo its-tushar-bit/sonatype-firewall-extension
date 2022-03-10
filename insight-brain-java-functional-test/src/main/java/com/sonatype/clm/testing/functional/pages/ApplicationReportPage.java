@@ -175,14 +175,26 @@ public class ApplicationReportPage
     }
 
     public SelenideElement critical() {
-      return child(".iq-threat-indicator.critical");
+      return child(".nx-small-threat-counter--critical");
     }
 
     public SelenideElement severe() {
-      return child(".iq-threat-indicator.severe");
+      return child(".nx-small-threat-counter--severe");
     }
 
     public SelenideElement moderate() {
+      return child(".nx-small-threat-counter--moderate");
+    }
+
+    public SelenideElement critical_old() {
+      return child(".iq-threat-indicator.critical");
+    }
+
+    public SelenideElement severe_old() {
+      return child(".iq-threat-indicator.severe");
+    }
+
+    public SelenideElement moderate_old() {
       return child(".iq-threat-indicator.moderate");
     }
 

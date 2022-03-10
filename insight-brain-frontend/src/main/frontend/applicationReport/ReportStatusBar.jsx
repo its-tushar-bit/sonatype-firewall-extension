@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import NxFontAwesomeIcon from '@sonatype/react-shared-components/components/NxFontAwesomeIcon/NxFontAwesomeIcon';
 import { faHistory } from '@fortawesome/pro-solid-svg-icons';
 import { propOr } from 'ramda';
-import { NxBinaryDonutChart } from '@sonatype/react-shared-components';
+import { NxBinaryDonutChart, NxSmallThreatCounter } from '@sonatype/react-shared-components';
 import { useSelector } from 'react-redux';
 
 import { selectSelectedReport } from './applicationReportSelectors';
@@ -38,9 +38,11 @@ export default function ReportStatusBar() {
       <div className="nx-tile-content">
         <div className="iq-indicator-row">
           <div className="iq-threat-indicators">
-            <div className="iq-threat-indicator critical">{criticalViolationCount}</div>
-            <div className="iq-threat-indicator severe">{severeViolationCount}</div>
-            <div className="iq-threat-indicator moderate">{moderateViolationCount}</div>
+            <NxSmallThreatCounter
+              criticalCount={criticalViolationCount}
+              severeCount={severeViolationCount}
+              moderateCount={moderateViolationCount}
+            />
             <div className="iq-caption">
               <h3 className="iq-caption__text">
                 {nonLowViolationCount} VIOLATION

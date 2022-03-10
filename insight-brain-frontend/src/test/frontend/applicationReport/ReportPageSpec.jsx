@@ -203,9 +203,15 @@ describe('Report Page component', () => {
     selectedReport.policyComponentCount = 1;
     renderComponent();
 
-    const criticalThreatIndicator = screen.getByText(selectedReport.criticalViolationCount);
-    const severeThreatIndicator = screen.getByText(selectedReport.severeViolationCount);
-    const moderateThreatIndicator = screen.getByText(selectedReport.moderateViolationCount);
+    const criticalThreatIndicator = screen
+      .getByText(selectedReport.criticalViolationCount)
+      .closest('.nx-small-threat-counter');
+    const severeThreatIndicator = screen
+      .getByText(selectedReport.severeViolationCount)
+      .closest('.nx-small-threat-counter');
+    const moderateThreatIndicator = screen
+      .getByText(selectedReport.moderateViolationCount)
+      .closest('.nx-small-threat-counter');
     const totalViolationText = screen.getByText(`${selectedReport.nonLowViolationCount} VIOLATION`);
     const affectedComponentText = screen.getByText(`Affecting ${selectedReport.policyComponentCount} component`);
     const totalArtifactText = screen.getByText(`${selectedReport.totalArtifactCount} COMPONENTS`);
@@ -215,11 +221,11 @@ describe('Report Page component', () => {
     );
 
     expect(criticalThreatIndicator).toBeVisible();
-    expect(criticalThreatIndicator).toHaveClassName('iq-threat-indicator critical');
+    expect(criticalThreatIndicator).toHaveClassName('nx-small-threat-counter--critical');
     expect(severeThreatIndicator).toBeVisible();
-    expect(severeThreatIndicator).toHaveClassName('iq-threat-indicator severe');
+    expect(severeThreatIndicator).toHaveClassName('nx-small-threat-counter--severe');
     expect(moderateThreatIndicator).toBeVisible();
-    expect(moderateThreatIndicator).toHaveClassName('iq-threat-indicator moderate');
+    expect(moderateThreatIndicator).toHaveClassName('nx-small-threat-counter--moderate');
     expect(totalViolationText).toBeVisible();
     expect(affectedComponentText).toBeVisible();
     expect(totalArtifactText).toBeVisible();

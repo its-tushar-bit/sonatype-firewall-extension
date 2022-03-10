@@ -30,26 +30,32 @@ describe('ReportStatusBar', () => {
 
   it('renders critical threat indicator with count', () => {
     renderComponent();
-    const criticalThreatIndicator = screen.getByText(selectedReport.criticalViolationCount);
+    const criticalThreatIndicator = screen
+      .getByText(selectedReport.criticalViolationCount)
+      .closest('.nx-small-threat-counter');
 
     expect(criticalThreatIndicator).toBeVisible();
-    expect(criticalThreatIndicator).toHaveClassName('iq-threat-indicator critical');
+    expect(criticalThreatIndicator).toHaveClassName('nx-small-threat-counter--critical');
   });
 
   it('renders severe threat indicator with count', () => {
     renderComponent();
-    const severeThreatIndicator = screen.getByText(selectedReport.severeViolationCount);
+    const severeThreatIndicator = screen
+      .getByText(selectedReport.severeViolationCount)
+      .closest('.nx-small-threat-counter');
 
     expect(severeThreatIndicator).toBeVisible();
-    expect(severeThreatIndicator).toHaveClassName('iq-threat-indicator severe');
+    expect(severeThreatIndicator).toHaveClassName('nx-small-threat-counter--severe');
   });
 
   it('renders moderate threat indicator with count', () => {
     renderComponent();
-    const moderateThreatIndicator = screen.getByText(selectedReport.moderateViolationCount);
+    const moderateThreatIndicator = screen
+      .getByText(selectedReport.moderateViolationCount)
+      .closest('.nx-small-threat-counter');
 
     expect(moderateThreatIndicator).toBeVisible();
-    expect(moderateThreatIndicator).toHaveClassName('iq-threat-indicator moderate');
+    expect(moderateThreatIndicator).toHaveClassName('nx-small-threat-counter--moderate');
   });
 
   it('renders total violation', () => {

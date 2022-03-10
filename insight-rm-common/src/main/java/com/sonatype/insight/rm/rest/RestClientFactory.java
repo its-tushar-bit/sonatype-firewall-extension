@@ -24,11 +24,13 @@ import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.FirewallTelemetry;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
 import com.sonatype.insight.brain.client.FirewallMigrationClient;
+import com.sonatype.insight.brain.client.FirewallTelemetryClient;
 import com.sonatype.insight.brain.client.PolicyClient;
 import com.sonatype.insight.brain.client.ResourceClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -67,6 +69,10 @@ public class RestClientFactory
 
   PolicyClient newPolicyClient(final Configuration configuration, final String appId) {
     return new PolicyClient(configuration, appId);
+  }
+
+  FirewallTelemetryClient newFirewallTelemetryClient(final Configuration config) {
+    return new FirewallTelemetryClient(config);
   }
 
   private class BaseClient
@@ -178,6 +184,11 @@ public class RestClientFactory
         }
         throw handleError(e);
       }
+    }
+
+    @Override
+    public void postFirewallTelemetry(final FirewallTelemetry firewallTelemetry) throws IOException {
+      newFirewallTelemetryClient(config).postFirewallTelemetryData(firewallTelemetry);
     }
   }
 

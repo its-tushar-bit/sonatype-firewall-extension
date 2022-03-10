@@ -14,10 +14,12 @@ import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.FirewallTelemetry;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
 import com.sonatype.insight.brain.client.FirewallMigrationClient;
+import com.sonatype.insight.brain.client.FirewallTelemetryClient;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.rm.rest.RestClient.FirewallMigration;
 import com.sonatype.insight.rm.rest.RestClient.Repository;
@@ -441,5 +443,21 @@ public class RestClientFactoryTest
     doNothing().when(configClient).validateServerVersion("do-not-throw");
     assertThatThrownBy(() -> client.validateServerVersion("throw")).isInstanceOf(IOException.class);
     client.validateServerVersion("do-not-throw");
+  }
+
+  @Test
+  public void testPostFirewallTelemetry() throws IOException {
+    FirewallTelemetry firewallTelemetry = new FirewallTelemetry();
+    FirewallTelemetryClient firewallTelemetryClient = mock(FirewallTelemetryClient.class);
+    doNothing().when(firewallTelemetryClient).postFirewallTelemetryData(firewallTelemetry);
+
+    RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallTelemetryClient).when(factory).newFirewallTelemetryClient(any(Configuration.class));
+
+    RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    client.postFirewallTelemetry(firewallTelemetry);
+
+    verify(firewallTelemetryClient).postFirewallTelemetryData(firewallTelemetry);
+    verifyNoMoreInteractions(firewallTelemetryClient);
   }
 }

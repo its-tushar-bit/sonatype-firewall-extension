@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapRealm;
+import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.service.InsightConfig;
 
@@ -100,10 +101,12 @@ public class SecurityModule
         anonFilters + ", noSessionCreation, " +
             "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
             "authcBasic[permissive]");
-    manager.createChain("/rest/repositories/quarantinedComponent/**",
-        anonFilters + ", noSessionCreation, " +
-            "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
-            "authcBasic[permissive]");
+    if (new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()) {
+      manager.createChain("/rest/repositories/quarantinedComponent/**", //
+          anonFilters + ", noSessionCreation, " + //
+              "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " + //
+              "authcBasic[permissive]");
+    }
     manager.createChain("/ping", anonFilters);
 
     // Legal attribution report doesn't need CSRF check as it doesn't update server state (despite being POST form)

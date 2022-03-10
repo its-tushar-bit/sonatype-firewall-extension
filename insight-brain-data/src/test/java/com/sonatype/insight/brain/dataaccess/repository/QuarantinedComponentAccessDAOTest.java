@@ -117,4 +117,15 @@ public class QuarantinedComponentAccessDAOTest
     }
     assertThat(dao.getAll()).hasSize(10);
   }
+
+  public void testAnonymousAccessEnabled() {
+    // It is enabled by default
+    assertThat(dao.isAnonymousAccessEnabled()).isTrue();
+
+    dao.setAnonymousAccess(false);
+    assertThat(dao.isAnonymousAccessEnabled()).isFalse();
+
+    dao.setAnonymousAccess(true);
+    assertThat(dao.isAnonymousAccessEnabled()).isTrue();
+  }
 }

@@ -15,19 +15,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
+import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -661,6 +663,17 @@ public class ApiFirewallServiceTest
     assertThatThrownBy(() -> apiFirewallService.getComponents(filter))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("firewallComponentFilterState is required and cannot be null.");
+  }
+
+  @Test
+  public void testSetQuarantinedComponentViewAnonymousAccess() {
+    assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isTrue();
+
+    apiFirewallService.setQuarantinedComponentViewAnonymousAccess(false);
+    assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isFalse();
+
+    apiFirewallService.setQuarantinedComponentViewAnonymousAccess(true);
+    assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isTrue();
   }
 
   static void assertRepositoryComponentWithOnePolicyViolation(

@@ -654,6 +654,8 @@ public class TemporaryEntity
       systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(
           SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED, "true"));
     }
+    systemConfigurationPropertyDAO
+        .update(new SystemConfigurationProperty("QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS", "true"));
 
     componentObligationAttributionDAO.getAll().forEach(componentObligationAttributionDAO::delete);
     componentObligationDAO.getAll().forEach(componentObligationDAO::delete);

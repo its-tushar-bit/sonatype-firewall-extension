@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -14,6 +15,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -22,12 +24,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
-import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField;
@@ -66,6 +68,9 @@ public class ApiFirewallResource
   static final String UNQUARANTINE_PATH = COMPONENTS_PATH + "/autoReleasedFromQuarantine";
 
   static final String QUARANTINED_PATH = COMPONENTS_PATH + "/quarantined";
+
+  static final String QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS =
+      "quarantinedComponentView/configuration/anonymousAccess/{enabled: true|false}";
 
   private final ApiFirewallService apiFirewallService;
 
@@ -130,6 +135,20 @@ public class ApiFirewallResource
   {
     return getComponents(uriInfo, page, pageSize, policyId, sortBy, FirewallSortableField.QUARANTINE_TIME, asc,
         FirewallComponentFilterState.QUARANTINE);
+  }
+
+  /**
+   * Enables/disables anonymous access to the Quarantine Component view
+   * 
+   * @since 1.135
+   */
+  @PUT
+  @Path(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS)
+  @Audited(AuditEvent.CONFIGURE_SECURITY_QUARANTINED_COMPONENT_VIEW_ANON_ACCESS)
+  public void setQuarantinedComponentViewAnonymousAccess(
+      @PathParam("enabled") boolean enabled)
+  {
+    apiFirewallService.setQuarantinedComponentViewAnonymousAccess(enabled);
   }
 
   private Response getComponents(

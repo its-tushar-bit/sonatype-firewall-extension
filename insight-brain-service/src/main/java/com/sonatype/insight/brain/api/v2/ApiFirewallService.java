@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyCondit
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
+import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
@@ -54,6 +55,9 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 
 /**
@@ -62,6 +66,8 @@ import static com.sonatype.insight.brain.model.repository.RepositoryContainer.RE
 @Named
 public class ApiFirewallService
 {
+  private static final Logger log = LoggerFactory.getLogger(ApiFirewallService.class);
+
   static final int MIN_PAGE = 1;
 
   static final int MIN_PAGE_SIZE = 1;
@@ -80,6 +86,8 @@ public class ApiFirewallService
 
   private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO;
 
+  private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
+
   private final TelemetrySender telemetrySender;
 
   @Inject
@@ -89,6 +97,7 @@ public class ApiFirewallService
       final RepositoryDAO repositoryDAO,
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO,
+      final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO,
       final TelemetrySender telemetrySender)
   {
     this.productLicense = productLicense;
@@ -96,6 +105,7 @@ public class ApiFirewallService
     this.repositoryDAO = repositoryDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.autoUnquarantinePolicyConditionTypeDAO = autoUnquarantinePolicyConditionTypeDAO;
+    this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
     this.telemetrySender = telemetrySender;
   }
 
@@ -347,5 +357,15 @@ public class ApiFirewallService
       repositoryMap.put(repositoryId, repository);
     }
     return repositoryMap;
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  public void setQuarantinedComponentViewAnonymousAccess(boolean enabled) {
+    AuditData auditData = AuditData.get();
+    auditData.setData("enabled", enabled);
+
+    quarantinedComponentAccessDAO.setAnonymousAccess(enabled);
+
+    log.info("Quarantined Component View anonymous access was " + (enabled ? "enabled" : "disabled") + ".");
   }
 }

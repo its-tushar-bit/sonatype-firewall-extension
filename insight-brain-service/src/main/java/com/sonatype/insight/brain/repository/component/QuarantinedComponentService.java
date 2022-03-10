@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -21,6 +22,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
@@ -31,9 +33,13 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
 import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -55,6 +61,8 @@ public class QuarantinedComponentService
 
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
+  private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
+
   private static final String PATHNAME_SEPARATOR = "/";
 
   private static final Logger log = LoggerFactory.getLogger(QuarantinedComponentService.class);
@@ -65,7 +73,8 @@ public class QuarantinedComponentService
       final ComponentInfoService componentInfoService,
       final RepositoryDAO repositoryDAO,
       final RepositoryComponentDAO repositoryComponentDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO
+      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO
   )
   {
     this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
@@ -73,14 +82,19 @@ public class QuarantinedComponentService
     this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
 
     componentInfoService.setToolName("ci");
   }
 
   public QuarantinedComponentDto getQuarantinedComponent(final String token) {
+    String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
+    RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+
+    checkAccess(repositoryComponent);
+
     final QuarantinedComponentDto quarantinedComponentDto = new QuarantinedComponentDto();
-    quarantinedComponentDto.repositoryComponentId =
-        quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
+    quarantinedComponentDto.repositoryComponentId = repositoryComponentId;
     quarantinedComponentDto.success = true;
     return quarantinedComponentDto;
   }
@@ -88,6 +102,8 @@ public class QuarantinedComponentService
   public QuarantinedComponentOverviewDto getQuarantinedComponentOverview(final String token) {
     final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+
+    checkAccess(repositoryComponent);
 
     final QuarantinedComponentOverviewDto quarantinedComponentOverviewDto = new QuarantinedComponentOverviewDto();
     quarantinedComponentOverviewDto.componentDisplayName = getComponentDisplayName(repositoryComponent);
@@ -105,9 +121,11 @@ public class QuarantinedComponentService
   }
 
   public RepositoryPolicyThreatDTO getQuarantinedComponentPolicyViolations(final String token) {
-
     final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
     final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+
+    checkAccess(repositoryComponent);
+
     final List<RepositoryPolicyViolation> policyViolations = getQuarantinedPolicyViolations(repositoryComponent);
 
     final RepositoryPolicyThreatDTO repositoryPolicyThreatDTO = new RepositoryPolicyThreatDTO();
@@ -122,6 +140,8 @@ public class QuarantinedComponentService
     final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
     final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
 
+    checkAccess(repositoryComponent);
+
     return componentInfoService.getComponentVersionInfoNoAuth(OwnerType.REPOSITORY,
         repositoryComponent.getRepositoryId(), repositoryComponent.getComponentIdentifier(), Stage.ID_PROXY,
         repositoryComponent.getIdentificationSourceId(), null, null);
@@ -133,6 +153,9 @@ public class QuarantinedComponentService
   {
     final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
     final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+
+    checkAccess(repositoryComponent);
+
     final Owner owner = IdUtils.getOwnerNotNull(OwnerType.REPOSITORY, repositoryComponent.getRepositoryId());
 
     ComponentIdentifier componentIdentifier = repositoryComponent.getComponentIdentifier();
@@ -154,6 +177,9 @@ public class QuarantinedComponentService
 
     final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
+
+    checkAccess(repositoryComponent);
+
     String repositoryId = repositoryComponent.getRepositoryId();
     String pathname = repositoryComponent.getPathname();
     String pathnamePrefix = getPathnamePrefix(pathname);
@@ -234,5 +260,19 @@ public class QuarantinedComponentService
         repositoryId,
         pathName,
         Action.ID_FAIL);
+  }
+
+  private void checkAccess(RepositoryComponent repositoryComponent) {
+    if (quarantinedComponentAccessDAO.isAnonymousAccessEnabled()) {
+      return;
+    }
+
+    checkPermission(repositoryComponent.getRepositoryId());
+  }
+
+  // Must have at least package visibility for the authz annotations to take effect.
+  @Authorize(permission = Permission.READ)
+  void checkPermission(@SuppressWarnings("unused") @AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
+    // The permission check is handled by the authz annotations
   }
 }

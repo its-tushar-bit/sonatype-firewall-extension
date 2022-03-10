@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
+import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -399,6 +400,17 @@ public class ApiFirewallResourceTest
         .get();
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
     assertThat(response.getBodyText()).isEqualTo("sortBy field is invalid");
+  }
+
+  @Test
+  public void testSetQuarantinedComponentViewAnonymousAccess() throws Exception {
+    assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isTrue();
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS)
+        .parameter(false).put();
+    assertResponseStatus(204, response);
+    assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isFalse();
   }
 
   private <T> T getBodyByTypeReference(byte[] bodyBytes, final TypeReference<T> typeRef) {

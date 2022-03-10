@@ -294,8 +294,6 @@ public class QuarantineComponentReportTest
   }
 
   private String setupAllTestDataButPolicyViolationsTable() {
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        InsightConfig.ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     componentDetailsArrayList.add(createComponentDetail(createComponentIdentifier("0.5.2")));
     componentDetailsArrayList.add(createComponentDetail(createComponentIdentifier("0.5.3")));
 
@@ -309,8 +307,6 @@ public class QuarantineComponentReportTest
   }
 
   private String setupAllTestDataWithSingleComponentVersion() {
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        InsightConfig.ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     ComponentIdentifier mainComponentIdentifier = createComponentIdentifier("0.5.2");
     componentDetailsArrayList.add(createComponentDetail(mainComponentIdentifier));
 
@@ -324,9 +320,6 @@ public class QuarantineComponentReportTest
   }
 
   private String setupAllTestData(String tokenCondition) {
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        InsightConfig.ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
-
     ComponentIdentifier mainComponentIdentifier = createComponentIdentifier("0.5.2");
     componentDetailsArrayList.add(createComponentDetail(mainComponentIdentifier));
     componentDetailsArrayList.add(createComponentDetail(createComponentIdentifier("0.5.3")));

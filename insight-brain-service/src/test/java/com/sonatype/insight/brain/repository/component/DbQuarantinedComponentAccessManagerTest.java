@@ -16,12 +16,9 @@ import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.time.DateUtils;
 import org.junit.Test;
 
@@ -32,9 +29,6 @@ public class DbQuarantinedComponentAccessManagerTest
     extends AbstractComponentTest
 {
   @Inject
-  private InsightConfig insightConfig;
-
-  @Inject
   private QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 
   @Inject
@@ -43,9 +37,6 @@ public class DbQuarantinedComponentAccessManagerTest
   @Test
   public void testCreateToken() {
     // Setup
-    insightConfig
-        .setExperimentalFeatures(
-            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final Repository repository = tempEntity.newRepository("repo");
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
 
@@ -61,17 +52,9 @@ public class DbQuarantinedComponentAccessManagerTest
     assertThat(quarantinedComponentAccess.getRepositoryComponentId()).isEqualTo(repositoryComponent.getId());
   }
 
-  @Test(expected = BadRequestException.class)
-  public void testCreateToken_featureNotEnabled() {
-    quarantinedComponentAccessManager.createToken(new RepositoryComponent());
-  }
-
   @Test
   public void testGetRepositoryComponentIdFromToken() {
     // Setup
-    insightConfig
-        .setExperimentalFeatures(
-            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final Repository repository = tempEntity.newRepository("repo");
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
@@ -90,9 +73,6 @@ public class DbQuarantinedComponentAccessManagerTest
 
   @Test
   public void testGetRepositoryComponentIdFromToken_tokenDoesNotExist() {
-    insightConfig
-        .setExperimentalFeatures(
-            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString("fakeToken".getBytes(StandardCharsets.UTF_8));
 
@@ -103,9 +83,6 @@ public class DbQuarantinedComponentAccessManagerTest
   @Test
   public void testGetRepositoryComponentIdFromToken_tokenExpired() {
     // Setup
-    insightConfig
-        .setExperimentalFeatures(
-            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     final Repository repository = tempEntity.newRepository("repo");
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
@@ -120,9 +97,6 @@ public class DbQuarantinedComponentAccessManagerTest
 
   @Test
   public void testGetRepositoryComponentIdFromToken_invalidToken() {
-    insightConfig
-        .setExperimentalFeatures(
-            ImmutableMap.of(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token"));
   }

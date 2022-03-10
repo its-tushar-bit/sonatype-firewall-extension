@@ -15,8 +15,6 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -31,16 +29,10 @@ public class DbQuarantinedComponentAccessManager
 {
   private static final int EXPIRATION_TIME_IN_HOURS = 12;
 
-  private final InsightConfig insightConfig;
-
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 
   @Inject
-  public DbQuarantinedComponentAccessManager(
-      final InsightConfig insightConfig,
-      final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO)
-  {
-    this.insightConfig = insightConfig;
+  public DbQuarantinedComponentAccessManager(final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO) {
     this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
   }
 
@@ -54,7 +46,6 @@ public class DbQuarantinedComponentAccessManager
    */
   @Override
   public String createToken(final RepositoryComponent repositoryComponent) {
-    checkFeatureFlag();
     final QuarantinedComponentAccess quarantinedComponentAccess =
         new QuarantinedComponentAccess(repositoryComponent.getRepositoryId(), repositoryComponent.getId(), new Date());
     quarantinedComponentAccessDAO.insert(quarantinedComponentAccess);
@@ -69,7 +60,6 @@ public class DbQuarantinedComponentAccessManager
    * @return quarantined component info
    */
   private QuarantinedComponentAccess getRepositoryComponentAccessFromToken(final String token) {
-    checkFeatureFlag();
     byte[] decodedBytes;
     try {
       decodedBytes = Base64.getUrlDecoder().decode(token);
@@ -125,12 +115,5 @@ public class DbQuarantinedComponentAccessManager
     }
 
     return quarantinedComponentAccess.getRepositoryComponentId();
-  }
-
-  private void checkFeatureFlag() {
-    if (!insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW)) {
-      throw new BadRequestException(
-          ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag() + " feature is disabled.");
-    }
   }
 }

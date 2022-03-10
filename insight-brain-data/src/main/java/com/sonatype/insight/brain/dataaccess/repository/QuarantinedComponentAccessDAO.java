@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -52,5 +54,15 @@ public class QuarantinedComponentAccessDAO
   public void deleteByRepositoryId(final TransactionContext tx, final String repositoryId) {
     String sQuery = "DELETE FROM QuarantinedComponentAccess entity WHERE entity.repositoryId=?1";
     createQuery(sQuery, repositoryId).executeUpdate(tx);
+  }
+
+  public void setAnonymousAccess(boolean enabled) {
+    new SystemConfigurationPropertyDAO().update(
+        new SystemConfigurationProperty("QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS", String.valueOf(enabled)));
+  }
+
+  public boolean isAnonymousAccessEnabled() {
+    return Boolean.parseBoolean(new SystemConfigurationPropertyDAO()
+        .getByName(SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS).getValue());
   }
 }

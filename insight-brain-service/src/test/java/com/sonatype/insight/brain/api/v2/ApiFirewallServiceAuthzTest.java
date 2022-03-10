@@ -159,4 +159,21 @@ public class ApiFirewallServiceAuthzTest
     assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
         apiFirewallService.getComponents(filter));
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testSetQuarantinedComponentViewAnonymousAccess_Unauthenticated() {
+    apiFirewallService.setQuarantinedComponentViewAnonymousAccess(true);
+  }
+
+  @Test
+  public void testSetQuarantinedComponentViewAnonymousAccess_Authorized() {
+    grantGlobalPermission(Permission.WRITE);
+    apiFirewallService.setQuarantinedComponentViewAnonymousAccess(true);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testSetQuarantinedComponentViewAnonymousAccess_Unauthorized() {
+    login();
+    apiFirewallService.setQuarantinedComponentViewAnonymousAccess(true);
+  }
 }

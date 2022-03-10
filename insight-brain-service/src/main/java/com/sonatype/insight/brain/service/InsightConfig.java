@@ -1049,7 +1049,7 @@ public class InsightConfig
       implements com.sonatype.insight.license.model.Feature
   {
     SCM_ONBOARDING("scmOnboarding"),
-    ANONYMOUS_QUARANTINED_COMPONENT_VIEW("anonymousQuarantinedComponentView"),
+    INNER_SOURCE_REPOSITORY_INTEGRATION("innerSourceRepositoryIntegration"),
     CROWD_INTEGRATION("crowdIntegration");
 
     private final String flag;

@@ -10,8 +10,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -25,7 +27,10 @@ import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.telemetry.TelemetryCollector;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,8 +40,16 @@ import org.slf4j.LoggerFactory;
 
 @Named
 public class RepositoryQueryService
+    implements TelemetryCollector
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryQueryService.class);
+
+  //visible for testing
+  public static final Map<String, LongAdder> REPOSITORY_QUERY_COUNT_PER_FORMAT = new ConcurrentHashMap<>();
+
+  public static final String INNERSOURCE_REPOSITORY_FORMAT_KEY = "innersource_repository_format";
+
+  public static final String INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY = "innersource_repository_query_count";
 
   public static final String MAVEN_DEFAULT_EXTENSION = "jar";
 
@@ -178,6 +191,7 @@ public class RepositoryQueryService
   private Map<String, String> getQueryCriteriaForNexus3(ComponentIdentifier componentIdentifier) {
     Map<String, String> queryCriteria = new HashMap<>();
     String format = componentIdentifier.getFormat();
+    REPOSITORY_QUERY_COUNT_PER_FORMAT.computeIfAbsent(format, key -> new LongAdder()).increment();
     switch (format) {
       case ComponentIdentifier.FORMAT_MAVEN:
         buildMavenQueryCriteria(componentIdentifier, queryCriteria);
@@ -222,5 +236,21 @@ public class RepositoryQueryService
   {
     String value = componentIdentifier.get(coordinateName);
     return StringUtils.isNotBlank(value) ? value : defaultValue;
+  }
+
+  @Override
+  public List<TelemetryData> collectAllData() {
+    List<TelemetryData> telemetryData = REPOSITORY_QUERY_COUNT_PER_FORMAT.entrySet().stream()
+        .map(this::createTelemetryData)
+        .collect(Collectors.toList());
+    REPOSITORY_QUERY_COUNT_PER_FORMAT.clear();
+    return telemetryData;
+  }
+
+  private TelemetryData createTelemetryData(Entry<String, LongAdder> entry) {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.INNER_SOURCE_REPOSITORY_USAGE);
+    telemetryData.put(INNERSOURCE_REPOSITORY_FORMAT_KEY, entry.getKey());
+    telemetryData.put(INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY, entry.getValue().intValue());
+    return telemetryData;
   }
 }

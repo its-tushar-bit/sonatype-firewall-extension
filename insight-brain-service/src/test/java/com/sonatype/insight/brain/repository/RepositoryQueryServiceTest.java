@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -27,6 +26,7 @@ import com.sonatype.insight.brain.repository.client.RepositoryClientFactory.Repo
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.tuple.Pair;
@@ -35,10 +35,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.repository.RepositoryQueryService.INNERSOURCE_REPOSITORY_FORMAT_KEY;
+import static com.sonatype.insight.brain.repository.RepositoryQueryService.INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 public class RepositoryQueryServiceTest
@@ -86,6 +90,8 @@ public class RepositoryQueryServiceTest
 
   @Test
   public void testGetAllVersions_Maven() throws Exception {
+    RepositoryQueryService.REPOSITORY_QUERY_COUNT_PER_FORMAT.clear();
+
     //given
     Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.MAVEN, "user", "pass".toCharArray());
@@ -112,6 +118,40 @@ public class RepositoryQueryServiceTest
 
     //then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
+    List<TelemetryData> telemetryData = repositoryQueryService.collectAllData();
+    assertThat(telemetryData).hasSize(1);
+    assertThat(telemetryData.get(0).getAttributes()).hasSize(2)
+        .containsEntry(INNERSOURCE_REPOSITORY_FORMAT_KEY, "maven")
+        .containsEntry(INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY, 1);
+  }
+
+  @Test
+  public void testGetAllVersions_Telemetry() throws Exception {
+    RepositoryQueryService.REPOSITORY_QUERY_COUNT_PER_FORMAT.clear();
+    //given
+    Application app = getApplicationWithConnectionsEnabled();
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
+    ComponentIdentifier maven = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
+    ComponentIdentifier npm1 = ComponentIdentifier.createNpmCoordinates("p1", "1.2.0");
+    ComponentIdentifier npm2 = ComponentIdentifier.createNpmCoordinates("p2", "2.2.0");
+    when(clientFactory.create()).thenReturn(mockBuilder);
+    when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
+    doReturn(new RepositoryAllVersionsResponse(Collections.emptyList())).when(mockClient).getAllVersions(anyMap());
+
+    //when
+    repositoryQueryService.getAllVersions(maven, app);
+    repositoryQueryService.getAllVersions(npm1, app);
+    repositoryQueryService.getAllVersions(npm2, app);
+
+    //then
+    List<TelemetryData> telemetryData = repositoryQueryService.collectAllData();
+    assertThat(telemetryData).hasSize(2);
+    assertThat(telemetryData.get(0).getAttributes()).hasSize(2)
+        .containsEntry(INNERSOURCE_REPOSITORY_FORMAT_KEY, "maven")
+        .containsEntry(INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY, 1);
+    assertThat(telemetryData.get(1).getAttributes()).hasSize(2)
+        .containsEntry(INNERSOURCE_REPOSITORY_FORMAT_KEY, "npm")
+        .containsEntry(INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY, 2);
   }
 
   @Test

@@ -21,7 +21,7 @@ export const ComponentDetailsFooter = ({
 }) => {
   const footerContent = offspringComponentName ? (
     <NxOverflowTooltip>
-      <NxTextLink className="nx-truncate-ellipsis" onClick={() => backToOffspringOnClick(prev)}>
+      <NxTextLink className="nx-truncate-ellipsis" onClick={backToOffspringOnClick} href={prev}>
         <NxFontAwesomeIcon icon={faChevronLeft} />
         <span className="component-details-footer__back-to-component">Back to: </span>
         <span>{offspringComponentName}</span>

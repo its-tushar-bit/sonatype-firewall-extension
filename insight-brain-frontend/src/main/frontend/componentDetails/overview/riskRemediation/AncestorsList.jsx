@@ -6,9 +6,12 @@
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 
-import { NxTextLink } from '@sonatype/react-shared-components';
+import { NxList, NxTextLink } from '@sonatype/react-shared-components';
 import { DependencyTypeTag } from 'MainRoot/react/tag';
 import { dependencyTreeNodePropType } from 'MainRoot/DependencyTree/DependencyTree';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
+
+const COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME = 'applicationReport.componentDetails.overview';
 
 export const AncestorsList = ({
   dependencyTreeSubset,
@@ -17,6 +20,7 @@ export const AncestorsList = ({
   expanded,
   toggleAncestorsList,
 }) => {
+  const uiRouterState = useRouterState();
   const ancestorsElements =
     !expanded && dependencyTreeSubset.length > itemsToShow
       ? dependencyTreeSubset.slice(0, itemsToShow)
@@ -24,26 +28,27 @@ export const AncestorsList = ({
 
   return (
     <Fragment>
-      <ul className="nx-list">
-        {ancestorsElements.map(({ hash, displayName, isInnerSource }) => (
-          <li className="nx-list__item" key={hash}>
-            <span>
-              <NxTextLink
-                onClick={() => {
-                  ancestorOnClick(hash);
-                }}
-              >
-                {displayName}
-              </NxTextLink>
-              {isInnerSource && <DependencyTypeTag type="innerSource" />}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <NxList>
+        {ancestorsElements.map(({ hash, displayName, isInnerSource }) => {
+          return (
+            <NxList.Item key={hash}>
+              <span>
+                <NxTextLink
+                  onClick={ancestorOnClick}
+                  href={uiRouterState.href(COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME, { hash })}
+                >
+                  {displayName}
+                </NxTextLink>
+                {isInnerSource && <DependencyTypeTag type="innerSource" />}
+              </span>
+            </NxList.Item>
+          );
+        })}
+      </NxList>
       {dependencyTreeSubset.length > itemsToShow && (
-        <NxTextLink className="iq-toggle-list" onClick={toggleAncestorsList}>
+        <button className="iq-toggle-list btn-link" onClick={toggleAncestorsList}>
           {expanded ? 'Show less' : 'Show more'}
-        </NxTextLink>
+        </button>
       )}
     </Fragment>
   );

@@ -9,7 +9,7 @@ import { flatten } from 'ramda';
 
 import ViolationExclamation from '../../react/ViolationExclamation';
 import { NxFontAwesomeIcon, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
-import { faChevronRight, faHistory } from '@fortawesome/pro-solid-svg-icons';
+import { faHistory } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import ActiveWaiversIndicator from '../../violation/ActiveWaiversIndicator';
 
@@ -33,11 +33,9 @@ export default function PolicyViolationsTableRow({
     'iq-policy-violation-row--remediated': isRemediated,
   });
 
-  const setPolicyViolationIdToShow = (e) => {
-    if (!e.target.closest('button') && policyViolationId) {
-      setSelectedPolicyViolationId(policyViolationId);
-      toggleShowViolationsDetailPopover();
-    }
+  const setPolicyViolationIdToShow = () => {
+    setSelectedPolicyViolationId(policyViolationId);
+    toggleShowViolationsDetailPopover();
   };
 
   const renderActionsAsList = (actions = []) => {
@@ -80,9 +78,7 @@ export default function PolicyViolationsTableRow({
       <NxTableCell className="iq-policy-violation-row__actions-and-indicators-cell">
         <PolicyViolationsGrandfatheringAndWaiverIndicators violation={violation} />
       </NxTableCell>
-      <NxTableCell>
-        <NxFontAwesomeIcon icon={faChevronRight} />
-      </NxTableCell>
+      <NxTableCell chevron />
     </NxTableRow>
   );
 }

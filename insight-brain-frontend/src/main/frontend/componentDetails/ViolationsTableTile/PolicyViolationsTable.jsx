@@ -62,7 +62,7 @@ export default function PolicyViolationsTable({
             <NxTableCell>Constraint Name</NxTableCell>
             <NxTableCell>Condition</NxTableCell>
             <NxTableCell />
-            <NxTableCell />
+            <NxTableCell chevron />
           </NxTableRow>
         </NxTableHead>
         <NxTableBody

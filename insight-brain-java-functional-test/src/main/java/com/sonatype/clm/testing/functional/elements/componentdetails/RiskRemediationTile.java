@@ -95,7 +95,7 @@ public class RiskRemediationTile
     }
 
     public SelenideElement toggleListLink() {
-      return child(".nx-text-link.iq-toggle-list");
+      return child(".iq-toggle-list.btn-link");
     }
   }
 

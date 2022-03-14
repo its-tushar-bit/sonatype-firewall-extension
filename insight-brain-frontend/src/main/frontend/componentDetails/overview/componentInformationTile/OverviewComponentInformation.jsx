@@ -52,7 +52,16 @@ export default function OverviewComponentInformation({
   const viewSimilarMatchesLink = !!similarMatches.length && (
     <span>
       {/* required space before link */ ' '}
-      <a className="iq-identification-info-definition-list__similar-matches-link" onClick={toggleShowSimilarMatches}>
+      <a
+        className="iq-identification-info-definition-list__similar-matches-link"
+        onClick={toggleShowSimilarMatches}
+        tabIndex="0"
+        onKeyDown={(evt) => {
+          if (evt.key === 'Enter') {
+            toggleShowSimilarMatches();
+          }
+        }}
+      >
         (View Similar Matches)
       </a>
     </span>
@@ -87,6 +96,12 @@ export default function OverviewComponentInformation({
           <a
             className="iq-identification-info-definition-list__occurrences-link"
             onClick={toggleShowOccurrencesPopover}
+            tabIndex="0"
+            onKeyDown={(evt) => {
+              if (evt.key === 'Enter') {
+                toggleShowOccurrencesPopover();
+              }
+            }}
           >
             {pathnames.length + (pathnames.length > 1 ? ' Files' : ' File')}
           </a>

@@ -217,6 +217,28 @@ describe('OverviewComponentInformation', () => {
       expect(categoryValue).toHaveText('category1,category2');
     });
 
+    it('renders a link that will trigger the opening of the show occurrences popover', () => {
+      const component = getShallow(knownComponentProps),
+        definitionList = component.find('.iq-identification-info-definition-list');
+
+      const definitionItems = definitionList.find('.nx-read-only__item');
+      expect(definitionItems.length).toBe(5);
+
+      const [OcurrencesLabel, OcurrencesValue] = [definitionItems.at(2).find('dt'), definitionItems.at(2).find('dd')];
+      expect(OcurrencesLabel).toHaveText('Occurrences');
+      expect(OcurrencesValue).toHaveText('2 Files');
+
+      const viewOcurrancesLink = OcurrencesValue.find('a');
+      expect(viewOcurrancesLink).toExist();
+
+      viewOcurrancesLink.simulate('keydown', { key: 'A' });
+      expect(minimalProps.toggleShowOccurrencesPopover).not.toHaveBeenCalled();
+
+      viewOcurrancesLink.simulate('click');
+      viewOcurrancesLink.simulate('keydown', { key: 'Enter' });
+      expect(minimalProps.toggleShowOccurrencesPopover).toHaveBeenCalledTimes(2);
+    });
+
     it('renders empty website', () => {
       knownComponentProps.componentInformation.website = undefined;
       const component = getShallow(knownComponentProps),
@@ -261,7 +283,14 @@ describe('OverviewComponentInformation', () => {
 
       const viewSimilarMatchesLink = matchStateValue.find('a');
       expect(viewSimilarMatchesLink).toExist();
+
+      viewSimilarMatchesLink.simulate('keydown', { key: 'A' });
+      expect(minimalProps.toggleShowSimilarMatches).not.toHaveBeenCalled();
+
       viewSimilarMatchesLink.simulate('click');
+      expect(minimalProps.toggleShowSimilarMatches).toHaveBeenCalled();
+
+      viewSimilarMatchesLink.simulate('keydown', { key: 'Enter' });
       expect(minimalProps.toggleShowSimilarMatches).toHaveBeenCalled();
     });
   });

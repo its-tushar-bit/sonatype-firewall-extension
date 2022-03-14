@@ -12,10 +12,11 @@ import ReportTitle from 'MainRoot/applicationReport/ReportTitle';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
-import * as routerActions from 'MainRoot/reduxUiRouter/routerActions';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
 
 describe('ReportTitle', () => {
   let renderComponent,
+    routerContextMock,
     mockedReevaluateReport,
     metadataDetails,
     selectApplicationReportMetaDataSpy,
@@ -50,7 +51,6 @@ describe('ReportTitle', () => {
     });
 
     mockedReevaluateReport = spyOn(applicationReportActions, 'reevaluateReport').and.callThrough();
-    spyOn(routerActions, 'stateGo').and.callThrough();
 
     spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
       publicId: 'publicId',
@@ -61,6 +61,12 @@ describe('ReportTitle', () => {
       appId: 'appId',
       scanId: 'scanId',
     });
+
+    routerContextMock = {
+      href: jasmine.createSpy('href').and.returnValue('mockValue'),
+      get: jasmine.createSpy('get').and.returnValue('mockGetValue'),
+    };
+    spyOn(routerContext, 'useRouterState').and.returnValue(routerContextMock);
 
     renderComponent = () => {
       render(<ReportTitle />);
@@ -125,12 +131,6 @@ describe('ReportTitle', () => {
     const vulnerabilitiesLink = screen.getByRole('link', { name: 'View vulnerabilities' });
     expect(vulnerabilitiesLink).not.toHaveClassName('disabled');
     expect(vulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
-
-    fireEvent.click(vulnerabilitiesLink);
-    expect(routerActions.stateGo).toHaveBeenCalledWith('applicationReport.vulnerabilities', {
-      publicId: 'publicId',
-      scanId: 'scanId',
-    });
   });
 
   it('renders a disabled view vulnerabilities link if report version is lower than 5', () => {
@@ -148,9 +148,7 @@ describe('ReportTitle', () => {
     });
     expect(vulnerabilitiesLink).toHaveClassName('disabled');
     expect(vulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
-
-    fireEvent.click(vulnerabilitiesLink);
-    expect(routerActions.stateGo).not.toHaveBeenCalled();
+    expect(vulnerabilitiesLink).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('calls reevaluateReport when the reevaluateReport button is pressed', () => {

@@ -20,7 +20,7 @@ import {
 import { selectApplicationReportMetaData, selectSelectedReport } from './applicationReportSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { reevaluateReport as reevaluateR } from './applicationReportActions';
-import { stateGo as stateG } from 'MainRoot/reduxUiRouter/routerActions';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 import { getDownloadPdfUrl, getViewSbomUrl } from 'MainRoot/util/CLMLocation';
 
@@ -44,33 +44,16 @@ export default function ReportTitle() {
   const metadataDetails = useSelector(selectApplicationReportMetaData);
   const { publicId, scanId } = useSelector(selectRouterCurrentParams);
   const selectedReport = useSelector(selectSelectedReport);
-  const stateGo = (...args) => dispatch(stateG(...args));
+  const uiRouterState = useRouterState();
   const reevaluateReport = (...args) => dispatch(reevaluateR(...args));
 
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
   const sbomUrl = getViewSbomUrl(metadataDetails.application.id, scanId);
+  const rawDataUrl = uiRouterState.href('applicationReport.rawData', { publicId, scanId });
+  const legacyReportUrl = uiRouterState.href('report', { publicId, scanId });
+  const vulnerabilitiesUrl = uiRouterState.href('applicationReport.vulnerabilities', { publicId, scanId });
   const vulnerabilitiesPageDisable = selectedReport && selectedReport.reportVersion < 5 ? true : false;
   const viewVulnerabilitiesLinkClasses = classnames('nx-dropdown-link', { disabled: vulnerabilitiesPageDisable });
-
-  const onRawDataClick = () => {
-    stateGo('applicationReport.rawData', {
-      publicId: publicId,
-      scanId: scanId,
-    });
-  };
-
-  const goToVulnerabilitiesPage = () => {
-    if (!vulnerabilitiesPageDisable) {
-      stateGo('applicationReport.vulnerabilities', { publicId, scanId });
-    }
-  };
-
-  const onLegacyReportClick = () => {
-    stateGo('report', {
-      publicId: publicId,
-      scanId: scanId,
-    });
-  };
 
   const vulnPageTooltip = vulnerabilitiesPageDisable
     ? 'Reevaluate the report in order to enable Vulnerabilities view'
@@ -97,22 +80,27 @@ export default function ReportTitle() {
             <span>View SBOM</span>
           </a>
           <NxDropdownDivider />
-          <a className="nx-dropdown-link" onClick={onRawDataClick} role="link">
+          <a className="nx-dropdown-link" href={rawDataUrl}>
             <NxFontAwesomeIcon icon={faFile} />
             <span>View raw data</span>
           </a>
           <NxTooltip title={vulnPageTooltip} placement="top">
             <a
               id="viewVulnBtn"
-              role="link"
               className={viewVulnerabilitiesLinkClasses}
-              onClick={goToVulnerabilitiesPage}
+              href={vulnerabilitiesUrl}
+              onClick={(evt) => {
+                if (vulnerabilitiesPageDisable) {
+                  evt.preventDefault();
+                }
+              }}
+              aria-disabled={vulnerabilitiesPageDisable}
             >
               <NxFontAwesomeIcon icon={faFile} />
               <span>View vulnerabilities</span>
             </a>
           </NxTooltip>
-          <a className="nx-dropdown-link" onClick={onLegacyReportClick} role="link">
+          <a className="nx-dropdown-link" href={legacyReportUrl}>
             <NxFontAwesomeIcon icon={faFile} />
             <span>View legacy report</span>
           </a>

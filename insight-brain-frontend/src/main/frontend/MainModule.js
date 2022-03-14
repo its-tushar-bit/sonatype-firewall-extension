@@ -79,7 +79,8 @@ export const InitModule = angular
     [
       '$stateProvider',
       '$urlRouterProvider',
-      function ($stateProvider, $urlRouterProvider) {
+      '$locationProvider',
+      function ($stateProvider, $urlRouterProvider, $locationProvider) {
         $stateProvider
           .state('root', {
             url: '^',
@@ -122,6 +123,14 @@ export const InitModule = angular
         $urlRouterProvider.otherwise(function ($injector) {
           $injector.invoke(unknownErrorFunction);
         });
+
+        /*
+         * Angular catches click events at the <html> element and interferes with link clicks in such a way
+         * that react <a> onClick handlers (which get bound on `document`) don't fire. The configuration below
+         * disables this angular behavior. It is believed that this has no ill effect for us since we don't use
+         * angular's built-in router
+         */
+        $locationProvider.html5Mode({ rewriteLinks: false });
       },
     ]
   )

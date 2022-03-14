@@ -37,7 +37,7 @@ const HTTP_CLIENT_CLOSED_REQUEST = 499;
 const REDUCER_NAME = 'componentDetails';
 export const VISIT_ANCESTOR_ACTION = REDUCER_NAME + '/visitAncestors';
 export const RETURN_TO_OFFSPRING = REDUCER_NAME + '/backToOffspring';
-const COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME = 'applicationReport.componentDetails.overview';
+
 enableMapSet();
 
 export const initialState = Object.freeze({
@@ -114,7 +114,7 @@ const onTabChange = (tabId) => {
   };
 };
 
-const visitAncestorAction = (hash) => {
+const visitAncestorAction = () => {
   return (dispatch, getState) => {
     const state = getState();
     const component = selectSelectedComponent(state);
@@ -127,14 +127,12 @@ const visitAncestorAction = (hash) => {
         },
       })
     );
-    dispatch(stateGo(COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME, { hash }));
   };
 };
 
-const backToOffspringAction = (hash) => {
+const backToOffspringAction = () => {
   return (dispatch) => {
     dispatch(actions.backToOffspring());
-    dispatch(stateGo(COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME, { hash }));
   };
 };
 

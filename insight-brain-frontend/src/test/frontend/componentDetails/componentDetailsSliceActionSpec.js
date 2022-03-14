@@ -62,7 +62,6 @@ const SET_SELECTED_LABEL_DETAILS = 'componentDetails/setSelectedLabelDetails';
 const CANCEL_SHOW_APPLY_MODAL = 'componentDetails/cancelApplyLabelModal';
 const RESET_APPLY_LABEL_MASK_STATE = 'componentDetails/resetApplyLabelMaskState';
 const RESET_LABEL_MODAL_MASK_STATE = 'componentDetails/resetLabelModalMaskState';
-const STATE_GO = '@@reduxUiRouter/stateGo';
 
 describe('componentDetailsActions', function () {
   let store,
@@ -291,11 +290,10 @@ describe('componentDetailsActions', function () {
 
   describe('visitAncestorAction', () => {
     it('immediately dispatches VISIT_ANCESTOR_ACTION action', () => {
-      const ancestorHash = 'ancestor-hash-123';
-      store.dispatch(visitAncestorAction(ancestorHash));
+      store.dispatch(visitAncestorAction());
 
       const actions = store.getActions();
-      expect(actions.length).toBe(2);
+      expect(actions.length).toBe(1);
       expect(actions).toHaveActionsInOrder([
         {
           type: VISIT_ANCESTOR_ACTION,
@@ -306,36 +304,18 @@ describe('componentDetailsActions', function () {
             },
           },
         },
-        {
-          type: STATE_GO,
-          payload: {
-            to: 'applicationReport.componentDetails.overview',
-            params: {
-              hash: ancestorHash,
-            },
-          },
-        },
       ]);
     });
   });
 
   describe('backToOffspringAction', () => {
     it('immediately dispatches RETURN_TO_OFFSPRING action', () => {
-      store.dispatch(backToOffspringAction(mockComponentHash));
+      store.dispatch(backToOffspringAction());
       const actions = store.getActions();
-      expect(actions.length).toBe(2);
+      expect(actions.length).toBe(1);
       expect(actions).toHaveActionsInOrder([
         {
           type: RETURN_TO_OFFSPRING,
-        },
-        {
-          type: STATE_GO,
-          payload: {
-            to: 'applicationReport.componentDetails.overview',
-            params: {
-              hash: mockComponentHash,
-            },
-          },
         },
       ]);
     });

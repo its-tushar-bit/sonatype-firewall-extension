@@ -95,8 +95,9 @@ export const selectComponentPagination = createSelector(
   (index, components = [], routeName, isVisitingAncestor, offspring, uiRouterState) => {
     let pagination = null;
     if (isVisitingAncestor) {
+      const prevHref = offspring.hash && uiRouterState.href(routeName, { hash: offspring.hash });
       pagination = {
-        prev: offspring.hash,
+        prev: prevHref,
         offspringComponentName: offspring.derivedComponentName,
       };
     } else {

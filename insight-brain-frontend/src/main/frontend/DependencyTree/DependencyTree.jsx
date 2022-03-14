@@ -40,6 +40,7 @@ function TreeNode({ items, treePathToggleAction, hashToMatch, searchTerm }) {
           isOpen={item.isOpen}
           key={item.hash}
           onToggleCollapse={() => dispatchToggleTreeAtPath(item.treePath)}
+          onActivate={() => goToCDP(item.hash)}
         >
           <NxTree.ItemLabel>
             <NxThreatIndicator className="nx-tree__colored-icon" policyThreatLevel={item.policyThreatLevel} />

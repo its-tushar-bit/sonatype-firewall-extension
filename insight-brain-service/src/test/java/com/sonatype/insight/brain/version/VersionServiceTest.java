@@ -50,19 +50,27 @@ public class VersionServiceTest
 
   @Test
   public void testGetLogDisplayVersion() {
-    versionService.setVersion("foo");
-    assertThat(versionService.getLogDisplayVersion()).isEqualTo("foo");
+    String version = versionService.getVersion();
 
-    versionService.setVersion("1.50.0-SNAPSHOT");
-    assertThat(versionService.getLogDisplayVersion()).isEqualTo("50.0-SNAPSHOT");
+    try {
+      versionService.setVersion("foo");
+      assertThat(versionService.getLogDisplayVersion()).isEqualTo("foo");
 
-    versionService.setVersion("1.50.1-01");
-    assertThat(versionService.getLogDisplayVersion()).isEqualTo("50.1-01");
+      versionService.setVersion("1.50.0-SNAPSHOT");
+      assertThat(versionService.getLogDisplayVersion()).isEqualTo("50.0-SNAPSHOT");
 
-    versionService.setVersion("50.0-SNAPSHOT");
-    assertThat(versionService.getLogDisplayVersion()).isEqualTo("50.0-SNAPSHOT");
+      versionService.setVersion("1.50.1-01");
+      assertThat(versionService.getLogDisplayVersion()).isEqualTo("50.1-01");
 
-    versionService.setVersion("50.1-01");
-    assertThat(versionService.getLogDisplayVersion()).isEqualTo("50.1-01");
+      versionService.setVersion("50.0-SNAPSHOT");
+      assertThat(versionService.getLogDisplayVersion()).isEqualTo("50.0-SNAPSHOT");
+
+      versionService.setVersion("50.1-01");
+      assertThat(versionService.getLogDisplayVersion()).isEqualTo("50.1-01");
+    }
+    finally {
+      // set version back to what it was before the test
+      versionService.setVersion(version);
+    }
   }
 }

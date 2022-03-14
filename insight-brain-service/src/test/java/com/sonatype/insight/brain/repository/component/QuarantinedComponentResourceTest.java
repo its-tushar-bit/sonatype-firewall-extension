@@ -28,6 +28,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
@@ -155,9 +156,15 @@ public class QuarantinedComponentResourceTest
   public void testGetQuarantinedComponentOverview() throws Exception {
     // setup
     Date date = new Date();
+
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.2");
     final String encodedToken = setupTestData(componentIdentifier, date);
+
+    DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
+        new DbQuarantinedComponentAccessManager(getCLMServer()
+            .getConfiguration(), new QuarantinedComponentAccessDAO());
+    Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(encodedToken);
 
     // when
     final HttpResponse response =
@@ -176,6 +183,7 @@ public class QuarantinedComponentResourceTest
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.componentVersion).isEqualTo("0.5.2");
+    assertThat(quarantinedComponentOverviewDto.tokenExpiryTime).hasToString(expirationTime.toString());
   }
 
   @Test
@@ -411,7 +419,7 @@ public class QuarantinedComponentResourceTest
     // when
     final HttpResponse response =
         restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
-                QuarantinedComponentResource.QUARANTINED_COMPONENT_OTHER_VERSIONS_PATH).parameter(encodedToken)
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_OTHER_VERSIONS_PATH).parameter(encodedToken)
             .query("page", 1)
             .query("pageSize", 2)
             .query("asc", "false")

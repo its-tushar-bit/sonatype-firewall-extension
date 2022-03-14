@@ -63,16 +63,12 @@ public class DbQuarantinedComponentAccessManager
   }
 
   /**
-   * Retrieves the repository component id for the given token. The supplied token is decoded and used as the id for the
-   * entry that needs to be retrieved from the quarantined_component_access table. The current time will be checked
-   * against the time the token was generated plus the default/configured validity time. If outside the validity window,
-   * if the token cannot be decoded, or if the entry does not exist, a NotFoundException will be thrown.
+   * Gets quarantined component info related to the token
    *
-   * @param token The base64 url encoded token
-   * @return The repository component id that is associated with the supplied token.
+   * @param token
+   * @return quarantined component info
    */
-  @Override
-  public String getRepositoryComponentIdFromToken(final String token) {
+  private QuarantinedComponentAccess getRepositoryComponentAccessFromToken(final String token) {
     checkFeatureFlag();
     byte[] decodedBytes;
     try {
@@ -83,17 +79,44 @@ public class DbQuarantinedComponentAccessManager
           "The quarantined component view cannot be retrieved because the URL contains invalid characters.");
     }
 
-    final String decodedInput = new String(decodedBytes);
-    final QuarantinedComponentAccess quarantinedComponentAccess = quarantinedComponentAccessDAO.getById(decodedInput);
+    return quarantinedComponentAccessDAO.getById(new String(decodedBytes));  
+  }
+
+  /**
+   * Gets the quarantine component token expiry time
+   *
+   * @param token
+   * @return component token expiry time
+   */
+  @Override
+  public Date getTokenExpiryTime(final String token) {
+    QuarantinedComponentAccess quarantinedComponentAccess = getRepositoryComponentAccessFromToken(token);
+
+    return DateUtils.addHours(quarantinedComponentAccess.getGenerateTime(), EXPIRATION_TIME_IN_HOURS);
+  }
+
+  /**
+   * Retrieves the repository component id for the given token. The supplied token is decoded and used as the id for the
+   * entry that needs to be retrieved from the quarantined_component_access table. The current time will be checked
+   * against the time the token was generated plus the default/configured validity time. If outside the validity window,
+   * if the token cannot be decoded, or if the entry does not exist, a NotFoundException will be thrown.
+   *
+   * @param token The base64 url encoded token
+   * @return The repository component id that is associated with the supplied token.
+   */
+  @Override
+  public String getRepositoryComponentIdFromToken(final String token) {
+    QuarantinedComponentAccess quarantinedComponentAccess = getRepositoryComponentAccessFromToken(token);
+
     if (quarantinedComponentAccess == null) {
       throw new NotFoundException(
           "The quarantined component view for the blocked component you are trying to view could not be found.");
     }
 
-    Date expirationDate = DateUtils.addHours(quarantinedComponentAccess.getGenerateTime(), EXPIRATION_TIME_IN_HOURS);
+    Date expirationTime = DateUtils.addHours(quarantinedComponentAccess.getGenerateTime(), EXPIRATION_TIME_IN_HOURS);
 
-    if (expirationDate.before(new Date())) {
-      throw new NotFoundException("This report expired on " + expirationDate +
+    if (expirationTime.before(new Date())) {
+      throw new NotFoundException("This report expired on " + expirationTime +
           ". You may generate a new report by requesting the blocked component again.");
     }
 

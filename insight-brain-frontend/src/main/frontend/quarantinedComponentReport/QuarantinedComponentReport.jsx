@@ -7,7 +7,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from 'MainRoot/react/LoadWrapper';
-import { NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxWarningAlert, NxInfoAlert } from '@sonatype/react-shared-components';
 import { formatDate } from 'MainRoot/util/dateUtils';
 
 import QuarantineComponentOverviewTile from './componentOverviewTile/QuarantineComponentOverviewTile';
@@ -52,6 +52,9 @@ export default function QuarantinedComponentReport(props) {
 
   return (
     <main id="quarantined-component-report" className="nx-page-main">
+      {componentOverview?.tokenExpiryTime && (
+        <NxInfoAlert>This report will expire on {formatDate(componentOverview.tokenExpiryTime)}</NxInfoAlert>
+      )}
       <div className="nx-page-title">
         <h1 className="nx-h1">Quarantine Report</h1>
         <div className="nx-page-title__description">{formatDate(new Date())}</div>

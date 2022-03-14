@@ -99,6 +99,8 @@ public class QuarantinedComponentService
     quarantinedComponentOverviewDto.repositoryName = getRepositoryName(repositoryComponent);
     quarantinedComponentOverviewDto.quarantinedDate = repositoryComponent.getQuarantineTime();
     quarantinedComponentOverviewDto.cataloguedDate = repositoryComponent.getTime();
+    quarantinedComponentOverviewDto.tokenExpiryTime = quarantinedComponentAccessManager
+        .getTokenExpiryTime(token);
     return quarantinedComponentOverviewDto;
   }
 

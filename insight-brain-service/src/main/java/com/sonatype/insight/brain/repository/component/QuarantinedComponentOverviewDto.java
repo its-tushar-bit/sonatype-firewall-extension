@@ -26,4 +26,7 @@ public class QuarantinedComponentOverviewDto
 
   @ApiDateFormat
   public Date cataloguedDate;
+
+  @ApiDateFormat
+  public Date tokenExpiryTime;
 }

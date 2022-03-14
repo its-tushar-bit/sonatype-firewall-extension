@@ -11,16 +11,17 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViola
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
-import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 
-public class QuarantineComponentReportPage extends BasicElement<QuarantineComponentReportPage>
+public class QuarantineComponentReportPage
+    extends BasicElement<QuarantineComponentReportPage>
 {
   public static final String QUARANTINE_COMPONENT_REPORT_SELECTOR = "#quarantined-component-report";
 
   public static String url(String quarantineComponentReportId) {
     return BaseUrl.rootUriBuilder().fragment("repositories/quarantinedComponent/" +
-            quarantineComponentReportId).toString();
+        quarantineComponentReportId).toString();
   }
 
   public RiskRemediationTile getRiskRemediationTile() {
@@ -53,5 +54,9 @@ public class QuarantineComponentReportPage extends BasicElement<QuarantineCompon
 
   public SelenideElement getTokenWarningAlert() {
     return child(".nx-alert.nx-alert--warning");
+  }
+
+  public SelenideElement getExpirationReportAlert() {
+    return child(".nx-alert.nx-alert--info");
   }
 }

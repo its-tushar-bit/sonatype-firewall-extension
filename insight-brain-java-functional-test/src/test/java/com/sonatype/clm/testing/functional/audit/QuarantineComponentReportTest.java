@@ -6,6 +6,8 @@
 package com.sonatype.clm.testing.functional.audit;
 
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -17,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -35,6 +38,7 @@ import com.sonatype.clm.testing.functional.pages.QuarantineComponentReportPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -55,14 +59,16 @@ import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-import org.joda.time.DateTime;
 import com.google.common.collect.ImmutableMap;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
@@ -392,6 +398,37 @@ public class QuarantineComponentReportTest
         .withTimeout(Duration.ofSeconds(240))
         .pollingEvery(Duration.ofSeconds(2))
         .ignoring(NoSuchElementException.class);
+  }
+
+  @Test
+  public void testReportExpirationAlert() {
+    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
+        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
+
+    ComponentIdentifier mainComponentIdentifier = createComponentIdentifier("0.5.2");
+    RepositoryComponent repositoryComponent = createRepositoryComponent(
+        mainComponentIdentifier, date);
+
+    QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity
+            .newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
+
+    String encodedToken = Base64.getUrlEncoder().withoutPadding()
+        .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
+
+    DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
+        new DbQuarantinedComponentAccessManager(testCLMServer.getCLMServer()
+            .getConfiguration(), new QuarantinedComponentAccessDAO());
+    Date tokenExpiryTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(encodedToken);
+
+    refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
+    waitUntilSpinnersGone();
+
+    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss 'UTC'XXX");
+    dateFormat.setTimeZone(TimeZone.getDefault());
+    quarantineReportPage.getExpirationReportAlert()
+        .shouldHave(text("This report will expire on " + dateFormat.format(tokenExpiryTime)
+            .replace("Z", "+00:00")));
   }
 
   @Test

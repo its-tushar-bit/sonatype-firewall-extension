@@ -16,7 +16,7 @@ import {
 import { loadQuarantineReportData } from 'MainRoot/quarantinedComponentReport/quarantinedComponentReportActions';
 import QuarantineComponentReport from 'MainRoot/quarantinedComponentReport/QuarantinedComponentReport';
 
-import { formatTimeAgo } from 'MainRoot/util/dateUtils';
+import { formatTimeAgo, formatDate } from 'MainRoot/util/dateUtils';
 
 describe('QuarantineComponentReport', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -101,8 +101,9 @@ describe('QuarantineComponentReport', () => {
 
   it('renders the component overview tile', async () => {
     const date = new Date();
-    const minus1Day = new Date(date.setDate(date.getDate() - 1));
-    const minus2Day = new Date(date.setDate(date.getDate() - 2));
+    const minus1Day = new Date(date).setDate(date.getDate() - 1);
+    const minus2Day = new Date(date).setDate(date.getDate() - 2);
+    const plus1Day = new Date(date).setDate(date.getDate() + 1);
 
     const componentOverviewProps = {
       ...minimalProps,
@@ -112,6 +113,7 @@ describe('QuarantineComponentReport', () => {
         isQuarantined: false,
         quarantinedPolicyViolationsCount: 123,
         repositoryName: 'maven-central',
+        tokenExpiryTime: plus1Day,
         // the following dates need to be different, otherwise the asserttion should change getByText for getAllByText
         // toBeVisible() is used for single elements not for an array of them.
         quarantinedDate: minus2Day,
@@ -140,6 +142,10 @@ describe('QuarantineComponentReport', () => {
 
     expect(screen.getByText(/repository/i)).toBeVisible();
     expect(screen.getByText(componentOverview.repositoryName)).toBeVisible();
+
+    expect(
+      screen.getByText('This report will expire on ' + formatDate(componentOverview.tokenExpiryTime))
+    ).toBeVisible();
   });
 
   it('handles load error', async () => {

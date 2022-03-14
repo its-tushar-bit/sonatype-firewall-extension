@@ -617,6 +617,11 @@ public class ComponentInfoService
     else if (isThirdPartyIdentificationSource(identificationSource)) {
       componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
     }
+    else if (identifier.isGeneric()) {
+      // allow generic component identifier which are components that do not
+      // currently have broad support in the lifecycle ecosystem
+      componentDetailsList = createComponentDetailsListForGenericIdentifier(identifier);
+    }
     else {
       throw new BadRequestException("Invalid format: " + identifier.getFormat());
     }
@@ -626,6 +631,13 @@ public class ComponentInfoService
           componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
     }
     return Pair.of(componentDetailsList, sourceResponseDTO);
+  }
+
+  private ComponentDetailsList createComponentDetailsListForGenericIdentifier(ComponentIdentifier identifier) {
+    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
+    componentDetailsList.setList(Collections.singletonList(
+        createComponentDetails(identifier, generateFakeHash(identifier), IdentificationSource.PACKAGE_MANIFEST)));
+    return componentDetailsList;
   }
 
   private ComponentDetailsList transformToComponentDetailsList(

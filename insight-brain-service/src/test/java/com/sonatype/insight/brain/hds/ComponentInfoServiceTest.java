@@ -875,8 +875,16 @@ public class ComponentInfoServiceTest
     Set<License> licenses3 = new LinkedHashSet<>();
     licenses3.add(new License("OSL-1.0", "OSL-1.0"));
     hdsComponentDetails3.setDeclaredLicenses(licenses3);
+    // generic component identifier
+    ComponentIdentifier componentIdentifierGeneric = ComponentIdentifier.createGenericCoordinates("a1", "1.0", null);
+    ComponentDetails hdsComponentDetailsGeneric = newNamedComponentDetails(componentIdentifierGeneric);
+    Set<License> licenses4 = new LinkedHashSet<>();
+    licenses4.add(new License(UNSPECIFIED_ID, "Not Provided"));
+    hdsComponentDetailsGeneric.setEffectiveLicenses(licenses4);
+    // mock hdsComponentDetailsList
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
-    hdsComponentDetailsList.setList(asList(hdsComponentDetails1, hdsComponentDetails2, hdsComponentDetails3));
+    hdsComponentDetailsList.setList(asList(hdsComponentDetails1, hdsComponentDetails2, hdsComponentDetails3,
+        hdsComponentDetailsGeneric));
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, componentIdentifier1);
 
     ComponentDetailsList componentDetailsList =
@@ -885,7 +893,7 @@ public class ComponentInfoServiceTest
         MatchState.EXACT.getId(), null);
 
     assertThat(componentDetailsList).isNotNull();
-    assertThat(componentDetailsList.getList()).hasSize(3);
+    assertThat(componentDetailsList.getList()).hasSize(4);
     ComponentDetails componentDetails = componentDetailsList.getList().get(0);
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
     assertThat(componentDetails.getLicenseThreatLevel()).isEqualTo(9);
@@ -923,6 +931,18 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getEffectiveLicenses()).hasSize(1);
     assertThat(componentDetails.getEffectiveLicenses().iterator().next().getLicenseName()).isEqualTo("OSL-1.0");
     assertThat(componentDetails.getEffectiveLicenses().iterator().next().getLicenseId()).isEqualTo("OSL-1.0");
+    assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
+    // allow generic component identifier which are components that do not
+    // currently have broad support in the lifecycle ecosystem
+    componentDetails = componentDetailsList.getList().get(3);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifierGeneric);
+    assertThat(componentDetails.getLicenseThreatLevel()).isNull();
+    assertThat(componentDetails.getLicenseThreatGroupNames()).isNull();
+    assertThat(componentDetails.getDeclaredLicenses()).isEmpty();
+    assertThat(componentDetails.getObservedLicenses()).isEmpty();
+    assertThat(componentDetails.getEffectiveLicenses()).hasSize(1);
+    assertThat(componentDetails.getEffectiveLicenses().iterator().next().getLicenseName()).isEqualTo("Not Provided");
+    assertThat(componentDetails.getEffectiveLicenses().iterator().next().getLicenseId()).isEqualTo(UNSPECIFIED_ID);
     assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
   }
 

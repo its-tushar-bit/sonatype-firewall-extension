@@ -84,14 +84,30 @@ def createJiraIssueIfNeeded() {
 
 def configureBranchJob() {
   // Use the project name to determine the branch
-  def projName = currentBuild.fullProjectName
+  String projName = currentBuild.fullProjectName
   boolean applitoolsEnabledByDefault = (projName.toLowerCase().contains('master') || projName.endsWith('_ui'))
+  List params = [booleanParam(defaultValue: applitoolsEnabledByDefault,
+      description: 'If checked will enable Applitools EyesCheck.',
+      name: 'applitoolsEnabled')]
 
+  // Jenkins unfortunately will overwrite any parameters defined at the folder level using this dynamic approach for 
+  // applitools. Therefore in order to support this workflow we need to mirror folder defined parameters here otherwise
+  // they are erased completely from the release configuration.
+  // See https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/release/
+  if (projName.contains('insight/insight-brain/release')) {
+    params += [
+        booleanParam(name: 'hotfix',
+            description: 'Check if this IQ Release is intended to be a hotfix e.g. urgent release to fix a severe bug' +
+                '. (Used for internal metrics only.)'),
+        stringParam(name: 'version', description: 'The version to release'),
+        stringParam(name: 'nextVersion',
+            description: 'The next SNAPSHOT version to use after the release. Optional as will be automatically be ' +
+                'calculated if left blank.')
+    ]
+  }
   properties([
       copyArtifactPermission("/${projName}"),
-      parameters([booleanParam(defaultValue: applitoolsEnabledByDefault,
-          description: 'If checked will enable Applitools EyesCheck.',
-          name: 'applitoolsEnabled')])
+      parameters(params)
   ])
 }
 

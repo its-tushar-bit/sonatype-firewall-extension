@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { selectOwnerTypeAndOwnerId } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSelectors';
+import { selectOwnerTypeAndOwnerId } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSelectors';
 import axios from 'axios';
 import { getRepositoryConnectionUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/util/CommonServices';
@@ -16,7 +16,9 @@ import {
   toServerData,
 } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsUtil';
 import { pathSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
-import { SUBMIT_MASK_SAVING_CONFIGURATION_MESSAGE } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
+
+export const SUBMIT_MASK_SAVING_CONFIGURATION_MESSAGE = 'Saving Configuration';
+export const SUBMIT_MASK_TESTING_CONFIGURATION_MESSAGE = 'Testing Configuration';
 
 export const MUST_UPDATE_ENABLED_ADD_MESSAGE = 'Must update to Enable to add a repository connection.';
 export const MUST_UPDATE_ENABLED_EDIT_MESSAGE = 'Must update to Enable to edit a repository connection.';
@@ -32,6 +34,7 @@ export const initialState = {
   loading: false,
   loadError: null,
   saveError: null,
+
   submitMaskState: null,
   submitMaskMessage: null,
 };

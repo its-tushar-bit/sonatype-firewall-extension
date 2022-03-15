@@ -4,18 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reducer, {
-  SUBMIT_MASK_DELETING_CONFIGURATION_MESSAGE,
   SUBMIT_MASK_SAVING_CONFIGURATION_MESSAGE,
   SUBMIT_MASK_TESTING_CONFIGURATION_MESSAGE,
-} from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
+} from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import {
   getInitialState,
   getMinimalValidFormState,
   getPayload,
-} from 'TestRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationTestData';
+} from 'TestRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalTestData';
 
-describe('innerSourceRepositoryConfigurationSliceReducer', () => {
+describe('innerSourceRepositoryConfigurationModalSliceReducer', () => {
   describe('initial state', () => {
     it('returns the initial state given an undefined state', function () {
       const state = undefined;
@@ -39,7 +38,7 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/setFormat action', () => {
+  describe('innerSourceRepositoryConfigurationModal/setFormat action', () => {
     it('sets the `format` to the payload and updates computed props', () => {
       const state = Object.freeze({
         ...getInitialState(),
@@ -49,7 +48,7 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/setFormat',
+        type: 'innerSourceRepositoryConfigurationModal/setFormat',
         payload: 'maven',
       });
 
@@ -60,7 +59,7 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/setBaseUrl action', () => {
+  describe('innerSourceRepositoryConfigurationModal/setBaseUrl action', () => {
     it('sets the `baseUrl` to the payload and updates computed props', () => {
       const state = Object.freeze({
         ...getInitialState(),
@@ -70,7 +69,7 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/setBaseUrl',
+        type: 'innerSourceRepositoryConfigurationModal/setBaseUrl',
         payload: 'someBaseUrl',
       });
 
@@ -86,7 +85,7 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/setAnonymous action', () => {
+  describe('innerSourceRepositoryConfigurationModal/setAnonymous action', () => {
     it('sets `isAnonymous` to the payload and updates computed props', () => {
       const state = Object.freeze({
         ...getInitialState(),
@@ -96,7 +95,7 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/setAnonymous',
+        type: 'innerSourceRepositoryConfigurationModal/setAnonymous',
         payload: false,
       });
 
@@ -104,7 +103,7 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/setUsername action', () => {
+  describe('innerSourceRepositoryConfigurationModal/setUsername action', () => {
     it('sets the `username` to the payload and updates computed props', () => {
       const state = {
         ...getInitialState(),
@@ -118,7 +117,7 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
       };
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/setUsername',
+        type: 'innerSourceRepositoryConfigurationModal/setUsername',
         payload: 'someUsername',
       });
 
@@ -134,7 +133,7 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/setPassword action', () => {
+  describe('innerSourceRepositoryConfigurationModal/setPassword action', () => {
     it('sets the `password` to the payload and updates computed props', () => {
       const state = {
         ...getInitialState(),
@@ -145,7 +144,7 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
       };
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/setPassword',
+        type: 'innerSourceRepositoryConfigurationModal/setPassword',
         payload: 'somePassword',
       });
 
@@ -161,7 +160,7 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/cancel action', () => {
+  describe('innerSourceRepositoryConfigurationModal/reset action', () => {
     it('reverts to the initial state if there is no server data', () => {
       const state = {
         formState: {
@@ -177,7 +176,7 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
       };
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/cancel',
+        type: 'innerSourceRepositoryConfigurationModal/reset',
       });
 
       expect(newState.formState).toEqual(getInitialState().formState);
@@ -185,85 +184,48 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
       expect(newState.testConfigurationSuccessful).toBeFalsy();
       expect(newState.testConfigurationError).toBeNull();
     });
-
-    it('reverts to the server data if it exists', () => {
-      const state = {
-        serverData: {
-          format: 'npm',
-          baseUrl: 'someOtherBaseUrl',
-        },
-        formState: {
-          format: 'maven',
-          baseUrlState: nxTextInputStateHelpers.initialState('someBaseUrl'),
-          isAnonymous: false,
-          usernameState: nxTextInputStateHelpers.initialState('someUsername'),
-          passwordState: nxTextInputStateHelpers.initialState('somePassword'),
-        },
-      };
-
-      const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/cancel',
-      });
-
-      expect(newState.formState).toEqual({
-        format: 'npm',
-        baseUrlState: nxTextInputStateHelpers.initialState('someOtherBaseUrl'),
-        isAnonymous: true,
-        usernameState: nxTextInputStateHelpers.initialState(''),
-        passwordState: nxTextInputStateHelpers.initialState(''),
-      });
-    });
   });
 
-  describe('innerSourceRepositoryConfiguration/submitMaskTimerDone action', () => {
-    it('sets the `submitMaskState` to `null` and `deleteSubmitMaskState` to `null`', () => {
+  describe('innerSourceRepositoryConfigurationModal/resetSubmitMask action', () => {
+    it('sets the `submitMaskState` to `null`', () => {
       const state = {
         submitMaskState: true,
-        deleteSubmitMaskState: true,
       };
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/submitMaskTimerDone',
+        type: 'innerSourceRepositoryConfigurationModal/resetSubmitMask',
       });
 
       expect(newState.submitMaskState).toBeNull();
-      expect(newState.deleteSubmitMaskState).toBeNull();
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/setShowDeleteModal', () => {
-    it('sets `showDeleteModal` to the payload and `deleteConfigurationError` to `null`', () => {
-      const state = {};
-
-      const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/setShowDeleteModal',
-        payload: true,
-      });
-
-      expect(newState.showDeleteModal).toBeTruthy();
-      expect(newState.deleteConfigurationError).toBeNull();
-    });
-  });
-
-  describe('innerSourceRepositoryConfiguration/loadConfiguration/pending action', () => {
+  describe('innerSourceRepositoryConfigurationModal/loadConfiguration/pending action', () => {
     it('sets the initial state with `loading` to true and `loadConfigurationError` to null', () => {
       const state = {};
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/loadConfiguration/pending',
+        type: 'innerSourceRepositoryConfigurationModal/loadConfiguration/pending',
+        meta: {
+          arg: 'someRepositoryConnectionId',
+        },
       });
-
-      expect(newState).toEqual({ ...getInitialState(), loading: true });
+      expect(newState).toEqual({
+        loading: true,
+        loadConfigurationError: null,
+        showModal: true,
+        repositoryConnectionId: 'someRepositoryConnectionId',
+      });
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/loadConfiguration/fulfilled action', () => {
+  describe('innerSourceRepositoryConfigurationModal/loadConfiguration/fulfilled action', () => {
     it('sets `loading` to false, `serverData` to the payload, and `formState` to represent the payload', () => {
       const state = {};
       const payload = getPayload(false);
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/loadConfiguration/fulfilled',
+        type: 'innerSourceRepositoryConfigurationModal/loadConfiguration/fulfilled',
         payload: payload,
       });
 
@@ -279,12 +241,12 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/loadConfiguration/rejected action', () => {
+  describe('innerSourceRepositoryConfigurationModal/loadConfiguration/rejected action', () => {
     it('sets `loading` to false and `loadConfigurationError` to the payload http error message', () => {
       const state = {};
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/loadConfiguration/rejected',
+        type: 'innerSourceRepositoryConfigurationModal/loadConfiguration/rejected',
         payload: 'someError',
       });
 
@@ -293,12 +255,12 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/saveConfiguration/pending action', () => {
+  describe('innerSourceRepositoryConfigurationModal/saveConfiguration/pending action', () => {
     it('sets `submitMaskState` to false, the `submitMaskMessage`, and `saveConfigurationError` to null', () => {
       const state = {};
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/saveConfiguration/pending',
+        type: 'innerSourceRepositoryConfigurationModal/saveConfiguration/pending',
       });
 
       expect(newState.submitMaskState).toBeFalsy();
@@ -307,29 +269,24 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/saveConfiguration/fulfilled action', () => {
-    it('sets `submitMaskState` to true and the `serverData` to the payload', () => {
-      const state = {
-        formState: getInitialState().formState,
-      };
-      const payload = getPayload(false);
+  describe('innerSourceRepositoryConfigurationModal/saveConfiguration/fulfilled action', () => {
+    it('sets `submitMaskState` to true', () => {
+      const state = {};
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/saveConfiguration/fulfilled',
-        payload: payload,
+        type: 'innerSourceRepositoryConfigurationModal/saveConfiguration/fulfilled',
       });
 
-      expect(newState.submitMaskState).toBeTruthy();
-      expect(newState.serverData).toEqual(payload);
+      expect(newState).toEqual({ submitMaskState: true });
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/saveConfiguration/rejected action', () => {
+  describe('innerSourceRepositoryConfigurationModal/saveConfiguration/rejected action', () => {
     it('sets `submitMaskState` to null and `saveConfigurationError` to the payload http error message', () => {
       const state = {};
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/saveConfiguration/rejected',
+        type: 'innerSourceRepositoryConfigurationModal/saveConfiguration/rejected',
         payload: 'someError',
       });
 
@@ -338,12 +295,12 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/testConfiguration/pending action', () => {
+  describe('innerSourceRepositoryConfigurationModal/testConfiguration/pending action', () => {
     it('sets `submitMaskState` to false, `submitMaskMessage`, and `testConfigurationError` to null', () => {
       const state = {};
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/testConfiguration/pending',
+        type: 'innerSourceRepositoryConfigurationModal/testConfiguration/pending',
       });
 
       expect(newState.submitMaskState).toBeFalsy();
@@ -352,12 +309,12 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/testConfiguration/fulfilled action', () => {
+  describe('innerSourceRepositoryConfigurationModal/testConfiguration/fulfilled action', () => {
     it('sets `submitMaskState` to true and `testConfigurationSuccessful` to true if the payload has status code 200', () => {
       const state = {};
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/testConfiguration/fulfilled',
+        type: 'innerSourceRepositoryConfigurationModal/testConfiguration/fulfilled',
         payload: { code: 200, message: 'OK' },
       });
 
@@ -369,7 +326,7 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
       const state = {};
 
       const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/testConfiguration/fulfilled',
+        type: 'innerSourceRepositoryConfigurationModal/testConfiguration/fulfilled',
         payload: { code: 401, message: 'Unauthorized' },
       });
 
@@ -379,12 +336,12 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
     });
   });
 
-  describe('innerSourceRepositoryConfiguration/testConfiguration/rejected action', () => {
+  describe('innerSourceRepositoryConfigurationModal/testConfiguration/rejected action', () => {
     it('sets `submitMaskState` to null, `testConfigurationSuccessful` to false, and `testConfigurationError` to the payload http error message', () => {
       const state = {};
 
       let newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/testConfiguration/rejected',
+        type: 'innerSourceRepositoryConfigurationModal/testConfiguration/rejected',
         payload: 'someError',
       });
 
@@ -393,53 +350,13 @@ describe('innerSourceRepositoryConfigurationSliceReducer', () => {
       expect(newState.testConfigurationError).toBe('someError');
 
       newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/testConfiguration/rejected',
+        type: 'innerSourceRepositoryConfigurationModal/testConfiguration/rejected',
         payload: { status: '401', message: 'Unauthorized' },
       });
 
       expect(newState.submitMaskState).toBeNull();
       expect(newState.testConfigurationSuccessful).toBeFalsy();
       expect(newState.testConfigurationError).toBe('Error 401');
-    });
-  });
-
-  describe('innerSourceRepositoryConfiguration/deleteConfiguration/pending action', () => {
-    it('sets `deleteSubmitMaskState` to false, `submitMaskMessage`, and `deleteConfigurationError` to null', () => {
-      const state = {};
-
-      const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/deleteConfiguration/pending',
-      });
-
-      expect(newState.deleteSubmitMaskState).toBeFalsy();
-      expect(newState.submitMaskMessage).toBe(SUBMIT_MASK_DELETING_CONFIGURATION_MESSAGE);
-      expect(newState.deleteConfigurationError).toBeNull();
-    });
-  });
-
-  describe('innerSourceRepositoryConfiguration/deleteConfiguration/fulfilled action', () => {
-    it('sets the initial state and `deleteSubmitMaskState` to true', () => {
-      const state = {};
-
-      const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/deleteConfiguration/fulfilled',
-      });
-
-      expect(newState).toEqual({ ...getInitialState(), deleteSubmitMaskState: true });
-    });
-  });
-
-  describe('innerSourceRepositoryConfiguration/deleteConfiguration/rejected action', () => {
-    it('sets `deleteSubmitMaskState` to null and `deleteConfigurationError` to the payload http error message', () => {
-      const state = {};
-
-      const newState = reducer(state, {
-        type: 'innerSourceRepositoryConfiguration/deleteConfiguration/rejected',
-        payload: 'someError',
-      });
-
-      expect(newState.deleteSubmitMaskState).toBeNull();
-      expect(newState.deleteConfigurationError).toBe('someError');
     });
   });
 });

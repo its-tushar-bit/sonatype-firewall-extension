@@ -69,6 +69,10 @@ public class InnerSourceRepositoryBaseConfigurationsPage
     public SelenideElement edit() {
       return child(".innersource-repository-base-configurations-edit-button");
     }
+    
+    public SelenideElement delete() {
+      return child(".innersource-repository-base-configurations-delete-button");
+    }
   }
 
   public SelenideElement cancel() {
@@ -85,5 +89,27 @@ public class InnerSourceRepositoryBaseConfigurationsPage
 
   public SelenideElement alert() {
     return child(".nx-alert--info");
+  }
+
+  public DeleteModal deleteModal() {
+    return new DeleteModal();
+  }
+
+  public static class DeleteModal
+      extends BasicElement<DeleteModal>
+  {
+    public static final String ROOT = "#innersource-repository-configuration-delete-modal";
+
+    public DeleteModal() {
+      super(ROOT);
+    }
+
+    public SelenideElement ok() {
+      return child(".nx-form__submit-btn");
+    }
+
+    public SelenideElement cancel() {
+      return child(".nx-form__cancel-btn");
+    }
   }
 }

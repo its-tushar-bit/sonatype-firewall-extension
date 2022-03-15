@@ -7,21 +7,21 @@
 import {
   getInitialState,
   getPayload,
-} from 'TestRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationTestData';
+} from 'TestRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalTestData';
 import {
   FAKE_PASSWORD,
   MISSING_OR_INVALID_DATA_MESSAGE,
   MUST_REENTER_PASSWORD_MESSAGE,
   NO_CHANGES_MESSAGE,
-} from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
+} from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
-import { getOriginalValues } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationUtil';
+import { getOriginalValues } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalUtil';
 
-describe('innerSourceRepositoryConfigurationSelectors', function () {
+describe('innerSourceRepositoryConfigurationModalSelectors', function () {
   let spyGetOriginalValues,
     selectApplicationId,
     selectFormState,
-    selectInnerSourceRepositoryConfigurationSlice,
+    selectInnerSourceRepositoryConfigurationModalSlice,
     selectIsUpdate,
     selectOrganizationId,
     selectOriginalValues,
@@ -37,9 +37,9 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
     spyGetOriginalValues = jasmine.createSpy('getOriginalValues').and.callFake((serverData) => {
       return getOriginalValues(serverData);
     });
-    const module = require('inject-loader!../../../../src/main/frontend/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSelectors')(
+    const module = require('inject-loader!../../../../src/main/frontend/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSelectors')(
       {
-        'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationUtil': {
+        'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalUtil': {
           FAKE_PASSWORD,
           initialState: getInitialState(),
           getOriginalValues: spyGetOriginalValues,
@@ -49,7 +49,7 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
     ({
       selectApplicationId,
       selectFormState,
-      selectInnerSourceRepositoryConfigurationSlice,
+      selectInnerSourceRepositoryConfigurationModalSlice,
       selectIsUpdate,
       selectOrganizationId,
       selectOriginalValues,
@@ -102,33 +102,42 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
 
   describe('selectRepositoryConnectionId', () => {
     it('selects `repositoryConnectionId`', () => {
-      const state = { router: { currentParams: { repositoryConnectionId: 'someRepositoryConnectionId' } } };
+      const state = {
+        innerSourceRepositoryConfigurationModal: { repositoryConnectionId: 'someRepositoryConnectionId' },
+      };
       expect(selectRepositoryConnectionId(state)).toBe('someRepositoryConnectionId');
     });
   });
 
   describe('selectIsUpdate', () => {
-    it('selects `isUpdate` as true if a repositoryConnectionId param exists', () => {
-      const state = { router: { currentParams: { repositoryConnectionId: 'someRepositoryConnectionId' } } };
+    it('selects `isUpdate` as true if a repositoryConnectionId exists', () => {
+      const state = {
+        router: { currentParams: {} },
+        innerSourceRepositoryConfigurationModal: {
+          repositoryConnectionId: 'someRepositoryConnectionId',
+        },
+      };
       expect(selectIsUpdate(state)).toBeTruthy();
     });
 
-    it('selects `isUpdate` as false if a repositoryConnectionId param does not exist', () => {
+    it('selects `isUpdate` as false if a repositoryConnectionId does not exist', () => {
       const state = { router: { currentParams: {} } };
       expect(selectIsUpdate(state)).toBeFalsy();
     });
   });
 
-  describe('selectInnerSourceRepositoryConfigurationSlice', () => {
-    it('selects `innerSourceRepositoryConfiguration`', () => {
-      const state = { innerSourceRepositoryConfiguration: 'someInnerSourceRepositoryConfiguration' };
-      expect(selectInnerSourceRepositoryConfigurationSlice(state)).toBe('someInnerSourceRepositoryConfiguration');
+  describe('selectInnerSourceRepositoryConfigurationModalSlice', () => {
+    it('selects `innerSourceRepositoryConfigurationModal`', () => {
+      const state = { innerSourceRepositoryConfigurationModal: 'someInnerSourceRepositoryConfigurationModal' };
+      expect(selectInnerSourceRepositoryConfigurationModalSlice(state)).toBe(
+        'someInnerSourceRepositoryConfigurationModal'
+      );
     });
   });
 
   describe('selectServerData', () => {
     it('selects `serverData`', () => {
-      const state = { innerSourceRepositoryConfiguration: { serverData: 'someServerData' } };
+      const state = { innerSourceRepositoryConfigurationModal: { serverData: 'someServerData' } };
       expect(selectServerData(state)).toBe('someServerData');
     });
   });
@@ -136,7 +145,7 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
   describe('selectOriginalValues', () => {
     it('selects the result of `getOriginalValues`', () => {
       spyGetOriginalValues.and.returnValue('result');
-      const state = { innerSourceRepositoryConfiguration: { serverData: 'someServerData' } };
+      const state = { innerSourceRepositoryConfigurationModal: { serverData: 'someServerData' } };
       expect(selectOriginalValues(state)).toBe('result');
       expect(spyGetOriginalValues).toHaveBeenCalledWith('someServerData');
     });
@@ -144,7 +153,7 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
 
   describe('selectFormState', () => {
     it('selects `formState`', () => {
-      const state = { innerSourceRepositoryConfiguration: { formState: 'someFormState' } };
+      const state = { innerSourceRepositoryConfigurationModal: { formState: 'someFormState' } };
       expect(selectFormState(state)).toBe('someFormState');
     });
   });
@@ -154,7 +163,7 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
 
     beforeEach(() => {
       state = {
-        innerSourceRepositoryConfiguration: getInitialState(),
+        innerSourceRepositoryConfigurationModal: getInitialState(),
       };
     });
 
@@ -163,13 +172,13 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
     });
 
     it('returns true if the `format` has changed', function () {
-      state.innerSourceRepositoryConfiguration.formState.format = 'maven';
+      state.innerSourceRepositoryConfigurationModal.formState.format = 'maven';
 
       expect(selectIsDirty(state)).toBeTruthy();
     });
 
     it('returns true if the `baseUrl` has changed', function () {
-      state.innerSourceRepositoryConfiguration.formState.baseUrlState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.baseUrlState = nxTextInputStateHelpers.initialState(
         'someBaseUrl'
       );
 
@@ -177,13 +186,13 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
     });
 
     it('returns true if `isAnonymous` has changed', function () {
-      state.innerSourceRepositoryConfiguration.formState.isAnonymous = false;
+      state.innerSourceRepositoryConfigurationModal.formState.isAnonymous = false;
 
       expect(selectIsDirty(state)).toBeTruthy();
     });
 
     it('returns false if the `username` has changed and isAnonymous is true', function () {
-      state.innerSourceRepositoryConfiguration.formState.usernameState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.usernameState = nxTextInputStateHelpers.initialState(
         'someUsername'
       );
 
@@ -191,7 +200,7 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
     });
 
     it('returns false if the `password` has changed and isAnonymous is true', function () {
-      state.innerSourceRepositoryConfiguration.formState.passwordState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.passwordState = nxTextInputStateHelpers.initialState(
         'somePassword'
       );
 
@@ -199,11 +208,11 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
     });
 
     it('returns true if the `username` has changed and isAnonymous is false', function () {
-      state.innerSourceRepositoryConfiguration.serverData = {
+      state.innerSourceRepositoryConfigurationModal.serverData = {
         ...getPayload(false),
         password: FAKE_PASSWORD,
       };
-      state.innerSourceRepositoryConfiguration.formState.usernameState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.usernameState = nxTextInputStateHelpers.initialState(
         'someOtherUsername'
       );
 
@@ -211,11 +220,11 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
     });
 
     it('returns true if the `password` has changed and isAnonymous is false', function () {
-      state.innerSourceRepositoryConfiguration.serverData = {
+      state.innerSourceRepositoryConfigurationModal.serverData = {
         ...getPayload(false),
         password: FAKE_PASSWORD,
       };
-      state.innerSourceRepositoryConfiguration.formState.passwordState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.passwordState = nxTextInputStateHelpers.initialState(
         'somePassword'
       );
 
@@ -228,7 +237,7 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
 
     beforeEach(() => {
       state = {
-        innerSourceRepositoryConfiguration: getInitialState(),
+        innerSourceRepositoryConfigurationModal: getInitialState(),
       };
     });
 
@@ -237,7 +246,7 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
     });
 
     it('returns true if the `baseUrl` is set and `isAnonymous` is true', function () {
-      state.innerSourceRepositoryConfiguration.formState.baseUrlState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.baseUrlState = nxTextInputStateHelpers.initialState(
         'someBaseUrl'
       );
 
@@ -245,20 +254,20 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
     });
 
     it('returns false if the `baseUrl` is set and `isAnonymous` is false', function () {
-      state.innerSourceRepositoryConfiguration.formState.baseUrlState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.baseUrlState = nxTextInputStateHelpers.initialState(
         'someBaseUrl'
       );
-      state.innerSourceRepositoryConfiguration.formState.isAnonymous = false;
+      state.innerSourceRepositoryConfigurationModal.formState.isAnonymous = false;
 
       expect(selectHasAllRequiredData(state)).toBeFalsy();
     });
 
     it('returns false if the `baseUrl` and `username` are set and `isAnonymous` is false', function () {
-      state.innerSourceRepositoryConfiguration.formState.baseUrlState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.baseUrlState = nxTextInputStateHelpers.initialState(
         'someBaseUrl'
       );
-      state.innerSourceRepositoryConfiguration.formState.isAnonymous = false;
-      state.innerSourceRepositoryConfiguration.formState.usernameState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.isAnonymous = false;
+      state.innerSourceRepositoryConfigurationModal.formState.usernameState = nxTextInputStateHelpers.initialState(
         'someUsername'
       );
 
@@ -266,11 +275,11 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
     });
 
     it('returns false if the `baseUrl` and `password` are set and `isAnonymous` is false', function () {
-      state.innerSourceRepositoryConfiguration.formState.baseUrlState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.baseUrlState = nxTextInputStateHelpers.initialState(
         'someBaseUrl'
       );
-      state.innerSourceRepositoryConfiguration.formState.isAnonymous = false;
-      state.innerSourceRepositoryConfiguration.formState.passwordState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.isAnonymous = false;
+      state.innerSourceRepositoryConfigurationModal.formState.passwordState = nxTextInputStateHelpers.initialState(
         'somePassword'
       );
 
@@ -278,14 +287,14 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
     });
 
     it('returns true if the `baseUrl`, `username`, and `password` are set and `isAnonymous` is false', function () {
-      state.innerSourceRepositoryConfiguration.formState.baseUrlState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.baseUrlState = nxTextInputStateHelpers.initialState(
         'someBaseUrl'
       );
-      state.innerSourceRepositoryConfiguration.formState.isAnonymous = false;
-      state.innerSourceRepositoryConfiguration.formState.usernameState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.isAnonymous = false;
+      state.innerSourceRepositoryConfigurationModal.formState.usernameState = nxTextInputStateHelpers.initialState(
         'someUsername'
       );
-      state.innerSourceRepositoryConfiguration.formState.passwordState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.passwordState = nxTextInputStateHelpers.initialState(
         'somePassword'
       );
 
@@ -298,24 +307,24 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
 
     beforeEach(() => {
       state = {
-        innerSourceRepositoryConfiguration: {
+        innerSourceRepositoryConfigurationModal: {
           formState: { isAnonymous: false, passwordState: nxTextInputStateHelpers.initialState(FAKE_PASSWORD) },
         },
       };
     });
 
     it('returns false if `isAnonymous` is true', function () {
-      state.innerSourceRepositoryConfiguration.formState.isAnonymous = true;
+      state.innerSourceRepositoryConfigurationModal.formState.isAnonymous = true;
       expect(selectIsPasswordNeededAndNotEntered(state)).toBeFalsy();
     });
 
     it('returns false if `passwordState` is not pristine', function () {
-      state.innerSourceRepositoryConfiguration.formState.passwordState.isPristine = false;
+      state.innerSourceRepositoryConfigurationModal.formState.passwordState.isPristine = false;
       expect(selectIsPasswordNeededAndNotEntered(state)).toBeFalsy();
     });
 
     it('returns false if `passwordState` `trimmedValue` is not FAKE_PASSWORD', function () {
-      state.innerSourceRepositoryConfiguration.formState.passwordState.trimmedValue = '';
+      state.innerSourceRepositoryConfigurationModal.formState.passwordState.trimmedValue = '';
       expect(selectIsPasswordNeededAndNotEntered(state)).toBeFalsy();
     });
 
@@ -329,7 +338,7 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
 
     beforeEach(() => {
       state = {
-        innerSourceRepositoryConfiguration: getInitialState(),
+        innerSourceRepositoryConfigurationModal: getInitialState(),
       };
     });
 
@@ -338,22 +347,22 @@ describe('innerSourceRepositoryConfigurationSelectors', function () {
     });
 
     it('returns NO_CHANGES_MESSAGE if `hasAllRequiredData` is true and `isDirty` is false', function () {
-      state.innerSourceRepositoryConfiguration.formState.baseUrlState = nxTextInputStateHelpers.initialState(
+      state.innerSourceRepositoryConfigurationModal.formState.baseUrlState = nxTextInputStateHelpers.initialState(
         'someBaseUrl'
       );
-      state.innerSourceRepositoryConfiguration.serverData = getPayload(true);
+      state.innerSourceRepositoryConfigurationModal.serverData = getPayload(true);
       expect(selectValidationErrors(state)).toBe(NO_CHANGES_MESSAGE);
     });
 
     it('returns MUST_REENTER_PASSWORD_MESSAGE if `hasAllRequiredData` is true, `isDirty` is true, and `isPasswordNeededAndNotEntered` is true', function () {
-      state.innerSourceRepositoryConfiguration.formState = {
-        ...state.innerSourceRepositoryConfiguration.formState,
+      state.innerSourceRepositoryConfigurationModal.formState = {
+        ...state.innerSourceRepositoryConfigurationModal.formState,
         baseUrlState: nxTextInputStateHelpers.userInput(null, 'someOtherBaseUrl'),
         isAnonymous: false,
         usernameState: nxTextInputStateHelpers.initialState('someUsername'),
         passwordState: nxTextInputStateHelpers.initialState(FAKE_PASSWORD),
       };
-      state.innerSourceRepositoryConfiguration.serverData = getPayload(false);
+      state.innerSourceRepositoryConfigurationModal.serverData = getPayload(false);
       expect(selectValidationErrors(state)).toBe(MUST_REENTER_PASSWORD_MESSAGE);
     });
   });

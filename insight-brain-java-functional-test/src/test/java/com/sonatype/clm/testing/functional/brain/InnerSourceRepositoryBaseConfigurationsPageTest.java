@@ -9,8 +9,9 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.InnerSourceRepositoryBaseConfigurationsPage;
+import com.sonatype.clm.testing.functional.pages.InnerSourceRepositoryBaseConfigurationsPage.DeleteModal;
 import com.sonatype.clm.testing.functional.pages.InnerSourceRepositoryBaseConfigurationsPage.RepositoryConnectionRow;
-import com.sonatype.clm.testing.functional.pages.InnerSourceRepositoryConfigurationPage;
+import com.sonatype.clm.testing.functional.pages.InnerSourceRepositoryConfigurationModal;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -22,24 +23,32 @@ import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class InnerSourceRepositoryBaseConfigurationsPageTest
     extends AbstractFunctionalTest
 {
+  @Rule
+  public WireMockRule nxrm3MockServer = new WireMockRule(wireMockConfig().dynamicPort());
+
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private final ApplicationDAO applicationDAO = new ApplicationDAO();
@@ -295,36 +304,32 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
 
   @Test
   public void testLinks_RootOrg() {
-    testLinks(rootOrg);
+    testModalButtonsAndLinks(rootOrg);
   }
 
   @Test
   public void testLinks_Org() {
-    testLinks(org);
+    testModalButtonsAndLinks(org);
   }
 
   @Test
   public void testLinks_App() {
-    testLinks(app);
+    testModalButtonsAndLinks(app);
   }
 
-  private void testLinks(Owner owner) {
+  private void testModalButtonsAndLinks(Owner owner) {
     RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(owner.getId());
     setRepositoryConfiguration(owner, true, true);
     InnerSourceRepositoryBaseConfigurationsPage page = visitPage(owner.getType().toString(), owner.getId());
 
     page.add().click();
-    waitUntilUrl(InnerSourceRepositoryConfigurationPage.url(owner.getType().toString(), owner.getId()));
-    InnerSourceRepositoryConfigurationPage addPage = new InnerSourceRepositoryConfigurationPage();
-    addPage.back().click();
-    waitUntilUrl(InnerSourceRepositoryBaseConfigurationsPage.url(owner.getType().toString(), owner.getId()));
+    InnerSourceRepositoryConfigurationModal modal = new InnerSourceRepositoryConfigurationModal();
+    modal.should(appear);
+    modal.cancel().shouldBe(visible, enabled).click();
 
     page.row(repositoryConnection.getId()).edit().click();
-    waitUntilUrl(InnerSourceRepositoryConfigurationPage.url(owner.getType().toString(), owner.getId(),
-        repositoryConnection.getId()));
-    InnerSourceRepositoryConfigurationPage editPage = new InnerSourceRepositoryConfigurationPage();
-    editPage.back().click();
-    waitUntilUrl(InnerSourceRepositoryBaseConfigurationsPage.url(owner.getType().toString(), owner.getId()));
+    modal.cancel().click();
+    modal.shouldNotBe(visible);
 
     page.back().click();
     waitUntilUrl(OwnerSummaryPage.url(owner));
@@ -337,7 +342,7 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
   }
 
   @Test
-  public void testOverrideNotAllowed() {
+  public void testOverrideNotAllowed() { 
     testIsOverrideAllowed(rootOrg, true);
     testIsOverrideAllowed(org, true);
     testIsOverrideAllowed(app, true);
@@ -372,5 +377,50 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
     InnerSourceRepositoryBaseConfigurationsPage page = new InnerSourceRepositoryBaseConfigurationsPage();
     page.shouldBe(visible);
     return page;
+  }
+
+  @Test
+  public void testAddEditAndDeleteRepository_RootOrg() {
+    testAddEditAndDeleteRepository(rootOrg);
+  }
+
+  @Test
+  public void testAddEditAndDeleteRepository_Org() {
+    testAddEditAndDeleteRepository(org);
+  }
+
+  @Test
+  public void testAddEditAndDeleteRepository_App() {
+    testAddEditAndDeleteRepository(app);
+  }
+
+  public void testAddEditAndDeleteRepository(Owner owner) {
+    RepositoryConnection repositoryConnection = tempEntity.newRepositoryConnection(owner.getId());
+    setRepositoryConfiguration(owner, true, true);
+    InnerSourceRepositoryBaseConfigurationsPage page = visitPage(owner.getType().toString(), owner.getId());
+
+    page.add().click();
+    InnerSourceRepositoryConfigurationModal addRepositoryModal = new InnerSourceRepositoryConfigurationModal();
+    addRepositoryModal.shouldBe(visible);
+    addRepositoryModal.cancel().click();
+
+    page.row(repositoryConnection.getId()).edit().click();
+    InnerSourceRepositoryConfigurationModal editRepositoryModal = new InnerSourceRepositoryConfigurationModal();
+    editRepositoryModal.shouldBe(visible);
+    editRepositoryModal.cancel().click();
+
+    page.row(repositoryConnection.getId()).delete().click();
+    DeleteModal deleteModal = new DeleteModal();
+    deleteModal.shouldBe(visible);
+    deleteModal.cancel().click();
+    deleteModal.shouldNotBe(visible);
+
+    page.back().click();
+    refresh();
+    MainHeader.closeNavigationSidebar();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
+    OwnerSummaryPage.innerSourceRepositoryTile().editButton().click();
+    waitUntilUrl(InnerSourceRepositoryBaseConfigurationsPage.url(owner.getType().toString(), owner.getId()));
   }
 }

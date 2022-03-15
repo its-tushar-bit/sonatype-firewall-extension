@@ -6,23 +6,23 @@
 
 import { getInitialState } from 'TestRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsTestData';
 import { getOriginalValues } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsUtil';
-import { NO_CHANGES_MESSAGE } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
+import { NO_CHANGES_MESSAGE } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
 
 describe('innerSourceRepositoryBaseConfigurationsSelectors', function () {
   let spyGetOriginalValues,
-    selectInnerSourceRepositoryBaseConfigurationsSlice,
+    selectAllowChange,
+    selectEnabled,
     selectFormState,
-    selectServerData,
+    selectInheritedFromOrganizationName,
+    selectInheritedFromOrgEnabled,
+    selectInnerSourceRepositoryBaseConfigurationsSlice,
+    selectIsDirty,
+    selectOriginalValues,
     selectOwnerDTO,
     selectOwnerPublicId,
-    selectRepositoryConnectionStatus,
-    selectInheritedFromOrganizationName,
-    selectEnabled,
-    selectInheritedFromOrgEnabled,
-    selectAllowChange,
     selectRepositoryConnections,
-    selectOriginalValues,
-    selectIsDirty,
+    selectRepositoryConnectionStatus,
+    selectServerData,
     selectValidationErrors;
 
   beforeEach(() => {
@@ -38,19 +38,19 @@ describe('innerSourceRepositoryBaseConfigurationsSelectors', function () {
       }
     );
     ({
-      selectInnerSourceRepositoryBaseConfigurationsSlice,
+      selectAllowChange,
+      selectEnabled,
       selectFormState,
-      selectServerData,
+      selectInheritedFromOrganizationName,
+      selectInheritedFromOrgEnabled,
+      selectInnerSourceRepositoryBaseConfigurationsSlice,
+      selectIsDirty,
+      selectOriginalValues,
       selectOwnerDTO,
       selectOwnerPublicId,
-      selectRepositoryConnectionStatus,
-      selectInheritedFromOrganizationName,
-      selectEnabled,
-      selectInheritedFromOrgEnabled,
-      selectAllowChange,
       selectRepositoryConnections,
-      selectOriginalValues,
-      selectIsDirty,
+      selectRepositoryConnectionStatus,
+      selectServerData,
       selectValidationErrors,
     } = module);
   });

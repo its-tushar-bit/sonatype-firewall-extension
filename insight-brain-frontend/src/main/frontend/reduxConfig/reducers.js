@@ -64,8 +64,9 @@ import componentDetailsSlice from '../componentDetails/componentDetailsSlice';
 import claimSlice from '../componentDetails/claim/claimSlice';
 import quarantinedComponentReportReducer from 'MainRoot/quarantinedComponentReport/quarantinedComponentReportReducer';
 import userLoginSlice from 'MainRoot/user/LoginModal/userLoginSlice';
-import innerSourceRepositoryConfigurationSlice from '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
 import innerSourceRepositoryBaseConfigurationsSlice from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSlice';
+import innerSourceRepositoryConfigurationModalSlice from '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
+import innerSourceRepositoryDeleteConfigurationModalSlice from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryDeleteConfigurationModalSlice';
 import otherVersionsSlice from 'MainRoot/quarantinedComponentReport/otherVersionsTile/otherVersionsSlice';
 import samlConfigurationSlice from '../configuration/saml/samlConfigurationSlice';
 import quarantinedRiskRemediationSlice from 'MainRoot/quarantinedComponentReport/riskRemediationTile/riskRemediationSlice';
@@ -133,8 +134,9 @@ export default combineReducers({
   occurrencesPopover: occurrencesPopoverReducer,
   quarantinedComponentReport: quarantinedComponentReportReducer,
   userLogin: userLoginSlice,
-  innerSourceRepositoryConfiguration: innerSourceRepositoryConfigurationSlice,
   innerSourceRepositoryBaseConfigurations: innerSourceRepositoryBaseConfigurationsSlice,
+  innerSourceRepositoryConfigurationModal: innerSourceRepositoryConfigurationModalSlice,
+  innerSourceRepositoryDeleteConfigurationModal: innerSourceRepositoryDeleteConfigurationModalSlice,
   quarantinedComponentReportOtherVersions: otherVersionsSlice,
   quarantinedReportRiskRemediation: quarantinedRiskRemediationSlice,
   orgsAndPolicies: orgsAndPoliciesSlice,

@@ -4,10 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-inner-source-repository-configuration {
-  display: contents;
-
-  #innersource-repository-configuration-authentication {
-    margin-left: var(--nx-spacing-6x);
-  }
+#innersource-repository-configuration-modal-authentication {
+  margin-left: var(--nx-spacing-6x);
 }

@@ -5,6 +5,9 @@ baseUrl: http://localhost:8070
 
 consentToUpgradeToVersion_1_45: true
 
+experimentalFeatures:
+  innerSourceRepositoryIntegration: true
+
 enableDefaultPasswordWarning: false
 
 logging:

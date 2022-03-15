@@ -7,7 +7,7 @@ import reducer, {
   initialState,
 } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSlice';
 import { getInitialState } from 'TestRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsTestData';
-import { SUBMIT_MASK_SAVING_CONFIGURATION_MESSAGE } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
+import { SUBMIT_MASK_SAVING_CONFIGURATION_MESSAGE } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
 
 describe('innerSourceRepositoryBaseConfigurationsSliceReducer', () => {
   describe('initial state', () => {

@@ -42,7 +42,7 @@ describe('innerSourceRepositoryBaseConfigurationsSliceActions', () => {
   });
 
   describe('setAllowOverride', () => {
-    it('immediately dispatches a innerSourceRepositoryConfiguration/setAllowOverride action', () => {
+    it('immediately dispatches a innerSourceRepositoryBaseConfigurations/setAllowOverride action', () => {
       verifySimpleAction('setAllowOverride');
     });
   });
@@ -137,7 +137,6 @@ describe('innerSourceRepositoryBaseConfigurationsSliceActions', () => {
       });
 
       store.dispatch(actions.save());
-
       expect(store.getActions()).toHaveAction({
         type: 'innerSourceRepositoryBaseConfigurations/save/pending',
       });
@@ -168,8 +167,12 @@ describe('innerSourceRepositoryBaseConfigurationsSliceActions', () => {
           {
             type: 'innerSourceRepositoryBaseConfigurations/save/fulfilled',
           },
-          { type: 'innerSourceRepositoryBaseConfigurations/submitMaskTimerDone' },
-          { type: 'innerSourceRepositoryBaseConfigurations/load/pending' },
+          {
+            type: 'innerSourceRepositoryBaseConfigurations/submitMaskTimerDone',
+          },
+          {
+            type: 'innerSourceRepositoryBaseConfigurations/load/pending',
+          },
         ]);
         done();
       });

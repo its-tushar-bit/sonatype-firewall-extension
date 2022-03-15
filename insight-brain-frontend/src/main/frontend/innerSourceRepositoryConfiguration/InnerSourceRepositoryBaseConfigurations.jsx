@@ -11,28 +11,27 @@ import {
   NxFieldset,
   NxFontAwesomeIcon,
   NxForm,
-  NxList,
-  NxPageMain,
-  NxTile,
-  NxRadio,
-  NxTooltip,
-  NxP,
   NxH2,
   NxH3,
   NxInfoAlert,
+  NxList,
+  NxP,
+  NxPageMain,
+  NxRadio,
+  NxTile,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
-import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectAllowChange,
   selectEnabled,
-  selectInheritedFromOrganizationName,
+  selectInheritedFromOrgEnabled,
   selectInnerSourceRepositoryBaseConfigurationsSlice,
   selectIsDirty,
   selectRepositoryConnections,
   selectValidationErrors,
   selectFormState,
-  selectInheritedFromOrgEnabled,
+  selectInheritedFromOrganizationName,
   selectOwnerPublicId,
 } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSelectors';
 import {
@@ -41,11 +40,19 @@ import {
   MUST_UPDATE_ENABLED_EDIT_MESSAGE,
   PARENT_ORGANIZATIONS_MUST_ALLOW_OVERRIDE,
 } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSlice';
-import { selectOwnerTypeAndOwnerId } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSelectors';
-import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { faEdit } from '@fortawesome/pro-regular-svg-icons';
+
+import InnerSourceRepositoryDeleteConfigurationModal from 'MainRoot/innerSourceRepositoryConfiguration/InnerSourceRepositoryDeleteConfigurationModal';
+import { actions as deleteModalActions } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryDeleteConfigurationModalSlice';
+
+import { selectOwnerTypeAndOwnerId } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSelectors';
+import { actions as configurationModalActions } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
+
+import { faPen, faPlus, faTrash } from '@fortawesome/pro-solid-svg-icons';
+
 import classnames from 'classnames';
+
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import InnerSourceRepositoryConfigurationModal from './InnerSourceRepositoryConfigurationModal';
 
 export default function InnerSourceRepositoryBaseConfigurations() {
   const dispatch = useDispatch();
@@ -53,6 +60,7 @@ export default function InnerSourceRepositoryBaseConfigurations() {
   const { loading, loadError, saveError, submitMaskState, submitMaskMessage } = useSelector(
     selectInnerSourceRepositoryBaseConfigurationsSlice
   );
+
   const { enabled: formEnabled, allowOverride } = useSelector(selectFormState);
   const inheritedFromOrganizationName = useSelector(selectInheritedFromOrganizationName);
   const enabled = useSelector(selectEnabled);
@@ -69,38 +77,55 @@ export default function InnerSourceRepositoryBaseConfigurations() {
   const load = () => dispatch(actions.load());
   const save = () => dispatch(actions.save());
   const cancel = () => dispatch(actions.cancel());
+
+  useEffect(() => {
+    load();
+  }, []);
+
   const setEnabled = (value) => dispatch(actions.setEnabled(value));
   const setAllowOverride = (value) => dispatch(actions.setAllowOverride(value));
-  const goToAddRepositoryConnectionPage = () => {
-    const payload = {};
-    payload[`${ownerType}Id`] = ownerId;
-    dispatch(stateGo(`repositoryConfiguration.${ownerType}`, payload));
+
+  const openAddConfigurationModal = () => {
+    if (allowChange && enabled) {
+      dispatch(configurationModalActions.loadConfiguration());
+    }
   };
-  const goToEditRepositoryConnectionPage = (repositoryConnectionId) => {
-    const payload = {
-      repositoryConnectionId,
-    };
-    payload[`${ownerType}Id`] = ownerId;
-    dispatch(stateGo(`repositoryConfiguration.${ownerType}.edit`, payload));
+
+  const openEditConfigurationModal = (repositoryConnectionId) => {
+    if (allowChange && enabled) {
+      dispatch(configurationModalActions.loadConfiguration(repositoryConnectionId));
+    }
   };
+
+  const openDeleteConfigurationModal = (repositoryConnectionId) => {
+    if (allowChange && enabled) {
+      dispatch(deleteModalActions.openModal(repositoryConnectionId));
+    }
+  };
+
   const getBackHref = () => {
     if (ownerType === 'application') {
       return `#/management/view/${ownerType}/${ownerPublicId}`;
     }
     return `#/management/view/${ownerType}/${ownerId}`;
   };
-  const getAddOrEditTooltip = (mustUpdateEnabledMessage) => {
-    return allowChange ? (enabled ? null : mustUpdateEnabledMessage) : PARENT_ORGANIZATIONS_MUST_ALLOW_OVERRIDE;
-  };
 
-  useEffect(() => {
-    load();
-  }, []);
+  const getAddOrEditTooltip = (defaultMessage, mustUpdateEnabledMessage) => {
+    return allowChange
+      ? enabled
+        ? defaultMessage
+        : mustUpdateEnabledMessage
+      : PARENT_ORGANIZATIONS_MUST_ALLOW_OVERRIDE;
+  };
 
   return (
     <NxPageMain id="innersource-repository-base-configurations-page-container">
       <MenuBarBackButton href={getBackHref()} text="Back" />
+
       <NxTile>
+        <InnerSourceRepositoryConfigurationModal />
+        <InnerSourceRepositoryDeleteConfigurationModal />
+
         <NxForm
           id="innersource-repository-base-configurations-form"
           loading={loading}
@@ -189,13 +214,14 @@ export default function InnerSourceRepositoryBaseConfigurations() {
               <>
                 <div id="innersource-repository-base-configurations-list-header">
                   <NxH3>LOCAL</NxH3>
-                  <NxTooltip title={getAddOrEditTooltip(MUST_UPDATE_ENABLED_ADD_MESSAGE)}>
+                  <NxTooltip title={getAddOrEditTooltip('', MUST_UPDATE_ENABLED_ADD_MESSAGE)}>
                     <NxButton
                       id="innersource-repository-base-configurations-add-button"
                       type="button"
                       variant="tertiary"
-                      onClick={allowChange && enabled ? goToAddRepositoryConnectionPage : null}
+                      onClick={openAddConfigurationModal}
                       className={classnames({ disabled: !allowChange || !enabled })}
+                      aria-disabled={!allowChange || !enabled}
                     >
                       <NxFontAwesomeIcon icon={faPlus} />
                       <span>Add a Repository</span>
@@ -219,17 +245,32 @@ export default function InnerSourceRepositoryBaseConfigurations() {
                             <NxButton
                               type="button"
                               variant="icon-only"
-                              onClick={
-                                allowChange && enabled
-                                  ? () => goToEditRepositoryConnectionPage(repositoryConnection.repositoryConnectionId)
-                                  : null
-                              }
-                              title={getAddOrEditTooltip(MUST_UPDATE_ENABLED_EDIT_MESSAGE)}
+                              onClick={() => openEditConfigurationModal(repositoryConnection.repositoryConnectionId)}
+                              title={getAddOrEditTooltip(
+                                'Edit Repository Configuration',
+                                MUST_UPDATE_ENABLED_EDIT_MESSAGE
+                              )}
                               className={classnames('innersource-repository-base-configurations-edit-button', {
                                 disabled: !allowChange || !enabled,
                               })}
+                              aria-disabled={!allowChange || !enabled}
                             >
-                              <NxFontAwesomeIcon icon={faEdit} />
+                              <NxFontAwesomeIcon icon={faPen} />
+                            </NxButton>
+                            <NxButton
+                              type="button"
+                              variant="icon-only"
+                              onClick={() => openDeleteConfigurationModal(repositoryConnection.repositoryConnectionId)}
+                              title={getAddOrEditTooltip(
+                                'Delete Repository Configuration',
+                                MUST_UPDATE_ENABLED_EDIT_MESSAGE
+                              )}
+                              className={classnames('innersource-repository-base-configurations-delete-button', {
+                                disabled: !allowChange || !enabled,
+                              })}
+                              aria-disabled={!allowChange || !enabled}
+                            >
+                              <NxFontAwesomeIcon icon={faTrash} />
                             </NxButton>
                           </NxList.Actions>
                         </NxList.Item>

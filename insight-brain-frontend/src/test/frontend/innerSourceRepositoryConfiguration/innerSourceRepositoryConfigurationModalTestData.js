@@ -5,7 +5,7 @@
  */
 
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
-import { initialState } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
+import { initialState } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
 import { clone } from 'ramda';
 
 export function getInitialState() {

@@ -6,7 +6,7 @@
 import {
   FAKE_PASSWORD,
   initialState,
-} from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
+} from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 
 export function getOriginalValues(serverData) {

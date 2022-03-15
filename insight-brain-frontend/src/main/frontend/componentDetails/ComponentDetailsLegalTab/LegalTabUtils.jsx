@@ -27,7 +27,7 @@ const renderOneLicense = (licenseItem) => {
 export const renderLicensesList = (list, claimed, isEffective = false) =>
   list?.map((item) => {
     const { licenses } = item;
-    const licenseKey = licenses.map(licenseItem => licenseItem.license.licenseId).join();
+    const licenseKey = licenses.map((licenseItem) => licenseItem.license.licenseId).join();
 
     const multiDisplay = (multiLicenses) => {
       return multiLicenses

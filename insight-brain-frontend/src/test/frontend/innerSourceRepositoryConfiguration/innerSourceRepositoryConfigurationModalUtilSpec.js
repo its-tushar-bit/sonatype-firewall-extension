@@ -7,16 +7,16 @@
 import {
   getMinimalValidFormState,
   getPayload,
-} from 'TestRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationTestData';
+} from 'TestRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalTestData';
 import {
   getOriginalValues,
   toFormState,
   toServerData,
-} from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationUtil';
-import { FAKE_PASSWORD } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
+} from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalUtil';
+import { FAKE_PASSWORD } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 
-describe('innerSourceRepositoryConfigurationUtil', function () {
+describe('innerSourceRepositoryConfigurationModalUtil', function () {
   describe('getOriginalValues', () => {
     it('returns the `serverData` with a username and password', function () {
       const serverData = getPayload(false);

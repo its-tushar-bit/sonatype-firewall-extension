@@ -6,7 +6,7 @@
 import { prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 import { getOriginalValues } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsUtil';
-import { NO_CHANGES_MESSAGE } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
+import { NO_CHANGES_MESSAGE } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
 
 export const selectInnerSourceRepositoryBaseConfigurationsSlice = prop('innerSourceRepositoryBaseConfigurations');
 

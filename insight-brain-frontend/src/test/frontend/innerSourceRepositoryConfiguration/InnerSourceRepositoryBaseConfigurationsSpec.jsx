@@ -5,7 +5,7 @@
  */
 import InnerSourceRepositoryBaseConfigurations from 'MainRoot/innerSourceRepositoryConfiguration/InnerSourceRepositoryBaseConfigurations';
 import * as innerSourceRepositoryBaseConfigurationsSelectors from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSelectors';
-import * as innerSourceRepositoryConfigurationSelectors from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSelectors';
+import * as innerSourceRepositoryConfigurationModalSelectors from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSelectors';
 import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import React from 'react';
 import { getInitialState } from 'TestRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsTestData';
@@ -58,7 +58,7 @@ describe('InnerSourceRepositoryBaseConfigurations', function () {
       'selectValidationErrors'
     ).and.callThrough();
     spySelectOwnerTypeAndOwnerId = spyOn(
-      innerSourceRepositoryConfigurationSelectors,
+      innerSourceRepositoryConfigurationModalSelectors,
       'selectOwnerTypeAndOwnerId'
     ).and.callThrough();
     spySelectOwnerPublicId = spyOn(

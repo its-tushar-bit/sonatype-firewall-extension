@@ -11,8 +11,8 @@ import {
   MISSING_OR_INVALID_DATA_MESSAGE,
   MUST_REENTER_PASSWORD_MESSAGE,
   NO_CHANGES_MESSAGE,
-} from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationSlice';
-import { getOriginalValues } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationUtil';
+} from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
+import { getOriginalValues } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalUtil';
 
 // Visible for testing
 export const selectOrganizationId = createSelector(selectRouterCurrentParams, prop('organizationId'));
@@ -34,19 +34,22 @@ export const selectOwnerTypeAndOwnerId = createSelector(
   }
 );
 
-export const selectRepositoryConnectionId = createSelector(selectRouterCurrentParams, prop('repositoryConnectionId'));
+export const selectInnerSourceRepositoryConfigurationModalSlice = prop('innerSourceRepositoryConfigurationModal');
+
+export const selectRepositoryConnectionId = createSelector(
+  selectInnerSourceRepositoryConfigurationModalSlice,
+  prop('repositoryConnectionId')
+);
 
 export const selectIsUpdate = createSelector(
   selectRepositoryConnectionId,
   (repositoryConnectionId) => !!repositoryConnectionId
 );
 
-export const selectInnerSourceRepositoryConfigurationSlice = prop('innerSourceRepositoryConfiguration');
-
 // Visible for testing
-export const selectServerData = createSelector(selectInnerSourceRepositoryConfigurationSlice, prop('serverData'));
+export const selectServerData = createSelector(selectInnerSourceRepositoryConfigurationModalSlice, prop('serverData'));
 
-export const selectFormState = createSelector(selectInnerSourceRepositoryConfigurationSlice, prop('formState'));
+export const selectFormState = createSelector(selectInnerSourceRepositoryConfigurationModalSlice, prop('formState'));
 
 // Visible for testing
 export const selectOriginalValues = createSelector(selectServerData, getOriginalValues);

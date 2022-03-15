@@ -24,13 +24,13 @@ import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
-import com.sonatype.insight.brain.innersource.InnerSourceReportUsageTelemetry;
+import com.sonatype.insight.brain.innersource.InnerSourceConsumerTelemetry;
+import com.sonatype.insight.brain.innersource.InnerSourceProducerComponentTelemetry;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -69,8 +70,6 @@ public class DependencyResolverTest
   private TelemetrySender telemetrySender;
 
   private InnerSourceComponentDAO innerSourceComponentDAOSpy;
-
-  private ApplicationDAO applicationDAO;
 
   private final InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
 
@@ -194,8 +193,8 @@ public class DependencyResolverTest
     Application appInnerSource = tempEntity.newApplicationWithParent();
     tempEntity.newInnerSourceComponent(
         "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60?type=jar", appInnerSource);
-    InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar",
+        appInnerSource);
 
     PackageUrlIdentifier knownModule1 = new PackageUrlIdentifier(
         "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.23.5-SNAPSHOT?type=jar");
@@ -233,7 +232,14 @@ public class DependencyResolverTest
         PackageUrlIdentifier.fromComponentIdentifier(innerSourceParent));
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
-    assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
+
+    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
+    producerTelemetries.add(
+        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_MAVEN,
+            AnalysisType.COORDINATE.name(), "mvn", null));
+
+    assertTelemetryInformation(app.getId(), producerTelemetries);
+
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
@@ -242,7 +248,7 @@ public class DependencyResolverTest
     Application appInnerSource = tempEntity.newApplicationWithParent();
     tempEntity.newInnerSourceComponent(
         "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60?type=jar", appInnerSource);
-    InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent(
+    tempEntity.newInnerSourceComponent(
         "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar", appInnerSource);
 
     PackageUrlIdentifier knownModule1 = new PackageUrlIdentifier(
@@ -280,7 +286,13 @@ public class DependencyResolverTest
         PackageUrlIdentifier.fromComponentIdentifier(innerSourceParent));
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
-    assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
+
+    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
+    producerTelemetries.add(
+        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_MAVEN,
+            AnalysisType.COORDINATE.name(), "mvn", null));
+
+    assertTelemetryInformation(app.getId(), producerTelemetries);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
@@ -295,12 +307,12 @@ public class DependencyResolverTest
     ComponentIdentifier innerSourceClient = ComponentIdentifier.createMavenCoordinates(
         "com.sonatype.insight.scan", "insight-client-utils", "1.0.0-SNAPSHOT", "", "jar");
 
-    InnerSourceComponent model = tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar", appInnerSource);
-    InnerSourceComponent archive = tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar", appInnerSource);
-    InnerSourceComponent utils = tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar",
+        appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar",
+        appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar",
+        appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource/dependencies.json");
@@ -343,11 +355,12 @@ public class DependencyResolverTest
         "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
     assertComponentNameForTransitiveDependencies(bomInnerSourceDependencies, dependencyComponentPurls);
 
-    Set<String> innerSourceIds = new HashSet<>();
-    innerSourceIds.add(model.getApplicationId());
-    innerSourceIds.add(archive.getApplicationId());
-    innerSourceIds.add(utils.getApplicationId());
-    assertTelemetryInformation(app.getId(), innerSourceIds);
+    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
+    producerTelemetries.add(
+        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_MAVEN,
+            AnalysisType.HASH.name(), "mvn", null));
+
+    assertTelemetryInformation(app.getId(), producerTelemetries);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
@@ -356,8 +369,8 @@ public class DependencyResolverTest
     Application appInnerSource = tempEntity.newApplicationWithParent();
     tempEntity.newInnerSourceComponent(
         "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60?type=jar", appInnerSource);
-    InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar",
+        appInnerSource);
 
     PackageUrlIdentifier knownModule1 = new PackageUrlIdentifier(
         "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.23.5-SNAPSHOT?type=jar");
@@ -394,7 +407,12 @@ public class DependencyResolverTest
         PackageUrlIdentifier.fromComponentIdentifier(innerSourceParent));
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
-    assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
+    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
+    producerTelemetries.add(
+        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_MAVEN,
+            AnalysisType.COORDINATE.name(), "mvn", null));
+
+    assertTelemetryInformation(app.getId(), producerTelemetries);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
@@ -402,12 +420,12 @@ public class DependencyResolverTest
   public void processInnerSource_knownInnerSourceParent() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    InnerSourceComponent model = tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar", appInnerSource);
-    InnerSourceComponent archive = tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar", appInnerSource);
-    InnerSourceComponent utils = tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar",
+        appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar",
+        appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar",
+        appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-known/dependencies.json");
@@ -428,18 +446,19 @@ public class DependencyResolverTest
     assertIdentificationSourceAndAnalyzerFeatures(bomInnerSourceParent.get(1), IdentificationSource.SONATYPE.getId(),
         analyzerFeaturesSonatype);
     AnalyzerFeatures analyzerFeaturesPackageManifest =
-        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "mvn");
+        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "mvn", null);
     assertIdentificationSourceAndAnalyzerFeatures(bomInnerSourceParent.get(0),
         IdentificationSource.PACKAGE_MANIFEST.getId(),
         analyzerFeaturesPackageManifest);
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
 
-    Set<String> innerSourceIds = new HashSet<>();
-    innerSourceIds.add(model.getApplicationId());
-    innerSourceIds.add(archive.getApplicationId());
-    innerSourceIds.add(utils.getApplicationId());
-    assertTelemetryInformation(app.getId(), innerSourceIds);
+    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
+    producerTelemetries.add(
+        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_MAVEN,
+            AnalysisType.HASH.name(), "mvn", null));
+
+    assertTelemetryInformation(app.getId(), producerTelemetries);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
@@ -447,12 +466,12 @@ public class DependencyResolverTest
   public void processInnerSource_nested_transitive_dep() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    InnerSourceComponent model = tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar", appInnerSource);
-    InnerSourceComponent archive = tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar", appInnerSource);
-    InnerSourceComponent utils = tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar",
+        appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar",
+        appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar",
+        appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-nested-transitive/dependencies.json");
@@ -468,11 +487,13 @@ public class DependencyResolverTest
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertSummaryCounters(summaryJson, dataJson, 25);
 
-    Set<String> innerSourceIds = new HashSet<>();
-    innerSourceIds.add(model.getApplicationId());
-    innerSourceIds.add(archive.getApplicationId());
-    innerSourceIds.add(utils.getApplicationId());
-    assertTelemetryInformation(app.getId(), innerSourceIds);
+    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
+    producerTelemetries.add(
+        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_MAVEN,
+            AnalysisType.HASH.name(), "mvn", null));
+
+    assertTelemetryInformation(app.getId(), producerTelemetries);
+
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
@@ -480,8 +501,8 @@ public class DependencyResolverTest
   public void processInnerSource_unknown_components() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    InnerSourceComponent model = tempEntity.newInnerSourceComponent(
-        "pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar",
+        appInnerSource);
     PackageUrlIdentifier modelId =
         new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
     tempEntity.newInnerSourceComponent(
@@ -507,7 +528,12 @@ public class DependencyResolverTest
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertSummaryCounters(summaryJson, dataJson, 2);
 
-    assertTelemetryInformation(app.getId(), Sets.newHashSet(model.getApplicationId()));
+    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
+    producerTelemetries.add(
+        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_MAVEN,
+            AnalysisType.HASH.name(), "mvn", null));
+
+    assertTelemetryInformation(app.getId(), producerTelemetries);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
@@ -569,8 +595,7 @@ public class DependencyResolverTest
 
     tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-data?type=jar", appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-business?type=jar", appInnerSource);
-    InnerSourceComponent innerSourceComponent =
-        tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-Producer?type=jar", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-Producer?type=jar", appInnerSource);
 
     JsonNode dependenciesJson =
         getJsonNodeInformation("report-innersource-direct-transitive-dependency/dependencies.json");
@@ -600,7 +625,12 @@ public class DependencyResolverTest
         PackageUrlIdentifier.fromComponentIdentifier(innerSourceParent));
 
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
-    assertTelemetryInformation(app.getId(), Sets.newHashSet(innerSourceComponent.getApplicationId()));
+    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
+    producerTelemetries.add(
+        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_MAVEN,
+            AnalysisType.HASH.name(), "mvn", null));
+
+    assertTelemetryInformation(app.getId(), producerTelemetries);
   }
 
   @Test
@@ -839,10 +869,8 @@ public class DependencyResolverTest
   public void testResolve_npm() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    InnerSourceComponent producerOne =
-        tempEntity.newInnerSourceComponent("pkg:npm/producer-one", appInnerSource);
-    InnerSourceComponent producerTwo = tempEntity
-        .newInnerSourceComponent("pkg:npm/producer-two", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:npm/producer-one", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:npm/producer-two", appInnerSource);
     tempEntity.newInnerSourceComponent("pkg:npm/consumer", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-npm/dependencies.json");
@@ -858,10 +886,12 @@ public class DependencyResolverTest
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertSummaryCounters(summaryJson, dataJson, 11);
 
-    Set<String> innerSourceIds = new HashSet<>();
-    innerSourceIds.add(producerOne.getApplicationId());
-    innerSourceIds.add(producerTwo.getApplicationId());
-    assertTelemetryInformation(app.getId(), innerSourceIds);
+    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
+    producerTelemetries.add(
+        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_NPM,
+            AnalysisType.COORDINATE.name(), "cli", null));
+
+    assertTelemetryInformation(app.getId(), producerTelemetries);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
@@ -869,8 +899,7 @@ public class DependencyResolverTest
   public void testResolve_otherFormat() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    InnerSourceComponent producerOne =
-        tempEntity.newInnerSourceComponent("pkg:pypi/pypi-app?extension=zip", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:pypi/pypi-app?extension=zip", appInnerSource);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-otherformat/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-otherformat/bom.json");
@@ -885,9 +914,71 @@ public class DependencyResolverTest
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
     assertSummaryCounters(summaryJson, dataJson, 3);
 
-    Set<String> innerSourceIds = new HashSet<>();
-    innerSourceIds.add(producerOne.getApplicationId());
-    assertTelemetryInformation(app.getId(), innerSourceIds);
+    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
+    InnerSourceProducerComponentTelemetry producerInfo =
+        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_PYPI,
+            AnalysisType.COORDINATE.name(), "cli", null);
+    producerTelemetries.add(producerInfo);
+
+    assertTelemetryInformation(app.getId(), producerTelemetries);
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
+  }
+
+  @Test
+  public void testResolve_sbom() throws Exception {
+    Application appInnerSource = tempEntity.newApplicationWithParent();
+
+    tempEntity.newInnerSourceComponent("pkg:golang/acme-app", appInnerSource);
+
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-sbom/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-sbom/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-sbom/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-sbom/data.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+
+    List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
+    assertInnerSourceInformation(bomJson, 1, 1, null, bomInnerSourceDependencies);
+
+    assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
+    assertSummaryCounters(summaryJson, dataJson, 2);
+
+    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
+    InnerSourceProducerComponentTelemetry producerInfo =
+        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_GOLANG,
+            AnalysisType.COORDINATE.name(), "cli", ItemContentType.SBOM.name());
+    producerTelemetries.add(producerInfo);
+
+    assertTelemetryInformation(app.getId(), producerTelemetries);
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
+  }
+
+  @Test
+  public void testResolve_duplicatedElementTree() throws Exception {
+    Application appInnerSource = tempEntity.newApplicationWithParent();
+
+    tempEntity.newInnerSourceComponent("pkg:maven/test/hashing?type=jar", appInnerSource);
+
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-dup-dependency-tree/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-dup-dependency-tree/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-dup-dependency-tree/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-dup-dependency-tree/data.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+
+    List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
+    assertInnerSourceInformation(bomJson, 1, 2, null, bomInnerSourceDependencies);
+
+    assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
+    assertSummaryCounters(summaryJson, dataJson, 4);
+
+    Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
+    InnerSourceProducerComponentTelemetry producerInfo =
+        new InnerSourceProducerComponentTelemetry(appInnerSource.getId(), ComponentIdentifier.FORMAT_MAVEN,
+            AnalysisType.COORDINATE.name(), "thirdPartyApi", ItemContentType.SBOM.name());
+    producerTelemetries.add(producerInfo);
+
+    assertTelemetryInformation(app.getId(), producerTelemetries);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 
@@ -1199,7 +1290,7 @@ public class DependencyResolverTest
     assertThat(packageUrl).isEqualTo(ComponentIdentifierAdapter.getPackageUrlIdentifier(bomInnerSource));
 
     AnalyzerFeatures analyzerFeaturesExpected =
-        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "mvn");
+        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "mvn", null);
     assertIdentificationSourceAndAnalyzerFeatures(bomInnerSource, IdentificationSource.PACKAGE_MANIFEST.getId(),
         analyzerFeaturesExpected);
     assertInnerSourceTree(bomInnerSource.get(ComponentDAO.INNER_SOURCE_DATA_FIELD), app, null);
@@ -1248,7 +1339,10 @@ public class DependencyResolverTest
     }
   }
 
-  private void assertTelemetryInformation(String consumerId, Set<String> innerSourceComponents) {
+  private void assertTelemetryInformation(
+      final String consumerId,
+      final Set<InnerSourceProducerComponentTelemetry> producerListInformation)
+  {
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
     TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
@@ -1259,12 +1353,12 @@ public class DependencyResolverTest
     assertThat(telemetryData.getAttributes()).hasSize(1);
 
     Map<String, Object> expectedAttributes = new HashMap<>();
-    expectedAttributes.put(InnerSourceReportUsageTelemetry.ATTRIBUTE_NAME,
-        new InnerSourceReportUsageTelemetry(consumerId, innerSourceComponents));
+    expectedAttributes.put(InnerSourceConsumerTelemetry.ATTRIBUTE_NAME,
+        new InnerSourceConsumerTelemetry(consumerId, producerListInformation));
 
     assertThat(telemetryData.getAttributes().keySet().iterator().next())
         .isEqualTo(expectedAttributes.keySet().iterator().next());
-    assertThat((InnerSourceReportUsageTelemetry) telemetryData.getAttributes().values().iterator().next())
+    assertThat((InnerSourceConsumerTelemetry) telemetryData.getAttributes().values().iterator().next())
         .usingRecursiveComparison().isEqualTo(expectedAttributes.values().iterator().next());
   }
 
@@ -1292,7 +1386,7 @@ public class DependencyResolverTest
 
   private DependencyResolver newDependencyResolver() {
     return new DependencyResolver(null, null, null, null, app, telemetrySender, innerSourceComponentDAOSpy,
-        applicationDAO);
+        null);
   }
 
   private JsonNode getJsonNodeInformation(String path) throws IOException {

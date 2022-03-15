@@ -82,7 +82,7 @@ public class RepositoryComponentDAOTest
     RepositoryComponent repositoryComponent = new RepositoryComponent(repository.getId(), "path", createTime, "hash",
         componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime);
     String analyzerFeatures =
-        JsonUtils.format(new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.COORDINATE, "client"));
+        JsonUtils.format(new AnalyzerFeatures(AnalysisSource.SDS, AnalysisType.COORDINATE, "client", null));
     repositoryComponent.setAnalyzerFeaturesJson(analyzerFeatures);
     dao.insert(repositoryComponent);
     assertThat(repositoryComponent.getId()).isNotNull();
@@ -97,7 +97,8 @@ public class RepositoryComponentDAOTest
     // Update
     Date updateTime = new Date();
     repositoryComponent.setLastEvaluationTime(updateTime);
-    analyzerFeatures = JsonUtils.format(new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.HASH, "client"));
+    analyzerFeatures =
+        JsonUtils.format(new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.HASH, "client", null));
     repositoryComponent.setAnalyzerFeaturesJson(analyzerFeatures);
     dao.update(repositoryComponent);
     repositoryComponent = dao.getById(repositoryComponent.getId());

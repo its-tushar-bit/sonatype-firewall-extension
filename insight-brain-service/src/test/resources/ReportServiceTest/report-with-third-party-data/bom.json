@@ -36,7 +36,8 @@
       "scanClient" : "cli",
       "hasLicense" : true,
       "hasIdentity" : true,
-      "hasSecurity" : true
+      "hasSecurity" : true,
+      "manifestContentType" : null
     }
   }, {
     "componentIdentifier" : null,
@@ -63,7 +64,8 @@
       "scanClient" : "cli",
       "hasLicense" : false,
       "hasIdentity" : false,
-      "hasSecurity" : false
+      "hasSecurity" : false,
+      "manifestContentType" : null
     }
   }, {
     "componentIdentifier" : null,
@@ -90,7 +92,8 @@
       "scanClient" : "cli",
       "hasLicense" : false,
       "hasIdentity" : false,
-      "hasSecurity" : false
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
     }
   } ]
 }

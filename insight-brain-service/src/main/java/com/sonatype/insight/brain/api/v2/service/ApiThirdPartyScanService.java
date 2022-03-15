@@ -121,8 +121,8 @@ public class ApiThirdPartyScanService
     ScanResult scanResult = createScanFile(app, sbom, source, encodingType);
 
     policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY,
-        new Stage(stageTypeId), ScanTriggerType.THIRD_PARTY, scanResult.getScanFile(), "api",
-        clientUserAgent);
+        new Stage(stageTypeId), ScanTriggerType.THIRD_PARTY, scanResult.getScanFile(),
+        ScannerDriver.THIRD_PARTY_API.getValue(), clientUserAgent);
 
     return scanTicketDTO;
   }

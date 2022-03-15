@@ -238,6 +238,6 @@ public class DataSourceConditionTypeTest
   }
 
   private AnalyzerFeatures fromThirdParty() {
-    return new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "CLI");
+    return new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "CLI", null);
   }
 }

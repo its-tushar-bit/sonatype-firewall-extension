@@ -1,0 +1,77 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "golang",
+      "coordinates" : {
+        "name" : "github.com/gohouse/converter",
+        "version" : "v0.0.3"
+      }
+    },
+    "packageUrl" : "pkg:golang/github.com/gohouse/converter@v0.0.3",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:golang/github.com/gohouse/converter@v0.0.3" ],
+    "pathnames" : [ "dependency:/golang-consumer-bom.xml/pkg:golang\\github.com\\gohouse\\converter@v0.0.3" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "de4c79ea5af1bbc73a30",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "golang",
+      "coordinates" : {
+        "name" : "acme-app",
+        "version" : "1.0"
+      }
+    },
+    "packageUrl" : "pkg:golang/acme-app@1.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:golang/acme-app@1.0" ],
+    "pathnames" : [ "dependency:/golang-consumer-bom.xml/pkg:golang\\acme-app@1.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "cd9d64803c53b9ceeba0",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null
+  } ]
+}

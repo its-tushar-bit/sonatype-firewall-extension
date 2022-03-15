@@ -10,7 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.innersource.InnerSourceReportUsageTelemetry;
+import com.sonatype.insight.brain.innersource.InnerSourceConsumerTelemetry;
+import com.sonatype.insight.brain.innersource.InnerSourceProducerComponentTelemetry;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -39,11 +40,11 @@ public final class TelemetryUtils
 
   public static TelemetryData buildInnerSourceTelemetryData(
       final String consumerId,
-      final Set<String> innerSourceComponentsIds)
+      final Set<InnerSourceProducerComponentTelemetry> producers)
   {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.INNER_SOURCE_REPORT_USAGE);
-    telemetryData.put(InnerSourceReportUsageTelemetry.ATTRIBUTE_NAME,
-        new InnerSourceReportUsageTelemetry(consumerId, innerSourceComponentsIds));
+    telemetryData.put(InnerSourceConsumerTelemetry.ATTRIBUTE_NAME,
+        new InnerSourceConsumerTelemetry(consumerId, producers));
     return telemetryData;
   }
 }

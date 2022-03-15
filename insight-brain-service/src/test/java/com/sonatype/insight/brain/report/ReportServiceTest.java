@@ -51,6 +51,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.scan.model.ItemContentType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
@@ -175,7 +176,8 @@ public class ReportServiceTest
         ComponentIdentifier.createPypiCoordinates("altgraph", "0.10.2", null, null),
         "dependency:/pkg:pypi\\altgraph@0.10.2", IdentificationSource.getOrMake("cyclonedx"));
     assertThat(components.get(2).getAnalyzerFeatures()).usingRecursiveComparison().isEqualTo(
-        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "cli", false, false, false));
+        new AnalyzerFeatures(AnalysisSource.THIRD_PARTY, AnalysisType.COORDINATE, "cli", false, false, false,
+            ItemContentType.SBOM.name()));
 
     // Verify security.json
     assertSecurityVulnerability(components.get(0), "cve", "CVE-2012-5783", 5.8F,

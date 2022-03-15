@@ -125,7 +125,7 @@ public class SourceControlDAO
       updatePullRequestPollTimesPerPolicyEvaluations(initialPollingTime);
     }
 
-    setDefaultPollRequestPollTimes(initialPollingTime);
+    setDefaultPullRequestPollTimes(initialPollingTime);
     clearExtraneousPullRequestPollTimes();
   }
 
@@ -164,7 +164,7 @@ public class SourceControlDAO
     }
   }
 
-  private void setDefaultPollRequestPollTimes(Date defaultPollingTime) {
+  private void setDefaultPullRequestPollTimes(Date defaultPollingTime) {
     EntityManager em = OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager();
 
     try (TransactionContext txn = new TransactionContext(em)) {

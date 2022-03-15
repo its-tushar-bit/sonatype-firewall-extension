@@ -18,11 +18,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import com.codeborne.selenide.Condition;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -58,9 +56,6 @@ public class InnerSourceRepositoryConfigurationModalTest
 
   @Before
   public void before() {
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(
-        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
-
     passwordHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
 
     org = tempEntity.newOrganization();

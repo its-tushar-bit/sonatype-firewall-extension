@@ -21,16 +21,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRepositoryConnectionService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 
 import com.codahale.metrics.annotation.Timed;
@@ -173,9 +173,8 @@ public class DefaultRepositoryConnectionResource
   }
 
   private void checkInnerSourceRepositoryIntegrationEnabled() {
-    if (!insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION)) {
-      throw new NotAuthorizedException(
-          ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag() + " feature is disabled");
+    if (!insightConfig.isFeatureEnabled(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION)) {
+      throw new NotAuthorizedException(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag() + " feature is disabled");
     }
   }
 

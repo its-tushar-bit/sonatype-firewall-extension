@@ -71,7 +71,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -696,7 +696,7 @@ public class ComponentInfoService
   {
     return DependencyType.INNER_SOURCE.equals(dependencyType) &&
         RepositoryClient.REPOSITORY_SUPPORTED_FORMATS.contains(identifier.getFormat()) &&
-        insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION);
+        insightConfig.isFeatureEnabled(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION);
   }
 
   private void updateThirdPartyInformation(

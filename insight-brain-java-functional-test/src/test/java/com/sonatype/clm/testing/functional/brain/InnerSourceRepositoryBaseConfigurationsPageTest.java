@@ -21,10 +21,8 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -67,8 +65,6 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
 
   @Before
   public void before() {
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(
-        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
   }

@@ -985,6 +985,7 @@ public class InsightConfig
     DEFAULT_BRANCH_MONITORING("defaultBranchMonitoring"),
     DEPENDENCY_DATA_IN_API("dependencyDataInApi"),
     INNER_SOURCE_TRANSITIVE_WAIVER("innerSourceTransitiveWaiver"),
+    INNER_SOURCE_REPOSITORY_INTEGRATION("innerSourceRepositoryIntegration"),
     ORCHESTRATED_EVENT_PROCESSING("orchestratedEventProcessing"),
     PR_COMMENTING("prCommenting"),
     PR_LINE_COMMENTING("prLineCommenting"),
@@ -1026,7 +1027,6 @@ public class InsightConfig
       implements com.sonatype.insight.license.model.Feature
   {
     SCM_ONBOARDING("scmOnboarding"),
-    INNER_SOURCE_REPOSITORY_INTEGRATION("innerSourceRepositoryIntegration"),
     ANONYMOUS_QUARANTINED_COMPONENT_VIEW("anonymousQuarantinedComponentView"),
     CROWD_INTEGRATION("crowdIntegration");
 

@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -85,8 +86,6 @@ import com.sonatype.insight.brain.repository.RepositoryComponentResult;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
 import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
@@ -166,9 +165,6 @@ public class ComponentInfoServiceTest
 
   @Mock
   private RepositoryQueryService repositoryQueryService;
-
-  @Inject
-  private InsightConfig insightConfig;
 
   @Override
   public void configure(Binder binder) {
@@ -1892,8 +1888,6 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_withRequestedVersion_Beginning() {
-    insightConfig.setExperimentalFeatures(
-        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
 
@@ -1915,8 +1909,6 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_withRequestedVersion_inBetween() {
-    insightConfig.setExperimentalFeatures(
-        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
 
@@ -1938,8 +1930,6 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_withRequestedVersion_End() {
-    insightConfig.setExperimentalFeatures(
-        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
 
@@ -1961,8 +1951,6 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_missingRequestedVersion() {
-    insightConfig.setExperimentalFeatures(
-        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
     mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v0",
@@ -1983,8 +1971,6 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_noResult() {
-    insightConfig.setExperimentalFeatures(
-        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
     mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES);
@@ -2002,8 +1988,6 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_npm() {
-    insightConfig.setExperimentalFeatures(
-        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
     mockRepositoryQueryServiceAllVersionResponse(NPM_COORDINATES, "v0", "v1", "v2");

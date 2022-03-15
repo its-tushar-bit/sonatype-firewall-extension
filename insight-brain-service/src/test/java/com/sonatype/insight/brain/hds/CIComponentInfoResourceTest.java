@@ -36,10 +36,8 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -134,8 +132,6 @@ public class CIComponentInfoResourceTest
 
   @Test
   public void testGetComponentVersionInfo_FromInnerSourceRepository() throws Exception {
-    getCLMServer().getConfiguration().setExperimentalFeatures(
-        ImmutableMap.of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     Application app = tempEntity.newApplicationWithParent();
     app.setRepositoryConnectionEnabled(true);
     new ApplicationDAO().update(app);

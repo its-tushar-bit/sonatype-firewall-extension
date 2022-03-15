@@ -35,7 +35,6 @@ import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityCond
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.repository.client.NexusRepository3Client.NXRM3SearchResponse;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -61,7 +60,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.google.common.collect.ImmutableMap.of;
 
 public class ComponentDetailsOverviewTabRiskRemediationTest
     extends AbstractFunctionalTest
@@ -219,8 +217,6 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   @Test
   public void testRiskRemediationTile_RepositorySource_InnerSourceDependency() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     NXRM3SearchResponse nxrm3SearchResponse = new NXRM3SearchResponse();
     nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .willReturn(aResponse()
@@ -241,8 +237,6 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   @Test
   public void testOverviewTab_innerSourceRepositorySourceAlert() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .willReturn(aResponse()
             .withStatus(401)));
@@ -263,8 +257,6 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   @Test
   public void testRiskRemediationTile_RepositorySource_NonInnerSourceDependency() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     mockHdsResponseForFirstComponent();
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(0, FIRST_COMPONENT_HASH);
     componentDetailsPage.overviewTab().shouldBe(visible);
@@ -274,6 +266,8 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   @Test
   public void testRiskRemediationTile_RepositorySource_InnerSourceDependency_FeatureDisabled() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().riskRemediationTile().versionExplorerSection().repositorySource()

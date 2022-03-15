@@ -55,10 +55,11 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.ElementsCollection;
+import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -70,7 +71,6 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.google.common.collect.ImmutableMap.of;
 import static com.sonatype.clm.testing.functional.elements.CLM.IQ_DISABLED;
 import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.COLUMN_SELECTED;
 import static com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn.DOWN_SELECTED;
@@ -154,8 +154,6 @@ public abstract class AbstractSummaryViewTest
 
   @Test
   public void testInnerSourceRepositoryTile_NotConfigured() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     refresh();
     MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
@@ -171,8 +169,6 @@ public abstract class AbstractSummaryViewTest
 
   @Test
   public void testInnerSourceRepositoryTile_Configured() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
     try {
       setCurrentOwnerRepositoryConnectionStatus(currentOwner, true);
       RepositoryConnection repositoryConnection1 = tempEntity.newRepositoryConnection(currentOwner.getId(),
@@ -216,8 +212,6 @@ public abstract class AbstractSummaryViewTest
     OrganizationDAO organizationDAO = new OrganizationDAO();
     Organization parentOwner = organizationDAO.getById(currentOwner.getParentOwnerId());
     try {
-      testCLMServer.getCLMServer().getConfiguration()
-          .setExperimentalFeatures(of(ExperimentalFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), true));
       RepositoryConnection repositoryConnection1 = tempEntity.newRepositoryConnection(currentOwner.getParentOwnerId(),
           "http://some.base.url.1", RepositoryFormat.MAVEN, null, null);
       RepositoryConnection repositoryConnection2 = tempEntity.newRepositoryConnection(currentOwner.getParentOwnerId(),
@@ -248,6 +242,8 @@ public abstract class AbstractSummaryViewTest
 
   @Test
   public void testInnerSourceRepositoryTile_FeatureDisabled() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
     refresh();
     MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();

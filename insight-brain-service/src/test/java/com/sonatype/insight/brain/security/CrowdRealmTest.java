@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -16,8 +12,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
-import com.atlassian.crowd.integration.rest.entity.GroupEntity;
-import com.atlassian.crowd.model.group.GroupType;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
@@ -26,10 +20,16 @@ import org.apache.shiro.authc.credential.AllowAllCredentialsMatcher;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 import static com.google.common.collect.ImmutableMap.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class CrowdRealmTest
     extends AbstractComponentTest
@@ -38,13 +38,13 @@ public class CrowdRealmTest
   public CrowdMockServerRule crowdMockServer = new CrowdMockServerRule();
 
   @Inject
-  private CrowdRealm crowdRealm;
-
-  @Inject
-  private PasswordHandler passwordHandler;
-
-  @Inject
   private InsightConfig insightConfig;
+
+  @Mock
+  private CrowdClientFactory mockCrowdClientFactory;
+
+  @InjectMocks
+  private CrowdRealm crowdRealm;
 
   @Before
   public void before() {
@@ -59,110 +59,38 @@ public class CrowdRealmTest
   }
 
   @Test
-  public void testDoGetAuthenticationInfo_FeatureDisabled() throws Exception {
-    insightConfig.setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), false));
+  public void testDoGetAuthenticationInfo_NullCrowdClient() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("username", "password");
 
     assertThat(crowdRealm.doGetAuthenticationInfo(usernamePasswordToken)).isNull();
+    verify(mockCrowdClientFactory).createCrowdClient();
   }
 
   @Test
-  public void testDoGetAuthenticationInfo_NotConfigured() {
+  public void testDoGetAuthenticationInfo() throws Exception {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("username", "password");
+    CrowdClient mockCrowdClient = mock(CrowdClient.class);
+    UserPrincipal mockUserPrincipal = mock(UserPrincipal.class);
+    when(mockCrowdClient.authenticateUser(any(UsernamePasswordToken.class))).thenReturn(mockUserPrincipal);
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
 
-    assertThat(crowdRealm.doGetAuthenticationInfo(usernamePasswordToken)).isNull();
+    UserPrincipal userPrincipal = getUserPrincipal(crowdRealm.doGetAuthenticationInfo(usernamePasswordToken));
+
+    assertThat(userPrincipal).isEqualTo(mockUserPrincipal);
+    verify(mockCrowdClientFactory).createCrowdClient();
+    verify(mockCrowdClient).authenticateUser(usernamePasswordToken);
   }
 
   @Test
-  public void testDoGetAuthenticationInfo_BadConfiguration() {
-    tempEntity.newCrowdConfiguration("badUrl", "iq server", passwordHandler.encryptPassword("password".toCharArray()));
+  public void testDoGetAuthenticationInfo_Error() throws Exception {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("username", "password");
+    CrowdClient mockCrowdClient = mock(CrowdClient.class);
+    when(mockCrowdClient.authenticateUser(any(UsernamePasswordToken.class))).thenThrow(new RuntimeException());
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
 
-    assertThatExceptionOfType(RuntimeException.class).isThrownBy(
+    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(
         () -> crowdRealm.doGetAuthenticationInfo(usernamePasswordToken)).withMessageContaining(
-        "Failed to create a Crowd REST client for serverUrl 'badUrl', applicationName 'iq server', " +
-            "and applicationPassword '****'. Your Crowd configuration may be invalid");
-  }
-
-  @Test
-  public void testDoGetAuthenticationInfo_Configured() throws Exception {
-    tempEntity.newCrowdConfiguration(crowdMockServer.getBaseUrl() + "/crowd", "iq server",
-        passwordHandler.encryptPassword("password".toCharArray()));
-    crowdMockServer.mockAuthenticateUser("username", "displayName");
-    crowdMockServer.mockGetGroupsForNestedUser("username", "group1", "group2", "group3");
-    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("username", "password");
-
-    AuthenticationInfo authenticationInfo = crowdRealm.doGetAuthenticationInfo(usernamePasswordToken);
-
-    UserPrincipal userPrincipal = getUserPrincipal(authenticationInfo);
-    assertThat(userPrincipal.getUsername()).isEqualTo("username");
-    assertThat(userPrincipal.getDisplayName()).isEqualTo("displayName");
-    assertThat(userPrincipal.getRealmId()).isEqualTo(CrowdRealm.ID);
-    assertThat(userPrincipal.getMembership()).isEqualTo(
-        new LinkedHashSet<>(Arrays.asList("group1", "group2", "group3", "(all-authenticated-users)")));
-  }
-
-  @Test
-  public void testDoGetAuthenticationInfo_Configured_NoGroups() throws Exception {
-    tempEntity.newCrowdConfiguration(crowdMockServer.getBaseUrl() + "/crowd", "iq server",
-        passwordHandler.encryptPassword("password".toCharArray()));
-    crowdMockServer.mockAuthenticateUser("username", "displayName");
-    crowdMockServer.mockGetGroupsForNestedUser("username", new String[]{});
-    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("username", "password");
-
-    AuthenticationInfo authenticationInfo = crowdRealm.doGetAuthenticationInfo(usernamePasswordToken);
-
-    UserPrincipal userPrincipal = getUserPrincipal(authenticationInfo);
-    assertThat(userPrincipal.getUsername()).isEqualTo("username");
-    assertThat(userPrincipal.getDisplayName()).isEqualTo("displayName");
-    assertThat(userPrincipal.getRealmId()).isEqualTo(CrowdRealm.ID);
-    assertThat(userPrincipal.getMembership()).isEqualTo(
-        new LinkedHashSet<>(Collections.singletonList("(all-authenticated-users)")));
-  }
-
-  @Test
-  public void testDoGetAuthenticationInfo_Configured_SomeGroupsInactive() throws Exception {
-    tempEntity.newCrowdConfiguration(crowdMockServer.getBaseUrl() + "/crowd", "iq server",
-        passwordHandler.encryptPassword("password".toCharArray()));
-    crowdMockServer.mockAuthenticateUser("username", "displayName");
-    GroupEntity groupEntity1 = new GroupEntity("group1", "description", GroupType.GROUP, true);
-    GroupEntity groupEntity2 = new GroupEntity("group2", "description", GroupType.GROUP, true);
-    GroupEntity groupEntity3 = new GroupEntity("group3", "description", GroupType.GROUP, false);
-    crowdMockServer.mockGetGroupsForNestedUser("username", groupEntity1, groupEntity2, groupEntity3);
-    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("username", "password");
-
-    AuthenticationInfo authenticationInfo = crowdRealm.doGetAuthenticationInfo(usernamePasswordToken);
-
-    UserPrincipal userPrincipal = getUserPrincipal(authenticationInfo);
-    assertThat(userPrincipal.getUsername()).isEqualTo("username");
-    assertThat(userPrincipal.getDisplayName()).isEqualTo("displayName");
-    assertThat(userPrincipal.getRealmId()).isEqualTo(CrowdRealm.ID);
-    assertThat(userPrincipal.getMembership()).isEqualTo(
-        new LinkedHashSet<>(Arrays.asList("group1", "group2", "(all-authenticated-users)")));
-  }
-
-  @Test
-  public void testDoGetAuthenticationInfo_Configured_UserError() {
-    tempEntity.newCrowdConfiguration(crowdMockServer.getBaseUrl() + "/crowd", "iq server",
-        passwordHandler.encryptPassword("password".toCharArray()));
-    crowdMockServer.mockAuthenticateUserError("username", 401);
-    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("username", "password");
-
-    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(
-        () -> crowdRealm.doGetAuthenticationInfo(usernamePasswordToken))
-        .withMessageContaining("Could not authenticate user 'username' with Crowd");
-  }
-
-  @Test
-  public void testDoGetAuthenticationInfo_Configured_GroupError() {
-    tempEntity.newCrowdConfiguration(crowdMockServer.getBaseUrl() + "/crowd", "iq server",
-        passwordHandler.encryptPassword("password".toCharArray()));
-    crowdMockServer.mockGetGroupsForNestedUserError("username", 401);
-    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken("username", "password");
-
-    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(
-        () -> crowdRealm.doGetAuthenticationInfo(usernamePasswordToken))
-        .withMessageContaining("Could not authenticate user 'username' with Crowd");
+        String.format("Could not authenticate the '%s' Crowd user.", usernamePasswordToken.getUsername()));
   }
 
   private UserPrincipal getUserPrincipal(AuthenticationInfo authenticationInfo) {
@@ -173,8 +101,6 @@ public class CrowdRealmTest
     assertThat(simpleAuthenticationInfo.getPrincipals().getRealmNames()).containsExactly(CrowdRealm.ID);
     Object primaryPrincipal = simpleAuthenticationInfo.getPrincipals().getPrimaryPrincipal();
     assertThat(primaryPrincipal).isInstanceOf(UserPrincipal.class);
-    UserPrincipal userPrincipal = (UserPrincipal) primaryPrincipal;
-    assertThat(userPrincipal.getRealmId()).isEqualTo(CrowdRealm.ID);
-    return userPrincipal;
+    return (UserPrincipal) primaryPrincipal;
   }
 }

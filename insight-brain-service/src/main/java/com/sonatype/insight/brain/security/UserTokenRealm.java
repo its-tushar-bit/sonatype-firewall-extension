@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.atlassian.crowd.exception.UserNotFoundException;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -59,12 +60,15 @@ public class UserTokenRealm
 
   private final ProductLicense productLicense;
 
+  private final CrowdClientFactory crowdClientFactory;
+
   @Inject
   public UserTokenRealm(
       PasswordService passwordService,
       LdapService ldapService,
       UserTokenService userTokenService,
-      ProductLicense productLicense)
+      ProductLicense productLicense,
+      CrowdClientFactory crowdClientFactory)
   {
     setName("UserTokenRealm");
 
@@ -76,6 +80,7 @@ public class UserTokenRealm
     passwordMatcher.setPasswordService(passwordService);
     setCredentialsMatcher(passwordMatcher);
     this.productLicense = productLicense;
+    this.crowdClientFactory = crowdClientFactory;
   }
 
   @Override
@@ -100,6 +105,9 @@ public class UserTokenRealm
     else if (userToken.isSamlUser()) {
       return doGetSamlRealmAuthenticationInfo(userToken);
     }
+    else if (CrowdRealm.ID.equals(userToken.getRealmId())) {
+      return doGetCrowdRealmAuthenticationInfo(userToken);
+    }
     else {
       return doGetLdapRealmAuthenticationInfo(userToken);
     }
@@ -122,6 +130,36 @@ public class UserTokenRealm
         new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), ID, samlUser.getGroups()), //
         userToken.getPassCode(), //
         getName());
+  }
+
+  private SimpleAuthenticationInfo doGetCrowdRealmAuthenticationInfo(UserToken userToken) {
+    CrowdClient crowdClient = crowdClientFactory.createCrowdClient();
+
+    if (crowdClient == null) {
+      return null;
+    }
+
+    try {
+      return new SimpleAuthenticationInfo(crowdClient.getUser(userToken), userToken.getPassCode(), getName());
+    }
+    catch (UserNotFoundException e) {
+      // The Crowd user was deleted.
+      try (AuditSession auditSession = AuditData.get()
+          .recordSystemEvent(AuditEvent.DELETE_USER_TOKEN, true /* independent */)) {
+        userTokenService.deleteAndAuditUserToken(userToken);
+      }
+      log.info(
+          "The '{}' user token was created for the '{}' Crowd user, which doesn't exist anymore."
+              + " The user token was deleted.",
+          userToken.getUserCode(), userToken.getUsername());
+
+      throw new AuthenticationException("Invalid user token.", e);
+    }
+    catch (Exception e) {
+      throw new AuthenticationException(
+          String.format("Could not authenticate the '%s' Crowd user with their '%s' user token.",
+              userToken.getUsername(), userToken.getUserCode()), e);
+    }
   }
 
   private SimpleAuthenticationInfo doGetLdapRealmAuthenticationInfo(UserToken userToken) {

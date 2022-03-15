@@ -1,0 +1,74 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.security;
+
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
+import com.sonatype.insight.test.LogOutput;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import static com.google.common.collect.ImmutableMap.of;
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class CrowdClientFactoryTest
+    extends AbstractComponentTest
+{
+  @Rule
+  public LogOutput logOutput = new LogOutput(CrowdClientFactory.class);
+
+  @Inject
+  private InsightConfig insightConfig;
+
+  @Inject
+  private CrowdClientFactory crowdClientFactory;
+
+  @Inject
+  private PasswordHandler passwordHandler;
+
+  @Before
+  public void before() {
+    insightConfig.setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
+  }
+
+  @Test
+  public void testCreateCrowdClient_FeatureDisabled() {
+    insightConfig.setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), false));
+
+    assertThat(crowdClientFactory.createCrowdClient()).isNull();
+  }
+
+  @Test
+  public void testCreateCrowdClient_NotConfigured() {
+    assertThat(crowdClientFactory.createCrowdClient()).isNull();
+  }
+
+  @Test
+  public void testCreateCrowdClient_Configured() {
+    tempEntity.newCrowdConfiguration("http://localhost:8095/crowd", "iq server",
+        passwordHandler.encryptPassword("password".toCharArray()));
+
+    assertThat(crowdClientFactory.createCrowdClient()).isNotNull();
+  }
+
+  @Test
+  public void testCreateCrowdClient_Configured_BadConfiguration() {
+    CrowdConfiguration crowdConfiguration = tempEntity.newCrowdConfiguration("badUrl", "iq server",
+        passwordHandler.encryptPassword("password".toCharArray()));
+
+    assertThat(crowdClientFactory.createCrowdClient()).isNull();
+    logOutput.assertThat().atErrorLevel().contains(String.format(
+        "Failed to create a Crowd REST client for serverUrl '%s', applicationName '%s', " +
+            "and applicationPassword '****'. Your Crowd configuration may be invalid.",
+        crowdConfiguration.getServerUrl(), crowdConfiguration.getApplicationName()));
+  }
+}

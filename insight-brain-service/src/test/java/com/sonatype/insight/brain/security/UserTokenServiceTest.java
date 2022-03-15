@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
@@ -29,6 +30,8 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -38,6 +41,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.google.common.collect.ImmutableMap.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -67,6 +71,9 @@ public class UserTokenServiceTest
 
   @Inject
   private UserTokenDAO userTokenDAO;
+
+  @Inject
+  private InsightConfig insightConfig;
 
   @Mock
   private ProductLicense mockProductLicense;
@@ -271,7 +278,7 @@ public class UserTokenServiceTest
   }
 
   @Test
-  public void testGetUserTokensCreatedBetweenAndRealm_SamlUserTokensDisabled() {
+  public void testGetUserTokensCreatedBetweenAndRealmId_SamlUserTokensDisabled() {
     tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID, december27);
     UserToken bar = tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID, december28);
     tempEntity.newUserToken("baz", User.INTERNAL_REALM_ID, december29);
@@ -528,5 +535,109 @@ public class UserTokenServiceTest
     else {
       assertThat(result.realm).isNull();
     }
+  }
+
+  @Test
+  public void testCreateUserToken_CrowdUser_CrowdIntegrationFeatureDisabled() {
+    testCreateUserToken_NotAllowedRealm(CrowdRealm.ID);
+  }
+
+  @Test
+  public void testCreateUserToken_CrowdUser() {
+    insightConfig.setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
+    UserPrincipal userPrincipal = new UserPrincipal("username", "displayName", CrowdRealm.ID, Collections.emptySet());
+    when(subject.getPrincipal()).thenReturn(userPrincipal);
+    Date start = new Date();
+    try {
+      ApiUserTokenDTO apiUserTokenDTO = userTokenService.createUserToken();
+
+      Date end = new Date();
+      assertThat(apiUserTokenDTO.userCode).hasSize(8);
+      assertThat(apiUserTokenDTO.passCode).hasSize(44);
+      UserToken persistedToken = userTokenDAO.getByUsernameAndRealmId(userPrincipal.getUsername(), CrowdRealm.ID);
+      assertThat(persistedToken).isNotNull();
+      assertThat(persistedToken.getUsername()).isEqualTo(userPrincipal.getUsername());
+      assertThat(persistedToken.getUserCode()).isEqualTo(apiUserTokenDTO.userCode);
+      assertThat(persistedToken.getPassCode()).isNotNull();
+      assertThat(persistedToken.getRealmId()).isEqualTo(CrowdRealm.ID);
+      assertThat(persistedToken.getCreateTime()).isBetween(start, end, true, true);
+      assertThat(persistedToken.isInternalUser()).isFalse();
+      assertThat(persistedToken.getPassCode()).isNotEqualTo(apiUserTokenDTO.passCode);
+    }
+    finally {
+      userTokenDAO.delete(userTokenDAO.getByUsernameAndRealmId(userPrincipal.getUsername(), CrowdRealm.ID));
+    }
+  }
+  
+  @Test
+  public void testGetUserTokensCreatedBetweenAndRealmId_Crowd_CrowdIntegrationFeatureDisabled() {
+    tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID, december27);
+    UserToken internal2 = tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID, december28);
+    tempEntity.newUserToken("qux", CrowdRealm.ID, december28);
+    tempEntity.newUserToken("baz", User.INTERNAL_REALM_ID, december29);
+
+    List<ApiUserTokenDTO> result =
+        userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", User.INTERNAL_REALM_ID);
+
+    assertThat(result).extracting(dto -> dto.username).containsExactly(internal2.getUsername());
+    
+    result =
+        userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", CrowdRealm.ID);
+    
+    assertThat(result).extracting(dto -> dto.username).containsExactly(internal2.getUsername());
+  }
+
+  @Test
+  public void testGetUserTokensCreatedBetweenAndRealmId_Crowd() {
+    insightConfig.setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
+    tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID, december27);
+    UserToken internal2 = tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID, december28);
+    UserToken crowd1 = tempEntity.newUserToken("qux", CrowdRealm.ID, december28);
+    tempEntity.newUserToken("baz", User.INTERNAL_REALM_ID, december29);
+
+    List<ApiUserTokenDTO> result =
+        userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", User.INTERNAL_REALM_ID);
+
+    assertThat(result).extracting(dto -> dto.username).containsExactly(internal2.getUsername());
+
+    result =
+        userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", CrowdRealm.ID);
+
+    assertThat(result).extracting(dto -> dto.username).containsExactly(crowd1.getUsername());
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_Crowd_CrowdIntegrationFeatureDisabled() {
+    tempEntity.newUserToken("foo", "1", "pass", User.INTERNAL_REALM_ID);
+    tempEntity.newUserToken("bar", "2", "pass", User.INTERNAL_REALM_ID);
+    tempEntity.newUserToken("foo", "3", "pass", CrowdRealm.ID);
+    tempEntity.newUserToken("bar", "4", "pass", CrowdRealm.ID);
+    tempEntity.newUserToken("foo", "5", "pass", "other");
+    tempEntity.newUserToken("bar", "6", "pass", "other");
+
+    ApiUserTokenDTO result = userTokenService.getUserTokenByUsernameAndRealmId("foo", CrowdRealm.ID);
+
+    assertThat(result).isNotNull();
+    assertThat(result.username).isEqualTo("foo");
+    assertThat(result.userCode).isEqualTo("1");
+    assertThat(result.realm).isNull();
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_Crowd() {
+    insightConfig.setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
+    tempEntity.newUserToken("foo", "1", "pass", User.INTERNAL_REALM_ID);
+    tempEntity.newUserToken("bar", "2", "pass", User.INTERNAL_REALM_ID);
+    tempEntity.newUserToken("foo", "3", "pass", CrowdRealm.ID);
+    tempEntity.newUserToken("bar", "4", "pass", CrowdRealm.ID);
+    tempEntity.newUserToken("foo", "5", "pass", "other");
+    tempEntity.newUserToken("bar", "6", "pass", "other");
+
+    ApiUserTokenDTO result = userTokenService.getUserTokenByUsernameAndRealmId("foo", CrowdRealm.ID);
+
+    assertThat(result).isNotNull();
+    assertThat(result.username).isEqualTo("foo");
+    assertThat(result.userCode).isEqualTo("3");
+    assertThat(result.realm).isEqualTo(CrowdRealm.ID);
   }
 }

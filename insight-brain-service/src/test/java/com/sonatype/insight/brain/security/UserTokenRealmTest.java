@@ -11,6 +11,8 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
@@ -20,17 +22,23 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.atlassian.crowd.exception.UserNotFoundException;
 import com.google.inject.Binder;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.IncorrectCredentialsException;
+import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class UserTokenRealmTest
@@ -41,13 +49,20 @@ public class UserTokenRealmTest
 
   @Inject
   private PasswordService passwordService;
+  
+  @Inject
+  private UserTokenDAO userTokenDAO;
 
   @Mock
   private ProductLicense mockProductLicense;
 
+  @Mock
+  private CrowdClientFactory mockCrowdClientFactory;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(ProductLicense.class).toInstance(mockProductLicense);
+    binder.bind(CrowdClientFactory.class).toInstance(mockCrowdClientFactory);
     super.configure(binder);
   }
 
@@ -269,5 +284,81 @@ public class UserTokenRealmTest
         new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
 
     assertThat(realm.doGetAuthenticationInfo(usernamePasswordToken)).isNull();
+  }
+
+  @Test
+  public void testDoGetCrowdRealmAuthenticationInfo_Crowd_NullCrowdClient() {
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    UserToken userToken = tempEntity.newUserToken("username", "TestUserCode", hashedUserTokenPassword, CrowdRealm.ID);
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+
+    assertThat(realm.doGetAuthenticationInfo(usernamePasswordToken)).isNull();
+    verify(mockCrowdClientFactory).createCrowdClient();
+  }
+
+  @Test
+  public void testDoGetCrowdRealmAuthenticationInfo_Crowd() throws Exception {
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    UserToken userToken = tempEntity.newUserToken("username", "TestUserCode", hashedUserTokenPassword, CrowdRealm.ID);
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+    CrowdClient mockCrowdClient = mock(CrowdClient.class);
+    UserPrincipal mockUserPrincipal = mock(UserPrincipal.class);
+    when(mockCrowdClient.getUser(any(UserToken.class))).thenReturn(mockUserPrincipal);
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+
+    AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
+
+    assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
+    UserPrincipal userPrincipal = getUserPrincipal(authenticationInfo);
+    assertThat(userPrincipal).isEqualTo(mockUserPrincipal);
+    verify(mockCrowdClientFactory).createCrowdClient();
+    ArgumentCaptor<UserToken> userTokenArgumentCaptor = ArgumentCaptor.forClass(UserToken.class);
+    verify(mockCrowdClient).getUser(userTokenArgumentCaptor.capture());
+    assertThat(userTokenArgumentCaptor.getValue()).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(userToken);
+  }
+
+  @Test
+  public void testDoGetCrowdRealmAuthenticationInfo_Crowd_UserNotFound() throws Exception {
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    UserToken userToken = tempEntity.newUserToken("username", "TestUserCode", hashedUserTokenPassword, CrowdRealm.ID);
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+    CrowdClient mockCrowdClient = mock(CrowdClient.class);
+    when(mockCrowdClient.getUser(any(UserToken.class))).thenThrow(
+        new UserNotFoundException(userToken.getUsername()));
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+
+    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(
+        () -> realm.doGetAuthenticationInfo(usernamePasswordToken)).withMessageContaining("Invalid user token.");
+    assertThat(userTokenDAO.getById(userToken.getId())).isNull();
+  }
+  
+  @Test
+  public void testDoGetCrowdRealmAuthenticationInfo_Crowd_Error() throws Exception {
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    UserToken userToken = tempEntity.newUserToken("username", "TestUserCode", hashedUserTokenPassword, CrowdRealm.ID);
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+    CrowdClient mockCrowdClient = mock(CrowdClient.class);
+    when(mockCrowdClient.getUser(any(UserToken.class))).thenThrow(new RuntimeException("SomeError"));
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+
+    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(
+        () -> realm.doGetAuthenticationInfo(usernamePasswordToken)).withMessageContaining(
+        String.format("Could not authenticate the '%s' Crowd user with their '%s' user token.", userToken.getUsername(),
+            userToken.getUserCode())).withStackTraceContaining("SomeError");
+  }
+
+  private UserPrincipal getUserPrincipal(AuthenticationInfo authenticationInfo) {
+    assertThat(authenticationInfo).isInstanceOf(SimpleAuthenticationInfo.class);
+    SimpleAuthenticationInfo simpleAuthenticationInfo = (SimpleAuthenticationInfo) authenticationInfo;
+    assertThat(simpleAuthenticationInfo.getPrincipals()).isNotEmpty();
+    assertThat(simpleAuthenticationInfo.getPrincipals().getRealmNames()).containsExactly(realm.getName());
+    Object primaryPrincipal = simpleAuthenticationInfo.getPrincipals().getPrimaryPrincipal();
+    assertThat(primaryPrincipal).isInstanceOf(UserPrincipal.class);
+    return (UserPrincipal) primaryPrincipal;
   }
 }

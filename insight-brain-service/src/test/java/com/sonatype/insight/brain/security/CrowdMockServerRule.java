@@ -50,6 +50,26 @@ public class CrowdMockServerRule
     return crowdMockServer.baseUrl();
   }
 
+  public void mockGetUser(String username, String displayName) throws Exception {
+    UserEntity userEntity =
+        new UserEntity(username, "firstName", "lastName", displayName, "email", new PasswordEntity("password"), true,
+            null);
+    mockGetUser(userEntity);
+  }
+
+  public void mockGetUser(UserEntity userEntity) throws Exception {
+    crowdMockServer.stubFor(get(urlPathMatching("/crowd/rest/usermanagement/1/user")).withQueryParam("username",
+        equalTo(userEntity.getName())).willReturn(
+        aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody(marshall(userEntity)).withStatus(200)));
+  }
+
+  public void mockGetUserError(String username, int status) throws Exception {
+    crowdMockServer.stubFor(
+        get(urlPathMatching("/crowd/rest/usermanagement/1/user")).withQueryParam("username", equalTo(username))
+            .willReturn(
+                aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody("Error").withStatus(status)));
+  }
+
   public void mockAuthenticateUser(String username, String displayName) throws Exception {
     UserEntity userEntity =
         new UserEntity(username, "firstName", "lastName", displayName, "email", new PasswordEntity("password"),

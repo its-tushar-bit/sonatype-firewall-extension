@@ -17,11 +17,11 @@ import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurat
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.CrowdClientFactory;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import com.atlassian.crowd.integration.rest.service.factory.RestCrowdClientFactory;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -52,13 +52,17 @@ public class ApiCrowdConfigurationService
 
   private final PasswordHandler passwordHandler;
 
-  private final RestCrowdClientFactory restCrowdClientFactory;
+  private final CrowdClientFactory crowdClientFactory;
 
   @Inject
-  public ApiCrowdConfigurationService(CrowdConfigurationDAO crowdConfigurationDAO, PasswordHandler passwordHandler) {
+  public ApiCrowdConfigurationService(
+      CrowdConfigurationDAO crowdConfigurationDAO,
+      PasswordHandler passwordHandler,
+      CrowdClientFactory crowdClientFactory)
+  {
     this.crowdConfigurationDAO = crowdConfigurationDAO;
     this.passwordHandler = passwordHandler;
-    restCrowdClientFactory = new RestCrowdClientFactory();
+    this.crowdClientFactory = crowdClientFactory;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -142,8 +146,7 @@ public class ApiCrowdConfigurationService
   private ApiStatusDTO testCrowdConfiguration(CrowdConfiguration crowdConfiguration) {
     ApiStatusDTO dto = new ApiStatusDTO();
     try {
-      restCrowdClientFactory.newInstance(crowdConfiguration.getServerUrl(), crowdConfiguration.getApplicationName(),
-          new String(passwordHandler.decryptPassword(crowdConfiguration.getApplicationPassword()))).testConnection();
+      crowdClientFactory.createCrowdClient(crowdConfiguration).testConnection();
       dto.code = 200;
     }
     catch (Exception e) {

@@ -150,7 +150,8 @@ public class PullRequestPollingService
         }
 
         pollingTracker.onPullRequestProcessedForApplication(app.getId(), pullRequest.getCreated());
-        log.debug("Pull request polling time updated for '{}'", pullRequest.getRepository());
+        log.debug("Pull request polling time updated for '{}' to {}", pullRequest.getRepository(),
+            pullRequest.getCreated());
       }
     }
   }

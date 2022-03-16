@@ -106,11 +106,10 @@ public class PullRequestPollingServiceTest
 
     // then: event emitted
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
-    assertThatLogMessagesEqual(
+    assertThatLogMessagesContain(
         debug("Fetched 1 pull request(s) for org 'org5' since " + pullRequestPollingTime),
         debug("Repository 'https://domain.com/org5/repo5' pull request '10' is for application 'appBaseBranch' base " +
-            "branch, skipping commenting"),
-        debug("Pull request polling time updated for 'https://domain.com/org5/repo5'")
+            "branch, skipping commenting")
     );
   }
 
@@ -144,11 +143,10 @@ public class PullRequestPollingServiceTest
         pullRequestCreateDate, before, after);
 
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
-    assertThatLogMessagesEqual(
+    assertThatLogMessagesContain(
         debug("Fetched 1 pull request(s) for org 'org7' since " + pullRequestPollingTime),
         info("Sent pull request discovered event for application 'appPost' with PR# '10' and commit " +
-            "'feature-commit-xyz-1'"),
-        debug("Pull request polling time updated for 'https://domain.com/org7/repo7'")
+            "'feature-commit-xyz-1'")
     );
   }
 
@@ -227,13 +225,11 @@ public class PullRequestPollingServiceTest
         pullRequestCreateDate, before, after);
 
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
-    assertThatLogMessagesEqual(debug("Fetched 1 pull request(s) for org 'testorg' since " + pullRequestPollingTime),
+    assertThatLogMessagesContain(debug("Fetched 1 pull request(s) for org 'testorg' since " + pullRequestPollingTime),
         info("Sent pull request discovered event for application 'app1' with PR# '10' and commit "
             + "'feature-commit-xyz-1'"),
-        debug("Pull request polling time updated for 'https://domain.com/testorg/testrepo'"),
         info("Sent pull request discovered event for application 'app2' with PR# '10' and commit "
-            + "'feature-commit-xyz-1'"),
-        debug("Pull request polling time updated for 'https://domain.com/testorg/testrepo'"));
+            + "'feature-commit-xyz-1'"));
   }
 
   @Test
@@ -266,11 +262,10 @@ public class PullRequestPollingServiceTest
 
     // and: an event is created
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
-    assertThatLogMessagesEqual(
+    assertThatLogMessagesContain(
         debug("Fetched 1 pull request(s) for org 'org9' since " + pullRequestPollingTime),
         info("Sent pull request discovered event for application 'appNoTarget' with PR# '10' and " +
-            "commit 'feature-commit-xyz-1'"),
-        debug("Pull request polling time updated for 'https://domain.com/org9/repo9'")
+            "commit 'feature-commit-xyz-1'")
     );
   }
 
@@ -329,11 +324,10 @@ public class PullRequestPollingServiceTest
         pullRequestCreateDate, before, after);
 
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
-    assertThatLogMessagesEqual(
+    assertThatLogMessagesContain(
         debug("Fetched 1 pull request(s) for org 'orgInt' since " + pullRequestPollingTime),
         info("Sent pull request discovered event for application 'appInternal' with PR# '10' and commit " +
-            "'feature-commit-xyz-1'"),
-        debug("Pull request polling time updated for 'https://domain.com/orgInt/repoInt'")
+            "'feature-commit-xyz-1'")
     );
   }
 
@@ -375,10 +369,9 @@ public class PullRequestPollingServiceTest
 
     // then: no events emitted
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
-    assertThatLogMessagesEqual(
+    assertThatLogMessagesContain(
         debug("Fetched 1 pull request(s) for org 'orgNp' since " + pullRequestPollingTime),
-        debug("Repository is not valid for pull requests, check that it is private: https://domain.com/orgNp/repoNp"),
-        debug("Pull request polling time updated for 'https://domain.com/orgNp/repoNp'")
+        debug("Repository is not valid for pull requests, check that it is private: https://domain.com/orgNp/repoNp")
     );
   }
 
@@ -496,17 +489,15 @@ public class PullRequestPollingServiceTest
 
     // and events are emitted
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
-    assertThatLogMessagesEqual(
+    assertThatLogMessagesContain(
         debug("Fetched 1 pull request(s) for org 'org' repo 'multi-1' since " + repo1pullRequestPollingTime),
         debug("Fetched 1 pull request(s) for org 'org' repo 'multi-2' since " + repo2pullRequestPollingTime),
         info(
             "Sent pull request discovered event for application 'gitlab1' with PR# '10' and commit " +
                 "'feature-commit-xyz-1'"),
-        debug("Pull request polling time updated for 'https://domain.com/org/multi-1'"),
         info(
             "Sent pull request discovered event for application 'gitlab2' with PR# '20' and commit " +
-                "'feature-commit-abc-2'"),
-        debug("Pull request polling time updated for 'https://domain.com/org/multi-2'")
+                "'feature-commit-abc-2'")
     );
   }
 
@@ -533,8 +524,7 @@ public class PullRequestPollingServiceTest
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
         debug("Pull request 10 for branch app123/com.sonatype/iq-server/1.108 is determined to be an IQ Server " +
-            "generated remediation PR.  We will not comment on it."),
-        debug("Pull request polling time updated for 'https://domain.com/githubOrg/remediation'")
+            "generated remediation PR.  We will not comment on it.")
     );
   }
 
@@ -593,16 +583,14 @@ public class PullRequestPollingServiceTest
 
     //  and events are emitted
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
-    assertThatLogMessagesEqual(
+    assertThatLogMessagesContain(
         debug("Fetched 2 pull request(s) for org 'githubOrg' since " + repo1pullRequestPollingTime),
         info(
             "Sent pull request discovered event for application 'github1' with PR# '10' and commit " +
                 "'feature-commit-xyz-1'"),
-        debug("Pull request polling time updated for 'https://domain.com/githubOrg/multi-1'"),
         info(
             "Sent pull request discovered event for application 'github2' with PR# '20' and commit " +
-                "'feature-commit-abc-2'"),
-        debug("Pull request polling time updated for 'https://domain.com/githubOrg/multi-2'")
+                "'feature-commit-abc-2'")
     );
   }
 

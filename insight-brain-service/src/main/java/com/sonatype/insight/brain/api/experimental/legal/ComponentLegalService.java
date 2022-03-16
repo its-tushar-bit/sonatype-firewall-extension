@@ -573,8 +573,9 @@ public class ComponentLegalService
     componentSourceLink.setId(componentSourceLinkDTO.getId());
     List<SourceLinkOverride> sourceLinkOverrides = componentSourceLinkDTO.getSourceLinkOverrides().stream().map(dto -> {
       final String content = StringUtils.isBlank(dto.getContent()) ? "" : dto.getContent();
+      final String originalContent = StringUtils.isBlank(dto.getId()) ? dto.getContent() : dto.getOriginalContent();
       SourceLinkOverride sourceLinkOverride =
-          new SourceLinkOverride(content, dto.getStatus(), componentSourceLinkDTO.getId());
+          new SourceLinkOverride(content, originalContent, dto.getStatus(), componentSourceLinkDTO.getId());
       sourceLinkOverride.setId(dto.getId());
       return sourceLinkOverride;
     }).collect(Collectors.toList());
@@ -779,8 +780,10 @@ public class ComponentLegalService
       if (sourceLinkOverrideDTO.getStatus() == null) {
         throw new InvalidComponentSourceLinkException("SourceLinkOverride must have a status.");
       }
-      if (sourceLinkOverrideDTO.getContent() != null
-          && sourceLinkOverrideDTO.getContent().length() > SOURCE_LINK_CONTENT_MAX_CHARACTER) {
+      if ((sourceLinkOverrideDTO.getContent() != null
+          && sourceLinkOverrideDTO.getContent().length() > SOURCE_LINK_CONTENT_MAX_CHARACTER) ||
+          (sourceLinkOverrideDTO.getOriginalContent() != null
+              && sourceLinkOverrideDTO.getOriginalContent().length() > SOURCE_LINK_CONTENT_MAX_CHARACTER)) {
         throw new InvalidComponentSourceLinkException(String
             .format("SourceLinkOverride content must be less than %s characters", SOURCE_LINK_CONTENT_MAX_CHARACTER));
       }
@@ -898,7 +901,7 @@ public class ComponentLegalService
     return sourceLinkOverrideDAO.getByOwnerIdAndComponentIdentifierWithHierarchy(ownerId, componentIdentifier).stream()
         .map(LegalSourceLinkDTO::new)
         .sorted(
-            Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.sourceLink, String.CASE_INSENSITIVE_ORDER))
+            Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.content, String.CASE_INSENSITIVE_ORDER))
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 }

@@ -29,6 +29,9 @@ public class SourceLinkOverride
   @Column(name = "content")
   private String content;
 
+  @Column(name = "original_content")
+  private String originalContent;
+
   @Column(name = "status")
   @Enumerated(EnumType.STRING)
   private ComponentLegalPartStatus status;
@@ -45,6 +48,19 @@ public class SourceLinkOverride
       String componentSourceLinkId)
   {
     this.content = content;
+    this.originalContent = content;
+    this.status = status;
+    this.componentSourceLinkId = componentSourceLinkId;
+  }
+
+  public SourceLinkOverride(
+      String content,
+      String originalContent,
+      ComponentLegalPartStatus status,
+      String componentSourceLinkId)
+  {
+    this.content = content;
+    this.originalContent = originalContent;
     this.status = status;
     this.componentSourceLinkId = componentSourceLinkId;
   }
@@ -65,6 +81,14 @@ public class SourceLinkOverride
 
   public void setContent(String content) {
     this.content = content;
+  }
+
+  public String getOriginalContent() {
+    return originalContent;
+  }
+
+  public void setOriginalContent(String originalContent) {
+    this.originalContent = originalContent;
   }
 
   public ComponentLegalPartStatus getStatus() {

@@ -132,11 +132,13 @@ public class ComponentSourceLinkDAOTest
     ComponentSourceLink otherComponentSourceLink = tempEntity
         .newComponentSourceLink(ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), organization.getId());
     SourceLinkOverride sourceLinkOverride1 =
-        tempEntity.newSourceLinkOverride("content1", ComponentLegalPartStatus.ENABLED, componentSourceLink.getId());
+        tempEntity.newSourceLinkOverride("content1", "originalContent1", ComponentLegalPartStatus.ENABLED,
+            componentSourceLink.getId());
     SourceLinkOverride sourceLinkOverride2 =
-        tempEntity.newSourceLinkOverride("content2", ComponentLegalPartStatus.ENABLED, componentSourceLink.getId());
+        tempEntity.newSourceLinkOverride("content2", "originalContent1", ComponentLegalPartStatus.ENABLED,
+            componentSourceLink.getId());
     SourceLinkOverride otherSourceLinkOverride =
-        tempEntity.newSourceLinkOverride("content3", ComponentLegalPartStatus.ENABLED,
+        tempEntity.newSourceLinkOverride("content3", "originalContent1", ComponentLegalPartStatus.ENABLED,
             otherComponentSourceLink.getId());
 
     dao.delete(componentSourceLink);

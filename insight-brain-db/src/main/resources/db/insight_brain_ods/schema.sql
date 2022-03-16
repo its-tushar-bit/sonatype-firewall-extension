@@ -1124,6 +1124,7 @@ CREATE INDEX component_source_link_owner_component_idx ON component_source_link(
 CREATE TABLE source_link_override (
   source_link_override_id varchar(50) NOT NULL,
   content varchar(1000) NOT NULL,
+  original_content varchar(1000) NOT NULL,
   status varchar(20) NOT NULL,
   component_source_link_id varchar(50) NOT NULL,
   CONSTRAINT source_link_override_pk PRIMARY KEY (source_link_override_id),

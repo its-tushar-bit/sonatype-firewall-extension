@@ -1454,10 +1454,11 @@ public class ApiLicenseLegalServiceTest
         componentIdentifierArgumentCaptor.capture()))
         .thenAnswer(invocation -> {
           String sourceLink = "https://mockrepository.com/component.jar";
-          return Sets.newHashSet(new LegalSourceLinkDTO(null, sourceLink, ComponentLegalPartStatus.ENABLED));
+          return Sets.newHashSet(
+              new LegalSourceLinkDTO(null, sourceLink, sourceLink, ComponentLegalPartStatus.ENABLED));
         });
     when(mockComponentLegalService.getSourceLinksOverridesFromComponentIdentifier(anyString(),
-            any(ComponentIdentifier.class)))
+        any(ComponentIdentifier.class)))
         .thenReturn(new LinkedHashSet<>(Arrays.asList(legalSourceLinks)));
 
     ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
@@ -2034,7 +2035,8 @@ public class ApiLicenseLegalServiceTest
     }).when(mockApiLicenseLegalHdsService).getSourceLinksFromComponentIdentifier(any());
 
     doAnswer(invocationOnMock -> {
-      SourceLinkOverride sourceLinkOverride = new SourceLinkOverride("content", ComponentLegalPartStatus.ENABLED, "1");
+      SourceLinkOverride sourceLinkOverride =
+          new SourceLinkOverride("content", "content", ComponentLegalPartStatus.ENABLED, "1");
       SourceLinkOverride sourceLinkOverrideExtra =
           new SourceLinkOverride("contentB", ComponentLegalPartStatus.ENABLED, "1");
       return Sets.newHashSet(new LegalSourceLinkDTO(sourceLinkOverride),
@@ -2081,7 +2083,7 @@ public class ApiLicenseLegalServiceTest
             "https://" + licenseLegalComponent.componentIdentifier.toComponentIdentifier()),
         new LegalSourceLinkDTO(new SourceLinkOverride("content", ComponentLegalPartStatus.ENABLED, "1")),
         new LegalSourceLinkDTO(new SourceLinkOverride("contentB", ComponentLegalPartStatus.ENABLED, "1")));
-    
+
     Map<ApiLicenseDTO, Set<com.sonatype.insight.brain.model.license.License>> multiLicenseToSingleLicense =
         Sets.newHashSet(Iterables.concat(
                 licenseLegalComponent.licenseLegalData.effectiveLicenses,

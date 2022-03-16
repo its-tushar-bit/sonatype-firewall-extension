@@ -1,22 +1,26 @@
 [
   {
     "id": "id1",
-    "sourceLink": "https://overriderepository1.com/mockcomponent.jar",
+    "content": "https://overriderepository1.com/mockcomponent.jar",
+    "originalContent": "https://overriderepository1.com/mockcomponent.jar",
     "status" : "enabled"
   },
   {
     "id": "id2",
-    "sourceLink": "https://overriderepository2.com/mockcomponent.jar",
+    "content": "https://overriderepository2.com/mockcomponent.jar",
+    "originalContent": "https://overriderepository1.com/mockcomponent.jar",
     "status" : "disabled"
   },
   {
     "id": "id3",
-    "sourceLink": "https://overriderepository3.com/mockcomponent.jar",
+    "content": "https://overriderepository3.com/mockcomponent.jar",
+    "originalContent": "https://overriderepository1.com/mockcomponent.jar",
     "status" : "disabled"
   },
   {
     "id": "id4",
-    "sourceLink": "https://overriderepository4.com/mockcomponent.jar",
+    "content": "https://overriderepository4.com/mockcomponent.jar",
+    "originalContent": "https://overriderepository1.com/mockcomponent.jar",
     "status" : "enabled"
   }
 ]

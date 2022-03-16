@@ -19,6 +19,8 @@ public class SourceLinkOverrideDTO
 
   private String content;
 
+  private String originalContent;
+
   private ComponentLegalPartStatus status;
 
   public SourceLinkOverrideDTO() {
@@ -31,12 +33,26 @@ public class SourceLinkOverrideDTO
   {
     this.id = id;
     this.content = content;
+    this.originalContent = content;
+    this.status = status;
+  }
+
+  public SourceLinkOverrideDTO(
+      final String id,
+      final String content,
+      final String originalContent,
+      final ComponentLegalPartStatus status)
+  {
+    this.id = id;
+    this.content = content;
+    this.originalContent = originalContent;
     this.status = status;
   }
 
   public static SourceLinkOverrideDTO fromSourceLinkOverride(SourceLinkOverride sourceLinkOverride) {
     return new SourceLinkOverrideDTO(
-        sourceLinkOverride.getId(), sourceLinkOverride.getContent(), sourceLinkOverride.getStatus());
+        sourceLinkOverride.getId(), sourceLinkOverride.getContent(), sourceLinkOverride.getOriginalContent(),
+        sourceLinkOverride.getStatus());
   }
 
   public String getId() {
@@ -53,6 +69,14 @@ public class SourceLinkOverrideDTO
 
   public void setContent(final String content) {
     this.content = content;
+  }
+
+  public String getOriginalContent() {
+    return originalContent;
+  }
+
+  public void setOriginalContent(final String originalContent) {
+    this.originalContent = originalContent;
   }
 
   public ComponentLegalPartStatus getStatus() {
@@ -73,11 +97,12 @@ public class SourceLinkOverrideDTO
     }
     SourceLinkOverrideDTO that = (SourceLinkOverrideDTO) o;
     return Objects.equals(getId(), that.getId()) &&
-        Objects.equals(getContent(), that.getContent()) && getStatus() == that.getStatus();
+        Objects.equals(getContent(), that.getContent()) &&
+        Objects.equals(getOriginalContent(), that.getOriginalContent()) && getStatus() == that.getStatus();
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getId(), getContent(), getStatus());
+    return Objects.hash(getId(), getContent(), getOriginalContent(), getStatus());
   }
 }

@@ -24,7 +24,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -696,9 +695,10 @@ public class ApiLicenseLegalService
         componentLegalService.getSourceLinksOverridesFromComponentIdentifier(owner.getId(), compIdentifier);
     sourceLinks = sourceLinks.stream()
         .filter(sourceLinkHDS -> sourceLinkOverrides.stream()
-            .noneMatch(customSourceLink -> customSourceLink.sourceLink.equals(sourceLinkHDS.sourceLink)))
+            .noneMatch(customSourceLink -> customSourceLink.originalContent.equals(sourceLinkHDS.originalContent)))
         .sorted(
-            Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.sourceLink, String.CASE_INSENSITIVE_ORDER))
+            Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.originalContent,
+                String.CASE_INSENSITIVE_ORDER))
         .collect(Collectors.toCollection(LinkedHashSet::new));
     sourceLinks.addAll(sourceLinkOverrides);
     return sourceLinks;

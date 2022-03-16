@@ -14,7 +14,9 @@ public class LegalSourceLinkDTO
 {
   public String id;
 
-  public String sourceLink;
+  public String content;
+
+  public String originalContent;
 
   public ComponentLegalPartStatus status;
 
@@ -22,18 +24,24 @@ public class LegalSourceLinkDTO
     //for jackson
   }
 
-  public LegalSourceLinkDTO(final String id, final String sourceLink, final ComponentLegalPartStatus status) {
+  public LegalSourceLinkDTO(
+      final String id,
+      final String content,
+      final String originalContent,
+      final ComponentLegalPartStatus status)
+  {
     this.id = id;
-    this.sourceLink = sourceLink;
+    this.content = content;
+    this.originalContent = originalContent;
     this.status = status;
   }
 
-  public LegalSourceLinkDTO(final String sourceLink) {
-    this(null, sourceLink, ComponentLegalPartStatus.ENABLED);
+  public LegalSourceLinkDTO(final String content) {
+    this(null, content, content, ComponentLegalPartStatus.ENABLED);
   }
 
   public LegalSourceLinkDTO(final SourceLinkOverride sourceLink) {
-    this(sourceLink.getId(), sourceLink.getContent(), sourceLink.getStatus());
+    this(sourceLink.getId(), sourceLink.getContent(), sourceLink.getOriginalContent(), sourceLink.getStatus());
   }
 
   @Override
@@ -45,20 +53,21 @@ public class LegalSourceLinkDTO
       return false;
     }
     LegalSourceLinkDTO that = (LegalSourceLinkDTO) o;
-    return Objects.equals(id, that.id) && Objects.equals(sourceLink, that.sourceLink) &&
-        status == that.status;
+    return Objects.equals(id, that.id) && Objects.equals(content, that.content) &&
+        Objects.equals(originalContent, that.originalContent) && status == that.status;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, sourceLink, status);
+    return Objects.hash(id, content, originalContent, status);
   }
 
   @Override
   public String toString() {
     return "LegalSourceLinkDTO{" +
         "id='" + id + '\'' +
-        ", sourceLink='" + sourceLink + '\'' +
+        ", content='" + content + '\'' +
+        ", originalContent='" + originalContent + '\'' +
         ", status=" + status +
         '}';
   }

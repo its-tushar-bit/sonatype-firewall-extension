@@ -35,7 +35,7 @@ public class SourceLinkOverrideDAOTest
     // Create
     ComponentSourceLink componentSourceLink = tempEntity.newComponentSourceLink(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId());
-    SourceLinkOverride sourceLinkOverride = new SourceLinkOverride( "content",
+    SourceLinkOverride sourceLinkOverride = new SourceLinkOverride("content", "originalContent",
         ComponentLegalPartStatus.ENABLED, componentSourceLink.getId());
     dao.insert(sourceLinkOverride);
     assertThat(sourceLinkOverride.getId()).isNotNull();
@@ -65,12 +65,13 @@ public class SourceLinkOverrideDAOTest
     // Start with a sourceLink override at just the root org level
     ComponentSourceLink componentSourceLinkForRootOrganization =
         tempEntity.newComponentSourceLink(componentIdentifier, Organization.ROOT_ORGANIZATION_ID);
-    SourceLinkOverride sourceLinkOverrideForRootOrganization = tempEntity.newSourceLinkOverride("content1",
-        ComponentLegalPartStatus.ENABLED, componentSourceLinkForRootOrganization.getId());
+    SourceLinkOverride sourceLinkOverrideForRootOrganization =
+        tempEntity.newSourceLinkOverride("content1", "originalContent1",
+            ComponentLegalPartStatus.ENABLED, componentSourceLinkForRootOrganization.getId());
 
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
-            .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
@@ -79,12 +80,13 @@ public class SourceLinkOverrideDAOTest
     // Add another sourceLink override at the org level
     ComponentSourceLink componentSourceLinkForOrganization =
         tempEntity.newComponentSourceLink(componentIdentifier, organization.getId());
-    SourceLinkOverride sourceLinkOverrideForOrganization = tempEntity.newSourceLinkOverride("content2",
-        ComponentLegalPartStatus.ENABLED, componentSourceLinkForOrganization.getId());
+    SourceLinkOverride sourceLinkOverrideForOrganization =
+        tempEntity.newSourceLinkOverride("content2", "originalContent2",
+            ComponentLegalPartStatus.ENABLED, componentSourceLinkForOrganization.getId());
 
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
-            .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
@@ -93,12 +95,13 @@ public class SourceLinkOverrideDAOTest
     // Add another sourceLink override at the app level
     ComponentSourceLink componentSourceLinkForApplication =
         tempEntity.newComponentSourceLink(componentIdentifier, application.getId());
-    SourceLinkOverride sourceLinkOverrideForApplication = tempEntity.newSourceLinkOverride("content3",
-        ComponentLegalPartStatus.ENABLED, componentSourceLinkForApplication.getId());
+    SourceLinkOverride sourceLinkOverrideForApplication =
+        tempEntity.newSourceLinkOverride("content3", "originalContent3",
+            ComponentLegalPartStatus.ENABLED, componentSourceLinkForApplication.getId());
 
     assertThat(
         dao.getByOwnerIdAndComponentIdentifierWithHierarchy(Organization.ROOT_ORGANIZATION_ID, componentIdentifier))
-            .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
+        .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(organization.getId(), componentIdentifier))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(sourceLinkOverrideForOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(), componentIdentifier))
@@ -110,7 +113,8 @@ public class SourceLinkOverrideDAOTest
     ComponentSourceLink componentSourceLink = tempEntity
         .newComponentSourceLink(ComponentIdentifier.createMavenCoordinates("g", "a", "v"), organization.getId());
     SourceLinkOverride sourceLinkOverride =
-        new SourceLinkOverride("content", ComponentLegalPartStatus.ENABLED, componentSourceLink.getId());
+        new SourceLinkOverride("content", "originalContent", ComponentLegalPartStatus.ENABLED,
+            componentSourceLink.getId());
     sourceLinkOverride.setId("doesNotExist");
 
     assertThatExceptionOfType(BadRequestException.class)

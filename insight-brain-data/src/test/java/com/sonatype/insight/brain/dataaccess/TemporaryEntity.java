@@ -3297,14 +3297,26 @@ public class TemporaryEntity
     componentSourceLinkDAO.insert(componentSourceLink);
     return componentSourceLink;
   }
-  
+
   public SourceLinkOverride newSourceLinkOverride(
       String content,
       ComponentLegalPartStatus status,
       String componentSourceLinkId)
   {
     SourceLinkOverride sourceLinkOverride =
-        new SourceLinkOverride(content, status, componentSourceLinkId);
+        new SourceLinkOverride(content, content, status, componentSourceLinkId);
+    sourceLinkOverrideDAO.insert(sourceLinkOverride);
+    return sourceLinkOverride;
+  }
+
+  public SourceLinkOverride newSourceLinkOverride(
+      String content,
+      String originalContent,
+      ComponentLegalPartStatus status,
+      String componentSourceLinkId)
+  {
+    SourceLinkOverride sourceLinkOverride =
+        new SourceLinkOverride(content, originalContent, status, componentSourceLinkId);
     sourceLinkOverrideDAO.insert(sourceLinkOverride);
     return sourceLinkOverride;
   }

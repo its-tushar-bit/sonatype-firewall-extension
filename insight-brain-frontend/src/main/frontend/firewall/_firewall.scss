@@ -143,4 +143,9 @@ h2.iq-firewall-table-label {
   .iq-cell--repository {
     width: 160px;
   }
+
+  button.nx-text-link {
+    line-height: var(--nx-line-height);
+    text-decoration: none;
+  }
 }

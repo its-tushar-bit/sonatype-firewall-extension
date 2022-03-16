@@ -186,12 +186,13 @@ export default function FirewallQuarantineTable(props) {
                     <NxTableCell>
                       <NxOverflowTooltip title={row.componentDisplayText}>
                         <div className="nx-truncate-ellipsis">
-                          <NxTextLink
+                          <button
+                            className="nx-text-link"
                             id="iq-firewall-quarantine-table--cip"
                             onClick={() => selectQuarantineComponent(index)}
                           >
                             {row.componentDisplayText}
-                          </NxTextLink>
+                          </button>
                         </div>
                       </NxOverflowTooltip>
                     </NxTableCell>
@@ -203,6 +204,7 @@ export default function FirewallQuarantineTable(props) {
                             newTab
                             external
                             href={uiRouterState.href('repository-report', { repositoryId: row.repositoryId })}
+                            truncate
                           >
                             {row.repository}
                           </NxTextLink>

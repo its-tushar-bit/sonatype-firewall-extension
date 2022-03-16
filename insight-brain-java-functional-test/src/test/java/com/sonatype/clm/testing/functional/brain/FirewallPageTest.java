@@ -69,7 +69,7 @@ public class FirewallPageTest
   public static void setupData() {
     Policy policy = staticTempEntity.newPolicy();
     RepositoryManager repositoryManager = staticTempEntity.newRepositoryManager("1");
-    Repository repository = staticTempEntity.newRepository(repositoryManager, "central", true, false);
+    Repository repository = staticTempEntity.newRepository(repositoryManager, "maven-central", true, false);
 
     ZoneOffset offset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
     Date date1 = Date.from(LocalDateTime.now().withDayOfMonth(1).toInstant(offset));
@@ -198,6 +198,6 @@ public class FirewallPageTest
     eyesWatcher.eyesCheck();
     page.firewallQuarantineTable().tableBodyRows().get(0).find("#iq-firewall-quarantine-table--repo-view-link").click();
     Selenide.switchTo().window(1);
-    RepositoryReportContainerPage.title().shouldHave(text("Repository results for central"));
+    RepositoryReportContainerPage.title().shouldHave(text("Repository results for maven-central"));
   }
 }

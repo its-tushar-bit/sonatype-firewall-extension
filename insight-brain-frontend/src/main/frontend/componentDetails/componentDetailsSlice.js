@@ -10,7 +10,7 @@ import { enableMapSet } from 'immer';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { loadReportIfNeeded } from '../applicationReport/applicationReportActions';
-import { selectDependencyTreeData, selectSelectedComponent } from '../applicationReport/applicationReportSelectors';
+import { selectDependencyTreeData } from '../applicationReport/applicationReportSelectors';
 import {
   getComponentLabels,
   setProprietaryMatchers,
@@ -35,16 +35,12 @@ import { getDependencyTreeSubset } from 'MainRoot/DependencyTree/dependencyTreeU
 const HTTP_CLIENT_CLOSED_REQUEST = 499;
 
 const REDUCER_NAME = 'componentDetails';
-export const VISIT_ANCESTOR_ACTION = REDUCER_NAME + '/visitAncestors';
-export const RETURN_TO_OFFSPRING = REDUCER_NAME + '/backToOffspring';
 
 enableMapSet();
 
 export const initialState = Object.freeze({
   pendingLoads: new Set(),
-  isVisitingAncestor: false,
   isSavingLabelScope: false,
-  offspring: null,
   labels: [],
   applicableLabels: [],
   applicableLabelScopes: [],
@@ -111,44 +107,6 @@ const onTabChange = (tabId) => {
   return (dispatch, getState) => {
     const { hash } = selectRouterCurrentParams(getState());
     return dispatch(stateGo(`applicationReport.componentDetails.${tabId}`, { hash }));
-  };
-};
-
-const visitAncestorAction = () => {
-  return (dispatch, getState) => {
-    const state = getState();
-    const component = selectSelectedComponent(state);
-
-    dispatch(
-      actions.visitAncestors({
-        offspring: {
-          derivedComponentName: component.derivedComponentName,
-          hash: component.hash,
-        },
-      })
-    );
-  };
-};
-
-const backToOffspringAction = () => {
-  return (dispatch) => {
-    dispatch(actions.backToOffspring());
-  };
-};
-
-const visitAncestors = (state, { payload }) => {
-  return {
-    ...state,
-    offspring: payload.offspring,
-    isVisitingAncestor: true,
-  };
-};
-
-const backToOffspring = (state) => {
-  return {
-    ...state,
-    offspring: null,
-    isVisitingAncestor: false,
   };
 };
 
@@ -488,8 +446,6 @@ const componentDetailsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
-    visitAncestors,
-    backToOffspring,
     showApplyLabelModalAction,
     cancelApplyLabelModal,
     toggleShowMatchersPopover: toggleBooleanProp('showMatchersPopover'),
@@ -539,8 +495,6 @@ export const actions = {
   loadComponentDetails,
   loadComponentDetailsWithCancelToken,
   onTabChange,
-  visitAncestorAction,
-  backToOffspringAction,
   loadApplicableLabels,
   loadApplicableLabelsWithCancelToken,
   removeAppliedLabel,

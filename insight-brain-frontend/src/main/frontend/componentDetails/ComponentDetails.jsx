@@ -34,7 +34,6 @@ export default function ComponentDetails({
   componentDetails,
   activeTabId,
   onTabChange,
-  backToOffspringOnClick,
   pagination,
   loadComponentDetails,
   loadError,
@@ -120,9 +119,7 @@ export default function ComponentDetails({
           isExact={isExact}
         />
       </div>
-      {!dependencyTreeRouterParams && pagination && (
-        <ComponentDetailsFooter {...pagination} backToOffspringOnClick={backToOffspringOnClick} />
-      )}
+      {!dependencyTreeRouterParams && pagination && <ComponentDetailsFooter {...pagination} />}
     </main>
   );
 }
@@ -149,7 +146,6 @@ ComponentDetails.propTypes = {
   // activeTabId should be required but marking it as such causes proptype errors when navigating away
   activeTabId: PropTypes.string,
   onTabChange: PropTypes.func.isRequired,
-  backToOffspringOnClick: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
   loadError: PropTypes.string,
   pagination: PropTypes.shape(footerPropTypes),

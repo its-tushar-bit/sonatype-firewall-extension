@@ -13,11 +13,7 @@ import {
   getApplicableLabelScopesUrl,
   getSaveLabelScopeUrl,
 } from 'MainRoot/util/CLMLocation';
-import {
-  actions as componentDetailsActions,
-  RETURN_TO_OFFSPRING,
-  VISIT_ANCESTOR_ACTION,
-} from 'MainRoot/componentDetails/componentDetailsSlice';
+import { actions as componentDetailsActions } from 'MainRoot/componentDetails/componentDetailsSlice';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import * as componentDetailsSelectors from 'MainRoot/componentDetails/componentDetailsSelectors';
@@ -26,8 +22,6 @@ import * as applicationReportSelectors from 'MainRoot/applicationReport/applicat
 const {
   loadComponentDetails,
   loadComponentDetailsWithCancelToken,
-  visitAncestorAction,
-  backToOffspringAction,
   loadApplicableLabelsWithCancelToken,
   loadApplicableLabelScopes,
   addProprietaryMatchers,
@@ -285,39 +279,6 @@ describe('componentDetailsActions', function () {
         });
         done();
       });
-    });
-  });
-
-  describe('visitAncestorAction', () => {
-    it('immediately dispatches VISIT_ANCESTOR_ACTION action', () => {
-      store.dispatch(visitAncestorAction());
-
-      const actions = store.getActions();
-      expect(actions.length).toBe(1);
-      expect(actions).toHaveActionsInOrder([
-        {
-          type: VISIT_ANCESTOR_ACTION,
-          payload: {
-            offspring: {
-              derivedComponentName: mockDerivedComponentName,
-              hash: mockComponentHash,
-            },
-          },
-        },
-      ]);
-    });
-  });
-
-  describe('backToOffspringAction', () => {
-    it('immediately dispatches RETURN_TO_OFFSPRING action', () => {
-      store.dispatch(backToOffspringAction());
-      const actions = store.getActions();
-      expect(actions.length).toBe(1);
-      expect(actions).toHaveActionsInOrder([
-        {
-          type: RETURN_TO_OFFSPRING,
-        },
-      ]);
     });
   });
 

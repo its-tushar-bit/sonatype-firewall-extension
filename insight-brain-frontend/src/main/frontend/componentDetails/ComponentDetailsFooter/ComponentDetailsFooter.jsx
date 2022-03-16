@@ -7,27 +7,9 @@ import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { IqPageFooter } from '../../react/IqPageFooter';
 import { PaginationLink } from './PaginationLink';
-import { NxFontAwesomeIcon, NxTextLink, NxOverflowTooltip } from '@sonatype/react-shared-components';
-import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 
-export const ComponentDetailsFooter = ({
-  prev,
-  next,
-  currentPage,
-  pageCount,
-  offspringComponentName,
-  backToOffspringOnClick,
-  ...props
-}) => {
-  const footerContent = offspringComponentName ? (
-    <NxOverflowTooltip>
-      <NxTextLink className="nx-truncate-ellipsis" onClick={backToOffspringOnClick} href={prev}>
-        <NxFontAwesomeIcon icon={faChevronLeft} />
-        <span className="component-details-footer__back-to-component">Back to: </span>
-        <span>{offspringComponentName}</span>
-      </NxTextLink>
-    </NxOverflowTooltip>
-  ) : (
+export const ComponentDetailsFooter = ({ prev, next, currentPage, pageCount, ...props }) => {
+  const footerContent = (
     <Fragment>
       <PaginationLink href={prev} text="Previous Component" direction="prev" />
       {currentPage && pageCount && <PaginationCounter currentPage={currentPage} pageCount={pageCount} />}
@@ -47,8 +29,6 @@ export const ComponentDetailsFooterPropTypes = {
   prev: PropTypes.string,
   currentPage: PropTypes.number,
   pageCount: PropTypes.number,
-  offspringComponentName: PropTypes.string,
-  backToOffspringOnClick: PropTypes.func,
 };
 ComponentDetailsFooter.propTypes = {
   ...ComponentDetailsFooterPropTypes,

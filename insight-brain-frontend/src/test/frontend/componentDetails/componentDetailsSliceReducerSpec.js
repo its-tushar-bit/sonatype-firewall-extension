@@ -5,7 +5,6 @@
  */
 
 import reducer, { initialState } from 'MainRoot/componentDetails/componentDetailsSlice';
-import { VISIT_ANCESTOR_ACTION, RETURN_TO_OFFSPRING } from 'MainRoot/componentDetails/componentDetailsSlice';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import * as dependencyTreeUtil from 'MainRoot/DependencyTree/dependencyTreeUtil';
 
@@ -40,8 +39,6 @@ describe('componentDetailsReducer', () => {
   beforeEach(() => {
     mockState = {
       pendingLoads: new Set(),
-      isVisitingAncestor: false,
-      offspring: null,
       labels: [],
       applicableLabels: [],
       applicableLabelScopes: [],
@@ -54,45 +51,6 @@ describe('componentDetailsReducer', () => {
       saveLabelScopeError: null,
       dependencyTreeSubset: null,
     };
-  });
-
-  describe('VISIT_ANCESTOR_ACTION action', () => {
-    it('adds "offspring" information', () => {
-      const state = {
-        isVisitingAncestor: false,
-        offspring: null,
-      };
-      const offspring = {
-        derivedComponentName: 'org.springframework : spring-web : 5.3.9',
-        hash: '88c920ec1bda67fea04d',
-      };
-      const newState = reducer(state, {
-        type: VISIT_ANCESTOR_ACTION,
-        payload: {
-          offspring: offspring,
-        },
-      });
-      expect(newState.offspring).not.toBeNull();
-      expect(newState.offspring).toBe(offspring);
-      expect(newState.isVisitingAncestor).toBe(true);
-    });
-  });
-
-  describe('RETURN_TO_OFFSPRING action', () => {
-    it('removes "offspring" information', () => {
-      const state = {
-        isVisitingAncestor: true,
-        offspring: {
-          derivedComponentName: 'org.springframework : spring-web : 5.3.9',
-          hash: '88c920ec1bda67fea04d',
-        },
-      };
-      const newState = reducer(state, {
-        type: RETURN_TO_OFFSPRING,
-      });
-      expect(newState.offspring).toBeNull();
-      expect(newState.isVisitingAncestor).toBe(false);
-    });
   });
 
   describe('unknown action', () => {
@@ -560,9 +518,7 @@ describe('componentDetailsReducer', () => {
   describe('SELECT_COMPONENT', () => {
     it('resets current state to initialState', () => {
       const state = Object.freeze({
-        isVisitingAncestor: true,
         isSavingLabelScope: true,
-        offspring: {},
         labels: ['label'],
         applicableLabels: ['applicable'],
         applicableLabelScopes: ['scope'],

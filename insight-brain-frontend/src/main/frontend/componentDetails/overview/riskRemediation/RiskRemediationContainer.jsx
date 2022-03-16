@@ -8,7 +8,6 @@ import { connect } from 'react-redux';
 import { selectDependencyTreeSubset } from '../../componentDetailsSelectors';
 import { selectCurrentRouteName } from '../../../reduxUiRouter/routerSelectors';
 import { actions } from '../overviewSlice';
-import { actions as componenDetailsActions } from '../../componentDetailsSlice';
 import {
   selectExpanded,
   selectVersionExplorerData,
@@ -22,8 +21,7 @@ import {
   selectDependencyTreeIsOldReport,
   selectSelectedComponent,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
-
-const { visitAncestorAction } = componenDetailsActions;
+import { goToComponentDetailsPage } from 'MainRoot/applicationReport/applicationReportActions';
 
 function mapStateToProps(state) {
   const { currentVersion, stageId } = selectRemediationData(state);
@@ -46,7 +44,7 @@ const mapDispatchToProps = {
   loadVersionExplorerData: actions.loadVersionExplorerData,
   loadSelectedVersionData: actions.loadSelectedVersionData,
   resetSelectedVersionData: actions.resetSelectedVersionData,
-  ancestorOnClick: visitAncestorAction,
+  ancestorOnClick: goToComponentDetailsPage,
   toggleAncestorsList: actions.toggleAncestorsList,
 };
 

@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -55,11 +57,19 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.organization.ApplicationContactLoader;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.security.CrowdClient;
+import com.sonatype.insight.brain.security.CrowdClientFactory;
+import com.sonatype.insight.brain.security.CrowdRealm;
+import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.UserDirectory;
-import com.sonatype.insight.brain.service.*;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.DefaultBaseUrl;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
+import com.atlassian.crowd.exception.OperationFailedException;
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Rule;
@@ -80,6 +90,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class PolicyAlertEmailerTest
     extends AbstractComponentTest
@@ -116,6 +127,9 @@ public class PolicyAlertEmailerTest
   @Inject
   private LdapService ldapService;
 
+  @Mock
+  private CrowdClientFactory mockCrowdClientFactory;
+
   private PolicyDAO policyDAO = new PolicyDAO();
 
   @Override
@@ -123,6 +137,7 @@ public class PolicyAlertEmailerTest
     lenient().when(mailer.getServer()).thenReturn("localhost:587");
     lenient().when(mailer.getCdnUrl()).thenReturn("https://cdn.sonatype.com/");
     binder.bind(InsightMail.class).toInstance(mailer);
+    binder.bind(CrowdClientFactory.class).toInstance(mockCrowdClientFactory);
     super.configure(binder);
   }
 
@@ -447,10 +462,10 @@ public class PolicyAlertEmailerTest
     doThrow(expectedException).when(ldapServiceSpy)
         .getUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class));
 
-    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapServiceSpy);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapServiceSpy, mockCrowdClientFactory);
     PolicyAlertEmailer undertest = new PolicyAlertEmailer(mailer, lookup(DefaultBaseUrl.class), userDirectory,
-        new PolicyAlertEmailResolver(userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO()),
-        new AuditRecorder(null), testProductLicense);
+        new PolicyAlertEmailResolver(userDirectory, ldapServiceSpy, new OwnerDAO(), new MembershipMappingDAO(),
+            mockCrowdClientFactory), new AuditRecorder(null), testProductLicense);
 
     undertest.sendNotifications(app, scanId, stage, policyNotifications, 0);
     // make sure emails from server 2 still go out
@@ -519,6 +534,75 @@ public class PolicyAlertEmailerTest
               + ". There are either no recipients configured, or no new policy violations "
               + "for policies configured to send notifications");
     });
+  }
+
+  @Test
+  public void testSendNotifications_Role_Crowd_NullCrowdClient() {
+    sendRoleNotifications("group1");
+
+    assertEmailAddresses();
+  }
+
+  @Test
+  public void testSendNotifications_Role_Crowd_NoResults() throws Exception {
+    String groupName = "group1";
+    CrowdClient mockCrowdClient = Mockito.mock(CrowdClient.class);
+    when(mockCrowdClient.searchGroupsByGroupNames(any())).thenReturn(
+        Collections.singleton(new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID)));
+    when(mockCrowdClient.getUsersByGroupName(any())).thenReturn(Collections.emptySet());
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+
+    sendRoleNotifications(groupName);
+
+    verify(mockCrowdClient, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(1)).getUsersByGroupName(groupName);
+    assertEmailAddresses();
+  }
+
+  @Test
+  public void testSendNotifications_Role_Crowd() throws Exception {
+    CrowdClient mockCrowdClient = Mockito.mock(CrowdClient.class);
+    List<Member> members1 = Arrays.asList(
+        new Member(MemberType.USER, "username1", "displayName1", "email1", CrowdRealm.ID),
+        new Member(MemberType.USER, "username2", "displayName2", null, CrowdRealm.ID),
+        new Member(MemberType.USER, "username3", "displayName3", "", CrowdRealm.ID),
+        new Member(MemberType.USER, "username4", "displayName4", " ", CrowdRealm.ID)
+    );
+    when(mockCrowdClient.getUsersByGroupName("group1")).thenReturn(new LinkedHashSet<>(members1));
+    List<Member> members2 =
+        Collections.singletonList(new Member(MemberType.USER, "username5", "displayName5", "email5", CrowdRealm.ID));
+    when(mockCrowdClient.searchGroupsByGroupNames(any())).thenReturn(new LinkedHashSet<>(Arrays.asList(
+        new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)
+    )));
+    when(mockCrowdClient.getUsersByGroupName("group2")).thenReturn(new LinkedHashSet<>(members2));
+    when(mockCrowdClient.getUsersByGroupName("group3")).thenThrow(new OperationFailedException());
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+
+    sendRoleNotifications("group1", "group2", "group3");
+
+    assertEmailAddresses("email1", "email5");
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atErrorLevel()
+        .contains("Cannot send notifications to members of group group3 using Crowd server."));
+  }
+
+  private void sendRoleNotifications(String... groupNames) {
+    Application app = tempEntity.newApplicationWithParent("test");
+    Role role = tempEntity.newRole(false /* global */, Permission.READ);
+    for (String groupName : groupNames) {
+      tempEntity.newMembershipMapping(app.getId(), role.getId(), groupName, MemberType.GROUP);
+    }
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = "scan-id";
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
+    Policy policy = tempEntity.newPolicy(app);
+    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
+    policyDAO.update(policy);
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
+    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
   }
 
   private void assertEmailAddresses(String... expectedEmailAddresses) {

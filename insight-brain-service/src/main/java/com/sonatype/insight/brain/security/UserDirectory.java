@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -96,10 +97,13 @@ public class UserDirectory
 
   private final LdapService ldapService;
 
+  private final CrowdClientFactory crowdClientFactory;
+
   @Inject
-  public UserDirectory(UserDAO userDao, LdapService ldapService) {
+  public UserDirectory(UserDAO userDao, LdapService ldapService, CrowdClientFactory crowdClientFactory) {
     this.userDao = userDao;
     this.ldapService = ldapService;
+    this.crowdClientFactory = crowdClientFactory;
   }
 
   /**
@@ -156,6 +160,20 @@ public class UserDirectory
           if (MemberType.GROUP.equals(m.getType())) {
             result.get().add(m);
           }
+        }
+      }
+    }
+
+    if (!groupNames.isEmpty()) {
+      CrowdClient crowdClient = crowdClientFactory.createCrowdClient();
+      if (crowdClient != null) {
+        try {
+          Set<Member> crowdMembers = crowdClient.searchGroupsByGroupNames(groupNames);
+          result.get().addAll(crowdMembers);
+          groupNames.removeAll(crowdMembers.stream().map(Member::getInternalName).collect(Collectors.toSet()));
+        }
+        catch (Exception e) {
+          otherExceptions.add(e);
         }
       }
     }
@@ -220,6 +238,20 @@ public class UserDirectory
         }
         catch (NamingException e) {
           namingExceptions.add(e);
+        }
+        catch (Exception e) {
+          otherExceptions.add(e);
+        }
+      }
+    }
+
+    if (!sortedUserNames.isEmpty()) {
+      CrowdClient crowdClient = crowdClientFactory.createCrowdClient();
+      if (crowdClient != null) {
+        try {
+          Set<Member> crowdMembers = crowdClient.searchUsersByUsernames(sortedUserNames);
+          members.addAll(crowdMembers);
+          sortedUserNames.removeAll(crowdMembers.stream().map(Member::getInternalName).collect(Collectors.toSet()));
         }
         catch (Exception e) {
           otherExceptions.add(e);

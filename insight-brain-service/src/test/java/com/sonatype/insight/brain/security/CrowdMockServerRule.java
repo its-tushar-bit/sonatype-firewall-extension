@@ -14,17 +14,20 @@ import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
+import com.atlassian.crowd.embedded.api.SearchRestriction;
 import com.atlassian.crowd.integration.rest.entity.GroupEntity;
 import com.atlassian.crowd.integration.rest.entity.GroupEntityList;
 import com.atlassian.crowd.integration.rest.entity.PasswordEntity;
 import com.atlassian.crowd.integration.rest.entity.UserEntity;
 import com.atlassian.crowd.integration.rest.entity.UserEntityList;
+import com.atlassian.crowd.integration.rest.util.SearchRestrictionEntityTranslator;
 import com.atlassian.crowd.model.group.GroupType;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.rules.ExternalResource;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToXml;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
@@ -135,6 +138,88 @@ public class CrowdMockServerRule
                 equalTo("user")).withQueryParam("start-index", equalTo("0"))
             .withQueryParam("max-results", equalTo("1")).withQueryParam("expand", equalTo("user")).willReturn(
                 aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody("Error").withStatus(status)));
+  }
+
+  public void mockSearchUsers(SearchRestriction searchRestriction, String... usernames) throws Exception {
+    List<UserEntity> userEntities = new ArrayList<>();
+    for (String username : usernames) {
+      userEntities.add(new UserEntity(username, "firstName", "lastName", username + "DisplayName", username + "Email",
+          new PasswordEntity("password"), true, null));
+    }
+    mockSearchUsers(searchRestriction, userEntities.toArray(new UserEntity[0]));
+  }
+
+  public void mockSearchUsers(SearchRestriction searchRestriction, UserEntity... userEntities) throws Exception {
+    UserEntityList userEntityList = new UserEntityList(Arrays.asList(userEntities));
+    crowdMockServer.stubFor(
+        post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type", equalTo("user"))
+            .withQueryParam("start-index", equalTo("0")).withQueryParam("max-results", equalTo("-1"))
+            .withQueryParam("expand", equalTo("user")).withRequestBody(equalToXml(marshall(
+                SearchRestrictionEntityTranslator.toSearchRestrictionEntity(searchRestriction))))
+            .willReturn(
+                aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody(marshall(userEntityList))));
+  }
+
+  public void mockSearchUsersError(SearchRestriction searchRestriction, int status) throws Exception {
+    crowdMockServer.stubFor(
+        post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type", equalTo("user"))
+            .withQueryParam("start-index", equalTo("0")).withQueryParam("max-results", equalTo("-1"))
+            .withQueryParam("expand", equalTo("user")).withRequestBody(equalToXml(marshall(
+                SearchRestrictionEntityTranslator.toSearchRestrictionEntity(searchRestriction))))
+            .willReturn(
+                aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody("Error").withStatus(status)));
+  }
+
+  public void mockSearchGroups(SearchRestriction searchRestriction, String... groupNames) throws Exception {
+    List<GroupEntity> groupEntities = new ArrayList<>();
+    for (String groupName : groupNames) {
+      groupEntities.add(new GroupEntity(groupName, "description", GroupType.GROUP, true));
+    }
+    mockSearchGroups(searchRestriction, groupEntities.toArray(new GroupEntity[0]));
+  }
+
+  public void mockSearchGroups(SearchRestriction searchRestriction, GroupEntity... groupEntities) throws Exception {
+    GroupEntityList groupEntityList = new GroupEntityList(Arrays.asList(groupEntities));
+    crowdMockServer.stubFor(
+        post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type", equalTo("group"))
+            .withQueryParam("start-index", equalTo("0")).withQueryParam("max-results", equalTo("-1"))
+            .withQueryParam("expand", equalTo("group")).withRequestBody(equalToXml(marshall(
+                SearchRestrictionEntityTranslator.toSearchRestrictionEntity(searchRestriction))))
+            .willReturn(
+                aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody(marshall(groupEntityList))));
+  }
+
+  public void mockSearchGroupsError(SearchRestriction searchRestriction, int status) throws Exception {
+    crowdMockServer.stubFor(
+        post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type", equalTo("group"))
+            .withQueryParam("start-index", equalTo("0")).withQueryParam("max-results", equalTo("-1"))
+            .withQueryParam("expand", equalTo("group")).withRequestBody(equalToXml(marshall(
+                SearchRestrictionEntityTranslator.toSearchRestrictionEntity(searchRestriction))))
+            .willReturn(
+                aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody("Error").withStatus(status)));
+  }
+
+  public void mockGetNestedUsersOfGroup(String groupName, UserEntity... userEntities) throws Exception {
+    UserEntityList userEntityList = new UserEntityList(Arrays.asList(userEntities));
+    crowdMockServer.stubFor(
+        get(urlPathMatching("/crowd/rest/usermanagement/1/group/user/nested"))
+            .withQueryParam("groupname", equalTo(groupName))
+            .withQueryParam("start-index", equalTo("0"))
+            .withQueryParam("max-results", equalTo("-1"))
+            .withQueryParam("expand", equalTo("user"))
+            .willReturn(aResponse().withHeader("X-Embedded-Crowd-Version", "version")
+                .withBody(marshall(userEntityList))));
+  }
+
+  public void mockGetNestedUsersOfGroupError(String groupName, int status) {
+    crowdMockServer.stubFor(
+        get(urlPathMatching("/crowd/rest/usermanagement/1/group/user/nested"))
+            .withQueryParam("groupname", equalTo(groupName))
+            .withQueryParam("start-index", equalTo("0"))
+            .withQueryParam("max-results", equalTo("-1"))
+            .withQueryParam("expand", equalTo("user"))
+            .willReturn(aResponse().withHeader("X-Embedded-Crowd-Version", "version")
+                .withBody("Error").withStatus(status)));
   }
 
   private String marshall(Object object) throws Exception {

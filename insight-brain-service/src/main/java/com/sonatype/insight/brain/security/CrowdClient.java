@@ -9,11 +9,14 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 
+import com.atlassian.crowd.embedded.api.SearchRestriction;
 import com.atlassian.crowd.exception.ApplicationPermissionException;
 import com.atlassian.crowd.exception.ExpiredCredentialException;
+import com.atlassian.crowd.exception.GroupNotFoundException;
 import com.atlassian.crowd.exception.InactiveAccountException;
 import com.atlassian.crowd.exception.InvalidAuthenticationException;
 import com.atlassian.crowd.exception.OperationFailedException;
@@ -21,6 +24,10 @@ import com.atlassian.crowd.exception.UserNotFoundException;
 import com.atlassian.crowd.model.DirectoryEntity;
 import com.atlassian.crowd.model.group.Group;
 import com.atlassian.crowd.model.user.User;
+import com.atlassian.crowd.search.builder.Combine;
+import com.atlassian.crowd.search.query.entity.restriction.MatchMode;
+import com.atlassian.crowd.search.query.entity.restriction.TermRestriction;
+import com.atlassian.crowd.search.query.entity.restriction.constants.UserTermKeys;
 import org.apache.shiro.authc.UsernamePasswordToken;
 
 public class CrowdClient
@@ -75,5 +82,44 @@ public class CrowdClient
       throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException
   {
     crowdClient.testConnection();
+  }
+
+  public Set<Member> searchUsersByUsernames(Set<String> usernames)
+      throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException
+  {
+    return crowdClient.searchUsers(anyNameMatchesAndActive(usernames), 0, -1).stream()
+        .map(user ->
+            new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(), CrowdRealm.ID))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  public Set<Member> searchGroupsByGroupNames(Set<String> groupNames)
+      throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException
+  {
+    return crowdClient.searchGroups(anyNameMatchesAndActive(groupNames), 0, -1).stream()
+        .map(group -> new Member(MemberType.GROUP, group.getName(), group.getName(), null, CrowdRealm.ID))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  // Visible for testing
+  SearchRestriction anyNameMatchesAndActive(Set<String> names) {
+    return Combine.allOf(
+        Combine.anyOf(names.stream()
+            .map(name -> new TermRestriction<>(UserTermKeys.USERNAME, MatchMode.EXACTLY_MATCHES, name))
+            .collect(Collectors.toList())
+        ),
+        new TermRestriction<>(UserTermKeys.ACTIVE, MatchMode.EXACTLY_MATCHES, true)
+    );
+  }
+
+  public Set<Member> getUsersByGroupName(String groupName)
+      throws OperationFailedException, ApplicationPermissionException, GroupNotFoundException,
+             InvalidAuthenticationException
+  {
+    return crowdClient.getNestedUsersOfGroup(groupName, 0, -1).stream()
+        .filter(User::isActive)
+        .map(user ->
+            new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(), CrowdRealm.ID))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 }

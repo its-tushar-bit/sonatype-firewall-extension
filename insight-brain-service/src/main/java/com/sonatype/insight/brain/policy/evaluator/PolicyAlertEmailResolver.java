@@ -28,6 +28,9 @@ import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.security.CrowdClient;
+import com.sonatype.insight.brain.security.CrowdClientFactory;
+import com.sonatype.insight.brain.security.CrowdRealm;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MemberAttributeResolver;
 import com.sonatype.insight.brain.security.UserDirectory;
@@ -49,16 +52,21 @@ public class PolicyAlertEmailResolver
 
   private final OwnerDAO ownerDAO;
 
+  private final CrowdClientFactory crowdClientFactory;
+
   @Inject
-  public PolicyAlertEmailResolver(final UserDirectory userDirectory,
-                                  final LdapService ldapService,
-                                  final OwnerDAO ownerDAO,
-                                  final MembershipMappingDAO membershipMappingDAO)
+  public PolicyAlertEmailResolver(
+      final UserDirectory userDirectory,
+      final LdapService ldapService,
+      final OwnerDAO ownerDAO,
+      final MembershipMappingDAO membershipMappingDAO,
+      final CrowdClientFactory crowdClientFactory)
   {
     this.userDirectory = userDirectory;
     this.ldapService = ldapService;
     this.ownerDAO = ownerDAO;
     this.membershipMappingDAO = membershipMappingDAO;
+    this.crowdClientFactory = crowdClientFactory;
   }
 
   public Map<String, List<PolicyFact>> getPolicyFactsByEmailAddress(Owner owner,
@@ -91,9 +99,10 @@ public class PolicyAlertEmailResolver
     }
   }
 
-  private Set<String> getEmailAddressesForRole(Owner owner,
-                                               String roleId,
-                                               MemberAttributeResolver memberAttributeResolver)
+  private Set<String> getEmailAddressesForRole(
+      Owner owner,
+      String roleId,
+      MemberAttributeResolver memberAttributeResolver)
   {
     List<Member> members = new ArrayList<>();
     // Get role members from owner on up
@@ -115,24 +124,49 @@ public class PolicyAlertEmailResolver
         emailAddresses.add(member.getEmail());
       }
       if (MemberType.GROUP == member.getType()) {
-        for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
-          try {
-            for (LdapUser ldapUser : ldapService.getUsersByGroup(ldapServer, member.getDn())) {
-              String email = ldapUser.getEmail();
-              if (email != null) {
-                emailAddresses.add(email);
-              }
-            }
-          }
-          catch (Exception e) {
-            log.error("Cannot send notifications to members of group {} using ldap server {}", member.getInternalName(),
-                ldapServer.getName(), e);
-          }
+        if (CrowdRealm.ID.equals(member.getRealm())) {
+          addEmailAddressesForCrowdGroupMembers(emailAddresses, member);
+        }
+        else {
+          addEmailAddressesForLDAPGroupMembers(emailAddresses, member);
         }
       }
     }
 
     return emailAddresses;
+  }
+
+  private void addEmailAddressesForCrowdGroupMembers(Set<String> emailAddresses, Member group) {
+    CrowdClient crowdClient = crowdClientFactory.createCrowdClient();
+    if (crowdClient != null) {
+      try {
+        for (Member crowdMember : crowdClient.getUsersByGroupName(group.getInternalName())) {
+          if (StringUtils.isNotBlank(crowdMember.getEmail())) {
+            emailAddresses.add(crowdMember.getEmail());
+          }
+        }
+      }
+      catch (Exception e) {
+        log.error("Cannot send notifications to members of group {} using Crowd server.", group.getInternalName(), e);
+      }
+    }
+  }
+
+  private void addEmailAddressesForLDAPGroupMembers(Set<String> emailAddresses, Member group) {
+    for (LdapServer ldapServer : new LdapServerDAO().getAll()) {
+      try {
+        for (LdapUser ldapUser : ldapService.getUsersByGroup(ldapServer, group.getDn())) {
+          String email = ldapUser.getEmail();
+          if (email != null) {
+            emailAddresses.add(email);
+          }
+        }
+      }
+      catch (Exception e) {
+        log.error("Cannot send notifications to members of group {} using ldap server {}", group.getInternalName(),
+            ldapServer.getName(), e);
+      }
+    }
   }
 
   private void addUserNotifications(Map<String, List<PolicyFact>> policyFactsByEmailAddress,

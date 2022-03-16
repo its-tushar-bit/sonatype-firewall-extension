@@ -6,12 +6,15 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.naming.NamingException;
@@ -32,12 +35,14 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserDirectory.QueryResult;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
+import com.atlassian.crowd.exception.OperationFailedException;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.mockito.ArgumentMatcher;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,6 +74,9 @@ public class UserDirectoryTest
 
   @Inject
   private UserDirectory userDirectory;
+
+  @Inject
+  private CrowdClientFactory crowdClientFactory;
 
   @Before
   public void before() {
@@ -165,7 +173,7 @@ public class UserDirectoryTest
     Throwable namingException = new NamingException("Naming Exception!");
     when(mockLdapService.getUsersByName(any(LdapServer.class), any(String[].class))).thenThrow(namingException);
 
-    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService, crowdClientFactory);
 
     // Add a new internal user.
     tempEntity.newUser("clmbob");
@@ -190,7 +198,7 @@ public class UserDirectoryTest
     Throwable exception = new RuntimeException("Exception!");
     when(mockLdapService.getUsersByName(any(LdapServer.class), any(String[].class))).thenThrow(exception);
 
-    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService, crowdClientFactory);
 
     // Add a new internal user.
     tempEntity.newUser("clmbob");
@@ -215,7 +223,7 @@ public class UserDirectoryTest
     Throwable namingException = new NamingException("Naming Exception!");
     when(mockLdapService.getGroupsByName(any(LdapServer.class), any(String[].class))).thenThrow(namingException);
 
-    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService, crowdClientFactory);
 
     // Add a new internal user.
     tempEntity.newUser("clmbob");
@@ -240,7 +248,7 @@ public class UserDirectoryTest
     Throwable exception = new RuntimeException("Exception!");
     when(mockLdapService.getGroupsByName(any(LdapServer.class), any(String[].class))).thenThrow(exception);
 
-    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService, crowdClientFactory);
 
     // Add a new internal user.
     tempEntity.newUser("clmbob");
@@ -261,7 +269,7 @@ public class UserDirectoryTest
     LdapService mockLdapService = Mockito.mock(LdapService.class);
     lenient().when(mockLdapService.isLdapEnabled(any(LdapServer.class))).thenReturn(true);
 
-    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService, crowdClientFactory);
 
     UserDirectory.QueryResult result = userDirectory.getMembersByName(new LinkedList<>());
 
@@ -368,7 +376,7 @@ public class UserDirectoryTest
     when(mockLdapService.findUsersByName(argThat(new SameId(ldapServer)), any(String.class), anyLong()))
         .thenThrow(namingException);
 
-    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService, crowdClientFactory);
 
     // Add a new internal user.
     tempEntity.newUser("testclmuser", "John", "Doe", "testclmuser@testclmuser");
@@ -392,7 +400,7 @@ public class UserDirectoryTest
     when(mockLdapService.findGroupsByName(argThat(new SameId(ldapServer)), any(String.class), anyLong()))
         .thenThrow(namingException);
 
-    UserDirectory underTest = new UserDirectory(new UserDAO(), mockLdapService);
+    UserDirectory underTest = new UserDirectory(new UserDAO(), mockLdapService, crowdClientFactory);
     
     UserDirectory.QueryResult result = underTest.getMembersByQuery("Alpha", true);
     List<Member> members = result.get();
@@ -411,7 +419,7 @@ public class UserDirectoryTest
     when(mockLdapService.findUsersByName(argThat(new SameId(ldapServer)), any(String.class), anyLong()))
         .thenThrow(exception);
 
-    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService, crowdClientFactory);
 
     // Add a new internal user.
     tempEntity.newUser("testclmuser", "John", "Doe", "testclmuser@testclmuser");
@@ -435,7 +443,7 @@ public class UserDirectoryTest
     when(mockLdapService.findGroupsByName(argThat(new SameId(ldapServer)), any(String.class), anyLong()))
         .thenThrow(exception);
 
-    UserDirectory underTest = new UserDirectory(new UserDAO(), mockLdapService);
+    UserDirectory underTest = new UserDirectory(new UserDAO(), mockLdapService, crowdClientFactory);
 
     UserDirectory.QueryResult result = underTest.getMembersByQuery("Alpha", true);
     List<Member> members = result.get();
@@ -467,7 +475,7 @@ public class UserDirectoryTest
     doReturn(Collections.singletonList(ldapUser)).when(mockLdapService)
         .findUsersByName(argThat(new SameId(ldapServer3)), any(String.class), anyLong());
 
-    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService, crowdClientFactory);
 
     // Add a new internal user.
     tempEntity.newUser("testclmuser", "John", "Doe", "testclmuser@testclmuser");
@@ -505,7 +513,7 @@ public class UserDirectoryTest
     doReturn(Collections.singletonList(ldapGroup)).when(mockLdapService)
         .findGroupsByName(argThat(new SameId(ldapServer3)), any(String.class), anyLong());
 
-    UserDirectory underTest = new UserDirectory(new UserDAO(), mockLdapService);
+    UserDirectory underTest = new UserDirectory(new UserDAO(), mockLdapService, crowdClientFactory);
     
     UserDirectory.QueryResult result = underTest.getMembersByQuery("any", true);
     List<Member> members = result.get();
@@ -528,7 +536,7 @@ public class UserDirectoryTest
     when(mockLdapService.getUsersByName(any(LdapServer.class), eq(expectedArgument)))
         .thenReturn(emptyLdapUsers);
 
-    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService, crowdClientFactory);
 
     // Add a new internal user.
     tempEntity.newUser("testclmuser", "John", "Doe", "testclmuser@testclmuser");
@@ -657,7 +665,7 @@ public class UserDirectoryTest
     when(mockLdapService.getUsersByName(argThat(new SameId(ldapServer)), any(String[].class)))
         .thenThrow(new NamingException("Naming Exception!"));
 
-    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService, crowdClientFactory);
 
     Set<String> users = Sets.newHashSet("invaliduser");
     Set<String> invalidUsers = userDirectory.validateUsers(users);
@@ -789,7 +797,210 @@ public class UserDirectoryTest
     List<Member> members = userDirectory.getMembersByQuery("Alpha*", true).get();
     assertThat(members).extracting(Member::getDisplayName).containsExactlyInAnyOrder("Alpha", "Alpha1", "Alpha2");
   }
+
+  @Test
+  public void testGetUsersByName_Crowd_EmptyAfterOtherRealms() {
+    CrowdClientFactory mockCrowdClientFactory = Mockito.mock(CrowdClientFactory.class);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapService, mockCrowdClientFactory);
+
+    QueryResult result = userDirectory.getUsersByName(Sets.newHashSet("admin"));
+
+    assertThat(result).isNotNull();
+    assertThat(result.get()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+        new Member(MemberType.USER, "admin", "Admin BuiltIn", "admin@localhost", InternalRealm.DISPLAY_NAME));
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+    verify(mockCrowdClientFactory, never()).createCrowdClient();
+  }
+
+  @Test
+  public void testGetUsersByName_Crowd_NullCrowdClient() {
+    QueryResult result = userDirectory.getUsersByName(Sets.newHashSet("username"));
+
+    assertThat(result).isNotNull();
+    assertThat(result.get()).isEmpty();
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void testGetUsersByName_Crowd_Exception() throws Exception {
+    CrowdClientFactory mockCrowdClientFactory = Mockito.mock(CrowdClientFactory.class);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapService, mockCrowdClientFactory);
+    CrowdClient mockCrowdClient = Mockito.mock(CrowdClient.class);
+    OperationFailedException operationFailedException = new OperationFailedException();
+    when(mockCrowdClient.searchUsersByUsernames(any())).thenThrow(operationFailedException);
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+    Set<String> usernames = Sets.newHashSet("username1", "username2", "username3");
+
+    QueryResult result = userDirectory.getUsersByName(usernames);
+
+    verify(mockCrowdClient).searchUsersByUsernames(ArgumentMatchers.eq(usernames));
+    assertThat(result).isNotNull();
+    assertThat(result.get()).isEmpty();
+    assertThat(result.hasException()).isTrue();
+    assertThat(result.getException()).isInstanceOf(Exception.class).hasSuppressedException(operationFailedException);
+  }
+
+  @Test
+  public void testGetUsersByName_Crowd_NoResults() throws Exception {
+    CrowdClientFactory mockCrowdClientFactory = Mockito.mock(CrowdClientFactory.class);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapService, mockCrowdClientFactory);
+    CrowdClient mockCrowdClient = Mockito.mock(CrowdClient.class);
+    when(mockCrowdClient.searchUsersByUsernames(any())).thenReturn(Collections.emptySet());
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+    Set<String> usernames = Sets.newHashSet("username1", "username2", "username3");
+
+    QueryResult result = userDirectory.getUsersByName(usernames);
+
+    verify(mockCrowdClient).searchUsersByUsernames(ArgumentMatchers.eq(usernames));
+    assertThat(result).isNotNull();
+    assertThat(result.get()).isEmpty();
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void testGetUsersByName_Crowd() throws Exception {
+    CrowdClientFactory mockCrowdClientFactory = Mockito.mock(CrowdClientFactory.class);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapService, mockCrowdClientFactory);
+    CrowdClient mockCrowdClient = Mockito.mock(CrowdClient.class);
+    List<Member> members = Arrays.asList(
+        new Member(MemberType.USER, "username1", "displayName1", "email1", CrowdRealm.ID),
+        new Member(MemberType.USER, "username2", "displayName2", "email2", CrowdRealm.ID)
+    );
+    Set<String> queriedUsernames = new LinkedHashSet<>();
+    when(mockCrowdClient.searchUsersByUsernames(any())).thenAnswer(invocationOnMock -> {
+      queriedUsernames.addAll(invocationOnMock.getArgument(0));
+      return new LinkedHashSet<>(members);
+    });
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+    Set<String> usernames = Sets.newHashSet("username1", "username2", "username3");
+
+    QueryResult result = userDirectory.getUsersByName(usernames);
+
+    verify(mockCrowdClient).searchUsersByUsernames(
+        ArgumentMatchers.eq(Sets.newLinkedHashSet(Collections.singletonList("username3"))));
+    assertThat(result).isNotNull();
+    assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(members.toArray(new Member[0]));
+    assertThat(queriedUsernames).isEqualTo(usernames);
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
   
+  @Test
+  public void testGetMembersByName_Crowd_EmptyAfterOtherRealms() throws Exception {
+    CrowdClientFactory mockCrowdClientFactory = Mockito.mock(CrowdClientFactory.class);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapService, mockCrowdClientFactory);
+    configureAndStartNewLdapServer(testLdapServer1, "LDAP");
+    
+    QueryResult result = userDirectory.getMembersByName(Sets.newHashSet(createGroup("Alpha1")));
+
+    assertThat(result).isNotNull();
+    Member expectedMember = new Member(MemberType.GROUP, "Alpha1", "Alpha1", null, "LDAP");
+    expectedMember.setDn("cn=Alpha1,ou=groups,dc=company,dc=com");
+    assertThat(result.get()).usingRecursiveFieldByFieldElementComparator().containsExactly(expectedMember);
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+    verify(mockCrowdClientFactory, never()).createCrowdClient();
+  }
+
+  @Test
+  public void testGetMembersByName_Crowd_NullCrowdClient() {
+    Set<Member> members = new LinkedHashSet<>(Arrays.asList(
+        new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)
+    ));
+
+    QueryResult result = userDirectory.getMembersByName(members);
+
+    assertThat(result).isNotNull();
+    assertThat(result.get()).isEmpty();
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void testGetMembersByName_Crowd_Exception() throws Exception {
+    CrowdClientFactory mockCrowdClientFactory = Mockito.mock(CrowdClientFactory.class);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapService, mockCrowdClientFactory);
+    CrowdClient mockCrowdClient = Mockito.mock(CrowdClient.class);
+    OperationFailedException operationFailedException = new OperationFailedException();
+    when(mockCrowdClient.searchGroupsByGroupNames(any())).thenThrow(operationFailedException);
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+    Set<Member> members = new LinkedHashSet<>(Arrays.asList(
+        new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)
+    ));
+
+    QueryResult result = userDirectory.getMembersByName(members);
+
+    assertThat(result).isNotNull();
+    assertThat(result.get()).isEmpty();
+    assertThat(result.hasException()).isTrue();
+    assertThat(result.getException()).isInstanceOf(Exception.class).hasSuppressedException(operationFailedException);
+  }
+
+  @Test
+  public void testGetMembersByName_Crowd_NoResults() throws Exception {
+    CrowdClientFactory mockCrowdClientFactory = Mockito.mock(CrowdClientFactory.class);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapService, mockCrowdClientFactory);
+    CrowdClient mockCrowdClient = Mockito.mock(CrowdClient.class);
+    when(mockCrowdClient.searchGroupsByGroupNames(any())).thenReturn(Collections.emptySet());
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+    Set<Member> members = new LinkedHashSet<>(Arrays.asList(
+        new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)
+    ));
+
+    QueryResult result = userDirectory.getMembersByName(members);
+
+    verify(mockCrowdClient).searchGroupsByGroupNames(ArgumentMatchers.eq(
+        members.stream().map(Member::getInternalName).collect(Collectors.toCollection(LinkedHashSet::new))));
+    assertThat(result).isNotNull();
+    assertThat(result.get()).isEmpty();
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+  
+  @Test
+  public void testGetMembersByName_Crowd() throws Exception {
+    CrowdClientFactory mockCrowdClientFactory = Mockito.mock(CrowdClientFactory.class);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapService, mockCrowdClientFactory);
+    CrowdClient mockCrowdClient = Mockito.mock(CrowdClient.class);
+    List<Member> expectedMembers = Arrays.asList(
+        new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID)
+    );
+    Set<String> queriedGroupNames = new LinkedHashSet<>();
+    when(mockCrowdClient.searchGroupsByGroupNames(any())).thenAnswer(invocationOnMock -> {
+      queriedGroupNames.addAll(invocationOnMock.getArgument(0));
+      return new LinkedHashSet<>(expectedMembers);
+    });
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+    Set<Member> members = new LinkedHashSet<>(Arrays.asList(
+        new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)
+    ));
+
+    QueryResult result = userDirectory.getMembersByName(members);
+
+    verify(mockCrowdClient).searchGroupsByGroupNames(
+        ArgumentMatchers.eq(Sets.newLinkedHashSet(Collections.singletonList("group3"))));
+    assertThat(result).isNotNull();
+    assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(expectedMembers.toArray(new Member[0]));
+    assertThat(queriedGroupNames).isEqualTo(
+        members.stream().map(Member::getInternalName).collect(Collectors.toCollection(LinkedHashSet::new)));
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+
   private static class SameId
       implements ArgumentMatcher<LdapServer>
   {

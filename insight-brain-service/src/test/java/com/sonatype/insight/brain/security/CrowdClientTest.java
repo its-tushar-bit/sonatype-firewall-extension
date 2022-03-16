@@ -6,18 +6,22 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.security.Group;
+import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
+import com.atlassian.crowd.embedded.api.SearchRestriction;
 import com.atlassian.crowd.exception.InactiveAccountException;
 import com.atlassian.crowd.exception.InvalidAuthenticationException;
 import com.atlassian.crowd.exception.OperationFailedException;
@@ -25,6 +29,11 @@ import com.atlassian.crowd.integration.rest.entity.GroupEntity;
 import com.atlassian.crowd.integration.rest.entity.PasswordEntity;
 import com.atlassian.crowd.integration.rest.entity.UserEntity;
 import com.atlassian.crowd.model.group.GroupType;
+import com.atlassian.crowd.search.query.entity.restriction.BooleanRestriction;
+import com.atlassian.crowd.search.query.entity.restriction.BooleanRestriction.BooleanLogic;
+import com.atlassian.crowd.search.query.entity.restriction.MatchMode;
+import com.atlassian.crowd.search.query.entity.restriction.TermRestriction;
+import com.atlassian.crowd.search.query.entity.restriction.constants.UserTermKeys;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.junit.Before;
 import org.junit.Rule;
@@ -186,7 +195,7 @@ public class CrowdClientTest
 
     assertUserPrincipalFromUserTokenRealm(userPrincipal, userToken.getUsername(), displayName, groups[0], groups[1]);
   }
-  
+
   @Test
   public void testGetUser_GetUserError() throws Exception {
     UserToken userToken = new UserToken();
@@ -224,6 +233,122 @@ public class CrowdClientTest
 
     assertThatExceptionOfType(OperationFailedException.class).isThrownBy(() -> crowdClient.testConnection())
         .withMessageContaining("Bad Request");
+  }
+
+  @Test
+  public void testSearchUsersByUsernames() throws Exception {
+    List<String> usernames = Arrays.asList("username1", "username2", "username3");
+    crowdMockServer.mockSearchUsers(crowdClient.anyNameMatchesAndActive(new LinkedHashSet<>(usernames)),
+        usernames.toArray(new String[0]));
+
+    Set<Member> members = crowdClient.searchUsersByUsernames(new LinkedHashSet<>(usernames));
+
+    assertThat(members).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        new Member(MemberType.USER, "username1", "username1DisplayName", "username1Email", CrowdRealm.ID),
+        new Member(MemberType.USER, "username2", "username2DisplayName", "username2Email", CrowdRealm.ID),
+        new Member(MemberType.USER, "username3", "username3DisplayName", "username3Email", CrowdRealm.ID)
+    );
+  }
+
+  @Test
+  public void testSearchUsersByUsernames_Error() throws Exception {
+    List<String> usernames = Arrays.asList("username1", "username2", "username3");
+    crowdMockServer.mockSearchUsersError(crowdClient.anyNameMatchesAndActive(new LinkedHashSet<>(usernames)), 400);
+
+    assertThatExceptionOfType(OperationFailedException.class).isThrownBy(
+        () -> crowdClient.searchUsersByUsernames(new LinkedHashSet<>(usernames))).withMessageContaining("Bad Request")
+        .withStackTraceContaining("Error");
+  }
+
+  @Test
+  public void testSearchGroupsByGroupNames() throws Exception {
+    List<String> groupNames = Arrays.asList("group1", "group2", "group3");
+    crowdMockServer.mockSearchGroups(crowdClient.anyNameMatchesAndActive(new LinkedHashSet<>(groupNames)),
+        groupNames.toArray(new String[0]));
+
+    Set<Member> members = crowdClient.searchGroupsByGroupNames(new LinkedHashSet<>(groupNames));
+
+    assertThat(members).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group3", "group3", null, CrowdRealm.ID)
+    );
+  }
+
+  @Test
+  public void testSearchGroupsByGroupNames_Error() throws Exception {
+    List<String> groupNames = Arrays.asList("group1", "group2", "group3");
+    crowdMockServer.mockSearchGroupsError(crowdClient.anyNameMatchesAndActive(new LinkedHashSet<>(groupNames)), 400);
+
+    assertThatExceptionOfType(OperationFailedException.class).isThrownBy(
+        () -> crowdClient.searchGroupsByGroupNames(new LinkedHashSet<>(groupNames)))
+        .withMessageContaining("Bad Request").withStackTraceContaining("Error");
+  }
+
+  @Test
+  public void testAnyNameMatchesAndActive() {
+    List<String> usernames = Arrays.asList("username1", "username2", "username3");
+
+    SearchRestriction anyNameMatchesAndActive =
+        crowdClient.anyNameMatchesAndActive(new LinkedHashSet<>(usernames));
+
+    assertThat(anyNameMatchesAndActive).isInstanceOf(BooleanRestriction.class);
+    BooleanRestriction anyNameMatchesAndActiveRestriction = (BooleanRestriction) anyNameMatchesAndActive;
+    assertThat(anyNameMatchesAndActiveRestriction.getBooleanLogic()).isEqualTo(BooleanLogic.AND);
+    Collection<SearchRestriction> restrictions = anyNameMatchesAndActiveRestriction.getRestrictions();
+    assertThat(restrictions).hasSize(2);
+    BooleanRestriction anyNameMatchesRestriction = (BooleanRestriction) restrictions.stream()
+        .filter(r -> r instanceof BooleanRestriction)
+        .findFirst()
+        .orElse(null);
+    assertThat(anyNameMatchesRestriction).isNotNull();
+    assertThat(anyNameMatchesRestriction.getBooleanLogic()).isEqualTo(BooleanLogic.OR);
+    Collection<SearchRestriction> nameMatchesRestrictions = anyNameMatchesRestriction.getRestrictions();
+    assertThat(nameMatchesRestrictions).hasSize(usernames.size());
+    for (String username : usernames) {
+      TermRestriction<String> nameRestriction =
+          (TermRestriction<String>) nameMatchesRestrictions.stream().filter(r -> r instanceof TermRestriction)
+              .filter(r -> ((TermRestriction<String>) r).getValue().equals(username)).findFirst().orElse(null);
+      assertThat(nameRestriction).isNotNull();
+      assertThat(nameRestriction.getProperty()).isEqualTo(UserTermKeys.USERNAME);
+      assertThat(nameRestriction.getMatchMode()).isEqualTo(MatchMode.EXACTLY_MATCHES);
+    }
+    TermRestriction<Boolean> activeRestriction = (TermRestriction<Boolean>) restrictions.stream()
+        .filter(r -> r instanceof TermRestriction)
+        .findFirst()
+        .orElse(null);
+    assertThat(activeRestriction.getProperty()).isEqualTo(UserTermKeys.ACTIVE);
+    assertThat(activeRestriction.getMatchMode()).isEqualTo(MatchMode.EXACTLY_MATCHES);
+    assertThat(activeRestriction.getValue()).isTrue();
+  }
+
+  @Test
+  public void testGetUsersByGroupName() throws Exception {
+    String groupName = "groupName";
+    UserEntity userEntity1 = new UserEntity("username1", "firstName", "lastName", "displayName1", "email1",
+        new PasswordEntity("password"), true, null);
+    UserEntity userEntity2 = new UserEntity("username2", "firstName", "lastName", "displayName2", "email2",
+        new PasswordEntity("password"), true, null);
+    UserEntity userEntity3 = new UserEntity("username3", "firstName", "lastName", "displayName3", "email3",
+        new PasswordEntity("password"), false, null);
+    crowdMockServer.mockGetNestedUsersOfGroup(groupName, userEntity1, userEntity2, userEntity3);
+
+    Set<Member> usersByGroup = crowdClient.getUsersByGroupName(groupName);
+
+    assertThat(usersByGroup).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        new Member(MemberType.USER, "username1", "displayName1", "email1", CrowdRealm.ID),
+        new Member(MemberType.USER, "username2", "displayName2", "email2", CrowdRealm.ID)
+    );
+  }
+
+  @Test
+  public void testGetUsersByGroupName_Error() {
+    String groupName = "groupName";
+    crowdMockServer.mockGetNestedUsersOfGroupError(groupName, 400);
+
+    assertThatExceptionOfType(OperationFailedException.class).isThrownBy(
+        () -> crowdClient.getUsersByGroupName(groupName)).withMessageContaining("Bad Request")
+        .withStackTraceContaining("Error");
   }
 
   private void assertUserPrincipalFromCrowdRealm(

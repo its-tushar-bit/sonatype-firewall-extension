@@ -61,14 +61,11 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -396,9 +393,6 @@ public class QuarantineComponentReportTest
 
   @Test
   public void testReportExpirationAlert() {
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(ImmutableMap.of(
-        ExperimentalFeature.ANONYMOUS_QUARANTINED_COMPONENT_VIEW.getFlag(), true));
-
     ComponentIdentifier mainComponentIdentifier = createComponentIdentifier("0.5.2");
     RepositoryComponent repositoryComponent = createRepositoryComponent(
         mainComponentIdentifier, date);
@@ -411,8 +405,7 @@ public class QuarantineComponentReportTest
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(testCLMServer.getCLMServer()
-            .getConfiguration(), new QuarantinedComponentAccessDAO());
+        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO());
     Date tokenExpiryTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(encodedToken);
 
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));

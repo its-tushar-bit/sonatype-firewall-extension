@@ -180,8 +180,7 @@ public class QuarantinedComponentResourceTest
 
     // when anonymous request
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
-        new DbQuarantinedComponentAccessManager(getCLMServer()
-            .getConfiguration(), new QuarantinedComponentAccessDAO());
+        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO());
     Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(encodedToken);
 
     // when
@@ -218,6 +217,10 @@ public class QuarantinedComponentResourceTest
         QuarantinedComponentResource.QUARANTINED_COMPONENT_OVERVIEW_PATH).parameter(encodedToken).anon().get();
     // then 401 is returned
     assertThat(response.getStatusCode()).isEqualTo(401);
+
+    DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
+        new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO());
+    Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(encodedToken);
 
     // when authenticated request
     response = restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,

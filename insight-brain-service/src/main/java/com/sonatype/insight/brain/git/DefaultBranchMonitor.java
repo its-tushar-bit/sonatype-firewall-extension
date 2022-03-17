@@ -11,6 +11,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -69,6 +70,8 @@ public class DefaultBranchMonitor
   public boolean disableForTesting;
 
   private int intervalInMinutes;
+
+  private final int randomizedStartOffsetInMinutes = new Random().nextInt(10);
 
   @Inject
   public DefaultBranchMonitor(
@@ -183,6 +186,9 @@ public class DefaultBranchMonitor
   Date getDefaultBranchMonitorStartTime() {
     LocalTime intervalStartTime =
         DateUtils.getLocalTimeForHoursAndMinutes(insightConfig.getDefaultBranchMonitoring().getStartTime());
+
+    // randomize minute to avoid coordinated load spike for HDS scan processing
+    intervalStartTime = intervalStartTime.plusMinutes(randomizedStartOffsetInMinutes);
 
     LocalDateTime now = LocalDateTime.now();
 

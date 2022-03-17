@@ -39,9 +39,9 @@ export default function ReportStatusBar() {
         <div className="iq-indicator-row">
           <div className="iq-threat-indicators">
             <NxSmallThreatCounter
-              criticalCount={criticalViolationCount}
-              severeCount={severeViolationCount}
-              moderateCount={moderateViolationCount}
+              criticalCount={criticalViolationCount || null}
+              severeCount={severeViolationCount || null}
+              moderateCount={moderateViolationCount || null}
             />
             <div className="iq-caption">
               <h3 className="iq-caption__text">

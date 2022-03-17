@@ -38,6 +38,14 @@ describe('ReportStatusBar', () => {
     expect(criticalThreatIndicator).toHaveClassName('nx-small-threat-counter--critical');
   });
 
+  it('does not renders critical threat indicator if count is 0', () => {
+    selectedReport.criticalViolationCount = 0;
+    const { container } = renderComponent();
+    expect(container.querySelector('.nx-small-threat-counter--critical')).toBeNull();
+    expect(container.querySelector('.nx-small-threat-counter--severe')).not.toBeNull();
+    expect(container.querySelector('.nx-small-threat-counter--moderate')).not.toBeNull();
+  });
+
   it('renders severe threat indicator with count', () => {
     renderComponent();
     const severeThreatIndicator = screen
@@ -48,6 +56,14 @@ describe('ReportStatusBar', () => {
     expect(severeThreatIndicator).toHaveClassName('nx-small-threat-counter--severe');
   });
 
+  it('does not renders severe threat indicator if count is 0', () => {
+    selectedReport.severeViolationCount = 0;
+    const { container } = renderComponent();
+    expect(container.querySelector('.nx-small-threat-counter--critical')).not.toBeNull();
+    expect(container.querySelector('.nx-small-threat-counter--severe')).toBeNull();
+    expect(container.querySelector('.nx-small-threat-counter--moderate')).not.toBeNull();
+  });
+
   it('renders moderate threat indicator with count', () => {
     renderComponent();
     const moderateThreatIndicator = screen
@@ -56,6 +72,14 @@ describe('ReportStatusBar', () => {
 
     expect(moderateThreatIndicator).toBeVisible();
     expect(moderateThreatIndicator).toHaveClassName('nx-small-threat-counter--moderate');
+  });
+
+  it('does not renders moderate threat indicator if count is 0', () => {
+    selectedReport.moderateViolationCount = 0;
+    const { container } = renderComponent();
+    expect(container.querySelector('.nx-small-threat-counter--critical')).not.toBeNull();
+    expect(container.querySelector('.nx-small-threat-counter--severe')).not.toBeNull();
+    expect(container.querySelector('.nx-small-threat-counter--moderate')).toBeNull();
   });
 
   it('renders total violation', () => {

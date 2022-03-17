@@ -21,7 +21,6 @@ import {
   selectDependencyTreeIsOldReport,
   selectSelectedComponent,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
-import { goToComponentDetailsPage } from 'MainRoot/applicationReport/applicationReportActions';
 
 function mapStateToProps(state) {
   const { currentVersion, stageId } = selectRemediationData(state);
@@ -44,7 +43,6 @@ const mapDispatchToProps = {
   loadVersionExplorerData: actions.loadVersionExplorerData,
   loadSelectedVersionData: actions.loadSelectedVersionData,
   resetSelectedVersionData: actions.resetSelectedVersionData,
-  ancestorOnClick: goToComponentDetailsPage,
   toggleAncestorsList: actions.toggleAncestorsList,
 };
 

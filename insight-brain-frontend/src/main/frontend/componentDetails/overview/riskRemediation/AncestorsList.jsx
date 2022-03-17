@@ -13,13 +13,7 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 const COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME = 'applicationReport.componentDetails.overview';
 
-export const AncestorsList = ({
-  dependencyTreeSubset,
-  ancestorOnClick,
-  itemsToShow,
-  expanded,
-  toggleAncestorsList,
-}) => {
+export const AncestorsList = ({ dependencyTreeSubset, itemsToShow, expanded, toggleAncestorsList }) => {
   const uiRouterState = useRouterState();
   const ancestorsElements =
     !expanded && dependencyTreeSubset.length > itemsToShow
@@ -33,10 +27,7 @@ export const AncestorsList = ({
           return (
             <NxList.Item key={hash}>
               <span>
-                <NxTextLink
-                  onClick={ancestorOnClick}
-                  href={uiRouterState.href(COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME, { hash })}
-                >
+                <NxTextLink href={uiRouterState.href(COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME, { hash })}>
                   {displayName}
                 </NxTextLink>
                 {isInnerSource && <DependencyTypeTag type="innerSource" />}
@@ -56,7 +47,6 @@ export const AncestorsList = ({
 
 AncestorsList.propTypes = {
   dependencyTreeSubset: PropTypes.arrayOf(dependencyTreeNodePropType).isRequired,
-  ancestorOnClick: PropTypes.func.isRequired,
   toggleAncestorsList: PropTypes.func.isRequired,
   itemsToShow: PropTypes.number.isRequired,
   expanded: PropTypes.bool.isRequired,

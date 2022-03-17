@@ -604,14 +604,20 @@ public class ComponentInfoService
         //Terraform information is not stored in HDS
         componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
       }
-      else if (shouldGetFromRepositoryData(dependencyType, identifier)) {
-        Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> result =
-            repositoryQueryService.getAllVersions(identifier, owner);
-        componentDetailsList = transformToComponentDetailsList(result.getLeft(), identifier);
-        sourceResponseDTO = result.getRight();
-      }
       else {
+        //If it's an InnerSource dependency, we check HDS first since it could also be an OpenSource component
         componentDetailsList = getInformationVersionsHds(identifier, identificationSource, owner, scanId);
+
+        boolean queryRepo =
+            shouldGetFromRepositoryData(componentDetailsList, identifier, dependencyType, identificationSource);
+
+        //If HDS does not return DM matched components, and it's an InnerSource Repo component we query repo
+        if (queryRepo) {
+          Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> result =
+              repositoryQueryService.getAllVersions(identifier, owner);
+          componentDetailsList = transformToComponentDetailsList(result.getLeft(), identifier);
+          sourceResponseDTO = result.getRight();
+        }
       }
     }
     else if (isThirdPartyIdentificationSource(identificationSource)) {
@@ -631,6 +637,29 @@ public class ComponentInfoService
           componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
     }
     return Pair.of(componentDetailsList, sourceResponseDTO);
+  }
+
+  private boolean shouldGetFromRepositoryData(
+      final ComponentDetailsList componentDetailsList,
+      final ComponentIdentifier identifier,
+      final DependencyType dependencyType,
+      final String identificationSource)
+  {
+    if (componentDetailsList != null && CollectionUtils.isNotEmpty(componentDetailsList.getList()) &&
+        componentDetailsList.getList().size() > 1) {
+      return false;
+    }
+
+    if (DependencyType.INNER_SOURCE.equals(dependencyType) &&
+        RepositoryClient.REPOSITORY_SUPPORTED_FORMATS.contains(identifier.getFormat()) &&
+        insightConfig.isFeatureEnabled(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION)) {
+
+      if (CollectionUtils.isNotEmpty(componentDetailsList.getList()) && componentDetailsList.getList().size() == 1) {
+        return isThirdPartyIdentificationSource(identificationSource) ||
+            isPackageManifestIdentificationSource(identificationSource);
+      }
+    }
+    return false;
   }
 
   private ComponentDetailsList createComponentDetailsListForGenericIdentifier(ComponentIdentifier identifier) {
@@ -688,15 +717,6 @@ public class ComponentInfoService
     ComparableVersion requestVersion = new ComparableVersion(identifier.get(ComponentIdentifier.VERSION));
     ComparableVersion resultVersion = new ComparableVersion(result.getIdentifier().get(ComponentIdentifier.VERSION));
     return requestVersion.compareTo(resultVersion);
-  }
-
-  private boolean shouldGetFromRepositoryData(
-      DependencyType dependencyType,
-      ComponentIdentifier identifier)
-  {
-    return DependencyType.INNER_SOURCE.equals(dependencyType) &&
-        RepositoryClient.REPOSITORY_SUPPORTED_FORMATS.contains(identifier.getFormat()) &&
-        insightConfig.isFeatureEnabled(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION);
   }
 
   private void updateThirdPartyInformation(

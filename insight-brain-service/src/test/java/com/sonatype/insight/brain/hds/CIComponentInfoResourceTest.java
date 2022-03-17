@@ -16,6 +16,7 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
@@ -150,8 +151,13 @@ public class CIComponentInfoResourceTest
             .withStatus(200)
             .withBody(getCannedResponse("maven_nopaging.json"))));
 
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+    HttpRequest requestMock = listRequest(getOwnerId(), identifier);
+    hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(requestMock.getUrl()));
+
     HttpRequest request = allVersionsRequest(app.getPublicId(), identifier)
-        .query("dependencyType", DependencyType.INNER_SOURCE.getId());
+        .query("dependencyType", DependencyType.INNER_SOURCE.getId())
+        .query("identificationSource", IdentificationSource.PACKAGE_MANIFEST.getId());
 
     HttpResponse response = request.get();
     assertResponseStatus(200, response);

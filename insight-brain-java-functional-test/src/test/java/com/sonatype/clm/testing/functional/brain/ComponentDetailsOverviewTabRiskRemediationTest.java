@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 
+import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.componentdetails.InnerSourceRepositorySourceAlert;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
@@ -224,6 +225,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     testCLMServer.getHdsServer()
         .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
         .atUri("rest/component/dependencies");
+    testCLMServer.getHdsServer().respondWith(new ComponentDetailsList()).atUri("rest/ci/componentDetails/list");
     RepositoryConnection repositoryConnection =
         tempEntity.newRepositoryConnection(Organization.ROOT_ORGANIZATION_ID, nxrm3MockSever.baseUrl(), null, null);
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
@@ -242,6 +244,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     testCLMServer.getHdsServer()
         .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
         .atUri("rest/component/dependencies");
+    testCLMServer.getHdsServer().respondWith(new ComponentDetailsList()).atUri("rest/ci/componentDetails/list");
     tempEntity.newRepositoryConnection(Organization.ROOT_ORGANIZATION_ID, nxrm3MockSever.baseUrl(), null, null);
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
     componentDetailsPage.overviewTab().shouldBe(visible);
@@ -267,6 +270,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   public void testRiskRemediationTile_RepositorySource_InnerSourceDependency_FeatureDisabled() {
     testCLMServer.getCLMServer().getConfiguration()
         .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
+    testCLMServer.getHdsServer().respondWith(new ComponentDetailsList()).atUri("/componentDetails/list");
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().riskRemediationTile().versionExplorerSection().repositorySource()

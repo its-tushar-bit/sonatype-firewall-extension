@@ -117,6 +117,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -1891,8 +1892,37 @@ public class ComponentInfoServiceTest
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
 
-    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v1",
-        "v2", "v3");
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v1", "v2", "v3");
+    mockHdsGetComponentDetailsList(new ComponentDetailsList(), MAVEN_A1_COORDINATES);
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
+        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
+        DependencyType.INNER_SOURCE);
+
+    List<ComponentDetailsDTO> result = dto.allVersions;
+
+    assertThat(result).hasSize(3);
+    assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES.createAlternativeVersion("v1"));
+    assertGetComponentVersionsRepositoryResult(result.get(1), MAVEN_A1_COORDINATES.createAlternativeVersion("v2"));
+    assertGetComponentVersionsRepositoryResult(result.get(2), MAVEN_A1_COORDINATES.createAlternativeVersion("v3"));
+    assertThat(dto.sourceResponse.source).isEqualTo("https://repo.sonatype.com/");
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_withRequestedVersion_ThirdParty() {
+    String identificationSource = "third-party";
+    String scanId = "scanId";
+
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v1", "v2", "v3");
+
+    ComponentDetails tpComponent = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+    hdsComponentDetailsList.setList(asList(tpComponent));
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_A1_COORDINATES);
+
+    tpComponent.setIdentificationSource(identificationSource);
+    when(thirdPartyComponentDAO.resolveComponentDetails(application.getId(), MAVEN_A1_COORDINATES, scanId))
+        .thenReturn(tpComponent);
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
         application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
@@ -1912,8 +1942,8 @@ public class ComponentInfoServiceTest
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
 
-    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v0",
-        "v1", "v2");
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v0", "v1", "v2");
+    mockHdsGetComponentDetailsList(new ComponentDetailsList(), MAVEN_A1_COORDINATES);
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
         application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
@@ -1933,8 +1963,8 @@ public class ComponentInfoServiceTest
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
 
-    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v0.4",
-        "v0.8", "v1");
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v0.4", "v0.8", "v1");
+    mockHdsGetComponentDetailsList(new ComponentDetailsList(), MAVEN_A1_COORDINATES);
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
         application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
@@ -1953,8 +1983,8 @@ public class ComponentInfoServiceTest
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_missingRequestedVersion() {
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
-    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v0",
-        "v3");
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES, "v0", "v3");
+    mockHdsGetComponentDetailsList(new ComponentDetailsList(), MAVEN_A1_COORDINATES);
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
         application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
@@ -1974,6 +2004,7 @@ public class ComponentInfoServiceTest
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
     mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES);
+    mockHdsGetComponentDetailsList(new ComponentDetailsList(), MAVEN_A1_COORDINATES);
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
         application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
@@ -1987,9 +2018,84 @@ public class ComponentInfoServiceTest
   }
 
   @Test
+  public void testGetComponentVersionInfo_ReadPermission_NoInnerSourceRepository_HdsResults_Matched() {
+    String identificationSource = IdentificationSource.SONATYPE.getId();
+    String scanId = "scanId";
+
+    ComponentDetails hdsComponentDetails1 = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    ComponentDetails hdsComponentDetails2 = newNamedComponentDetails(MAVEN_A2_COORDINATES);
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+    hdsComponentDetailsList.setList(asList(hdsComponentDetails1, hdsComponentDetails2));
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_A1_COORDINATES);
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
+        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
+        DependencyType.INNER_SOURCE);
+
+    List<ComponentDetailsDTO> result = dto.allVersions;
+
+    assertThat(result).hasSize(2)
+        .allSatisfy(detail -> assertThat(detail.identificationSource).isEqualTo(identificationSource));
+    assertThat(dto.sourceResponse).isNull();
+    verify(repositoryQueryService, never()).getAllVersions(eq(MAVEN_A1_COORDINATES), any(Owner.class));
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_ReadPermission_NoInnerSourceRepository_HdsResults_PackageManifest() {
+    String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
+    String scanId = "scanId";
+
+    ComponentDetails hdsComponentDetails1 = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails1.setIdentificationSource(identificationSource);
+    ComponentDetails hdsComponentDetails2 = newNamedComponentDetails(MAVEN_A2_COORDINATES);
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+    hdsComponentDetailsList.setList(asList(hdsComponentDetails1, hdsComponentDetails2));
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_A1_COORDINATES);
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
+        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
+        DependencyType.INNER_SOURCE);
+
+    List<ComponentDetailsDTO> result = dto.allVersions;
+
+    assertThat(result).hasSize(2).extracting(d -> d.identificationSource)
+        .containsExactlyInAnyOrder(identificationSource, IdentificationSource.SONATYPE.getId());
+    assertThat(dto.sourceResponse).isNull();
+    verify(repositoryQueryService, never()).getAllVersions(eq(MAVEN_A1_COORDINATES), any(Owner.class));
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_ReadPermission_NoInnerSourceRepository_HdsResults_ThirdParty() {
+    String identificationSource = "third-party";
+    String scanId = "scanId";
+
+    ComponentDetails hdsComponentDetails1 = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    ComponentDetails hdsComponentDetails2 = newNamedComponentDetails(MAVEN_A2_COORDINATES);
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+    hdsComponentDetailsList.setList(asList(hdsComponentDetails1, hdsComponentDetails2));
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_A1_COORDINATES);
+
+    hdsComponentDetails1.setIdentificationSource(identificationSource);
+    when(thirdPartyComponentDAO.resolveComponentDetails(application.getId(), MAVEN_A1_COORDINATES, scanId))
+        .thenReturn(hdsComponentDetails1);
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
+        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
+        DependencyType.INNER_SOURCE);
+
+    List<ComponentDetailsDTO> result = dto.allVersions;
+
+    assertThat(result).hasSize(2).extracting(d -> d.identificationSource)
+        .containsExactlyInAnyOrder(identificationSource, IdentificationSource.SONATYPE.getId());
+    assertThat(dto.sourceResponse).isNull();
+    verify(repositoryQueryService, never()).getAllVersions(eq(MAVEN_A1_COORDINATES), any(Owner.class));
+  }
+
+  @Test
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_npm() {
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
+    mockHdsGetComponentDetailsList(new ComponentDetailsList(), NPM_COORDINATES);
     mockRepositoryQueryServiceAllVersionResponse(NPM_COORDINATES, "v0", "v1", "v2");
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),

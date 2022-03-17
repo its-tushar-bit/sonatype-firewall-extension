@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -60,6 +62,7 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
+import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -75,6 +78,24 @@ import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD
 public class PolicyMonitor
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyMonitor.class);
+
+  private static final int APPLICATION_MONITOR_THREADS_MIN = 1;
+
+  private static final int APPLICATION_MONITOR_THREADS_MAX = 20;
+
+  private static final int APPLICATION_MONITOR_THREADS_DEFAULT = 1;
+
+  private static final ForkJoinPool APPLICATION_MONITOR_FORK_JOIN_POOL;
+
+  static {
+    APPLICATION_MONITOR_FORK_JOIN_POOL =
+        ExecutorThreadPools.createThreadPool(
+            APPLICATION_MONITOR_THREADS_MIN,
+            APPLICATION_MONITOR_THREADS_MAX,
+            APPLICATION_MONITOR_THREADS_DEFAULT,
+            "insight.threads.monitor");
+    log.info("insight.threads.monitor pool-size: {}", APPLICATION_MONITOR_FORK_JOIN_POOL.getParallelism());
+  }
 
   // derived from https://docs.sonatype.com/display/ADP/Firewall+Auto+Release+Quarantine+Policy+Condition+Types
   static final int MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED = 14;
@@ -168,6 +189,8 @@ public class PolicyMonitor
     log.info("Starting policy monitoring of applications");
     long start = System.currentTimeMillis();
 
+    List<CompletableFuture<Void>> futures = new ArrayList<>();
+
     for (Application app : apps) {
       PolicyMonitoring policyMonitoring = null;
       for (Owner owner : ownerDAO.walkHierarchy(app)) {
@@ -180,22 +203,28 @@ public class PolicyMonitor
       if (policyMonitoring == null || !Stage.isValidStageTypeId(policyMonitoring.getStageTypeId())) {
         continue;
       }
-
-      try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
-        try {
-          AuditData.get().setApplication(app);
-          evaluate(app, policyMonitoring);
+      final PolicyMonitoring finalPolicyMonitoring = policyMonitoring;
+      CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
+        try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
+          try {
+            AuditData.get().setApplication(app);
+            evaluate(app, finalPolicyMonitoring);
+          }
+          catch (InterruptedException e) {
+            AuditData.get().setException(e);
+            Thread.currentThread().interrupt();
+          }
+          catch (IOException | RuntimeException e) {
+            AuditData.get().setException(e);
+            log.error("Failed policy monitoring for application '{}': {}", app.getName(), e.getMessage(), e);
+          }
         }
-        catch (InterruptedException e) {
-          AuditData.get().setException(e);
-          throw e;
-        }
-        catch (IOException | RuntimeException e) {
-          AuditData.get().setException(e);
-          log.error("Failed policy monitoring for application '{}': {}", app.getName(), e.getMessage(), e);
-        }
-      }
+        return null;
+      }, APPLICATION_MONITOR_FORK_JOIN_POOL);
+      futures.add(future);
     }
+    futures.forEach(CompletableFuture::join);
+
     log.info("Finished policy monitoring applications in {} ms", System.currentTimeMillis() - start);
   }
 

@@ -10,6 +10,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.Executor;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -80,6 +81,25 @@ public class ExecutorThreadPools
     };
 
     return new ForkJoinPool(threadCount, factory, null, false);
+  }
+
+  @VisibleForTesting
+  static int getThreadCount(int minThreads, int maxThreads, int defaultThreads, String configProp) {
+    /*
+     * get value based on configProp, if not set, fall back to defaultThreads
+     * if value is less than minThreads, fall back to minThreads
+     * if value is greater than maxThreads, fall back to maxThreads
+     */
+    int threadCount = Integer.getInteger(configProp, defaultThreads);
+    threadCount = Math.max(minThreads, threadCount);
+    threadCount = Math.min(maxThreads, threadCount);
+    return threadCount;
+  }
+
+  public static ForkJoinPool createThreadPool(int minThreads, int maxThreads, int defaultThreads, String configProp) {
+    String namePrefix = configProp.replace(".", "-").replace("threads", "thread") + "-";
+    int threadCount = getThreadCount(minThreads, maxThreads, defaultThreads, configProp);
+    return namedForkJoinPool(threadCount, namePrefix);
   }
 
   public static Executor getThreadPool(ThreadPools pool) {

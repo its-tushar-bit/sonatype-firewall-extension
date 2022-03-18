@@ -10,7 +10,7 @@ export default function MonitoredStageService() {
   };
 }
 
-function createInheritOrNoMonitorOption(policyMonitoringByOwner, stages) {
+export function createInheritOrNoMonitorOption(policyMonitoringByOwner, stages) {
   var inheritOrNoMonitorOption, parentsName;
   policyMonitoringByOwner.some(function (policyMonitoringOwner, ownerIndex) {
     if (ownerIndex === 0) {
@@ -39,7 +39,7 @@ function createInheritOrNoMonitorOption(policyMonitoringByOwner, stages) {
   return inheritOrNoMonitorOption;
 }
 
-function getMonitoredStage(policyMonitoring, stages) {
+export function getMonitoredStage(policyMonitoring, stages = []) {
   return stages.filter(function (stage) {
     return policyMonitoring ? stage.stageTypeId === policyMonitoring.stageTypeId : !stage.stageTypeId;
   })[0];

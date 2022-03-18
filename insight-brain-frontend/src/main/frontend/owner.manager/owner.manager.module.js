@@ -18,7 +18,6 @@ import ownerPolicyList from './summary/ownerPolicyList/ownerPolicyList';
 import ProductFeaturesModule from '../util/ProductFeatures';
 
 import licenseThreatGroupModule from '../policy/LicenseThreatGroupsController';
-import policyModule from '../policy/PolicyMonitoringStore';
 import roleMembershipModule from '../role.membership/role.membership.module';
 import AccessEditorController from './access/access.editor.controller';
 import AccessTileController from './access/access.tile.controller';
@@ -98,7 +97,6 @@ export default angular
     utilityModule.name,
     utilityDirectivesModule.name,
     permissionServiceModule.name,
-    policyModule.name,
     CLMLocationModule.name,
     utilityServicesModule.name,
     validatorsModule.name,

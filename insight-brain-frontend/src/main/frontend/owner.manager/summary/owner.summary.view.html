@@ -285,7 +285,7 @@
     </div>
   </div>
   <div ng-controller="policy.tile.controller as vm">
-    <div load-wrapper="vm.error" loading="!(vm.ownerName && vm.policiesByOwner)" reload="vm.doLoad()">
+    <div load-wrapper="vm.loadError" loading="!(vm.ownerName && vm.policiesByOwner) || vm.propietaryConfigIsloading" reload="vm.doLoad()">
       <div class="iq-tile" id="owner-pill-policy">
         <div class="iq-tile__actions">
           <button id="add-policy-button" class="iq-btn iq-btn--tertiary" same-owner-edit-sref="create-policy">
@@ -302,7 +302,7 @@
           </div>
         </div>
         <div class="iq-tile-content">
-          <owner-policy-list ng-repeat="ownerPolicyList in vm.policiesByOwner"
+          <owner-policy-list ng-repeat="ownerPolicyList in vm.policiesByOwner track by ownerPolicyList.ownerId"
                             owner-policy-list="ownerPolicyList"
                             action-stages="vm.actionStages"
                             on-policy-click="vm.editPolicy(policyId)"

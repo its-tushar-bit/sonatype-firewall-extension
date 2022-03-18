@@ -207,14 +207,6 @@ locationModule.factory('CLMContextLocations', [
         );
       },
 
-      getPolicyMonitoringUrl: function () {
-        return baseUrl.get() + '/rest/policyMonitoring/' + getServicePathWithId();
-      },
-
-      getApplicablePolicyMonitoring: function () {
-        return this.getPolicyMonitoringUrl() + '/applicable';
-      },
-
       getCategoriesUrl: function () {
         return CLMLocations.getCategoriesUrl(getServicePath(), getId(true));
       },

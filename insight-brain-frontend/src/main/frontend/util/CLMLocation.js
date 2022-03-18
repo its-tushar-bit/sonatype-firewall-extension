@@ -504,6 +504,14 @@ export function getPoliciesUrl() {
   return uriTemplate`/api/v2/policies`;
 }
 
+export function getPolicyMonitoringUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/policyMonitoring/${ownerType}/${ownerId}`;
+}
+
+export function getApplicablePolicyMonitoringUrl(ownerType, ownerId) {
+  return getPolicyMonitoringUrl(ownerType, ownerId) + '/applicable';
+}
+
 export function getCopyrightFilePathsUrl(
   orgOrApp,
   ownerId,

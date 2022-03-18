@@ -3,9 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import { mapStateToThis } from 'MainRoot/owner.manager/policy/monitored.stage.editor.controller';
 
-describe('monitored.stage.editor.controller.spec.js', function () {
+describe('monitored.stage.editor.controller', function () {
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
       $provide.value('$cookies', {});
@@ -13,91 +14,94 @@ describe('monitored.stage.editor.controller.spec.js', function () {
     })
   );
 
-  var vm,
-    scope,
-    $timeout,
-    $httpBackend,
-    mockStageTypeStore = StoreUtils().createMockStore('StageTypeStore'),
-    mockPolicyMonitoringStore = StoreUtils().createMockStore('PolicyMonitoringStore'),
-    mockMonitoredStageService,
-    CLMLocations;
+  let vm, scope;
 
-  beforeEach(inject(function ($rootScope, $q, _$timeout_, _$httpBackend_, $controller, _CLMLocations_) {
+  beforeEach(inject(function ($rootScope, $controller) {
     scope = $rootScope.$new();
-    $timeout = _$timeout_;
-    $httpBackend = _$httpBackend_;
-    CLMLocations = _CLMLocations_;
-    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
-    mockMonitoredStageService = {
-      createInheritOrNoMonitorOption: function () {
-        return { stageName: 'Inherit from parent (Do not monitor)' };
-      },
-      getMonitoredStage: function () {
-        return { stageName: 'Develop', stageTypeId: 'da_id' };
-      },
-    };
-    vm = $controller('monitored.stage.editor.controller', {
-      $scope: scope,
-      'monitored.stage.service': mockMonitoredStageService,
-    });
+    vm = $controller('monitored.stage.editor.controller', { $scope: scope });
 
-    vm.continuousMonitoringEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
+    vm.continuousMonitoringEditorMask = { wrap: jasmine.createSpy('wrap').and.callFake((promise) => promise) };
+    vm.$onInit();
   }));
 
-  it('Sets state correctly on load', function () {
-    mockStageTypeStore.resolveGet([{ stageName: 'release', stageTypeId: 'foo_id' }]);
-    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-    $timeout.flush();
-    $httpBackend.flush();
-
-    expect(vm.monitoredStage).toBeDefined();
-    expect(vm.monitoredStage.stageName).toBe('Develop');
-    expect(vm.stages.length).toBe(2);
-    expect(vm.isMonitoringSupported).toBe(true);
-  });
-
-  it('Saves selected stage', function () {
-    mockStageTypeStore.resolveGet([]);
-    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-    $timeout.flush();
-    $httpBackend.flush();
-    vm.monitoredStage = { stageTypeId: 'Deploy' };
-    vm.save();
-    mockPolicyMonitoringStore.resolveSave();
-    $timeout.flush();
-  });
-
-  it('Removes stage if not selected', function () {
-    mockStageTypeStore.resolveGet([]);
-    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-    $timeout.flush();
-    $httpBackend.flush();
-    vm.monitoredStage = { stageTypeName: 'Do not monitor' };
-    vm.save();
-    mockPolicyMonitoringStore.resolveRemove();
-    $timeout.flush();
-  });
-
-  describe('Page Changes', function () {
-    beforeEach(function () {
-      mockStageTypeStore.resolveGet([]);
-      mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
-      $timeout.flush();
-      $httpBackend.flush();
+  describe('$onInit()', () => {
+    it('subscribes to the redux store', () => {
+      expect(vm.unsubscribe).toBeDefined();
     });
 
-    it('clean', function () {
-      spyOn(vm, 'isDirty').and.returnValue(false);
+    it('calls loadApplicablePolicyMonitoring', () => {
+      expect(vm.loadApplicablePolicyMonitoring).toHaveBeenCalledTimes(1);
+    });
+  });
 
+  describe('$onDestroy()', () => {
+    it('unsubscribes from redux store', () => {
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
+      vm.$onDestroy();
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Page Changes', () => {
+    it('navigates away if form is not dirty', () => {
+      spyOn(vm, 'isDirty').and.returnValue(false);
       SpecUtil.expectStateChangeNotPrevented(scope);
       expect(vm.isDirty).toHaveBeenCalled();
     });
 
-    it('dirty', function () {
+    it('does not navigate away if form is dirty', () => {
       spyOn(vm, 'isDirty').and.returnValue(true);
-
       SpecUtil.expectStateChangePrevented(scope);
       expect(vm.isDirty).toHaveBeenCalled();
+    });
+  });
+
+  it('Saves selected stage', function () {
+    vm.monitoredStage = { stageTypeId: 'Deploy' };
+    vm.save();
+
+    expect(vm.savePolicyMonitoring).toHaveBeenCalledTimes(1);
+  });
+
+  it('Removes stage if not selected', function () {
+    vm.monitoredStage = { stageName: 'Do not monitor' };
+    vm.save();
+
+    expect(vm.removePolicyMonitoring).toHaveBeenCalledTimes(1);
+  });
+
+  describe('mapStateToThis', () => {
+    it('sets policyMonitoringByOwner, stages, originalStage, monitoredStage, loading, loadError, submitError', () => {
+      const state = {
+        orgsAndPolicies: {
+          policyMonitoring: {
+            loading: false,
+            loadError: null,
+            submitError: null,
+            isMonitoringSupported: false,
+            policyMonitoringByOwner: [],
+            stages: [
+              { stageName: 'Develop', stageTypeId: 1 },
+              { stageName: 'Build', stageTypeId: 1 },
+            ],
+            monitoredStage: { stageName: 'Develop', stageTypeId: 1 },
+            originalStage: { stageName: 'Build', stageTypeId: 2 },
+          },
+        },
+      };
+
+      const output = mapStateToThis(state);
+
+      expect(output.policyMonitoringByOwner).toEqual([]);
+      expect(output.stages).toEqual([
+        { stageName: 'Develop', stageTypeId: 1 },
+        { stageName: 'Build', stageTypeId: 1 },
+      ]);
+      expect(output.originalStage).toEqual({ stageName: 'Build', stageTypeId: 2 });
+      expect(output.monitoredStage).toEqual({ stageName: 'Develop', stageTypeId: 1 });
+      expect(output.loading).toBeFalse();
+      expect(output.loadError).toBeNull();
+      expect(output.submitError).toBeNull();
     });
   });
 });

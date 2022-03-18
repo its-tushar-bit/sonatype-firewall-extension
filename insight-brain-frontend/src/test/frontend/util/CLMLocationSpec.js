@@ -677,6 +677,22 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getPolicyMonitoringUrl', () => {
+    it('should return a URL with proper ownerType and ownerId', () => {
+      expect(CLMLocation.getPolicyMonitoringUrl('application', 'application')).toBe(
+        '/rest/policyMonitoring/application/application'
+      );
+    });
+  });
+
+  describe('getApplicablePolicyMonitoringUrl', () => {
+    it('should return a URL with proper ownerType and ownerId', () => {
+      expect(CLMLocation.getApplicablePolicyMonitoringUrl('application', 'application')).toBe(
+        '/rest/policyMonitoring/application/application/applicable'
+      );
+    });
+  });
+
   describe('getCategoriesUrl', () => {
     it('returns url for applicationCategories', () => {
       const expectedUrl = '/api/v2/applicationCategories/organization/ROOT_ORGANIZATION_ID';

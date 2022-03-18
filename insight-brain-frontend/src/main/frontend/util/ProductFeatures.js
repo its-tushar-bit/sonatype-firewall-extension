@@ -24,6 +24,7 @@ productFeatureModule.service('ProductFeatures', [
         angular.forEach(response.data, function (feature) {
           productFeatures[feature] = true;
         });
+        return response.data;
       });
 
       return promise;

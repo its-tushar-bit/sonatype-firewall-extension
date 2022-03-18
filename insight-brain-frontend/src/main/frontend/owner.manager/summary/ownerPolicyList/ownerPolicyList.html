@@ -26,7 +26,7 @@
         </th>
         <th class="iq-cell iq-cell--header policy-list__stage-column tm-stage-{{::stage.stageTypeId}}"
             sort-column="enforcementAction['{{::stage.stageTypeId}}'], -threatLevel"
-            ng-repeat="stage in vm.actionStages"
+            ng-repeat="stage in vm.actionStages track by stage.stageTypeId"
             ng-class="{'iq-disabled' : !vm.isEnforcementSupportedForStage({stage: stage.stageTypeId})}">
           {{::stage.shortName | uppercase}}
         </th>
@@ -35,13 +35,13 @@
     </thead>
     <tbody>
       <tr class="iq-table-row iq-clickable"
-          ng-repeat="policy in vm.ownerPolicyList.policies | orderBy:vm.sortFields"
+          ng-repeat="policy in vm.ownerPolicyList.policies | orderBy:vm.sortFields track by policy.id"
           ng-click="vm.onPolicyClick({policyId: policy.id})">
         <td class="iq-cell iq-cell--policy-list-name" colspan="2">
           <span class="iq-threat-bar iq-threat-bar--policy-level-{{policy.threatLevel}}"></span>
           <span class="iq-policy-name">{{policy.name}}</span>
         </td>
-        <td class="iq-cell iq-cell--policy-list-stage" ng-repeat="stage in vm.actionStages"
+        <td class="iq-cell iq-cell--policy-list-stage" ng-repeat="stage in vm.actionStages track by stage.stageTypeId"
             ng-class="{'iq-disabled' : !vm.isEnforcementSupportedForStage({stage: stage.stageTypeId})}">
           <i ng-class="{'fa fa-exclamation-triangle warn' : policy.enforcementAction[stage.stageTypeId] === 'warn',
                       'fa fa-exclamation-circle fail' :policy.enforcementAction[stage.stageTypeId] === 'fail'}"></i>

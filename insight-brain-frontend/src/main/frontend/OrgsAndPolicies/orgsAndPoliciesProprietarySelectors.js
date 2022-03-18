@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { prop } from 'ramda';
+import { length, prop } from 'ramda';
 import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
 
 export const selectProprietarySlice = createSelector(selectOrgsAndPoliciesSlice, prop('proprietary'));
@@ -20,3 +20,14 @@ export const selectCurrentConfigs = createSelector(selectProprietarySlice, prop(
 export const selectPackageMatcher = createSelector(selectProprietarySlice, prop('packageMatcher'));
 export const selectRegexMatcher = createSelector(selectProprietarySlice, prop('regexMatcher'));
 export const selectMatcherType = createSelector(selectProprietarySlice, prop('matcherType'));
+export const selectPropietaryConfigLocalMatchersCount = createSelector(selectLocalMatchers, length);
+export const selectPropietaryConfigInheritedMatchersCount = createSelector(
+  selectProprietaryConfigs,
+  (propietaryConfigs = []) => {
+    return propietaryConfigs.reduce((counter, configOwner, index) => {
+      const config = configOwner.proprietaryConfig;
+      const matcherTotal = config.packages.length + config.regexes.length;
+      return index > 0 ? (counter += matcherTotal) : counter;
+    }, 0);
+  }
+);

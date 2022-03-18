@@ -23,7 +23,7 @@
           mask-attach-to-body>
       <fieldset class="iq-radio-group iq-form-group">
         <legend class="iq-label">Monitoring Stage</legend>
-        <iq-radio ng-repeat="stage in vm.stages" model="vm.monitoredStage" value="stage" class="tm-stage-{{::stage.stageTypeId}}">
+        <iq-radio ng-repeat="stage in vm.stages track by stage.stageName" model="vm.monitoredStage" value="stage" on-click="vm.setMonitoredStage(stage)" class="tm-stage-{{::stage.stageTypeId}}">
           {{::stage.stageName}}
         </iq-radio>
       </fieldset>

@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { prop, clone, curryN, isEmpty, isNil, any, reject, propEq, filter } from 'ramda';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { prop, curryN, isEmpty, isNil, any, reject, propEq, filter, findIndex, equals } from 'ramda';
+import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import { selectRouterSlice, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { getApplicableLabelsUrl, getLabelsUrl, getDeleteLabelsUrl } from 'MainRoot/util/CLMLocation';
@@ -14,6 +14,8 @@ import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import {
   selectLabelsCurrentLabel,
   selectLabelsIsEditMode,
+  selectPrevOwnerType,
+  selectPrevOwnerId,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
 import { actions as rootActions } from './orgsAndPoliciesRootSlice';
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
@@ -35,8 +37,10 @@ export const initialState = {
     label: null,
   },
   serverCurrentLabel: null,
-  siblings: [],
+  siblings: null,
   isDirty: false,
+  ownerType: null,
+  ownerId: null,
 };
 
 const loadApplicableLabelsRequested = (state) => {
@@ -47,7 +51,7 @@ const loadApplicableLabelsRequested = (state) => {
 const loadApplicableLabelsFulfilled = (state, { payload }) => {
   state.loading = false;
   state.loadError = null;
-  state.applicableLabels = payload.labelsByOwner;
+  state.applicableLabels = payload;
 };
 
 const loadApplicableLabelsFailed = (state, { payload }) => {
@@ -65,7 +69,9 @@ const loadLabelsEditorFulfilled = (state, { payload }) => {
   state.loadError = null;
   state.currentLabel = payload.currentLabel;
   state.serverCurrentLabel = payload.currentLabel;
-  state.siblings = payload.siblings;
+  if (payload.siblings) {
+    state.siblings = payload.siblings;
+  }
 };
 
 const loadLabelsEditorFailed = (state, { payload }) => {
@@ -78,14 +84,15 @@ const saveLabelFulfilled = (state, { payload }) => {
   state.isDirty = false;
 
   if (payload.isEditMode) {
+    const index = findIndex(propEq('id', payload.label.id), state.siblings);
+    state.siblings[index] = payload.label;
     state.currentLabel = payload.label;
     state.serverCurrentLabel = payload.label;
   } else {
     state.currentLabel = initialState.currentLabel;
     state.serverCurrentLabel = initialState.currentLabel;
+    state.siblings.push(payload.label);
   }
-
-  state.siblings.push(payload.label);
 };
 
 const saveLabelFailed = (state, { payload }) => {
@@ -111,6 +118,11 @@ const resetDeleteModalState = (state) => {
   state.deleting = null;
   state.success = null;
   state.errorState = null;
+};
+
+const setCurrentOwnerProps = (state, { payload }) => {
+  state.ownerType = payload.ownerType;
+  state.ownerId = payload.ownerId;
 };
 
 const goToCreateLabel = createAsyncThunk(`${REDUCER_NAME}/goToCreateLabel`, (_, { getState, dispatch }) => {
@@ -144,21 +156,34 @@ const loadApplicableLabels = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicableLabels`,
   (_, { rejectWithValue, dispatch }) => {
     return dispatch(loadApplicableLabelsByOwner())
-      .then(({ payload }) => {
-        if (payload?.labelsByOwner) {
-          const data = clone(payload);
+      .then((applicableLabelsPayload) => {
+        const { labelsByOwner = [] } = unwrapResult(applicableLabelsPayload);
 
-          data.labelsByOwner.forEach((labels, idx) => {
-            labels.inherited = idx > 0;
-          });
+        labelsByOwner.forEach((labels, idx) => {
+          labels.inherited = idx > 0;
+        });
 
-          dispatch(rootActions.updatedOwnerHandler(data.labelsByOwner[0].ownerName));
-          return data;
-        }
-
-        return rejectWithValue(payload);
+        dispatch(rootActions.updatedOwnerHandler(labelsByOwner[0].ownerName));
+        return labelsByOwner;
       })
       .catch(rejectWithValue);
+  }
+);
+
+const loadApplicableLabelsByOwnerIfNeeded = createAsyncThunk(
+  `${REDUCER_NAME}/loadApplicableLabelsByOwnerIfNeeded`,
+  (_, { getState, dispatch }) => {
+    const state = getState();
+    const { ownerType, ownerId } = selectOwnerProperties(state);
+    const prevOwnerType = selectPrevOwnerType(state);
+    const prevOwnerId = selectPrevOwnerId(state);
+
+    if (!equals(ownerType, prevOwnerType) || !equals(prevOwnerId, ownerId)) {
+      dispatch(actions.setCurrentOwnerProps({ ownerType, ownerId }));
+      return dispatch(loadApplicableLabelsByOwner()).then(unwrapResult);
+    }
+
+    return Promise.resolve({});
   }
 );
 
@@ -170,29 +195,31 @@ const loadLabelsEditor = createAsyncThunk(
 
     dispatch(actions.resetIsDirty());
 
-    return Promise.all([dispatch(loadApplicableLabelsByOwner()), labelsPromise])
-      .then(([{ payload: applicableLabels }, currentLabel]) => {
+    return Promise.all([dispatch(loadApplicableLabelsByOwnerIfNeeded()), labelsPromise])
+      .then(([applicableLabelsPayload, currentLabel]) => {
+        const { labelsByOwner } = unwrapResult(applicableLabelsPayload);
+        const labels = unwrapResult(currentLabel);
         let siblings = [];
 
-        if (applicableLabels?.labelsByOwner) {
-          applicableLabels?.labelsByOwner.forEach((owner) => {
+        if (labelsByOwner) {
+          labelsByOwner.forEach((owner) => {
             siblings = siblings.concat(owner.labels);
           });
-
-          const { labelId } = selectRouterCurrentParams(getState());
-          const match = filter(propEq('id', labelId))(currentLabel?.payload || []);
-
-          if (isEmpty(match) && isEditMode) {
-            return rejectWithValue('Unable to locate label.');
-          }
-
-          return {
-            siblings,
-            currentLabel: match[0],
-          };
+        } else {
+          siblings = null;
         }
 
-        return rejectWithValue(applicableLabels);
+        const { labelId } = selectRouterCurrentParams(getState());
+        const match = filter(propEq('id', labelId))(labels || []);
+
+        if (isEmpty(match) && isEditMode) {
+          return rejectWithValue('Unable to locate label.');
+        }
+
+        return {
+          siblings,
+          currentLabel: match[0],
+        };
       })
       .catch(rejectWithValue);
   }
@@ -255,6 +282,7 @@ const orgsAndPoliciesLabelsSlice = createSlice({
     setLabelColor: setTextInput('color'),
     setLabelName: setTextInput('label'),
     resetIsDirty: propSet('isDirty', false),
+    setCurrentOwnerProps,
     resetDeleteModalState,
   },
   extraReducers: {

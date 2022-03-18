@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import OwnerUtils from '../owner.utils';
 
-describe('owner.detail.tree.view.directive.spec.js', function () {
+describe('owner.detail.tree.view.directive', function () {
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
       $provide.value('$cookies', {
@@ -138,7 +138,15 @@ describe('owner.detail.tree.view.directive.spec.js', function () {
           .respond([]);
       }
 
-      vm.labels = 'test';
+      vm.labels = [
+        {
+          color: 'dark-green',
+          description: 'description',
+          label: 'Dark Green',
+          id: '1242345',
+        },
+      ];
+
       $scope.$digest();
 
       if (mockOwnerStore) {

@@ -266,42 +266,40 @@ describe('orgsAndPoliciesLabelsActions', () => {
         ]);
 
         expect(actions[3].payload).toBe('appname');
-        expect(actions[4].payload).toEqual({
-          labelsByOwner: [
-            {
-              ownerId: '6b365e8a8000449aa924f194a7ed0d21',
-              ownerType: 'APPLICATION',
-              ownerName: 'appname',
-              labels: [
-                {
-                  color: 'light-green',
-                  description: null,
-                  id: 'ae63051b2e304c3bbabf94c2443b03fb',
-                  label: 'n3',
-                  ownerId: '6b365e8a8000449aa924f194a7ed0d21',
-                  ownerType: 'APPLICATION',
-                },
-              ],
-              inherited: false,
-            },
-            {
-              ownerId: '6b365e8a8000449aa924f194a7ed0d22',
-              ownerType: 'APPLICATION',
-              ownerName: 'appname2',
-              labels: [
-                {
-                  color: 'dark-green',
-                  description: null,
-                  id: 'ae63051b2e304c3bbabf94c2443b03fa',
-                  label: 'n4',
-                  ownerId: '6b365e8a8000449aa924f194a7ed0d22',
-                  ownerType: 'APPLICATION',
-                },
-              ],
-              inherited: true,
-            },
-          ],
-        });
+        expect(actions[4].payload).toEqual([
+          {
+            ownerId: '6b365e8a8000449aa924f194a7ed0d21',
+            ownerType: 'APPLICATION',
+            ownerName: 'appname',
+            labels: [
+              {
+                color: 'light-green',
+                description: null,
+                id: 'ae63051b2e304c3bbabf94c2443b03fb',
+                label: 'n3',
+                ownerId: '6b365e8a8000449aa924f194a7ed0d21',
+                ownerType: 'APPLICATION',
+              },
+            ],
+            inherited: false,
+          },
+          {
+            ownerId: '6b365e8a8000449aa924f194a7ed0d22',
+            ownerType: 'APPLICATION',
+            ownerName: 'appname2',
+            labels: [
+              {
+                color: 'dark-green',
+                description: null,
+                id: 'ae63051b2e304c3bbabf94c2443b03fa',
+                label: 'n4',
+                ownerId: '6b365e8a8000449aa924f194a7ed0d22',
+                ownerType: 'APPLICATION',
+              },
+            ],
+            inherited: true,
+          },
+        ]);
 
         done();
       });
@@ -334,16 +332,18 @@ describe('orgsAndPoliciesLabelsActions', () => {
   });
 
   describe('loadLabelsEditor', () => {
-    let selectLabelsIsEditModeSpy;
+    let selectLabelsIsEditModeSpy, selectPrevOwnerTypeSpy, selectPrevOwnerIdSpy;
     beforeEach(() => {
       spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
         applicationPublicId: 'application',
         labelId: 'labelId',
       });
       selectLabelsIsEditModeSpy = spyOn(labelsSelectors, 'selectLabelsIsEditMode').and.returnValue(true);
+      selectPrevOwnerTypeSpy = spyOn(labelsSelectors, 'selectPrevOwnerType').and.returnValue('ownerType');
+      selectPrevOwnerIdSpy = spyOn(labelsSelectors, 'selectPrevOwnerId').and.returnValue('ownerId');
     });
 
-    it('loads all labels and applicable labels successfully in edit mode', (done) => {
+    it('loads all labels and applicable labels successfully in edit mode if current ownerType and ownerId are different', (done) => {
       mockAxiosCalls({
         get: {
           [getLabelsUrl('application', 'application')]: Promise.resolve({
@@ -404,19 +404,22 @@ describe('orgsAndPoliciesLabelsActions', () => {
         expect(axios.get).toHaveBeenCalledWith('/api/v2/labels/application/application/applicable');
 
         const actions = store.getActions();
-        expect(actions.length).toBe(7);
+        expect(actions.length).toBe(10);
 
         expect(actions).toHaveActionTypesInOrder([
           'orgsAndPoliciesLabels/loadLabelsEditor/pending',
           'orgsAndPoliciesLabels/loadLabels/pending',
           'orgsAndPoliciesLabels/resetIsDirty',
+          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/pending',
+          'orgsAndPoliciesLabels/setCurrentOwnerProps',
           'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/pending',
           'orgsAndPoliciesLabels/loadLabels/fulfilled',
           'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/fulfilled',
+          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
           'orgsAndPoliciesLabels/loadLabelsEditor/fulfilled',
         ]);
 
-        expect(actions[6].payload).toEqual({
+        expect(actions[9].payload).toEqual({
           siblings: [
             {
               color: 'light-red',
@@ -435,6 +438,67 @@ describe('orgsAndPoliciesLabelsActions', () => {
               ownerType: 'APPLICATION',
             },
           ],
+          currentLabel: {
+            color: 'light-red',
+            description: null,
+            id: 'labelId',
+            label: 'n1',
+            ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+            ownerType: 'APPLICATION',
+          },
+        });
+
+        done();
+      });
+    });
+
+    it('loads only all labels successfully in edit mode if current ownerType and ownerId are same as previous', (done) => {
+      selectPrevOwnerTypeSpy.and.returnValue('application');
+      selectPrevOwnerIdSpy.and.returnValue('application');
+      mockAxiosCalls({
+        get: {
+          [getLabelsUrl('application', 'application')]: Promise.resolve({
+            data: [
+              {
+                color: 'light-red',
+                description: null,
+                id: 'labelId',
+                label: 'n1',
+                ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+                ownerType: 'APPLICATION',
+              },
+              {
+                color: 'light-green',
+                description: null,
+                id: 'ae63051b2e304c3bbabf94c2443b03fb',
+                label: 'n3',
+                ownerId: '6b365e8a8000449aa924f194a7ed0d27',
+                ownerType: 'APPLICATION',
+              },
+            ],
+          }),
+        },
+      });
+
+      store.dispatch(actions.loadLabelsEditor()).then(() => {
+        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axios.get).toHaveBeenCalledWith('/api/v2/labels/application/application');
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(7);
+
+        expect(actions).toHaveActionTypesInOrder([
+          'orgsAndPoliciesLabels/loadLabelsEditor/pending',
+          'orgsAndPoliciesLabels/loadLabels/pending',
+          'orgsAndPoliciesLabels/resetIsDirty',
+          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/pending',
+          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
+          'orgsAndPoliciesLabels/loadLabels/fulfilled',
+          'orgsAndPoliciesLabels/loadLabelsEditor/fulfilled',
+        ]);
+
+        expect(actions[6].payload).toEqual({
+          siblings: null,
           currentLabel: {
             color: 'light-red',
             description: null,
@@ -510,25 +574,28 @@ describe('orgsAndPoliciesLabelsActions', () => {
         expect(axios.get).toHaveBeenCalledWith('/api/v2/labels/application/application/applicable');
 
         const actions = store.getActions();
-        expect(actions.length).toBe(7);
+        expect(actions.length).toBe(10);
 
         expect(actions).toHaveActionTypesInOrder([
           'orgsAndPoliciesLabels/loadLabelsEditor/pending',
           'orgsAndPoliciesLabels/loadLabels/pending',
           'orgsAndPoliciesLabels/resetIsDirty',
+          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/pending',
+          'orgsAndPoliciesLabels/setCurrentOwnerProps',
           'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/pending',
           'orgsAndPoliciesLabels/loadLabels/fulfilled',
           'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/fulfilled',
+          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
           'orgsAndPoliciesLabels/loadLabelsEditor/rejected',
         ]);
 
-        expect(actions[6].payload).toBe('Unable to locate label.');
+        expect(actions[9].payload).toBe('Unable to locate label.');
 
         done();
       });
     });
 
-    it('loads applicable labels successfully in create mode', (done) => {
+    it('loads applicable labels successfully in create mode if ownerType and ownerId are different', (done) => {
       selectLabelsIsEditModeSpy.and.returnValue(false);
       mockAxiosCalls({
         get: {
@@ -569,17 +636,20 @@ describe('orgsAndPoliciesLabelsActions', () => {
         expect(axios.get).toHaveBeenCalledWith('/api/v2/labels/application/application/applicable');
 
         const actions = store.getActions();
-        expect(actions.length).toBe(5);
+        expect(actions.length).toBe(8);
 
         expect(actions).toHaveActionTypesInOrder([
           'orgsAndPoliciesLabels/loadLabelsEditor/pending',
           'orgsAndPoliciesLabels/resetIsDirty',
+          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/pending',
+          'orgsAndPoliciesLabels/setCurrentOwnerProps',
           'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/pending',
           'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/fulfilled',
+          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
           'orgsAndPoliciesLabels/loadLabelsEditor/fulfilled',
         ]);
 
-        expect(actions[4].payload).toEqual({
+        expect(actions[7].payload).toEqual({
           siblings: [
             {
               color: 'light-red',
@@ -605,6 +675,31 @@ describe('orgsAndPoliciesLabelsActions', () => {
       });
     });
 
+    it('does not load applicable labels in create mode if current ownerType and ownerId are same as previous', (done) => {
+      selectLabelsIsEditModeSpy.and.returnValue(false);
+      selectPrevOwnerTypeSpy.and.returnValue('application');
+      selectPrevOwnerIdSpy.and.returnValue('application');
+
+      store.dispatch(actions.loadLabelsEditor()).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(5);
+
+        expect(actions).toHaveActionTypesInOrder([
+          'orgsAndPoliciesLabels/loadLabelsEditor/pending',
+          'orgsAndPoliciesLabels/resetIsDirty',
+          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/pending',
+          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
+          'orgsAndPoliciesLabels/loadLabelsEditor/fulfilled',
+        ]);
+        expect(actions[4].payload).toEqual({
+          siblings: null,
+          currentLabel: undefined,
+        });
+
+        done();
+      });
+    });
+
     it('dispatches rejected action if load request fails', (done) => {
       selectLabelsIsEditModeSpy.and.returnValue(false);
       mockAxiosCalls({
@@ -618,17 +713,19 @@ describe('orgsAndPoliciesLabelsActions', () => {
         expect(axios.get).toHaveBeenCalledWith('/api/v2/labels/application/application/applicable');
 
         const actions = store.getActions();
-        expect(actions.length).toBe(5);
+        expect(actions.length).toBe(8);
 
         expect(actions).toHaveActionTypesInOrder([
           'orgsAndPoliciesLabels/loadLabelsEditor/pending',
           'orgsAndPoliciesLabels/resetIsDirty',
+          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/pending',
+          'orgsAndPoliciesLabels/setCurrentOwnerProps',
           'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/pending',
           'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/rejected',
+          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/rejected',
           'orgsAndPoliciesLabels/loadLabelsEditor/rejected',
         ]);
-
-        expect(actions[4].payload).toBe('oops, rejected');
+        expect(actions[5].payload).toBe('oops, rejected');
 
         done();
       });

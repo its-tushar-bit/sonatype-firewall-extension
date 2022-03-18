@@ -20,3 +20,5 @@ export const selectLabelsIsEditMode = createSelector(
 );
 export const selectLabelsSiblings = createSelector(selectLabelsSlice, prop('siblings'));
 export const selectLabelsCurrentLabel = createSelector(selectLabelsSlice, prop('currentLabel'));
+export const selectPrevOwnerType = createSelector(selectLabelsSlice, prop('ownerType'));
+export const selectPrevOwnerId = createSelector(selectLabelsSlice, prop('ownerId'));

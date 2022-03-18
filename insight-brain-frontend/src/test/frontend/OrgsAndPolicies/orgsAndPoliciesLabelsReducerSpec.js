@@ -28,6 +28,26 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
+  describe('orgsAndPoliciesLabels/setCurrentOwnerProps', () => {
+    it('sets description to currentLabel and isDirty property', () => {
+      const state = Object.freeze({
+        ownerType: null,
+        ownerId: null,
+      });
+
+      const { ownerType, ownerId } = reducer(state, {
+        type: 'orgsAndPoliciesLabels/setCurrentOwnerProps',
+        payload: {
+          ownerType: 'ownerType',
+          ownerId: 'ownerId',
+        },
+      });
+
+      expect(ownerType).toBe('ownerType');
+      expect(ownerId).toBe('ownerId');
+    });
+  });
+
   describe('orgsAndPoliciesLabels/setLabelColor', () => {
     it('sets color to currentLabel and isDirty property', () => {
       const state = Object.freeze({
@@ -115,11 +135,18 @@ describe('orgsAndPoliciesLabels reducer', () => {
   });
 
   describe('orgsAndPoliciesLabels/saveLabel/fulfilled', () => {
-    it('sets currentLabel and serverCurrentLable to payload, resets isDirty', () => {
+    it('sets currentLabel and serverCurrentLable to payload, resets isDirty in edit mode', () => {
       const state = Object.freeze({
         submitError: 'error',
         isDirty: true,
-        siblings: [],
+        siblings: [
+          {
+            color: 'dark-blue',
+            description: 'description',
+            label: 'Dark Blue',
+            id: '1242345',
+          },
+        ],
         currentLabel: null,
         serverCurrentLabel: null,
       });
@@ -316,25 +343,23 @@ describe('orgsAndPoliciesLabels reducer', () => {
 
       const newStore = reducer(state, {
         type: 'orgsAndPoliciesLabels/loadApplicableLabels/fulfilled',
-        payload: {
-          labelsByOwner: [
-            {
-              ownerId: '6b365e8a8000449aa924f194a7ed0d21',
-              ownerType: 'APPLICATION',
-              ownerName: 'appname',
-              labels: [
-                {
-                  color: 'light-green',
-                  description: null,
-                  id: 'ae63051b2e304c3bbabf94c2443b03fb',
-                  label: 'n3',
-                  ownerId: '6b365e8a8000449aa924f194a7ed0d21',
-                  ownerType: 'APPLICATION',
-                },
-              ],
-            },
-          ],
-        },
+        payload: [
+          {
+            ownerId: '6b365e8a8000449aa924f194a7ed0d21',
+            ownerType: 'APPLICATION',
+            ownerName: 'appname',
+            labels: [
+              {
+                color: 'light-green',
+                description: null,
+                id: 'ae63051b2e304c3bbabf94c2443b03fb',
+                label: 'n3',
+                ownerId: '6b365e8a8000449aa924f194a7ed0d21',
+                ownerType: 'APPLICATION',
+              },
+            ],
+          },
+        ],
       });
 
       expect(newStore.loading).toBeFalse();
@@ -454,6 +479,51 @@ describe('orgsAndPoliciesLabels reducer', () => {
           ownerType: 'APPLICATION',
         },
       ]);
+    });
+
+    it('sets loading, loadError, currentLabel, serverCurrentLabel and does not set siblings', () => {
+      const state = Object.freeze({
+        loading: true,
+        loadError: 'error',
+        currentLabel: null,
+        serverCurrentLabel: null,
+        siblings: [],
+      });
+
+      const newState = reducer(state, {
+        type: 'orgsAndPoliciesLabels/loadLabelsEditor/fulfilled',
+        payload: {
+          currentLabel: {
+            color: 'light-green',
+            description: null,
+            id: 'ae63051b2e304c3bbabf94c2443b03fb',
+            label: 'n3',
+            ownerId: '6b365e8a8000449aa924f194a7ed0d21',
+            ownerType: 'APPLICATION',
+          },
+          siblings: null,
+        },
+      });
+
+      expect(newState.loading).toBeFalse();
+      expect(newState.loadError).toBeNull();
+      expect(newState.currentLabel).toEqual({
+        color: 'light-green',
+        description: null,
+        id: 'ae63051b2e304c3bbabf94c2443b03fb',
+        label: 'n3',
+        ownerId: '6b365e8a8000449aa924f194a7ed0d21',
+        ownerType: 'APPLICATION',
+      });
+      expect(newState.serverCurrentLabel).toEqual({
+        color: 'light-green',
+        description: null,
+        id: 'ae63051b2e304c3bbabf94c2443b03fb',
+        label: 'n3',
+        ownerId: '6b365e8a8000449aa924f194a7ed0d21',
+        ownerType: 'APPLICATION',
+      });
+      expect(newState.siblings).toEqual([]);
     });
   });
 

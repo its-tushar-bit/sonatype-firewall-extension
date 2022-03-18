@@ -15,7 +15,7 @@ import {
   selectLabelsSlice,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
 
-export default function LabelEditorController($rootScope, $scope, DeleteModalService, $ngRedux) {
+export default function LabelEditorController($scope, DeleteModalService, $ngRedux) {
   const vm = this;
 
   Object.assign(vm, {
@@ -95,4 +95,4 @@ export const mapStateToThis = (state) => {
   };
 };
 
-LabelEditorController.$inject = ['$rootScope', '$scope', 'DeleteModalService', '$ngRedux'];
+LabelEditorController.$inject = ['$scope', 'DeleteModalService', '$ngRedux'];

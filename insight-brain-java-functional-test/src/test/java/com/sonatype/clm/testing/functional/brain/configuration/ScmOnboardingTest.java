@@ -41,6 +41,7 @@ import org.apache.http.HttpStatus;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
@@ -1699,6 +1700,7 @@ public class ScmOnboardingTest
   }
 
   @Test
+  @Ignore
   public void testSelectOrganization_updatesUrl() throws Exception {
     // given an org
     setupOrgSourceControl();

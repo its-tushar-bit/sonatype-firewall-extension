@@ -140,7 +140,7 @@ public class ApiFirewallResource
   /**
    * Enables/disables anonymous access to the Quarantine Component view
    * 
-   * @since 1.135
+   * @since 1.136
    */
   @PUT
   @Path(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS)

@@ -627,7 +627,7 @@ INSERT INTO system_configuration_property (system_configuration_property_id, nam
 -- Since 1.119
 -- Security vulnerability source policy condition is disabled by default
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('c3722a88a76d463f8eb07420e11477c1', 'SECURITY_VULNERABILITY_SOURCE_CONDITION_DISABLED', 'true');
--- Since 1.135
+-- Since 1.136
 -- Anonymous access to the Quarantined Component View is enabled by default
 INSERT INTO system_configuration_property (system_configuration_property_id, name, value) VALUES ('9f5c3b813bd9488293447c54bff4d660', 'QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS', 'true');
 

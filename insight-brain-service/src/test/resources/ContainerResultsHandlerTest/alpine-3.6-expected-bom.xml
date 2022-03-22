@@ -1,55 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.3">
+<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.4">
   <components>
-    <component type="file">
+    <component type="file" bom-ref="pkg:generic/alpine%3A3.6.5/alpine-baselayout@3.0.4-r0?nexustype=container">
       <group>alpine:3.6.5</group>
       <name>alpine-baselayout</name>
       <version>3.0.4-r0</version>
       <purl>pkg:generic/alpine%3A3.6.5/alpine-baselayout@3.0.4-r0?nexustype=container</purl>
     </component>
-    <component type="file">
+    <component type="file" bom-ref="pkg:generic/alpine%3A3.6.5/alpine-keys@2.1-r1?nexustype=container">
       <group>alpine:3.6.5</group>
       <name>alpine-keys</name>
       <version>2.1-r1</version>
       <purl>pkg:generic/alpine%3A3.6.5/alpine-keys@2.1-r1?nexustype=container</purl>
     </component>
-    <component type="file">
+    <component type="file" bom-ref="pkg:generic/alpine%3A3.6.5/zlib@1.2.11-r0?nexustype=container">
       <group>alpine:3.6.5</group>
       <name>zlib</name>
       <version>1.2.11-r0</version>
       <purl>pkg:generic/alpine%3A3.6.5/zlib@1.2.11-r0?nexustype=container</purl>
     </component>
-    <component type="file">
+    <component type="file" bom-ref="pkg:generic/alpine%3A3.6.5/musl@1.1.16-r15?nexustype=container">
       <group>alpine:3.6.5</group>
       <name>musl</name>
       <version>1.1.16-r15</version>
       <purl>pkg:generic/alpine%3A3.6.5/musl@1.1.16-r15?nexustype=container</purl>
     </component>
-    <component type="file">
+    <component type="file" bom-ref="pkg:generic/alpine%3A3.6.5/busybox@1.26.2-r11?nexustype=container">
       <group>alpine:3.6.5</group>
       <name>busybox</name>
       <version>1.26.2-r11</version>
       <purl>pkg:generic/alpine%3A3.6.5/busybox@1.26.2-r11?nexustype=container</purl>
     </component>
-    <component type="file">
+    <component type="file" bom-ref="pkg:generic/alpine%3A3.6.5/libressl@2.5.5-r2?nexustype=container">
       <group>alpine:3.6.5</group>
       <name>libressl</name>
       <version>2.5.5-r2</version>
       <purl>pkg:generic/alpine%3A3.6.5/libressl@2.5.5-r2?nexustype=container</purl>
     </component>
-    <component type="file">
+    <component type="file" bom-ref="pkg:generic/alpine%3A3.6.5/apk-tools@2.7.6-r0?nexustype=container">
       <group>alpine:3.6.5</group>
       <name>apk-tools</name>
       <version>2.7.6-r0</version>
       <purl>pkg:generic/alpine%3A3.6.5/apk-tools@2.7.6-r0?nexustype=container</purl>
     </component>
-    <component type="file">
+    <component type="file" bom-ref="pkg:generic/alpine%3A3.6.5/pax-utils@1.2.2-r0?nexustype=container">
       <group>alpine:3.6.5</group>
       <name>pax-utils</name>
       <version>1.2.2-r0</version>
       <purl>pkg:generic/alpine%3A3.6.5/pax-utils@1.2.2-r0?nexustype=container</purl>
     </component>
-    <component type="file">
+    <component type="file" bom-ref="pkg:generic/alpine%3A3.6.5/libc-dev@0.7.1-r0?nexustype=container">
       <group>alpine:3.6.5</group>
       <name>libc-dev</name>
       <version>0.7.1-r0</version>

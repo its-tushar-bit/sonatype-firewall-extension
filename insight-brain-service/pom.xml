@@ -265,6 +265,10 @@
       <groupId>org.drools</groupId>
       <artifactId>drools-compiler</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-mvel</artifactId>
+    </dependency>
 
     <!-- Not all of the following are direct dependencies but are still declared as such to workaround that our -->
     <!-- dependency management is not applied when depending on this module itself (cf. MNG-5761) -->

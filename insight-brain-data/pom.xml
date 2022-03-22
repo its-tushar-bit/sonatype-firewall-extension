@@ -63,6 +63,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-mvel</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.sonatype.licensing</groupId>
       <artifactId>license-bundle</artifactId>
       <exclusions>

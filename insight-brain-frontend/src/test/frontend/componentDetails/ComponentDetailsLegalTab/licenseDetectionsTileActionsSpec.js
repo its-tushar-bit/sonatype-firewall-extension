@@ -484,7 +484,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
     });
   });
 
-  describe('fetchAdvanceLegalPackFeatures', () => {
+  xdescribe('fetchAdvanceLegalPackFeatures', () => {
     let store;
     beforeEach(() => {
       const editWebhookState = {

@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -382,9 +383,10 @@ public class ApiFirewallServiceTest
         .hasSize(1)
         .containsOnly(IntegrityRatingConditionType.ID);
     assertThat(telemetrySent.disabledConditionTypes)
-        .hasSize(4)
+        .hasSize(5)
         .containsExactlyInAnyOrder(SecurityVulnerabilityCategoryConditionType.ID,
-            SecurityVulnerabilitySeverityConditionType.ID, LicenseConditionType.ID, LicenseThreatGroupConditionType.ID);
+            SecurityVulnerabilitySeverityConditionType.ID, LicenseConditionType.ID, LicenseThreatGroupConditionType.ID,
+                MatchStateConditionType.ID);
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.AUTO_RELEASE_FROM_QUARANTINE_CONFIGURATION);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
   }

@@ -74,7 +74,7 @@ public class MatchStateConditionType
 
   @Override
   public boolean isAutoUnquarantineSupported() {
-    return false;
+    return true;
   }
 
   @Override

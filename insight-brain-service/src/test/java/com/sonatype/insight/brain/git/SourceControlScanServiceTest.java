@@ -242,7 +242,7 @@ public class SourceControlScanServiceTest
     verify(policyEvaluateService).evaluateWithPolling(eq("statusId"),
         isA(Application.class), eq(ClientScanType.SONATYPE), argThat(s -> s.getStageTypeId().equals(Stage.ID_DEVELOP)),
         eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING), isA(File.class), eq("api"),
-        eq("userAgent"));
+        eq("userAgent"), any());
 
     verifySshServiceInvoked();
   }
@@ -271,7 +271,8 @@ public class SourceControlScanServiceTest
     }).isInstanceOf(RuntimeException.class).hasMessage(testException.getMessage());
 
     // and there was no policy evaluation
-    verify(policyEvaluateService, never()).evaluateWithPolling(any(), any(), any(), any(), any(), any(), any(), any());
+    verify(policyEvaluateService, never()).evaluateWithPolling(any(), any(), any(), any(), any(), any(), any(), any(),
+        any());
 
     verify(mockPolicyEvaluationPollingResultUtils).handleException(eq(APP_ID), eq(statusId), eq(testException));
   }
@@ -318,7 +319,7 @@ public class SourceControlScanServiceTest
     verify(policyEvaluateService).evaluateWithPolling(eq("statusId"),
         isA(Application.class), eq(ClientScanType.SONATYPE), argThat(s -> s.getStageTypeId().equals(Stage.ID_DEVELOP)),
         eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING), isA(File.class), eq("api"),
-        eq("userAgent"));
+        eq("userAgent"), any());
 
     verifySshServiceInvoked();
   }
@@ -472,7 +473,7 @@ public class SourceControlScanServiceTest
     // and it evaluates a policy
     verify(policyEvaluateService).evaluateWithPolling(eq("statusId"), isA(Application.class),
         eq(ClientScanType.SONATYPE), argThat(s -> s.getStageTypeId().equals(Stage.ID_DEVELOP)),
-        eq(ScanTriggerType.SOURCE_CONTROL_API), isA(File.class), eq("api"), eq("userAgent"));
+        eq(ScanTriggerType.SOURCE_CONTROL_API), isA(File.class), eq("api"), eq("userAgent"), any());
 
     verifySshServiceInvoked();
   }

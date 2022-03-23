@@ -198,7 +198,7 @@ public class ApiPromoteScanServiceV2
 
         ScanTriggerType scanTriggerType = getScanTriggerType(sourceScanId);
         policyEvaluateService.evaluateWithPolling(statusId, application, ClientScanType.SONATYPE,
-            new Stage(targetStageId), scanTriggerType, tempScanFile, "api", userAgent);
+            new Stage(targetStageId), scanTriggerType, tempScanFile, "api", userAgent, null);
       }
       catch (Exception e) {
         log.error("Failed to promote scan of app {} to stage {}. The status ID of the operation is {}.", applicationId,

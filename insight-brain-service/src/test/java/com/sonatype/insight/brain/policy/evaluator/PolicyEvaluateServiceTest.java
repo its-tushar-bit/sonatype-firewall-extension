@@ -588,7 +588,7 @@ public class PolicyEvaluateServiceTest
         return super.answer(invocation);
       }
     }).when(spyService).evaluate(any(Application.class), anyString(), any(Stage.class),
-        any(ScanTriggerType.class));
+        any(ScanTriggerType.class), eq(null), eq(null));
 
     // evaluate policy
     PolicyEvaluationReceipt policyEvaluationReceipt =

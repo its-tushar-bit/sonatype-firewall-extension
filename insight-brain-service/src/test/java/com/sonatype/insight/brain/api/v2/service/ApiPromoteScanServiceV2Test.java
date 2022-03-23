@@ -116,7 +116,7 @@ public class ApiPromoteScanServiceV2Test
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
     evaluatorResults.evaluation = tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID);
     when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class),
-        eq(ScanTriggerType.CLI))).thenReturn(evaluatorResults);
+        eq(ScanTriggerType.CLI), eq(null), eq(null))).thenReturn(evaluatorResults);
 
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service.promoteScan(app.getId(),
         ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, toStageId), null /* userAgent */);
@@ -246,7 +246,7 @@ public class ApiPromoteScanServiceV2Test
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
     evaluatorResults.evaluation = tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID);
     when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class),
-        eq(ScanTriggerType.CLI))).thenReturn(evaluatorResults);
+        eq(ScanTriggerType.CLI), eq(null), eq(null))).thenReturn(evaluatorResults);
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
         .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, toStageId), null /* userAgent */);

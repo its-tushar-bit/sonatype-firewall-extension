@@ -122,7 +122,7 @@ public class ApiThirdPartyScanService
 
     policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY,
         new Stage(stageTypeId), ScanTriggerType.THIRD_PARTY, scanResult.getScanFile(),
-        ScannerDriver.THIRD_PARTY_API.getValue(), clientUserAgent);
+        ScannerDriver.THIRD_PARTY_API.getValue(), clientUserAgent, null);
 
     return scanTicketDTO;
   }

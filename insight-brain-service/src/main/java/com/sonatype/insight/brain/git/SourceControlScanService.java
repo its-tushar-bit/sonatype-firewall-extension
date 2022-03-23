@@ -272,6 +272,6 @@ public class SourceControlScanService
         scanResult.hasThirdPartyScanContent() ? ClientScanType.SONATYPE_THIRD_PARTY : ClientScanType.SONATYPE;
     policyEvaluateService.evaluateWithPolling(event.getStatusId(), application, clientScanType,
         new Stage(event.getStageTypeId()), event.getScanTriggerType(), scanResult.getScanFile(), "api",
-        event.getUserAgent());
+        event.getUserAgent(), null);
   }
 }

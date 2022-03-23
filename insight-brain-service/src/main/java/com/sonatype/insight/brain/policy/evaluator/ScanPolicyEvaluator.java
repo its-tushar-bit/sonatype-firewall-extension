@@ -77,6 +77,7 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
 import com.sonatype.insight.brain.webhook.PolicyAlertEventService;
@@ -181,7 +182,20 @@ public class ScanPolicyEvaluator
       ScanTriggerType scanTriggerType)
       throws IOException
   {
-    return evaluate(application, scanId, stage, scanTriggerType, false /* forMonitoring */);
+    return evaluate(application, scanId, stage, scanTriggerType, null, null, false /* forMonitoring */);
+  }
+
+  public ScanPolicyEvaluatorResults evaluate(
+      final Application application,
+      final String scanId,
+      final Stage stage,
+      ScanTriggerType scanTriggerType,
+      String clientUserAgent,
+      String clientInstanceId)
+      throws IOException
+  {
+    return evaluate(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
+        false /* forMonitoring */);
   }
 
   public ScanPolicyEvaluatorResults evaluateForMonitoring(
@@ -191,7 +205,7 @@ public class ScanPolicyEvaluator
       ScanTriggerType scanTriggerType)
       throws IOException
   {
-    return evaluate(application, scanId, stage, scanTriggerType, true /* forMonitoring */);
+    return evaluate(application, scanId, stage, scanTriggerType, null, null, true /* forMonitoring */);
   }
 
   private ScanPolicyEvaluatorResults evaluate(
@@ -199,6 +213,8 @@ public class ScanPolicyEvaluator
       final String scanId,
       final Stage stage,
       ScanTriggerType scanTriggerType,
+      String clientUserAgent,
+      String clientInstanceId,
       boolean forMonitoring) throws IOException
   {
     log.debug(
@@ -231,7 +247,8 @@ public class ScanPolicyEvaluator
           securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
     }
 
-    sendEvaluationTelemetry(application.getId(), stage.getStageTypeId(), scanTriggerType, components);
+    sendEvaluationTelemetry(application.getId(), stage.getStageTypeId(), scanTriggerType, components, clientUserAgent,
+        clientInstanceId);
 
     // Evaluate the policies
     String appId = application.getId();
@@ -846,23 +863,13 @@ public class ScanPolicyEvaluator
       String applicationId,
       String stageId,
       ScanTriggerType scanTriggerType,
-      Collection<Component> components)
+      Collection<Component> components,
+      String clientUserAgent,
+      String clientInstanceId)
   {
-    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS);
-
-    Map<String, Object> attributes = new HashMap<>();
-    attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
-    attributes.put("stage_id", stageId);
-    attributes.put("scan_trigger_type", scanTriggerType.getId());
     Map<String, Long> componentCounts = getComponentCounts(components);
-    for (String format : componentCounts.keySet()) {
-      attributes
-          .put("number_of_" + format.replace("-", "") + "_components", String.valueOf(componentCounts.get(format)));
-    }
-    attributes.put("number_of_components", String.valueOf(components.size()));
-
-    telemetryData.setAttributes(attributes);
-
+    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+        applicationId, stageId, scanTriggerType, clientUserAgent, clientInstanceId, componentCounts);
     telemetrySender.send(telemetryData);
   }
 

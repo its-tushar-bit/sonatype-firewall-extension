@@ -104,6 +104,8 @@ public class DefaultHdsClient
 
   static final String TELEMETRY_ID_HEADER = "X-CLM-Instance-Id";
 
+  static final String CLIENT_INSTANCE_ID_HEADER = "X-CLM-Client-Instance-Id";
+
   @Inject
   public DefaultHdsClient(final InsightProxy proxy,
                           ProductLicense productLicense,
@@ -571,6 +573,13 @@ public class DefaultHdsClient
       clientUserAgent = request.getHeader(HttpHeaders.USER_AGENT);
     }
     return clientUserAgent;
+  }
+
+  public static String getClientInstanceId(HttpServletRequest request) {
+    if (request == null) {
+      return null;
+    }
+    return request.getHeader(CLIENT_INSTANCE_ID_HEADER);
   }
 
   protected void populateUserAgents(HttpServletRequest orig, HttpUriRequest req) {

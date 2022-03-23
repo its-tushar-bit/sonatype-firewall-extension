@@ -10,10 +10,14 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.innersource.InnerSourceConsumerTelemetry;
 import com.sonatype.insight.brain.innersource.InnerSourceProducerComponentTelemetry;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+
+import org.apache.commons.lang3.StringUtils;
 
 public final class TelemetryUtils
 {
@@ -46,5 +50,54 @@ public final class TelemetryUtils
     telemetryData.put(InnerSourceConsumerTelemetry.ATTRIBUTE_NAME,
         new InnerSourceConsumerTelemetry(consumerId, producers));
     return telemetryData;
+  }
+
+  public static TelemetryData buildApplicationEvaluationTelemetryData(
+      String applicationId,
+      String stageId,
+      ScanTriggerType scanTriggerType,
+      String clientUserAgent,
+      String clientInstanceId,
+      Map<String, Long> componentCounts)
+  {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS);
+
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
+    attributes.put("stage_id", stageId);
+    attributes.put("scan_trigger_type", scanTriggerType.getId());
+
+    if (componentCounts != null) {
+      for (String format : componentCounts.keySet()) {
+        attributes.put("number_of_" + format.replace("-", "") + "_components",
+            String.valueOf(componentCounts.get(format)));
+      }
+    }
+    attributes.put("number_of_components", String.valueOf(getTotalComponentCounts(componentCounts)));
+
+    ClientUserAgentUtil.UserAgent userAgent = ClientUserAgentUtil.parse(clientUserAgent);
+    if (userAgent != null) {
+      attributes.put("client_id", userAgent.client);
+      attributes.put("client_version", userAgent.clientVersion);
+      attributes.put("client_runtime", userAgent.runtime);
+      attributes.put("client_runtime_version", userAgent.runtimeVersion);
+      attributes.put("client_os_name", userAgent.os);
+      attributes.put("client_os_version", userAgent.osVersion);
+      attributes.put("client_other", userAgent.other);
+    }
+    if (StringUtils.isNotBlank(clientInstanceId)) {
+      attributes.put("client_instance_id", clientInstanceId);
+    }
+
+    telemetryData.setAttributes(attributes);
+
+    return telemetryData;
+  }
+
+  private static long getTotalComponentCounts(final Map<String, Long> componentCounts) {
+    if (componentCounts == null) {
+      return 0L;
+    }
+    return componentCounts.values().stream().reduce(Long::sum).orElse(0L);
   }
 }

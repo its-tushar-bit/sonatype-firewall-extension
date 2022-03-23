@@ -799,7 +799,7 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testSendEvaluationTelemetry_NoComponents() {
     scanPolicyEvaluator.sendEvaluationTelemetry("applicationId", "stageId", ScanTriggerType.THIRD_PARTY,
-        new ArrayList<>());
+        new ArrayList<>(), null, null);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
@@ -812,6 +812,30 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
+  public void testSendEvaluationTelemetry_UA_InstanceId() {
+    String userAgent = "client/1.0 (Java 1.8.0; Linux 5.14.30; Other info)";
+    scanPolicyEvaluator.sendEvaluationTelemetry("applicationId", "stageId", ScanTriggerType.THIRD_PARTY,
+        new ArrayList<>(), userAgent, "instanceId");
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate("applicationId"));
+    expectedAttributes.put("stage_id", "stageId");
+    expectedAttributes.put("scan_trigger_type", "THIRD_PARTY");
+    expectedAttributes.put("number_of_components", "0");
+    expectedAttributes.put("client_id", "client");
+    expectedAttributes.put("client_version", "1.0");
+    expectedAttributes.put("client_runtime", "Java");
+    expectedAttributes.put("client_runtime_version", "1.8.0");
+    expectedAttributes.put("client_os_name", "Linux");
+    expectedAttributes.put("client_os_version", "5.14.30");
+    expectedAttributes.put("client_other", "Other info");
+    expectedAttributes.put("client_instance_id", "instanceId");
+    assertPolicyEvaluationTelemetryData(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
+  }
+
+  @Test
   public void testSendEvaluationTelemetry() {
     Object[] formatsAndCounts = new Object[]{
         "unknown", 1, ComponentIdentifier.FORMAT_MAVEN, 2, ComponentIdentifier.FORMAT_NPM, 3,
@@ -820,7 +844,7 @@ public class ScanPolicyEvaluatorTest
     };
 
     scanPolicyEvaluator.sendEvaluationTelemetry("applicationId", "stageId", ScanTriggerType.CONTINUOUS_INTEGRATION,
-        components(formatsAndCounts));
+        components(formatsAndCounts), null, null);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());

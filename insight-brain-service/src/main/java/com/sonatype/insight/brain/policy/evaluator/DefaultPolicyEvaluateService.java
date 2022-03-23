@@ -118,23 +118,38 @@ public class DefaultPolicyEvaluateService
       Application application,
       String scanId,
       Stage stage,
-      ScanTriggerType scanTriggerType)
+      ScanTriggerType scanTriggerType,
+      String clientUserAgent,
+      String clientInstanceId)
       throws IOException
   {
-    ScanPolicyEvaluatorResults results = evaluateAndSendNotifications(application, scanId, stage, scanTriggerType);
+    ScanPolicyEvaluatorResults results =
+        evaluateAndSendNotifications(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId);
 
     return scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation,
         results.allViolations, true);
+  }
+
+  PolicyEvaluationResult evaluate(
+      Application application,
+      String scanId,
+      Stage stage,
+      ScanTriggerType scanTriggerType)
+      throws IOException
+  {
+    return evaluate(application, scanId, stage, scanTriggerType, null, null);
   }
 
   private ScanPolicyEvaluatorResults evaluateAndSendNotifications(
       Application application,
       String scanId,
       Stage stage,
-      ScanTriggerType scanTriggerType) throws IOException
+      ScanTriggerType scanTriggerType,
+      String clientUserAgent,
+      String clientInstanceId) throws IOException
   {
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, scanTriggerType);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId);
 
     if (!results.evaluation.isReevaluation()) {
       policyAlertNotifier.sendNotifications(application, results);
@@ -206,7 +221,8 @@ public class DefaultPolicyEvaluateService
         clientScanType == ClientScanType.SONATYPE_THIRD_PARTY ? integrationType.toString() : null;
 
     evaluateWithPolling(statusId, app, clientScanType, stage, getScanTriggerType(integrationType),
-        tempScanFile, thirdPartyScanType, DefaultHdsClient.getClientUserAgent(req));
+        tempScanFile, thirdPartyScanType, DefaultHdsClient.getClientUserAgent(req),
+        DefaultHdsClient.getClientInstanceId(req));
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);
@@ -236,7 +252,8 @@ public class DefaultPolicyEvaluateService
       ScanTriggerType scanTriggerType,
       File tempScanFile,
       String thirdPartyScanType,
-      String clientUserAgent)
+      String clientUserAgent,
+      String clientInstanceId)
   {
     // to avoid any race condition when the following task attempts to update
     PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
@@ -250,7 +267,7 @@ public class DefaultPolicyEvaluateService
         buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, clientUserAgent);
     AuditData.get().continueAsync(
         new Task(app, clientScanType, statusId, stage, scanTriggerType, tempScanFile,
-            thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent),
+            thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent, clientInstanceId),
         executor::submit);
   }
 
@@ -320,6 +337,8 @@ public class DefaultPolicyEvaluateService
 
     private final String clientUserAgent;
 
+    private final String clientInstanceId;
+
     Task(
         final Application app,
         final ClientScanType clientScanType,
@@ -329,7 +348,8 @@ public class DefaultPolicyEvaluateService
         final File tempScanFile,
         final TelemetryData thirdPartyScanTelemetryData,
         final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult,
-        final String clientUserAgent)
+        final String clientUserAgent,
+        final String clientInstanceId)
     {
       this.app = app;
       this.clientScanType = clientScanType;
@@ -340,6 +360,7 @@ public class DefaultPolicyEvaluateService
       this.thirdPartyScanTelemetryData = thirdPartyScanTelemetryData;
       this.persistedPolicyEvaluationPollingResult = persistedPolicyEvaluationPollingResult;
       this.clientUserAgent = clientUserAgent;
+      this.clientInstanceId = clientInstanceId;
     }
 
     @Override
@@ -368,7 +389,8 @@ public class DefaultPolicyEvaluateService
             "Evaluating policy for app public id {}, scan id {}, stageTypeId {}. The status ID of the operation is {}.",
             app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
 
-        PolicyEvaluationResult policyEvaluationResult = evaluate(app, scanId, stage, scanTriggerType);
+        PolicyEvaluationResult policyEvaluationResult =
+            evaluate(app, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId);
 
         log.debug(
             "Evaluated policy for app public id {}, scan id {}, stageTypeId {} in {} ms."
@@ -423,7 +445,7 @@ public class DefaultPolicyEvaluateService
 
       long start = System.currentTimeMillis();
       ScanPolicyEvaluatorResults results =
-          evaluateAndSendNotifications(application, scanId, stage, scanTriggerType);
+          evaluateAndSendNotifications(application, scanId, stage, scanTriggerType, clientUserAgent, null);
 
       log.debug("Evaluated policy for app public id {}, scan id {}, stageTypeId {} in {} ms.",
           application.getPublicId(), scanId, stage.getStageTypeId(), System.currentTimeMillis() - start);

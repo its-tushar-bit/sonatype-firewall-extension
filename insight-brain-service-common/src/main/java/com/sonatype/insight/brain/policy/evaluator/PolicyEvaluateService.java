@@ -83,6 +83,7 @@ public interface PolicyEvaluateService
    * @param thirdPartyScanType string value of an {@link IntegrationType} if <code>clientScanType</code>
    *          is {@link ClientScanType#SONATYPE_THIRD_PARTY} or null otherwise
    * @param userAgent User agent from {@link HttpServletRequest}
+   * @param clientInstanceId Client instance ID {@link HttpServletRequest}
    */
   void evaluateWithPolling(
       final String statusId,
@@ -92,7 +93,8 @@ public interface PolicyEvaluateService
       final ScanTriggerType scanTriggerType,
       final File tempScanFile,
       final String thirdPartyScanType,
-      final String userAgent);
+      final String userAgent,
+      final String clientInstanceId);
 
   /**
    * Retrieve the {@link PolicyEvaluationPollingResult} for an existing request, made

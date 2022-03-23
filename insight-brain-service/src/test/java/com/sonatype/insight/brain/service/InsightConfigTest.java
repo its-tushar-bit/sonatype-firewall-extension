@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.test.LogOutput;
 
 import io.dropwizard.jersey.validation.Validators;
+import io.dropwizard.util.Duration;
 import io.dropwizard.validation.ConstraintViolations;
 import org.junit.Rule;
 import org.junit.Test;
@@ -238,5 +239,17 @@ public class InsightConfigTest
 
     insightConfig.setClusterDirectory("someDirectory");
     assertThat(insightConfig.isClusterDirectorySetByUser()).isTrue();
+  }
+
+  @Test
+  public void testDropwizardWebConfig_SetsHstsConfigCorrectly() {
+    InsightConfig config = new InsightConfig();
+
+    // verify the defaults
+    assertThat(config.getWebConfiguration()).isNotNull();
+    assertThat(config.getWebConfiguration().getHstsHeaderFactory()).isNotNull();
+    assertThat(config.getWebConfiguration().getHstsHeaderFactory().isEnabled()).isTrue();
+    assertThat(config.getWebConfiguration().getHstsHeaderFactory().getMaxAge()).isEqualTo(Duration.days(365));
+    assertThat(config.getWebConfiguration().getHstsHeaderFactory().isIncludeSubDomains()).isTrue();
   }
 }

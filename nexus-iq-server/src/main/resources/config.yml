@@ -21,6 +21,15 @@ sonatypeWork: ./sonatype-work/clm-server
 # A custom fragment to add to the "user-agent" for HTTP calls
 #userAgentSuffix: "example fragment"
 
+# HTTP Strict Transport Security (HSTS) is supported using dropwizard-web configuration
+# HSTS headers are enabled by default, uncomment web: section below and set enabled: false to disable
+# Refer to https://github.com/dropwizard/dropwizard-web#supports for detailed configuration guide
+#web:
+#  hsts:
+#    enabled: true
+#    maxAge: 365 days
+#    includeSubDomains: true
+
 # HTTP-specific options.
 server:
   # The context path for the application. Note that this must have a leading slash.

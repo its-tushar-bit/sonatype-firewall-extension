@@ -76,6 +76,8 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.JarLocation;
 import io.dropwizard.util.JavaVersion;
+import io.dropwizard.web.WebBundle;
+import io.dropwizard.web.conf.WebConfiguration;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -303,6 +305,13 @@ public class InsightBrainService
 
     // Legacy support for old reports
     bootstrap.addBundle(new AssetsBundle("/assets/policy/", POLICY_ASSET_PATH, "index.html", "policyAssets"));
+
+    bootstrap.addBundle(new WebBundle<InsightConfig>() {
+      @Override
+      public WebConfiguration getWebConfiguration(final InsightConfig configuration) {
+        return configuration.getWebConfiguration();
+      }
+    });
 
     bootstrap.setObjectMapper(configureObjectMapper(new ObjectMapper()));
 

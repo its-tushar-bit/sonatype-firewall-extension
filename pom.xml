@@ -47,6 +47,7 @@
     <clm.dto.model.version>1.49.3-01</clm.dto.model.version>
     <jetty.version>9.4.43.v20210629</jetty.version>
     <dropwizard.version>2.0.25</dropwizard.version>
+    <dropwizard-web.version>1.4.2</dropwizard-web.version>
     <!-- The jersey.version must match the jersey version used by dropwizard -->
     <!-- dropwizard:2.0.25 uses jersey:2.33, which has a security vulnerability: CVE-2021-28168.
          As of Sep 25, 2021, there is no dropwizard version that uses jersey > 2.33,
@@ -839,6 +840,11 @@
             <artifactId>jakarta.el</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard.modules</groupId>
+        <artifactId>dropwizard-web</artifactId>
+        <version>${dropwizard-web.version}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey</groupId>

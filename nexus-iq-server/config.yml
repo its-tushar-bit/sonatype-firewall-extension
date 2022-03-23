@@ -13,6 +13,15 @@ enableDefaultPasswordWarning: ${ENABLE_DEFAULT_PASSWORD_WARNING:-false}
 # If a mail server is configured, then the baseUrl setting must also be enabled and correct as otherwise notification emails cannot be sent.
 baseUrl: ${BASE_URL:-http://localhost}
 
+# HTTP Strict Transport Security (HSTS) is supported using dropwizard-web configuration
+# HSTS headers are enabled by default, uncomment web: section below and set enabled: false to disable
+# Refer to https://github.com/dropwizard/dropwizard-web#supports for detailed configuration guide
+#web:
+#  hsts:
+#    enabled: ${HSTS_ENABLED:-true}
+#    maxAge: 365 days
+#    includeSubDomains: true
+
 # HTTP-specific options.
 server:
   applicationContextPath: ${SERVER_APPLICATION_CONTEXT_PATH:-/}

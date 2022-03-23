@@ -30,6 +30,7 @@ import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.Configuration;
 import io.dropwizard.server.DefaultServerFactory;
 import io.dropwizard.validation.ValidationMethod;
+import io.dropwizard.web.conf.WebConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,11 @@ public class InsightConfig
 
   {
     setServerFactory(new InsightDefaultServerFactory());
+  }
+
+  public InsightConfig() {
+    // default the setting of HSTS header to true
+    webConfiguration.getHstsHeaderFactory().setEnabled(true);
   }
 
   @JsonProperty
@@ -346,6 +352,14 @@ public class InsightConfig
 
   @JsonProperty
   private String initialAdminPassword;
+
+  /**
+   * @since 1.136
+   */
+  @Valid
+  @NotNull
+  @JsonProperty("web")
+  private WebConfiguration webConfiguration = new WebConfiguration();
 
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
@@ -1063,5 +1077,13 @@ public class InsightConfig
 
   public void setInitialAdminPassword(String initialAdminPassword) {
     this.initialAdminPassword = initialAdminPassword;
+  }
+
+  public WebConfiguration getWebConfiguration() {
+    return webConfiguration;
+  }
+
+  public void setWebConfiguration(final WebConfiguration webConfiguration) {
+    this.webConfiguration = webConfiguration;
   }
 }

@@ -576,4 +576,28 @@ public class InsightConfigurationFactoryTest
 
     assertThat(insightConfig.getLicenseFile()).isEqualTo(licenseFile);
   }
+
+  @Test
+  public void testBuild_DropwizardWebConfig_NoErrorAndSetsHstsConfigCorrectly() throws Exception {
+    InsightConfig insightConfig = build("config-no-server.yml");
+
+    assertThat(insightConfig.getWebConfiguration()).isNotNull();
+    assertThat(insightConfig.getWebConfiguration().getHstsHeaderFactory()).isNotNull();
+    // verify that the HSTS headers are set by default even if not specified in the config
+    assertThat(insightConfig.getWebConfiguration().getHstsHeaderFactory().isEnabled()).isTrue();
+    assertThat(insightConfig.getWebConfiguration().getHstsHeaderFactory().getMaxAge()).isEqualTo(Duration.days(365));
+    assertThat(insightConfig.getWebConfiguration().getHstsHeaderFactory().isIncludeSubDomains()).isTrue();
+
+    insightConfig = build("config-dropwizard-web-enable.yml");
+
+    // verify that the HSTS headers can be configured using config file
+    assertThat(insightConfig.getWebConfiguration().getHstsHeaderFactory().isEnabled()).isTrue();
+    assertThat(insightConfig.getWebConfiguration().getHstsHeaderFactory().getMaxAge()).isEqualTo(Duration.days(90));
+    assertThat(insightConfig.getWebConfiguration().getHstsHeaderFactory().isIncludeSubDomains()).isFalse();
+
+    insightConfig = build("config-dropwizard-web-disable.yml");
+
+    // verify that the HSTS headers can be disabled
+    assertThat(insightConfig.getWebConfiguration().getHstsHeaderFactory().isEnabled()).isFalse();
+  }
 }

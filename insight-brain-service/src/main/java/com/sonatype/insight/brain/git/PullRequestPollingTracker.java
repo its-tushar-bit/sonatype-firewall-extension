@@ -111,7 +111,7 @@ class PullRequestPollingTracker
           result = "24 hours";
           break;
       }
-      updateSourceControl(sourceControl.getId(), pollTime, errorCount);
+      updateSourceControl(sourceControl, pollTime, errorCount);
     }
     return result;
   }
@@ -124,19 +124,26 @@ class PullRequestPollingTracker
    * @param cutoffTime next time to use for polling cutoff  
    */
   void onPullRequestProcessed(String sourceControlId, String org, String repo, String token, Date cutoffTime) {
-    updateSourceControl(sourceControlId, cutoffTime, 0);
+    SourceControl sourceControl = sourceControlDAO.getById(sourceControlId);
+    if (sourceControl != null) {
+      updateSourceControl(sourceControl, cutoffTime, 0);
+    }
     setCachedCutoffTime(org, repo, token, cutoffTime);
   }
 
   void onPullRequestProcessedForApplication(String applicationId, Date time) {
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(applicationId);
     if (sourceControl != null) {
-      updateSourceControl(sourceControl.getId(), time, 0);
+      updateSourceControl(sourceControl, time, 0);
     }
   }
 
-  private void updateSourceControl(String sourceControlId, Date pollTime, int errors) {
-    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControlId, pollTime, errors);
+  private void updateSourceControl(SourceControl sourceControl, Date pollTime, int errors) {
+    // Don't move the PR poll time back in time
+    if (sourceControl.getPullRequestPollTime() != null && pollTime.before(sourceControl.getPullRequestPollTime())) {
+      pollTime = sourceControl.getPullRequestPollTime();
+    }
+    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControl.getId(), pollTime, errors);
   }
 
   void initializePullRequestPollTimes() {

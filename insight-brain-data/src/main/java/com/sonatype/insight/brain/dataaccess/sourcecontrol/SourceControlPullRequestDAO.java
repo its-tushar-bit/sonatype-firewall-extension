@@ -22,7 +22,8 @@ public class SourceControlPullRequestDAO
   }
 
   public List<SourceControlPullRequest> getAll() {
-    String sQuery = "SELECT entity FROM SourceControlPullRequest entity";
+    String sQuery = "SELECT entity FROM SourceControlPullRequest entity" + //
+        " ORDER BY entity.repositoryUrl, entity.pullRequestId";
     return getList(sQuery);
   }
 

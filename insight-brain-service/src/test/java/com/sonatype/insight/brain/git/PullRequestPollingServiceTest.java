@@ -12,9 +12,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
@@ -34,10 +34,9 @@ import com.sonatype.nexus.scm.common.SimpleProjectUri;
 import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
 import com.sonatype.nexus.scm.gitlab.dto.GitlabMergeRequestResponse;
 
-import com.google.common.collect.ImmutableList;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -55,11 +54,13 @@ import static org.mockito.Mockito.verify;
 public class PullRequestPollingServiceTest
     extends VerifiableLoggingTestBase
 {
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity();
+
   @Mock
   private SourceControlEventPublisher sourceControlEventPublisher;
 
-  @Mock
-  private SourceControlPullRequestDAO mockSourceControlPullRequestDAO;
+  private SourceControlPullRequestDAO sourceControlPullRequestDAO = new SourceControlPullRequestDAO();
 
   private Map<String, PullRequestInfoProvider> mockClientMap = new HashMap<>();
 
@@ -107,7 +108,6 @@ public class PullRequestPollingServiceTest
     // then: event emitted
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
-        debug("Fetched 1 pull request(s) for org 'org5' since " + pullRequestPollingTime),
         debug("Repository 'https://domain.com/org5/repo5' pull request '10' is for application 'appBaseBranch' base " +
             "branch, skipping commenting")
     );
@@ -124,7 +124,6 @@ public class PullRequestPollingServiceTest
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
             "feature-commit-xyz-1", "base-commit")
-        .withPolicyEvaluation()
         .build();
 
     // when: fetch and send
@@ -133,10 +132,9 @@ public class PullRequestPollingServiceTest
     Date after = new Date();
 
     // then: pull request is persisted and event emitted
-    ArgumentCaptor<SourceControlPullRequest> sourceControlPullRequestArgumentCaptor =
-        ArgumentCaptor.forClass(SourceControlPullRequest.class);
-    verify(mockSourceControlPullRequestDAO, times(1)).insert(sourceControlPullRequestArgumentCaptor.capture());
-    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequestArgumentCaptor.getValue();
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestDAO.getAll();
+    assertThat(sourceControlPullRequests).hasSize(1);
+    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequests.get(0);
     assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/org7/repo7", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
@@ -144,7 +142,6 @@ public class PullRequestPollingServiceTest
 
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
-        debug("Fetched 1 pull request(s) for org 'org7' since " + pullRequestPollingTime),
         info("Sent pull request discovered event for application 'appPost' with PR# '10' and commit " +
             "'feature-commit-xyz-1'")
     );
@@ -162,14 +159,13 @@ public class PullRequestPollingServiceTest
         .withPollingTime(pullRequestPollingTime)
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
             "feature-commit-xyz-1", "base-commit")
-        .withPolicyEvaluation()
         .build();
 
     // when: fetch and send
     pollingService.fetchAndSendPullRequestsForCommenting();
 
     // then: pull request is not persisted and no event emitted
-    verify(mockSourceControlPullRequestDAO, never()).insert(any());
+    assertThat(sourceControlPullRequestDAO.getAll()).isEmpty();
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
   }
 
@@ -206,7 +202,6 @@ public class PullRequestPollingServiceTest
         .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch",
             "feature-commit-xyz-1", "base-commit")
         .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app2", "main-branch")
-        .withPolicyEvaluation()
         .withPollingTime(pullRequestPollingTime).build();
 
     // when: fetch and send
@@ -215,17 +210,16 @@ public class PullRequestPollingServiceTest
     Date after = new Date();
 
     // then: one pull request is persisted and two events are emitted
-    ArgumentCaptor<SourceControlPullRequest> sourceControlPullRequestArgumentCaptor =
-        ArgumentCaptor.forClass(SourceControlPullRequest.class);
-    verify(mockSourceControlPullRequestDAO, times(1)).insert(sourceControlPullRequestArgumentCaptor.capture());
-    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequestArgumentCaptor.getValue();
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestDAO.getAll();
+    assertThat(sourceControlPullRequests).hasSize(1);
+    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequests.get(0);
     assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/testorg/testrepo", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
         pullRequestCreateDate, before, after);
 
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
-    assertThatLogMessagesContain(debug("Fetched 1 pull request(s) for org 'testorg' since " + pullRequestPollingTime),
+    assertThatLogMessagesContain(
         info("Sent pull request discovered event for application 'app1' with PR# '10' and commit "
             + "'feature-commit-xyz-1'"),
         info("Sent pull request discovered event for application 'app2' with PR# '10' and commit "
@@ -251,10 +245,9 @@ public class PullRequestPollingServiceTest
     Date after = new Date();
 
     // then: one pull request is persisted
-    ArgumentCaptor<SourceControlPullRequest> sourceControlPullRequestArgumentCaptor =
-        ArgumentCaptor.forClass(SourceControlPullRequest.class);
-    verify(mockSourceControlPullRequestDAO, times(1)).insert(sourceControlPullRequestArgumentCaptor.capture());
-    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequestArgumentCaptor.getValue();
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestDAO.getAll();
+    assertThat(sourceControlPullRequests).hasSize(1);
+    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequests.get(0);
     assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/org9/repo9", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
@@ -263,7 +256,6 @@ public class PullRequestPollingServiceTest
     // and: an event is created
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
-        debug("Fetched 1 pull request(s) for org 'org9' since " + pullRequestPollingTime),
         info("Sent pull request discovered event for application 'appNoTarget' with PR# '10' and " +
             "commit 'feature-commit-xyz-1'")
     );
@@ -305,7 +297,6 @@ public class PullRequestPollingServiceTest
             "feature-commit-xyz-1", "base-commit")
         .withGitRepositoryPrivate(false)
         .withGitRepositoryInternal(true)
-        .withPolicyEvaluation()
         .build();
 
     // when: fetch and send
@@ -314,10 +305,9 @@ public class PullRequestPollingServiceTest
     Date after = new Date();
 
     // then: pull request is persisted and event emitted
-    ArgumentCaptor<SourceControlPullRequest> sourceControlPullRequestArgumentCaptor =
-        ArgumentCaptor.forClass(SourceControlPullRequest.class);
-    verify(mockSourceControlPullRequestDAO, times(1)).insert(sourceControlPullRequestArgumentCaptor.capture());
-    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequestArgumentCaptor.getValue();
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestDAO.getAll();
+    assertThat(sourceControlPullRequests).hasSize(1);
+    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequests.get(0);
     assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/orgInt/repoInt", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
@@ -325,7 +315,6 @@ public class PullRequestPollingServiceTest
 
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
-        debug("Fetched 1 pull request(s) for org 'orgInt' since " + pullRequestPollingTime),
         info("Sent pull request discovered event for application 'appInternal' with PR# '10' and commit " +
             "'feature-commit-xyz-1'")
     );
@@ -370,7 +359,6 @@ public class PullRequestPollingServiceTest
     // then: no events emitted
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
-        debug("Fetched 1 pull request(s) for org 'orgNp' since " + pullRequestPollingTime),
         debug("Repository is not valid for pull requests, check that it is private: https://domain.com/orgNp/repoNp")
     );
   }
@@ -457,7 +445,6 @@ public class PullRequestPollingServiceTest
         .withPollingTime(repo2pullRequestPollingTime)
         .withPullRequest(20, repo2pullRequestCreateDate, "R2-feature-branch", "main-branch",
             "feature-commit-abc-2", "base-commit-2")
-        .withPolicyEvaluation()
         .build();
 
     // when:
@@ -466,10 +453,8 @@ public class PullRequestPollingServiceTest
     Date after = new Date();
 
     // then: pull requests are persisted
-    ArgumentCaptor<SourceControlPullRequest> sourceControlPullRequestArgumentCaptor =
-        ArgumentCaptor.forClass(SourceControlPullRequest.class);
-    verify(mockSourceControlPullRequestDAO, times(2)).insert(sourceControlPullRequestArgumentCaptor.capture());
-    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestArgumentCaptor.getAllValues();
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestDAO.getAll();
+    assertThat(sourceControlPullRequests).hasSize(2);
     assertSourceControlPullRequest(sourceControlPullRequests.get(0), "https://domain.com/org/multi-1", 10,
         "feature-commit-xyz-1", "feature-branch",
         null, "main-branch",
@@ -480,18 +465,19 @@ public class PullRequestPollingServiceTest
         repo2pullRequestCreateDate, before, after);
 
     // and SourceControls are updated as expected
-    SourceControl sourceControl1 = testablePullRequestPollingServiceBuilder.mockRepoList.get(0).sourceControl;
-    SourceControl sourceControl2 = testablePullRequestPollingServiceBuilder.mockRepoList.get(1).sourceControl;
-    verify(testablePullRequestPollingServiceBuilder.mockSourceControlDAO)
-        .updatePollTimeAndErrorCounts(eq(sourceControl1.getId()), eq(repo1pullRequestCreateDate), eq(0));
-    verify(testablePullRequestPollingServiceBuilder.mockSourceControlDAO)
-        .updatePollTimeAndErrorCounts(eq(sourceControl2.getId()), eq(repo2pullRequestCreateDate), eq(0));
+    SourceControlDAO sourceControlDAO = new SourceControlDAO();
+    SourceControl sourceControl1 =
+        sourceControlDAO.getById(testablePullRequestPollingServiceBuilder.mockRepoList.get(0).sourceControl.getId());
+    assertThat(sourceControl1.getPullRequestPollTime()).isEqualTo(repo1pullRequestCreateDate);
+    assertThat(sourceControl1.getPullRequestErrorCount()).isEqualTo(0);
+    SourceControl sourceControl2 =
+        sourceControlDAO.getById(testablePullRequestPollingServiceBuilder.mockRepoList.get(1).sourceControl.getId());
+    assertThat(sourceControl2.getPullRequestPollTime()).isEqualTo(repo2pullRequestCreateDate);
+    assertThat(sourceControl2.getPullRequestErrorCount()).isEqualTo(0);
 
     // and events are emitted
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
-        debug("Fetched 1 pull request(s) for org 'org' repo 'multi-1' since " + repo1pullRequestPollingTime),
-        debug("Fetched 1 pull request(s) for org 'org' repo 'multi-2' since " + repo2pullRequestPollingTime),
         info(
             "Sent pull request discovered event for application 'gitlab1' with PR# '10' and commit " +
                 "'feature-commit-xyz-1'"),
@@ -538,7 +524,6 @@ public class PullRequestPollingServiceTest
     TestablePullRequestPollingServiceBuilder testablePullRequestPollingServiceBuilder =
         new TestablePullRequestPollingServiceBuilder();
     PullRequestPollingService pollingService = testablePullRequestPollingServiceBuilder
-
         .forRepository("githubOrg/multi-1", SourceControlProvider.GITHUB)
         .withApplication("github1", "main-branch")
         .withPollingTime(repo1pullRequestPollingTime)
@@ -550,7 +535,6 @@ public class PullRequestPollingServiceTest
         .withPollingTime(repo2pullRequestPollingTime)
         .withPullRequest(20, repo2pullRequestCreateDate, "R2-feature-branch", "main-branch",
             "feature-commit-abc-2", "base-commit")
-        .withPolicyEvaluation()
         .build();
 
     // when:
@@ -559,10 +543,8 @@ public class PullRequestPollingServiceTest
     Date after = new Date();
 
     // then: pull requests are persisted
-    ArgumentCaptor<SourceControlPullRequest> sourceControlPullRequestArgumentCaptor =
-        ArgumentCaptor.forClass(SourceControlPullRequest.class);
-    verify(mockSourceControlPullRequestDAO, times(2)).insert(sourceControlPullRequestArgumentCaptor.capture());
-    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestArgumentCaptor.getAllValues();
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestDAO.getAll();
+    assertThat(sourceControlPullRequests).hasSize(2);
     assertSourceControlPullRequest(sourceControlPullRequests.get(0), "https://domain.com/githubOrg/multi-1", 10,
         "feature-commit-xyz-1", "feature-branch",
         "base-commit", "main-branch",
@@ -574,17 +556,19 @@ public class PullRequestPollingServiceTest
 
     // and SourceControls are updated as expected
     // Both SourceControls their poll time updated to the max of pull request create time (for the two pull requests)
-    SourceControl sourceControl1 = testablePullRequestPollingServiceBuilder.mockRepoList.get(0).sourceControl;
-    SourceControl sourceControl2 = testablePullRequestPollingServiceBuilder.mockRepoList.get(1).sourceControl;
-    verify(testablePullRequestPollingServiceBuilder.mockSourceControlDAO)
-        .updatePollTimeAndErrorCounts(eq(sourceControl1.getId()), eq(repo2pullRequestCreateDate), eq(0));
-    verify(testablePullRequestPollingServiceBuilder.mockSourceControlDAO)
-        .updatePollTimeAndErrorCounts(eq(sourceControl2.getId()), eq(repo2pullRequestCreateDate), eq(0));
+    SourceControlDAO sourceControlDAO = new SourceControlDAO();
+    SourceControl sourceControl1 =
+        sourceControlDAO.getById(testablePullRequestPollingServiceBuilder.mockRepoList.get(0).sourceControl.getId());
+    assertThat(sourceControl1.getPullRequestPollTime()).isEqualTo(repo2pullRequestCreateDate);
+    assertThat(sourceControl1.getPullRequestErrorCount()).isEqualTo(0);
+    SourceControl sourceControl2 =
+        sourceControlDAO.getById(testablePullRequestPollingServiceBuilder.mockRepoList.get(1).sourceControl.getId());
+    assertThat(sourceControl2.getPullRequestPollTime()).isEqualTo(repo2pullRequestCreateDate);
+    assertThat(sourceControl2.getPullRequestErrorCount()).isEqualTo(0);
 
     //  and events are emitted
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
-        debug("Fetched 2 pull request(s) for org 'githubOrg' since " + repo1pullRequestPollingTime),
         info(
             "Sent pull request discovered event for application 'github1' with PR# '10' and commit " +
                 "'feature-commit-xyz-1'"),
@@ -602,11 +586,9 @@ public class PullRequestPollingServiceTest
 
     private MockRepo currentMockRepo;
 
-    @Mock
-    private ApplicationDAO mockApplicationDAO;
+    private ApplicationDAO applicationDAO = new ApplicationDAO();
 
-    @Mock
-    private SourceControlDAO mockSourceControlDAO;
+    private SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
     @Mock
     private SourceControlInstanceManager mockSourceControlInstanceManager;
@@ -632,22 +614,13 @@ public class PullRequestPollingServiceTest
 
       List<PullRequest> allPullRequests = new ArrayList<>();
 
-      List<SourceControl> sourceControlList = new ArrayList<>();
       for (MockRepo mockRepo : mockRepoList) {
         doReturn(mockRepo.mockGitApiClient).when(mockGitClientFactory).createApiClient(mockRepo.gitRepositoryInfo);
         doReturn(mockClientMap.get(mockRepo.orgAndRepoName)).when(mockGitClientFactory)
             .createPullRequestInfoClient(mockRepo.gitRepositoryInfo);
 
-        if (null != mockRepo.sourceControl) {
-          sourceControlList.add(mockRepo.sourceControl);
-          doReturn(mockRepo.sourceControl).when(mockSourceControlDAO).getById(mockRepo.sourceControl.getId());
-        }
         doReturn(mockRepo.gitRepositoryInfo).when(mockSourceControlUtils)
             .getGitRepositoryInfoForApplication(eq(mockRepo.applicationId));
-
-        String repositoryURL = mockRepo.gitRepositoryInfo.getRepositoryUrl();
-        doReturn(repoApplications.get(repositoryURL)).when(mockApplicationDAO)
-            .getByRepositoryUrl(repositoryURL);
 
         doReturn(false).when(mockSourceControlUtils).isScmEnabled((GitRepositoryInfo) null);
         doReturn(true).when(mockSourceControlUtils).isScmEnabled(mockRepo.gitRepositoryInfo);
@@ -685,26 +658,10 @@ public class PullRequestPollingServiceTest
         doReturn(pullRequestCommentingSupported).when(mockLicenseChecker).isPullRequestCommentingSupported();
       }
 
-      // setup next repo to poll sequence
-      sourceControlList.add(null);
-      if (sourceControlList.size() > 1) {
-        SourceControl[] sourceControlArray =
-            sourceControlList.subList(1, sourceControlList.size() - 1).toArray(new SourceControl[0]);
-        doReturn(sourceControlList.get(0), (Object[]) sourceControlArray)
-            .when(mockSourceControlDAO).getNextRepositoryToPoll();
-      }
-      else {
-        doReturn(sourceControlList.get(0)).when(mockSourceControlDAO).getNextRepositoryToPoll();
-      }
-
-      return new PullRequestPollingService(mockApplicationDAO, mockSourceControlDAO,
-          mockSourceControlPullRequestDAO, sourceControlEventPublisher, mockSourceControlUtils, mockGitClientFactory,
+      return new PullRequestPollingService(applicationDAO, sourceControlDAO,
+          sourceControlPullRequestDAO, sourceControlEventPublisher, mockSourceControlUtils, mockGitClientFactory,
           mockPullRequestRepositoryValidator, mockSourceControlInstanceManager, mockLicenseChecker,
           new PullRequestCommentingEligibilityValidator(new InsightConfig()));
-    }
-
-    private List<SourceControl> buildSourceControlList(MockRepo mockRepo) {
-      return null != mockRepo.sourceControl ? ImmutableList.of(mockRepo.sourceControl) : new ArrayList<>();
     }
 
     TestablePullRequestPollingServiceBuilder forRepository(
@@ -742,13 +699,14 @@ public class PullRequestPollingServiceTest
           repoApplications.computeIfAbsent(currentMockRepo.repositoryUrl, appList -> new ArrayList<>());
       Application application = new Application(applicationId, applicationId, null);
       application.setId(applicationId);
+      tempEntity.newApplication(application);
       repoApps.add(application);
 
       String username = currentMockRepo.sourceControlProvider.requiresUsername() ? "username" : null;
       currentMockRepo.sourceControl =
           new SourceControl(applicationId, currentMockRepo.repositoryUrl, null, username, "token",
               currentMockRepo.sourceControlProvider, true, true, defaultBranch, false, false, null, false);
-      currentMockRepo.sourceControl.setId(UUID.randomUUID().toString());
+      tempEntity.newSourceControl(currentMockRepo.sourceControl);
       currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(currentMockRepo.repositoryUrl, null, username, "token",
           currentMockRepo.sourceControlProvider, defaultBranch, true, true, prCommentingEnabled, true, false, null);
       return this;
@@ -756,11 +714,9 @@ public class PullRequestPollingServiceTest
 
     TestablePullRequestPollingServiceBuilder withPollingTime(Date date) {
       currentMockRepo.sourceControl.setPullRequestPollTime(date);
-      return this;
-    }
-
-    TestablePullRequestPollingServiceBuilder withPolicyEvaluation() {
-      currentMockRepo.hasPolicyEvaluation = true;
+      if (currentMockRepo.sourceControl.getId() != null) {
+        sourceControlDAO.update(currentMockRepo.sourceControl);
+      }
       return this;
     }
 
@@ -836,8 +792,6 @@ public class PullRequestPollingServiceTest
     GitRepositoryInfo gitRepositoryInfo;
 
     List<PullRequest> pullRequests = new ArrayList<>();
-
-    boolean hasPolicyEvaluation;
 
     MockRepo(String orgAndRepoName) {
       this.orgAndRepoName = orgAndRepoName;

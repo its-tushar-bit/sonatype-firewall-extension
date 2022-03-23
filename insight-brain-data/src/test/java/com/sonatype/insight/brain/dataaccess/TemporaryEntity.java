@@ -903,6 +903,15 @@ public class TemporaryEntity
 
   public Application newApplication(String name, String publicId, String orgId) {
     Application app = new Application(publicId, name, orgId);
+    newApplication(app);
+    return app;
+  }
+
+  public Application newApplication(Application app) {
+    if (app.getOrganizationId() == null) {
+      Organization org = newOrganization();
+      app.setOrganizationId(org.getId());
+    }
     appDAO.insert(app);
     apps.add(app);
     return app;

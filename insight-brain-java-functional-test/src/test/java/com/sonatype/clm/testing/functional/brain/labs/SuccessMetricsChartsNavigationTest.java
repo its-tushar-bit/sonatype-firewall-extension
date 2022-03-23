@@ -6,8 +6,8 @@
 package com.sonatype.clm.testing.functional.brain.labs;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.MainHeaderNavigationButton;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
@@ -44,7 +44,7 @@ public class SuccessMetricsChartsNavigationTest
     SuccessMetricsReportListPage successMetricsPage = new SuccessMetricsReportListPage();
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
-    MainHeaderNavigationButton labsNavigationButton = MainHeader.labsNavigationButton();
+    MainHeaderNavigationButton labsNavigationButton = SidebarNavigation.labsNavigationButton();
     labsNavigationButton.shouldBe(visible).shouldNotHave(CLASS_ACTIVE).click();
     successMetricsPage.should(appear);
     labsNavigationButton.shouldBe(visible).shouldHave(CLASS_ACTIVE);

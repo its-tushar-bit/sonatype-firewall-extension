@@ -7,7 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ExternalLinkModal;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 
@@ -63,7 +63,7 @@ public class ExternalLinkTest
     modal.shouldBe(hidden);
 
     // Sanity check, make sure internal links still work
-    MainHeader.dashboardNavigationButton().click();
+    SidebarNavigation.dashboardNavigationButton().click();
     DashboardPage.dashboardContainer().shouldBe(visible);
   }
 

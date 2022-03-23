@@ -9,6 +9,7 @@ import java.util.HashMap;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -179,7 +180,7 @@ public class LoginTest
     refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
     logout();
-    MainHeader.mainHeaderButtons().shouldBe(hidden);
+    SidebarNavigation.mainHeaderButtons().shouldBe(hidden);
     loginModal.shouldBe(visible);
   }
 

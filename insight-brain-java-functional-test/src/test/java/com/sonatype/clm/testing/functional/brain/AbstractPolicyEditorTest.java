@@ -27,7 +27,7 @@ import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection.AddNotificationItem;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
@@ -429,7 +429,7 @@ public abstract class AbstractPolicyEditorTest
 
     // Assert no Modal appears when the editor is clean
     unsavedModal.shouldBe(hidden);
-    MainHeader.dashboardNavigationButton().shouldBe(visible, enabled).click();
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible, enabled).click();
     unsavedModal.shouldBe(hidden);
     waitUntilUrl(DashboardPage.url());
     DashboardPage.dashboardContainer().shouldBe(visible);
@@ -441,7 +441,7 @@ public abstract class AbstractPolicyEditorTest
 
     handleUnsavedChangesDialog(unsavedModal, editorUrl);
 
-    MainHeader.dashboardNavigationButton().click();
+    SidebarNavigation.dashboardNavigationButton().click();
     unsavedModal.continueButton().shouldBe(visible).click();
     waitUntilUrl(DashboardPage.url());
     DashboardPage.dashboardContainer().shouldBe(visible);
@@ -453,7 +453,7 @@ public abstract class AbstractPolicyEditorTest
 
   private void handleUnsavedChangesDialog(UnsavedModal unsavedModal, String url) {
     // Assert Modal appears when the editor is dirty and continues to new page
-    MainHeader.dashboardNavigationButton().click();
+    SidebarNavigation.dashboardNavigationButton().click();
     unsavedModal.cancelButton().shouldBe(visible).click();
     waitUntilUrl(url);
     DashboardPage.dashboardContainer().shouldBe(hidden);
@@ -1376,7 +1376,7 @@ public abstract class AbstractPolicyEditorTest
         .chooseOption(conditionTypesOptionMap.get(SecurityVulnerabilityCategoryConditionType.class));
     vulnerabilityCategory.operator().selectedItem().shouldHave(text("is")).click();
     vulnerabilityCategory.operator().listItem(1).shouldHave(text("is not")).click();
-    MainHeader.closeNavigationSidebar();
+    SidebarNavigation.closeNavigationSidebar();
     vulnerabilityCategory.value().selectedItem().shouldHave(text("Configuration")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 

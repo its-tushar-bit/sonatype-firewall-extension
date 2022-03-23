@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
@@ -291,8 +292,8 @@ public abstract class AbstractFunctionalTest
   private void tryOpenSidebarNav() {
     try {
       // restore sidebar to open state if available
-      if (MainHeader.sidebar().is(visible)) {
-        MainHeader.openNavigationSidebar();
+      if (SidebarNavigation.container().is(visible)) {
+        SidebarNavigation.openNavigationSidebar();
       }
     }
     catch (RuntimeException unexpectedException) {

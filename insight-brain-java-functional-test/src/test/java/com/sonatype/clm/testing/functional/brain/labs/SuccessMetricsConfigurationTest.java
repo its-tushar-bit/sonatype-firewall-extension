@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain.labs;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -75,7 +76,7 @@ public class SuccessMetricsConfigurationTest
     metricsConfigPage.explanation().shouldHave(text("Enable Success Metrics"));
     metricsConfigPage.toggle().input().shouldBe(checked);
 
-    MainHeader.labsNavigationButton().shouldBe(visible);
+    SidebarNavigation.labsNavigationButton().shouldBe(visible);
     eyesWatcher.eyesCheck();
 
     // check the tooltip on the update button
@@ -98,10 +99,10 @@ public class SuccessMetricsConfigurationTest
     metricsConfigPage.update().shouldBe(CLM.DISABLED);
 
     // check that it worked on the header
-    MainHeader.labsNavigationButton().shouldNot(exist);
+    SidebarNavigation.labsNavigationButton().shouldNot(exist);
     // (after refresh, too)
     refresh();
-    MainHeader.labsNavigationButton().shouldNot(exist);
+    SidebarNavigation.labsNavigationButton().shouldNot(exist);
 
     // ... the success metrics list page,
     refreshOrOpen(SuccessMetricsReportListPage.url());
@@ -126,7 +127,7 @@ public class SuccessMetricsConfigurationTest
     metricsConfigPage.toggle().click();
     metricsConfigPage.update().shouldNotBe(CLM.DISABLED).click();
     // check that it worked on the header,
-    MainHeader.labsNavigationButton().should(exist);
+    SidebarNavigation.labsNavigationButton().should(exist);
     refreshOrOpen(SuccessMetricsReportListPage.url());
     waitUntilUrl(SuccessMetricsReportListPage.url());
 

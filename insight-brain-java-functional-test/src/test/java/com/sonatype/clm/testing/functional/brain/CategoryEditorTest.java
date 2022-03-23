@@ -9,8 +9,8 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage.DeleteErrorModal;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -82,7 +82,7 @@ public class CategoryEditorTest
     PopoverViolations.on(CategoryEditorPage.description()).shouldShowMaxLengthError();
 
     // take focus off the input to prevent blinking cursor
-    MainHeader.productVersion().click();
+    SidebarNavigation.productVersion().click();
     eyesWatcher.eyesCheck();
     CategoryEditorPage.saveButton().shouldHave(DISABLED);
 

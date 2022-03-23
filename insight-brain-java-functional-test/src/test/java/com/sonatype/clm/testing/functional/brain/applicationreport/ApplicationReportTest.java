@@ -20,6 +20,7 @@ import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.Viol
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxDropdown;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.NxTooltip;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.*;
@@ -517,7 +518,7 @@ public class ApplicationReportTest
     violations.shouldHave(texts("Component-Unknown"));
     violations.shouldHave(texts("RegexMatch.dll"));
 
-    MainHeader.reportingNavigationButton().click();
+    SidebarNavigation.reportingNavigationButton().click();
     ReportListPage.firstRow().buildReportLink().click();
 
     headers.policyNameFilterInput().shouldBe(Condition.empty);
@@ -528,7 +529,7 @@ public class ApplicationReportTest
     violations.shouldHave(texts("Component-Unknown"));
     violations.shouldHave(texts("RegexMatch.dll"));
 
-    MainHeader.reportingNavigationButton().click();
+    SidebarNavigation.reportingNavigationButton().click();
     ReportListPage.firstRow().buildReportLink().click();
 
     headers.componentNameFilterInput().shouldBe(Condition.empty);
@@ -685,7 +686,7 @@ public class ApplicationReportTest
     reportPage.filterPanel().proprietaryFilter().nonProprietary().shouldBe(selected);
 
     // navigate elsewhere and then back to this report, without triggering a full refresh
-    MainHeader.reportingNavigationButton().click();
+    SidebarNavigation.reportingNavigationButton().click();
     ReportListPage.firstRow().buildReportLink().click();
 
     reportPage.reportTitle().shouldHave(text(app.getName() + " Build Report"));

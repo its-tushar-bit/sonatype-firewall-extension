@@ -6,7 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.InnerSourceRepositoryBaseConfigurationsPage;
 import com.sonatype.clm.testing.functional.pages.InnerSourceRepositoryBaseConfigurationsPage.DeleteModal;
@@ -330,7 +330,7 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
     page.back().click();
     waitUntilUrl(OwnerSummaryPage.url(owner));
     refresh();
-    MainHeader.closeNavigationSidebar();
+    SidebarNavigation.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     OwnerSummaryPage.innerSourceRepositoryTile().editButton().click();
@@ -413,7 +413,7 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
 
     page.back().click();
     refresh();
-    MainHeader.closeNavigationSidebar();
+    SidebarNavigation.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     OwnerSummaryPage.innerSourceRepositoryTile().editButton().click();

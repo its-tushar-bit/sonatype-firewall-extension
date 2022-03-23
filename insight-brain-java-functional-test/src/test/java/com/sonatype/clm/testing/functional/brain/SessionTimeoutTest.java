@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.LogoutWarningModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.MainView;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -75,7 +76,7 @@ public class SessionTimeoutTest
 
     // wait for all REST requests to finish
     ProductLicensePage.fingerprint().shouldBe(visible);
-    MainHeader.labsNavigationButton().shouldBe(visible);
+    SidebarNavigation.labsNavigationButton().shouldBe(visible);
     SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
     systemConfigMenu.dropdownToggle().shouldBe(visible);
 
@@ -284,7 +285,7 @@ public class SessionTimeoutTest
   private void assertUiCleared() {
     // ensure that the main UI is empty - we can't directly test that the page was
     // refreshed but this is close
-    MainHeader.mainHeaderButtons().shouldBe(hidden);
+    SidebarNavigation.mainHeaderButtons().shouldBe(hidden);
     MainView.uiView().$$("*").shouldHaveSize(0);
   }
 

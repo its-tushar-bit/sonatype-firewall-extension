@@ -31,6 +31,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OtherVersionsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
@@ -688,12 +689,12 @@ public class QuarantineComponentReportTest
     MainHeader.loginButton().shouldBe(visible);
 
     // LEFT NAV MENU
-    MainHeader.dashboardNavigationButton().shouldNotBe(visible);
-    MainHeader.reportingNavigationButton().shouldNotBe(visible);
-    MainHeader.policiesNavigationButton().shouldNotBe(visible);
-    MainHeader.labsNavigationButton().shouldNotBe(visible);
-    MainHeader.firewallNavigationButton().shouldNotBe(visible);
-    MainHeader.legalNavigationButton().shouldNotBe(visible);
+    SidebarNavigation.dashboardNavigationButton().shouldNotBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldNotBe(visible);
+    SidebarNavigation.policiesNavigationButton().shouldNotBe(visible);
+    SidebarNavigation.labsNavigationButton().shouldNotBe(visible);
+    SidebarNavigation.firewallNavigationButton().shouldNotBe(visible);
+    SidebarNavigation.legalNavigationButton().shouldNotBe(visible);
 
     quarantineReportPage.getQuarantineReportComponentOverviewTile().shouldBe(visible);
     quarantineReportPage.getViolationsTable().should(visible);
@@ -723,12 +724,12 @@ public class QuarantineComponentReportTest
     MainHeader.loginButton().shouldNotBe(visible);
 
     // LEFT NAV MENU
-    MainHeader.dashboardNavigationButton().shouldBe(visible);
-    MainHeader.reportingNavigationButton().shouldBe(visible);
-    MainHeader.policiesNavigationButton().shouldBe(visible);
-    MainHeader.labsNavigationButton().shouldBe(visible);
-    MainHeader.firewallNavigationButton().shouldBe(visible);
-    MainHeader.legalNavigationButton().shouldBe(visible);
+    SidebarNavigation.dashboardNavigationButton().shouldBe(visible);
+    SidebarNavigation.reportingNavigationButton().shouldBe(visible);
+    SidebarNavigation.policiesNavigationButton().shouldBe(visible);
+    SidebarNavigation.labsNavigationButton().shouldBe(visible);
+    SidebarNavigation.firewallNavigationButton().shouldBe(visible);
+    SidebarNavigation.legalNavigationButton().shouldBe(visible);
 
     quarantineReportPage.getQuarantineReportComponentOverviewTile().shouldBe(visible);
     quarantineReportPage.getViolationsTable().should(visible);

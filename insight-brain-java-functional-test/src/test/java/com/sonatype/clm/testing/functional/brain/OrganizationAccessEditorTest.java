@@ -5,7 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.model.security.Role;
 
@@ -21,7 +21,7 @@ public class OrganizationAccessEditorTest
 
   @Override
   protected void goFromSummaryToAddRole() {
-    MainHeader.closeNavigationSidebar();
+    SidebarNavigation.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().addRoleButton().click();
@@ -29,7 +29,7 @@ public class OrganizationAccessEditorTest
 
   @Override
   protected void goFromSummaryToEditRole(Role role) {
-    MainHeader.closeNavigationSidebar();
+    SidebarNavigation.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().localAccessRole(role.getName()).click();

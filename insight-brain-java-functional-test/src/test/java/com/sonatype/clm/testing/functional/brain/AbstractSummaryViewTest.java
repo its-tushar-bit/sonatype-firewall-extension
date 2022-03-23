@@ -12,25 +12,11 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.AccessTile;
-import com.sonatype.clm.testing.functional.elements.AccessTileList;
+import com.sonatype.clm.testing.functional.elements.*;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
-import com.sonatype.clm.testing.functional.elements.ActionDropDown;
-import com.sonatype.clm.testing.functional.elements.DeleteModal;
-import com.sonatype.clm.testing.functional.elements.ErrorBox;
-import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn;
-import com.sonatype.clm.testing.functional.elements.InnerSourceRepositoryTile;
-import com.sonatype.clm.testing.functional.elements.LabelTile;
-import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
-import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
-import com.sonatype.clm.testing.functional.elements.PolicyTile;
-import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
-import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList.ThreatGroupTileSimpleListElement;
-import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -155,7 +141,7 @@ public abstract class AbstractSummaryViewTest
   @Test
   public void testInnerSourceRepositoryTile_NotConfigured() {
     refresh();
-    MainHeader.closeNavigationSidebar();
+    SidebarNavigation.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
@@ -177,7 +163,7 @@ public abstract class AbstractSummaryViewTest
           "http://some.base.url.2", RepositoryFormat.NPM, null, null);
 
       refresh();
-      MainHeader.closeNavigationSidebar();
+      SidebarNavigation.closeNavigationSidebar();
       OwnerSummaryPage.summaryTile().dropdownButton().click();
       OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
       InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
@@ -221,7 +207,7 @@ public abstract class AbstractSummaryViewTest
       organizationDAO.update(parentOwner);
 
       refresh();
-      MainHeader.closeNavigationSidebar();
+      SidebarNavigation.closeNavigationSidebar();
       OwnerSummaryPage.summaryTile().dropdownButton().click();
       OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
       InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
@@ -245,7 +231,7 @@ public abstract class AbstractSummaryViewTest
     testCLMServer.getCLMServer().getConfiguration()
         .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
     refresh();
-    MainHeader.closeNavigationSidebar();
+    SidebarNavigation.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldNot(exist);
     OwnerSummaryPage.innerSourceRepositoryTile().shouldNot(exist);
@@ -260,7 +246,7 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(1);
 
     // scroll to the labels tile
-    MainHeader.closeNavigationSidebar();
+    SidebarNavigation.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
 
@@ -348,7 +334,7 @@ public abstract class AbstractSummaryViewTest
         new UserNotification("test@test.com", Stage.ID_BUILD))));
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
-    MainHeader.closeNavigationSidebar();
+    SidebarNavigation.closeNavigationSidebar();
     testLabelTile_Local(localLabels);
     eyesWatcher.eyesCheck();
     testLTGTile_Local(locaLTGs);
@@ -574,7 +560,7 @@ public abstract class AbstractSummaryViewTest
     }
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
-    MainHeader.closeNavigationSidebar();
+    SidebarNavigation.closeNavigationSidebar();
     testLabelTile_Inherited(inheritedLabels, parentOwners);
     testLTGTile_Inherited(inheritedLTGs, parentOwners);
     testAccessTile_Inherited(testUser, parentOwners);

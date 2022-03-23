@@ -16,9 +16,9 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFiltersDropdown;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxPolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -169,20 +169,20 @@ public class ViolationDetailsTest
   @Test
   public void testStageLink() {
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
-    MainHeader.closeNavigationSidebar();
+    SidebarNavigation.closeNavigationSidebar();
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
 
     tile.stage(1).link().shouldHave(text("Build")).click();
     waitUntilUrl(ApplicationReportPage.url(application, "scan1"));
 
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
-    MainHeader.closeNavigationSidebar();
+    SidebarNavigation.closeNavigationSidebar();
 
     tile.stage(3).link().shouldHave(text("Release")).click();
     waitUntilUrl(ApplicationReportPage.url(application, "scan2"));
 
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
-    MainHeader.closeNavigationSidebar();
+    SidebarNavigation.closeNavigationSidebar();
     tile.stage(2).link().shouldNot(exist);
     tile.stage(4).link().should(exist);
   }

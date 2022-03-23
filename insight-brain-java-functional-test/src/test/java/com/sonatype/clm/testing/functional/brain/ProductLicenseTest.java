@@ -7,7 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -84,8 +84,8 @@ public class ProductLicenseTest
     ProductLicensePage.licensedApplications().shouldBe(visible).shouldHave(text("100 (0 in use)"));
     ProductLicensePage.products().shouldHave(texts("Nexus Auditor"));
 
-    MainHeader.openNavigationSidebar();
-    MainHeader.productLogo().shouldHave(attribute("alt", "Auditor"));
+    SidebarNavigation.openNavigationSidebar();
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Auditor"));
     eyesWatcher.eyesCheck("Nexus Auditor Logo");
   }
 
@@ -99,8 +99,8 @@ public class ProductLicenseTest
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
     ProductLicensePage.products().shouldHave(texts("Nexus Firewall"));
 
-    MainHeader.openNavigationSidebar();
-    MainHeader.productLogo().shouldHave(attribute("alt", "Firewall"));
+    SidebarNavigation.openNavigationSidebar();
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Firewall"));
     eyesWatcher.eyesCheck("Nexus Firewall Logo");
   }
 
@@ -115,8 +115,8 @@ public class ProductLicenseTest
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
     ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle"));
 
-    MainHeader.openNavigationSidebar();
-    MainHeader.productLogo().shouldHave(attribute("alt", "Lifecycle"));
+    SidebarNavigation.openNavigationSidebar();
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle"));
     eyesWatcher.eyesCheck("Nexus Lifecycle Logo");
   }
 
@@ -130,8 +130,8 @@ public class ProductLicenseTest
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
     ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle Foundation"));
 
-    MainHeader.openNavigationSidebar();
-    MainHeader.productLogo().shouldHave(attribute("alt", "Lifecycle Foundation"));
+    SidebarNavigation.openNavigationSidebar();
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle Foundation"));
   }
 
   @Test

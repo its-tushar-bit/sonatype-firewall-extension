@@ -5,8 +5,16 @@
  */
 package com.sonatype.insight.brain.ide;
 
+import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import javax.mail.MessagingException;
+import javax.mail.util.ByteArrayDataSource;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -14,10 +22,13 @@ import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.clm.dto.model.ide.ScannedComponent;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -26,6 +37,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
@@ -36,13 +48,19 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.jaxrs.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.mock.hds.HttpResponseProcessor;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.Test;
 
+import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class IdeResourceTest
     extends AbstractResourceTest
@@ -703,5 +721,265 @@ public class IdeResourceTest
     assertThat(ideMatchedComponent.getGroupId()).isEqualTo(groupId);
     assertThat(ideMatchedComponent.getArtifactId()).isEqualTo(artifactId);
     assertThat(ideMatchedComponent.getVersion()).isEqualTo(version);
+  }
+
+  @Test
+  public void testSendTelemetry() throws Exception {
+    String appId = "IdeResourceTest_AppId";
+    String instanceId = "my-unique-id";
+    String userAgent = "Sonatype_CLM_CI_Jenkins/3.13 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)";
+    Integer mavenComponents = 10;
+    Integer npmComponents = 5;
+
+    // Send request
+    Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributes(
+        appId,
+        instanceId,
+        userAgent,
+        mavenComponents,
+        npmComponents
+    );
+
+    // Assert Result
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertUserAgentData(telemetryAttributes, userAgent);
+    assertThat(telemetryAttributes.get("client_instance_id")).isEqualTo(instanceId);
+  }
+
+  @Test
+  public void testSendTelemetry_NoInstanceId() throws Exception {
+    String appId = "IdeResourceTest_AppId";
+    String userAgent = "Sonatype_CLM_CI_Jenkins/3.13 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)";
+    Integer mavenComponents = 10;
+    Integer npmComponents = 5;
+
+    // Send request
+    Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributes(
+        appId,
+        null,
+        userAgent,
+        mavenComponents,
+        npmComponents
+    );
+
+    // Assert Result
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertUserAgentData(telemetryAttributes, userAgent);
+    assertThat(telemetryAttributes.get("client_instance_id")).isNull();
+  }
+
+  @Test
+  public void testSendTelemetry_NoUserAgent() throws Exception {
+    String appId = "IdeResourceTest_AppId";
+    String instanceId = "my-unique-id";
+    Integer mavenComponents = 10;
+    Integer npmComponents = 5;
+
+    // Send request
+    Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributes(
+        appId,
+        instanceId,
+        null,
+        mavenComponents,
+        npmComponents
+    );
+
+    // Assert Result
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertUserAgentDataIsNotSent(telemetryAttributes);
+    assertThat(telemetryAttributes.get("client_instance_id")).isEqualTo(instanceId);
+  }
+
+  @Test
+  public void testSendTelemetry_NoComponents() throws Exception {
+    String appId = "IdeResourceTest_AppId";
+    String instanceId = "my-unique-id";
+    String userAgent = "Sonatype_CLM_CI_Jenkins/3.13 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)";
+    Integer mavenComponents = null;
+    Integer npmComponents = null;
+
+    // Send request
+    Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributes(
+        appId,
+        instanceId,
+        userAgent,
+        mavenComponents,
+        npmComponents
+    );
+
+    // Assert Result
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertUserAgentData(telemetryAttributes, userAgent);
+    assertThat(telemetryAttributes.get("client_instance_id")).isEqualTo(instanceId);
+  }
+
+  @Test
+  public void testSendTelemetry_NoInstanceId_NoUserAgent() throws Exception {
+    String appId = "IdeResourceTest_AppId";
+    Integer mavenComponents = 10;
+    Integer npmComponents = 5;
+
+    // Send request
+    Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributes(
+        appId,
+        null,
+        null,
+        mavenComponents,
+        npmComponents
+    );
+
+    // Assert Result
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertUserAgentDataIsNotSent(telemetryAttributes);
+    assertThat(telemetryAttributes.get("client_instance_id")).isNull();
+  }
+
+  @Test
+  public void testSendTelemetry_NoInstanceId_NoUserAgent_NoComponents() throws Exception {
+    String appId = "IdeResourceTest_AppId";
+    Integer mavenComponents = null;
+    Integer npmComponents = null;
+
+    // Send request
+    Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributes(
+        appId,
+        null,
+        null,
+        mavenComponents,
+        npmComponents
+    );
+
+    // Assert Result
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertUserAgentDataIsNotSent(telemetryAttributes);
+    assertThat(telemetryAttributes.get("client_instance_id")).isNull();
+  }
+
+  private Map<String, Object> sendTelemetryRequestAndGetTelemetryAttributes(
+      final String appId,
+      final String instanceId,
+      final String userAgent,
+      final Integer mavenComponents,
+      final Integer npmComponents
+  ) throws Exception
+  {
+    // Setup telemetry data collection
+    final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
+    initServer(config -> {
+      getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
+        responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
+      }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
+    });
+
+    // Prepare request
+    Application app = tempEntity.newApplicationWithParent(appId);
+    Map<String, Integer> componentCounts = getComponentCounts(mavenComponents, npmComponents);
+    HttpRequest request = sendTelemetryRequest(componentCounts, app.getPublicId(), instanceId, userAgent);
+
+    // Send request
+    HttpResponse response = request.post();
+
+    // Assert result and telemetry purpose
+    assertResponseStatus(204, response);
+    return assertTelemetryPurposeIsFound(responses, TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS);
+  }
+
+  private Map<String, Integer> getComponentCounts(final Integer mavenComponents, final Integer npmComponents) {
+    Map<String, Integer> componentCounts = new HashMap<>();
+    if (mavenComponents != null) {
+      componentCounts.put("maven", mavenComponents);
+    }
+    if (npmComponents != null) {
+      componentCounts.put("npm", npmComponents);
+    }
+    return componentCounts;
+  }
+
+  private HttpRequest sendTelemetryRequest(
+      final Map<String, Integer> componentCounts,
+      final String appId,
+      final String instanceId,
+      final String userAgent)
+  {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, userAgent);
+    headers.put(DefaultHdsClient.CLIENT_INSTANCE_ID_HEADER, instanceId);
+    return restRequest().path("telemetry", appId).headers(headers).body(componentCounts);
+  }
+
+  private Map<String, Object> assertTelemetryPurposeIsFound(
+      final Map<ByteArrayDataSource, Integer> responses,
+      final TelemetryPurpose purpose) throws MessagingException, IOException
+  {
+    // Getting the telemetry data
+    Map<TelemetryPurpose, List<TelemetryItem>> collectedTelemetry = getTelemetryItemsByPurpose(responses);
+
+    // Assert telemetry purpose is found
+    List<TelemetryItem> telemetryItems = collectedTelemetry.get(purpose);
+    assertThat(telemetryItems).isNotNull();
+    assertThat(telemetryItems.size()).isGreaterThan(0);
+
+    return telemetryItems.get(0).getTelemetryData().get(0).getAttributes();
+  }
+
+  private void assertApplicationEvaluationComponentTelemetryData(
+      final Map<String, Object> telemetryAttributes,
+      final String appId,
+      Integer mavenComponents,
+      Integer npmComponents
+  )
+  {
+    assertThat(telemetryAttributes.get("application_id")).isEqualTo(HdsClientAnalytics.obfuscate(appId));
+    assertThat(telemetryAttributes.get("stage_id")).isEqualTo(Stage.ID_DEVELOP);
+    assertThat(telemetryAttributes.get("scan_trigger_type")).isEqualTo(ScanTriggerType.IDE.getId());
+
+    if (mavenComponents != null) {
+      assertThat(telemetryAttributes.get("number_of_maven_components")).isEqualTo(mavenComponents.toString());
+    }
+    else {
+      mavenComponents = 0;
+      assertThat(telemetryAttributes.get("number_of_maven_components")).isNull();
+    }
+
+    if (npmComponents != null) {
+      assertThat(telemetryAttributes.get("number_of_npm_components")).isEqualTo(npmComponents.toString());
+    }
+    else {
+      npmComponents = 0;
+      assertThat(telemetryAttributes.get("number_of_npm_components")).isNull();
+    }
+
+    Integer total = mavenComponents + npmComponents;
+    assertThat(telemetryAttributes.get("number_of_components")).isEqualTo(total.toString());
+  }
+
+  private void assertUserAgentData(Map<String, Object> telemetryAttributes, String userAgent) {
+    ClientUserAgentUtil.UserAgent userAgentData = ClientUserAgentUtil.parse(userAgent);
+    assertThat(telemetryAttributes.get("client_id")).isEqualTo(userAgentData.client);
+    assertThat(telemetryAttributes.get("client_version")).isEqualTo(userAgentData.clientVersion);
+    assertThat(telemetryAttributes.get("client_runtime")).isEqualTo(userAgentData.runtime);
+    assertThat(telemetryAttributes.get("client_runtime_version")).isEqualTo(userAgentData.runtimeVersion);
+    assertThat(telemetryAttributes.get("client_os_name")).isEqualTo(userAgentData.os);
+    assertThat(telemetryAttributes.get("client_os_version")).isEqualTo(userAgentData.osVersion);
+    assertThat(telemetryAttributes.get("client_other")).isEqualTo(userAgentData.other);
+  }
+
+  private void assertUserAgentDataIsNotSent(Map<String, Object> telemetryAttributes) {
+    assertThat(telemetryAttributes.get("client_id")).isNull();
+    assertThat(telemetryAttributes.get("client_version")).isNull();
+    assertThat(telemetryAttributes.get("client_runtime")).isNull();
+    assertThat(telemetryAttributes.get("client_runtime_version")).isNull();
+    assertThat(telemetryAttributes.get("client_os_name")).isNull();
+    assertThat(telemetryAttributes.get("client_os_version")).isNull();
+    assertThat(telemetryAttributes.get("client_other")).isNull();
+  }
+
+  private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(
+      final Map<ByteArrayDataSource, Integer> responses)
+      throws MessagingException, IOException
+  {
+    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(responses).isNotEmpty());
+    return getTelemetryItems(responses).stream()
+        .collect(groupingBy(telemetryItem -> telemetryItem.getTelemetryPurposes().get(0)));
   }
 }

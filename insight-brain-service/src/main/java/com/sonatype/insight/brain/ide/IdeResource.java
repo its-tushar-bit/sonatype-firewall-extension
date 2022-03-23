@@ -37,11 +37,13 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
@@ -49,7 +51,10 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -77,14 +82,18 @@ public class IdeResource
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public IdeResource(BaseUrl baseUrl,
                      HdsClient client,
-                     ComponentPolicyEvaluator componentPolicyEvaluator)
+                     ComponentPolicyEvaluator componentPolicyEvaluator,
+                     TelemetrySender telemetrySender)
   {
     this.baseUrl = baseUrl;
     this.client = client;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
+    this.telemetrySender = telemetrySender;
   }
 
   /**
@@ -232,5 +241,33 @@ public class IdeResource
     UriBuilder uriBuilder = baseUrl.redirect().path(path);
 
     return Response.temporaryRedirect(uriBuilder.build()).build();
+  }
+
+  /**
+   * Send telemetry data for APPLICATION_EVALUATION_COMPONENT_COUNTS purpose.
+   *
+   * @param applicationPublicId the public applicationId
+   * @param componentCounts the total components by each component type
+   * @since 1.136
+   */
+  @POST
+  @Path("telemetry/{applicationPublicId}")
+  @Audited(AuditEvent.EVALUATE_PROJECT)
+  public void sendTelemetry(@PathParam("applicationPublicId") String applicationPublicId,
+                            Map<String, Long> componentCounts,
+                            @Context HttpServletRequest req) throws IOException
+  {
+    String userAgent = DefaultHdsClient.getClientUserAgent(req);
+    String instanceId = DefaultHdsClient.getClientInstanceId(req);
+
+    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+        applicationPublicId,
+        Stage.ID_DEVELOP,
+        ScanTriggerType.IDE,
+        userAgent,
+        instanceId,
+        componentCounts
+    );
+    telemetrySender.send(telemetryData);
   }
 }

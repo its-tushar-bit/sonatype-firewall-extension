@@ -22,6 +22,7 @@ public enum ScanTriggerType
   SOURCE_CONTROL_INTERNAL_PULL_REQUEST("Source Control Pull Request"), //
   THIRD_PARTY("Third Party"), //
   WEB_UI("Web UI"), //
+  IDE("IDE"), //
   // The Unknown trigger type is only for policy evaluations created before scan trigger type was introduced.
   // It should never be used in new code anywhere.
   UNKNOWN("Unknown");

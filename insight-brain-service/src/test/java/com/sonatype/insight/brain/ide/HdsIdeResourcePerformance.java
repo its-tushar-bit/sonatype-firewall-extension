@@ -81,7 +81,7 @@ public class HdsIdeResourcePerformance
 
     this.iterations = iterations * connections;
     resource = new IdeResource(null, HdsIdeResourcePerformanceUtils.createHdsClient(server),
-        new ComponentPolicyEvaluator());
+        new ComponentPolicyEvaluator(), HdsIdeResourcePerformanceUtils.createTelemetrySender());
 
     // trigger db
     testApplication = new Application();

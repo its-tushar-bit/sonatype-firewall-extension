@@ -104,7 +104,7 @@ public class DefaultHdsClient
 
   static final String TELEMETRY_ID_HEADER = "X-CLM-Instance-Id";
 
-  static final String CLIENT_INSTANCE_ID_HEADER = "X-CLM-Client-Instance-Id";
+  public static final String CLIENT_INSTANCE_ID_HEADER = "X-CLM-Client-Instance-Id";
 
   @Inject
   public DefaultHdsClient(final InsightProxy proxy,

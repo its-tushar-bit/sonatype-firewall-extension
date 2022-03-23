@@ -26,6 +26,7 @@ import com.atlassian.crowd.model.group.Group;
 import com.atlassian.crowd.model.user.User;
 import com.atlassian.crowd.search.builder.Combine;
 import com.atlassian.crowd.search.query.entity.restriction.MatchMode;
+import com.atlassian.crowd.search.query.entity.restriction.Property;
 import com.atlassian.crowd.search.query.entity.restriction.TermRestriction;
 import com.atlassian.crowd.search.query.entity.restriction.constants.UserTermKeys;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -93,6 +94,15 @@ public class CrowdClient
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
+  public Set<Member> searchUsersByDisplayName(String displayName)
+      throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException
+  {
+    return crowdClient.searchUsers(displayNameMatchesAndActive(displayName), 0, -1).stream()
+        .map(user ->
+            new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(), CrowdRealm.ID))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
   public Set<Member> searchGroupsByGroupNames(Set<String> groupNames)
       throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException
   {
@@ -105,7 +115,7 @@ public class CrowdClient
   SearchRestriction anyNameMatchesAndActive(Set<String> names) {
     return Combine.allOf(
         Combine.anyOf(names.stream()
-            .map(name -> new TermRestriction<>(UserTermKeys.USERNAME, MatchMode.EXACTLY_MATCHES, name))
+            .map(name -> createStringPropertyRestriction(UserTermKeys.USERNAME, name))
             .collect(Collectors.toList())
         ),
         new TermRestriction<>(UserTermKeys.ACTIVE, MatchMode.EXACTLY_MATCHES, true)
@@ -121,5 +131,20 @@ public class CrowdClient
         .map(user ->
             new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(), CrowdRealm.ID))
         .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  // Visible for testing
+  SearchRestriction displayNameMatchesAndActive(String displayName) {
+    return Combine.allOf(
+        createStringPropertyRestriction(UserTermKeys.DISPLAY_NAME, displayName),
+        new TermRestriction<>(UserTermKeys.ACTIVE, MatchMode.EXACTLY_MATCHES, true)
+    );
+  }
+
+  private TermRestriction<String> createStringPropertyRestriction(Property<String> property, String value) {
+    if (value.contains("*")) {
+      return new TermRestriction<>(property, MatchMode.CONTAINS, value.replace("*", ""));
+    }
+    return new TermRestriction<>(property, MatchMode.EXACTLY_MATCHES, value);
   }
 }

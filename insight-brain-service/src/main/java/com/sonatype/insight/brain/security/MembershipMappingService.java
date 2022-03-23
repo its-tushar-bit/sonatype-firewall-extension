@@ -119,7 +119,7 @@ public class MembershipMappingService
 
     final ApplicableMembershipMappings result = new ApplicableMembershipMappings();
     result.membersByRole.addAll(membersByRoleByRoleId.values());
-    result.groupSearchEnabled = !userDirectory.isDynamicGroupSearchDisabled();
+    result.groupSearchEnabled = !userDirectory.isGroupSearchDisabled();
     return result;
   }
 

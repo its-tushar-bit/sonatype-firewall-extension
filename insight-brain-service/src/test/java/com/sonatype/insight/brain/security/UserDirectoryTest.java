@@ -23,8 +23,10 @@ import com.sonatype.insight.brain.configuration.ldap.LdapGroup;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.LdapUser;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
+import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
@@ -34,6 +36,8 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserDirectory.QueryResult;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import com.atlassian.crowd.exception.OperationFailedException;
 import com.google.common.collect.Sets;
@@ -999,6 +1003,97 @@ public class UserDirectoryTest
         members.stream().map(Member::getInternalName).collect(Collectors.toCollection(LinkedHashSet::new)));
     assertThat(result.hasException()).isFalse();
     assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void testGetMembersByQuery_Users_Crowd() throws Exception {
+    CrowdClientFactory mockCrowdClientFactory = Mockito.mock(CrowdClientFactory.class);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapService, mockCrowdClientFactory);
+    CrowdClient mockCrowdClient = Mockito.mock(CrowdClient.class);
+    List<Member> expectedMembers = Arrays.asList(
+        new Member(MemberType.USER, "username1", "displayName1", "email1", CrowdRealm.ID),
+        new Member(MemberType.USER, "username2", "displayName2", "email2", CrowdRealm.ID)
+    );
+    when(mockCrowdClient.searchUsersByDisplayName(eq("displayName*"))).thenReturn(new LinkedHashSet<>(expectedMembers));
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+
+    QueryResult result = userDirectory.getMembersByQuery("displayName*", false);
+
+    assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(expectedMembers.toArray(new Member[0]));
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void testGetMembersByQuery_Groups_GroupSearchEnabled_Crowd() throws Exception {
+    CrowdClientFactory mockCrowdClientFactory = Mockito.mock(CrowdClientFactory.class);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapService, mockCrowdClientFactory);
+    CrowdClient mockCrowdClient = Mockito.mock(CrowdClient.class);
+    when(mockCrowdClient.searchUsersByDisplayName(any())).thenReturn(Collections.emptySet());
+    List<Member> expectedMembers = Arrays.asList(
+        new Member(MemberType.GROUP, "group1", "group1", null, CrowdRealm.ID),
+        new Member(MemberType.GROUP, "group2", "group2", null, CrowdRealm.ID)
+    );
+    when(mockCrowdClient.searchGroupsByGroupNames(eq(Collections.singleton("group*")))).thenReturn(
+        new LinkedHashSet<>(expectedMembers));
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+
+    QueryResult result = userDirectory.getMembersByQuery("group*", true);
+
+    assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(expectedMembers.toArray(new Member[0]));
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void testGetMembersByQuery_Groups_GroupSearchDisabled_Crowd() throws Exception {
+    CrowdClientFactory mockCrowdClientFactory = Mockito.mock(CrowdClientFactory.class);
+    UserDirectory userDirectory = new UserDirectory(new UserDAO(), ldapService, mockCrowdClientFactory);
+    CrowdClient mockCrowdClient = Mockito.mock(CrowdClient.class);
+    when(mockCrowdClient.searchUsersByDisplayName(any())).thenReturn(Collections.emptySet());
+    when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
+
+    QueryResult result = userDirectory.getMembersByQuery("group*", false);
+
+    assertThat(result.get()).isEmpty();
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+    verify(mockCrowdClient, never()).searchGroupsByGroupNames(any());
+  }
+
+  @Test
+  public void testIsGroupSearchDisabled() {
+    // It's only disabled if dynamic group search is disabled and either Crowd is disabled or Crowd is not configured
+    assertGroupSearchDisabled(true, false, true, true);
+    assertGroupSearchDisabled(true, true, false, true);
+    assertGroupSearchDisabled(true, false, false, true);
+    // Otherwise, it's not disabled
+    assertGroupSearchDisabled(true, true, true, false);
+    assertGroupSearchDisabled(false, true, true, false);
+    assertGroupSearchDisabled(false, false, true, false);
+    assertGroupSearchDisabled(false, true, false, false);
+    assertGroupSearchDisabled(false, false, false, false);
+  }
+
+  private void assertGroupSearchDisabled(
+      boolean dynamicGroupSearchDisabled,
+      boolean crowdIntegrationEnabled,
+      boolean crowdConfigured,
+      boolean expectedDisabled)
+  {
+    CrowdConfigurationDAO mockCrowdConfigurationDAO = Mockito.mock(CrowdConfigurationDAO.class);
+    LdapService mockLdapService = Mockito.mock(LdapService.class);
+    InsightConfig mockInsightConfig = Mockito.mock(InsightConfig.class);
+    UserDirectory userDirectory =
+        new UserDirectory(null, mockCrowdConfigurationDAO, mockLdapService, null, mockInsightConfig);
+    when(mockLdapService.isDynamicGroupSearchDisabled()).thenReturn(dynamicGroupSearchDisabled);
+    lenient().when(mockInsightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.CROWD_INTEGRATION)).thenReturn(
+        crowdIntegrationEnabled);
+    lenient().when(mockCrowdConfigurationDAO.get()).thenReturn(crowdConfigured ? new CrowdConfiguration() : null);
+
+    assertThat(userDirectory.isGroupSearchDisabled()).isEqualTo(expectedDisabled);
   }
 
   private static class SameId

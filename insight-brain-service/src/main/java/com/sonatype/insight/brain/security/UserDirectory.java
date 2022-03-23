@@ -32,12 +32,15 @@ import javax.validation.constraints.NotNull;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroup;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.LdapUser;
+import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
@@ -55,6 +58,8 @@ public class UserDirectory
   public static final char QUERY_WILDCARD = '*';
 
   private static final char SQL_QUERY_WILDCARD = '%';
+  
+  private static final String IGNORING_MEMBER_MESSAGE = "Ignoring {} {} from {}, as they were already found in {}.";
 
   /**
    * @since 1.11.0
@@ -95,15 +100,31 @@ public class UserDirectory
 
   private final UserDAO userDao;
 
+  private final CrowdConfigurationDAO crowdConfigurationDAO;
+
   private final LdapService ldapService;
 
   private final CrowdClientFactory crowdClientFactory;
 
+  private final InsightConfig insightConfig;
+
   @Inject
-  public UserDirectory(UserDAO userDao, LdapService ldapService, CrowdClientFactory crowdClientFactory) {
+  public UserDirectory(
+      UserDAO userDao,
+      CrowdConfigurationDAO crowdConfigurationDAO,
+      LdapService ldapService,
+      CrowdClientFactory crowdClientFactory,
+      InsightConfig insightConfig)
+  {
     this.userDao = userDao;
+    this.crowdConfigurationDAO = crowdConfigurationDAO;
     this.ldapService = ldapService;
     this.crowdClientFactory = crowdClientFactory;
+    this.insightConfig = insightConfig;
+  }
+
+  public UserDirectory(UserDAO userDao, LdapService ldapService, CrowdClientFactory crowdClientFactory) {
+    this(userDao, null, ldapService, crowdClientFactory, null);
   }
 
   /**
@@ -265,7 +286,7 @@ public class UserDirectory
   /**
    * @param query The partial name query that searches for users based on first name, last name, or in the case of LDAP,
    *          names.
-   * @param groupsEnabled True, if LDAP groups should also be searched.
+   * @param groupsEnabled True, if LDAP and/or Crowd groups should also be searched.
    * @return A query result containing members or exceptions. If an exception is encountered it is still likely that the
    *         result contains user/group information.
    */
@@ -291,53 +312,14 @@ public class UserDirectory
     List<Exception> otherExceptions = new ArrayList<>();
     try {
       List<LdapServer> ldapServers = new LdapServerDAO().getAll();
+      CrowdClient crowdClient = crowdClientFactory.createCrowdClient();
       // searching for users
-      for (LdapServer ldapServer : ldapServers) {
-        if (ldapService.isLdapEnabled(ldapServer)) {
-          try {
-            for (LdapUser user : ldapService.findUsersByName(ldapServer, query, 100)) {
-              Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(),
-                  ldapServer.getName());
-              member.setDn(user.getDn());
-              String key = member.getInternalNameLowerCase();
-              // Ignore any user that was already discovered in the other realms.
-              if (!users.containsKey(key)) {
-                users.put(key, member);
-              }
-            }
-          }
-          catch (NamingException e) {
-            namingExceptions.add(e);
-          }
-          catch (Exception e) {
-            otherExceptions.add(e);
-          }
-        }
-      }
+      addLDAPUsersByQuery(users, ldapServers, query, namingExceptions, otherExceptions);
+      addCrowdUsersByQuery(users, crowdClient, query, otherExceptions);
       // searching for groups
       if (groupsEnabled) {
-        for (LdapServer ldapServer : ldapServers) {
-          try {
-            if (ldapService.isGroupSearchEnabled(ldapServer)) {
-              for (LdapGroup group : ldapService.findGroupsByName(ldapServer, query, 100)) {
-                final String groupName = group.getGroupname();
-                Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapServer.getName());
-                member.setDn(group.getDn());
-                String key = member.getInternalNameLowerCase();
-                // Ignore any group that was already discovered in the other realms.
-                if (!groups.containsKey(key)) {
-                  groups.put(key, member);
-                }
-              }
-            }
-          }
-          catch (NamingException e) {
-            namingExceptions.add(e);
-          }
-          catch (Exception e) {
-            otherExceptions.add(e);
-          }
-        }
+        addLDAPGroupsByQuery(groups, ldapServers, query, namingExceptions, otherExceptions);
+        addCrowdGroupsByQuery(groups, crowdClient, query, otherExceptions);
       }
     }
     catch (Exception e) {
@@ -355,6 +337,124 @@ public class UserDirectory
     members.addAll(groups.values());
 
     return new QueryResult(members, mergeExceptions(namingExceptions, otherExceptions));
+  }
+
+  private void addLDAPUsersByQuery(
+      Map<String, Member> users,
+      List<LdapServer> ldapServers,
+      String query,
+      List<NamingException> namingExceptions,
+      List<Exception> otherExceptions)
+  {
+    for (LdapServer ldapServer : ldapServers) {
+      if (ldapService.isLdapEnabled(ldapServer)) {
+        try {
+          for (LdapUser user : ldapService.findUsersByName(ldapServer, query, 100)) {
+            Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(),
+                ldapServer.getName());
+            member.setDn(user.getDn());
+            String key = member.getInternalNameLowerCase();
+            // Ignore any user that was already discovered in the other realms.
+            if (!users.containsKey(key)) {
+              users.put(key, member);
+            }
+            else {
+              log.debug(IGNORING_MEMBER_MESSAGE, "user", key, member.getRealm(), users.get(key).getRealm());
+            }
+          }
+        }
+        catch (NamingException e) {
+          namingExceptions.add(e);
+        }
+        catch (Exception e) {
+          otherExceptions.add(e);
+        }
+      }
+    }
+  }
+
+  private void addCrowdUsersByQuery(
+      Map<String, Member> users,
+      CrowdClient crowdClient,
+      String query,
+      List<Exception> otherExceptions)
+  {
+    if (crowdClient != null) {
+      try {
+        for (Member crowdMember : crowdClient.searchUsersByDisplayName(query)) {
+          String key = crowdMember.getInternalNameLowerCase();
+          // Ignore any user that was already discovered in the other realms.
+          if (!users.containsKey(key)) {
+            users.put(key, crowdMember);
+          }
+          else {
+            log.debug(IGNORING_MEMBER_MESSAGE, "user", key, crowdMember.getRealm(), users.get(key).getRealm());
+          }
+        }
+      }
+      catch (Exception e) {
+        otherExceptions.add(e);
+      }
+    }
+  }
+
+  private void addLDAPGroupsByQuery(
+      Map<String, Member> groups,
+      List<LdapServer> ldapServers,
+      String query,
+      List<NamingException> namingExceptions,
+      List<Exception> otherExceptions)
+  {
+    for (LdapServer ldapServer : ldapServers) {
+      try {
+        if (ldapService.isGroupSearchEnabled(ldapServer)) {
+          for (LdapGroup group : ldapService.findGroupsByName(ldapServer, query, 100)) {
+            final String groupName = group.getGroupname();
+            Member member = new Member(MemberType.GROUP, groupName, groupName, null, ldapServer.getName());
+            member.setDn(group.getDn());
+            String key = member.getInternalNameLowerCase();
+            // Ignore any group that was already discovered in the other realms.
+            if (!groups.containsKey(key)) {
+              groups.put(key, member);
+            }
+            else {
+              log.debug(IGNORING_MEMBER_MESSAGE, "group", key, member.getRealm(), groups.get(key).getRealm());
+            }
+          }
+        }
+      }
+      catch (NamingException e) {
+        namingExceptions.add(e);
+      }
+      catch (Exception e) {
+        otherExceptions.add(e);
+      }
+    }
+  }
+
+  private void addCrowdGroupsByQuery(
+      Map<String, Member> groups,
+      CrowdClient crowdClient,
+      String query,
+      List<Exception> otherExceptions)
+  {
+    if (crowdClient != null) {
+      try {
+        for (Member crowdMember : crowdClient.searchGroupsByGroupNames(Collections.singleton(query))) {
+          String key = crowdMember.getInternalNameLowerCase();
+          // Ignore any group that was already discovered in the other realms.
+          if (!groups.containsKey(key)) {
+            groups.put(key, crowdMember);
+          }
+          else {
+            log.debug(IGNORING_MEMBER_MESSAGE, "group", key, crowdMember.getRealm(), groups.get(key).getRealm());
+          }
+        }
+      }
+      catch (Exception e) {
+        otherExceptions.add(e);
+      }
+    }
   }
 
   private Exception mergeExceptions(List<NamingException> namingExceptions, List<Exception> otherExceptions) {
@@ -383,8 +483,10 @@ public class UserDirectory
         Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME, null, InternalRealm.DISPLAY_NAME);
   }
 
-  public boolean isDynamicGroupSearchDisabled() {
-    return ldapService.isDynamicGroupSearchDisabled();
+  public boolean isGroupSearchDisabled() {
+    return ldapService.isDynamicGroupSearchDisabled() &&
+        (!insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.CROWD_INTEGRATION) ||
+            crowdConfigurationDAO.get() == null);
   }
 
   public boolean isLdapUser(final User user) throws NamingException {

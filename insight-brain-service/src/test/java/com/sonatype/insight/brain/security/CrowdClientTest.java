@@ -32,6 +32,7 @@ import com.atlassian.crowd.model.group.GroupType;
 import com.atlassian.crowd.search.query.entity.restriction.BooleanRestriction;
 import com.atlassian.crowd.search.query.entity.restriction.BooleanRestriction.BooleanLogic;
 import com.atlassian.crowd.search.query.entity.restriction.MatchMode;
+import com.atlassian.crowd.search.query.entity.restriction.Property;
 import com.atlassian.crowd.search.query.entity.restriction.TermRestriction;
 import com.atlassian.crowd.search.query.entity.restriction.constants.UserTermKeys;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -287,7 +288,7 @@ public class CrowdClientTest
 
   @Test
   public void testAnyNameMatchesAndActive() {
-    List<String> usernames = Arrays.asList("username1", "username2", "username3");
+    List<String> usernames = Arrays.asList("username1", "*sername2", "username*", "*sernam*", "*");
 
     SearchRestriction anyNameMatchesAndActive =
         crowdClient.anyNameMatchesAndActive(new LinkedHashSet<>(usernames));
@@ -306,20 +307,15 @@ public class CrowdClientTest
     Collection<SearchRestriction> nameMatchesRestrictions = anyNameMatchesRestriction.getRestrictions();
     assertThat(nameMatchesRestrictions).hasSize(usernames.size());
     for (String username : usernames) {
-      TermRestriction<String> nameRestriction =
-          (TermRestriction<String>) nameMatchesRestrictions.stream().filter(r -> r instanceof TermRestriction)
-              .filter(r -> ((TermRestriction<String>) r).getValue().equals(username)).findFirst().orElse(null);
-      assertThat(nameRestriction).isNotNull();
-      assertThat(nameRestriction.getProperty()).isEqualTo(UserTermKeys.USERNAME);
-      assertThat(nameRestriction.getMatchMode()).isEqualTo(MatchMode.EXACTLY_MATCHES);
+      if (username.contains("*")) {
+        assertTermRestriction(nameMatchesRestrictions, UserTermKeys.USERNAME, MatchMode.CONTAINS,
+            username.replace("*", ""));
+      }
+      else {
+        assertTermRestriction(nameMatchesRestrictions, UserTermKeys.USERNAME, MatchMode.EXACTLY_MATCHES, username);
+      }
     }
-    TermRestriction<Boolean> activeRestriction = (TermRestriction<Boolean>) restrictions.stream()
-        .filter(r -> r instanceof TermRestriction)
-        .findFirst()
-        .orElse(null);
-    assertThat(activeRestriction.getProperty()).isEqualTo(UserTermKeys.ACTIVE);
-    assertThat(activeRestriction.getMatchMode()).isEqualTo(MatchMode.EXACTLY_MATCHES);
-    assertThat(activeRestriction.getValue()).isTrue();
+    assertTermRestriction(restrictions, UserTermKeys.ACTIVE, MatchMode.EXACTLY_MATCHES, true);
   }
 
   @Test
@@ -349,6 +345,85 @@ public class CrowdClientTest
     assertThatExceptionOfType(OperationFailedException.class).isThrownBy(
         () -> crowdClient.getUsersByGroupName(groupName)).withMessageContaining("Bad Request")
         .withStackTraceContaining("Error");
+  }
+
+  @Test
+  public void testDisplayNameMatchesAndActive() {
+    testDisplayNameMatchesAndActive("displayName", MatchMode.EXACTLY_MATCHES, "displayName");
+  }
+
+  @Test
+  public void testDisplayNameMatchesAndActive_Wildcard() {
+    testDisplayNameMatchesAndActive("*", MatchMode.CONTAINS, "");
+  }
+
+  @Test
+  public void testDisplayNameMatchesAndActive_WildcardStart() {
+    testDisplayNameMatchesAndActive("*isplayName", MatchMode.CONTAINS, "isplayName");
+  }
+
+  @Test
+  public void testDisplayNameMatchesAndActive_WildcardEnd() {
+    testDisplayNameMatchesAndActive("displayNam*", MatchMode.CONTAINS, "displayNam");
+  }
+
+  @Test
+  public void testDisplayNameMatchesAndActive_WildcardStartAndEnd() {
+    testDisplayNameMatchesAndActive("*isplayNam*", MatchMode.CONTAINS, "isplayNam");
+  }
+
+  private void testDisplayNameMatchesAndActive(String displayName, MatchMode expectedMatchMode, String expectedValue) {
+    SearchRestriction displayNameMatchesAndActive = crowdClient.displayNameMatchesAndActive(displayName);
+
+    assertThat(displayNameMatchesAndActive).isInstanceOf(BooleanRestriction.class);
+    BooleanRestriction displayNameMatchesAndActiveRestriction = (BooleanRestriction) displayNameMatchesAndActive;
+    assertThat(displayNameMatchesAndActiveRestriction.getBooleanLogic()).isEqualTo(BooleanLogic.AND);
+    Collection<SearchRestriction> restrictions = displayNameMatchesAndActiveRestriction.getRestrictions();
+    assertThat(restrictions).hasSize(2);
+    assertTermRestriction(restrictions, UserTermKeys.DISPLAY_NAME, expectedMatchMode, expectedValue);
+    assertTermRestriction(restrictions, UserTermKeys.ACTIVE, MatchMode.EXACTLY_MATCHES, true);
+  }
+
+  @Test
+  public void testSearchUsersByDisplayName() throws Exception {
+    String displayName = "*";
+    List<String> usernames = Arrays.asList("username1", "username2", "username3");
+    crowdMockServer.mockSearchUsers(crowdClient.displayNameMatchesAndActive(displayName),
+        usernames.toArray(new String[0]));
+
+    Set<Member> members = crowdClient.searchUsersByDisplayName(displayName);
+
+    assertThat(members).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        new Member(MemberType.USER, "username1", "username1DisplayName", "username1Email", CrowdRealm.ID),
+        new Member(MemberType.USER, "username2", "username2DisplayName", "username2Email", CrowdRealm.ID),
+        new Member(MemberType.USER, "username3", "username3DisplayName", "username3Email", CrowdRealm.ID)
+    );
+  }
+
+  @Test
+  public void testSearchUsersByDisplayName_Error() throws Exception {
+    String displayName = "*";
+    crowdMockServer.mockSearchUsersError(crowdClient.displayNameMatchesAndActive(displayName), 400);
+
+    assertThatExceptionOfType(OperationFailedException.class).isThrownBy(
+        () -> crowdClient.searchUsersByDisplayName(displayName)).withMessageContaining("Bad Request")
+        .withStackTraceContaining("Error");
+  }
+
+  private <T> void assertTermRestriction(
+      Collection<SearchRestriction> restrictions,
+      Property<T> expectedProperty,
+      MatchMode expectedMatchMode,
+      T expectedValue)
+  {
+    TermRestriction<?> termRestriction = restrictions.stream()
+        .filter(r -> r instanceof TermRestriction)
+        .map(r -> (TermRestriction<?>) r)
+        .filter(r -> r.getProperty().equals(expectedProperty) && r.getMatchMode().equals(expectedMatchMode) &&
+            r.getValue().equals(expectedValue))
+        .findFirst()
+        .orElse(null);
+    assertThat(termRestriction).isNotNull();
   }
 
   private void assertUserPrincipalFromCrowdRealm(

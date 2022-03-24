@@ -203,6 +203,12 @@ export const InitModule = angular
        * when access to one is attempted
        */
       function preLoginStateHandler(event, state, params) {
+        function attemptLoginIfNeeded() {
+          if (!$rootScope.username) {
+            attemptLogin();
+          }
+        }
+
         /*
          * as we init the system, we mix the preventing of $stateChangeStart events.
          * Because of this, the $urlRouter will not be updated with the proper current url if the user changes urls
@@ -213,14 +219,27 @@ export const InitModule = angular
         $urlRouter.update(true);
         savedState = { state, params };
 
-        if (routeStateUtilService.stateRequiresAuthentication(state)) {
-          if (!$rootScope.username) {
-            attemptLogin();
-          }
+        const stateRequiresAuthenticationNow = routeStateUtilService.stateRequiresAuthenticationSync(state);
 
-          if (event) {
+        switch (stateRequiresAuthenticationNow) {
+          // don't know if auth required yet: prevent state load and wait for async result
+          case undefined:
             event.preventDefault();
-          }
+            routeStateUtilService.stateRequiresAuthentication(state).then((stateRequiresAuthentication) => {
+              if (stateRequiresAuthentication) {
+                attemptLoginIfNeeded();
+              } else {
+                $state.go(savedState.state, savedState.params);
+              }
+            });
+            break;
+
+          // page does require auth: prevent state load and show login
+          case true:
+            event.preventDefault();
+            attemptLoginIfNeeded();
+            break;
+          // case false, page does not require auth: no need to do anything, just let the page show
         }
       }
 
@@ -280,18 +299,6 @@ export const InitModule = angular
           .finally(cancelPreLicenseFetchStateHandler)
           .finally(registerPreLoginStateHandler)
           .then(onLicenseSuccess, onLicenseFailure);
-      }
-
-      function checkIsEnableUnauthenticatedPages() {
-        let responseHandler = function (response) {
-          const enabledFromServer = response.data && response.data.includes('enable-unauthenticated-pages');
-          LoginModalService.setUnauthenticatedPagesEnabled(enabledFromServer);
-        };
-        return ProductFeatures.isUnauthenticatedPagesEnabled()
-          .then(responseHandler)
-          .catch(() => {
-            $rootScope.isEnableUnauthenticatedPages = true;
-          });
       }
 
       function initSuccess() {
@@ -363,7 +370,7 @@ export const InitModule = angular
       }
 
       function doStart() {
-        $q.all([currentUser.waitForLogin(), checkLicenseInfo(), checkIsEnableUnauthenticatedPages()])
+        $q.all([currentUser.waitForLogin(), checkLicenseInfo()])
           .then(function ([authenticationStatus]) {
             $rootScope.username = authenticationStatus.username;
             cancelLoginDismissListener();

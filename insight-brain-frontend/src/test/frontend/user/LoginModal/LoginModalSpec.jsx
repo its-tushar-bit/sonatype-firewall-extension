@@ -27,7 +27,7 @@ describe('LoginModal', () => {
     setPasswordSpy,
     useSelectorLoginStateSpy,
     useSelectorLoginSubmitStateSpy,
-    mockAuthenticationNotRequired,
+    mockRouteStateNameIncludesVulnerabilitySearch,
     loginState,
     loginSubmitState;
 
@@ -53,10 +53,8 @@ describe('LoginModal', () => {
       loginSubmitMaskState: null,
     };
 
-    mockAuthenticationNotRequired = {
-      data: {
-        authenticationRequired: false,
-      },
+    mockRouteStateNameIncludesVulnerabilitySearch = {
+      name: 'vulnerabilitySearch',
     };
 
     minimalProps = {
@@ -83,7 +81,8 @@ describe('LoginModal', () => {
   });
 
   it('does NOT render Vulnerability Lookup link but does render a cancel button if license exists and user is on a page that does not require authentication', () => {
-    spyOn(routeSelectors, 'selectRouterState').and.returnValue(mockAuthenticationNotRequired);
+    spyOn(routeSelectors, 'selectRouterState').and.returnValue(mockRouteStateNameIncludesVulnerabilitySearch);
+    useSelectorLoginStateSpy.and.returnValue(loginState);
     renderComponent();
 
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
@@ -100,7 +99,9 @@ describe('LoginModal', () => {
     expect(screen.queryByTestId('vuln-lookup-link')).toBeNull();
   });
 
-  it('renders Vulnerability Lookup link but NOT cancel button when unlicensed or authentication is required', () => {
+  it('renders Vulnerability Lookup link in index but NOT cancel button when unauthenticated pages is enabled', () => {
+    spyOn(routeSelectors, 'selectRouterState').and.returnValue({ name: 'index' });
+    useSelectorLoginStateSpy.and.returnValue(loginState);
     renderComponent();
 
     expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
@@ -108,6 +109,8 @@ describe('LoginModal', () => {
   });
 
   it('gets the href for Vulnerability Link', () => {
+    spyOn(routeSelectors, 'selectRouterState').and.returnValue({ name: 'index' });
+    useSelectorLoginStateSpy.and.returnValue(loginState);
     let hrefSpy = jasmine.createSpy('href').and.callFake((args) => `href-${args}`);
     let includesSpy = jasmine.createSpy('includes').and.returnValue(false);
     spyOn(routerContext, 'useRouterState').and.returnValue({
@@ -120,7 +123,7 @@ describe('LoginModal', () => {
   });
 
   it('does not render Vulnerability Lookup link or cancel button if unlicensed, even if on a page that does not require authentication', () => {
-    spyOn(routeSelectors, 'selectRouterState').and.returnValue(mockAuthenticationNotRequired);
+    spyOn(routeSelectors, 'selectRouterState').and.returnValue(mockRouteStateNameIncludesVulnerabilitySearch);
     useSelectorLoginStateSpy.and.callFake((state) => {
       const originalSelection = originalLoginStateSelector(state);
       return { ...originalSelection, isLicensed: false, showLoginModal: true };
@@ -189,7 +192,8 @@ describe('LoginModal', () => {
     });
 
     it('dismisses the modal when cancel button is clicked', () => {
-      spyOn(routeSelectors, 'selectRouterState').and.returnValue(mockAuthenticationNotRequired);
+      spyOn(routeSelectors, 'selectRouterState').and.returnValue(mockRouteStateNameIncludesVulnerabilitySearch);
+      useSelectorLoginStateSpy.and.returnValue({ ...loginState, showSamlSso: true });
       renderComponent();
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });

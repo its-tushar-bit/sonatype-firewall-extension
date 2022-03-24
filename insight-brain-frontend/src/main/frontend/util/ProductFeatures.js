@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { includes, pipe, prop } from 'ramda';
+
 import CLMLocationModule from '../util/CLMLocation';
 
 var productFeatureModule = angular.module('ProductFeaturesModule', [CLMLocationModule.name]);
@@ -30,8 +32,13 @@ productFeatureModule.service('ProductFeatures', [
       return promise;
     }
 
-    function isUnauthenticatedPagesEnabled() {
-      return $http.get(CLMLocations.getEnableUnauthenticatedPages());
+    /**
+     * Separate REST call because it must be accessible before login
+     */
+    function loadIsUnauthenticatedPagesEnabled() {
+      return $http
+        .get(CLMLocations.getEnableUnauthenticatedPages())
+        .then(pipe(prop('data'), includes('enable-unauthenticated-pages')));
     }
 
     function available(feature) {
@@ -71,7 +78,7 @@ productFeatureModule.service('ProductFeatures', [
       isNotificationsSupportedForStage: isNotificationsSupportedForStage,
       isNotificationsSupportedForAnyStage: isNotificationsSupportedForAnyStage,
       isEvaluateApplicationAvailable: isEvaluateApplicationAvailable,
-      isUnauthenticatedPagesEnabled: isUnauthenticatedPagesEnabled,
+      loadIsUnauthenticatedPagesEnabled,
     };
   },
 ]);

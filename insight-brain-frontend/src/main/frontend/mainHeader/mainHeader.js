@@ -9,7 +9,14 @@ import template from './mainHeader.html';
 
 /* global clmServerVersion */
 const globalMajorMinorVersion = (clmServerVersion ? `${clmServerVersion}` : '').split('.').splice(0, 2).join('.');
-function MainHeaderController($rootScope, ProductFeatures, PermissionService, CurrentUser, routeStateUtilService) {
+function MainHeaderController(
+  $rootScope,
+  $scope,
+  ProductFeatures,
+  PermissionService,
+  CurrentUser,
+  routeStateUtilService
+) {
   var vm = this;
   vm.faUserAlt = faUserAlt;
   vm.permissions = {};
@@ -18,12 +25,18 @@ function MainHeaderController($rootScope, ProductFeatures, PermissionService, Cu
   vm.isLoggedIn = isLoggedIn;
   vm.isWebhooksSupported = undefined;
   vm.login = login;
-  vm.shouldShowLoginButton = shouldShowLoginButton;
+  vm.shouldShowLoginButton = false;
   vm.majorMinorVersion = globalMajorMinorVersion;
   vm.isSourceControlSupported = undefined;
 
   function hasAnyPermission() {
     return !angular.equals({}, vm.permissions);
+  }
+
+  function checkShowLoginButton() {
+    routeStateUtilService.stateRequiresAuthentication().then((stateRequiresAuthentication) => {
+      vm.shouldShowLoginButton = !stateRequiresAuthentication && !isLoggedIn();
+    });
   }
 
   function doLoad() {
@@ -54,6 +67,8 @@ function MainHeaderController($rootScope, ProductFeatures, PermissionService, Cu
         vm.isSourceControlSupported = ProductFeatures.isAvailable('automation');
       });
     });
+
+    checkShowLoginButton();
   }
 
   function isLoggedIn() {
@@ -64,13 +79,12 @@ function MainHeaderController($rootScope, ProductFeatures, PermissionService, Cu
     CurrentUser.fetch();
   }
 
-  function shouldShowLoginButton() {
-    return !routeStateUtilService.stateRequiresAuthentication() && !isLoggedIn();
-  }
+  $rootScope.$on('$stateChangeSuccess', checkShowLoginButton);
 }
 
 MainHeaderController.$inject = [
   '$rootScope',
+  '$scope',
   'ProductFeatures',
   'PermissionService',
   'CurrentUser',

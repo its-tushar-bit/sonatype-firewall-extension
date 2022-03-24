@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
@@ -55,15 +56,35 @@ public class LoginTest
 
   @Test
   public void testInitialLoginFormState_UnauthenticatedPagesDisabled() {
+    Map<String, Boolean> currentFeatures = insightConfig.getFeatures();
     try {
       insightConfig.setFeatures(new HashMap<>());
       insightConfig.getFeatures().put(Feature.ENABLE_UNAUTHENTICATED_PAGES.getFlag(), false);
 
       refreshOrOpen(ReportListPage.url());
       loginModal.vulnerabilityLookupLink().shouldBe(hidden);
+      loginModal.cancelButton().shouldBe(hidden);
+      MainHeader.loginButton().shouldBe(hidden);
     }
     finally {
-      insightConfig.setFeatures(null);
+      insightConfig.setFeatures(currentFeatures);
+    }
+  }
+
+  @Test
+  public void testLoginFormStateInVulnerabilityLookupPage_UnauthenticatedPagesDisabled() {
+    Map<String, Boolean> currentFeatures = insightConfig.getFeatures();
+    try {
+      insightConfig.setFeatures(new HashMap<>());
+      insightConfig.getFeatures().put(Feature.ENABLE_UNAUTHENTICATED_PAGES.getFlag(), false);
+
+      refreshOrOpen(VulnerabilitySearchPage.url());
+      loginModal.vulnerabilityLookupLink().shouldBe(hidden);
+      loginModal.cancelButton().shouldBe(hidden);
+      MainHeader.loginButton().shouldBe(hidden);
+    }
+    finally {
+      insightConfig.setFeatures(currentFeatures);
     }
   }
 
@@ -75,6 +96,8 @@ public class LoginTest
     loginModal.username().shouldBe(focused);
     loginModal.ssoButton().shouldBe(hidden);
     loginModal.loginButton().shouldBe(enabled);
+    loginModal.cancelButton().shouldBe(hidden);
+    loginModal.vulnerabilityLookupLink().shouldBe(visible);
   }
 
   @Test

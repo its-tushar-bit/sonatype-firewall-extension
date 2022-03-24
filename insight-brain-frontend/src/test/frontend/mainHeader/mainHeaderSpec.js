@@ -13,9 +13,11 @@ describe('mainHeaderSpec', function () {
     mockCurrentUser,
     mockPermissionService,
     mockProductFeatures,
+    mockRouteStateUtilService,
     isSuccessMetricsEnabledDeferred,
     loginDeferred,
     productFeaturesDeferred,
+    routeStateUtilServiceDeferred,
     vm,
     clmServerVersion;
 
@@ -28,6 +30,7 @@ describe('mainHeaderSpec', function () {
     isSuccessMetricsEnabledDeferred = $q.defer();
     loginDeferred = $q.defer();
     productFeaturesDeferred = $q.defer();
+    routeStateUtilServiceDeferred = $q.defer();
     mockSystemConfigurationPropertyService = {
       isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise),
     };
@@ -47,12 +50,19 @@ describe('mainHeaderSpec', function () {
       return false;
     });
 
+    mockRouteStateUtilService = jasmine.createSpyObj('mockRouteStateUtilService', [
+      'stateRequiresAuthenticationSync',
+      'stateRequiresAuthentication',
+    ]);
+    mockRouteStateUtilService.stateRequiresAuthentication.and.returnValue(routeStateUtilServiceDeferred.promise);
+
     vm = $componentController('mainHeader', {
       PermissionService: mockPermissionService,
       CurrentUser: mockCurrentUser,
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
       ProductFeatures: mockProductFeatures,
       $scope: $scope,
+      routeStateUtilService: mockRouteStateUtilService,
     });
   }));
 
@@ -123,37 +133,40 @@ describe('mainHeaderSpec', function () {
   });
 
   describe('shouldShowLoginButton', function () {
-    let routeStateUtilService;
-
-    beforeEach(inject(function (_routeStateUtilService_) {
-      routeStateUtilService = _routeStateUtilService_;
-    }));
-
-    it('returns false if the user is logged in already', function () {
+    it('returns false if the user is logged in already and page requires authentication', function () {
       vm.$onInit();
       $rootScope.username = 'user';
       $scope.$digest();
-      spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(true);
+      routeStateUtilServiceDeferred.resolve(true);
 
-      expect(vm.shouldShowLoginButton()).toBe(false);
+      $rootScope.$digest();
+      expect(vm.shouldShowLoginButton).toBe(false);
+    });
 
-      // whether auth is required makes no difference
-      routeStateUtilService.stateRequiresAuthentication.and.returnValue(false);
-      expect(vm.shouldShowLoginButton()).toBe(false);
+    it('returns false if the user is logged in already and page does not require authentication', function () {
+      vm.$onInit();
+      $rootScope.username = 'user';
+      $scope.$digest();
+      routeStateUtilServiceDeferred.resolve(false);
+
+      $rootScope.$digest();
+      expect(vm.shouldShowLoginButton).toBe(false);
     });
 
     it('returns false if the user is not logged in but the current page requires authentication', function () {
+      routeStateUtilServiceDeferred.resolve(true);
       vm.$onInit();
-      spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(true);
 
-      expect(vm.shouldShowLoginButton()).toBe(false);
+      $rootScope.$digest();
+      expect(vm.shouldShowLoginButton).toBe(false);
     });
 
     it('returns true if the user is not logged in and the current page does not require authentication', function () {
+      routeStateUtilServiceDeferred.resolve(false);
       vm.$onInit();
-      spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(false);
 
-      expect(vm.shouldShowLoginButton()).toBe(true);
+      $rootScope.$digest();
+      expect(vm.shouldShowLoginButton).toBe(true);
     });
   });
 });

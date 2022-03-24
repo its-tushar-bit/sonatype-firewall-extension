@@ -6,7 +6,6 @@
 /* global Base64 */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { always } from 'ramda';
 import { getSessionUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { pathSet } from 'MainRoot/util/reduxToolkitUtil';
@@ -23,7 +22,7 @@ export const initialState = Object.freeze({
     showLoginModal: false,
     showSamlSso: false,
     isFormValid: false,
-    isUnauthenticatedPagesEnabled: true,
+    isUnauthenticatedPagesEnabled: undefined,
   },
   loginModalSubmitState: {
     loginSubmitError: null,
@@ -77,11 +76,29 @@ const userLoginFailed = (state, { payload }) => {
   };
 };
 
+const resetLoginSubmitState = (state) => {
+  return {
+    loginModalState: {
+      username: rscInitialState(''),
+      password: rscInitialState(''),
+      isLicensed: false,
+      showLoginModal: false,
+      showSamlSso: false,
+      isFormValid: false,
+      isUnauthenticatedPagesEnabled: state.loginModalState.isUnauthenticatedPagesEnabled,
+    },
+    loginModalSubmitState: {
+      loginSubmitError: null,
+      loginSubmitMaskState: null,
+    },
+  };
+};
+
 const userLoginSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
-    resetLoginSubmitState: always(initialState),
+    resetLoginSubmitState: resetLoginSubmitState,
     setUsername: pathSet(['loginModalState', 'username']),
     setPassword: pathSet(['loginModalState', 'password']),
     setIsLicensed: pathSet(['loginModalState', 'isLicensed']),

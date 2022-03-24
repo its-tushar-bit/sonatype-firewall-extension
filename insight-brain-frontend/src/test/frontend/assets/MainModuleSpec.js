@@ -62,10 +62,10 @@ describe('mainModuleSpec', function () {
       $window,
       $state
     ) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl()))
@@ -91,10 +91,10 @@ describe('mainModuleSpec', function () {
       ProductFeatures,
       $state
     ) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(402);
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(402);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(402);
 
@@ -114,10 +114,10 @@ describe('mainModuleSpec', function () {
       initService,
       $rootScope
     ) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(500);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
       $rootScope.error = undefined;
@@ -134,10 +134,10 @@ describe('mainModuleSpec', function () {
       initService,
       $rootScope
     ) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(500);
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(500);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
       $rootScope.error = undefined;
@@ -154,10 +154,10 @@ describe('mainModuleSpec', function () {
       initService,
       $rootScope
     ) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(500);
       $rootScope.error = undefined;
@@ -176,10 +176,10 @@ describe('mainModuleSpec', function () {
       ProductFeatures,
       $window
     ) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 
@@ -203,10 +203,10 @@ describe('mainModuleSpec', function () {
       $window,
       $state
     ) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 
@@ -231,10 +231,10 @@ describe('mainModuleSpec', function () {
       $window,
       $state
     ) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['reports-list']);
 
@@ -259,10 +259,10 @@ describe('mainModuleSpec', function () {
       $window,
       $state
     ) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl()))
@@ -289,10 +289,10 @@ describe('mainModuleSpec', function () {
       $window,
       $state
     ) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond([]);
 
@@ -316,10 +316,10 @@ describe('mainModuleSpec', function () {
       return inject(function (_$httpBackend_, CLMLocations, _$window_) {
         $httpBackend = _$httpBackend_;
         $window = _$window_;
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
         $httpBackend
           .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
           .respond(['enable-unauthenticated-pages']);
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
         $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
         $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
       });
@@ -356,10 +356,10 @@ describe('mainModuleSpec', function () {
     }));
 
     it('calls pendoService.start before login', function () {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 
@@ -371,10 +371,10 @@ describe('mainModuleSpec', function () {
     });
 
     it('calls pendoService a second time after login and license fetch', function () {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 
@@ -387,10 +387,10 @@ describe('mainModuleSpec', function () {
     });
 
     it('calls pendoService a second time after login if the license is not installed', function () {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(402);
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(402);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 
@@ -403,10 +403,10 @@ describe('mainModuleSpec', function () {
     });
 
     it('does not call pendoService a second time after failed login', function () {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
         .respond(['enable-unauthenticated-pages']);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(401);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 

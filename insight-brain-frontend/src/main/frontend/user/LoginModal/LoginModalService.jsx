@@ -66,11 +66,7 @@ export default function LoginModalService(rootScope, ngRedux) {
     }
   }
 
-  function setUnauthenticatedPagesEnabled(areUnauthenticatedPagesEnabled) {
-    ngRedux.dispatch(actions.setUnauthenticatedPagesEnabled(areUnauthenticatedPagesEnabled));
-  }
-
-  return { onClickSSO, onSubmit, dismiss, open, setUnauthenticatedPagesEnabled };
+  return { onClickSSO, onSubmit, dismiss, open };
 }
 
 LoginModalService.$inject = ['$rootScope', '$ngRedux'];

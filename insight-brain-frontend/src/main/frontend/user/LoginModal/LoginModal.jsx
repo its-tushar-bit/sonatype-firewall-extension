@@ -9,6 +9,7 @@ import { actions } from './userLoginSlice';
 import * as PropTypes from 'prop-types';
 import useConditionalAutoFocus from 'MainRoot/react/useConditionalAutoFocus';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { not, includes } from 'ramda';
 
 import {
   NxButton,
@@ -39,16 +40,16 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
 
   const { userInput } = nxTextInputStateHelpers;
 
-  const requiresAuthentication =
-    routeState?.data?.authenticationRequired !== undefined ? routeState?.data?.authenticationRequired : true;
-
   // Modal and form logic
   const isFormValid =
     username.value.length === 0 || password.value.length === 0 ? 'Username and password are required' : null;
 
   const samlSsoButtonRef = useConditionalAutoFocus(showSamlSso && isFormValid);
 
-  const renderVulnerabilityLink = isLicensed && requiresAuthentication && isUnauthenticatedPagesEnabled;
+  const renderVulnerabilityLink =
+    isLicensed &&
+    isUnauthenticatedPagesEnabled &&
+    not(includes(routeState.name, ['vulnerabilitySearchDetail', 'vulnerabilitySearch']));
 
   const userInputValidator = (val) => {
     return val.length ? null : 'Required field';
@@ -74,15 +75,20 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
     onDismiss();
   };
 
+  const isShowCancel =
+    includes(routeState.name, ['vulnerabilitySearchDetail', 'vulnerabilitySearch']) &&
+    isUnauthenticatedPagesEnabled &&
+    isLicensed;
+
   return (
     <>
       {showLoginModal && (
-        <NxModal id="iq-login-modal" onCancel={!requiresAuthentication && isLicensed ? onCancelHandler : null}>
+        <NxModal id="iq-login-modal" onCancel={isShowCancel ? onCancelHandler : null}>
           <NxForm
             onSubmit={() => {
               onSubmit({ loginUsername: username.value, loginPassword: password.value });
             }}
-            onCancel={!requiresAuthentication && isLicensed ? onCancelHandler : null}
+            onCancel={isShowCancel ? onCancelHandler : null}
             submitBtnText="Sign in"
             submitError={loginSubmitError}
             submitErrorTitleMessage=" "

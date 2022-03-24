@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSlice';
+import { selectIsMonitoringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
-  selectIsMonitoringSupported,
   selectPolicyMonitoringByOwner,
   selectPolicyMonitoringLoadError,
   selectPolicyMonitoringLoading,
@@ -15,7 +15,7 @@ import {
   selectPolicyMonitoringSubmitError,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSelectors';
 
-export default function MonitoredStageEditorController($scope, StageTypeStore, ProductFeatures, $ngRedux) {
+export default function MonitoredStageEditorController($scope, StageTypeStore, $ngRedux) {
   const vm = this;
 
   Object.assign(vm, {
@@ -44,11 +44,7 @@ export default function MonitoredStageEditorController($scope, StageTypeStore, P
 
     doLoad() {
       vm.loadApplicablePolicyMonitoring({
-        promises: () =>
-          Promise.all([StageTypeStore.get(), ProductFeatures.load()]).then(([stages, features]) => ({
-            stages,
-            features,
-          })),
+        promises: () => StageTypeStore.get().then((stages) => ({ stages })),
       });
     },
 
@@ -68,11 +64,11 @@ export const mapStateToThis = (state) => ({
   loading: selectPolicyMonitoringLoading(state),
   loadError: selectPolicyMonitoringLoadError(state),
   submitError: selectPolicyMonitoringSubmitError(state),
-  isMonitoringSupported: selectIsMonitoringSupported(state),
   policyMonitoringByOwner: selectPolicyMonitoringByOwner(state),
   stages: selectPolicyMonitoringStages(state),
   monitoredStage: selectPolicyMonitoringMonitoredStage(state),
   originalStage: selectPolicyMonitoringOriginalStage(state),
+  isMonitoringSupported: selectIsMonitoringSupported(state),
 });
 
-MonitoredStageEditorController.$inject = ['$scope', 'StageTypeStore', 'ProductFeatures', '$ngRedux'];
+MonitoredStageEditorController.$inject = ['$scope', 'StageTypeStore', '$ngRedux'];

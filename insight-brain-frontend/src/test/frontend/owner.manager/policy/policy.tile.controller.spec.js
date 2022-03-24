@@ -93,6 +93,12 @@ describe('policy.tile.controller', function () {
     it('sets ownerProperties, ownerName, isGrandfatheringSupported, policyMonitoringByOwner, grandfatheringStatusMessage, localProprietaryCount, inheritedProprietaryCount, monitoredStage, loadError', () => {
       const state = {
         router: { currentParams: { organizationId: 'org id', applicationPublicId: 'app id' } },
+        productFeatures: {
+          'policy-monitoring': true,
+          'policy-grandfathering': true,
+          enforcement: true,
+          firewall: true,
+        },
         orgsAndPolicies: {
           proprietary: {
             localMatchers: [
@@ -109,8 +115,6 @@ describe('policy.tile.controller', function () {
             loading: false,
             loadError: null,
             submitError: null,
-            isMonitoringSupported: false,
-            isGrandfatheringSupported: false,
             policiesByOwner: [{ ownerName: 'name' }],
             policyMonitoringByOwner: [{ ownerName: 'name' }],
             inheritedProprietaryCount: 1,
@@ -134,8 +138,10 @@ describe('policy.tile.controller', function () {
 
       expect(output.ownerProperties).toEqual({ ownerId: 'app id', ownerType: 'application' });
       expect(output.ownerName).toBe('name');
-      expect(output.isMonitoringSupported).toBeFalse();
-      expect(output.isGrandfatheringSupported).toBeFalse();
+      expect(output.isMonitoringSupported).toBeTrue();
+      expect(output.isGrandfatheringSupported).toBeTrue();
+      expect(output.isEnforcementSupported).toBeTrue();
+      expect(output.isFirewallSupported).toBeTrue();
       expect(output.policiesByOwner).toEqual([{ ownerName: 'name' }]);
       expect(output.grandfatheringStatusMessage).toBe('message');
       expect(output.localProprietaryCount).toBe(3);

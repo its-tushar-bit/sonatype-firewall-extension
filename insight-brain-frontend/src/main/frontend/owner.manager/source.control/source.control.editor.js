@@ -3,6 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { unwrapResult } from '@reduxjs/toolkit';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import {
+  selectIsSourceControlForSourceTileSupported,
+  selectIsSourceControlSupported,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import template from './source.control.editor.view.html';
 
 export default {
@@ -25,8 +31,8 @@ function SourceControlEditorController(
   DeleteModalService,
   SourceControlService,
   $scope,
-  ProductFeatures,
-  UpdateSourceControlModalService
+  UpdateSourceControlModalService,
+  $ngRedux
 ) {
   var vm = this;
 
@@ -50,7 +56,6 @@ function SourceControlEditorController(
   vm.canCollapseAdvanced = canCollapseAdvanced;
 
   // features
-  vm.areNotificationsSupported = undefined;
   vm.isAutomationSupported = undefined;
   vm.isSourceControlSupported = undefined;
 
@@ -137,9 +142,17 @@ function SourceControlEditorController(
     }
   });
 
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
+
   function doLoad() {
     vm.loadError = undefined;
     vm.loading = true;
+
+    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+    })(vm);
 
     let ownerPromise;
 
@@ -152,15 +165,14 @@ function SourceControlEditorController(
     }
 
     if (ownerPromise !== undefined) {
-      const promises = [ownerPromise, ProductFeatures.load()];
+      const promises = [ownerPromise, vm.loadProductFeatures()];
 
       $q.all(promises)
         .then(function (results) {
+          unwrapResult(results[1]);
           vm.ownerName = results[0].name;
           vm.ownerId = results[0].id;
-          vm.areNotificationsSupported = ProductFeatures.isAvailable('notifications');
-          vm.isAutomationSupported = ProductFeatures.isAvailable('automation');
-          vm.isSourceControlSupported = vm.areNotificationsSupported || vm.isAutomationSupported;
+
           if (vm.isSourceControlSupported) {
             return getSourceControl();
           }
@@ -602,6 +614,10 @@ function SourceControlEditorController(
     return effectiveProvider() && areSourceControlEvaluationsSupported();
   }
 }
+const mapStateToThis = (state) => ({
+  isAutomationSupported: selectIsSourceControlSupported(state),
+  isSourceControlSupported: selectIsSourceControlForSourceTileSupported(state),
+});
 
 SourceControlEditorController.$inject = [
   'CLMContextLocations',
@@ -613,6 +629,6 @@ SourceControlEditorController.$inject = [
   'DeleteModalService',
   'SourceControlService',
   '$scope',
-  'ProductFeatures',
   'UpdateSourceControlModalService',
+  '$ngRedux',
 ];

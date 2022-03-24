@@ -73,12 +73,14 @@ describe('monitored.stage.editor.controller', function () {
   describe('mapStateToThis', () => {
     it('sets policyMonitoringByOwner, stages, originalStage, monitoredStage, loading, loadError, submitError', () => {
       const state = {
+        productFeatures: {
+          'policy-monitoring': true,
+        },
         orgsAndPolicies: {
           policyMonitoring: {
             loading: false,
             loadError: null,
             submitError: null,
-            isMonitoringSupported: false,
             policyMonitoringByOwner: [],
             stages: [
               { stageName: 'Develop', stageTypeId: 1 },
@@ -102,6 +104,7 @@ describe('monitored.stage.editor.controller', function () {
       expect(output.loading).toBeFalse();
       expect(output.loadError).toBeNull();
       expect(output.submitError).toBeNull();
+      expect(output.isMonitoringSupported).toBeTrue();
     });
   });
 });

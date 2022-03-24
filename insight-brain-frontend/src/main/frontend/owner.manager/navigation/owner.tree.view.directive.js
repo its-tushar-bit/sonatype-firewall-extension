@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { unwrapResult } from '@reduxjs/toolkit';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { selectIsSourceControlSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import template from './owner.tree.view.directive.html';
 
 function OwnerTreeViewController(
@@ -21,8 +24,7 @@ function OwnerTreeViewController(
   EventNameConstant,
   LastSelectedOrganization,
   fuzzyFilter,
-  scmOnboardingActions,
-  ProductFeatures
+  scmOnboardingActions
 ) {
   var vm = this;
 
@@ -105,7 +107,11 @@ function OwnerTreeViewController(
     delete vm.error;
     delete vm.rootOrganization;
 
-    vm.unsubscribe = $ngRedux.connect(mapStateToThis, scmOnboardingActions)(vm);
+    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+      ...scmOnboardingActions,
+      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+    })(vm);
+
     if (
       vm.state === undefined ||
       vm.state.scmOnboarding === undefined ||
@@ -117,14 +123,15 @@ function OwnerTreeViewController(
     var loadPromises = [
       $http.get(CLMLocations.getOwnerListUrl()),
       PermissionService.isContextAuthorized(['READ'], 'repository_container'),
-      ProductFeatures.load(),
+      vm.loadProductFeatures(),
     ];
 
     $q.all(loadPromises).then(
       function (results) {
+        unwrapResult(results[2]);
+
         vm.organizations = results[0].data.organizations;
         vm.showRepositories = results[1];
-        vm.isSourceControlSupported = ProductFeatures.isAvailable('automation');
 
         for (var i = vm.organizations.length - 1; i >= 0; i--) {
           var organization = vm.organizations[i];
@@ -315,6 +322,7 @@ function OwnerTreeViewController(
   function mapStateToThis(state) {
     return {
       isScmOnboardingFeatureEnabled: state.scmOnboarding.configState.isScmOnboardingFeatureEnabled,
+      isSourceControlSupported: selectIsSourceControlSupported(state),
     };
   }
 }
@@ -336,7 +344,6 @@ OwnerTreeViewController.$inject = [
   'LastSelectedOrganization',
   'fuzzyFilter',
   'scmOnboardingActions',
-  'ProductFeatures',
   'SourceControlService',
 ];
 

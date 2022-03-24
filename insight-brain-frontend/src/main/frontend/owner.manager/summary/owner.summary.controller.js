@@ -3,6 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { unwrapResult } from '@reduxjs/toolkit';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import {
+  selectIsGrandfatheringSupported,
+  selectIsInnerSourceRepositorySupported,
+  selectIsEvaluateApplicationAvailable,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
+
 export default function OwnerSummaryController(
   $state,
   $scope,
@@ -28,8 +36,8 @@ export default function OwnerSummaryController(
   RevokeGrandfatheringModalService,
   GrandfatherModalService,
   PolicyViolationGrandfatheringService,
-  ProductFeatures,
-  SourceControlService
+  SourceControlService,
+  $ngRedux
 ) {
   var vm = this;
 
@@ -86,9 +94,17 @@ export default function OwnerSummaryController(
     $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
   }
 
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
+
   function doLoad() {
+    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+    })(vm);
+
     var store = vm.isApp ? ApplicationStore : OrganizationStore,
-      promises = [store[vm.error ? 'refresh' : 'get'](), store.getById(id), ProductFeatures.load()];
+      promises = [store[vm.error ? 'refresh' : 'get'](), store.getById(id), vm.loadProductFeatures()];
 
     if (vm.isApp) {
       promises.push(StageTypeStore.getDashboardStages());
@@ -99,11 +115,9 @@ export default function OwnerSummaryController(
 
     $q.all(promises).then(
       function (results) {
+        unwrapResult(results[2]);
         siblings = results[0];
         vm.owner = results[1];
-        vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
-        vm.isEvaluateApplicationAvailable = ProductFeatures.isEvaluateApplicationAvailable();
-        vm.isInnerSourceRepositorySupported = ProductFeatures.isAvailable('inner-source-repository-integration');
 
         if (vm.isApp) {
           vm.stages = results[3];
@@ -251,6 +265,12 @@ export default function OwnerSummaryController(
   }
 }
 
+const mapStateToThis = (state) => ({
+  isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
+  isEvaluateApplicationAvailable: selectIsEvaluateApplicationAvailable(state),
+  isInnerSourceRepositorySupported: selectIsInnerSourceRepositorySupported(state),
+});
+
 OwnerSummaryController.$inject = [
   '$state',
   '$scope',
@@ -276,6 +296,6 @@ OwnerSummaryController.$inject = [
   'RevokeGrandfatheringModalService',
   'GrandfatherModalService',
   'policyViolationGrandfatheringService',
-  'ProductFeatures',
   'SourceControlService',
+  '$ngRedux',
 ];

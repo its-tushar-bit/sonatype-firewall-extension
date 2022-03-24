@@ -13,6 +13,7 @@ import PolicyViolationGrandfatheringService from 'MainRoot/owner.manager/policyV
 import { getPolicyMonitoringUrl, getApplicablePolicyMonitoringUrl } from 'MainRoot/util/CLMLocation';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { selectPolicyMonitoringMonitoredStage } from './orgsAndPoliciesPolicyMonitoringSelectors';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 const REDUCER_NAME = 'orgsAndPoliciesPolicyMonitoring';
 
@@ -24,8 +25,6 @@ export const initialState = {
   policiesByOwner: undefined,
   stages: undefined,
   actionStages: undefined,
-  isMonitoringSupported: undefined,
-  isGrandfatheringSupported: undefined,
   monitoredStage: undefined,
   originalStage: undefined,
   localProprietaryCount: 0,
@@ -35,11 +34,12 @@ export const initialState = {
 
 const loadApplicablePolicyMonitoring = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicablePolicyMonitoring`,
-  ({ promises = () => Promise.resolve({}) } = {}, { getState, rejectWithValue }) => {
+  ({ promises = () => Promise.resolve({}) } = {}, { getState, dispatch, rejectWithValue }) => {
     const { ownerType, ownerId } = selectOwnerProperties(getState());
     return Promise.all([
       axios.get(getApplicablePolicyMonitoringUrl(ownerType, ownerId)).then(prop('data')),
       promises(),
+      dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()),
     ]).catch(rejectWithValue);
   }
 );
@@ -74,13 +74,11 @@ const loadApplicablePolicyMonitoringRequested = (state) => {
 };
 
 const loadApplicablePolicyMonitoringFulfilled = (state, { payload }) => {
-  const [{ policyMonitoringByOwner }, { stages, features, policiesByOwner, actionStages, grandfathering }] = payload;
+  const [{ policyMonitoringByOwner }, { stages, policiesByOwner, actionStages, grandfathering }] = payload;
 
   state.loading = false;
   state.loadError = null;
   state.policyMonitoringByOwner = policyMonitoringByOwner;
-  state.isMonitoringSupported = features.includes('policy-monitoring');
-  state.isGrandfatheringSupported = features.includes('policy-grandfathering');
   if (stages) setStages(state, policyMonitoringByOwner, stages);
   if (actionStages) setMonitoredStageFromActionStages(state, policyMonitoringByOwner, actionStages);
   if (policiesByOwner && actionStages) setPoliciesByOwner(state, policiesByOwner, actionStages);

@@ -3,7 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
+import { unwrapResult } from '@reduxjs/toolkit';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { selectIsInnerSourceRepositorySupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import template from './innersource.repository.tile.html';
 
 export default {
@@ -14,7 +16,6 @@ export default {
 
 function InnerSourceRepositoryTileController(
   $scope,
-  SameOwnerStateNavigationService,
   EventNameConstant,
   CLMContextLocations,
   OrganizationStore,
@@ -22,7 +23,7 @@ function InnerSourceRepositoryTileController(
   $q,
   Messages,
   InnerSourceRepositoryService,
-  ProductFeatures
+  $ngRedux
 ) {
   var vm = this;
   vm.load = load;
@@ -40,9 +41,17 @@ function InnerSourceRepositoryTileController(
     load();
   });
 
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
+
   function load() {
     vm.error = undefined;
     vm.loading = true;
+
+    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+    })(vm);
 
     let ownerPromise;
     let ownerId;
@@ -57,12 +66,12 @@ function InnerSourceRepositoryTileController(
     }
 
     if (ownerPromise !== undefined) {
-      const promises = [ownerPromise, ProductFeatures.load()];
+      const promises = [ownerPromise, vm.loadProductFeatures()];
       $q.all(promises)
         .then(function (results) {
+          unwrapResult(results[1]);
           ownerId = results[0].id;
           vm.editLink = 'repositoryBaseConfigurations.' + ownerType + '({' + ownerType + "Id:'" + ownerId + "'})";
-          vm.isInnerSourceRepositorySupported = ProductFeatures.isAvailable('inner-source-repository-integration');
           if (vm.isInnerSourceRepositorySupported) {
             return InnerSourceRepositoryService.getRepositoryConnections(ownerType, ownerId, true);
           }
@@ -89,9 +98,12 @@ function InnerSourceRepositoryTileController(
   }
 }
 
+const mapStateToThis = (state) => ({
+  isInnerSourceRepositorySupported: selectIsInnerSourceRepositorySupported(state),
+});
+
 InnerSourceRepositoryTileController.$inject = [
   '$scope',
-  'SameOwnerStateNavigationService',
   'event.name.constant',
   'CLMContextLocations',
   'OrganizationStore',
@@ -99,5 +111,5 @@ InnerSourceRepositoryTileController.$inject = [
   '$q',
   'Messages',
   'InnerSourceRepositoryService',
-  'ProductFeatures',
+  '$ngRedux',
 ];

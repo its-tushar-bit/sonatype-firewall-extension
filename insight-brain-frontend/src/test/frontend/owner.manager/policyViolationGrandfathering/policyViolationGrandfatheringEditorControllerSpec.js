@@ -46,7 +46,6 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
         allowChange: true,
         allowOverride: true,
       };
-
       vm.$onInit();
 
       getGrandfatheringDeferred.resolve(config);

@@ -3,6 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { unwrapResult } from '@reduxjs/toolkit';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { selectIsNotificationsSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+
 export default function EvaluateApplicationModalController(
   $rootScope,
   $scope,
@@ -16,7 +20,7 @@ export default function EvaluateApplicationModalController(
   CLMLocations,
   selectedApplication,
   StageTypeStore,
-  ProductFeatures
+  $ngRedux
 ) {
   var validEvaluateBundleStages = ['build', 'stage-release', 'release', 'operate'],
     vm = this;
@@ -60,6 +64,10 @@ export default function EvaluateApplicationModalController(
   });
 
   function doLoad() {
+    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+    })(vm);
+
     vm.evaluationState = 'loading';
     vm.bundle = {
       notify: 'true',
@@ -72,10 +80,11 @@ export default function EvaluateApplicationModalController(
       return setError('Cannot find the associated Application', doLoad);
     }
 
-    const promises = [StageTypeStore.get(), ProductFeatures.load()];
+    const promises = [StageTypeStore.get(), vm.loadProductFeatures()];
 
     $q.all(promises).then(
       function (results) {
+        unwrapResult(results[1]);
         vm.evaluationState = 'ready';
 
         results[0].forEach(function (stage) {
@@ -83,8 +92,6 @@ export default function EvaluateApplicationModalController(
             vm.stages.push(stage);
           }
         });
-
-        vm.isNotificationsSupported = ProductFeatures.isAvailable('notifications');
       },
       function (error) {
         vm.evaluationState = 'ready';
@@ -199,6 +206,10 @@ export default function EvaluateApplicationModalController(
   }
 }
 
+const mapStateToThis = (state) => ({
+  isNotificationsSupported: selectIsNotificationsSupported(state),
+});
+
 EvaluateApplicationModalController.$inject = [
   '$rootScope',
   '$scope',
@@ -212,5 +223,5 @@ EvaluateApplicationModalController.$inject = [
   'CLMLocations',
   'selectedApplication',
   'StageTypeStore',
-  'ProductFeatures',
+  '$ngRedux',
 ];

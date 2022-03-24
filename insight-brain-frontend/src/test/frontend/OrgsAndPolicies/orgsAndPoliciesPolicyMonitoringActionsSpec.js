@@ -6,13 +6,18 @@
 import axios from 'axios';
 import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSlice';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
-import { getPolicyMonitoringUrl, getApplicablePolicyMonitoringUrl } from 'MainRoot/util/CLMLocation';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  getPolicyMonitoringUrl,
+  getApplicablePolicyMonitoringUrl,
+  getProductFeaturesUrl,
+} from 'MainRoot/util/CLMLocation';
 
 describe('orgsAndPoliciesPolicyMonitoringActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const policyMonitoringUrl = getPolicyMonitoringUrl('application', 'application');
   const applicablePolicyMonitoringUrl = getApplicablePolicyMonitoringUrl('application', 'application');
-  let store, state;
+  let store, state, productFeaturesSpy;
 
   beforeEach(function () {
     state = {
@@ -31,21 +36,34 @@ describe('orgsAndPoliciesPolicyMonitoringActions', () => {
     spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
       applicationPublicId: 'application',
     });
+    productFeaturesSpy = spyOn(productFeaturesSelectors, 'selectProductFeaturesSlice').and.returnValue({});
   });
 
   describe('loadApplicablePolicyMonitoring', () => {
     it('loads policy monitoring successfully', (done) => {
-      mockAxiosCalls({ get: { [applicablePolicyMonitoringUrl]: Promise.resolve({ data: {} }) } });
+      mockAxiosCalls({
+        get: {
+          [applicablePolicyMonitoringUrl]: Promise.resolve({ data: {} }),
+          [getProductFeaturesUrl()]: Promise.resolve({
+            data: ['enforcement', 'firewall', 'policy-monitoring', 'policy-grandfathering'],
+          }),
+        },
+      });
 
       store.dispatch(actions.loadApplicablePolicyMonitoring()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axios.get).toHaveBeenCalledTimes(2);
         expect(axios.get).toHaveBeenCalledWith('/rest/policyMonitoring/application/application/applicable');
+        expect(axios.get).toHaveBeenCalledWith('/rest/product/features');
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(6);
         expect(actions).toHaveActionTypesInOrder([
           'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/pending',
+          'productFeatures/fetchProductFeaturesIfNeeded/pending',
+          'productFeatures/fetchProductFeatures/pending',
+          'productFeatures/fetchProductFeatures/fulfilled',
+          'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
           'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
         ]);
         done();
@@ -53,17 +71,24 @@ describe('orgsAndPoliciesPolicyMonitoringActions', () => {
     });
 
     it('dispatches rejected action if loadApplicablePolicyMonitoring request fails', (done) => {
+      productFeaturesSpy.and.returnValue({
+        enforcement: true,
+        firewall: true,
+        'policy-monitoring': true,
+        'policy-grandfathering': true,
+      });
       mockAxiosCalls({ get: { [applicablePolicyMonitoringUrl]: () => Promise.reject('something went wrong') } });
 
       store.dispatch(actions.loadApplicablePolicyMonitoring()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(1);
-        expect(axios.get).toHaveBeenCalledWith('/rest/policyMonitoring/application/application/applicable');
+        expect(axios.get).toHaveBeenCalledOnceWith('/rest/policyMonitoring/application/application/applicable');
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
           'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/pending',
+          'productFeatures/fetchProductFeaturesIfNeeded/pending',
+          'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
           'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/rejected',
         ]);
         done();

@@ -6,9 +6,13 @@
 import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSlice';
 import { actions as propiertaryConfigActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySlice';
 import {
-  selectGrandfatheringStatusMessage,
-  selectIsGrandfatheringSupported,
   selectIsMonitoringSupported,
+  selectIsGrandfatheringSupported,
+  selectIsEnforcementSupported,
+  selectIsFirewallSupported,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectGrandfatheringStatusMessage,
   selectPoliciesByOwner,
   selectPolicyMonitoringActionStages,
   selectPolicyMonitoringLoadError,
@@ -24,14 +28,11 @@ import {
 
 export default function PolicyTileController(
   $scope,
-  $q,
   StageTypeStore,
   SameOwnerStateNavigationService,
-  MonitoredStageService,
   EventNameConstant,
   PolicyHierarchyStore,
   CLMContextLocations,
-  ProductFeatures,
   PolicyViolationGrandfatheringService,
   $ngRedux
 ) {
@@ -48,7 +49,7 @@ export default function PolicyTileController(
   vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.isMonitoringSupported = undefined;
   vm.isGrandfatheringSupported = undefined;
-  vm.isEnforcementSupportedForStage = ProductFeatures.isEnforcementSupportedForStage;
+  vm.isEnforcementSupportedForStage = isEnforcementSupportedForStage;
   vm.editPolicy = editPolicy;
   vm.doLoad = doLoad;
 
@@ -69,7 +70,7 @@ export default function PolicyTileController(
   $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
   function doLoad() {
-    const promises = [PolicyHierarchyStore.get(), StageTypeStore.getActionStages(), ProductFeatures.load()];
+    const promises = [PolicyHierarchyStore.get(), StageTypeStore.getActionStages()];
     if (vm.isAppOrOrg) {
       promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
     }
@@ -77,10 +78,9 @@ export default function PolicyTileController(
     vm.loadPropietaryConfig();
     vm.loadApplicablePolicyMonitoring({
       promises: () =>
-        Promise.all(promises).then(([policiesByOwner, actionStages, features, grandfathering]) => ({
+        Promise.all(promises).then(([policiesByOwner, actionStages, grandfathering]) => ({
           policiesByOwner,
           actionStages,
-          features,
           grandfathering,
         })),
     });
@@ -93,35 +93,36 @@ export default function PolicyTileController(
   function updatedOwnerHandler(event, newOwner) {
     vm.ownerName = newOwner.name;
   }
+
+  function isEnforcementSupportedForStage(stage) {
+    return (vm.isFirewallSupported && stage === 'proxy') || vm.isEnforcementSupported;
+  }
 }
 
-export const mapStateToThis = (state) => {
-  return {
-    ownerProperties: selectOwnerProperties(state),
-    ownerName: selectPolicyMonitoringOwnerName(state),
-    isMonitoringSupported: selectIsMonitoringSupported(state),
-    isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
-    policiesByOwner: selectPoliciesByOwner(state),
-    grandfatheringStatusMessage: selectGrandfatheringStatusMessage(state),
-    localProprietaryCount: selectPropietaryConfigLocalMatchersCount(state),
-    inheritedProprietaryCount: selectPropietaryConfigInheritedMatchersCount(state),
-    propietaryConfigIsloading: selectPropietaryConfigIsLoading(state),
-    monitoredStage: selectPolicyMonitoringMonitoredStage(state),
-    loadError: selectPolicyMonitoringLoadError(state),
-    actionStages: selectPolicyMonitoringActionStages(state),
-  };
-};
+export const mapStateToThis = (state) => ({
+  ownerProperties: selectOwnerProperties(state),
+  ownerName: selectPolicyMonitoringOwnerName(state),
+  policiesByOwner: selectPoliciesByOwner(state),
+  grandfatheringStatusMessage: selectGrandfatheringStatusMessage(state),
+  localProprietaryCount: selectPropietaryConfigLocalMatchersCount(state),
+  inheritedProprietaryCount: selectPropietaryConfigInheritedMatchersCount(state),
+  propietaryConfigIsloading: selectPropietaryConfigIsLoading(state),
+  monitoredStage: selectPolicyMonitoringMonitoredStage(state),
+  loadError: selectPolicyMonitoringLoadError(state),
+  actionStages: selectPolicyMonitoringActionStages(state),
+  isEnforcementSupported: selectIsEnforcementSupported(state),
+  isFirewallSupported: selectIsFirewallSupported(state),
+  isMonitoringSupported: selectIsMonitoringSupported(state),
+  isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
+});
 
 PolicyTileController.$inject = [
   '$scope',
-  '$q',
   'StageTypeStore',
   'SameOwnerStateNavigationService',
-  'monitored.stage.service',
   'event.name.constant',
   'PolicyHierarchyStore',
   'CLMContextLocations',
-  'ProductFeatures',
   'policyViolationGrandfatheringService',
   '$ngRedux',
 ];

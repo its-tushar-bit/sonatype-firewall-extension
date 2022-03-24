@@ -6,7 +6,6 @@
 import { react2angular } from 'react2angular';
 import successMetricsDataService from './successMetricsDataService';
 import CLMLocationModule from '../../util/CLMLocation';
-import productFeaturesModule from '../../util/ProductFeatures';
 import directivesModule from '../../directives/module';
 import commonServicesModule from '../../util/CommonServices';
 import componentsModule from '../../components/module';
@@ -19,7 +18,6 @@ export default angular
   .module('successMetricsModule', [
     'components',
     CLMLocationModule.name,
-    productFeaturesModule.name,
     directivesModule.name,
     commonServicesModule.name,
     componentsModule.name,

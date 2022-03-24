@@ -3,9 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
+import { unwrapResult } from '@reduxjs/toolkit';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { selectSiblings } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
 import { selectLabelsSiblings } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
+import {
+  selectIsMonitoringSupported,
+  selectIsGrandfatheringSupported,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function OwnerDetailTreeViewController(
   $scope,
@@ -17,7 +22,6 @@ export default function OwnerDetailTreeViewController(
   ApplicationStore,
   OrganizationStore,
   LocalRoleService,
-  ProductFeatures,
   $ngRedux
 ) {
   var vm = this;
@@ -45,17 +49,19 @@ export default function OwnerDetailTreeViewController(
   };
 
   vm.$onInit = function () {
-    vm.unsubscribe = $ngRedux.connect(mapStateToThis, null)(vm);
+    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+    })(vm);
+
+    vm.doLoad();
   };
 
   vm.$onDestroy = function () {
     vm.unsubscribe();
   };
 
-  vm.doLoad();
-
   function doLoad() {
-    var promises = [$http.get(CLMContextLocations.getOwnerDetailsUrl())];
+    var promises = [$http.get(CLMContextLocations.getOwnerDetailsUrl()), vm.loadProductFeatures()];
 
     if (vm.isApp) {
       promises.push(ApplicationStore.getById(CLMContextLocations.getEntityId()));
@@ -64,26 +70,25 @@ export default function OwnerDetailTreeViewController(
       promises.push(OrganizationStore.getById(CLMContextLocations.getEntityId()));
     }
 
-    promises.push(ProductFeatures.load());
-
     $q.all(promises).then(
       function (results) {
         vm.details = results[0].data;
+
+        unwrapResult(results[1]);
+
         var allMembersByRoles = vm.details.roles.membersByRole;
         vm.details.roles = LocalRoleService.getRolesWithLocalMembers(allMembersByRoles);
         vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(allMembersByRoles).length > 0;
 
         if (!vm.isRepositories) {
-          vm.ownerName = results[1].name;
+          vm.ownerName = results[2].name;
 
           if (vm.isApp) {
-            vm.areAnyCategoriesDefined = results[2].data.length > 0;
+            vm.areAnyCategoriesDefined = results[3].data.length > 0;
           }
         } else {
           vm.ownerName = 'Repositories';
         }
-        vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
-        vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
       },
       function (error) {
         vm.error = error;
@@ -106,12 +111,12 @@ export default function OwnerDetailTreeViewController(
   });
 }
 
-const mapStateToThis = (state) => {
-  return {
-    labels: selectLabelsSiblings(state),
-    categories: selectSiblings(state),
-  };
-};
+const mapStateToThis = (state) => ({
+  labels: selectLabelsSiblings(state),
+  categories: selectSiblings(state),
+  isMonitoringSupported: selectIsMonitoringSupported(state),
+  isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
+});
 
 OwnerDetailTreeViewController.$inject = [
   '$scope',
@@ -123,6 +128,5 @@ OwnerDetailTreeViewController.$inject = [
   'ApplicationStore',
   'OrganizationStore',
   'local.role.service',
-  'ProductFeatures',
   '$ngRedux',
 ];

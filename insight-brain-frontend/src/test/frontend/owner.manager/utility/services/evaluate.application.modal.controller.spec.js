@@ -3,9 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../../main/frontend/owner.manager/owner.manager.module';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
-describe('evaluate.application.modal.controller.spec.js', function () {
+describe('evaluate.application.modal.controller', function () {
   var scope, vm, $timeout, $httpBackend, CLMLocations, mockSelectedApplication;
 
   beforeEach(
@@ -34,17 +35,17 @@ describe('evaluate.application.modal.controller.spec.js', function () {
 
     spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
     spyOn(StageTypeStore, 'get').and.returnValue(stageTypeStoreDefer.promise);
-    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
-
+    spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
     vm = $controller('evaluate.application.modal.controller', {
       $scope: scope,
       selectedApplication: mockSelectedApplication,
     });
+    vm.isNotificationsSupported = false;
 
     expect(vm.evaluationState).toBe('loading');
     expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();
     stageTypeStoreDefer.resolve(MockData.getActionStageData());
-    $httpBackend.flush();
+    scope.$digest();
   }));
 
   it('Loads bundle and stages properly', function () {

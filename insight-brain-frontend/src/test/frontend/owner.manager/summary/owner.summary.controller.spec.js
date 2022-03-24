@@ -3,12 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
-import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import legacyConfigurationModule from 'MainRoot/LegacyConfigurationModule';
 import ownerUtils from '../owner.utils';
 import applicationResourceMockData from '../mock.data/application.resource.mock.data';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
-describe('owner.summary.controller.js', function () {
+describe('owner.summary.controller', function () {
   beforeEach(
     angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name, function ($provide) {
       $provide.value('$cookies', {
@@ -20,6 +21,7 @@ describe('owner.summary.controller.js', function () {
 
   function createTests(type, storeName, owner) {
     let vm,
+      scope,
       $timeout,
       $httpBackend,
       CLMLocations,
@@ -41,6 +43,7 @@ describe('owner.summary.controller.js', function () {
       mockEvaluateAppModalService;
 
     beforeEach(inject(function (
+      $rootScope,
       $q,
       $controller,
       _$timeout_,
@@ -49,6 +52,8 @@ describe('owner.summary.controller.js', function () {
       _CLMContextLocations_,
       StageTypeStore
     ) {
+      scope = $rootScope.$new();
+
       $timeout = _$timeout_;
       $httpBackend = _$httpBackend_;
       CLMLocations = _CLMLocations_;
@@ -76,6 +81,7 @@ describe('owner.summary.controller.js', function () {
       spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
       spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
       spyOn(CLMContextLocations, 'isApplication').and.returnValue(isApp);
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
 
       mockState = {
         current: {
@@ -102,6 +108,9 @@ describe('owner.summary.controller.js', function () {
         GrandfatherModalService: mockGrandfatherModalService,
         'evaluate.application.modal.service': mockEvaluateAppModalService,
       });
+      vm.isGrandfatheringSupported = true;
+      vm.isEvaluateApplicationAvailable = true;
+      vm.isInnerSourceRepositorySupported = true;
     }));
 
     afterEach(function () {
@@ -114,9 +123,9 @@ describe('owner.summary.controller.js', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(true);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['inner-source-repository-integration']);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveCompositeSourceControl();
+      scope.$digest();
       if (isApp) {
         $httpBackend.flush();
       }
@@ -130,8 +139,6 @@ describe('owner.summary.controller.js', function () {
         expect(vm.hasPermissionToChangeAppId).toEqual(true);
         expect(vm.hasPermissionToEvaluateApp).toEqual(true);
         expect(vm.isGrandfatheringEnabled).toEqual(true);
-      } else {
-        $httpBackend.flush();
       }
 
       expect(vm.owner).toEqual(owner);
@@ -139,13 +146,14 @@ describe('owner.summary.controller.js', function () {
     });
 
     it('Properly loads permissions when unauthorized', function () {
+      vm.isInnerSourceRepositorySupported = false;
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveCompositeSourceControl();
+      scope.$digest();
       if (isApp) {
         $httpBackend.flush();
       }
@@ -156,8 +164,6 @@ describe('owner.summary.controller.js', function () {
         $timeout.flush();
         expect(vm.hasPermissionToChangeAppId).toEqual(false);
         expect(vm.hasPermissionToEvaluateApp).toEqual(false);
-      } else {
-        $httpBackend.flush();
       }
 
       expect(vm.isInnerSourceRepositorySupported).toBeFalsy();
@@ -168,9 +174,9 @@ describe('owner.summary.controller.js', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveCompositeSourceControl();
+      scope.$digest();
       if (isApp) {
         $httpBackend.flush();
       }
@@ -190,8 +196,6 @@ describe('owner.summary.controller.js', function () {
           ].scanId,
         });
         expect(mockWindow.open).toHaveBeenCalled();
-      } else {
-        $httpBackend.flush();
       }
     });
 
@@ -200,14 +204,12 @@ describe('owner.summary.controller.js', function () {
       mockOwnerStore.rejectGetById('Could not find an ' + type);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      scope.$digest();
 
       if (isApp) {
         $httpBackend.flush();
         $timeout.flush();
-      } else {
-        $httpBackend.flush();
       }
 
       expect(vm.owner).toBeUndefined();
@@ -218,8 +220,8 @@ describe('owner.summary.controller.js', function () {
       mockOwnerStore.rejectGet('Error');
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+
       if (isApp) {
         $httpBackend.flush();
       }
@@ -235,6 +237,8 @@ describe('owner.summary.controller.js', function () {
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveCompositeSourceControl();
+      scope.$digest();
+
       if (isApp) {
         $httpBackend.flush();
       }
@@ -242,8 +246,6 @@ describe('owner.summary.controller.js', function () {
 
       if (isApp) {
         $timeout.flush();
-      } else {
-        $httpBackend.flush();
       }
 
       expect(vm.owner).toEqual(owner);
@@ -255,15 +257,14 @@ describe('owner.summary.controller.js', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(400, 'Bad Request');
+      scope.$digest();
 
       if (isApp) {
         $httpBackend.flush();
         $timeout.flush();
         expect(vm.error).toBeDefined();
       } else {
-        $httpBackend.flush();
         expect(vm.error).toBeUndefined();
       }
     });
@@ -273,15 +274,14 @@ describe('owner.summary.controller.js', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       stageTypeStoreDefer.reject('Error');
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      scope.$digest();
 
       if (isApp) {
         $httpBackend.flush();
         $timeout.flush();
         expect(vm.error).toBeDefined();
       } else {
-        $httpBackend.flush();
         expect(vm.error).toBeUndefined();
       }
     });
@@ -291,9 +291,10 @@ describe('owner.summary.controller.js', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveCompositeSourceControl();
+      scope.$digest();
+
       if (isApp) {
         $httpBackend.flush();
       }
@@ -303,7 +304,6 @@ describe('owner.summary.controller.js', function () {
         $timeout.flush();
         owner.organizationId = owner.id;
       } else {
-        $httpBackend.flush();
         owner.parentOrganizationId = owner.id;
       }
 
@@ -322,9 +322,10 @@ describe('owner.summary.controller.js', function () {
           mockOwnerStore.resolveGetById(owner);
           resolveGetGrandfathering(false);
           resolveStageTypeStore(MockData.getDashboardStageData());
-          $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
           resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
           resolveCompositeSourceControl();
+          scope.$digest();
+
           $httpBackend.flush();
           resolveApplicationWritePermission(true);
           $timeout.flush();
@@ -341,9 +342,10 @@ describe('owner.summary.controller.js', function () {
           mockOwnerStore.resolveGetById(owner);
           resolveGetGrandfathering(false);
           resolveStageTypeStore(MockData.getDashboardStageData());
-          $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
           resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
           resolveCompositeSourceControl();
+          scope.$digest();
+
           $httpBackend.flush();
           resolveApplicationWritePermission(false);
           $timeout.flush();
@@ -488,9 +490,6 @@ describe('owner.summary.controller.js', function () {
         }
 
         vm.revokeGrandfathering();
-        if (!isApp) {
-          $httpBackend.flush();
-        }
         expect(mockRevokeGrandfatheringModalService.open).not.toHaveBeenCalled();
       });
 
@@ -501,9 +500,6 @@ describe('owner.summary.controller.js', function () {
           $timeout.flush();
         }
 
-        if (!isApp) {
-          $httpBackend.flush();
-        }
         vm.revokeGrandfathering();
         expect(mockRevokeGrandfatheringModalService.open).toHaveBeenCalled();
       });
@@ -524,7 +520,6 @@ describe('owner.summary.controller.js', function () {
           mockOwnerStore.resolveGetById(owner);
           resolveGetGrandfathering(true);
           resolveStageTypeStore(MockData.getDashboardStageData());
-          $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
           resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
           if (isApp) {
             $httpBackend
@@ -534,13 +529,12 @@ describe('owner.summary.controller.js', function () {
           }
           resolveApplicationWritePermission(true);
           resolveApplicationEvaluatePermission(true);
+          scope.$digest();
 
           if (isApp) {
             $timeout.flush();
             expect(vm.scmProviderIcon).toBe(expectedIcon);
             expect(vm.repositoryUrl).toBe(repoUrl);
-          } else {
-            $httpBackend.flush();
           }
 
           expect(vm.owner).toEqual(owner);
@@ -601,9 +595,9 @@ describe('owner.summary.controller.js', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(isGrandfatheringEnabled);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      $httpBackend
-        .expectGET(CLMLocations.getProductFeaturesUrl())
-        .respond(isGrandfatheringSuppored ? ['policy-grandfathering'] : []);
+
+      vm.isGrandfatheringSupported = isGrandfatheringSuppored;
+
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveCompositeSourceControl();
       if (isApp) {
@@ -616,9 +610,9 @@ describe('owner.summary.controller.js', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      $httpBackend
-        .expectGET(CLMLocations.getProductFeaturesUrl())
-        .respond(isEvaluateAppSupported ? ['cli-integration'] : []);
+
+      vm.isEvaluateApplicationAvailable = isEvaluateAppSupported;
+
       resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveCompositeSourceControl();
       $httpBackend.flush();

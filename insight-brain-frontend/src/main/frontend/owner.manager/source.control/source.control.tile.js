@@ -3,7 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
+import { unwrapResult } from '@reduxjs/toolkit';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { selectIsSourceControlForSourceTileSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import template from './source.control.tile.html';
 import { valueFromHierarchy } from '../../configuration/scmOnboarding/utils/providers';
 
@@ -23,7 +25,7 @@ function SourceControlTileController(
   $q,
   Messages,
   SourceControlService,
-  ProductFeatures
+  $ngRedux
 ) {
   var vm = this;
 
@@ -40,7 +42,6 @@ function SourceControlTileController(
   vm.providerTypesMap = SourceControlService.getProviderTypesMap();
   vm.itemText = undefined;
   vm.itemSubText = undefined;
-  vm.isAutomationSupported = undefined;
   vm.isSourceControlSupported = undefined;
   vm.effectiveProvider = undefined;
   vm.doLoad();
@@ -50,9 +51,17 @@ function SourceControlTileController(
   });
   $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
+
   function doLoad() {
     vm.error = undefined;
     vm.loading = true;
+
+    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+    })(vm);
 
     let ownerPromise;
 
@@ -65,13 +74,13 @@ function SourceControlTileController(
     }
 
     if (ownerPromise !== undefined) {
-      const promises = [ownerPromise, ProductFeatures.load()];
+      const promises = [ownerPromise, vm.loadProductFeatures()];
+
       $q.all(promises)
         .then(function (results) {
+          unwrapResult(results[1]);
           vm.ownerName = results[0].name;
-          let isNotificationsSupported = ProductFeatures.isAvailable('notifications');
-          vm.isAutomationSupported = ProductFeatures.isAvailable('automation');
-          vm.isSourceControlSupported = isNotificationsSupported || vm.isAutomationSupported;
+
           if (vm.isSourceControlSupported) {
             return getSourceControl(results[0].id);
           }
@@ -145,6 +154,9 @@ ${vm.isApp ? ` (${provider})` : ''}`;
     return text;
   }
 }
+const mapStateToThis = (state) => ({
+  isSourceControlSupported: selectIsSourceControlForSourceTileSupported(state),
+});
 
 SourceControlTileController.$inject = [
   '$scope',
@@ -156,5 +168,5 @@ SourceControlTileController.$inject = [
   '$q',
   'Messages',
   'SourceControlService',
-  'ProductFeatures',
+  '$ngRedux',
 ];

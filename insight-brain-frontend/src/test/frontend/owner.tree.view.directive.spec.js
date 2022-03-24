@@ -3,8 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../main/frontend/owner.manager/owner.manager.module';
-import legacyConfigurationModule from '../../main/frontend/LegacyConfigurationModule';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import legacyConfigurationModule from 'MainRoot/LegacyConfigurationModule';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 describe('owner.tree.view.directive.spec.js', function () {
   let scope, $httpBackend, $state, $timeout, CLMLocations, CLMContextLocations, EventNameConstant;
@@ -141,12 +142,14 @@ describe('owner.tree.view.directive.spec.js', function () {
           .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'))
           .respond(permissions);
 
-        $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
-
         scope = _$rootScope_.$new();
         var ownerTreeView = angular.element('<div owner-tree-view></div>');
+        spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+
         _$compile_(ownerTreeView)(scope);
         scope.$digest();
+
+        scope.vm.isSourceControlSupported = true;
 
         spyOn($state, 'includes').and.returnValue(false);
 
@@ -595,26 +598,6 @@ describe('owner.tree.view.directive.spec.js', function () {
       const ownerTreeView = angular.element('<div owner-tree-view></div>');
       _$compile_(ownerTreeView)(scope);
     }));
-
-    it('is supported when automation is available', function () {
-      scope.vm.doLoad();
-      $httpBackend.whenGET(CLMLocations.getOwnerListUrl()).respond(SidebarResourceMockData.getOwnerListUrl());
-      $httpBackend.whenPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
-      $httpBackend.flush();
-
-      expect(scope.vm.isSourceControlSupported).toBeTruthy();
-    });
-
-    it('is unsupported when automation is not available', function () {
-      scope.vm.doLoad();
-      $httpBackend.whenGET(CLMLocations.getOwnerListUrl()).respond(SidebarResourceMockData.getOwnerListUrl());
-      $httpBackend.whenPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
-      $httpBackend.flush();
-
-      expect(scope.vm.isSourceControlSupported).toBeFalsy();
-    });
   });
 
   describe('organization and policy link', function () {
@@ -637,7 +620,9 @@ describe('owner.tree.view.directive.spec.js', function () {
       CLMContextLocations = _CLMContextLocations_;
 
       spyOn($state, 'is').and.returnValue(true);
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
       scope = _$rootScope_.$new();
+
       var ownerTreeView = angular.element('<div owner-tree-view></div>');
       _$compile_(ownerTreeView)(scope);
 
@@ -666,7 +651,6 @@ describe('owner.tree.view.directive.spec.js', function () {
     it('handles load error', function () {
       $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(400, 'Bad Request');
       $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
       $httpBackend.flush();
 
       expect(scope.vm.error).toBeDefined();
@@ -681,7 +665,6 @@ describe('owner.tree.view.directive.spec.js', function () {
     function doLoadWithOwnerList(ownerList) {
       $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
       $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
       scope.$digest();
       $httpBackend.flush();
       $timeout.flush();
@@ -704,6 +687,7 @@ describe('owner.tree.view.directive.spec.js', function () {
       CLMContextLocations = _CLMContextLocations_;
 
       spyOn($state, 'is').and.returnValue(true);
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
       scope = _$rootScope_.$new();
       const ownerTreeView = angular.element('<div owner-tree-view></div>');
       _$compile_(ownerTreeView)(scope);
@@ -714,7 +698,6 @@ describe('owner.tree.view.directive.spec.js', function () {
         scope.vm.doLoad();
         $httpBackend.whenGET(CLMLocations.getOwnerListUrl()).respond(SidebarResourceMockData.getOwnerListUrl());
         $httpBackend.whenPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
-        $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
         $httpBackend.flush();
 
         expect(scope.vm.unsubscribe).toBeDefined();
@@ -727,8 +710,8 @@ describe('owner.tree.view.directive.spec.js', function () {
         scope.$destroy();
         $httpBackend.whenGET(CLMLocations.getOwnerListUrl()).respond(SidebarResourceMockData.getOwnerListUrl());
         $httpBackend.whenPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
-        $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
         $httpBackend.flush();
+
         expect(scope.vm.unsubscribe).toHaveBeenCalledTimes(1);
       });
     });

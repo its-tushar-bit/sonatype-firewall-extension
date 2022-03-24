@@ -3,11 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import sourceControlModule from '../../../../main/frontend/owner.manager/source.control/module';
-import utilityModule from '../../../../main/frontend/utility/utility.module';
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import sourceControlModule from 'MainRoot/owner.manager/source.control/module';
+import utilityModule from 'MainRoot/utility/utility.module';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
-describe('source.control.editor.spec', function () {
+describe('source.control.editor', function () {
   const ROOT_ORG_ID = 'rootOrganizationId';
   const ROOT_ORG_NAME = 'rootOrganizationName';
   const SUB_ORG_ID = 'subOrganizationId';
@@ -18,7 +19,6 @@ describe('source.control.editor.spec', function () {
   const SSH_REPOSITORY_URL = 'ssh://a.com/b/c';
   const NOTIFICATIONS = 'notifications';
   const AUTOMATION = 'automation';
-  const NO_FEATURES = {};
 
   let $rootScope,
     $scope,
@@ -49,16 +49,13 @@ describe('source.control.editor.spec', function () {
     mockSameOwnerStateNavigationService = {
       goEdit: jasmine.createSpy(),
     },
-    $timeout,
-    mockProductFeatures,
-    loadProductFeaturesDefer;
+    $timeout;
 
-  let setExpectations = function (sourceControlName, sourceControlId, sourceControlResult, expectedFeature) {
+  let setExpectations = function (sourceControlName, sourceControlId, sourceControlResult) {
     getByIdDeferred.resolve({
       name: sourceControlName,
       id: sourceControlId,
     });
-    loadProductFeaturesDefer.resolve({});
 
     if (sourceControlResult) {
       if (sourceControlResult.reject) {
@@ -67,32 +64,21 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(sourceControlResult);
       }
     }
-
-    if (expectedFeature) {
-      mockProductFeatures.isAvailable.and.callFake(function (feature) {
-        return feature === expectedFeature;
-      });
-    }
   };
 
-  let digest = function (sourceControlName, sourceControlId, sourceControlResult, expectedFeature) {
-    setExpectations(sourceControlName, sourceControlId, sourceControlResult, expectedFeature);
+  let digest = function (sourceControlName, sourceControlId, sourceControlResult) {
+    setExpectations(sourceControlName, sourceControlId, sourceControlResult);
     $scope.$digest();
   };
 
-  let digestAfterSave = function (sourceControlName, sourceControlId, sourceControlResult, expectedFeature) {
-    setExpectations(sourceControlName, sourceControlId, sourceControlResult, expectedFeature);
+  let digestAfterSave = function (sourceControlName, sourceControlId, sourceControlResult) {
+    setExpectations(sourceControlName, sourceControlId, sourceControlResult);
     vm.save();
     $scope.$digest();
   };
 
-  let digestAfterSaveAndUpdateUrl = function (
-    sourceControlName,
-    sourceControlId,
-    sourceControlResult,
-    expectedFeature
-  ) {
-    setExpectations(sourceControlName, sourceControlId, sourceControlResult, expectedFeature);
+  let digestAfterSaveAndUpdateUrl = function (sourceControlName, sourceControlId, sourceControlResult) {
+    setExpectations(sourceControlName, sourceControlId, sourceControlResult);
     vm.save();
     updateUrlDefer.resolve();
     $scope.$digest();
@@ -120,6 +106,7 @@ describe('source.control.editor.spec', function () {
       $provide.value('$cookies', {
         get: angular.noop,
       });
+      SpecUtil.mockNgRedux($provide);
     })
   );
 
@@ -153,13 +140,9 @@ describe('source.control.editor.spec', function () {
     deleteServiceResourceDefer = $q.defer();
     updateUrlDefer = $q.defer();
     saveResourceDefer = $q.defer();
-    loadProductFeaturesDefer = $q.defer();
     $timeout = _$timeout_;
-    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']);
-    mockProductFeatures.load.and.returnValue(loadProductFeaturesDefer.promise);
-    mockProductFeatures.isAvailable.and.callFake(function (feature) {
-      return feature === NOTIFICATIONS || feature === AUTOMATION;
-    });
+
+    spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
 
     mockSourceControlService.getProviderTypesMap.and.returnValue({
       azure: 'Azure DevOps',
@@ -284,9 +267,11 @@ describe('source.control.editor.spec', function () {
         SourceControlService: mockSourceControlService,
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
-        ProductFeatures: mockProductFeatures,
         UpdateSourceControlModalService: mockUpdateUrlService,
       });
+      vm.isAutomationSupported = true;
+      vm.isSourceControlSupported = true;
+
       vm.sourceControlEditor = {
         $setPristine: function () {},
       };
@@ -310,6 +295,8 @@ describe('source.control.editor.spec', function () {
           ApplicationStore: mockApplicationStore,
           SourceControlService: mockSourceControlService,
         });
+        vm.isAutomationSupported = true;
+        vm.isSourceControlSupported = true;
         expect(mockCLMContextLocations.isOrganization).toHaveBeenCalled();
         expect(mockCLMContextLocations.isRootOrg).toHaveBeenCalled();
         expect(mockCLMContextLocations.isApplication).toHaveBeenCalled();
@@ -668,6 +655,7 @@ describe('source.control.editor.spec', function () {
         });
       }
       it('should return false if license does not support automation', function () {
+        vm.isAutomationSupported = false;
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl, NOTIFICATIONS);
         expect(vm.arePullRequestsSupported()).toBeFalsy();
 
@@ -678,6 +666,7 @@ describe('source.control.editor.spec', function () {
 
     describe('getPullRequestsNotAvailableMessage', function () {
       it('should return message for provider if license supports automation', function () {
+        vm.isAutomationSupported = true;
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
         expect(vm.getPullRequestsNotAvailableMessage()).toEqual('');
 
@@ -690,6 +679,7 @@ describe('source.control.editor.spec', function () {
 
       it('should return licencing message if license does not support automation', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl, NOTIFICATIONS);
+        vm.isAutomationSupported = false;
         expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not supported by your license');
 
         vm.dirtySourceControl.provider = 'gitlab';
@@ -699,6 +689,7 @@ describe('source.control.editor.spec', function () {
 
     describe('isProviderSpecifiedAndPullRequestsSupported', function () {
       it('should return true for provider if license supports automation', function () {
+        vm.isAutomationSupported = true;
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
         expect(vm.isProviderSpecifiedAndPullRequestsSupported()).toBeTruthy();
 
@@ -713,6 +704,7 @@ describe('source.control.editor.spec', function () {
       });
 
       it('should return false if license does not support automation', function () {
+        vm.isAutomationSupported = false;
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl, NOTIFICATIONS);
         expect(vm.isProviderSpecifiedAndPullRequestsSupported()).toBeFalsy();
 
@@ -724,35 +716,6 @@ describe('source.control.editor.spec', function () {
       });
     });
 
-    describe('isSourceControlSupported', function () {
-      it('returns true if notifications are supported', function () {
-        digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl, NOTIFICATIONS);
-        expect(vm.isSourceControlSupported).toBeTruthy();
-      });
-
-      it('returns true if automation is supported', function () {
-        digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl, AUTOMATION);
-        expect(vm.isSourceControlSupported).toBeTruthy();
-      });
-
-      it('returns false if notifications and automation is not supported', function () {
-        digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl, NO_FEATURES);
-        expect(vm.isSourceControlSupported).toBeFalsy();
-      });
-    });
-
-    describe('isAutomationSupported', function () {
-      it('returns true if automation is supported', function () {
-        digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
-        expect(vm.isAutomationSupported).toBeTruthy();
-      });
-
-      it('returns false if automation is not supported', function () {
-        digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl, NOTIFICATIONS);
-        expect(vm.isAutomationSupported).toBeFalsy();
-      });
-    });
-
     describe('vm.loading', function () {
       it('is set to false when all calls success', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
@@ -761,19 +724,6 @@ describe('source.control.editor.spec', function () {
 
       it('is set to false when owner identifier cannot be retrieved', function () {
         getByIdDeferred.reject({ status: 404, data: 'not found' });
-
-        $scope.$digest();
-        expect(vm.loadError).toEqual('not found');
-        expect(vm.loading).toBeFalsy();
-      });
-
-      it('is set to false when product features cannot be retrieved', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORG_ID,
-        });
-        loadProductFeaturesDefer.reject({ status: 404, data: 'not found' });
-        getSourceControlDeferred.resolve(compositeSourceControl);
 
         $scope.$digest();
         expect(vm.loadError).toEqual('not found');
@@ -921,9 +871,11 @@ describe('source.control.editor.spec', function () {
         SourceControlService: mockSourceControlService,
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
-        ProductFeatures: mockProductFeatures,
         UpdateSourceControlModalService: mockUpdateUrlService,
       });
+      vm.isAutomationSupported = true;
+      vm.isSourceControlSupported = true;
+
       vm.sourceControlEditor = {
         $setPristine: function () {},
       };
@@ -947,6 +899,9 @@ describe('source.control.editor.spec', function () {
           ApplicationStore: mockApplicationStore,
           SourceControlService: mockSourceControlService,
         });
+        vm.isAutomationSupported = true;
+        vm.isSourceControlSupported = true;
+
         expect(mockCLMContextLocations.isOrganization).toHaveBeenCalled();
         expect(mockCLMContextLocations.isRootOrg).toHaveBeenCalled();
         expect(mockCLMContextLocations.isApplication).toHaveBeenCalled();
@@ -1671,9 +1626,10 @@ describe('source.control.editor.spec', function () {
         SourceControlService: mockSourceControlService,
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
-        ProductFeatures: mockProductFeatures,
         UpdateSourceControlModalService: mockUpdateUrlService,
       });
+      vm.isAutomationSupported = true;
+      vm.isSourceControlSupported = true;
 
       vm.sourceControlEditor = {
         $setPristine: function () {},
@@ -1698,6 +1654,9 @@ describe('source.control.editor.spec', function () {
           ApplicationStore: mockApplicationStore,
           SourceControlService: mockSourceControlService,
         });
+        vm.isAutomationSupported = true;
+        vm.isSourceControlSupported = true;
+
         expect(mockCLMContextLocations.isOrganization).toHaveBeenCalled();
         expect(mockCLMContextLocations.isRootOrg).toHaveBeenCalled();
         expect(mockCLMContextLocations.isApplication).toHaveBeenCalled();
@@ -2780,6 +2739,7 @@ describe('source.control.editor.spec', function () {
       });
 
       it('should return message if license does not support automation', function () {
+        vm.isAutomationSupported = false;
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl, NOTIFICATIONS);
         expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not supported by your license');
         expect(vm.getSourceControlEvaluationsNotAvailableMessage()).toEqual(

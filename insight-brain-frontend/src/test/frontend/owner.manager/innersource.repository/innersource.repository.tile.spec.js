@@ -3,9 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import innerSourceRepositoryModule from '../../../../main/frontend/owner.manager/innersource.repository/module';
-import utilityModule from '../../../../main/frontend/utility/utility.module';
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import innerSourceRepositoryModule from 'MainRoot/owner.manager/innersource.repository/module';
+import utilityModule from 'MainRoot/utility/utility.module';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 describe('innerSourceRepositoryTile', function () {
   let $rootScope,
@@ -20,15 +21,14 @@ describe('innerSourceRepositoryTile', function () {
     getByIdDeferred2,
     vm,
     mockInnerSourceRepositoryService,
-    getRepositoryConnectionsDeferred,
-    mockProductFeatures,
-    loadProductFeaturesDeferred;
+    getRepositoryConnectionsDeferred;
 
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
       $provide.value('$cookies', {
         get: angular.noop,
       });
+      SpecUtil.mockNgRedux($provide);
     })
   );
 
@@ -43,6 +43,8 @@ describe('innerSourceRepositoryTile', function () {
       'isApplication',
       'getEntityId',
     ]);
+    spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+
     mockOrganizationStore = jasmine.createSpyObj('mockOrganizationStore', ['getById']);
     mockApplicationStore = jasmine.createSpyObj('mockApplicationsStore', ['getById']);
     mockInnerSourceRepositoryService = jasmine.createSpyObj('mockInnerSourceRepositoryService', [
@@ -53,12 +55,6 @@ describe('innerSourceRepositoryTile', function () {
     getByIdDeferred1 = $q.defer();
     getByIdDeferred2 = $q.defer();
     getRepositoryConnectionsDeferred = $q.defer();
-    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']);
-    loadProductFeaturesDeferred = $q.defer();
-    mockProductFeatures.load.and.returnValue(loadProductFeaturesDeferred.promise);
-    mockProductFeatures.isAvailable.and.callFake(function (feature) {
-      return feature === 'inner-source-repository-integration';
-    });
   }));
 
   function initializeVm() {
@@ -68,8 +64,8 @@ describe('innerSourceRepositoryTile', function () {
       OrganizationStore: mockOrganizationStore,
       ApplicationStore: mockApplicationStore,
       InnerSourceRepositoryService: mockInnerSourceRepositoryService,
-      ProductFeatures: mockProductFeatures,
     });
+    vm.isInnerSourceRepositorySupported = true;
   }
 
   function mockOrganization() {
@@ -165,7 +161,6 @@ describe('innerSourceRepositoryTile', function () {
         getByIdDeferred1.resolve({
           id: 'organizationId',
         });
-        loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
         getRepositoryConnectionsDeferred.resolve({
           repositoryConnections: [
             { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
@@ -177,8 +172,6 @@ describe('innerSourceRepositoryTile', function () {
 
         expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
         expect(mockOrganizationStore.getById).toHaveBeenCalledWith('organizationId');
-        expect(mockProductFeatures.load).toHaveBeenCalled();
-        expect(mockProductFeatures.isAvailable).toHaveBeenCalledWith('inner-source-repository-integration');
         expect(mockInnerSourceRepositoryService.getRepositoryConnections).toHaveBeenCalledWith(
           'organization',
           'organizationId',
@@ -200,7 +193,6 @@ describe('innerSourceRepositoryTile', function () {
         getByIdDeferred2.resolve({
           name: 'otherOwnerName',
         });
-        loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
         getRepositoryConnectionsDeferred.resolve({
           repositoryConnections: [
             { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
@@ -212,8 +204,6 @@ describe('innerSourceRepositoryTile', function () {
 
         expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
         expect(mockOrganizationStore.getById).toHaveBeenCalledWith('organizationId');
-        expect(mockProductFeatures.load).toHaveBeenCalled();
-        expect(mockProductFeatures.isAvailable).toHaveBeenCalledWith('inner-source-repository-integration');
         expect(mockInnerSourceRepositoryService.getRepositoryConnections).toHaveBeenCalledWith(
           'organization',
           'organizationId',
@@ -227,7 +217,6 @@ describe('innerSourceRepositoryTile', function () {
 
       it('sets the error message on getById failure', function () {
         getByIdDeferred1.reject({ status: 404, data: 'not found' });
-        loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
         getRepositoryConnectionsDeferred.resolve({
           repositoryConnections: [
             { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
@@ -246,7 +235,6 @@ describe('innerSourceRepositoryTile', function () {
           id: 'organizationId',
         });
         getByIdDeferred2.reject({ status: 404, data: 'not found' });
-        loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
         getRepositoryConnectionsDeferred.resolve({
           repositoryConnections: [
             { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
@@ -260,29 +248,10 @@ describe('innerSourceRepositoryTile', function () {
         expect(vm.loading).toBeFalsy();
       });
 
-      it('sets the error message on loadProductFeaturesDeferred failure', function () {
-        getByIdDeferred1.resolve({
-          id: 'organizationId',
-        });
-        loadProductFeaturesDeferred.reject({ status: 404, data: 'not found' });
-        getRepositoryConnectionsDeferred.resolve({
-          repositoryConnections: [
-            { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
-            { ownerId: 'organizationId', baseUrl: 'https://some.base.url.2' },
-          ],
-        });
-
-        $scope.$digest();
-
-        expect(vm.error).toEqual('not found');
-        expect(vm.loading).toBeFalsy();
-      });
-
       it('sets the error message on getRepositoryConnectionsDeferred failure', function () {
         getByIdDeferred1.resolve({
           id: 'organizationId',
         });
-        loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
         getRepositoryConnectionsDeferred.reject({ status: 404, data: 'not found' });
 
         $scope.$digest();
@@ -295,15 +264,12 @@ describe('innerSourceRepositoryTile', function () {
         getByIdDeferred1.resolve({
           id: 'organizationId',
         });
-        loadProductFeaturesDeferred.resolve([]);
-        mockProductFeatures.isAvailable.and.returnValue(false);
+        vm.isInnerSourceRepositorySupported = false;
 
         $scope.$digest();
 
         expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
         expect(mockOrganizationStore.getById).toHaveBeenCalledWith('organizationId');
-        expect(mockProductFeatures.load).toHaveBeenCalled();
-        expect(mockProductFeatures.isAvailable).toHaveBeenCalledWith('inner-source-repository-integration');
         expect(mockInnerSourceRepositoryService.getRepositoryConnections).not.toHaveBeenCalled();
         expect(vm.error).toBeUndefined();
         expect(vm.loading).toBeFalsy();
@@ -321,7 +287,6 @@ describe('innerSourceRepositoryTile', function () {
         getByIdDeferred1.resolve({
           id: 'applicationInternalId',
         });
-        loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
         getRepositoryConnectionsDeferred.resolve({
           repositoryConnections: [
             { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
@@ -333,8 +298,6 @@ describe('innerSourceRepositoryTile', function () {
 
         expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
         expect(mockApplicationStore.getById).toHaveBeenCalledWith('applicationId');
-        expect(mockProductFeatures.load).toHaveBeenCalled();
-        expect(mockProductFeatures.isAvailable).toHaveBeenCalledWith('inner-source-repository-integration');
         expect(mockInnerSourceRepositoryService.getRepositoryConnections).toHaveBeenCalledWith(
           'application',
           'applicationInternalId',
@@ -356,7 +319,6 @@ describe('innerSourceRepositoryTile', function () {
         getByIdDeferred2.resolve({
           name: 'otherOwnerName',
         });
-        loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
         getRepositoryConnectionsDeferred.resolve({
           repositoryConnections: [
             { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
@@ -368,8 +330,6 @@ describe('innerSourceRepositoryTile', function () {
 
         expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
         expect(mockApplicationStore.getById).toHaveBeenCalledWith('applicationId');
-        expect(mockProductFeatures.load).toHaveBeenCalled();
-        expect(mockProductFeatures.isAvailable).toHaveBeenCalledWith('inner-source-repository-integration');
         expect(mockInnerSourceRepositoryService.getRepositoryConnections).toHaveBeenCalledWith(
           'application',
           'applicationInternalId',
@@ -383,7 +343,6 @@ describe('innerSourceRepositoryTile', function () {
 
       it('sets the error message on getById failure', function () {
         getByIdDeferred1.reject({ status: 404, data: 'not found' });
-        loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
         getRepositoryConnectionsDeferred.resolve({
           repositoryConnections: [
             { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
@@ -402,7 +361,6 @@ describe('innerSourceRepositoryTile', function () {
           id: 'applicationInternalId',
         });
         getByIdDeferred2.reject({ status: 404, data: 'not found' });
-        loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
         getRepositoryConnectionsDeferred.resolve({
           repositoryConnections: [
             { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
@@ -416,29 +374,10 @@ describe('innerSourceRepositoryTile', function () {
         expect(vm.loading).toBeFalsy();
       });
 
-      it('sets the error message on loadProductFeaturesDeferred failure', function () {
-        getByIdDeferred1.resolve({
-          id: 'applicationInternalId',
-        });
-        loadProductFeaturesDeferred.reject({ status: 404, data: 'not found' });
-        getRepositoryConnectionsDeferred.resolve({
-          repositoryConnections: [
-            { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
-            { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.2' },
-          ],
-        });
-
-        $scope.$digest();
-
-        expect(vm.error).toEqual('not found');
-        expect(vm.loading).toBeFalsy();
-      });
-
       it('sets the error message on getRepositoryConnectionsDeferred failure', function () {
         getByIdDeferred1.resolve({
           id: 'applicationInternalId',
         });
-        loadProductFeaturesDeferred.resolve(['inner-source-repository-integration']);
         getRepositoryConnectionsDeferred.reject({ status: 404, data: 'not found' });
 
         $scope.$digest();
@@ -451,15 +390,12 @@ describe('innerSourceRepositoryTile', function () {
         getByIdDeferred1.resolve({
           id: 'applicationInternalId',
         });
-        loadProductFeaturesDeferred.resolve([]);
-        mockProductFeatures.isAvailable.and.returnValue(false);
 
+        vm.isInnerSourceRepositorySupported = false;
         $scope.$digest();
 
         expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
         expect(mockApplicationStore.getById).toHaveBeenCalledWith('applicationId');
-        expect(mockProductFeatures.load).toHaveBeenCalled();
-        expect(mockProductFeatures.isAvailable).toHaveBeenCalledWith('inner-source-repository-integration');
         expect(mockInnerSourceRepositoryService.getRepositoryConnections).not.toHaveBeenCalled();
         expect(vm.error).toBeUndefined();
         expect(vm.loading).toBeFalsy();

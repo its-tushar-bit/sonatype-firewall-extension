@@ -3,11 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import sourceControlModule from '../../../../main/frontend/owner.manager/source.control/module';
-import utilityModule from '../../../../main/frontend/utility/utility.module';
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import sourceControlModule from 'MainRoot/owner.manager/source.control/module';
+import utilityModule from 'MainRoot/utility/utility.module';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
-describe('source.control.tile.spec', function () {
+describe('source.control.tile', function () {
   const ROOT_ORGANIZATION_ID = 'rootOrganizationId';
   const SUB_ORGANIZATION_ID = 'subOrganizationId';
   const APPLICATION_ID = 'applicationId';
@@ -23,15 +24,14 @@ describe('source.control.tile.spec', function () {
     getByIdDeferred,
     vm,
     mockSourceControlService,
-    getSourceControlDeferred,
-    mockProductFeatures,
-    loadProductFeaturesDefer;
+    getSourceControlDeferred;
 
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
       $provide.value('$cookies', {
         get: angular.noop,
       });
+      SpecUtil.mockNgRedux($provide);
     })
   );
 
@@ -61,12 +61,7 @@ describe('source.control.tile.spec', function () {
     mockSourceControlService.getProviderTypesMap.and.returnValue({
       github: 'GitHub',
     });
-    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']);
-    loadProductFeaturesDefer = $q.defer();
-    mockProductFeatures.load.and.returnValue(loadProductFeaturesDefer.promise);
-    mockProductFeatures.isAvailable.and.callFake(function (feature) {
-      return feature === 'notifications' || feature === 'automation';
-    });
+    spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
   }));
 
   describe('load root organization', function () {
@@ -88,8 +83,8 @@ describe('source.control.tile.spec', function () {
         OrganizationStore: mockOrganizationStore,
         ApplicationStore: mockApplicationStore,
         SourceControlService: mockSourceControlService,
-        ProductFeatures: mockProductFeatures,
       });
+      vm.isSourceControlSupported = true;
     }));
 
     it('sets the proper org and app owner flags', function () {
@@ -106,8 +101,6 @@ describe('source.control.tile.spec', function () {
         name: 'rootOrganizationName',
         id: ROOT_ORGANIZATION_ID,
       });
-      loadProductFeaturesDefer.resolve({});
-
       $scope.$digest();
 
       expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
@@ -130,7 +123,6 @@ describe('source.control.tile.spec', function () {
         name: 'rootOrganizationName',
         id: ROOT_ORGANIZATION_ID,
       });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.reject({ status: 400, data: 'bad request' });
 
       $scope.$digest();
@@ -144,7 +136,6 @@ describe('source.control.tile.spec', function () {
         name: 'rootOrganizationName',
         id: ROOT_ORGANIZATION_ID,
       });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({ provider: { value: 'github' }, token: { value: 'TOKEN' } });
 
       $scope.$digest();
@@ -159,7 +150,6 @@ describe('source.control.tile.spec', function () {
         name: 'rootOrganizationName',
         id: ROOT_ORGANIZATION_ID,
       });
-      loadProductFeaturesDefer.resolve({});
 
       $scope.$digest();
 
@@ -183,7 +173,6 @@ describe('source.control.tile.spec', function () {
         name: 'rootOrganizationName',
         id: ROOT_ORGANIZATION_ID,
       });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({ provider: { value: null, parentValue: null }, token: {} });
 
       $scope.$digest();
@@ -200,7 +189,6 @@ describe('source.control.tile.spec', function () {
         name: 'rootOrganizationName',
         id: ROOT_ORGANIZATION_ID,
       });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({ provider: { value: 'github' }, token: {} });
 
       $scope.$digest();
@@ -212,82 +200,12 @@ describe('source.control.tile.spec', function () {
       expect(vm.itemSubText).toEqual('Provides the default source control configuration settings');
     });
 
-    describe('isSourceControlSupported', function () {
-      it('returns true if notifications are supported', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORGANIZATION_ID,
-        });
-        loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve({ provider: { value: 'github' } });
-        mockProductFeatures.isAvailable.and.callFake(function (feature) {
-          return feature === 'notifications';
-        });
-        $scope.$digest();
-        expect(vm.isSourceControlSupported).toBeTruthy();
-      });
-
-      it('returns true if automation is supported', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORGANIZATION_ID,
-        });
-        loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve({ provider: { value: 'github' } });
-        mockProductFeatures.isAvailable.and.callFake(function (feature) {
-          return feature === 'automation';
-        });
-        $scope.$digest();
-        expect(vm.isSourceControlSupported).toBeTruthy();
-      });
-
-      it('returns false if notifications and automation is not supported', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORGANIZATION_ID,
-        });
-        loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve({ provider: { value: 'github' } });
-        mockProductFeatures.isAvailable.and.callFake(function () {
-          return false;
-        });
-        $scope.$digest();
-        expect(vm.isSourceControlSupported).toBeFalsy();
-      });
-    });
-    describe('isAutomationSupported', function () {
-      it('returns true if automation is supported', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORGANIZATION_ID,
-        });
-        loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve({ provider: { value: 'github' } });
-        $scope.$digest();
-        expect(vm.isAutomationSupported).toBeTruthy();
-      });
-
-      it('returns false if automation is not supported', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORGANIZATION_ID,
-        });
-        loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve({ provider: { value: 'github' } });
-        mockProductFeatures.isAvailable.and.callFake(function (feature) {
-          return feature === 'notifications';
-        });
-        $scope.$digest();
-        expect(vm.isAutomationSupported).toBeFalsy();
-      });
-    });
     describe('vm.loading', function () {
       it('is set to false when all calls success', function () {
         getByIdDeferred.resolve({
           name: 'rootOrganizationName',
           id: ROOT_ORGANIZATION_ID,
         });
-        loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve({ provider: { value: 'github' }, token: {} });
 
         $scope.$digest();
@@ -302,22 +220,11 @@ describe('source.control.tile.spec', function () {
         expect(vm.loading).toBeFalsy();
       });
 
-      it('is set to false when product features cannot be retrieved', function () {
-        getByIdDeferred.resolve({ name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID });
-        loadProductFeaturesDefer.reject({ status: 400, data: 'bad request' });
-        getSourceControlDeferred.resolve({ provider: { value: 'github' }, token: {} });
-
-        $scope.$digest();
-        expect(vm.error).toEqual('bad request');
-        expect(vm.loading).toBeFalsy();
-      });
-
       it('is set to false when composite source control cannot be retrieved', function () {
         getByIdDeferred.resolve({
           name: 'rootOrganizationName',
           id: ROOT_ORGANIZATION_ID,
         });
-        loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.reject({ status: 400, data: 'bad request' });
 
         $scope.$digest();
@@ -346,7 +253,6 @@ describe('source.control.tile.spec', function () {
           name: 'rootOrganizationName',
           id: ROOT_ORGANIZATION_ID,
         });
-        loadProductFeaturesDefer.resolve({});
         $scope.$digest();
         expect(vm.error).toEqual(undefined);
         expect(vm.loading).toBeTruthy();
@@ -373,8 +279,8 @@ describe('source.control.tile.spec', function () {
         OrganizationStore: mockOrganizationStore,
         ApplicationStore: mockApplicationStore,
         SourceControlService: mockSourceControlService,
-        ProductFeatures: mockProductFeatures,
       });
+      vm.isSourceControlSupported = true;
     }));
 
     it('sets the proper org and app owner flags', function () {
@@ -391,7 +297,6 @@ describe('source.control.tile.spec', function () {
         name: 'subOrganizationName',
         id: SUB_ORGANIZATION_ID,
       });
-      loadProductFeaturesDefer.resolve({});
 
       $scope.$digest();
 
@@ -406,7 +311,6 @@ describe('source.control.tile.spec', function () {
         name: 'subOrganizationName',
         id: SUB_ORGANIZATION_ID,
       });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({ provider: { value: null, parentValue: null }, token: {} });
 
       $scope.$digest();
@@ -423,7 +327,6 @@ describe('source.control.tile.spec', function () {
         name: 'subOrganizationName',
         id: SUB_ORGANIZATION_ID,
       });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: null, parentValue: null },
@@ -443,7 +346,6 @@ describe('source.control.tile.spec', function () {
         name: 'subOrganizationName',
         id: SUB_ORGANIZATION_ID,
       });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: 'Root Organization', parentValue: 'token' },
@@ -463,7 +365,6 @@ describe('source.control.tile.spec', function () {
         name: 'subOrganizationName',
         id: SUB_ORGANIZATION_ID,
       });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: 'token', parentName: 'Root Organization', parentValue: 'token' },
@@ -498,8 +399,8 @@ describe('source.control.tile.spec', function () {
         OrganizationStore: mockOrganizationStore,
         ApplicationStore: mockApplicationStore,
         SourceControlService: mockSourceControlService,
-        ProductFeatures: mockProductFeatures,
       });
+      vm.isSourceControlSupported = true;
     }));
 
     it('sets the proper org and app owner flags', function () {
@@ -513,7 +414,6 @@ describe('source.control.tile.spec', function () {
 
     it('loads the owner name of the application and reports on success', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
-      loadProductFeaturesDefer.resolve({});
 
       $scope.$digest();
 
@@ -525,7 +425,6 @@ describe('source.control.tile.spec', function () {
 
     it('loads the source control and provides the correct subtext if provider is not defined', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
         provider: { value: null, parentValue: null },
         token: { value: null, parentValue: null },
@@ -542,7 +441,6 @@ describe('source.control.tile.spec', function () {
 
     it('loads source control and provides correct subtext if provider is defined and nothing to inherit', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: null, parentValue: null },
@@ -559,7 +457,6 @@ describe('source.control.tile.spec', function () {
 
     it('loads source control and provides correct subtext if provider is defined and inherited value', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: 'Root Organization', parentValue: 'token' },
@@ -576,7 +473,6 @@ describe('source.control.tile.spec', function () {
 
     it('loads source control and provides correct subtext if provider is defined and token specified', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: 'token', parentName: 'Root Organization', parentValue: 'token' },
@@ -593,7 +489,6 @@ describe('source.control.tile.spec', function () {
 
     it('loads the source control and provides the correct text if provider is not defined', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({ provider: null, token: {} });
 
       $scope.$digest();
@@ -607,7 +502,6 @@ describe('source.control.tile.spec', function () {
 
     it('loads source control and provides correct text if provider is defined and no url', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: null, parentValue: null },
@@ -624,7 +518,6 @@ describe('source.control.tile.spec', function () {
 
     it('loads source control and provides correct text if provider is defined and has url', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
-      loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: null, parentValue: null },

@@ -71,6 +71,7 @@ import otherVersionsSlice from 'MainRoot/quarantinedComponentReport/otherVersion
 import samlConfigurationSlice from '../configuration/saml/samlConfigurationSlice';
 import quarantinedRiskRemediationSlice from 'MainRoot/quarantinedComponentReport/riskRemediationTile/riskRemediationSlice';
 import orgsAndPoliciesSlice from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSlice';
+import productFeaturesSlice from 'MainRoot/productFeatures/productFeaturesSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -140,4 +141,5 @@ export default combineReducers({
   quarantinedComponentReportOtherVersions: otherVersionsSlice,
   quarantinedReportRiskRemediation: quarantinedRiskRemediationSlice,
   orgsAndPolicies: orgsAndPoliciesSlice,
+  productFeatures: productFeaturesSlice,
 });

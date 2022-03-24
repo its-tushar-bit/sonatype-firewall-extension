@@ -5,6 +5,7 @@
  */
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import OwnerUtils from '../owner.utils';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 describe('owner.detail.tree.view.directive', function () {
   beforeEach(
@@ -42,6 +43,7 @@ describe('owner.detail.tree.view.directive', function () {
       spyOn(CLMContextLocations, 'isApplication').and.returnValue(type === 'application');
       spyOn(CLMContextLocations, 'isRepositories').and.returnValue(type === 'repositories');
       spyOn(CLMContextLocations, 'getEntityId').and.returnValue(owner[type === 'application' ? 'publicId' : 'id']);
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
 
       vm = $controller('OwnerDetailTreeViewController', {
         $scope: $scope,
@@ -50,7 +52,11 @@ describe('owner.detail.tree.view.directive', function () {
         },
       });
 
+      vm.isMonitoringSupported = true;
+      vm.isGrandfatheringSupported = true;
+
       $scope.vm = vm;
+      vm.$onInit();
     }));
 
     afterEach(function () {
@@ -210,8 +216,6 @@ describe('owner.detail.tree.view.directive', function () {
           .expectGET(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId()))
           .respond([]);
       }
-
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
 
       $httpBackend.flush();
       $timeout.flush();

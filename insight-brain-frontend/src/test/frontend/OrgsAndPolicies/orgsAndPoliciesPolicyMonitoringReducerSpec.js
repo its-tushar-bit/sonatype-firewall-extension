@@ -5,7 +5,6 @@
  */
 import reducer from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSlice';
 
-const features = ['policy-grandfathering', 'policy-monitoring'];
 const applicablePolicyMonitoring = {
   policyMonitoringByOwner: [
     {
@@ -48,7 +47,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
 
       const newState = reducer(state, {
         type: 'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
-        payload: [applicablePolicyMonitoring, { features }],
+        payload: [applicablePolicyMonitoring, {}],
       });
 
       expect(newState.loading).toBeFalse();
@@ -82,7 +81,6 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
         payload: [
           { policyMonitoringByOwner },
           {
-            features,
             policiesByOwner,
             stages: MockData.getStageData(),
             actionStages: MockData.getStageData(),
@@ -105,7 +103,6 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
         });
       });
       expect(newState.monitoredStage.stageName).toBe('Develop');
-      expect(newState.isMonitoringSupported).toBe(true);
     });
 
     it('uses the placeholder value for monitored stage if one is not inherited', function () {
@@ -123,7 +120,6 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
         payload: [
           { policyMonitoringByOwner },
           {
-            features,
             policiesByOwner,
             stages: MockData.getDashboardStageData(),
             actionStages: MockData.getDashboardStageData(),

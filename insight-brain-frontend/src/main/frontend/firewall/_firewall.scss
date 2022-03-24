@@ -149,3 +149,12 @@ h2.iq-firewall-table-label {
     text-decoration: none;
   }
 }
+
+// id is used to get a high specificity
+#pagination-firewall-quarantine-table .iq-firewall-quarantine-table__component-cell {
+  padding: 0;
+
+  .nx-truncate-ellipsis {
+    padding: calc(var(--nx-spacing-3x) - 1px) var(--nx-spacing-3x) var(--nx-spacing-3x) var(--nx-spacing-3x);
+  }
+}

@@ -183,7 +183,7 @@ export default function FirewallQuarantineTable(props) {
                     <NxTableCell className="visual-testing-ignore">
                       {new Date(row.quarantineDate).toLocaleDateString()}
                     </NxTableCell>
-                    <NxTableCell>
+                    <NxTableCell className="iq-firewall-quarantine-table__component-cell">
                       <NxOverflowTooltip title={row.componentDisplayText}>
                         <div className="nx-truncate-ellipsis">
                           <button

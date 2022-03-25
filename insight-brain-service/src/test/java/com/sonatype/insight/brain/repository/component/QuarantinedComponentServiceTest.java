@@ -15,24 +15,36 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.QuarantinedComponentReportTelemetry;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
 import org.joda.time.DateTime;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_TELEMETRY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class QuarantinedComponentServiceTest
@@ -44,21 +56,29 @@ public class QuarantinedComponentServiceTest
   @Inject
   private QuarantinedComponentService quarantinedComponentService;
 
+  @Mock
+  private TelemetrySender telemetrySenderMock;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(DbQuarantinedComponentAccessManager.class).toInstance(quarantinedComponentAccessManager);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
   }
 
   @Test
   public void testGetQuarantinedComponent() {
-    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn("id");
+    QuarantinedComponentAccess quarantinedComponentAccess =
+        new QuarantinedComponentAccess("repositoryId", "repositoryComponentId", new Date());
+    when(quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token")).thenReturn(
+        quarantinedComponentAccess);
 
     QuarantinedComponentDto quarantinedComponentDto = quarantinedComponentService.getQuarantinedComponent("token");
 
     assertThat(quarantinedComponentDto).isNotNull();
     assertThat(quarantinedComponentDto.success).isTrue();
-    assertThat(quarantinedComponentDto.repositoryComponentId).isEqualTo("id");
+    assertThat(quarantinedComponentDto.repositoryComponentId).isEqualTo("repositoryComponentId");
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   @Test
@@ -67,8 +87,24 @@ public class QuarantinedComponentServiceTest
     Date date = new Date();
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.2");
-    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(
-        setupTestData(componentIdentifier, date, date, null));
+    final String token = "token";
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "repositoryPublicId");
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "com/lingocoder/abi.cli/0.5.2/abi.cli-0.5.2.jar",
+        "hash", componentIdentifier, date, date, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 6,
+        repositoryComponent.getPathname(), false, "fail", "policyId", "policyName",
+        repositoryComponent.getComponentIdentifier(), date);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 6,
+        repositoryComponent.getPathname(), false, "fail", "policyId", "policyName",
+        repositoryComponent.getComponentIdentifier(), date);
+    QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
+
+    when(quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token)).thenReturn(
+        quarantinedComponentAccess);
+    when(quarantinedComponentAccessManager.getTokenExpiryTime(date)).thenReturn(date);
 
     //when
     QuarantinedComponentOverviewDto quarantinedComponentOverviewDto =
@@ -83,6 +119,8 @@ public class QuarantinedComponentServiceTest
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.componentVersion).isEqualTo("0.5.2");
+    assertThat(quarantinedComponentOverviewDto.tokenExpiryTime).isEqualTo(date);
+    assertTelemetry(token, quarantinedComponentAccess.getGenerateTime(), repositoryComponent.getHash());
   }
 
   @Test
@@ -91,7 +129,7 @@ public class QuarantinedComponentServiceTest
     Date date = new Date();
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.2");
-    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(
+    when(quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token")).thenReturn(
         setupTestData(componentIdentifier, date, null, null));
 
     //when
@@ -109,7 +147,7 @@ public class QuarantinedComponentServiceTest
     Date date = new Date();
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.2");
-    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(
+    when(quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token")).thenReturn(
         setupTestData(componentIdentifier, date, date, date));
 
     //when
@@ -125,7 +163,7 @@ public class QuarantinedComponentServiceTest
   public void testGetQuarantinedComponentOverview_componentIdentifierNull() {
     //setup
     Date date = new Date();
-    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token")).thenReturn(
+    when(quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token")).thenReturn(
         setupTestData(null, date, date, null));
 
     assertThatThrownBy(() -> {
@@ -134,7 +172,7 @@ public class QuarantinedComponentServiceTest
         .hasMessage("The component identifier for the requested component does not exist.");
   }
 
-  private String setupTestData(
+  private QuarantinedComponentAccess setupTestData(
       ComponentIdentifier componentIdentifier,
       Date time,
       Date quarantinedTime,
@@ -156,7 +194,9 @@ public class QuarantinedComponentServiceTest
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 6,
         repositoryComponent.getPathname(), false, "fail", "policyId", "policyName",
         repositoryComponent.getComponentIdentifier(), time);
-    return repositoryComponent.getId();
+    QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), time);
+    return quarantinedComponentAccess;
   }
 
   @Test
@@ -184,8 +224,11 @@ public class QuarantinedComponentServiceTest
             "hash", constraintFacts, false, "fail", "policyid_2",
             "policyname_2", repositoryComponent.getComponentIdentifier(), date, null,
             null, null);
-    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token"))
-        .thenReturn(repositoryComponent.getId());
+    QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity
+            .newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
+    when(quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token"))
+        .thenReturn(quarantinedComponentAccess);
 
     // when
     RepositoryPolicyThreatDTO dto =
@@ -206,6 +249,7 @@ public class QuarantinedComponentServiceTest
         conditionFact.getReason());
     assertThat(policyViolationDTO.constraints.get(0).conditions.get(0).conditionSummary).isEqualTo(
         conditionFact.getSummary());
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   @Test
@@ -221,9 +265,12 @@ public class QuarantinedComponentServiceTest
     tempEntity.newRepositoryComponent(repository.getId(), "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.3.jar", date, null);
     tempEntity.newRepositoryComponent(repository.getId(), "com/lingocoder/abi.cli/0.5.4/abi.cli-0.5.4.jar",
         new DateTime(date).minusDays(1).toDate(), date);
+    QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity
+            .newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
 
-    when(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token"))
-        .thenReturn(repositoryComponent.getId());
+    when(quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token"))
+        .thenReturn(quarantinedComponentAccess);
 
     // when
     ApiPageResult<String> result =
@@ -236,6 +283,7 @@ public class QuarantinedComponentServiceTest
     assertThat(result.getPageSize()).isEqualTo(5);
     assertThat(result.getPageCount()).isEqualTo(1);
     assertThat(result.getResults()).hasSize(2);
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   @Test
@@ -244,5 +292,21 @@ public class QuarantinedComponentServiceTest
     assertThat(quarantinedComponentService.getPathnamePrefix("a/b")).isEqualTo("a/b");
     assertThat(quarantinedComponentService.getPathnamePrefix("a/b/c/d/version/file")).isEqualTo("a/b/c/d/");
     assertThat(quarantinedComponentService.getPathnamePrefix("a/b/c/-/file")).isEqualTo("a/b/c/");
+  }
+
+  private void assertTelemetry(final String token, final Date tokenGenerateTime, final String componentHash) {
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock, times(1)).send(telemetryDataArgumentCaptor.capture());
+    final TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.QUARANTINED_COMPONENT_REPORT_USAGE);
+    assertThat(telemetryData.getAttributes()).hasSize(1);
+    QuarantinedComponentReportTelemetry telemetrySent =
+        (QuarantinedComponentReportTelemetry) telemetryData.getAttributes().get(QUARANTINED_COMPONENT_REPORT_TELEMETRY);
+    assertThat(telemetrySent.componentHash).isEqualTo(HdsClientAnalytics.obfuscate(componentHash));
+    assertThat(telemetrySent.token).isEqualTo(HdsClientAnalytics.obfuscate(token));
+    assertThat(telemetrySent.generateTime).isEqualTo(tokenGenerateTime.getTime());
+    assertThat(telemetrySent.anonymousAccessEnabled).isEqualTo(true);
   }
 }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.repository.component;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,10 +28,12 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -40,8 +43,12 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.telemetry.QuarantinedComponentReportTelemetry;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -63,9 +70,13 @@ public class QuarantinedComponentService
 
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 
+  private final TelemetrySender telemetrySender;
+
   private static final String PATHNAME_SEPARATOR = "/";
 
   private static final Logger log = LoggerFactory.getLogger(QuarantinedComponentService.class);
+
+  static final String QUARANTINED_COMPONENT_REPORT_TELEMETRY = "quarantined_component_report_telemetry";
 
   @Inject
   public QuarantinedComponentService(
@@ -74,8 +85,8 @@ public class QuarantinedComponentService
       final RepositoryDAO repositoryDAO,
       final RepositoryComponentDAO repositoryComponentDAO,
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
-      final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO
-  )
+      final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO,
+      final TelemetrySender telemetrySender)
   {
     this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
     this.componentInfoService = componentInfoService;
@@ -83,12 +94,14 @@ public class QuarantinedComponentService
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
+    this.telemetrySender = telemetrySender;
 
     componentInfoService.setToolName("ci");
   }
 
   public QuarantinedComponentDto getQuarantinedComponent(final String token) {
-    String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
+    String repositoryComponentId =
+        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getRepositoryComponentId();
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
 
     checkAccess(repositoryComponent);
@@ -100,7 +113,9 @@ public class QuarantinedComponentService
   }
 
   public QuarantinedComponentOverviewDto getQuarantinedComponentOverview(final String token) {
-    final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
+    QuarantinedComponentAccess quarantinedComponentAccess =
+        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token);
+    final String repositoryComponentId = quarantinedComponentAccess.getRepositoryComponentId();
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
 
     checkAccess(repositoryComponent);
@@ -116,12 +131,16 @@ public class QuarantinedComponentService
     quarantinedComponentOverviewDto.quarantinedDate = repositoryComponent.getQuarantineTime();
     quarantinedComponentOverviewDto.cataloguedDate = repositoryComponent.getTime();
     quarantinedComponentOverviewDto.tokenExpiryTime = quarantinedComponentAccessManager
-        .getTokenExpiryTime(token);
+        .getTokenExpiryTime(quarantinedComponentAccess.getGenerateTime());
+
+    sendTelemetry(token, quarantinedComponentAccess.getGenerateTime(), repositoryComponent.getHash());
+
     return quarantinedComponentOverviewDto;
   }
 
   public RepositoryPolicyThreatDTO getQuarantinedComponentPolicyViolations(final String token) {
-    final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
+    final String repositoryComponentId =
+        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getRepositoryComponentId();
     final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
 
     checkAccess(repositoryComponent);
@@ -137,7 +156,8 @@ public class QuarantinedComponentService
   }
 
   public ComponentVersionInfoDTO getQuarantineComponentVersionRemediation(final String token) {
-    final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
+    final String repositoryComponentId =
+        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getRepositoryComponentId();
     final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
 
     checkAccess(repositoryComponent);
@@ -151,7 +171,8 @@ public class QuarantinedComponentService
                                                           final String version)
       throws IOException
   {
-    final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
+    final String repositoryComponentId =
+        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getRepositoryComponentId();
     final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
 
     checkAccess(repositoryComponent);
@@ -175,7 +196,8 @@ public class QuarantinedComponentService
       throw new BadRequestException("Page and Page size must be greater than 0");
     }
 
-    final String repositoryComponentId = quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(token);
+    final String repositoryComponentId =
+        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getRepositoryComponentId();
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
 
     checkAccess(repositoryComponent);
@@ -274,5 +296,23 @@ public class QuarantinedComponentService
   @Authorize(permission = Permission.READ)
   void checkPermission(@SuppressWarnings("unused") @AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     // The permission check is handled by the authz annotations
+  }
+
+  private void sendTelemetry(
+      final String token,
+      final Date tokenGenerateTime,
+      final String componentHash)
+  {
+    QuarantinedComponentReportTelemetry quarantinedComponentReportTelemetry = new QuarantinedComponentReportTelemetry();
+    quarantinedComponentReportTelemetry.componentHash = HdsClientAnalytics.obfuscate(componentHash);
+    quarantinedComponentReportTelemetry.token = HdsClientAnalytics.obfuscate(token);
+    quarantinedComponentReportTelemetry.generateTime = tokenGenerateTime.getTime();
+    quarantinedComponentReportTelemetry.viewTime = new Date().getTime();
+    quarantinedComponentReportTelemetry.anonymousAccessEnabled =
+        quarantinedComponentAccessDAO.isAnonymousAccessEnabled();
+
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.QUARANTINED_COMPONENT_REPORT_USAGE);
+    telemetryData.getAttributes().put(QUARANTINED_COMPONENT_REPORT_TELEMETRY, quarantinedComponentReportTelemetry);
+    telemetrySender.send(telemetryData);
   }
 }

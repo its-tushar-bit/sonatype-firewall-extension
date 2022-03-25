@@ -181,7 +181,7 @@ public class QuarantinedComponentResourceTest
     // when anonymous request
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
         new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO());
-    Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(encodedToken);
+    Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     // when
     final HttpResponse response =
@@ -220,7 +220,7 @@ public class QuarantinedComponentResourceTest
 
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
         new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO());
-    Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(encodedToken);
+    Date expirationTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     // when authenticated request
     response = restRequest().path(QuarantinedComponentResource.RESOURCE_PATH,
@@ -238,6 +238,7 @@ public class QuarantinedComponentResourceTest
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.componentVersion).isEqualTo("0.5.2");
+    assertThat(quarantinedComponentOverviewDto.tokenExpiryTime).isEqualTo(expirationTime);
   }
 
   @Test
@@ -378,7 +379,7 @@ public class QuarantinedComponentResourceTest
         repositoryComponent.getPathname(), false, "fail", "policyId", "policyName",
         repositoryComponent.getComponentIdentifier(), date);
     final QuarantinedComponentAccess quarantinedComponentAccess =
-        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(), date);
     return Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
   }

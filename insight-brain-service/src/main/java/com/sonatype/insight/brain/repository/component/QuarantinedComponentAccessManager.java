@@ -7,13 +7,14 @@ package com.sonatype.insight.brain.repository.component;
 
 import java.util.Date;
 
+import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 
 public interface QuarantinedComponentAccessManager
 {
   String createToken(final RepositoryComponent repositoryComponent);
 
-  String getRepositoryComponentIdFromToken(final String token);
+  QuarantinedComponentAccess getQuarantinedComponentAccessFromToken(final String token);
 
-  Date getTokenExpiryTime(final String token);
+  Date getTokenExpiryTime(final Date tokenGenerationTime);
 }

@@ -53,7 +53,7 @@ public class DbQuarantinedComponentAccessManagerTest
   }
 
   @Test
-  public void testGetRepositoryComponentIdFromToken() {
+  public void testGetQuarantinedComponentAccessFromToken() {
     // Setup
     final Repository repository = tempEntity.newRepository("repo");
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
@@ -62,13 +62,15 @@ public class DbQuarantinedComponentAccessManagerTest
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
-    assertThat(quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(encodedToken))
-        .isEqualTo(repositoryComponent.getId());
+    QuarantinedComponentAccess result =
+        quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken);
+    assertThat(result).isNotNull();
+    assertThat(result.getRepositoryComponentId()).isEqualTo(repositoryComponent.getId());
   }
 
   @Test(expected = BadRequestException.class)
-  public void testGetRepositoryComponentIdFromToken_featureNotEnabled() {
-    quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token");
+  public void testGetQuarantinedComponentAccessFromToken_featureNotEnabled() {
+    quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token");
   }
 
   @Test
@@ -77,11 +79,11 @@ public class DbQuarantinedComponentAccessManagerTest
         .encodeToString("fakeToken".getBytes(StandardCharsets.UTF_8));
 
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(encodedToken));
+        .isThrownBy(() -> quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken));
   }
 
   @Test
-  public void testGetRepositoryComponentIdFromToken_tokenExpired() {
+  public void testGetQuarantinedComponentAccessFromToken_tokenExpired() {
     // Setup
     final Repository repository = tempEntity.newRepository("repo");
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
@@ -92,12 +94,12 @@ public class DbQuarantinedComponentAccessManagerTest
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> quarantinedComponentAccessManager.getRepositoryComponentIdFromToken(encodedToken));
+        .isThrownBy(() -> quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken));
   }
 
   @Test
-  public void testGetRepositoryComponentIdFromToken_invalidToken() {
+  public void testGetQuarantinedComponentAccessFromToken_invalidToken() {
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> quarantinedComponentAccessManager.getRepositoryComponentIdFromToken("token"));
+        .isThrownBy(() -> quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token"));
   }
 }

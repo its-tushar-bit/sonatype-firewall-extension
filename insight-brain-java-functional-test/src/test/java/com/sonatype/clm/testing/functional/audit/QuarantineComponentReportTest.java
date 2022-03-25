@@ -406,7 +406,7 @@ public class QuarantineComponentReportTest
 
     DbQuarantinedComponentAccessManager dbQuarantinedComponentAccessManager =
         new DbQuarantinedComponentAccessManager(new QuarantinedComponentAccessDAO());
-    Date tokenExpiryTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(encodedToken);
+    Date tokenExpiryTime = dbQuarantinedComponentAccessManager.getTokenExpiryTime(date);
 
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
     waitUntilSpinnersGone();

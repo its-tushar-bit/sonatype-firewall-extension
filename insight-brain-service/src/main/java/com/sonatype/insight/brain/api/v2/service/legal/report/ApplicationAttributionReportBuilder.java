@@ -24,9 +24,11 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationRep
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportApplicationDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.security.Authorize;
@@ -171,6 +173,9 @@ public class ApplicationAttributionReportBuilder
     // then we need to include standard license text to the report.
     Map<String, String> licenseIdToStandardLicenseText = new HashMap<>();
 
+    //Map Component Purl --> String (formatted link)
+    Map<String, String> purlToFormattedLinks = new HashMap<>();
+    Map<String, LegalSourceLinkDTO[]> purlToEnabledLinks = new HashMap<>();
     if (applicationReportDTO.components != null) {
       for (ApiLicenseLegalComponentDTO componentDTO : applicationReportDTO.components) {
         boolean hasLicenseFiles = CollectionUtils.isNotEmpty(componentDTO.licenseLegalData.licenseFiles);
@@ -200,6 +205,11 @@ public class ApplicationAttributionReportBuilder
             purlLicenseToLicenseLink
                 .put(purlLicenseKey, componentDTO.packageUrl);
           }
+
+          Set<LegalSourceLinkDTO> enabledLinks = getEnabledLinks(componentDTO.licenseLegalData.sourceLinks);
+          purlToFormattedLinks.putIfAbsent(componentDTO.packageUrl, formatSourceLink(enabledLinks));
+          purlToEnabledLinks.putIfAbsent(componentDTO.packageUrl, enabledLinks.stream()
+              .toArray(LegalSourceLinkDTO[]::new));
         }
       }
     }
@@ -207,8 +217,41 @@ public class ApplicationAttributionReportBuilder
     contextMap.put("purlToStandardLicenseText", purlToStandardLicenseText);
     contextMap.put("purlLicenseToLicenseLink", purlLicenseToLicenseLink);
     contextMap.put("licenseIdToStandardLicenseText", licenseIdToStandardLicenseText);
+    contextMap.put("formattedSourceLinks", purlToFormattedLinks);
+    contextMap.put("enabledSourceLinks", purlToEnabledLinks);
 
     return contextMap;
+  }
+
+  private static Set<LegalSourceLinkDTO> getEnabledLinks(Set<LegalSourceLinkDTO> sourceLinks) {
+    if (CollectionUtils.isEmpty(sourceLinks)) {
+      return new HashSet<>();
+    }
+    return sourceLinks.stream().filter(l -> l.status
+        .equals(ComponentLegalPartStatus.ENABLED)).collect(Collectors.toSet());
+  }
+
+  public static String formatSourceLink(Set<LegalSourceLinkDTO> sourceLinks) {
+    if (CollectionUtils.isNotEmpty(sourceLinks)) {
+      LegalSourceLinkDTO[] links = sourceLinks.stream().toArray(LegalSourceLinkDTO[]::new);
+      if (links.length == 0 || links[0] == null || links[0].content == null) {
+        return "";
+      }
+
+      String firstLink = links[0].content;
+      if (sourceLinks.size() > 1) {
+        String linksCommaSeparated = sourceLinks.stream().map(o -> o.content)
+            .collect(Collectors.joining(", "));
+        return linksCommaSeparated.length() > 55 ? linksCommaSeparated.substring(0, 55) + "..., "
+            : firstLink + ", ";
+      }
+      else {
+        return firstLink.length() > 55 ? firstLink.substring(0, 55) + "..." : firstLink;
+      }
+    }
+    else {
+      return "";
+    }
   }
 
   private void validateReportParameters(final LegalCustomReportParameters reportParameters) {

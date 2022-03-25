@@ -178,6 +178,7 @@
   <tr>
     <th>Component</th>
     <th>License</th>
+    <th>Source Code Links</th>
   </tr>
   </thead>
   <tbody>
@@ -190,6 +191,15 @@
                   th:href="${'#' + purlLicenseToLicenseLink.get(component.packageUrl+'-'+license)}"
                   th:text="${license}">License</a><span th:text="${!iterState.last? ', ' : ''}"></span>
         </span>
+    </td>
+    <td th:with="links=${enabledSourceLinks.get(component.packageUrl)}">
+      <span  th:if="${links !=null && links.length > 0}">
+          <a rel="noreferrer" target="_blank" th:href="${links[0].content}"
+             th:text="${formattedSourceLinks.get(component.packageUrl)}">Source Link</a>
+          <span th:if="${links.length > 1}">
+            <a th:href="'#original-sources-' + ${component.packageUrl}" th:text="'(' + ${links.length} + ')'"></a>
+          </span>
+      </span>
     </td>
   </tr>
   </tbody>
@@ -217,6 +227,17 @@
     <li th:each="copyright : ${component.licenseLegalData.copyrights}"
         th:if="${#strings.equals(copyright.status, 'enabled')}"
         th:text="${copyright.content}">Copyright Data
+    </li>
+  </ul>
+
+  <!-- Original Sources -->
+  <h3  th:id="'original-sources-' + ${component.packageUrl}" th:if="${component.licenseLegalData.sourceLinks != null &&
+  #sets.size(component.licenseLegalData.sourceLinks) > 0}">
+    Original Sources</h3>
+  <ul class="report-list">
+    <li th:each="linkDTO,iterState : ${component.licenseLegalData.sourceLinks}"
+        th:if="${linkDTO != null && #strings.equals(linkDTO.status, 'enabled')}">
+      <a rel="noreferrer" target="_blank" th:href="${linkDTO.content}" th:text="${linkDTO.content}">Source Link</a>
     </li>
   </ul>
 

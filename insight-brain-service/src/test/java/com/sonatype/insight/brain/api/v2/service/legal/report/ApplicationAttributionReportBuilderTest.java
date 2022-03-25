@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
@@ -430,18 +431,82 @@ public class ApplicationAttributionReportBuilderTest
     licenseLegalData2.effectiveLicenses = new ArrayList<>();
     licenseLegalData2.effectiveLicenses.add("License Three");
 
+    //// Only 1 source link less than 56 characters
+    LegalSourceLinkDTO linkDTOShortLink = new LegalSourceLinkDTO();
+    linkDTOShortLink.id = "1";
+    linkDTOShortLink.content = "http://localhost";
+    linkDTOShortLink.status = ComponentLegalPartStatus.ENABLED;
+    HashSet<LegalSourceLinkDTO> sourceLinkDTOS = new HashSet<LegalSourceLinkDTO>();
+    sourceLinkDTOS.add(linkDTOShortLink);
+    licenseLegalData2.sourceLinks = sourceLinkDTOS;
+
     //Third Component - only contains standard license text
     ApiComponentDTOV2 component3 = new ApiComponentDTOV2();
     component3.displayName = "component 3";
     component3.packageUrl = "purl3";
-
     ApiLicenseLegalDataDTO licenseLegalData3 = new ApiLicenseLegalDataDTO();
     licenseLegalData3.effectiveLicenses = Lists.newArrayList("LicenseOne");
+
+    //// Only 1 source link more than 56 characters
+    LegalSourceLinkDTO linkDTOLongLink = new LegalSourceLinkDTO();
+    linkDTOLongLink.id = "1";
+    linkDTOLongLink.content = "http://test/more/than/56/characters/test/test/test/test/test/test/test/test";
+    linkDTOLongLink.status = ComponentLegalPartStatus.ENABLED;
+    HashSet<LegalSourceLinkDTO> sourceLinkDTOSLongLink = new HashSet<LegalSourceLinkDTO>();
+    sourceLinkDTOSLongLink.add(linkDTOLongLink);
+    licenseLegalData3.sourceLinks = sourceLinkDTOSLongLink;
+
+    //Fourth Component - only contains standard license text
+    ApiComponentDTOV2 component4 = new ApiComponentDTOV2();
+    component4.displayName = "component 4";
+    component4.packageUrl = "purl4";
+    ApiLicenseLegalDataDTO licenseLegalData4 = new ApiLicenseLegalDataDTO();
+    licenseLegalData4.effectiveLicenses = Lists.newArrayList("LicenseOne");
+
+    //// More than 1 source link, first link shorter than  56 characters
+    LegalSourceLinkDTO linkDTOMultiShortLink1 = new LegalSourceLinkDTO();
+    linkDTOMultiShortLink1.id = "1";
+    linkDTOMultiShortLink1.content = "http://abc";
+    linkDTOMultiShortLink1.status = ComponentLegalPartStatus.ENABLED;
+
+    LegalSourceLinkDTO linkDTOMultiShortLink2 = new LegalSourceLinkDTO();
+    linkDTOMultiShortLink2.id = "2";
+    linkDTOMultiShortLink2.content = "http://abc";
+    linkDTOMultiShortLink2.status = ComponentLegalPartStatus.ENABLED;
+
+    HashSet<LegalSourceLinkDTO> sourceLinkDTOSMultiShortLink = new HashSet<LegalSourceLinkDTO>();
+    sourceLinkDTOSMultiShortLink.add(linkDTOMultiShortLink1);
+    sourceLinkDTOSMultiShortLink.add(linkDTOMultiShortLink2);
+    licenseLegalData4.sourceLinks = sourceLinkDTOSMultiShortLink;
+
+    //Fifth Component - only contains standard license text
+    ApiComponentDTOV2 component5 = new ApiComponentDTOV2();
+    component5.displayName = "component 5";
+    component5.packageUrl = "purl5";
+    ApiLicenseLegalDataDTO licenseLegalData5 = new ApiLicenseLegalDataDTO();
+    licenseLegalData5.effectiveLicenses = Lists.newArrayList("LicenseOne");
+    //// More than 1 source link, first link longer than  56 characters
+    LegalSourceLinkDTO linkDTOMultiLongLink1 = new LegalSourceLinkDTO();
+    linkDTOMultiLongLink1.id = "1";
+    linkDTOMultiLongLink1.content = "http://test/more/than/56/characters/test/test/test/test/test/test/test/test/1";
+    linkDTOMultiLongLink1.status = ComponentLegalPartStatus.DISABLED;
+
+    LegalSourceLinkDTO linkDTOMultiLongLink2 = new LegalSourceLinkDTO();
+    linkDTOMultiLongLink2.id = "2";
+    linkDTOMultiLongLink2.content = "http://test/more/than/56/characters/test/test/test/test/test/test/test/test/2";
+    linkDTOMultiLongLink2.status = ComponentLegalPartStatus.ENABLED;
+
+    HashSet<LegalSourceLinkDTO> sourceLinkDTOSMultiLongLink = new HashSet<LegalSourceLinkDTO>();
+    sourceLinkDTOSMultiLongLink.add(linkDTOMultiLongLink1);
+    sourceLinkDTOSMultiLongLink.add(linkDTOMultiLongLink2);
+    licenseLegalData5.sourceLinks = sourceLinkDTOSMultiLongLink;
 
     reportDTO.components = new ArrayList<>();
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component1, licenseLegalData1, null));
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component2, licenseLegalData2, null));
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component3, licenseLegalData3, null));
+    reportDTO.components.add(new ApiLicenseLegalComponentDTO(component4, licenseLegalData4, null));
+    reportDTO.components.add(new ApiLicenseLegalComponentDTO(component5, licenseLegalData5, null));
 
     if (addMultiApp) {
       when(mockApiLicenseLegalService.getLicenseLegalApplicationReportNoException(application, BuildStageType.ID))

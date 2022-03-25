@@ -14,6 +14,13 @@ import {
   selectIsInnerSourceRepositorySupported,
   selectIsEvaluateApplicationAvailable,
   selectIsSourceControlForSourceTileSupported,
+  selectIsAdvancedLegalPackSupported,
+  selectIsReleaseIntegritySupported,
+  selectIsFirewallAutoUnquarantineSupported,
+  selectIsFirewallSupportedForNavigationContainer,
+  selectIsDashboardSupported,
+  selectIsReportListSupported,
+  selectIsDataInsightsSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('productFeaturesSelectors', () => {
@@ -32,6 +39,12 @@ describe('productFeaturesSelectors', () => {
         automation: true,
         'inner-source-repository-integration': true,
         'cli-integration': true,
+        'reports-list': true,
+        dashboard: true,
+        'advanced-legal-pack': true,
+        'release-integrity': true,
+        'firewall-auto-unquarantine': true,
+        'data-insights': true,
       },
     };
   });
@@ -101,6 +114,58 @@ describe('productFeaturesSelectors', () => {
       mockState.productFeatures.notifications = false;
       mockState.productFeatures.automation = true;
       expect(selectIsSourceControlForSourceTileSupported(mockState)).toBeTrue();
+    });
+  });
+
+  describe('selectIsReportListSupported', () => {
+    it('returns true if report-list enabled', () => {
+      expect(selectIsReportListSupported(mockState)).toBeTrue();
+    });
+  });
+
+  describe('selectIsDashboardSupported', () => {
+    it('returns true if dashboard enabled', () => {
+      expect(selectIsDashboardSupported(mockState)).toBeTrue();
+    });
+  });
+
+  describe('selectIsAdvancedLegalPackSupported', () => {
+    it('returns true if advanced-legal-pack enabled', () => {
+      expect(selectIsAdvancedLegalPackSupported(mockState)).toBeTrue();
+    });
+  });
+
+  describe('selectIsReleaseIntegritySupported', () => {
+    it('returns true if release-integrity enabled', () => {
+      expect(selectIsReleaseIntegritySupported(mockState)).toBeTrue();
+    });
+  });
+
+  describe('selectIsFirewallAutoUnquarantineSupported', () => {
+    it('returns true if firewall-auto-unquarantine enabled', () => {
+      expect(selectIsFirewallAutoUnquarantineSupported(mockState)).toBeTrue();
+    });
+  });
+
+  describe('selectIsFirewallSupportedForNavigationContainer', () => {
+    it('returns true if both firewall-auto-unquarantine and release-integrity are enabled', () => {
+      expect(selectIsFirewallSupportedForNavigationContainer(mockState)).toBeTrue();
+    });
+
+    it('returns false if firewall-auto-unquarantine is disabled', () => {
+      mockState.productFeatures['firewall-auto-unquarantine'] = false;
+      expect(selectIsFirewallSupportedForNavigationContainer(mockState)).toBeFalse();
+    });
+
+    it('returns false if release-integrity is disabled', () => {
+      mockState.productFeatures['release-integrity'] = false;
+      expect(selectIsFirewallSupportedForNavigationContainer(mockState)).toBeFalse();
+    });
+  });
+
+  describe('selectIsDataInsightsSupported', () => {
+    it('returns true if data-insights enabled', () => {
+      expect(selectIsDataInsightsSupported(mockState)).toBeTrue();
     });
   });
 });

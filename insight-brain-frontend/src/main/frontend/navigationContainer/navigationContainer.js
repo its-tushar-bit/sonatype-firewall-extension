@@ -3,25 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { path } from 'ramda';
+import template from './navigationContainer.html';
 import { load as loadAdvancedSearchConfig } from '../configuration/advancedSearch/advancedSearchConfigActions';
 import { loadConfiguration as loadSuccessMetricsConfig } from '../configuration/successMetricsConfiguration/successMetricsConfigurationActions';
-import template from './navigationContainer.html';
-import { path } from 'ramda';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import {
+  selectIsAdvancedLegalPackSupported,
+  selectIsFirewallSupportedForNavigationContainer,
+  selectIsDashboardSupported,
+  selectIsReportListSupported,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 /* global clmServerVersion */
-function NavigationContainerController(
-  $rootScope,
-  $state,
-  $scope,
-  CurrentUser,
-  ProductFeatures,
-  systemConfigurationPropertyService,
-  $ngRedux
-) {
+function NavigationContainerController($rootScope, $state, $scope, CurrentUser, $ngRedux) {
   var vm = this;
   vm.$state = $state;
-  vm.isDashboardAvailable = ProductFeatures.isDashboardAvailable;
-  vm.isReportsListAvailable = ProductFeatures.isReportsListAvailable;
+  vm.isDashboardAvailable = isDashboardAvailable;
+  vm.isReportsListAvailable = isReportsListAvailable;
   vm.isSuccessMetricsEnabled = false;
   vm.isAdvancedSearchEnabled = false;
   vm.$onInit = doLoad;
@@ -54,13 +53,7 @@ function NavigationContainerController(
 
       $ngRedux.dispatch(loadAdvancedSearchConfig());
       $ngRedux.dispatch(loadSuccessMetricsConfig());
-
-      ProductFeatures.load().then(function () {
-        vm.isFirewallSupported =
-          ProductFeatures.isAvailable('firewall-auto-unquarantine') && ProductFeatures.isAvailable('release-integrity');
-
-        vm.isAdvancedLegalPackSupported = ProductFeatures.isAvailable('advanced-legal-pack');
-      });
+      $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded());
     });
   }
 
@@ -71,24 +64,28 @@ function NavigationContainerController(
   function isLicensed() {
     return $rootScope.licensed;
   }
+
+  function isDashboardAvailable() {
+    return vm.isDashboardSupported;
+  }
+
+  function isReportsListAvailable() {
+    return vm.isReportListSupported;
+  }
 }
 
 function mapStateToThis(state) {
   return {
     isAdvancedSearchEnabled: path(['advancedSearchConfig', 'serverData', 'isEnabled'], state),
     isSuccessMetricsEnabled: path(['successMetricsConfiguration', 'serverData', 'enabled'], state),
+    isFirewallSupported: selectIsFirewallSupportedForNavigationContainer(state),
+    isAdvancedLegalPackSupported: selectIsAdvancedLegalPackSupported(state),
+    isDashboardSupported: selectIsDashboardSupported(state),
+    isReportListSupported: selectIsReportListSupported(state),
   };
 }
 
-NavigationContainerController.$inject = [
-  '$rootScope',
-  '$state',
-  '$scope',
-  'CurrentUser',
-  'ProductFeatures',
-  'systemConfigurationPropertyService',
-  '$ngRedux',
-];
+NavigationContainerController.$inject = ['$rootScope', '$state', '$scope', 'CurrentUser', '$ngRedux'];
 
 export default {
   controller: NavigationContainerController,

@@ -3,8 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import mainHeaderModule from '../../../main/frontend/mainHeader/module';
-import legacyConfigurationModule from '../../../main/frontend/LegacyConfigurationModule';
+import mainHeaderModule from 'MainRoot/mainHeader/module';
+import legacyConfigurationModule from 'MainRoot/LegacyConfigurationModule';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { mapStateToThis } from 'MainRoot/mainHeader/mainHeader';
 
 describe('mainHeaderSpec', function () {
   var $scope,
@@ -12,16 +14,20 @@ describe('mainHeaderSpec', function () {
     mockSystemConfigurationPropertyService,
     mockCurrentUser,
     mockPermissionService,
-    mockProductFeatures,
     mockRouteStateUtilService,
+    routeStateUtilServiceDeferred,
     isSuccessMetricsEnabledDeferred,
     loginDeferred,
-    productFeaturesDeferred,
-    routeStateUtilServiceDeferred,
+    unsubscribeSpy,
     vm,
-    clmServerVersion;
+    clmServerVersion,
+    fetchProductFeaturesSpy;
 
-  beforeEach(angular.mock.module(mainHeaderModule.name, legacyConfigurationModule.name));
+  beforeEach(
+    angular.mock.module(mainHeaderModule.name, legacyConfigurationModule.name, function ($provide) {
+      unsubscribeSpy = SpecUtil.mockNgRedux($provide);
+    })
+  );
 
   beforeEach(inject(function (_$rootScope_, $q, $componentController) {
     clmServerVersion = window.clmServerVersion;
@@ -29,7 +35,6 @@ describe('mainHeaderSpec', function () {
     $rootScope = _$rootScope_;
     isSuccessMetricsEnabledDeferred = $q.defer();
     loginDeferred = $q.defer();
-    productFeaturesDeferred = $q.defer();
     routeStateUtilServiceDeferred = $q.defer();
     mockSystemConfigurationPropertyService = {
       isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise),
@@ -44,11 +49,7 @@ describe('mainHeaderSpec', function () {
       getValidPermissions: jasmine.createSpy().and.returnValue($q.resolve()),
     };
 
-    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']);
-    mockProductFeatures.load.and.returnValue(productFeaturesDeferred.promise);
-    mockProductFeatures.isAvailable.and.callFake(function () {
-      return false;
-    });
+    fetchProductFeaturesSpy = spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
 
     mockRouteStateUtilService = jasmine.createSpyObj('mockRouteStateUtilService', [
       'stateRequiresAuthenticationSync',
@@ -60,7 +61,6 @@ describe('mainHeaderSpec', function () {
       PermissionService: mockPermissionService,
       CurrentUser: mockCurrentUser,
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
-      ProductFeatures: mockProductFeatures,
       $scope: $scope,
       routeStateUtilService: mockRouteStateUtilService,
     });
@@ -71,38 +71,51 @@ describe('mainHeaderSpec', function () {
     $scope.$destroy();
   });
 
-  it('properly loads on not supported labs data insights', function () {
-    vm.$onInit();
-    loginDeferred.resolve();
-    productFeaturesDeferred.resolve();
-    $scope.$digest();
+  describe('mapStateToThis', () => {
+    it('sets applicableLabels, error, loading and ownerName', () => {
+      const state = {
+        productFeatures: {
+          'webhooks-for-applications': true,
+          'data-insights': true,
+          automation: true,
+        },
+      };
 
-    expect(vm.isLabsDataInsightsEnabled).toBe(false);
+      const output = mapStateToThis(state);
+
+      expect(output.isWebhooksSupported).toBeTrue();
+      expect(output.isLabsDataInsightsEnabled).toBeTrue();
+      expect(output.isSourceControlSupported).toBeTrue();
+    });
   });
 
-  it('properly loads on supported labs data insights', function () {
-    mockProductFeatures.isAvailable.and.callFake(function (feature) {
-      return feature === 'data-insights';
-    });
+  it('calls fetchProductFeaturesIfNeeded action on init', function () {
     vm.$onInit();
     loginDeferred.resolve();
-    productFeaturesDeferred.resolve();
     $scope.$digest();
 
-    expect(vm.isLabsDataInsightsEnabled).toBe(true);
+    expect(fetchProductFeaturesSpy).toHaveBeenCalled();
+  });
+
+  it('calls unsubscribe when the $scope is destroyed', function () {
+    vm.$onInit();
+    loginDeferred.resolve();
+    $scope.$digest();
+
+    expect(unsubscribeSpy).not.toHaveBeenCalled();
+    $scope.$destroy();
+    expect(unsubscribeSpy).toHaveBeenCalled();
   });
 
   it('does not load permissions or features until after login', function () {
     vm.$onInit();
 
     expect(mockPermissionService.getValidPermissions).not.toHaveBeenCalled();
-    expect(mockProductFeatures.load).not.toHaveBeenCalled();
 
     loginDeferred.resolve();
     $scope.$digest();
 
     expect(mockPermissionService.getValidPermissions).toHaveBeenCalled();
-    expect(mockProductFeatures.load).toHaveBeenCalled();
   });
 
   describe('isLoggedIn()', function () {

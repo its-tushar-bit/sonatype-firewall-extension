@@ -3,21 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import navigationContainerModule from '../../../main/frontend/navigationContainer/module';
-import legacyConfigurationModule from '../../../main/frontend/LegacyConfigurationModule';
+import navigationContainerModule from 'MainRoot/navigationContainer/module';
+import legacyConfigurationModule from 'MainRoot/LegacyConfigurationModule';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 describe('navigationContainerSpec', function () {
   var $scope,
     $rootScope,
     $ngRedux,
     unsubscribeSpy,
-    mockSystemConfigurationPropertyService,
     mockCurrentUser,
-    mockProductFeatures,
     loginDeferred,
-    productFeaturesDeferred,
     vm,
-    clmServerVersion;
+    clmServerVersion,
+    fetchProductFeaturesSpy;
 
   beforeEach(
     angular.mock.module(navigationContainerModule.name, legacyConfigurationModule.name, function ($provide) {
@@ -31,25 +30,17 @@ describe('navigationContainerSpec', function () {
     $rootScope = _$rootScope_;
     $ngRedux = _$ngRedux_;
     loginDeferred = $q.defer();
-    productFeaturesDeferred = $q.defer();
 
     mockCurrentUser = {
       fetch: jasmine.createSpy('fetch'),
       waitForLogin: jasmine.createSpy('waitForLogin').and.returnValue(loginDeferred.promise),
     };
 
-    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']);
-    mockProductFeatures.load.and.returnValue(productFeaturesDeferred.promise);
-    mockProductFeatures.isAvailable.and.callFake(function () {
-      return false;
-    });
-
     $ngRedux.dispatch = jasmine.createSpy('dispatch');
+    fetchProductFeaturesSpy = spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
 
     vm = $componentController('navigationContainer', {
-      systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
       CurrentUser: mockCurrentUser,
-      ProductFeatures: mockProductFeatures,
       $scope: $scope,
     });
   }));
@@ -57,48 +48,6 @@ describe('navigationContainerSpec', function () {
   afterEach(function () {
     window.clmServerVersion = clmServerVersion;
     $scope.$destroy();
-  });
-
-  it('properly loads on supported firewall', function () {
-    mockProductFeatures.isAvailable.and.callFake(function (feature) {
-      return feature === 'firewall-auto-unquarantine' || feature === 'release-integrity';
-    });
-    vm.$onInit();
-    loginDeferred.resolve();
-    productFeaturesDeferred.resolve();
-    $scope.$digest();
-
-    expect(vm.isFirewallSupported).toBe(true);
-  });
-
-  it('properly loads on not supported firewall', function () {
-    vm.$onInit();
-    loginDeferred.resolve();
-    productFeaturesDeferred.resolve();
-    $scope.$digest();
-
-    expect(vm.isFirewallSupported).toBe(false);
-  });
-
-  it('properly loads on supported advanced legal pack', function () {
-    mockProductFeatures.isAvailable.and.callFake(function (feature) {
-      return feature === 'advanced-legal-pack';
-    });
-    vm.$onInit();
-    loginDeferred.resolve();
-    productFeaturesDeferred.resolve();
-    $scope.$digest();
-
-    expect(vm.isAdvancedLegalPackSupported).toBe(true);
-  });
-
-  it('properly loads on not supported advanced legal pack', function () {
-    vm.$onInit();
-    loginDeferred.resolve();
-    productFeaturesDeferred.resolve();
-    $scope.$digest();
-
-    expect(vm.isAdvancedLegalPackSupported).toBe(false);
   });
 
   describe('mapStateToThis', function () {
@@ -178,6 +127,31 @@ describe('navigationContainerSpec', function () {
 
       expect(mapStateToThis(mockStateWithServerDataAndIsEnabledFalse).isSuccessMetricsEnabled).toBe(false);
     });
+
+    it('returns isFirewallSupported, isAdvancedLegalPackSupported, isDashboardSupported isReportListSupported properly', function () {
+      const state = {
+        productFeatures: {
+          'advanced-legal-pack': true,
+          'release-integrity': true,
+          dashboard: true,
+          'reports-list': true,
+        },
+      };
+
+      const output = mapStateToThis(state);
+      expect(output.isFirewallSupported).toBe(undefined);
+      expect(output.isAdvancedLegalPackSupported).toBeTrue();
+      expect(output.isDashboardSupported).toBeTrue();
+      expect(output.isReportListSupported).toBeTrue();
+    });
+  });
+
+  it('calls fetchProductFeaturesIfNeeded action on init', function () {
+    vm.$onInit();
+    loginDeferred.resolve();
+    $scope.$digest();
+
+    expect(fetchProductFeaturesSpy).toHaveBeenCalled();
   });
 
   it('calls unsubscribe when the $scope is destroyed', function () {

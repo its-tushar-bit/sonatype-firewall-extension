@@ -3,20 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 import { faUserAlt } from '@fortawesome/pro-regular-svg-icons';
 import template from './mainHeader.html';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import {
+  selectIsSourceControlSupported,
+  selectIsDataInsightsSupported,
+  selectIsWebhooksSupported,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 /* global clmServerVersion */
 const globalMajorMinorVersion = (clmServerVersion ? `${clmServerVersion}` : '').split('.').splice(0, 2).join('.');
-function MainHeaderController(
-  $rootScope,
-  $scope,
-  ProductFeatures,
-  PermissionService,
-  CurrentUser,
-  routeStateUtilService
-) {
+function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser, routeStateUtilService, $ngRedux) {
   var vm = this;
   vm.faUserAlt = faUserAlt;
   vm.permissions = {};
@@ -49,6 +47,9 @@ function MainHeaderController(
     ];
 
     CurrentUser.waitForLogin().then(function () {
+      const unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
+      $scope.$on('$destroy', unsubscribe);
+
       PermissionService.getValidPermissions(validPermissions).then(function (data) {
         const perms = {};
         angular.forEach(data, function (permission) {
@@ -57,15 +58,7 @@ function MainHeaderController(
         vm.permissions = perms;
       });
 
-      ProductFeatures.load().then(function () {
-        vm.isWebhooksSupported =
-          ProductFeatures.isAvailable('webhooks-for-applications') ||
-          ProductFeatures.isAvailable('webhooks-for-repositories');
-
-        vm.isLabsDataInsightsEnabled = ProductFeatures.isAvailable('data-insights');
-
-        vm.isSourceControlSupported = ProductFeatures.isAvailable('automation');
-      });
+      $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded());
     });
 
     checkShowLoginButton();
@@ -82,13 +75,19 @@ function MainHeaderController(
   $rootScope.$on('$stateChangeSuccess', checkShowLoginButton);
 }
 
+export const mapStateToThis = (state) => ({
+  isWebhooksSupported: selectIsWebhooksSupported(state),
+  isLabsDataInsightsEnabled: selectIsDataInsightsSupported(state),
+  isSourceControlSupported: selectIsSourceControlSupported(state),
+});
+
 MainHeaderController.$inject = [
   '$rootScope',
   '$scope',
-  'ProductFeatures',
   'PermissionService',
   'CurrentUser',
   'routeStateUtilService',
+  '$ngRedux',
 ];
 
 export default {

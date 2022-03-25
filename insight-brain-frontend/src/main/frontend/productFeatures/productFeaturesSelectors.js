@@ -30,3 +30,22 @@ export const selectIsSourceControlForSourceTileSupported = createSelector(
   selectIsSourceControlSupported,
   (notifications, automation) => notifications || automation
 );
+export const selectIsAdvancedLegalPackSupported = createSelector(
+  selectProductFeaturesSlice,
+  prop('advanced-legal-pack')
+);
+
+export const selectIsReleaseIntegritySupported = createSelector(selectProductFeaturesSlice, prop('release-integrity'));
+export const selectIsFirewallAutoUnquarantineSupported = createSelector(
+  selectProductFeaturesSlice,
+  prop('firewall-auto-unquarantine')
+);
+export const selectIsFirewallSupportedForNavigationContainer = createSelector(
+  selectIsReleaseIntegritySupported,
+  selectIsFirewallAutoUnquarantineSupported,
+  (releaseIntegrity, firewallAutoUnquarantine) => releaseIntegrity && firewallAutoUnquarantine
+);
+
+export const selectIsDashboardSupported = createSelector(selectProductFeaturesSlice, prop('dashboard'));
+export const selectIsReportListSupported = createSelector(selectProductFeaturesSlice, prop('reports-list'));
+export const selectIsDataInsightsSupported = createSelector(selectProductFeaturesSlice, prop('data-insights'));

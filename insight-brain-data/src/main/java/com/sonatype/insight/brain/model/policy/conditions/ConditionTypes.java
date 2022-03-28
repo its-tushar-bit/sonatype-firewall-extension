@@ -23,6 +23,8 @@ public class ConditionTypes
 
   public static final CoordinatesConditionType CoordinatesConditionType = new CoordinatesConditionType();
 
+  public static final ComponentFormatConditionType ComponentFormatConditionType = new ComponentFormatConditionType();
+
   public static final PackageUrlConditionType PackageUrlConditionType = new PackageUrlConditionType();
 
   public static final LabelConditionType LabelConditionType = new LabelConditionType();
@@ -84,6 +86,7 @@ public class ConditionTypes
     // Don't add DeprecatedSecurityVulnerabilityConditionType
     add(AgeInDaysConditionType);
     add(ComponentCategoryConditionType);
+    add(ComponentFormatConditionType);
     add(CoordinatesConditionType);
     add(PackageUrlConditionType);
     addDisabledConditionType(HygieneRatingConditionType);

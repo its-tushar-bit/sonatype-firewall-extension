@@ -66,6 +66,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ComponentFormatConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
@@ -1858,6 +1859,7 @@ public class ScanPolicyEvaluatorTest
     Condition hygieneCondition = new Condition(HygieneRatingConditionType.ID, "is not", "1");
     Condition dataSourceCondition = new Condition(DataSourceConditionType.ID, "has support for", "identity");
     Condition dependencyCondition = new Condition(DependencyTypeConditionType.ID, "is", "direct");
+    Condition componentFormatCondition = new Condition(ComponentFormatConditionType.ID, "is", "maven");
     Condition vulnerabilityCategoryCondition =
         new Condition(SecurityVulnerabilityCategoryConditionType.ID, "is", "malicious_code");
     Condition integrityCondition = new Condition(IntegrityRatingConditionType.ID, "is not", "0");
@@ -1869,7 +1871,8 @@ public class ScanPolicyEvaluatorTest
         licenseThreatGroupLevelCondition, matchStateCondition, proprietaryCondition, relativePopularityCondition,
         securityVulnerabilitySeverityCondition, securityVulnerabilityStatusCondition, packageUrlCondition,
         componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
-        vulnerabilityCategoryCondition, integrityCondition, securityVulnerabilitySourceCondition);
+        componentFormatCondition, vulnerabilityCategoryCondition, integrityCondition,
+        securityVulnerabilitySourceCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);

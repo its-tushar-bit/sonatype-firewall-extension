@@ -17,6 +17,7 @@ public class ConditionValueTypes
     List<ConditionValueType<?>> allConditionValueTypes = new ArrayList<>();
     allConditionValueTypes.add(new AgeInDaysValueType());
     allConditionValueTypes.add(new ComponentCategoryValueType());
+    allConditionValueTypes.add(new ComponentFormatValueType());
     allConditionValueTypes.add(new CoordinatesValueType());
     allConditionValueTypes.add(new PackageUrlValueType());
     allConditionValueTypes.add(new FloatValueType());

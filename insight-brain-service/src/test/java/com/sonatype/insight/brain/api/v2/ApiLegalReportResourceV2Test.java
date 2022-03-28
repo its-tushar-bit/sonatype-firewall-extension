@@ -11,8 +11,10 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -102,11 +104,14 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
+    List<String> appsText = Arrays.asList(application.getId(), application2.getId());
+    Collections.sort(appsText);
+    String applicationsText = String.join(", ", appsText) + " ";
     HttpResponse response =
         restRequest().path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER).get();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
-        .isEqualTo("Report for applications " + application.getId() + ", " + application2.getId() + " not found.");
+        .isEqualTo("Report for applications " + applicationsText + "not found.");
   }
 
   @Test

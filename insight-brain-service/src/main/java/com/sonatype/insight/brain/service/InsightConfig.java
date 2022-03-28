@@ -361,6 +361,14 @@ public class InsightConfig
   @JsonProperty("web")
   private WebConfiguration webConfiguration = new WebConfiguration();
 
+  /**
+   * This configuration limits the number of clauses a query can contain when using Advanced Search
+   *
+   * @since 1.136
+   */
+  @JsonProperty
+  private int maxAdvancedSearchClauseCount = 2048;
+
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -1085,5 +1093,13 @@ public class InsightConfig
 
   public void setWebConfiguration(final WebConfiguration webConfiguration) {
     this.webConfiguration = webConfiguration;
+  }
+
+  public int getMaxAdvancedSearchClauseCount() {
+    return maxAdvancedSearchClauseCount;
+  }
+
+  public void setMaxAdvancedSearchClauseCount(int maxAdvancedSearchClauseCount) {
+    this.maxAdvancedSearchClauseCount = maxAdvancedSearchClauseCount;
   }
 }

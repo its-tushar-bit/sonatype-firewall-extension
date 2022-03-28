@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics.SearchCount;
@@ -52,6 +53,9 @@ public class SearchServiceTest
 
   @Inject
   private AdvancedSearchTelemetryCollector advancedSearchTelemetryCollector;
+
+  @Inject
+  private InsightConfig insightConfig;
 
   @Test
   public void testSearchIndex_NoSearchIndexDirectory() {
@@ -321,5 +325,35 @@ public class SearchServiceTest
         .map(searchResultItemDTO -> searchResultItemDTO.policyId)
         .collect(toList());
     assertThat(policyIds).containsExactlyInAnyOrder(policyOrg1.getId(), policyApp1.getId());
+  }
+
+  @Test
+  public void testSearchIndex_MaxAdvancedSearchClauseCountLimitExceeded() throws IOException {
+    int maxAdvancedSearchClauseCount = insightConfig.getMaxAdvancedSearchClauseCount();
+    try {
+      Role nonGlobalReadRole = tempEntity.newRole(false, Permission.READ);
+
+      Application application = tempEntity.newApplicationWithParent();
+      Application anotherApplication = tempEntity.newApplicationWithParent();
+      Application oneMoreApplication = tempEntity.newApplicationWithParent();
+
+      UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+      tempEntity.newMembershipMapping(application.getId(), nonGlobalReadRole.getId(), userPrincipal.getUsername());
+      tempEntity.newMembershipMapping(anotherApplication.getId(), nonGlobalReadRole.getId(),
+          userPrincipal.getUsername());
+      tempEntity.newMembershipMapping(oneMoreApplication.getId(), nonGlobalReadRole.getId(),
+          userPrincipal.getUsername());
+
+      insightConfig.setMaxAdvancedSearchClauseCount(2);
+      indexService.createSearchIndex();
+
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> searchService.searchIndex("itemType:APPLICATION", 1, 0))
+          .withMessage("Your user ID is associated with too many applications. Try limiting your search to a specific "
+              + "organization or update your configuration to support larger queries.");
+    }
+    finally {
+      insightConfig.setMaxAdvancedSearchClauseCount(maxAdvancedSearchClauseCount);
+    }
   }
 }

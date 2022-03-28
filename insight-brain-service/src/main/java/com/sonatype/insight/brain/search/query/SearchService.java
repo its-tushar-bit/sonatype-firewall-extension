@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
@@ -53,6 +54,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanQuery.Builder;
+import org.apache.lucene.search.BooleanQuery.TooManyClauses;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.QueryVisitor;
@@ -83,7 +85,9 @@ public class SearchService
 
   private final CurrentUser currentUser;
   
-  private OwnerDAO ownerDAO;
+  private final OwnerDAO ownerDAO;
+
+  private final InsightConfig insightConfig;
 
   @Inject
   public SearchService(
@@ -91,13 +95,15 @@ public class SearchService
       AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics,
       PermissionService permissionService,
       CurrentUser currentUser,
-      OwnerDAO ownerDAO)
+      OwnerDAO ownerDAO,
+      InsightConfig insightConfig)
   {
     this.luceneComponents = luceneComponents;
     this.advancedSearchTelemetryMetrics = advancedSearchTelemetryMetrics;
     this.permissionService = permissionService;
     this.currentUser = currentUser;
     this.ownerDAO = ownerDAO;
+    this.insightConfig = insightConfig;
   }
 
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws IOException {
@@ -344,18 +350,24 @@ public class SearchService
 
     contextIdsWithReadPermission.addAll(getChildContextIds(contextIdsWithReadPermission));
 
+    BooleanQuery.setMaxClauseCount(insightConfig.getMaxAdvancedSearchClauseCount());
     Builder allowedContextIdsQueryBuilder = new Builder();
-    for (String contextId : contextIdsWithReadPermission) {
-      allowedContextIdsQueryBuilder.add(new TermQuery(new Term(APPLICATION_ID.label, contextId)), Occur.SHOULD);
-      allowedContextIdsQueryBuilder.add(new TermQuery(new Term(ORGANIZATION_ID.label, contextId)), Occur.SHOULD);
+
+    try {
+      for (String contextId : contextIdsWithReadPermission) {
+        allowedContextIdsQueryBuilder.add(new TermQuery(new Term(APPLICATION_ID.label, contextId)), Occur.SHOULD);
+        allowedContextIdsQueryBuilder.add(new TermQuery(new Term(ORGANIZATION_ID.label, contextId)), Occur.SHOULD);
+      }
+
+      return new Builder()
+          .add(allowedContextIdsQueryBuilder.build(), Occur.MUST)
+          .add(query, Occur.MUST)
+          .build();
     }
-
-    BooleanQuery allowedContextIdsAndUserQueryConcat =
-        new Builder()
-            .add(allowedContextIdsQueryBuilder.build(), Occur.MUST)
-            .add(query, Occur.MUST).build();
-
-    return allowedContextIdsAndUserQueryConcat;
+    catch (TooManyClauses e) {
+      throw new BadRequestException("Your user ID is associated with too many applications. Try limiting your search to"
+          + " a specific organization or update your configuration to support larger queries.");
+    }
   }
 
   private Set<String> getChildContextIds(Set<String> contextIdsWithReadPermission) {

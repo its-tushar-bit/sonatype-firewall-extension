@@ -51,6 +51,7 @@ import automaticApplicationsConfigurationReducer from '../configuration/automati
 import gettingStartedReducer from '../configuration/gettingStarted/gettingStartedReducer';
 import transitiveViolationsReducer from '../violation/transitiveViolationsReducer';
 import userConfigurationReducer from '../security/users/usersReducer';
+import administratorsSlice from '../configuration/administrators/administratorsSlice';
 import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolationsSlice';
 import componentDetailsViolationsReducer from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import successMetricsReportSlice from '../labs/successMetrics/successMetricsReportSlice';
@@ -126,6 +127,7 @@ export default combineReducers({
   waiveTransitiveViolations: waiveTransitiveViolationsReducer,
   samlConfiguration: samlConfigurationSlice,
   componentDetailsPolicyViolations: componentDetailsViolationsReducer,
+  administratorsConfig: administratorsSlice,
   componentDetailsOverview: overviewSlice,
   componentDetailsVulnerabilities: vulnerabilitiesSlice,
   componentDetailsLicenseDetectionsTile: licenseDetections,

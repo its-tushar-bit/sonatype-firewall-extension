@@ -5,31 +5,29 @@
  */
 import angularCommonModule from '../util/AngularCommon';
 import permissionServiceModule from '../util/PermissionService';
-import ApplicationSecurityModule from '../policy/AppSecurityController';
-import administratorsTemplate from '../policy/components/app-security/app-security.html';
 
 export const SecurityModule = angular.module(
   'SecurityModule',
-  ['ui.router', angularCommonModule.name, ApplicationSecurityModule.name, permissionServiceModule.name],
+  ['ui.router', angularCommonModule.name, permissionServiceModule.name],
   [
     '$stateProvider',
     function ($stateProvider) {
-      $stateProvider.state('administrators', {
-        url: '/administrators',
-        template: administratorsTemplate,
-        data: {
-          title: 'Administrators',
-        },
-        controller: 'AppSecurityController',
-        resolve: {
-          isAuthorized: [
-            'PermissionService',
-            function (PermissionService) {
-              return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-            },
-          ],
-        },
-      });
+      $stateProvider
+        .state('administrators', {
+          component: 'administratorsConfig',
+          url: '/administrators',
+          data: {
+            title: 'Administrator Config',
+          },
+        })
+        .state('administratorsEdit', {
+          component: 'administratorsEdit',
+          url: '/administrators/{roleId}',
+          data: {
+            title: 'Administrator Edit',
+            isDirty: ['administratorsConfig', 'isDirty'],
+          },
+        });
     },
   ]
 );

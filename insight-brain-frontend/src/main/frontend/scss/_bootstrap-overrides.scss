@@ -197,3 +197,10 @@
 .nx-text-input textarea {
   width: 100%;
 }
+
+/*
+  Fix to properly show items in NxTransferList.
+*/
+.nx-transfer-list__select {
+  margin: 0;
+}

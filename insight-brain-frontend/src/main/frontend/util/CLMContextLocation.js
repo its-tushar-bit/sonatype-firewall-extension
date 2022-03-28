@@ -39,6 +39,10 @@ export function getGlobalPermissionTestUrl() {
   return uriTemplate`/rest/user/permissions/global/global`;
 }
 
+export function getGlobalRoleMappingUrl() {
+  return uriTemplate`/rest/membershipMapping/global/global`;
+}
+
 locationModule.factory('CLMContextLocations', [
   'ApplicationId',
   'OrganizationId',

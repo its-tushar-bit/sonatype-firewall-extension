@@ -20,6 +20,8 @@ import AdvancedSearchConfigContainer from './advancedSearch/AdvancedSearchConfig
 import SuccessMetricsConfigurationContainer from './successMetricsConfiguration/SuccessMetricsConfigurationContainer';
 import SystemNoticeConfigurationContainer from './systemNoticeConfiguration/SystemNoticeConfigurationContainer';
 import AutomaticApplicationsConfiguration from './automaticApplicationsConfiguration/AutomaticApplicationsConfigurationContainer';
+import AdministratorsConfig from './administrators/config/AdministratorsConfig';
+import AdministratorsEdit from './administrators/edit/AdministratorsEdit';
 import GettingStartedContainer from './gettingStarted/GettingStartedContainer';
 import { submitData, DEPARTED_ACTION } from './gettingStarted/gettingStartedTelemetryServiceHelper';
 
@@ -66,6 +68,11 @@ export default angular
   .component(
     'systemNoticeConfiguration',
     react2angular(withStoreProvider(SystemNoticeConfigurationContainer), [], ['$ngRedux'])
+  )
+  .component('administratorsConfig', react2angular(withStoreProvider(AdministratorsConfig), [], ['$ngRedux']))
+  .component(
+    'administratorsEdit',
+    react2angular(withStoreProvider(withRouterStateProvider(AdministratorsEdit)), [], ['$ngRedux', '$state'])
   )
   .factory('scmOnboardingActions', scmOnboardingActions)
   .value('routerListener', routerListener) // add to angular so we can test it

@@ -627,6 +627,14 @@ export function getUserByIdUrl(userId) {
   return uriTemplate`/rest/user/${userId}`;
 }
 
+export function getFindUsersUrl(query) {
+  return uriTemplate`/rest/user/global/global/query?q=${query}`;
+}
+
+export function getRoleMappingUrl(roleId) {
+  return uriTemplate`/rest/membershipMapping/global/global/role/${roleId}`;
+}
+
 export function getSuccessMetricsReportsUrl() {
   return uriTemplate`/rest/successMetrics/report`;
 }

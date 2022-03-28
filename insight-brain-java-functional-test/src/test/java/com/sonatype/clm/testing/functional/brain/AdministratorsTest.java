@@ -6,10 +6,11 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
+import com.sonatype.clm.testing.functional.pages.AdministratorsEditPage;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage;
-import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsRoleMappingList;
-import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsRoleMappingList.RoleMappingElement;
-import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsRoleMappingList.RoleMappingElement.Content;
+import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsMappingList;
+import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsMappingList.RoleRow;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
@@ -21,10 +22,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Condition.*;
 
 public class AdministratorsTest
     extends AbstractFunctionalTest
@@ -46,142 +44,220 @@ public class AdministratorsTest
 
   @After
   public void prepareToLeavePage() {
-    SelenideElement cancelBtn =
-        AdministratorsPage.administratorsRoleMappingList().element(0).content().cancelButton();
+    AdministratorsEditPage administratorsEditPage = new AdministratorsEditPage();
+
+    AdministratorsEditPage.AddMembersForm addMembersForm = administratorsEditPage.addMembersForm();
+
+    SelenideElement cancelBtn = addMembersForm.cancelBtn();
 
     if (cancelBtn.isDisplayed()) {
       cancelBtn.click();
 
+      UnsavedModal unsavedModal = new UnsavedModal();
+
       //dismiss unsaved changes
-      SelenideElement modalBtn = $(".modal-dialog .btn-primary");
+      SelenideElement modalBtn = unsavedModal.continueButton();
       if (modalBtn.exists()) {
         modalBtn.click();
+        waitUntilUrl(AdministratorsPage.url());
       }
     }
   }
 
   @Test
   public void testDefaultRolesAndBuiltinUsers() {
-    AdministratorsRoleMappingList mapping = AdministratorsPage.administratorsRoleMappingList();
-    mapping.elements().shouldHaveSize(2);
+    refreshOrOpen(AdministratorsPage.url());
 
-    RoleMappingElement roleRow = mapping.element(0);
-    Content content = roleRow.content();
-    roleRow.shouldBe(visible);
-    content.members().shouldHave(texts("Admin BuiltIn"));
-    content.editor().shouldBe(hidden);
+    AdministratorsMappingList mapping = AdministratorsPage.administratorsMappingList();
+    mapping.rows().shouldHaveSize(2);
 
-    RoleMappingElement policyAdminRoleRow = mapping.element(1);
-    policyAdminRoleRow.shouldBe(visible);
-    policyAdminRoleRow.content().editor().shouldBe(hidden);
+    RoleRow firstRoleRow = mapping.row(0);
+
+    firstRoleRow.shouldBe(visible);
+    firstRoleRow.role().shouldHave(text("Policy Administrator"));
+    firstRoleRow.members().shouldHave(text("Admin BuiltIn"));
+    firstRoleRow.chevron().shouldBe(visible);
+
+    RoleRow secondRoleRow = mapping.row(1);
+
+    secondRoleRow.shouldBe(visible);
+    secondRoleRow.role().shouldHave(text("System Administrator"));
+    secondRoleRow.members().shouldHave(text("Admin BuiltIn"));
+    secondRoleRow.chevron().shouldBe(visible);
   }
 
   @Test
   public void testClickEdit() {
-    RoleMappingElement roleRow = AdministratorsPage.administratorsRoleMappingList().element(0);
-    Content content = roleRow.content();
-    roleRow.hover();
+    refreshOrOpen(AdministratorsPage.url());
+    RoleRow policyAdministratorRow = AdministratorsPage.administratorsMappingList().row(0);
 
-    roleRow.editButton().shouldBe(visible);
+    policyAdministratorRow.shouldBe(visible);
 
-    roleRow.editButton().click();
-    content.editor().shouldBe(visible);
-    eyesWatcher.eyesCheck();
+    policyAdministratorRow.click();
+
+    // roleId's can be found in Role.java
+    final String POLICY_ADMIN_ROLE_ID = "b9646757e98e486da7d730025f5245f8";
+    waitUntilUrl(AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
+
+    AdministratorsEditPage administratorsEditPage = new AdministratorsEditPage();
+
+    AdministratorsEditPage.AddMembersForm addMembersForm = administratorsEditPage.addMembersForm();
+
+    administratorsEditPage.roleDetails().shouldBe(visible);
+    administratorsEditPage.roleDetails().name().shouldHave(text("Policy Administrator"));
+    administratorsEditPage.roleDetails().description()
+        .shouldHave(text("Manages all organizations, applications, policies, and policy violations."));
+    addMembersForm.shouldBe(visible);
+    addMembersForm.addedItems().shouldHaveSize(1);
+    addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn"));
+    eyesWatcher.eyesCheck("Edit Administrators");
   }
 
   @Test
-  public void testSearch() {
-    RoleMappingElement roleRow = AdministratorsPage.administratorsRoleMappingList().element(0);
-    Content content = roleRow.content();
-    roleRow.hover();
-    roleRow.editButton().click();
-    content.queryInput().setValue("Jan*");
-    content.search();
+  public void addAndRemoveMembers() {
+    final String POLICY_ADMIN_ROLE_ID = "b9646757e98e486da7d730025f5245f8";
+    refreshOrOpen(AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
 
-    content.availableMembers().shouldHave(texts("Jane Doe"));
-    content.appliedMembers().shouldHave(texts("Admin BuiltIn"));
+    AdministratorsEditPage administratorsEditPage = new AdministratorsEditPage();
 
-    content.queryInput().setValue("*Do*");
-    content.search();
+    AdministratorsEditPage.AddMembersForm addMembersForm = administratorsEditPage.addMembersForm();
 
-    content.availableMembers().shouldHave(texts("Jane Doe", "John Doe"));
-    content.appliedMembers().shouldHave(texts("Admin BuiltIn"));
+    addMembersForm.searchInput().setValue("*").click();
+    addMembersForm.searchResults().shouldHaveSize(3);
+    eyesWatcher.eyesCheck("Edit Administrators Fetch Users");
+    addMembersForm.searchResults()
+            .shouldHave(texts("John Doe", "Jane Doe", "Authenticated Users (Group)"));
+    addMembersForm.searchResults().get(1).click();
+    addMembersForm.addedItems().shouldHaveSize(2);
+    addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn", "Jane Doe"));
+
+    addMembersForm.searchInput().setValue("*").click();
+    addMembersForm.searchResults().shouldHaveSize(2);
+    addMembersForm.searchResults()
+            .shouldHave(texts("John Doe", "Authenticated Users (Group)"));
+    addMembersForm.searchResults().get(1).click();
+    addMembersForm.addedItems().shouldHaveSize(3);
+    addMembersForm.addedItems()
+            .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "Jane Doe"));
+
+    addMembersForm.addedItems().get(0).click();
+    addMembersForm.addedItems().shouldHaveSize(2);
+    addMembersForm.addedItems().shouldHave(texts("Authenticated Users (Group)", "Jane Doe"));
+
+    addMembersForm.removeAll().click();
+    addMembersForm.addedItems().shouldHaveSize(0);
+
+    addMembersForm.searchInput().setValue("*").click();
+    addMembersForm.searchResults().shouldHaveSize(4);
+    addMembersForm.searchResults()
+            .shouldHave(texts("Admin BuiltIn", "John Doe", "Jane Doe", "Authenticated Users (Group)"));
   }
 
   @Test
-  public void testAddUser() {
-    RoleMappingElement roleRow = AdministratorsPage.administratorsRoleMappingList().element(0);
-    Content content = roleRow.content();
-    roleRow.hover();
-    roleRow.editButton().click();
-    content.queryInput().setValue("*Do*");
-    content.search();
+  public void testSubmitAddMembersForm() {
+    refreshOrOpen(AdministratorsPage.url());
 
-    content.availableMember("John Doe").click();
-    content.pick();
+    RoleRow policyAdministratorRow = AdministratorsPage.administratorsMappingList().row(0);
 
-    content.availableMembers().shouldHaveSize(1);
-    content.availableMembers().shouldHave(texts("Jane Doe"));
-    content.appliedMembers().shouldHaveSize(2);
-    content.appliedMembers().shouldHave(texts("Admin BuiltIn", "John Doe"));
+    policyAdministratorRow.shouldBe(visible);
+    policyAdministratorRow.role().shouldHave(text("Policy Administrator"));
+    policyAdministratorRow.members().shouldHave(text("Admin BuiltIn"));
 
-    content.availableMember("Jane Doe").click();
-    content.pick();
+    policyAdministratorRow.click();
 
-    content.availableMembers().shouldHaveSize(0);
-    content.appliedMembers().shouldHaveSize(3);
-    content.appliedMembers().shouldHave(texts("Admin BuiltIn", "Jane Doe", "John Doe"));
+    final String POLICY_ADMIN_ROLE_ID = "b9646757e98e486da7d730025f5245f8";
+    waitUntilUrl(AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
+
+    AdministratorsEditPage administratorsEditPage = new AdministratorsEditPage();
+
+    AdministratorsEditPage.AddMembersForm addMembersForm = administratorsEditPage.addMembersForm();
+
+    addMembersForm.searchInput().setValue("*").click();
+    addMembersForm.searchResults().get(1).click();
+    addMembersForm.addedItems().shouldHaveSize(2);
+    addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn", "Jane Doe"));
+
+    addMembersForm.searchInput().setValue("*").click();
+    addMembersForm.searchResults().get(1).click();
+    addMembersForm.addedItems().shouldHaveSize(3);
+    addMembersForm.addedItems()
+            .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "Jane Doe"));
+
+    addMembersForm.submitBtn().click();
+    waitUntilUrl(AdministratorsPage.url());
+
+    policyAdministratorRow.shouldBe(visible);
+    policyAdministratorRow.role().shouldHave(text("Policy Administrator"));
+    policyAdministratorRow.members().shouldHave(text("Authenticated Users, Admin BuiltIn, Jane Doe"));
+
+    policyAdministratorRow.click();
+
+    waitUntilUrl(AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
+
+    addMembersForm.addedItems().get(1).click();
+    addMembersForm.addedItems().get(1).click();
+    addMembersForm.addedItems()
+            .shouldHave(texts("Admin BuiltIn"));
+
+    addMembersForm.submitBtn().click();
+    waitUntilUrl(AdministratorsPage.url());
+
+    policyAdministratorRow.shouldBe(visible);
+    policyAdministratorRow.role().shouldHave(text("Policy Administrator"));
+    policyAdministratorRow.members().shouldHave(text("Admin BuiltIn"));
   }
 
   @Test
-  public void testRemoveUser() {
-    RoleMappingElement roleRow = AdministratorsPage.administratorsRoleMappingList().element(0);
-    Content content = roleRow.content();
-    roleRow.hover();
-    roleRow.editButton().click();
-    content.queryInput().setValue("*Do*");
-    content.search();
-    content.availableMember("John Doe").click();
-    content.pick();
-    content.availableMember("Jane Doe").click();
-    content.pick();
+  public void testCancelAddMembersFormAndUnsavedChangesModal() {
+    refreshOrOpen(AdministratorsPage.url());
 
-    //note that this click unchecks John, leaving Jane checked for removal
-    content.appliedMember("John Doe").click();
-    content.unpick();
+    RoleRow policyAdministratorRow = AdministratorsPage.administratorsMappingList().row(0);
 
-    content.availableMembers().shouldHaveSize(1);
-    content.availableMembers().shouldHave(texts("Jane Doe"));
-    content.appliedMembers().shouldHaveSize(2);
-    content.appliedMembers().shouldHave(texts("Admin BuiltIn", "John Doe"));
+    policyAdministratorRow.shouldBe(visible);
+    policyAdministratorRow.role().shouldHave(text("Policy Administrator"));
+    policyAdministratorRow.members().shouldHave(text("Admin BuiltIn"));
+
+    policyAdministratorRow.click();
+
+    final String POLICY_ADMIN_ROLE_ID = "b9646757e98e486da7d730025f5245f8";
+    waitUntilUrl(AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
+
+    AdministratorsEditPage administratorsEditPage = new AdministratorsEditPage();
+
+    AdministratorsEditPage.AddMembersForm addMembersForm = administratorsEditPage.addMembersForm();
+
+    addMembersForm.searchInput().setValue("*").click();
+    addMembersForm.searchResults().get(1).click();
+    addMembersForm.addedItems().shouldHaveSize(2);
+    addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn", "Jane Doe"));
+
+    addMembersForm.searchInput().setValue("*").click();
+    addMembersForm.searchResults().get(1).click();
+    addMembersForm.addedItems().shouldHaveSize(3);
+    addMembersForm.addedItems()
+            .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "Jane Doe"));
+
+    addMembersForm.cancelBtn().click();
+    UnsavedModal unsavedModal = new UnsavedModal();
+    unsavedModal.continueButton().click();
+    waitUntilUrl(AdministratorsPage.url());
+
+    policyAdministratorRow.shouldBe(visible);
+    policyAdministratorRow.role().shouldHave(text("Policy Administrator"));
+    policyAdministratorRow.members().shouldHave(text("Admin BuiltIn"));
   }
 
   @Test
-  public void testSaveChanges() {
-    RoleMappingElement roleRow = AdministratorsPage.administratorsRoleMappingList().element(0);
-    Content content = roleRow.content();
-    roleRow.hover();
-    roleRow.editButton().click();
-    content.queryInput().setValue("*Do*");
-    content.search();
-    content.availableMember("John Doe").click();
-    content.pick();
-
-    content.confirmButton().click();
-    //make sure we grab latest dom, as the save will rebuild it
-    roleRow = AdministratorsPage.administratorsRoleMappingList().element(0);
-
-    content.editor().shouldBe(hidden);
-    content.members().shouldHave(texts("Admin BuiltIn, John Doe"));
-  }
-
-  @Test
-  public void testGroupSearchWarning() {
+  public void testGroupSearchAndAdd() {
     // no ldap servers configured
-    RoleMappingElement policyAdministrator = AdministratorsPage.administratorsRoleMappingList()
-        .element(0);
-    policyAdministrator.shouldBe(visible).shouldHave(text("Policy Administrator")).editButton().click();
-    policyAdministrator.content().shouldBe(visible).groupSearchWarning().shouldBe(hidden);
+    final String POLICY_ADMIN_ROLE_ID = "b9646757e98e486da7d730025f5245f8";
+    refreshOrOpen(AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
+
+    AdministratorsEditPage administratorsEditPage = new AdministratorsEditPage();
+
+    AdministratorsEditPage.AddMembersForm addMembersForm = administratorsEditPage.addMembersForm();
+
+    addMembersForm.groupAlert().shouldNotBe(visible);
 
     // all servers have group search disabled
     LdapUserMappingDAO ldapUserMappingDAO = new LdapUserMappingDAO();
@@ -201,34 +277,34 @@ public class AdministratorsTest
     ldapUserMapping2.setDynamicGroupSearchEnabled(false);
     ldapUserMappingDAO.update(ldapUserMapping2);
 
-    refreshOrOpen(AdministratorsPage.url());
+    refreshOrOpen(AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
 
-    policyAdministrator = AdministratorsPage.administratorsRoleMappingList().element(0);
-    policyAdministrator.shouldBe(visible).editButton().click();
-    policyAdministrator.content().shouldBe(visible).groupSearchWarning().shouldBe(visible).shouldHave(text(
-        Content.DISABLED_GROUP_SEARCH_WARNING));
+    addMembersForm.groupAlert().shouldBe(visible).shouldHave(text(addMembersForm.DISABLED_GROUP_SEARCH_WARNING));
 
     // mix servers have group search disabled and disabled
     ldapUserMapping2.setDynamicGroupSearchEnabled(true);
     ldapUserMappingDAO.update(ldapUserMapping2);
 
-    prepareToLeavePage();
-    refreshOrOpen(AdministratorsPage.url());
+    refreshOrOpen(AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
 
-    policyAdministrator = AdministratorsPage.administratorsRoleMappingList().element(0);
-    policyAdministrator.shouldBe(visible).editButton().click();
-    policyAdministrator.content().shouldBe(visible).groupSearchWarning().shouldBe(visible).shouldHave(text(
-        Content.DISABLED_GROUP_SEARCH_WARNING));
+    addMembersForm.groupAlert().shouldBe(visible).shouldHave(text(addMembersForm.DISABLED_GROUP_SEARCH_WARNING));
+
+    addMembersForm.addAssociateGroupBtn().shouldHave(cssClass("disabled"));
+    addMembersForm.addAssociateGroupInput().setValue("test group").click();
+    addMembersForm.addAssociateGroupBtn().shouldNotHave(cssClass("disabled")).click();
+    addMembersForm.addedItems().shouldHaveSize(2);
+    addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn", "test group (Group)"));
+    addMembersForm.addAssociateGroupInput().setValue("test group").click();
+    addMembersForm.addAssociateGroupBtn().shouldHave(cssClass("disabled"));
 
     // all servers have group search enabled
     ldapUserMapping1.setDynamicGroupSearchEnabled(true);
     ldapUserMappingDAO.update(ldapUserMapping1);
 
     prepareToLeavePage();
-    refreshOrOpen(AdministratorsPage.url());
 
-    policyAdministrator = AdministratorsPage.administratorsRoleMappingList().element(1);
-    policyAdministrator.shouldBe(visible).editButton().click();
-    policyAdministrator.content().shouldBe(visible).groupSearchWarning().shouldBe(hidden);
+    refreshOrOpen(AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
+
+    addMembersForm.groupAlert().shouldNotBe(visible);
   }
 }

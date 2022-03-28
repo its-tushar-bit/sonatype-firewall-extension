@@ -223,6 +223,16 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  it('should return the url for fecthing users', function () {
+    expect(CLMLocation.getFindUsersUrl('queryTerm')).toBe('/rest/user/global/global/query?q=queryTerm');
+  });
+
+  it('should return the url to get the role info', function () {
+    expect(CLMLocation.getRoleMappingUrl('idForTheRole')).toBe(
+      '/rest/membershipMapping/global/global/role/idForTheRole'
+    );
+  });
+
   it('should return the delete url for waivers', function () {
     expect(CLMLocation.deleteWaiverUrl('organization', 'orgId', 'waiverId')).toBe(
       '/api/v2/policyWaivers/organization/orgId/waiverId/'

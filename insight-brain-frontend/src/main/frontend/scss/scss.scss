@@ -57,7 +57,6 @@
 @use '../owner.manager/repositories/repositories.summary.view';
 @use '../applicationReport/applicationReport';
 @use '../role.membership/role.membership.view';
-@use '../policy/components/app-security/app-security';
 @use '../security/users/user-list';
 @use '../owner.manager/utility/services/evaluateApplicationModal';
 @use '../report/violations/report-list';
@@ -117,6 +116,7 @@
 @use '../owner.manager/innersource.repository/innersourceRepositoryTile';
 @use '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModal';
 @use '../innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurations';
+@use '../configuration/administrators/administrators';
 
 // CIP
 @use '../version-graph/icons' as version-graph-icons;

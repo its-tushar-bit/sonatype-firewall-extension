@@ -73,6 +73,7 @@ import samlConfigurationSlice from '../configuration/saml/samlConfigurationSlice
 import quarantinedRiskRemediationSlice from 'MainRoot/quarantinedComponentReport/riskRemediationTile/riskRemediationSlice';
 import orgsAndPoliciesSlice from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSlice';
 import productFeaturesSlice from 'MainRoot/productFeatures/productFeaturesSlice';
+import atlassianCrowdConfigurationSlice from '../configuration/crowd/atlassianCrowdConfigurationSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -144,4 +145,5 @@ export default combineReducers({
   quarantinedReportRiskRemediation: quarantinedRiskRemediationSlice,
   orgsAndPolicies: orgsAndPoliciesSlice,
   productFeatures: productFeaturesSlice,
+  atlassianCrowdConfiguration: atlassianCrowdConfigurationSlice,
 });

@@ -748,4 +748,20 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getOrganizationPolicyTagUrl('someOrganization')).toEqual(expectedUrl);
     });
   });
+
+  describe('getCrowdConfigurationUrl', () => {
+    it('returns url for atlassian crowd configuration', () => {
+      const expectedUrl = '/api/v2/config/crowd';
+
+      expect(clmLocation.getCrowdConfigurationUrl()).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getCrowdConfigurationTestUrl', () => {
+    it('returns url for atlassian crowd configuration', () => {
+      const expectedUrl = '/api/v2/config/crowd/test';
+
+      expect(clmLocation.getCrowdConfigurationTestUrl()).toEqual(expectedUrl);
+    });
+  });
 });

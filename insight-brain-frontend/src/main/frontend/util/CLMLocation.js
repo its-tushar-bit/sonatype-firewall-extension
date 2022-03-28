@@ -871,6 +871,14 @@ export const getConditionTypeUrl = () => uriTemplate`/rest/policy/conditionType`
 export const getConditionValueTypeUrl = (ownerType, ownerId) =>
   uriTemplate`/rest/conditionValueType/${ownerType}/${ownerId}`;
 
+export const getCrowdConfigurationUrl = () => {
+  return uriTemplate`/api/v2/config/crowd`;
+};
+
+export const getCrowdConfigurationTestUrl = () => {
+  return uriTemplate`/api/v2/config/crowd/test`;
+};
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

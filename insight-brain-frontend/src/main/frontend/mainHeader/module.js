@@ -51,6 +51,7 @@ export default angular
         'login',
         'isLoggedIn',
         'shouldShowLoginButton',
+        'isCrowdIntegrationEnabled',
       ],
       ['$ngRedux', 'userActions', '$state']
     )

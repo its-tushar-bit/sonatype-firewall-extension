@@ -14,6 +14,7 @@ export const SystemPreferencesMenu = ({
   isWebhooksSupported = false,
   dataInsightsEnabled = false,
   isSourceControlSupported = false,
+  isCrowdIntegrationEnabled = false,
 }) => {
   const {
     CONFIGURE_SYSTEM = false,
@@ -42,6 +43,9 @@ export const SystemPreferencesMenu = ({
       </NavLink>
       <NavLink stateName="saml" showIf={CONFIGURE_SYSTEM}>
         SAML
+      </NavLink>
+      <NavLink stateName="atlassianCrowdConfiguration" showIf={CONFIGURE_SYSTEM && isCrowdIntegrationEnabled}>
+        Atlassian Crowd
       </NavLink>
       <NavLink stateName="mailConfig" id="system-configuration-email" showIf={CONFIGURE_SYSTEM}>
         Email
@@ -101,6 +105,7 @@ SystemPreferencesMenu.propTypes = {
   isWebhooksSupported: PropTypes.bool,
   dataInsightsEnabled: PropTypes.bool,
   isSourceControlSupported: PropTypes.bool,
+  isCrowdIntegrationEnabled: PropTypes.bool,
 };
 
 const EarlyAccessLinks = ({ children }) => {

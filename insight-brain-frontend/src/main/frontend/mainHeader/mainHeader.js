@@ -10,6 +10,7 @@ import {
   selectIsSourceControlSupported,
   selectIsDataInsightsSupported,
   selectIsWebhooksSupported,
+  selectIsCrowdIntegrationSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 /* global clmServerVersion */
@@ -26,6 +27,7 @@ function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser
   vm.shouldShowLoginButton = false;
   vm.majorMinorVersion = globalMajorMinorVersion;
   vm.isSourceControlSupported = undefined;
+  vm.isCrowdIntegrationEnabled = undefined;
 
   function hasAnyPermission() {
     return !angular.equals({}, vm.permissions);
@@ -79,6 +81,7 @@ export const mapStateToThis = (state) => ({
   isWebhooksSupported: selectIsWebhooksSupported(state),
   isLabsDataInsightsEnabled: selectIsDataInsightsSupported(state),
   isSourceControlSupported: selectIsSourceControlSupported(state),
+  isCrowdIntegrationEnabled: selectIsCrowdIntegrationSupported(state),
 });
 
 MainHeaderController.$inject = [

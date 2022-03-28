@@ -21,6 +21,7 @@ export const MenuBar = ({
   login,
   isLoggedIn = false,
   shouldShowLoginButton = false,
+  isCrowdIntegrationEnabled,
 }) => {
   const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0 || isLabsDataInsightsEnabled;
 
@@ -50,6 +51,7 @@ export const MenuBar = ({
             isWebhooksSupported={isWebhooksSupported}
             dataInsightsEnabled={isLabsDataInsightsEnabled}
             isSourceControlSupported={isSourceControlSupported}
+            isCrowdIntegrationEnabled={isCrowdIntegrationEnabled}
           />
         )}
         <UserMenu userActions={userActions} />
@@ -72,6 +74,7 @@ MenuBar.propTypes = {
   login: PropTypes.func,
   isLoggedIn: PropTypes.bool,
   shouldShowLoginButton: PropTypes.bool,
+  isCrowdIntegrationEnabled: PropTypes.bool,
 };
 
 export default MenuBar;

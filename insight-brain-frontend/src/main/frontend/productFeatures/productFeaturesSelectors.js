@@ -49,3 +49,4 @@ export const selectIsFirewallSupportedForNavigationContainer = createSelector(
 export const selectIsDashboardSupported = createSelector(selectProductFeaturesSlice, prop('dashboard'));
 export const selectIsReportListSupported = createSelector(selectProductFeaturesSlice, prop('reports-list'));
 export const selectIsDataInsightsSupported = createSelector(selectProductFeaturesSlice, prop('data-insights'));
+export const selectIsCrowdIntegrationSupported = createSelector(selectProductFeaturesSlice, prop('crowd-integration'));

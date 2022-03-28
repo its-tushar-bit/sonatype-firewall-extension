@@ -748,6 +748,7 @@
                 <include>**/NetworkingHelper*</include>
                 <include>**/SslSettings*</include>
                 <include>**/ReportTestUtils*</include>
+                <include>**/CrowdMockServerRule*</include>
               </includes>
             </configuration>
           </execution>

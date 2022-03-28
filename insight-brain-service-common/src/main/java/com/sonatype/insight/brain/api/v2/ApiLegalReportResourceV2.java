@@ -24,6 +24,8 @@ public interface ApiLegalReportResourceV2
 
   ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(String applicationId, String stageId);
 
+  String getLicenseLegalMultiApplicationReportFromActiveUserFilter();
+
   String getLicenseLegalApplicationHTMLReport(String applicationId, String stageId);
 
   String getLicenseLegalCustomApplicationHTMLReport(String applicationId, String stageId, FormDataMultiPart formData);

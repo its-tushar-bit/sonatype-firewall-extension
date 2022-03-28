@@ -9,12 +9,15 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -29,20 +32,30 @@ import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportApplicationD
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;
+import com.sonatype.insight.brain.filter.AdvancedLegalPackDashboardFilter;
+import com.sonatype.insight.brain.filter.UserFilterDTO;
+import com.sonatype.insight.brain.filter.UserFilterService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.filter.UserFilter;
+import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
+import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -55,6 +68,9 @@ public class ApplicationAttributionReportBuilderTest
   @Mock
   private ApplicationService mockApplicationService;
 
+  @Mock
+  UserFilterService mockUserFilterService;
+
   @Inject
   private ApplicationAttributionReportBuilder reportBuilder;
 
@@ -62,6 +78,7 @@ public class ApplicationAttributionReportBuilderTest
   public void configure(final Binder binder) {
     binder.bind(ApiLicenseLegalService.class).toInstance(mockApiLicenseLegalService);
     binder.bind(ApplicationService.class).toInstance(mockApplicationService);
+    binder.bind(UserFilterService.class).toInstance(mockUserFilterService);
     super.configure(binder);
   }
 
@@ -135,6 +152,43 @@ public class ApplicationAttributionReportBuilderTest
     assertThat(doc.select("#standard-LicenseOne")).isNotEmpty();
   }
   
+  @Test
+  public void testDefaultSuccessfulReportFromActiveFilter() throws IOException {
+    String filterName = "test filter";
+    Application application = tempEntity.newApplicationWithParent("appId");
+    Application application2 = tempEntity.newApplicationWithParent("appId2");
+    AdvancedLegalPackDashboardFilter advancedLegalPackDashboardFilter = new AdvancedLegalPackDashboardFilter(null,
+        Arrays.asList(application.getId(), application2.getId()), null, Collections.singletonList(BuildStageType.ID),
+        null);
+    when(mockUserFilterService.getActiveUserFilterForCurrentUser(UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD))
+        .thenReturn(newUserFilterDTO(tempEntity.newUserFilter("Test User", InternalRealm.ID, ACTIVE_FILTER_NAME,
+            ADVANCED_LEGAL_PACK_DASHBOARD, JsonUtils.format(advancedLegalPackDashboardFilter), filterName)));
+    generateReportDataAndMocks(application, true, true);
+    generateReportDataAndMocks(application2, true, true);
+
+    List<Application> appIdList = Arrays.asList(application, application2);
+    when(mockApplicationService.getApplicationsByIdsAndOrganizationIdsAndTagIdsNoAuthz(null,
+        new LinkedHashSet<>(Arrays.asList(application.getId(), application2.getId())), null)).thenReturn(appIdList);
+    String title = String.join(", ",
+        appIdList.stream().map(Application::getPublicId).sorted().collect(Collectors.toCollection(LinkedHashSet::new)));
+    String content = reportBuilder.generateLegalMultiApplicationAttributionReportFromActiveUserFilter();
+    Document doc = Jsoup.parse(content);
+    String bodyContent = doc.select("body").first().toString();
+    String expectedContent = IOUtils.toString(
+        Objects.requireNonNull(getClass().getClassLoader()
+            .getResource("ApplicationAttributionReportTest/expectedMultiApplicationAttributionReport.html")),
+        StandardCharsets.UTF_8);
+    assertThat(bodyContent).isEqualToIgnoringWhitespace(expectedContent);
+    assertThat(doc.select("#table-of-contents")).isNotEmpty();
+    assertThat(doc.select("h1").first()).hasToString("<h1>Attribution Report for " + title + "</h1>");
+    assertThat(doc.select("#appendix")).isNotEmpty();
+    assertThat(doc.select("#header")).isEmpty();
+    assertThat(doc.select("#footer")).isEmpty();
+    assertThat(doc.select("#additional-notices")).isEmpty();
+    // Ensures that the appendix contains this license
+    assertThat(doc.select("#standard-LicenseOne")).isNotEmpty();
+  }
+
   @Test
   public void testDefaultSuccessfulReportMultiAppWithNoticeFile() throws IOException {
     Set<AttributionReportApplicationDTO> applicationsAndStages = new HashSet<>();
@@ -558,5 +612,17 @@ public class ApplicationAttributionReportBuilderTest
     assertThat(doc.select("#header")).hasToString("<p id=\"header\">!@#$%^&amp;*())_</p>");
     assertThat(doc.select("#footer")).isNotEmpty();
     assertThat(doc.select("#footer")).hasToString("<p id=\"footer\">&lt;h2&gt;title&lt;/h2&gt;</p>");
+  }
+
+  @SuppressWarnings("unchecked")
+  private UserFilterDTO newUserFilterDTO(UserFilter userFilter) throws IOException {
+    UserFilterDTO userFilterDTO = new UserFilterDTO();
+    userFilterDTO.basedOnFilterName = userFilter.getBasedOnFilterName();
+    if (StringUtils.isNotBlank(userFilter.getFilter())) {
+      userFilterDTO.filter = JsonUtils.parse(userFilter.getFilter(), Map.class);
+    }
+    userFilterDTO.name = userFilter.getName();
+    userFilterDTO.type = userFilter.getType();
+    return userFilterDTO;
   }
 }

@@ -63,9 +63,13 @@ public class DefaultApiLegalReportResourceV2
 
   public static final String REPORT = "/report";
 
+  public static final String FILTER = "/activeUserFilter";
+
   public static final String APPLICATION_REPORT_PATH = APPLICATION_PATH_STAGE + REPORT;
 
   public static final String MULTI_APPLICATION_REPORT_PATH = "multiApplication" + REPORT;
+
+  public static final String MULTI_APPLICATION_REPORT_FROM_FILTER = "multiApplication" + FILTER + REPORT;
 
   public static final String CUSTOM_MULTI_APPLICATION_REPORT_PATH = "customMultiApplication" + REPORT;
 
@@ -139,6 +143,15 @@ public class DefaultApiLegalReportResourceV2
 
   @Override
   @GET
+  @Path(MULTI_APPLICATION_REPORT_FROM_FILTER)
+  @Produces(MediaType.TEXT_HTML)
+  public String getLicenseLegalMultiApplicationReportFromActiveUserFilter() {
+    return applicationAttributionReportBuilder
+        .generateLegalMultiApplicationAttributionReportFromActiveUserFilter();
+  }
+
+  @Override
+  @GET
   @Path(APPLICATION_REPORT_PATH)
   @Produces(MediaType.TEXT_HTML)
   public String getLicenseLegalApplicationHTMLReport(
@@ -149,8 +162,7 @@ public class DefaultApiLegalReportResourceV2
         LegalCustomReportParameters.builder().buildWithDefaults(app.getPublicId());
 
     return applicationAttributionReportBuilder
-        .generateCustomLegalApplicationAttributionReport(
-            app, stageId, reportParameters);
+        .generateCustomLegalApplicationAttributionReport(app, stageId, reportParameters);
   }
 
   @Override
@@ -355,7 +367,7 @@ public class DefaultApiLegalReportResourceV2
       return Collections.emptySet();
     }
     
-    Set<String> applicationIds = applications.stream()
+    Set<String> applicationPublicIds = applications.stream()
         .map(FormDataBodyPart::getValue)
         .map(app -> app.split(","))
         .flatMap(Arrays::stream)
@@ -367,13 +379,17 @@ public class DefaultApiLegalReportResourceV2
         .flatMap(Arrays::stream)
         .collect(Collectors.toSet());
 
-    return resourceDTOFromSet(applicationIds, stageIds);
+    return resourceDTOFromSet(applicationPublicIds, stageIds);
   }
   
-  private Set<AttributionReportApplicationDTO> resourceDTOFromSet(Set<String> applicationIds, Set<String> stageIds) {
+  private Set<AttributionReportApplicationDTO> resourceDTOFromSet(
+      Set<String> applicationPublicIds,
+      Set<String> stageIds)
+  {
     Set<AttributionReportApplicationDTO> legalReportResourceApplicationDTO = new HashSet<>();
-    applicationIds.forEach(applicationId -> stageIds.forEach(
-        stageId -> legalReportResourceApplicationDTO.add(new AttributionReportApplicationDTO(applicationId, stageId))));
+    applicationPublicIds.forEach(applicationPublicId -> stageIds.forEach(
+        stageId -> legalReportResourceApplicationDTO
+            .add(new AttributionReportApplicationDTO(null, applicationPublicId, stageId))));
     return legalReportResourceApplicationDTO;
   }
 

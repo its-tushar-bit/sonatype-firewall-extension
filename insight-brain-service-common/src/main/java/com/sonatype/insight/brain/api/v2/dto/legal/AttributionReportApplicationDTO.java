@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.api.v2.dto.legal;
 
 public class AttributionReportApplicationDTO
 {
+  public String applicationId;
+
   public String applicationPublicId;
 
   public String stageTypeName;
@@ -15,7 +17,8 @@ public class AttributionReportApplicationDTO
     // for Jackson
   }
 
-  public AttributionReportApplicationDTO(String applicationPublicId, String stageTypeName) {
+  public AttributionReportApplicationDTO(String applicationId, String applicationPublicId, String stageTypeName) {
+    this.applicationId = applicationId;
     this.applicationPublicId = applicationPublicId;
     this.stageTypeName = stageTypeName;
   }

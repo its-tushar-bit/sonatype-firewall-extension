@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-class AdvancedLegalPackDashboardFilter
+public class AdvancedLegalPackDashboardFilter
 {
   private List<String> organizationFilters = new ArrayList<>();
 

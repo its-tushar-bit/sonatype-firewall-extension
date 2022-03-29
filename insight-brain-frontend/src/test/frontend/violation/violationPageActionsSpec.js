@@ -38,6 +38,13 @@ describe('violationActions', function () {
           },
           selectedViolationId: 'bar',
         },
+        componentDetailsPolicyViolations: {
+          violations: [
+            { policyViolationId: 'foo', waived: false },
+            { policyViolationId: 'foo1', waived: false },
+            { policyViolationId: 'foo2', waived: true },
+          ],
+        },
       };
       store = SpecUtil.mockReduxStore(state);
     });
@@ -90,28 +97,28 @@ describe('violationActions', function () {
       expect(store.getActions()[0].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED);
     });
 
-    it('dispatches "fetch fulfilled" actions with cross-stage violation and waivers data', function (done) {
+    it('dispatches "fetch fulfilled" actions with cross-stage violation and waived false', function (done) {
       mockAxiosCalls({
         get: {
-          [getViolationDetailsUrl('foo')]: Promise.resolve({
-            data: { violationDetails: 'violationDetails' },
+          [getViolationDetailsUrl('foo1')]: Promise.resolve({
+            data: { policyViolationId: 'foo1' },
           }),
-          [getApplicableWaiversUrl('foo')]: Promise.resolve({
-            data: { activeWaivers: ['foo'], expiredWaivers: ['bar'] },
+          [getApplicableWaiversUrl('foo1')]: Promise.resolve({
+            data: { activeWaivers: ['foo1'], expiredWaivers: ['bar'] },
           }),
         },
       });
 
-      store.dispatch(loadViolation('foo')).then(() => {
+      store.dispatch(loadViolation('foo1')).then(() => {
         expect(store.getActions().length).toBe(4);
         expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
         expect(store.getActions()[1].payload).toEqual({
-          violationDetails: { violationDetails: 'violationDetails', waived: true },
-          selectedViolationId: 'foo',
+          violationDetails: { policyViolationId: 'foo1', waived: false },
+          selectedViolationId: 'foo1',
         });
         expect(store.getActions()[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
         expect(store.getActions()[2].payload).toEqual({
-          activeWaivers: ['foo'],
+          activeWaivers: ['foo1'],
           expiredWaivers: ['bar'],
         });
         expect(store.getActions()[3].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
@@ -119,8 +126,41 @@ describe('violationActions', function () {
 
         done();
       });
-      expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl('foo'));
-      expect(axios.get).toHaveBeenCalledWith(getApplicableWaiversUrl('foo'));
+      expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl('foo1'));
+      expect(axios.get).toHaveBeenCalledWith(getApplicableWaiversUrl('foo1'));
+    });
+
+    it('dispatches "fetch fulfilled" actions with cross-stage violation and waived true', function (done) {
+      mockAxiosCalls({
+        get: {
+          [getViolationDetailsUrl('foo2')]: Promise.resolve({
+            data: { policyViolationId: 'foo2' },
+          }),
+          [getApplicableWaiversUrl('foo2')]: Promise.resolve({
+            data: { activeWaivers: ['foo2'], expiredWaivers: ['bar'] },
+          }),
+        },
+      });
+
+      store.dispatch(loadViolation('foo2')).then(() => {
+        expect(store.getActions().length).toBe(4);
+        expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+        expect(store.getActions()[1].payload).toEqual({
+          violationDetails: { policyViolationId: 'foo2', waived: true },
+          selectedViolationId: 'foo2',
+        });
+        expect(store.getActions()[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+        expect(store.getActions()[2].payload).toEqual({
+          activeWaivers: ['foo2'],
+          expiredWaivers: ['bar'],
+        });
+        expect(store.getActions()[3].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+        expect(store.getActions()[3].payload).toBeUndefined();
+
+        done();
+      });
+      expect(axios.get).toHaveBeenCalledWith(getViolationDetailsUrl('foo2'));
+      expect(axios.get).toHaveBeenCalledWith(getApplicableWaiversUrl('foo2'));
     });
 
     it('dispatches VIOLATION_LOAD_VIOLATION_DETAILS_FAILED when the violation details request fails', function (done) {
@@ -153,11 +193,12 @@ describe('violationActions', function () {
 
     it('dispatches VIOLATION_LOAD_VIOLATION_DETAILS_FAILED when the applicable waivers request fails', function (done) {
       const responseError = 'applicableWaiversError!';
+      store = SpecUtil.mockReduxStore({ ...state, componentDetailsPolicyViolations: undefined });
 
       mockAxiosCalls({
         get: {
           [getViolationDetailsUrl('foo')]: Promise.resolve({
-            data: { violationDetails: 'violationDetails' },
+            data: { policyViolationId: 'foo' },
           }),
           [getApplicableWaiversUrl('foo')]: () => Promise.reject(responseError),
         },
@@ -167,7 +208,7 @@ describe('violationActions', function () {
         expect(store.getActions().length).toBe(3);
         expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
         expect(store.getActions()[1].payload).toEqual({
-          violationDetails: { violationDetails: 'violationDetails', waived: true },
+          violationDetails: { policyViolationId: 'foo', waived: true },
           selectedViolationId: 'foo',
         });
         expect(store.getActions()[2].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FAILED);

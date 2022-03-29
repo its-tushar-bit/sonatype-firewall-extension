@@ -58,7 +58,9 @@ export function fetchCrossStageViolation(id) {
 
     return axios.get(getViolationDetailsUrl(id)).then(({ data }) => {
       const violations = selectComponentViolations(state);
-      const waived = violations ? prop('waived', find(propEq('policyId', data.policyId), violations)) : true;
+      const waived = violations
+        ? prop('waived', find(propEq('policyViolationId', data.policyViolationId), violations))
+        : true;
       return dispatch(
         payloadParamActionCreator(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED)({
           violationDetails: { ...data, waived },

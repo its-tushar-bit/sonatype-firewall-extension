@@ -132,10 +132,18 @@ pipeline {
     }
     stage('Update Test Instance') {
       steps {
-        build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/main', propagate: false,
+        build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging', propagate: false,
           parameters: [string(name: 'IQ_VERSION', value: 'latest')])
 
         build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging', propagate: false)
+      }
+    }
+    stage('Update Prod Instance') {
+      steps {
+        build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/production', propagate: false,
+          parameters: [string(name: 'IQ_VERSION', value: 'latest')])
+
+        build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/production', propagate: false)
       }
     }
   }

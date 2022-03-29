@@ -30,6 +30,7 @@ import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OtherVersionsTable;
@@ -766,5 +767,19 @@ public class QuarantineComponentReportTest
     SelenideElement warningAlert = quarantineReportPage.getTokenWarningAlert();
     warningAlert.shouldHave(
         text("The quarantined component view cannot be retrieved because the URL contains invalid characters."));
+  }
+
+  @Test
+  public void testLoginModalAnonymousAccessConfiguration() {
+    LoginModal loginModal = new LoginModal();
+    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
+    refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
+    loginModal.shouldBe(visible);
+    loginModal.cancelButton().shouldNotBe(visible);
+    new QuarantinedComponentAccessDAO().setAnonymousAccess(true);
+    refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
+    loginModal.shouldNotBe(visible);
+    MainHeader.loginButton().shouldBe(visible);
   }
 }

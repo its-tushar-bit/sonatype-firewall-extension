@@ -69,8 +69,11 @@ public class ApiFirewallResource
 
   static final String QUARANTINED_PATH = COMPONENTS_PATH + "/quarantined";
 
-  static final String QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS =
-      "quarantinedComponentView/configuration/anonymousAccess/{enabled: true|false}";
+  static final String QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS =
+      "quarantinedComponentView/configuration/anonymousAccess";
+
+  static final String QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS_SET =
+      QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS + "/{enabled: true|false}";
 
   private final ApiFirewallService apiFirewallService;
 
@@ -138,17 +141,28 @@ public class ApiFirewallResource
   }
 
   /**
-   * Enables/disables anonymous access to the Quarantine Component view
+   * Enables/disables anonymous access to the Quarantined Component view
    * 
    * @since 1.136
    */
   @PUT
-  @Path(QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS)
+  @Path(QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS_SET)
   @Audited(AuditEvent.CONFIGURE_SECURITY_QUARANTINED_COMPONENT_VIEW_ANON_ACCESS)
   public void setQuarantinedComponentViewAnonymousAccess(
       @PathParam("enabled") boolean enabled)
   {
     apiFirewallService.setQuarantinedComponentViewAnonymousAccess(enabled);
+  }
+
+  /**
+   * Returns whether Quarantine Component View can be accessed without authentication or not
+   *
+   * @since 1.136
+   */
+  @GET
+  @Path(QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS)
+  public Response getQuarantinedComponentViewAnonymousAccess() {
+    return Response.ok(apiFirewallService.getQuarantinedComponentViewAnonymousAccess()).build();
   }
 
   private Response getComponents(

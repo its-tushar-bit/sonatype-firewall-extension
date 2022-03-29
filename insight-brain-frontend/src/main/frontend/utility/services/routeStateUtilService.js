@@ -4,16 +4,32 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { always } from 'ramda';
-import { actions } from 'MainRoot/user/LoginModal/userLoginSlice';
+import { actions as userLoginActions } from 'MainRoot/user/LoginModal/userLoginSlice';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { unwrapResult } from '@reduxjs/toolkit';
 
-const ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE = 'backend-configurable';
+export const ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE = 'backend-configurable';
+export const QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED =
+  'quarantined-component-view-anonymous-access-configurable';
 
 export default function routeStateUtilService($state, ProductFeatures, $ngRedux) {
   const loadServerConfigPromise = ProductFeatures.loadIsUnauthenticatedPagesEnabled()
     .catch(always(false))
     .then((isUnauthenticatedPagesEnabled) => {
-      $ngRedux.dispatch(actions.setUnauthenticatedPagesEnabled(isUnauthenticatedPagesEnabled));
+      $ngRedux.dispatch(userLoginActions.setUnauthenticatedPagesEnabled(isUnauthenticatedPagesEnabled));
     });
+
+  const loadQuarantinedComponentViewAnonymousAccessConfigPromise = $ngRedux
+    .dispatch(productFeaturesActions.loadIsQuarantinedComponentViewAnonymousAccessEnabled())
+    .then(unwrapResult)
+    .then((isQuarantinedComponentViewAnonymousAccessEnabled) => {
+      $ngRedux.dispatch(
+        userLoginActions.setQuarantinedComponentViewAnonymousAccessEnabled(
+          isQuarantinedComponentViewAnonymousAccessEnabled
+        )
+      );
+    })
+    .catch(always(false));
 
   /**
    * Synchronous query for whether this route requires authentication. This is based on both the route's
@@ -30,11 +46,18 @@ export default function routeStateUtilService($state, ProductFeatures, $ngRedux)
   function stateRequiresAuthenticationSync(state = $state.current) {
     const routeRequiresAuth = state.data?.authenticationRequired;
 
-    if (routeRequiresAuth === ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE) {
-      const reduxFlag = $ngRedux.getState().userLogin.loginModalState.isUnauthenticatedPagesEnabled;
-      return typeof reduxFlag === 'boolean' ? !reduxFlag : reduxFlag;
-    } else {
-      return routeRequiresAuth ?? true;
+    switch (routeRequiresAuth) {
+      case ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE: {
+        const reduxFlag = $ngRedux.getState().userLogin.loginModalState.isUnauthenticatedPagesEnabled;
+        return typeof reduxFlag === 'boolean' ? !reduxFlag : reduxFlag;
+      }
+      case QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED: {
+        const reduxFlag = $ngRedux.getState().userLogin.loginModalState
+          .isQuarantinedComponentViewAnonymousAccessEnabled;
+        return typeof reduxFlag === 'boolean' ? !reduxFlag : reduxFlag;
+      }
+      default:
+        return routeRequiresAuth ?? true;
     }
   }
 
@@ -43,10 +66,18 @@ export default function routeStateUtilService($state, ProductFeatures, $ngRedux)
    * authenticationRequired flag and the server's enable-unauthenticated-pages config.
    */
   function stateRequiresAuthentication(state = $state.current) {
-    const basePromise =
-      state.data?.authenticationRequired === ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE
-        ? loadServerConfigPromise
-        : Promise.resolve();
+    let basePromise;
+
+    switch (state.data?.authenticationRequired) {
+      case ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE:
+        basePromise = loadServerConfigPromise;
+        break;
+      case QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED:
+        basePromise = loadQuarantinedComponentViewAnonymousAccessConfigPromise;
+        break;
+      default:
+        basePromise = Promise.resolve();
+    }
 
     return basePromise.then(() => stateRequiresAuthenticationSync(state));
   }

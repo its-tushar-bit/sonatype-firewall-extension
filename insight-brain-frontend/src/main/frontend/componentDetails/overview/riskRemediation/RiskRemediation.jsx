@@ -135,7 +135,7 @@ export const RiskRemediation = ({
 };
 
 RiskRemediation.propTypes = {
-  componentInformation: componentInformationPropType,
+  componentInformation: PropTypes.objectOf(componentInformationPropType),
   dependencyTreeSubset: PropTypes.arrayOf(dependencyTreeNodePropType),
   dependencyTreeIsNotSupported: PropTypes.bool,
   currentVersion: PropTypes.string.isRequired,

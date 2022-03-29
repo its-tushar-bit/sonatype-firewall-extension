@@ -8,6 +8,7 @@ import { react2angular } from 'react2angular';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 import QuarantinedComponentContainer from './QuarantinedComponentContainer';
 import withRouterStateProvider from 'MainRoot/reactAdapter/RouterStateProvider';
+import { QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED } from 'MainRoot/utility/services/routeStateUtilService';
 
 export default angular
   .module('quarantinedComponentReportModule', ['ngRedux'])
@@ -22,7 +23,7 @@ function routes($stateProvider) {
     component: 'quarantinedComponentReport',
     data: {
       title: 'Quarantined Component Report',
-      authenticationRequired: false,
+      authenticationRequired: QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED,
     },
     url: '/repositories/quarantinedComponent/{token}',
   });

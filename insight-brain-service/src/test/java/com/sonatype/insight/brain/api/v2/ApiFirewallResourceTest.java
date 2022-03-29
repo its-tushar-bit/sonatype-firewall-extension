@@ -407,10 +407,31 @@ public class ApiFirewallResourceTest
     assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isTrue();
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS)
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
+            ApiFirewallResource.QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS_SET)
         .parameter(false).put();
     assertResponseStatus(204, response);
     assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isFalse();
+  }
+
+  @Test
+  public void testGetQuarantinedComponentViewAnonymousAccess() throws Exception {
+    // This REST endpoint must work with anonymous access (i.e. no authentication required)
+
+    // Sanity check
+    assertThat(new QuarantinedComponentAccessDAO().isAnonymousAccessEnabled()).isTrue();
+
+    HttpResponse response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
+        ApiFirewallResource.QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS).anon().get();
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).hasToString("true");
+
+    new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
+
+    response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
+        ApiFirewallResource.QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS).anon().get();
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).hasToString("false");
   }
 
   private <T> T getBodyByTypeReference(byte[] bodyBytes, final TypeReference<T> typeRef) {

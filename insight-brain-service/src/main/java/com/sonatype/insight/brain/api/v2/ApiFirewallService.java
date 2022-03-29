@@ -368,4 +368,8 @@ public class ApiFirewallService
 
     log.info("Quarantined Component View anonymous access was " + (enabled ? "enabled" : "disabled") + ".");
   }
+
+  public String getQuarantinedComponentViewAnonymousAccess() {
+    return Boolean.toString(quarantinedComponentAccessDAO.isAnonymousAccessEnabled());
+  }
 }

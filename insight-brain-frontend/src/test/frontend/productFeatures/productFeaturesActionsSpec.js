@@ -5,7 +5,10 @@
  */
 import axios from 'axios';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
+import {
+  getProductFeaturesUrl,
+  getQuarantinedComponentViewAnonymousAccessEnabledState,
+} from 'MainRoot/util/CLMLocation';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('productFeaturesActions', () => {
@@ -125,6 +128,54 @@ describe('productFeaturesActions', () => {
         expect(actions[2].payload).toBe('rejected');
         expect(actions[2].payload).toBe('rejected');
 
+        done();
+      });
+    });
+  });
+
+  describe('loadIsQuarantinedComponentViewAnonymousAccessEnabled', () => {
+    it('does load flag configuration successfully', (done) => {
+      mockAxiosCalls({
+        get: {
+          [getQuarantinedComponentViewAnonymousAccessEnabledState()]: Promise.resolve({
+            data: true,
+          }),
+        },
+      });
+
+      store.dispatch(actions.loadIsQuarantinedComponentViewAnonymousAccessEnabled()).then(() => {
+        expect(axios.get).toHaveBeenCalledOnceWith(getQuarantinedComponentViewAnonymousAccessEnabledState());
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'productFeatures/loadIsQuarantinedComponentViewAnonymousAccessEnabled/pending',
+          'productFeatures/loadIsQuarantinedComponentViewAnonymousAccessEnabled/fulfilled',
+        ]);
+
+        expect(actions[1].payload).toEqual(true);
+        done();
+      });
+    });
+
+    it('dispatches rejected action if load request fails', (done) => {
+      mockAxiosCalls({
+        get: {
+          [getQuarantinedComponentViewAnonymousAccessEnabledState()]: Promise.reject('rejected'),
+        },
+      });
+
+      store.dispatch(actions.loadIsQuarantinedComponentViewAnonymousAccessEnabled()).then(() => {
+        expect(axios.get).toHaveBeenCalledOnceWith(getQuarantinedComponentViewAnonymousAccessEnabledState());
+
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'productFeatures/loadIsQuarantinedComponentViewAnonymousAccessEnabled/pending',
+          'productFeatures/loadIsQuarantinedComponentViewAnonymousAccessEnabled/rejected',
+        ]);
+
+        expect(actions[1].payload).toEqual('rejected');
         done();
       });
     });

@@ -7,7 +7,9 @@
 @use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 
 .iq-administrators-edit {
-  .nx-search-dropdown, .nx-search-dropdown__input, .associate-group-input {
+  .nx-search-dropdown,
+  .nx-search-dropdown__input,
+  .associate-group-input {
     width: 348px;
     margin-bottom: 0;
   }

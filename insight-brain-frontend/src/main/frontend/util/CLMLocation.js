@@ -348,6 +348,10 @@ export function getEnableUnauthenticatedPages() {
   return uriTemplate`/rest/product/features/enableUnauthenticatedPages`;
 }
 
+export function getQuarantinedComponentViewAnonymousAccessEnabledState() {
+  return uriTemplate`/api/v2/firewall/quarantinedComponentView/configuration/anonymousAccess/`;
+}
+
 export const getReportBomUrl = getBrowseReportUrl('bom.json');
 
 export const getReportUnknownJsUrl = getBrowseReportUrl('unknownjs.json');
@@ -1018,6 +1022,8 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       getProductFeaturesUrl,
 
       getEnableUnauthenticatedPages,
+
+      getQuarantinedComponentViewAnonymousAccessEnabledState,
 
       getComponentRisksUrl,
 

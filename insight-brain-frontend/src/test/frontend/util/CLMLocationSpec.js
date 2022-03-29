@@ -749,6 +749,20 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getEnableUnauthenticatedPages', () => {
+    it('returns url to get getEnableUnauthenticatedPages feature configuration', () => {
+      expect(clmLocation.getEnableUnauthenticatedPages()).toEqual('/rest/product/features/enableUnauthenticatedPages');
+    });
+  });
+
+  describe('getQuarantinedComponentViewAnonymousAccessEnabledState', () => {
+    it('returns url for anonymous access configuration', () => {
+      expect(clmLocation.getQuarantinedComponentViewAnonymousAccessEnabledState()).toEqual(
+        '/api/v2/firewall/quarantinedComponentView/configuration/anonymousAccess/'
+      );
+    });
+  });
+
   describe('getCrowdConfigurationUrl', () => {
     it('returns url for atlassian crowd configuration', () => {
       const expectedUrl = '/api/v2/config/crowd';

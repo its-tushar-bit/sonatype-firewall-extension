@@ -113,6 +113,11 @@ public class SecurityModule
     manager.createChain("/api/v2/licenseLegalMetadata/application/*/stage/*/report",
         String.format(CUSTOM_CSRF_FILTERS, AntiCsrfFilter.FORM_POST_ALLOWED));
 
+    // The UI uses this path to get the config for anonymous access for the Quarantined Component View.
+    // This must work for unauthenticated users when the anonymous access is enabled for this page.
+    manager.createChain("/api/v2/firewall/quarantinedComponentView/configuration/anonymousAccess",
+        anonFilters + ", antiCsrf");
+
     // public REST API
     manager.createChain("/api/**", "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], " +
         "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + "], authcBasic, saml, requireAuth");

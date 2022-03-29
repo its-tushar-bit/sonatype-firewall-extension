@@ -63,9 +63,8 @@ public class ApiFirewallResourceAuditTest
 
   @Test
   public void testSetQuarantinedComponentViewAnonymousAccess() throws Exception {
-    HttpResponse response = restRequest()
-        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS)
-        .parameter(false).put();
+    HttpResponse response = restRequest().path(PublicApiPaths.FIREWALL_RESOURCE_PATH,
+        ApiFirewallResource.QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS_SET).parameter(false).put();
     assertResponseStatus(204, response);
 
     AuditDTO auditLog = awaitLogEntries(AuditEvent.CONFIGURE_SECURITY_QUARANTINED_COMPONENT_VIEW_ANON_ACCESS, 1).get(0);

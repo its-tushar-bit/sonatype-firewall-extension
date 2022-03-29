@@ -17,6 +17,9 @@ describe('routeStateUtilService', function () {
       loadIsUnauthenticatedPagesEnabled: () => {
         return new Promise(() => true);
       },
+      getQuarantinedComponentViewAnonymousAccessEnabledState: () => {
+        return new Promise(() => true);
+      },
     };
     mockNgRedux = {
       getState() {
@@ -24,13 +27,12 @@ describe('routeStateUtilService', function () {
           userLogin: {
             loginModalState: {
               isUnauthenticatedPagesEnabled: true,
+              isQuarantinedComponentViewAnonymousAccessEnabled: true,
             },
           },
         };
       },
-      dispatch() {
-        // do nothing
-      },
+      dispatch: jasmine.createSpy('dispatch').and.returnValue(new Promise(() => true)),
     };
   });
 
@@ -45,7 +47,8 @@ describe('routeStateUtilService', function () {
       });
 
       it('returns true when isUnauthenticatedPagesEnabled is false', function () {
-        mockNgRedux = {
+        let customMockNgRedux = {
+          ...mockNgRedux,
           getState() {
             return {
               userLogin: {
@@ -55,12 +58,9 @@ describe('routeStateUtilService', function () {
               },
             };
           },
-          dispatch() {
-            // do nothing
-          },
         };
 
-        getService()
+        routeStateUtilService({ current: mockCurrentState }, mockProductFeatures, customMockNgRedux)
           .stateRequiresAuthentication({ data: { authenticationRequired: 'backend-configurable' } })
           .then((stateRequiresAuthentication) => {
             expect(stateRequiresAuthentication).toBe(true);

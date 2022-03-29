@@ -37,6 +37,7 @@ import {
   selectMustReenterPassword,
   selectTestSuccessMessage,
   selectServerData,
+  selectShowModal,
 } from 'MainRoot/configuration/crowd/atlassianCrowdConfigurationSelectors';
 
 export default function AtlassianCrowdConfiguration() {
@@ -55,6 +56,7 @@ export default function AtlassianCrowdConfiguration() {
   const mustReenterPassword = useSelector(selectMustReenterPassword);
   const testSuccessMessage = useSelector(selectTestSuccessMessage);
   const serverData = useSelector(selectServerData);
+  const showModal = useSelector(selectShowModal);
   const updateConf = () => dispatch(actions.update());
   const deleteConf = () => dispatch(actions.del());
   const testConf = () => dispatch(actions.test());
@@ -64,12 +66,11 @@ export default function AtlassianCrowdConfiguration() {
   const setApplicationName = (value) => dispatch(actions.setInputValueApplicationName(value));
   const setApplicationPassword = (value) => dispatch(actions.setInputValueApplicationPassword(value));
   const resetTestAlertMessages = () => dispatch(actions.resetTestAlertMessages());
+  const setShowModal = (value) => dispatch(actions.setShowModal(value));
 
   useEffect(() => {
     loadConf();
   }, []);
-
-  const [showModal, setShowModal] = useState(false);
 
   function modalCloseHandler() {
     setShowModal(false);
@@ -99,7 +100,7 @@ export default function AtlassianCrowdConfiguration() {
       aria-labelledby="crowd-delete-label-modal"
     >
       <NxForm
-        onSubmit={() => deleteConf(modalCloseHandler())}
+        onSubmit={() => deleteConf()}
         onCancel={modalCloseHandler}
         submitBtnText="OK"
         submitError={deleteError}

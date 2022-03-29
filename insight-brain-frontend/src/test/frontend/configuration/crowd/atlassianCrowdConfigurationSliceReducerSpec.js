@@ -201,6 +201,14 @@ describe('AtlassianCrowdConfigurationReducer', () => {
     });
   });
 
+  describe('atlassianCrowdConfiguration/deleteMaskTimerDone', () => {
+    it('sets deleteMaskState', () => {
+      const action = { type: 'atlassianCrowdConfiguration/deleteMaskTimerDone' };
+      const newState = reducer({ deleteMaskState: true }, action);
+      expect(newState.deleteMaskState).toBeNull();
+    });
+  });
+
   describe('atlassianCrowdConfiguration/delete/pending', () => {
     it('clears errors and the test message and sets the submitMaskState and submitMaskMessage', () => {
       const action = { type: 'atlassianCrowdConfiguration/delete/pending' };
@@ -212,7 +220,7 @@ describe('AtlassianCrowdConfigurationReducer', () => {
         deleteError: null,
         testError: null,
         testSuccessMessage: null,
-        submitMaskState: false,
+        deleteMaskState: false,
         submitMaskMessage: 'Deleting…',
       });
     });
@@ -223,7 +231,8 @@ describe('AtlassianCrowdConfigurationReducer', () => {
       const newState = reducer({}, { type: 'atlassianCrowdConfiguration/delete/fulfilled' });
       expect(newState).toEqual({
         ...initialState,
-        submitMaskState: true,
+        showModal: true,
+        deleteMaskState: true,
       });
     });
   });
@@ -233,7 +242,7 @@ describe('AtlassianCrowdConfigurationReducer', () => {
       const errorMessage = 'error on delete';
       const newState = reducer({}, { type: 'atlassianCrowdConfiguration/delete/rejected', payload: errorMessage });
       expect(newState).toEqual({
-        submitMaskState: null,
+        deleteMaskState: null,
         deleteError: errorMessage,
       });
     });
@@ -384,6 +393,17 @@ describe('AtlassianCrowdConfigurationReducer', () => {
 
       expect(newState.formState.applicationName.value).toBe(dirtyField);
       expect(newState.isDirty).toBeTruthy();
+    });
+  });
+
+  describe('atlassianCrowdConfiguration/setShowModal', () => {
+    it('sets showModal and clears the delete error', () => {
+      const action = { type: 'atlassianCrowdConfiguration/setShowModal', payload: 'any' };
+      const newState = reducer({}, action);
+      expect(newState).toEqual({
+        showModal: 'any',
+        deleteError: null,
+      });
     });
   });
 });

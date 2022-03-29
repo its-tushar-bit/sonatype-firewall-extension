@@ -47,3 +47,5 @@ export const selectTestSuccessMessage = createSelector(
   prop('testSuccessMessage')
 );
 export const selectServerData = createSelector(selectAtlassianCrowdConfigurationSlice, prop('serverData'));
+
+export const selectShowModal = createSelector(selectAtlassianCrowdConfigurationSlice, prop('showModal'));

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { any, curryN, map, pick, prop } from 'ramda';
+import { any, compose, curryN, map, pick, prop } from 'ramda';
 
 import { Messages } from 'MainRoot/util/CommonServices';
 import { validateNonEmpty } from 'MainRoot/util/validationUtil';
@@ -11,7 +11,7 @@ import { pathSet } from 'MainRoot/util/jsUtil';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getCrowdConfigurationTestUrl, getCrowdConfigurationUrl } from 'MainRoot/util/CLMLocation';
-import { propSetConst } from 'MainRoot/util/reduxToolkitUtil';
+import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import {
   selectFormState,
   selectServerData,
@@ -40,6 +40,7 @@ export const initialState = {
   },
   serverData: null,
   mustReenterPassword: false,
+  showModal: false,
 };
 
 const clearedErrors = pick(['loadError', 'updateError', 'deleteError', 'testError'], initialState);
@@ -85,6 +86,14 @@ const startSubmitMaskSuccessTimer = (dispatch) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(dispatch(actions.submitMaskTimerDone()));
+    }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+  });
+};
+
+const startDeleteMaskSuccessTimer = (dispatch) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(dispatch(actions.deleteMaskTimerDone()));
     }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
   });
 };
@@ -164,7 +173,7 @@ function deleteRequested(state) {
     ...state,
     ...clearedErrors,
     testSuccessMessage: null,
-    submitMaskState: false,
+    deleteMaskState: false,
     submitMaskMessage: 'Deleting…',
   };
 }
@@ -172,14 +181,15 @@ function deleteRequested(state) {
 function deleteFulfilled() {
   return {
     ...initialState,
-    submitMaskState: true,
+    showModal: true,
+    deleteMaskState: true,
   };
 }
 
 function deleteFailed(state, { payload }) {
   return {
     ...state,
-    submitMaskState: null,
+    deleteMaskState: null,
     deleteError: Messages.getHttpErrorMessage(payload),
   };
 }
@@ -228,7 +238,7 @@ const del = createAsyncThunk(`${REDUCER_NAME}/delete`, (_, { dispatch, rejectWit
   return axios
     .delete(getCrowdConfigurationUrl())
     .then(() => {
-      startSubmitMaskSuccessTimer(dispatch);
+      startDeleteMaskSuccessTimer(dispatch).then(() => dispatch(actions.setShowModal(false)));
     })
     .catch(rejectWithValue);
 });
@@ -269,6 +279,8 @@ const atlassianCrowdConfigurationSlice = createSlice({
     setInputValueApplicationName: setTextInput('applicationName', validateNonEmpty),
     setInputValueApplicationPassword: setTextInput('applicationPassword', validateNonEmpty),
     submitMaskTimerDone: propSetConst('submitMaskState', null),
+    deleteMaskTimerDone: propSetConst('deleteMaskState', null),
+    setShowModal: compose(propSetConst('deleteError', null), propSet('showModal')),
   },
   extraReducers: {
     [load.pending]: propSetConst('loading', true),

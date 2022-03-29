@@ -7,6 +7,7 @@ import axios from 'axios';
 import { actions, initialState } from 'MainRoot/configuration/crowd/atlassianCrowdConfigurationSlice';
 import { getCrowdConfigurationTestUrl, getCrowdConfigurationUrl } from 'MainRoot/util/CLMLocation';
 import { omit } from 'ramda';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 describe('atlassianCrowdConfigurationSliceAction', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -21,7 +22,10 @@ describe('atlassianCrowdConfigurationSliceAction', () => {
 
   beforeEach(() => {
     state = initialState;
+    jasmine.clock().install();
   });
+
+  afterEach(() => jasmine.clock().uninstall());
 
   function verifySimpleAction(name, payload) {
     store = SpecUtil.mockReduxStore(state);
@@ -186,16 +190,29 @@ describe('atlassianCrowdConfigurationSliceAction', () => {
         },
       });
 
-      store.dispatch(actions.del()).then(() => {
-        const actions = store.getActions().map((action) => omit(['meta', 'error', 'payload'], action));
-        expect(actions).toHaveAction({
-          type: 'atlassianCrowdConfiguration/delete/pending',
+      store
+        .dispatch(actions.del())
+        .then(() => {
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          const actions = store.getActions().map((action) => omit(['meta', 'error', 'payload'], action));
+          expect(actions).toHaveAction({
+            type: 'atlassianCrowdConfiguration/delete/pending',
+          });
+          expect(actions).toHaveAction({
+            type: 'atlassianCrowdConfiguration/delete/fulfilled',
+          });
+          expect(actions).toHaveAction({
+            type: 'atlassianCrowdConfiguration/deleteMaskTimerDone',
+          });
+        })
+        .then(() => {
+          const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
+          expect(actions).toHaveAction({
+            type: 'atlassianCrowdConfiguration/setShowModal',
+            payload: false,
+          });
+          done();
         });
-        expect(actions).toHaveAction({
-          type: 'atlassianCrowdConfiguration/delete/fulfilled',
-        });
-        done();
-      });
     });
   });
 
@@ -287,9 +304,21 @@ describe('atlassianCrowdConfigurationSliceAction', () => {
     });
   });
 
-  describe('maskTimerDone', () => {
+  describe('submitMaskTimerDone', () => {
     it('dispatches atlassianCrowdConfiguration/submitMaskTimerDone', () => {
       verifySimpleAction('submitMaskTimerDone', null);
+    });
+  });
+
+  describe('deleteMaskTimerDone', () => {
+    it('dispatches atlassianCrowdConfiguration/deleteMaskTimerDone', () => {
+      verifySimpleAction('deleteMaskTimerDone', null);
+    });
+  });
+
+  describe('setShowModal', () => {
+    it('dispatches atlassianCrowdConfiguration/setShowModal', () => {
+      verifySimpleAction('setShowModal', null);
     });
   });
 });

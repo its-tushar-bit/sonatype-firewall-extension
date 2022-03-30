@@ -57,8 +57,8 @@ public class QuarantinedComponentAccessDAO
   }
 
   public void setAnonymousAccess(boolean enabled) {
-    new SystemConfigurationPropertyDAO().update(
-        new SystemConfigurationProperty("QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS", String.valueOf(enabled)));
+    new SystemConfigurationPropertyDAO().update(new SystemConfigurationProperty(
+        SystemConfigurationProperty.QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS, String.valueOf(enabled)));
   }
 
   public boolean isAnonymousAccessEnabled() {

@@ -176,9 +176,9 @@
 <table th:if="${reportParameters.includeToc}" id="table-of-contents">
   <thead>
   <tr>
-    <th>Component</th>
-    <th>License</th>
-    <th>Source Code Links</th>
+    <th>COMPONENT</th>
+    <th>LICENSES</th>
+    <th>SOURCE CODE LINKS</th>
   </tr>
   </thead>
   <tbody>
@@ -233,7 +233,7 @@
   <!-- Original Sources -->
   <h3  th:id="'original-sources-' + ${component.packageUrl}" th:if="${component.licenseLegalData.sourceLinks != null &&
   #sets.size(component.licenseLegalData.sourceLinks) > 0}">
-    Original Sources</h3>
+    Original Source Code</h3>
   <ul class="report-list">
     <li th:each="linkDTO,iterState : ${component.licenseLegalData.sourceLinks}"
         th:if="${linkDTO != null && #strings.equals(linkDTO.status, 'enabled')}">

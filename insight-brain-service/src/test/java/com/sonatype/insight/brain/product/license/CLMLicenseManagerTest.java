@@ -211,6 +211,15 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetFeatures_StagePropertyFromLicenseIsIgnored_LifecycleCloud() throws Exception {
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_ENFORCEMENT_POINTS, "Invalid,Build,Procure");
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.CI_INTEGRATION,
+        LicensedFeature.IDE_INTEGRATION, LicensedFeature.RM_STAGING_INTEGRATION);
+  }
+
+  @Test
   public void testGetFeatures_NexusProPlus() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     mockHdsProductLicenseDetails(withFeatures());
@@ -243,6 +252,27 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetFeatures_Lifecycle() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
+        LicensedFeature.IDE_INTEGRATION, //
+        LicensedFeature.CI_INTEGRATION, //
+        LicensedFeature.RM_STAGING_INTEGRATION, //
+        LicensedFeature.DASHBOARD, //
+        LicensedFeature.POLICY_MONITORING, //
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS, //
+        LicensedFeature.CLI_INTEGRATION, //
+        LicensedFeature.QUALITY, //
+        LicensedFeature.ENFORCEMENT, //
+        LicensedFeature.NOTIFICATIONS, //
+        LicensedFeature.POLICY_GRANDFATHERING, //
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+        LicensedFeature.AUTOMATION);
+  }
+
+  @Test
+  public void testGetFeatures_LifecycleCloud() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
@@ -394,6 +424,22 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetStageTypes_Lifecycle() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    mockHdsProductLicenseDetails(withStages());
+    installLicense();
+
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
+        StageTypes.DEVELOP, //
+        StageTypes.SOURCE, //
+        StageTypes.BUILD, //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.OPERATE, //
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_LifecycleCloud() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
     mockHdsProductLicenseDetails(withStages());
     installLicense();
 
@@ -810,6 +856,15 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetLicenseSummary_ProductEditionLifecycleCloud() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_CLOUD);
+  }
+
+  @Test
   public void testGetLicenseSummary_ProductEditionFirewall() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
@@ -892,6 +947,15 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetLicenseInfo_ProductEditionLifecycleCloud() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
+    installLicense();
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_CLOUD);
+  }
+
+  @Test
   public void testGetLicenseInfo_ProductEditionFirewall() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
     installLicense();
@@ -933,6 +997,11 @@ public class CLMLicenseManagerTest
     assertThat(info.licensedUsersToDisplay).isEqualTo(50);
 
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.licensedUsersToDisplay).isEqualTo(50);
+
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.licensedUsersToDisplay).isEqualTo(50);
@@ -1035,6 +1104,13 @@ public class CLMLicenseManagerTest
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.firewallUsersToDisplay).isNull();
 
+    // should be null when Lifecycle but with null maxFirewallUsers
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
+    licenseManager.setMaxFirewallUsers(null);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.firewallUsersToDisplay).isNull();
+
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     licenseManager.setMaxFirewallUsers(null);
     installLicense();
@@ -1120,13 +1196,13 @@ public class CLMLicenseManagerTest
   public void testGetLicenseInfo_Products() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_RISK,
         ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, "foo", ProductLicenseDetails.PRODUCT_NEXUS,
-        ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
+        ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
 
     installLicense();
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.products).containsExactlyInAnyOrder("Nexus Firewall", "Nexus Auditor", "Nexus Lifecycle",
-        "Nexus Pro+", "Nexus Advanced Legal Pack");
+        "Nexus Pro+", "Nexus Advanced Legal Pack", "Nexus Lifecycle Cloud");
   }
 
   @Test

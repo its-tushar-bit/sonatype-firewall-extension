@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.license.model.ProductLicenseDetails.PRODUCT_FIREWALL;
 import static com.sonatype.insight.license.model.ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION;
+import static com.sonatype.insight.license.model.ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD;
 
 /**
  * @since 1.17.0
@@ -93,7 +94,8 @@ public class RepositoryService extends AbstractRepositoryService
   }
 
   private void checkLicenseProduct() {
-    if (!(productLicense.hasProduct(PRODUCT_RISK_AND_REMEDIATION) || productLicense.hasProduct(PRODUCT_FIREWALL))) {
+    if (!(productLicense.hasProduct(PRODUCT_RISK_AND_REMEDIATION) || productLicense.hasProduct(PRODUCT_FIREWALL) ||
+        productLicense.hasProduct(PRODUCT_LIFECYCLE_CLOUD))) {
       throw new InvalidLicenseException();
     }
   }

@@ -37,7 +37,8 @@ public class ProductLicenseTest
 
   @Before
   public void before() throws Exception {
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL,
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
     setExpirationDate(DateUtils.parseIso8601Date("2100-05-01"));
     refreshOrOpen(ProductLicensePage.url());
   }
@@ -66,9 +67,10 @@ public class ProductLicenseTest
     ProductLicensePage.licensedDevelopers().shouldBe(visible);
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
 
-    ProductLicensePage.licensedDevelopersRows().shouldHave(texts("Lifecycle — 50", "Firewall — 45"));
+    ProductLicensePage.licensedDevelopersRows()
+        .shouldHave(texts("Lifecycle — 50", "Lifecycle Cloud — 50", "Firewall — 45"));
     ProductLicensePage.licensedApplications().shouldBe(hidden);
-    ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle", "Nexus Firewall"));
+    ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle Cloud", "Nexus Lifecycle", "Nexus Firewall"));
     ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
 
     eyesWatcher.eyesCheck();
@@ -117,6 +119,22 @@ public class ProductLicenseTest
 
     SidebarNavigation.openNavigationSidebar();
     SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle"));
+    eyesWatcher.eyesCheck("Nexus Lifecycle Logo");
+  }
+
+  @Test
+  public void testLicenseInformation_LifecycleCloudOnly() throws Exception {
+    productLicenseManager.setMaxFirewallUsers(null);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
+
+    refreshOrOpen(ProductLicensePage.url());
+
+    ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
+    ProductLicensePage.licensedApplications().shouldNotBe(visible);
+    ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle Cloud"));
+
+    SidebarNavigation.openNavigationSidebar();
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle Cloud"));
     eyesWatcher.eyesCheck("Nexus Lifecycle Logo");
   }
 

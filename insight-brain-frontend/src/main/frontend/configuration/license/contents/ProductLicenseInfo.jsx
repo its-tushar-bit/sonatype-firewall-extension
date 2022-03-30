@@ -16,6 +16,7 @@ const mkLimit = (name, count) => ({ name, count });
 export default function ProductLicenseInfo({ license }) {
   const userLimits = [
     license.licensedUsersToDisplay && mkLimit('Lifecycle', license.licensedUsersToDisplay),
+    license.licensedUsersToDisplay && mkLimit('Lifecycle Cloud', license.licensedUsersToDisplay),
     license.firewallUsersToDisplay && mkLimit('Firewall', license.firewallUsersToDisplay),
   ].filter(identity);
 

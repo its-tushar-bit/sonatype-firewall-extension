@@ -49,8 +49,10 @@ public class TestProductLicense
       ProductLicenseKey productLicenseKey =
           testProductLicenseManager.getLicenseDetails(new ByteArrayInputStream(new byte[1]));
       set(productLicenseKey, "1234",
-          new HashSet<>(Arrays.asList(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
-              ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY)),
+          new HashSet<>(
+              Arrays.asList(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL,
+                  ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY,
+                  ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD)),
           EnumSet.allOf(LicensedFeature.class), new HashSet<>(StageTypes.getAll()), ProductLicensingModel.LEGACY,
           100, 50, 45);
     }

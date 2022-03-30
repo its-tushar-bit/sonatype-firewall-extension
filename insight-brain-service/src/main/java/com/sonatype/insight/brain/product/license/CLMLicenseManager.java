@@ -88,6 +88,8 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_INFRASTRUCTURE_AS_CODE_PACK = "Infrastructure as Code Pack";
 
+  public static final String PRODUCT_LIFECYCLE_CLOUD = "Lifecycle Cloud";
+
   // Visible for testing
   static final String TASK_NAME = "ProductLicenseLoad";
 
@@ -304,6 +306,9 @@ public class CLMLicenseManager
       case ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION:
         marketingNameSuffix = PRODUCT_LIFECYCLE;
         break;
+      case ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD:
+        marketingNameSuffix = PRODUCT_LIFECYCLE_CLOUD;
+        break;
       case ProductLicenseDetails.PRODUCT_FOUNDATION:
         marketingNameSuffix = PRODUCT_LIFECYCLE_FOUNDATION;
         break;
@@ -364,6 +369,7 @@ public class CLMLicenseManager
             licensedUsersToDisplay = productLicense.getMaxUsers();
             break;
           case PRODUCT_LIFECYCLE:
+          case PRODUCT_LIFECYCLE_CLOUD:
             // fallthrough
           case PRODUCT_LIFECYCLE_FOUNDATION:
             licensedUsersToDisplay = productLicense.getMaxUsers();
@@ -421,6 +427,9 @@ public class CLMLicenseManager
     }
     else if (products.contains(ProductLicenseDetails.PRODUCT_RISK)) {
       return PRODUCT_AUDITOR;
+    }
+    else if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD)) {
+      return PRODUCT_LIFECYCLE_CLOUD;
     }
 
     return "";
@@ -538,6 +547,22 @@ public class CLMLicenseManager
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK)) {
       features.add(LicensedFeature.ADVANCED_LEGAL_PACK);
+    }
+    if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD)) {
+      features.add(LicensedFeature.QUALITY);
+      features.add(LicensedFeature.POLICY_MONITORING);
+      features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
+      features.add(LicensedFeature.DASHBOARD);
+      features.add(LicensedFeature.CLI_INTEGRATION);
+      features.add(LicensedFeature.ENFORCEMENT);
+      features.add(LicensedFeature.NOTIFICATIONS);
+      features.add(LicensedFeature.POLICY_GRANDFATHERING);
+      features.add(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+      features.add(LicensedFeature.IDE_INTEGRATION);
+      features.add(LicensedFeature.CI_INTEGRATION);
+      features.add(LicensedFeature.RM_STAGING_INTEGRATION);
+      features.add(LicensedFeature.AUTOMATION);
+      stageTypes.addAll(StageTypes.getAll());
     }
 
     stageTypes.add(StageTypes.PROXY);

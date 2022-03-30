@@ -419,8 +419,9 @@ public class RepositoryServiceTest
 
     for (String product : ProductLicenseDetails.PRODUCTS) {
       testProductLicense.setProducts(product);
-      if (product.equals(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)
-          || product.equals(ProductLicenseDetails.PRODUCT_FIREWALL)) {
+      if (product.equals(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION) ||
+          product.equals(ProductLicenseDetails.PRODUCT_FIREWALL) ||
+          product.equals(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD)) {
         repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
             componentEvaluationDataRequestList, null);
       }

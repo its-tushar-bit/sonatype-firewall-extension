@@ -41,7 +41,7 @@
     </property>
     <property>
       <key>clm.products</key>
-      <value>Nexus,Risk,RiskAndRemediation,Firewall</value>
+      <value>Nexus,Risk,RiskAndRemediation,Firewall,LifecycleCloud</value>
     </property>
     <property>
       <key>clm.maxActiveApplications</key>

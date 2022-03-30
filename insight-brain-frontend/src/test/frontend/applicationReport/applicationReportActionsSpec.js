@@ -320,37 +320,22 @@ describe('applicationReportActions', function () {
             reportVersion: 3,
             isInnerSourceEnabled: false,
             dependencies: {
-              dependencyGraph: [
-                {
-                  children: [
-                    {
-                      componentIdentifier: {
-                        format: 'maven',
-                        coordinates: {
-                          artifactId: 'logback-access',
-                          classifier: '',
-                          extension: 'jar',
-                          groupId: 'ch.qos.logback',
-                          version: '0.6',
-                        },
+              dependencyTree: {
+                children: [
+                  {
+                    componentIdentifier: {
+                      format: 'maven',
+                      coordinates: {
+                        artifactId: 'logback-access',
+                        classifier: '',
+                        extension: 'jar',
+                        groupId: 'ch.qos.logback',
+                        version: '0.6',
                       },
                     },
-                  ],
-                },
-                {
-                  componentIdentifier: {
-                    format: 'maven',
-                    coordinates: {
-                      artifactId: 'logback-access',
-                      classifier: '',
-                      extension: 'jar',
-                      groupId: 'ch.qos.logback',
-                      version: '0.6',
-                    },
                   },
-                },
-              ],
-              dependencyTree: { children: [] },
+                ],
+              },
             },
           },
         });
@@ -650,37 +635,22 @@ describe('applicationReportActions', function () {
             reportVersion: 3,
             isInnerSourceEnabled: false,
             dependencies: {
-              dependencyGraph: [
-                {
-                  children: [
-                    {
-                      componentIdentifier: {
-                        format: 'maven',
-                        coordinates: {
-                          artifactId: 'logback-access',
-                          classifier: '',
-                          extension: 'jar',
-                          groupId: 'ch.qos.logback',
-                          version: '0.6',
-                        },
+              dependencyTree: {
+                children: [
+                  {
+                    componentIdentifier: {
+                      format: 'maven',
+                      coordinates: {
+                        artifactId: 'logback-access',
+                        classifier: '',
+                        extension: 'jar',
+                        groupId: 'ch.qos.logback',
+                        version: '0.6',
                       },
                     },
-                  ],
-                },
-                {
-                  componentIdentifier: {
-                    format: 'maven',
-                    coordinates: {
-                      artifactId: 'logback-access',
-                      classifier: '',
-                      extension: 'jar',
-                      groupId: 'ch.qos.logback',
-                      version: '0.6',
-                    },
                   },
-                },
-              ],
-              dependencyTree: { children: [] },
+                ],
+              },
             },
           },
         });
@@ -984,37 +954,22 @@ describe('applicationReportActions', function () {
       [CLMLocation.getDependenciesUrl('appId', 'scanId')]: isSuccess
         ? {
             data: {
-              dependencyGraph: [
-                {
-                  children: [
-                    {
-                      componentIdentifier: {
-                        format: 'maven',
-                        coordinates: {
-                          artifactId: 'logback-access',
-                          classifier: '',
-                          extension: 'jar',
-                          groupId: 'ch.qos.logback',
-                          version: '0.6',
-                        },
+              dependencyTree: {
+                children: [
+                  {
+                    componentIdentifier: {
+                      format: 'maven',
+                      coordinates: {
+                        artifactId: 'logback-access',
+                        classifier: '',
+                        extension: 'jar',
+                        groupId: 'ch.qos.logback',
+                        version: '0.6',
                       },
                     },
-                  ],
-                },
-                {
-                  componentIdentifier: {
-                    format: 'maven',
-                    coordinates: {
-                      artifactId: 'logback-access',
-                      classifier: '',
-                      extension: 'jar',
-                      groupId: 'ch.qos.logback',
-                      version: '0.6',
-                    },
                   },
-                },
-              ],
-              dependencyTree: { children: [] },
+                ],
+              },
             },
           }
         : () => Promise.reject({ status: 500 }),

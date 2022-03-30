@@ -24,9 +24,9 @@ describe('DependencyInfoGenerator', function () {
     ).toBeNull();
   });
 
-  it('handles empty dependencyGraph', function () {
+  it('handles null dependencyTree', function () {
     const dependencyInfoGenerator = DependencyInfoGenerator({
-      dependencyGraph: [],
+      dependencyTree: null,
     });
     expect(
       dependencyInfoGenerator.getDependencyInfo({
@@ -35,9 +35,22 @@ describe('DependencyInfoGenerator', function () {
     ).toBeNull();
   });
 
-  it('handles dependencyGraph with an empty object', function () {
+  it('handles empty dependencyTree', function () {
     const dependencyInfoGenerator = DependencyInfoGenerator({
-      dependencyGraph: [{}],
+      dependencyTree: {},
+    });
+    expect(
+      dependencyInfoGenerator.getDependencyInfo({
+        componentIdentifier: {},
+      })
+    ).toBeNull();
+  });
+
+  it('handles nul dependencyTree.children', function () {
+    const dependencyInfoGenerator = DependencyInfoGenerator({
+      dependencyTree: {
+        children: null,
+      },
     });
     expect(
       dependencyInfoGenerator.getDependencyInfo({
@@ -55,154 +68,95 @@ describe('DependencyInfoGenerator', function () {
     //     | /                 \ |
     //    foo                   baz
     const dependencies = {
-      dependencyGraph: [
-        {
-          children: [
-            {
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  artifactId: 'logback-access',
-                  classifier: '',
-                  extension: 'jar',
-                  groupId: 'ch.qos.logback',
-                  version: '0.6',
-                },
+      dependencyTree: {
+        children: [
+          {
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: 'logback-access',
+                classifier: '',
+                extension: 'jar',
+                groupId: 'ch.qos.logback',
+                version: '0.6',
               },
             },
-            {
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  artifactId: 'bar',
-                  extension: 'jar',
-                  groupId: 'test',
-                  version: '1',
+            children: [
+              {
+                componentIdentifier: {
+                  format: 'maven',
+                  coordinates: {
+                    artifactId: 'foo',
+                    extension: 'jar',
+                    groupId: 'test',
+                    version: '1',
+                  },
                 },
               },
-            },
-          ],
-        },
-        {
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              artifactId: 'logback-access',
-              classifier: '',
-              extension: 'jar',
-              groupId: 'ch.qos.logback',
-              version: '0.6',
-            },
+              {
+                componentIdentifier: {
+                  format: 'maven',
+                  coordinates: {
+                    artifactId: 'jetty',
+                    classifier: '',
+                    extension: 'jar',
+                    groupId: 'org.mortbay.jetty',
+                    version: '6.1.15',
+                  },
+                },
+                children: [
+                  {
+                    componentIdentifier: {
+                      format: 'maven',
+                      coordinates: {
+                        artifactId: 'foo',
+                        extension: 'jar',
+                        groupId: 'test',
+                        version: '1',
+                      },
+                    },
+                  },
+                  {
+                    componentIdentifier: {
+                      format: 'maven',
+                      coordinates: {
+                        artifactId: 'baz',
+                        extension: 'jar',
+                        groupId: 'test',
+                        version: '1',
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
           },
-          children: [
-            {
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  artifactId: 'jetty',
-                  classifier: '',
-                  extension: 'jar',
-                  groupId: 'org.mortbay.jetty',
-                  version: '6.1.15',
-                },
+          {
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: 'bar',
+                extension: 'jar',
+                groupId: 'test',
+                version: '1',
               },
             },
-            {
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  artifactId: 'foo',
-                  extension: 'jar',
-                  groupId: 'test',
-                  version: '1',
+            children: [
+              {
+                componentIdentifier: {
+                  format: 'maven',
+                  coordinates: {
+                    artifactId: 'baz',
+                    extension: 'jar',
+                    groupId: 'test',
+                    version: '1',
+                  },
                 },
               },
-            },
-          ],
-        },
-        {
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              artifactId: 'bar',
-              extension: 'jar',
-              groupId: 'test',
-              version: '1',
-            },
+            ],
           },
-          children: [
-            {
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  artifactId: 'baz',
-                  extension: 'jar',
-                  groupId: 'test',
-                  version: '1',
-                },
-              },
-            },
-          ],
-        },
-        {
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              artifactId: 'jetty',
-              classifier: '',
-              extension: 'jar',
-              groupId: 'org.mortbay.jetty',
-              version: '6.1.15',
-            },
-          },
-          children: [
-            {
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  artifactId: 'foo',
-                  extension: 'jar',
-                  groupId: 'test',
-                  version: '1',
-                },
-              },
-            },
-            {
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  artifactId: 'baz',
-                  extension: 'jar',
-                  groupId: 'test',
-                  version: '1',
-                },
-              },
-            },
-          ],
-        },
-        {
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              artifactId: 'foo',
-              extension: 'jar',
-              groupId: 'test',
-              version: '1',
-            },
-          },
-        },
-        {
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              artifactId: 'baz',
-              extension: 'jar',
-              groupId: 'test',
-              version: '1',
-            },
-          },
-        },
-      ],
+        ],
+      },
     };
 
     it('sets isDirectDependency to true for direct dependency', function () {
@@ -349,479 +303,6 @@ describe('DependencyInfoGenerator', function () {
       };
       const dependencyInfoGenerator = DependencyInfoGenerator(dependencies);
       expect(dependencyInfoGenerator.getDependencyInfo(reportEntry)).toBeNull();
-    });
-  });
-
-  describe('when dependencyGraph has circular dependency', function () {
-    it('handles circular dependency between root node and child node', function () {
-      const dependencies = {
-        dependencyGraph: [
-          {
-            children: [
-              {
-                componentIdentifier: {
-                  format: 'maven',
-                  coordinates: {
-                    artifactId: 'logback-access',
-                    classifier: '',
-                    extension: 'jar',
-                    groupId: 'ch.qos.logback',
-                    version: '0.6',
-                  },
-                },
-              },
-            ],
-          },
-          {
-            componentIdentifier: {
-              format: 'maven',
-              coordinates: {
-                artifactId: 'logback-access',
-                classifier: '',
-                extension: 'jar',
-                groupId: 'ch.qos.logback',
-                version: '0.6',
-              },
-            },
-            children: [
-              {
-                componentIdentifier: {
-                  format: 'maven',
-                  coordinates: {
-                    artifactId: 'foo',
-                    extension: 'jar',
-                    groupId: 'test',
-                    version: '1',
-                  },
-                },
-              },
-            ],
-          },
-          {
-            componentIdentifier: {
-              format: 'maven',
-              coordinates: {
-                artifactId: 'foo',
-                extension: 'jar',
-                groupId: 'test',
-                version: '1',
-              },
-            },
-            children: [
-              {
-                componentIdentifier: {
-                  format: 'maven',
-                  coordinates: {
-                    artifactId: 'logback-access',
-                    classifier: '',
-                    extension: 'jar',
-                    groupId: 'ch.qos.logback',
-                    version: '0.6',
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      };
-
-      const parent = {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'logback-access',
-            classifier: '',
-            extension: 'jar',
-            groupId: 'ch.qos.logback',
-            version: '0.6',
-          },
-        },
-      };
-
-      const child = {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'foo',
-            extension: 'jar',
-            groupId: 'test',
-            version: '1',
-          },
-        },
-      };
-
-      const dependencyInfoGenerator = DependencyInfoGenerator(dependencies);
-      expect(dependencyInfoGenerator.getDependencyInfo(parent)).toEqual({
-        isDirectDependency: true,
-      });
-      expect(dependencyInfoGenerator.getDependencyInfo(child)).toEqual({
-        isDirectDependency: false,
-        rootAncestors: [
-          {
-            format: 'maven',
-            coordinates: {
-              artifactId: 'logback-access',
-              classifier: '',
-              extension: 'jar',
-              groupId: 'ch.qos.logback',
-              version: '0.6',
-            },
-          },
-        ],
-      });
-    });
-
-    it('handles circular dependency between child nodes', function () {
-      // dependencyGraph with circular dependency from child bar to child foo)
-      const dependencies = {
-        dependencyGraph: [
-          {
-            children: [
-              {
-                componentIdentifier: {
-                  format: 'maven',
-                  coordinates: {
-                    artifactId: 'logback-access',
-                    classifier: '',
-                    extension: 'jar',
-                    groupId: 'ch.qos.logback',
-                    version: '0.6',
-                  },
-                },
-              },
-            ],
-          },
-          {
-            componentIdentifier: {
-              format: 'maven',
-              coordinates: {
-                artifactId: 'logback-access',
-                classifier: '',
-                extension: 'jar',
-                groupId: 'ch.qos.logback',
-                version: '0.6',
-              },
-            },
-            children: [
-              {
-                componentIdentifier: {
-                  format: 'maven',
-                  coordinates: {
-                    artifactId: 'foo',
-                    extension: 'jar',
-                    groupId: 'test',
-                    version: '1',
-                  },
-                },
-              },
-            ],
-          },
-          {
-            componentIdentifier: {
-              format: 'maven',
-              coordinates: {
-                artifactId: 'foo',
-                extension: 'jar',
-                groupId: 'test',
-                version: '1',
-              },
-            },
-            children: [
-              {
-                componentIdentifier: {
-                  format: 'maven',
-                  coordinates: {
-                    artifactId: 'bar',
-                    extension: 'jar',
-                    groupId: 'test',
-                    version: '1',
-                  },
-                },
-              },
-            ],
-          },
-          {
-            componentIdentifier: {
-              format: 'maven',
-              coordinates: {
-                artifactId: 'bar',
-                extension: 'jar',
-                groupId: 'test',
-                version: '1',
-              },
-            },
-            children: [
-              {
-                componentIdentifier: {
-                  format: 'maven',
-                  coordinates: {
-                    artifactId: 'foo',
-                    extension: 'jar',
-                    groupId: 'test',
-                    version: '1',
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      };
-
-      const parent = {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'logback-access',
-            classifier: '',
-            extension: 'jar',
-            groupId: 'ch.qos.logback',
-            version: '0.6',
-          },
-        },
-      };
-
-      const foo = {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'foo',
-            extension: 'jar',
-            groupId: 'test',
-            version: '1',
-          },
-        },
-      };
-
-      const bar = {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'bar',
-            extension: 'jar',
-            groupId: 'test',
-            version: '1',
-          },
-        },
-      };
-
-      const dependencyInfoGenerator = DependencyInfoGenerator(dependencies);
-      expect(dependencyInfoGenerator.getDependencyInfo(parent)).toEqual({
-        isDirectDependency: true,
-      });
-      expect(dependencyInfoGenerator.getDependencyInfo(foo)).toEqual({
-        isDirectDependency: false,
-        rootAncestors: [
-          {
-            format: 'maven',
-            coordinates: {
-              artifactId: 'logback-access',
-              classifier: '',
-              extension: 'jar',
-              groupId: 'ch.qos.logback',
-              version: '0.6',
-            },
-          },
-        ],
-      });
-      expect(dependencyInfoGenerator.getDependencyInfo(bar)).toEqual({
-        isDirectDependency: false,
-        rootAncestors: [
-          {
-            format: 'maven',
-            coordinates: {
-              artifactId: 'logback-access',
-              classifier: '',
-              extension: 'jar',
-              groupId: 'ch.qos.logback',
-              version: '0.6',
-            },
-          },
-        ],
-      });
-    });
-
-    it('handles circular dependency of a root node to itself', function () {
-      const dependencies = {
-        dependencyGraph: [
-          {
-            children: [
-              {
-                componentIdentifier: {
-                  format: 'maven',
-                  coordinates: {
-                    artifactId: 'logback-access',
-                    classifier: '',
-                    extension: 'jar',
-                    groupId: 'ch.qos.logback',
-                    version: '0.6',
-                  },
-                },
-              },
-            ],
-          },
-          {
-            componentIdentifier: {
-              format: 'maven',
-              coordinates: {
-                artifactId: 'logback-access',
-                classifier: '',
-                extension: 'jar',
-                groupId: 'ch.qos.logback',
-                version: '0.6',
-              },
-            },
-            children: [
-              {
-                componentIdentifier: {
-                  format: 'maven',
-                  coordinates: {
-                    artifactId: 'logback-access',
-                    classifier: '',
-                    extension: 'jar',
-                    groupId: 'ch.qos.logback',
-                    version: '0.6',
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      };
-
-      const reportEntry = {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'logback-access',
-            classifier: '',
-            extension: 'jar',
-            groupId: 'ch.qos.logback',
-            version: '0.6',
-          },
-        },
-      };
-
-      const dependencyInfoGenerator = DependencyInfoGenerator(dependencies);
-      expect(dependencyInfoGenerator.getDependencyInfo(reportEntry)).toEqual({
-        isDirectDependency: true,
-      });
-    });
-
-    it('handles circular dependency of a child node to itself', function () {
-      const dependencies = {
-        dependencyGraph: [
-          {
-            children: [
-              {
-                componentIdentifier: {
-                  format: 'maven',
-                  coordinates: {
-                    artifactId: 'logback-access',
-                    classifier: '',
-                    extension: 'jar',
-                    groupId: 'ch.qos.logback',
-                    version: '0.6',
-                  },
-                },
-              },
-            ],
-          },
-          {
-            componentIdentifier: {
-              format: 'maven',
-              coordinates: {
-                artifactId: 'logback-access',
-                classifier: '',
-                extension: 'jar',
-                groupId: 'ch.qos.logback',
-                version: '0.6',
-              },
-            },
-            children: [
-              {
-                componentIdentifier: {
-                  format: 'maven',
-                  coordinates: {
-                    artifactId: 'foo',
-                    extension: 'jar',
-                    groupId: 'test',
-                    version: '1',
-                  },
-                },
-              },
-            ],
-          },
-          {
-            componentIdentifier: {
-              format: 'maven',
-              coordinates: {
-                artifactId: 'foo',
-                extension: 'jar',
-                groupId: 'test',
-                version: '1',
-              },
-            },
-            children: [
-              {
-                componentIdentifier: {
-                  format: 'maven',
-                  coordinates: {
-                    artifactId: 'foo',
-                    extension: 'jar',
-                    groupId: 'test',
-                    version: '1',
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      };
-
-      const parent = {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'logback-access',
-            classifier: '',
-            extension: 'jar',
-            groupId: 'ch.qos.logback',
-            version: '0.6',
-          },
-        },
-      };
-
-      const foo = {
-        componentIdentifier: {
-          format: 'maven',
-          coordinates: {
-            artifactId: 'foo',
-            extension: 'jar',
-            groupId: 'test',
-            version: '1',
-          },
-        },
-      };
-
-      const dependencyInfoGenerator = DependencyInfoGenerator(dependencies);
-      expect(dependencyInfoGenerator.getDependencyInfo(parent)).toEqual({
-        isDirectDependency: true,
-      });
-      expect(dependencyInfoGenerator.getDependencyInfo(foo)).toEqual({
-        isDirectDependency: false,
-        rootAncestors: [
-          {
-            format: 'maven',
-            coordinates: {
-              artifactId: 'logback-access',
-              classifier: '',
-              extension: 'jar',
-              groupId: 'ch.qos.logback',
-              version: '0.6',
-            },
-          },
-        ],
-      });
     });
   });
 });

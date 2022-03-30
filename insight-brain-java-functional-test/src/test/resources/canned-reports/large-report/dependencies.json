@@ -1,15 +1,48 @@
 {
-  "dependencyGraph": [
-    {
-      "children": [
-        {
+  "dependencyTree": {
+    "children": [
+      {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "spring-security-config",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.springframework.security",
+            "version" : "3.2.4.RELEASE"
+          }
+        },
+        "children" : [ {
           "componentIdentifier" : {
             "format" : "maven",
             "coordinates" : {
-              "artifactId" : "spring-security-config",
+              "artifactId" : "spring-aop",
               "classifier" : "",
               "extension" : "jar",
-              "groupId" : "org.springframework.security",
+              "groupId" : "org.springframework",
+              "version" : "3.2.8.RELEASE"
+            }
+          },
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "spring-core",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.springframework",
+                "version" : "3.2.8.RELEASE"
+              }
+            }
+          } ]
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-beans",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
               "version" : "3.2.4.RELEASE"
             }
           }
@@ -17,139 +50,38 @@
           "componentIdentifier" : {
             "format" : "maven",
             "coordinates" : {
-              "artifactId" : "commons-httpclient",
+              "artifactId" : "standard",
               "classifier" : "",
               "extension" : "jar",
-              "groupId" : "apache-httpclient",
-              "version" : "3.1"
+              "groupId" : "apache-taglibs",
+              "version" : "1.1.2"
             }
           }
-        }
-      ]
-    }, {
-      "componentIdentifier" : {
-        "format" : "maven",
-        "coordinates" : {
-          "artifactId" : "standard",
-          "classifier" : "",
-          "extension" : "jar",
-          "groupId" : "apache-taglibs",
-          "version" : "1.1.2"
-        }
-      }
-    }, {
-      "componentIdentifier" : {
-        "format" : "maven",
-        "coordinates" : {
-          "artifactId" : "spring-beans",
-          "classifier" : "",
-          "extension" : "jar",
-          "groupId" : "org.springframework",
-          "version" : "3.2.4.RELEASE"
-        }
-      }
-    }, {
-      "componentIdentifier" : {
-        "format" : "maven",
-        "coordinates" : {
-          "artifactId" : "spring-core",
-          "classifier" : "",
-          "extension" : "jar",
-          "groupId" : "org.springframework",
-          "version" : "3.2.8.RELEASE"
-        }
-      }
-    }, {
-      "componentIdentifier" : {
-        "format" : "maven",
-        "coordinates" : {
-          "artifactId" : "commons-httpclient",
-          "classifier" : "",
-          "extension" : "jar",
-          "groupId" : "apache-httpclient",
-          "version" : "3.1"
-        }
-      },
-      "children" : [ {
-        "componentIdentifier" : {
-          "format" : "maven",
-          "coordinates" : {
-            "artifactId" : "spring-core",
-            "classifier" : "",
-            "extension" : "jar",
-            "groupId" : "org.springframework",
-            "version" : "3.2.8.RELEASE"
-          }
-        }
-      } ]
-    }, {
-      "componentIdentifier" : {
-        "format" : "maven",
-        "coordinates" : {
-          "artifactId" : "spring-aop",
-          "classifier" : "",
-          "extension" : "jar",
-          "groupId" : "org.springframework",
-          "version" : "3.2.8.RELEASE"
-        }
-      },
-      "children" : [ {
-        "componentIdentifier" : {
-          "format" : "maven",
-          "coordinates" : {
-            "artifactId" : "spring-core",
-            "classifier" : "",
-            "extension" : "jar",
-            "groupId" : "org.springframework",
-            "version" : "3.2.8.RELEASE"
-          }
-        }
-      } ]
-    }, {
-      "componentIdentifier" : {
-        "format" : "maven",
-        "coordinates" : {
-          "artifactId" : "spring-security-config",
-          "classifier" : "",
-          "extension" : "jar",
-          "groupId" : "org.springframework.security",
-          "version" : "3.2.4.RELEASE"
-        }
-      },
-      "children" : [ {
-        "componentIdentifier" : {
-          "format" : "maven",
-          "coordinates" : {
-            "artifactId" : "spring-aop",
-            "classifier" : "",
-            "extension" : "jar",
-            "groupId" : "org.springframework",
-            "version" : "3.2.8.RELEASE"
-          }
-        }
+        } ]
       }, {
         "componentIdentifier" : {
           "format" : "maven",
           "coordinates" : {
-            "artifactId" : "spring-beans",
+            "artifactId" : "commons-httpclient",
             "classifier" : "",
             "extension" : "jar",
-            "groupId" : "org.springframework",
-            "version" : "3.2.4.RELEASE"
+            "groupId" : "apache-httpclient",
+            "version" : "3.1"
           }
-        }
-      }, {
-        "componentIdentifier" : {
-          "format" : "maven",
-          "coordinates" : {
-            "artifactId" : "standard",
-            "classifier" : "",
-            "extension" : "jar",
-            "groupId" : "apache-taglibs",
-            "version" : "1.1.2"
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "spring-core",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.springframework",
+              "version" : "3.2.8.RELEASE"
+            }
           }
-        }
-      } ]
-    }
-  ]
+        } ]
+      }
+    ]
+  }
 }

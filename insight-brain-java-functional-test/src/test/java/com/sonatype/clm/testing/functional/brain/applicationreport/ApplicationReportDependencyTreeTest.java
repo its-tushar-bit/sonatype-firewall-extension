@@ -61,13 +61,15 @@ public class ApplicationReportDependencyTreeTest
 
   @Test
   public void testNoDependencyTreeAvailable() throws IOException {
-    URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/empty-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
     evaluator.evaluatePolicy();
 
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+
+    reportPage.oldReportWithNoDependencyInfoWarning().shouldBe(visible);
 
     eyesWatcher.eyesCheck("go To Dependency Tree Button disabled");
 
@@ -91,6 +93,8 @@ public class ApplicationReportDependencyTreeTest
 
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+
+    reportPage.oldReportWithNoDependencyInfoWarning().shouldNot(exist);
 
     eyesWatcher.eyesCheck("go To Dependency Tree Button enabled");
 

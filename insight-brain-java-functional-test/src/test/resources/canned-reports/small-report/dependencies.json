@@ -333,54 +333,6 @@
           "version" : "1.0-SNAPSHOT"
         }
       },
-      "children" : [ {
-        "componentIdentifier" : {
-          "format" : "maven",
-          "coordinates" : {
-            "artifactId" : "test-business",
-            "classifier" : "",
-            "extension" : "jar",
-            "groupId" : "org.example",
-            "version" : "1.0-SNAPSHOT"
-          }
-        },
-        "children" : [ {
-          "componentIdentifier" : {
-            "format" : "maven",
-            "coordinates" : {
-              "artifactId" : "test-data",
-              "classifier" : "",
-              "extension" : "jar",
-              "groupId" : "org.example",
-              "version" : "1.0-SNAPSHOT"
-            }
-          },
-          "children" : [ {
-            "componentIdentifier" : {
-              "format" : "maven",
-              "coordinates" : {
-                "artifactId" : "javax.inject",
-                "classifier" : "",
-                "extension" : "jar",
-                "groupId" : "javax.inject",
-                "version" : "1"
-              }
-            }
-          } ]
-        }, {
-          "componentIdentifier" : {
-            "format" : "maven",
-            "coordinates" : {
-              "artifactId" : "commons-io",
-              "classifier" : "",
-              "extension" : "jar",
-              "groupId" : "commons-io",
-              "version" : "2.6"
-            }
-          }
-        } ],
-        "direct" : true
-      } ],
       "direct" : true,
       "module" : true
     }, {
@@ -475,6 +427,53 @@
           }
         }
       }]
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "test-business",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.example",
+          "version" : "1.0-SNAPSHOT"
+        }
+      },
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "test-data",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.example",
+            "version" : "1.0-SNAPSHOT"
+          }
+        },
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "javax.inject",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "javax.inject",
+              "version" : "1"
+            }
+          }
+        } ]
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "commons-io",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "commons-io",
+            "version" : "2.6"
+          }
+        }
+      } ],
+      "direct" : true
     }],
     "module" : true
   }

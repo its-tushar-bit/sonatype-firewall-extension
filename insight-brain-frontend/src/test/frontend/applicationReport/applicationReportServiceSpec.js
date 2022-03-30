@@ -1005,52 +1005,31 @@ describe('applicationReportService', function () {
           ],
         },
         dependencies = {
-          dependencyGraph: [
-            {
-              children: [
-                {
-                  componentIdentifier: {
-                    format: 'a-name',
-                    coordinates: {
-                      name: 'foo',
-                      version: '1',
-                    },
+          dependencyTree: {
+            children: [
+              {
+                componentIdentifier: {
+                  format: 'a-name',
+                  coordinates: {
+                    name: 'foo',
+                    version: '1',
                   },
                 },
-              ],
-            },
-            {
-              componentIdentifier: {
-                format: 'a-name',
-                coordinates: {
-                  name: 'foo',
-                  version: '1',
-                },
-              },
-              children: [
-                {
-                  componentIdentifier: {
-                    format: 'maven',
-                    coordinates: {
-                      groupId: 'barGroup',
-                      artifactId: 'bar',
-                      version: '2',
+                children: [
+                  {
+                    componentIdentifier: {
+                      format: 'maven',
+                      coordinates: {
+                        groupId: 'barGroup',
+                        artifactId: 'bar',
+                        version: '2',
+                      },
                     },
                   },
-                },
-              ],
-            },
-            {
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  groupId: 'barGroup',
-                  artifactId: 'bar',
-                  version: '2',
-                },
+                ],
               },
-            },
-          ],
+            ],
+          },
         },
         result = applicationReportService.createReportEntries(
           policyThreatData,
@@ -1187,102 +1166,62 @@ describe('applicationReportService', function () {
           aaData: [],
         },
         dependencies = {
-          dependencyGraph: [
-            {
-              children: [
-                {
-                  componentIdentifier: {
-                    format: 'a-name',
-                    coordinates: {
-                      name: 'foo',
-                      version: '1',
-                    },
+          dependencyTree: {
+            children: [
+              {
+                componentIdentifier: {
+                  format: 'a-name',
+                  coordinates: {
+                    name: 'foo',
+                    version: '1',
                   },
                 },
-                {
-                  componentIdentifier: {
-                    format: 'a-name',
-                    coordinates: {
-                      name: 'foo2',
-                      version: '1',
+                children: [
+                  {
+                    componentIdentifier: {
+                      format: 'maven',
+                      coordinates: {
+                        groupId: 'barGroup',
+                        artifactId: 'bar',
+                        version: '2',
+                      },
                     },
                   },
-                },
-              ],
-            },
-            {
-              componentIdentifier: {
-                format: 'a-name',
-                coordinates: {
-                  name: 'foo',
-                  version: '1',
-                },
+                  {
+                    componentIdentifier: {
+                      format: 'maven',
+                      coordinates: {
+                        groupId: 'barGroup',
+                        artifactId: 'bar2',
+                        version: '2',
+                      },
+                    },
+                  },
+                ],
               },
-              children: [
-                {
-                  componentIdentifier: {
-                    format: 'maven',
-                    coordinates: {
-                      groupId: 'barGroup',
-                      artifactId: 'bar',
-                      version: '2',
-                    },
+              {
+                componentIdentifier: {
+                  format: 'a-name',
+                  coordinates: {
+                    name: 'foo2',
+                    version: '1',
                   },
                 },
-                {
-                  componentIdentifier: {
-                    format: 'maven',
-                    coordinates: {
-                      groupId: 'barGroup',
-                      artifactId: 'bar2',
-                      version: '2',
+                children: [
+                  {
+                    componentIdentifier: {
+                      format: 'maven',
+                      coordinates: {
+                        groupId: 'barGroup',
+                        artifactId: 'bar',
+                        version: '2',
+                      },
                     },
                   },
-                },
-              ],
-            },
-            {
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  groupId: 'barGroup',
-                  artifactId: 'bar',
-                  version: '2',
-                },
+                ],
               },
-            },
-            {
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  groupId: 'barGroup',
-                  artifactId: 'bar2',
-                  version: '2',
-                },
-              },
-            },
-            {
-              componentIdentifier: {
-                format: 'a-name',
-                coordinates: {
-                  name: 'foo2',
-                  version: '1',
-                },
-              },
-              children: [
-                {
-                  componentIdentifier: {
-                    format: 'maven',
-                    coordinates: {
-                      groupId: 'barGroup',
-                      artifactId: 'bar',
-                      version: '2',
-                    },
-                  },
-                },
-              ],
-            },
-          ],
+            ],
+          },
         },
         result = applicationReportService.createReportEntries(
           policyThreatData,

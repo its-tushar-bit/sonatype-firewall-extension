@@ -14,6 +14,7 @@ import ReportTitle from './ReportTitle';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import {
   selectApplicationReportSlice,
+  selectDependencyTreeIsOldReport,
   selectIsPolicyTypeFilterEnabled,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -23,6 +24,7 @@ export default function ReportPage() {
   const applicationReport = useSelector(selectApplicationReportSlice);
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
   const isPolicyTypeFilterEnabled = useSelector(selectIsPolicyTypeFilterEnabled);
+  const isOldReportWithNoDependencyInfo = useSelector(selectDependencyTreeIsOldReport);
 
   const { loadError, reevaluateMaskState } = pick(['loadError', 'reevaluateMaskState'], applicationReport);
 
@@ -64,6 +66,11 @@ export default function ReportPage() {
             <NxWarningAlert id="application-report-policy-type-filter-warning">
               This report has not been upgraded for the new Policy Types filter introduced in release 61. Re-evaluate in
               order to enable the Policy Types filter.
+            </NxWarningAlert>
+          )}
+          {isOldReportWithNoDependencyInfo && (
+            <NxWarningAlert id="application-report-no-dependency-info-warning">
+              This report was generated with an older version of IQ. Please re-scan the application.
             </NxWarningAlert>
           )}
           <ReportStatusBar />

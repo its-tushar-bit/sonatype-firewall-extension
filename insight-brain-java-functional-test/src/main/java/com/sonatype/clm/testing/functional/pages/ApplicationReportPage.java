@@ -472,4 +472,8 @@ public class ApplicationReportPage
   public SelenideElement policyTypeFilterWarning() {
     return child("#application-report-policy-type-filter-warning");
   }
+
+  public SelenideElement oldReportWithNoDependencyInfoWarning() {
+    return child("#application-report-no-dependency-info-warning");
+  }
 }

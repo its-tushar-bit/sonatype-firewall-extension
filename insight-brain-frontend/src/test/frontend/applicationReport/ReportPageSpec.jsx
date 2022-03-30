@@ -130,6 +130,7 @@ describe('Report Page component', () => {
     spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
     spyOn(applicationReportSelectors, 'selectIsPolicyTypeFilterEnabled').and.returnValue(true);
     spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').and.returnValue('');
+    spyOn(applicationReportSelectors, 'selectDependencyTreeIsOldReport').and.returnValue(false);
 
     loadReportIfNeededSpy = spyOn(applicationReportActions, 'loadReportIfNeeded').and.callThrough();
     spyOn(applicationReportActions, 'toggleAggregateReportEntries');
@@ -312,6 +313,22 @@ describe('Report Page component', () => {
         'This report has not been upgraded for the new Policy Types filter introduced in release 61. ' +
           'Re-evaluate in order to enable the Policy Types filter.'
       )
+    ).toBeVisible();
+  });
+
+  it('does not render old report warning message when dependencyTree is available', () => {
+    applicationReportSelectors.selectDependencyTreeIsOldReport.and.returnValue(false);
+    renderComponent();
+    expect(
+      screen.queryByText('This report was generated with an older version of IQ. Please re-scan the application.')
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders old report warning message when dependencyTree is null', () => {
+    applicationReportSelectors.selectDependencyTreeIsOldReport.and.returnValue(true);
+    renderComponent();
+    expect(
+      screen.getByText('This report was generated with an older version of IQ. Please re-scan the application.')
     ).toBeVisible();
   });
 });

@@ -6,16 +6,22 @@
 
 import axios from 'axios';
 import isIqIframe from '../util/isIqFrame';
-import UnauthenticatedRequestQueueService from './services/unauthenticated.request.queue.service';
 
 /**
  * @param setServerDate   Angular service SessionSecurityService setServerDate method.
  * @param rootScope       Angular's $rootScope variable.
  * @param window     Angular's $window variable.
  * @param loginModalService    LoginModalService (open login modal)
+ * @param UnauthenticatedRequestQueueService the queue service to provide control of the outstanding requests
  **/
 
-export const attachAxiosInterceptors = (setServerDate, rootScope, window, loginModalService) => {
+export const attachAxiosInterceptors = (
+  setServerDate,
+  rootScope,
+  window,
+  loginModalService,
+  UnauthenticatedRequestQueueService
+) => {
   // http interceptor
   axios.interceptors.response.use(
     (response) => {
@@ -64,6 +70,18 @@ export const attachAxiosInterceptors = (setServerDate, rootScope, window, loginM
     }
   );
 
+  // iq interceptor
+  axios.interceptors.response.use(function (response) {
+    const { date: dateString } = response.headers;
+    const serverDate = dateString ? new Date(dateString) : undefined;
+
+    if (serverDate) {
+      setServerDate(serverDate);
+    }
+
+    return response;
+  });
+
   // cache busting interceptor factory, which handles adding a timestamp query parameter to each request
   axios.interceptors.request.use(
     function (config) {
@@ -84,16 +102,4 @@ export const attachAxiosInterceptors = (setServerDate, rootScope, window, loginM
       return Promise.reject(error);
     }
   );
-
-  // iq interceptor
-  axios.interceptors.response.use(function (response) {
-    const { date: dateString } = response.headers;
-    const serverDate = dateString ? new Date(dateString) : undefined;
-
-    if (serverDate) {
-      setServerDate(serverDate);
-    }
-
-    return response;
-  });
 };

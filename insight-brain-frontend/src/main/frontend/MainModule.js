@@ -162,6 +162,7 @@ export const InitModule = angular
     'pendoService',
     'externalLinkModalService',
     'LoginModalService',
+    'UnauthenticatedRequestQueueService',
     'routeStateUtilService',
     'CLMLocations',
     'Messages',
@@ -186,6 +187,7 @@ export const InitModule = angular
       pendoService,
       externalLinkModalService,
       LoginModalService,
+      UnauthenticatedRequestQueueService,
       routeStateUtilService,
       CLMLocations,
       Messages,
@@ -243,7 +245,13 @@ export const InitModule = angular
         }
       }
 
-      attachAxiosInterceptors(SessionSecurityService.setServerDate, $rootScope, $window, LoginModalService.open);
+      attachAxiosInterceptors(
+        SessionSecurityService.setServerDate,
+        $rootScope,
+        $window,
+        LoginModalService.open,
+        UnauthenticatedRequestQueueService
+      );
 
       function setRootError(err) {
         $rootScope.error = Messages.getHttpErrorMessage(err);

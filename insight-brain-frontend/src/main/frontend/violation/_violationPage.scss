@@ -22,6 +22,7 @@
     @include nx-container-helpers.container-horizontal;
     display: flex;
     max-width: max-content;
+    min-width: 0;
 
     .iq-violation-details__subtitle-part {
       margin: 0 var(--nx-spacing-4x) 0 0;

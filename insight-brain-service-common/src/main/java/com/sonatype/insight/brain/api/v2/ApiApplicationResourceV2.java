@@ -8,7 +8,13 @@ package com.sonatype.insight.brain.api.v2;
 import java.io.IOException;
 import java.util.Set;
 
-import com.sonatype.insight.brain.api.v2.dto.*;
+import javax.ws.rs.core.Response;
+
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiMoveApplicationResponseDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 
 /**
  * Resource for API Application
@@ -24,7 +30,7 @@ public interface ApiApplicationResourceV2
    * @param publicIds The set of public ids to filter on (cannot be null)
    * @return The application DTO list found
    */
-  ApiApplicationListDTO getApplications(Set<String> publicIds);
+  Response getApplications(Set<String> publicIds, boolean includeCategories);
 
   /**
    * @since 1.102

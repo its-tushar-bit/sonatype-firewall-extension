@@ -15,6 +15,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
@@ -37,6 +39,7 @@ import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
+import com.sonatype.insight.brain.tag.TagService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -250,5 +253,17 @@ public class ApiApplicationService
       tags.add(tagDAO.getByIdNotNull(applicationTag.getTagId()));
     }
     auditConfigureApplicationCategory(tags, application, true);
+  }
+
+  public ApiApplicationCategoriesListDTO getApplicationsWithAppliedCategories(Set<String> publicIdsFilter) {
+    ApiApplicationCategoriesListDTO results = new ApiApplicationCategoriesListDTO();
+    for (Application application : getApplications(publicIdsFilter)) {
+      ApiApplicationCategoriesDTO result = new ApiApplicationCategoriesDTO();
+      apiApplicationAdapter.populateDTO(result, application);
+      result.categories = tagDAO.getByApplicationId(application.getId()).stream()
+          .map(TagService::toDTO).collect(Collectors.toList());
+      results.applications.add(result);
+    }
+    return results;
   }
 }

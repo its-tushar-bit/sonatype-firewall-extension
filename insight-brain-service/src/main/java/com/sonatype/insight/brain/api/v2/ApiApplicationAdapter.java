@@ -85,7 +85,7 @@ public class ApiApplicationAdapter
     return applicationDTO;
   }
 
-  private void populateDTO(ApiApplicationBaseDTO applicationDTO, Application application) {
+  public void populateDTO(ApiApplicationBaseDTO applicationDTO, Application application) {
     applicationDTO.id = application.getId();
     applicationDTO.publicId = application.getPublicId();
     applicationDTO.name = application.getName();

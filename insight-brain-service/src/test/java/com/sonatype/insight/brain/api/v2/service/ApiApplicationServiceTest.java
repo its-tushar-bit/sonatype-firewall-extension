@@ -5,12 +5,20 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesListDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
@@ -20,11 +28,13 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.tag.TagService;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.common.collect.Sets;
@@ -133,5 +143,86 @@ public class ApiApplicationServiceTest
 
     assertThat(apiApplicationListDTO).isNotNull();
     assertThat(apiApplicationListDTO.applications).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsWithAppliedCategories() {
+    Tag rootOrgTag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
+    Tag otherRootOrgTag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
+    Organization org = tempEntity.newOrganization();
+    Tag orgTag = tempEntity.newTag(org.getId());
+    Tag otherOrgTag = tempEntity.newTag(org.getId());
+    Application appWithNoTags = tempEntity.newApplication(org.getId());
+    Application appWithRootOrgTag = tempEntity.newApplication(org.getId());
+    tempEntity.newApplicationTag(appWithRootOrgTag.getId(), rootOrgTag.getId());
+    Application appWithOrgTag = tempEntity.newApplication(org.getId());
+    tempEntity.newApplicationTag(appWithOrgTag.getId(), orgTag.getId());
+    Application appWithRootAndOrgTag = tempEntity.newApplication(org.getId());
+    tempEntity.newApplicationTag(appWithRootAndOrgTag.getId(), rootOrgTag.getId());
+    tempEntity.newApplicationTag(appWithRootAndOrgTag.getId(), orgTag.getId());
+    Application appWithMultipleRootAndOrgTags = tempEntity.newApplication(org.getId());
+    tempEntity.newApplicationTag(appWithMultipleRootAndOrgTags.getId(), rootOrgTag.getId());
+    tempEntity.newApplicationTag(appWithMultipleRootAndOrgTags.getId(), otherRootOrgTag.getId());
+    tempEntity.newApplicationTag(appWithMultipleRootAndOrgTags.getId(), orgTag.getId());
+    tempEntity.newApplicationTag(appWithMultipleRootAndOrgTags.getId(), otherOrgTag.getId());
+
+    ApiApplicationCategoriesListDTO applicationsCategories =
+        applicationService.getApplicationsWithAppliedCategories(Collections.emptySet());
+
+    Map<Application, List<Tag>> expected = new HashMap<>();
+    expected.put(appWithNoTags, Collections.emptyList());
+    expected.put(appWithRootOrgTag, Collections.singletonList(rootOrgTag));
+    expected.put(appWithOrgTag, Collections.singletonList(orgTag));
+    expected.put(appWithRootAndOrgTag, Arrays.asList(rootOrgTag, orgTag));
+    expected.put(appWithMultipleRootAndOrgTags, Arrays.asList(rootOrgTag, otherRootOrgTag, orgTag, otherOrgTag));
+    assertApiApplicationCategoriesListDTO(applicationsCategories, expected);
+  }
+
+  @Test
+  public void testGetApplicationsWithAppliedCategories_Filtered() {
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newApplicationWithParent();
+
+    ApiApplicationCategoriesListDTO applicationsCategories =
+        applicationService.getApplicationsWithAppliedCategories(Collections.singleton(app.getPublicId()));
+
+    Map<Application, List<Tag>> expected = new HashMap<>();
+    expected.put(app, Collections.emptyList());
+    assertApiApplicationCategoriesListDTO(applicationsCategories, expected);
+  }
+
+  @Test
+  public void testGetApplicationsWithAppliedCategories_NoApplications() {
+    ApiApplicationCategoriesListDTO applicationsCategories =
+        applicationService.getApplicationsWithAppliedCategories(Collections.emptySet());
+
+    assertThat(applicationsCategories).isNotNull();
+    assertThat(applicationsCategories.applications).isEmpty();
+  }
+
+  private void assertApiApplicationCategoriesListDTO(
+      ApiApplicationCategoriesListDTO actual,
+      Map<Application, List<Tag>> tagsByApplication)
+  {
+    assertThat(actual.applications).hasSize(tagsByApplication.size());
+    for (Entry<Application, List<Tag>> entry : tagsByApplication.entrySet()) {
+      assertApiApplicationCategoriesDTO(
+          actual.applications.stream()
+              .filter(dto -> dto.id.equals(entry.getKey().getId()))
+              .findFirst()
+              .orElseThrow(() -> new RuntimeException("Not found")),
+          entry.getKey(), entry.getValue());
+    }
+  }
+
+  private void assertApiApplicationCategoriesDTO(ApiApplicationCategoriesDTO actual, Application app, List<Tag> tags) {
+    assertThat(actual.id).isEqualTo(app.getId());
+    assertThat(actual.publicId).isEqualTo(app.getPublicId());
+    assertThat(actual.organizationId).isEqualTo(app.getOrganizationId());
+    assertThat(actual.name).isEqualTo(app.getName());
+    assertThat(actual.contactUserName).isEqualTo(app.getContactInternalName());
+    assertThat(actual.categories).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        tags.stream().map(TagService::toDTO).toArray(ApiApplicationCategoryDTO[]::new)
+    );
   }
 }

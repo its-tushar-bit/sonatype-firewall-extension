@@ -11,6 +11,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -151,6 +152,32 @@ public class ApiApplicationServiceAuthzTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> apiApplicationService.getApplicationsByOrganizationId(organizationId))
         .withMessageContaining("Cannot find organization with ID " + organizationId + ".");
+  }
+
+  @Test
+  public void testGetApplicationsWithAppliedCategories_Unauthenticated() {
+    ApiApplicationCategoriesListDTO result =
+        apiApplicationService.getApplicationsWithAppliedCategories(Collections.emptySet());
+    assertThat(result).isNotNull();
+    assertThat(result.applications).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsWithAppliedCategories_Unauthorized() {
+    login();
+    ApiApplicationCategoriesListDTO result =
+        apiApplicationService.getApplicationsWithAppliedCategories(Collections.emptySet());
+    assertThat(result).isNotNull();
+    assertThat(result.applications).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsWithAppliedCategories_Authorized() {
+    grantReadPermission(app.getId());
+    ApiApplicationCategoriesListDTO result =
+        apiApplicationService.getApplicationsWithAppliedCategories(Collections.emptySet());
+    assertThat(result).isNotNull();
+    assertThat(result.applications).hasSize(1);
   }
 
   private ApiApplicationDTO createApplicationDTO() {

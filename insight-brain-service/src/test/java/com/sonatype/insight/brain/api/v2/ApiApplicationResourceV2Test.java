@@ -15,6 +15,7 @@ import java.util.Map;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationTagDTO;
@@ -560,6 +561,33 @@ public class ApiApplicationResourceV2Test
     assertThat(apiApplicationListDTO).isNotNull();
     assertThat(apiApplicationListDTO.applications).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(apiApplicationAdapter.convertToDTO(app1), apiApplicationAdapter.convertToDTO(app2));
+  }
+
+  @Test
+  public void testGetApplicationsWithAppliedCategories() throws Exception {
+    tempEntity.newApplicationWithParent();
+
+    HttpResponse response = restRequest().query("includeCategories", true).get();
+    assertResponseStatus(200, response);
+
+    ApiApplicationCategoriesListDTO applicationCategoriesListDTO =
+        response.getBody(ApiApplicationCategoriesListDTO.class);
+    assertThat(applicationCategoriesListDTO).isNotNull();
+    assertThat(applicationCategoriesListDTO.applications).hasSize(2);
+  }
+
+  @Test
+  public void testGetApplicationsWithAppliedCategories_Filtered() throws Exception {
+    Application app2 = tempEntity.newApplicationWithParent();
+
+    HttpResponse response = restRequest().query("includeCategories", true).query("publicId", app2.getPublicId()).get();
+    assertResponseStatus(200, response);
+
+    ApiApplicationCategoriesListDTO applicationCategoriesListDTO =
+        response.getBody(ApiApplicationCategoriesListDTO.class);
+    assertThat(applicationCategoriesListDTO).isNotNull();
+    assertThat(applicationCategoriesListDTO.applications).extracting(dto -> dto.id)
+        .containsExactly(app2.getId());
   }
 
   private ApiRoleMemberMappingListDTO newMemberMapping(final List<ApiMemberDTO> memberList, final String roleId) {

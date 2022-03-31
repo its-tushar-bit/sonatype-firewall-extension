@@ -106,7 +106,7 @@ If you find yourself implementing a simple pattern that is or may be reusable, p
 
 ### React Sample component
 
-One example or template that you can use when creating new React components is the [DependencyTreePage](https://github.com/sonatype/insight-brain/blob/master/insight-brain-frontend/src/main/frontend/DependencyTree/DependencyTreePage.jsx) component.
+One example or template that you can use when creating new React components is the [DependencyTreePage](https://github.com/sonatype/insight-brain/blob/main/insight-brain-frontend/src/main/frontend/DependencyTree/DependencyTreePage.jsx) component.
 
 ⚠️ Note, we no longer use `connect` HOC to create components connected to Redux store. Use redux hooks instead: `import { useSelector, useDispatch } from 'react-redux';`
 Also, there is no need to provide a "container" wrapper for each connected component.
@@ -217,4 +217,4 @@ In a nutshell: don't create the rejected promise until you need it.
 - Make sure that Applitools passes _before_ merging your Pull-Request.
 - If there are any expected applitools changes, accept them, and remember to click save so the baseline is updated.
 - If the changes you are seeing are NOT expected then it is a sign that something unintended is happening in the PR and needs to be addressed.
-- If `master` has an Applitools failure notify the relevant person, or send a message to the Slack #IQ channel.
+- If `main` branch has an Applitools failure notify the relevant person, or send a message to the Slack #IQ channel.

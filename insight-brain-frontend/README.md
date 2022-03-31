@@ -141,7 +141,7 @@ If you want to become more familiar with React and/or Redux, consider any of the
 
 ## Code Conventions & Patterns
 
-A more in-depth document describing the _current_ code conventions & patterns used by the IQ UI can be found at [CODE_CONVENTIONS.md](https://github.com/sonatype/insight-brain/blob/master/insight-brain-frontend/CODE_CONVENTIONS.md).
+A more in-depth document describing the _current_ code conventions & patterns used by the IQ UI can be found at [CODE_CONVENTIONS.md](https://github.com/sonatype/insight-brain/blob/main/insight-brain-frontend/CODE_CONVENTIONS.md).
 We encourage any folks looking to do UI development in IQ to read the aforementioned document.
 
 For any questions about front-end development, reach out to the `@iq-laurel-team`, `@iq-voyage-team` in `#iq-laurel` in Slack

@@ -61,11 +61,11 @@ public class EyesWatcher
         batch.setId(batchId);
       }
 
-      // For local testing or ci runs with master set the branchName and parentBranchName
-      if ((batchId != null && "master".equalsIgnoreCase(localBranchName)) || batchId == null) {
+      // For local testing or ci runs with main branch, set the branchName and parentBranchName
+      if (batchId == null || "main".equalsIgnoreCase(localBranchName)) {
         eyes.setBranchName(
-            localBranchName.equalsIgnoreCase("master") ? "sonatype/insight-brain/master" : localBranchName);
-        eyes.setParentBranchName(System.getProperty("parentBranchName", "sonatype/insight-brain/master"));
+            localBranchName.equalsIgnoreCase("main") ? "sonatype/insight-brain/main" : localBranchName);
+        eyes.setParentBranchName(System.getProperty("parentBranchName", "sonatype/insight-brain/main"));
       }
 
       eyes.setApiKey(APPLITOOLS_KEY);
@@ -97,8 +97,8 @@ public class EyesWatcher
     try {
       // End visual testing. Validate visual correctness.
       if (eyes.getIsOpen()) {
-        // only fail the build if on master
-        eyes.close(isMaster());
+        // only fail the build if on main
+        eyes.close(isMain());
       }
     }
     finally {
@@ -161,7 +161,7 @@ public class EyesWatcher
     return settings;
   }
 
-  private static boolean isMaster() {
-    return "master".equals(localBranchName);
+  private static boolean isMain() {
+    return "main".equals(localBranchName);
   }
 }

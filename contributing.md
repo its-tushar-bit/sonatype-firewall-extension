@@ -83,7 +83,7 @@ So you've done some discovery, and it turns out you've got a novel idea. Now it'
 ### Don't
 
 * Don't fork this repository, we'd rather maintain branches here.
-* Do not introduce -SNAPSHOT dependencies on master, as it delays our ability to release from master. It's ok while you
+* Do not introduce -SNAPSHOT dependencies on main branch, as it delays our ability to release from main. It's ok while you
  are developing, but please ensure your pull request only references releases of new dependencies.
 * Do not make larger improvements that span outside of the context of the change. We would welcome those changes in a
  separate pull request (so please follow up with it). Avoid making formatting changes outside of the code in context, 
@@ -107,7 +107,7 @@ Time to cross your t's and dot the i's - let's get your code in product:
 
 ### Do
 
-* Open a pull request against the master branch.
+* Open a pull request against the main branch.
 * We prefer a title format that looks like "Brief description - Jira issue id".
 * In the description, remind us of the problem, and HOW you've solved it. 
 * Run a CI build in jenkins: Go to the 
@@ -159,7 +159,7 @@ it's something we understand.
 
 Merge (squash please) away, and follow through:
 
-* Verify the master snapshot build completes.
+* Verify the main snapshot build completes.
 * Delete the branch.
 * Update any necessary documentation.
 * Notify the product managers (in your team and in insight). We may need release notes to go with your contribution.

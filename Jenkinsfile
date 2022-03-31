@@ -57,7 +57,7 @@ make(
  */
 def createJiraIssueIfNeeded() {
   // Only create the ticket on main branch failures.
-  if (currentBuild.fullProjectName.contains('master') && getTestResults(currentBuild).failCount) {
+  if (currentBuild.fullProjectName.contains('main') && getTestResults(currentBuild).failCount) {
     echo "The build is entering the unstable condition to create a jira ticket, " +
         "current build #: ${currentBuild.displayName} ${currentBuild.number}"
 
@@ -69,7 +69,7 @@ def createJiraIssueIfNeeded() {
     String desc = "This build had a failure. Please fix the failure and rebuild.\n" +
         "The latest commit is: ${commitMsg ?: 'unknown'}"
     Map issue = [fields: [project    : [key: 'CLM'],
-                          labels     : ['master-build-failure'],
+                          labels     : ['main-build-failure'],
                           summary    : "Failure of Insight Brain main branch build ${currentBuild.displayName}",
                           description: desc,
                           issuetype  : [name: 'Bug']]]
@@ -78,14 +78,14 @@ def createJiraIssueIfNeeded() {
     echo "New issue created: ${newIssue.data.key}"
   }
   else if (currentBuild.currentResult != 'SUCCESS') {
-    echo "The build is unstable but this is not on the master branch - no jira ticket is created as a result."
+    echo "The build is unstable but this is not on the main branch - no jira ticket is created as a result."
   }
 }
 
 def configureBranchJob() {
   // Use the project name to determine the branch
   String projName = currentBuild.fullProjectName
-  boolean applitoolsEnabledByDefault = (projName.toLowerCase().contains('master') || projName.endsWith('_ui'))
+  boolean applitoolsEnabledByDefault = (projName.toLowerCase().contains('main') || projName.endsWith('_ui'))
   List params = [booleanParam(defaultValue: applitoolsEnabledByDefault,
       description: 'If checked will enable Applitools EyesCheck.',
       name: 'applitoolsEnabled')]
@@ -112,8 +112,8 @@ def configureBranchJob() {
 }
 
 def pushDockerImageIfDeployBranch() {
-    //If the branch isn't master or the project name isn't snapshot, skip the image build and deploy.
-    if (!isDeployBranch(env, 'master') || !currentBuild.fullProjectName.contains("snapshot")) {
+    //If the branch isn't main or the project name isn't snapshot, skip the image build and deploy.
+    if (!isDeployBranch(env, 'main') || !currentBuild.fullProjectName.contains("snapshot")) {
         echo 'Skipping push of docker image for non-deploy branch or release'
         return
     }
@@ -187,7 +187,7 @@ Map<String, Closure> parallelTests() {
               }
               finally {
                 if (jdk == 'Java 8' && label == 'A') {
-                  sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: currentBuild.projectName != 'master')
+                  sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: currentBuild.projectName != 'main')
                 }
                 captureResultsAndCleanup()
               }
@@ -257,6 +257,6 @@ boolean isEyesEnabled() {
   // the branch name as the last part of the project name.
   def projName = currentBuild.fullProjectName
   // if the params value isn't set (or hasn't been added to the job yet) use the branch name default)
-  return params.applitoolsEnabled == null ? (projName.toLowerCase().contains('master') || projName.endsWith('_ui')) :
+  return params.applitoolsEnabled == null ? (projName.toLowerCase().contains('main') || projName.endsWith('_ui')) :
       params.applitoolsEnabled
 }

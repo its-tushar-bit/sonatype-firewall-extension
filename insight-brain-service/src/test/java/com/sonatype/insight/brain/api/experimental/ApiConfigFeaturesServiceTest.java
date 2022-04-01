@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.experimental;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -33,12 +34,24 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testGetPropertyNameForFeature() {
-    assertThat(service.getPropertyNameForFeature("dashboard")).isEqualTo(DASHBOARD_DISABLED);
-    assertThat(service.getPropertyNameForFeature("reportsList")).isEqualTo(REPORTS_LIST_DISABLED);
+    assertThat(service.getPropertyNameForFeature(FEATURE_DASHBOARD)).isEqualTo(DASHBOARD_DISABLED);
+    assertThat(service.getPropertyNameForFeature(FEATURE_REPORTS_LIST)).isEqualTo(REPORTS_LIST_DISABLED);
+    assertThat(service.getPropertyNameForFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION)).isEqualTo(
+        SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED);
+    assertThat(service.getPropertyNameForFeature("default-value")).isEqualTo("default-value");
+  }
 
-    assertThatThrownBy(() -> {
-      service.getPropertyNameForFeature("bogus-feature");
-    }).isInstanceOf(BadRequestException.class).hasMessage("Feature not supported: bogus-feature");
+  @Test
+  public void testGetSystemConfigurationPropertyFeature() {
+    assertThat(service.getSystemConfigurationPropertyFeature(DASHBOARD_DISABLED)).isEqualTo(
+        SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED);
+    assertThat(service.getSystemConfigurationPropertyFeature(REPORTS_LIST_DISABLED)).isEqualTo(
+        SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED);
+    assertThat(service.getSystemConfigurationPropertyFeature(
+        SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED)).isEqualTo(
+        SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE);
+    assertThatThrownBy(() -> service.getSystemConfigurationPropertyFeature("bogus-feature")).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature not supported: bogus-feature");
   }
 
   @Test

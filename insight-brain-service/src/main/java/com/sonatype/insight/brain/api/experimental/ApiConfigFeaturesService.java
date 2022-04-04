@@ -31,6 +31,8 @@ public class ApiConfigFeaturesService
 
   static final String FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION = "vulnerabilitySource";
 
+  static final String FEATURE_BUILT_FROM_SOURCE = "built-from-source";
+
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   public enum SystemConfigurationPropertyFeature
@@ -39,7 +41,8 @@ public class ApiConfigFeaturesService
     DASHBOARD_CAN_BE_ENABLED(SystemConfigurationProperty.DASHBOARD_DISABLED, true),
     REPORTS_LIST_CAN_BE_ENABLED(SystemConfigurationProperty.REPORTS_LIST_DISABLED, true),
     VULNERABILITY_SOURCE(
-        SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED, true);
+        SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED, true),
+    BUILT_FROM_SOURCE(FEATURE_BUILT_FROM_SOURCE, false);
 
     private final String propertyName;
 

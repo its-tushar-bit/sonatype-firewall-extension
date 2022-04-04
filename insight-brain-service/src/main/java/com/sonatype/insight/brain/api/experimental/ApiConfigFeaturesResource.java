@@ -21,7 +21,8 @@ public class ApiConfigFeaturesResource
   public static final String FEATURE = "{feature: " +
       ApiConfigFeaturesService.FEATURE_DASHBOARD + "|" +
       ApiConfigFeaturesService.FEATURE_REPORTS_LIST + "|" +
-      ApiConfigFeaturesService.FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION + "}";
+      ApiConfigFeaturesService.FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION + "|" +
+      ApiConfigFeaturesService.FEATURE_BUILT_FROM_SOURCE + "}";
 
   private final ApiConfigFeaturesService apiConfigFeaturesService;
 

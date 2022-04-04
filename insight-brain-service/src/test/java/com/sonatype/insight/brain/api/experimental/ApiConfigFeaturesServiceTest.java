@@ -9,11 +9,14 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.junit.After;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_BUILT_FROM_SOURCE;
 import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_DASHBOARD;
 import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_REPORTS_LIST;
 import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION;
@@ -31,6 +34,17 @@ public class ApiConfigFeaturesServiceTest
 
   @Inject
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  @After
+  public void after() {
+    for (SystemConfigurationPropertyFeature s : SystemConfigurationPropertyFeature.values()) {
+      SystemConfigurationProperty systemConfigurationProperty =
+          systemConfigurationPropertyDAO.getByName(s.getPropertyName());
+      if (systemConfigurationProperty != null) {
+        systemConfigurationPropertyDAO.delete(systemConfigurationProperty);
+      }
+    }
+  }
 
   @Test
   public void testGetPropertyNameForFeature() {
@@ -145,5 +159,44 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(() -> {
       service.enableFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION);
     }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_JavaRecompilation() {
+    assertThat(service.getSystemConfigurationPropertyFeature("built-from-source")).isEqualTo(
+        SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE);
+    assertThat(service.getSystemConfigurationPropertyFeature("Built-From-Source")).isEqualTo(
+        SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE);
+    assertThat(service.getSystemConfigurationPropertyFeature("BUILT-FROM-SOURCE")).isEqualTo(
+        SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE);
+    assertThatThrownBy(() -> service.getSystemConfigurationPropertyFeature("builtFromSource")).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature not supported: builtFromSource");
+  }
+
+  @Test
+  public void testEnableFeature_JavaRecompilation() {
+    service.enableFeature(FEATURE_BUILT_FROM_SOURCE);
+    assertThat(systemConfigurationPropertyDAO.getByName(FEATURE_BUILT_FROM_SOURCE).getValue()).isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_JavaRecompilation_AlreadyEnabled() {
+    service.enableFeature(FEATURE_BUILT_FROM_SOURCE);
+    assertThatThrownBy(() -> service.enableFeature(FEATURE_BUILT_FROM_SOURCE)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_JavaRecompilation() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE
+        .getPropertyName(),"true");
+    service.disableFeature(FEATURE_BUILT_FROM_SOURCE);
+    assertThat(systemConfigurationPropertyDAO.getByName(FEATURE_BUILT_FROM_SOURCE)).isNull();
+  }
+
+  @Test
+  public void testDisableFeature_JavaRecompilation_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(FEATURE_BUILT_FROM_SOURCE)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 }

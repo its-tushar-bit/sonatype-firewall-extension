@@ -56,8 +56,8 @@ make(
  * On unstable builds of the main branch, create a Jira ticket.
  */
 def createJiraIssueIfNeeded() {
-  // Only create the ticket on main branch failures.
-  if (currentBuild.fullProjectName.contains('main') && getTestResults(currentBuild).failCount) {
+  // Only create the ticket on git repo main branch failures.
+  if (isDeployBranch(env, 'main') && getTestResults(currentBuild).failCount) {
     echo "The build is entering the unstable condition to create a jira ticket, " +
         "current build #: ${currentBuild.displayName} ${currentBuild.number}"
 
@@ -85,7 +85,7 @@ def createJiraIssueIfNeeded() {
 def configureBranchJob() {
   // Use the project name to determine the branch
   String projName = currentBuild.fullProjectName
-  boolean applitoolsEnabledByDefault = (projName.toLowerCase().contains('main') || projName.endsWith('_ui'))
+  boolean applitoolsEnabledByDefault = (isDeployBranch(env, 'main') || projName.endsWith('_ui'))
   List params = [booleanParam(defaultValue: applitoolsEnabledByDefault,
       description: 'If checked will enable Applitools EyesCheck.',
       name: 'applitoolsEnabled')]
@@ -112,7 +112,7 @@ def configureBranchJob() {
 }
 
 def pushDockerImageIfDeployBranch() {
-    //If the branch isn't main or the project name isn't snapshot, skip the image build and deploy.
+    //If the git repo branch name isn't main or the project name isn't snapshot, skip the image build and deploy.
     if (!isDeployBranch(env, 'main') || !currentBuild.fullProjectName.contains("snapshot")) {
         echo 'Skipping push of docker image for non-deploy branch or release'
         return
@@ -187,7 +187,7 @@ Map<String, Closure> parallelTests() {
               }
               finally {
                 if (jdk == 'Java 8' && label == 'A') {
-                  sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: currentBuild.projectName != 'main')
+                  sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: !isDeployBranch(env, 'main'))
                 }
                 captureResultsAndCleanup()
               }
@@ -257,6 +257,6 @@ boolean isEyesEnabled() {
   // the branch name as the last part of the project name.
   def projName = currentBuild.fullProjectName
   // if the params value isn't set (or hasn't been added to the job yet) use the branch name default)
-  return params.applitoolsEnabled == null ? (projName.toLowerCase().contains('main') || projName.endsWith('_ui')) :
+  return params.applitoolsEnabled == null ? (isDeployBranch(env, 'main') || projName.endsWith('_ui')) :
       params.applitoolsEnabled
 }

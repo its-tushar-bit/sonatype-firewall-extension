@@ -882,30 +882,6 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testRepositoryMonitored_AutoUnquarantineDisabled() {
-    Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");
-    Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
-    constraint.addCondition(condition);
-    Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
-
-    Repository repository = tempEntity.newRepository();
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
-        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
-    assertThat(component.isQuarantined()).isTrue();
-
-    createPolicyViolation(policy, component, FailActionType.ID);
-    tempEntity.newPolicyMonitoring(repository.getId(), ProxyStageType.ID);
-
-    mockFirewallResponse(getFirewallHdsResponse(component, "hash1", new IntegrityRating(0, "Normal")));
-
-    policyMonitor.run();
-
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
-    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
-    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).hasSize(1);
-  }
-
-  @Test
   public void testRepositoryMonitored_AutoUnquarantineDataChangedWithOtherFailViolation() {
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
 

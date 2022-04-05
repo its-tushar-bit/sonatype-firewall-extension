@@ -59,6 +59,24 @@ describe('DependencyInfoGenerator', function () {
     ).toBeNull();
   });
 
+  it('handles dependencyTree where all the children are empty modules', function () {
+    const dependencyInfoGenerator = DependencyInfoGenerator({
+      dependencyTree: {
+        packageUrl: 'a',
+        children: [
+          { packageUrl: 'a1', module: true },
+          { packageUrl: 'a2', module: true, children: [] },
+          { packageUrl: 'a3', module: true, children: null },
+        ],
+      },
+    });
+    expect(
+      dependencyInfoGenerator.getDependencyInfo({
+        componentIdentifier: {},
+      })
+    ).toBeNull();
+  });
+
   describe('getDependencyInfo', function () {
     // dependencyGraph:
     //
@@ -131,27 +149,34 @@ describe('DependencyInfoGenerator', function () {
               },
             ],
           },
+          // multi-module
           {
-            componentIdentifier: {
-              format: 'maven',
-              coordinates: {
-                artifactId: 'bar',
-                extension: 'jar',
-                groupId: 'test',
-                version: '1',
-              },
-            },
+            packageUrl: 'a2',
+            module: true,
             children: [
               {
                 componentIdentifier: {
                   format: 'maven',
                   coordinates: {
-                    artifactId: 'baz',
+                    artifactId: 'bar',
                     extension: 'jar',
                     groupId: 'test',
                     version: '1',
                   },
                 },
+                children: [
+                  {
+                    componentIdentifier: {
+                      format: 'maven',
+                      coordinates: {
+                        artifactId: 'baz',
+                        extension: 'jar',
+                        groupId: 'test',
+                        version: '1',
+                      },
+                    },
+                  },
+                ],
               },
             ],
           },

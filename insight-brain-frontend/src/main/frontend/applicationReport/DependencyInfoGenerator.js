@@ -7,6 +7,7 @@ import { always, map, reduce } from 'ramda';
 
 import { serializeComponentIdentifier } from '../util/componentIdentifierUtils';
 import { getKey, setToArray } from 'MainRoot/util/jsUtil';
+import { flattenModuleDirectDependencies } from 'MainRoot/DependencyTree/dependencyTreeUtil';
 
 const emptyDependencyInfoGenerator = {
   getDependencyInfo: always(null),
@@ -51,7 +52,9 @@ export default function DependencyInfoGenerator(dependencies) {
     return emptyDependencyInfoGenerator;
   }
 
-  const dependencyTreeWithKeys = map(populateDependencyNodeKeys, dependencyTree);
+  const flattenDependencyTree = flattenModuleDirectDependencies(dependencies.dependencyTree);
+
+  const dependencyTreeWithKeys = map(populateDependencyNodeKeys, flattenDependencyTree.children);
 
   const directDepIds = new Set(map(getKey, dependencyTreeWithKeys));
 

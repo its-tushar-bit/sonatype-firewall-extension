@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.search;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -110,13 +109,23 @@ public class IndexSearchingTest
     indexService.updateIndex();
   }
 
-  private List<SearchResultItemDTO> search(String query) throws Exception {
-    return searchService.searchIndex(query, Integer.MAX_VALUE, 1).groupingByDTOS.stream()
+  private List<SearchResultItemDTO> search(String query, boolean allComponents) throws Exception {
+    return searchService.searchIndex(query, Integer.MAX_VALUE, 1, allComponents).groupingByDTOS.stream()
         .map(groupDTO -> groupDTO.searchResultItemDTOS).flatMap(List::stream).collect(toList());
   }
 
+  private List<SearchResultItemDTO> search(String query) throws Exception {
+    return search(query, false);
+  }
+
   private List<SearchResultItemDTO> search(FieldIdentifier fieldIdentifier, String fieldValue) throws Exception {
-    return search(fieldIdentifier + ":" + fieldValue);
+    return search(fieldIdentifier + ":" + fieldValue, false);
+  }
+
+  private List<SearchResultItemDTO> searchInAllComponents(FieldIdentifier fieldIdentifier, String fieldValue)
+      throws Exception
+  {
+    return search(fieldIdentifier + ":" + fieldValue, true);
   }
 
   private PolicyEvaluation newAppReport(String stageId, String reportId) throws Exception {
@@ -127,6 +136,15 @@ public class IndexSearchingTest
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(appId, stageId, reportId);
     ReportTestUtils.createReportFile(policyEval.getApplicationId(), policyEval.getScanId(),
         ReportTestUtils.zipReportDir("/IndexSearchingTest/report", tempDir), insightWork);
+    return policyEval;
+  }
+
+  private PolicyEvaluation newAppReport(String appId, String stageId, String reportId, String reportResourceName)
+      throws Exception
+  {
+    PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(appId, stageId, reportId);
+    ReportTestUtils.createReportFile(policyEval.getApplicationId(), policyEval.getScanId(),
+        ReportTestUtils.zipReportDir(reportResourceName, tempDir), insightWork);
     return policyEval;
   }
 
@@ -562,6 +580,38 @@ public class IndexSearchingTest
   }
 
   @Test
+  public void testSearchByField_AllComponentsByName() throws Exception {
+    newAppReport(tempEntity.newApplicationWithParent().getId(), Stage.ID_RELEASE, "report-id",
+        "/IndexSearchingTest/nonVulnerableComponents");
+    index();
+    assertThat(searchInAllComponents(FieldIdentifier.COMPONENT_NAME, "*artifact*"))
+        .extracting(dto -> dto.componentHash)
+        .containsExactlyInAnyOrder("hashComponent1", "hashComponent2");
+    assertThat(searchInAllComponents(FieldIdentifier.COMPONENT_NAME, "*artifact1*"))
+        .extracting(dto -> dto.componentHash)
+        .containsExactlyInAnyOrder("hashComponent1");
+    assertThat(searchInAllComponents(FieldIdentifier.COMPONENT_NAME, "*artifact2*"))
+        .extracting(dto -> dto.componentHash)
+        .containsExactlyInAnyOrder("hashComponent2");
+  }
+
+  @Test
+  public void testSearchByField_OnlyVulnerableComponentsByName() throws Exception {
+    newAppReport(tempEntity.newApplicationWithParent().getId(), Stage.ID_RELEASE, "report-id",
+        "/IndexSearchingTest/nonVulnerableComponents");
+    index();
+    assertThat(search(FieldIdentifier.COMPONENT_NAME, "*artifact*"))
+        .extracting(dto -> dto.componentHash)
+        .containsExactlyInAnyOrder("hashComponent1");
+    assertThat(search(FieldIdentifier.COMPONENT_NAME, "*artifact2*"))
+        .extracting(dto -> dto.componentHash)
+        .isEmpty();
+    assertThat(searchInAllComponents(FieldIdentifier.COMPONENT_NAME, "*artifact1*"))
+        .extracting(dto -> dto.componentHash)
+        .containsExactlyInAnyOrder("hashComponent1");
+  }
+
+  @Test
   public void testSearchByField_ComponentCoordinate() throws Exception {
     newAppReport(Stage.ID_RELEASE, "report-id");
     index();
@@ -679,7 +729,7 @@ public class IndexSearchingTest
     index();
     assertThat(search(FieldIdentifier.POLICY_ID + ":" + policy.getId() + " " + FieldIdentifier.APPLICATION_CATEGORY_ID
         + ":" + tag.getId())).extracting(dto -> dto.itemType).containsExactlyInAnyOrder(ItemType.POLICY.name(),
-            ItemType.APPLICATION_CATEGORY.name());
+        ItemType.APPLICATION_CATEGORY.name());
   }
 
   @Test

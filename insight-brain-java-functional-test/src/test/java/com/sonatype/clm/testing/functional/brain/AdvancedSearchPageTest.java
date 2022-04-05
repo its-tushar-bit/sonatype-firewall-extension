@@ -155,7 +155,8 @@ public class AdvancedSearchPageTest
     // Squeeze in verifying search can be triggered with enter button
     page.searchInput().sendKeys(Keys.ENTER);
 
-    page.queryError().shouldHave(text("The search query is invalid: Syntax Error, cannot parse foo:bar:baz:"));
+    page.queryError().shouldHave(text(
+        "The search query is invalid: Syntax Error, cannot parse foo:bar:baz -itemType:NON_VULNERABLE_COMPONENT:"));
 
     // Make sure errors are cleared upon successful search
     page.searchInput().setValue("itemType:ORGANIZATION");

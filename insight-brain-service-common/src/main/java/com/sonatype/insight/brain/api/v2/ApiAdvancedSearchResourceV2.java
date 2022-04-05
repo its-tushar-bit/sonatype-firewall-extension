@@ -26,7 +26,8 @@ public interface ApiAdvancedSearchResourceV2
   SearchResultDTO searchIndex(
       String searchQuery,
       int pageSize,
-      int page) throws IOException;
+      int page,
+      boolean allComponents) throws IOException;
 
   /**
    * Request a Search Index to be created asynchronously.

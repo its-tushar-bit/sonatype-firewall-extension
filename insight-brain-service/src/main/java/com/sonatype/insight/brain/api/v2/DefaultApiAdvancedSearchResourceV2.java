@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.DefaultValue;
@@ -54,9 +53,10 @@ public class DefaultApiAdvancedSearchResourceV2
   public SearchResultDTO searchIndex(
       @QueryParam("query") String searchQuery,
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
-      @QueryParam("page") int page) throws IOException
+      @QueryParam("page") int page,
+      @DefaultValue("false") @QueryParam("allComponents") boolean allComponents) throws IOException
   {
-    return searchService.searchIndex(searchQuery, pageSize, page);
+    return searchService.searchIndex(searchQuery, pageSize, page, allComponents);
   }
 
   @Override

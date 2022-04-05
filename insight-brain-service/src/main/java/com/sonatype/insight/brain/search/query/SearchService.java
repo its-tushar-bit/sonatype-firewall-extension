@@ -17,7 +17,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -106,7 +105,9 @@ public class SearchService
     this.insightConfig = insightConfig;
   }
 
-  public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page) throws IOException {
+  public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page, boolean allComponents)
+      throws IOException
+  {
     boolean initialSearch = false;
     if (page == 0) {
       // when actually paging through the results, a positive page index is used
@@ -128,6 +129,8 @@ public class SearchService
 
       IndexSearcher indexSearcher = new IndexSearcher(indexReader);
 
+      searchQuery = allComponents ? searchQuery :
+          searchQuery + " -" + ITEM_TYPE.label + ":" + ItemType.NON_VULNERABLE_COMPONENT.name();
       Query query = createQuery(searchQuery);
 
       Set<String> fieldNames = getFieldNames(query);
@@ -266,6 +269,8 @@ public class SearchService
           return COMPONENT_NAME;
         }
         return APPLICATION_NAME;
+      case NON_VULNERABLE_COMPONENT:
+        return COMPONENT_NAME;
       default:
         throw new IllegalArgumentException("Unsupported item type " + itemType);
     }

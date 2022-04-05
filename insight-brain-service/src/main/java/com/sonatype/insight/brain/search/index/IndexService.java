@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -63,6 +62,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import io.dropwizard.lifecycle.Managed;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -499,9 +499,7 @@ public class IndexService
       IndexingContext indexingContext,
       Collection<Organization> organizations)
   {
-    return organizations.stream().map(org -> {
-      return buildDocument(indexingContext, org);
-    }).collect(toList());
+    return organizations.stream().map(org -> buildDocument(indexingContext, org)).collect(toList());
   }
 
   Document buildDocument(IndexingContext indexingContext, Organization organization) {
@@ -511,9 +509,7 @@ public class IndexService
   }
 
   private List<Document> buildApplicationDocs(IndexingContext indexingContext, Collection<Application> applications) {
-    return applications.stream().map(app -> {
-      return buildDocument(indexingContext, app);
-    }).collect(toList());
+    return applications.stream().map(app -> buildDocument(indexingContext, app)).collect(toList());
   }
 
   Document buildDocument(IndexingContext indexingContext, Application application) {
@@ -524,9 +520,7 @@ public class IndexService
   }
 
   private List<Document> buildTagDocs(IndexingContext indexingContext) {
-    return tagDAO.getAll().stream().map(tag -> {
-      return buildDocument(indexingContext, tag);
-    }).collect(toList());
+    return tagDAO.getAll().stream().map(tag -> buildDocument(indexingContext, tag)).collect(toList());
   }
 
   Document buildDocument(IndexingContext indexingContext, Tag tag) {
@@ -540,9 +534,7 @@ public class IndexService
   }
 
   private List<Document> buildLabelDocs(IndexingContext indexingContext) {
-    return labelDAO.getAll().stream().map(label -> {
-      return buildDocument(indexingContext, label);
-    }).collect(toList());
+    return labelDAO.getAll().stream().map(label -> buildDocument(indexingContext, label)).collect(toList());
   }
 
   Document buildDocument(IndexingContext indexingContext, Label label) {
@@ -556,9 +548,7 @@ public class IndexService
   }
 
   private List<Document> buildPolicyDocs(IndexingContext indexingContext) {
-    return policyDAO.getAll().stream().map(policy -> {
-      return buildDocument(indexingContext, policy);
-    }).collect(toList());
+    return policyDAO.getAll().stream().map(policy -> buildDocument(indexingContext, policy)).collect(toList());
   }
 
   Document buildDocument(IndexingContext indexingContext, Policy policy) {
@@ -627,9 +617,33 @@ public class IndexService
       String reportId,
       Component component)
   {
-    return component.getSecurityVulnerabilities().parallelStream().map(vulnerability -> {
-      return buildDocument(indexingContext, application, stageType, reportId, component, vulnerability);
-    }).collect(toList());
+    if (CollectionUtils.isNotEmpty(component.getSecurityVulnerabilities())) {
+      return component.getSecurityVulnerabilities().parallelStream().map(vulnerability ->
+          buildDocument(indexingContext, application, stageType, reportId, component, vulnerability)).collect(toList());
+    }
+    else if (component.getComponentIdentifier() != null) {
+      return Collections.singletonList(buildDocument(application, stageType, reportId, component));
+    }
+    else {
+      return Collections.emptyList();
+    }
+  }
+
+  Document buildDocument(
+      Application application,
+      StageType stageType,
+      String reportId,
+      Component component)
+  {
+    return new DocumentBuilder(ItemType.NON_VULNERABLE_COMPONENT) //
+        .setOwner(application) //
+        .setPolicyEvaluationStage(stageType) //
+        .setReportId(reportId) //
+        .setComponentHash(component.getHash()) //
+        .setComponentFormat(component.getComponentIdentifier().getFormat()) //
+        .setComponentCoordinates(component) //
+        .setComponentName(component.getDisplayNameFromIdentifier()) //
+        .build();
   }
 
   Document buildDocument(

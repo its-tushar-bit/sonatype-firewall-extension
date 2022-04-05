@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.search.docs;
 import java.util.Arrays;
 import java.util.Optional;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -31,6 +32,7 @@ public class DocumentBuilder
   {
     ORGANIZATION,
     APPLICATION,
+    NON_VULNERABLE_COMPONENT,
     SECURITY_VULNERABILITY,
     APPLICATION_CATEGORY,
     COMPONENT_LABEL,
@@ -202,6 +204,13 @@ public class DocumentBuilder
 
   public DocumentBuilder setComponentCoordinates(final Component component) {
     this.componentCoordinates = Optional.of(component.getComponentIdentifier().getCoordinates().entrySet().stream().map(
+        coordinate -> new TextField(getFieldNameForCoordinate(coordinate.getKey()), coordinate.getValue(), Store.YES))
+        .toArray(Field[]::new));
+    return this;
+  }
+
+  public DocumentBuilder setComponentCoordinates(final ComponentIdentifier componentIdentifier) {
+    this.componentCoordinates = Optional.of(componentIdentifier.getCoordinates().entrySet().stream().map(
         coordinate -> new TextField(getFieldNameForCoordinate(coordinate.getKey()), coordinate.getValue(), Store.YES))
         .toArray(Field[]::new));
     return this;

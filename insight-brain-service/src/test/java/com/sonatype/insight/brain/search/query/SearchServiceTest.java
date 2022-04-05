@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
@@ -59,14 +58,14 @@ public class SearchServiceTest
 
   @Test
   public void testSearchIndex_NoSearchIndexDirectory() {
-    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> searchService.searchIndex("query", 1, 1))
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> searchService.searchIndex("query", 1, 1, false))
         .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
   }
 
   @Test
   public void testSearchIndex_EmptySearchIndexDirectory() throws Exception {
     Files.createDirectories(insightWork.getSearchIndexDir().toPath());
-    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> searchService.searchIndex("query", 1, 1))
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> searchService.searchIndex("query", 1, 1, false))
         .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
   }
 
@@ -79,8 +78,8 @@ public class SearchServiceTest
   @Test
   public void testSearchIndex_Telemetry() throws Exception {
     indexService.createSearchIndex();
-    searchService.searchIndex("organizationName:org1 itemType:it2", 1, 0);
-    searchService.searchIndex("itemType:it1", 1, 0);
+    searchService.searchIndex("organizationName:org1 itemType:it2", 1, 0, true);
+    searchService.searchIndex("itemType:it1", 1, 0, false);
     TelemetryData telemetryData = collectSearchTelemetry();
 
     @SuppressWarnings("unchecked")
@@ -98,7 +97,7 @@ public class SearchServiceTest
   @Test
   public void testSearchIndex_TelemetryNotAddedWhenPagingThroughResults() throws Exception {
     indexService.createSearchIndex();
-    searchService.searchIndex("itemType:it1", 10, 1);
+    searchService.searchIndex("itemType:it1", 10, 1, false);
     TelemetryData telemetryData = collectSearchTelemetry();
 
     assertThat(telemetryData).isNull();
@@ -109,7 +108,7 @@ public class SearchServiceTest
     indexService.createSearchIndex();
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      searchService.searchIndex("invalidFieldName:value", 1, 0);
+      searchService.searchIndex("invalidFieldName:value", 1, 0, false);
     });
 
     TelemetryData telemetryData = collectSearchTelemetry();
@@ -129,7 +128,7 @@ public class SearchServiceTest
   @Test
   public void testSearchIndex_TelemetryDuplicateFieldNamesInQueryAreIgnored() throws Exception {
     indexService.createSearchIndex();
-    searchService.searchIndex("itemType:it1 itemType:it2", 1, 0);
+    searchService.searchIndex("itemType:it1 itemType:it2", 1, 0, true);
     TelemetryData telemetryData = collectSearchTelemetry();
 
     @SuppressWarnings("unchecked")
@@ -154,7 +153,7 @@ public class SearchServiceTest
     tempEntity.newMembershipMapping(application.getId(), nonGlobalReadRole.getId(), userPrincipal.getUsername());
 
     indexService.createSearchIndex();
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false);
 
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);
 
@@ -177,7 +176,7 @@ public class SearchServiceTest
     tempEntity.newMembershipMapping(anotherApplication.getId(), nonGlobalReadRole.getId(), userPrincipal.getUsername());
 
     indexService.createSearchIndex();
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false);
 
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(2);
 
@@ -206,7 +205,7 @@ public class SearchServiceTest
 
     indexService.createSearchIndex();
 
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0, false);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(1);
 
     List<String> organizationIds = searchResultDTO.groupingByDTOS.stream()
@@ -215,7 +214,7 @@ public class SearchServiceTest
         .collect(toList());
     assertThat(organizationIds).containsOnly(organization.getId());
 
-    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0);
+    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false);
 
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(2);
     List<String> applicationIds = searchResultDTO.groupingByDTOS.stream()
@@ -251,10 +250,10 @@ public class SearchServiceTest
 
     indexService.createSearchIndex();
 
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0, false);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(3); // 2 orgs + the Root org = 3
 
-    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0);
+    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false);
     assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);  // 4 applications owned by 2 organizations
   }
 
@@ -277,7 +276,7 @@ public class SearchServiceTest
 
     indexService.createSearchIndex();
 
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:ORGANIZATION", 20, 0, false);
 
     List<String> organizationIds = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
@@ -285,7 +284,7 @@ public class SearchServiceTest
         .collect(toList());
     assertThat(organizationIds).containsExactly(org1.getId());
 
-    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0);
+    searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false);
 
     List<String> applicationIds = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
@@ -318,7 +317,7 @@ public class SearchServiceTest
 
     indexService.createSearchIndex();
 
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:POLICY", 20, 0);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:POLICY", 20, 0, false);
 
     List<String> policyIds = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
@@ -348,7 +347,7 @@ public class SearchServiceTest
       indexService.createSearchIndex();
 
       assertThatExceptionOfType(BadRequestException.class)
-          .isThrownBy(() -> searchService.searchIndex("itemType:APPLICATION", 1, 0))
+          .isThrownBy(() -> searchService.searchIndex("itemType:APPLICATION", 1, 0, false))
           .withMessage("Your user ID is associated with too many applications. Try limiting your search to a specific "
               + "organization or update your configuration to support larger queries.");
     }

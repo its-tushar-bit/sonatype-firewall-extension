@@ -168,8 +168,7 @@ public class PolicyMonitor
     log.info("Policy monitoring evaluated in {} ms", System.currentTimeMillis() - start);
   }
 
-  private void evaluateApplications(final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId)
-  {
+  private void evaluateApplications(final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId) {
     if (!isLicensedForApplications(productLicense)) {
       log.debug("Not licensed for Application Policy Monitoring.");
       return;

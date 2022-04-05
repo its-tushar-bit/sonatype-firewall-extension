@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
@@ -35,12 +36,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.junit.After;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -52,9 +49,6 @@ import static org.mockito.Mockito.when;
 public class ApiRepositoryConnectionServiceTest
     extends AbstractComponentTest
 {
-  @Rule
-  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
-
   @Inject
   private ApiRepositoryConnectionService repositoryConnectionService;
 

@@ -161,14 +161,7 @@ public class PolicyMonitor
       policyMonitoringsByOwnerId.put(policyMonitoring.getOwnerId(), policyMonitoring);
     }
 
-    try {
-      evaluateApplications(policyMonitoringsByOwnerId);
-    }
-    catch (InterruptedException e) {
-      log.error(e.getMessage(), e);
-      Thread.currentThread().interrupt();
-      return;
-    }
+    evaluateApplications(policyMonitoringsByOwnerId);
 
     evaluateApplicableQuarantinedRepositoryComponents(policyMonitoringsByOwnerId);
 
@@ -176,7 +169,6 @@ public class PolicyMonitor
   }
 
   private void evaluateApplications(final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId)
-      throws InterruptedException
   {
     if (!isLicensedForApplications(productLicense)) {
       log.debug("Not licensed for Application Policy Monitoring.");

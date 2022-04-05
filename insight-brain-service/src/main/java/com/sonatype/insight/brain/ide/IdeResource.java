@@ -253,9 +253,10 @@ public class IdeResource
   @POST
   @Path("telemetry/{applicationPublicId}")
   @Audited(AuditEvent.EVALUATE_PROJECT)
-  public void sendTelemetry(@PathParam("applicationPublicId") String applicationPublicId,
-                            Map<String, Long> componentCounts,
-                            @Context HttpServletRequest req) throws IOException
+  public void sendTelemetry(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      Map<String, Long> componentCounts,
+      @Context HttpServletRequest req)
   {
     String userAgent = DefaultHdsClient.getClientUserAgent(req);
     String instanceId = DefaultHdsClient.getClientInstanceId(req);

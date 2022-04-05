@@ -97,7 +97,7 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
             additionalFooterBtns={additionalFooterBtns()}
           >
             <header className="nx-modal-header">
-              <h2 className="nx-h2">Sign in to your Sonatype Lifecycle Account</h2>
+              <h2 className="nx-h2">Sign in</h2>
             </header>
             <div className="nx-modal-content">
               {systemNotice?.enabled && (
@@ -133,10 +133,11 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
               </NxFormGroup>
               {renderVulnerabilityLink && (
                 <p className="iq-login-modal-helper-text nx-p">
-                  Look up a vulnerability without logging in at{' '}
+                  Look up a vulnerability without signing in at{' '}
                   <NxTextLink href={vulnSearchHref} data-testid="vuln-lookup-link">
                     Vulnerability Lookup
                   </NxTextLink>
+                  .
                 </p>
               )}
             </div>

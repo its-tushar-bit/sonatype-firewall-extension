@@ -11,7 +11,7 @@ import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 const LoginButton = (props) => (
   <NxButton id="header-login-button" className="iq-login-button" variant="tertiary" {...props}>
     <NxFontAwesomeIcon icon={faUserAlt} />
-    <span>Login</span>
+    <span>Sign in</span>
   </NxButton>
 );
 

@@ -73,7 +73,7 @@ describe('LoginModal', () => {
 
   it('renders login modal with disabled "sign in" button', () => {
     renderComponent();
-    expect(screen.getByRole('heading', { name: 'Sign in to your Sonatype Lifecycle Account' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Sign in' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Submit disabled: Username and password are required' })).toHaveAttribute(
       'aria-disabled',
       'true'
@@ -157,7 +157,7 @@ describe('LoginModal', () => {
     spyOn(userLoginSelectors, 'selectSystemNoticeServerData').and.returnValue(undefined);
     renderComponent();
 
-    expect(screen.getByRole('heading', { name: 'Sign in to your Sonatype Lifecycle Account' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Sign in' })).toBeVisible();
   });
 
   describe('login workflow', () => {
@@ -221,14 +221,14 @@ describe('LoginModal', () => {
       it('renders login modal with "single sign-on (sso)" button if showSamlSso is true', () => {
         useSelectorLoginStateSpy.and.returnValue({ ...loginState, showSamlSso: true });
         renderComponent();
-        expect(screen.getByRole('heading', { name: 'Sign in to your Sonatype Lifecycle Account' })).toBeVisible();
+        expect(screen.getByRole('heading', { name: 'Sign in' })).toBeVisible();
         expect(screen.getByText('Single Sign-On (SSO)')).toBeVisible();
       });
 
       it('renders login modal without the "single sign-on (sso)" button if showSamlSso is false', () => {
         useSelectorLoginStateSpy.and.returnValue({ ...loginState, showSamlSso: false });
         renderComponent();
-        expect(screen.getByRole('heading', { name: 'Sign in to your Sonatype Lifecycle Account' })).toBeVisible();
+        expect(screen.getByRole('heading', { name: 'Sign in' })).toBeVisible();
         expect(() => screen.getByText('Single Sign-On (SSO)')).toThrowError();
       });
 

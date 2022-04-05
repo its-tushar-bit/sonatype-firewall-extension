@@ -82,10 +82,14 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
-    HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER).get();
+
+    HttpResponse response = restRequest()
+        .path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER)
+        .part("title", "Default Report Title")
+        .post();
+
     assertResponseStatus(200, response);
-    assertThat(response.getBodyText()).contains(application.getPublicId());
+    assertThat(response.getBodyText()).contains("Default Report Title");
   }
 
   @Test
@@ -107,8 +111,10 @@ public class ApiLegalReportResourceV2Test
     List<String> appsText = Arrays.asList(application.getId(), application2.getId());
     Collections.sort(appsText);
     String applicationsText = String.join(", ", appsText) + " ";
-    HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER).get();
+    HttpResponse response = restRequest()
+        .path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER)
+        .part("title", "Default Report Title")
+        .post();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
         .isEqualTo("Report for applications " + applicationsText + "not found.");
@@ -120,8 +126,10 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
-    HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER).get();
+    HttpResponse response = restRequest()
+        .path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER)
+        .part("title", "title")
+        .post();
     assertResponseStatus(403, response);
     assertThat(response.getBodyText()).isEqualTo("Not authorized to generate report for applications.");
   }
@@ -142,10 +150,25 @@ public class ApiLegalReportResourceV2Test
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
+
+    File noticeFile = createNoticeFile();
+
     HttpResponse response =
-        restRequest().path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER).get();
+        restRequest().path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER)
+            .part("title", "Report title")
+            .part("header", "Report header")
+            .part("footer", "Report footer")
+            .part("noticeFiles", noticeFile)
+            .post();
+
     assertResponseStatus(200, response);
-    assertThat(response.getBodyText()).contains(application.getPublicId());
+    String bodyText = response.getBodyText();
+
+    assertThat(bodyText)
+        .contains("notice file content")
+        .contains("Report title")
+        .contains("Report header")
+        .contains("Report footer");
   }
 
   @Test
@@ -598,6 +621,38 @@ public class ApiLegalReportResourceV2Test
         .parameter(template.getId()).part("noticeFiles", file)
         .part("applications", application.getPublicId() + "," + application2.getPublicId())
         .part("stages", BuildStageType.ID + "," + BuildStageType.ID)
+        .post();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).contains("testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE");
+    assertThat(response.getBodyText()).contains("testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER");
+    assertThat(response.getBodyText()).contains("testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER");
+  }
+
+  @Test
+  public void testPostLicenseLegalMultiApplicationReportFromActiveUserFilter_FromTemplate() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    Application application2 = tempEntity.newApplicationWithParent();
+
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+    PolicyEvaluation policyEvaluation2 =
+        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluation, getClass().getSimpleName());
+    mockReport(policyEvaluation2, getClass().getSimpleName());
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
+
+    AttributionReportTemplate template = tempEntity.createNewAttributionReportTemplate("Template Name",
+        "testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE",
+        "testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER",
+        "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER", false, false, false);
+
+    HttpResponse response = restRequest()
+        .path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER_TEMPLATE_PATH)
+        .parameter(template.getId())
         .post();
 
     assertResponseStatus(200, response);

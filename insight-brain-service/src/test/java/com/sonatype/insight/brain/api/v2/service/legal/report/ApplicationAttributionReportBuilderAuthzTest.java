@@ -63,7 +63,8 @@ public class ApplicationAttributionReportBuilderAuthzTest
     advancedLegalPackDashboardFilter.getStageTypeFilters().add(BuildStageType.ID);
     tempEntity.newUserFilter(getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD,
         JsonUtils.format(advancedLegalPackDashboardFilter), filterName);
-    applicationAttributionReportBuilder.generateLegalMultiApplicationAttributionReportFromActiveUserFilter();
+    applicationAttributionReportBuilder.generateLegalMultiApplicationAttributionReportFromActiveUserFilter(
+        LegalCustomReportParameters.builder().buildWithDefaults("app"));
   }
 
   @Test
@@ -78,7 +79,8 @@ public class ApplicationAttributionReportBuilderAuthzTest
     tempEntity.newUserFilter(getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD,
         JsonUtils.format(advancedLegalPackDashboardFilter), filterName);
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-        () -> applicationAttributionReportBuilder.generateLegalMultiApplicationAttributionReportFromActiveUserFilter())
+        () -> applicationAttributionReportBuilder.generateLegalMultiApplicationAttributionReportFromActiveUserFilter(
+            LegalCustomReportParameters.builder().buildWithDefaults("app")))
         .withMessageContaining("Report for applications " + app.getId() + " not found");
   }
 
@@ -91,6 +93,7 @@ public class ApplicationAttributionReportBuilderAuthzTest
     advancedLegalPackDashboardFilter.getStageTypeFilters().add(BuildStageType.ID);
     tempEntity.newUserFilter(getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD,
         JsonUtils.format(advancedLegalPackDashboardFilter), filterName);
-    applicationAttributionReportBuilder.generateLegalMultiApplicationAttributionReportFromActiveUserFilter();
+    applicationAttributionReportBuilder.generateLegalMultiApplicationAttributionReportFromActiveUserFilter(
+        LegalCustomReportParameters.builder().buildWithDefaults("app"));
   }
 }

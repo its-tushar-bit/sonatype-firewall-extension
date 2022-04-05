@@ -71,6 +71,9 @@ public class DefaultApiLegalReportResourceV2
 
   public static final String MULTI_APPLICATION_REPORT_FROM_FILTER = "multiApplication" + FILTER + REPORT;
 
+  public static final String MULTI_APPLICATION_REPORT_FROM_FILTER_TEMPLATE_PATH =
+      MULTI_APPLICATION_REPORT_FROM_FILTER + "/templateId/{templateId}";
+
   public static final String CUSTOM_MULTI_APPLICATION_REPORT_PATH = "customMultiApplication" + REPORT;
 
   public static final String MULTI_APPLICATION_REPORT_PATH_FROM_TEMPLATE_PATH =
@@ -139,15 +142,6 @@ public class DefaultApiLegalReportResourceV2
   {
     return apiLicenseLegalServiceV2
         .getLicenseLegalApplicationReport(IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId), stageId);
-  }
-
-  @Override
-  @GET
-  @Path(MULTI_APPLICATION_REPORT_FROM_FILTER)
-  @Produces(MediaType.TEXT_HTML)
-  public String getLicenseLegalMultiApplicationReportFromActiveUserFilter() {
-    return applicationAttributionReportBuilder
-        .generateLegalMultiApplicationAttributionReportFromActiveUserFilter();
   }
 
   @Override
@@ -223,6 +217,62 @@ public class DefaultApiLegalReportResourceV2
     }
     return applicationAttributionReportBuilder
         .generateCustomLegalMultiApplicationAttributionReport(applicationsAndStages, reportParametersBuilder.build());
+  }
+
+  @Override
+  @POST
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Path(MULTI_APPLICATION_REPORT_FROM_FILTER)
+  @Produces(MediaType.TEXT_HTML)
+  public String getLicenseLegalMultiApplicationReportFromActiveUserFilter(FormDataMultiPart formData) {
+    LegalCustomReportParameters.Builder reportParametersBuilder = LegalCustomReportParameters.builder();
+    try {
+      reportParametersBuilder.withTitle(requireMultiPartValue(formData, REPORT_FORM_TITLE))
+          .withHeader(getMultiPartValue(formData, REPORT_FORM_HEADER, ""))
+          .withFooter(getMultiPartValue(formData, REPORT_FORM_FOOTER, ""))
+          .withIncludeToc(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_TOC, "true")))
+          .withIncludeStandardLicenseTexts(
+              Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
+          .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
+          .withNoticeFiles(getNoticeFilesFromFormData(formData))
+          .build();
+    }
+    catch (Exception ex) { // if we got exception at this point it's because of invalid request
+      Throwables.throwIfInstanceOf(ex, BadRequestException.class);
+      throw new BadRequestException(ex.getMessage());
+    }
+    return applicationAttributionReportBuilder
+        .generateLegalMultiApplicationAttributionReportFromActiveUserFilter(reportParametersBuilder.build());
+  }
+
+  @Override
+  @POST
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Path(MULTI_APPLICATION_REPORT_FROM_FILTER_TEMPLATE_PATH)
+  @Produces(MediaType.TEXT_HTML)
+  public String getLicenseLegalMultiApplicationReportFromActiveUserFilter(
+      @PathParam("templateId") String templateId,
+      @Context ContainerRequest request)
+  {
+    AttributionReportTemplateDTO templateDTO = attributionReportService.getAttributionReportTemplateById(templateId)
+        .orElseThrow(() -> new NotFoundException(String.format("No template with id %s found", templateId)));
+    List<String> noticeFiles = new ArrayList<>();
+    if (request != null && request.getLength() > 0) {
+      FormDataMultiPart multiPart = request.readEntity(FormDataMultiPart.class);
+      try {
+        noticeFiles = getNoticeFilesFromFormData(multiPart);
+      }
+      catch (Exception ex) { // if we got exception at this point it's because of invalid request
+        Throwables.throwIfInstanceOf(ex, BadRequestException.class);
+        throw new BadRequestException(ex.getMessage());
+      }
+    }
+    LegalCustomReportParameters reportParameters = LegalCustomReportParameters.builder()
+        .fromAttributionReportTemplateDTO(templateDTO)
+        .withNoticeFiles(noticeFiles)
+        .build();
+    return applicationAttributionReportBuilder
+        .generateLegalMultiApplicationAttributionReportFromActiveUserFilter(reportParameters);
   }
 
   @Override

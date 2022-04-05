@@ -171,7 +171,8 @@ public class ApplicationAttributionReportBuilderTest
         new LinkedHashSet<>(Arrays.asList(application.getId(), application2.getId())), null)).thenReturn(appIdList);
     String title = String.join(", ",
         appIdList.stream().map(Application::getPublicId).sorted().collect(Collectors.toCollection(LinkedHashSet::new)));
-    String content = reportBuilder.generateLegalMultiApplicationAttributionReportFromActiveUserFilter();
+    String content = reportBuilder.generateLegalMultiApplicationAttributionReportFromActiveUserFilter(
+        LegalCustomReportParameters.builder().buildWithDefaults(title));
     Document doc = Jsoup.parse(content);
     String bodyContent = doc.select("body").first().toString();
     String expectedContent = IOUtils.toString(

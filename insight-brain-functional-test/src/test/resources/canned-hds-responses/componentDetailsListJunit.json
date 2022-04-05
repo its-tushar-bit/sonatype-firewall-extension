@@ -49,7 +49,7 @@
                "artifactId":"junit",
                "version":"3.7",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -108,7 +108,7 @@
                "artifactId":"junit",
                "version":"3.8",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -167,7 +167,7 @@
                "artifactId":"junit",
                "version":"3.8.1",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -226,7 +226,7 @@
                "artifactId":"junit",
                "version":"3.8.2",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -289,7 +289,7 @@
                "artifactId":"junit",
                "version":"4.0",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -348,7 +348,7 @@
                "artifactId":"junit",
                "version":"4.1",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -407,7 +407,7 @@
                "artifactId":"junit",
                "version":"4.2",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -470,7 +470,7 @@
                "artifactId":"junit",
                "version":"4.3",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -533,7 +533,7 @@
                "artifactId":"junit",
                "version":"4.3.1",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -596,7 +596,7 @@
                "artifactId":"junit",
                "version":"4.4",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -659,7 +659,7 @@
                "artifactId":"junit",
                "version":"4.5",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -722,7 +722,7 @@
                "artifactId":"junit",
                "version":"4.6",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -785,7 +785,7 @@
                "artifactId":"junit",
                "version":"4.7",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -848,7 +848,7 @@
                "artifactId":"junit",
                "version":"4.8",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -911,7 +911,7 @@
                "artifactId":"junit",
                "version":"4.8.1",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -974,7 +974,7 @@
                "artifactId":"junit",
                "version":"4.8.2",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -1033,7 +1033,7 @@
                "artifactId":"junit",
                "version":"4.9",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -1092,7 +1092,7 @@
                "artifactId":"junit",
                "version":"4.10",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -1151,7 +1151,7 @@
                "artifactId":"junit",
                "version":"4.11-beta-1",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -1210,7 +1210,7 @@
                "artifactId":"junit",
                "version":"4.11",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -1273,7 +1273,7 @@
                "artifactId":"junit",
                "version":"4.12-beta-1",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -1336,7 +1336,7 @@
                "artifactId":"junit",
                "version":"4.12-beta-2",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[

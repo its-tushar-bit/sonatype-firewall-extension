@@ -267,7 +267,11 @@ public class CLMLicenseManagerTest
         LicensedFeature.NOTIFICATIONS, //
         LicensedFeature.POLICY_GRANDFATHERING, //
         LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
-        LicensedFeature.AUTOMATION);
+        LicensedFeature.AUTOMATION,
+        LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES,
+        LicensedFeature.HYGIENE,
+        LicensedFeature.RELEASE_INTEGRITY,
+        LicensedFeature.BREAKING_CHANGE);
   }
 
   @Test
@@ -709,7 +713,7 @@ public class CLMLicenseManagerTest
   public void testInstallLicense_HygieneFeatureFromHds() throws Exception {
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
-    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.HYGIENE);
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.HYGIENE);
 
     mockHdsProductLicenseDetails(withFeatures(LicensedFeature.HYGIENE));
     installLicense();
@@ -720,7 +724,7 @@ public class CLMLicenseManagerTest
   public void testInstallLicense_AdvancedRecommendationStrategiesFeatureFromHds() throws Exception {
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
-    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);
 
     mockHdsProductLicenseDetails(withFeatures(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES));
     installLicense();
@@ -731,7 +735,7 @@ public class CLMLicenseManagerTest
   public void testInstallLicense_BreakingChangeFeatureFromHds() throws Exception {
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
-    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.BREAKING_CHANGE);
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.BREAKING_CHANGE);
 
     mockHdsProductLicenseDetails(withFeatures(LicensedFeature.BREAKING_CHANGE));
     installLicense();

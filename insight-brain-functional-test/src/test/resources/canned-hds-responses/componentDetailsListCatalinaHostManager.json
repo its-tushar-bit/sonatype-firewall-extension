@@ -80,7 +80,7 @@
                "artifactId":"catalina-host-manager",
                "version":"5.5.12",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[
@@ -170,7 +170,7 @@
                "artifactId":"catalina-host-manager",
                "version":"5.5.23",
                "classifier":null,
-               "extension":null
+               "extension": "jar"
             }
          },
          "declaredLicenseIds":[

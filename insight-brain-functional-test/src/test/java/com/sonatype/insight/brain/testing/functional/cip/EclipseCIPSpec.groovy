@@ -10,10 +10,10 @@ import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.testing.functional.utils.AbstractComponentDetailsSpec
+import com.sonatype.insight.dependency.ComponentDependenciesDTO
 
 import spock.lang.Stepwise
 import spock.lang.Unroll
-
 /**
  * Tests the ide endpoints of the clm server.
  * @since 1.12
@@ -29,6 +29,9 @@ class EclipseCIPSpec
   def setupSpec() {
     Organization org = temporaryEntity.newOrganization('EclipseCIPSpec')
     app = temporaryEntity.newApplication('EclipseCIPSpec', org.id)
+
+    hdsRule.respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
+        .atUri("rest/component/dependencies")
   }
 
   def 'The initial page can be loaded without authentication'() {
@@ -43,7 +46,7 @@ class EclipseCIPSpec
 
   def 'Cannot load data without authenticating first'() {
     when: 'Simulating user selection of a GAV with javascript'
-      page.setGav(JUNIT.groupId, JUNIT.artifactId, JUNIT.version,  app.publicId, false)
+      page.setGav(JUNIT.groupId, JUNIT.artifactId, JUNIT.version, app.publicId, false)
 
     then: 'an error message is shown'
       waitFor { error.displayed }

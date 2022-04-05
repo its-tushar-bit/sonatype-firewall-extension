@@ -496,6 +496,10 @@ public class CLMLicenseManager
       features.add(LicensedFeature.CI_INTEGRATION);
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.AUTOMATION);
+      features.add(LicensedFeature.HYGIENE);
+      features.add(LicensedFeature.BREAKING_CHANGE);
+      features.add(LicensedFeature.RELEASE_INTEGRITY);
+      features.add(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);
       stageTypes.addAll(StageTypes.getAll());
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)) {

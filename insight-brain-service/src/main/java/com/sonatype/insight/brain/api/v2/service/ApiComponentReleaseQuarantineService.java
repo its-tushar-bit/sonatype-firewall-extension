@@ -112,7 +112,7 @@ public class ApiComponentReleaseQuarantineService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
+  ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
       @AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
       final String quarantineId,
       final String comment)

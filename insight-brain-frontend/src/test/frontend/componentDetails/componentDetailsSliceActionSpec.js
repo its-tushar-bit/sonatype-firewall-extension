@@ -102,7 +102,7 @@ describe('componentDetailsActions', function () {
       },
       applicationReport: {
         selectedReport: {
-          displayedEntries: [mockComponent],
+          allEntries: [mockComponent],
         },
       },
       componentDetails: {

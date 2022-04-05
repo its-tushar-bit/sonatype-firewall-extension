@@ -60,7 +60,7 @@ describe('claimSelectors', () => {
       },
       applicationReport: {
         selectedReport: {
-          displayedEntries: [
+          allEntries: [
             {
               hash: 'some-component-hash',
             },

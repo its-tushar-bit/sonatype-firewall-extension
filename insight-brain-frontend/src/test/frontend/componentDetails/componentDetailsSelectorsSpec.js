@@ -58,6 +58,11 @@ describe('componentDetailsSelectors', () => {
         allEntries: [
           {
             hash: 'some-component-hash',
+            matchState: 'unknown',
+            pathnames: ['dependency:/this.is.a.dependency', 'pathname 1', 'pathname 2'],
+            proprietary: true,
+            identificationSource: 'Sonatype',
+            derivedComponentName: 'My Component',
           },
           {
             hash: 'some-component-hash',
@@ -207,6 +212,29 @@ describe('componentDetailsSelectors', () => {
 
   describe('selectComponentDetails', () => {
     it('derives componentDetails from the componentDetails, selectedReport metadata, and the selectedComponent', () => {
+      const allEntries = [
+        {
+          derivedComponentName: 'My Component',
+          hash: 'some-component-hash',
+          componentIdentifier: { format: 'maven' },
+          derivedDependencyType: 'transitive',
+          matchState: 'unknown',
+          pathnames: ['dependency:/this.is.a.dependency', 'pathname 1', 'pathname 2'],
+          proprietary: true,
+          identificationSource: 'Sonatype',
+        },
+      ];
+
+      const updatedMockState = {
+        ...mockState,
+        applicationReport: {
+          ...mockState.applicationReport,
+          selectedReport: {
+            allEntries,
+          },
+        },
+      };
+
       const expected = {
         name: 'My Component',
         hash: 'some-component-hash',
@@ -224,7 +252,8 @@ describe('componentDetailsSelectors', () => {
         matchState: 'unknown',
         identificationSource: 'Sonatype',
       };
-      const actual = selectComponentDetails(mockState);
+
+      const actual = selectComponentDetails(updatedMockState);
       expect(actual).toEqual(expected);
     });
   });
@@ -406,6 +435,7 @@ describe('componentDetailsSelectors', () => {
       const selection = selectComponentSimilarMatches(mockStateForMatchState);
       expect(selection).toEqual([]);
     });
+
     it('returns an empty array when the matchState is unknown', () => {
       const unknownMatchDisplayedEntries = [
         {
@@ -436,6 +466,7 @@ describe('componentDetailsSelectors', () => {
       const selection = selectComponentSimilarMatches(mockStateForMatchState);
       expect(selection).toEqual([]);
     });
+
     it('returns the matchDetails of the component information when the matchState is similar', () => {
       const similarMatchDisplayedEntries = [
         {
@@ -452,7 +483,7 @@ describe('componentDetailsSelectors', () => {
         applicationReport: {
           ...mockState.applicationReport,
           selectedReport: {
-            displayedEntries: similarMatchDisplayedEntries,
+            allEntries: similarMatchDisplayedEntries,
           },
         },
         router: {

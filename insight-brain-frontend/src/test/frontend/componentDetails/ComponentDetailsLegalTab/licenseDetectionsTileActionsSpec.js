@@ -37,7 +37,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
       },
       applicationReport: {
         selectedReport: {
-          displayedEntries: [
+          allEntries: [
             {
               hash: 'currentComponentHash',
               matchState: 'exact',

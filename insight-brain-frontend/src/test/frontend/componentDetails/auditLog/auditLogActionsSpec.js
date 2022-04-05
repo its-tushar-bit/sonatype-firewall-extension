@@ -44,6 +44,7 @@ describe('auditLogActions', function () {
       },
       applicationReport: {
         selectedReport: {
+          allEntries: [mockComponent],
           displayedEntries: [mockComponent],
         },
       },

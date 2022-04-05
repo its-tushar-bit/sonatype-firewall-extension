@@ -22,7 +22,7 @@ export const selectAllComponentsList = createSelector(selectSelectedReport, prop
 export const selectDisplayedComponentList = createSelector(selectSelectedReport, prop('displayedEntries'));
 export const selectSelectedComponent = createSelector(
   selectRouterCurrentParams,
-  selectDisplayedComponentList,
+  selectAllComponentsList,
   ({ hash }, components = []) => components.find((component) => component.hash === hash)
 );
 

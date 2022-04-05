@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.features.FeaturesResource;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -35,6 +36,31 @@ public class ApiConfigFeaturesService
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
+  /**
+   * This enumeration contains features that can be enabled/disabled by the {@link ApiConfigFeaturesResource}.
+   * <br/><br/> Each enum value has these properties:
+   * <ul>
+   *   <li>
+   *     {@code name} - this is returned to the frontend via {@link FeaturesResource#getFeatures()} after being
+   *     transformed according to {@link Feature#getId()}.
+   *   </li>
+   *   <li>
+   *     {@code propertyName} - this is the name stored in the {@link SystemConfigurationProperty} table. Note that the
+   *     value is always {@code "true"}.
+   *   </li>
+   *   <li>
+   *     {@code enabledWhenAbsent} - if this is {@code true}, then the feature will be enabled even if its
+   *     {@code propertyName} is absent from the {@link SystemConfigurationProperty} table.
+   *   </li>
+   * </ul>
+   * Note that if you want the feature name passed to {@link ApiConfigFeaturesResource} to be different to the
+   * {@code propertyName}, then you need to add a mapping to the
+   * {@link ApiConfigFeaturesService#getPropertyNameForFeature} method.
+   * <br/><br/>
+   * Typically, a feature would start with {@code enabledWhenAbsent} set to {@code false}, making it experimental.
+   * When it's production-ready {@code enabledWhenAbsent} can be changed to {@code true} alongside an incremental script
+   * to delete the feature from the {@link SystemConfigurationProperty} table.
+   */
   public enum SystemConfigurationPropertyFeature
       implements Feature
   {

@@ -142,9 +142,9 @@ public class RepositoryReevaluationTask
     @Override
     public void run() {
       try {
-        repositoryPolicyEvaluator.evaluate(repository, request, false,
+        repositoryPolicyEvaluator.evaluate(repository, request, false /* withQuarantine */,
             // due to asynchronous handling, we can't use the original 'threadlocal' stored clientRequest
-            null);
+            null /* clientUserAgent */);
       }
       catch (Exception e) {
         AuditData.get().setException(e);

@@ -4,19 +4,32 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import axios from 'axios';
-import { attachAxiosInterceptors } from 'MainRoot/utility/axiosConfig';
 import loginModalModule from 'MainRoot/user/LoginModal/module';
 import * as isIqIframeUtil from 'MainRoot/util/isIqFrame';
 import utilityServicesModule from 'MainRoot/utility/services/utility.services.module';
 
 describe('axiosConfig', () => {
+  let mockAxios, attachAxiosInterceptors;
+
+  beforeEach(function () {
+    mockAxios = Object.assign(jasmine.createSpy('axios'), {
+      interceptors: {
+        response: { use: jasmine.createSpy('axios.interceptors.response.use') },
+        request: { use: jasmine.createSpy('axios.interceptors.response.use') },
+      },
+    });
+
+    const axiosConfig = require('inject-loader!MainRoot/utility/axiosConfig')({ axios: mockAxios });
+
+    attachAxiosInterceptors = axiosConfig.attachAxiosInterceptors;
+  });
+
   describe('attachAxiosInterceptors', () => {
     let $rootScope, $window, setServerDateSpy, loginModalService, queueService, attachInterceptors;
 
     beforeEach(
       angular.mock.module(utilityServicesModule.name, loginModalModule.name, function ($provide) {
-        const sessionExpiredSpy = jasmine.createSpy(),
+        const sessionExpiredSpy = jasmine.createSpy('window.sessionExpired'),
           $window = {
             sessionExpired: sessionExpiredSpy,
             location: {
@@ -41,26 +54,22 @@ describe('axiosConfig', () => {
     }));
 
     afterEach(() => {
-      // clear any active interceptors in axios and requests/promises in queue
-      const requestInterceptors = axios.interceptors.request.handlers;
-      const responseInterceptors = axios.interceptors.response.handlers;
-      requestInterceptors.splice(0, requestInterceptors.length);
-      responseInterceptors.splice(0, responseInterceptors.length);
+      // clear any requests/promises in queue
       queueService.clearRequests();
     });
 
     it('attaches interceptors for the request and response of the rest calls', () => {
-      const userResponseInterceptor = spyOn(axios.interceptors.response, 'use').and.callThrough();
-      const useRequestInterceptor = spyOn(axios.interceptors.request, 'use').and.callThrough();
-
       attachInterceptors();
 
-      expect(userResponseInterceptor).toHaveBeenCalledTimes(2);
-      expect(useRequestInterceptor).toHaveBeenCalledTimes(1);
+      expect(mockAxios.interceptors.response.use).toHaveBeenCalledTimes(2);
+      expect(mockAxios.interceptors.request.use).toHaveBeenCalledTimes(1);
     });
 
     describe('request interceptors', () => {
-      const getInterceptorHandlerAt = (index) => axios.interceptors.request.handlers[index];
+      const getInterceptorHandlerAt = (index) => {
+        const [fulfilled, rejected] = mockAxios.interceptors.request.use.calls.argsFor(index);
+        return { fulfilled, rejected };
+      };
 
       describe('cache busting interceptor', () => {
         const getCacheBustingInterceptor = () => getInterceptorHandlerAt(0);
@@ -166,7 +175,10 @@ describe('axiosConfig', () => {
     });
 
     describe('response interceptors', () => {
-      const getInterceptorHandlerAt = (index) => axios.interceptors.response.handlers[index];
+      const getInterceptorHandlerAt = (index) => {
+        const [fulfilled, rejected] = mockAxios.interceptors.response.use.calls.argsFor(index);
+        return { fulfilled, rejected };
+      };
 
       beforeEach(() => attachInterceptors());
 
@@ -291,16 +303,13 @@ describe('axiosConfig', () => {
               });
             });
 
-            // This test will be addressed with CLM-21126
-            xit('Resolves all promises in the queue and clears any requests after authentication is successful', (done) => {
-              // avoid the request made by putting the original failed configuration in the queue
-              spyOn(axios, 'default').and.returnValue(Promise.resolve());
-              spyOn(axios, 'request').and.returnValue(Promise.resolve());
-
+            it('Resolves all promises in the queue and clears any requests after authentication is successful', (done) => {
               const newRequestedPromise = new Promise((resolve) => {
+                // Simple timeout to hold the promises in the queue for a moment to check they are correctly held
+                // until cleanup
                 setTimeout(() => {
                   return resolve();
-                }, 10);
+                }, 50);
               });
               spyOn(loginModalService, 'open').and.callFake(() => {
                 queueService.addRequest(() => newRequestedPromise);
@@ -319,9 +328,13 @@ describe('axiosConfig', () => {
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
               interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
                 expect(queueService.getRequests().length).toBe(2);
-                newRequestedPromise.then(() => {
-                  expect(queueService.getRequests().length).toBe(0);
-                  done();
+                newRequestedPromise.finally(() => {
+                  // Simple timeout to yield to the originally finally of the Promise.all in the interceptor before
+                  // checking that it cleans up the queue
+                  setTimeout(() => {
+                    expect(queueService.getRequests().length).toBe(0);
+                    done();
+                  }, 10);
                 });
               });
             });

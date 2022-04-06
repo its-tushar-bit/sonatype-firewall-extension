@@ -615,8 +615,13 @@ public class ComponentInfoService
         if (queryRepo) {
           Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> result =
               repositoryQueryService.getAllVersions(identifier, owner);
-          componentDetailsList = transformToComponentDetailsList(result.getLeft(), identifier);
           sourceResponseDTO = result.getRight();
+          if (CollectionUtils.isEmpty(result.getLeft().getComponents())) {
+            sourceResponseDTO.source = null;
+          }
+          else {
+            componentDetailsList = transformToComponentDetailsList(result.getLeft(), identifier);
+          }
         }
       }
     }
@@ -677,27 +682,24 @@ public class ComponentInfoService
     List<ComponentDetails> detailsList = new ArrayList<>();
     boolean requestVersionAdded = false;
 
-    if (CollectionUtils.isNotEmpty(results.getComponents())) {
-      for (RepositoryComponentResult result : results.getComponents()) {
-        if (!requestVersionAdded) {
-          int comparison = compareVersions(identifier, result);
-          if (comparison <= 0) {
-            String hash = comparison == 0 ? getHash(identifier, result) : generateFakeHash(identifier);
-            detailsList.add(createComponentDetails(identifier, hash, IdentificationSource.PACKAGE_MANIFEST));
-            requestVersionAdded = true;
-            if (comparison == 0) {
-              continue;
-            }
+    for (RepositoryComponentResult result : results.getComponents()) {
+      if (!requestVersionAdded) {
+        int comparison = compareVersions(identifier, result);
+        if (comparison <= 0) {
+          String hash = comparison == 0 ? getHash(identifier, result) : generateFakeHash(identifier);
+          detailsList.add(createComponentDetails(identifier, hash, IdentificationSource.PACKAGE_MANIFEST));
+          requestVersionAdded = true;
+          if (comparison == 0) {
+            continue;
           }
         }
-
-        String hash = getHash(identifier, result);
-        detailsList.add(createComponentDetails(result.getIdentifier(), hash,
-            IdentificationSource.PACKAGE_MANIFEST));
       }
+
+      String hash = getHash(identifier, result);
+      detailsList.add(createComponentDetails(result.getIdentifier(), hash, IdentificationSource.PACKAGE_MANIFEST));
     }
 
-    if (CollectionUtils.isEmpty(results.getComponents()) || !requestVersionAdded) {
+    if (!requestVersionAdded) {
       detailsList.add(
           createComponentDetails(identifier, generateFakeHash(identifier), IdentificationSource.PACKAGE_MANIFEST));
     }

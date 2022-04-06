@@ -173,7 +173,7 @@ public class NexusRepository3Client
     public String continuationToken;
   }
 
-  static class NexusItem
+  public static class NexusItem
   {
     public String format;
 
@@ -184,7 +184,7 @@ public class NexusRepository3Client
     public NexusChecksum checksum;
   }
 
-  static class NexusChecksum
+  public static class NexusChecksum
   {
     public String sha1;
   }

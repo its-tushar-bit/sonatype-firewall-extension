@@ -2014,7 +2014,33 @@ public class ComponentInfoServiceTest
 
     assertThat(result).hasSize(1);
     assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES);
-    assertThat(dto.sourceResponse.source).isEqualTo("https://repo.sonatype.com/");
+    assertThat(dto.sourceResponse.source).isNull();
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_ThirdParty_noResult() {
+    String identificationSource = "third-party";
+    String scanId = "scanId";
+    mockRepositoryQueryServiceAllVersionResponse(MAVEN_A1_COORDINATES);
+    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
+    componentDetailsList.setList(new ArrayList<>());
+    mockHdsGetComponentDetailsList(componentDetailsList, MAVEN_A1_COORDINATES);
+    ComponentDetails componentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    componentDetails.setIdentificationSource(identificationSource);
+    when(thirdPartyComponentDAO.resolveComponentDetails(application.getId(), MAVEN_A1_COORDINATES, scanId))
+        .thenReturn(componentDetails);
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
+        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
+        DependencyType.INNER_SOURCE);
+
+    List<ComponentDetailsDTO> result = dto.allVersions;
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).componentIdentifier).isEqualTo(MAVEN_A1_COORDINATES);
+    assertThat(result.get(0).matchState).isEqualTo(MatchState.EXACT.getId());
+    assertThat(result.get(0).identificationSource).isEqualTo(identificationSource);
+    assertThat(dto.sourceResponse.source).isNull();
   }
 
   @Test

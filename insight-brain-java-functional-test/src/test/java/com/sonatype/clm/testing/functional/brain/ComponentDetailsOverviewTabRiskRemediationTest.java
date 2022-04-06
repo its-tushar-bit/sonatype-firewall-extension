@@ -8,8 +8,10 @@ package com.sonatype.clm.testing.functional.brain;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.componentdetails.InnerSourceRepositorySourceAlert;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
@@ -34,7 +36,9 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLeve
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.repository.client.NexusRepository3Client;
 import com.sonatype.insight.brain.repository.client.NexusRepository3Client.NXRM3SearchResponse;
+import com.sonatype.insight.brain.repository.client.NexusRepository3Client.NexusItem;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -218,6 +222,15 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
   @Test
   public void testRiskRemediationTile_RepositorySource_InnerSourceDependency() {
     NXRM3SearchResponse nxrm3SearchResponse = new NXRM3SearchResponse();
+    NexusItem nexusItem = new NexusItem();
+    nexusItem.format = NexusRepository3Client.REPO_MAVEN_FORMAT;
+    nexusItem.maven2 = new HashMap<>();
+    nexusItem.maven2.put(ComponentIdentifier.MAVEN_GROUP_ID, "org.example");
+    nexusItem.maven2.put(ComponentIdentifier.MAVEN_ARTIFACT_ID, "test-business");
+    nexusItem.maven2.put(ComponentIdentifier.MAVEN_EXTENSION, "jar");
+    nexusItem.maven2.put(ComponentIdentifier.VERSION, "1.0-SNAPSHOT");
+    nexusItem.maven2.put(ComponentIdentifier.MAVEN_CLASSIFIER, "");
+    nxrm3SearchResponse.items.add(nexusItem);
     nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
         .willReturn(aResponse()
             .withStatus(200)

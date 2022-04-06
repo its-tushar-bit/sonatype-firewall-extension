@@ -49,7 +49,7 @@ export default function OverviewComponentInformation({
     componentCategories.map((category) => category.path)
   );
 
-  const viewSimilarMatchesLink = !!similarMatches.length && (
+  const viewSimilarMatchesLink = similarMatches?.length > 0 && (
     <span>
       {/* required space before link */ ' '}
       <a

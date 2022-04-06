@@ -293,6 +293,31 @@ describe('OverviewComponentInformation', () => {
       viewSimilarMatchesLink.simulate('keydown', { key: 'Enter' });
       expect(minimalProps.toggleShowSimilarMatches).toHaveBeenCalled();
     });
+    it('renders the component details page if there are no similar matches', () => {
+      const similarComponentProps = {
+        ...minimalProps,
+        componentInformation: {
+          componentIdentifier: {
+            format: 'custom',
+          },
+          displayName: {
+            parts: [
+              { field: 'Artifact Id', value: 'componentArtifactID' },
+              { value: ' , ' },
+              { field: 'Version', value: 'v1.0.1' },
+            ],
+          },
+          matchState: 'similar',
+          pathnames: ['componentPath'],
+        },
+        similarMatches: undefined,
+      };
+
+      const component = getShallow(similarComponentProps),
+        definitionList = component.find('.iq-identification-info-definition-list');
+
+      expect(definitionList).toExist();
+    });
   });
 
   describe('when an known component does not have categories', () => {

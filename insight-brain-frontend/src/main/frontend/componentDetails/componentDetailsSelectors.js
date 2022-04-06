@@ -114,7 +114,9 @@ export const selectComponentViolations = createSelector(
 );
 
 export const selectComponentSimilarMatches = createSelector(selectSelectedComponent, (componentInformation) => {
-  return componentInformation?.matchState === 'similar' ? componentInformation.matchDetails : [];
+  return componentInformation?.matchState === 'similar' && componentInformation?.matchDetails
+    ? componentInformation.matchDetails
+    : [];
 });
 
 export const selectApplicableLabels = createSelector(selectDetails, ({ applicableLabels }) => applicableLabels);

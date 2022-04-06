@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -43,7 +44,6 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.telemetry.QuarantinedComponentReportTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -76,7 +76,16 @@ public class QuarantinedComponentService
 
   private static final Logger log = LoggerFactory.getLogger(QuarantinedComponentService.class);
 
-  static final String QUARANTINED_COMPONENT_REPORT_TELEMETRY = "quarantined_component_report_telemetry";
+  static final String QUARANTINED_COMPONENT_REPORT_COMPONENT_HASH = "quarantined_component_report_component_hash";
+
+  static final String QUARANTINED_COMPONENT_REPORT_TOKEN = "quarantined_component_report_token";
+
+  static final String QUARANTINED_COMPONENT_REPORT_GENERATE_TIME = "quarantined_component_report_generate_time";
+
+  static final String QUARANTINED_COMPONENT_REPORT_VIEW_TIME = "quarantined_component_report_view_time";
+
+  static final String QUARANTINED_COMPONENT_REPORT_ANONYMOUS_ACCESS_ENABLED =
+      "quarantined_component_report_anonymous_access_enabled";
 
   @Inject
   public QuarantinedComponentService(
@@ -303,16 +312,16 @@ public class QuarantinedComponentService
       final Date tokenGenerateTime,
       final String componentHash)
   {
-    QuarantinedComponentReportTelemetry quarantinedComponentReportTelemetry = new QuarantinedComponentReportTelemetry();
-    quarantinedComponentReportTelemetry.componentHash = HdsClientAnalytics.obfuscate(componentHash);
-    quarantinedComponentReportTelemetry.token = HdsClientAnalytics.obfuscate(token);
-    quarantinedComponentReportTelemetry.generateTime = tokenGenerateTime.getTime();
-    quarantinedComponentReportTelemetry.viewTime = new Date().getTime();
-    quarantinedComponentReportTelemetry.anonymousAccessEnabled =
-        quarantinedComponentAccessDAO.isAnonymousAccessEnabled();
-
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.QUARANTINED_COMPONENT_REPORT_USAGE);
-    telemetryData.getAttributes().put(QUARANTINED_COMPONENT_REPORT_TELEMETRY, quarantinedComponentReportTelemetry);
+
+    Map<String, Object> attributes = telemetryData.getAttributes();
+    attributes.put(QUARANTINED_COMPONENT_REPORT_COMPONENT_HASH, HdsClientAnalytics.obfuscate(componentHash));
+    attributes.put(QUARANTINED_COMPONENT_REPORT_TOKEN, HdsClientAnalytics.obfuscate(token));
+    attributes.put(QUARANTINED_COMPONENT_REPORT_GENERATE_TIME, tokenGenerateTime.getTime());
+    attributes.put(QUARANTINED_COMPONENT_REPORT_VIEW_TIME, new Date().getTime());
+    attributes.put(QUARANTINED_COMPONENT_REPORT_ANONYMOUS_ACCESS_ENABLED,
+        quarantinedComponentAccessDAO.isAnonymousAccessEnabled());
+
     telemetrySender.send(telemetryData);
   }
 }

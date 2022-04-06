@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -26,7 +27,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.telemetry.QuarantinedComponentReportTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -38,9 +38,13 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_TELEMETRY;
+import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_ANONYMOUS_ACCESS_ENABLED;
+import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_COMPONENT_HASH;
+import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_GENERATE_TIME;
+import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -301,12 +305,12 @@ public class QuarantinedComponentServiceTest
 
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.QUARANTINED_COMPONENT_REPORT_USAGE);
-    assertThat(telemetryData.getAttributes()).hasSize(1);
-    QuarantinedComponentReportTelemetry telemetrySent =
-        (QuarantinedComponentReportTelemetry) telemetryData.getAttributes().get(QUARANTINED_COMPONENT_REPORT_TELEMETRY);
-    assertThat(telemetrySent.componentHash).isEqualTo(HdsClientAnalytics.obfuscate(componentHash));
-    assertThat(telemetrySent.token).isEqualTo(HdsClientAnalytics.obfuscate(token));
-    assertThat(telemetrySent.generateTime).isEqualTo(tokenGenerateTime.getTime());
-    assertThat(telemetrySent.anonymousAccessEnabled).isEqualTo(true);
+
+    assertThat(telemetryData.getAttributes()).hasSize(5);
+    assertThat(telemetryData.getAttributes()).contains(
+        entry(QUARANTINED_COMPONENT_REPORT_COMPONENT_HASH, HdsClientAnalytics.obfuscate(componentHash)),
+        entry(QUARANTINED_COMPONENT_REPORT_TOKEN, HdsClientAnalytics.obfuscate(token)),
+        entry(QUARANTINED_COMPONENT_REPORT_GENERATE_TIME, tokenGenerateTime.getTime()),
+        entry(QUARANTINED_COMPONENT_REPORT_ANONYMOUS_ACCESS_ENABLED, true));
   }
 }

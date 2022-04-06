@@ -37,6 +37,7 @@ import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
@@ -45,6 +46,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
@@ -122,6 +124,7 @@ import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
@@ -129,6 +132,7 @@ import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProductLicense;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
+import com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
@@ -425,6 +429,11 @@ public class TemporaryEntity
 
   private final CrowdConfigurationDAO crowdConfigurationDAO = new CrowdConfigurationDAO();
 
+  private final ArtifactoryConnectionDAO artifactoryConnectionDAO = new ArtifactoryConnectionDAO();
+
+  private final RepositoryClientConfigurationDAO repositoryClientConfigurationDAO =
+      new RepositoryClientConfigurationDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -507,6 +516,8 @@ public class TemporaryEntity
 
   private Collection<RepositoryConnection> repositoryConnections;
 
+  private Collection<ArtifactoryConnection> artifactoryConnections;
+
   @Override
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -551,6 +562,7 @@ public class TemporaryEntity
     innerSourceComponents = new ArrayList<>();
     quarantinedComponentAccesses = new ArrayList<>();
     repositoryConnections = new ArrayList<>();
+    artifactoryConnections = new ArrayList<>();
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -607,6 +619,7 @@ public class TemporaryEntity
     delete(componentLabels, componentLabelDAO);
     delete(sourceControlDefaultBranchCommitHistories, sourceControlDefaultBranchCommitHistoryDAO);
     delete(repositoryConnections, repositoryConnectionDAO);
+    delete(artifactoryConnections, artifactoryConnectionDAO);
     productLicenseDAO.delete();
     firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
     persistedPolicyEvaluationPollingResultDAO.deleteAll();
@@ -666,6 +679,7 @@ public class TemporaryEntity
     quarantinedComponentAccessDAO.getAll().forEach(quarantinedComponentAccessDAO::delete);
     componentSourceLinkDAO.getAll().forEach(componentSourceLinkDAO::delete);
     crowdConfigurationDAO.delete();
+    repositoryClientConfigurationDAO.delete();
   }
 
   private <E> void detachEntity(E entity) {
@@ -875,6 +889,10 @@ public class TemporaryEntity
 
   public void register(LdapServer... ldapServers) {
     Collections.addAll(this.ldapServers, ldapServers);
+  }
+
+  public void register(ArtifactoryConnection... artifactoryConnections) {
+    Collections.addAll(this.artifactoryConnections, artifactoryConnections);
   }
 
   public Application newApplicationWithParent() {
@@ -3340,5 +3358,25 @@ public class TemporaryEntity
     CrowdConfiguration crowdConfiguration = new CrowdConfiguration(serverUrl, applicationName, password);
     crowdConfigurationDAO.insert(crowdConfiguration);
     return crowdConfiguration;
+  }
+
+  public ArtifactoryConnection newArtifactoryConnection(
+      String ownerId,
+      String baseUrl,
+      String username,
+      char[] password)
+  {
+    ArtifactoryConnection artifactoryConnection = new ArtifactoryConnection(ownerId, baseUrl, username, password);
+    artifactoryConnectionDAO.insert(artifactoryConnection);
+    artifactoryConnections.add(artifactoryConnection);
+    return artifactoryConnection;
+  }
+
+  public RepositoryClientConfiguration newRepositoryClientConfiguration(int connectionTimeout, int socketTimeout) {
+    RepositoryClientConfiguration repositoryClientConfiguration = new RepositoryClientConfiguration();
+    repositoryClientConfiguration.setConnectionTimeout(connectionTimeout);
+    repositoryClientConfiguration.setSocketTimeout(socketTimeout);
+    repositoryClientConfigurationDAO.insert(repositoryClientConfiguration);
+    return repositoryClientConfiguration;
   }
 }

@@ -749,6 +749,7 @@
                 <include>**/SslSettings*</include>
                 <include>**/ReportTestUtils*</include>
                 <include>**/CrowdMockServerRule*</include>
+                <include>**/ArtifactoryMockServerRule*</include>
               </includes>
             </configuration>
           </execution>

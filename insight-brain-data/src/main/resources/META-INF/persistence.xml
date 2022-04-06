@@ -88,6 +88,7 @@
     <class>com.sonatype.insight.brain.model.repository.RepositoryConnection</class>
     <class>com.sonatype.insight.brain.model.security.SamlUser</class>
     <class>com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration</class>
+    <class>com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

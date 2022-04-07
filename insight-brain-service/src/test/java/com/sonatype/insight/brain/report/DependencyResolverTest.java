@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
@@ -218,12 +217,11 @@ public class DependencyResolverTest
 
     List<JsonNode> bomInnerSourceParent = new ArrayList<>();
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
-    List<JsonNode> knownDependencies = new ArrayList<>();
     assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
-    assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies, knownDependencies);
+    assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies);
     assertSummaryCounters(summaryJson, dataJson, 19);
 
-    assertKnownComponents(knownDependencies, Arrays.asList(knownModule1, knownModule2, knownModule3, knownModule4));
+    assertKnownComponents(bomJson, Arrays.asList(knownModule1, knownModule2, knownModule3, knownModule4));
 
     ComponentIdentifier innerSourceParent = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-hashing", "1.12.0-01", "", "jar");
@@ -272,12 +270,11 @@ public class DependencyResolverTest
 
     List<JsonNode> bomInnerSourceParent = new ArrayList<>();
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
-    List<JsonNode> knownDependencies = new ArrayList<>();
     assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
-    assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies, knownDependencies);
+    assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies);
     assertSummaryCounters(summaryJson, dataJson, 19);
 
-    assertKnownComponents(knownDependencies, Arrays.asList(knownModule1, knownModule2, knownModule3, knownModule4));
+    assertKnownComponents(bomJson, Arrays.asList(knownModule1, knownModule2, knownModule3, knownModule4));
 
     ComponentIdentifier innerSourceParent = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-hashing", "1.12.0-01", "", "jar");
@@ -393,12 +390,11 @@ public class DependencyResolverTest
 
     List<JsonNode> bomInnerSourceParent = new ArrayList<>();
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
-    List<JsonNode> knownDependencies = new ArrayList<>();
     assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
-    assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies, knownDependencies);
+    assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies);
     assertSummaryCounters(summaryJson, dataJson, 19);
 
-    assertKnownComponents(knownDependencies, Arrays.asList(knownModule1, knownModule2, knownModule3, knownModule4));
+    assertKnownComponents(bomJson, Arrays.asList(knownModule1, knownModule2, knownModule3, knownModule4));
 
     ComponentIdentifier innerSourceParent = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-hashing", "1.12.0-01", "", "jar");
@@ -610,13 +606,12 @@ public class DependencyResolverTest
 
     List<JsonNode> bomInnerSourceParent = new ArrayList<>();
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
-    List<JsonNode> knownDependencies = new ArrayList<>();
     assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
-    assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies, knownDependencies);
+    assertInnerSourceInformation(bomJson, 1, 2, bomInnerSourceParent, bomInnerSourceDependencies);
     assertSummaryCounters(summaryJson, dataJson, 5);
 
     PackageUrlIdentifier directDep = new PackageUrlIdentifier("pkg:maven/javax.inject/javax.inject@1?type=jar");
-    assertKnownComponents(knownDependencies, Collections.singletonList(directDep));
+    assertKnownComponents(bomJson, Collections.singletonList(directDep));
 
     ComponentIdentifier innerSourceParent = ComponentIdentifier
         .createMavenCoordinates("org.example", "ACME-business", "1.0-SNAPSHOT", "", "jar");
@@ -1122,25 +1117,16 @@ public class DependencyResolverTest
     assertThat(dependencyResolver.isProprietary).isEqualTo(isProprietary);
   }
 
-  private void assertInnerSourceInformation(
-      final JsonNode bomJson,
-      int expectedISComponents,
-      int expectedISDependencies,
-      List<JsonNode> bomInnerSourceParent,
-      List<JsonNode> bomInnerSourceDependencies)
-  {
-    assertInnerSourceInformation(bomJson, expectedISComponents, expectedISDependencies, bomInnerSourceParent,
-        bomInnerSourceDependencies, null);
-  }
-
   public void assertKnownComponents(
-      List<JsonNode> knownDependencies,
-      List<PackageUrlIdentifier> expectedKnownComponents)
+      final JsonNode jsonNode,
+      final List<PackageUrlIdentifier> expectedKnownComponents)
   {
-    List<PackageUrlIdentifier> knownComponents =
-        knownDependencies.stream().map(ComponentIdentifierAdapter::getPackageUrlIdentifier)
-            .collect(Collectors.toList());
-    assertThat(knownComponents).containsAll(expectedKnownComponents);
+    for (PackageUrlIdentifier purl : expectedKnownComponents) {
+      JsonNode bomNode = findNodeById(jsonNode, purl.toComponentIdentifier());
+
+      assertThat(bomNode).isNotNull();
+      assertThat(bomNode.get("directDependency").asBoolean()).isTrue();
+    }
   }
 
   private void assertBomNodeDependencyInfo(
@@ -1220,8 +1206,7 @@ public class DependencyResolverTest
       int expectedISComponents,
       int expectedISDependencies,
       List<JsonNode> bomInnerSourceParent,
-      List<JsonNode> bomInnerSourceDependencies,
-      List<JsonNode> knownDependencies)
+      List<JsonNode> bomInnerSourceDependencies)
   {
     if (bomInnerSourceParent == null) {
       bomInnerSourceParent = new ArrayList<>();
@@ -1239,12 +1224,6 @@ public class DependencyResolverTest
         }
         else {
           bomInnerSourceDependencies.add(bomChild);
-        }
-      }
-      else {
-        JsonNode matchState = bomChild.get("matchState");
-        if (knownDependencies != null && MatchState.getById(matchState.asText()) == MatchState.EXACT) {
-          knownDependencies.add(bomChild);
         }
       }
     }

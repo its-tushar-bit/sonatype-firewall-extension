@@ -413,7 +413,7 @@ public class DependencyResolver
       }
 
       if (MatchState.UNKNOWN.getId().equals(bomObjectNode.get(MATCH_STATE).asText())) {
-        markComponentAsKnown(bomObjectNode, innerSourceComponentIdentifier, innerSourcePackageUrlIdentifier);
+        markComponentAsKnown(bomObjectNode, innerSourceComponentIdentifier, innerSourcePackageUrlIdentifier, true);
         log.debug(isInnerSourceDependency ? "InnerSource component" : "Component" +
             "'{}' was updated in bom.json as a known component", innerSourcePackageUrlIdentifier);
       }
@@ -431,7 +431,7 @@ public class DependencyResolver
         innerSourceData = new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(), null);
       }
       totalArtifactCount.getAndIncrement();
-      markComponentAsKnown(isNode, innerSourceComponentIdentifier, innerSourcePackageUrlIdentifier);
+      markComponentAsKnown(isNode, innerSourceComponentIdentifier, innerSourcePackageUrlIdentifier, true);
       updateBomNodeDependencyInformation(true, isInnerSourceDependency, innerSourceComponentIdentifier,
           innerSourcePackageUrlIdentifier, null, innerSourceData, producerInfo);
       log.debug(isInnerSourceDependency ? "InnerSource component" : "Component" + "'{}' was created in bom.json",
@@ -540,7 +540,8 @@ public class DependencyResolver
   private void markComponentAsKnown(
       final ObjectNode bomObjectNode,
       final ComponentIdentifier componentIdentifier,
-      final PackageUrlIdentifier componentPurl)
+      final PackageUrlIdentifier componentPurl,
+      final boolean isDirect)
   {
     knownArtifactCount.getAndIncrement();
     exactlyMatchedComponentCount.getAndIncrement();
@@ -552,6 +553,10 @@ public class DependencyResolver
     bomObjectNode.put(FIELD_PACKAGE_URL, componentPurl.getPackageUrl());
 
     ComponentDisplayNameUtil.injectDisplayName(bomObjectNode);
+
+    if (!bomObjectNode.hasNonNull(FIELD_DIRECT_DEPENDENCY)) {
+      bomObjectNode.put(FIELD_DIRECT_DEPENDENCY, isDirect);
+    }
 
     JsonNode analyzerFeatures = bomObjectNode.get(FIELD_ANALYZER_FEATURES);
     JsonNode manifestContentType = analyzerFeatures.get("manifestContentType");
@@ -678,7 +683,7 @@ public class DependencyResolver
     if (is != null) {
       //If the component is transitive and exists as InnerSource, it needs to be updated, so it can be marked as
       //Transitive dependency but not as InnerSource
-      markComponentAsKnown(bomObjectNode, bomComponentIdentifier, bomPurl);
+      markComponentAsKnown(bomObjectNode, bomComponentIdentifier, bomPurl, false);
       log.debug("InnerSource module {} was updated in bom.json as Transitive InnerSource", bomPurl);
     }
   }

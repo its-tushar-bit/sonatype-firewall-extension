@@ -35,14 +35,17 @@ public class DependencyTypeConditionType
   protected boolean internalEvaluateCondition(
       final Component component, final String operator, final String value)
   {
-    if (component.getDirectDependency() == null && component.getInnerSourceData() == null) {
-      return false;
-    }
+    DependencyType dependencyType = getDependencyType(component);
+    Boolean isInnerSource = component.getInnerSource();
 
-    boolean isInnerSource = component.getInnerSourceData() != null;
-    String dependencyTypeValue = getDependencyType(component).getId();
-    boolean result = value.equals(isInnerSource ? DependencyType.INNER_SOURCE.getId() : dependencyTypeValue);
-    return "is".equals(operator) ? result : !result;
+    if (DependencyType.INNER_SOURCE == DependencyType.getById(value) && isInnerSource != null) {
+      return "is".equals(operator) ==  isInnerSource;
+    }
+    else if (dependencyType != null) {
+      boolean result = value.equals(dependencyType.getId());
+      return "is".equals(operator) == result;
+    }
+    return false;
   }
 
   @Override
@@ -73,16 +76,9 @@ public class DependencyTypeConditionType
   }
 
   @Override
-  public String explainMatch(
-      final Condition condition, final MatchFact matchFact)
-  {
-    Component component = matchFact.getComponent();
-    boolean isInnerSource = component.getInnerSourceData() != null;
-    String dependencyTypeName = getDependencyType(component).getName();
-    return "Dependency type was " +
-        (isInnerSource ? DependencyType.INNER_SOURCE.getName() : dependencyTypeName) +
-        ("is not".equals(condition.getOperator()) ?
-            ", not " + DependencyType.getById(condition.getValue()).getName() : "");
+  public String explainMatch(final Condition condition, final MatchFact matchFact) {
+    return "Dependency type was " + ("is not".equals(condition.getOperator()) ? "not " : "") +
+        DependencyType.getById(condition.getValue()).getName();
   }
 
   @Override
@@ -108,7 +104,9 @@ public class DependencyTypeConditionType
   }
 
   private DependencyType getDependencyType(final Component component) {
-    return component != null && component.getDirectDependency() != null &&
-        component.getDirectDependency() ? DependencyType.DIRECT : DependencyType.TRANSITIVE;
+    if (component != null && component.getDirectDependency() != null) {
+      return Boolean.TRUE.equals(component.getDirectDependency()) ? DependencyType.DIRECT : DependencyType.TRANSITIVE;
+    }
+    return null;
   }
 }

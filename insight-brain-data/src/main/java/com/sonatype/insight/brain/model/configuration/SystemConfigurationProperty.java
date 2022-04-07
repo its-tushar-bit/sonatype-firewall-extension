@@ -44,6 +44,8 @@ public class SystemConfigurationProperty
 
   public static final String BUILT_FROM_SOURCE = "BUILT_FROM_SOURCE";
 
+  public static final String CROWD_INTEGRATION = "CROWD_INTEGRATION";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

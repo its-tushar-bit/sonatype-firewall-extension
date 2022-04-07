@@ -18,6 +18,7 @@ import javax.inject.Named;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -34,8 +35,6 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -67,8 +66,6 @@ public class UserTokenService
 
   private final ProductLicense productLicense;
 
-  private final InsightConfig insightConfig;
-
   @Inject
   public UserTokenService(
       UserTokenDAO userTokenDAO,
@@ -76,8 +73,7 @@ public class UserTokenService
       PasswordService passwordService,
       LdapService ldapService,
       CurrentUser currentUser,
-      ProductLicense productLicense,
-      InsightConfig insightConfig)
+      ProductLicense productLicense)
   {
     this.userTokenDAO = userTokenDAO;
     this.samlUserDAO = samlUserDAO;
@@ -85,7 +81,6 @@ public class UserTokenService
     this.ldapService = ldapService;
     this.currentUser = currentUser;
     this.productLicense = productLicense;
-    this.insightConfig = insightConfig;
   }
 
   public ApiUserTokenDTO createUserToken() {
@@ -277,7 +272,7 @@ public class UserTokenService
   }
 
   private boolean hasCrowdUserTokenSupport() {
-    return insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.CROWD_INTEGRATION);
+    return SystemConfigurationPropertyFeature.CROWD_INTEGRATION.isEnabled();
   }
 
   private boolean shouldIncludeRealm() {

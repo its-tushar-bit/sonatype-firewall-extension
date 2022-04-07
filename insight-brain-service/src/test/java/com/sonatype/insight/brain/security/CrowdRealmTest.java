@@ -5,25 +5,19 @@
  */
 package com.sonatype.insight.brain.security;
 
-import javax.inject.Inject;
-
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authc.credential.AllowAllCredentialsMatcher;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import static com.google.common.collect.ImmutableMap.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,19 +31,11 @@ public class CrowdRealmTest
   @Rule
   public CrowdMockServerRule crowdMockServer = new CrowdMockServerRule();
 
-  @Inject
-  private InsightConfig insightConfig;
-
   @Mock
   private CrowdClientFactory mockCrowdClientFactory;
 
   @InjectMocks
   private CrowdRealm crowdRealm;
-
-  @Before
-  public void before() {
-    insightConfig.setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
-  }
 
   @Test
   public void testCrowdRealm() {

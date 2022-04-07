@@ -234,6 +234,7 @@ import org.junit.rules.ExternalResource;
 
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.BUILT_FROM_SOURCE;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.CROWD_INTEGRATION;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.REPORTS_LIST_DISABLED;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
@@ -656,7 +657,7 @@ public class TemporaryEntity
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
 
     String[] names = new String[]{
-        DASHBOARD_DISABLED, REPORTS_LIST_DISABLED, BUILT_FROM_SOURCE
+        DASHBOARD_DISABLED, REPORTS_LIST_DISABLED, BUILT_FROM_SOURCE, CROWD_INTEGRATION
     };
     for (String name : names) {
       SystemConfigurationProperty property = systemConfigurationPropertyDAO.getByName(name);

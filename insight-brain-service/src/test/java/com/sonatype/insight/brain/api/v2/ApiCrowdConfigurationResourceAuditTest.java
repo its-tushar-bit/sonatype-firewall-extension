@@ -14,13 +14,8 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
-import org.junit.Before;
 import org.junit.Test;
-
-import static com.google.common.collect.ImmutableMap.of;
 
 public class ApiCrowdConfigurationResourceAuditTest
     extends AbstractAuditTest
@@ -28,12 +23,6 @@ public class ApiCrowdConfigurationResourceAuditTest
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.CROWD_CONFIG_RESOURCE_PATH_V2);
-  }
-
-  @Before
-  public void before() {
-    getCLMServer().getInstance(InsightConfig.class)
-        .setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
   }
 
   @Test

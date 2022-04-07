@@ -17,13 +17,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrowdConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiCrowdConfigurationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 
 import com.codahale.metrics.annotation.Timed;
@@ -38,15 +37,9 @@ public class DefaultApiCrowdConfigurationResource
 
   private final ApiCrowdConfigurationService apiCrowdConfigurationService;
 
-  private final InsightConfig insightConfig;
-
   @Inject
-  public DefaultApiCrowdConfigurationResource(
-      ApiCrowdConfigurationService apiCrowdConfigurationService,
-      InsightConfig insightConfig)
-  {
+  public DefaultApiCrowdConfigurationResource(ApiCrowdConfigurationService apiCrowdConfigurationService) {
     this.apiCrowdConfigurationService = apiCrowdConfigurationService;
-    this.insightConfig = insightConfig;
   }
 
   @Override
@@ -85,8 +78,9 @@ public class DefaultApiCrowdConfigurationResource
   }
 
   private void checkCrowdEnabled() {
-    if (!insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.CROWD_INTEGRATION)) {
-      throw new NotAuthorizedException(ExperimentalFeature.CROWD_INTEGRATION.getFlag() + " feature is disabled.");
+    if (!SystemConfigurationPropertyFeature.CROWD_INTEGRATION.isEnabled()) {
+      throw new NotAuthorizedException(
+          SystemConfigurationPropertyFeature.CROWD_INTEGRATION.getId() + " feature is disabled.");
     }
   }
 }

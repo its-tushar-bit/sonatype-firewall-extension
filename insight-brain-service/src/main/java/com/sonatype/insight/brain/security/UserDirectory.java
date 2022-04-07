@@ -29,6 +29,7 @@ import javax.inject.Singleton;
 import javax.naming.NamingException;
 import javax.validation.constraints.NotNull;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroup;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.LdapUser;
@@ -39,8 +40,6 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
@@ -106,25 +105,21 @@ public class UserDirectory
 
   private final CrowdClientFactory crowdClientFactory;
 
-  private final InsightConfig insightConfig;
-
   @Inject
   public UserDirectory(
       UserDAO userDao,
       CrowdConfigurationDAO crowdConfigurationDAO,
       LdapService ldapService,
-      CrowdClientFactory crowdClientFactory,
-      InsightConfig insightConfig)
+      CrowdClientFactory crowdClientFactory)
   {
     this.userDao = userDao;
     this.crowdConfigurationDAO = crowdConfigurationDAO;
     this.ldapService = ldapService;
     this.crowdClientFactory = crowdClientFactory;
-    this.insightConfig = insightConfig;
   }
 
   public UserDirectory(UserDAO userDao, LdapService ldapService, CrowdClientFactory crowdClientFactory) {
-    this(userDao, null, ldapService, crowdClientFactory, null);
+    this(userDao, null, ldapService, crowdClientFactory);
   }
 
   /**
@@ -485,8 +480,7 @@ public class UserDirectory
 
   public boolean isGroupSearchDisabled() {
     return ldapService.isDynamicGroupSearchDisabled() &&
-        (!insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.CROWD_INTEGRATION) ||
-            crowdConfigurationDAO.get() == null);
+        (!SystemConfigurationPropertyFeature.CROWD_INTEGRATION.isEnabled() || crowdConfigurationDAO.get() == null);
   }
 
   public boolean isLdapUser(final User user) throws NamingException {

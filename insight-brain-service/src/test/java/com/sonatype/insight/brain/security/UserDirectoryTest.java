@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.naming.NamingException;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroup;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.LdapUser;
@@ -36,8 +37,6 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserDirectory.QueryResult;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import com.atlassian.crowd.exception.OperationFailedException;
 import com.google.common.collect.Sets;
@@ -1085,12 +1084,10 @@ public class UserDirectoryTest
   {
     CrowdConfigurationDAO mockCrowdConfigurationDAO = Mockito.mock(CrowdConfigurationDAO.class);
     LdapService mockLdapService = Mockito.mock(LdapService.class);
-    InsightConfig mockInsightConfig = Mockito.mock(InsightConfig.class);
     UserDirectory userDirectory =
-        new UserDirectory(null, mockCrowdConfigurationDAO, mockLdapService, null, mockInsightConfig);
+        new UserDirectory(null, mockCrowdConfigurationDAO, mockLdapService, null);
     when(mockLdapService.isDynamicGroupSearchDisabled()).thenReturn(dynamicGroupSearchDisabled);
-    lenient().when(mockInsightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.CROWD_INTEGRATION)).thenReturn(
-        crowdIntegrationEnabled);
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(crowdIntegrationEnabled);
     lenient().when(mockCrowdConfigurationDAO.get()).thenReturn(crowdConfigured ? new CrowdConfiguration() : null);
 
     assertThat(userDirectory.isGroupSearchDisabled()).isEqualTo(expectedDisabled);

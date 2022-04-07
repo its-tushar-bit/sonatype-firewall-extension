@@ -7,17 +7,14 @@ package com.sonatype.insight.brain.security;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.test.LogOutput;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.google.common.collect.ImmutableMap.of;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CrowdClientFactoryTest
@@ -27,22 +24,14 @@ public class CrowdClientFactoryTest
   public LogOutput logOutput = new LogOutput(CrowdClientFactory.class);
 
   @Inject
-  private InsightConfig insightConfig;
-
-  @Inject
   private CrowdClientFactory crowdClientFactory;
 
   @Inject
   private PasswordHandler passwordHandler;
 
-  @Before
-  public void before() {
-    insightConfig.setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
-  }
-
   @Test
   public void testCreateCrowdClient_FeatureDisabled() {
-    insightConfig.setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), false));
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
 
     assertThat(crowdClientFactory.createCrowdClient()).isNull();
   }

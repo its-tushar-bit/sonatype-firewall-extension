@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrowdConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
@@ -15,16 +16,12 @@ import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.brain.security.CrowdMockServerRule;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.google.common.collect.ImmutableMap.of;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiCrowdConfigurationResourceTest
@@ -34,19 +31,13 @@ public class ApiCrowdConfigurationResourceTest
   public CrowdMockServerRule crowdMockServer = new CrowdMockServerRule();
 
   private static final String EXPECTED_FEATURE_DISABLED_MESSAGE =
-      ExperimentalFeature.CROWD_INTEGRATION.getFlag() + " feature is disabled.";
+      SystemConfigurationPropertyFeature.CROWD_INTEGRATION.getId() + " feature is disabled.";
 
   private final CrowdConfigurationDAO dao = new CrowdConfigurationDAO();
 
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.CROWD_CONFIG_RESOURCE_PATH_V2);
-  }
-
-  @Before
-  public void before() {
-    getCLMServer().getInstance(InsightConfig.class)
-        .setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
   }
 
   @Test
@@ -67,8 +58,7 @@ public class ApiCrowdConfigurationResourceTest
 
   @Test
   public void testGetCrowdConfiguration_FeatureDisabled() throws Exception {
-    getCLMServer().getInstance(InsightConfig.class)
-        .setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), false));
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
 
     HttpResponse response = restRequest().get();
 
@@ -96,8 +86,7 @@ public class ApiCrowdConfigurationResourceTest
 
   @Test
   public void testInsertOrUpdateCrowdConfiguration_FeatureDisabled() throws Exception {
-    getCLMServer().getInstance(InsightConfig.class)
-        .setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), false));
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
 
     HttpResponse response = restRequest().body(null).put();
 
@@ -118,8 +107,7 @@ public class ApiCrowdConfigurationResourceTest
 
   @Test
   public void testDeleteCrowdConfiguration_FeatureDisabled() throws Exception {
-    getCLMServer().getInstance(InsightConfig.class)
-        .setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), false));
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
 
     HttpResponse response = restRequest().delete();
 
@@ -157,8 +145,7 @@ public class ApiCrowdConfigurationResourceTest
 
   @Test
   public void testTestCrowdConfiguration_NoDTO_FeatureDisabled() throws Exception {
-    getCLMServer().getInstance(InsightConfig.class)
-        .setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), false));
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
 
     HttpResponse response =
         restRequest().path(DefaultApiCrowdConfigurationResource.TEST_PATH).post();
@@ -201,8 +188,7 @@ public class ApiCrowdConfigurationResourceTest
 
   @Test
   public void testTestCrowdConfiguration_DTO_FeatureDisabled() throws Exception {
-    getCLMServer().getInstance(InsightConfig.class)
-        .setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), false));
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
 
     HttpResponse response =
         restRequest().path(DefaultApiCrowdConfigurationResource.TEST_PATH).body(new ApiCrowdConfigurationDTO()).post();

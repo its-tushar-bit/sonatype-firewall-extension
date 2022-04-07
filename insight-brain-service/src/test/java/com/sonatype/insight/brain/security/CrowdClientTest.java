@@ -18,8 +18,6 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import com.atlassian.crowd.embedded.api.SearchRestriction;
 import com.atlassian.crowd.exception.InactiveAccountException;
@@ -40,7 +38,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.google.common.collect.ImmutableMap.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -49,9 +46,6 @@ public class CrowdClientTest
 {
   @Rule
   public CrowdMockServerRule crowdMockServer = new CrowdMockServerRule();
-
-  @Inject
-  private InsightConfig insightConfig;
 
   @Inject
   private PasswordHandler passwordHandler;
@@ -63,7 +57,6 @@ public class CrowdClientTest
 
   @Before
   public void before() {
-    insightConfig.setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
     tempEntity.newCrowdConfiguration(crowdMockServer.getBaseUrl() + "/crowd", "iq server",
         passwordHandler.encryptPassword("password".toCharArray()));
     crowdClient = crowdClientFactory.createCrowdClient();

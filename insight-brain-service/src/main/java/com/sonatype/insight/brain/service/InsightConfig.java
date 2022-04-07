@@ -1048,8 +1048,7 @@ public class InsightConfig
   public enum ExperimentalFeature
       implements com.sonatype.insight.license.model.Feature
   {
-    SCM_ONBOARDING("scmOnboarding"),
-    CROWD_INTEGRATION("crowdIntegration");
+    SCM_ONBOARDING("scmOnboarding");
 
     private final String flag;
 

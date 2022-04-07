@@ -9,10 +9,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
 import com.atlassian.crowd.integration.rest.service.factory.RestCrowdClientFactory;
 import org.slf4j.Logger;
@@ -24,8 +23,6 @@ public class CrowdClientFactory
 {
   private static final Logger log = LoggerFactory.getLogger(CrowdClientFactory.class);
 
-  private final InsightConfig insightConfig;
-
   private final CrowdConfigurationDAO crowdConfigurationDAO;
 
   private final PasswordHandler passwordHandler;
@@ -33,17 +30,14 @@ public class CrowdClientFactory
   private final RestCrowdClientFactory restCrowdClientFactory;
 
   @Inject
-  public CrowdClientFactory(
-      InsightConfig insightConfig, CrowdConfigurationDAO crowdConfigurationDAO, PasswordHandler passwordHandler)
-  {
-    this.insightConfig = insightConfig;
+  public CrowdClientFactory(CrowdConfigurationDAO crowdConfigurationDAO, PasswordHandler passwordHandler) {
     this.crowdConfigurationDAO = crowdConfigurationDAO;
     this.passwordHandler = passwordHandler;
     restCrowdClientFactory = new RestCrowdClientFactory();
   }
 
   public CrowdClient createCrowdClient() {
-    if (!insightConfig.isExperimentalFeatureEnabled(ExperimentalFeature.CROWD_INTEGRATION)) {
+    if (!SystemConfigurationPropertyFeature.CROWD_INTEGRATION.isEnabled()) {
       return null;
     }
 

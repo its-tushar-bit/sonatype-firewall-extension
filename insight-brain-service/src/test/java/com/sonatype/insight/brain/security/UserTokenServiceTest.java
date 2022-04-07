@@ -17,6 +17,7 @@ import java.util.Objects;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
@@ -30,8 +31,6 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -41,7 +40,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.google.common.collect.ImmutableMap.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -71,9 +69,6 @@ public class UserTokenServiceTest
 
   @Inject
   private UserTokenDAO userTokenDAO;
-
-  @Inject
-  private InsightConfig insightConfig;
 
   @Mock
   private ProductLicense mockProductLicense;
@@ -278,7 +273,8 @@ public class UserTokenServiceTest
   }
 
   @Test
-  public void testGetUserTokensCreatedBetweenAndRealmId_SamlUserTokensDisabled() {
+  public void testGetUserTokensCreatedBetweenAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled() {
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
     tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID, december27);
     UserToken bar = tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID, december28);
     tempEntity.newUserToken("baz", User.INTERNAL_REALM_ID, december29);
@@ -458,46 +454,47 @@ public class UserTokenServiceTest
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_NullRealmId() {
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_CrowdIntegrationDisabled_NullRealmId() {
     testGetUserTokenByUsernameAndRealmId(true, null);
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_UnknownRealmId() {
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_CrowdIntegrationDisabled_UnknownRealmId() {
     testGetUserTokenByUsernameAndRealmId(true, "unknown");
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_InternalRealmId() {
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_CrowdIntegrationDisabled_InternalRealmId() {
     testGetUserTokenByUsernameAndRealmId(true, "InTeRnAl");
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_SamlRealmId() {
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_CrowdIntegrationDisabled_SamlRealmId() {
     testGetUserTokenByUsernameAndRealmId(true, "SaMl");
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_NullRealmId() {
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled_NullRealmId() {
     testGetUserTokenByUsernameAndRealmId(false, null);
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_UnknownRealmId() {
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled_UnknownRealmId() {
     testGetUserTokenByUsernameAndRealmId(false, "unknown");
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_InternalRealmId() {
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled_InternalRealmId() {
     testGetUserTokenByUsernameAndRealmId(false, "InTeRnAl");
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_SamlRealmId() {
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled_SamlRealmId() {
     testGetUserTokenByUsernameAndRealmId(false, "SaMl");
   }
 
   private void testGetUserTokenByUsernameAndRealmId(boolean isSamlUserTokensEnabled, String realmId) {
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
     String usernameToQuery = "username1";
     tempEntity.newUser("username1");
     UserToken internalUserToken1 =
@@ -539,12 +536,12 @@ public class UserTokenServiceTest
 
   @Test
   public void testCreateUserToken_CrowdUser_CrowdIntegrationFeatureDisabled() {
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
     testCreateUserToken_NotAllowedRealm(CrowdRealm.ID);
   }
 
   @Test
   public void testCreateUserToken_CrowdUser() {
-    insightConfig.setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
     UserPrincipal userPrincipal = new UserPrincipal("username", "displayName", CrowdRealm.ID, Collections.emptySet());
     when(subject.getPrincipal()).thenReturn(userPrincipal);
     Date start = new Date();
@@ -571,6 +568,7 @@ public class UserTokenServiceTest
   
   @Test
   public void testGetUserTokensCreatedBetweenAndRealmId_Crowd_CrowdIntegrationFeatureDisabled() {
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
     tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID, december27);
     UserToken internal2 = tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID, december28);
     tempEntity.newUserToken("qux", CrowdRealm.ID, december28);
@@ -589,7 +587,6 @@ public class UserTokenServiceTest
 
   @Test
   public void testGetUserTokensCreatedBetweenAndRealmId_Crowd() {
-    insightConfig.setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
     tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID, december27);
     UserToken internal2 = tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID, december28);
     UserToken crowd1 = tempEntity.newUserToken("qux", CrowdRealm.ID, december28);
@@ -608,6 +605,7 @@ public class UserTokenServiceTest
 
   @Test
   public void testGetUserTokenByUsernameAndRealmId_Crowd_CrowdIntegrationFeatureDisabled() {
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
     tempEntity.newUserToken("foo", "1", "pass", User.INTERNAL_REALM_ID);
     tempEntity.newUserToken("bar", "2", "pass", User.INTERNAL_REALM_ID);
     tempEntity.newUserToken("foo", "3", "pass", CrowdRealm.ID);
@@ -625,7 +623,6 @@ public class UserTokenServiceTest
 
   @Test
   public void testGetUserTokenByUsernameAndRealmId_Crowd() {
-    insightConfig.setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
     tempEntity.newUserToken("foo", "1", "pass", User.INTERNAL_REALM_ID);
     tempEntity.newUserToken("bar", "2", "pass", User.INTERNAL_REALM_ID);
     tempEntity.newUserToken("foo", "3", "pass", CrowdRealm.ID);

@@ -12,10 +12,7 @@ import com.sonatype.clm.testing.functional.pages.AtlassianCrowdConfigurationDele
 import com.sonatype.clm.testing.functional.pages.AtlassianCrowdConfigurationPage;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.security.CrowdMockServerRule;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -37,16 +34,10 @@ public class AtlassianCrowdConfigurationPageTest extends AbstractFunctionalTest
   @Rule
   public CrowdMockServerRule crowdMockServer = new CrowdMockServerRule();
 
-  private InsightConfig insightConfig;
-
   @Before
   public void before() {
     refreshOrOpen(AtlassianCrowdConfigurationPage.url());
     loginAsAdmin();
-
-    insightConfig = testCLMServer.getCLMServer().getInstance(InsightConfig.class);
-    insightConfig.setExperimentalFeatures(
-        ImmutableMap.of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
   }
 
   @After

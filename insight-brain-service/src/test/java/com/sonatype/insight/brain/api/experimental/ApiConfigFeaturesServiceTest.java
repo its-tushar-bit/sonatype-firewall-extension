@@ -210,4 +210,37 @@ public class ApiConfigFeaturesServiceTest
         () -> service.disableFeature(SystemConfigurationProperty.BUILT_FROM_SOURCE)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already disabled.");
   }
+
+  @Test
+  public void testEnableFeature_CrowdIntegration() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.CROWD_INTEGRATION.getPropertyName(),
+        "false");
+    service.enableFeature(SystemConfigurationProperty.CROWD_INTEGRATION);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.CROWD_INTEGRATION)).isNull();
+  }
+
+  @Test
+  public void testEnableFeature_CrowdIntegration_AlreadyEnabled() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.CROWD_INTEGRATION.getPropertyName(),
+        "false");
+    service.enableFeature(SystemConfigurationProperty.CROWD_INTEGRATION);
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.CROWD_INTEGRATION)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_CrowdIntegration() {
+    service.disableFeature(SystemConfigurationProperty.CROWD_INTEGRATION);
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.CROWD_INTEGRATION).getValue()).isEqualTo(
+        "false");
+  }
+
+  @Test
+  public void testDisableFeature_CrowdIntegration_AlreadyDisabled() {
+    service.disableFeature(SystemConfigurationProperty.CROWD_INTEGRATION);
+    assertThatThrownBy(
+        () -> service.disableFeature(SystemConfigurationProperty.CROWD_INTEGRATION)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
 }

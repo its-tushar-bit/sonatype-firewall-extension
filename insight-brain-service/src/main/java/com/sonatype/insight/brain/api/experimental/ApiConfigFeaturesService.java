@@ -71,7 +71,8 @@ public class ApiConfigFeaturesService
     REPORTS_LIST_CAN_BE_ENABLED(SystemConfigurationProperty.REPORTS_LIST_DISABLED, true, true),
     VULNERABILITY_SOURCE(
         SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED, true, true),
-    BUILT_FROM_SOURCE(SystemConfigurationProperty.BUILT_FROM_SOURCE, false);
+    BUILT_FROM_SOURCE(SystemConfigurationProperty.BUILT_FROM_SOURCE, false),
+    CROWD_INTEGRATION(SystemConfigurationProperty.CROWD_INTEGRATION, true);
 
     private final String propertyName;
 

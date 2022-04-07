@@ -12,6 +12,7 @@ import java.util.GregorianCalendar;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
@@ -23,8 +24,6 @@ import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.security.CrowdRealm;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,7 +32,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.google.common.collect.ImmutableMap.of;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiUserTokenResourceTest
@@ -99,11 +97,14 @@ public class ApiUserTokenResourceTest
   }
 
   @Test
-  public void testGetUserTokensByCreatedBetweenAndRealmId_SamlUserTokensDisabled() throws Exception {
+  public void testGetUserTokensByCreatedBetweenAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled()
+      throws Exception
+  {
     setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
-    tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID , december01);
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
+    tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID, december01);
     UserToken userToken = tempEntity.newUserToken("marcus.miller", User.INTERNAL_REALM_ID, december15);
-    tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID ,december31);
+    tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID, december31);
     tempEntity.newUserToken("zak.crawly", SamlUser.SAML_REALM_ID, december15);
 
     assertUserToken(userToken, null, false);
@@ -126,6 +127,7 @@ public class ApiUserTokenResourceTest
 
   @Test
   public void testGetUserTokensByCreatedBetweenAndRealmId_CrowdIntegrationFeatureDisabled() throws Exception {
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
     tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID , december01);
     UserToken userToken = tempEntity.newUserToken("marcus.miller", User.INTERNAL_REALM_ID, december15);
     tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID ,december31);
@@ -138,8 +140,6 @@ public class ApiUserTokenResourceTest
 
   @Test
   public void testGetUserTokensByCreatedBetweenAndRealmId_CrowdIntegrationFeatureEnabled() throws Exception {
-    getCLMServer().getInstance(InsightConfig.class)
-        .setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
     tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID , december01);
     UserToken internalToken = tempEntity.newUserToken("marcus.miller", User.INTERNAL_REALM_ID, december15);
     tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID ,december31);
@@ -228,8 +228,11 @@ public class ApiUserTokenResourceTest
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_Unknown() throws Exception {
+  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled_Unknown()
+      throws Exception
+  {
     setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
 
     HttpResponse httpResponse = restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("unknown").get();
 
@@ -239,9 +242,6 @@ public class ApiUserTokenResourceTest
 
   @Test
   public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationFeatureEnabled_InternalUnknown() throws Exception {
-    getCLMServer().getInstance(InsightConfig.class)
-        .setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
-
     HttpResponse httpResponse = restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("unknown").get();
 
     assertResponseStatus(404, httpResponse);
@@ -250,9 +250,6 @@ public class ApiUserTokenResourceTest
 
   @Test
   public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationFeatureEnabled_CrowdUnknown() throws Exception {
-    getCLMServer().getInstance(InsightConfig.class)
-        .setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
-
     HttpResponse httpResponse =
         restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("unknown").query("realm", "CROWD").get();
 
@@ -372,14 +369,7 @@ public class ApiUserTokenResourceTest
     else {
       setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
     }
-    if (isCrowdIntegrationFeatureEnabled) {
-      getCLMServer().getInstance(InsightConfig.class)
-          .setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), true));
-    }
-    else {
-      getCLMServer().getInstance(InsightConfig.class)
-          .setExperimentalFeatures(of(ExperimentalFeature.CROWD_INTEGRATION.getFlag(), false));
-    }
+    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(isCrowdIntegrationFeatureEnabled);
     HttpRequest httpRequest = restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("username1");
     if (realmId != null) {
       httpRequest.query("realm", realmId);

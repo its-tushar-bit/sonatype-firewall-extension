@@ -12,12 +12,14 @@ export const ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE = 'backend-confi
 export const QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED =
   'quarantined-component-view-anonymous-access-configurable';
 
-export default function routeStateUtilService($state, ProductFeatures, $ngRedux) {
-  const loadServerConfigPromise = ProductFeatures.loadIsUnauthenticatedPagesEnabled()
-    .catch(always(false))
+export default function routeStateUtilService($state, $ngRedux) {
+  const loadServerConfigPromise = $ngRedux
+    .dispatch(productFeaturesActions.loadIsUnauthenticatedPagesEnabled())
+    .then(unwrapResult)
     .then((isUnauthenticatedPagesEnabled) => {
       $ngRedux.dispatch(userLoginActions.setUnauthenticatedPagesEnabled(isUnauthenticatedPagesEnabled));
-    });
+    })
+    .catch(always(false));
 
   const loadQuarantinedComponentViewAnonymousAccessConfigPromise = $ngRedux
     .dispatch(productFeaturesActions.loadIsQuarantinedComponentViewAnonymousAccessEnabled())
@@ -85,4 +87,4 @@ export default function routeStateUtilService($state, ProductFeatures, $ngRedux)
   return { stateRequiresAuthenticationSync, stateRequiresAuthentication };
 }
 
-routeStateUtilService.$inject = ['$state', 'ProductFeatures', '$ngRedux'];
+routeStateUtilService.$inject = ['$state', '$ngRedux'];

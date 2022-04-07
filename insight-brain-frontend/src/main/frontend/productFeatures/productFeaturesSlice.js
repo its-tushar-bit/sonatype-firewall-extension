@@ -4,10 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { isEmpty, prop, pipe, equals } from 'ramda';
+import { isEmpty, prop, pipe, equals, includes } from 'ramda';
 import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import {
   getProductFeaturesUrl,
+  getEnableUnauthenticatedPages,
   getQuarantinedComponentViewAnonymousAccessEnabledState,
 } from 'MainRoot/util/CLMLocation';
 import { selectProductFeaturesSlice } from './productFeaturesSelectors';
@@ -61,6 +62,13 @@ const fetchProductFeaturesIfNeeded = createAsyncThunk(
   }
 );
 
+/**
+ * Separate REST call because it must be accessible before login
+ */
+const loadIsUnauthenticatedPagesEnabled = createAsyncThunk(`${REDUCER_NAME}/loadIsUnauthenticatedPagesEnabled`, () =>
+  axios.get(getEnableUnauthenticatedPages()).then(pipe(prop('data'), includes('enable-unauthenticated-pages')))
+);
+
 const productFeaturesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -74,4 +82,5 @@ export const actions = {
   ...productFeaturesSlice.actions,
   fetchProductFeaturesIfNeeded,
   loadIsQuarantinedComponentViewAnonymousAccessEnabled,
+  loadIsUnauthenticatedPagesEnabled,
 };

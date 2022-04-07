@@ -4,6 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular, CLM, clmEndpoint */
+import { unwrapResult } from '@reduxjs/toolkit';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { selectIsAdvancedLegalPackSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function LicenseEditorController(
   $scope,
@@ -12,9 +15,17 @@ export default function LicenseEditorController(
   Messages,
   SelectedComponent,
   OwnerContext,
-  ProductFeatures
+  $ngRedux
 ) {
   var vm = this;
+
+  $scope.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+  })(vm);
+
+  $scope.$on('$destroy', function () {
+    $scope.unsubscribe();
+  });
 
   function getHierarchyById(id) {
     for (var i = 0; i < $scope.hierarchy.length; i++) {
@@ -184,10 +195,12 @@ export default function LicenseEditorController(
       )
     );
 
-    promises.push(ProductFeatures.load());
+    promises.push(vm.loadProductFeatures());
 
     $q.all(promises).then(
       function (results) {
+        unwrapResult(results[3]);
+
         var licenses = results[0].data,
           component = results[1].data;
 
@@ -209,8 +222,6 @@ export default function LicenseEditorController(
         angular.forEach($scope.component.selectableLicenses, function (license) {
           $scope.selectableLicenses.push($scope.licenses[license.licenseId]);
         });
-
-        vm.isAdvancedLegalPackSupported = ProductFeatures.isAvailable('advanced-legal-pack');
       },
       function () {
         $scope.error = arguments[0];
@@ -377,6 +388,11 @@ export default function LicenseEditorController(
 
   $scope.doLoad();
 }
+
+export const mapStateToThis = (state) => ({
+  isAdvancedLegalPackSupported: selectIsAdvancedLegalPackSupported(state),
+});
+
 LicenseEditorController.$inject = [
   '$scope',
   '$q',
@@ -384,5 +400,5 @@ LicenseEditorController.$inject = [
   'Messages',
   'SelectedComponent',
   'OwnerContext',
-  'ProductFeatures',
+  '$ngRedux',
 ];

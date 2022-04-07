@@ -50,3 +50,12 @@ export const selectIsDashboardSupported = createSelector(selectProductFeaturesSl
 export const selectIsReportListSupported = createSelector(selectProductFeaturesSlice, prop('reports-list'));
 export const selectIsDataInsightsSupported = createSelector(selectProductFeaturesSlice, prop('data-insights'));
 export const selectIsCrowdIntegrationSupported = createSelector(selectProductFeaturesSlice, prop('crowd-integration'));
+export const selectIsInnerSourceTransitiveWaiverSupported = createSelector(
+  selectProductFeaturesSlice,
+  prop('inner-source-transitive-waiver')
+);
+
+export const selectIsAllowExternalHyperlinksSupported = createSelector(
+  selectProductFeaturesSlice,
+  prop('allow-external-hyperlinks')
+);

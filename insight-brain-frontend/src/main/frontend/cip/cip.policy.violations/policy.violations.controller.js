@@ -7,6 +7,7 @@
 import requestWaiverTemplate from './cip-request-waiver-modal.html';
 import getThreatColor from './threatColorUtil';
 import { getApplicationSummaryUrl } from '../../util/CLMLocation';
+import { selectIsInnerSourceTransitiveWaiverSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function PolicyViolationsController(
   $http,
@@ -19,9 +20,15 @@ export default function PolicyViolationsController(
   Messages,
   $state,
   PermissionService,
-  ProductFeatures
+  $ngRedux
 ) {
   const vm = this;
+
+  $scope.unsubscribe = $ngRedux.connect(mapStateToThis)($scope);
+
+  $scope.$on('$destroy', function () {
+    $scope.unsubscribe();
+  });
 
   $scope.isAddWaiverAuthorized = false;
 
@@ -145,7 +152,6 @@ export default function PolicyViolationsController(
       keyboard: false,
     });
   };
-  $scope.innerSourceTransitiveWaiver = ProductFeatures.isAvailable('inner-source-transitive-waiver');
   $scope.isInnerSource = function () {
     const component = SelectedComponent.get();
     return !!(component && component.innerSource);
@@ -182,6 +188,10 @@ export default function PolicyViolationsController(
   );
 }
 
+export const mapStateToThis = (state) => ({
+  innerSourceTransitiveWaiver: selectIsInnerSourceTransitiveWaiverSupported(state),
+});
+
 PolicyViolationsController.$inject = [
   '$http',
   '$scope',
@@ -193,5 +203,5 @@ PolicyViolationsController.$inject = [
   'Messages',
   '$state',
   'PermissionService',
-  'ProductFeatures',
+  '$ngRedux',
 ];

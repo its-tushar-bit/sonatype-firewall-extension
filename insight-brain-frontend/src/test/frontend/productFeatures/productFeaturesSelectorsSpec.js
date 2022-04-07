@@ -21,6 +21,8 @@ import {
   selectIsDashboardSupported,
   selectIsReportListSupported,
   selectIsDataInsightsSupported,
+  selectIsInnerSourceTransitiveWaiverSupported,
+  selectIsAllowExternalHyperlinksSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('productFeaturesSelectors', () => {
@@ -45,6 +47,8 @@ describe('productFeaturesSelectors', () => {
         'release-integrity': true,
         'firewall-auto-unquarantine': true,
         'data-insights': true,
+        'inner-source-transitive-waiver': true,
+        'allow-external-hyperlinks': true,
       },
     };
   });
@@ -166,6 +170,18 @@ describe('productFeaturesSelectors', () => {
   describe('selectIsDataInsightsSupported', () => {
     it('returns true if data-insights enabled', () => {
       expect(selectIsDataInsightsSupported(mockState)).toBeTrue();
+    });
+  });
+
+  describe('selectIsInnerSourceTransitiveWaiverSupported', () => {
+    it('returns true if inner-source-transitive-waiver enabled', () => {
+      expect(selectIsInnerSourceTransitiveWaiverSupported(mockState)).toBeTrue();
+    });
+  });
+
+  describe('selectIsAllowExternalHyperlinksSupported', () => {
+    it('returns true if allow-external-hyperlinks enabled', () => {
+      expect(selectIsAllowExternalHyperlinksSupported(mockState)).toBeTrue();
     });
   });
 });

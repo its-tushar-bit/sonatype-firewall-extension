@@ -159,7 +159,6 @@ describe('CIP Policy Waiver tests', function () {
 
         $controller('PolicyViolationsController', {
           $scope: _scope,
-          ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable']),
         });
 
         $httpBackend.flush();
@@ -345,7 +344,6 @@ describe('CIP Policy Waiver tests', function () {
             hash: '3102cdd0edd5a05afe00',
             appId: 'bom1-12345678',
           },
-          ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable']),
         });
 
         $httpBackend.flush();

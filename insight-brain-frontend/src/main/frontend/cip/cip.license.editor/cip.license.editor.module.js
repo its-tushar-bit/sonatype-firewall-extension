@@ -5,7 +5,6 @@
  */
 /*global angular */
 import cipLicenseEditorDirective from './cip.license.editor.directive';
-import productFeaturesModule from '../../util/ProductFeatures';
 import licenseEditorController from './license.editor.controller';
 
 export default angular
@@ -15,7 +14,6 @@ export default angular
     'UnauthenticatedResponseHttpInterceptor',
     'ui.bootstrap',
     'utility.directives',
-    productFeaturesModule.name,
   ])
   .directive('cipLicenseEditor', cipLicenseEditorDirective)
   .controller('LicenseEditorController', licenseEditorController);

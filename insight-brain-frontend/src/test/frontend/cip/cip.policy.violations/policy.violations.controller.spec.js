@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { mapStateToThis } from 'MainRoot/cip/cip.policy.violations/policy.violations.controller';
+
 describe('policy.violations.controller', function () {
   var scope,
     policyViolationsSpy,
@@ -12,7 +15,6 @@ describe('policy.violations.controller', function () {
     controller,
     controllerConfig,
     $http,
-    mockProductFeaturesIsAvailable,
     mockSelectedComponentGet;
 
   beforeEach(
@@ -28,6 +30,7 @@ describe('policy.violations.controller', function () {
 
   beforeEach(
     angular.mock.module('cip.policy.violations', 'ui.router', function ($provide) {
+      SpecUtil.mockNgRedux($provide);
       var component = {
         componentIdentifier: {
           groupId: 'tomcat',
@@ -59,7 +62,6 @@ describe('policy.violations.controller', function () {
     scope = $rootScope.$new();
     scope.stageTypeId = 'stageTypeId';
     policyViolationsSpy = jasmine.createSpy('violationsresponse').and.returnValue(undefined);
-    mockProductFeaturesIsAvailable = jasmine.createSpy('mockProductFeaturesIsAvailable').and.returnValue(true);
 
     controller = $controller;
     controllerConfig = {
@@ -71,11 +73,11 @@ describe('policy.violations.controller', function () {
           };
         },
       },
-      ProductFeatures: {
-        isAvailable: mockProductFeaturesIsAvailable,
-      },
       $state,
     };
+
+    spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+
     $controller('PolicyViolationsController', controllerConfig);
     scope.$digest();
   }));
@@ -168,14 +170,6 @@ describe('policy.violations.controller', function () {
     });
   });
 
-  describe('innerSourceTransitiveWaiver', function () {
-    it('to be set', function () {
-      expect(mockProductFeaturesIsAvailable).toHaveBeenCalledWith('inner-source-transitive-waiver');
-
-      expect(scope.innerSourceTransitiveWaiver).toBeTruthy();
-    });
-  });
-
   describe('viewTransitiveViolations', function () {
     it('opens the Transitive Violations page', function () {
       spyOn($state, 'go');
@@ -252,6 +246,20 @@ describe('policy.violations.controller', function () {
       mockSelectedComponentGet.and.returnValue({ innerSource: true });
 
       expect(scope.isInnerSource()).toBeTruthy();
+    });
+  });
+
+  describe('mapStateToThis', () => {
+    it('sets innerSourceTransitiveWaiver', () => {
+      const state = {
+        productFeatures: {
+          'inner-source-transitive-waiver': true,
+        },
+      };
+
+      const output = mapStateToThis(state);
+
+      expect(output.innerSourceTransitiveWaiver).toBeTrue();
     });
   });
 });

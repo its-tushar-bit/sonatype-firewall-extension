@@ -6,7 +6,8 @@
 import '../SpecUtil';
 import LicenseGroupMockData from '../policy/LicenseGroupMockData';
 import testComponentProviderModule from './cip.TestComponentProvider';
-import cipLicenseEditorModule from '../../../main/frontend/cip/cip.license.editor/cip.license.editor.module';
+import cipLicenseEditorModule from 'MainRoot/cip/cip.license.editor/cip.license.editor.module';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 /*global CLM, InsightDatatable, Insight */
 SpecUtil.setupProviders('bom1-12345678', 'org1');
@@ -101,7 +102,11 @@ function getLicenseWithThreats(declared, observed, selected, effective) {
 }
 
 describe('CIP License Editor', function () {
-  beforeEach(angular.mock.module(cipLicenseEditorModule.name, testComponentProviderModule.name));
+  beforeEach(
+    angular.mock.module(cipLicenseEditorModule.name, testComponentProviderModule.name, function ($provide) {
+      SpecUtil.mockNgRedux($provide);
+    })
+  );
 
   let scope;
 
@@ -154,10 +159,10 @@ describe('CIP License Editor', function () {
           )
         )
         .respond(getAppliedLicenseOverrides(null, null, 'OVERRIDDEN', 'AFL-1.2'));
-      $controller('LicenseEditorController as vm', {
-        $scope: scope,
-        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
-      });
+
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+
+      $controller('LicenseEditorController as vm', { $scope: scope });
       $httpBackend.flush();
     }));
 
@@ -220,10 +225,9 @@ describe('CIP License Editor', function () {
         )
         .respond(getAppliedLicenseOverrides('ACKNOWLEDGED', null, 'OVERRIDDEN', 'AFL-1.2'));
 
-      $controller('LicenseEditorController as vm', {
-        $scope: scope,
-        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
-      });
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+
+      $controller('LicenseEditorController as vm', { $scope: scope });
       $httpBackend.flush();
     }));
 
@@ -339,10 +343,9 @@ describe('CIP License Editor', function () {
         )
         .respond(getAppliedLicenseOverrides(null, null, null, null));
 
-      $controller('LicenseEditorController', {
-        $scope: scope,
-        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
-      });
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+
+      $controller('LicenseEditorController', { $scope: scope });
       $httpBackend.flush();
     }));
 
@@ -432,10 +435,8 @@ describe('CIP License Editor', function () {
 
   describe('onOverrideStatusChange', function () {
     it('clears License IDs', inject(function ($controller) {
-      $controller('LicenseEditorController', {
-        $scope: scope,
-        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
-      });
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+      $controller('LicenseEditorController', { $scope: scope });
       scope.override = { licenseIds: ['AFL-1.2'] };
       scope.onOverrideStatusChange();
       expect(scope.override.licenseIds.length).toBe(0);
@@ -468,10 +469,8 @@ describe('CIP License Editor', function () {
         )
         .respond(getAppliedLicenseOverrides(null, null, null, null));
 
-      $controller('LicenseEditorController', {
-        $scope: scope,
-        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
-      });
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+      $controller('LicenseEditorController', { $scope: scope });
       $httpBackend.flush();
     }));
 
@@ -588,10 +587,8 @@ describe('CIP License Editor', function () {
         )
         .respond(applied);
 
-      $controller('LicenseEditorController', {
-        $scope: scope,
-        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
-      });
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+      $controller('LicenseEditorController', { $scope: scope });
       $httpBackend.flush();
     }));
 
@@ -627,10 +624,8 @@ describe('CIP License Editor', function () {
         )
         .respond(getAppliedLicenseOverrides(null, null, 'OVERRIDDEN', 'AFL'));
 
-      $controller('LicenseEditorController', {
-        $scope: scope,
-        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
-      });
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+      $controller('LicenseEditorController', { $scope: scope });
       $httpBackend.flush();
     }));
 
@@ -723,10 +718,8 @@ describe('CIP License Editor', function () {
         )
         .respond(getAppliedLicenseOverrides('OVERRIDDEN', 'AFL-1.2', null, null));
 
-      $controller('LicenseEditorController', {
-        $scope: scope,
-        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
-      });
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+      $controller('LicenseEditorController', { $scope: scope });
       $httpBackend.flush();
     }));
 
@@ -823,10 +816,8 @@ describe('CIP License Editor', function () {
         )
         .respond(getAppliedLicenseOverrides('OVERRIDDEN', 'AFL'));
 
-      $controller('LicenseEditorController', {
-        $scope: scope,
-        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
-      });
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+      $controller('LicenseEditorController', { $scope: scope });
       $httpBackend.flush();
     }));
 
@@ -909,10 +900,8 @@ describe('CIP License Editor', function () {
           )
           .respond(getAppliedLicenseOverrides('OVERRIDDEN', 'AFL'));
 
-        $controller('LicenseEditorController', {
-          $scope: scope,
-          ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
-        });
+        spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+        $controller('LicenseEditorController', { $scope: scope });
         $httpBackend.flush();
       });
     }
@@ -932,10 +921,8 @@ describe('CIP License Editor', function () {
 
     beforeEach(inject(function ($controller, _SelectedComponent_, $httpBackend) {
       SelectedComponent = _SelectedComponent_;
-      $controller('LicenseEditorController', {
-        $scope: scope,
-        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
-      });
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+      $controller('LicenseEditorController', { $scope: scope });
 
       $httpBackend
         .expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true'))
@@ -988,10 +975,8 @@ describe('CIP License Editor', function () {
 
   describe('doLoad()', function () {
     it('resets licenses', inject(function ($controller) {
-      $controller('LicenseEditorController', {
-        $scope: scope,
-        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
-      });
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+      $controller('LicenseEditorController', { $scope: scope });
       scope.licenses = ['AFL-1.2'];
       scope.doLoad();
       expect(scope.licenses).toBeNull();
@@ -1003,10 +988,8 @@ describe('CIP License Editor', function () {
 
     beforeEach(inject(function ($controller, _SelectedComponent_) {
       SelectedComponent = _SelectedComponent_;
-      $controller('LicenseEditorController', {
-        $scope: scope,
-        ProductFeatures: jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']),
-      });
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+      $controller('LicenseEditorController', { $scope: scope });
     }));
 
     it('returns false if no component selected', function () {

@@ -3,24 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import routeStateUtilService from '../../../../main/frontend/utility/services/routeStateUtilService';
+import routeStateUtilService from 'MainRoot/utility/services/routeStateUtilService';
 
 describe('routeStateUtilService', function () {
   let mockCurrentState,
-    mockProductFeatures,
     mockNgRedux,
-    getService = () => routeStateUtilService({ current: mockCurrentState }, mockProductFeatures, mockNgRedux);
+    getService = () => routeStateUtilService({ current: mockCurrentState }, mockNgRedux);
 
   beforeEach(function () {
     mockCurrentState = {};
-    mockProductFeatures = {
-      loadIsUnauthenticatedPagesEnabled: () => {
-        return new Promise(() => true);
-      },
-      getQuarantinedComponentViewAnonymousAccessEnabledState: () => {
-        return new Promise(() => true);
-      },
-    };
     mockNgRedux = {
       getState() {
         return {
@@ -32,8 +23,8 @@ describe('routeStateUtilService', function () {
           },
         };
       },
-      dispatch: jasmine.createSpy('dispatch').and.returnValue(new Promise(() => true)),
     };
+    mockNgRedux.dispatch = jasmine.createSpy('dispatch').and.callFake(() => Promise.resolve({ payload: true }));
   });
 
   describe('stateRequiresAuthentication', function () {
@@ -59,8 +50,9 @@ describe('routeStateUtilService', function () {
             };
           },
         };
+        mockNgRedux.dispatch = jasmine.createSpy('dispatch').and.callFake(() => Promise.resolve({ payload: false }));
 
-        routeStateUtilService({ current: mockCurrentState }, mockProductFeatures, customMockNgRedux)
+        routeStateUtilService({ current: mockCurrentState }, customMockNgRedux)
           .stateRequiresAuthentication({ data: { authenticationRequired: 'backend-configurable' } })
           .then((stateRequiresAuthentication) => {
             expect(stateRequiresAuthentication).toBe(true);

@@ -5,11 +5,10 @@
  */
 
 import selectedComponentServiceModule from '../../services/selectedComponentService';
-import productFeatureModule from '../../util/ProductFeatures';
 import componentInformationPanelDirective from './componentInformationPanelDirective';
 import cipTabPaneDirective from './cipTabPaneDirective';
 
 export default angular
-  .module('cipTabsWidgetModule', [selectedComponentServiceModule.name, productFeatureModule.name])
+  .module('cipTabsWidgetModule', [selectedComponentServiceModule.name])
   .directive('componentInformationPanel', componentInformationPanelDirective)
   .directive('cipTabPane', cipTabPaneDirective);

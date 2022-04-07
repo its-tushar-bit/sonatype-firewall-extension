@@ -11,7 +11,6 @@ import pendoModule from '../pendo/module';
 import angularCommonModule from '../util/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
 import permissionServiceModule from '../util/PermissionService';
-import productFeaturesModule from '../util/ProductFeatures';
 import telemetryServiceModule from '../services/telemetryService';
 import currentUserService from '../user/CurrentUserService';
 import userActions from '../user/userActions';
@@ -26,7 +25,6 @@ export default angular
     'ui.validate',
     angularCommonModule.name,
     CLMLocationModule.name,
-    productFeaturesModule.name,
     permissionServiceModule.name,
     'ngSanitize',
     utilityServicesModule.name,

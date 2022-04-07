@@ -6,7 +6,6 @@
 
 import legacyConfigurationModule from '../LegacyConfigurationModule';
 import cipPolicyViolationsModule from './cip.policy.violations/cip.policy.violations.module';
-import productFeatureModule from '../util/ProductFeatures';
 /*global angular, $, CLM, Insight, applicationId */
 (function () {
   'use strict';
@@ -49,7 +48,6 @@ import productFeatureModule from '../util/ProductFeatures';
         cipPolicyViolationsModule.name,
         'policyViolations' + timestamp,
         'AngularCommon',
-        productFeatureModule.name,
         legacyConfigurationModule.name,
       ]);
     };

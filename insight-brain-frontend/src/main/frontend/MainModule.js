@@ -32,6 +32,9 @@ import legalModule from './legal/legal.module';
 import { contains, not, path } from 'ramda';
 import { attachAxiosInterceptors } from './utility/axiosConfig';
 import { requestNotificationPermission } from './utility/services/notificationService';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { selectIsAllowExternalHyperlinksSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { unwrapResult } from '@reduxjs/toolkit';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -86,27 +89,37 @@ export const InitModule = angular
             url: '^',
             redirectTo: function (transition) {
               const injector = transition.injector(),
-                ProductFeatures = injector.get('ProductFeatures'),
                 ProductLicense = injector.get('ProductLicense'),
                 CurrentUser = injector.get('CurrentUser'),
                 $rootScope = injector.get('$rootScope'),
                 $q = injector.get('$q'),
+                $ngRedux = injector.get('$ngRedux'),
                 Messages = injector.get('Messages');
 
-              return $q.all([ProductFeatures.load(), ProductLicense.load(), CurrentUser.waitForLogin()]).then(
-                function () {
-                  if (ProductFeatures.isDashboardAvailable()) {
+              return $q
+                .all([
+                  $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded()),
+                  ProductLicense.load(),
+                  CurrentUser.waitForLogin(),
+                ])
+                .then((results) => {
+                  unwrapResult(results[0]);
+
+                  const { productFeatures = {} } = $ngRedux.getState();
+                  const isDashboardAvailable = productFeatures.dashboard;
+                  const isReportsListAvailable = productFeatures['reports-list'];
+
+                  if (isDashboardAvailable) {
                     return 'dashboard.overview.violations';
-                  } else if (ProductFeatures.isReportsListAvailable()) {
+                  } else if (isReportsListAvailable) {
                     return 'violations';
-                  } else {
-                    return 'gettingStarted';
                   }
-                },
-                function (err) {
+
+                  return 'gettingStarted';
+                })
+                .catch((err) => {
                   $rootScope.error = Messages.getHttpErrorMessage(err);
-                }
-              );
+                });
             },
           })
           .state('home', {
@@ -147,14 +160,10 @@ export const InitModule = angular
   ])
   .service('initService', [
     '$rootScope',
-    'ProductFeatures',
     '$state',
     '$window',
-    '$location',
-    'Messages',
     'CurrentUser',
     '$q',
-    '$http',
     '$urlRouter',
     '$timeout',
     'state.history.service',
@@ -164,7 +173,6 @@ export const InitModule = angular
     'LoginModalService',
     'UnauthenticatedRequestQueueService',
     'routeStateUtilService',
-    'CLMLocations',
     'Messages',
     'ProductLicense',
     'unsavedChangesModalService',
@@ -172,14 +180,10 @@ export const InitModule = angular
     '$transitions',
     function (
       $rootScope,
-      ProductFeatures,
       $state,
       $window,
-      $location,
-      messages,
       currentUser,
       $q,
-      $http,
       $urlRouter,
       $timeout,
       StateHistoryService,
@@ -189,7 +193,6 @@ export const InitModule = angular
       LoginModalService,
       UnauthenticatedRequestQueueService,
       routeStateUtilService,
-      CLMLocations,
       Messages,
       ProductLicense,
       unsavedChangesModalService,
@@ -348,21 +351,25 @@ export const InitModule = angular
       });
 
       function initExternalLinkClickHandler() {
-        ProductFeatures.load().then(function () {
-          if (!ProductFeatures.isAvailable('allow-external-hyperlinks')) {
-            const externalLinkClickHandler = (e) => {
-              const isExternalLink = (anchor) => anchor.hostname && anchor.hostname !== location.hostname;
-              const anchor = getAnchor(e.target);
-              if (isExternalLink(anchor)) {
-                externalLinkModalService.open(anchor.href);
-                e.stopImmediatePropagation();
-                return false;
-              }
-            };
-            $(document).on('click', 'a', externalLinkClickHandler);
-            $window.externalLinkClickHandler = externalLinkClickHandler;
-          }
-        }, setRootError);
+        $q.all([$ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded())])
+          .then(([result]) => {
+            unwrapResult(result);
+            if (!$rootScope.isAllowExternalHyperlinks) {
+              const externalLinkClickHandler = (e) => {
+                const isExternalLink = (anchor) => anchor.hostname && anchor.hostname !== location.hostname;
+                const anchor = getAnchor(e.target);
+                if (isExternalLink(anchor)) {
+                  externalLinkModalService.open(anchor.href);
+                  e.stopImmediatePropagation();
+                  return false;
+                }
+              };
+
+              $(document).on('click', 'a', externalLinkClickHandler);
+              $window.externalLinkClickHandler = externalLinkClickHandler;
+            }
+          })
+          .catch(setRootError);
       }
 
       function getAnchor(target) {
@@ -378,6 +385,9 @@ export const InitModule = angular
       }
 
       function doStart() {
+        const unsubscribe = $ngRedux.connect(mapStateToThis)($rootScope);
+        $rootScope.$on('$destroy', unsubscribe);
+
         $q.all([currentUser.waitForLogin(), checkLicenseInfo()])
           .then(function ([authenticationStatus]) {
             $rootScope.username = authenticationStatus.username;
@@ -496,6 +506,10 @@ export const InitModule = angular
       return { start: doStart };
     },
   ]);
+
+export const mapStateToThis = (state) => ({
+  isAllowExternalHyperlinks: selectIsAllowExternalHyperlinksSupported(state),
+});
 
 export const MainModule = angular.module('MainModule', [InitModule.name]).run([
   'initService',

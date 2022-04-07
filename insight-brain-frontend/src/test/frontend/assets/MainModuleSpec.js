@@ -3,16 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { InitModule } from '../../../main/frontend/MainModule';
-import * as gettingStartedTelemetryServiceHelper from '../../../main/frontend/configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
+import { InitModule } from 'MainRoot/MainModule';
+import * as gettingStartedTelemetryServiceHelper from 'MainRoot/configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
 
 window.angularDebug = true;
 
 describe('mainModuleSpec', function () {
-  var scope, pendoServiceMock;
+  var scope, pendoServiceMock, $ngRedux;
 
   beforeEach(
     angular.mock.module(InitModule.name, function ($provide, $stateProvider) {
+      SpecUtil.mockNgRedux($provide);
       // mock the window using anything on which events can be dispatched
       $provide.value('$window', document.createElement('div'));
 
@@ -21,14 +22,29 @@ describe('mainModuleSpec', function () {
         return pendoServiceMock;
       });
 
+      $provide.service('routeStateUtilService', function () {
+        function stateRequiresAuthentication() {
+          return Promise.resolve(true);
+        }
+
+        function stateRequiresAuthenticationSync() {
+          return true;
+        }
+
+        return { stateRequiresAuthentication, stateRequiresAuthenticationSync };
+      });
+
       $stateProvider.state('someOtherState', {
         url: '/someOtherState',
       });
     })
   );
 
-  beforeEach(inject(function ($rootScope, $state) {
+  beforeEach(inject(function ($rootScope, $state, _$ngRedux_) {
     scope = $rootScope.$new();
+    $ngRedux = _$ngRedux_;
+    $ngRedux.dispatch = jasmine.createSpy('dispatch').and.returnValue({ payload: [] });
+
     spyOn($state, 'go');
   }));
 
@@ -40,44 +56,29 @@ describe('mainModuleSpec', function () {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  describe('Custom sanitation', function () {
-    it('allows blob urls unsanitized', inject(function ($$sanitizeUri, $httpBackend, CLMLocations) {
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(500);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
-      $httpBackend.flush();
-
-      var uri = 'blob:http%3A//127.0.0.1%3A8070/someuuid';
-      var sanitized = $$sanitizeUri(uri, true);
-      expect(sanitized).toBe(uri);
-    }));
-  });
-
   describe('Validate requests made on initService start', function () {
+    beforeEach(() => {
+      $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({ productFeatures: {} });
+    });
+
     it('validate state after all requests succeed', inject(function (
       $httpBackend,
       CLMLocations,
       initService,
       $rootScope,
-      ProductFeatures,
       $window,
       $state
     ) {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
+      $rootScope.isAllowExternalHyperlinks = true;
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl()))
-        .respond(['dashboard', 'allow-external-hyperlinks']);
 
       initService.start();
+
       expect($state.go).not.toHaveBeenCalled();
       $httpBackend.flush();
       expect($rootScope.licensed).toEqual(true);
       expect($rootScope.username).toEqual('myname');
-      expect(ProductFeatures.isDashboardAvailable()).toEqual(true);
-      expect(ProductFeatures.isAvailable('allow-external-hyperlinks')).toEqual(true);
       expect($window.externalLinkClickHandler).not.toBeDefined();
 
       expect(pendoServiceMock.start).toHaveBeenCalled();
@@ -88,15 +89,11 @@ describe('mainModuleSpec', function () {
       CLMLocations,
       initService,
       $rootScope,
-      ProductFeatures,
       $state
     ) {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
+      $rootScope.isAllowExternalHyperlinks = true;
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(402);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(402);
 
       initService.start();
       $httpBackend.flush();
@@ -114,12 +111,10 @@ describe('mainModuleSpec', function () {
       initService,
       $rootScope
     ) {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
+      $rootScope.isAllowExternalHyperlinks = true;
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(500);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
+
       $rootScope.error = undefined;
       initService.start();
       $httpBackend.flush();
@@ -134,32 +129,10 @@ describe('mainModuleSpec', function () {
       initService,
       $rootScope
     ) {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
+      $rootScope.isAllowExternalHyperlinks = true;
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(500);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
-      $rootScope.error = undefined;
-      initService.start();
-      $httpBackend.flush();
-      expect($rootScope.error).toBeDefined();
 
-      expect(pendoServiceMock.start).toHaveBeenCalled();
-    }));
-
-    it('validate state after product feature error', inject(function (
-      $httpBackend,
-      CLMLocations,
-      initService,
-      $rootScope
-    ) {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(500);
       $rootScope.error = undefined;
       initService.start();
       $httpBackend.flush();
@@ -173,24 +146,18 @@ describe('mainModuleSpec', function () {
       CLMLocations,
       initService,
       $rootScope,
-      ProductFeatures,
       $window
     ) {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
+      $rootScope.isAllowExternalHyperlinks = false;
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 
       initService.start();
       $httpBackend.flush();
+
       expect($rootScope.licensed).toEqual(true);
       expect($rootScope.username).toEqual('myname');
-      expect(ProductFeatures.isDashboardAvailable()).toEqual(true);
-      expect(ProductFeatures.isAvailable('allow-external-hyperlinks')).toEqual(false);
       expect($window.externalLinkClickHandler).toBeDefined();
-
       expect(pendoServiceMock.start).toHaveBeenCalled();
     }));
 
@@ -199,23 +166,24 @@ describe('mainModuleSpec', function () {
       CLMLocations,
       initService,
       $rootScope,
-      ProductFeatures,
       $window,
       $state
     ) {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
+      $rootScope.isAllowExternalHyperlinks = false;
+      $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
+        productFeatures: {
+          dashboard: true,
+        },
+      });
+
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 
       initService.start();
       $httpBackend.flush();
+
       expect($rootScope.licensed).toEqual(true);
       expect($rootScope.username).toEqual('myname');
-      expect(ProductFeatures.isDashboardAvailable()).toBeTruthy();
-      expect(ProductFeatures.isReportsListAvailable()).toBeFalsy();
       expect($window.externalLinkClickHandler).toBeDefined();
       expect($state.current.name).toBe('dashboard.overview.violations');
 
@@ -227,23 +195,24 @@ describe('mainModuleSpec', function () {
       CLMLocations,
       initService,
       $rootScope,
-      ProductFeatures,
       $window,
       $state
     ) {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
+      $rootScope.isAllowExternalHyperlinks = false;
+      $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
+        productFeatures: {
+          'reports-list': true,
+        },
+      });
+
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['reports-list']);
 
       initService.start();
       $httpBackend.flush();
+
       expect($rootScope.licensed).toEqual(true);
       expect($rootScope.username).toEqual('myname');
-      expect(ProductFeatures.isDashboardAvailable()).toBeFalsy();
-      expect(ProductFeatures.isReportsListAvailable()).toBeTruthy();
       expect($window.externalLinkClickHandler).toBeDefined();
       expect($state.current.name).toBe('violations');
 
@@ -255,25 +224,24 @@ describe('mainModuleSpec', function () {
       CLMLocations,
       initService,
       $rootScope,
-      ProductFeatures,
       $window,
       $state
     ) {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
+      $rootScope.isAllowExternalHyperlinks = false;
+      $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
+        productFeatures: {
+          dashboard: true,
+          'reports-list': true,
+        },
+      });
+
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl()))
-        .respond(['dashboard', 'reports-list']);
 
       initService.start();
       $httpBackend.flush();
       expect($rootScope.licensed).toEqual(true);
       expect($rootScope.username).toEqual('myname');
-      expect(ProductFeatures.isDashboardAvailable()).toBeTruthy();
-      expect(ProductFeatures.isReportsListAvailable()).toBeTruthy();
       expect($window.externalLinkClickHandler).toBeDefined();
       expect($state.current.name).toBe('dashboard.overview.violations');
 
@@ -285,23 +253,18 @@ describe('mainModuleSpec', function () {
       CLMLocations,
       initService,
       $rootScope,
-      ProductFeatures,
       $window,
       $state
     ) {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
+      $rootScope.isAllowExternalHyperlinks = false;
+
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond([]);
 
       initService.start();
       $httpBackend.flush();
       expect($rootScope.licensed).toEqual(true);
       expect($rootScope.username).toEqual('myname');
-      expect(ProductFeatures.isDashboardAvailable()).toBeFalsy();
-      expect(ProductFeatures.isReportsListAvailable()).toBeFalsy();
       expect($window.externalLinkClickHandler).toBeDefined();
       expect($state.current.name).toBe('gettingStarted');
       expect(pendoServiceMock.start).toHaveBeenCalled();
@@ -309,19 +272,32 @@ describe('mainModuleSpec', function () {
   });
 
   describe('on beforeunload event', function () {
-    let $httpBackend, $window;
+    let $httpBackend, $window, $rootScope;
 
     beforeEach(() => {
       spyOn(gettingStartedTelemetryServiceHelper, 'submitData');
-      return inject(function (_$httpBackend_, CLMLocations, _$window_) {
+
+      return inject(function (_$httpBackend_, CLMLocations, _$window_, _$rootScope_, _$ngRedux_) {
         $httpBackend = _$httpBackend_;
         $window = _$window_;
-        $httpBackend
-          .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-          .respond(['enable-unauthenticated-pages']);
+        $rootScope = _$rootScope_;
+        $ngRedux = _$ngRedux_;
+        $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
+          router: {
+            currentState: {
+              data: {
+                isDirty: false,
+              },
+            },
+          },
+          productFeatures: {
+            dashboard: true,
+          },
+        });
+
+        $rootScope.isAllowExternalHyperlinks = true;
         $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
         $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-        $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
       });
     });
 
@@ -346,22 +322,20 @@ describe('mainModuleSpec', function () {
   });
 
   describe('pendoService calls', function () {
-    let $httpBackend, initService, pendoService, CLMLocations;
+    let $httpBackend, initService, pendoService, CLMLocations, $rootScope;
 
-    beforeEach(inject(function (_$httpBackend_, _pendoService_, _initService_, _CLMLocations_) {
+    beforeEach(inject(function (_$httpBackend_, _pendoService_, _initService_, _CLMLocations_, _$rootScope_) {
       $httpBackend = _$httpBackend_;
       pendoService = _pendoService_;
       initService = _initService_;
       CLMLocations = _CLMLocations_;
+      $rootScope = _$rootScope_;
     }));
 
     it('calls pendoService.start before login', function () {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
+      $rootScope.isAllowExternalHyperlinks = true;
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 
       initService.start();
 
@@ -371,12 +345,9 @@ describe('mainModuleSpec', function () {
     });
 
     it('calls pendoService a second time after login and license fetch', function () {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
+      $rootScope.isAllowExternalHyperlinks = true;
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 
       initService.start();
 
@@ -387,12 +358,9 @@ describe('mainModuleSpec', function () {
     });
 
     it('calls pendoService a second time after login if the license is not installed', function () {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
+      $rootScope.isAllowExternalHyperlinks = true;
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(402);
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 
       initService.start();
 
@@ -403,12 +371,9 @@ describe('mainModuleSpec', function () {
     });
 
     it('does not call pendoService a second time after failed login', function () {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getEnableUnauthenticatedPages()))
-        .respond(['enable-unauthenticated-pages']);
+      $rootScope.isAllowExternalHyperlinks = true;
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(401);
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
 
       initService.start();
 

@@ -42,6 +42,8 @@ public class SystemConfigurationProperty
   public static final String SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED =
       "SECURITY_VULNERABILITY_SOURCE_CONDITION_DISABLED";
 
+  public static final String BUILT_FROM_SOURCE = "BUILT_FROM_SOURCE";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

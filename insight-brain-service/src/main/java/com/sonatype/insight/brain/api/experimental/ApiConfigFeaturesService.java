@@ -32,8 +32,6 @@ public class ApiConfigFeaturesService
 
   static final String FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION = "vulnerabilitySource";
 
-  static final String FEATURE_BUILT_FROM_SOURCE = "built-from-source";
-
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   /**
@@ -45,8 +43,13 @@ public class ApiConfigFeaturesService
    *     transformed according to {@link Feature#getId()}.
    *   </li>
    *   <li>
-   *     {@code propertyName} - this is the name stored in the {@link SystemConfigurationProperty} table. Note that the
-   *     value is always {@code "true"}.
+   *     {@code propertyName} - this is the name stored in the {@link SystemConfigurationProperty} table.
+   *   </li>
+   *   <li>
+   *     {@code propertyValue} - this represents the value that will be stored in the
+   *     {@link SystemConfigurationProperty} table. Note that the value has no impact on whether or not the feature is
+   *     enabled/disabled (only the presence/absence of the row itself). However the value can be set to help
+   *     understanding. This defaults to the opposite of {@code enabledWhenAbsent}.
    *   </li>
    *   <li>
    *     {@code enabledWhenAbsent} - if this is {@code true}, then the feature will be enabled even if its
@@ -54,7 +57,7 @@ public class ApiConfigFeaturesService
    *   </li>
    * </ul>
    * Note that if you want the feature name passed to {@link ApiConfigFeaturesResource} to be different to the
-   * {@code propertyName}, then you need to add a mapping to the
+   * {@code name}, result of {@link Feature#getId()}, and {@code propertyName}, then you need to add a mapping to the
    * {@link ApiConfigFeaturesService#getPropertyNameForFeature} method.
    * <br/><br/>
    * Typically, a feature would start with {@code enabledWhenAbsent} set to {@code false}, making it experimental.
@@ -64,18 +67,29 @@ public class ApiConfigFeaturesService
   public enum SystemConfigurationPropertyFeature
       implements Feature
   {
-    DASHBOARD_CAN_BE_ENABLED(SystemConfigurationProperty.DASHBOARD_DISABLED, true),
-    REPORTS_LIST_CAN_BE_ENABLED(SystemConfigurationProperty.REPORTS_LIST_DISABLED, true),
+    DASHBOARD_CAN_BE_ENABLED(SystemConfigurationProperty.DASHBOARD_DISABLED, true, true),
+    REPORTS_LIST_CAN_BE_ENABLED(SystemConfigurationProperty.REPORTS_LIST_DISABLED, true, true),
     VULNERABILITY_SOURCE(
-        SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED, true),
-    BUILT_FROM_SOURCE(FEATURE_BUILT_FROM_SOURCE, false);
+        SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED, true, true),
+    BUILT_FROM_SOURCE(SystemConfigurationProperty.BUILT_FROM_SOURCE, false);
 
     private final String propertyName;
+
+    private final boolean propertyValue;
 
     private final boolean enabledWhenAbsent;
 
     SystemConfigurationPropertyFeature(final String propertyName, final boolean enabledWhenAbsent) {
+      this(propertyName, !enabledWhenAbsent, enabledWhenAbsent);
+    }
+
+    SystemConfigurationPropertyFeature(
+        final String propertyName,
+        final boolean propertyValue,
+        final boolean enabledWhenAbsent)
+    {
       this.propertyName = propertyName;
+      this.propertyValue = propertyValue;
       this.enabledWhenAbsent = enabledWhenAbsent;
     }
 
@@ -83,13 +97,31 @@ public class ApiConfigFeaturesService
       return propertyName;
     }
 
+    public boolean getPropertyValue() {
+      return propertyValue;
+    }
+
     public boolean isEnabledWhenAbsent() {
       return enabledWhenAbsent;
     }
 
-    public boolean isEnabled(SystemConfigurationPropertyDAO systemConfigurationPropertyDAO) {
+    public boolean isEnabled() {
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
       SystemConfigurationProperty systemConfigurationProperty = systemConfigurationPropertyDAO.getByName(propertyName);
       return ApiConfigFeaturesService.isEnabled(systemConfigurationProperty, enabledWhenAbsent);
+    }
+
+    public void setEnabled(boolean enabled) {
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
+      if (isEnabled() == enabled) {
+        return;
+      }
+      if (enabled) {
+        ApiConfigFeaturesService.enableFeature(systemConfigurationPropertyDAO, this);
+      }
+      else {
+        ApiConfigFeaturesService.disableFeature(systemConfigurationPropertyDAO, this);
+      }
     }
   }
 
@@ -100,16 +132,25 @@ public class ApiConfigFeaturesService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void enableFeature(String feature) {
-    enableFeature(getSystemConfigurationPropertyFeature(feature));
+    enableFeature(systemConfigurationPropertyDAO, getSystemConfigurationPropertyFeature(feature));
     log.debug("Enabled feature '{}'", feature);
   }
 
-  private void enableFeature(SystemConfigurationPropertyFeature systemConfigurationPropertyFeature) {
-    enableFeature(systemConfigurationPropertyFeature.getPropertyName(),
+  private static void enableFeature(
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+      SystemConfigurationPropertyFeature systemConfigurationPropertyFeature)
+  {
+    enableFeature(systemConfigurationPropertyDAO, systemConfigurationPropertyFeature.getPropertyName(),
+        systemConfigurationPropertyFeature.getPropertyValue(),
         systemConfigurationPropertyFeature.isEnabledWhenAbsent());
   }
 
-  private void enableFeature(String featureName, boolean enabledWhenAbsent) {
+  private static void enableFeature(
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+      String featureName,
+      boolean featureValue,
+      boolean enabledWhenAbsent)
+  {
     SystemConfigurationProperty systemConfiguration = systemConfigurationPropertyDAO.getByName(featureName);
     if (isEnabled(systemConfiguration, enabledWhenAbsent)) {
       throw new BadRequestException("Feature is already enabled.");
@@ -118,22 +159,31 @@ public class ApiConfigFeaturesService
       systemConfigurationPropertyDAO.delete(systemConfiguration);
     }
     else {
-      systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(featureName, "true"));
+      systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(featureName, String.valueOf(featureValue)));
     }
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void disableFeature(String feature) {
-    disableFeature(getSystemConfigurationPropertyFeature(feature));
+    disableFeature(systemConfigurationPropertyDAO, getSystemConfigurationPropertyFeature(feature));
     log.debug("Disabled feature '{}'", feature);
   }
 
-  private void disableFeature(SystemConfigurationPropertyFeature systemConfigurationPropertyFeature) {
-    disableFeature(systemConfigurationPropertyFeature.getPropertyName(),
+  private static void disableFeature(
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+      SystemConfigurationPropertyFeature systemConfigurationPropertyFeature)
+  {
+    disableFeature(systemConfigurationPropertyDAO, systemConfigurationPropertyFeature.getPropertyName(),
+        systemConfigurationPropertyFeature.getPropertyValue(),
         systemConfigurationPropertyFeature.isEnabledWhenAbsent());
   }
 
-  private void disableFeature(String featureName, boolean enabledWhenAbsent) {
+  private static void disableFeature(
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+      String featureName,
+      boolean featureValue,
+      boolean enabledWhenAbsent)
+  {
     SystemConfigurationProperty systemConfiguration = systemConfigurationPropertyDAO.getByName(featureName);
     if (!isEnabled(systemConfiguration, enabledWhenAbsent)) {
       throw new BadRequestException("Feature is already disabled.");
@@ -142,7 +192,7 @@ public class ApiConfigFeaturesService
       systemConfigurationPropertyDAO.delete(systemConfiguration);
     }
     else {
-      systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(featureName, "true"));
+      systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(featureName, String.valueOf(featureValue)));
     }
   }
 
@@ -157,7 +207,9 @@ public class ApiConfigFeaturesService
   SystemConfigurationPropertyFeature getSystemConfigurationPropertyFeature(String feature) {
     String propertyName = getPropertyNameForFeature(feature);
     return Arrays.stream(SystemConfigurationPropertyFeature.values())
-        .filter(s -> s.getPropertyName().equalsIgnoreCase(propertyName))
+        .filter(s -> s.getPropertyName().equalsIgnoreCase(propertyName) ||
+            s.name().equalsIgnoreCase(feature) ||
+            s.getId().equalsIgnoreCase(feature))
         .findFirst()
         .orElseThrow(() -> new BadRequestException("Feature not supported: " + feature));
   }

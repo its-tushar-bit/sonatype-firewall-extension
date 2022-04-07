@@ -437,7 +437,10 @@ export default function PolicyEditorNotificationsController(
 
   function isCheckboxForStageDisabled(recipient, stageTypeId) {
     return (
-      vm.disabled || !vm.isStageApplicable(recipient, stageTypeId) || !vm.isNotificationsSupportedForStage(stageTypeId)
+      (recipient?.webhookId && stageTypeId === 'proxy') ||
+      vm.disabled ||
+      !vm.isStageApplicable(recipient, stageTypeId) ||
+      !vm.isNotificationsSupportedForStage(stageTypeId)
     );
   }
 }

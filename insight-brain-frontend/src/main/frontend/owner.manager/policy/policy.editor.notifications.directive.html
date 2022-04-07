@@ -45,8 +45,8 @@
           <iq-checkbox on-click="vm.toggleStage(recipient, stage.stageTypeId)"
                        is-checked="vm.hasStage(recipient, stage.stageTypeId)"
                        is-disabled="vm.isCheckboxForStageDisabled(recipient, stage.stageTypeId)"
-                       tooltip="{{ !vm.isNotificationsSupportedForStage(stage.stageTypeId) ? 'Notifications are not supported by your license.' : '' }}"
-                       data-tooltip-placement="top"
+                       tooltip="{{ (recipient.webhookId && stage.stageTypeId === 'proxy') ? 'Webhooks are not available for policy violations at Proxy stage.' : (
+            !vm.isNotificationsSupportedForStage(stage.stageTypeId) ? 'Notifications are not supported by your license.': '') }}" data-tooltip-placement="top"
                        data-tooltip-append-to-body="true">
           </iq-checkbox>
         </td>

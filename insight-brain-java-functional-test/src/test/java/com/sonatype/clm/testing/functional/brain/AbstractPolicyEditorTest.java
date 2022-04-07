@@ -27,10 +27,10 @@ import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection.AddNotificationItem;
 import com.sonatype.clm.testing.functional.elements.PopoverViolations;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
@@ -1486,6 +1486,14 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notificationFor("aaa@sonatype.com").build().click();
     NotificationsSection.notificationFor("Application Evaluator").continuousMonitoring().click();
     NotificationsSection.notificationFor("Webhook: http://localhost").stageRelease().click();
+    NotificationsSection.notificationFor("Webhook: http://localhost").proxy().input().shouldHave(attribute("disabled"));
+    NotificationsSection.notificationFor("Webhook: http://localhost").proxy().hover();
+    Tooltip.get().shouldBe(visible)
+        .shouldHave(text("Webhooks are not available for policy violations at Proxy stage."));
+    NotificationsSection.notificationFor("Webhook: description").proxy().input().shouldHave(attribute("disabled"));
+    NotificationsSection.notificationFor("Webhook: description").proxy().hover();
+    Tooltip.get().shouldBe(visible)
+        .shouldHave(text("Webhooks are not available for policy violations at Proxy stage."));
   }
 
   private void assertNewPolicyStateIsCorrect() {

@@ -119,7 +119,7 @@ describe('policy.editor.notifications.controller.spec.js', function () {
 
     $httpBackend
       .expectGET(CLMLocations.getProductFeaturesUrl())
-      .respond(['policy-monitoring', 'webhooks-for-applications']);
+      .respond(['policy-monitoring', 'webhooks-for-applications', 'notifications']);
 
     $httpBackend.whenGET(CLMContextLocations.getRoleMappingUrl()).respond(membershipMapping);
     getWebhooks = $httpBackend.whenGET(CLMContextLocations.getNotificationWebhooksUrl());
@@ -813,6 +813,34 @@ describe('policy.editor.notifications.controller.spec.js', function () {
       var vm = initController(notifications, true);
 
       expect(vm.getDisplayName(recipient)).toBe('Undefined webhook: webhook1');
+    });
+  });
+
+  describe('isCheckboxForStageDisabled()', function () {
+    it('returns true if the recipient is a webhook at proxy stage', function () {
+      var recipient = {
+        webhookId: 'webhook1',
+      };
+      var notifications = {
+        webhookNotifications: [recipient],
+      };
+      var vm = initController(notifications, true);
+      var stageTypeId = 'proxy';
+
+      expect(vm.isCheckboxForStageDisabled(recipient, stageTypeId)).toBe(true);
+    });
+
+    it('returns false if the recipient is a webhook at non proxy stage and the feature is enabled', function () {
+      var recipient = {
+        webhookId: 'webhook1',
+      };
+      var notifications = {
+        webhookNotifications: [recipient],
+      };
+      var vm = initController(notifications, true);
+      var stageTypeId = 'source';
+
+      expect(vm.isCheckboxForStageDisabled(recipient, stageTypeId)).toBe(false);
     });
   });
 });

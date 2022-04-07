@@ -47,7 +47,7 @@ A live document containing our _current_ best practices, approaches, patterns an
   - Some of lift's suggestions clash with our eslint suggestions — always go with eslint.
   - Mark the conversation as resolved when the comment has been addressed (or ignored).
 - The Pull-Request needs a minimum of TWO approvals before being merged.
-- Enable Visual Testing (Applitools) _after_ the PR has gotten two approvals but _before_ merging it.
+- Enable Visual Testing (Applitools) during CI if the change introduces any changes to the UI.
 - In order to be merged a PR needs the aforementioned TWO approvals and a passing CI build (Jenkins).
   - In the event that there's a pre-existing _Policy Violation_ Jenkins will report the build as failed. In this case you need to check that each individual step of the build has passed.
 - After merging the Pull-Request verify that the [Master Snapshot Build](https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/master-snapshot/) corresponding to your merge passes.

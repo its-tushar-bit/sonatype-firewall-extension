@@ -151,5 +151,28 @@ describe('dependencyTreeUtil', () => {
         children: [{ packageUrl: 'a31' }, { packageUrl: 'a32' }, { packageUrl: 'a4' }],
       });
     });
+
+    it('handles undefined children', () => {
+      const dependencyTree = {
+        packageUrl: 'a',
+      };
+      const result = flattenModuleDirectDependencies(dependencyTree);
+      expect(result).toEqual({
+        packageUrl: 'a',
+        children: [],
+      });
+    });
+
+    it('handles empty children', () => {
+      const dependencyTree = {
+        packageUrl: 'a',
+        children: [],
+      };
+      const result = flattenModuleDirectDependencies(dependencyTree);
+      expect(result).toEqual({
+        packageUrl: 'a',
+        children: [],
+      });
+    });
   });
 });

@@ -2018,6 +2018,24 @@ public class ComponentInfoServiceTest
   }
 
   @Test
+  public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_nullSource() {
+    String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
+    String scanId = "scanId";
+    when(repositoryQueryService.getAllVersions(eq(MAVEN_A1_COORDINATES), any(Owner.class))).thenReturn(
+        Pair.of(new RepositoryAllVersionsResponse(Collections.emptyList()), null));
+    mockHdsGetComponentDetailsList(new ComponentDetailsList(), MAVEN_A1_COORDINATES);
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo_ReadPermission(application.getType(),
+        application.getPublicId(), MAVEN_A1_COORDINATES, null, identificationSource, scanId,
+        DependencyType.INNER_SOURCE);
+
+    List<ComponentDetailsDTO> result = dto.allVersions;
+    assertThat(result).hasSize(1);
+    assertGetComponentVersionsRepositoryResult(result.get(0), MAVEN_A1_COORDINATES);
+    assertThat(dto.sourceResponse).isNull();
+  }
+
+  @Test
   public void testGetComponentVersionInfo_ReadPermission_InnerSourceRepository_ThirdParty_noResult() {
     String identificationSource = "third-party";
     String scanId = "scanId";

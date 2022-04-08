@@ -617,7 +617,9 @@ public class ComponentInfoService
               repositoryQueryService.getAllVersions(identifier, owner);
           sourceResponseDTO = result.getRight();
           if (CollectionUtils.isEmpty(result.getLeft().getComponents())) {
-            sourceResponseDTO.source = null;
+            if (sourceResponseDTO != null) {
+              sourceResponseDTO.source = null;
+            }
           }
           else {
             componentDetailsList = transformToComponentDetailsList(result.getLeft(), identifier);

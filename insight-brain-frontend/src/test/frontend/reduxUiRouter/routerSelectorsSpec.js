@@ -11,6 +11,7 @@ import {
   selectCurrentRouteName,
   selectPreviousRouteName,
   selectIsOrganization,
+  selectIsRootOrganization,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('routerSelectors', function () {
@@ -90,6 +91,21 @@ describe('routerSelectors', function () {
       const actualSelection = selectIsOrganization.resultFunc('management.edit.organization.policy');
 
       expect(actualSelection).toBeTrue();
+    });
+  });
+
+  describe('selectIsRootOrganization', () => {
+    it('is composed from the following selector', () => {
+      expect(selectIsRootOrganization.dependencies).toEqual([selectRouterCurrentParams]);
+    });
+
+    it('returns true if organizationId is ROOT_ORGANIZATION_ID', () => {
+      const currentRouterParams = {
+        organizationId: 'ROOT_ORGANIZATION_ID',
+      };
+      const selection = selectIsRootOrganization.resultFunc(currentRouterParams);
+
+      expect(selection).toBeTrue();
     });
   });
 });

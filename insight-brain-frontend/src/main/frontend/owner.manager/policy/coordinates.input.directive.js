@@ -33,7 +33,7 @@ function parse(input) {
   return coordinates;
 }
 
-function CoordinatesInputController($scope) {
+function CoordinatesInputController($scope, $timeout) {
   var vm = this;
 
   vm.coordinates = parse($scope.value);
@@ -59,13 +59,18 @@ function CoordinatesInputController($scope) {
             $scope.value = undefined;
           }
         }
+        if ($scope.onChange) {
+          $timeout(() => {
+            $scope.onChange();
+          });
+        }
       }
     },
     true
   );
 }
 
-CoordinatesInputController.$inject = ['$scope'];
+CoordinatesInputController.$inject = ['$scope', '$timeout'];
 
 export default function CoordinatesInput() {
   return {
@@ -73,6 +78,7 @@ export default function CoordinatesInput() {
     restrict: 'E',
     scope: {
       value: '=',
+      onChange: '&?',
     },
     controller: CoordinatesInputController,
     controllerAs: 'vm',

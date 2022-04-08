@@ -19,6 +19,8 @@ import {
   over,
   not,
   addIndex,
+  compose,
+  symmetricDifference,
 } from 'ramda';
 import moment from 'moment';
 
@@ -120,3 +122,13 @@ export function getFutureDate(daysToAdd = 0) {
 export const mapIndexed = addIndex(map);
 
 export const getKey = prop('key');
+
+/***
+ * [*] → [*] → Boolean
+ *
+ * returns true if two lists are equal by value.
+ *
+ * Note.
+ * The Comparison does not account for the order of elements within each list.
+ */
+export const eqValues = compose(isEmpty, symmetricDifference);

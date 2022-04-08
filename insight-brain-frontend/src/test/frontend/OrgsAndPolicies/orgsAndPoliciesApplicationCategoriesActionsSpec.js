@@ -11,6 +11,7 @@ import * as selectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationC
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   getApplicableCategoriesUrl,
+  getApplicablePolicies,
   getCategoriesUrl,
   getDeleteCategoriesUrl,
   getOrganizationAppliedTagUrl,
@@ -329,7 +330,23 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
         contact: null,
       },
     ];
-    const policyHierarchy = [
+
+    const policyTags = [
+      {
+        id: '5c7a17c43c764cf3966a6906d8543b44',
+        policyId: 'cbee1e3cdf2440db88f6c84d7d7582d4',
+        tagId: categoryId,
+      },
+      {
+        id: '1ab73ced37a6438d93251f797ea57d30',
+        policyId: '39b9c27a34444fc28f3f5bac66e4622f',
+        tagId: '7ce9b4fb7a47409f96a438ab7163cae8',
+      },
+    ];
+    const getAllApplicationPromise = jasmine.createSpy().and.returnValue(allApplications);
+    const editCategoryPromises = [getAllApplicationPromise()];
+
+    const policiesByOwner = [
       {
         ownerId: 'ROOT_ORGANIZATION_ID',
         ownerName: 'Root Organization',
@@ -346,21 +363,6 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
         ],
       },
     ];
-    const policyTags = [
-      {
-        id: '5c7a17c43c764cf3966a6906d8543b44',
-        policyId: 'cbee1e3cdf2440db88f6c84d7d7582d4',
-        tagId: categoryId,
-      },
-      {
-        id: '1ab73ced37a6438d93251f797ea57d30',
-        policyId: '39b9c27a34444fc28f3f5bac66e4622f',
-        tagId: '7ce9b4fb7a47409f96a438ab7163cae8',
-      },
-    ];
-    const getAllApplicationPromise = jasmine.createSpy().and.returnValue(allApplications);
-    const getPolicyHierarchyPromise = jasmine.createSpy().and.returnValue(policyHierarchy);
-    const editCategoryPromises = [getAllApplicationPromise(), getPolicyHierarchyPromise()];
 
     const applicationTagsByOwner = [
       {
@@ -463,6 +465,9 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
           [getOrganizationPolicyTagUrl(mockOwnerId)]: Promise.resolve({
             data: policyTags,
           }),
+          [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
+            data: { policiesByOwner },
+          }),
         },
       });
 
@@ -473,23 +478,25 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
           })
         )
         .then(() => {
-          expect(axios.get).toHaveBeenCalledTimes(3);
+          expect(axios.get).toHaveBeenCalledTimes(4);
 
           const actions = store.getActions();
 
-          expect(actions.length).toBe(8);
+          expect(actions.length).toBe(10);
           expect(actions).toHaveActionTypesInOrder([
             'applicationCategories/loadCategoryEditor/pending',
             'applicationCategories/loadOrganizationAppliedTag/pending',
+            'policy/loadApplicablePoliciesByOwner/pending',
             'applicationCategories/loadOrganizationPolicyTags/pending',
             'applicationCategories/loadApplicableCategoriesByOwner/pending',
             'applicationCategories/loadOrganizationAppliedTag/fulfilled',
+            'policy/loadApplicablePoliciesByOwner/fulfilled',
             'applicationCategories/loadOrganizationPolicyTags/fulfilled',
             'applicationCategories/loadApplicableCategoriesByOwner/fulfilled',
             'applicationCategories/loadCategoryEditor/fulfilled',
           ]);
 
-          expect(actions[7].payload).toEqual({
+          expect(actions[9].payload).toEqual({
             siblings: flattenedApplicationCategories,
             associatedApplicationNames: ['activemq'],
             currentCategory: {

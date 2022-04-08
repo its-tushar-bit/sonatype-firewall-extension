@@ -47,7 +47,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
 
       const newState = reducer(state, {
         type: 'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
-        payload: [applicablePolicyMonitoring, {}],
+        payload: [applicablePolicyMonitoring, {}, {}],
       });
 
       expect(newState.loading).toBeFalse();
@@ -80,8 +80,8 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
         type: 'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
         payload: [
           { policyMonitoringByOwner },
+          { policiesByOwner },
           {
-            policiesByOwner,
             stages: MockData.getStageData(),
             actionStages: MockData.getStageData(),
           },
@@ -121,6 +121,8 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
           { policyMonitoringByOwner },
           {
             policiesByOwner,
+          },
+          {
             stages: MockData.getDashboardStageData(),
             actionStages: MockData.getDashboardStageData(),
           },

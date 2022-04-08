@@ -5,7 +5,7 @@
  */
 import ownerManagerModule from '../../../../../main/frontend/owner.manager/owner.manager.module';
 
-describe('policy.editor.notifications.controller.spec.js', function () {
+describe('policy.editor.notifications.controller', function () {
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
       SpecUtil.mockNgRedux($provide);
@@ -310,6 +310,17 @@ describe('policy.editor.notifications.controller.spec.js', function () {
     });
   });
 
+  describe('$destroy', () => {
+    it('unsubscribes from the redux store', () => {
+      var vm = initController([]);
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
+
+      scope.$destroy();
+
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('hasRecipients()', function () {
     it('returns true if there are notifications', function () {
       var notifications = {
@@ -372,57 +383,108 @@ describe('policy.editor.notifications.controller.spec.js', function () {
             stageIds: ['develop'],
           },
         ],
+        webhookNotifications: [
+          {
+            webhookId: 'id1',
+            stageIds: ['proxy', 'build'],
+          },
+          {
+            webhookId: 'id2',
+            stageIds: ['develop'],
+          },
+        ],
       };
       vm = initController(notifications);
     });
 
-    it('removes role recipient entry from original notifications and updates vm.recipients array', function () {
-      expect(vm.recipients.length).toBe(6);
+    it('calls setRoleNotificationsAction and updates vm.recipients array', function () {
+      expect(vm.recipients.length).toBe(8);
       expect(vm.recipients[0].roleId).toBe('1');
 
       vm.removeRecipient(vm.recipients[0]);
+
       expect(vm.notifications.roleNotifications.length).toBe(1);
       expect(vm.notifications.roleNotifications[0].roleId).toBe('2');
+      expect(vm.setRoleNotificationsAction).toHaveBeenCalledOnceWith([
+        {
+          roleId: '2',
+          stageIds: ['develop'],
+        },
+      ]);
 
-      expect(vm.recipients.length).toBe(5);
+      expect(vm.recipients.length).toBe(7);
       expect(vm.recipients[0].emailAddress).toBe('bob@test.com');
     });
 
-    it('removes email recipient entry from original notifications and updates vm.recipients array', function () {
-      expect(vm.recipients.length).toBe(6);
+    it('calls setUserNotificationsAction and updates vm.recipients array', function () {
+      expect(vm.recipients.length).toBe(8);
       expect(vm.recipients[1].emailAddress).toBe('bob@test.com');
 
       vm.removeRecipient(vm.recipients[1]);
+
       expect(vm.notifications.userNotifications.length).toBe(1);
       expect(vm.notifications.userNotifications[0].emailAddress).toBe('zoo@test.com');
+      expect(vm.setUserNotificationsAction).toHaveBeenCalledOnceWith([
+        {
+          emailAddress: 'zoo@test.com',
+          stageIds: ['proxy', 'build'],
+        },
+      ]);
 
-      expect(vm.recipients.length).toBe(5);
+      expect(vm.recipients.length).toBe(7);
       expect(vm.recipients[1].roleId).toBe('2');
     });
 
-    it('removes jira recipient entry from original notifications and updates vm.recipients array', function () {
-      expect(vm.recipients.length).toBe(6);
+    it('calls setJiraNotificationsAction and updates vm.recipients array', function () {
+      expect(vm.recipients.length).toBe(8);
       expect(vm.recipients[3].projectKey).toBe('key1');
 
       vm.removeRecipient(vm.recipients[3]);
+
       expect(vm.notifications.jiraNotifications.length).toBe(1);
       expect(vm.notifications.jiraNotifications[0].projectKey).toBe('key2');
+      expect(vm.setJiraNotificationsAction).toHaveBeenCalledOnceWith([
+        {
+          projectKey: 'key2',
+          issueTypeId: 2,
+          stageIds: ['develop'],
+        },
+      ]);
 
-      expect(vm.recipients.length).toBe(5);
+      expect(vm.recipients.length).toBe(7);
       expect(vm.recipients[3].projectKey).toBe('key2');
+    });
+
+    it('calls setWebhookNotificationsAction and updates vm.recipients array', function () {
+      expect(vm.recipients.length).toBe(8);
+      expect(vm.recipients[5].webhookId).toBe('id1');
+
+      vm.removeRecipient(vm.recipients[5]);
+
+      expect(vm.notifications.webhookNotifications.length).toBe(1);
+      expect(vm.notifications.webhookNotifications[0].webhookId).toBe('id2');
+      expect(vm.setWebhookNotificationsAction).toHaveBeenCalledOnceWith([
+        {
+          webhookId: 'id2',
+          stageIds: ['develop'],
+        },
+      ]);
+
+      expect(vm.recipients.length).toBe(7);
+      expect(vm.recipients[5].webhookId).toBe('id2');
     });
 
     it('maintains the order of vm.recipients', function () {
       vm.addEmailRecipient('aaaaaaa@test.com');
       vm.removeRecipient(vm.recipients[0]);
-      expect(vm.recipients.length).toBe(6);
+      expect(vm.recipients.length).toBe(8);
       // should not change the sorted order of remaining entries
       expect(vm.recipients[0].emailAddress).toBe('bob@test.com');
       expect(vm.recipients[1].roleId).toBe('2');
       expect(vm.recipients[2].projectKey).toBe('key1');
       expect(vm.recipients[3].projectKey).toBe('key2');
-      expect(vm.recipients[4].emailAddress).toBe('zoo@test.com');
-      expect(vm.recipients[5].emailAddress).toBe('aaaaaaa@test.com');
+      expect(vm.recipients[6].emailAddress).toBe('zoo@test.com');
+      expect(vm.recipients[7].emailAddress).toBe('aaaaaaa@test.com');
     });
   });
 
@@ -508,7 +570,7 @@ describe('policy.editor.notifications.controller.spec.js', function () {
     });
 
     describe('addEmailRecipient()', function () {
-      it('adds userNotifications to policy notifications and updates vm.recipients', function () {
+      it('adds calls setUserNotificationsAction and updates vm.recipients', function () {
         expect(vm.recipients.length).toBe(6);
 
         vm.addEmailRecipient('user-recipient@test.com');
@@ -516,6 +578,7 @@ describe('policy.editor.notifications.controller.spec.js', function () {
         expect(vm.notifications.userNotifications.length).toBe(3);
         expect(vm.notifications.userNotifications[2].emailAddress).toBe('user-recipient@test.com');
         expect(vm.notifications.userNotifications[2].stageIds).toEqual([]);
+        expect(vm.setUserNotificationsAction).toHaveBeenCalledOnceWith(vm.notifications.userNotifications);
 
         expect(vm.recipients.length).toBe(7);
         expect(vm.recipients[6].emailAddress).toBe('user-recipient@test.com');
@@ -542,6 +605,7 @@ describe('policy.editor.notifications.controller.spec.js', function () {
         expect(vm.notifications.roleNotifications.length).toBe(3);
         expect(vm.notifications.roleNotifications[2].roleId).toBe('2');
         expect(vm.notifications.roleNotifications[2].stageIds).toEqual([]);
+        expect(vm.setRoleNotificationsAction).toHaveBeenCalledOnceWith(vm.notifications.roleNotifications);
 
         expect(vm.recipients.length).toBe(7);
         expect(vm.recipients[6].roleId).toBe('2');
@@ -554,7 +618,7 @@ describe('policy.editor.notifications.controller.spec.js', function () {
     });
 
     describe('addJiraRecipient()', function () {
-      it('adds jiraNotifications to policy notifications and updates vm.recipients', function () {
+      it('calls setJiraNotificationsAction and updates vm.recipients', function () {
         vm.recipientType = vm.recipientTypes.JIRA;
         vm.recipientToAdd = {
           key: 'key3',
@@ -568,6 +632,7 @@ describe('policy.editor.notifications.controller.spec.js', function () {
         expect(vm.notifications.jiraNotifications.length).toBe(3);
         expect(vm.notifications.jiraNotifications[2].projectKey).toBe('key3');
         expect(vm.notifications.jiraNotifications[2].issueTypeId).toBe(3);
+        expect(vm.setJiraNotificationsAction).toHaveBeenCalledOnceWith(vm.notifications.jiraNotifications);
 
         expect(vm.recipients.length).toBe(7);
         expect(vm.recipients[6].projectKey).toBe('key3');
@@ -662,24 +727,106 @@ describe('policy.editor.notifications.controller.spec.js', function () {
   });
 
   describe('toggleStage()', function () {
-    it('updates recipient', function () {
-      var recipient = {
-        emailAddress: 'zed@test.com',
-        stageIds: ['proxy', 'build'],
+    it('calls setRoleNotificationStageIdsAction and updates recipient', function () {
+      const recipientToUpdate = {
+        roleId: '2', // Developer
+        stageIds: ['develop'],
       };
-      var notifications = {
-        userNotifications: [recipient],
+      const notifications = {
+        roleNotifications: [
+          {
+            roleId: '1', // Application Evaluator
+            stageIds: ['proxy', 'build'],
+          },
+          recipientToUpdate,
+        ],
       };
-      var vm = initController(notifications);
+      const vm = initController(notifications);
 
-      vm.toggleStage(recipient, 'proxy');
-      expect(recipient.stageIds.length).toBe(1);
-      expect(recipient.stageIds[0]).toBe('build');
+      vm.toggleStage(recipientToUpdate, 'proxy');
+      expect(recipientToUpdate.stageIds.length).toBe(2);
+      expect(recipientToUpdate.stageIds).toEqual(['develop', 'proxy']);
+      expect(vm.setRoleNotificationStageIdsAction).toHaveBeenCalledOnceWith({
+        index: 1,
+        value: recipientToUpdate.stageIds,
+      });
+    });
 
-      vm.toggleStage(recipient, 'develop');
-      expect(recipient.stageIds.length).toBe(2);
-      expect(recipient.stageIds).toContain('build');
-      expect(recipient.stageIds).toContain('develop');
+    it('calls setUserNotificationStageIdsAction and updates recipient', function () {
+      const recipientToUpdate = {
+        emailAddress: 'bob@test.com',
+        stageIds: ['develop'],
+      };
+      const notifications = {
+        userNotifications: [
+          {
+            emailAddress: 'zoo@test.com',
+            stageIds: ['proxy', 'build'],
+          },
+          recipientToUpdate,
+        ],
+      };
+      const vm = initController(notifications);
+
+      vm.toggleStage(recipientToUpdate, 'proxy');
+      expect(recipientToUpdate.stageIds.length).toBe(2);
+      expect(recipientToUpdate.stageIds).toEqual(['develop', 'proxy']);
+      expect(vm.setUserNotificationStageIdsAction).toHaveBeenCalledOnceWith({
+        index: 1,
+        value: recipientToUpdate.stageIds,
+      });
+    });
+
+    it('calls setJiraNotificationStageIdsAction and updates recipient', function () {
+      const recipientToUpdate = {
+        projectKey: 'key2',
+        issueTypeId: 2,
+        stageIds: ['develop'],
+      };
+      const notifications = {
+        jiraNotifications: [
+          {
+            projectKey: 'key1',
+            issueTypeId: 1,
+            stageIds: ['proxy', 'build'],
+          },
+          recipientToUpdate,
+        ],
+      };
+      const vm = initController(notifications);
+
+      vm.toggleStage(recipientToUpdate, 'proxy');
+      expect(recipientToUpdate.stageIds.length).toBe(2);
+      expect(recipientToUpdate.stageIds).toEqual(['develop', 'proxy']);
+      expect(vm.setJiraNotificationStageIdsAction).toHaveBeenCalledOnceWith({
+        index: 1,
+        value: recipientToUpdate.stageIds,
+      });
+    });
+
+    it('calls setWebhookNotificationStageIdsAction and updates recipient', function () {
+      const recipientToUpdate = {
+        webhookId: 'id2',
+        stageIds: ['develop'],
+      };
+      const notifications = {
+        webhookNotifications: [
+          {
+            webhookId: 'id1',
+            stageIds: ['proxy', 'build'],
+          },
+          recipientToUpdate,
+        ],
+      };
+      const vm = initController(notifications);
+
+      vm.toggleStage(recipientToUpdate, 'proxy');
+      expect(recipientToUpdate.stageIds.length).toBe(2);
+      expect(recipientToUpdate.stageIds).toEqual(['develop', 'proxy']);
+      expect(vm.setWebhookNotificationStageIdsAction).toHaveBeenCalledOnceWith({
+        index: 1,
+        value: recipientToUpdate.stageIds,
+      });
     });
   });
 

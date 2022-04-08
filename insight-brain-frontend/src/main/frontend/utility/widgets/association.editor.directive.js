@@ -16,21 +16,27 @@ export default function AssociationEditor() {
       isRadioButton: '@',
       selected: '=',
       disabled: '=?ngDisabled',
+      onChange: '=?',
     },
     replace: true,
     template,
-    controller: AssociationEditorController,
+    controller: ['$timeout', AssociationEditorController],
     controllerAs: 'vm',
     bindToController: true,
   };
 }
 
-function AssociationEditorController() {
+function AssociationEditorController($timeout) {
   var vm = this;
   vm.ceil = Math.ceil;
   vm.toggleSelected = toggleSelected;
 
   function toggleSelected(item, checkboxParam) {
     item[checkboxParam] = !item[checkboxParam];
+    $timeout(function () {
+      if (vm.onChange) {
+        vm.onChange(item);
+      }
+    });
   }
 }

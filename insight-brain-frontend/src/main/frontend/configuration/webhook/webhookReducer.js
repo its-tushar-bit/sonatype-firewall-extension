@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { remove, slice, startsWith, compose, any, isEmpty, symmetricDifference } from 'ramda';
+import { remove, slice, startsWith, any, isEmpty } from 'ramda';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
 import {
@@ -26,12 +26,11 @@ import {
   EDIT_WEBHOOK_FETCH_EVENT_TYPES_FULFILLED,
   EDIT_WEBHOOK_FETCH_WEBHOOKS_FULFILLED,
 } from './webhookActions';
-import { isNilOrEmpty, pathSet, propSet } from '../../util/jsUtil';
+import { eqValues, isNilOrEmpty, pathSet, propSet } from '../../util/jsUtil';
 import { combineValidators, validateNonEmpty } from '../../util/validationUtil';
 
 const { initialState: initUserInput, userInput } = nxTextInputStateHelpers;
 
-const eqValues = compose(isEmpty, symmetricDifference);
 const invalidUrlPrefixError = 'Webhook URL must start with http:// or https://';
 
 export const initialState = Object.freeze({

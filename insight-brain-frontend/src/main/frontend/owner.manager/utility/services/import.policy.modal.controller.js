@@ -6,13 +6,10 @@
 export default function ImportPolicyModalController(
   $rootScope,
   $scope,
-  $q,
   $http,
-  $window,
   $cookies,
   Messages,
-  CLMContextLocations,
-  PolicyHierarchyStore
+  CLMContextLocations
 ) {
   var vm = this;
 
@@ -53,7 +50,6 @@ export default function ImportPolicyModalController(
     var formData = new FormData(form[0]);
     vm.importPolicyMask.wrap($http.post(CLMContextLocations.getImportPolicyUrl(), formData)).then(
       function () {
-        PolicyHierarchyStore.refresh();
         $rootScope.$broadcast('policy.imported');
         $scope.$close();
       },
@@ -64,14 +60,4 @@ export default function ImportPolicyModalController(
   }
 }
 
-ImportPolicyModalController.$inject = [
-  '$rootScope',
-  '$scope',
-  '$q',
-  '$http',
-  '$window',
-  '$cookies',
-  'Messages',
-  'CLMContextLocations',
-  'PolicyHierarchyStore',
-];
+ImportPolicyModalController.$inject = ['$rootScope', '$scope', '$http', '$cookies', 'Messages', 'CLMContextLocations'];

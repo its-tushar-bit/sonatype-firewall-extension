@@ -7,7 +7,7 @@ import utilityModule from '../../../../main/frontend/utility/utility.module';
 import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
 
 describe('age.in.days.input.directive.spec.js', function () {
-  var element, scope, isolatedScope, vm, $compile, $httpBackend;
+  var element, scope, isolatedScope, vm, $compile, $httpBackend, $timeout, onChangeSpy;
 
   beforeEach(angular.mock.module(utilityModule.name, legacyConfigurationModule.name));
 
@@ -16,18 +16,22 @@ describe('age.in.days.input.directive.spec.js', function () {
     $httpBackend.verifyNoOutstandingRequest();
   });
 
-  beforeEach(inject(function (_$compile_, $rootScope, _$httpBackend_) {
+  beforeEach(inject(function (_$compile_, $rootScope, _$httpBackend_, _$timeout_) {
     scope = $rootScope.$new();
     $httpBackend = _$httpBackend_;
     $compile = _$compile_;
+    $timeout = _$timeout_;
+    onChangeSpy = jasmine.createSpy('onChange');
 
     scope = angular.extend(scope, {
       ageModel: '3',
+      onChange: onChangeSpy,
     });
 
-    element = $compile('<form name="testform"><age-in-days-input ng-model="ageModel">' + '</age-in-days-input></form>')(
-      scope
-    ).children();
+    element = $compile(
+      '<form name="testform"><age-in-days-input ng-model="ageModel" on-change="onChange()">' +
+        '</age-in-days-input></form>'
+    )(scope).children();
 
     isolatedScope = element.isolateScope();
     vm = isolatedScope.vm;
@@ -96,5 +100,14 @@ describe('age.in.days.input.directive.spec.js', function () {
       vm.modifier = 1;
       expect(vm.formatMax()).toBe(18249);
     });
+  });
+
+  it('calls onChange when model changes', () => {
+    expect(scope.onChange).not.toHaveBeenCalled();
+    isolatedScope.$digest();
+    scope.ageModel = 20;
+    scope.$digest();
+    $timeout.flush();
+    expect(scope.onChange).toHaveBeenCalledTimes(1);
   });
 });

@@ -17,14 +17,7 @@ import {
   selectDeleteModal,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
 
-export default function CategoryEditorController(
-  $scope,
-  Modal,
-  DeleteModalService,
-  PolicyHierarchyStore,
-  ApplicationStore,
-  $ngRedux
-) {
+export default function CategoryEditorController($scope, Modal, DeleteModalService, ApplicationStore, $ngRedux) {
   var vm = this;
 
   Object.assign(vm, {
@@ -78,7 +71,7 @@ export default function CategoryEditorController(
     },
 
     doLoad() {
-      const categoryEditorPromises = [ApplicationStore.get(), PolicyHierarchyStore.get()];
+      const categoryEditorPromises = [ApplicationStore.get()];
 
       vm.loadCategoryEditor({ categoryEditorPromises });
     },
@@ -116,11 +109,4 @@ export const mapStateToThis = (state) => ({
   associatedApplicationNames: selectAssociatedApplicationNames(state),
 });
 
-CategoryEditorController.$inject = [
-  '$scope',
-  'Modal',
-  'DeleteModalService',
-  'PolicyHierarchyStore',
-  'ApplicationStore',
-  '$ngRedux',
-];
+CategoryEditorController.$inject = ['$scope', 'Modal', 'DeleteModalService', 'ApplicationStore', '$ngRedux'];

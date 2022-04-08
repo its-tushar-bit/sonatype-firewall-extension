@@ -3,9 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import * as policySelectors from 'MainRoot/OrgsAndPolicies/policySelectors';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import { mapStateToThis } from 'MainRoot/owner.manager/policy/policy.editor.actions.controller';
 
-describe('policy.editor.actions.controller.spec.js', function () {
+describe('policy.editor.actions.controller', function () {
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
       $provide.value('$cookies', {
@@ -15,9 +17,10 @@ describe('policy.editor.actions.controller.spec.js', function () {
     })
   );
 
-  var vm, stageTypeStoreDefer, CLMLocations, $httpBackend;
+  var vm, stageTypeStoreDefer, CLMLocations, $httpBackend, $scope;
 
-  beforeEach(inject(function ($q, _$timeout_, _$httpBackend_, $controller, _CLMLocations_, StageTypeStore) {
+  beforeEach(inject(function ($q, _$timeout_, _$httpBackend_, $controller, _CLMLocations_, StageTypeStore, $rootScope) {
+    $scope = $rootScope.$new();
     CLMLocations = _CLMLocations_;
     $httpBackend = _$httpBackend_;
 
@@ -25,64 +28,38 @@ describe('policy.editor.actions.controller.spec.js', function () {
     spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
     spyOn(StageTypeStore, 'getActionStages').and.returnValue(stageTypeStoreDefer.promise);
     stageTypeStoreDefer.resolve(MockData.getActionStageData());
-    vm = $controller('policy.editor.actions.controller', {}, { actions: [] });
+    vm = $controller('policy.editor.actions.controller', { $scope }, { actions: [] });
   }));
 
-  it('Properly loads action info', function () {
-    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
-    expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();
-    $httpBackend.flush();
+  describe('mapStateToThis', () => {
+    it('sets shouldShowQuarantineWarning to component', () => {
+      spyOn(policySelectors, 'selectShouldShowQuarantineWarning').and.returnValue(true);
 
-    expect(vm.actionStages.length).toBe(6);
+      const { shouldShowQuarantineWarning } = mapStateToThis({});
+
+      expect(shouldShowQuarantineWarning).toBeTrue();
+    });
   });
 
-  describe('vm.shouldShowQuarantineWarning', function () {
-    it('returns false when root org and action is not fail', function () {
-      inject(function ($controller) {
-        vm = $controller(
-          'policy.editor.actions.controller',
-          {},
-          { actions: [{ proxy: 'fail' }, { build: undefined }], isRootOrg: true, originalProxyStageAction: 'warn' }
-        );
-      });
-      vm.actions['proxy'] = 'warn';
-      expect(vm.shouldShowQuarantineWarning()).toBe(false);
+  describe('on create', () => {
+    it('subscribes to the redux store', () => {
+      expect(vm.unsubscribe).toBeDefined();
     });
 
-    it('returns false when root org and action not changed to fail', function () {
-      inject(function ($controller) {
-        vm = $controller(
-          'policy.editor.actions.controller',
-          {},
-          { actions: [{ proxy: 'warn' }, { build: undefined }], isRootOrg: true, originalProxyStageAction: 'fail' }
-        );
-      });
-      vm.actions['proxy'] = 'fail';
-      expect(vm.shouldShowQuarantineWarning()).toBe(false);
-    });
+    it('Properly loads action info', function () {
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
+      expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();
+      $httpBackend.flush();
 
-    it('returns true when root org and action changed to fail', function () {
-      inject(function ($controller) {
-        vm = $controller(
-          'policy.editor.actions.controller',
-          {},
-          { actions: [{ proxy: 'warn' }, { build: undefined }], isRootOrg: true, originalProxyStageAction: 'warn' }
-        );
-      });
-      vm.actions['proxy'] = 'fail';
-      expect(vm.shouldShowQuarantineWarning()).toBe(true);
+      expect(vm.actionStages.length).toBe(6);
     });
+  });
 
-    it('returns false when not root org', function () {
-      inject(function ($controller) {
-        vm = $controller(
-          'policy.editor.actions.controller',
-          {},
-          { actions: [{ proxy: 'warn' }, { build: undefined }], isRootOrg: false, originalProxyStageAction: 'warn' }
-        );
-      });
-      vm.actions['proxy'] = 'fail';
-      expect(vm.shouldShowQuarantineWarning()).toBe(false);
+  describe('$destroy()', () => {
+    it('unsubscribes from redux store', () => {
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
+      $scope.$destroy();
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
     });
   });
 });

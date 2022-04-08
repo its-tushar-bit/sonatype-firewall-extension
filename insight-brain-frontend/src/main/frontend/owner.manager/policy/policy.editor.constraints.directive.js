@@ -12,7 +12,6 @@ export default function PolicyEditorConstraintsDirective() {
     controllerAs: 'vm',
     scope: {
       constraints: '=',
-      isNewPolicy: '=',
       disabled: '=?editorDisabled',
     },
     bindToController: true,

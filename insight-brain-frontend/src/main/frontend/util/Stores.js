@@ -149,47 +149,6 @@ storesModule.service('StageTypeStore', [
   },
 ]);
 
-storesModule.service('PolicyHierarchyStore', [
-  'CLMContextLocations',
-  'CachedHierarchyStore',
-  function (CLMContextLocations, CachedHierarchyStore) {
-    var policyStoreTemplate = {
-      template: {
-        id: undefined,
-        name: undefined,
-        threatLevel: 5,
-        constraints: [
-          {
-            id: '' + new Date().getTime(),
-            conditions: [
-              {
-                conditionTypeId: 'AgeInDays',
-                operator: 'older than',
-                value: null,
-              },
-            ],
-            operator: 'OR',
-          },
-        ],
-        actions: {},
-        notifications: {
-          userNotifications: [],
-          roleNotifications: [],
-          jiraNotifications: [],
-          webhookNotifications: [],
-        },
-      },
-      type: 'policy',
-      getUrl: CLMContextLocations.getApplicablePolicies,
-      crudUrl: CLMContextLocations.getPolicyUrl,
-      field: 'policiesByOwner',
-      storeField: 'policies',
-    };
-
-    return CachedHierarchyStore.get(policyStoreTemplate);
-  },
-]);
-
 storesModule.service('WebhookStore', [
   'CLMLocations',
   'CachedStore',

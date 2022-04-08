@@ -66,23 +66,5 @@ describe('import.policy.modal.controller.spec.js', function () {
       expect(vm.error).toBeDefined();
       expect(submitEvent.preventDefault).toHaveBeenCalled();
     });
-
-    it('Test import success', inject(function (PolicyHierarchyStore) {
-      validateInitialState();
-      scope.$close = jasmine.createSpy('close');
-
-      $httpBackend.expectPOST(CLMContextLocations.getImportPolicyUrl()).respond({
-        ownerName: 'test',
-      });
-      spyOn(PolicyHierarchyStore, 'refresh');
-
-      vm.doSubmit(submitEvent);
-      $httpBackend.flush();
-
-      expect(scope.$close).toHaveBeenCalled();
-      expect(PolicyHierarchyStore.refresh).toHaveBeenCalled();
-      expect(vm.error).toBeUndefined();
-      expect(submitEvent.preventDefault).toHaveBeenCalled();
-    }));
   });
 });

@@ -31,7 +31,6 @@ export default function PolicyTileController(
   StageTypeStore,
   SameOwnerStateNavigationService,
   EventNameConstant,
-  PolicyHierarchyStore,
   CLMContextLocations,
   PolicyViolationGrandfatheringService,
   $ngRedux
@@ -70,7 +69,7 @@ export default function PolicyTileController(
   $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
   function doLoad() {
-    const promises = [PolicyHierarchyStore.get(), StageTypeStore.getActionStages()];
+    const promises = [StageTypeStore.getActionStages()];
     if (vm.isAppOrOrg) {
       promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
     }
@@ -78,8 +77,7 @@ export default function PolicyTileController(
     vm.loadPropietaryConfig();
     vm.loadApplicablePolicyMonitoring({
       promises: () =>
-        Promise.all(promises).then(([policiesByOwner, actionStages, grandfathering]) => ({
-          policiesByOwner,
+        Promise.all(promises).then(([actionStages, grandfathering]) => ({
           actionStages,
           grandfathering,
         })),
@@ -121,7 +119,6 @@ PolicyTileController.$inject = [
   'StageTypeStore',
   'SameOwnerStateNavigationService',
   'event.name.constant',
-  'PolicyHierarchyStore',
   'CLMContextLocations',
   'policyViolationGrandfatheringService',
   '$ngRedux',

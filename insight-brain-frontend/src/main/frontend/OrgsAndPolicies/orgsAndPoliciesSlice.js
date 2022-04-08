@@ -10,6 +10,7 @@ import rootSlice from './orgsAndPoliciesRootSlice';
 import policyMonitoring from './orgsAndPoliciesPolicyMonitoringSlice';
 import proprietarySlice from './orgsAndPoliciesProprietarySlice';
 import constraintSlice from './orgsAndPoliciesConstraintSlice';
+import policySlice from './policySlice';
 
 export default combineReducers({
   root: rootSlice,
@@ -18,4 +19,5 @@ export default combineReducers({
   policyMonitoring: policyMonitoring,
   proprietary: proprietarySlice,
   constraint: constraintSlice,
+  policy: policySlice,
 });

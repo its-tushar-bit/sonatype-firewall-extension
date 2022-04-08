@@ -6,15 +6,17 @@
 import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
 
 describe('coordinates.input.directive.spec', function () {
-  var scope, directiveScope;
+  var scope, directiveScope, $timeout;
 
   beforeEach(angular.mock.module(ownerManagerModule.name));
 
   function initialize(value) {
-    inject(function ($compile, $rootScope) {
+    inject(function ($compile, $rootScope, _$timeout_) {
+      $timeout = _$timeout_;
       scope = $rootScope.$new();
       scope.value = value;
-      $compile('<coordinates-input value="value">')(scope);
+      scope.onChange = jasmine.createSpy('onChange');
+      $compile('<coordinates-input value="value" on-change="onChange()">')(scope);
 
       directiveScope = scope.$$childHead;
       directiveScope.$apply(); // triggers watch etc.
@@ -23,6 +25,16 @@ describe('coordinates.input.directive.spec', function () {
 
   afterEach(function () {
     scope.$destroy();
+  });
+
+  it('calls onChange if provided', () => {
+    initialize();
+    expect(scope.onChange).toHaveBeenCalledTimes(0);
+
+    directiveScope.vm.coordinates.name = 'MarkupSafe';
+    directiveScope.$apply();
+    $timeout.flush();
+    expect(scope.onChange).toHaveBeenCalledTimes(1);
   });
 
   it('new constraint defaults to maven', function () {

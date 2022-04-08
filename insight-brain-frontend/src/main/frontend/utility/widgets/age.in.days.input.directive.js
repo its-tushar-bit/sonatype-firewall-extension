@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { equals } from 'ramda';
 import template from './age.in.days.input.directive.html';
 
 export default function AgeInDaysInput() {
@@ -13,6 +14,7 @@ export default function AgeInDaysInput() {
       ageInDaysRequired: '<?isRequired',
       name: '@',
       max: '@',
+      onChange: '&?',
     },
     template,
     controller: AgeInDaysInputController,
@@ -30,7 +32,7 @@ export default function AgeInDaysInput() {
   }
 }
 
-function AgeInDaysInputController($scope) {
+function AgeInDaysInputController($scope, $timeout) {
   var vm = this;
 
   vm.formatDaysToAge = formatDaysToAge;
@@ -51,6 +53,16 @@ function AgeInDaysInputController($scope) {
   $scope.$watch('vm.modifier', function (newModifier, oldModifier) {
     if (vm.ageInDaysModel) {
       vm.ageInDaysModel = ((vm.ageInDaysModel / oldModifier) * newModifier).toString();
+    }
+  });
+
+  $scope.$watch('vm.ageInDaysModel', function (newModifier, oldModifier) {
+    if (!equals(newModifier, oldModifier)) {
+      if (vm.onChange) {
+        $timeout(() => {
+          vm.onChange();
+        });
+      }
     }
   });
 
@@ -75,4 +87,4 @@ function AgeInDaysInputController($scope) {
   }
 }
 
-AgeInDaysInputController.$inject = ['$scope'];
+AgeInDaysInputController.$inject = ['$scope', '$timeout'];

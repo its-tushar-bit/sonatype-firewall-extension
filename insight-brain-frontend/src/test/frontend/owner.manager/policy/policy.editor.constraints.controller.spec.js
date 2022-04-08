@@ -3,11 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
-import ConditionTypeValueResourceMockData from '../mock.data/conditionTypeValue.mock.data';
-import PolicyResourceMockData from '../mock.data/policy.resource.mock.data';
-import { getConditionTypeUrl, getConditionValueTypeUrl } from 'MainRoot/util/CLMLocation';
 import * as constraintSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesConstraintSelectors';
 import { mapStateToThis } from 'MainRoot/owner.manager/policy/policy.editor.constraints.controller';
 
@@ -18,23 +14,9 @@ describe('policy.editor.constraints.controller', () => {
     })
   );
 
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-
   let vm;
   beforeEach(inject(($controller) => {
-    mockAxiosCalls({
-      get: {
-        [getConditionTypeUrl()]: Promise.resolve({
-          data: PolicyResourceMockData.getConditionTypeUrl(),
-        }),
-        [getConditionValueTypeUrl('application', 'ownerId')]: Promise.resolve({
-          data: ConditionTypeValueResourceMockData.getConditionValueTypeUrl(),
-        }),
-      },
-    });
-
     vm = $controller('policy.editor.constraints.controller', {}, { constraints: [] });
-    vm.isNewPolicy = true;
     vm.$onInit();
   }));
 
@@ -103,10 +85,6 @@ describe('policy.editor.constraints.controller', () => {
   describe('$onInit()', () => {
     it('subscribes to the redux store', () => {
       expect(vm.unsubscribe).toBeDefined();
-    });
-
-    it('calls loadConstraint', () => {
-      expect(vm.loadConstraint).toHaveBeenCalledOnceWith({ isNewPolicy: true, constraints: [] });
     });
   });
 
@@ -216,105 +194,316 @@ describe('policy.editor.constraints.controller', () => {
     ).toMatch('Security Vulnerability Status is Acknowledged');
   });
 
-  it('properly adds conditions', () => {
-    const constraint = {
-      id: 'beCarefulWithKnives',
-      operator: 'OR',
-      conditions: [
+  describe('addConstraint', () => {
+    it('calls updateEditConstraintId and addConstraintAction', () => {
+      vm.constraints = [
         {
-          conditionTypeId: 'AgeInDays',
-          operator: 'older than',
-          value: '730',
+          id: 'knife1',
+          operator: 'OR',
+          conditions: [],
         },
         {
-          conditionTypeId: 'SecurityVulnerabilityStatus',
-          operator: 'is',
-          value: 'ACKNOWLEDGED',
+          id: 'knife2',
+          operator: 'OR',
+          conditions: [],
         },
-      ],
-    };
+      ];
 
-    vm.addCondition(constraint);
+      vm.addConstraint();
 
-    expect(constraint.conditions.length).toBe(3);
-    expect(constraint.conditions[2]).toEqual({
-      conditionTypeId: 'AgeInDays',
-      operator: 'older than',
-      value: null,
+      expect(vm.addConstraintAction).toHaveBeenCalledOnceWith([
+        ...vm.constraints,
+        jasmine.objectContaining({
+          conditions: [
+            {
+              conditionTypeId: 'AgeInDays',
+              operator: 'older than',
+            },
+          ],
+          operator: 'OR',
+        }),
+      ]);
+      expect(vm.updateEditConstraintId).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('properly deletes conditions', () => {
-    const constraint = {
-      id: 'beCarefulWithKnives',
-      operator: 'OR',
-      conditions: [
+  describe('deleteConstraint', () => {
+    it('calls deleteConstraintAction', () => {
+      vm.constraints = [
         {
-          conditionTypeId: 'AgeInDays',
-          operator: 'older than',
-          value: '730',
+          id: 'knife1',
+          operator: 'OR',
+          conditions: [],
         },
         {
-          conditionTypeId: 'SecurityVulnerabilityStatus',
-          operator: 'is',
-          value: 'ACKNOWLEDGED',
+          id: 'knife2',
+          operator: 'OR',
+          conditions: [],
         },
-        {
-          conditionTypeId: 'AgeInDays',
-          operator: 'older than',
-          value: null,
-        },
-      ],
-    };
+      ];
 
-    vm.deleteCondition(constraint, 2);
+      const constraintIndex = 1;
+      vm.deleteConstraint(constraintIndex);
 
-    expect(constraint.conditions.length).toBe(2);
-    expect(constraint.conditions[2]).toBeUndefined();
-  });
-
-  it('properly adds constraints', () => {
-    vm.constraints = [
-      {
-        id: 'knife1',
-        operator: 'OR',
-        conditions: [],
-      },
-      {
-        id: 'knife2',
-        operator: 'OR',
-        conditions: [],
-      },
-    ];
-
-    vm.addConstraint();
-
-    expect(vm.constraints.length).toBe(3);
-    expect(vm.constraints[2].operator).toEqual('OR');
-    expect(vm.constraints[2].conditions.length).toBe(1);
-    expect(vm.constraints[2].conditions[0]).toEqual({
-      conditionTypeId: 'AgeInDays',
-      operator: 'older than',
+      expect(vm.deleteConstraintAction).toHaveBeenCalledOnceWith([vm.constraints[0]]);
     });
-    expect(vm.updateEditConstraintId).toHaveBeenCalledTimes(1);
   });
 
-  it('properly deletes constraints', () => {
-    vm.constraints = [
-      {
-        id: 'knife1',
-        operator: 'OR',
-        conditions: [],
-      },
-      {
-        id: 'knife2',
-        operator: 'OR',
-        conditions: [],
-      },
-    ];
+  describe('addCondition', () => {
+    it('calls deleteConditionAction', () => {
+      vm.constraints = [
+        {
+          id: 'knife1',
+          operator: 'OR',
+          conditions: [],
+        },
+        {
+          id: 'knife1',
+          operator: 'OR',
+          conditions: [],
+        },
+      ];
+      const defaultNewCondition = {
+        conditionTypeId: 'AgeInDays',
+        operator: 'older than',
+        value: null,
+      };
 
-    vm.deleteConstraint(1);
-    expect(vm.constraints.length).toBe(1);
-    expect(vm.constraints[1]).toBeUndefined();
+      const constraintIndex = 1;
+      vm.addCondition(constraintIndex);
+
+      expect(vm.addConditionAction).toHaveBeenCalledOnceWith({
+        constraintIndex,
+        value: [...vm.constraints[constraintIndex].conditions, defaultNewCondition],
+      });
+    });
+  });
+
+  describe('deleteCondition', () => {
+    it('calls deleteConditionAction', () => {
+      vm.constraints = [
+        {
+          id: 'knife1',
+          operator: 'OR',
+          conditions: [],
+        },
+        {
+          id: 'knife1',
+          operator: 'OR',
+          conditions: [
+            {
+              conditionTypeId: 'AgeInDays',
+              operator: 'older than',
+              value: null,
+            },
+            {
+              conditionTypeId: 'relativePercentage',
+              operator: 'moreThan',
+              value: 3,
+            },
+          ],
+        },
+      ];
+
+      const constraintIndex = 1,
+        conditionIndex = 1;
+      const updatedArray = vm.constraints[constraintIndex].conditions.filter((_, index) => index !== conditionIndex);
+
+      vm.deleteCondition(constraintIndex, conditionIndex);
+
+      expect(vm.deleteConditionAction).toHaveBeenCalledOnceWith({
+        constraintIndex,
+        conditionIndex,
+        value: updatedArray,
+      });
+    });
+  });
+
+  describe('onConditionTypeIdChange', () => {
+    it('calls actions to set default values for associated fields', () => {
+      vm.conditionTypesMap = {
+        AgeInDays: {
+          enabled: true,
+          autoUnquarantineSupported: false,
+          supportedOperators: ['older than', 'younger than'],
+          valueTypeId: 'AgeInDaysValueType',
+          valueHint: 'Enter term',
+          threatCategory: 'QUALITY',
+          name: 'Age',
+          id: 'AgeInDays',
+          valueType: {
+            availableValues: null,
+            allowMultiple: false,
+            dataType: 'Integer',
+            id: 'AgeInDaysValueType',
+          },
+        },
+      };
+      vm.constraints = [
+        {
+          id: 'knife1',
+          operator: 'OR',
+          conditions: [],
+        },
+        {
+          id: 'knife1',
+          operator: 'OR',
+          conditions: [
+            {
+              conditionTypeId: 'relativePercentage',
+              operator: 'older than',
+              value: null,
+            },
+            {
+              conditionTypeId: 'AgeInDays',
+              operator: 'moreThan',
+              value: 3,
+            },
+          ],
+        },
+      ];
+
+      const constraintIndex = 1,
+        conditionIndex = 1;
+
+      vm.onConditionTypeIdChange(constraintIndex, conditionIndex);
+
+      expect(vm.setConstraintCondition).toHaveBeenCalledOnceWith({
+        constraintIndex,
+        conditionIndex,
+        value: { conditionTypeId: 'AgeInDays', operator: 'older than', value: null },
+      });
+    });
+  });
+
+  describe('onConstraintNameChange', () => {
+    it('calls setConstraintName', () => {
+      vm.constraints = [
+        {
+          id: 'knife1',
+          operator: 'OR',
+          conditions: [],
+        },
+        {
+          id: 'knife1',
+          operator: 'OR',
+          name: 'somebody',
+          conditions: [],
+        },
+      ];
+
+      const constraintIndex = 1;
+
+      vm.onConstraintNameChange(constraintIndex);
+
+      expect(vm.setConstraintName).toHaveBeenCalledOnceWith({
+        constraintIndex,
+        value: 'somebody',
+      });
+    });
+  });
+
+  describe('onConstraintOperatorChange', () => {
+    it('calls setConstraintOperator', () => {
+      vm.constraints = [
+        {
+          id: 'knife1',
+          operator: 'OR',
+          conditions: [],
+        },
+        {
+          id: 'knife1',
+          operator: 'AND',
+          conditions: [],
+        },
+      ];
+
+      const constraintIndex = 1;
+
+      vm.onConstraintOperatorChange(constraintIndex);
+
+      expect(vm.setConstraintOperator).toHaveBeenCalledOnceWith({
+        constraintIndex,
+        value: 'AND',
+      });
+    });
+  });
+
+  describe('onConditionOperatorChange', () => {
+    it('calls setConditionOperator', () => {
+      vm.constraints = [
+        {
+          id: 'knife1',
+          operator: 'OR',
+          conditions: [],
+        },
+        {
+          id: 'knife1',
+          operator: 'AND',
+          conditions: [
+            {
+              conditionTypeId: 'AgeInDays',
+              operator: 'older than',
+              value: null,
+            },
+            {
+              conditionTypeId: 'relativePercentage',
+              operator: 'moreThan',
+              value: 3,
+            },
+          ],
+        },
+      ];
+
+      const constraintIndex = 1,
+        conditionIndex = 1;
+
+      vm.onConditionOperatorChange(constraintIndex, conditionIndex);
+
+      expect(vm.setConditionOperator).toHaveBeenCalledOnceWith({
+        constraintIndex,
+        conditionIndex,
+        value: 'moreThan',
+      });
+    });
+  });
+
+  describe('onConditionValueChange', () => {
+    it('calls setConditionValue', () => {
+      vm.constraints = [
+        {
+          id: 'knife1',
+          operator: 'OR',
+          conditions: [],
+        },
+        {
+          id: 'knife1',
+          operator: 'AND',
+          conditions: [
+            {
+              conditionTypeId: 'AgeInDays',
+              operator: 'older than',
+              value: null,
+            },
+            {
+              conditionTypeId: 'relativePercentage',
+              operator: 'moreThan',
+              value: 3,
+            },
+          ],
+        },
+      ];
+
+      const constraintIndex = 1,
+        conditionIndex = 1;
+
+      vm.onConditionValueChange(constraintIndex, conditionIndex);
+
+      expect(vm.setConditionValue).toHaveBeenCalledOnceWith({
+        constraintIndex,
+        conditionIndex,
+        value: 3,
+      });
+    });
   });
 });

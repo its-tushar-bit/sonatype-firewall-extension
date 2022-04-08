@@ -875,6 +875,22 @@ export const getConditionTypeUrl = () => uriTemplate`/rest/policy/conditionType`
 export const getConditionValueTypeUrl = (ownerType, ownerId) =>
   uriTemplate`/rest/conditionValueType/${ownerType}/${ownerId}`;
 
+export const getPolicyUrl = (ownerType, ownerId) => {
+  return uriTemplate`/rest/policy/${ownerType}/${ownerId}`;
+};
+
+export const getPolicyCRUDUrl = (ownerType, ownerId, policyId) => {
+  return getPolicyUrl(ownerType, ownerId) + `/${policyId}`;
+};
+
+export const getApplicablePolicies = (ownerType, ownerId) => {
+  return getPolicyUrl(ownerType, ownerId) + '/applicable';
+};
+
+export const getPolicyTagUrl = (policyId, ownerType, ownerId) => {
+  return uriTemplate`/rest/appliedTag/policy/${policyId}/${ownerType}/${ownerId}`;
+};
+
 export const getCrowdConfigurationUrl = () => {
   return uriTemplate`/api/v2/config/crowd`;
 };

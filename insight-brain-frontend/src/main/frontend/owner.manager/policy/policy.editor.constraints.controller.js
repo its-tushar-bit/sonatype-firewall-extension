@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesConstraintSlice';
+import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
+
 import {
   selectIsLoading,
   selectLoadError,
@@ -12,6 +14,7 @@ import {
   selectConditionTypes,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesConstraintSelectors';
 import { conditionString } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
+import { remove } from 'ramda';
 
 export default function PolicyEditorConstraintsController($ngRedux) {
   let vm = this;
@@ -30,19 +33,21 @@ export default function PolicyEditorConstraintsController($ngRedux) {
 
     $onInit() {
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-        loadConstraint: actions.loadConstraint,
         updateEditConstraintId: actions.updateEditConstraintId,
+        addConstraintAction: policyActions.addConstraint,
+        deleteConstraintAction: policyActions.deleteConstraint,
+        setConstraintName: policyActions.setConstraintName,
+        addConditionAction: policyActions.addCondition,
+        deleteConditionAction: policyActions.deleteCondition,
+        setConstraintCondition: policyActions.setConstraintCondition,
+        setConstraintOperator: policyActions.setConstraintOperator,
+        setConditionOperator: policyActions.setConditionOperator,
+        setConditionValue: policyActions.setConditionValue,
       })(vm);
-
-      vm.doLoad();
     },
 
     $onDestroy() {
       vm.unsubscribe();
-    },
-
-    doLoad() {
-      vm.loadConstraint({ isNewPolicy: vm.isNewPolicy, constraints: vm.constraints });
     },
 
     conditionString,
@@ -60,25 +65,36 @@ export default function PolicyEditorConstraintsController($ngRedux) {
       };
 
       vm.updateEditConstraintId(newConstraint.id);
-      vm.constraints.push(newConstraint);
+      vm.addConstraintAction([...vm.constraints, newConstraint]);
     },
 
-    addCondition(constraint) {
+    deleteConstraint(constraintIndex) {
+      const numberOfElementsToRemove = 1;
+      const updatedConstraints = remove(constraintIndex, numberOfElementsToRemove, vm.constraints);
+
+      vm.deleteConstraintAction(updatedConstraints);
+    },
+
+    addCondition(constraintIndex) {
       const newCondition = {
         conditionTypeId: 'AgeInDays',
         operator: 'older than',
         value: null,
       };
+      const updatedConditions = [...vm.constraints[constraintIndex].conditions, newCondition];
 
-      constraint.conditions.push(newCondition);
+      vm.addConditionAction({ constraintIndex, value: updatedConditions });
     },
 
-    deleteConstraint(constraintIndex) {
-      vm.constraints.splice(constraintIndex, 1);
-    },
+    deleteCondition(constraintIndex, conditionIndex) {
+      const numberOfElementsToRemove = 1;
+      const updatedConditions = remove(
+        conditionIndex,
+        numberOfElementsToRemove,
+        vm.constraints[constraintIndex].conditions
+      );
 
-    deleteCondition(constraint, conditionIndex) {
-      constraint.conditions.splice(conditionIndex, 1);
+      vm.deleteConditionAction({ constraintIndex, conditionIndex, value: updatedConditions });
     },
 
     getEmptyOptionCondition(condition) {
@@ -87,16 +103,51 @@ export default function PolicyEditorConstraintsController($ngRedux) {
       }
       return 'None Selected';
     },
-
-    updateConditionType(condition) {
-      const conditionType = vm.conditionTypesMap[condition.conditionTypeId];
-      condition.operator = conditionType.supportedOperators[0];
-      condition.value = null;
+    getConditionValue(conditionType) {
+      let value = null;
 
       if (conditionType.valueType) {
         const availableValues = conditionType.valueType.availableValues;
-        condition.value = availableValues && availableValues.length > 0 ? availableValues[0].id : null;
+        value = availableValues && availableValues.length > 0 ? availableValues[0].id : null;
       }
+
+      return value;
+    },
+    onConditionTypeIdChange(constraintIndex, conditionIndex) {
+      const updatedConditionTypeId = vm.constraints[constraintIndex].conditions[conditionIndex].conditionTypeId;
+      const conditionType = vm.conditionTypesMap[updatedConditionTypeId];
+
+      const updatedCondition = {
+        conditionTypeId: updatedConditionTypeId,
+        operator: conditionType.supportedOperators[0],
+        value: vm.getConditionValue(conditionType),
+      };
+
+      vm.setConstraintCondition({ constraintIndex, conditionIndex, value: updatedCondition });
+    },
+    onConstraintNameChange(constraintIndex) {
+      vm.setConstraintName({ constraintIndex, value: vm.constraints[constraintIndex].name });
+    },
+    onConstraintOperatorChange(constraintIndex) {
+      vm.setConstraintOperator({ constraintIndex, value: vm.constraints[constraintIndex].operator });
+    },
+    onConditionOperatorChange(constraintIndex, conditionIndex) {
+      const updatedOperator = vm.constraints[constraintIndex].conditions[conditionIndex].operator;
+
+      vm.setConditionOperator({
+        constraintIndex,
+        conditionIndex,
+        value: updatedOperator,
+      });
+    },
+    onConditionValueChange(constraintIndex, conditionIndex) {
+      const updatedValue = vm.constraints[constraintIndex].conditions[conditionIndex].value;
+
+      vm.setConditionValue({
+        constraintIndex,
+        conditionIndex,
+        value: updatedValue,
+      });
     },
   });
 }

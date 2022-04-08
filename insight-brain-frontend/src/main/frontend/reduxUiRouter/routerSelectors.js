@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { prop, split, contains, curryN } from 'ramda';
+import { contains, curryN, prop, propEq, split } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 
 export const selectRouterSlice = prop('router');
@@ -21,3 +21,8 @@ const includesNamePart = curryN(2, (part, str) => contains(part, split('.', str)
 const nameIncludesOrganization = includesNamePart('organization');
 
 export const selectIsOrganization = createSelector(selectCurrentRouteName, nameIncludesOrganization);
+
+export const selectIsRootOrganization = createSelector(
+  selectRouterCurrentParams,
+  propEq('organizationId', 'ROOT_ORGANIZATION_ID')
+);

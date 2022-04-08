@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
+import { findIndex, propEq } from 'ramda';
 export default function PolicyEditorNotificationsController(
   $scope,
   $q,
@@ -10,7 +13,8 @@ export default function PolicyEditorNotificationsController(
   StageTypeStore,
   JiraService,
   ProductFeatures,
-  NotificationWebhookService
+  NotificationWebhookService,
+  $ngRedux
 ) {
   var vm = this,
     availableRoles,
@@ -56,7 +60,16 @@ export default function PolicyEditorNotificationsController(
   vm.isNotificationsFormDisabled = isNotificationsFormDisabled;
   vm.isCheckboxForStageDisabled = isCheckboxForStageDisabled;
   vm.getAvailableWebhooks = getAvailableWebhooks;
-
+  vm.unsubscribe = $ngRedux.connect(null, {
+    setUserNotificationsAction: actions.setUserNotifications,
+    setRoleNotificationsAction: actions.setRoleNotifications,
+    setJiraNotificationsAction: actions.setJiraNotifications,
+    setWebhookNotificationsAction: actions.setWebhookNotifications,
+    setUserNotificationStageIdsAction: actions.setUserNotificationStageIds,
+    setRoleNotificationStageIdsAction: actions.setRoleNotificationStageIds,
+    setJiraNotificationStageIdsAction: actions.setJiraNotificationStageIds,
+    setWebhookNotificationStageIdsAction: actions.setWebhookNotificationStageIds,
+  })(vm);
   vm.doLoad();
 
   $scope.$watch('vm.notifications', function (newValue, oldValue) {
@@ -64,6 +77,10 @@ export default function PolicyEditorNotificationsController(
       return;
     }
     loadRecipients();
+  });
+
+  $scope.$on('$destroy', () => {
+    vm.unsubscribe();
   });
 
   function doLoad() {
@@ -230,14 +247,22 @@ export default function PolicyEditorNotificationsController(
     // remove notifications from original policy notifications
     if (recipient.roleId) {
       vm.notifications.roleNotifications.splice(vm.notifications.roleNotifications.indexOf(recipient), 1);
+
+      vm.setRoleNotificationsAction(vm.notifications.roleNotifications);
       updateAvailableRoles();
     } else if (recipient.emailAddress) {
       vm.notifications.userNotifications.splice(vm.notifications.userNotifications.indexOf(recipient), 1);
+
+      vm.setUserNotificationsAction(vm.notifications.userNotifications);
     } else if (recipient.projectKey) {
       vm.notifications.jiraNotifications.splice(vm.notifications.jiraNotifications.indexOf(recipient), 1);
+
+      vm.setJiraNotificationsAction(vm.notifications.jiraNotifications);
       updateAvailableJiraProjects();
     } else if (recipient.webhookId) {
       vm.notifications.webhookNotifications.splice(vm.notifications.webhookNotifications.indexOf(recipient), 1);
+
+      vm.setWebhookNotificationsAction(vm.notifications.webhookNotifications);
       updateAvailableWebhooks();
     }
   }
@@ -245,14 +270,14 @@ export default function PolicyEditorNotificationsController(
   function getDisplayName(recipient) {
     return (
       recipient.emailAddress ||
-      roleNames[recipient.roleId] ||
+      roleNames?.[recipient.roleId] ||
       getWebhookDisplayName(recipient) ||
       getJiraDisplayName(recipient)
     );
   }
 
   function getJiraDisplayName(recipient) {
-    if (!vm.jiraError && jiraProjectNames[recipient.projectKey] && jiraIssueTypes[recipient.issueTypeId]) {
+    if (!vm.jiraError && jiraProjectNames?.[recipient.projectKey] && jiraIssueTypes[recipient.issueTypeId]) {
       return jiraProjectNames[recipient.projectKey] + ' (' + jiraIssueTypes[recipient.issueTypeId] + ')';
     }
     return recipient.projectKey + ' (Issue Type ID: ' + recipient.issueTypeId + ')';
@@ -280,6 +305,37 @@ export default function PolicyEditorNotificationsController(
     } else {
       recipient.stageIds.push(stage);
     }
+
+    const updatedStageIds = recipient.stageIds;
+
+    let notificationIndexToUpdate;
+
+    if (recipient.roleId) {
+      notificationIndexToUpdate = findIndex(propEq('roleId', recipient.roleId), vm.notifications.roleNotifications);
+
+      vm.setRoleNotificationStageIdsAction({
+        index: notificationIndexToUpdate,
+        value: updatedStageIds,
+      });
+    } else if (recipient.emailAddress) {
+      notificationIndexToUpdate = findIndex(
+        propEq('emailAddress', recipient.emailAddress),
+        vm.notifications.userNotifications
+      );
+      vm.setUserNotificationStageIdsAction({ index: notificationIndexToUpdate, value: updatedStageIds });
+    } else if (recipient.projectKey) {
+      notificationIndexToUpdate = findIndex(
+        propEq('projectKey', recipient.projectKey),
+        vm.notifications.jiraNotifications
+      );
+      vm.setJiraNotificationStageIdsAction({ index: notificationIndexToUpdate, value: updatedStageIds });
+    } else if (recipient.webhookId) {
+      notificationIndexToUpdate = findIndex(
+        propEq('webhookId', recipient.webhookId),
+        vm.notifications.webhookNotifications
+      );
+      vm.setWebhookNotificationStageIdsAction({ index: notificationIndexToUpdate, value: updatedStageIds });
+    }
   }
 
   function addEmailRecipient(email) {
@@ -291,7 +347,9 @@ export default function PolicyEditorNotificationsController(
       emailAddress: email,
       stageIds: [],
     };
+
     vm.notifications.userNotifications.push(newNotification);
+    vm.setUserNotificationsAction(vm.notifications.userNotifications);
     vm.recipients.push(newNotification);
   }
 
@@ -301,6 +359,7 @@ export default function PolicyEditorNotificationsController(
       stageIds: [],
     };
     vm.notifications.roleNotifications.push(newNotification);
+    vm.setRoleNotificationsAction(vm.notifications.roleNotifications);
     vm.recipients.push(newNotification);
     updateAvailableRoles();
   }
@@ -312,6 +371,7 @@ export default function PolicyEditorNotificationsController(
       stageIds: [],
     };
     vm.notifications.jiraNotifications.push(newNotification);
+    vm.setJiraNotificationsAction(vm.notifications.jiraNotifications);
     vm.recipients.push(newNotification);
     updateAvailableJiraProjects();
   }
@@ -322,6 +382,7 @@ export default function PolicyEditorNotificationsController(
       stageIds: [],
     };
     vm.notifications.webhookNotifications.push(newNotification);
+    vm.setWebhookNotificationsAction(vm.notifications.webhookNotifications);
     vm.recipients.push(newNotification);
     updateAvailableWebhooks();
   }
@@ -453,4 +514,5 @@ PolicyEditorNotificationsController.$inject = [
   'jira.service',
   'ProductFeatures',
   'notification.webhook.service',
+  '$ngRedux',
 ];

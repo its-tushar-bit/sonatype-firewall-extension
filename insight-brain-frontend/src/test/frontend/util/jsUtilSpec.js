@@ -3,7 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { capitalize, getFutureDate, isNilOrEmpty, multiGroupBy, union } from '../../../main/frontend/util/jsUtil';
+import {
+  capitalize,
+  eqValues,
+  getFutureDate,
+  isNilOrEmpty,
+  multiGroupBy,
+  union,
+} from '../../../main/frontend/util/jsUtil';
 
 describe('jsUtil', function () {
   describe('isNilOrEmpty', function () {
@@ -172,6 +179,24 @@ describe('jsUtil', function () {
       assertFormat(getFutureDate(30));
       assertFormat(getFutureDate(90));
       assertFormat(getFutureDate(120));
+    });
+  });
+
+  describe('eqValues', () => {
+    it('returns true for empty arrays', () => {
+      expect(eqValues([], [])).toBeTrue();
+    });
+
+    it('returns false for non-matching arrays', () => {
+      expect(eqValues([''], ['content'])).toBeFalse();
+    });
+
+    it('returns true for matching arrays', () => {
+      expect(eqValues(['content'], ['content'])).toBeTrue();
+    });
+
+    it('returns true for matching arrays where element order is different', () => {
+      expect(eqValues([1, 2], [2, 1])).toBeTrue();
     });
   });
 });

@@ -11,8 +11,7 @@ export default function ApplicationCategoryEditorController(
   $http,
   ApplicationStore,
   CLMContextLocations,
-  CLMLocations,
-  PolicyHierarchyStore
+  CLMLocations
 ) {
   var originalCategoryArray,
     vm = this;
@@ -94,8 +93,6 @@ export default function ApplicationCategoryEditorController(
         function () {
           originalCategoryArray = angular.copy(vm.categories);
           vm.categoryEditor.$setPristine();
-          // policies may now be (un)inherited due to the new associations
-          PolicyHierarchyStore.refresh();
         },
         function (error) {
           vm.submitError = error;
@@ -115,5 +112,4 @@ ApplicationCategoryEditorController.$inject = [
   'ApplicationStore',
   'CLMContextLocations',
   'CLMLocations',
-  'PolicyHierarchyStore',
 ];

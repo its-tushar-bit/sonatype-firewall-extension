@@ -749,6 +749,37 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getPolicyUrl', () => {
+    it('returns base url for policy', () => {
+      const expectedUrl = '/rest/policy/organization/someOrganization';
+
+      expect(clmLocation.getPolicyUrl('organization', 'someOrganization')).toBe(expectedUrl);
+    });
+  });
+
+  describe('getPolicyCRUDUrl', () => {
+    it('returns CRUD url for policy', () => {
+      const expectedUrl = '/rest/policy/organization/someOrganization/somePolicyId';
+
+      expect(clmLocation.getPolicyCRUDUrl('organization', 'someOrganization', 'somePolicyId')).toBe(expectedUrl);
+    });
+  });
+
+  describe('getApplicablePolicies', () => {
+    it('returns applicable policies url', () => {
+      const expectedUrl = '/rest/policy/organization/someOrganization/applicable';
+
+      expect(clmLocation.getApplicablePolicies('organization', 'someOrganization')).toBe(expectedUrl);
+    });
+  });
+
+  describe('getPolicyTagUrl', () => {
+    it('returns applicable policies url', () => {
+      const expectedUrl = '/rest/appliedTag/policy/somePolicyId/organization/someOrganization';
+
+      expect(clmLocation.getPolicyTagUrl('somePolicyId', 'organization', 'someOrganization')).toBe(expectedUrl);
+    });
+  });
   describe('getEnableUnauthenticatedPages', () => {
     it('returns url to get getEnableUnauthenticatedPages feature configuration', () => {
       expect(clmLocation.getEnableUnauthenticatedPages()).toEqual('/rest/product/features/enableUnauthenticatedPages');

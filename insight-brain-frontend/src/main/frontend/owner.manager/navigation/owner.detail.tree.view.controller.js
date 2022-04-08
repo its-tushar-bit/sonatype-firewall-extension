@@ -3,9 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+import { selectSiblings as selectPolicySiblings } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { selectSiblings } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
+import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
 import { selectLabelsSiblings } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
 import {
   selectIsMonitoringSupported,
@@ -109,11 +111,17 @@ export default function OwnerDetailTreeViewController(
       vm.doLoad();
     }
   });
+  $scope.$watch('vm.policies', (policies) => {
+    if (policies) {
+      vm.doLoad();
+    }
+  });
 }
 
 const mapStateToThis = (state) => ({
   labels: selectLabelsSiblings(state),
-  categories: selectSiblings(state),
+  categories: selectApplicationCategoriesSiblings(state),
+  policies: selectPolicySiblings(state),
   isMonitoringSupported: selectIsMonitoringSupported(state),
   isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
 });

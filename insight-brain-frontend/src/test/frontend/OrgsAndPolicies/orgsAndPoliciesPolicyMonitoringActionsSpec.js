@@ -11,6 +11,7 @@ import {
   getPolicyMonitoringUrl,
   getApplicablePolicyMonitoringUrl,
   getProductFeaturesUrl,
+  getApplicablePolicies,
 } from 'MainRoot/util/CLMLocation';
 
 describe('orgsAndPoliciesPolicyMonitoringActions', () => {
@@ -44,6 +45,9 @@ describe('orgsAndPoliciesPolicyMonitoringActions', () => {
       mockAxiosCalls({
         get: {
           [applicablePolicyMonitoringUrl]: Promise.resolve({ data: {} }),
+          [getApplicablePolicies('application', 'application')]: Promise.resolve({
+            data: {},
+          }),
           [getProductFeaturesUrl()]: Promise.resolve({
             data: ['enforcement', 'firewall', 'policy-monitoring', 'policy-grandfathering'],
           }),
@@ -51,17 +55,20 @@ describe('orgsAndPoliciesPolicyMonitoringActions', () => {
       });
 
       store.dispatch(actions.loadApplicablePolicyMonitoring()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(2);
+        expect(axios.get).toHaveBeenCalledTimes(3);
         expect(axios.get).toHaveBeenCalledWith('/rest/policyMonitoring/application/application/applicable');
+        expect(axios.get).toHaveBeenCalledWith('/rest/policy/application/application/applicable');
         expect(axios.get).toHaveBeenCalledWith('/rest/product/features');
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(6);
+        expect(actions.length).toBe(8);
         expect(actions).toHaveActionTypesInOrder([
           'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/pending',
+          'policy/loadApplicablePoliciesByOwner/pending',
           'productFeatures/fetchProductFeaturesIfNeeded/pending',
           'productFeatures/fetchProductFeatures/pending',
+          'policy/loadApplicablePoliciesByOwner/fulfilled',
           'productFeatures/fetchProductFeatures/fulfilled',
           'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
           'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
@@ -77,17 +84,28 @@ describe('orgsAndPoliciesPolicyMonitoringActions', () => {
         'policy-monitoring': true,
         'policy-grandfathering': true,
       });
-      mockAxiosCalls({ get: { [applicablePolicyMonitoringUrl]: () => Promise.reject('something went wrong') } });
+      mockAxiosCalls({
+        get: {
+          [applicablePolicyMonitoringUrl]: () => Promise.reject('something went wrong'),
+          [getApplicablePolicies('application', 'application')]: Promise.resolve({
+            data: {},
+          }),
+        },
+      });
 
       store.dispatch(actions.loadApplicablePolicyMonitoring()).then(() => {
-        expect(axios.get).toHaveBeenCalledOnceWith('/rest/policyMonitoring/application/application/applicable');
+        expect(axios.get).toHaveBeenCalledTimes(2);
+        expect(axios.get).toHaveBeenCalledWith('/rest/policyMonitoring/application/application/applicable');
+        expect(axios.get).toHaveBeenCalledWith('/rest/policy/application/application/applicable');
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(4);
+        expect(actions.length).toBe(6);
         expect(actions).toHaveActionTypesInOrder([
           'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/pending',
+          'policy/loadApplicablePoliciesByOwner/pending',
           'productFeatures/fetchProductFeaturesIfNeeded/pending',
+          'policy/loadApplicablePoliciesByOwner/fulfilled',
           'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
           'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/rejected',
         ]);

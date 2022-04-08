@@ -10,17 +10,18 @@ export default function ThreatLevelSelector() {
     restrict: 'E',
     scope: {
       threatLevelModel: '=ngModel',
+      onChange: '=?',
       threatType: '@',
       disabled: '=?ngDisabled',
     },
     template,
-    controller: ThreatLevelSelectorController,
+    controller: ['$timeout', ThreatLevelSelectorController],
     controllerAs: 'vm',
     bindToController: true,
   };
 }
 
-function ThreatLevelSelectorController() {
+function ThreatLevelSelectorController($timeout) {
   var vm = this;
 
   vm.threatLevels = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
@@ -28,5 +29,10 @@ function ThreatLevelSelectorController() {
 
   function selectLevel(threatLevel) {
     vm.threatLevelModel = parseInt(threatLevel);
+    $timeout(function () {
+      if (vm.onChange) {
+        vm.onChange();
+      }
+    });
   }
 }

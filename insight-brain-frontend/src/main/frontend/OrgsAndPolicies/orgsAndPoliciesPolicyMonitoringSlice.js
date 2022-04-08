@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import { pick, prop } from 'ramda';
 
 import { Messages } from 'MainRoot/util/CommonServices';
@@ -13,6 +13,7 @@ import PolicyViolationGrandfatheringService from 'MainRoot/owner.manager/policyV
 import { getPolicyMonitoringUrl, getApplicablePolicyMonitoringUrl } from 'MainRoot/util/CLMLocation';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { selectPolicyMonitoringMonitoredStage } from './orgsAndPoliciesPolicyMonitoringSelectors';
+import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 const REDUCER_NAME = 'orgsAndPoliciesPolicyMonitoring';
@@ -38,6 +39,7 @@ const loadApplicablePolicyMonitoring = createAsyncThunk(
     const { ownerType, ownerId } = selectOwnerProperties(getState());
     return Promise.all([
       axios.get(getApplicablePolicyMonitoringUrl(ownerType, ownerId)).then(prop('data')),
+      dispatch(policyActions.loadApplicablePoliciesByOwner()).then(unwrapResult),
       promises(),
       dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()),
     ]).catch(rejectWithValue);
@@ -74,7 +76,7 @@ const loadApplicablePolicyMonitoringRequested = (state) => {
 };
 
 const loadApplicablePolicyMonitoringFulfilled = (state, { payload }) => {
-  const [{ policyMonitoringByOwner }, { stages, policiesByOwner, actionStages, grandfathering }] = payload;
+  const [{ policyMonitoringByOwner }, { policiesByOwner }, { stages, actionStages, grandfathering }] = payload;
 
   state.loading = false;
   state.loadError = null;

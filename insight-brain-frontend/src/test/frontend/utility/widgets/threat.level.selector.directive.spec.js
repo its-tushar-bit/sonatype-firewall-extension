@@ -6,13 +6,14 @@
 import utilityModule from '../../../../main/frontend/utility/utility.module';
 
 describe('threat.level.selector.directive.spec.js', function () {
-  var $compile, element;
+  var $compile, element, $timeout;
 
   beforeEach(angular.mock.module(utilityModule.name));
-  beforeEach(inject(function (_$compile_, $rootScope) {
+  beforeEach(inject(function (_$compile_, $rootScope, _$timeout_) {
     var scope = $rootScope.$new();
 
     $compile = _$compile_;
+    $timeout = _$timeout_;
 
     element = $compile(
       '<threat-level-selector ng-model="testLevel" threat-type="ltg" ' +
@@ -42,5 +43,17 @@ describe('threat.level.selector.directive.spec.js', function () {
         'ltg-threat-level-' + i
       );
     }
+  });
+
+  it('calls onChange after $timeout if provided', function () {
+    var isolatedScope = element.isolateScope();
+    isolatedScope.vm.onChange = jasmine.createSpy('onChange');
+
+    expect(isolatedScope.vm.onChange).toHaveBeenCalledTimes(0);
+    isolatedScope.vm.selectLevel(0);
+    isolatedScope.$digest();
+    $timeout.flush();
+
+    expect(isolatedScope.vm.onChange).toHaveBeenCalledTimes(1);
   });
 });

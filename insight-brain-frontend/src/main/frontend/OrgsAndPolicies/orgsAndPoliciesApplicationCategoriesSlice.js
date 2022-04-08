@@ -35,6 +35,7 @@ import { Messages } from 'MainRoot/util/CommonServices';
 import { pathSet, propSet } from '../util/jsUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { actions as orgsAndPoliciesRootActions } from './orgsAndPoliciesRootSlice';
+import { actions as policyActions } from './policySlice';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { deriveEditRoute } from './utility/util';
 
@@ -213,7 +214,12 @@ const loadCategoryEditor = createAsyncThunk(
     const isEditMode = selectIsEditMode(getState());
 
     const editCategoryPromises = isEditMode
-      ? [dispatch(loadOrganizationAppliedTag()), ...categoryEditorPromises, dispatch(loadOrganizationPolicyTags())]
+      ? [
+          dispatch(loadOrganizationAppliedTag()),
+          ...categoryEditorPromises,
+          dispatch(policyActions.loadApplicablePoliciesByOwner()),
+          dispatch(loadOrganizationPolicyTags()),
+        ]
       : [Promise.resolve({})];
     const promises = [dispatch(loadApplicableCategoriesByOwner()), ...editCategoryPromises];
 
@@ -223,7 +229,7 @@ const loadCategoryEditor = createAsyncThunk(
           applicationCategoriesByOwnerActionPayload,
           applicationTagsByOwnerActionPayload,
           allApplication,
-          policyHierarchy,
+          loadApplicablePoliciesByOwnerActionPayload,
           policyTagActionPayload,
         ] = results;
 
@@ -246,7 +252,8 @@ const loadCategoryEditor = createAsyncThunk(
           allApplication,
           categoryId
         );
-        const policyMap = getPolicyMap(policyHierarchy);
+        const { policiesByOwner } = unwrapResult(loadApplicablePoliciesByOwnerActionPayload);
+        const policyMap = getPolicyMap(policiesByOwner);
         const tagPolicyList = getTagPolicyList(policyTags, policyMap, categoryId);
 
         return {

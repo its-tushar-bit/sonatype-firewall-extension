@@ -117,7 +117,11 @@ public class PolicyMonitorAuditTest
 
     policyMonitor.run();
 
-    List<AuditDTO> auditDTOs = awaitLogEntries(AuditEvent.EVALUATE_REPOSITORY, 1);
+    List<AuditDTO> auditDTOs = awaitLogEntries(AuditEvent.RELEASE_QUARANTINE, 1);
+    auditDTOs.forEach(auditDTO -> assertRepositoryData(auditDTO, repository));
+    assertComponentUnquarantineData(auditDTOs.get(0), component.getHash(), component.getPathname());
+
+    auditDTOs = awaitLogEntries(AuditEvent.EVALUATE_REPOSITORY, 1);
     auditDTOs.forEach(auditDTO -> assertRepositoryData(auditDTO, repository));
     auditDTOs.sort(Comparator.comparing(dto -> (Integer) dto.data.get("componentCount")));
     assertRepositoryEvaluationData(auditDTOs.get(0), 1, RepositoryComponentEvaluationDataRequestList.REEVALUATION);
@@ -216,6 +220,11 @@ public class PolicyMonitorAuditTest
     }
 
     return constraintFacts;
+  }
+
+  private void assertComponentUnquarantineData(AuditDTO auditDTO, String componentHash, String componentPathname) {
+    assertCustomData(auditDTO, "componentHash", componentHash);
+    assertCustomData(auditDTO, "componentPathname", componentPathname);
   }
 
   private void assertRepositoryEvaluationData(AuditDTO auditDTO, int componentCount, String evaluationCause) {

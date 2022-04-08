@@ -121,6 +121,8 @@ public abstract class AuditData
 
   public abstract void setUsername(String username);
 
+  public abstract AuditEvent getEvent();
+
   public abstract void setEvent(AuditEvent event);
 
   public abstract void setError(String error);

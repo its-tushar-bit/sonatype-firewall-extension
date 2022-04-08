@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -129,13 +130,22 @@ public class RepositoryPolicyEvaluator
     this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
   }
 
+  public RepositoryComponentEvaluationDataList evaluateForMonitoring(
+      Repository repository,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
+  {
+    return evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        true /* persistEvaluationResults */, null /* clientUserAgent */, true /* forMonitoring */);
+  }
+
   public RepositoryComponentEvaluationDataList evaluate(
       Repository repository,
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
       final boolean withQuarantine,
       final String clientUserAgent)
   {
-    return evaluate(repository, componentEvaluationDataRequestList, withQuarantine, true, clientUserAgent);
+    return evaluate(repository, componentEvaluationDataRequestList, withQuarantine, true /* persistEvaluationResults */,
+        clientUserAgent, false /* forMonitoring */);
   }
 
   public RepositoryComponentEvaluationDataList evaluate(
@@ -143,7 +153,8 @@ public class RepositoryPolicyEvaluator
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
       boolean withQuarantine,
       boolean persistEvaluationResults,
-      String clientUserAgent)
+      String clientUserAgent,
+      boolean forMonitoring)
   {
     long start = System.currentTimeMillis();
 
@@ -151,7 +162,7 @@ public class RepositoryPolicyEvaluator
         getComponentDetailsFromHds(repository, withQuarantine, componentEvaluationDataRequestList, clientUserAgent);
 
     RepositoryComponentEvaluationDataList result = evaluate(repository, componentEvaluationDataRequestList,
-        componentDetailsFromHdsList, withQuarantine, persistEvaluationResults);
+        componentDetailsFromHdsList, withQuarantine, persistEvaluationResults, forMonitoring);
 
     log.debug("Evaluated {} components with quarantine {} for repository {}:{} ({}) because of {} in {} ms.",
         componentEvaluationDataRequestList.components.size(), withQuarantine, repository.getRepositoryManagerId(),
@@ -166,7 +177,8 @@ public class RepositoryPolicyEvaluator
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
       ComponentEvaluationDataList componentDetailsFromHds,
       boolean withQuarantine,
-      boolean persistEvaluationResults)
+      boolean persistEvaluationResults,
+      boolean forMonitoring)
   {
     RepositoryComponentEvaluationDataList componentEvaluationResultList = new RepositoryComponentEvaluationDataList();
 
@@ -227,7 +239,7 @@ public class RepositoryPolicyEvaluator
       if (component != null) {
         if (persistEvaluationResults) {
           RepositoryComponent repositoryComponent = persistEvaluationResults(repository, now, component,
-              policyResults, withQuarantine, shouldSendNotifications);
+              policyResults, withQuarantine, shouldSendNotifications, forMonitoring);
           repositoryComponentEvaluationResult.quarantine = repositoryComponent.isQuarantined();
         }
         else {
@@ -274,7 +286,8 @@ public class RepositoryPolicyEvaluator
       Component component,
       PolicyResults policyResults,
       boolean canBeQuarantined,
-      boolean isNotificationsToBeSent)
+      boolean isNotificationsToBeSent,
+      boolean forMonitoring)
   {
     RepositoryComponent repositoryComponent;
     try (
@@ -290,7 +303,7 @@ public class RepositoryPolicyEvaluator
       // The order of the following calls are important and must not be changed. See: CLM-13853
       persistPolicyViolations(tx, repository, evaluationTime, component, policyResults, policyViolationLogger);
       repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
-          canBeQuarantined, policyResults, isNotificationsToBeSent);
+          canBeQuarantined, policyResults, isNotificationsToBeSent, forMonitoring);
 
       tx.commit();
       AuditData.get().commitSubEvents();
@@ -306,7 +319,8 @@ public class RepositoryPolicyEvaluator
       Component component,
       boolean canBeQuarantined,
       PolicyResults policyResults,
-      boolean isNotificationsToBeSent)
+      boolean isNotificationsToBeSent,
+      boolean forMonitoring)
   {
     String pathname = component.getPathnames().get(0);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
@@ -352,9 +366,44 @@ public class RepositoryPolicyEvaluator
       repositoryComponent.setIdentificationSourceId(component.getIdentificationSource().getId());
       repositoryComponent.setLastEvaluationTime(evaluationTime);
       repositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
+
+      if (repositoryComponent.isQuarantined() && !shouldQuarantine(policyResults.getActiveAlerts(), component)) {
+        // The component is quarantined, but it doesn't have any policy violations/alerts that would quarantine it
+        // anymore.
+        unquarantineComponent(repository, repositoryComponent, evaluationTime, forMonitoring);
+      }
+
       repositoryComponentDAO.update(tx, repositoryComponent);
     }
     return repositoryComponent;
+  }
+
+  private void unquarantineComponent(
+      Repository repository,
+      RepositoryComponent repositoryComponent,
+      Date evaluationTime,
+      boolean forMonitoring)
+  {
+    if (AuditData.get().getEvent() != null && !AuditData.get().getEvent().equals(AuditEvent.RELEASE_QUARANTINE)) {
+      try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.RELEASE_QUARANTINE, false)) {
+        AuditData.get().setRepository(repository).setComponentHash(repositoryComponent.getHash())
+            .setData("componentPathname", repositoryComponent.getPathname());
+      }
+    }
+
+    if (forMonitoring) {
+      repositoryComponent.setUnquarantineTimeForMonitoring(evaluationTime);
+    }
+    else {
+      repositoryComponent.setUnquarantineTimeForManualRelease(evaluationTime);
+    }
+
+    List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
+        .getActiveByRepositoryIdAndPathnameAndWaived(repository.getId(), repositoryComponent.getPathname(), false);
+    repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(repositoryComponent,
+        repositoryPolicyViolations, repository.getRepositoryManagerId(),
+        RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
+        forMonitoring ? ReleaseQuarantineType.AUTO : ReleaseQuarantineType.MANUAL);
   }
 
   private void sendRepositoryComponentTelemetry(

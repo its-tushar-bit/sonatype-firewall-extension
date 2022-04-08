@@ -25,14 +25,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.ApiFirewallService;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -116,8 +113,6 @@ public class PolicyMonitor
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
-  private final RepositoryService repositoryService;
-
   private final ApiFirewallService apiFirewallService;
 
   @Inject
@@ -130,7 +125,6 @@ public class PolicyMonitor
       AuditRecorder auditRecorder,
       ThirdPartyScanService thirdPartyScanService,
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      RepositoryService repositoryService,
       ApiFirewallService apiFirewallService)
   {
     this.work = work;
@@ -141,7 +135,6 @@ public class PolicyMonitor
     this.auditRecorder = auditRecorder;
     this.thirdPartyScanService = thirdPartyScanService;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
-    this.repositoryService = repositoryService;
     this.apiFirewallService = apiFirewallService;
   }
 
@@ -309,9 +302,16 @@ public class PolicyMonitor
         getRepositoryEvaluationRequest(repository, componentIterator);
     try {
       auditRepositoryComponentEvaluationList(repository, evaluationRequestList);
+      // Part of the policy evaluation, the component is unquarantined if it doesn't have any policy violations that
+      // require quarantine.
       RepositoryComponentEvaluationDataList evaluationResults =
-          repositoryPolicyEvaluator.evaluate(repository, evaluationRequestList, false, false, null);
-      return unquarantineComponentsWithNoViolations(repository, evaluationRequestList, evaluationResults);
+          repositoryPolicyEvaluator.evaluateForMonitoring(repository, evaluationRequestList);
+
+      int unquarantinedComponentsCount = (int) evaluationResults.componentEvalResults.stream()
+          .filter(componentEvaluationData -> !componentEvaluationData.quarantine).count();
+      log.debug("Auto un-quarantined {} of {} components for repository {}", unquarantinedComponentsCount,
+          evaluationResults.componentEvalResults.size(), repository.getName());
+      return unquarantinedComponentsCount;
     }
     catch (RuntimeException e) {
       AuditData.get().setException(e);
@@ -389,30 +389,6 @@ public class PolicyMonitor
       }
     }
     return false;
-  }
-
-  private int unquarantineComponentsWithNoViolations(
-      final Repository repository,
-      final RepositoryComponentEvaluationDataRequestList applicableQuarantinedComponentEvaluationRequestList,
-      final RepositoryComponentEvaluationDataList evaluationResults)
-  {
-    int unquarantineCount = 0;
-    for (RepositoryComponentEvaluationData evaluationData : evaluationResults.componentEvalResults) {
-      if (!hasFailViolation(evaluationData.policyAlerts)) {
-        RepositoryComponentEvaluationDataRequest request =
-            applicableQuarantinedComponentEvaluationRequestList.components.get(evaluationData.requestIndex);
-        repositoryService.unquarantineComponentNoAuth(repository.getId(), request.pathname, null, true);
-        unquarantineCount++;
-      }
-    }
-    log.debug("Auto un-quarantined {} of {} components for repository {}", unquarantineCount,
-        evaluationResults.componentEvalResults.size(), repository.getName());
-    return unquarantineCount;
-  }
-
-  private boolean hasFailViolation(final List<PolicyAlert> policyAlerts) {
-    return policyAlerts.stream().flatMap(policyAlert -> policyAlert.getActions().stream())
-        .anyMatch(action -> Action.ID_FAIL.equals(action.getActionTypeId()));
   }
 
   @VisibleForTesting

@@ -312,7 +312,7 @@ public abstract class AbstractRepositoryService
         matchHdsComponentDetailsToRequestListByPathname(componentDetailsFromHds, componentEvaluationDataRequestList);
     RepositoryComponentEvaluationDataList result =
         repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, componentDetailsFromHds,
-            true /* withQuarantine */, false /* persistEvaluationResults */);
+            true /* withQuarantine */, false /* persistEvaluationResults */, false /* forMonitoring */);
 
     log.debug("Evaluated component metadata for repository {}:{} ({}) for {} components in {} ms.",
         repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId(),
@@ -468,7 +468,8 @@ public abstract class AbstractRepositoryService
     normalizeComponents(componentEvaluationDataRequestList);
 
     RepositoryComponentEvaluationDataList result = repositoryPolicyEvaluator.evaluate(repository,
-        componentEvaluationDataRequestList, withQuarantine, persistEvaluationResults, clientUserAgent);
+        componentEvaluationDataRequestList, withQuarantine, persistEvaluationResults, clientUserAgent,
+        false /* forMonitoring */);
 
     log.debug("Evaluated {} components with quarantine {} for repository {}:{} ({}) because of {} in {} ms.",
         componentEvaluationDataRequestList.components.size(), withQuarantine, repository.getRepositoryManagerId(),

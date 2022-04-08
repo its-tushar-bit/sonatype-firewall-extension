@@ -53,6 +53,7 @@ import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -232,7 +233,8 @@ public class RepositoryPolicyEvaluatorTest
 
     // Evaluate policies. All policy violations should be logged.
     Date before1 = new Date();
-    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
     final Date after1 = new Date();
     List<RepositoryPolicyViolation> policyViolations =
         repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
@@ -244,7 +246,8 @@ public class RepositoryPolicyEvaluatorTest
     Awaitility.await().until(() -> System.currentTimeMillis() > after1.getTime());
     Policy newPolicy = tempEntity.newPolicy(repository.getParentOwnerId());
     Date before2 = new Date();
-    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
     final Date after2 = new Date();
     policyViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(policyViolations).hasSize(4);
@@ -282,7 +285,8 @@ public class RepositoryPolicyEvaluatorTest
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
     // Evaluate policies.
-    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
     final Date after1 = new Date();
     List<RepositoryPolicyViolation> policyViolations =
         repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
@@ -294,7 +298,8 @@ public class RepositoryPolicyEvaluatorTest
     Awaitility.await().until(() -> System.currentTimeMillis() > after1.getTime());
     new PolicyDAO().delete(policy);
     Date before2 = new Date();
-    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
     Date after2 = new Date();
     assertThat(repositoryPolicyViolationDAO.getByRepositoryId(repository.getId())).hasSize(0);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX, repository, before2, after2, policyViolations);
@@ -330,7 +335,8 @@ public class RepositoryPolicyEvaluatorTest
 
     // perform initial evaluation
     Date before1 = new Date();
-    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
     final Date after1 = new Date();
     // ... yielding two active violations, both of which logged as new
     List<RepositoryPolicyViolation> activeViolations =
@@ -349,7 +355,8 @@ public class RepositoryPolicyEvaluatorTest
     new PolicyWaiverDAO().delete(policyWaiver);
     tempEntity.newWaiver(policy1.getId(), repository.getId());
     Date before2 = new Date();
-    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
     final Date after2 = new Date();
     // ... yielding again two violations, none of which logged as new
     activeViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
@@ -391,7 +398,8 @@ public class RepositoryPolicyEvaluatorTest
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver(policy1.getId(), repository.getId());
 
     // perform initial evaluation
-    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
 
     // ... yielding two active violations
     List<RepositoryPolicyViolation> activeViolations =
@@ -411,7 +419,8 @@ public class RepositoryPolicyEvaluatorTest
     PolicyWaiver policyWaiver2 = tempEntity.newWaiver(policy2.getId(), repository.getId());
 
     // re-evaluate
-    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
 
     // ... yielding again two violations
     activeViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
@@ -438,7 +447,8 @@ public class RepositoryPolicyEvaluatorTest
     // remove the original waiver re-evaluate
     new PolicyWaiverDAO().delete(policyWaiver1);
 
-    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
 
     activeViolations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(activeViolations).hasSize(2);
@@ -507,7 +517,8 @@ public class RepositoryPolicyEvaluatorTest
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver(policy.getId(), repository.getId());
 
     // perform the evaluation
-    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
 
     // ... yielding one active/waived violation
     List<RepositoryPolicyViolation> policyViolations =
@@ -568,8 +579,8 @@ public class RepositoryPolicyEvaluatorTest
 
     mockHdsRequest(requestList, hdsResult, true);
 
-    RepositoryComponentEvaluationDataList
-        resultList = repositoryPolicyEvaluator.evaluate(repository, requestList, true, null);
+    RepositoryComponentEvaluationDataList resultList = repositoryPolicyEvaluator.evaluate(repository, requestList,
+        true /* withQuarantine */, null /* clientUserAgent */);
 
     assertThat(resultList.componentEvalResults).hasSize(2);
     // Ignored component is not evaluated and cannot have security vulnerabilities and so should not be quarantined
@@ -609,7 +620,8 @@ public class RepositoryPolicyEvaluatorTest
 
     // Evaluate policies. All policy violations should be logged.
     Date before1 = new Date();
-    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
     final Date after1 = new Date();
     List<RepositoryPolicyViolation> policyViolations =
         repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
@@ -693,7 +705,8 @@ public class RepositoryPolicyEvaluatorTest
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
 
     RepositoryComponentEvaluationDataList resultList =
-        repositoryPolicyEvaluator.evaluate(repo, componentEvaluationDataRequestList, true, null);
+        repositoryPolicyEvaluator.evaluate(repo, componentEvaluationDataRequestList, true /* withQuarantine */,
+            null /* clientUserAgent */);
 
     assertThat(resultList.componentEvalResults).hasSize(2);
     assertThat(resultList.componentEvalResults.get(0).quarantine).isTrue();
@@ -730,7 +743,8 @@ public class RepositoryPolicyEvaluatorTest
     }
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
 
-    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true, null);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true /* withQuarantine */,
+        null /* clientUserAgent */);
 
     verify(repositoryComponentTelemetryCreator, times(2))
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
@@ -760,11 +774,68 @@ public class RepositoryPolicyEvaluatorTest
     }
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
-    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false, null);
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
 
     verify(repositoryComponentTelemetryCreator, times(2))
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
             RepositoryComponentTelemetryEventType.AUDIT), eq(Collections.emptyList()));
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
+  }
+
+  @Test
+  public void testEvaluate_UnquarantinesComponent() throws Exception {
+    Repository repository = tempEntity.newRepository();
+
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
+    policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
+    new PolicyDAO().update(policy);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Prepare request and mock the HDS request
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", "path", "hash"));
+    hdsResult.components
+        .add(createComponentEvaluationData(ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), "hash",
+            MatchState.EXACT, 0 /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
+            createSecurityVulnerabilities(), 2 /* popularity */));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true /* quarantine */);
+
+    // Evaluate policies. The component should be quarantined.
+    Date before1 = new Date();
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true /* withQuarantine */,
+        null /* clientUserAgent */);
+    Date after1 = new Date();
+    List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    assertThat(repositoryComponents).hasSize(1);
+    assertThat(repositoryComponents.get(0).isQuarantined()).isEqualTo(true);
+    assertThat(repositoryComponents.get(0).getQuarantineTime()).isBetween(before1, after1, true, true);
+    assertThat(repositoryComponents.get(0).getUnquarantineTime()).isNull();
+
+    // Evaluate policies again. The component should still be quarantined.
+    Awaitility.await().until(() -> System.currentTimeMillis() > after1.getTime());
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true /* withQuarantine */,
+        null /* clientUserAgent */);
+    repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    assertThat(repositoryComponents).hasSize(1);
+    assertThat(repositoryComponents.get(0).isQuarantined()).isEqualTo(true);
+    assertThat(repositoryComponents.get(0).getQuarantineTime()).isBetween(before1, after1, true, true);
+    assertThat(repositoryComponents.get(0).getUnquarantineTime()).isNull();
+
+    // Remove policy and evaluate again. The component should still be unquarantined.
+    new PolicyDAO().delete(policy);
+    Date before2 = new Date();
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true /* withQuarantine */,
+        null /* clientUserAgent */);
+    Date after2 = new Date();
+
+    repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
+    assertThat(repositoryComponents).hasSize(1);
+    assertThat(repositoryComponents.get(0).isQuarantined()).isEqualTo(false);
+    assertThat(repositoryComponents.get(0).getQuarantineTime()).isBetween(before1, after1, true, true);
+    assertThat(repositoryComponents.get(0).getUnquarantineTime()).isBetween(before2, after2, true, true);
   }
 }

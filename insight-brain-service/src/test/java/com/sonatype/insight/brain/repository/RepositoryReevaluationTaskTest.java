@@ -156,7 +156,7 @@ public class RepositoryReevaluationTaskTest
   }
 
   /*
-   * Both components should be known, one still quarantined, old policy violation gone, 2 new policy violations
+   * Both components should be known, one unquarantined, old policy violation gone, 2 new policy violations
    */
   @Test
   public void testTask() throws Exception {
@@ -168,9 +168,9 @@ public class RepositoryReevaluationTaskTest
     List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(components).hasSize(2);
     assertHasComponent(components, component.getPathname(), MatchState.EXACT, IdentificationSource.MANUAL.getId(),
-        claimedIdentifier, true, timeBeforeReevaluation);
+        claimedIdentifier, false /* quarantined */, timeBeforeReevaluation);
     assertHasComponent(components, unknownComponent.getPathname(), MatchState.EXACT,
-        IdentificationSource.SONATYPE.getId(), newIdentifier, false, timeBeforeReevaluation);
+        IdentificationSource.SONATYPE.getId(), newIdentifier, false /* quarantined */, timeBeforeReevaluation);
 
     List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
     assertThat(violations).hasSize(2);

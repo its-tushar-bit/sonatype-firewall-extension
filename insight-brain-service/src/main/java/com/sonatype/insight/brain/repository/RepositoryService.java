@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -46,9 +47,6 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
-import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -75,17 +73,13 @@ public class RepositoryService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
-  private final RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
-
   @Inject
   public RepositoryService(
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      PolicyViolationLoggerFactory policyViolationLoggerFactory,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
+      PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
-    this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
   }
 
   /**
@@ -96,18 +90,6 @@ public class RepositoryService
       @AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
       final String pathname,
       final String clientUserAgent)
-  {
-    unquarantineComponentNoAuth(repositoryId, pathname, clientUserAgent, false);
-  }
-
-  /**
-   * @since 1.104
-   */
-  public void unquarantineComponentNoAuth(
-      final String repositoryId,
-      final String pathname,
-      final String clientUserAgent,
-      final boolean autoUnquarantined)
   {
     auditComponentPath(pathname);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId,
@@ -123,43 +105,8 @@ public class RepositoryService
           "Component " + pathname + " in repository " + repositoryId + " is not quarantined.");
     }
 
-    reevaluateComponentInternal(repositoryComponent, clientUserAgent);
-    List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathnameAndWaived(repositoryId, repositoryComponent.getPathname(), false);
-    if (policyViolationsHaveFailedAction(repositoryPolicyViolations)) {
-      throw new BadRequestException("Component " + pathname + " in repository " + repositoryId
-          + " has policy violations.");
-    }
-    // Retrieve the component again before saving as the re-evaluation may have changed the component
-    repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
-    if (autoUnquarantined) {
-      repositoryComponent.setUnquarantineTimeForMonitoring(new Date());
-    }
-    else {
-      repositoryComponent.setUnquarantineTimeForManualRelease(new Date());
-    }
-
-    repositoryComponentDAO.update(repositoryComponent);
-
-    final Repository repository = repositoryDAO.getById(repositoryId);
-    repositoryComponentTelemetryCreator
-        .sendRepositoryComponentTelemetry(repositoryComponent, repositoryPolicyViolations,
-            repository.getRepositoryManagerId(), RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
-            autoUnquarantined ? ReleaseQuarantineType.AUTO : ReleaseQuarantineType.MANUAL);
-  }
-
-  private boolean policyViolationsHaveFailedAction(final List<RepositoryPolicyViolation> repositoryPolicyViolations) {
-    for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-      if (Action.ID_FAIL.equals(repositoryPolicyViolation.getActionTypeId())) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private void reevaluateComponentInternal(final RepositoryComponent repositoryComponent,
-                                           final String clientUserAgent)
-  {
+    // Part of the policy evaluation, the component is unquarantined if it doesn't have any policy violations that
+    // require quarantine.
     Repository repository = repositoryDAO.getById(repositoryComponent.getRepositoryId());
     RepositoryComponentEvaluationDataRequestList componentRequestList =
         new RepositoryComponentEvaluationDataRequestList(RepositoryComponentEvaluationDataRequestList.REEVALUATION);
@@ -169,7 +116,13 @@ public class RepositoryService
     componentRequest.hash = repositoryComponent.getHash();
     componentRequestList.components.add(componentRequest);
 
-    repositoryPolicyEvaluator.evaluate(repository, componentRequestList, false, clientUserAgent);
+    RepositoryComponentEvaluationDataList evaluationDataList = repositoryPolicyEvaluator.evaluate(repository,
+        componentRequestList, false /* withQuarantine */, clientUserAgent);
+
+    if (evaluationDataList.componentEvalResults.get(0).quarantine) {
+      throw new BadRequestException("Component " + pathname + " in repository " + repositoryId
+          + " has policy violations.");
+    }
   }
 
   public RepositoryPolicyThreatDTO getPolicyThreats(final String repositoryId, final String pathname) {
@@ -444,6 +397,6 @@ public class RepositoryService
           .getPathname(), component.getHash()));
     }
 
-    repositoryPolicyEvaluator.evaluate(repository, request, false, clientUserAgent);
+    repositoryPolicyEvaluator.evaluate(repository, request, false /* withQuarantine */, clientUserAgent);
   }
 }

@@ -54,6 +54,11 @@ class ProxyAuditData
   }
 
   @Override
+  public AuditEvent getEvent() {
+    return auditData.getEvent();
+  }
+
+  @Override
   public void setEvent(AuditEvent event) {
     auditData.setEvent(event);
   }

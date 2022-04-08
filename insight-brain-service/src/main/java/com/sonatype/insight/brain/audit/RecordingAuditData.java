@@ -105,7 +105,8 @@ class RecordingAuditData
     this.username = username;
   }
 
-  AuditEvent getEvent() {
+  @Override
+  public AuditEvent getEvent() {
     return event;
   }
 

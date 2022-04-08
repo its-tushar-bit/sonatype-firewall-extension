@@ -39,6 +39,11 @@ class NoopAuditData
   }
 
   @Override
+  public AuditEvent getEvent() {
+    return null;
+  }
+
+  @Override
   public void setEvent(AuditEvent event) {
   }
 

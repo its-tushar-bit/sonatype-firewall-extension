@@ -5,6 +5,9 @@
  */
 package com.sonatype.clm.testing.functional;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 
 import com.applitools.eyes.BatchInfo;
@@ -13,10 +16,13 @@ import com.applitools.eyes.selenium.Eyes;
 import com.applitools.eyes.selenium.fluent.SeleniumCheckSettings;
 import com.applitools.eyes.selenium.fluent.Target;
 import com.codeborne.selenide.WebDriverRunner;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.openqa.selenium.By;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.WrapsDriver;
@@ -163,5 +169,18 @@ public class EyesWatcher
 
   private static boolean isMain() {
     return "main".equals(localBranchName);
+  }
+
+  public static File screenshot(String destFilename) {
+    try {
+      WebDriver driver = WebDriverRunner.getWebDriver();
+      File scrFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+      File destFile = new File(destFilename);
+      FileUtils.copyFile(scrFile, destFile);
+      return destFile;
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 }

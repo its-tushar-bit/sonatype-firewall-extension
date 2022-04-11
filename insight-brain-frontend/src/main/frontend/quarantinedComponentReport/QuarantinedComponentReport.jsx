@@ -56,7 +56,7 @@ export default function QuarantinedComponentReport(props) {
         <NxInfoAlert>This report will expire on {formatDate(componentOverview.tokenExpiryTime)}</NxInfoAlert>
       )}
       <div className="nx-page-title">
-        <h1 className="nx-h1">Quarantine Report</h1>
+        <h1 className="nx-h1">Quarantined Component View</h1>
         <div className="nx-page-title__description">{formatDate(new Date())}</div>
       </div>
 
@@ -68,14 +68,6 @@ export default function QuarantinedComponentReport(props) {
 
           <LoadWrapper retryHandler={() => loadQuarantineReportData(token)} error={loadError} loading={dataLoading}>
             <QuarantineComponentOverviewTile componentOverview={componentOverview} />
-          </LoadWrapper>
-
-          <LoadWrapper
-            retryHandler={() => loadQuarantineReportData(token)}
-            error={violationsLoadError}
-            loading={violationsLoading}
-          >
-            <PolicyViolationsTile violations={violations} />
           </LoadWrapper>
 
           <RiskRemediation
@@ -90,6 +82,14 @@ export default function QuarantinedComponentReport(props) {
             currentVersionComparisonData={currentVersionDetails}
             selectedVersionComparisonData={selectedVersionDetails}
           />
+
+          <LoadWrapper
+            retryHandler={() => loadQuarantineReportData(token)}
+            error={violationsLoadError}
+            loading={violationsLoading}
+          >
+            <PolicyViolationsTile violations={violations} />
+          </LoadWrapper>
 
           <OtherVersionsTile />
         </>

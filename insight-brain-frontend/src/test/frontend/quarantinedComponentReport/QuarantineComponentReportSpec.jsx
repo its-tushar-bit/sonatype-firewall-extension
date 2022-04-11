@@ -39,7 +39,7 @@ describe('QuarantineComponentReport', () => {
 
     // query whole container
     expect(container.querySelector('.nx-page-main')).toBeVisible();
-    expect(screen.getByRole('heading', { name: /quarantine report/i })).toBeVisible();
+    expect(screen.getByRole('heading', { name: /quarantined component view/i })).toBeVisible();
 
     // report overview tile
     expect(screen.getByRole('heading', { name: /overview/i })).toBeVisible();

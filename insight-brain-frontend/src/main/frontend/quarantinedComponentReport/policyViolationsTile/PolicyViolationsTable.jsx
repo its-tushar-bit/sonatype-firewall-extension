@@ -13,7 +13,7 @@ export default function PolicyViolationsTable({ violations }) {
       <NxTable.Head>
         <NxTable.Row>
           <NxTable.Cell>THREAT</NxTable.Cell>
-          <NxTable.Cell>POLICY STATUS</NxTable.Cell>
+          <NxTable.Cell>POLICY</NxTable.Cell>
           <NxTable.Cell>CONSTRAINT NAME</NxTable.Cell>
           <NxTable.Cell>CONDITION</NxTable.Cell>
           <NxTable.Cell chevron />

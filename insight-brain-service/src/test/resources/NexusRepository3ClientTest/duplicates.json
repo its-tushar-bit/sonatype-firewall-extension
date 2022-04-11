@@ -1,0 +1,41 @@
+{
+  "items": [
+    {
+      "format": "maven2",
+      "checksum": {
+        "sha1": "1"
+      },
+      "maven2": {
+        "extension": "jar",
+        "groupId": "g",
+        "artifactId": "a",
+        "version": "1.1.0-01"
+      }
+    },
+    {
+      "format": "maven2",
+      "checksum": {
+        "sha1": "1"
+      },
+      "maven2": {
+        "extension": "jar",
+        "groupId": "g",
+        "artifactId": "a",
+        "version": "1.1.0-01"
+      }
+    },
+    {
+      "format": "maven2",
+      "checksum": {
+        "sha1": "2"
+      },
+      "maven2": {
+        "extension": "jar",
+        "groupId": "g",
+        "artifactId": "a",
+        "version": "1.2.0-01"
+      }
+    }
+  ],
+  "continuationToken": null
+}

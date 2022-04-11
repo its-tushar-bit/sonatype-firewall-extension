@@ -302,6 +302,28 @@ public class NexusRepository3ClientTest
     assertResultComponent(response, 4, "1.3.0-01", "5");
   }
 
+  @Test
+  public void testGetAllVersions_RemovesDuplicates() throws Exception {
+    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/search/assets"))
+        .withQueryParams(ImmutableMap.of(
+            "group", equalTo("g"),
+            "name", equalTo("a"),
+            "maven.extension", equalTo("jar"),
+            "maven.classifier", equalTo("")))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withBody(getCannedResponse("duplicates.json"))));
+    RepositoryClient client = factory.create().forNexus3(baseUrl, null, null);
+    Map<String, String> params =
+        ImmutableMap.of("group", "g", "name", "a", "maven.extension", "jar", "maven.classifier", "");
+
+    RepositoryAllVersionsResponse response = client.getAllVersions(params);
+
+    assertThat(response.getComponents()).hasSize(2);
+    assertResultComponent(response, 0, "1.1.0-01", "1");
+    assertResultComponent(response, 1, "1.2.0-01", "2");
+  }
+
   private String getCannedResponse(final String path) throws IOException {
     return IOUtils.toString(getClass().getResource("/NexusRepository3ClientTest/" + path),
         StandardCharsets.UTF_8);

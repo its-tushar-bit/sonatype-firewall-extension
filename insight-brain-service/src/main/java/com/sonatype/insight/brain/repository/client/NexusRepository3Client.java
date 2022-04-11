@@ -11,6 +11,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -41,6 +43,9 @@ public class NexusRepository3Client
     implements RepositoryClient
 {
   private static final Logger log = LoggerFactory.getLogger(NexusRepository3Client.class);
+
+  private static final Comparator<RepositoryComponentResult> REPOSITORY_COMPONENT_VERSION_COMPARATOR =
+      Comparator.comparing(r -> new ComparableVersion(r.getIdentifier().get(ComponentIdentifier.VERSION)));
 
   public static final String REPO_VERSION = "version";
 
@@ -78,7 +83,8 @@ public class NexusRepository3Client
       continuationToken = searchResponse.continuationToken;
     }
     while (continuationToken != null);
-    results.sort(Comparator.comparing(r -> new ComparableVersion(r.getIdentifier().get(ComponentIdentifier.VERSION))));
+    results = results.stream().collect(Collectors.collectingAndThen(
+        Collectors.toCollection(() -> new TreeSet<>(REPOSITORY_COMPONENT_VERSION_COMPARATOR)), ArrayList::new));
     return new RepositoryAllVersionsResponse(results);
   }
 

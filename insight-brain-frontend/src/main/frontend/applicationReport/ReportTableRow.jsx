@@ -71,7 +71,7 @@ export default function ReportTableRow({ onClick, component }) {
           prop('policyThreatLevel'),
           compose(not, prop('waived')),
           compose(not, prop('grandfathered')),
-          compose(includes(component.componentIdentifier), pathOr('', ['dependencyInfo', 'rootAncestors'])),
+          compose(includes(component.serializedComponentIdentifier), pathOr('', ['dependencyInfo', 'rootAncestors'])),
         ])
       )
     )(selectedReport.allEntries);

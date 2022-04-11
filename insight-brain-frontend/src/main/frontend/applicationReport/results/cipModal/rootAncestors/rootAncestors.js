@@ -6,7 +6,6 @@
 import { compose, into, indexBy, isNil, map, pipe, prop, pick, reject, take } from 'ramda';
 
 import { lookup, isNilOrEmpty } from '../../../../util/jsUtil';
-import { serializeComponentIdentifier } from '../../../../util/componentIdentifierUtils';
 
 import template from './rootAncestors.html';
 
@@ -70,7 +69,7 @@ export function mapStateToThis({ applicationReport }) {
   };
 }
 
-// For each componentId in dependencyInfo.rootAncestors, find last matching component in allEntries.
+// For each key in dependencyInfo.rootAncestors, find last matching component in allEntries.
 // Note, allEntries represent non-aggregated list so there could be multiple entries with the same componentId.
 export function findRootAncestors(dependencyInfo, allEntries) {
   if (!dependencyInfo || dependencyInfo.isDirectDependency || isNilOrEmpty(dependencyInfo.rootAncestors)) {
@@ -83,10 +82,7 @@ export function findRootAncestors(dependencyInfo, allEntries) {
     allEntries
   );
 
-  const getRootAncestorsFromAllEntries = pipe(
-    map(pipe(serializeComponentIdentifier, lookup(allEntriesBySerializedComponentId))),
-    reject(isNil)
-  );
+  const getRootAncestorsFromAllEntries = pipe(map(lookup(allEntriesBySerializedComponentId)), reject(isNil));
 
   return getRootAncestorsFromAllEntries(dependencyInfo.rootAncestors);
 }

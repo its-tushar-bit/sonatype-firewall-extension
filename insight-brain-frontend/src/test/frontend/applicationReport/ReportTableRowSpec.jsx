@@ -9,9 +9,18 @@ import { remove } from 'ramda';
 import ReportTableRow from 'MainRoot/applicationReport/ReportTableRow';
 import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+import { serializeComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
 
 describe('ReportTableRow component', function () {
   let renderComponent, onClickSpy, minimalProps, selectSelectedReportSpy, selectIsAggregatedSpy;
+  const npmProducerComponentKey = serializeComponentIdentifier({
+    format: 'npm',
+    coordinates: {
+      packageId: 'npm-producer',
+      version: 'file:../npm-producer',
+    },
+  });
+
   const mockReportData = [
     {
       policyThreatLevel: 9,
@@ -19,15 +28,7 @@ describe('ReportTableRow component', function () {
       grandfathered: false,
       dependencyInfo: {
         isDirectDependency: false,
-        rootAncestors: [
-          {
-            format: 'npm',
-            coordinates: {
-              packageId: 'npm-producer',
-              version: 'file:../npm-producer',
-            },
-          },
-        ],
+        rootAncestors: [npmProducerComponentKey],
       },
     },
     {
@@ -36,15 +37,7 @@ describe('ReportTableRow component', function () {
       grandfathered: false,
       dependencyInfo: {
         isDirectDependency: false,
-        rootAncestors: [
-          {
-            format: 'npm',
-            coordinates: {
-              packageId: 'npm-producer',
-              version: 'file:../npm-producer',
-            },
-          },
-        ],
+        rootAncestors: [npmProducerComponentKey],
       },
     },
     {
@@ -53,15 +46,7 @@ describe('ReportTableRow component', function () {
       grandfathered: false,
       dependencyInfo: {
         isDirectDependency: false,
-        rootAncestors: [
-          {
-            format: 'npm',
-            coordinates: {
-              packageId: 'npm-producer',
-              version: 'file:../npm-producer',
-            },
-          },
-        ],
+        rootAncestors: [npmProducerComponentKey],
       },
     },
     {
@@ -70,15 +55,7 @@ describe('ReportTableRow component', function () {
       grandfathered: true,
       dependencyInfo: {
         isDirectDependency: false,
-        rootAncestors: [
-          {
-            format: 'npm',
-            coordinates: {
-              packageId: 'npm-producer',
-              version: 'file:../npm-producer',
-            },
-          },
-        ],
+        rootAncestors: [npmProducerComponentKey],
       },
     },
     {
@@ -87,15 +64,7 @@ describe('ReportTableRow component', function () {
       grandfathered: false,
       dependencyInfo: {
         isDirectDependency: false,
-        rootAncestors: [
-          {
-            format: 'npm',
-            coordinates: {
-              packageId: 'npm-producer',
-              version: 'file:../npm-producer',
-            },
-          },
-        ],
+        rootAncestors: [npmProducerComponentKey],
       },
     },
     {
@@ -128,6 +97,7 @@ describe('ReportTableRow component', function () {
             version: 'file:../npm-producer',
           },
         },
+        serializedComponentIdentifier: npmProducerComponentKey,
         innerSource: false,
       },
       onClick: onClickSpy,

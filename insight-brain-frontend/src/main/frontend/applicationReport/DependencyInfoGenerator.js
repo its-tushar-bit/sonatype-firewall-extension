@@ -20,13 +20,13 @@ export const populateDependencyNodeKeys = (node) => ({
 });
 
 // creates reducer of children into rootAncestorsByChild map for given rootAncestorId
-const getRootAncestorsByChildReducer = (rootAncestorId) => (acc, childKey) => {
+const getRootAncestorsByChildReducer = (rootAncestorKey) => (acc, childKey) => {
   const rootAncestors = acc[childKey];
 
   if (rootAncestors) {
-    rootAncestors.add(rootAncestorId);
+    rootAncestors.add(rootAncestorKey);
   } else {
-    acc[childKey] = new Set([rootAncestorId]);
+    acc[childKey] = new Set([rootAncestorKey]);
   }
 
   return acc;
@@ -59,10 +59,10 @@ export default function DependencyInfoGenerator(dependencies) {
   const directDepIds = new Set(map(getKey, dependencyTreeWithKeys));
 
   // generate rootAncestorsByChild map
-  // where key is child key, and value is a Set of its unique rootAncestor componentIds
+  // where key is child key, and value is a Set of its unique rootAncestor keys
   const mapRootAncestorsToChildren = reduce((acc, directDependency) => {
     const childrenKeys = getAllChildrenKeys([], directDependency);
-    return reduce(getRootAncestorsByChildReducer(directDependency.componentIdentifier), acc, childrenKeys);
+    return reduce(getRootAncestorsByChildReducer(directDependency.key), acc, childrenKeys);
   }, {});
 
   const rootAncestorsSetByChild = mapRootAncestorsToChildren(dependencyTreeWithKeys);

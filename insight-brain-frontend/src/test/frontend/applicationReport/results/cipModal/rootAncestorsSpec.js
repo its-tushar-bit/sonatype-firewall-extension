@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import applicationReportModule from '../../../../../main/frontend/applicationReport/module';
-import { serializeComponentIdentifier } from '../../../../../main/frontend/util/componentIdentifierUtils';
+import applicationReportModule from 'MainRoot/applicationReport/module';
+import { serializeComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
 
-import { mapStateToThis } from '../../../../../main/frontend/applicationReport/results/cipModal/rootAncestors/rootAncestors';
+import { mapStateToThis } from 'MainRoot/applicationReport/results/cipModal/rootAncestors/rootAncestors';
 
 describe('rootAncestorsComponent', function () {
   let vm, scope;
@@ -104,7 +104,7 @@ describe('rootAncestorsComponent', function () {
           vm.selectedComponent = {
             dependencyInfo: {
               rootAncestors: [
-                {
+                serializeComponentIdentifier({
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
@@ -112,8 +112,8 @@ describe('rootAncestorsComponent', function () {
                     groupId: 'test',
                     version: 1,
                   },
-                },
-                {
+                }),
+                serializeComponentIdentifier({
                   format: 'maven',
                   coordinates: {
                     artifactId: 'baz',
@@ -121,7 +121,7 @@ describe('rootAncestorsComponent', function () {
                     groupId: 'test',
                     version: 3,
                   },
-                },
+                }),
               ],
             },
           };
@@ -220,7 +220,7 @@ describe('rootAncestorsComponent', function () {
           vm.selectedComponent = {
             dependencyInfo: {
               rootAncestors: [
-                {
+                serializeComponentIdentifier({
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
@@ -228,8 +228,8 @@ describe('rootAncestorsComponent', function () {
                     groupId: 'test',
                     version: 1,
                   },
-                },
-                {
+                }),
+                serializeComponentIdentifier({
                   format: 'maven',
                   coordinates: {
                     artifactId: 'bar',
@@ -237,8 +237,8 @@ describe('rootAncestorsComponent', function () {
                     groupId: 'test',
                     version: 2,
                   },
-                },
-                {
+                }),
+                serializeComponentIdentifier({
                   format: 'maven',
                   coordinates: {
                     artifactId: 'baz',
@@ -246,7 +246,7 @@ describe('rootAncestorsComponent', function () {
                     groupId: 'test',
                     version: 3,
                   },
-                },
+                }),
               ],
             },
           };
@@ -260,7 +260,7 @@ describe('rootAncestorsComponent', function () {
           vm.selectedComponent = {
             dependencyInfo: {
               rootAncestors: [
-                {
+                serializeComponentIdentifier({
                   format: 'maven',
                   coordinates: {
                     artifactId: 'foo',
@@ -268,8 +268,8 @@ describe('rootAncestorsComponent', function () {
                     groupId: 'test',
                     version: 1,
                   },
-                },
-                {
+                }),
+                serializeComponentIdentifier({
                   format: 'maven',
                   coordinates: {
                     artifactId: 'bar',
@@ -277,8 +277,8 @@ describe('rootAncestorsComponent', function () {
                     groupId: 'test',
                     version: 2,
                   },
-                },
-                {
+                }),
+                serializeComponentIdentifier({
                   format: 'maven',
                   coordinates: {
                     artifactId: 'baz',
@@ -286,8 +286,8 @@ describe('rootAncestorsComponent', function () {
                     groupId: 'test',
                     version: 3,
                   },
-                },
-                {
+                }),
+                serializeComponentIdentifier({
                   format: 'maven',
                   coordinates: {
                     artifactId: 'bla',
@@ -295,7 +295,7 @@ describe('rootAncestorsComponent', function () {
                     groupId: 'test',
                     version: 4,
                   },
-                },
+                }),
               ],
             },
           };
@@ -331,7 +331,7 @@ describe('rootAncestorsComponent', function () {
       vm.selectedComponent = {
         dependencyInfo: {
           rootAncestors: [
-            {
+            serializeComponentIdentifier({
               format: 'maven',
               coordinates: {
                 artifactId: 'foo',
@@ -339,8 +339,8 @@ describe('rootAncestorsComponent', function () {
                 groupId: 'test',
                 version: 1,
               },
-            },
-            {
+            }),
+            serializeComponentIdentifier({
               format: 'maven',
               coordinates: {
                 artifactId: 'bar',
@@ -348,8 +348,8 @@ describe('rootAncestorsComponent', function () {
                 groupId: 'test',
                 version: 2,
               },
-            },
-            {
+            }),
+            serializeComponentIdentifier({
               format: 'maven',
               coordinates: {
                 artifactId: 'baz',
@@ -357,8 +357,8 @@ describe('rootAncestorsComponent', function () {
                 groupId: 'test',
                 version: 3,
               },
-            },
-            {
+            }),
+            serializeComponentIdentifier({
               format: 'maven',
               coordinates: {
                 artifactId: 'bla',
@@ -366,7 +366,7 @@ describe('rootAncestorsComponent', function () {
                 groupId: 'test',
                 version: 4,
               },
-            },
+            }),
           ],
         },
       };

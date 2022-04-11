@@ -5,6 +5,7 @@
  */
 import * as applicationReportService from '../../../main/frontend/applicationReport/applicationReportService';
 import { ascend, isNil, map, prop, propEq, reject, sortWith } from 'ramda';
+import { serializeComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
 
 describe('applicationReportService', function () {
   describe('createRawDataEntries', function () {
@@ -1072,13 +1073,13 @@ describe('applicationReportService', function () {
           dependencyInfo: {
             isDirectDependency: false,
             rootAncestors: [
-              {
+              serializeComponentIdentifier({
                 format: 'a-name',
                 coordinates: {
                   name: 'foo',
                   version: '1',
                 },
-              },
+              }),
             ],
           },
           derivedDependencyType: 'transitive',

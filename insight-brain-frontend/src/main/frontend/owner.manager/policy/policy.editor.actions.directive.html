@@ -13,7 +13,7 @@
       <tr class="iq-table-row">
         <th class="iq-cell iq-cell--header">ACTION</th>
         <th
-          ng-repeat="actionStage in vm.actionStages"
+          ng-repeat="actionStage in vm.actionStages track by actionStage.stageName"
           class="{{::actionStage.shortName | lowercase}} iq-cell iq-cell--header"
         >
           {{::actionStage.shortName}}
@@ -26,7 +26,7 @@
       <tr class="iq-table-row tm-no-action-row">
         <td class="iq-cell iq-cell--action-name">No Action</td>
         <td
-          ng-repeat="actionStage in vm.actionStages"
+          ng-repeat="actionStage in vm.actionStages track by actionStage.stageName"
           class="iq-cell iq-cell--action {{::actionStage.shortName | lowercase}}"
           ng-class="{active: vm.activeColumn === $index}"
           ng-mouseover="vm.activeColumn = $index"
@@ -47,7 +47,7 @@
       <tr class="iq-table-row tm-row-warn">
         <td class="iq-cell iq-cell--action-name"><i class="fa fa-exclamation-triangle warn size-16px"></i>Warn</td>
         <td
-          ng-repeat="actionStage in vm.actionStages"
+          ng-repeat="actionStage in vm.actionStages track by actionStage.stageName"
           class="iq-cell iq-cell--action {{::actionStage.shortName | lowercase}}"
           ng-class="{active: vm.activeColumn === $index}"
           ng-mouseover="vm.activeColumn = $index"
@@ -70,7 +70,7 @@
       <tr class="iq-table-row tm-fail-row">
         <td class="iq-cell iq-cell--action-name"><i class="fa fa-exclamation-circle fail size-16px"></i>Fail</td>
         <td
-          ng-repeat="actionStage in vm.actionStages"
+          ng-repeat="actionStage in vm.actionStages track by actionStage.stageName"
           class="iq-cell iq-cell--action {{::actionStage.shortName | lowercase}}"
           ng-class="{active: vm.activeColumn === $index}"
           ng-mouseover="vm.activeColumn = $index"

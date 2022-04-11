@@ -77,15 +77,25 @@ describe('monitored.stage.editor.controller', function () {
           'policy-monitoring': true,
         },
         orgsAndPolicies: {
+          stages: {
+            cli: {
+              stageTypes: [
+                { stageName: 'Develop', stageTypeId: 1 },
+                { stageName: 'Build', stageTypeId: 1 },
+              ],
+            },
+            action: {
+              stageTypes: [
+                { stageName: 'Develop', stageTypeId: 1 },
+                { stageName: 'Build', stageTypeId: 1 },
+              ],
+            },
+          },
           policyMonitoring: {
             loading: false,
             loadError: null,
             submitError: null,
-            policyMonitoringByOwner: [],
-            stages: [
-              { stageName: 'Develop', stageTypeId: 1 },
-              { stageName: 'Build', stageTypeId: 1 },
-            ],
+            policyMonitoringByOwner: [{}],
             monitoredStage: { stageName: 'Develop', stageTypeId: 1 },
             originalStage: { stageName: 'Build', stageTypeId: 2 },
           },
@@ -94,8 +104,9 @@ describe('monitored.stage.editor.controller', function () {
 
       const output = mapStateToThis(state);
 
-      expect(output.policyMonitoringByOwner).toEqual([]);
+      expect(output.policyMonitoringByOwner).toEqual([{}]);
       expect(output.stages).toEqual([
+        { stageName: 'Do not monitor' },
         { stageName: 'Develop', stageTypeId: 1 },
         { stageName: 'Build', stageTypeId: 1 },
       ]);

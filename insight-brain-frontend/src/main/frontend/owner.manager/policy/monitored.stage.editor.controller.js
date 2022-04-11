@@ -4,18 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
 import { selectIsMonitoringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
+  selectLastSavedMonitoredStage,
   selectPolicyMonitoringByOwner,
   selectPolicyMonitoringLoadError,
   selectPolicyMonitoringLoading,
-  selectPolicyMonitoringMonitoredStage,
-  selectPolicyMonitoringOriginalStage,
-  selectPolicyMonitoringStages,
   selectPolicyMonitoringSubmitError,
+  selectSelectedMonitoredStage,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSelectors';
+import { selectCliStagesWithInheritOrNoMonitorOption } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
 
-export default function MonitoredStageEditorController($scope, StageTypeStore, $ngRedux) {
+export default function MonitoredStageEditorController($scope, $ngRedux) {
   const vm = this;
 
   Object.assign(vm, {
@@ -27,6 +28,7 @@ export default function MonitoredStageEditorController($scope, StageTypeStore, $
         savePolicyMonitoring: actions.savePolicyMonitoring,
         removePolicyMonitoring: actions.removePolicyMonitoring,
         setMonitoredStage: actions.setMonitoredStage,
+        loadCliStageTypes: stagesActions.loadCliStages,
       })(vm);
 
       $scope.$on('pageChangeStarted', (event) => {
@@ -43,9 +45,8 @@ export default function MonitoredStageEditorController($scope, StageTypeStore, $
     },
 
     doLoad() {
-      vm.loadApplicablePolicyMonitoring({
-        promises: () => StageTypeStore.get().then((stages) => ({ stages })),
-      });
+      vm.loadCliStageTypes();
+      vm.loadApplicablePolicyMonitoring();
     },
 
     save() {
@@ -60,15 +61,17 @@ export default function MonitoredStageEditorController($scope, StageTypeStore, $
   });
 }
 
-export const mapStateToThis = (state) => ({
-  loading: selectPolicyMonitoringLoading(state),
-  loadError: selectPolicyMonitoringLoadError(state),
-  submitError: selectPolicyMonitoringSubmitError(state),
-  policyMonitoringByOwner: selectPolicyMonitoringByOwner(state),
-  stages: selectPolicyMonitoringStages(state),
-  monitoredStage: selectPolicyMonitoringMonitoredStage(state),
-  originalStage: selectPolicyMonitoringOriginalStage(state),
-  isMonitoringSupported: selectIsMonitoringSupported(state),
-});
+export const mapStateToThis = (state) => {
+  return {
+    loading: selectPolicyMonitoringLoading(state),
+    loadError: selectPolicyMonitoringLoadError(state),
+    submitError: selectPolicyMonitoringSubmitError(state),
+    policyMonitoringByOwner: selectPolicyMonitoringByOwner(state),
+    stages: selectCliStagesWithInheritOrNoMonitorOption(state),
+    monitoredStage: selectSelectedMonitoredStage(state),
+    originalStage: selectLastSavedMonitoredStage(state),
+    isMonitoringSupported: selectIsMonitoringSupported(state),
+  };
+};
 
-MonitoredStageEditorController.$inject = ['$scope', 'StageTypeStore', '$ngRedux'];
+MonitoredStageEditorController.$inject = ['$scope', '$ngRedux'];

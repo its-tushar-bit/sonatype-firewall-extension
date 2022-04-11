@@ -41,6 +41,19 @@ describe('policy.editor.notifications.controller', function () {
     },
   ];
 
+  const notifications = {
+    userNotifications: [
+      {
+        emailAddress: 'test1@test.com',
+        stageIds: ['proxy', 'build'],
+      },
+      {
+        emailAddress: 'test2@test.com',
+        stageIds: ['develop'],
+      },
+    ],
+  };
+
   var createJiraServiceResolver = function () {
     var enabledDefer, getProjectsDefer, jiraService, $q;
 
@@ -86,14 +99,7 @@ describe('policy.editor.notifications.controller', function () {
 
   var jiraServiceResolver = createJiraServiceResolver();
 
-  beforeEach(inject(function (
-    $rootScope,
-    $controller,
-    $httpBackend,
-    CLMContextLocations,
-    _CLMLocations_,
-    StageTypeStore
-  ) {
+  beforeEach(inject(function ($rootScope, $controller, $httpBackend, CLMContextLocations, _CLMLocations_) {
     scope = $rootScope.$new();
     CLMLocations = _CLMLocations_;
 
@@ -115,8 +121,6 @@ describe('policy.editor.notifications.controller', function () {
       return vm;
     };
 
-    spyOn(StageTypeStore, 'getActionStages').and.returnValue([]);
-
     $httpBackend
       .expectGET(CLMLocations.getProductFeaturesUrl())
       .respond(['policy-monitoring', 'webhooks-for-applications', 'notifications']);
@@ -125,6 +129,27 @@ describe('policy.editor.notifications.controller', function () {
     getWebhooks = $httpBackend.whenGET(CLMContextLocations.getNotificationWebhooksUrl());
     getWebhooks.respond(webhooks);
   }));
+
+  describe('on create', () => {
+    it('subscribes to the redux store', () => {
+      const vm = initController(notifications);
+      expect(vm.unsubscribe).toBeDefined();
+    });
+
+    it('calls loadApplicablePolicyMonitoring', () => {
+      const vm = initController(notifications);
+      expect(vm.loadActionStageTypes).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('$destroy()', () => {
+    it('unsubscribes from redux store', () => {
+      const vm = initController(notifications);
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
+      scope.$destroy();
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+    });
+  });
 
   describe('controller init', function () {
     it('populates recipients from userNotifications', function () {

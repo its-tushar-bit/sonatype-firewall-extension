@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as policySelectors from 'MainRoot/OrgsAndPolicies/policySelectors';
+import * as stagesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { mapStateToThis } from 'MainRoot/owner.manager/policy/policy.editor.actions.controller';
 
@@ -17,27 +18,24 @@ describe('policy.editor.actions.controller', function () {
     })
   );
 
-  var vm, stageTypeStoreDefer, CLMLocations, $httpBackend, $scope;
+  var vm, $scope;
 
-  beforeEach(inject(function ($q, _$timeout_, _$httpBackend_, $controller, _CLMLocations_, StageTypeStore, $rootScope) {
+  beforeEach(inject(function (_$timeout_, _$httpBackend_, $controller, _CLMLocations_, $rootScope) {
     $scope = $rootScope.$new();
-    CLMLocations = _CLMLocations_;
-    $httpBackend = _$httpBackend_;
-
-    stageTypeStoreDefer = $q.defer();
-    spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
-    spyOn(StageTypeStore, 'getActionStages').and.returnValue(stageTypeStoreDefer.promise);
-    stageTypeStoreDefer.resolve(MockData.getActionStageData());
     vm = $controller('policy.editor.actions.controller', { $scope }, { actions: [] });
   }));
 
   describe('mapStateToThis', () => {
-    it('sets shouldShowQuarantineWarning to component', () => {
+    it('sets shouldShowQuarantineWarning, actionStages and loadError to component', () => {
       spyOn(policySelectors, 'selectShouldShowQuarantineWarning').and.returnValue(true);
+      spyOn(stagesSelectors, 'selectActionStageTypes').and.returnValue([]);
+      spyOn(stagesSelectors, 'selectActionStagesLoadError').and.returnValue('error');
 
-      const { shouldShowQuarantineWarning } = mapStateToThis({});
+      const { shouldShowQuarantineWarning, actionStages, loadError } = mapStateToThis({});
 
       expect(shouldShowQuarantineWarning).toBeTrue();
+      expect(actionStages).toEqual([]);
+      expect(loadError).toEqual('error');
     });
   });
 
@@ -46,12 +44,8 @@ describe('policy.editor.actions.controller', function () {
       expect(vm.unsubscribe).toBeDefined();
     });
 
-    it('Properly loads action info', function () {
-      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
-      expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();
-      $httpBackend.flush();
-
-      expect(vm.actionStages.length).toBe(6);
+    it('calls loadActionStageTypes', () => {
+      expect(vm.loadActionStageTypes).toHaveBeenCalledTimes(1);
     });
   });
 

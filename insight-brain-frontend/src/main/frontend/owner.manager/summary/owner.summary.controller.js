@@ -5,11 +5,13 @@
  */
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
 import {
   selectIsGrandfatheringSupported,
   selectIsInnerSourceRepositorySupported,
   selectIsEvaluateApplicationAvailable,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
 
 export default function OwnerSummaryController(
   $state,
@@ -23,7 +25,6 @@ export default function OwnerSummaryController(
   OrganizationStore,
   CLMLocations,
   CLMContextLocations,
-  StageTypeStore,
   DeleteModalService,
   SelectApplicationContactService,
   EvaluateApplicationModalService,
@@ -77,6 +78,11 @@ export default function OwnerSummaryController(
     type = vm.isApp ? ownerConstant.APPLICATION_TYPE : ownerConstant.ORGANIZATION_TYPE,
     id = $state.params[stateIdField];
 
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+    loadDashboardStageTypes: stagesActions.loadDashboardStages,
+  })(vm);
+
   vm.doLoad();
 
   if (vm.isApp) {
@@ -99,15 +105,11 @@ export default function OwnerSummaryController(
   });
 
   function doLoad() {
-    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
-    })(vm);
-
     var store = vm.isApp ? ApplicationStore : OrganizationStore,
       promises = [store[vm.error ? 'refresh' : 'get'](), store.getById(id), vm.loadProductFeatures()];
 
     if (vm.isApp) {
-      promises.push(StageTypeStore.getDashboardStages());
+      promises.push(vm.loadDashboardStageTypes());
       promises.push($http.get(CLMLocations.getApplicationSummaryUrl(id)));
       promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
       promises.push(ApplicationStore.getById(CLMContextLocations.getEntityId()));
@@ -120,7 +122,7 @@ export default function OwnerSummaryController(
         vm.owner = results[1];
 
         if (vm.isApp) {
-          vm.stages = results[3];
+          unwrapResult(results[3]);
           vm.applicationSummary = results[4].data;
           vm.owner.contact = vm.applicationSummary.contact;
           vm.isGrandfatheringEnabled = results[5].calculatedEnabled;
@@ -266,6 +268,7 @@ export default function OwnerSummaryController(
 }
 
 const mapStateToThis = (state) => ({
+  stages: selectDashboardStageTypes(state),
   isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
   isEvaluateApplicationAvailable: selectIsEvaluateApplicationAvailable(state),
   isInnerSourceRepositorySupported: selectIsInnerSourceRepositorySupported(state),
@@ -283,7 +286,6 @@ OwnerSummaryController.$inject = [
   'OrganizationStore',
   'CLMLocations',
   'CLMContextLocations',
-  'StageTypeStore',
   'DeleteModalService',
   'SelectApplicationContactService',
   'evaluate.application.modal.service',

@@ -6,7 +6,6 @@
 import resourceModule from '../Resource';
 import CLMLocationModule from '../util/CLMLocation';
 import CLMContextLocationModule from '../util/CLMContextLocation';
-import { fetchStageTypes } from '../stages/stagesActions';
 
 var storesModule = angular.module('Stores', [
   CLMLocationModule.name,
@@ -95,57 +94,6 @@ storesModule.service('OrganizationStore', [
         name: null,
       },
     });
-  },
-]);
-
-/**
- * Note that this module no longer actually uses Stores. Its external API never exposed that it was using stores,
- * and it has now been migrated to use the Stages stored in redux instead
- */
-storesModule.service('StageTypeStore', [
-  '$ngRedux',
-  '$q',
-  function ($ngRedux, $q) {
-    const getCurrentStageState = (purpose) => $ngRedux.getState().stages[purpose];
-
-    function stagesPromiseProvider(purpose) {
-      return function () {
-        const alreadyLoadedStageTypes = getCurrentStageState(purpose).stageTypes;
-
-        if (alreadyLoadedStageTypes) {
-          return $q.resolve(angular.copy(alreadyLoadedStageTypes));
-        } else {
-          let unsubscribe = null;
-
-          const promise = $q(function (resolve, reject) {
-            unsubscribe = $ngRedux.subscribe(function () {
-              const stageState = getCurrentStageState(purpose),
-                { stageTypes, error } = stageState;
-
-              if (error) {
-                reject(error);
-              } else if (stageTypes) {
-                resolve(angular.copy(stageTypes));
-              }
-            });
-          }).finally(function () {
-            if (unsubscribe) {
-              unsubscribe();
-            }
-          });
-
-          $ngRedux.dispatch(fetchStageTypes(purpose));
-
-          return promise;
-        }
-      };
-    }
-
-    return {
-      get: stagesPromiseProvider('cli'),
-      getActionStages: stagesPromiseProvider('action'),
-      getDashboardStages: stagesPromiseProvider('dashboard'),
-    };
   },
 ]);
 

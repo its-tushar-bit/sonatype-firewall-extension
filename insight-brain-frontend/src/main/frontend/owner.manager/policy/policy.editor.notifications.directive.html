@@ -12,7 +12,7 @@
         <th class="iq-cell iq-cell--header">
           RECIPIENT
         </th>
-        <th class="iq-cell iq-cell--header" ng-repeat="stage in vm.actionStages">
+        <th class="iq-cell iq-cell--header" ng-repeat="stage in vm.actionStages track by stage.stageTypeId">
           {{::stage.shortName | uppercase}}
         </th>
         <th class="iq-cell iq-cell--header iq-cell--continuous-monitoring"
@@ -41,7 +41,7 @@
             ng-class="::{'fa-envelope': recipient.emailAddress, 'fa-puzzle-piece': recipient.roleId }"></i><!--
        -->{{::vm.getDisplayName(recipient)}}
         </td>
-        <td ng-repeat="stage in vm.actionStages" class="iq-cell tm-stage-{{::stage.stageTypeId}}">
+        <td ng-repeat="stage in vm.actionStages track by stage.stageTypeId" class="iq-cell tm-stage-{{::stage.stageTypeId}}">
           <iq-checkbox on-click="vm.toggleStage(recipient, stage.stageTypeId)"
                        is-checked="vm.hasStage(recipient, stage.stageTypeId)"
                        is-disabled="vm.isCheckboxForStageDisabled(recipient, stage.stageTypeId)"

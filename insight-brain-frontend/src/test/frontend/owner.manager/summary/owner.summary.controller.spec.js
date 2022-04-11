@@ -8,6 +8,7 @@ import legacyConfigurationModule from 'MainRoot/LegacyConfigurationModule';
 import ownerUtils from '../owner.utils';
 import applicationResourceMockData from '../mock.data/application.resource.mock.data';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
 
 describe('owner.summary.controller', function () {
   beforeEach(
@@ -49,8 +50,7 @@ describe('owner.summary.controller', function () {
       _$timeout_,
       _$httpBackend_,
       _CLMLocations_,
-      _CLMContextLocations_,
-      StageTypeStore
+      _CLMContextLocations_
     ) {
       scope = $rootScope.$new();
 
@@ -79,9 +79,9 @@ describe('owner.summary.controller', function () {
       };
 
       spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
-      spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
       spyOn(CLMContextLocations, 'isApplication').and.returnValue(isApp);
       spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+      spyOn(stagesActions, 'loadDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
 
       mockState = {
         current: {
@@ -134,7 +134,6 @@ describe('owner.summary.controller', function () {
 
       if (isApp) {
         $timeout.flush();
-        expect(vm.stages).toEqual(MockData.getDashboardStageData());
         expect(vm.applicationSummary).toEqual(applicationResourceMockData.getApplicationSummaryUrl());
         expect(vm.hasPermissionToChangeAppId).toEqual(true);
         expect(vm.hasPermissionToEvaluateApp).toEqual(true);
@@ -269,7 +268,7 @@ describe('owner.summary.controller', function () {
       }
     });
 
-    it('StageTypeStore Loading Error', function () {
+    it('Stage Types Loading Error', function () {
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
@@ -556,10 +555,10 @@ describe('owner.summary.controller', function () {
       }
     }
 
-    function resolveStageTypeStore(value) {
+    function resolveStageTypeStore(payload) {
       if (isApp) {
-        expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();
-        stageTypeStoreDefer.resolve(value);
+        expect(stagesActions.loadDashboardStages).toHaveBeenCalled();
+        stageTypeStoreDefer.resolve({ payload });
       }
     }
 

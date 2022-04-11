@@ -3,8 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSlice';
 import { actions as propiertaryConfigActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import {
   selectIsMonitoringSupported,
   selectIsGrandfatheringSupported,
@@ -12,11 +15,7 @@ import {
   selectIsFirewallSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
-  selectGrandfatheringStatusMessage,
-  selectPoliciesByOwner,
-  selectPolicyMonitoringActionStages,
-  selectPolicyMonitoringLoadError,
-  selectPolicyMonitoringMonitoredStage,
+  selectMonitoredStageFromActionStages,
   selectPolicyMonitoringOwnerName,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSelectors';
 import { selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
@@ -28,7 +27,7 @@ import {
 
 export default function PolicyTileController(
   $scope,
-  StageTypeStore,
+  $q,
   SameOwnerStateNavigationService,
   EventNameConstant,
   CLMContextLocations,
@@ -56,6 +55,8 @@ export default function PolicyTileController(
     vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
       loadApplicablePolicyMonitoring: actions.loadApplicablePolicyMonitoring,
       loadPropietaryConfig: propiertaryConfigActions.loadProprietaryConfig,
+      loadActionStageTypes: stagesActions.loadActionStages,
+      loadApplicablePoliciesByOwner: policyActions.loadApplicablePoliciesByOwner,
     })(vm);
     vm.doLoad();
   };
@@ -69,19 +70,43 @@ export default function PolicyTileController(
   $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
   function doLoad() {
-    const promises = [StageTypeStore.getActionStages()];
+    const promises = [
+      vm.loadApplicablePoliciesByOwner(),
+      vm.loadActionStageTypes(),
+      vm.loadPropietaryConfig(),
+      vm.loadApplicablePolicyMonitoring(),
+    ];
     if (vm.isAppOrOrg) {
       promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
     }
 
-    vm.loadPropietaryConfig();
-    vm.loadApplicablePolicyMonitoring({
-      promises: () =>
-        Promise.all(promises).then(([actionStages, grandfathering]) => ({
-          actionStages,
-          grandfathering,
-        })),
-    });
+    $q.all(promises).then(
+      function (results) {
+        vm.policiesByOwner = unwrapResult(results[0]).policiesByOwner;
+        vm.actionStages = unwrapResult(results[1]).data;
+        unwrapResult(results[2]);
+        unwrapResult(results[3]);
+
+        vm.policiesByOwner.forEach(function (policyOwner, index) {
+          policyOwner.inherited = index > 0;
+          policyOwner.policies.forEach(function (policy) {
+            policy.enforcementAction = {};
+            vm.actionStages.forEach(function (actionStage) {
+              if (policy.actions[actionStage.stageTypeId]) {
+                policy.enforcementAction[actionStage.stageTypeId] = policy.actions[actionStage.stageTypeId];
+              }
+            });
+          });
+        });
+
+        if (vm.isAppOrOrg) {
+          vm.grandfatheringStatusMessage = PolicyViolationGrandfatheringService.getStatusMessage(results[4]);
+        }
+      },
+      function (error) {
+        vm.loadError = error;
+      }
+    );
   }
 
   function editPolicy(policyId) {
@@ -100,14 +125,10 @@ export default function PolicyTileController(
 export const mapStateToThis = (state) => ({
   ownerProperties: selectOwnerProperties(state),
   ownerName: selectPolicyMonitoringOwnerName(state),
-  policiesByOwner: selectPoliciesByOwner(state),
-  grandfatheringStatusMessage: selectGrandfatheringStatusMessage(state),
   localProprietaryCount: selectPropietaryConfigLocalMatchersCount(state),
   inheritedProprietaryCount: selectPropietaryConfigInheritedMatchersCount(state),
   propietaryConfigIsloading: selectPropietaryConfigIsLoading(state),
-  monitoredStage: selectPolicyMonitoringMonitoredStage(state),
-  loadError: selectPolicyMonitoringLoadError(state),
-  actionStages: selectPolicyMonitoringActionStages(state),
+  monitoredStage: selectMonitoredStageFromActionStages(state),
   isEnforcementSupported: selectIsEnforcementSupported(state),
   isFirewallSupported: selectIsFirewallSupported(state),
   isMonitoringSupported: selectIsMonitoringSupported(state),
@@ -116,7 +137,7 @@ export const mapStateToThis = (state) => ({
 
 PolicyTileController.$inject = [
   '$scope',
-  'StageTypeStore',
+  '$q',
   'SameOwnerStateNavigationService',
   'event.name.constant',
   'CLMContextLocations',

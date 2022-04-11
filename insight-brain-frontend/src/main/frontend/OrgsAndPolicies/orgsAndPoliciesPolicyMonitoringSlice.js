@@ -4,16 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { pick, prop } from 'ramda';
 
 import { Messages } from 'MainRoot/util/CommonServices';
-import * as MonitoredStageService from 'MainRoot/owner.manager/utility/monitored.stage.service';
-import PolicyViolationGrandfatheringService from 'MainRoot/owner.manager/policyViolationGrandfathering/policyViolationGrandfatheringService';
 import { getPolicyMonitoringUrl, getApplicablePolicyMonitoringUrl } from 'MainRoot/util/CLMLocation';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { selectPolicyMonitoringMonitoredStage } from './orgsAndPoliciesPolicyMonitoringSelectors';
-import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 const REDUCER_NAME = 'orgsAndPoliciesPolicyMonitoring';
@@ -28,19 +25,15 @@ export const initialState = {
   actionStages: undefined,
   monitoredStage: undefined,
   originalStage: undefined,
-  localProprietaryCount: 0,
-  inheritedProprietaryCount: 0,
   grandfatheringStatusMessage: undefined,
 };
 
 const loadApplicablePolicyMonitoring = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicablePolicyMonitoring`,
-  ({ promises = () => Promise.resolve({}) } = {}, { getState, dispatch, rejectWithValue }) => {
+  (_, { getState, dispatch, rejectWithValue }) => {
     const { ownerType, ownerId } = selectOwnerProperties(getState());
     return Promise.all([
       axios.get(getApplicablePolicyMonitoringUrl(ownerType, ownerId)).then(prop('data')),
-      dispatch(policyActions.loadApplicablePoliciesByOwner()).then(unwrapResult),
-      promises(),
       dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()),
     ]).catch(rejectWithValue);
   }
@@ -76,15 +69,11 @@ const loadApplicablePolicyMonitoringRequested = (state) => {
 };
 
 const loadApplicablePolicyMonitoringFulfilled = (state, { payload }) => {
-  const [{ policyMonitoringByOwner }, { policiesByOwner }, { stages, actionStages, grandfathering }] = payload;
+  const [{ policyMonitoringByOwner }] = payload;
 
   state.loading = false;
   state.loadError = null;
   state.policyMonitoringByOwner = policyMonitoringByOwner;
-  if (stages) setStages(state, policyMonitoringByOwner, stages);
-  if (actionStages) setMonitoredStageFromActionStages(state, policyMonitoringByOwner, actionStages);
-  if (policiesByOwner && actionStages) setPoliciesByOwner(state, policiesByOwner, actionStages);
-  if (grandfathering) setGrandfatheringStatusMessage(state, grandfathering);
 };
 
 const loadApplicablePolicyMonitoringFailed = (state, { payload }) => {
@@ -124,51 +113,6 @@ const removePolicyMonitoringFulfilled = (state) => {
 const removePolicyMonitoringFailed = (state, { payload }) => {
   state.loading = false;
   state.submitError = Messages.getHttpErrorMessage(payload);
-};
-
-const setStages = (state, policyMonitoringByOwner, stages) => {
-  const stagesWithInheritOrNoMonitorOption = [
-    MonitoredStageService.createInheritOrNoMonitorOption(policyMonitoringByOwner, stages),
-    ...stages,
-  ];
-  const monitoredStage = MonitoredStageService.getMonitoredStage(
-    policyMonitoringByOwner[0].policyMonitoring,
-    stagesWithInheritOrNoMonitorOption
-  );
-
-  state.originalStage = monitoredStage;
-  state.monitoredStage = monitoredStage;
-  state.stages = stagesWithInheritOrNoMonitorOption;
-};
-
-const setMonitoredStageFromActionStages = (state, policyMonitoringByOwner, stages) => {
-  const monitoredStage = MonitoredStageService.getMonitoredStage(policyMonitoringByOwner[0].policyMonitoring, stages);
-  const inheritOrNoMonitorOption = MonitoredStageService.createInheritOrNoMonitorOption(
-    policyMonitoringByOwner,
-    stages
-  );
-
-  state.actionStages = stages;
-  state.monitoredStage = monitoredStage || inheritOrNoMonitorOption;
-};
-
-const setPoliciesByOwner = (state, policiesByOwner, actionStages) => {
-  state.policiesByOwner = policiesByOwner.map((policyOwner, index) => {
-    const policies = policyOwner.policies.map(function (policy) {
-      const enforcementAction = {};
-      actionStages.forEach((actionStage) => {
-        if (policy.actions[actionStage.stageTypeId]) {
-          enforcementAction[actionStage.stageTypeId] = policy.actions[actionStage.stageTypeId];
-        }
-      });
-      return { ...policy, enforcementAction };
-    });
-    return { ...policyOwner, policies, inherited: index > 0 };
-  });
-};
-
-const setGrandfatheringStatusMessage = (state, configuration) => {
-  state.grandfatheringStatusMessage = PolicyViolationGrandfatheringService().getStatusMessage(configuration);
 };
 
 const orgsAndPoliciesPolicyMonitoringSlice = createSlice({

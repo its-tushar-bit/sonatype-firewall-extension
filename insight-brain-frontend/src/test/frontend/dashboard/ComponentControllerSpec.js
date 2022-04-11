@@ -49,11 +49,9 @@ describe('ComponentController tests', function () {
         { value: ':' },
         { field: 'Version', value: '1.0' },
       ];
-    beforeEach(inject(function ($rootScope, $controller, $httpBackend, $timeout, $q, CLMLocations, StageTypeStore) {
+    beforeEach(inject(function ($rootScope, $controller, $httpBackend, $timeout, $q, CLMLocations) {
       scope = $rootScope.$new();
-      var stageTypeStoreDefer = $q.defer();
-      spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
-      stageTypeStoreDefer.resolve([]);
+
       $httpBackend.expectGET(CLMLocations.getComponentDetailsUrl()).respond(applicationComponents);
       $httpBackend.expectGET(CLMLocations.getComponentNameUrl()).respond(displayName);
       $controller('componentController', { $scope: scope });
@@ -66,6 +64,24 @@ describe('ComponentController tests', function () {
       $httpBackend.verifyNoOutstandingRequest();
       scope.$destroy();
     }));
+
+    describe('on create', () => {
+      it('subscribes to the redux store', () => {
+        expect(scope.unsubscribe).toBeDefined();
+      });
+
+      it('calls loadApplicablePolicyMonitoring', () => {
+        expect(scope.loadStageTypes).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('$destroy()', () => {
+      it('unsubscribes from redux store', () => {
+        expect(scope.unsubscribe).not.toHaveBeenCalled();
+        scope.$destroy();
+        expect(scope.unsubscribe).toHaveBeenCalledTimes(1);
+      });
+    });
 
     it('loads application components', function () {
       expect(scope.applicationComponents.length).toBe(1);

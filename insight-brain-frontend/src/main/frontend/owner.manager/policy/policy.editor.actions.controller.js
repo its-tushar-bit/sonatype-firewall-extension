@@ -6,8 +6,14 @@
 import { omit } from 'ramda';
 
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
 import { selectShouldShowQuarantineWarning } from '../../OrgsAndPolicies/policySelectors';
-export default function PolicyEditorActionsController($q, StageTypeStore, ProductFeatures, $ngRedux, $scope) {
+import {
+  selectActionStagesLoadError,
+  selectActionStageTypes,
+} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
+
+export default function PolicyEditorActionsController($scope, $q, ProductFeatures, $ngRedux) {
   var vm = this;
   vm.actionStages = null;
   vm.loadError = null;
@@ -17,6 +23,7 @@ export default function PolicyEditorActionsController($q, StageTypeStore, Produc
   vm.doLoad = doLoad;
   vm.onActionChange = onActionChange;
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadActionStageTypes: stagesActions.loadActionStages,
     setActions: actions.setActions,
   })(vm);
   vm.doLoad();
@@ -26,11 +33,11 @@ export default function PolicyEditorActionsController($q, StageTypeStore, Produc
   });
 
   function doLoad() {
-    const promises = [StageTypeStore.getActionStages(), ProductFeatures.load()];
+    vm.loadActionStageTypes();
+    const promises = [ProductFeatures.load()];
 
     $q.all(promises).then(
-      function (results) {
-        vm.actionStages = results[0];
+      function () {
         vm.isEnforcementSupported = ProductFeatures.isAvailable('enforcement');
         vm.isFirewallSupported = ProductFeatures.isAvailable('firewall');
       },
@@ -53,8 +60,12 @@ export default function PolicyEditorActionsController($q, StageTypeStore, Produc
   }
 }
 
-export const mapStateToThis = (state) => ({
-  shouldShowQuarantineWarning: selectShouldShowQuarantineWarning(state),
-});
+export const mapStateToThis = (state) => {
+  return {
+    actionStages: selectActionStageTypes(state),
+    loadError: selectActionStagesLoadError(state),
+    shouldShowQuarantineWarning: selectShouldShowQuarantineWarning(state),
+  };
+};
 
-PolicyEditorActionsController.$inject = ['$q', 'StageTypeStore', 'ProductFeatures', '$ngRedux', '$scope'];
+PolicyEditorActionsController.$inject = ['$scope', '$q', 'ProductFeatures', '$ngRedux', '$scope'];

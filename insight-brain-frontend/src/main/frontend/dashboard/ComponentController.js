@@ -7,6 +7,11 @@
 import commonServicesModule from '../util/CommonServices';
 import CLMLocationModule from '../util/CLMLocation';
 import storesModule from '../util/Stores';
+import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import {
+  selectDashboardStagesLoadError,
+  selectDashboardStageTypes,
+} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
 
 var componentModule = angular.module('ComponentModule', [
   'ui.router',
@@ -20,24 +25,29 @@ componentModule.controller('componentController', [
   '$state',
   '$q',
   '$http',
-  'StageTypeStore',
   'CLMLocations',
-  function ($scope, $state, $q, $http, StageTypeStore, CLMLocations) {
+  '$ngRedux',
+  function ($scope, $state, $q, $http, CLMLocations, $ngRedux) {
     $scope.hash = $state.params.hash;
 
+    $scope.unsubscribe = $ngRedux.connect(mapStateToThis, { loadStageTypes: actions.loadDashboardStages })($scope);
+
+    $scope.$on('$destroy', function () {
+      $scope.unsubscribe();
+    });
+
     $scope.doLoad = function () {
+      $scope.loadStageTypes();
       var hash = $state.params.hash;
       var promises = [
         $http.get(CLMLocations.getComponentDetailsUrl(hash)),
         $http.get(CLMLocations.getComponentNameUrl(hash)),
-        StageTypeStore.getDashboardStages(),
       ];
 
       $q.all(promises).then(
         function (results) {
           $scope.applicationComponents = results[0].data;
           $scope.component = { displayName: results[1].data };
-          $scope.stageTypes = results[2];
 
           var totalRisk = 0;
           for (var i = 0; i < $scope.applicationComponents.length; i++) {
@@ -115,5 +125,12 @@ componentModule.directive('riskPie', [
     };
   },
 ]);
+
+export const mapStateToThis = (state) => {
+  return {
+    stageTypes: selectDashboardStageTypes(state),
+    error: selectDashboardStagesLoadError(state),
+  };
+};
 
 export default componentModule;

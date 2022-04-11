@@ -47,7 +47,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
 
       const newState = reducer(state, {
         type: 'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
-        payload: [applicablePolicyMonitoring, {}, {}],
+        payload: [applicablePolicyMonitoring, { policiesByOwner: [], actionStages: [] }],
       });
 
       expect(newState.loading).toBeFalse();
@@ -64,72 +64,6 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
           ],
         },
       ]);
-    });
-
-    it('sets policies by owner when policiesByOwner and actionStages data are provided', () => {
-      const policyMonitoringByOwner = [{ policyMonitoring: { stageTypeId: 'develop', stageName: 'Develop' } }];
-      const policiesByOwner = StoreUtils().createMockHierarchyStoreData(
-        PolicyTileMockData.getApplicablePolicies(),
-        'policiesByOwner'
-      );
-      const state = Object.freeze({
-        policyMonitoringByOwner: undefined,
-      });
-
-      const newState = reducer(state, {
-        type: 'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
-        payload: [
-          { policyMonitoringByOwner },
-          { policiesByOwner },
-          {
-            stages: MockData.getStageData(),
-            actionStages: MockData.getStageData(),
-          },
-        ],
-      });
-
-      newState.policiesByOwner.forEach(function (owner, ownerIndex) {
-        owner.policies.forEach(function (policy, policyIndex) {
-          expect(policy.name).toEqual(policiesByOwner[ownerIndex].policies[policyIndex].name);
-          expect(policy.threatLevel).toEqual(policiesByOwner[ownerIndex].policies[policyIndex].threatLevel);
-          expect(policy.actions).toEqual(policiesByOwner[ownerIndex].policies[policyIndex].actions);
-          expect(policy.enforcementAction).toBeDefined();
-          expect(policy.enforcementAction['build'][0].actionTypeId).toEqual(
-            policiesByOwner[ownerIndex].policies[policyIndex].actions['build'][0].actionTypeId
-          );
-          expect(policy.enforcementAction['stage-release'][0].actionTypeId).toEqual(
-            policiesByOwner[ownerIndex].policies[policyIndex].actions['stage-release'][0].actionTypeId
-          );
-        });
-      });
-      expect(newState.monitoredStage.stageName).toBe('Develop');
-    });
-
-    it('uses the placeholder value for monitored stage if one is not inherited', function () {
-      const policyMonitoringByOwner = [{ ownerName: 'testApp', policyMonitoring: {} }];
-      const policiesByOwner = StoreUtils().createMockHierarchyStoreData(
-        PolicyTileMockData.getApplicablePolicies(),
-        'policiesByOwner'
-      );
-      const state = Object.freeze({
-        policyMonitoringByOwner: undefined,
-      });
-
-      const newState = reducer(state, {
-        type: 'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
-        payload: [
-          { policyMonitoringByOwner },
-          {
-            policiesByOwner,
-          },
-          {
-            stages: MockData.getDashboardStageData(),
-            actionStages: MockData.getDashboardStageData(),
-          },
-        ],
-      });
-
-      expect(newState.monitoredStage.stageName).toBe('Do not monitor');
     });
   });
 

@@ -52,9 +52,8 @@ reportModule.controller('ReportController', [
   '$state',
   '$http',
   '$q',
-  'StageTypeStore',
   'CLMLocations',
-  function ($scope, $state, $http, $q, StageTypeStore, clmLocations) {
+  function ($scope, $state, $http, $q, clmLocations) {
     $scope.doLoad = function () {
       $scope.error = null;
 

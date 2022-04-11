@@ -60,7 +60,6 @@ describe('policy.tile.controller', function () {
     $q,
     _$controller_,
     _$timeout_,
-    StageTypeStore,
     _CLMLocations_,
     _CLMContextLocations_
   ) {
@@ -76,7 +75,6 @@ describe('policy.tile.controller', function () {
       getStatusMessage: JSON.stringify,
     };
     spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
-    spyOn(StageTypeStore, 'getActionStages').and.returnValue(stageTypeStoreDefer.promise);
 
     mockAxiosCalls({
       get: {
@@ -101,6 +99,7 @@ describe('policy.tile.controller', function () {
         },
         orgsAndPolicies: {
           proprietary: {
+            loading: false,
             localMatchers: [
               { type: 'REGEX', matcher: 'match' },
               { type: 'REGEX', matcher: 'match' },
@@ -111,23 +110,35 @@ describe('policy.tile.controller', function () {
               { proprietaryConfig: { packages: [], regexes: ['regex'] } },
             ],
           },
+          stages: {
+            cli: {
+              loading: false,
+              error: null,
+              stageTypes: [
+                { stageName: 'Develop', stageTypeId: 1 },
+                { stageName: 'Build', stageTypeId: 2 },
+              ],
+            },
+            action: {
+              loading: false,
+              error: null,
+              stageTypes: [
+                { stageName: 'Develop', stageTypeId: 1 },
+                { stageName: 'Build', stageTypeId: 2 },
+              ],
+            },
+          },
           policyMonitoring: {
             loading: false,
             loadError: null,
             submitError: null,
-            policiesByOwner: [{ ownerName: 'name' }],
-            policyMonitoringByOwner: [{ ownerName: 'name' }],
+            isMonitoringSupported: false,
+            isGrandfatheringSupported: false,
+            policiesByOwner: [{ ownerName: 'name', policies: [] }],
+            policyMonitoringByOwner: [{ ownerName: 'name', policyMonitoring: { stageTypeId: 1 } }],
             inheritedProprietaryCount: 1,
             localProprietaryCount: 3,
             grandfatheringStatusMessage: 'message',
-            stages: [
-              { stageName: 'Develop', stageTypeId: 1 },
-              { stageName: 'Build', stageTypeId: 2 },
-            ],
-            actionStages: [
-              { stageName: 'Develop', stageTypeId: 1 },
-              { stageName: 'Build', stageTypeId: 2 },
-            ],
             monitoredStage: { stageName: 'Develop', stageTypeId: 1 },
             originalStage: { stageName: 'Build', stageTypeId: 2 },
           },
@@ -138,20 +149,15 @@ describe('policy.tile.controller', function () {
 
       expect(output.ownerProperties).toEqual({ ownerId: 'app id', ownerType: 'application' });
       expect(output.ownerName).toBe('name');
-      expect(output.isMonitoringSupported).toBeTrue();
-      expect(output.isGrandfatheringSupported).toBeTrue();
-      expect(output.isEnforcementSupported).toBeTrue();
-      expect(output.isFirewallSupported).toBeTrue();
-      expect(output.policiesByOwner).toEqual([{ ownerName: 'name' }]);
-      expect(output.grandfatheringStatusMessage).toBe('message');
       expect(output.localProprietaryCount).toBe(3);
       expect(output.inheritedProprietaryCount).toBe(1);
+      expect(output.inheritedProprietaryCount).toBe(1);
+      expect(output.propietaryConfigIsloading).toBeFalse();
       expect(output.monitoredStage).toEqual({ stageName: 'Develop', stageTypeId: 1 });
-      expect(output.loadError).toBeNull();
-      expect(output.actionStages).toEqual([
-        { stageName: 'Develop', stageTypeId: 1 },
-        { stageName: 'Build', stageTypeId: 2 },
-      ]);
+      expect(output.isEnforcementSupported).toBeTrue();
+      expect(output.isFirewallSupported).toBeTrue();
+      expect(output.isMonitoringSupported).toBeTrue();
+      expect(output.isGrandfatheringSupported).toBeTrue();
     });
   });
 

@@ -5,6 +5,7 @@
  */
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
 import { selectIsNotificationsSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function EvaluateApplicationModalController(
@@ -19,7 +20,6 @@ export default function EvaluateApplicationModalController(
   Messages,
   CLMLocations,
   selectedApplication,
-  StageTypeStore,
   $ngRedux
 ) {
   var validEvaluateBundleStages = ['build', 'stage-release', 'release', 'operate'],
@@ -66,6 +66,7 @@ export default function EvaluateApplicationModalController(
   function doLoad() {
     vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
       loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+      loadStageTypes: stagesActions.loadCliStages,
     })(vm);
 
     vm.evaluationState = 'loading';
@@ -80,14 +81,15 @@ export default function EvaluateApplicationModalController(
       return setError('Cannot find the associated Application', doLoad);
     }
 
-    const promises = [StageTypeStore.get(), vm.loadProductFeatures()];
+    const promises = [vm.loadStageTypes(), vm.loadProductFeatures()];
 
     $q.all(promises).then(
       function (results) {
+        const { data: stages } = unwrapResult(results[0]);
         unwrapResult(results[1]);
         vm.evaluationState = 'ready';
 
-        results[0].forEach(function (stage) {
+        stages.forEach(function (stage) {
           if (validEvaluateBundleStages.indexOf(stage.stageTypeId) > -1) {
             vm.stages.push(stage);
           }
@@ -222,6 +224,5 @@ EvaluateApplicationModalController.$inject = [
   'Messages',
   'CLMLocations',
   'selectedApplication',
-  'StageTypeStore',
   '$ngRedux',
 ];

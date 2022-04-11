@@ -1,4 +1,4 @@
-<div class="nx-viewport-sized__container" load-wrapper="error" reload="doLoad()" loading="!applicationComponents">
+<div class="nx-viewport-sized__container" load-wrapper="error" reload="doLoad()" loading="!applicationComponents || !stageTypes">
   <root-organization-migrate></root-organization-migrate>
   <div breadcrumb></div>
   <header class="nx-page-title">
@@ -28,7 +28,7 @@
           <th class="risk-header">
             <div>RISK</div>
           </th>
-          <th ng-repeat="stage in stageTypes"
+          <th ng-repeat="stage in stageTypes track by stage.stageName"
               class="stage-column stage-column-{{stage.stageTypeId}}">
             <div>{{stage.shortName | uppercase}}</div>
           </th>

@@ -13,9 +13,8 @@ import {
   selectIsMonitoringSupported,
   selectPolicyMonitoringMonitoredStage,
   selectPolicyMonitoringOwnerName,
-  selectPolicyMonitoringActionStages,
-  selectPolicyMonitoringStages,
   selectPoliciesByOwner,
+  selectPoliciesByOwnerWithEnforcementActions,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSelectors';
 
 describe('orgsAndPoliciesPolicyMonitoringSelectors', () => {
@@ -151,15 +150,41 @@ describe('orgsAndPoliciesPolicyMonitoringSelectors', () => {
     });
   });
 
-  describe('selectPolicyMonitoringStages', () => {
-    it('returns stages', () => {
-      expect(selectPolicyMonitoringStages(mockState)).toEqual([{ stageTypeId: 'stageOne' }]);
-    });
-  });
+  describe('selectPoliciesByOwnerWithEnforcementActions', () => {
+    it('returns policies with enformacement actions', () => {
+      const policiesByOwner = StoreUtils().createMockHierarchyStoreData(
+        PolicyTileMockData.getApplicablePolicies(),
+        'policiesByOwner'
+      );
+      const state = Object.freeze({
+        orgsAndPolicies: {
+          stages: {
+            cli: { stageTypes: MockData.getStageData() },
+            action: { stageTypes: MockData.getStageData() },
+          },
+          policyMonitoring: {
+            policiesByOwner,
+            policyMonitoringByOwner: [{ policyMonitoring: { stageTypeId: 'develop', stageName: 'Develop' } }],
+          },
+        },
+      });
 
-  describe('selectPolicyMonitoringActionStages', () => {
-    it('returns action stages', () => {
-      expect(selectPolicyMonitoringActionStages(mockState)).toEqual([{ stageTypeId: 'actionStageOne' }]);
+      const policiesByOwnerWithEnforcementActions = selectPoliciesByOwnerWithEnforcementActions(state);
+
+      policiesByOwnerWithEnforcementActions.forEach(function (owner, ownerIndex) {
+        owner.policies.forEach(function (policy, policyIndex) {
+          expect(policy.name).toEqual(policiesByOwner[ownerIndex].policies[policyIndex].name);
+          expect(policy.threatLevel).toEqual(policiesByOwner[ownerIndex].policies[policyIndex].threatLevel);
+          expect(policy.actions).toEqual(policiesByOwner[ownerIndex].policies[policyIndex].actions);
+          expect(policy.enforcementAction).toBeDefined();
+          expect(policy.enforcementAction['build'][0].actionTypeId).toEqual(
+            policiesByOwner[ownerIndex].policies[policyIndex].actions['build'][0].actionTypeId
+          );
+          expect(policy.enforcementAction['stage-release'][0].actionTypeId).toEqual(
+            policiesByOwner[ownerIndex].policies[policyIndex].actions['stage-release'][0].actionTypeId
+          );
+        });
+      });
     });
   });
 });

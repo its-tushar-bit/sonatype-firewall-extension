@@ -5,6 +5,7 @@
  */
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
 
 describe('evaluate.application.modal.controller', function () {
   var scope, vm, $timeout, $httpBackend, CLMLocations, mockSelectedApplication;
@@ -18,7 +19,7 @@ describe('evaluate.application.modal.controller', function () {
     })
   );
 
-  beforeEach(inject(function ($rootScope, $q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, StageTypeStore) {
+  beforeEach(inject(function ($rootScope, $q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_) {
     var stageTypeStoreDefer = $q.defer();
 
     scope = $rootScope.$new();
@@ -34,7 +35,7 @@ describe('evaluate.application.modal.controller', function () {
     };
 
     spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
-    spyOn(StageTypeStore, 'get').and.returnValue(stageTypeStoreDefer.promise);
+    spyOn(stagesActions, 'loadCliStages').and.returnValue(stageTypeStoreDefer.promise);
     spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
     vm = $controller('evaluate.application.modal.controller', {
       $scope: scope,
@@ -44,7 +45,7 @@ describe('evaluate.application.modal.controller', function () {
 
     expect(vm.evaluationState).toBe('loading');
     expect(stageTypeStoreDefer.promise.then).toHaveBeenCalled();
-    stageTypeStoreDefer.resolve(MockData.getActionStageData());
+    stageTypeStoreDefer.resolve({ payload: { data: MockData.getActionStageData() } });
     scope.$digest();
   }));
 

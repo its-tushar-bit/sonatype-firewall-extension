@@ -3,14 +3,19 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { findIndex, propEq } from 'ramda';
 
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
-import { findIndex, propEq } from 'ramda';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import {
+  selectActionStagesLoadError,
+  selectActionStageTypes,
+} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
+
 export default function PolicyEditorNotificationsController(
   $scope,
   $q,
   RoleMappingService,
-  StageTypeStore,
   JiraService,
   ProductFeatures,
   NotificationWebhookService,
@@ -28,7 +33,7 @@ export default function PolicyEditorNotificationsController(
   vm.loadError = undefined;
   vm.jiraError = undefined;
   vm.actionStages = undefined;
-  vm.recipients = undefined;
+  vm.recipients = [];
   vm.recipientTypes = {
     EMAIL: 'Email',
     ROLE: 'Role',
@@ -60,7 +65,8 @@ export default function PolicyEditorNotificationsController(
   vm.isNotificationsFormDisabled = isNotificationsFormDisabled;
   vm.isCheckboxForStageDisabled = isCheckboxForStageDisabled;
   vm.getAvailableWebhooks = getAvailableWebhooks;
-  vm.unsubscribe = $ngRedux.connect(null, {
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadActionStageTypes: stagesActions.loadActionStages,
     setUserNotificationsAction: actions.setUserNotifications,
     setRoleNotificationsAction: actions.setRoleNotifications,
     setJiraNotificationsAction: actions.setJiraNotifications,
@@ -72,6 +78,10 @@ export default function PolicyEditorNotificationsController(
   })(vm);
   vm.doLoad();
 
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
+
   $scope.$watch('vm.notifications', function (newValue, oldValue) {
     if (newValue === oldValue) {
       return;
@@ -79,13 +89,9 @@ export default function PolicyEditorNotificationsController(
     loadRecipients();
   });
 
-  $scope.$on('$destroy', () => {
-    vm.unsubscribe();
-  });
-
   function doLoad() {
+    vm.loadActionStageTypes();
     var promises = [
-      StageTypeStore.getActionStages(),
       RoleMappingService.get(),
       JiraService.isEnabled().then(function (isEnabled) {
         if (isEnabled) {
@@ -112,10 +118,9 @@ export default function PolicyEditorNotificationsController(
 
     $q.all(promises).then(
       function (results) {
-        vm.actionStages = results[0];
-        vm.roles = results[1].membersByRole;
-        var jiraResults = results[2];
-        var webhookResults = results[3];
+        vm.roles = results[0].membersByRole;
+        var jiraResults = results[1];
+        var webhookResults = results[2];
 
         if (!jiraResults) {
           // JIRA is disabled
@@ -506,11 +511,17 @@ export default function PolicyEditorNotificationsController(
   }
 }
 
+export const mapStateToThis = (state) => {
+  return {
+    actionStages: selectActionStageTypes(state),
+    loadError: selectActionStagesLoadError(state),
+  };
+};
+
 PolicyEditorNotificationsController.$inject = [
   '$scope',
   '$q',
   'role.mapping.service',
-  'StageTypeStore',
   'jira.service',
   'ProductFeatures',
   'notification.webhook.service',

@@ -54,4 +54,13 @@ public class ArtifactoryConnectionDAOTest
     assertThat(dao.getById(artifactoryConnection.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(artifactoryConnection);
   }
+
+  @Test
+  public void testGetByOwnerId() throws Exception {
+    tempEntity.newArtifactoryConnection("ownerId1", "baseUrl1", "username1", "password1".toCharArray());
+    tempEntity.newArtifactoryConnection("ownerId1", "baseUrl2", "username2", "password2".toCharArray());
+    tempEntity.newArtifactoryConnection("ownerId2", "baseUrl3", "username3", "password3".toCharArray());
+
+    assertThat(dao.getByOwnerId("ownerId1")).hasSize(2).extracting("baseUrl").containsOnly("baseUrl1", "baseUrl2");
+  }
 }

@@ -18,7 +18,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -70,6 +69,8 @@ public class ReportService
 
   private final TelemetrySender telemetrySender;
 
+  private final RepositoryMatcher repositoryMatcher;
+
   @Inject
   public ReportService(
       InsightWork work,
@@ -79,7 +80,8 @@ public class ReportService
       ApplicationDAO applicationDAO,
       OrganizationDAO organizationDAO,
       ThirdPartyDataService thirdPartyDataService,
-      TelemetrySender telemetrySender)
+      TelemetrySender telemetrySender,
+      RepositoryMatcher repositoryMatcher)
   {
     this.work = work;
     this.reportDownloader = reportDownloader;
@@ -89,6 +91,7 @@ public class ReportService
     this.organizationDAO = organizationDAO;
     this.thirdPartyDataService = thirdPartyDataService;
     this.telemetrySender = telemetrySender;
+    this.repositoryMatcher = repositoryMatcher;
   }
 
   public File fetchReport(final Application app, final String scanId)
@@ -106,7 +109,7 @@ public class ReportService
       FileUtils.rename(tempFile, reportFile);
     }
 
-    Report.applyChanges(app, reportFile, telemetrySender);
+    Report.applyChanges(app, reportFile, repositoryMatcher, telemetrySender);
 
     return reportFile;
   }

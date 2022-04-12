@@ -98,6 +98,9 @@ public class ReportServiceTest
   @Mock
   private TelemetrySender telemetrySender;
 
+  @Mock
+  private RepositoryMatcher repositoryMatcher;
+
   /**
    * To be configured/mocked by each test.
    */
@@ -111,7 +114,7 @@ public class ReportServiceTest
 
   private ReportService createReportService() {
     return new ReportService(insightWork, reportDownloader, new PolicyEvaluationDAO(), insightConfig,
-        new ApplicationDAO(), new OrganizationDAO(), thirdPartyDataServiceSpy, telemetrySender);
+        new ApplicationDAO(), new OrganizationDAO(), thirdPartyDataServiceSpy, telemetrySender, repositoryMatcher);
   }
 
   @Test

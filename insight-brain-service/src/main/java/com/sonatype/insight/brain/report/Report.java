@@ -180,6 +180,7 @@ public final class Report
   static void applyChanges(
       final Application application,
       final File reportFile,
+      final RepositoryMatcher repositoryMatcher,
       final TelemetrySender telemetrySender)
       throws IOException
   {
@@ -198,7 +199,7 @@ public final class Report
 
     embedApplicationPublicId(application, reportFile);
 
-    applyComponentRelatedChanges(application, reportFile, telemetrySender);
+    applyComponentRelatedChanges(application, reportFile, repositoryMatcher, telemetrySender);
     cacheThirdPartyData(reportFile);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
@@ -638,6 +639,7 @@ public final class Report
    */
   private static void applyComponentRelatedChanges(final Application application,
                                                    final File reportFile,
+                                                   final RepositoryMatcher repositoryMatcher,
                                                    final TelemetrySender telemetrySender) throws IOException
   {
     long start = System.currentTimeMillis();
@@ -674,6 +676,7 @@ public final class Report
     DependencyResolver
         .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application, telemetrySender)
         .resolve();
+    repositoryMatcher.match(bomJsonData);
 
     saveReportEntry(reportFile, DATA_JSON_FILENAME, dataJson);
     saveReportEntry(reportFile, SUMMARY_JSON_FILENAME, summaryJsonData);

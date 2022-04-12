@@ -37,6 +37,10 @@ public class ArtifactoryMockServerRule
     artifactoryMockServer.stop();
   }
 
+  public WireMockServer getWireMockServer() {
+    return artifactoryMockServer;
+  }
+
   public String getBaseUrl() {
     return artifactoryMockServer.baseUrl();
   }

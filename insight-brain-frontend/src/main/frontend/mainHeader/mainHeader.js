@@ -29,9 +29,17 @@ function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser
   vm.isSourceControlSupported = undefined;
   vm.isCrowdIntegrationEnabled = undefined;
 
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    fetchProductFeaturesIfNeeded: actions.fetchProductFeaturesIfNeeded,
+  })(vm);
+
   function hasAnyPermission() {
     return !angular.equals({}, vm.permissions);
   }
+
+  $scope.$on('$destroy', () => {
+    vm.unsubscribe();
+  });
 
   function checkShowLoginButton() {
     routeStateUtilService.stateRequiresAuthentication().then((stateRequiresAuthentication) => {
@@ -49,9 +57,6 @@ function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser
     ];
 
     CurrentUser.waitForLogin().then(function () {
-      const unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
-      $scope.$on('$destroy', unsubscribe);
-
       PermissionService.getValidPermissions(validPermissions).then(function (data) {
         const perms = {};
         angular.forEach(data, function (permission) {
@@ -60,7 +65,7 @@ function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser
         vm.permissions = perms;
       });
 
-      $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded());
+      vm.fetchProductFeaturesIfNeeded();
     });
 
     checkShowLoginButton();

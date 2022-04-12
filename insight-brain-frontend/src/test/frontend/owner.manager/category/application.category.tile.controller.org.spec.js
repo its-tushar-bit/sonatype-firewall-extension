@@ -24,8 +24,6 @@ describe('application.category.tile.controller.org.spec.js', function () {
     vm = $controller('ApplicationCategoryTileControllerOrg', {
       $scope: scope,
     });
-    scope.vm = vm;
-    vm.$onInit();
   }));
 
   describe('mapStateToThis', () => {
@@ -46,7 +44,7 @@ describe('application.category.tile.controller.org.spec.js', function () {
     });
   });
 
-  describe('$onInit()', () => {
+  describe('on component init', () => {
     it('subscribes to the redux store', () => {
       expect(vm.unsubscribe).toBeDefined();
     });
@@ -54,21 +52,13 @@ describe('application.category.tile.controller.org.spec.js', function () {
     it('does not calls loadApplicableCategories if owner is not organization', () => {
       expect(vm.loadApplicableCategories).not.toHaveBeenCalled();
     });
-
-    it('calls loadApplicableCategories if owner is organization', () => {
-      vm.isOrg = true;
-
-      vm.$onInit();
-
-      expect(vm.loadApplicableCategories).toHaveBeenCalledTimes(1);
-    });
   });
 
-  describe('$onDestroy()', () => {
+  describe('on $destroy()', () => {
     it('unsubscribes from the redux store', () => {
       expect(vm.unsubscribe).not.toHaveBeenCalled();
 
-      vm.$onDestroy();
+      scope.$destroy();
 
       expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
     });

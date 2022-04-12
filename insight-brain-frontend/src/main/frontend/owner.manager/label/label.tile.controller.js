@@ -15,26 +15,13 @@ import {
 export default function LabelTileController($scope, EventNameConstant, $ngRedux) {
   const vm = this;
 
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    updateOwnerName: rootActions.updatedOwnerHandler,
+    loadApplicableLabels: actions.loadApplicableLabels,
+    goToEditLabel: actions.goToEditLabel,
+  })(vm);
+
   Object.assign(vm, {
-    $onInit() {
-      vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-        updateOwnerName: rootActions.updatedOwnerHandler,
-        loadApplicableLabels: actions.loadApplicableLabels,
-        goToEditLabel: actions.goToEditLabel,
-      })(vm);
-
-      // TODO: next three lines should be migrated when appropriate piece of state is created
-      $scope.$on('policy.imported', vm.doLoad);
-      $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, vm.doLoad);
-      $scope.$on(EventNameConstant.OWNER_UPDATED, vm.updatedOwnerHandler);
-
-      vm.doLoad();
-    },
-
-    $onDestroy() {
-      vm.unsubscribe();
-    },
-
     doLoad() {
       vm.loadApplicableLabels();
     },
@@ -48,6 +35,17 @@ export default function LabelTileController($scope, EventNameConstant, $ngRedux)
     updatedOwnerHandler(_, newOwner) {
       vm.updateOwnerName(newOwner.name);
     },
+  });
+
+  // TODO: next three lines should be migrated when appropriate piece of state is created
+  $scope.$on(EventNameConstant.POLICY_IMPORTED, vm.doLoad);
+  $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, vm.doLoad);
+  $scope.$on(EventNameConstant.OWNER_UPDATED, vm.updatedOwnerHandler);
+
+  vm.doLoad();
+
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
   });
 }
 

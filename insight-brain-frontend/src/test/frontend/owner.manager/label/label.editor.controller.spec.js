@@ -21,9 +21,6 @@ describe('label.editor.controller', () => {
     vm = $controller('label.editor.controller', {
       $scope: scope,
     });
-
-    scope.vm = vm;
-    vm.$onInit();
   }));
 
   describe('mapStateToThis', () => {
@@ -74,7 +71,7 @@ describe('label.editor.controller', () => {
     });
   });
 
-  describe('$onInit()', () => {
+  describe('on component init', () => {
     it('subscribes to the redux store', () => {
       expect(vm.unsubscribe).toBeDefined();
     });
@@ -84,10 +81,10 @@ describe('label.editor.controller', () => {
     });
   });
 
-  describe('$onDestroy()', () => {
+  describe('on $destroy()', () => {
     it('unsubscribes from redux store', () => {
       expect(vm.unsubscribe).not.toHaveBeenCalled();
-      vm.$onDestroy();
+      scope.$destroy();
       expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
     });
   });

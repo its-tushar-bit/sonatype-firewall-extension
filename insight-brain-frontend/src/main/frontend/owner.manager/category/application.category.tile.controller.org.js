@@ -16,26 +16,13 @@ import { selectOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelecto
 export default function ApplicationCategoryTileControllerOrg($scope, EventNameConstant, $ngRedux) {
   var vm = this;
 
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadApplicableCategories: actions.loadApplicableCategories,
+    updateOwnerHandler: orgsAndPoliciesRootActions.updatedOwnerHandler,
+    goToEditCategory: actions.goToEditCategory,
+  })(vm);
+
   Object.assign(vm, {
-    $onInit() {
-      vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-        loadApplicableCategories: actions.loadApplicableCategories,
-        updateOwnerHandler: orgsAndPoliciesRootActions.updatedOwnerHandler,
-        goToEditCategory: actions.goToEditCategory,
-      })(vm);
-
-      // TODO: next three lines should be migrated when appropriate peace of state is created
-      $scope.$on(EventNameConstant.POLICY_IMPORTED, vm.doLoad);
-      $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, vm.doLoad);
-      $scope.$on(EventNameConstant.OWNER_UPDATED, vm.updatedOwnerHandler);
-
-      vm.doLoad();
-    },
-
-    $onDestroy() {
-      vm.unsubscribe();
-    },
-
     doLoad() {
       if (vm.isOrg) {
         vm.loadApplicableCategories();
@@ -51,6 +38,17 @@ export default function ApplicationCategoryTileControllerOrg($scope, EventNameCo
         vm.goToEditCategory(categoryId);
       }
     },
+  });
+
+  // TODO: next three lines should be migrated when appropriate peace of state is created
+  $scope.$on(EventNameConstant.POLICY_IMPORTED, vm.doLoad);
+  $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, vm.doLoad);
+  $scope.$on(EventNameConstant.OWNER_UPDATED, vm.updatedOwnerHandler);
+
+  vm.doLoad();
+
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
   });
 }
 

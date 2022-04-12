@@ -30,6 +30,12 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   vm.isFirewallSupported = false;
   vm.isAdvancedLegalPackSupported = false;
 
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
+
+  $scope.$on('$destroy', () => {
+    vm.unsubscribe();
+  });
+
   function getReleaseVersion() {
     const serverVersionWithoutBuildNumber = clmServerVersion.substring(0, clmServerVersion.indexOf('-'));
     const serverVersionParts = serverVersionWithoutBuildNumber.split('.');
@@ -48,9 +54,6 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
 
   function doLoad() {
     CurrentUser.waitForLogin().then(function () {
-      const unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
-      $scope.$on('$destroy', unsubscribe);
-
       $ngRedux.dispatch(loadAdvancedSearchConfig());
       $ngRedux.dispatch(loadSuccessMetricsConfig());
       $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded());

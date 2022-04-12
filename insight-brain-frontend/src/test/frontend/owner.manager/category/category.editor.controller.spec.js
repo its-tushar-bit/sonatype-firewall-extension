@@ -26,9 +26,6 @@ describe('category.editor.controller', function () {
       Modal: modalSpy,
       DeleteModalService: deleteModalServiceSpy,
     });
-
-    scope.vm = vm;
-    vm.$onInit();
   }));
 
   describe('mapStateToThis', () => {
@@ -53,7 +50,7 @@ describe('category.editor.controller', function () {
     });
   });
 
-  describe('$onInit()', () => {
+  describe('on component init', () => {
     it('subscribes to the redux store', () => {
       expect(vm.unsubscribe).toBeDefined();
     });
@@ -63,11 +60,11 @@ describe('category.editor.controller', function () {
     });
   });
 
-  describe('$onDestroy()', () => {
+  describe('on $destroy()', () => {
     it('unsubscribes from the redux store', () => {
       expect(vm.unsubscribe).not.toHaveBeenCalled();
 
-      vm.$onDestroy();
+      scope.$destroy();
 
       expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
     });

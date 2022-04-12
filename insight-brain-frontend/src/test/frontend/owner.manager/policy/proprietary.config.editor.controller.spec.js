@@ -24,9 +24,6 @@ describe('proprietary.config.editor.controller', () => {
     vm = $controller('proprietary.config.editor.controller', {
       $scope: scope,
     });
-
-    scope.vm = vm;
-    vm.$onInit();
   }));
 
   describe('mapStateToThis', () => {
@@ -115,7 +112,7 @@ describe('proprietary.config.editor.controller', () => {
     });
   });
 
-  describe('$onInit()', () => {
+  describe('on component init', () => {
     it('subscribes to the redux store', () => {
       expect(vm.unsubscribe).toBeDefined();
     });
@@ -125,10 +122,10 @@ describe('proprietary.config.editor.controller', () => {
     });
   });
 
-  describe('$onDestroy()', () => {
+  describe('on $destroy()', () => {
     it('unsubscribes from redux store', () => {
       expect(vm.unsubscribe).not.toHaveBeenCalled();
-      vm.$onDestroy();
+      scope.$destroy();
       expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
     });
   });

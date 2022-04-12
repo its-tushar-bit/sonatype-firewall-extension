@@ -41,6 +41,11 @@ export default function EvaluateApplicationModalController(
   vm.uploadBundleUrl = uploadBundleUrl;
   vm.isNotificationsSupported = undefined;
 
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+    loadStageTypes: stagesActions.loadCliStages,
+  })(vm);
+
   doLoad();
 
   var reportListener = $scope.$watch(
@@ -57,6 +62,7 @@ export default function EvaluateApplicationModalController(
 
   $scope.$on('$destroy', function () {
     reportListener();
+    vm.unsubscribe();
   });
 
   $scope.$on('pageChangeAccepted', function () {
@@ -64,11 +70,6 @@ export default function EvaluateApplicationModalController(
   });
 
   function doLoad() {
-    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
-      loadStageTypes: stagesActions.loadCliStages,
-    })(vm);
-
     vm.evaluationState = 'loading';
     vm.bundle = {
       notify: 'true',

@@ -36,6 +36,10 @@ function SourceControlEditorController(
 ) {
   var vm = this;
 
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+  })(vm);
+
   vm.ownerName = undefined;
   vm.ownerId = undefined;
   vm.ownerType = undefined;
@@ -149,10 +153,6 @@ function SourceControlEditorController(
   function doLoad() {
     vm.loadError = undefined;
     vm.loading = true;
-
-    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
-    })(vm);
 
     let ownerPromise;
 

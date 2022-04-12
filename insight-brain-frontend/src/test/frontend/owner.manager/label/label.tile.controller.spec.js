@@ -23,7 +23,6 @@ describe('label.tile.controller', () => {
       $scope: scope,
     });
     scope.vm = vm;
-    vm.$onInit();
   }));
 
   describe('mapStateToThis', () => {
@@ -67,7 +66,7 @@ describe('label.tile.controller', () => {
     });
   });
 
-  describe('$onInit()', () => {
+  describe('on component init', () => {
     it('subscribes to the redux store', () => {
       expect(vm.unsubscribe).toBeDefined();
     });
@@ -77,10 +76,10 @@ describe('label.tile.controller', () => {
     });
   });
 
-  describe('$onDestroy()', () => {
+  describe('on $destroy()', () => {
     it('unsubscribes from redux store', () => {
       expect(vm.unsubscribe).not.toHaveBeenCalled();
-      vm.$onDestroy();
+      scope.$destroy();
       expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
     });
   });
@@ -88,7 +87,7 @@ describe('label.tile.controller', () => {
   describe('broadcast events', () => {
     it('calls loadApplicableLabels on policy.imported event', () => {
       expect(vm.loadApplicableLabels).toHaveBeenCalledTimes(1);
-      scope.$emit('policy.imported');
+      scope.$emit(EventNameConstant.POLICY_IMPORTED);
       expect(vm.loadApplicableLabels).toHaveBeenCalledTimes(2);
     });
 

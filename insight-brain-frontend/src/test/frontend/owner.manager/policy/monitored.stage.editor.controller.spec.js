@@ -21,10 +21,9 @@ describe('monitored.stage.editor.controller', function () {
     vm = $controller('monitored.stage.editor.controller', { $scope: scope });
 
     vm.continuousMonitoringEditorMask = { wrap: jasmine.createSpy('wrap').and.callFake((promise) => promise) };
-    vm.$onInit();
   }));
 
-  describe('$onInit()', () => {
+  describe('on component init', () => {
     it('subscribes to the redux store', () => {
       expect(vm.unsubscribe).toBeDefined();
     });
@@ -34,10 +33,10 @@ describe('monitored.stage.editor.controller', function () {
     });
   });
 
-  describe('$onDestroy()', () => {
+  describe('on $destroy()', () => {
     it('unsubscribes from redux store', () => {
       expect(vm.unsubscribe).not.toHaveBeenCalled();
-      vm.$onDestroy();
+      scope.$destroy();
       expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
     });
   });

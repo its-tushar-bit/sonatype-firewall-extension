@@ -19,30 +19,16 @@ import { selectCliStagesWithInheritOrNoMonitorOption } from 'MainRoot/OrgsAndPol
 export default function MonitoredStageEditorController($scope, $ngRedux) {
   const vm = this;
 
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadApplicablePolicyMonitoring: actions.loadApplicablePolicyMonitoring,
+    savePolicyMonitoring: actions.savePolicyMonitoring,
+    removePolicyMonitoring: actions.removePolicyMonitoring,
+    setMonitoredStage: actions.setMonitoredStage,
+    loadCliStageTypes: stagesActions.loadCliStages,
+  })(vm);
+
   Object.assign(vm, {
     continuousMonitoringEditorMask: undefined,
-
-    $onInit() {
-      vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-        loadApplicablePolicyMonitoring: actions.loadApplicablePolicyMonitoring,
-        savePolicyMonitoring: actions.savePolicyMonitoring,
-        removePolicyMonitoring: actions.removePolicyMonitoring,
-        setMonitoredStage: actions.setMonitoredStage,
-        loadCliStageTypes: stagesActions.loadCliStages,
-      })(vm);
-
-      $scope.$on('pageChangeStarted', (event) => {
-        if (vm.isDirty()) {
-          event.preventDefault();
-        }
-      });
-
-      vm.doLoad();
-    },
-
-    $onDestroy() {
-      vm.unsubscribe();
-    },
 
     doLoad() {
       vm.loadCliStageTypes();
@@ -58,6 +44,19 @@ export default function MonitoredStageEditorController($scope, $ngRedux) {
     isDirty() {
       return vm.originalStage?.stageTypeId !== vm.monitoredStage?.stageTypeId;
     },
+  });
+
+  $scope.$on('pageChangeStarted', (event) => {
+    if (vm.isDirty()) {
+      event.preventDefault();
+    }
+  });
+
+  vm.doLoad();
+
+  $scope.$on('$destroy', function () {
+    debugger;
+    vm.unsubscribe();
   });
 }
 

@@ -20,30 +20,18 @@ import {
 export default function CategoryEditorController($scope, Modal, DeleteModalService, ApplicationStore, $ngRedux) {
   var vm = this;
 
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadCategoryEditor: actions.loadCategoryEditor,
+    saveApplicationCategory: actions.saveApplicationCategory,
+    removeApplicationCategory: actions.removeApplicationCategory,
+    setCategoryDescription: actions.setCategoryDescription,
+    setCategoryName: actions.setCategoryName,
+    setCategoryColor: actions.setCategoryColor,
+  })(vm);
+
   Object.assign(vm, {
     categoryEditor: undefined,
     categoryEditorMask: undefined,
-    $onInit() {
-      vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-        loadCategoryEditor: actions.loadCategoryEditor,
-        saveApplicationCategory: actions.saveApplicationCategory,
-        removeApplicationCategory: actions.removeApplicationCategory,
-        setCategoryDescription: actions.setCategoryDescription,
-        setCategoryName: actions.setCategoryName,
-        setCategoryColor: actions.setCategoryColor,
-      })(vm);
-
-      $scope.$on('pageChangeStarted', (event) => {
-        if (vm.isDirty) {
-          event.preventDefault();
-        }
-      });
-      vm.doLoad();
-    },
-
-    $onDestroy() {
-      vm.unsubscribe();
-    },
 
     deleteCategory() {
       const showCannotDeleteModal = vm.tagPolicyList.length;
@@ -95,6 +83,18 @@ export default function CategoryEditorController($scope, Modal, DeleteModalServi
         })
       );
     },
+  });
+
+  $scope.$on('pageChangeStarted', (event) => {
+    if (vm.isDirty) {
+      event.preventDefault();
+    }
+  });
+
+  vm.doLoad();
+
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
   });
 }
 

@@ -18,33 +18,19 @@ import {
 export default function LabelEditorController($scope, DeleteModalService, $ngRedux) {
   const vm = this;
 
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadLabelsEditor: actions.loadLabelsEditor,
+    setLabelDescription: actions.setLabelDescription,
+    setLabelName: actions.setLabelName,
+    setLabelColor: actions.setLabelColor,
+    saveLabel: actions.saveLabel,
+    removeLabel: actions.removeLabel,
+    resetDeleteModalState: actions.resetDeleteModalState,
+  })(vm);
+
   Object.assign(vm, {
     labelEditor: undefined,
     labelEditorMask: undefined,
-
-    $onInit() {
-      vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-        loadLabelsEditor: actions.loadLabelsEditor,
-        setLabelDescription: actions.setLabelDescription,
-        setLabelName: actions.setLabelName,
-        setLabelColor: actions.setLabelColor,
-        saveLabel: actions.saveLabel,
-        removeLabel: actions.removeLabel,
-        resetDeleteModalState: actions.resetDeleteModalState,
-      })(vm);
-
-      $scope.$on('pageChangeStarted', (event) => {
-        if (vm.isDirty) {
-          event.preventDefault();
-        }
-      });
-
-      vm.doLoad();
-    },
-
-    $onDestroy() {
-      vm.unsubscribe();
-    },
 
     doLoad() {
       vm.loadLabelsEditor();
@@ -79,6 +65,18 @@ export default function LabelEditorController($scope, DeleteModalService, $ngRed
       );
     },
   });
+
+  $scope.$on('pageChangeStarted', (event) => {
+    if (vm.isDirty) {
+      event.preventDefault();
+    }
+  });
+
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
+
+  vm.doLoad();
 }
 
 // angular.copy usage is temp solution in order to edit immutable data from redux with angular forms

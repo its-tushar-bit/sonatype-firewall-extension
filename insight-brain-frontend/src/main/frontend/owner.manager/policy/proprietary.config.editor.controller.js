@@ -22,6 +22,17 @@ const PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
 export default function ProprietaryConfigEditorController($scope, $ngRedux) {
   const vm = this;
 
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    load: actions.loadProprietaryConfig,
+    saveConfig: actions.saveProprietaryConfig,
+    removeMatcher: actions.removeMatcher,
+    setMatcherPackageValue: actions.setMatcherPackageValue,
+    setMatcherRegexValue: actions.setMatcherRegexValue,
+    resetMatcher: actions.resetMatcher,
+    setMatcherTypeValue: actions.setMatcherType,
+    addLocalMatcher: actions.addMatcher,
+  })(vm);
+
   Object.assign(vm, {
     proprietaryConfigEditor: undefined,
     proprietaryConfigEditorMask: undefined,
@@ -29,31 +40,6 @@ export default function ProprietaryConfigEditorController($scope, $ngRedux) {
     // needed for view
     matcherTypes: matcherTypes,
     matcherTypeOptions: [matcherTypes.PACKAGE, matcherTypes.REGEX],
-
-    $onInit() {
-      vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-        load: actions.loadProprietaryConfig,
-        saveConfig: actions.saveProprietaryConfig,
-        removeMatcher: actions.removeMatcher,
-        setMatcherPackageValue: actions.setMatcherPackageValue,
-        setMatcherRegexValue: actions.setMatcherRegexValue,
-        resetMatcher: actions.resetMatcher,
-        setMatcherTypeValue: actions.setMatcherType,
-        addLocalMatcher: actions.addMatcher,
-      })(vm);
-
-      $scope.$on('pageChangeStarted', (event) => {
-        if (vm.isDirty) {
-          event.preventDefault();
-        }
-      });
-
-      vm.doLoad();
-    },
-
-    $onDestroy() {
-      vm.unsubscribe();
-    },
 
     doLoad() {
       vm.load();
@@ -109,6 +95,18 @@ export default function ProprietaryConfigEditorController($scope, $ngRedux) {
       vm.resetMatcher();
       vm.proprietaryConfigEditor.$setPristine();
     },
+  });
+
+  $scope.$on('pageChangeStarted', (event) => {
+    if (vm.isDirty) {
+      event.preventDefault();
+    }
+  });
+
+  vm.doLoad();
+
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
   });
 }
 

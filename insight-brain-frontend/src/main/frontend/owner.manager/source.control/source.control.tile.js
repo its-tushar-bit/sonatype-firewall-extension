@@ -44,6 +44,11 @@ function SourceControlTileController(
   vm.itemSubText = undefined;
   vm.isSourceControlSupported = undefined;
   vm.effectiveProvider = undefined;
+
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+  })(vm);
+
   vm.doLoad();
 
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, function () {
@@ -58,10 +63,6 @@ function SourceControlTileController(
   function doLoad() {
     vm.error = undefined;
     vm.loading = true;
-
-    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
-    })(vm);
 
     let ownerPromise;
 

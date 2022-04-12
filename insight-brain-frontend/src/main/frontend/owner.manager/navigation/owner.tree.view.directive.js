@@ -43,6 +43,11 @@ function OwnerTreeViewController(
   vm.isSourceControlSupported = undefined;
   vm.scmProviderIcon = undefined;
 
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    ...scmOnboardingActions,
+    loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+  })(vm);
+
   $scope.$watch('vm.filter.value', filter, function (error) {
     vm.error = error;
   });
@@ -106,11 +111,6 @@ function OwnerTreeViewController(
   function doLoad() {
     delete vm.error;
     delete vm.rootOrganization;
-
-    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-      ...scmOnboardingActions,
-      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
-    })(vm);
 
     if (
       vm.state === undefined ||

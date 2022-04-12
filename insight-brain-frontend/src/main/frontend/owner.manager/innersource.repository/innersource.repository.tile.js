@@ -26,6 +26,11 @@ function InnerSourceRepositoryTileController(
   $ngRedux
 ) {
   var vm = this;
+
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+  })(vm);
+
   vm.load = load;
   vm.error = undefined;
   vm.loading = false;
@@ -35,6 +40,7 @@ function InnerSourceRepositoryTileController(
   vm.innerSourceRepositories = [];
   vm.innerSourceRepositoriesInheritedFrom = undefined;
   vm.editLink = undefined;
+
   vm.load();
 
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, function () {
@@ -48,10 +54,6 @@ function InnerSourceRepositoryTileController(
   function load() {
     vm.error = undefined;
     vm.loading = true;
-
-    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
-    })(vm);
 
     let ownerPromise;
     let ownerId;

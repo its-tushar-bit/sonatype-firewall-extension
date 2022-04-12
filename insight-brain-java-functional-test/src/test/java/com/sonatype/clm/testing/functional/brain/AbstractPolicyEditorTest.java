@@ -95,6 +95,7 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
@@ -285,6 +286,7 @@ public abstract class AbstractPolicyEditorTest
     testDeletePolicy(policyDAO.getById(policy.getId()));
   }
 
+  @Ignore
   @Test
   public void testDisabledPolicy() {
     String inheritedOwnerId = currentOwner.getParentOwnerId();

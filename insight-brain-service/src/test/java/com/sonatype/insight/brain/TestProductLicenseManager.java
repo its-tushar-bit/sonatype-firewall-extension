@@ -190,7 +190,8 @@ public class TestProductLicenseManager
 
     private String[] products = {
         ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD,
-        ProductLicenseDetails.PRODUCT_FIREWALL_V2, ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2
+        ProductLicenseDetails.PRODUCT_FIREWALL_V2, ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2,
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD
     };
 
     private Set<LicensedFeature> features;

@@ -480,7 +480,7 @@ public class SystemInfoTest
     assertThat(supportZipLicenseInfo.licenseInfo.contactCompany).isEqualTo("Acme");
     assertThat(supportZipLicenseInfo.licenseInfo.contactEmail).isEqualTo("billy@example.com");
     assertThat(supportZipLicenseInfo.licenseInfo.products).containsExactlyInAnyOrder("Nexus Lifecycle",
-        "Nexus Firewall", "Nexus Firewall for Artifactory", "Nexus Lifecycle Cloud");
+        "Nexus Firewall", "Nexus Firewall for Artifactory", "Nexus Lifecycle Cloud", "Nexus Lifecycle Firewall Cloud");
     assertThat(supportZipLicenseInfo.licenseInfo.expiryTimestamp).isPositive();
 
     Collection<String> features = supportZipLicenseInfo.features;

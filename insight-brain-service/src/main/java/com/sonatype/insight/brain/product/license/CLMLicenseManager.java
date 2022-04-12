@@ -90,6 +90,8 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_LIFECYCLE_CLOUD = "Lifecycle Cloud";
 
+  public static final String PRODUCT_LIFECYCLE_FIREWALL_CLOUD = "Lifecycle Firewall Cloud";
+
   // Visible for testing
   static final String TASK_NAME = "ProductLicenseLoad";
 
@@ -316,6 +318,9 @@ public class CLMLicenseManager
       case ProductLicenseDetails.PRODUCT_FIREWALL_V2:
         marketingNameSuffix = PRODUCT_FIREWALL;
         break;
+      case ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD:
+        marketingNameSuffix = PRODUCT_LIFECYCLE_FIREWALL_CLOUD;
+        break;
       case ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY:
       case ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2:
         marketingNameSuffix = PRODUCT_FIREWALL_FOR_ARTIFACTORY;
@@ -375,6 +380,7 @@ public class CLMLicenseManager
             licensedUsersToDisplay = productLicense.getMaxUsers();
             // fallthrough
           case PRODUCT_FIREWALL:
+          case PRODUCT_LIFECYCLE_FIREWALL_CLOUD:
             firewallUsersToDisplay = productLicense.getMaxFirewallUsers();
             break;
           default:
@@ -430,6 +436,9 @@ public class CLMLicenseManager
     }
     else if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD)) {
       return PRODUCT_LIFECYCLE_CLOUD;
+    }
+    else if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD)) {
+      return PRODUCT_LIFECYCLE_FIREWALL_CLOUD;
     }
 
     return "";
@@ -567,6 +576,16 @@ public class CLMLicenseManager
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.AUTOMATION);
       stageTypes.addAll(StageTypes.getAll());
+    }
+    if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD)) {
+      features.add(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
+      features.add(LicensedFeature.RELEASE_INTEGRITY);
+      features.add(LicensedFeature.FIREWALL);
+      features.add(LicensedFeature.RM_STAGING_INTEGRATION);
+      features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
+      features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+      stageTypes.add(StageTypes.STAGE_RELEASE);
+      stageTypes.add(StageTypes.RELEASE);
     }
 
     stageTypes.add(StageTypes.PROXY);

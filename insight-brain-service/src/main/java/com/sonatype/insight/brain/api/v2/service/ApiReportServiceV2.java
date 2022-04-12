@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -20,7 +19,6 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.api.v2.DefaultApiReportDataResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
@@ -33,6 +31,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportService;
@@ -62,11 +61,11 @@ public class ApiReportServiceV2
 
   @Inject
   public ApiReportServiceV2(
-      PolicyEvaluationDAO policyEvaluationDAO,
-      ApiApplicationService applicationService,
-      ApplicationDAO applicationDAO,
-      ScanPolicyEvaluator scanPolicyEvaluator,
-      ReportService reportService)
+          PolicyEvaluationDAO policyEvaluationDAO,
+          ApiApplicationService applicationService,
+          ApplicationDAO applicationDAO,
+          ScanPolicyEvaluator scanPolicyEvaluator,
+          ReportService reportService)
   {
     this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
@@ -152,14 +151,13 @@ public class ApiReportServiceV2
   {
     try {
       File reportFile = reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
-      List<PolicyAlert> policyAlerts = Arrays.asList(JsonUtils
-          .parse(Objects.requireNonNull(Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_ALERTS_FILENAME)).buf,
-              PolicyAlert[].class));
+      PolicyThreats policyThreats = JsonUtils.parse(Objects.requireNonNull(Report.getEntry(reportFile,
+              ScanPolicyEvaluator.POLICY_THREATS_FILENAME)).buf, PolicyThreats.class);
       List<PolicyViolation> policyViolations =
-          PolicyAlertUtil.getPolicyViolationsFromAlertsAndEvaluation(policyEvaluation, policyAlerts);
+              PolicyAlertUtil.getDummyPolicyViolationsFromPolicyThreatsForCounts(policyThreats);
 
       ApiReportResultsDTO apiReportResultsDTO = new ApiReportResultsDTO(policyEvaluation,
-          scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation, policyViolations, false));
+              scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation, policyViolations, false));
       populateReportDTO(apiReportResultsDTO, application, policyEvaluation);
       apiReportHistoryDTO.reports.add(apiReportResultsDTO);
     }

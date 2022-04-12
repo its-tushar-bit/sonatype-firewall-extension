@@ -5,10 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -105,4 +102,36 @@ public class PolicyAlertUtil
   private static String getFilename(ComponentFact componentFact) {
     return new ComponentDisplayFilename().addPathnames(componentFact.getPathnames()).getFilename().orElse(null);
   }
+
+  public static List<PolicyViolation> getDummyPolicyViolationsFromPolicyThreatsForCounts(PolicyThreats policyThreats) {
+    List<PolicyViolation> allViolations = new ArrayList<>();
+    for (PolicyThreats.Component component : policyThreats.aaData) {
+      for (PolicyThreats.PolicyViolation violation : component.allViolations) {
+        // We only need the threat level and the fix/waive/grandfather times to be set or not
+        // (doesn't matter what their times are) to get accurate counts
+        PolicyViolation policyViolation = new PolicyViolation();
+        policyViolation.setThreatLevel(violation.policyThreatLevel);
+        policyViolation.setHash(component.hash);
+        boolean waived = violation.waived;
+        boolean grandfathered = violation.grandfathered;
+        boolean fixed = !waived && !grandfathered && !isActive(component.activeViolations, violation.policyViolationId);
+        if (fixed) {
+          policyViolation.setFixTime(new Date());
+        }
+        if (waived) {
+          policyViolation.setWaiveTime(new Date());
+        }
+        if (grandfathered) {
+          policyViolation.setGrandfatherTime(new Date());
+        }
+        allViolations.add(policyViolation);
+      }
+    }
+    return allViolations;
+  }
+
+  private static boolean isActive(List<PolicyThreats.PolicyViolation> activeViolations, String policyViolationId) {
+    return activeViolations.stream().anyMatch(v -> v.policyViolationId.equals(policyViolationId));
+  }
 }
+

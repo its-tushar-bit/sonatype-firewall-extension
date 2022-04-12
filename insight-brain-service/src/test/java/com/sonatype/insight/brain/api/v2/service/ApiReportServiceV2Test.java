@@ -17,11 +17,15 @@ import com.sonatype.insight.brain.api.v2.DefaultApiReportDataResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportHistoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportResultsDTO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -43,6 +47,9 @@ public class ApiReportServiceV2Test
 
   @Inject
   private PolicyEvaluateService policyEvaluateService;
+
+  @Inject
+  PolicyViolationGrandfatheringResource policyViolationGrandfatheringService;
 
   @Inject
   private InsightWork insightWork;
@@ -93,27 +100,31 @@ public class ApiReportServiceV2Test
   @Test
   public void testGetReportHistoryForApplication() throws IOException, URISyntaxException {
     //setup application scan reports and evaluations
-    tempEntity.newPolicy(appOne);
+    Application app = tempEntity.newApplicationWithParent("application");
+    tempEntity.newPolicy(app);
+    grantReadPermission(app.getId());
+    grantEvaluateApplicationPermission(app.getId());
+
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";
     final String scanId3 = "ScanId3";
-    ScanHelper.createDummyScanFile(insightWork, appOne.getId(), scanId1);
-    ScanHelper.createDummyScanFile(insightWork, appOne.getId(), scanId2);
-    ScanHelper.createDummyScanFile(insightWork, appOne.getId(), scanId3);
-    createReportFile(appOne.getId(), scanId1, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
-    createReportFile(appOne.getId(), scanId2, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
-    createReportFile(appOne.getId(), scanId3, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId1);
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId2);
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId3);
+    createReportFile(app.getId(), scanId1, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    createReportFile(app.getId(), scanId2, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    createReportFile(app.getId(), scanId3, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
 
     // Eval policy
-    evalRequest(appOne.getPublicId(), scanId1, new Stage(Stage.ID_BUILD));
-    evalRequest(appOne.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE));
-    evalRequest(appOne.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
+    evalRequest(app.getPublicId(), scanId1, new Stage(Stage.ID_BUILD));
+    evalRequest(app.getPublicId(), scanId3, new Stage(Stage.ID_RELEASE));
+    evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
 
     //When fetching all reports for application
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(appOne.getId());
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId());
 
     //Verify 3 reports with correct results are retrieved
-    assertThat(reports.applicationId).isEqualTo(appOne.getId());
+    assertThat(reports.applicationId).isEqualTo(app.getId());
     assertThat(reports.reports).hasSize(3);
     assertPolicyEvaluationResults(reports.reports.get(0));
     assertPolicyEvaluationResults(reports.reports.get(1));
@@ -121,16 +132,50 @@ public class ApiReportServiceV2Test
   }
 
   @Test
+  public void testGetReportHistoryForApplication_GrandfatheredPolicyViolationCount()
+          throws IOException, URISyntaxException
+  {
+    //setup application scan reports and evaluations
+    Application app = tempEntity.newApplicationWithParent("application");
+    grantReadPermission(app.getId());
+    grantEvaluateApplicationPermission(app.getId());
+    grantWritePermission();
+    Policy policy = tempEntity.newPolicy(app);
+
+    final String scanId1 = "ScanId1";
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId1);
+    createReportFile(app.getId(), scanId1, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    evalRequest(app.getPublicId(), scanId1, new Stage(Stage.ID_BUILD));
+
+    final String scanId2 = "ScanId2";
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId2);
+    createReportFile(app.getId(), scanId2, zipReportDir("/ApiReportResourceV2Test/report", tempDir), insightWork);
+    app.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(app);
+    policy.setPolicyViolationGrandfatheringAllowed(true);
+    new PolicyDAO().update(policy);
+    policyViolationGrandfatheringService.grandfather(app.getPublicId());
+    evalRequest(app.getPublicId(), scanId2, new Stage(Stage.ID_BUILD));
+
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(app.getId());
+
+    assertThat(reports.applicationId).isEqualTo(app.getId());
+    assertThat(reports.reports).hasSize(2);
+    assertThat(reports.reports.get(0).policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(36);
+    assertThat(reports.reports.get(1).policyEvaluationResult.getGrandfatheredPolicyViolationCount()).isEqualTo(0);
+  }
+
+  @Test
   public void testGetReportHistoryForApplication_NoReport() {
     //setup evaluation
-    tempEntity.newPolicy(appOne);
-    tempEntity.newPolicyEvaluation(appOne.getId(), "build", "scanId");
+    Application application = tempEntity.newApplicationWithParent("application");
+    grantReadPermission(application.getId());
 
     //When fetching all reports for application
-    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(appOne.getId());
+    ApiReportHistoryDTO reports = apiReportServiceV2.getReportHistoryForApplication(application.getId());
 
     //Verify no reports are retrieved
-    assertThat(reports.applicationId).isEqualTo(appOne.getId());
+    assertThat(reports.applicationId).isEqualTo(application.getId());
     assertThat(reports.reports).isEmpty();
   }
 

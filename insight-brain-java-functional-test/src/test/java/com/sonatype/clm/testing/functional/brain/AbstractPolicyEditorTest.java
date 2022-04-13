@@ -97,6 +97,9 @@ import com.codeborne.selenide.WebDriverRunner;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.interactions.Actions;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
@@ -302,6 +305,13 @@ public abstract class AbstractPolicyEditorTest
     refresh();
 
     OwnerSummaryPage.policyTile().localPolicy(policy.getName()).click();
+
+    // NOTE. moving cursor out of the editor is necessary to prevent flaky test CLM-21310.
+    // the cursor could trigger invalid submit tooltip if data isn't loaded fast enough.
+    WebDriver webDriver = WebDriverRunner.getWebDriver();
+    Actions actions = new Actions(webDriver);
+    actions.moveToElement(webDriver.findElement(By.tagName("body")), 0, 0).perform();
+
     assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], true);
   }
 

@@ -129,4 +129,36 @@ public class DefaultArtifactoryClientTest
 
     assertThat(status).isEqualTo(Status.fromStatusCode(500));
   }
+
+  @Test
+  public void testSearchByChecksum_WithCredentials_WithPath() throws Exception {
+    String path = "/artifactory";
+    artifactoryMockServer.setPath(path);
+    String username = "admin";
+    char[] password = "admin123".toCharArray();
+    ArtifactoryClient artifactoryClient =
+        artifactoryClientFactory.create().forArtifactory(artifactoryMockServer.getBaseUrl() + path, username, password);
+    String sha256 = "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941";
+    ArtifactoryChecksumSearchResults expectedResults = ArtifactoryChecksumSearchResults.create("uri1", "uri2");
+    artifactoryMockServer.mockSearchChecksum(username, password, ChecksumType.SHA256, sha256, expectedResults);
+
+    ArtifactoryChecksumSearchResults results = artifactoryClient.searchByChecksum(ChecksumType.SHA256, sha256);
+
+    assertThat(results).usingRecursiveComparison().isEqualTo(expectedResults);
+  }
+
+  @Test
+  public void testSearchByChecksum_WithPath() throws Exception {
+    String path = "/artifactory";
+    artifactoryMockServer.setPath(path);
+    ArtifactoryClient artifactoryClient =
+        artifactoryClientFactory.create().forArtifactory(artifactoryMockServer.getBaseUrl() + path, null, null);
+    String sha256 = "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941";
+    ArtifactoryChecksumSearchResults expectedResults = ArtifactoryChecksumSearchResults.create("uri1", "uri2");
+    artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256, sha256, expectedResults);
+
+    ArtifactoryChecksumSearchResults results = artifactoryClient.searchByChecksum(ChecksumType.SHA256, sha256);
+
+    assertThat(results).usingRecursiveComparison().isEqualTo(expectedResults);
+  }
 }

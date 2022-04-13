@@ -26,10 +26,13 @@ public class ArtifactoryMockServerRule
 {
   private WireMockServer artifactoryMockServer;
 
+  private String path;
+
   @Override
   protected void before() throws Throwable {
     artifactoryMockServer = new WireMockServer(wireMockConfig().dynamicPort());
     artifactoryMockServer.start();
+    path = "";
   }
 
   @Override
@@ -45,9 +48,21 @@ public class ArtifactoryMockServerRule
     return artifactoryMockServer.baseUrl();
   }
 
+  public String getPath() {
+    return path;
+  }
+
+  public void setPath(String path) {
+    this.path = path;
+  }
+
+  private String getUrlPath(String path) {
+    return this.path + path;
+  }
+
   public void mockSearchChecksum(ChecksumType checksumType, String checksum, ArtifactoryChecksumSearchResults results) {
     artifactoryMockServer.stubFor(
-        get(urlPathMatching(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))
+        get(urlPathMatching(getUrlPath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)))
             .withQueryParam(checksumType.name().toLowerCase(Locale.ROOT), equalTo(checksum))
             .willReturn(aResponse().withBody(JsonUtils.format(results)).withStatus(200))
     );
@@ -61,7 +76,7 @@ public class ArtifactoryMockServerRule
       ArtifactoryChecksumSearchResults results)
   {
     artifactoryMockServer.stubFor(
-        get(urlPathMatching(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))
+        get(urlPathMatching(getUrlPath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)))
             .withBasicAuth(username, String.valueOf(password))
             .withQueryParam(checksumType.name().toLowerCase(Locale.ROOT), equalTo(checksum))
             .willReturn(aResponse().withBody(JsonUtils.format(results)).withStatus(200))
@@ -74,7 +89,7 @@ public class ArtifactoryMockServerRule
       ArtifactoryChecksumSearchErrors errors)
   {
     artifactoryMockServer.stubFor(
-        get(urlPathMatching(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))
+        get(urlPathMatching(getUrlPath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)))
             .withQueryParam(checksumType.name().toLowerCase(Locale.ROOT), equalTo(checksum))
             .willReturn(aResponse().withBody(JsonUtils.format(errors)).withStatus(errors.errors.get(0).status))
     );
@@ -82,7 +97,7 @@ public class ArtifactoryMockServerRule
 
   public void mockSearchChecksumError(ChecksumType checksumType, String checksum, int status) {
     artifactoryMockServer.stubFor(
-        get(urlPathMatching(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))
+        get(urlPathMatching(getUrlPath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)))
             .withQueryParam(checksumType.name().toLowerCase(Locale.ROOT), equalTo(checksum))
             .willReturn(aResponse().withStatus(status))
     );

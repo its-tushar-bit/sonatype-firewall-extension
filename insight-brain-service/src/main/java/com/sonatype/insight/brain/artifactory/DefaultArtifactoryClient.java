@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.artifactory;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Locale;
 
 import javax.ws.rs.core.Response.Status;
@@ -33,10 +35,14 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultArtifactoryClient
     implements ArtifactoryClient
 {
+  private static final Logger log = LoggerFactory.getLogger(DefaultArtifactoryClient.class);
+
   public static final String CHECKSUM_SEARCH_PATH = "/api/search/checksum";
 
   public static final String TEST_SHA256 = "4909fb971d8373b5a1f5998fb788d6708a626c043a94b05378c54ce5760e4000";
@@ -58,7 +64,15 @@ public class DefaultArtifactoryClient
     if (authentication == null) {
       return null;
     }
-    HttpHost httpHost = HttpHost.create(configuration.getServerUrl());
+    URI uri;
+    try {
+      uri = new URI(configuration.getServerUrl());
+    }
+    catch (URISyntaxException e) {
+      log.error("Invalid Artifactory server url {}.", configuration.getServerUrl(), e);
+      return null;
+    }
+    HttpHost httpHost = HttpHost.create(uri.getScheme() + "://" + uri.getAuthority());
     BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider();
     basicCredentialsProvider.setCredentials(AuthScope.ANY,
         new UsernamePasswordCredentials(authentication.getUsername(), String.valueOf(authentication.getPassword())));

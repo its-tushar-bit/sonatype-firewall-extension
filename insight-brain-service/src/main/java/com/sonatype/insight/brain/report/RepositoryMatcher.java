@@ -8,17 +8,24 @@ package com.sonatype.insight.brain.report;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.api.v2.service.AbstractApiComponentDetailsServiceV2;
+import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResult;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResults;
@@ -69,15 +76,19 @@ public class RepositoryMatcher
 
   private final PasswordHandler passwordHandler;
 
+  private final DefaultApiComponentDetailsServiceV2 defaultApiComponentDetailsServiceV2;
+
   @Inject
   public RepositoryMatcher(
       final ArtifactoryConnectionDAO artifactoryConnectionDao,
       final ArtifactoryClientFactory artifactoryClientFactory,
-      final PasswordHandler passwordHandler)
+      final PasswordHandler passwordHandler,
+      final DefaultApiComponentDetailsServiceV2 defaultApiComponentDetailsServiceV2)
   {
     this.artifactoryConnectionDao = artifactoryConnectionDao;
     this.artifactoryClientFactory = artifactoryClientFactory;
     this.passwordHandler = passwordHandler;
+    this.defaultApiComponentDetailsServiceV2 = defaultApiComponentDetailsServiceV2;
   }
 
   public void match(final JsonNode bomJson) {
@@ -86,7 +97,12 @@ public class RepositoryMatcher
       Map<ComponentIdentifier, ObjectNode> sha256Matched = identify(bomJson);
       log.debug("performed repository matching in {} seconds with {} identified results",
           (System.currentTimeMillis() - start) / 1000, sha256Matched.size());
-      //handle hds matching
+      start = System.currentTimeMillis();
+      Map<ComponentIdentifier, ComponentEvaluationDataList.ComponentEvaluationData> evaluationByIdentifier =
+          getEvaluationByIdentifier(new ArrayList<>(sha256Matched.keySet()));
+      log.debug("performed component evaluation in {} seconds with {} evaluation results",
+          (System.currentTimeMillis() - start) / 1000, evaluationByIdentifier.size());
+      // update JSON files with HDS information 
     }
   }
 
@@ -109,6 +125,25 @@ public class RepositoryMatcher
       }
     }
     return identifiedComponents;
+  }
+
+  // Visible for testing
+  Map<ComponentIdentifier, ComponentEvaluationDataList.ComponentEvaluationData> getEvaluationByIdentifier(
+      List<ComponentIdentifier> componentIdentifiers)
+  {
+    Map<ComponentIdentifier, ComponentEvaluationDataList.ComponentEvaluationData> result = new HashMap<>();
+    try {
+      List<ComponentEvaluationData> componentDetailsListFromHds =
+          defaultApiComponentDetailsServiceV2.getComponentDetailsListFromHds(componentIdentifiers,
+              AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
+      for (ComponentEvaluationData componentEvaluationData : componentDetailsListFromHds) {
+        result.put(componentIdentifiers.get(componentEvaluationData.requestIndex), componentEvaluationData);
+      }
+    }
+    catch (Exception e) {
+      log.error("Unable to evaluate repository components.", e);
+    }
+    return result;
   }
 
   private static boolean matchWithRepository(
@@ -143,7 +178,7 @@ public class RepositoryMatcher
   {
     for (ArtifactoryChecksumSearchResult result : artifactoryChecksumSearchResults.results) {
       ComponentIdentifier resolvedId = resolveComponentIdentifierFromUri(result.uri);
-      if (resolvedId != null) {
+      if (resolvedId != null && hasRequiredCoordinates(resolvedId)) {
         return resolvedId;
       }
     }
@@ -160,13 +195,14 @@ public class RepositoryMatcher
       URI uri = new URI(uriString);
       String[] pathParts = StringUtils.split(
           StringUtils.removeStart(uri.getPath(), ARTIFACTORY_API_STORAGE_PREFIX), "/");
-      if (pathParts.length >= 4) {
+      // We expect at least ARTIFACTORY_API_STORAGE_PREFIX + [repo]/[group]/[artifact]/[version]/[filename.extension]
+      if (pathParts.length >= 5) {
         String extension = resolveExtension(pathParts[pathParts.length - 1]);
         pathParts = ArrayUtils.removeAll(pathParts, 0, pathParts.length - 1); // remove repository and filename
-        String version = pathParts[pathParts.length - 1];
-        String name = pathParts[pathParts.length - 2];
-        String namespace = StringUtils.join(
-            ArrayUtils.removeAll(pathParts, pathParts.length - 1, pathParts.length - 2), ".");
+        String version = resolvePathPart(pathParts[pathParts.length - 1]);
+        String name = resolvePathPart(pathParts[pathParts.length - 2]);
+        String namespace = resolvePathPart(StringUtils.join(
+            ArrayUtils.removeAll(pathParts, pathParts.length - 1, pathParts.length - 2), "."));
         return ComponentIdentifier.createMavenCoordinates(namespace, name, version, null, extension);
       }
     }
@@ -182,6 +218,14 @@ public class RepositoryMatcher
     }
 
     return FilenameUtils.getExtension(pathPart);
+  }
+
+  private static String resolvePathPart(final String pathPart) {
+    if (StringUtils.isBlank(pathPart)) {
+      return null;
+    }
+
+    return pathPart;
   }
 
   private static Set<ObjectNode> filterMatchableNodes(final JsonNode bomJson) {
@@ -229,5 +273,15 @@ public class RepositoryMatcher
   private static boolean hasMatchableStatus(final ObjectNode bomObjectNode) {
     JsonNode matchStateNode = bomObjectNode.get(FIELD_NAME_MATCH_STATE);
     return matchStateNode != null && MATCHABLE_STATUSES.contains(matchStateNode.asText());
+  }
+
+  private static boolean hasRequiredCoordinates(ComponentIdentifier componentIdentifier) {
+    try {
+      componentIdentifier.ensureRequired();
+      return true;
+    }
+    catch (InvalidComponentIdentifierException e) {
+      return false;
+    }
   }
 }

@@ -39,9 +39,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_ANONYMOUS_ACCESS_ENABLED;
-import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_COMPONENT_HASH;
+import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_OBFUSCATED_COMPONENT_HASH;
 import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_GENERATE_TIME;
-import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_TOKEN;
+import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_OBFUSCATED_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
@@ -308,8 +308,8 @@ public class QuarantinedComponentServiceTest
 
     assertThat(telemetryData.getAttributes()).hasSize(5);
     assertThat(telemetryData.getAttributes()).contains(
-        entry(QUARANTINED_COMPONENT_REPORT_COMPONENT_HASH, HdsClientAnalytics.obfuscate(componentHash)),
-        entry(QUARANTINED_COMPONENT_REPORT_TOKEN, HdsClientAnalytics.obfuscate(token)),
+        entry(QUARANTINED_COMPONENT_REPORT_OBFUSCATED_COMPONENT_HASH, HdsClientAnalytics.obfuscate(componentHash)),
+        entry(QUARANTINED_COMPONENT_REPORT_OBFUSCATED_TOKEN, HdsClientAnalytics.obfuscate(token)),
         entry(QUARANTINED_COMPONENT_REPORT_GENERATE_TIME, tokenGenerateTime.getTime()),
         entry(QUARANTINED_COMPONENT_REPORT_ANONYMOUS_ACCESS_ENABLED, true));
   }

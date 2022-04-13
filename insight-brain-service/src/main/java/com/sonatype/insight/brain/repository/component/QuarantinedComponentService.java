@@ -76,9 +76,10 @@ public class QuarantinedComponentService
 
   private static final Logger log = LoggerFactory.getLogger(QuarantinedComponentService.class);
 
-  static final String QUARANTINED_COMPONENT_REPORT_COMPONENT_HASH = "quarantined_component_report_component_hash";
+  static final String QUARANTINED_COMPONENT_REPORT_OBFUSCATED_COMPONENT_HASH =
+      "quarantined_component_report_obfuscated_component_hash";
 
-  static final String QUARANTINED_COMPONENT_REPORT_TOKEN = "quarantined_component_report_token";
+  static final String QUARANTINED_COMPONENT_REPORT_OBFUSCATED_TOKEN = "quarantined_component_report_obfuscated_token";
 
   static final String QUARANTINED_COMPONENT_REPORT_GENERATE_TIME = "quarantined_component_report_generate_time";
 
@@ -315,8 +316,8 @@ public class QuarantinedComponentService
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.QUARANTINED_COMPONENT_REPORT_USAGE);
 
     Map<String, Object> attributes = telemetryData.getAttributes();
-    attributes.put(QUARANTINED_COMPONENT_REPORT_COMPONENT_HASH, HdsClientAnalytics.obfuscate(componentHash));
-    attributes.put(QUARANTINED_COMPONENT_REPORT_TOKEN, HdsClientAnalytics.obfuscate(token));
+    attributes.put(QUARANTINED_COMPONENT_REPORT_OBFUSCATED_COMPONENT_HASH, HdsClientAnalytics.obfuscate(componentHash));
+    attributes.put(QUARANTINED_COMPONENT_REPORT_OBFUSCATED_TOKEN, HdsClientAnalytics.obfuscate(token));
     attributes.put(QUARANTINED_COMPONENT_REPORT_GENERATE_TIME, tokenGenerateTime.getTime());
     attributes.put(QUARANTINED_COMPONENT_REPORT_VIEW_TIME, new Date().getTime());
     attributes.put(QUARANTINED_COMPONENT_REPORT_ANONYMOUS_ACCESS_ENABLED,

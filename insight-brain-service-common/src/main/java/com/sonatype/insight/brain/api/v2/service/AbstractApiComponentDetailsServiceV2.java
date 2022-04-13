@@ -7,12 +7,17 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
-import com.sonatype.insight.brain.api.v2.dto.*;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsRequestDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -20,11 +25,14 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractApiComponentDetailsServiceV2 implements ApiComponentDetailsServiceV2
+public abstract class AbstractApiComponentDetailsServiceV2
+    implements ApiComponentDetailsServiceV2
 {
   private static final Logger log = LoggerFactory.getLogger(AbstractApiComponentDetailsServiceV2.class);
 
   public static final String PURPOSE_INTEGRATION = "integration";
+
+  public static final String PURPOSE_EVALUATION = "evaluation";
 
   private int chunkSize = 100;
 
@@ -109,20 +117,35 @@ public abstract class AbstractApiComponentDetailsServiceV2 implements ApiCompone
       ApiComponentDetailsRequestDTOV2 componentDetailsRequestDTO,
       String purpose)
   {
-    long start = System.currentTimeMillis();
-
     // The client may use long hashes. Truncate all hashes to the length used by CLM.
     for (ApiComponentDTOV2 apiComponentDTOV2 : componentDetailsRequestDTO.components) {
       apiComponentDTOV2.hash = HashHelper.truncateHash(apiComponentDTOV2.hash);
     }
 
+    return getComponentDetailsListFromHds(componentDetailsRequestDTO.components, this::convert, purpose);
+  }
+
+  @Override
+  public List<ComponentEvaluationDataList.ComponentEvaluationData> getComponentDetailsListFromHds(
+      List<ComponentIdentifier> componentIdentifiers,
+      String purpose)
+  {
+    return getComponentDetailsListFromHds(componentIdentifiers, this::convert, purpose);
+  }
+
+  private <T> List<ComponentEvaluationDataList.ComponentEvaluationData> getComponentDetailsListFromHds(
+      List<T> components,
+      Function<T, ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest> convert,
+      String purpose)
+  {
+    long start = System.currentTimeMillis();
+
     ComponentEvaluationDataList returnList = new ComponentEvaluationDataList();
-    returnList.components = new ArrayList<>();
 
     int indexAdjust = 0;
-    List<List<ApiComponentDTOV2>> componentChunks = createChunks(componentDetailsRequestDTO.components, chunkSize);
-    for (List<ApiComponentDTOV2> componentChunk : componentChunks) {
-      ComponentEvaluationDataRequestList componentEvaluationDataRequestList = convert(componentChunk);
+    List<List<T>> componentChunks = createChunks(components, chunkSize);
+    for (List<T> componentChunk : componentChunks) {
+      ComponentEvaluationDataRequestList componentEvaluationDataRequestList = convert(componentChunk, convert);
       ComponentEvaluationDataList componentEvaluationDataList;
       componentEvaluationDataList = post(componentEvaluationDataRequestList, purpose);
       for (ComponentEvaluationDataList.ComponentEvaluationData componentEvaluationData :
@@ -134,7 +157,7 @@ public abstract class AbstractApiComponentDetailsServiceV2 implements ApiCompone
     }
 
     log.debug("Got component details from HDS for {} components and {} purpose in {} ms.",
-        componentDetailsRequestDTO.components.size(), purpose, System.currentTimeMillis() - start);
+        components.size(), purpose, System.currentTimeMillis() - start);
     return returnList.components;
   }
 
@@ -149,12 +172,15 @@ public abstract class AbstractApiComponentDetailsServiceV2 implements ApiCompone
     return chunks;
   }
 
-  private ComponentEvaluationDataRequestList convert(final List<ApiComponentDTOV2> components) {
+  private <T> ComponentEvaluationDataRequestList convert(
+      final List<T> components,
+      Function<T, ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest> convert)
+  {
     ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
     componentEvaluationDataRequestList.components = new ArrayList<>();
-    for (ApiComponentDTOV2 componentDTO : components) {
+    for (T component : components) {
       ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest componentEvaluationDataRequest =
-          convert(componentDTO);
+          convert.apply(component);
       componentEvaluationDataRequestList.components.add(componentEvaluationDataRequest);
     }
     return componentEvaluationDataRequestList;
@@ -174,6 +200,18 @@ public abstract class AbstractApiComponentDetailsServiceV2 implements ApiCompone
       componentEvaluationDataRequest.componentIdentifier = componentDTO.componentIdentifier.toComponentIdentifier();
       componentEvaluationDataRequest.componentIdentifier.ensureComplete();
     }
+    return componentEvaluationDataRequest;
+  }
+
+  // Visible for testing
+  ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest convert(
+      final ComponentIdentifier componentIdentifier)
+  {
+    ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest componentEvaluationDataRequest =
+        new ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest();
+    componentEvaluationDataRequest.componentIdentifier =
+        new ComponentIdentifier(componentIdentifier.getFormat(), componentIdentifier.getCoordinates());
+    componentEvaluationDataRequest.componentIdentifier.ensureComplete();
     return componentEvaluationDataRequest;
   }
 }

@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationResultDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
+import com.sonatype.insight.brain.api.v2.service.AbstractApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.audit.AuditDTO;
@@ -96,7 +96,7 @@ public class ApiEvaluationResourceV2AuditTest
   public void testEvaluateComponents() throws Exception {
     hdsRespondWith(new ComponentEvaluationDataList())
         .atUri(DefaultApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
-            .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
+            .replace("{purpose: evaluation|integration}", AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
     int componentCount = 3;
 
     ApiComponentEvaluationTicketDTOV2 result = evaluateComponents(createEvaluateRequest(componentCount)).post()
@@ -112,7 +112,7 @@ public class ApiEvaluationResourceV2AuditTest
   public void testEvaluateComponents_ErrorDuringAsyncComponentEvaluationTask() throws Exception {
     hdsRespondWith("Service Unavailable").andStatus(503)
         .atUri(DefaultApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
-            .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
+            .replace("{purpose: evaluation|integration}", AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
 
     evaluateComponents(createEvaluateRequest(1)).post();
 

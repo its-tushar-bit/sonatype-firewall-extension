@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
 
@@ -22,5 +23,9 @@ public interface ApiComponentDetailsServiceV2
 
   List<ComponentEvaluationDataList.ComponentEvaluationData> getComponentDetailsListFromHds(
       ApiComponentDetailsRequestDTOV2 componentDetailsRequestDTO,
+      String purpose);
+
+  List<ComponentEvaluationDataList.ComponentEvaluationData> getComponentDetailsListFromHds(
+      List<ComponentIdentifier> componentIdentifiers,
       String purpose);
 }

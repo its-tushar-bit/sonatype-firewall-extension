@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentEvaluationTicketDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
+import com.sonatype.insight.brain.api.v2.service.AbstractApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
@@ -499,7 +499,7 @@ public class ApiEvaluationResourceV2Test
 
   private void mockHDSInternalServiceError() {
     hdsRespondWith("Internal Error").andStatus(500).atUri(DefaultApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
-        .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
+        .replace("{purpose: evaluation|integration}", AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
   }
 
   @Test
@@ -682,7 +682,7 @@ public class ApiEvaluationResourceV2Test
 
   private void mockComponentDetails(final ComponentEvaluationDataList componentEvaluationDataList) {
     hdsRespondWith(componentEvaluationDataList).atUri(DefaultApiComponentDetailsServiceV2.HDS_COMPONENT_DETAILS_PATH
-        .replace("{purpose: evaluation|integration}", ApiComponentEvaluationServiceV2.PURPOSE_EVALUATION));
+        .replace("{purpose: evaluation|integration}", AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION));
   }
 
   private ComponentEvaluationDataList createComponentEvaluationDataList(

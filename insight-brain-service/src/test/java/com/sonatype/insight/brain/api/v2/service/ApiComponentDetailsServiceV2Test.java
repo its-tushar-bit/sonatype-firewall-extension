@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -18,6 +19,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList.ComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.ComponentProjectDetails;
 import com.sonatype.clm.dto.model.component.HygieneRating;
@@ -441,5 +443,16 @@ public class ApiComponentDetailsServiceV2Test
         .assertComponentProjectDetails(resultComponentDTO.projectData, projectDetails);
 
     assertThat(resultComponentDTO.policyData).isNull();
+  }
+
+  @Test
+  public void testConvert_ComponentIdentifier() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", null, "e");
+
+    ComponentEvaluationDataRequest result = apiComponentDetailsServiceV2.convert(componentIdentifier);
+
+    assertThat(result).isNotNull();
+    assertThat(result.componentIdentifier).isEqualTo(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"));
   }
 }

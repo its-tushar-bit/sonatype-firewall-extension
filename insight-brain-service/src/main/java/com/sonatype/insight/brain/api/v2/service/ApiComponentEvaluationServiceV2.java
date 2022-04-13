@@ -67,8 +67,6 @@ import org.slf4j.LoggerFactory;
 public class ApiComponentEvaluationServiceV2
     implements Managed
 {
-  public static final String PURPOSE_EVALUATION = "evaluation";
-
   private static final Logger log = LoggerFactory.getLogger(ApiComponentEvaluationServiceV2.class);
 
   private final ExecutorService executor = Executors.newFixedThreadPool(4, createThreadFactory());
@@ -218,7 +216,8 @@ public class ApiComponentEvaluationServiceV2
       try {
         ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(application);
         List<ComponentEvaluationData> componentEvaluationDataList = apiComponentDetailsServiceV2
-            .getComponentDetailsListFromHds(evaluationRequestDTO, PURPOSE_EVALUATION);
+            .getComponentDetailsListFromHds(evaluationRequestDTO,
+                AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION);
         for (ComponentEvaluationData componentEvaluationData : componentEvaluationDataList) {
           NamedComponentDetails componentDetails = ComponentDetailsAdapter.convert(componentEvaluationData);
           // use the claimed component data if found

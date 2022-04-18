@@ -7,6 +7,7 @@
 
 configureBranchJob()
 make(
+    deployBranch: 'main',
     useEventSpy: false,
     javaVersion: 'Java 8',
     mavenVersion: 'Maven 3.6.x',

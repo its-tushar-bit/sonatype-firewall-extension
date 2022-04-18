@@ -861,10 +861,11 @@
         <version>${jersey.version}</version>
       </dependency>
       <dependency>
-        <!-- avoid CVE-2020-15522, otherwise pulled in via postgres-server, docker-client, keycloak deps etc -->
+        <!-- avoid security vulnerabilties, otherwise pulled in via
+             postgres-server, docker-client, keycloak deps etc -->
         <groupId>org.bouncycastle</groupId>
         <artifactId>bcprov-jdk15on</artifactId>
-        <version>1.68</version>
+        <version>1.70</version>
       </dependency>
 
       <dependency>

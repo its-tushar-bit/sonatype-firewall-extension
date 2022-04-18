@@ -32,13 +32,17 @@ function TreeNode({ items, treePathToggleAction, hashToMatch, searchTerm }) {
     return dispatch(stateGo('applicationReport.componentDetails', { hash }));
   };
 
+  // the hash alone is not enough.
+  // Multi module projects contain duplicate direct dependencies
+  const getKey = (item) => item.hash + item.treePath + item.originalTreePath;
+
   const renderNode = (nodes) =>
     nodes?.map((item) => {
       return (
         <NxTree.Item
           collapsible={!!item.children}
           isOpen={item.isOpen}
-          key={item.hash}
+          key={getKey(item)}
           onToggleCollapse={() => dispatchToggleTreeAtPath(item.treePath)}
           onActivate={() => goToCDP(item.hash)}
         >

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   NxButton,
   NxFontAwesomeIcon,
@@ -11,6 +11,8 @@ import {
   NxTab,
   NxTabList,
   NxTabPanel,
+  NxModal,
+  NxP,
 } from '@sonatype/react-shared-components';
 import LegalDashboardApplicationsTab from './LegalDashboardApplicationsTab';
 import LegalDashboardComponentsTab from './LegalDashboardComponentsTab';
@@ -20,6 +22,7 @@ import LoadWrapper from '../../react/LoadWrapper';
 import { applicationsTabPropType } from '../advancedLegalPropTypes';
 import { faFilter } from '@fortawesome/pro-solid-svg-icons';
 import { DEFAULT_FILTER_NAME } from './filter/defaultFilter';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function LegalDashboardPage(props) {
   const {
@@ -46,6 +49,10 @@ export default function LegalDashboardPage(props) {
   const tabIndexes = ['applications', 'components'];
   const stateIndexes = ['legal.applicationsDashboard', 'legal.componentsDashboard'];
   const defaultActiveTab = tabIndexes.findIndex((tab) => router.currentState?.data?.activeTab === tab);
+  const disableCreateAttributionReportBtn = router.currentState?.data?.disableCreateAttributionReportBtn === true;
+  const [showMultiAppAttributionReportModal, setShowMultiAppAttributionReportModal] = useState(false);
+  const modalCloseHandler = () => setShowMultiAppAttributionReportModal(false);
+  const uiRouterState = useRouterState();
 
   useEffect(() => {
     loadDashboardUI(tabIndexes[defaultActiveTab]);
@@ -54,6 +61,9 @@ export default function LegalDashboardPage(props) {
   const loadTabContents = (index) => {
     stateGo(stateIndexes[index]);
   };
+
+  const cancelGenerateReport = () => setShowMultiAppAttributionReportModal(false);
+  const attributionReportFormUrl = uiRouterState.href('legal.attributionReportMultiApp');
 
   return (
     <main id="legal-dashboard-container" className="nx-page-main">
@@ -74,6 +84,62 @@ export default function LegalDashboardPage(props) {
                 {appliedFilterName || DEFAULT_FILTER_NAME}
               </span>
             </NxButton>
+
+            <NxButton
+              id="create-attribution-report-btn"
+              variant="primary"
+              disabled={disableCreateAttributionReportBtn || applications.totalResultsCount < 1}
+              title={
+                disableCreateAttributionReportBtn
+                  ? 'Only available for applications. Switch to Applications to use.'
+                  : ''
+              }
+              onClick={() => {
+                setShowMultiAppAttributionReportModal(applications.totalResultsCount > 1);
+                if (applications.totalResultsCount <= 1) {
+                  stateGo('legal.attributionReportMultiApp');
+                }
+              }}
+            >
+              Create Attribution Report
+            </NxButton>
+
+            {showMultiAppAttributionReportModal && (
+              <NxModal onCancel={modalCloseHandler} aria-labelledby="modal-header-text">
+                <header className="nx-modal-header">
+                  <h2 className="nx-h2" id="modal-header-text">
+                    Multiple Applications Increase Load Time
+                  </h2>
+                </header>
+                <div className="nx-modal-content">
+                  <NxP>
+                    Based on the current filter settings there are {applications.totalResultsCount} applications in
+                    view. Do you want to generate attributions for {applications.totalResultsCount} applications? This
+                    operation could take some time.
+                  </NxP>
+                </div>
+                <div className="nx-footer">
+                  <div className="nx-btn-bar">
+                    <NxButton
+                      variant="secondary"
+                      id="create-report-cancel-button"
+                      type="button"
+                      onClick={cancelGenerateReport}
+                    >
+                      Back
+                    </NxButton>
+                    <a
+                      id="create-report-generate-report-button"
+                      onClick={() => setShowMultiAppAttributionReportModal(false)}
+                      className="nx-btn nx-btn--primary"
+                      href={attributionReportFormUrl}
+                    >
+                      Generate Report
+                    </a>
+                  </div>
+                </div>
+              </NxModal>
+            )}
           </div>
         </div>
         <NxStatefulTabs

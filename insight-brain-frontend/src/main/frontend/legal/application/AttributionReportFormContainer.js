@@ -20,6 +20,7 @@ function mapStateToProps(state) {
   } = state;
   return {
     ...pick(['applicationPublicId', 'stageTypeId', '$state'], router.currentParams),
+    ...pick(['isMultiApp'], router?.currentState?.data),
     attributionReportTemplates,
     attributionReports,
   };

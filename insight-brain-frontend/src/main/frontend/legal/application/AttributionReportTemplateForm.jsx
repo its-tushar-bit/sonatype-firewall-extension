@@ -278,7 +278,7 @@ export default function AttributionReportTemplateForm(props) {
           applicationPublicId,
           stageTypeId,
         })
-      : $state.href($state.get('legal.dashboard'));
+      : $state.href($state.get('legal.attributionReportMultiApp'));
 
   const formTitle = `${
     attributionReportTemplates.selectedTemplateIndex === NEW_TEMPLATE_INDEX ? 'Create' : 'Edit'

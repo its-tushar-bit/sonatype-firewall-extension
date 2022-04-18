@@ -23,12 +23,17 @@ import componentLicenseFilesDetails from './files/licenses/componentLicenseFiles
 import LicenseFilesDetailsHeaderContainer from './files/licenses/LicenseFilesDetailsHeaderContainer';
 import LicenseFilesDetailsListContainer from './files/licenses/LicenseFilesDetailsListContainer';
 import LicenseFilesDetailsContentsContainer from './files/licenses/LicenseFilesDetailsContentsContainer';
+import withRouterStateProvider from 'MainRoot/reactAdapter/RouterStateProvider';
 
 export default angular
   .module('legalModule', [])
   .component(
     'legalDashboard',
-    react2angular(withStoreProvider(LegalDashboardContainer), ['isAuthorized'], ['$ngRedux'])
+    react2angular(
+      withStoreProvider(withRouterStateProvider(LegalDashboardContainer)),
+      ['isAuthorized'],
+      ['$ngRedux', '$state']
+    )
   )
   .component(
     'componentLegalOverview',
@@ -40,7 +45,7 @@ export default angular
   )
   .component(
     'attributionReportForm',
-    react2angular(withStoreProvider(AttributionReportForm), [], ['$ngRedux', '$state'])
+    react2angular(withStoreProvider(withRouterStateProvider(AttributionReportForm)), [], ['$ngRedux', '$state'])
   )
   .component(
     'attributionReportTemplateForm',
@@ -107,6 +112,7 @@ function routes($stateProvider) {
       data: {
         title: 'Legal Dashboard',
         activeTab: 'applications',
+        disableCreateAttributionReportBtn: false,
       },
     })
     .state('legal.componentsDashboard', {
@@ -115,6 +121,7 @@ function routes($stateProvider) {
       data: {
         title: 'Legal Dashboard',
         activeTab: 'components',
+        disableCreateAttributionReportBtn: true,
       },
     })
     .state('legal.componentOverview', {
@@ -179,12 +186,30 @@ function routes($stateProvider) {
         isDirty: ['attributionReports', 'attributionReports', 'isFormDirty'],
       },
     })
+    .state('legal.attributionReportMultiApp', {
+      url: '/legal/application/attributionReport',
+      component: 'attributionReportForm',
+      data: {
+        title: 'Attribution Report (Multiple Applications)',
+        isDirty: ['attributionReports', 'attributionReportTemplates', 'isFormDirty'],
+        isMultiApp: true,
+      },
+    })
     .state('legal.attributionReportTemplate', {
       url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/attributionReportTemplate',
       component: 'attributionReportTemplateForm',
       data: {
         title: 'Attribution Report Templates',
         isDirty: ['attributionReports', 'attributionReportTemplates', 'isFormDirty'],
+      },
+    })
+    .state('legal.attributionReportTemplateMultiApp', {
+      url: '/legal/application/attributionReportTemplate',
+      component: 'attributionReportTemplateForm',
+      data: {
+        title: 'Attribution Report Templates',
+        isDirty: ['attributionReports', 'attributionReportTemplates', 'isFormDirty'],
+        isMultiApp: true,
       },
     })
     .state('legal.componentCopyrightDetails', {

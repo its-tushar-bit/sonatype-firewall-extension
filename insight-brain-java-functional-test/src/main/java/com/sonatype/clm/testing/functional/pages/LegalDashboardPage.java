@@ -36,6 +36,10 @@ public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
     return children(".nx-tab").get(1);
   }
 
+  public SelenideElement applicationsTab() {
+    return children(".nx-tab").get(0);
+  }
+
   public ElementsCollection tableRows() {
     return children(".nx-table-row.nx-clickable");
   }
@@ -106,6 +110,14 @@ public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
 
   public ElementsCollection filterCollapsibleItems() {
     return children(".nx-collapsible-items");
+  }
+
+  public SelenideElement createAttributionReportButton() {
+    return children("#create-attribution-report-btn").get(0);
+  }
+
+  public SelenideElement generateAttributionReportButton() {
+    return children("#create-report-generate-report-button").get(0);
   }
 
   public ElementsCollection filterOrganizationsCheckBoxes() {

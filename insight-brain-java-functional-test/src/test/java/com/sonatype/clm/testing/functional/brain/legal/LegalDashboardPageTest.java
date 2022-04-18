@@ -9,9 +9,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.pages.AttributionReportFormPage;
 import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.LegalDashboardPage;
@@ -65,6 +67,12 @@ public class LegalDashboardPageTest
             .forEach(licenseId -> tempEntity.newApplicationComponentLicense(applicationComponent.getId(), licenseId));
   }
 
+  private void addEvaluationPoliciesToApplications(Application[] apps) {
+    for (Application application : apps) {
+      tempEntity.newPolicyEvaluation(application.getId(), "build", "", new Date());
+    }
+  }
+
   @Before
   public void start() throws IOException {
     testCLMServer.getHdsServer().respondWith("[]").atUri("/rest/license/metadata");
@@ -102,6 +110,8 @@ public class LegalDashboardPageTest
     Application app2 = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName() + "2",
             "app2", "org2");
     Application[] apps = {app, app1, app2};
+    addEvaluationPoliciesToApplications(apps);
+
     String[] licenses = {"Apache-1.0", "MIT", "Apache-2.0", "Better-Cms-LA", "BSL-1.0", "CC-BY-NC-3.0", "CMRL-1.0",
         "GPL-2.0+-LGPL-3.0+", "GreenSock-Commercial-License", "Gridifier-Developer-LA", 
         "Grammatica-BSD-3-Clause-Variant"};
@@ -150,6 +160,7 @@ public class LegalDashboardPageTest
     ldp.componentsTab().shouldHave(Condition.cssClass("active"));
     Wait<WebDriver> wait = getWebDriverAwait();
     wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
+    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -467,5 +478,19 @@ public class LegalDashboardPageTest
     ldp.filterCollapsibleItems().get(4).click();
     ldp.filterReviewProgressCheckBoxes().get(2).click();
     ldp.filterApplyButton().click();
+  }
+
+  @Test
+  public void testCreateAttributionReportButtonClick() {
+    refreshOrOpen(LegalDashboardPage.url(true));
+    Wait<WebDriver> wait = getWebDriverAwait();
+    LegalDashboardPage ldp = new LegalDashboardPage();
+    ldp.applicationsTab().click();
+    eyesWatcher.eyesCheck();
+    ldp.createAttributionReportButton().click();
+    ldp.generateAttributionReportButton().click();
+    AttributionReportFormPage arfp = new AttributionReportFormPage();
+    wait.until(ExpectedConditions.visibilityOf(arfp.getTitleInput()));
+    arfp.getTitleInput().shouldHave(Condition.value("Attribution Report"));
   }
 }

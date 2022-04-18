@@ -85,6 +85,17 @@ describe('AttributionReportTemplateForm component', function () {
     );
   });
 
+  it('renders correct MenuBarBackButton when no applicationPublicId and stageTypeId are specified', function () {
+    const component = getShallowComponent({
+      ...minimalProps,
+      applicationPublicId: undefined,
+      stageTypeId: undefined,
+    });
+    const menuBarBackButton = component.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', 'legal.attributionReportMultiApp');
+  });
+
   it('renders an empty form with default values', function () {
     const customMinimalProps = {
       ...minimalProps,

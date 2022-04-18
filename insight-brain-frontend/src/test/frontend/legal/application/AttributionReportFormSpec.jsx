@@ -7,28 +7,20 @@ import * as enzymeUtils from '../../enzymeUtils';
 import AttributionReportForm from 'MainRoot/legal/application/AttributionReportForm';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { NxTextInput } from '@sonatype/react-shared-components';
+import { getAttributionReportMultiApplicationUrl } from 'MainRoot/util/CLMLocation';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
 
 describe('AttributionReportForm component', function () {
-  let getShallowComponent, getMountedComponent, minimalProps, spy$State;
+  let getShallowComponent, getMountedComponent, minimalProps, routerContextMock;
 
   let spyGetAttributionReportTemplates = jasmine.createSpy('getAttributionReportTemplates');
   let spyApplyAttributionReportTemplateByIndex = jasmine.createSpy('applyAttributionReportTemplateByIndex');
   let spySetDirtyFlagToAttributionReport = jasmine.createSpy('setDirtyFlagToAttributionReport');
 
   beforeEach(function () {
-    spy$State = jasmine.createSpyObj('$state', ['get', 'href']);
-    spy$State.get.and.callFake((stateName) => stateName);
-    spy$State.href.and.callFake((stateName, stateParams) => {
-      if (stateParams) {
-        return `${stateName}-${JSON.stringify(stateParams)}`;
-      }
-      return stateName;
-    });
-
     minimalProps = {
       applicationPublicId: 'legal-detection-service',
       stageTypeId: 'release',
-      $state: spy$State,
       attributionReportTemplates: {
         results: [
           {
@@ -65,6 +57,17 @@ describe('AttributionReportForm component', function () {
       setDirtyFlagToAttributionReport: spySetDirtyFlagToAttributionReport,
     };
 
+    routerContextMock = {
+      href: jasmine.createSpy('href').and.callFake((stateName, stateParams) => {
+        if (stateParams) {
+          return `${stateName}-${JSON.stringify(stateParams)}`;
+        }
+        return stateName;
+      }),
+      get: jasmine.createSpy('get').and.returnValue('mockGetValue'),
+    };
+    spyOn(routerContext, 'useRouterState').and.returnValue(routerContextMock);
+
     getShallowComponent = enzymeUtils.getShallowComponent(AttributionReportForm, minimalProps);
     getMountedComponent = enzymeUtils.getMountedComponent(AttributionReportForm, minimalProps);
   });
@@ -81,6 +84,37 @@ describe('AttributionReportForm component', function () {
       'href',
       'legal.applicationDetails-{"applicationPublicId":"appId","stageTypeId":"stage"}'
     );
+  });
+
+  it('renders correctly form when isMultiApp property is true', function () {
+    const component = getShallowComponent({
+      ...minimalProps,
+      applicationPublicId: 'appId',
+      stageTypeId: 'stage',
+      isMultiApp: true,
+    });
+    const manageTemplateButton = component.find('#manage-templates-button');
+    expect(manageTemplateButton).toExist();
+    manageTemplateButton.simulate('click');
+    expect(manageTemplateButton).toHaveProp('href', 'legal.attributionReportTemplateMultiApp');
+
+    const titleInputText = component.find('[name="title"]');
+    expect(titleInputText).toExist();
+    expect(titleInputText).toHaveProp('value', 'Attribution Report');
+    const form = component.find('#attribution-report-settings-form');
+    expect(form).toExist();
+    expect(form).toHaveProp('action', getAttributionReportMultiApplicationUrl());
+  });
+
+  it('renders correct MenuBarBackButton when no applicationPublicId and stageTypeId are specified', function () {
+    const component = getShallowComponent({
+      ...minimalProps,
+      applicationPublicId: undefined,
+      stageTypeId: undefined,
+    });
+    const menuBarBackButton = component.find(MenuBarBackButton);
+    expect(menuBarBackButton).toExist();
+    expect(menuBarBackButton).toHaveProp('href', 'legal.dashboard');
   });
 
   it('renders report title input with a default text when no template is selected', function () {

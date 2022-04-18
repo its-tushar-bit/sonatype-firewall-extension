@@ -13,25 +13,24 @@ import {
   NxCheckbox,
   nxTextInputStateHelpers,
   useToggle,
-  NxButton,
   NxDropdown,
 } from '@sonatype/react-shared-components';
-import { getAttributionReportUrl } from '../../util/CLMLocation';
+import { getAttributionReportMultiApplicationUrl, getAttributionReportUrl } from '../../util/CLMLocation';
 import AttributionAdditionalFiles from './AttributionAdditionalFiles';
 import ConfirmationModal from './ConfirmationModal';
 import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function AttributionReportForm(props) {
   const {
     applicationPublicId,
     stageTypeId,
-    stateGo,
-    $state,
     attributionReports,
     attributionReportTemplates,
     getAttributionReportTemplates,
     applyAttributionReportTemplateByIndex,
     setDirtyFlagToAttributionReport,
+    isMultiApp,
   } = props;
   // no way to set name on RSC checkboxes, so we need to create named hidden inputs to send values
   const { initialState, userInput } = nxTextInputStateHelpers;
@@ -40,6 +39,7 @@ export default function AttributionReportForm(props) {
   const [templateIndexToSelect, setTemplateIndexToSelect] = React.useState(null);
   const formReference = React.useRef();
   const [isDropDownOpen, setDropDownCollapsed] = useToggle(false);
+  const uiRouterState = useRouterState();
   let isTemplatePristine = React.useRef(true);
 
   const validator = (inputName) => (val) => {
@@ -51,7 +51,10 @@ export default function AttributionReportForm(props) {
   };
 
   const defaultFormState = {
-    documentTitle: initialState('Attribution Report for ' + applicationPublicId, validator('documentTitle')),
+    documentTitle:
+      isMultiApp === true
+        ? initialState('Attribution Report')
+        : initialState('Attribution Report for ' + applicationPublicId, validator('documentTitle')),
     header: initialState(''),
     footer: initialState(''),
     includeTableOfContents: true,
@@ -59,6 +62,10 @@ export default function AttributionReportForm(props) {
     includeAppendix: true,
   };
   const [formState, setFormState] = React.useState(defaultFormState);
+  const rawManageTemplateUrl =
+    isMultiApp === true
+      ? uiRouterState.href('legal.attributionReportTemplateMultiApp')
+      : uiRouterState.href('legal.attributionReportTemplate', { applicationPublicId, stageTypeId });
 
   React.useEffect(() => {
     getAttributionReportTemplates();
@@ -85,6 +92,7 @@ export default function AttributionReportForm(props) {
       includeStandardLicenseTexts,
       includeAppendix,
     } = attributionReportTemplates.results[attributionReports.selectedTemplateIndex];
+
     setFormState({
       documentTitle: initialState(documentTitle.value || documentTitle, validator('documentTitle')),
       header: initialState(header.value || header),
@@ -185,15 +193,18 @@ export default function AttributionReportForm(props) {
     });
   };
 
-  const reportUrl = getAttributionReportUrl(applicationPublicId, stageTypeId);
+  const reportUrl =
+    isMultiApp === true
+      ? getAttributionReportMultiApplicationUrl()
+      : getAttributionReportUrl(applicationPublicId, stageTypeId);
 
   const backHref =
     applicationPublicId && stageTypeId
-      ? $state.href($state.get('legal.applicationDetails'), {
+      ? uiRouterState.href('legal.applicationDetails', {
           applicationPublicId,
           stageTypeId,
         })
-      : $state.href($state.get('legal.dashboard'));
+      : uiRouterState.href('legal.dashboard');
 
   const handleDiscardedChangesConfirmation = () => {
     if (templateIndexToSelect === attributionReports.selectedTemplateIndex) {
@@ -239,21 +250,14 @@ export default function AttributionReportForm(props) {
       <div className="nx-page-title">
         <h1 className="nx-h1">Create Attribution Report</h1>
         <div className="nx-btn-bar">
-          <NxButton
-            variant="tertiary"
-            onClick={() => {
-              stateGo('legal.attributionReportTemplate', {
-                applicationPublicId,
-                stageTypeId,
-              });
-            }}
-          >
+          <a id="manage-templates-button" className="nx-btn nx-btn--tertiary" href={rawManageTemplateUrl}>
             Manage Templates
-          </NxButton>
+          </a>
         </div>
       </div>
       <section className="nx-tile" aria-label="Attribution Report Settings">
         <NxForm
+          id="attribution-report-settings-form"
           submitBtnText="Generate Report"
           target="_blank"
           onSubmit={() => formReference.current.submit()}
@@ -378,11 +382,10 @@ export default function AttributionReportForm(props) {
 AttributionReportForm.propTypes = {
   applicationPublicId: PropTypes.string,
   stageTypeId: PropTypes.string,
-  stateGo: PropTypes.func,
-  $state: PropTypes.object.isRequired,
   attributionReports: PropTypes.object,
   attributionReportTemplates: PropTypes.object,
   getAttributionReportTemplates: PropTypes.func.isRequired,
   applyAttributionReportTemplateByIndex: PropTypes.func.isRequired,
   setDirtyFlagToAttributionReport: PropTypes.func.isRequired,
+  isMultiApp: PropTypes.bool,
 };

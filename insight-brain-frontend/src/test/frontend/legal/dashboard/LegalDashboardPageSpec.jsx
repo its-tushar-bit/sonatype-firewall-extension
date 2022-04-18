@@ -53,6 +53,7 @@ describe('LegalDashboardPage', function () {
         currentState: {
           data: {
             activeTab: 'applications',
+            isMultiApp: false,
           },
         },
       },
@@ -62,6 +63,8 @@ describe('LegalDashboardPage', function () {
       fetchBackendPage: () => {},
       changeSortField: () => {},
       stateGo: () => {},
+      searchByComponentName: () => {},
+      setComponentSearchInputValue: () => {},
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardPage, minimalProps);
@@ -92,6 +95,10 @@ describe('LegalDashboardPage', function () {
     expect(applicationsTab).toExist();
     expect(applicationsTab).toHaveProp('applications', mockApplications);
     expect(applicationsTab).toHaveProp('filtersAreDirty', true);
+
+    let createAttribReportButton = wrapper.find('#create-attribution-report-btn');
+    expect(createAttribReportButton).toHaveSize(1);
+    expect(applicationsTab).toHaveProp('filtersAreDirty', true);
   });
 
   it('renders an LegalDashboardComponentsTab', function () {
@@ -99,5 +106,64 @@ describe('LegalDashboardPage', function () {
     let componentsTab = wrapper.find(LegalDashboardComponentsTab);
     expect(componentsTab).toExist();
     expect(componentsTab).toHaveProp('components', mockComponents);
+    let createAttribReportButton = wrapper.find('#create-attribution-report-btn');
+    expect(createAttribReportButton).toHaveSize(1);
+    expect(createAttribReportButton.props().disabled).toBeTrue();
+  });
+
+  it('prompts users with dialog for generating report', function () {
+    const mockApplications = {
+      results: [
+        {
+          applicationId: 'test1',
+          applicationPublicId: 'test1',
+          applicationName: 'test1',
+          lastScanTime: 123,
+          stageTypeId: 'test',
+          applicationTagNames: ['tag'],
+          componentsReviewedCount: 1,
+          componentsTotalCount: 2,
+        },
+        {
+          applicationId: 'test2',
+          applicationPublicId: 'test2',
+          applicationName: 'test2',
+          lastScanTime: 123,
+          stageTypeId: 'test',
+          applicationTagNames: ['tag'],
+          componentsReviewedCount: 1,
+          componentsTotalCount: 2,
+        },
+      ],
+      totalResultsCount: 2,
+      backendPage: 1,
+    };
+
+    const minimalPropsDialogTest = {
+      ...minimalProps,
+      applications: mockApplications,
+    };
+
+    getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardPage, minimalPropsDialogTest);
+
+    const wrapper = getShallowComponent();
+    const applicationsTab = wrapper.find(LegalDashboardApplicationsTab);
+    expect(applicationsTab).toExist();
+
+    const createAttribReportButton = wrapper.find('#create-attribution-report-btn');
+    expect(createAttribReportButton).toExist();
+    expect(createAttribReportButton.props().disabled).toBeFalse();
+    createAttribReportButton.simulate('click');
+
+    const generateAttribReportButton = wrapper.find('#create-report-generate-report-button');
+    expect(generateAttribReportButton).toExist();
+    generateAttribReportButton.simulate('click');
+
+    createAttribReportButton.simulate('click');
+    const cancelAttribReportButton = wrapper.find('#create-report-cancel-button');
+    expect(cancelAttribReportButton).toExist();
+    cancelAttribReportButton.simulate('click');
+
+    expect(wrapper.find('NxModal')).not.toExist();
   });
 });

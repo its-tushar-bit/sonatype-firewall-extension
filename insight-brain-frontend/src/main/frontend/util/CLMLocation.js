@@ -771,6 +771,10 @@ export function getAttributionReportTemplateUrl(templateId) {
   return uriTemplate`/api/v2/licenseLegalMetadata/report-template/${templateId}`;
 }
 
+export function getAttributionReportMultiApplicationUrl() {
+  return uriTemplate`/api/v2/licenseLegalMetadata/multiApplication/activeUserFilter/report`;
+}
+
 export const getSuccessMetricsChartDataUrl = (successMetricsReportId) =>
   uriTemplate`/rest/successMetrics/report/${encodeURIComponent(successMetricsReportId)}/chartData`;
 

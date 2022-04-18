@@ -3,113 +3,89 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { omit, prop } from 'ramda';
+import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as assignApplicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 
-export default function ApplicationCategoryEditorController(
-  $scope,
-  $q,
-  $http,
-  ApplicationStore,
-  CLMContextLocations,
-  CLMLocations
-) {
-  var originalCategoryArray,
-    vm = this;
+import {
+  selectCategories,
+  selectIsDirty,
+  selectLoadApplicableCategoriesError,
+  selectLoadAppliedCategoriesError,
+  selectLoadingApplicableCategories,
+  selectLoadingAppliedCategories,
+  selectSubmitApplyCategoriesError,
+} from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
+import { selectLoadApplicationsError, selectLoadingApplications } from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
 
-  vm.doLoad = doLoad;
-  vm.save = save;
-  vm.loadError = undefined;
-  vm.submitError = undefined;
-  vm.submitErrorMessage = undefined;
-  vm.categories = undefined;
-  vm.isApp = CLMContextLocations.isApplication();
-  vm.ownerName = undefined;
-  vm.categoryEditor = undefined;
-  vm.categoryEditorMask = undefined;
-  vm.areCategoriesDirty = areCategoriesDirty;
+import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { omit } from 'ramda';
+import { selectOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
-  vm.doLoad();
+export default function ApplicationCategoryEditorController($scope, $ngRedux) {
+  const vm = this;
+
+  $scope.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadApplications: applicationsActions.loadApplicationsIfNeeded,
+    loadApplicableCategories: assignApplicationCategoriesActions.loadApplicableCategories,
+    loadAppliedCategories: assignApplicationCategoriesActions.loadAppliedCategories,
+    updateAppliedCategories: assignApplicationCategoriesActions.updateAppliedCategories,
+    saveAppliedCategories: assignApplicationCategoriesActions.saveAppliedCategories,
+  })($scope);
 
   $scope.$on('pageChangeStarted', function (event) {
-    if (vm.areCategoriesDirty()) {
+    if ($scope.areCategoriesDirty) {
       event.preventDefault();
     }
   });
 
-  function doLoad() {
-    if (vm.isApp) {
-      $q.all([
-        ApplicationStore[vm.loadError ? 'refresh' : 'get'](),
-        $http.get(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId())),
-        $http.get(CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId())),
-      ]).then(
-        function (results) {
-          var organizationCategories = results[1].data,
-            applicationCategories = results[2].data;
-          vm.categories = [];
+  $scope.$on('$destroy', function () {
+    $scope.unsubscribe();
+  });
 
-          results[0].some(function (candidate) {
-            if (candidate.publicId === CLMContextLocations.getEntityId()) {
-              vm.ownerName = candidate.name;
-              return true;
-            }
-          });
-
-          organizationCategories.forEach(function (organizationCategory) {
-            organizationCategory.isApplied = false;
-            if (
-              applicationCategories.some(function (appliedCategory) {
-                return appliedCategory.id === organizationCategory.id;
-              })
-            ) {
-              organizationCategory.isApplied = true;
-            }
-            vm.categories.push(organizationCategory);
-          });
-
-          originalCategoryArray = angular.copy(vm.categories);
-
-          if (!vm.ownerName) {
-            vm.loadError = 'Could not find an application with ID ' + CLMContextLocations.getEntityId() + '.';
-          }
-        },
-        function (error) {
-          vm.loadError = error;
-        }
-      );
+  $scope.doLoad = function () {
+    if ($scope.isApp) {
+      $scope.loadApplications();
+      $scope.loadApplicableCategories();
+      $scope.loadAppliedCategories();
     }
+  };
 
-    delete vm.loadError;
-  }
+  $scope.doLoad();
 
-  function save() {
-    delete vm.submitError;
-
-    var appliedCategories = vm.categories.filter(prop('isApplied')).map(omit(['isApplied']));
-
-    vm.categoryEditorMask
-      .wrap($http.put(CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId()), appliedCategories))
-      .then(
-        function () {
-          originalCategoryArray = angular.copy(vm.categories);
+  $scope.save = function () {
+    vm.categoryEditorMask.wrap(
+      $scope.saveAppliedCategories({
+        onSaveAppliedCategories: () => {
           vm.categoryEditor.$setPristine();
         },
-        function (error) {
-          vm.submitError = error;
-        }
-      );
-  }
+      })
+    );
+  };
 
-  function areCategoriesDirty() {
-    return !angular.equals(originalCategoryArray, vm.categories);
-  }
+  $scope.onCategoriesChanged = function (category) {
+    // The isApplied key is added by the selector and so it has to be removed here to mantain consistency with the data in the reducer
+    // The $$hashKey key is added by the association-editor component
+    $scope.updateAppliedCategories(omit(['$$hashKey', 'isApplied'])(category));
+  };
+
+  vm.categoryEditor = undefined;
+  vm.categoryEditorMask = undefined;
 }
 
-ApplicationCategoryEditorController.$inject = [
-  '$scope',
-  '$q',
-  '$http',
-  'ApplicationStore',
-  'CLMContextLocations',
-  'CLMLocations',
-];
+export const mapStateToThis = (state) => ({
+  ownerName: selectOwnerName(state),
+  loading:
+    selectLoadingApplications(state) ||
+    selectLoadingApplicableCategories(state) ||
+    selectLoadingAppliedCategories(state),
+  loadError:
+    selectLoadApplicationsError(state) ||
+    selectLoadApplicableCategoriesError(state) ||
+    selectLoadAppliedCategoriesError(state),
+  categories: angular.copy(selectCategories(state)),
+  areCategoriesDirty: selectIsDirty(state),
+  isApp: selectIsApplication(state),
+  submitError: selectSubmitApplyCategoriesError(state),
+});
+
+ApplicationCategoryEditorController.$inject = ['$scope', '$ngRedux'];

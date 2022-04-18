@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import deleteTemplate from './delete.application.category.error.modal.html';
-import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
 import {
   selectIsDirty,
   selectIsEditMode,
@@ -15,7 +15,7 @@ import {
   selectAssociatedApplicationNames,
   selectCurrentCategory,
   selectDeleteModal,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
+} from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
 
 export default function CategoryEditorController($scope, Modal, DeleteModalService, ApplicationStore, $ngRedux) {
   var vm = this;

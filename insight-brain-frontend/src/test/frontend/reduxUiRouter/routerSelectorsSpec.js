@@ -11,6 +11,9 @@ import {
   selectCurrentRouteName,
   selectPreviousRouteName,
   selectIsOrganization,
+  selectIsApplication,
+  selectOrganizationId,
+  selectApplicationId,
   selectIsRootOrganization,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
@@ -91,6 +94,42 @@ describe('routerSelectors', function () {
       const actualSelection = selectIsOrganization.resultFunc('management.edit.organization.policy');
 
       expect(actualSelection).toBeTrue();
+    });
+  });
+
+  describe('selectIsApplication', () => {
+    it('is composed from the following selector', () => {
+      expect(selectIsApplication.dependencies).toEqual([selectCurrentRouteName]);
+    });
+
+    it('selects if current url name includes `application`', () => {
+      const actualSelection = selectIsApplication.resultFunc('management.edit.application');
+
+      expect(actualSelection).toBeTrue();
+    });
+  });
+
+  describe('selectOrganizationId', () => {
+    it('is composed from the following selector', () => {
+      expect(selectOrganizationId.dependencies).toEqual([selectRouterCurrentParams]);
+    });
+
+    it('selects if current url name includes `organizationId`', () => {
+      const actualSelection = selectOrganizationId.resultFunc({ organizationId: 'orgId' });
+
+      expect(actualSelection).toBe('orgId');
+    });
+  });
+
+  describe('selectApplicationId', () => {
+    it('is composed from the following selector', () => {
+      expect(selectApplicationId.dependencies).toEqual([selectRouterCurrentParams]);
+    });
+
+    it('selects if current url name includes `applicationId`', () => {
+      const actualSelection = selectApplicationId.resultFunc({ applicationPublicId: 'appId' });
+
+      expect(actualSelection).toBe('appId');
     });
   });
 

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
-import * as orgsAndPoliciesApplicationCategoriesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
+import * as applicationCategoriesSelectors from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
 import * as orgsAndPoliciesRootSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { mapStateToThis } from 'MainRoot/owner.manager/category/application.category.tile.controller.org';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -28,9 +28,9 @@ describe('application.category.tile.controller.org.spec.js', function () {
 
   describe('mapStateToThis', () => {
     it('maps redux properties to component', () => {
-      spyOn(orgsAndPoliciesApplicationCategoriesSelectors, 'selectAppCategoryOwners').and.returnValue(null);
-      spyOn(orgsAndPoliciesApplicationCategoriesSelectors, 'selectLoadError').and.returnValue(null);
-      spyOn(orgsAndPoliciesApplicationCategoriesSelectors, 'selectIsLoading').and.returnValue(false);
+      spyOn(applicationCategoriesSelectors, 'selectAppCategoryOwners').and.returnValue(null);
+      spyOn(applicationCategoriesSelectors, 'selectLoadError').and.returnValue(null);
+      spyOn(applicationCategoriesSelectors, 'selectIsLoading').and.returnValue(false);
       spyOn(orgsAndPoliciesRootSelectors, 'selectOwnerName').and.returnValue(null);
       spyOn(routerSelectors, 'selectIsOrganization').and.returnValue(true);
 

@@ -5,13 +5,13 @@
  */
 
 import { createSelector } from '@reduxjs/toolkit';
-import { isNil, prop } from 'ramda';
+import { isNil, path, prop } from 'ramda';
 import { selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
 import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
 
 export const selectApplicationCategoriesSlice = createSelector(
   selectOrgsAndPoliciesSlice,
-  prop('applicationCategories')
+  path(['applicationCategories', 'createEdit'])
 );
 export const selectIsEditMode = createSelector(selectRouterCurrentParams, ({ categoryId }) => !isNil(categoryId));
 export const selectAppCategoryOwners = createSelector(selectApplicationCategoriesSlice, prop('appCategoryOwners'));

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { deriveEditRoute, deriveViewRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
+import { deriveEditRoute, deriveViewRoute, getOwnerName } from 'MainRoot/OrgsAndPolicies/utility/util';
 
 describe('route derivation util', () => {
   let router;
@@ -58,5 +58,17 @@ describe('route derivation util', () => {
 
     expect(actual.to).toEqual('management.edit.organization');
     expect(actual.params).toEqual(router.currentParams);
+  });
+});
+
+describe('getOwnerName', () => {
+  it('gets the owner Name', () => {
+    const owners = [
+      { publicId: 'owner1', name: 'owner 1' },
+      { publicId: 'owner2', name: 'owner 2' },
+    ];
+    const ownerName = getOwnerName('owner1')(owners);
+
+    expect(ownerName).toBe('owner 1');
   });
 });

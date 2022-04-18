@@ -16,11 +16,11 @@ import {
   selectDeleteModal,
   selectSiblings,
   selectTagPolicyList,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
+} from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
 import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
-describe('orgsAndPoliciesSelectors', () => {
+describe('applicationCategoriesSelectors', () => {
   describe('selectApplicationCategoriesSlice', () => {
     it('is composed from the following selector', () => {
       expect(selectApplicationCategoriesSlice.dependencies).toEqual([selectOrgsAndPoliciesSlice]);
@@ -28,7 +28,7 @@ describe('orgsAndPoliciesSelectors', () => {
 
     it('selects applicationCategoriesSlice', () => {
       const orgsAndPoliciesSlice = {
-        applicationCategories: 'applicationCategories',
+        applicationCategories: { createEdit: 'applicationCategories' },
       };
 
       const selected = selectApplicationCategoriesSlice.resultFunc(orgsAndPoliciesSlice);
@@ -65,11 +65,11 @@ describe('orgsAndPoliciesSelectors', () => {
     });
 
     it('selects appCategoryOwners', () => {
-      const orgsAndPoliciesApplicationCategoriesSlice = {
+      const applicationCategoriesSlice = {
         appCategoryOwners: ['owner'],
       };
 
-      const selected = selectAppCategoryOwners.resultFunc(orgsAndPoliciesApplicationCategoriesSlice);
+      const selected = selectAppCategoryOwners.resultFunc(applicationCategoriesSlice);
 
       expect(selected).toEqual(['owner']);
     });
@@ -81,11 +81,11 @@ describe('orgsAndPoliciesSelectors', () => {
     });
 
     it('selects loading', () => {
-      const orgsAndPoliciesApplicationCategoriesSlice = {
+      const applicationCategoriesSlice = {
         loading: true,
       };
 
-      const selected = selectIsLoading.resultFunc(orgsAndPoliciesApplicationCategoriesSlice);
+      const selected = selectIsLoading.resultFunc(applicationCategoriesSlice);
 
       expect(selected).toBeTrue();
     });
@@ -97,11 +97,11 @@ describe('orgsAndPoliciesSelectors', () => {
     });
 
     it('selects loadError', () => {
-      const orgsAndPoliciesApplicationCategoriesSlice = {
+      const applicationCategoriesSlice = {
         loadError: 'someError',
       };
 
-      const selected = selectLoadError.resultFunc(orgsAndPoliciesApplicationCategoriesSlice);
+      const selected = selectLoadError.resultFunc(applicationCategoriesSlice);
 
       expect(selected).toBe('someError');
     });
@@ -113,11 +113,11 @@ describe('orgsAndPoliciesSelectors', () => {
     });
 
     it('selects isDirty', () => {
-      const orgsAndPoliciesApplicationCategoriesSlice = {
+      const applicationCategoriesSlice = {
         isDirty: true,
       };
 
-      const selected = selectIsDirty.resultFunc(orgsAndPoliciesApplicationCategoriesSlice);
+      const selected = selectIsDirty.resultFunc(applicationCategoriesSlice);
 
       expect(selected).toBeTrue();
     });
@@ -129,11 +129,11 @@ describe('orgsAndPoliciesSelectors', () => {
     });
 
     it('selects currentCategory', () => {
-      const orgsAndPoliciesApplicationCategoriesSlice = {
+      const applicationCategoriesSlice = {
         currentCategory: { id: 'someId' },
       };
 
-      const selected = selectCurrentCategory.resultFunc(orgsAndPoliciesApplicationCategoriesSlice);
+      const selected = selectCurrentCategory.resultFunc(applicationCategoriesSlice);
 
       expect(selected).toEqual({ id: 'someId' });
     });
@@ -145,11 +145,11 @@ describe('orgsAndPoliciesSelectors', () => {
     });
 
     it('selects deleteModal', () => {
-      const orgsAndPoliciesApplicationCategoriesSlice = {
+      const applicationCategoriesSlice = {
         deleteModal: { deleting: false },
       };
 
-      const selected = selectDeleteModal.resultFunc(orgsAndPoliciesApplicationCategoriesSlice);
+      const selected = selectDeleteModal.resultFunc(applicationCategoriesSlice);
 
       expect(selected).toEqual({ deleting: false });
     });
@@ -193,11 +193,11 @@ describe('orgsAndPoliciesSelectors', () => {
     });
 
     it('selects siblings', () => {
-      const orgsAndPoliciesApplicationCategoriesSlice = {
+      const applicationCategoriesSlice = {
         siblings: [{ id: 'someCategoryId' }],
       };
 
-      const selected = selectSiblings.resultFunc(orgsAndPoliciesApplicationCategoriesSlice);
+      const selected = selectSiblings.resultFunc(applicationCategoriesSlice);
 
       expect(selected).toEqual([{ id: 'someCategoryId' }]);
     });

@@ -7,7 +7,7 @@
 import { selectSiblings as selectPolicySiblings } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
+import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
 import { selectLabelsSiblings } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
 import {
   selectIsMonitoringSupported,

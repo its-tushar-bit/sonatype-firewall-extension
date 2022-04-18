@@ -1,35 +1,36 @@
 <div id="application-category-editor"
      class="iq-tile iq-tile--form-tile"
-     load-wrapper="vm.loadError"
-     loading="!vm.ownerName && !vm.categories"
-     reload="vm.doLoad()">
+     load-wrapper="loadError"
+     loading="loading"
+     reload="doLoad()">
   <header class="iq-tile-header">
     <div class="iq-tile-header__title">
       <hexagon class="outline size-20px iq-tile-header__icon"></hexagon>
       <h2>Assign Application Categories</h2>
     </div>
   </header>
-  <div class="iq-tile-content" ng-if="!vm.categories || vm.categories.length > 0">
+  <div class="iq-tile-content" ng-if="loading || loadError || categories.length > 0">
     <form name="vm.categoryEditor"
           class="iq-form"
           role="form"
-          ng-submit="vm.categoryEditor.$valid && vm.areCategoriesDirty() && vm.save()"
+          ng-submit="vm.categoryEditor.$valid && areCategoriesDirty && save()"
           form-mask="vm.categoryEditorMask"
           mask-attach-to-body>
       <div class="iq-form-group">
-        <label for="associated-categories">Application Categories Assigned to {{vm.ownerName}}</label>
+        <label for="associated-categories">Application Categories Assigned to {{ownerName}}</label>
         <association-editor id="associated-categories"
-                            items="vm.categories"
+                            items="categories"
                             checkbox-param="isApplied"
                             description="name"
-                            icon="hexagon"/>
+                            icon="hexagon"
+                            on-change="onCategoriesChanged"/>
       </div>
-      <div class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
+      <div class="iq-tile-footer" submit-wrapper="submitError" retry="save()">
         <button type="submit"
                 class="iq-btn iq-btn--primary"
-                ng-disabled="vm.categories.length === 0"
+                ng-disabled="categories.length === 0"
                 submit-validation
-                submit-dirty="vm.areCategoriesDirty()"
+                submit-dirty="areCategoriesDirty"
                 submit-tooltip-target="body"
                 submit-type="update">
           Update
@@ -37,7 +38,7 @@
       </div>
     </form>
   </div>
-  <div class="iq-tile-content" ng-if="vm.categories && vm.categories.length === 0">
+  <div class="iq-tile-content" ng-if="!loading && !loadError && categories.length === 0">
     <div class="iq-alert iq-alert--error">
       <i class="fa fa-warning"></i>No application categories defined.
     </div>

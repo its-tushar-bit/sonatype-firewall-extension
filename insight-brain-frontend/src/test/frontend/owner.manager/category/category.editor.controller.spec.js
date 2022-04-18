@@ -5,7 +5,7 @@
  */
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { mapStateToThis } from 'MainRoot/owner.manager/category/category.editor.controller';
-import * as orgsAndPoliciesApplicationCategoriesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
+import * as applicationCategoriesSelectors from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
 
 describe('category.editor.controller', function () {
   beforeEach(
@@ -30,14 +30,14 @@ describe('category.editor.controller', function () {
 
   describe('mapStateToThis', () => {
     it('maps redux properties to component', () => {
-      spyOn(orgsAndPoliciesApplicationCategoriesSelectors, 'selectIsLoading').and.returnValue(false);
-      spyOn(orgsAndPoliciesApplicationCategoriesSelectors, 'selectIsDirty').and.returnValue(false);
-      spyOn(orgsAndPoliciesApplicationCategoriesSelectors, 'selectIsEditMode').and.returnValue(true);
-      spyOn(orgsAndPoliciesApplicationCategoriesSelectors, 'selectLoadError').and.returnValue(null);
+      spyOn(applicationCategoriesSelectors, 'selectIsLoading').and.returnValue(false);
+      spyOn(applicationCategoriesSelectors, 'selectIsDirty').and.returnValue(false);
+      spyOn(applicationCategoriesSelectors, 'selectIsEditMode').and.returnValue(true);
+      spyOn(applicationCategoriesSelectors, 'selectLoadError').and.returnValue(null);
 
-      spyOn(orgsAndPoliciesApplicationCategoriesSelectors, 'selectSiblings').and.returnValue(null);
-      spyOn(orgsAndPoliciesApplicationCategoriesSelectors, 'selectCurrentCategory').and.returnValue(null);
-      spyOn(orgsAndPoliciesApplicationCategoriesSelectors, 'selectTagPolicyList').and.returnValue(null);
+      spyOn(applicationCategoriesSelectors, 'selectSiblings').and.returnValue(null);
+      spyOn(applicationCategoriesSelectors, 'selectCurrentCategory').and.returnValue(null);
+      spyOn(applicationCategoriesSelectors, 'selectTagPolicyList').and.returnValue(null);
       const output = mapStateToThis({});
 
       expect(output.loading).toBeFalse();

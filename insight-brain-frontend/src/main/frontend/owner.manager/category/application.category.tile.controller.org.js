@@ -7,9 +7,9 @@ import {
   selectLoadError,
   selectIsLoading,
   selectAppCategoryOwners,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
+} from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
 
-import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
 import { actions as orgsAndPoliciesRootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
 import { selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';

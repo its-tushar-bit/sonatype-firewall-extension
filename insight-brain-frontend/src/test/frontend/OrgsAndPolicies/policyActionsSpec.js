@@ -119,8 +119,8 @@ describe('policy actions', () => {
         expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadCategoriesForPolicy/pending',
-          'applicationCategories/loadApplicableCategoriesByOwner/pending',
-          'applicationCategories/loadApplicableCategoriesByOwner/fulfilled',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
           'policy/loadCategoriesForPolicy/fulfilled',
         ]);
 
@@ -177,8 +177,8 @@ describe('policy actions', () => {
         expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadCategoriesForPolicy/pending',
-          'applicationCategories/loadApplicableCategoriesByOwner/pending',
-          'applicationCategories/loadApplicableCategoriesByOwner/fulfilled',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
           'policy/loadCategoriesForPolicy/fulfilled',
         ]);
 
@@ -231,8 +231,8 @@ describe('policy actions', () => {
         expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadCategoriesForPolicy/pending',
-          'applicationCategories/loadApplicableCategoriesByOwner/pending',
-          'applicationCategories/loadApplicableCategoriesByOwner/rejected',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/rejected',
           'policy/loadCategoriesForPolicy/rejected',
         ]);
 
@@ -376,8 +376,8 @@ describe('policy actions', () => {
             'orgsAndPoliciesConstraint/loadConstraint/pending',
             'orgsAndPolicies/updatedOwnerHandler',
             'policy/loadCategoriesForPolicy/pending',
-            'applicationCategories/loadApplicableCategoriesByOwner/pending',
-            'applicationCategories/loadApplicableCategoriesByOwner/rejected',
+            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/rejected',
             'policy/loadPolicyEditor/fulfilled',
           ]);
 

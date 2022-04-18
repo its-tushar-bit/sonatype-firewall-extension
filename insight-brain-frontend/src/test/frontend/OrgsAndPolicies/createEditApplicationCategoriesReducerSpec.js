@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer, { initialState } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSlice';
+import reducer, { initialState } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
 
 describe('orgsAndPoliciesApplicationCategories reducer', () => {
-  describe('applicationCategories/setCategoryDescription', () => {
+  describe('applicationCategories/createEdit/setCategoryDescription', () => {
     it('sets description to currentCategory and isDirty property', () => {
       const state = Object.freeze({
         currentCategory: {
@@ -19,7 +19,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       const { isDirty, currentCategory } = reducer(state, {
-        type: 'applicationCategories/setCategoryDescription',
+        type: 'applicationCategories/createEdit/setCategoryDescription',
         payload: 'category description',
       });
 
@@ -28,7 +28,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     });
   });
 
-  describe('applicationCategories/setCategoryColor', () => {
+  describe('applicationCategories/createEdit/setCategoryColor', () => {
     it('sets color to currentCategory and isDirty property', () => {
       const state = Object.freeze({
         currentCategory: {
@@ -41,7 +41,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       const { isDirty, currentCategory } = reducer(state, {
-        type: 'applicationCategories/setCategoryColor',
+        type: 'applicationCategories/createEdit/setCategoryColor',
         payload: 'light-green',
       });
 
@@ -50,7 +50,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     });
   });
 
-  describe('applicationCategories/setCategoryName', () => {
+  describe('applicationCategories/createEdit/setCategoryName', () => {
     it('sets name to currentCategory and isDirty property', () => {
       const state = Object.freeze({
         currentCategory: {
@@ -63,7 +63,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       const { isDirty, currentCategory } = reducer(state, {
-        type: 'applicationCategories/setCategoryName',
+        type: 'applicationCategories/createEdit/setCategoryName',
         payload: 'name',
       });
 
@@ -72,31 +72,31 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     });
   });
 
-  describe('applicationCategories/resetIsDirty', () => {
+  describe('applicationCategories/createEdit/resetIsDirty', () => {
     it('resets isDirty property', () => {
       const state = Object.freeze({ isDirty: true });
 
       const { isDirty } = reducer(state, {
-        type: 'applicationCategories/resetIsDirty',
+        type: 'applicationCategories/createEdit/resetIsDirty',
       });
 
       expect(isDirty).toBeFalse();
     });
   });
 
-  describe('applicationCategories/saveApplicationCategory/pending', () => {
+  describe('applicationCategories/createEdit/saveApplicationCategory/pending', () => {
     it('sets submitError property to null', () => {
       const state = Object.freeze({ submitError: 'error' });
 
       const { submitError } = reducer(state, {
-        type: 'applicationCategories/saveApplicationCategory/pending',
+        type: 'applicationCategories/createEdit/saveApplicationCategory/pending',
       });
 
       expect(submitError).toBeNull();
     });
   });
 
-  describe('applicationCategories/saveApplicationCategory/fulfilled', () => {
+  describe('applicationCategories/createEdit/saveApplicationCategory/fulfilled', () => {
     it('sets currentCategory and serverCategory to payload, resets isDirty', () => {
       const state = Object.freeze({
         submitError: 'error',
@@ -107,7 +107,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'applicationCategories/saveApplicationCategory/fulfilled',
+        type: 'applicationCategories/createEdit/saveApplicationCategory/fulfilled',
         payload: {
           isEditMode: true,
           savedCategory: {
@@ -157,7 +157,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'applicationCategories/saveApplicationCategory/fulfilled',
+        type: 'applicationCategories/createEdit/saveApplicationCategory/fulfilled',
         payload: {
           isEditMode: false,
           savedCategory: {
@@ -185,12 +185,12 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     });
   });
 
-  describe('applicationCategories/saveApplicationCategory/rejected', () => {
+  describe('applicationCategories/createEdit/saveApplicationCategory/rejected', () => {
     it('sets submitError property to error', () => {
       const state = Object.freeze({ submitError: null });
 
       const { submitError } = reducer(state, {
-        type: 'applicationCategories/saveApplicationCategory/rejected',
+        type: 'applicationCategories/createEdit/saveApplicationCategory/rejected',
         payload: 'error',
       });
 
@@ -198,19 +198,19 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     });
   });
 
-  describe('applicationCategories/removeApplicationCategory/pending', () => {
+  describe('applicationCategories/createEdit/removeApplicationCategory/pending', () => {
     it('sets deleting property to null', () => {
       const state = Object.freeze({ deleting: false });
 
       const { deleteModal } = reducer(state, {
-        type: 'applicationCategories/removeApplicationCategory/pending',
+        type: 'applicationCategories/createEdit/removeApplicationCategory/pending',
       });
 
       expect(deleteModal.deleting).toBeTrue();
     });
   });
 
-  describe('applicationCategories/removeApplicationCategory/fulfilled', () => {
+  describe('applicationCategories/createEdit/removeApplicationCategory/fulfilled', () => {
     it('sets currentCategory, serverCategory to initialState', () => {
       const state = Object.freeze({
         deleteModal: {
@@ -243,7 +243,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'applicationCategories/removeApplicationCategory/fulfilled',
+        type: 'applicationCategories/createEdit/removeApplicationCategory/fulfilled',
         payload: 'id',
       });
 
@@ -258,7 +258,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     });
   });
 
-  describe('applicationCategories/removeApplicationCategory/rejected', () => {
+  describe('applicationCategories/createEdit/removeApplicationCategory/rejected', () => {
     it('sets errorState, deleting', () => {
       const state = Object.freeze({
         deleteModal: {
@@ -268,7 +268,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       const { deleteModal } = reducer(state, {
-        type: 'applicationCategories/removeApplicationCategory/rejected',
+        type: 'applicationCategories/createEdit/removeApplicationCategory/rejected',
         payload: 'error',
       });
 
@@ -277,7 +277,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     });
   });
 
-  describe('applicationCategories/loadApplicableCategories/pending', () => {
+  describe('applicationCategories/createEdit/loadApplicableCategories/pending', () => {
     it('resets loading, loadError', () => {
       const state = Object.freeze({
         loading: false,
@@ -285,7 +285,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'applicationCategories/loadApplicableCategories/pending',
+        type: 'applicationCategories/createEdit/loadApplicableCategories/pending',
       });
 
       expect(loading).toBeTrue();
@@ -293,7 +293,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     });
   });
 
-  describe('applicationCategories/loadApplicableCategories/fulfilled', () => {
+  describe('applicationCategories/createEdit/loadApplicableCategories/fulfilled', () => {
     it('sets loading, loadError, appCategoryOwners, ownerName ', () => {
       const mockAppCategoryOwners = [
         {
@@ -320,7 +320,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       const newStore = reducer(state, {
-        type: 'applicationCategories/loadApplicableCategories/fulfilled',
+        type: 'applicationCategories/createEdit/loadApplicableCategories/fulfilled',
         payload: {
           appCategoryOwners: mockAppCategoryOwners,
         },
@@ -332,7 +332,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     });
   });
 
-  describe('applicationCategories/loadApplicableCategories/rejected', () => {
+  describe('applicationCategories/createEdit/loadApplicableCategories/rejected', () => {
     it('sets loading, loadError', () => {
       const state = Object.freeze({
         loading: true,
@@ -340,7 +340,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'applicationCategories/loadApplicableCategories/rejected',
+        type: 'applicationCategories/createEdit/loadApplicableCategories/rejected',
         payload: 'error',
       });
 
@@ -349,7 +349,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     });
   });
 
-  describe('applicationCategories/loadCategoryEditor/pending', () => {
+  describe('applicationCategories/createEdit/loadCategoryEditor/pending', () => {
     it('resets loading, loadError', () => {
       const state = Object.freeze({
         loading: false,
@@ -357,7 +357,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'applicationCategories/loadCategoryEditor/pending',
+        type: 'applicationCategories/createEdit/loadCategoryEditor/pending',
       });
 
       expect(loading).toBeTrue();
@@ -365,7 +365,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     });
   });
 
-  describe('applicationCategories/loadCategoryEditor/fulfilled', () => {
+  describe('applicationCategories/createEdit/loadCategoryEditor/fulfilled', () => {
     it('sets loading, loadError, currentCategory, serverCategory, siblings, associatedApplicationNames, tagPolicyList and resets deleteModal statuses', () => {
       const state = Object.freeze({
         loading: true,
@@ -403,7 +403,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       const associatedApplicationNames = ['associated application name'];
       const tagPolicyList = ['associated policy name'];
       const newState = reducer(state, {
-        type: 'applicationCategories/loadCategoryEditor/fulfilled',
+        type: 'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
         payload: {
           currentCategory,
           siblings,
@@ -425,7 +425,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     });
   });
 
-  describe('applicationCategories/loadCategoryEditor/rejected', () => {
+  describe('applicationCategories/createEdit/loadCategoryEditor/rejected', () => {
     it('sets loading, loadError', () => {
       const state = Object.freeze({
         loading: true,
@@ -433,7 +433,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'applicationCategories/loadCategoryEditor/rejected',
+        type: 'applicationCategories/createEdit/loadCategoryEditor/rejected',
         payload: 'error',
       });
 

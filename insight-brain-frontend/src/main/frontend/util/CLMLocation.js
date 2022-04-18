@@ -101,6 +101,14 @@ export function getApplicationsUrl() {
   return uriTemplate`/rest/application`;
 }
 
+export function getApplicationCategoriesUrl(applicationPublicId) {
+  return uriTemplate`/rest/appliedTag/application/${applicationPublicId}`;
+}
+
+export function getApplicableOrganizationCategories(applicationPublicId) {
+  return uriTemplate`/api/v2/applicationCategories/application/${applicationPublicId}/applicable`;
+}
+
 export function getApplicationUrl(applicationPublicId) {
   return uriTemplate`/rest/application/${applicationPublicId}`;
 }

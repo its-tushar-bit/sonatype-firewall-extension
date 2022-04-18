@@ -5,9 +5,9 @@
  */
 import axios from 'axios';
 
-import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import * as selectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesApplicationCategoriesSelectors';
+import * as selectors from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   getApplicableCategoriesUrl,
@@ -24,7 +24,17 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
   let store, mockOwnerId, mockOwnerType, mockOwnerName;
 
   beforeEach(function () {
-    store = SpecUtil.mockReduxStore({});
+    const state = {
+      router: {
+        currentParams: {
+          applicationPublicId: 'alpine-test',
+        },
+        currentState: {
+          name: 'application',
+        },
+      },
+    };
+    store = SpecUtil.mockReduxStore(state);
     mockOwnerId = 'ownerId';
     mockOwnerType = 'ownerType';
     mockOwnerName = 'ownerName';
@@ -51,8 +61,8 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'applicationCategories/loadOrganizationPolicyTags/pending',
-          'applicationCategories/loadOrganizationPolicyTags/fulfilled',
+          'applicationCategories/createEdit/loadOrganizationPolicyTags/pending',
+          'applicationCategories/createEdit/loadOrganizationPolicyTags/fulfilled',
         ]);
 
         done();
@@ -73,8 +83,8 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'applicationCategories/loadOrganizationPolicyTags/pending',
-          'applicationCategories/loadOrganizationPolicyTags/rejected',
+          'applicationCategories/createEdit/loadOrganizationPolicyTags/pending',
+          'applicationCategories/createEdit/loadOrganizationPolicyTags/rejected',
         ]);
         done();
       });
@@ -98,8 +108,8 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'applicationCategories/loadOrganizationAppliedTag/pending',
-          'applicationCategories/loadOrganizationAppliedTag/fulfilled',
+          'applicationCategories/createEdit/loadOrganizationAppliedTag/pending',
+          'applicationCategories/createEdit/loadOrganizationAppliedTag/fulfilled',
         ]);
 
         done();
@@ -120,8 +130,8 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'applicationCategories/loadOrganizationAppliedTag/pending',
-          'applicationCategories/loadOrganizationAppliedTag/rejected',
+          'applicationCategories/createEdit/loadOrganizationAppliedTag/pending',
+          'applicationCategories/createEdit/loadOrganizationAppliedTag/rejected',
         ]);
         done();
       });
@@ -145,8 +155,8 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'applicationCategories/loadApplicableCategoriesByOwner/pending',
-          'applicationCategories/loadApplicableCategoriesByOwner/fulfilled',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
         ]);
 
         done();
@@ -167,8 +177,8 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'applicationCategories/loadApplicableCategoriesByOwner/pending',
-          'applicationCategories/loadApplicableCategoriesByOwner/rejected',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/rejected',
         ]);
         done();
       });
@@ -197,7 +207,7 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
         });
 
         const fulfilledApplicableCategoriesAction = actions.find(
-          ({ type }) => type === 'applicationCategories/loadApplicableCategories/fulfilled'
+          ({ type }) => type === 'applicationCategories/createEdit/loadApplicableCategories/fulfilled'
         );
 
         expect(fulfilledApplicableCategoriesAction.payload.appCategoryOwners).toBeDefined();
@@ -225,10 +235,10 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
-          'applicationCategories/loadApplicableCategories/pending',
-          'applicationCategories/loadApplicableCategoriesByOwner/pending',
-          'applicationCategories/loadApplicableCategoriesByOwner/rejected',
-          'applicationCategories/loadApplicableCategories/rejected',
+          'applicationCategories/createEdit/loadApplicableCategories/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/rejected',
+          'applicationCategories/createEdit/loadApplicableCategories/rejected',
         ]);
 
         done();
@@ -254,9 +264,9 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
-          'applicationCategories/goToCreateCategory/pending',
+          'applicationCategories/createEdit/goToCreateCategory/pending',
           '@@reduxUiRouter/stateGo',
-          'applicationCategories/goToCreateCategory/fulfilled',
+          'applicationCategories/createEdit/goToCreateCategory/fulfilled',
         ]);
 
         expect(actions[1].payload).toEqual({
@@ -290,9 +300,9 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
-          'applicationCategories/goToEditCategory/pending',
+          'applicationCategories/createEdit/goToEditCategory/pending',
           '@@reduxUiRouter/stateGo',
-          'applicationCategories/goToEditCategory/fulfilled',
+          'applicationCategories/createEdit/goToEditCategory/fulfilled',
         ]);
 
         expect(actions[1].payload).toEqual({
@@ -439,10 +449,10 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
           expect(actions.length).toBe(4);
           expect(actions).toHaveActionTypesInOrder([
-            'applicationCategories/loadCategoryEditor/pending',
-            'applicationCategories/loadApplicableCategoriesByOwner/pending',
-            'applicationCategories/loadApplicableCategoriesByOwner/fulfilled',
-            'applicationCategories/loadCategoryEditor/fulfilled',
+            'applicationCategories/createEdit/loadCategoryEditor/pending',
+            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
+            'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
           ]);
 
           expect(actions[3].payload).toEqual({
@@ -484,16 +494,16 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
           expect(actions.length).toBe(10);
           expect(actions).toHaveActionTypesInOrder([
-            'applicationCategories/loadCategoryEditor/pending',
-            'applicationCategories/loadOrganizationAppliedTag/pending',
+            'applicationCategories/createEdit/loadCategoryEditor/pending',
+            'applicationCategories/createEdit/loadOrganizationAppliedTag/pending',
             'policy/loadApplicablePoliciesByOwner/pending',
-            'applicationCategories/loadOrganizationPolicyTags/pending',
-            'applicationCategories/loadApplicableCategoriesByOwner/pending',
-            'applicationCategories/loadOrganizationAppliedTag/fulfilled',
+            'applicationCategories/createEdit/loadOrganizationPolicyTags/pending',
+            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+            'applicationCategories/createEdit/loadOrganizationAppliedTag/fulfilled',
             'policy/loadApplicablePoliciesByOwner/fulfilled',
-            'applicationCategories/loadOrganizationPolicyTags/fulfilled',
-            'applicationCategories/loadApplicableCategoriesByOwner/fulfilled',
-            'applicationCategories/loadCategoryEditor/fulfilled',
+            'applicationCategories/createEdit/loadOrganizationPolicyTags/fulfilled',
+            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
+            'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
           ]);
 
           expect(actions[9].payload).toEqual({
@@ -537,10 +547,10 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
           expect(actions.length).toBe(4);
           expect(actions).toHaveActionTypesInOrder([
-            'applicationCategories/loadCategoryEditor/pending',
-            'applicationCategories/loadApplicableCategoriesByOwner/pending',
-            'applicationCategories/loadApplicableCategoriesByOwner/fulfilled',
-            'applicationCategories/loadCategoryEditor/rejected',
+            'applicationCategories/createEdit/loadCategoryEditor/pending',
+            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
+            'applicationCategories/createEdit/loadCategoryEditor/rejected',
           ]);
 
           done();
@@ -594,8 +604,8 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
           expect(actions.length).toBe(2);
           expect(actions).toHaveActionTypesInOrder([
-            'applicationCategories/saveApplicationCategory/pending',
-            'applicationCategories/saveApplicationCategory/fulfilled',
+            'applicationCategories/createEdit/saveApplicationCategory/pending',
+            'applicationCategories/createEdit/saveApplicationCategory/fulfilled',
           ]);
 
           expect(actions[1].payload).toEqual({
@@ -633,8 +643,8 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
           expect(actions.length).toBe(2);
           expect(actions).toHaveActionTypesInOrder([
-            'applicationCategories/saveApplicationCategory/pending',
-            'applicationCategories/saveApplicationCategory/rejected',
+            'applicationCategories/createEdit/saveApplicationCategory/pending',
+            'applicationCategories/createEdit/saveApplicationCategory/rejected',
           ]);
 
           done();
@@ -664,16 +674,17 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(5);
+        expect(actions.length).toBe(6);
         expect(actions).toHaveActionTypesInOrder([
-          'applicationCategories/removeApplicationCategory/pending',
-          'applicationCategories/resetIsDirty',
-          'applicationCategories/goToCreateCategory/pending',
-          'applicationCategories/goToCreateCategory/rejected',
-          'applicationCategories/removeApplicationCategory/fulfilled',
+          'applicationCategories/createEdit/removeApplicationCategory/pending',
+          'applicationCategories/createEdit/resetIsDirty',
+          'applicationCategories/createEdit/goToCreateCategory/pending',
+          '@@reduxUiRouter/stateGo',
+          'applicationCategories/createEdit/goToCreateCategory/fulfilled',
+          'applicationCategories/createEdit/removeApplicationCategory/fulfilled',
         ]);
 
-        expect(actions[4].payload).toBe(currentCategoryData.id);
+        expect(actions[5].payload).toBe(currentCategoryData.id);
 
         done();
       });
@@ -698,8 +709,8 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'applicationCategories/removeApplicationCategory/pending',
-          'applicationCategories/removeApplicationCategory/rejected',
+          'applicationCategories/createEdit/removeApplicationCategory/pending',
+          'applicationCategories/createEdit/removeApplicationCategory/rejected',
         ]);
 
         done();

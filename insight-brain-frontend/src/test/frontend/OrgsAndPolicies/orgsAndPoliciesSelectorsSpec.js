@@ -3,7 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { selectOrgsAndPoliciesSlice, selectOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import {
+  selectEntityId,
+  selectOrgsAndPoliciesSlice,
+  selectOwnerName,
+} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 describe('orgsAndPoliciesSelectors', () => {
   let mockState;
@@ -14,6 +18,12 @@ describe('orgsAndPoliciesSelectors', () => {
         root: {
           ownerName: 'ownerName',
         },
+      },
+      router: {
+        currentState: {
+          name: 'management.view.application',
+        },
+        currentParams: { organizationId: 'orgId', applicationPublicId: 'alpine-test' },
       },
     };
   });
@@ -33,6 +43,17 @@ describe('orgsAndPoliciesSelectors', () => {
   describe('selectOwnerName', () => {
     it('returns ownerName', () => {
       expect(selectOwnerName(mockState)).toBe('ownerName');
+    });
+  });
+
+  describe('selectEntityId', () => {
+    it('returns app id', () => {
+      expect(selectEntityId(mockState)).toBe('alpine-test');
+    });
+
+    it('returns org id', () => {
+      mockState.router.currentState.name = 'management.view.organization';
+      expect(selectEntityId(mockState)).toBe('orgId');
     });
   });
 });

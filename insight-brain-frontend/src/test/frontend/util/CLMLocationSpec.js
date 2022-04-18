@@ -475,6 +475,18 @@ describe('CLMLocation.js', function () {
     );
   });
 
+  it('should return the application applied tags url', function () {
+    expect(CLMLocation.getApplicationCategoriesUrl('application-id')).toBe(
+      '/rest/appliedTag/application/application-id'
+    );
+  });
+
+  it('should return the applicable categories url', function () {
+    expect(CLMLocation.getApplicableOrganizationCategories('application-id')).toBe(
+      '/api/v2/applicationCategories/application/application-id/applicable'
+    );
+  });
+
   it('should return the application details url', function () {
     expect(CLMLocation.getApplicationUrl('application-id')).toBe('/rest/application/application-id');
   });

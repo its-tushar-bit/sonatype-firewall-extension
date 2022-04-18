@@ -30,7 +30,7 @@ import {
   getOrganizationPolicyTagUrl,
 } from '../util/CLMLocation';
 import { selectRouterCurrentParams, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectIsEditMode, selectCurrentCategory } from './orgsAndPoliciesApplicationCategoriesSelectors';
+import { selectIsEditMode, selectCurrentCategory } from './createEditApplicationCategoriesSelectors';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { pathSet, propSet } from '../util/jsUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
@@ -39,7 +39,7 @@ import { actions as policyActions } from './policySlice';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { deriveEditRoute } from './utility/util';
 
-const REDUCER_NAME = 'applicationCategories';
+const REDUCER_NAME = 'applicationCategories/createEdit';
 
 export const initialState = {
   appCategoryOwners: [],
@@ -376,7 +376,7 @@ const removeApplicationCategoryFailed = (state, { payload }) => {
   state.deleteModal.errorState = Messages.getHttpErrorMessage(payload);
 };
 
-const orgsAndPoliciesApplicationCategoriesSlice = createSlice({
+const createEditApplicationCategoriesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
@@ -401,9 +401,9 @@ const orgsAndPoliciesApplicationCategoriesSlice = createSlice({
   },
 });
 
-export default orgsAndPoliciesApplicationCategoriesSlice.reducer;
+export default createEditApplicationCategoriesSlice.reducer;
 export const actions = {
-  ...orgsAndPoliciesApplicationCategoriesSlice.actions,
+  ...createEditApplicationCategoriesSlice.actions,
   loadOrganizationAppliedTag,
   loadOrganizationPolicyTags,
   loadCategoryEditor,

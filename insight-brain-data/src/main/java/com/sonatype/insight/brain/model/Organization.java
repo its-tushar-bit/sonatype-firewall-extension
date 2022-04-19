@@ -58,6 +58,18 @@ public class Organization
   @Column(name = "allow_repository_connection_override")
   private boolean allowRepositoryConnectionOverride = true;
 
+  /**
+   * @since 1.137
+   */
+  @Column(name = "artifactory_connection_enabled")
+  private Boolean artifactoryConnectionEnabled;
+
+  /**
+   * @since 1.137
+   */
+  @Column(name = "allow_artifactory_connection_override")
+  private boolean allowArtifactoryConnectionOverride = true;
+
   public Organization() {
   }
 
@@ -164,6 +176,22 @@ public class Organization
 
   public void setAllowRepositoryConnectionOverride(boolean allowRepositoryConnectionOverride) {
     this.allowRepositoryConnectionOverride = allowRepositoryConnectionOverride;
+  }
+
+  public Boolean isArtifactoryConnectionEnabled() {
+    return artifactoryConnectionEnabled;
+  }
+
+  public void setArtifactoryConnectionEnabled(Boolean artifactoryConnectionEnabled) {
+    this.artifactoryConnectionEnabled = artifactoryConnectionEnabled;
+  }
+
+  public boolean isAllowArtifactoryConnectionOverride() {
+    return allowArtifactoryConnectionOverride;
+  }
+
+  public void setAllowArtifactoryConnectionOverride(boolean allowArtifactoryConnectionOverride) {
+    this.allowArtifactoryConnectionOverride = allowArtifactoryConnectionOverride;
   }
 
   @Override

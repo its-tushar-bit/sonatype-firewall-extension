@@ -62,6 +62,12 @@ public class Application
   @Column(name = "repository_connection_enabled")
   private Boolean repositoryConnectionEnabled;
 
+  /**
+   * @since 1.137
+   */
+  @Column(name = "artifactory_connection_enabled")
+  private Boolean artifactoryConnectionEnabled;
+
   public Application() {
   }
 
@@ -207,5 +213,13 @@ public class Application
 
   public void setRepositoryConnectionEnabled(Boolean repositoryConnectionEnabled) {
     this.repositoryConnectionEnabled = repositoryConnectionEnabled;
+  }
+
+  public Boolean isArtifactoryConnectionEnabled() {
+    return artifactoryConnectionEnabled;
+  }
+
+  public void setArtifactoryConnectionEnabled(Boolean artifactoryConnectionEnabled) {
+    this.artifactoryConnectionEnabled = artifactoryConnectionEnabled;
   }
 }

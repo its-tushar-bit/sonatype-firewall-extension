@@ -14,16 +14,21 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class ArtifactoryConnectionDAO
     extends AbstractOperationalSqlDAO<ArtifactoryConnection>
 {
+  private static final String SELECT_ENTITY = "SELECT entity FROM ArtifactoryConnection entity ";
+
   @Override
   public ArtifactoryConnection getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM ArtifactoryConnection entity" + //
-        " WHERE entity.id=?1";
+    String sQuery = SELECT_ENTITY + "WHERE entity.id=?1";
     return get(tx, sQuery, id);
   }
 
   public List<ArtifactoryConnection> getByOwnerId(String ownerId) {
-    String sQuery = "SELECT entity FROM ArtifactoryConnection entity" + //
-        " WHERE entity.ownerId=?1";
+    String sQuery = SELECT_ENTITY + "WHERE entity.ownerId=?1";
     return getList(sQuery, ownerId);
+  }
+
+  public ArtifactoryConnection getByIdAndOwnerId(String artifactoryConnectionId, String ownerId) {
+    String sQuery = SELECT_ENTITY + "WHERE entity.id=?1 AND entity.ownerId=?2";
+    return get(sQuery, artifactoryConnectionId, ownerId);
   }
 }

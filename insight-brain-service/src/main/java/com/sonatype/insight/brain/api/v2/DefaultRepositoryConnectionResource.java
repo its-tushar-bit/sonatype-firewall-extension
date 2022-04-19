@@ -184,7 +184,7 @@ public class DefaultRepositoryConnectionResource
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER)
   @Audited(AuditEvent.CONFIGURE_REPOSITORY_CONNECTION)
-  public void upateOwnerRepositoryConnectionStatus(
+  public void updateOwnerRepositoryConnectionStatus(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId,
       ApiRepositoryConnectionStatusDTO repositoryConnectionStatusDTO)

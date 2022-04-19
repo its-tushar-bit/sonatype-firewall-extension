@@ -39,7 +39,7 @@ public interface ApiRepositoryConnectionResourceV2
       String internalOwnerId,
       boolean inherit);
 
-  void upateOwnerRepositoryConnectionStatus(
+  void updateOwnerRepositoryConnectionStatus(
       OwnerType ownerType,
       String internalOwnerId,
       ApiRepositoryConnectionStatusDTO repositoryConnectionStatusDTO);

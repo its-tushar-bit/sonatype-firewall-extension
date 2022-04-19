@@ -14,9 +14,7 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
-import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToAdd;
@@ -30,11 +28,6 @@ public class ApiUserResourceAuditTest
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2);
-  }
-
-  @Before
-  public void before() throws Exception {
-    setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
   }
 
   @Test
@@ -78,18 +71,7 @@ public class ApiUserResourceAuditTest
   }
 
   @Test
-  public void testDelete_SamlUserTokensDisabled_InternalUser() throws Exception {
-    User user = tempEntity.newUser();
-
-    restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(user.getUsername()).delete();
-
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_USER, null);
-    assertUserData(auditDTO, user);
-  }
-
-  @Test
-  public void testDelete_SamlUserTokensEnabled_InternalUser() throws Exception {
-    setFeatures(LicensedFeature.SAML_USER_TOKENS);
+  public void testDelete_InternalUser() throws Exception {
     User user = tempEntity.newUser();
 
     restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(user.getUsername()).delete();
@@ -99,8 +81,7 @@ public class ApiUserResourceAuditTest
   }
 
   @Test
-  public void testDelete_SamlUserTokensEnabled_SamlUser() throws Exception {
-    setFeatures(LicensedFeature.SAML_USER_TOKENS);
+  public void testDelete_SamlUser() throws Exception {
     SamlUser samlUser = tempEntity.newSamlUser();
 
     restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(samlUser.getUsername())

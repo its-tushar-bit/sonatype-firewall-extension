@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.security.CrowdRealm;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -97,32 +96,30 @@ public class ApiUserTokenResourceTest
   }
 
   @Test
-  public void testGetUserTokensByCreatedBetweenAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled()
+  public void testGetUserTokensByCreatedBetweenAndRealmId_CrowdIntegrationDisabled()
       throws Exception
   {
-    setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
     SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
     tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID, december01);
     UserToken userToken = tempEntity.newUserToken("marcus.miller", User.INTERNAL_REALM_ID, december15);
     tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID, december31);
-    tempEntity.newUserToken("zak.crawly", SamlUser.SAML_REALM_ID, december15);
+    UserToken samlToken = tempEntity.newUserToken("zak.crawly", SamlUser.SAML_REALM_ID, december15);
 
-    assertUserToken(userToken, null, false);
-    assertUserToken(userToken, "InterNaL", false);
-    assertUserToken(userToken, SamlUser.SAML_REALM_ID, false);
+    assertUserToken(userToken, null);
+    assertUserToken(userToken, "InterNaL");
+    assertUserToken(samlToken, SamlUser.SAML_REALM_ID);
   }
 
   @Test
-  public void testGetUserTokensByCreatedBetweenAndRealmId_SamlUserTokensEnabled() throws Exception {
-    setFeatures(LicensedFeature.SAML_USER_TOKENS);
+  public void testGetUserTokensByCreatedBetweenAndRealmId() throws Exception {
     tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID , december01);
     UserToken internalToken = tempEntity.newUserToken("marcus.miller", User.INTERNAL_REALM_ID, december15);
     tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID ,december31);
     UserToken samlToken = tempEntity.newUserToken("zak.crawly", SamlUser.SAML_REALM_ID, december15);
 
-    assertUserToken(internalToken, null, true);
-    assertUserToken(internalToken, "InterNaL", true);
-    assertUserToken(samlToken, "saMl", true);
+    assertUserToken(internalToken, null);
+    assertUserToken(internalToken, "InterNaL");
+    assertUserToken(samlToken, "saMl");
   }
 
   @Test
@@ -133,9 +130,9 @@ public class ApiUserTokenResourceTest
     tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID ,december31);
     tempEntity.newUserToken("zak.crawly", CrowdRealm.ID, december15);
 
-    assertUserToken(userToken, null, false);
-    assertUserToken(userToken, "InterNaL", false);
-    assertUserToken(userToken, CrowdRealm.ID, false);
+    assertUserToken(userToken, null);
+    assertUserToken(userToken, "InterNaL");
+    assertUserToken(userToken, CrowdRealm.ID);
   }
 
   @Test
@@ -145,12 +142,12 @@ public class ApiUserTokenResourceTest
     tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID ,december31);
     UserToken crowdToken = tempEntity.newUserToken("zak.crawly", CrowdRealm.ID, december15);
 
-    assertUserToken(internalToken, null, true);
-    assertUserToken(internalToken, "InterNaL", true);
-    assertUserToken(crowdToken, "cRoWd", true);
+    assertUserToken(internalToken, null);
+    assertUserToken(internalToken, "InterNaL");
+    assertUserToken(crowdToken, "cRoWd");
   }
 
-  private void assertUserToken(UserToken userToken, String realmId, boolean realmIncluded) throws Exception {
+  private void assertUserToken(UserToken userToken, String realmId) throws Exception {
     HttpRequest httpRequest = restRequest()
         .query("createdAfter", "2019-12-10") //
         .query("createdBefore", "2019-12-20");
@@ -167,14 +164,8 @@ public class ApiUserTokenResourceTest
     assertThat(responseBody[0].username).isEqualTo(userToken.getUsername());
     assertThat(responseBody[0].passCode).isNull();
     ArrayNode json = (ArrayNode) new ObjectMapper().readTree(response.getBodyText());
-    if (realmIncluded) {
-      assertThat(json.get(0).has("realm")).isTrue();
-      assertThat(responseBody[0].realm).isEqualTo(userToken.getRealmId());
-    }
-    else {
-      assertThat(json.get(0).has("realm")).isFalse();
-      assertThat(responseBody[0].realm).isNull();
-    }
+    assertThat(json.get(0).has("realm")).isTrue();
+    assertThat(responseBody[0].realm).isEqualTo(userToken.getRealmId());
   }
 
   @Test
@@ -207,9 +198,7 @@ public class ApiUserTokenResourceTest
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_InternalUnknown() throws Exception {
-    setFeatures(LicensedFeature.SAML_USER_TOKENS);
-
+  public void testGetUserTokenByUsernameAndRealmId_InternalUnknown() throws Exception {
     HttpResponse httpResponse = restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("unknown").get();
 
     assertResponseStatus(404, httpResponse);
@@ -217,9 +206,7 @@ public class ApiUserTokenResourceTest
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_SamlUnknown() throws Exception {
-    setFeatures(LicensedFeature.SAML_USER_TOKENS);
-
+  public void testGetUserTokenByUsernameAndRealmId_SamlUnknown() throws Exception {
     HttpResponse httpResponse =
         restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("unknown").query("realm", "SAML").get();
 
@@ -228,16 +215,15 @@ public class ApiUserTokenResourceTest
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled_Unknown()
+  public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationDisabled_Unknown()
       throws Exception
   {
-    setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
     SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
 
     HttpResponse httpResponse = restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("unknown").get();
 
     assertResponseStatus(404, httpResponse);
-    assertThat(httpResponse.getBodyText()).contains("No user token found for user unknown.");
+    assertThat(httpResponse.getBodyText()).contains("No user token found for Internal user unknown.");
   }
 
   @Test
@@ -258,43 +244,23 @@ public class ApiUserTokenResourceTest
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_NoRealmId() throws Exception {
-    testGetUserTokenByUsernameAndRealmId_Saml(true, null);
+  public void testGetUserTokenByUsernameAndRealmId_NoRealmId() throws Exception {
+    testGetUserTokenByUsernameAndRealmId_Saml(null);
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_UnknownRealmId() throws Exception {
-    testGetUserTokenByUsernameAndRealmId_Saml(true, "unknown");
+  public void testGetUserTokenByUsernameAndRealmId_UnknownRealmId() throws Exception {
+    testGetUserTokenByUsernameAndRealmId_Saml("unknown");
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_InternalRealmId() throws Exception {
-    testGetUserTokenByUsernameAndRealmId_Saml(true, "InTeRnAl");
+  public void testGetUserTokenByUsernameAndRealmId_InternalRealmId() throws Exception {
+    testGetUserTokenByUsernameAndRealmId_Saml("InTeRnAl");
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_SamlRealmId() throws Exception {
-    testGetUserTokenByUsernameAndRealmId_Saml(true, "SaMl");
-  }
-
-  @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_NoRealmId() throws Exception {
-    testGetUserTokenByUsernameAndRealmId_Saml(false, null);
-  }
-
-  @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_UnknownRealmId() throws Exception {
-    testGetUserTokenByUsernameAndRealmId_Saml(false, "unknown");
-  }
-
-  @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_InternalRealmId() throws Exception {
-    testGetUserTokenByUsernameAndRealmId_Saml(false, "InTeRnAl");
-  }
-
-  @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_SamlRealmId() throws Exception {
-    testGetUserTokenByUsernameAndRealmId_Saml(false, "SaMl");
+  public void testGetUserTokenByUsernameAndRealmId_SamlRealmId() throws Exception {
+    testGetUserTokenByUsernameAndRealmId_Saml("SaMl");
   }
 
   @Test
@@ -337,20 +303,19 @@ public class ApiUserTokenResourceTest
     testGetUserTokenByUsernameAndRealmId_Crowd(false, "cRoWd");
   }
 
-  private void testGetUserTokenByUsernameAndRealmId_Saml(boolean isSamlUserTokensEnabled, String realmId)
+  private void testGetUserTokenByUsernameAndRealmId_Saml(String realmId)
       throws Exception
   {
-    testGetUserTokenByUsernameAndRealmId(isSamlUserTokensEnabled, false, realmId);
+    testGetUserTokenByUsernameAndRealmId(false, realmId);
   }
 
   private void testGetUserTokenByUsernameAndRealmId_Crowd(boolean isCrowdIntegrationFeatureEnabled, String realmId)
       throws Exception
   {
-    testGetUserTokenByUsernameAndRealmId(false, isCrowdIntegrationFeatureEnabled, realmId);
+    testGetUserTokenByUsernameAndRealmId(isCrowdIntegrationFeatureEnabled, realmId);
   }
 
   private void testGetUserTokenByUsernameAndRealmId(
-      boolean isSamlUserTokensEnabled,
       boolean isCrowdIntegrationFeatureEnabled,
       String realmId) throws Exception
   {
@@ -363,12 +328,6 @@ public class ApiUserTokenResourceTest
     tempEntity.newUserToken("username2", "userCode5", "passCode", "other");
     UserToken crowdUserToken1 = tempEntity.newUserToken("username1", "userCode6", "passCode", CrowdRealm.ID);
     tempEntity.newUserToken("username2", "userCode7", "passCode", CrowdRealm.ID);
-    if (isSamlUserTokensEnabled) {
-      setFeatures(LicensedFeature.SAML_USER_TOKENS);
-    }
-    else {
-      setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
-    }
     SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(isCrowdIntegrationFeatureEnabled);
     HttpRequest httpRequest = restRequest().path(DefaultApiUserTokenResource.USERNAME).parameter("username1");
     if (realmId != null) {
@@ -380,7 +339,7 @@ public class ApiUserTokenResourceTest
     assertResponseStatus(200, httpResponse);
     ApiUserTokenDTO result = httpResponse.getBody(ApiUserTokenDTO.class);
     String expectedRealmId;
-    if (isSamlUserTokensEnabled && SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
       assertThat(result.userCode).isEqualTo(samlUserToken1.getUserCode());
       expectedRealmId = SamlUser.SAML_REALM_ID;
     }
@@ -395,14 +354,8 @@ public class ApiUserTokenResourceTest
     assertThat(result.passCode).isNull();
     assertThat(result.username).isEqualTo("username1");
     JsonNode json = new ObjectMapper().readTree(httpResponse.getBodyText());
-    if (isSamlUserTokensEnabled || isCrowdIntegrationFeatureEnabled) {
-      assertThat(json.has("realm")).isTrue();
-      assertThat(result.realm).isEqualTo(expectedRealmId);
-    }
-    else {
-      assertThat(json.has("realm")).isFalse();
-      assertThat(result.realm).isNull();
-    }
+    assertThat(json.has("realm")).isTrue();
+    assertThat(result.realm).isEqualTo(expectedRealmId);
   }
 
   @Override

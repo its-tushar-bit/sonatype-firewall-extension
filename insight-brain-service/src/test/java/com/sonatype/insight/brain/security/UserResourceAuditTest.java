@@ -12,9 +12,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
-import com.sonatype.insight.license.model.LicensedFeature;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class UserResourceAuditTest
@@ -23,11 +21,6 @@ public class UserResourceAuditTest
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(UserResource.RESOURCE_PATH);
-  }
-
-  @Before
-  public void before() throws Exception {
-    setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
   }
 
   @Test
@@ -66,17 +59,7 @@ public class UserResourceAuditTest
   }
 
   @Test
-  public void testDeleteUser_SamlUserTokensDisabled() throws Exception {
-    User user = tempEntity.newUser("jane.doe", "Jane", "Doe", "jane.doe@sonatype.com");
-    restRequest().path(user.getId()).delete();
-
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_USER, null);
-    assertUserData(auditDTO, user);
-  }
-
-  @Test
-  public void testDelete_SamlUserTokensEnabled() throws Exception {
-    setFeatures(LicensedFeature.SAML_USER_TOKENS);
+  public void testDeleteUser() throws Exception {
     User user = tempEntity.newUser("jane.doe", "Jane", "Doe", "jane.doe@sonatype.com");
     restRequest().path(user.getId()).delete();
 

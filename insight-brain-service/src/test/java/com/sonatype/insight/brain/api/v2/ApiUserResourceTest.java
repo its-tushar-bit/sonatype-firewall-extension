@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -84,26 +83,12 @@ public class ApiUserResourceTest
   }
 
   @Test
-  public void testGetAll_SamlUserTokensDisabled() throws Exception {
-    setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
-    testGetAll(null, null);
-  }
-
-  @Test
-  public void testGetAll_SamlUserTokensDisabled_Saml() throws Exception {
-    setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
-    testGetAll("saml", null);
-  }
-
-  @Test
-  public void testGetAll_SamlUserTokensEnabled() throws Exception {
-    setFeatures(LicensedFeature.SAML_USER_TOKENS);
+  public void testGetAll_Null() throws Exception {
     testGetAll(null, User.INTERNAL_REALM_ID);
   }
 
   @Test
-  public void testGetAll_SamlUserTokensEnabled_Saml() throws Exception {
-    setFeatures(LicensedFeature.SAML_USER_TOKENS);
+  public void testGetAll_Saml() throws Exception {
     testGetAll("saml", SamlUser.SAML_REALM_ID);
   }
 
@@ -130,57 +115,31 @@ public class ApiUserResourceTest
   }
 
   @Test
-  public void testGet_SamlUserTokensDisabled() throws Exception {
-    testGet(null, null, false);
+  public void testGet_Null() throws Exception {
+    testGet(null, User.INTERNAL_REALM_ID);
   }
 
   @Test
-  public void testGet_SamlUserTokensDisabled_Saml() throws Exception {
-    testGet("saml", null, false);
+  public void testGet_Saml() throws Exception {
+    testGet("saml", SamlUser.SAML_REALM_ID);
   }
 
   @Test
-  public void testGet_SamlUserTokensEnabled() throws Exception {
-    testGet(null, User.INTERNAL_REALM_ID, true);
+  public void testGet_Internal() throws Exception {
+    testGet(User.INTERNAL_REALM_ID, User.INTERNAL_REALM_ID);
   }
 
   @Test
-  public void testGet_SamlUserTokensEnabled_Saml() throws Exception {
-    testGet("saml", SamlUser.SAML_REALM_ID, true);
+  public void testGet_Other() throws Exception {
+    testGet("AnyRealm", User.INTERNAL_REALM_ID);
   }
 
-  @Test
-  public void testGet_SamlUserTokensEnabled_Internal() throws Exception {
-    testGet(User.INTERNAL_REALM_ID, User.INTERNAL_REALM_ID, true);
-  }
-
-  @Test
-  public void testGet_SamlUserTokensDisabled_Internal() throws Exception {
-    testGet(User.INTERNAL_REALM_ID, null, false);
-  }
-
-  @Test
-  public void testGet_SamlUserTokensEnabled_Other() throws Exception {
-    testGet("AnyRealm", User.INTERNAL_REALM_ID, true);
-  }
-
-  @Test
-  public void testGet_SamlUserTokensDisabled_Other() throws Exception {
-    testGet("AnyRealm", null, false);
-  }
-
-  private void testGet(String queryRealm, String expectedRealm, boolean samlUserTokenEnabled) throws Exception {
+  private void testGet(String queryRealm, String expectedRealm) throws Exception {
     User user = tempEntity.newUser();
     SamlUser samlUser = tempEntity.newSamlUser();
-    if (samlUserTokenEnabled) {
-      setFeatures(LicensedFeature.SAML_USER_TOKENS);
-    }
-    else {
-      setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
-    }
+
     HttpResponse response = restRequest()
-        .path(samlUserTokenEnabled
-            && SamlUser.SAML_REALM_ID.equalsIgnoreCase(queryRealm)
+        .path(SamlUser.SAML_REALM_ID.equalsIgnoreCase(queryRealm)
             ? samlUser.getUsername()
             : user.getUsername())
         .query("realm", queryRealm).get();
@@ -214,56 +173,30 @@ public class ApiUserResourceTest
   }
 
   @Test
-  public void testDelete_SamlUserTokensEnabled_NoRealmId() throws Exception {
-    testDelete(true, null);
+  public void testDelete_SamlRealmId() throws Exception {
+    testDelete("SaMl");
   }
 
   @Test
-  public void testDelete_SamlUserTokensEnabled_UnknownRealmId() throws Exception {
-    testDelete(true, "unknown");
+  public void testDelete_NoRealmId() throws Exception {
+    testDelete(null);
   }
 
   @Test
-  public void testDelete_SamlUserTokensEnabled_InternalRealmId() throws Exception {
-    testDelete(true, "InTeRnAl");
+  public void testDelete_UnknownRealmId() throws Exception {
+    testDelete("unknown");
   }
 
   @Test
-  public void testDelete_SamlUserTokensEnabled_SamlRealmId() throws Exception {
-    testDelete(true, "SaMl");
+  public void testDelete_InternalRealmId() throws Exception {
+    testDelete("InTeRnAl");
   }
 
-  @Test
-  public void testDelete_SamlUserTokensDisabled_NoRealmId() throws Exception {
-    testDelete(false, null);
-  }
-
-  @Test
-  public void testDelete_SamlUserTokensDisabled_UnknownRealmId() throws Exception {
-    testDelete(false, "unknown");
-  }
-
-  @Test
-  public void testDelete_SamlUserTokensDisabled_InternalRealmId() throws Exception {
-    testDelete(false, "InTeRnAl");
-  }
-
-  @Test
-  public void testDelete_SamlUserTokensDisabled_SamlRealmId() throws Exception {
-    testDelete(false, "SaMl");
-  }
-
-  private void testDelete(boolean isSamlUserTokensEnabled, String realmId) throws Exception {
+  private void testDelete(String realmId) throws Exception {
     SamlUser samlUser1 = tempEntity.newSamlUser();
     SamlUser samlUser2 = tempEntity.newSamlUser();
     User user = tempEntity.newUser(samlUser1.getUsername());
 
-    if (isSamlUserTokensEnabled) {
-      setFeatures(LicensedFeature.SAML_USER_TOKENS);
-    }
-    else {
-      setMissingFeature(LicensedFeature.SAML_USER_TOKENS);
-    }
     HttpRequest httpRequest =
         restRequest().path(DefaultApiUserResource.USERNAME_PATH).parameter(samlUser1.getUsername());
     if (realmId != null) {
@@ -273,7 +206,7 @@ public class ApiUserResourceTest
     HttpResponse response = httpRequest.delete();
 
     assertResponseStatus(204, response);
-    if (isSamlUserTokensEnabled && SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
       assertThat(samlUserDAO.getById(samlUser1.getId())).isNull();
       assertThat(samlUserDAO.getById(samlUser2.getId())).isNotNull();
       assertThat(userDAO.getById(user.getId())).isNotNull();

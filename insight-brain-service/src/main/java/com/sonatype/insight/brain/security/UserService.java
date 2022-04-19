@@ -24,11 +24,9 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -75,8 +73,6 @@ public class UserService
 
   private final DefaultWebSessionManager defaultWebSessionManager;
 
-  private final ProductLicense productLicense;
-
   @Inject
   public UserService(
       InternalRealm clmRealm,
@@ -87,8 +83,7 @@ public class UserService
       UserDirectory userDirectory,
       InsightConfig insightConfig,
       CurrentUser currentUser,
-      DefaultWebSessionManager defaultWebSessionManager,
-      ProductLicense productLicense)
+      DefaultWebSessionManager defaultWebSessionManager)
   {
     this.clmRealm = clmRealm;
     this.passwordService = passwordService;
@@ -99,7 +94,6 @@ public class UserService
     this.insightConfig = insightConfig;
     this.currentUser = currentUser;
     this.defaultWebSessionManager = defaultWebSessionManager;
-    this.productLicense = productLicense;
   }
 
   // Authorization is checked in findMembersForNonGlobalRoles and findMembersForGlobalRoles
@@ -270,10 +264,8 @@ public class UserService
     AuditData.get() //
         .setData("username", username) //
         .setData("firstName", firstName).setData("lastName", lastName) //
-        .setData("emailAddress", email);
-    if (hasSamlUserTokenSupport()) {
-      AuditData.get().setData("realm", realmId);
-    }
+        .setData("emailAddress", email)
+        .setData("realm", realmId);
   }
 
   void changeMyPassword(ChangePasswordDTO password) {
@@ -390,12 +382,12 @@ public class UserService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public ApiUserListDTO getAllApiUserDTOs(String realmId) {
     ApiUserListDTO apiUserListDTO = new ApiUserListDTO();
-    if (hasSamlUserTokenSupport() && SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
       apiUserListDTO.users = samlUserDAO.getAll().stream().map(this::convert).collect(Collectors.toList());
     }
     else {
       apiUserListDTO.users = userDAO.getAll().stream()
-          .map(user -> convert(user, hasSamlUserTokenSupport()))
+          .map(user -> convert(user))
           .collect(Collectors.toList());
     }
     return apiUserListDTO;
@@ -403,11 +395,11 @@ public class UserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public ApiUserDTO getApiUserDTOByUsernameAndRealmId(String username, String realmId) {
-    if (hasSamlUserTokenSupport() && SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
       return convert(samlUserDAO.getByUsernameNotNull(username));
     }
     else {
-      return convert(userDAO.getByUsernameNotNull(username), hasSamlUserTokenSupport());
+      return convert(userDAO.getByUsernameNotNull(username));
     }
   }
 
@@ -445,9 +437,6 @@ public class UserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteUserByRealmIdAndUsername(String realmId, String username) {
-    if (!hasSamlUserTokenSupport()) {
-      realmId = User.INTERNAL_REALM_ID;
-    }
     if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
       deleteSamlUser(samlUserDAO.getByUsernameNotNull(username));
     }
@@ -467,19 +456,14 @@ public class UserService
   }
 
   private ApiUserDTO convert(User user) {
-    return convert(user, false);
-  }
-
-  private ApiUserDTO convert(User user, boolean withRealm) {
     ApiUserDTO userDTO = new ApiUserDTO();
     userDTO.username = user.getUsername();
     // exclude password
     userDTO.firstName = user.getFirstName();
     userDTO.lastName = user.getLastName();
     userDTO.email = user.getEmail();
-    if (withRealm) {
-      userDTO.realm = User.INTERNAL_REALM_ID;
-    }
+    userDTO.realm = User.INTERNAL_REALM_ID;
+
     return userDTO;
   }
 
@@ -495,9 +479,5 @@ public class UserService
     user.setLastName(userDTO.lastName);
     user.setEmail(userDTO.email);
     return user;
-  }
-
-  private boolean hasSamlUserTokenSupport() {
-    return productLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS);
   }
 }

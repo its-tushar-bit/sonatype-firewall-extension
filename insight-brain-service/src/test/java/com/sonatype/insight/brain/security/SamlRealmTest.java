@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
 import org.apache.shiro.authc.AuthenticationException;
@@ -34,7 +33,6 @@ import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
 
 public class SamlRealmTest
     extends AbstractComponentTest
@@ -248,8 +246,7 @@ public class SamlRealmTest
   }
 
   @Test
-  public void testDoGetAuthenticationInfo_SamlUserTokensEnabled_InsertsSamlUser() {
-    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testDoGetAuthenticationInfo_InsertsSamlUser() {
     SamlUser samlUser = createSamlUser();
     SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration();
     MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
@@ -275,31 +272,7 @@ public class SamlRealmTest
   }
 
   @Test
-  public void testDoGetAuthenticationInfo_SamlUserTokensDisabled_DoesNotInsertSamlUser() {
-    SamlUser samlUser = createSamlUser();
-    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration();
-    MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
-    attributes.addAll(samlConfiguration.getUsernameAttributeName(), samlUser.getUsername());
-    attributes.addAll(samlConfiguration.getFirstNameAttributeName(), samlUser.getFirstName());
-    attributes.addAll(samlConfiguration.getLastNameAttributeName(), samlUser.getLastName());
-    attributes.addAll(samlConfiguration.getEmailAttributeName(), samlUser.getEmail());
-    attributes.addAll(samlConfiguration.getGroupsAttributeName(), new ArrayList<>(samlUser.getGroups()));
-
-    UserPrincipal userPrincipal = getUserPrincipal(doGetAuthenticationInfo(new MultivaluedHashMap<>(), attributes));
-
-    SamlUser storedSamlUser = samlUserDAO.getByUsername(samlUser.getUsername());
-    assertThat(storedSamlUser).isNull();
-    assertThat(userPrincipal.getUsername()).isEqualTo(samlUser.getUsername());
-    assertThat(userPrincipal.getDisplayName()).isEqualTo(samlUser.calculateDisplayName());
-    assertThat(userPrincipal.getRealmId()).isEqualTo(SamlRealm.ID);
-    Set<String> expectedGroups = new LinkedHashSet<>(samlUser.getGroups());
-    expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
-    assertThat(userPrincipal.getMembership()).isEqualTo(expectedGroups);
-  }
-
-  @Test
-  public void testDoGetAuthenticationInfo_SamlUserTokensEnabled_UpdatesSamlUser() {
-    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testDoGetAuthenticationInfo_UpdatesSamlUser() {
     SamlUser samlUser = tempEntity.newSamlUser();
     samlUser.setFirstName(samlUser.getFirstName() + "2");
     samlUser.setLastName(samlUser.getLastName() + "2");
@@ -317,38 +290,6 @@ public class SamlRealmTest
 
     SamlUser storedSamlUser = samlUserDAO.getByUsername(samlUser.getUsername());
     assertThat(storedSamlUser).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(samlUser);
-    assertThat(userPrincipal.getUsername()).isEqualTo(samlUser.getUsername());
-    assertThat(userPrincipal.getDisplayName()).isEqualTo(samlUser.calculateDisplayName());
-    assertThat(userPrincipal.getRealmId()).isEqualTo(SamlRealm.ID);
-    Set<String> expectedGroups = new LinkedHashSet<>(samlUser.getGroups());
-    expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
-    assertThat(userPrincipal.getMembership()).isEqualTo(expectedGroups);
-  }
-
-  @Test
-  public void testDoGetAuthenticationInfo_SamlUserTokensDisabled_DoesNotUpdateSamlUser() {
-    SamlUser samlUser = createSamlUser();
-    samlUserDAO.insert(samlUser);
-    tempEntity.register(samlUser);
-    samlUser.setFirstName(samlUser.getFirstName() + "2");
-    samlUser.setLastName(samlUser.getLastName() + "2");
-    samlUser.setEmail(samlUser.getEmail() + "2");
-    samlUser.setGroups(new LinkedHashSet<>(Arrays.asList("someGroup3", "someGroup4")));
-    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration();
-    MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
-    attributes.addAll(samlConfiguration.getUsernameAttributeName(), samlUser.getUsername());
-    attributes.addAll(samlConfiguration.getFirstNameAttributeName(), samlUser.getFirstName());
-    attributes.addAll(samlConfiguration.getLastNameAttributeName(), samlUser.getLastName());
-    attributes.addAll(samlConfiguration.getEmailAttributeName(), samlUser.getEmail());
-    attributes.addAll(samlConfiguration.getGroupsAttributeName(), new ArrayList<>(samlUser.getGroups()));
-
-    UserPrincipal userPrincipal = getUserPrincipal(doGetAuthenticationInfo(new MultivaluedHashMap<>(), attributes));
-
-    SamlUser storedSamlUser = samlUserDAO.getByUsername(samlUser.getUsername());
-    SamlUser expectedStoredSamlUser = createSamlUser();
-    expectedStoredSamlUser.setId(storedSamlUser.getId());
-    assertThat(storedSamlUser).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
-        .isEqualTo(expectedStoredSamlUser);
     assertThat(userPrincipal.getUsername()).isEqualTo(samlUser.getUsername());
     assertThat(userPrincipal.getDisplayName()).isEqualTo(samlUser.calculateDisplayName());
     assertThat(userPrincipal.getRealmId()).isEqualTo(SamlRealm.ID);

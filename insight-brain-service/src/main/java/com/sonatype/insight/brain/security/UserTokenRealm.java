@@ -25,8 +25,6 @@ import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
-import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.atlassian.crowd.exception.UserNotFoundException;
 import org.apache.shiro.authc.AuthenticationException;
@@ -58,8 +56,6 @@ public class UserTokenRealm
 
   private final UserTokenService userTokenService;
 
-  private final ProductLicense productLicense;
-
   private final CrowdClientFactory crowdClientFactory;
 
   @Inject
@@ -67,7 +63,6 @@ public class UserTokenRealm
       PasswordService passwordService,
       LdapService ldapService,
       UserTokenService userTokenService,
-      ProductLicense productLicense,
       CrowdClientFactory crowdClientFactory)
   {
     setName("UserTokenRealm");
@@ -79,7 +74,6 @@ public class UserTokenRealm
     PasswordMatcher passwordMatcher = new PasswordMatcher();
     passwordMatcher.setPasswordService(passwordService);
     setCredentialsMatcher(passwordMatcher);
-    this.productLicense = productLicense;
     this.crowdClientFactory = crowdClientFactory;
   }
 
@@ -122,9 +116,6 @@ public class UserTokenRealm
   }
 
   private SimpleAuthenticationInfo doGetSamlRealmAuthenticationInfo(UserToken userToken) {
-    if (!productLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)) {
-      return null;
-    }
     SamlUser samlUser = new SamlUserDAO().getByUsername(userToken.getUsername());
     return new SimpleAuthenticationInfo( //
         new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), ID, samlUser.getGroups()), //

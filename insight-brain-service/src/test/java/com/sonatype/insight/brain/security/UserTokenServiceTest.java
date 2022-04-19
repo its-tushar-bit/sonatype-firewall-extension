@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
 import org.junit.Rule;
@@ -140,8 +139,7 @@ public class UserTokenServiceTest
   }
 
   @Test
-  public void testCreateUserToken_SamlUser_DoesNotExist_SamlUserTokensEnabled() {
-    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testCreateUserToken_SamlUser_DoesNotExist() {
     SamlUser samlUser = new SamlUser("someUsername", "someFirstName", "someLastName", "someEmail@someDomain.com",
         new LinkedHashSet<>(Arrays.asList("someGroup1", "someGroup2")));
     when(subject.getPrincipal()).thenReturn(
@@ -153,8 +151,7 @@ public class UserTokenServiceTest
   }
 
   @Test
-  public void testCreateUserToken_SamlUser_Exists_SamlUserTokensEnabled() {
-    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testCreateUserToken_SamlUser_Exists() {
     SamlUser samlUser = tempEntity.newSamlUser();
     try {
       when(subject.getPrincipal()).thenReturn(
@@ -189,11 +186,6 @@ public class UserTokenServiceTest
   @Test
   public void testCreateUserToken_ReverseProxyUser() {
     testCreateUserToken_NotAllowedRealm(ReverseProxyRealm.ID);
-  }
-
-  @Test
-  public void testCreateUserToken_SAMLUser() {
-    testCreateUserToken_NotAllowedRealm(SamlRealm.ID);
   }
 
   private void testCreateUserToken_NotAllowedRealm(String realmId) {
@@ -272,41 +264,12 @@ public class UserTokenServiceTest
         .hasMessage("No user token found for user: " + username);
   }
 
-  @Test
-  public void testGetUserTokensCreatedBetweenAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled() {
-    SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
-    tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID, december27);
-    UserToken bar = tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID, december28);
-    tempEntity.newUserToken("baz", User.INTERNAL_REALM_ID, december29);
-    tempEntity.newUserToken("qux", SamlUser.SAML_REALM_ID, december28);
+  private void assertUserTokens(List<ApiUserTokenDTO> userTokenDTOs, UserToken token) {
+    assertThat(userTokenDTOs)
+        .hasSize(1)
+        .extracting("userCode", "username", "realm")
+        .containsExactlyInAnyOrder(tuple(token.getUserCode(), token.getUsername(), token.getRealmId()));
 
-    List<ApiUserTokenDTO> userTokenDTOs =
-        userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", User.INTERNAL_REALM_ID);
-    assertUserTokens(userTokenDTOs, bar, false);
-
-    userTokenDTOs =
-        userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", SamlUser.SAML_REALM_ID);
-    assertUserTokens(userTokenDTOs, bar, false);
-
-  }
-
-  private void assertUserTokens(List<ApiUserTokenDTO> userTokenDTOs, UserToken token, boolean samlUserTokensEnabled) {
-    if (samlUserTokensEnabled) {
-      assertThat(userTokenDTOs)
-          .hasSize(1)
-          .extracting("userCode", "username", "realm")
-          .containsExactlyInAnyOrder(tuple(token.getUserCode(), token.getUsername(), token.getRealmId()));
-    }
-    else {
-      assertThat(userTokenDTOs)
-          .hasSize(1)
-          .extracting("userCode", "username")
-          .containsExactlyInAnyOrder(tuple(token.getUserCode(), token.getUsername()));
-      assertThat(userTokenDTOs)
-          .extracting(apiUserTokenDTO -> apiUserTokenDTO.realm)
-          .filteredOn(Objects::nonNull)
-          .isEmpty();
-    }
     // Assert passcode are not returned
     assertThat(userTokenDTOs)
         .extracting(apiUserTokenDTO -> apiUserTokenDTO.passCode)
@@ -315,8 +278,7 @@ public class UserTokenServiceTest
   }
 
   @Test
-  public void testGetUserTokensByCreatedBetweenAndRealmId_SamlUserTokensEnabled() throws Exception {
-    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testGetUserTokensByCreatedBetweenAndRealmId() throws Exception {
     tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID, december27);
     UserToken bar = tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID, december28);
     tempEntity.newUserToken("baz", User.INTERNAL_REALM_ID, december29);
@@ -326,24 +288,23 @@ public class UserTokenServiceTest
 
     List<ApiUserTokenDTO> userTokenDTOs =
         userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", "iNTeRnaL");
-    assertUserTokens(userTokenDTOs, bar, true);
+    assertUserTokens(userTokenDTOs, bar);
 
     userTokenDTOs =
         userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", "unKnOWn");
-    assertUserTokens(userTokenDTOs, bar, true);
+    assertUserTokens(userTokenDTOs, bar);
 
     userTokenDTOs =
         userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", null);
-    assertUserTokens(userTokenDTOs, bar, true);
+    assertUserTokens(userTokenDTOs, bar);
 
     userTokenDTOs =
         userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", "sAMl");
-    assertUserTokens(userTokenDTOs, qux, true);
+    assertUserTokens(userTokenDTOs, qux);
   }
 
   @Test
-  public void testGetUserTokensByCreatedBetweenAndRealmId_SamlUserTokensEnabled_MustHandleNullArguments() {
-    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testGetUserTokensByCreatedBetweenAndRealmId_MustHandleNullArguments() {
     tempEntity.newUserToken("foo", december27);
     UserToken sam1 = tempEntity.newUserToken("sam1", SamlUser.SAML_REALM_ID, december27);
     tempEntity.newUserToken("bar", december28);
@@ -454,46 +415,26 @@ public class UserTokenServiceTest
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_CrowdIntegrationDisabled_NullRealmId() {
-    testGetUserTokenByUsernameAndRealmId(true, null);
+  public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationDisabled_NullRealmId() {
+    testGetUserTokenByUsernameAndRealmId(null);
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_CrowdIntegrationDisabled_UnknownRealmId() {
-    testGetUserTokenByUsernameAndRealmId(true, "unknown");
+  public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationDisabled_UnknownRealmId() {
+    testGetUserTokenByUsernameAndRealmId("unknown");
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_CrowdIntegrationDisabled_InternalRealmId() {
-    testGetUserTokenByUsernameAndRealmId(true, "InTeRnAl");
+  public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationDisabled_InternalRealmId() {
+    testGetUserTokenByUsernameAndRealmId("InTeRnAl");
   }
 
   @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensEnabled_CrowdIntegrationDisabled_SamlRealmId() {
-    testGetUserTokenByUsernameAndRealmId(true, "SaMl");
+  public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationDisabled_SamlRealmId() {
+    testGetUserTokenByUsernameAndRealmId("SaMl");
   }
 
-  @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled_NullRealmId() {
-    testGetUserTokenByUsernameAndRealmId(false, null);
-  }
-
-  @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled_UnknownRealmId() {
-    testGetUserTokenByUsernameAndRealmId(false, "unknown");
-  }
-
-  @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled_InternalRealmId() {
-    testGetUserTokenByUsernameAndRealmId(false, "InTeRnAl");
-  }
-
-  @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlUserTokensDisabled_CrowdIntegrationDisabled_SamlRealmId() {
-    testGetUserTokenByUsernameAndRealmId(false, "SaMl");
-  }
-
-  private void testGetUserTokenByUsernameAndRealmId(boolean isSamlUserTokensEnabled, String realmId) {
+  private void testGetUserTokenByUsernameAndRealmId(String realmId) {
     SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(false);
     String usernameToQuery = "username1";
     tempEntity.newUser("username1");
@@ -506,9 +447,6 @@ public class UserTokenServiceTest
     tempEntity.newUserToken("username1", "userCode4", "passCode", "other");
     tempEntity.newUserToken("username2", "userCode5", "passCode", "other");
 
-    if (isSamlUserTokensEnabled) {
-      when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
-    }
     if (!SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
       usernameToQuery = usernameToQuery.toUpperCase(Locale.ENGLISH);
     }
@@ -516,7 +454,7 @@ public class UserTokenServiceTest
     ApiUserTokenDTO result = userTokenService.getUserTokenByUsernameAndRealmId(usernameToQuery, realmId);
 
     String expectedRealmId;
-    if (isSamlUserTokensEnabled && SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
       assertThat(result.userCode).isEqualTo(samlUserToken1.getUserCode());
       expectedRealmId = SamlUser.SAML_REALM_ID;
     }
@@ -526,12 +464,7 @@ public class UserTokenServiceTest
     }
     assertThat(result.passCode).isNull();
     assertThat(result.username).isEqualTo("username1");
-    if (isSamlUserTokensEnabled) {
-      assertThat(result.realm).isEqualTo(expectedRealmId);
-    }
-    else {
-      assertThat(result.realm).isNull();
-    }
+    assertThat(result.realm).isEqualTo(expectedRealmId);
   }
 
   @Test
@@ -618,7 +551,7 @@ public class UserTokenServiceTest
     assertThat(result).isNotNull();
     assertThat(result.username).isEqualTo("foo");
     assertThat(result.userCode).isEqualTo("1");
-    assertThat(result.realm).isNull();
+    assertThat(result.realm).isEqualTo(User.INTERNAL_REALM_ID);
   }
 
   @Test

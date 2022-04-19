@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
 import org.apache.commons.lang3.StringUtils;
@@ -45,7 +44,6 @@ import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTO
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToUpdate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.when;
 
 public class UserServiceTest
     extends AbstractComponentTest
@@ -401,24 +399,12 @@ public class UserServiceTest
   }
 
   @Test
-  public void testGetAllApiUserDTOs_SamlUserTokensDisabled_Internal() {
-    testGetAllApiUserDTOs_User(User.INTERNAL_REALM_ID, null);
-  }
-
-  @Test
-  public void testGetAllApiUserDTOs_SamlUserTokensEnabled_Internal() {
-    when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testGetAllApiUserDTOs_Internal() {
     testGetAllApiUserDTOs_User(User.INTERNAL_REALM_ID, User.INTERNAL_REALM_ID);
   }
 
   @Test
-  public void testGetAllApiUserDTOs_SamlUserTokensDisabled_Saml() {
-    testGetAllApiUserDTOs_User(SamlUser.SAML_REALM_ID, null);
-  }
-
-  @Test
-  public void testGetAllApiUserDTOs_SamlUserTokensEnabled_Saml() {
-    when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testGetAllApiUserDTOs_Saml() {
     SamlUser user1 = tempEntity.newSamlUser();
     SamlUser user2 = tempEntity.newSamlUser();
 
@@ -471,9 +457,7 @@ public class UserServiceTest
   }
 
   @Test
-  public void testGetApiUserDTOByUsernameAndRealmId_SamlUserTokensEnabled_Saml() {
-    when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
-
+  public void testGetApiUserDTOByUsernameAndRealmId_Saml() {
     SamlUser samlUser = tempEntity.newSamlUser();
     List<ApiUserDTO> apiUserDTOs = new ArrayList<>();
 
@@ -484,18 +468,7 @@ public class UserServiceTest
   }
 
   @Test
-  public void testGetApiUserDTOByUsernameAndRealmId_SamlUserTokensDisabled_Saml() {
-    testGetApiUserDTOByUsernameAndRealmId(SamlUser.SAML_REALM_ID, null);
-  }
-
-  @Test
-  public void testGetApiUserDTOByUsernameAndRealmId_SamlUserTokensDisabled_Internal() {
-    testGetApiUserDTOByUsernameAndRealmId(User.INTERNAL_REALM_ID, null);
-  }
-
-  @Test
-  public void testGetApiUserDTOByUsernameAndRealmId_SamlUserTokensEnabled_Internal() {
-    when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testGetApiUserDTOByUsernameAndRealmId_Internal() {
     testGetApiUserDTOByUsernameAndRealmId(User.INTERNAL_REALM_ID, User.INTERNAL_REALM_ID);
   }
 
@@ -517,8 +490,7 @@ public class UserServiceTest
   }
 
   @Test
-  public void testGetApiUserDTOByUsernameAndRealmId_UserDoesNotExist_SamlEnabled() {
-    when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testGetApiUserDTOByUsernameAndRealmId_UserDoesNotExist_Saml() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> userService.getApiUserDTOByUsernameAndRealmId("doesNotExist", SamlUser.SAML_REALM_ID))
         .withMessage("Cannot find a SAML user with username doesNotExist.");
@@ -604,85 +576,45 @@ public class UserServiceTest
   }
 
   @Test
-  public void testDeleteUserByRealmIdAndUsername_SamlUserTokensEnabled_InternalUserDoesNotExist() {
-    when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testDeleteUserByRealmIdAndUsername_InternalUserDoesNotExist() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> userService.deleteUserByRealmIdAndUsername(User.INTERNAL_REALM_ID, "doesNotExist"))
         .withMessage("Cannot find a user with username doesNotExist.");
   }
 
   @Test
-  public void testDeleteUserByRealmIdAndUsername_SamlUserTokensEnabled_SamlUserDoesNotExist() {
-    when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testDeleteUserByRealmIdAndUsername_SamlUserDoesNotExist() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> userService.deleteUserByRealmIdAndUsername(SamlUser.SAML_REALM_ID, "doesNotExist"))
         .withMessage("Cannot find a SAML user with username doesNotExist.");
   }
 
   @Test
-  public void testDeleteUserByRealmIdAndUsername_SamlUserTokensDisabled_InternalUserDoesNotExist() {
-    assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> userService.deleteUserByRealmIdAndUsername(User.INTERNAL_REALM_ID, "doesNotExist"))
-        .withMessage("Cannot find a user with username doesNotExist.");
+  public void testDeleteUserByRealmIdAndUsername_NoRealmId() {
+    testDeleteUserByRealmIdAndUsername(null);
   }
 
   @Test
-  public void testDeleteUserByRealmIdAndUsername_SamlUserTokensDisabled_SamlUserDoesNotExist() {
-    assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> userService.deleteUserByRealmIdAndUsername(SamlUser.SAML_REALM_ID, "doesNotExist"))
-        .withMessage("Cannot find a user with username doesNotExist.");
+  public void testDeleteUserByRealmIdAndUsername_UnknownRealmId() {
+    testDeleteUserByRealmIdAndUsername("unknown");
   }
 
   @Test
-  public void testDeleteUserByRealmIdAndUsername_SamlUserTokensEnabled_NoRealmId() {
-    testDeleteUserByRealmIdAndUsername(true, null);
+  public void testDeleteUserByRealmIdAndUsername_InternalRealmId() {
+    testDeleteUserByRealmIdAndUsername("InTeRnAl");
   }
 
   @Test
-  public void testDeleteUserByRealmIdAndUsername_SamlUserTokensEnabled_UnknownRealmId() {
-    testDeleteUserByRealmIdAndUsername(true, "unknown");
+  public void testDeleteUserByRealmIdAndUsername_SamlRealmId() {
+    testDeleteUserByRealmIdAndUsername("SaMl");
   }
 
-  @Test
-  public void testDeleteUserByRealmIdAndUsername_SamlUserTokensEnabled_InternalRealmId() {
-    testDeleteUserByRealmIdAndUsername(true, "InTeRnAl");
-  }
-
-  @Test
-  public void testDeleteUserByRealmIdAndUsername_SamlUserTokensEnabled_SamlRealmId() {
-    testDeleteUserByRealmIdAndUsername(true, "SaMl");
-  }
-
-  @Test
-  public void testDeleteUserByRealmIdAndUsername_SamlUserTokensDisabled_NoRealmId() {
-    testDeleteUserByRealmIdAndUsername(false, null);
-  }
-
-  @Test
-  public void testDeleteUserByRealmIdAndUsername_SamlUserTokensDisabled_UnknownRealmId() {
-    testDeleteUserByRealmIdAndUsername(false, "unknown");
-  }
-
-  @Test
-  public void testDeleteUserByRealmIdAndUsername_SamlUserTokensDisabled_InternalRealmId() {
-    testDeleteUserByRealmIdAndUsername(false, "InTeRnAl");
-  }
-
-  @Test
-  public void testDeleteUserByRealmIdAndUsername_SamlUserTokensDisabled_SamlRealmId() {
-    testDeleteUserByRealmIdAndUsername(false, "SaMl");
-  }
-
-  private void testDeleteUserByRealmIdAndUsername(boolean isSamlUserTokensEnabled, String realmId) {
+  private void testDeleteUserByRealmIdAndUsername(String realmId) {
     SamlUser samlUser1 = tempEntity.newSamlUser();
     SamlUser samlUser2 = tempEntity.newSamlUser();
     User user = tempEntity.newUser(samlUser1.getUsername());
-
-    if (isSamlUserTokensEnabled) {
-      when(productLicenseMock.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
-    }
     userService.deleteUserByRealmIdAndUsername(realmId, samlUser1.getUsername());
-    if (isSamlUserTokensEnabled && SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
       assertThat(samlUserDAO.getById(samlUser1.getId())).isNull();
       assertThat(samlUserDAO.getById(samlUser2.getId())).isNotNull();
       assertThat(userDAO.getById(user.getId())).isNotNull();

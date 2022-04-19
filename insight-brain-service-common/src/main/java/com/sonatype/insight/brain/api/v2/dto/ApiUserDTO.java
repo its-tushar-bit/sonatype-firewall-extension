@@ -21,7 +21,6 @@ public class ApiUserDTO
 
   public String email;
 
-  // only include this for LicensedFeature.SAML_USER_TOKENS. cf CLM-20663
   @JsonInclude(Include.NON_NULL)
   public String realm;
 }

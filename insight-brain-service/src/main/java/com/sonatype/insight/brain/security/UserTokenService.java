@@ -34,11 +34,9 @@ import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -64,23 +62,19 @@ public class UserTokenService
 
   private final CurrentUser currentUser;
 
-  private final ProductLicense productLicense;
-
   @Inject
   public UserTokenService(
       UserTokenDAO userTokenDAO,
       SamlUserDAO samlUserDAO,
       PasswordService passwordService,
       LdapService ldapService,
-      CurrentUser currentUser,
-      ProductLicense productLicense)
+      CurrentUser currentUser)
   {
     this.userTokenDAO = userTokenDAO;
     this.samlUserDAO = samlUserDAO;
     this.passwordService = passwordService;
     this.ldapService = ldapService;
     this.currentUser = currentUser;
-    this.productLicense = productLicense;
   }
 
   public ApiUserTokenDTO createUserToken() {
@@ -152,7 +146,7 @@ public class UserTokenService
     if (InternalRealm.ID.equals(realmId)) {
       return true;
     }
-    if (SamlRealm.ID.equals(realmId) && hasSamlUserTokenSupport()) {
+    if (SamlRealm.ID.equals(realmId)) {
       return true;
     }
     if (CrowdRealm.ID.equals(realmId) && hasCrowdUserTokenSupport()) {
@@ -187,13 +181,13 @@ public class UserTokenService
     UserToken userToken = userTokenDAO.getByUsernameAndRealmId(username, realmId);
     if (userToken == null) {
       throw new NotFoundException(
-          "No user token found for " + (shouldIncludeRealm() ? realmId + " " : "") + "user " + username + ".");
+          "No user token found for " + realmId + " user " + username + ".");
     }
     return createApiUserTokenDTO(userToken);
   }
 
   private String normalizeRealmId(String realmId) {
-    if (hasSamlUserTokenSupport() && SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
       return SamlUser.SAML_REALM_ID;
     }
     if (hasCrowdUserTokenSupport() && CrowdRealm.ID.equalsIgnoreCase(realmId)) {
@@ -267,25 +261,15 @@ public class UserTokenService
     }
   }
 
-  private boolean hasSamlUserTokenSupport() {
-    return productLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS);
-  }
-
   private boolean hasCrowdUserTokenSupport() {
     return SystemConfigurationPropertyFeature.CROWD_INTEGRATION.isEnabled();
-  }
-
-  private boolean shouldIncludeRealm() {
-    return hasSamlUserTokenSupport() || hasCrowdUserTokenSupport();
   }
 
   private ApiUserTokenDTO createApiUserTokenDTO(UserToken userToken) {
     ApiUserTokenDTO apiUserTokenDTO = new ApiUserTokenDTO();
     apiUserTokenDTO.userCode = userToken.getUserCode();
     apiUserTokenDTO.username = userToken.getUsername();
-    if (shouldIncludeRealm()) {
-      apiUserTokenDTO.realm = userToken.getRealmId();
-    }
+    apiUserTokenDTO.realm = userToken.getRealmId();
     return apiUserTokenDTO;
   }
 }

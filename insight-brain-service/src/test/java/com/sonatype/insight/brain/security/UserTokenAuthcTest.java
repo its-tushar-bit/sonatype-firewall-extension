@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Assume;
 import org.junit.Before;
@@ -104,7 +103,6 @@ public class UserTokenAuthcTest
       }
     }
     if (isSamlUser) {
-      getTestProductLicenseManager().setFeatures(LicensedFeature.SAML_USER_TOKENS);
       tempEntity.newSamlUser("testuser", "John", "Doe", "test.user@company.com",
           new LinkedHashSet<>(Arrays.asList("group1", "group2")));
       realmId = SamlRealm.ID;

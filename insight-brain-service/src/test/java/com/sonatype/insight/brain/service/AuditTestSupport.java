@@ -256,7 +256,7 @@ public interface AuditTestSupport
   }
 
   default void assertUserData(AuditDTO auditDTO, User user) {
-    assertUserData(auditDTO, null, user);
+    assertUserData(auditDTO, User.INTERNAL_REALM_ID, user);
   }
 
   default void assertUserData(AuditDTO auditDTO, String realmId, User user) {

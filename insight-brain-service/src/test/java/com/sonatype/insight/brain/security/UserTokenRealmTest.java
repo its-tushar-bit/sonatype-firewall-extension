@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.atlassian.crowd.exception.UserNotFoundException;
 import com.google.inject.Binder;
@@ -173,8 +172,7 @@ public class UserTokenRealmTest
   }
 
   @Test
-  public void testGetAuthenticationInfo_Saml_SamlUserTokensEnabled() {
-    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testGetAuthenticationInfo_Saml() {
     String userTokenPassword = "TestPassword";
     String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
     SamlUser samlUser = tempEntity.newSamlUser();
@@ -198,8 +196,7 @@ public class UserTokenRealmTest
   }
 
   @Test
-  public void testGetAuthenticationInfo_Saml_SamlUserTokensEnabled_WrongPassword() {
-    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testGetAuthenticationInfo_Saml_WrongPassword() {
     String userTokenPassword = "TestPassword";
     String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
     SamlUser samlUser = tempEntity.newSamlUser();
@@ -212,21 +209,7 @@ public class UserTokenRealmTest
   }
 
   @Test
-  public void testGetAuthenticationInfo_Saml_SamlUserTokensDisabled() {
-    String userTokenPassword = "TestPassword";
-    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
-    SamlUser samlUser = tempEntity.newSamlUser();
-    UserToken userToken =
-        tempEntity.newUserToken(samlUser.getUsername(), "TestUserCode", hashedUserTokenPassword, SamlRealm.ID);
-    UsernamePasswordToken usernamePasswordToken =
-        new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
-
-    assertThat(realm.getAuthenticationInfo(usernamePasswordToken)).isNull();
-  }
-
-  @Test
-  public void testDoGetAuthenticationInfo_Saml_SamlUserTokensEnabled() {
-    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testDoGetAuthenticationInfo_Saml() {
     String userTokenPassword = "TestPassword";
     String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
     SamlUser samlUser = tempEntity.newSamlUser();
@@ -250,8 +233,7 @@ public class UserTokenRealmTest
   }
 
   @Test
-  public void testDoGetAuthenticationInfo_Saml_SamlUserTokensEnabled_WrongPassword() {
-    when(mockProductLicense.hasFeature(LicensedFeature.SAML_USER_TOKENS)).thenReturn(true);
+  public void testDoGetAuthenticationInfo_Saml_WrongPassword() {
     String userTokenPassword = "TestPassword";
     String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
     SamlUser samlUser = tempEntity.newSamlUser();
@@ -271,19 +253,6 @@ public class UserTokenRealmTest
     assertThat(principalIterator.hasNext()).isFalse();
     assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
     assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
-  }
-
-  @Test
-  public void testDoGetAuthenticationInfo_Saml_SamlUserTokensDisabled() {
-    String userTokenPassword = "TestPassword";
-    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
-    SamlUser samlUser = tempEntity.newSamlUser();
-    UserToken userToken =
-        tempEntity.newUserToken(samlUser.getUsername(), "TestUserCode", hashedUserTokenPassword, SamlRealm.ID);
-    UsernamePasswordToken usernamePasswordToken =
-        new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
-
-    assertThat(realm.doGetAuthenticationInfo(usernamePasswordToken)).isNull();
   }
 
   @Test

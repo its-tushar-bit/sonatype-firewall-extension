@@ -33,6 +33,8 @@ public class SearchIndexChangeDAOTest
   public void testInsert_AdvancedSearchDisabled() {
     new SystemConfigurationPropertyDAO()
         .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "false"));
+    dao.getAll().forEach(dao::delete);
+    assertThat(dao.getAll()).isEmpty();
 
     dao.insert(new SearchIndexChange(ChangeType.APPLICATION, "appId"));
     assertThat(dao.getAll()).isEmpty();

@@ -65,13 +65,10 @@ export default function OwnerSummaryController(
   vm.hasPermissionToChangeAppId = undefined;
   vm.hasPermissionToEvaluateApp = undefined;
   vm.isGrandfatheringEnabled = undefined;
-  vm.isGrandfatheringSupported = undefined;
   vm.getDisabledGrandfatherTooltipMessage = getDisabledGrandfatherTooltipMessage;
   vm.getDisabledEvaluateTooltipMessage = getDisabledEvaluateTooltipMessage;
-  vm.isEvaluateApplicationAvailable = undefined;
   vm.repositoryUrl = undefined;
   vm.scmProvider = undefined;
-  vm.isInnerSourceRepositorySupported = undefined;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadProductFeatures: actions.fetchProductFeaturesIfNeeded,

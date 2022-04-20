@@ -42,7 +42,6 @@ function SourceControlTileController(
   vm.providerTypesMap = SourceControlService.getProviderTypesMap();
   vm.itemText = undefined;
   vm.itemSubText = undefined;
-  vm.isSourceControlSupported = undefined;
   vm.effectiveProvider = undefined;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {

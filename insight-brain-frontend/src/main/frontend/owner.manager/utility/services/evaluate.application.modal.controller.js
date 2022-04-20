@@ -39,7 +39,6 @@ export default function EvaluateApplicationModalController(
   vm.retry = doLoad;
   vm.stages = [];
   vm.uploadBundleUrl = uploadBundleUrl;
-  vm.isNotificationsSupported = undefined;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadProductFeatures: actions.fetchProductFeaturesIfNeeded,

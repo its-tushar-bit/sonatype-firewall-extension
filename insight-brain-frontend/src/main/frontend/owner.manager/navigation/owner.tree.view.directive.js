@@ -40,7 +40,6 @@ function OwnerTreeViewController(
   vm.doLoad = doLoad;
   vm.goToOrganizationIfNotSynthetic = goToOrganizationIfNotSynthetic;
   vm.handleOrganizationTwistyClick = handleOrganizationTwistyClick;
-  vm.isSourceControlSupported = undefined;
   vm.scmProviderIcon = undefined;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {

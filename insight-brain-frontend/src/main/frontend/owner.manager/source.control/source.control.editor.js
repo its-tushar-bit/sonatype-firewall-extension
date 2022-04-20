@@ -59,10 +59,6 @@ function SourceControlEditorController(
   vm.toggleShowAdvanced = toggleShowAdvanced;
   vm.canCollapseAdvanced = canCollapseAdvanced;
 
-  // features
-  vm.isAutomationSupported = undefined;
-  vm.isSourceControlSupported = undefined;
-
   // provider
   vm.providerTypes = SourceControlService.getProviderTypes();
   vm.providerTypesMap = SourceControlService.getProviderTypesMap();

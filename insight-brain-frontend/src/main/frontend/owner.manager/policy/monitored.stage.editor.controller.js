@@ -55,7 +55,6 @@ export default function MonitoredStageEditorController($scope, $ngRedux) {
   vm.doLoad();
 
   $scope.$on('$destroy', function () {
-    debugger;
     vm.unsubscribe();
   });
 }

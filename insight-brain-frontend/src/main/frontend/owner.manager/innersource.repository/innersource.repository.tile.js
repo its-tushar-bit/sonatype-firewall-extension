@@ -36,7 +36,6 @@ function InnerSourceRepositoryTileController(
   vm.loading = false;
   vm.isOrg = CLMContextLocations.isOrganization();
   vm.isApp = CLMContextLocations.isApplication();
-  vm.isInnerSourceRepositorySupported = undefined;
   vm.innerSourceRepositories = [];
   vm.innerSourceRepositoriesInheritedFrom = undefined;
   vm.editLink = undefined;

@@ -22,12 +22,9 @@ function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser
   vm.$onInit = doLoad;
   vm.hasAnyPermission = hasAnyPermission;
   vm.isLoggedIn = isLoggedIn;
-  vm.isWebhooksSupported = undefined;
   vm.login = login;
   vm.shouldShowLoginButton = false;
   vm.majorMinorVersion = globalMajorMinorVersion;
-  vm.isSourceControlSupported = undefined;
-  vm.isCrowdIntegrationEnabled = undefined;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     fetchProductFeaturesIfNeeded: actions.fetchProductFeaturesIfNeeded,

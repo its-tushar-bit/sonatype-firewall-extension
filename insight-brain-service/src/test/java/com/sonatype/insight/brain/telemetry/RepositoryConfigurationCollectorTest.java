@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.RepositoryConfigurationCollector.RepositoryTelemetry;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.telemetry.SonatypeUserAgentUtil;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -38,10 +39,12 @@ public class RepositoryConfigurationCollectorTest
 
   private Repository repository;
 
+  private static final String USER_AGENT = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+
   @Before
   public void setup() {
-    repositoryManager = tempEntity.newRepositoryManager("1");
-    repository = tempEntity.newRepository(repositoryManager, "test-public-id", false);
+    repositoryManager = tempEntity.newRepositoryManager("1", USER_AGENT);
+    repository = tempEntity.newRepository(repositoryManager, "test-public-id", false, true);
 
     repository.setFormat("npm");
     new RepositoryDAO().update(repository);
@@ -49,8 +52,22 @@ public class RepositoryConfigurationCollectorTest
 
   @Test
   public void testCollectAllData() {
-    RepositoryTelemetry repositoryTelemetry = new RepositoryTelemetry(repositoryManager.getId(),
-        repository.getId(), repository.getFormat(), repository.isEnabled(), repository.isQuarantineEnabled());
+    SonatypeUserAgentUtil.UserAgent userAgent = SonatypeUserAgentUtil.parse(USER_AGENT);
+
+    RepositoryTelemetry repositoryTelemetry = new RepositoryTelemetry(
+        repositoryManager.getId(),
+        repository.getId(),
+        repository.getFormat(),
+        repository.isEnabled(),
+        repository.isQuarantineEnabled(),
+        userAgent.product,
+        userAgent.productEdition,
+        userAgent.version,
+        userAgent.environment,
+        userAgent.environmentVersion,
+        userAgent.os,
+        userAgent.osVersion
+    );
 
     TelemetryData telemetryData = telemetryCollector.collectData();
 
@@ -66,7 +83,13 @@ public class RepositoryConfigurationCollectorTest
             .thenComparing(RepositoryTelemetry::getRepositoryId)
             .thenComparing(RepositoryTelemetry::getRepositoryFormat)
             .thenComparing(RepositoryTelemetry::isEnabled)
-            .thenComparing(RepositoryTelemetry::isQuarantineEnabled);
+            .thenComparing(RepositoryTelemetry::getRepositoryManagerName)
+            .thenComparing(RepositoryTelemetry::getRepositoryManagerEdition)
+            .thenComparing(RepositoryTelemetry::getRepositoryManagerVersion)
+            .thenComparing(RepositoryTelemetry::getEnvironment)
+            .thenComparing(RepositoryTelemetry::getEnvironmentVersion)
+            .thenComparing(RepositoryTelemetry::getOs)
+            .thenComparing(RepositoryTelemetry::getOsVersion);
 
     assertThat(repositoryTelemetry).usingComparator(telemetryComparator).isEqualTo(repositoryTelemetries.get(0));
   }

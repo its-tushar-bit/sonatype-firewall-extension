@@ -73,12 +73,15 @@ public class ArtifactoryRepositoryResource
   @POST
   @Path(ENABLE_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
-  public void setEnabled(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-                         @PathParam("repositoryPublicId") String repositoryPublicId,
-                         @PathParam("enabled") boolean enabled)
+  public void setEnabled(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      @PathParam("enabled") boolean enabled,
+      @Context final HttpServletRequest request)
   {
     AuditData.get().setEvent(enabled ? AuditEvent.CONNECT_REPOSITORY : AuditEvent.DISCONNECT_REPOSITORY);
-    repositoryService.setEnabled(repositoryManagerInstanceId, repositoryPublicId, enabled);
+    repositoryService.setEnabled(repositoryManagerInstanceId, repositoryPublicId, enabled,
+        DefaultHdsClient.getClientUserAgent(request));
   }
 
   @GET
@@ -86,9 +89,11 @@ public class ArtifactoryRepositoryResource
   @Produces(MediaType.APPLICATION_JSON)
   public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(
       @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
-      @PathParam("repositoryPublicId") final String repositoryPublicId)
+      @PathParam("repositoryPublicId") final String repositoryPublicId,
+      @Context final HttpServletRequest request)
   {
-    return repositoryService.getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId);
+    return repositoryService.getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId,
+        DefaultHdsClient.getClientUserAgent(request));
   }
 
   @POST
@@ -125,20 +130,26 @@ public class ArtifactoryRepositoryResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_QUARANTINE)
-  public void setQuarantine(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-                            @PathParam("repositoryPublicId") String repositoryPublicId,
-                            @PathParam("enabled") boolean enabled)
+  public void setQuarantine(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      @PathParam("enabled") boolean enabled,
+      @Context final HttpServletRequest request)
   {
-    repositoryService.setQuarantine(repositoryManagerInstanceId, repositoryPublicId, enabled);
+    repositoryService.setQuarantine(repositoryManagerInstanceId, repositoryPublicId, enabled,
+        DefaultHdsClient.getClientUserAgent(request));
   }
 
   @DELETE
   @Path(COMPONENTS_PATH)
-  public void removeComponent(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
-                              @PathParam("repositoryPublicId") String repositoryPublicId,
-                              @PathParam("pathname") String pathname)
+  public void removeComponent(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      @PathParam("pathname") String pathname,
+      @Context final HttpServletRequest request)
   {
-    repositoryService.removeComponent(repositoryManagerInstanceId, repositoryPublicId, pathname);
+    repositoryService.removeComponent(repositoryManagerInstanceId, repositoryPublicId, pathname,
+        DefaultHdsClient.getClientUserAgent(request));
   }
 
   @GET
@@ -147,10 +158,11 @@ public class ArtifactoryRepositoryResource
   public UnquarantinedComponentList getUnquarantinedComponents(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,
-      @QueryParam("sinceUtcTimestamp") long sinceUtcTimestamp)
+      @QueryParam("sinceUtcTimestamp") long sinceUtcTimestamp,
+      @Context final HttpServletRequest request)
   {
-    return repositoryService
-        .getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId, sinceUtcTimestamp);
+    return repositoryService.getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId,
+        sinceUtcTimestamp, DefaultHdsClient.getClientUserAgent(request));
   }
 
   /**

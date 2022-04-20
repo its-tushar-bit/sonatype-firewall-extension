@@ -64,26 +64,28 @@ public class ArtifactoryRepositoryServiceWrapperTest
     String repositoryManagerInstanceId = "foo";
     String repositoryPublicId = "bar";
 
-    wrapper.setEnabled(repositoryManagerInstanceId, repositoryPublicId, true);
-    verify(artifactoryRepositoryService).setEnabled(repositoryManagerInstanceId, repositoryPublicId, true);
+    wrapper.setEnabled(repositoryManagerInstanceId, repositoryPublicId, true, null);
+    verify(artifactoryRepositoryService).setEnabled(repositoryManagerInstanceId, repositoryPublicId, true, null);
 
-    wrapper.getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId);
-    verify(artifactoryRepositoryService).getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId);
+    wrapper.getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId, null);
+    verify(artifactoryRepositoryService).getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId,
+        null);
 
     RepositoryComponentEvaluationDataRequestList list = new RepositoryComponentEvaluationDataRequestList();
     wrapper.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId, list, true, "agent");
-    verify(artifactoryRepositoryService)
-        .evaluateComponents(repositoryManagerInstanceId, repositoryPublicId, list, true, "agent");
+    verify(artifactoryRepositoryService).evaluateComponents(repositoryManagerInstanceId, repositoryPublicId, list, true,
+        "agent");
 
-    wrapper.setQuarantine(repositoryManagerInstanceId, repositoryPublicId, true);
-    verify(artifactoryRepositoryService).setQuarantine(repositoryManagerInstanceId, repositoryPublicId, true);
+    wrapper.setQuarantine(repositoryManagerInstanceId, repositoryPublicId, true, null);
+    verify(artifactoryRepositoryService).setQuarantine(repositoryManagerInstanceId, repositoryPublicId, true, null);
 
-    wrapper.removeComponent(repositoryManagerInstanceId, repositoryPublicId, "pathname");
-    verify(artifactoryRepositoryService).removeComponent(repositoryManagerInstanceId, repositoryPublicId, "pathname");
+    wrapper.removeComponent(repositoryManagerInstanceId, repositoryPublicId, "pathname", null);
+    verify(artifactoryRepositoryService).removeComponent(repositoryManagerInstanceId, repositoryPublicId, "pathname",
+        null);
 
-    wrapper.getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId, 0L);
-    verify(artifactoryRepositoryService)
-        .getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId, 0L);
+    wrapper.getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId, 0L, null);
+    verify(artifactoryRepositoryService).getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId, 0L,
+        null);
   }
 
   @Test

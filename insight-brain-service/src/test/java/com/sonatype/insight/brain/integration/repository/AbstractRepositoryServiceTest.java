@@ -192,7 +192,7 @@ public abstract class AbstractRepositoryServiceTest
 
   @Test
   public void testSetEnabled_NoRepositoryManager() throws Exception {
-    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true,null);
 
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
 
@@ -209,7 +209,7 @@ public abstract class AbstractRepositoryServiceTest
   public void testSetEnabled_ExistingRepositoryManager() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
 
-    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
+    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
 
@@ -223,7 +223,7 @@ public abstract class AbstractRepositoryServiceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
-    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
+    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
 
@@ -236,7 +236,7 @@ public abstract class AbstractRepositoryServiceTest
   public void testSetEnabled_MissingLicenseFeature() throws Exception {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
+      getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
     }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
@@ -245,7 +245,7 @@ public abstract class AbstractRepositoryServiceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
 
-    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false);
+    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false, null);
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
 
@@ -257,7 +257,7 @@ public abstract class AbstractRepositoryServiceTest
   @Test
   public void testSetQuarantine_RepositoryDoesNotExist() throws Exception {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
+      getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
     }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
@@ -267,7 +267,7 @@ public abstract class AbstractRepositoryServiceTest
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
+      getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
     }).withMessage("Cannot enable quarantine when repository " + REPO_PUBLIC_ID + " is disabled.");
   }
 
@@ -280,7 +280,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repository.isEnabled()).isFalse();
     assertThat(repository.isQuarantineEnabled()).isFalse();
 
-    getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false);
+    getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false, null);
     repository = repositoryDAO.getById(repository.getId());
     assertThat(repository.isEnabled()).isFalse();
     assertThat(repository.isQuarantineEnabled()).isFalse();
@@ -294,7 +294,7 @@ public abstract class AbstractRepositoryServiceTest
     // Check that the initial value is false
     assertThat(repository.isQuarantineEnabled()).isFalse();
 
-    getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true);
+    getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
     repository = repositoryDAO.getById(repository.getId());
     assertThat(repository.isQuarantineEnabled()).isTrue();
   }
@@ -308,7 +308,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repository.isEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isTrue();
 
-    getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false);
+    getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, false, null);
     repository = repositoryDAO.getById(repository.getId());
     assertThat(repository.isEnabled()).isTrue();
     assertThat(repository.isQuarantineEnabled()).isFalse();
@@ -330,7 +330,7 @@ public abstract class AbstractRepositoryServiceTest
     tempEntity.newRepositoryComponent(repository.getId(), "/quarantined", new Date(), null);
 
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = getRepositoryService()
-        .getPolicyEvaluationSummary(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+        .getPolicyEvaluationSummary(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null);
     assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(1);
     assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(0);
     assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(0);
@@ -351,7 +351,7 @@ public abstract class AbstractRepositoryServiceTest
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
 
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = getRepositoryService()
-        .getPolicyEvaluationSummary(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+        .getPolicyEvaluationSummary(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null);
     assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(1);
     assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(0);
     assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(0);
@@ -367,7 +367,7 @@ public abstract class AbstractRepositoryServiceTest
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
 
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = getRepositoryService()
-        .getPolicyEvaluationSummary(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+        .getPolicyEvaluationSummary(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null);
     assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(1);
     assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(0);
     assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(0);
@@ -378,7 +378,7 @@ public abstract class AbstractRepositoryServiceTest
   public void testGetPolicyEvaluationSummary_MissingLicenseFeature() throws Exception {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+      getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null);
     }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
@@ -1641,6 +1641,11 @@ public abstract class AbstractRepositoryServiceTest
         anyMap());
   }
 
+  void mockHdsRequestForMetadataWithoutUserAgent(ComponentEvaluationDataList hdsResult) {
+    doReturn(hdsResult).when(quarantineHdsClient).get(eq(ComponentEvaluationDataList.class),
+        eq(AbstractRepositoryService.HDS_COMPONENT_DETAILS_ALL_VERSIONS_PATH), isNull(), anyMap());
+  }
+
   protected ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier,
                                                                 String hash,
                                                                 MatchState matchState,
@@ -1745,7 +1750,7 @@ public abstract class AbstractRepositoryServiceTest
   @Test
   public void testRemoveComponent_RepositoryDoesNotExist() throws Exception {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath");
+      getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath", null);
     }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
     verifyNoInteractions(repositoryComponentTelemetryCreator);
   }
@@ -1755,7 +1760,7 @@ public abstract class AbstractRepositoryServiceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false /* enabled */);
 
-    getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath");
+    getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath", null);
 
     repository = repositoryDAO.getById(repository.getId());
     assertThat(repository.isEnabled()).isTrue();
@@ -1773,7 +1778,7 @@ public abstract class AbstractRepositoryServiceTest
     RepositoryPolicyViolation policyViolation1 = tempEntity.newRepositoryPolicyViolation(repository.getId(), pathname1);
     RepositoryPolicyViolation policyViolation2 = tempEntity.newRepositoryPolicyViolation(repository.getId(), pathname2);
 
-    getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, pathname1);
+    getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, pathname1, null);
 
     assertThat(repositoryComponentDAO.getById(repositoryComponent1.getId())).isNull();
     assertThat(repositoryComponentDAO.getById(repositoryComponent2.getId())).isNotNull();
@@ -1799,7 +1804,7 @@ public abstract class AbstractRepositoryServiceTest
     RepositoryPolicyViolation policyViolation1 = tempEntity.newRepositoryPolicyViolation(repository.getId(), pathname1);
     RepositoryPolicyViolation policyViolation2 = tempEntity.newRepositoryPolicyViolation(repository.getId(), pathname2);
 
-    getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "/" + pathname1);
+    getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "/" + pathname1, null);
 
     assertThat(repositoryComponentDAO.getById(repositoryComponent1.getId())).isNull();
     assertThat(repositoryComponentDAO.getById(repositoryComponent2.getId())).isNotNull();
@@ -1840,14 +1845,14 @@ public abstract class AbstractRepositoryServiceTest
         .newRepositoryComponent(repository.getId(), "pathnameUnquarantinedAfter", new Date(since) /* quarantineTime */,
             new Date(since) /* unquarantineTime */);
     UnquarantinedComponentList result = getRepositoryService()
-        .getUnquarantinedComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, since);
+        .getUnquarantinedComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, since, null);
     assertThat(result.pathnames).containsExactly("pathnameUnquarantinedAfter");
   }
 
   @Test
   public void testGetUnquarantinedComponents_RepositoryDoesNotExist() throws Exception {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      getRepositoryService().getUnquarantinedComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, 0);
+      getRepositoryService().getUnquarantinedComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, 0, null);
     }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
@@ -1900,7 +1905,7 @@ public abstract class AbstractRepositoryServiceTest
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     Date before = new Date();
-    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, repository.getPublicId(), false);
+    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, repository.getPublicId(), false, null);
     Date after = new Date();
 
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
@@ -1914,7 +1919,7 @@ public abstract class AbstractRepositoryServiceTest
   public void testSetEnabled_PolicyViolationLogger_EnabledDoesNotLogClearEvent() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
-    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, repository.getPublicId(), true);
+    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, repository.getPublicId(), true, null);
 
     assertThat(policyViolationLoggerOutput.getInfoMessages(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME))
         .isEmpty();
@@ -2057,7 +2062,7 @@ public abstract class AbstractRepositoryServiceTest
 
     // when
     final QuarantinedComponentReport quarantinedComponentReport = getRepositoryService()
-        .getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "path");
+        .getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "path", null);
 
     // then
     assertThat(quarantinedComponentReport.getReportUrl()).isEqualTo("ui/links/repositories/quarantinedComponent/token");
@@ -2071,14 +2076,14 @@ public abstract class AbstractRepositoryServiceTest
 
     // when
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> getRepositoryService()
-        .getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), ""));
+        .getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "", null));
   }
 
   @Test
   public void testGetQuarantinedComponentReportUrl_RepositoryNotExists() {
     // when
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> getRepositoryService()
-        .getQuarantinedComponentReportUrl("repmanid", "repid", ""));
+        .getQuarantinedComponentReportUrl("repmanid", "repid", "", null));
   }
 
   public void testEvaluateComponentMetadata_MissingLicenseFeature() throws Exception {

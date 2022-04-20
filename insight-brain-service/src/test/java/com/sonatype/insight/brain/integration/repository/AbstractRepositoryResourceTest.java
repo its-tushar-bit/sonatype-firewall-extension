@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration.repository;
 
 import java.util.Date;
 import java.util.List;
+import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -17,6 +18,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -49,9 +51,27 @@ public abstract class AbstractRepositoryResourceTest
     assertResponseStatus(204, response);
 
     repository = repositoryDAO.getById(repository.getId());
+    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
 
     assertThat(repository).isNotNull();
     assertThat(repository.isEnabled()).isTrue();
+    assertThat(foundRepositoryManager.getUserAgent()).isNull();
+  }
+
+  @Test
+  public void testSetEnabled_WithClientUserAgent() throws Exception {
+    String userAgent = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
+
+    HttpResponse response = enableRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true)
+        .header(HttpHeaders.USER_AGENT, userAgent)
+        .post();
+    assertResponseStatus(204, response);
+
+    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+
+    assertThat(foundRepositoryManager.getUserAgent()).isEqualTo(userAgent);
   }
 
   @Test
@@ -64,9 +84,28 @@ public abstract class AbstractRepositoryResourceTest
     assertResponseStatus(204, response);
 
     repository = repositoryDAO.getById(repository.getId());
+    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
 
     assertThat(repository).isNotNull();
     assertThat(repository.isQuarantineEnabled()).isTrue();
+    assertThat(foundRepositoryManager.getUserAgent()).isNull();
+  }
+
+  @Test
+  public void testSetQuarantine_WithClientUserAgent() throws Exception {
+    String userAgent = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
+
+    HttpResponse response = quarantineRequest()
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true)
+        .header(HttpHeaders.USER_AGENT, userAgent)
+        .post();
+    assertResponseStatus(204, response);
+
+    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+
+    assertThat(foundRepositoryManager.getUserAgent()).isEqualTo(userAgent);
   }
 
   @Test
@@ -89,11 +128,41 @@ public abstract class AbstractRepositoryResourceTest
     assertResponseStatus(200, response);
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = response
         .getBody(RepositoryPolicyEvaluationSummary.class);
+
+    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+
+    assertThat(foundRepositoryManager.getUserAgent()).isNull();
     assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(1);
     assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(1);
     assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(1);
     assertThat(policyEvaluationSummary.getAffectedComponentCount()).isEqualTo(3);
     assertThat(policyEvaluationSummary.getQuarantinedComponentCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetPolicyEvaluationSummary_WithClientUserAgent() throws Exception {
+    String userAgent = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, "path1",
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 4, "path2",
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"));
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, "path3",
+        ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"));
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4",
+        ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"));
+    tempEntity.newRepositoryComponent(repository.getId(), "/blah", new Date(), null);
+
+    HttpResponse response = summaryRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .header(HttpHeaders.USER_AGENT, userAgent)
+        .get();
+
+    assertResponseStatus(200, response);
+
+    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+
+    assertThat(foundRepositoryManager.getUserAgent()).isEqualTo(userAgent);
   }
 
   @Test
@@ -131,7 +200,30 @@ public abstract class AbstractRepositoryResourceTest
     HttpResponse response = restRequest().path(RepositoryResource.EVALUATE_COMPONENTS_PATH)
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).body(componentEvaluationDataRequestList)
         .post();
+
+    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+
     assertResponseStatus(204, response);
+    assertThat(foundRepositoryManager.getUserAgent()).isNull();
+  }
+
+  @Test
+  public void testEvaluateComponents_WithClientUserAgent() throws Exception {
+    String userAgent = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
+
+    ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
+
+    HttpResponse response = restRequest().path(RepositoryResource.EVALUATE_COMPONENTS_PATH)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).body(componentEvaluationDataRequestList)
+        .header(HttpHeaders.USER_AGENT, userAgent)
+        .post();
+
+    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+
+    assertResponseStatus(204, response);
+    assertThat(foundRepositoryManager.getUserAgent()).isEqualTo(userAgent);
   }
 
   @Test
@@ -141,7 +233,27 @@ public abstract class AbstractRepositoryResourceTest
 
     HttpResponse response = restRequest().path(RepositoryResource.COMPONENTS_PATH)
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), "somepath/subpath").delete();
+
+    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+
     assertResponseStatus(204, response);
+    assertThat(foundRepositoryManager.getUserAgent()).isNull();
+  }
+
+  @Test
+  public void testRemoveComponent_WithClientUserAgent() throws Exception {
+    String userAgent = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
+
+    HttpResponse response = restRequest().path(RepositoryResource.COMPONENTS_PATH)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), "somepath/subpath")
+        .header(HttpHeaders.USER_AGENT, userAgent).delete();
+
+    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+
+    assertResponseStatus(204, response);
+    assertThat(foundRepositoryManager.getUserAgent()).isEqualTo(userAgent);
   }
 
   @Test
@@ -157,7 +269,33 @@ public abstract class AbstractRepositoryResourceTest
         .query("sinceUtcTimestamp=" + (now.getTime())).get();
     assertResponseStatus(200, response);
     UnquarantinedComponentList result = response.getBody(UnquarantinedComponentList.class);
+
+    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+
     assertThat(result.pathnames).containsExactly(pathname);
+    assertThat(foundRepositoryManager.getUserAgent()).isNull();
+  }
+
+  @Test
+  public void testGetUnquarantinedComponents_WithClientUserAgent() throws Exception {
+    String userAgent = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
+    Date now = new Date();
+    String pathname = "test/pathname";
+    tempEntity.newRepositoryComponent(repository.getId(), pathname, now, now);
+
+    HttpResponse response = restRequest().path(RepositoryResource.UNQUARANTINED_COMPONENTS_PATH)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .query("sinceUtcTimestamp=" + (now.getTime())).header(HttpHeaders.USER_AGENT, userAgent)
+        .get();
+    assertResponseStatus(200, response);
+    UnquarantinedComponentList result = response.getBody(UnquarantinedComponentList.class);
+
+    RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
+
+    assertThat(result.pathnames).containsExactly(pathname);
+    assertThat(foundRepositoryManager.getUserAgent()).isEqualTo(userAgent);
   }
 
   @Test

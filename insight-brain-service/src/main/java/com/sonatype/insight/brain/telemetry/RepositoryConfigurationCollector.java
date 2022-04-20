@@ -12,9 +12,12 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.telemetry.SonatypeUserAgentUtil;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -33,13 +36,17 @@ public class RepositoryConfigurationCollector
 
   private final RepositoryDAO repositoryDAO;
 
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
   @Inject
   public RepositoryConfigurationCollector(
       final ProductLicense productLicense,
-      final RepositoryDAO repositoryDAO)
+      final RepositoryDAO repositoryDAO,
+      final RepositoryManagerDAO repositoryManagerDAO)
   {
     this.productLicense = productLicense;
     this.repositoryDAO = repositoryDAO;
+    this.repositoryManagerDAO = repositoryManagerDAO;
   }
 
   @Override
@@ -64,8 +71,27 @@ public class RepositoryConfigurationCollector
   }
 
   private RepositoryTelemetry collectData(final Repository repository) {
-    return new RepositoryTelemetry(repository.getRepositoryManagerId(), repository.getId(), repository.getFormat(),
-        repository.isEnabled(), repository.isQuarantineEnabled());
+    SonatypeUserAgentUtil.UserAgent userAgent = getUserAgent(repository);
+
+    return new RepositoryTelemetry(
+        repository.getRepositoryManagerId(),
+        repository.getId(),
+        repository.getFormat(),
+        repository.isEnabled(),
+        repository.isQuarantineEnabled(),
+        userAgent != null ? userAgent.product : null,
+        userAgent != null ? userAgent.productEdition : null,
+        userAgent != null ? userAgent.version : null,
+        userAgent != null ? userAgent.environment : null,
+        userAgent != null ? userAgent.environmentVersion : null,
+        userAgent != null ? userAgent.os : null,
+        userAgent != null ? userAgent.osVersion : null
+    );
+  }
+
+  private SonatypeUserAgentUtil.UserAgent getUserAgent(final Repository repository) {
+    RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
+    return SonatypeUserAgentUtil.parse(repositoryManager.getUserAgent());
   }
 
   static class RepositoryTelemetry
@@ -80,18 +106,47 @@ public class RepositoryConfigurationCollector
 
     private final boolean quarantineEnabled;
 
+    private final String repositoryManagerName;
+
+    private final String repositoryManagerEdition;
+
+    private final String repositoryManagerVersion;
+
+    private final String environment;
+
+    private final String environmentVersion;
+
+    private final String os;
+
+    private final String osVersion;
+
     public RepositoryTelemetry(
         final String repositoryManagerId,
         final String repositoryId,
         final String repositoryFormat,
         final boolean enabled,
-        final boolean quarantineEnabled)
+        final boolean quarantineEnabled,
+        final String repositoryManagerName,
+        final String repositoryManagerEdition,
+        final String repositoryManagerVersion,
+        final String environment,
+        final String environmentVersion,
+        final String os,
+        final String osVersion
+    )
     {
       this.repositoryManagerId = repositoryManagerId;
       this.repositoryId = repositoryId;
       this.repositoryFormat = repositoryFormat;
       this.enabled = enabled;
       this.quarantineEnabled = quarantineEnabled;
+      this.repositoryManagerName = repositoryManagerName;
+      this.repositoryManagerEdition = repositoryManagerEdition;
+      this.repositoryManagerVersion = repositoryManagerVersion;
+      this.environment = environment;
+      this.environmentVersion = environmentVersion;
+      this.os = os;
+      this.osVersion = osVersion;
     }
 
     public String getRepositoryManagerId() {
@@ -112,6 +167,34 @@ public class RepositoryConfigurationCollector
 
     public boolean isQuarantineEnabled() {
       return quarantineEnabled;
+    }
+
+    public String getRepositoryManagerName() {
+      return repositoryManagerName;
+    }
+
+    public String getRepositoryManagerEdition() {
+      return repositoryManagerEdition;
+    }
+
+    public String getRepositoryManagerVersion() {
+      return repositoryManagerVersion;
+    }
+
+    public String getEnvironment() {
+      return environment;
+    }
+
+    public String getEnvironmentVersion() {
+      return environmentVersion;
+    }
+
+    public String getOs() {
+      return os;
+    }
+
+    public String getOsVersion() {
+      return osVersion;
     }
   }
 }

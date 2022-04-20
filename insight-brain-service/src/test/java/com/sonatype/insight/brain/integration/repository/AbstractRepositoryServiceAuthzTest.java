@@ -59,35 +59,35 @@ public abstract class AbstractRepositoryServiceAuthzTest
   @Test
   public void testSetEnabled_NewRepository_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true);
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testSetEnabled_NewRepository_Unauthenticated() {
-    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true);
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testSetEnabled_NewRepository_Unauthorized() {
     grantWritePermission();
-    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true);
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
   }
 
   @Test
   public void testSetEnabled_ExistingRepository_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), true);
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), true, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testSetEnabled_ExistingRepository_Unauthenticated() {
-    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), true);
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), true, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testSetEnabled_ExistingRepository_Unauthorized() {
     grantWritePermission();
-    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), true);
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), true, null);
   }
 
   protected Repository createRepository() {
@@ -99,40 +99,40 @@ public abstract class AbstractRepositoryServiceAuthzTest
   public void testSetQuarantine_Authorized() {
     createRepository();
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    getRepositoryService().setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true);
+    getRepositoryService().setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testSetQuarantine_Unauthenticated() {
     createRepository();
-    getRepositoryService().setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true);
+    getRepositoryService().setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testSetQuarantine_Unauthorized() {
     createRepository();
     grantWritePermission();
-    getRepositoryService().setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true);
+    getRepositoryService().setQuarantine(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, true, null);
   }
 
   @Test
   public void testGetPolicyEvaluationSummary_Authorized() {
     createRepository();
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
+    getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetPolicyEvaluationSummary_Unauthenticated() {
     createRepository();
-    getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
+    getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetPolicyEvaluationSummary_Unauthorized() {
     createRepository();
     grantWritePermission();
-    getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
+    getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
   }
 
   @Test
@@ -158,35 +158,41 @@ public abstract class AbstractRepositoryServiceAuthzTest
   @Test
   public void testRemoveComponent_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath");
+    getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath",
+        null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testRemoveComponent_Unauthenticated() {
-    getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath");
+    getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath",
+        null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testRemoveComponent_Unauthorized() {
     grantWritePermission();
-    getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath");
+    getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), "somepath",
+        null);
   }
 
   @Test
   public void testGetUnquarantinedComponents_Authorized() {
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    getRepositoryService().getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), 0);
+    getRepositoryService().getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), 0,
+        null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetUnquarantinedComponents_Unauthenticated() {
-    getRepositoryService().getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), 0);
+    getRepositoryService().getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), 0,
+        null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetUnquarantinedComponents_Unauthorized() {
     login();
-    getRepositoryService().getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), 0);
+    getRepositoryService().getUnquarantinedComponents(MANUAL_REPO_MAN_INSTANCE_ID, createRepository().getPublicId(), 0,
+        null);
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -230,8 +236,8 @@ public abstract class AbstractRepositoryServiceAuthzTest
   public void testGetQuarantinedComponentReportUrl_Unauthenticated() {
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
-    getRepositoryService()
-        .getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "");
+    getRepositoryService().getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(),
+        "", null);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -239,8 +245,8 @@ public abstract class AbstractRepositoryServiceAuthzTest
     login();
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     final Repository repository = tempEntity.newRepository(repositoryManager, "repo");
-    getRepositoryService()
-        .getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "");
+    getRepositoryService().getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(),
+        "", null);
   }
 
   @Test
@@ -252,8 +258,8 @@ public abstract class AbstractRepositoryServiceAuthzTest
     when(quarantinedComponentAccessManager.createToken(any())).thenReturn("token");
 
     grantEvaluateComponentPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    getRepositoryService()
-        .getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(), "path");
+    getRepositoryService().getQuarantinedComponentReportUrl(repositoryManager.getInstanceId(), repository.getPublicId(),
+        "path", null);
   }
 
   @Test

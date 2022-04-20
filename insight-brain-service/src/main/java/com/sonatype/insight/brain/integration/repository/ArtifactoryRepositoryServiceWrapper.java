@@ -68,20 +68,21 @@ class ArtifactoryRepositoryServiceWrapper
   void setEnabled(
       final String repositoryManagerInstanceId,
       final String repositoryPublicId,
-      final boolean enabled)
+      final boolean enabled,
+      final String clientUserAgent)
   {
-    repositoryService
-        .setEnabled(getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId), repositoryPublicId,
-            enabled);
+    repositoryService.setEnabled(getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId),
+        repositoryPublicId, enabled, clientUserAgent);
   }
 
   RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(
       final String repositoryManagerInstanceId,
-      final String repositoryPublicId)
+      final String repositoryPublicId,
+      final String clientUserAgent)
   {
-    return repositoryService
-        .getPolicyEvaluationSummary(getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId),
-            repositoryPublicId);
+    return repositoryService.getPolicyEvaluationSummary(
+        getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId), repositoryPublicId,
+        clientUserAgent);
   }
 
   RepositoryComponentEvaluationDataList evaluateComponents(
@@ -101,33 +102,32 @@ class ArtifactoryRepositoryServiceWrapper
   void setQuarantine(
       final String repositoryManagerInstanceId,
       final String repositoryPublicId,
-      final boolean enabled)
+      final boolean enabled,
+      final String clientUserAgent)
   {
-    repositoryService
-        .setQuarantine(getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId),
-            repositoryPublicId,
-            enabled);
+    repositoryService.setQuarantine(getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId),
+        repositoryPublicId, enabled, clientUserAgent);
   }
 
   void removeComponent(
       final String repositoryManagerInstanceId,
       final String repositoryPublicId,
-      final String pathname)
+      final String pathname,
+      final String clientUserAgent)
   {
-    repositoryService
-        .removeComponent(getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId),
-            repositoryPublicId,
-            pathname);
+    repositoryService.removeComponent(getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId),
+        repositoryPublicId, pathname, clientUserAgent);
   }
 
   UnquarantinedComponentList getUnquarantinedComponents(
       final String repositoryManagerInstanceId,
       final String repositoryPublicId,
-      final long sinceUtcTimestamp)
+      final long sinceUtcTimestamp,
+      final String clientUserAgent)
   {
     return repositoryService
         .getUnquarantinedComponents(getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId),
-            repositoryPublicId, sinceUtcTimestamp);
+            repositoryPublicId, sinceUtcTimestamp, clientUserAgent);
   }
 
   void addProprietaryComponentNames(

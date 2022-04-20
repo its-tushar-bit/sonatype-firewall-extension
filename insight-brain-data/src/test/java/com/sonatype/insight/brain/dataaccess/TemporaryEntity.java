@@ -2016,6 +2016,15 @@ public class TemporaryEntity
     return repositoryManager;
   }
 
+  public RepositoryManager newRepositoryManager(String instanceId, String userAgent) {
+    RepositoryManager repositoryManager = new RepositoryManager();
+    repositoryManager.setInstanceId(instanceId);
+    repositoryManager.setUserAgent(userAgent);
+    repositoryManagerDAO.insert(repositoryManager);
+    repositoryManagers.add(repositoryManager);
+    return repositoryManager;
+  }
+
   public Repository newRepository() {
     return newRepository(uuid());
   }

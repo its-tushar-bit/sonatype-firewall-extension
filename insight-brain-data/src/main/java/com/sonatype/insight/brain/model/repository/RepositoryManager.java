@@ -24,6 +24,9 @@ public class RepositoryManager
   @Column(name = "instance_id")
   private String instanceId;
 
+  @Column(name = "user_agent")
+  private String userAgent;
+
   public RepositoryManager() {
   }
 
@@ -47,5 +50,13 @@ public class RepositoryManager
 
   public void setInstanceId(String instanceId) {
     this.instanceId = instanceId;
+  }
+
+  public String getUserAgent() {
+    return userAgent;
+  }
+
+  public void setUserAgent(String userAgent) {
+    this.userAgent = userAgent;
   }
 }

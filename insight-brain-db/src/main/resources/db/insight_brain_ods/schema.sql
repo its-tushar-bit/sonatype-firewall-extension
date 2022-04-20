@@ -495,6 +495,7 @@ CREATE TABLE user_viewed_product_notification (
 CREATE TABLE repository_manager (
   repository_manager_id varchar(50) NOT NULL,
   instance_id varchar(50) NOT NULL,
+  user_agent varchar(300),
   CONSTRAINT repository_manager_pk PRIMARY KEY (repository_manager_id),
   CONSTRAINT repository_manager_uk UNIQUE (instance_id)
 );

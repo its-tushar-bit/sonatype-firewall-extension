@@ -60,6 +60,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.lqa.LqaComponentIdentifier;
+import com.sonatype.insight.telemetry.SonatypeUserAgentUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -129,7 +130,8 @@ public abstract class AbstractRepositoryService
 
   RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(
       final String repositoryManagerInstanceId,
-      final String repositoryPublicId)
+      final String repositoryPublicId,
+      final String clientUserAgent)
   {
     checkLicenseFeature();
 
@@ -139,6 +141,8 @@ public abstract class AbstractRepositoryService
     if (!repository.isEnabled()) {
       throw new BadRequestException("Repository " + repositoryPublicId + " is disabled.");
     }
+
+    updateUserAgent(clientUserAgent, repository);
 
     return getPolicyEvaluationSummary(repository);
   }
@@ -150,7 +154,12 @@ public abstract class AbstractRepositoryService
     return getPolicyEvaluationSummaryInternal(repository);
   }
 
-  void setEnabled(String repositoryManagerInstanceId, String repositoryPublicId, boolean enable) {
+  void setEnabled(
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      boolean enable,
+      final String clientUserAgent)
+  {
     AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId)
         .setRepositoryPublicId(repositoryPublicId);
     checkLicenseFeature();
@@ -167,6 +176,8 @@ public abstract class AbstractRepositoryService
     if (!enable) {
       policyViolationLoggerFactory.newLogger(new Date(), repository).logClearEvent();
     }
+
+    updateUserAgent(clientUserAgent, repository);
 
     log.info("{} audit for repository {}:{} ({})", enable ? "Enabled" : "Disabled", repositoryManagerInstanceId,
         repositoryPublicId, repository.getId());
@@ -199,7 +210,12 @@ public abstract class AbstractRepositoryService
     return repositoryManager;
   }
 
-  void setQuarantine(final String repositoryManagerInstanceId, final String repositoryPublicId, final boolean enabled) {
+  void setQuarantine(
+      final String repositoryManagerInstanceId,
+      final String repositoryPublicId,
+      final boolean enabled,
+      final String clientUserAgent)
+  {
     AuditData.get().setData("quarantine", enabled ? "enabled" : "disabled");
     checkLicenseFeature();
 
@@ -214,6 +230,8 @@ public abstract class AbstractRepositoryService
     }
 
     setQuarantine(repository, enabled);
+
+    updateUserAgent(clientUserAgent, repository);
 
     log.info("{} quarantine for repository {}:{} ({})", enabled ? "Enabled" : "Disabled", repositoryManagerInstanceId,
         repositoryPublicId, repository.getId());
@@ -313,6 +331,8 @@ public abstract class AbstractRepositoryService
     RepositoryComponentEvaluationDataList result =
         repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, componentDetailsFromHds,
             true /* withQuarantine */, false /* persistEvaluationResults */, false /* forMonitoring */);
+
+    updateUserAgent(clientUserAgent, repository);
 
     log.debug("Evaluated component metadata for repository {}:{} ({}) for {} components in {} ms.",
         repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId(),
@@ -460,6 +480,8 @@ public abstract class AbstractRepositoryService
       AuditData.get().commitSubEvents();
     }
 
+    updateUserAgent(clientUserAgent, repository);
+
     if (componentEvaluationDataRequestList == null || componentEvaluationDataRequestList.isEmpty()) {
       return new RepositoryComponentEvaluationDataList();
     }
@@ -519,13 +541,28 @@ public abstract class AbstractRepositoryService
     return policyEvaluationSummary;
   }
 
-  void removeComponent(String repositoryManagerInstanceId, String repositoryPublicId, String pathname) {
+  void removeComponent(
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      String pathname,
+      final String clientUserAgent)
+  {
     checkLicenseFeature();
 
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
         repositoryManagerInstanceId, repositoryPublicId);
 
+    updateUserAgent(clientUserAgent, repository);
+
     removeComponent(repository, normalizePathname(pathname));
+  }
+
+  private void updateUserAgent(String clientUserAgent, Repository repository) {
+    if (StringUtils.isNotBlank(clientUserAgent) && SonatypeUserAgentUtil.parse(clientUserAgent) != null) {
+      RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
+      repositoryManager.setUserAgent(clientUserAgent);
+      repositoryManagerDAO.update(repositoryManager);
+    }
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -577,14 +614,18 @@ public abstract class AbstractRepositoryService
     return pathname;
   }
 
-  UnquarantinedComponentList getUnquarantinedComponents(String repositoryManagerInstanceId,
-                                                        String repositoryPublicId,
-                                                        long sinceUtcTimestamp)
+  UnquarantinedComponentList getUnquarantinedComponents(
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      long sinceUtcTimestamp,
+      final String clientUserAgent)
   {
     checkLicenseFeature();
 
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
         repositoryManagerInstanceId, repositoryPublicId);
+
+    updateUserAgent(clientUserAgent, repository);
 
     log.debug("Getting unquarantined components for repository {}:{} ({}), since {}.", repositoryManagerInstanceId,
         repositoryPublicId, repository.getId(), sinceUtcTimestamp);
@@ -706,7 +747,8 @@ public abstract class AbstractRepositoryService
   public QuarantinedComponentReport getQuarantinedComponentReportUrl(
       final String repositoryManagerInstanceId,
       final String repositoryPublicId,
-      final String pathname)
+      final String pathname,
+      final String clientUserAgent)
   {
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
         repositoryManagerInstanceId, repositoryPublicId);
@@ -716,6 +758,8 @@ public abstract class AbstractRepositoryService
           .format("Cannot find repository for repository manager %s and public id %s", repositoryManagerInstanceId,
               repositoryPublicId));
     }
+
+    updateUserAgent(clientUserAgent, repository);
 
     return getQuarantinedComponentReportUrl(repository, pathname);
   }

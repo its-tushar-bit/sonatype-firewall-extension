@@ -15,11 +15,14 @@ import {
   selectLoadingAppliedCategories,
   selectSubmitApplyCategoriesError,
 } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
-import { selectLoadApplicationsError, selectLoadingApplications } from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
+import {
+  selectLoadApplicationsError,
+  selectLoadingApplications,
+  selectOwnerName,
+} from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
 
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { omit } from 'ramda';
-import { selectOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function ApplicationCategoryEditorController($scope, $ngRedux) {
   const vm = this;

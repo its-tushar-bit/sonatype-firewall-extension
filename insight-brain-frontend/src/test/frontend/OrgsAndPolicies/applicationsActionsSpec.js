@@ -55,7 +55,7 @@ describe('orgsAndPoliciesApplicationsActions', () => {
         expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
           'applications/loadApplications/pending',
-          'orgsAndPolicies/updatedOwnerHandler',
+          'applications/setOwnerName',
           'applications/loadApplications/fulfilled',
         ]);
 
@@ -129,7 +129,7 @@ describe('orgsAndPoliciesApplicationsActions', () => {
         expect(actions).toHaveActionTypesInOrder([
           'applications/loadApplicationsIfNeeded/pending',
           'applications/loadApplications/pending',
-          'orgsAndPolicies/updatedOwnerHandler',
+          'applications/setOwnerName',
           'applications/loadApplications/fulfilled',
           'applications/loadApplicationsIfNeeded/fulfilled',
         ]);
@@ -162,7 +162,7 @@ describe('orgsAndPoliciesApplicationsActions', () => {
         expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
           'applications/loadApplicationsIfNeeded/pending',
-          'orgsAndPolicies/updatedOwnerHandler',
+          'applications/setOwnerName',
           'applications/loadApplicationsIfNeeded/fulfilled',
         ]);
 

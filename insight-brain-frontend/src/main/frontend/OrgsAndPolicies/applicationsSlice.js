@@ -8,17 +8,18 @@ import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 
 import { Messages } from 'MainRoot/util/CommonServices';
 import { getApplicationsUrl } from '../util/CLMLocation';
-import { actions as rootActions } from './orgsAndPoliciesRootSlice';
 import { isEmpty } from 'ramda';
 import { selectEntityId } from './orgsAndPoliciesSelectors';
 import { selectApplications } from './applicationsSelectors';
 import { getOwnerName } from './utility/util';
+import { propSet } from 'MainRoot/util/reduxToolkitUtil';
 const REDUCER_NAME = 'applications';
 
 export const initialState = {
   loadingApplications: false,
   loadApplicationsError: null,
   applications: [],
+  ownerName: '',
 };
 
 const loadApplicationsRequested = (state) => {
@@ -44,7 +45,7 @@ const loadApplications = createAsyncThunk(
       .then((response) => {
         const entityId = selectEntityId(getState());
         const ownerName = getOwnerName(entityId)(response.data);
-        dispatch(rootActions.updatedOwnerHandler(ownerName));
+        dispatch(actions.setOwnerName(ownerName));
         return response.data;
       })
       .catch(rejectWithValue);
@@ -62,7 +63,7 @@ const loadApplicationsIfNeeded = createAsyncThunk(
     } else {
       const entityId = selectEntityId(getState());
       const ownerName = getOwnerName(entityId)(applications);
-      dispatch(rootActions.updatedOwnerHandler(ownerName));
+      dispatch(actions.setOwnerName(ownerName));
     }
 
     return Promise.resolve(applications);
@@ -72,7 +73,9 @@ const loadApplicationsIfNeeded = createAsyncThunk(
 const orgsAndPoliciesConstrainSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
-  reducers: {},
+  reducers: {
+    setOwnerName: propSet('ownerName'),
+  },
   extraReducers: {
     [loadApplications.pending]: loadApplicationsRequested,
     [loadApplications.fulfilled]: loadApplicationsFulfilled,

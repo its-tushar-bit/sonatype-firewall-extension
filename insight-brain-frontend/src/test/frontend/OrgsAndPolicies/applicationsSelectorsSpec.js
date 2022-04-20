@@ -16,10 +16,8 @@ describe('applicationSelectors', () => {
   beforeEach(() => {
     mockState = {
       orgsAndPolicies: {
-        root: {
-          ownerName: 'alpine test',
-        },
         applications: {
+          ownerName: 'alpine test',
           loadingApplications: false,
           loadApplicationsError: 'some applications error',
           applications: [
@@ -82,12 +80,12 @@ describe('applicationSelectors', () => {
     });
 
     it('returns an error', () => {
-      mockState.orgsAndPolicies.root.ownerName = null;
+      mockState.orgsAndPolicies.applications.ownerName = null;
       expect(selectLoadEmptyError(mockState)).toBe('some applications error');
     });
 
     it('returns default error', () => {
-      mockState.orgsAndPolicies.root.ownerName = null;
+      mockState.orgsAndPolicies.applications.ownerName = null;
       mockState.orgsAndPolicies.applications.loadApplicationsError = null;
       expect(selectLoadEmptyError(mockState)).toBe('Could not find an application with ID alpine-test.');
     });

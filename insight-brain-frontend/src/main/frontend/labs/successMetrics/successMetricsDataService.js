@@ -11,14 +11,13 @@ const getData = ({ data }) => data;
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export default function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
+export default function successMetricsDataService($q, $http, CLMLocations) {
   return {
     getChartData: getChartData,
     getComponentCountsData: getComponentCountsData,
     getSuccessMetricsReportsForCurrentUser: getSuccessMetricsReportsForCurrentUser,
     createSuccessMetricsReportForCurrentUser: createSuccessMetricsReportForCurrentUser,
     deleteSuccessMetricsReport: deleteSuccessMetricsReport,
-    getApplicationByInternalId: getApplicationByInternalId,
     EMPTY_PREFIX: EMPTY_PREFIX,
   };
 
@@ -108,24 +107,6 @@ export default function successMetricsDataService($q, $http, CLMLocations, Appli
 
   function deleteSuccessMetricsReport(successMetricsReportId) {
     return $http.delete(CLMLocations.getSuccessMetricsReportUrl(successMetricsReportId));
-  }
-
-  // ApplicationStore is configured to lookup by public id not internal id
-  function getApplicationByInternalId(id) {
-    return ApplicationStore.get().then(function (owners) {
-      let result = undefined;
-      owners.some(function (owner) {
-        if (owner.id === id) {
-          result = owner;
-          return true;
-        }
-      });
-
-      if (!result) {
-        return $q.reject(`Could not find Application with internal id ${id}`);
-      }
-      return result;
-    });
   }
 }
 

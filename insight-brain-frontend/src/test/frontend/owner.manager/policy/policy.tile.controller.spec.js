@@ -161,7 +161,7 @@ describe('policy.tile.controller', function () {
     });
   });
 
-  describe('$onInit()', () => {
+  describe('on component init', () => {
     it('subscribes to the redux store', () => {
       createController();
       expect(vm.unsubscribe).toBeDefined();
@@ -170,6 +170,15 @@ describe('policy.tile.controller', function () {
     it('calls loadApplicablePolicyMonitoring', () => {
       createController();
       expect(vm.loadApplicablePolicyMonitoring).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('on $destroy()', () => {
+    it('unsubscribes from redux store', () => {
+      createController();
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
+      scope.$destroy();
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -228,6 +237,5 @@ describe('policy.tile.controller', function () {
       ownerType: 'application',
       ownerId: 'ownerId',
     };
-    vm.$onInit();
   }
 });

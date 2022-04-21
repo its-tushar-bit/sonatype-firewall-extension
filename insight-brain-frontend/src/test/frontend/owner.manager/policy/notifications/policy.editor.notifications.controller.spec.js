@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../../main/frontend/owner.manager/owner.manager.module';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 describe('policy.editor.notifications.controller', function () {
   beforeEach(
@@ -93,15 +94,13 @@ describe('policy.editor.notifications.controller', function () {
 
   var initController,
     scope,
-    CLMLocations,
     getWebhooks,
     jiraProjects = JiraServiceMockData.getJiraProjectsUrl();
 
   var jiraServiceResolver = createJiraServiceResolver();
 
-  beforeEach(inject(function ($rootScope, $controller, $httpBackend, CLMContextLocations, _CLMLocations_) {
+  beforeEach(inject(function ($rootScope, $controller, $httpBackend, CLMContextLocations) {
     scope = $rootScope.$new();
-    CLMLocations = _CLMLocations_;
 
     initController = function (notifications, jiraEnabled) {
       var ctrlFn = $controller(
@@ -116,16 +115,19 @@ describe('policy.editor.notifications.controller', function () {
       var vm = ctrlFn();
       jiraServiceResolver.resolveIsEnabled(jiraEnabled);
       jiraServiceResolver.resolveGetJiraProjects(jiraProjects);
-      $httpBackend.flush();
+      scope.$digest();
+
+      vm.isFirewallSupported = true;
+      vm.isMonitoringSupported = true;
+      vm.isNotificationsSupported = true;
+      vm.isWebhooksSupported = true;
+
       scope.vm = vm; // needed to be able to test scope.$watch
       return vm;
     };
 
-    $httpBackend
-      .expectGET(CLMLocations.getProductFeaturesUrl())
-      .respond(['policy-monitoring', 'webhooks-for-applications', 'notifications']);
-
     $httpBackend.whenGET(CLMContextLocations.getRoleMappingUrl()).respond(membershipMapping);
+    spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
     getWebhooks = $httpBackend.whenGET(CLMContextLocations.getNotificationWebhooksUrl());
     getWebhooks.respond(webhooks);
   }));
@@ -167,6 +169,7 @@ describe('policy.editor.notifications.controller', function () {
       };
 
       var vm = initController(notifications);
+      scope.$digest();
 
       expect(vm.recipients.length).toBe(2);
       expect(vm.recipients[0].emailAddress).toBe('test1@test.com');
@@ -189,6 +192,7 @@ describe('policy.editor.notifications.controller', function () {
       };
 
       var vm = initController(notifications);
+      scope.$digest();
 
       expect(vm.recipients.length).toBe(2);
       expect(vm.recipients[0].roleId).toBe('1');
@@ -212,6 +216,7 @@ describe('policy.editor.notifications.controller', function () {
       };
 
       var vm = initController(notifications, true);
+      scope.$digest();
 
       expect(vm.recipients.length).toBe(2);
       expect(vm.recipients[0].projectKey).toBe('key1');
@@ -235,13 +240,14 @@ describe('policy.editor.notifications.controller', function () {
       };
 
       var vm = initController(notifications, true);
+      scope.$digest();
 
       expect(vm.recipients.length).toBe(2);
       expect(vm.recipients[0].webhookId).toBe('key1');
       expect(vm.recipients[1].webhookId).toBe('key2');
     });
 
-    it('still shows editor if jira projects fails', inject(function (CLMContextLocations, $controller, $httpBackend) {
+    it('still shows editor if jira projects fails', inject(function ($controller, $httpBackend) {
       var error = 'error';
 
       jiraServiceResolver.reset();
@@ -257,6 +263,7 @@ describe('policy.editor.notifications.controller', function () {
       );
       ctlFn.instance.notifications = [];
       var vm = ctlFn();
+      vm.isWebhooksSupported = true;
 
       $httpBackend.flush();
 
@@ -266,10 +273,12 @@ describe('policy.editor.notifications.controller', function () {
 
     it('handles no notifications', function () {
       var vm = initController({});
+      scope.$digest();
+
       expect(vm.recipients.length).toBe(0);
     });
 
-    it('sorts vm.recipients by email, roleName or projectName', function () {
+    it('sorts vm.recipients by email, roleName or projectName', inject(function ($httpBackend) {
       var notifications = {
         userNotifications: [
           {
@@ -306,15 +315,17 @@ describe('policy.editor.notifications.controller', function () {
       };
 
       var vm = initController(notifications);
+      $httpBackend.flush();
+
       expect(vm.recipients[0].roleId).toBe('1');
       expect(vm.recipients[1].emailAddress).toBe('bob@test.com');
       expect(vm.recipients[2].roleId).toBe('2');
       expect(vm.recipients[3].projectKey).toBe('key1');
       expect(vm.recipients[4].projectKey).toBe('key2');
       expect(vm.recipients[5].emailAddress).toBe('zoo@test.com');
-    });
+    }));
 
-    it('sets watcher to reload recipients when model changes', function () {
+    it('sets watcher to reload recipients when model changes', inject(function ($httpBackend) {
       var notifications = {
         userNotifications: [
           {
@@ -326,13 +337,15 @@ describe('policy.editor.notifications.controller', function () {
       };
 
       var vm = initController(notifications);
+      $httpBackend.flush();
+
       expect(vm.recipients.length).toBe(1);
 
       vm.notifications = {};
       scope.$digest();
 
       expect(vm.recipients.length).toBe(0);
-    });
+    }));
   });
 
   describe('$destroy', () => {
@@ -362,6 +375,7 @@ describe('policy.editor.notifications.controller', function () {
       };
 
       var vm = initController(notifications);
+      scope.$digest();
       expect(vm.hasRecipients()).toBe(true);
     });
 
@@ -374,7 +388,7 @@ describe('policy.editor.notifications.controller', function () {
   describe('removeRecipient()', function () {
     var vm;
 
-    beforeEach(function () {
+    beforeEach(inject(function ($httpBackend) {
       var notifications = {
         userNotifications: [
           {
@@ -420,7 +434,8 @@ describe('policy.editor.notifications.controller', function () {
         ],
       };
       vm = initController(notifications);
-    });
+      $httpBackend.flush();
+    }));
 
     it('calls setRoleNotificationsAction and updates vm.recipients array', function () {
       expect(vm.recipients.length).toBe(8);
@@ -515,7 +530,7 @@ describe('policy.editor.notifications.controller', function () {
 
   describe('addRecipient()', function () {
     var vm, keypressEvent;
-    beforeEach(function () {
+    beforeEach(inject(function ($httpBackend) {
       var notifications = {
         userNotifications: [
           {
@@ -551,9 +566,11 @@ describe('policy.editor.notifications.controller', function () {
         ],
       };
       vm = initController(notifications);
+      $httpBackend.flush();
+
       vm.addRecipientForm = jasmine.createSpyObj('addRecipientForm', ['$setPristine']);
       keypressEvent = jasmine.createSpyObj('keypressEvent', ['preventDefault']);
-    });
+    }));
 
     it('handles keypress event and prevents default if input is invalid', function () {
       expect(vm.notifications.userNotifications.length).toBe(2);
@@ -667,11 +684,12 @@ describe('policy.editor.notifications.controller', function () {
   });
 
   describe('getAvailableRoles()', function () {
-    it('returns only roles that are not present in policy notifications', function () {
+    it('returns only roles that are not present in policy notifications', inject(function ($httpBackend) {
       var notifications = {
         roleNotifications: [],
       };
       var vm = initController(notifications);
+      $httpBackend.flush();
 
       expect(vm.getAvailableRoles()).toEqual(membershipMapping.membersByRole);
 
@@ -688,15 +706,17 @@ describe('policy.editor.notifications.controller', function () {
       // remove
       vm.removeRecipient(vm.recipients[2]);
       expect(vm.getAvailableRoles()).toEqual(membershipMapping.membersByRole.slice(2));
-    });
+    }));
   });
 
   describe('availableJiraProjects', function () {
-    it('returns only projects that are not present in policy notifications', function () {
+    it('returns only projects that are not present in policy notifications', inject(function ($httpBackend) {
       var notifications = {
         jiraNotifications: [],
       };
       var vm = initController(notifications, true);
+      $httpBackend.flush();
+
       vm.addRecipientForm = jasmine.createSpyObj('addRecipientForm', ['$setPristine']);
 
       expect(vm.availableJiraProjects).toEqual(jiraProjects);
@@ -714,19 +734,20 @@ describe('policy.editor.notifications.controller', function () {
 
       vm.removeRecipient(vm.recipients[0]);
       expect(vm.availableJiraProjects).toEqual(jiraProjects);
-    });
+    }));
   });
 
   describe('getEmails()', function () {
-    it('returns empty array when there are no email recipients', function () {
+    it('returns empty array when there are no email recipients', inject(function ($httpBackend) {
       var notifications = {
         userNotifications: [],
       };
       var vm = initController(notifications);
+      $httpBackend.flush();
       expect(vm.getEmails()).toEqual([]);
-    });
+    }));
 
-    it('returns emails of all email recipients', function () {
+    it('returns emails of all email recipients', inject(function ($httpBackend) {
       var notifications = {
         userNotifications: [
           {
@@ -740,6 +761,7 @@ describe('policy.editor.notifications.controller', function () {
         ],
       };
       var vm = initController(notifications);
+      $httpBackend.flush();
 
       expect(vm.getEmails()).toEqual(['zed@test.com', 'bob@test.com']);
 
@@ -748,7 +770,7 @@ describe('policy.editor.notifications.controller', function () {
 
       vm.removeRecipient(vm.recipients[0]);
       expect(vm.getEmails()).toEqual([]);
-    });
+    }));
   });
 
   describe('toggleStage()', function () {
@@ -898,7 +920,7 @@ describe('policy.editor.notifications.controller', function () {
   });
 
   describe('getDisplayName()', function () {
-    it('returns recipient email for userNotifications', function () {
+    it('returns recipient email for userNotifications', inject(function ($httpBackend) {
       var recipient = {
         emailAddress: 'test1@test.com',
         stageIds: [],
@@ -907,11 +929,12 @@ describe('policy.editor.notifications.controller', function () {
         userNotifications: [recipient],
       };
       var vm = initController(notifications);
+      $httpBackend.flush();
 
       expect(vm.getDisplayName(recipient)).toBe('test1@test.com');
-    });
+    }));
 
-    it('returns role name for roleNotifications', function () {
+    it('returns role name for roleNotifications', inject(function ($httpBackend) {
       var recipient = {
         roleId: '1',
         stageIds: [],
@@ -920,11 +943,12 @@ describe('policy.editor.notifications.controller', function () {
         roleNotifications: [recipient],
       };
       var vm = initController(notifications);
+      $httpBackend.flush();
 
       expect(vm.getDisplayName(recipient)).toBe('Application Evaluator');
-    });
+    }));
 
-    it('returns jira project name and issue type for jiraNotifications', function () {
+    it('returns jira project name and issue type for jiraNotifications', inject(function ($httpBackend) {
       var recipient = {
         projectKey: 'key1',
         issueTypeId: 1,
@@ -934,11 +958,12 @@ describe('policy.editor.notifications.controller', function () {
         jiraNotifications: [recipient],
       };
       var vm = initController(notifications, true);
+      $httpBackend.flush();
 
       expect(vm.getDisplayName(recipient)).toBe('Project One (Bug)');
-    });
+    }));
 
-    it('returns webhook url for webhookNotifications if not having a description', function () {
+    it('returns webhook url for webhookNotifications if not having a description', inject(function ($httpBackend) {
       var recipient = {
         webhookId: 'webhook1',
       };
@@ -946,11 +971,12 @@ describe('policy.editor.notifications.controller', function () {
         webhookNotifications: [recipient],
       };
       var vm = initController(notifications, true);
+      $httpBackend.flush();
 
       expect(vm.getDisplayName(recipient)).toBe('Webhook: url1');
-    });
+    }));
 
-    it('returns webhook description for webhookNotifications if having a description', function () {
+    it('returns webhook description for webhookNotifications if having a description', inject(function ($httpBackend) {
       var recipient = {
         webhookId: 'webhook2',
       };
@@ -958,11 +984,14 @@ describe('policy.editor.notifications.controller', function () {
         webhookNotifications: [recipient],
       };
       var vm = initController(notifications, true);
+      $httpBackend.flush();
 
       expect(vm.getDisplayName(recipient)).toBe('Webhook: description2');
-    });
+    }));
 
-    it('returns webhook id for webhookNotifications if unable to find matching webhook', function () {
+    it('returns webhook id for webhookNotifications if unable to find matching webhook', inject(function (
+      $httpBackend
+    ) {
       var recipient = {
         webhookId: 'unknown-webhook',
       };
@@ -970,11 +999,12 @@ describe('policy.editor.notifications.controller', function () {
         webhookNotifications: [recipient],
       };
       var vm = initController(notifications, true);
+      $httpBackend.flush();
 
       expect(vm.getDisplayName(recipient)).toBe('Undefined webhook: unknown-webhook');
-    });
+    }));
 
-    it('returns webhook id for webhookNotifications if unable to load webhooks', function () {
+    it('returns webhook id for webhookNotifications if unable to load webhooks', inject(function ($httpBackend) {
       getWebhooks.respond(500, 'error');
       var recipient = {
         webhookId: 'webhook1',
@@ -983,9 +1013,10 @@ describe('policy.editor.notifications.controller', function () {
         webhookNotifications: [recipient],
       };
       var vm = initController(notifications, true);
+      $httpBackend.flush();
 
       expect(vm.getDisplayName(recipient)).toBe('Undefined webhook: webhook1');
-    });
+    }));
   });
 
   describe('isCheckboxForStageDisabled()', function () {

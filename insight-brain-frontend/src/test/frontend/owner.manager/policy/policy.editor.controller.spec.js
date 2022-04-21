@@ -7,6 +7,7 @@ import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { mapStateToThis } from 'MainRoot/owner.manager/policy/policy.editor.controller';
 import * as policySelectors from 'MainRoot/OrgsAndPolicies/policySelectors';
 import * as rootPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('policy.editor.controller', function () {
   beforeEach(
@@ -39,7 +40,7 @@ describe('policy.editor.controller', function () {
       spyOn(policySelectors, 'selectIsRootOrg').and.returnValue(true);
       spyOn(policySelectors, 'selectHasPolicyCategories').and.returnValue(true);
       spyOn(policySelectors, 'selectReadOnly').and.returnValue(true);
-      spyOn(policySelectors, 'selectIsGrandfatheringSupported').and.returnValue(true);
+      spyOn(productFeaturesSelectors, 'selectIsGrandfatheringSupported').and.returnValue(true);
 
       spyOn(policySelectors, 'selectCurrentPolicy').and.returnValue(null);
       spyOn(policySelectors, 'selectCategories').and.returnValue(null);

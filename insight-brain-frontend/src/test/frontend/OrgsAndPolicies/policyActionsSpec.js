@@ -242,7 +242,7 @@ describe('policy actions', () => {
   });
 
   describe('loadPolicyEditor', () => {
-    let loadProductFeaturesPromise, selectRouterCurrentParamsSpy, selectIsOrganizationSpy;
+    let selectRouterCurrentParamsSpy, selectIsOrganizationSpy;
     const mockPolicyId = '4d6b4ac75ea148b2aa6ca36e6899cc78';
     const getApplicablePoliciesResponse = PolicyResourceMockData.getApplicablePolicies(
       mockOwnerType,
@@ -254,7 +254,6 @@ describe('policy actions', () => {
       selectRouterCurrentParamsSpy = spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
         policyId: mockPolicyId,
       });
-      loadProductFeaturesPromise = jasmine.createSpy('loadProductFeaturesPromise').and.returnValue([]);
       spyOn(routerSelectors, 'selectIsRootOrganization').and.returnValue(false);
       selectIsOrganizationSpy = spyOn(routerSelectors, 'selectIsOrganization').and.returnValue(false);
     });
@@ -269,148 +268,28 @@ describe('policy actions', () => {
         },
       });
 
-      store
-        .dispatch(actions.loadPolicyEditor({ loadProductFeaturesPromise: loadProductFeaturesPromise() }))
-        .then(() => {
-          expect(axios.get).toHaveBeenCalledTimes(3);
+      store.dispatch(actions.loadPolicyEditor()).then(() => {
+        expect(axios.get).toHaveBeenCalledTimes(3);
 
-          const actions = store.getActions();
+        const actions = store.getActions();
 
-          expect(actions.length).toBe(6);
-          expect(actions).toHaveActionTypesInOrder([
-            'policy/loadPolicyEditor/pending',
-            'policy/loadApplicablePoliciesByOwner/pending',
-            'policy/loadApplicablePoliciesByOwner/fulfilled',
-            'orgsAndPoliciesConstraint/loadConstraint/pending',
-            'orgsAndPolicies/updatedOwnerHandler',
-            'policy/loadPolicyEditor/fulfilled',
-          ]);
+        expect(actions.length).toBe(8);
+        expect(actions).toHaveActionTypesInOrder([
+          'policy/loadPolicyEditor/pending',
+          'policy/loadApplicablePoliciesByOwner/pending',
+          'productFeatures/fetchProductFeaturesIfNeeded/pending',
+          'policy/loadApplicablePoliciesByOwner/fulfilled',
+          'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
+          'orgsAndPoliciesConstraint/loadConstraint/pending',
+          'orgsAndPolicies/updatedOwnerHandler',
+          'policy/loadPolicyEditor/fulfilled',
+        ]);
 
-          expect(actions[5].payload).toEqual({
-            readOnly: undefined,
-            originalProxyStageAction: undefined,
-            siblings: [
-              {
-                id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
-                name: 'Org Policy 3',
-                ownerId: 'f3cea033acf84984ae08d9250db4aa7b',
-                enabled: true,
-                threatLevel: 0,
-                constraints: [
-                  {
-                    id: 'd4fe6780471e4543bcb0e28d0e122b69',
-                    name: 'Unpopular',
-                    enabled: true,
-                    operator: 'OR',
-                    conditions: [{ conditionTypeId: 'RelativePopularity', operator: '<', value: '10' }],
-                  },
-                ],
-                actions: {
-                  develop: [{ actionTypeId: 'warn', target: null }],
-                  build: [{ actionTypeId: 'fail', target: null }],
-                  'stage-release': [{ actionTypeId: 'fail', target: null }],
-                  release: [{ actionTypeId: 'warn', target: null }],
-                  operate: [{ actionTypeId: 'warn', target: null }],
-                  proxy: [{ actionTypeId: 'warn', target: null }],
-                },
-                monitorNotifyActions: null,
-              },
-            ],
-            isGrandfatheringSupported: false,
-            currentPolicy: initialState.currentPolicy,
-            isOrgOwner: false,
-            isRootOrg: false,
-          });
-
-          done();
-        });
-    });
-
-    it('loads data for a new policy that is also the org owner', (done) => {
-      selectRouterCurrentParamsSpy.and.returnValue({});
-      selectIsOrganizationSpy.and.returnValue(true);
-      mockAxiosCalls({
-        get: {
-          [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
-            data: getApplicablePoliciesResponse,
-          }),
-        },
-      });
-
-      store
-        .dispatch(actions.loadPolicyEditor({ loadProductFeaturesPromise: loadProductFeaturesPromise() }))
-        .then(() => {
-          expect(axios.get).toHaveBeenCalledTimes(4);
-
-          const actions = store.getActions();
-
-          expect(actions).toHaveActionType('policy/loadCategoriesForPolicy/pending');
-
-          expect(actions[8].payload).toEqual(jasmine.objectContaining({ isOrgOwner: true }));
-
-          done();
-        });
-    });
-
-    it('loads data for an existing policy', (done) => {
-      mockAxiosCalls({
-        get: {
-          [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
-            data: getApplicablePoliciesResponse,
-          }),
-        },
-      });
-
-      store
-        .dispatch(actions.loadPolicyEditor({ loadProductFeaturesPromise: loadProductFeaturesPromise() }))
-        .then(() => {
-          expect(axios.get).toHaveBeenCalledTimes(5);
-
-          const actions = store.getActions();
-
-          expect(actions.length).toBe(9);
-          expect(actions).toHaveActionTypesInOrder([
-            'policy/loadPolicyEditor/pending',
-            'policy/loadApplicablePoliciesByOwner/pending',
-            'policy/loadApplicablePoliciesByOwner/fulfilled',
-            'orgsAndPoliciesConstraint/loadConstraint/pending',
-            'orgsAndPolicies/updatedOwnerHandler',
-            'policy/loadCategoriesForPolicy/pending',
-            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
-            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/rejected',
-            'policy/loadPolicyEditor/fulfilled',
-          ]);
-
-          expect(actions[8].payload).toEqual({
-            siblings: [
-              {
-                id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
-                name: 'Org Policy 3',
-                ownerId: 'f3cea033acf84984ae08d9250db4aa7b',
-                enabled: true,
-                threatLevel: 0,
-                constraints: [
-                  {
-                    id: 'd4fe6780471e4543bcb0e28d0e122b69',
-                    name: 'Unpopular',
-                    enabled: true,
-                    operator: 'OR',
-                    conditions: [{ conditionTypeId: 'RelativePopularity', operator: '<', value: '10' }],
-                  },
-                ],
-                actions: {
-                  develop: [{ actionTypeId: 'warn', target: null }],
-                  build: [{ actionTypeId: 'fail', target: null }],
-                  'stage-release': [{ actionTypeId: 'fail', target: null }],
-                  release: [{ actionTypeId: 'warn', target: null }],
-                  operate: [{ actionTypeId: 'warn', target: null }],
-                  proxy: [{ actionTypeId: 'warn', target: null }],
-                },
-                monitorNotifyActions: null,
-              },
-            ],
-            isGrandfatheringSupported: false,
-            currentPolicy: {
+        expect(actions[7].payload).toEqual({
+          readOnly: undefined,
+          originalProxyStageAction: undefined,
+          siblings: [
+            {
               id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
               name: 'Org Policy 3',
               ownerId: 'f3cea033acf84984ae08d9250db4aa7b',
@@ -435,14 +314,130 @@ describe('policy actions', () => {
               },
               monitorNotifyActions: null,
             },
-            readOnly: false,
-            isOrgOwner: true,
-            isRootOrg: false,
-            originalProxyStageAction: [{ actionTypeId: 'warn', target: null }],
-          });
-
-          done();
+          ],
+          currentPolicy: initialState.currentPolicy,
+          isOrgOwner: false,
+          isRootOrg: false,
         });
+
+        done();
+      });
+    });
+
+    it('loads data for a new policy that is also the org owner', (done) => {
+      selectRouterCurrentParamsSpy.and.returnValue({});
+      selectIsOrganizationSpy.and.returnValue(true);
+      mockAxiosCalls({
+        get: {
+          [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
+            data: getApplicablePoliciesResponse,
+          }),
+        },
+      });
+
+      store.dispatch(actions.loadPolicyEditor()).then(() => {
+        expect(axios.get).toHaveBeenCalledTimes(4);
+
+        const actions = store.getActions();
+
+        expect(actions).toHaveActionType('policy/loadCategoriesForPolicy/pending');
+
+        expect(actions[10].payload).toEqual(jasmine.objectContaining({ isOrgOwner: true }));
+
+        done();
+      });
+    });
+
+    it('loads data for an existing policy', (done) => {
+      mockAxiosCalls({
+        get: {
+          [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
+            data: getApplicablePoliciesResponse,
+          }),
+        },
+      });
+
+      store.dispatch(actions.loadPolicyEditor()).then(() => {
+        expect(axios.get).toHaveBeenCalledTimes(5);
+
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(11);
+        expect(actions).toHaveActionTypesInOrder([
+          'policy/loadPolicyEditor/pending',
+          'policy/loadApplicablePoliciesByOwner/pending',
+          'productFeatures/fetchProductFeaturesIfNeeded/pending',
+          'policy/loadApplicablePoliciesByOwner/fulfilled',
+          'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
+          'orgsAndPoliciesConstraint/loadConstraint/pending',
+          'orgsAndPolicies/updatedOwnerHandler',
+          'policy/loadCategoriesForPolicy/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/rejected',
+          'policy/loadPolicyEditor/fulfilled',
+        ]);
+
+        expect(actions[10].payload).toEqual({
+          siblings: [
+            {
+              id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
+              name: 'Org Policy 3',
+              ownerId: 'f3cea033acf84984ae08d9250db4aa7b',
+              enabled: true,
+              threatLevel: 0,
+              constraints: [
+                {
+                  id: 'd4fe6780471e4543bcb0e28d0e122b69',
+                  name: 'Unpopular',
+                  enabled: true,
+                  operator: 'OR',
+                  conditions: [{ conditionTypeId: 'RelativePopularity', operator: '<', value: '10' }],
+                },
+              ],
+              actions: {
+                develop: [{ actionTypeId: 'warn', target: null }],
+                build: [{ actionTypeId: 'fail', target: null }],
+                'stage-release': [{ actionTypeId: 'fail', target: null }],
+                release: [{ actionTypeId: 'warn', target: null }],
+                operate: [{ actionTypeId: 'warn', target: null }],
+                proxy: [{ actionTypeId: 'warn', target: null }],
+              },
+              monitorNotifyActions: null,
+            },
+          ],
+          currentPolicy: {
+            id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
+            name: 'Org Policy 3',
+            ownerId: 'f3cea033acf84984ae08d9250db4aa7b',
+            enabled: true,
+            threatLevel: 0,
+            constraints: [
+              {
+                id: 'd4fe6780471e4543bcb0e28d0e122b69',
+                name: 'Unpopular',
+                enabled: true,
+                operator: 'OR',
+                conditions: [{ conditionTypeId: 'RelativePopularity', operator: '<', value: '10' }],
+              },
+            ],
+            actions: {
+              develop: [{ actionTypeId: 'warn', target: null }],
+              build: [{ actionTypeId: 'fail', target: null }],
+              'stage-release': [{ actionTypeId: 'fail', target: null }],
+              release: [{ actionTypeId: 'warn', target: null }],
+              operate: [{ actionTypeId: 'warn', target: null }],
+              proxy: [{ actionTypeId: 'warn', target: null }],
+            },
+            monitorNotifyActions: null,
+          },
+          readOnly: false,
+          isOrgOwner: true,
+          isRootOrg: false,
+          originalProxyStageAction: [{ actionTypeId: 'warn', target: null }],
+        });
+
+        done();
+      });
     });
 
     it('dispatches rejected action if loadApplicablePoliciesByOwner action fails', (done) => {
@@ -452,23 +447,23 @@ describe('policy actions', () => {
         },
       });
 
-      store
-        .dispatch(actions.loadPolicyEditor({ loadProductFeaturesPromise: loadProductFeaturesPromise() }))
-        .then(() => {
-          expect(axios.get).toHaveBeenCalledTimes(1);
+      store.dispatch(actions.loadPolicyEditor()).then(() => {
+        expect(axios.get).toHaveBeenCalledTimes(1);
 
-          const actions = store.getActions();
+        const actions = store.getActions();
 
-          expect(actions.length).toBe(4);
-          expect(actions).toHaveActionTypesInOrder([
-            'policy/loadPolicyEditor/pending',
-            'policy/loadApplicablePoliciesByOwner/pending',
-            'policy/loadApplicablePoliciesByOwner/rejected',
-            'policy/loadPolicyEditor/rejected',
-          ]);
+        expect(actions.length).toBe(6);
+        expect(actions).toHaveActionTypesInOrder([
+          'policy/loadPolicyEditor/pending',
+          'policy/loadApplicablePoliciesByOwner/pending',
+          'policy/loadApplicablePoliciesByOwner/rejected',
+          'productFeatures/fetchProductFeaturesIfNeeded/pending',
+          'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
+          'policy/loadPolicyEditor/rejected',
+        ]);
 
-          done();
-        });
+        done();
+      });
     });
   });
 

@@ -26,8 +26,6 @@ export const selectIsRootOrg = createSelector(selectPolicySlice, prop('isRootOrg
 
 export const selectOriginalProxyStageAction = createSelector(selectPolicySlice, prop('originalProxyStageAction'));
 
-export const selectIsGrandfatheringSupported = createSelector(selectPolicySlice, prop('isGrandfatheringSupported'));
-
 export const selectLoadError = createSelector(selectPolicySlice, prop('loadError'));
 
 export const selectLoading = createSelector(selectPolicySlice, prop('loading'));

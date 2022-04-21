@@ -3,23 +3,27 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import policyViolationGrandfatheringModule from '../../../../main/frontend/owner.manager/policyViolationGrandfathering/module';
+import policyViolationGrandfatheringModule from 'MainRoot/owner.manager/policyViolationGrandfathering/module';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { mapStateToThis } from 'MainRoot/owner.manager/policyViolationGrandfathering/policyViolationGrandfatheringEditor';
 
 describe('PolicyViolationGrandfatheringEditorController', function () {
-  beforeEach(angular.mock.module(policyViolationGrandfatheringModule.name));
+  beforeEach(
+    angular.mock.module(policyViolationGrandfatheringModule.name, function ($provide) {
+      SpecUtil.mockNgRedux($provide);
+    })
+  );
 
   var $scope,
     $timeout,
-    $httpBackend,
     getGrandfatheringDeferred,
     setGrandfatheringDeferred,
     mockPolicyViolationGrandfatheringService,
     vm;
 
-  beforeEach(inject(function (_$rootScope_, $q, _$timeout_, _$httpBackend_, $componentController, CLMLocations) {
+  beforeEach(inject(function (_$rootScope_, $q, _$timeout_, $componentController) {
     $scope = _$rootScope_.$new();
     $timeout = _$timeout_;
-    $httpBackend = _$httpBackend_;
     getGrandfatheringDeferred = $q.defer();
     setGrandfatheringDeferred = $q.defer();
     mockPolicyViolationGrandfatheringService = {
@@ -27,7 +31,6 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
       setGrandfathering: jasmine.createSpy().and.returnValue(setGrandfatheringDeferred.promise),
       getStatusMessage: JSON.stringify,
     };
-    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
     vm = $componentController('policyViolationGrandfatheringEditor', {
       $scope: $scope,
       policyViolationGrandfatheringService: mockPolicyViolationGrandfatheringService,
@@ -35,10 +38,42 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
     vm.violationGrandfatheringEditorMask = {
       wrap: SpecUtil.promiseWrapper($q),
     };
+    vm.isGrandfatheringSupported = true;
   }));
 
+  describe('mapStateToThis', () => {
+    it('sets isGrandfatheringSupported to component', () => {
+      const state = {
+        productFeatures: {
+          'policy-grandfathering': true,
+        },
+      };
+
+      const { isGrandfatheringSupported } = mapStateToThis(state);
+      expect(isGrandfatheringSupported).toBeTrue();
+    });
+  });
+
+  describe('on component init', () => {
+    it('subscribes to the redux store', () => {
+      expect(vm.unsubscribe).toBeDefined();
+    });
+
+    it('calls loadProductFeatures', () => {
+      expect(vm.loadProductFeatures).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('on $destroy()', () => {
+    it('unsubscribes from redux store', () => {
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
+      $scope.$destroy();
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('loading violation grandfathering configuration', function () {
-    it('loads configuration on success', inject(function () {
+    it('loads configuration on success', function () {
       const config = {
         enabled: true,
         calculatedEnabled: true,
@@ -46,27 +81,24 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
         allowChange: true,
         allowOverride: true,
       };
-      vm.$onInit();
-
+      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue([]);
       getGrandfatheringDeferred.resolve(config);
-
-      $httpBackend.flush();
+      $scope.$digest();
 
       expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
       expect(vm.currentConfiguration).toEqual(config);
       expect(vm.originalConfiguration).toEqual(config);
       expect(vm.statusMessage).toEqual(JSON.stringify(config));
       expect(vm.loadError).toEqual(undefined);
-    }));
+    });
 
     it('sets the error message on failure', inject(function () {
-      vm.$onInit();
-
       getGrandfatheringDeferred.reject({ status: 404, data: 'not found' });
 
       $timeout.flush();
 
       expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
+      expect(vm.loadProductFeatures).toHaveBeenCalled();
       expect(vm.currentConfiguration).toEqual(undefined);
       expect(vm.originalConfiguration).toEqual(undefined);
       expect(vm.statusMessage).toEqual(undefined);
@@ -75,7 +107,8 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
   });
 
   describe('saving configuration', function () {
-    it('saves configuration and reloads on success', inject(function () {
+    it('saves configuration and reloads on success', function () {
+      vm.loadProductFeatures = jasmine.createSpy().and.returnValue([]);
       const oldConfig = {
         enabled: true,
         allowOverride: true,
@@ -92,15 +125,16 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
       setGrandfatheringDeferred.resolve({});
       getGrandfatheringDeferred.resolve(newConfig);
 
-      $httpBackend.flush();
+      $scope.$digest();
 
       expect(mockPolicyViolationGrandfatheringService.setGrandfathering).toHaveBeenCalledWith(newConfig);
       expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
+      expect(vm.loadProductFeatures).toHaveBeenCalled();
       expect(vm.currentConfiguration).toEqual(newConfig);
       expect(vm.originalConfiguration).toEqual(newConfig);
-    }));
+    });
 
-    it('sets the error message on failure', inject(function () {
+    it('sets the error message on failure', function () {
       const oldConfig = {
         enabled: true,
         allowOverride: true,
@@ -117,13 +151,11 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
       setGrandfatheringDeferred.reject({ status: 404, data: 'not found' });
 
       $timeout.flush();
-
       expect(mockPolicyViolationGrandfatheringService.setGrandfathering).toHaveBeenCalledWith(newConfig);
-      expect(mockPolicyViolationGrandfatheringService.getGrandfathering).not.toHaveBeenCalled();
       expect(vm.currentConfiguration).toEqual(newConfig);
       expect(vm.originalConfiguration).toEqual(oldConfig);
       expect(vm.submitError).toEqual('not found');
-    }));
+    });
   });
 
   describe('detecting changed configuration', function () {

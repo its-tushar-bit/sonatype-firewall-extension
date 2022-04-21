@@ -4,28 +4,33 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { omit } from 'ramda';
-
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
-import { selectShouldShowQuarantineWarning } from '../../OrgsAndPolicies/policySelectors';
+import {
+  selectIsEnforcementSupported,
+  selectIsFirewallSupported,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectActionStagesLoadError,
   selectActionStageTypes,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
+import { selectShouldShowQuarantineWarning } from '../../OrgsAndPolicies/policySelectors';
 
-export default function PolicyEditorActionsController($scope, $q, ProductFeatures, $ngRedux) {
+export default function PolicyEditorActionsController($scope, $ngRedux) {
   var vm = this;
   vm.actionStages = null;
   vm.loadError = null;
-  vm.isEnforcementSupported = null;
-  vm.isFirewallSupported = null;
   vm.isEnforcementSupportedForStage = isEnforcementSupportedForStage;
   vm.doLoad = doLoad;
   vm.onActionChange = onActionChange;
+
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadActionStageTypes: stagesActions.loadActionStages,
     setActions: actions.setActions,
+    loadProductFeatures: productFeaturesActions.fetchProductFeaturesIfNeeded,
   })(vm);
+
   vm.doLoad();
 
   $scope.$on('$destroy', () => {
@@ -33,20 +38,9 @@ export default function PolicyEditorActionsController($scope, $q, ProductFeature
   });
 
   function doLoad() {
-    vm.loadActionStageTypes();
-    const promises = [ProductFeatures.load()];
-
-    $q.all(promises).then(
-      function () {
-        vm.isEnforcementSupported = ProductFeatures.isAvailable('enforcement');
-        vm.isFirewallSupported = ProductFeatures.isAvailable('firewall');
-      },
-      function (error) {
-        vm.loadError = error;
-      }
-    );
-
     delete vm.loadError;
+    vm.loadActionStageTypes();
+    vm.loadProductFeatures();
   }
 
   function isEnforcementSupportedForStage(stage) {
@@ -60,12 +54,12 @@ export default function PolicyEditorActionsController($scope, $q, ProductFeature
   }
 }
 
-export const mapStateToThis = (state) => {
-  return {
-    actionStages: selectActionStageTypes(state),
-    loadError: selectActionStagesLoadError(state),
-    shouldShowQuarantineWarning: selectShouldShowQuarantineWarning(state),
-  };
-};
+export const mapStateToThis = (state) => ({
+  isEnforcementSupported: selectIsEnforcementSupported(state),
+  isFirewallSupported: selectIsFirewallSupported(state),
+  shouldShowQuarantineWarning: selectShouldShowQuarantineWarning(state),
+  actionStages: selectActionStageTypes(state),
+  loadError: selectActionStagesLoadError(state),
+});
 
-PolicyEditorActionsController.$inject = ['$scope', '$q', 'ProductFeatures', '$ngRedux', '$scope'];
+PolicyEditorActionsController.$inject = ['$scope', '$ngRedux'];

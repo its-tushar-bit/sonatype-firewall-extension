@@ -7,6 +7,8 @@ import * as policySelectors from 'MainRoot/OrgsAndPolicies/policySelectors';
 import * as stagesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { mapStateToThis } from 'MainRoot/owner.manager/policy/policy.editor.actions.controller';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 describe('policy.editor.actions.controller', function () {
   beforeEach(
@@ -20,20 +22,32 @@ describe('policy.editor.actions.controller', function () {
 
   var vm, $scope;
 
-  beforeEach(inject(function (_$timeout_, _$httpBackend_, $controller, _CLMLocations_, $rootScope) {
+  beforeEach(inject(function ($controller, $rootScope) {
     $scope = $rootScope.$new();
+
+    spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
     vm = $controller('policy.editor.actions.controller', { $scope }, { actions: [] });
   }));
 
   describe('mapStateToThis', () => {
     it('sets shouldShowQuarantineWarning, actionStages and loadError to component', () => {
       spyOn(policySelectors, 'selectShouldShowQuarantineWarning').and.returnValue(true);
+      spyOn(productFeaturesSelectors, 'selectIsFirewallSupported').and.returnValue(true);
+      spyOn(productFeaturesSelectors, 'selectIsEnforcementSupported').and.returnValue(true);
       spyOn(stagesSelectors, 'selectActionStageTypes').and.returnValue([]);
       spyOn(stagesSelectors, 'selectActionStagesLoadError').and.returnValue('error');
 
-      const { shouldShowQuarantineWarning, actionStages, loadError } = mapStateToThis({});
+      const {
+        shouldShowQuarantineWarning,
+        isEnforcementSupported,
+        isFirewallSupported,
+        actionStages,
+        loadError,
+      } = mapStateToThis({});
 
       expect(shouldShowQuarantineWarning).toBeTrue();
+      expect(isEnforcementSupported).toBeTrue();
+      expect(isFirewallSupported).toBeTrue();
       expect(actionStages).toEqual([]);
       expect(loadError).toEqual('error');
     });
@@ -46,6 +60,10 @@ describe('policy.editor.actions.controller', function () {
 
     it('calls loadActionStageTypes', () => {
       expect(vm.loadActionStageTypes).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls loadProductFeatures', () => {
+      expect(vm.loadProductFeatures).toHaveBeenCalledTimes(1);
     });
   });
 

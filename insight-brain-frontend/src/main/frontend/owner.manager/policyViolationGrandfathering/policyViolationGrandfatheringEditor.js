@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './policyViolationGrandfatheringEditor.html';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default {
   template,
@@ -17,9 +19,12 @@ function PolicyViolationGrandfatheringEditorController(
   Messages,
   CLMContextLocations,
   PolicyViolationGrandfatheringService,
-  ProductFeatures
+  $ngRedux
 ) {
   const vm = this;
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadProductFeatures: productFeaturesActions.fetchProductFeaturesIfNeeded,
+  })(vm);
 
   Object.assign(vm, {
     loadError: undefined,
@@ -28,25 +33,19 @@ function PolicyViolationGrandfatheringEditorController(
     currentConfiguration: undefined,
     statusMessage: undefined,
     violationGrandfatheringEditorMask: undefined,
-    isGrandfatheringSupported: undefined,
 
     isApp: CLMContextLocations.isApplication(),
     isRootOrg: CLMContextLocations.isRootOrg(),
 
-    $onInit() {
-      vm.doLoad();
-    },
-
     doLoad() {
       delete vm.loadError;
-      const promises = [PolicyViolationGrandfatheringService.getGrandfathering(), ProductFeatures.load()];
+      const promises = [PolicyViolationGrandfatheringService.getGrandfathering(), vm.loadProductFeatures()];
 
       $q.all(promises).then(
         function (results) {
           vm.originalConfiguration = results[0];
           vm.currentConfiguration = angular.copy(results[0]);
           vm.statusMessage = PolicyViolationGrandfatheringService.getStatusMessage(vm.originalConfiguration);
-          vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
         },
         function (error) {
           vm.loadError = Messages.getHttpErrorMessage(error);
@@ -70,6 +69,12 @@ function PolicyViolationGrandfatheringEditorController(
     },
   });
 
+  vm.doLoad();
+
+  $scope.$on('$destroy', () => {
+    vm.unsubscribe();
+  });
+
   $scope.$on('pageChangeStarted', function (event) {
     if (vm.isDirty()) {
       event.preventDefault();
@@ -77,11 +82,15 @@ function PolicyViolationGrandfatheringEditorController(
   });
 }
 
+export const mapStateToThis = (state) => ({
+  isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
+});
+
 PolicyViolationGrandfatheringEditorController.$inject = [
   '$scope',
   '$q',
   'Messages',
   'CLMContextLocations',
   'policyViolationGrandfatheringService',
-  'ProductFeatures',
+  '$ngRedux',
 ];

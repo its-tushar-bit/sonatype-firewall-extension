@@ -7,13 +7,8 @@ import commonServicesModule from '../../util/CommonServices';
 import CLMContextLocationModule from '../../util/CLMContextLocation';
 import PolicyViolationGrandfatheringEditor from './policyViolationGrandfatheringEditor';
 import PolicyViolationGrandfatheringService from './policyViolationGrandfatheringService';
-import ProductFeaturesModule from '../../util/ProductFeatures';
 
 export default angular
-  .module('policyViolationGrandfatheringModule', [
-    CLMContextLocationModule.name,
-    commonServicesModule.name,
-    ProductFeaturesModule.name,
-  ])
+  .module('policyViolationGrandfatheringModule', [CLMContextLocationModule.name, commonServicesModule.name])
   .service('policyViolationGrandfatheringService', PolicyViolationGrandfatheringService)
   .component('policyViolationGrandfatheringEditor', PolicyViolationGrandfatheringEditor);

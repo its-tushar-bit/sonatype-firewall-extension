@@ -10,7 +10,6 @@ import {
   selectDeleteModal,
   selectHasPolicyCategories,
   selectIsCurrentPolicyDirty,
-  selectIsGrandfatheringSupported,
   selectIsOrgOwner,
   selectIsRootOrg,
   selectLoadError,
@@ -20,17 +19,11 @@ import {
   selectSubmitError,
   selectIsEditMode,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
+import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { propEq } from 'ramda';
 
-export default function PolicyEditorController(
-  $scope,
-  DeleteModalService,
-  $rootScope,
-  EventNameConstant,
-  ProductFeatures,
-  $ngRedux
-) {
+export default function PolicyEditorController($scope, DeleteModalService, $rootScope, EventNameConstant, $ngRedux) {
   var vm = this;
 
   vm.policyEditor = undefined;
@@ -68,7 +61,7 @@ export default function PolicyEditorController(
   });
 
   function doLoad() {
-    vm.loadPolicyEditor({ loadProductFeaturesPromise: ProductFeatures.load() });
+    vm.loadPolicyEditor();
   }
 
   function deletePolicy() {
@@ -129,11 +122,4 @@ export const mapStateToThis = (state) => ({
   ownerName: selectOwnerName(state),
 });
 
-PolicyEditorController.$inject = [
-  '$scope',
-  'DeleteModalService',
-  '$rootScope',
-  'event.name.constant',
-  'ProductFeatures',
-  '$ngRedux',
-];
+PolicyEditorController.$inject = ['$scope', 'DeleteModalService', '$rootScope', 'event.name.constant', '$ngRedux'];

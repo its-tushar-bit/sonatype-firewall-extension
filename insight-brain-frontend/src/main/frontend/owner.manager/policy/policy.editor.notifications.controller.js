@@ -4,20 +4,26 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { findIndex, propEq } from 'ramda';
-
+import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
 import {
   selectActionStagesLoadError,
   selectActionStageTypes,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
+import {
+  selectIsMonitoringSupported,
+  selectIsNotificationsSupported,
+  selectIsFirewallSupported,
+  selectIsWebhooksSupported,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function PolicyEditorNotificationsController(
   $scope,
   $q,
   RoleMappingService,
   JiraService,
-  ProductFeatures,
   NotificationWebhookService,
   $ngRedux
 ) {
@@ -57,11 +63,8 @@ export default function PolicyEditorNotificationsController(
   vm.getEmails = getEmails;
   vm.doLoad = doLoad;
   vm.isAddButtonDisabled = isAddButtonDisabled;
-  vm.isMonitoringSupported = undefined;
-  vm.isNotificationsSupported = undefined;
-  vm.isFirewallSupported = undefined;
   vm.resetNotifications = resetNotifications;
-  vm.isNotificationsSupportedForStage = ProductFeatures.isNotificationsSupportedForStage;
+  vm.isNotificationsSupportedForStage = isNotificationsSupportedForStage;
   vm.isNotificationsFormDisabled = isNotificationsFormDisabled;
   vm.isCheckboxForStageDisabled = isCheckboxForStageDisabled;
   vm.getAvailableWebhooks = getAvailableWebhooks;
@@ -75,7 +78,9 @@ export default function PolicyEditorNotificationsController(
     setRoleNotificationStageIdsAction: actions.setRoleNotificationStageIds,
     setJiraNotificationStageIdsAction: actions.setJiraNotificationStageIds,
     setWebhookNotificationStageIdsAction: actions.setWebhookNotificationStageIds,
+    loadProductFeatures: productFeaturesActions.fetchProductFeaturesIfNeeded,
   })(vm);
+
   vm.doLoad();
 
   $scope.$on('$destroy', function () {
@@ -111,85 +116,84 @@ export default function PolicyEditorNotificationsController(
           return getJiraDeferred.promise;
         }
       }),
-      ProductFeatures.load().then(function () {
-        return loadWebhooksIfSupported();
-      }),
+      vm.loadProductFeatures(),
     ];
 
-    $q.all(promises).then(
-      function (results) {
-        vm.roles = results[0].membersByRole;
-        var jiraResults = results[1];
-        var webhookResults = results[2];
+    $q.all(promises)
+      .then(
+        function (results) {
+          unwrapResult(results[2]);
+          vm.roles = results[0].membersByRole;
+          var jiraResults = results[1];
 
-        if (!jiraResults) {
-          // JIRA is disabled
-        } else if (jiraResults.error) {
-          vm.jiraError = jiraResults.error;
-        } else {
-          if (vm.recipientTypeOptions.indexOf(vm.recipientTypes.JIRA) === -1) {
-            vm.recipientTypeOptions.push(vm.recipientTypes.JIRA);
+          if (vm.isWebhooksSupported) {
+            loadWebhooks().then((webhookResults) => {
+              if (!webhookResults || !vm.isWebhooksSupported) {
+                // webhooks is disabled or not licensed
+              } else if (webhookResults.webhookError) {
+                vm.webhookError = webhookResults.webhookError;
+              } else {
+                vm.webhooks = webhookResults.webhooks;
+              }
+
+              updateAvailableWebhooks();
+              if (vm.recipientTypeOptions.indexOf(vm.recipientTypes.WEBHOOK) === -1) {
+                vm.recipientTypeOptions.push(vm.recipientTypes.WEBHOOK);
+              }
+            });
           }
-          jiraProjects = jiraResults.projects;
-        }
 
-        if (!webhookResults || !vm.isWebhooksSupported) {
-          // webhooks is disabled or not licensed
-        } else if (webhookResults.webhookError) {
-          vm.webhookError = webhookResults.webhookError;
-        } else {
-          vm.webhooks = webhookResults.webhooks;
-        }
-
-        roleNames = vm.roles ? mapRoleNames() : {};
-
-        mapJiraProjectsAndIssueTypes();
-
-        updateAvailableRoles();
-        updateAvailableJiraProjects();
-        loadRecipients();
-
-        vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
-        vm.isNotificationsSupported = ProductFeatures.isAvailable('notifications');
-        vm.isFirewallSupported = ProductFeatures.isAvailable('firewall');
-
-        if (vm.isWebhooksSupported) {
-          updateAvailableWebhooks();
-          if (vm.recipientTypeOptions.indexOf(vm.recipientTypes.WEBHOOK) === -1) {
-            vm.recipientTypeOptions.push(vm.recipientTypes.WEBHOOK);
+          if (!jiraResults) {
+            // JIRA is disabled
+          } else if (jiraResults.error) {
+            vm.jiraError = jiraResults.error;
+          } else {
+            if (vm.recipientTypeOptions.indexOf(vm.recipientTypes.JIRA) === -1) {
+              vm.recipientTypeOptions.push(vm.recipientTypes.JIRA);
+            }
+            jiraProjects = jiraResults.projects;
           }
+
+          roleNames = vm.roles ? mapRoleNames() : {};
+
+          mapJiraProjectsAndIssueTypes();
+
+          updateAvailableRoles();
+          updateAvailableJiraProjects();
+          loadRecipients();
+        },
+        function (error) {
+          vm.loadError = error;
         }
-      },
-      function (error) {
+      )
+      .catch((error) => {
         vm.loadError = error;
-      }
-    );
+      });
 
     delete vm.loadError;
     delete vm.jiraError;
     delete vm.webhookError;
   }
 
-  function loadWebhooksIfSupported() {
-    vm.isWebhooksSupported =
-      ProductFeatures.isAvailable('webhooks-for-applications') ||
-      ProductFeatures.isAvailable('webhooks-for-repositories');
-    if (vm.isWebhooksSupported) {
-      var getWebhooksDeferred = $q.defer();
-      NotificationWebhookService.get().then(
-        function (results) {
-          getWebhooksDeferred.resolve({
-            webhooks: results,
-          });
-        },
-        function (error) {
-          getWebhooksDeferred.resolve({
-            webhookError: error,
-          });
-        }
-      );
-      return getWebhooksDeferred.promise;
-    }
+  function isNotificationsSupportedForStage(stage) {
+    return (vm.isFirewallSupported && stage === 'proxy') || vm.isNotificationsSupported;
+  }
+
+  function loadWebhooks() {
+    var getWebhooksDeferred = $q.defer();
+    NotificationWebhookService.get().then(
+      function (results) {
+        getWebhooksDeferred.resolve({
+          webhooks: results,
+        });
+      },
+      function (error) {
+        getWebhooksDeferred.resolve({
+          webhookError: error,
+        });
+      }
+    );
+    return getWebhooksDeferred.promise;
   }
 
   // produces sorted Array of all Recipients
@@ -498,7 +502,7 @@ export default function PolicyEditorNotificationsController(
   }
 
   function isNotificationsFormDisabled() {
-    return vm.disabled || !ProductFeatures.isNotificationsSupportedForAnyStage();
+    return vm.disabled || !(vm.isNotificationsSupported || vm.isFirewallSupported);
   }
 
   function isCheckboxForStageDisabled(recipient, stageTypeId) {
@@ -511,19 +515,20 @@ export default function PolicyEditorNotificationsController(
   }
 }
 
-export const mapStateToThis = (state) => {
-  return {
-    actionStages: selectActionStageTypes(state),
-    loadError: selectActionStagesLoadError(state),
-  };
-};
+export const mapStateToThis = (state) => ({
+  isFirewallSupported: selectIsFirewallSupported(state),
+  isMonitoringSupported: selectIsMonitoringSupported(state),
+  isNotificationsSupported: selectIsNotificationsSupported(state),
+  isWebhooksSupported: selectIsWebhooksSupported(state),
+  actionStages: selectActionStageTypes(state),
+  loadError: selectActionStagesLoadError(state),
+});
 
 PolicyEditorNotificationsController.$inject = [
   '$scope',
   '$q',
   'role.mapping.service',
   'jira.service',
-  'ProductFeatures',
   'notification.webhook.service',
   '$ngRedux',
 ];

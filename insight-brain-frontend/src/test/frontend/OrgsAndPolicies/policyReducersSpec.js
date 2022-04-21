@@ -684,7 +684,6 @@ describe('policySlice reducers', () => {
         currentPolicy: null,
         originalPolicy: null,
         siblings: [],
-        isGrandfatheringSupported: false,
         readOnly: false,
         isOrgOwner: false,
         isRootOrg: false,
@@ -694,7 +693,6 @@ describe('policySlice reducers', () => {
       const fulfilledPayload = {
         currentPolicy: { id: 'someId' },
         siblings: [{ id: 'anotherPolicyId' }],
-        isGrandfatheringSupported: true,
         readOnly: true,
         isOrgOwner: true,
         isRootOrg: true,
@@ -709,7 +707,6 @@ describe('policySlice reducers', () => {
         currentPolicy,
         originalPolicy,
         siblings,
-        isGrandfatheringSupported,
         readOnly,
         isOrgOwner,
         isRootOrg,
@@ -730,7 +727,6 @@ describe('policySlice reducers', () => {
       expect(currentPolicy).toEqual(fulfilledPayload.currentPolicy);
       expect(originalPolicy).toEqual(fulfilledPayload.currentPolicy);
       expect(siblings).toEqual(fulfilledPayload.siblings);
-      expect(isGrandfatheringSupported).toBe(fulfilledPayload.isGrandfatheringSupported);
       expect(readOnly).toBe(fulfilledPayload.readOnly);
       expect(isOrgOwner).toBe(fulfilledPayload.isOrgOwner);
       expect(isRootOrg).toBe(fulfilledPayload.isRootOrg);

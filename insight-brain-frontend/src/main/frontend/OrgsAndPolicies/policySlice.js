@@ -23,6 +23,7 @@ import {
   selectIsEditMode,
   selectIsOrgOwner,
 } from './policySelectors';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
 import { deriveEditRoute } from './utility/util';
@@ -73,7 +74,6 @@ export const initialState = {
   hasPolicyCategories: false,
   originalHasPolicyCategories: false,
   siblings: [],
-  isGrandfatheringSupported: false,
   readOnly: undefined,
   isOrgOwner: false,
   isRootOrg: false,
@@ -170,14 +170,16 @@ const loadApplicablePoliciesByOwner = createAsyncThunk(
 
 const loadPolicyEditor = createAsyncThunk(
   `${REDUCER_NAME}/loadPolicyEditor`,
-  ({ loadProductFeaturesPromise }, { getState, rejectWithValue, dispatch }) => {
-    const promises = [dispatch(actions.loadApplicablePoliciesByOwner()), loadProductFeaturesPromise];
+  (_, { getState, rejectWithValue, dispatch }) => {
+    const promises = [
+      dispatch(actions.loadApplicablePoliciesByOwner()),
+      dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()),
+    ];
 
     return Promise.all(promises)
-      .then(([loadApplicablePoliciesByOwnerAction, productFeatures]) => {
+      .then(([loadApplicablePoliciesByOwnerAction]) => {
         const { policiesByOwner } = unwrapResult(loadApplicablePoliciesByOwnerAction);
         const siblings = policiesByOwner.flatMap(prop('policies'));
-        const isGrandfatheringSupported = productFeatures.includes('policy-grandfathering');
 
         const { policyId } = selectRouterCurrentParams(getState());
         let currentPolicy = initialState.currentPolicy,
@@ -229,7 +231,6 @@ const loadPolicyEditor = createAsyncThunk(
 
         return {
           siblings,
-          isGrandfatheringSupported,
           currentPolicy,
           readOnly,
           isOrgOwner,
@@ -253,18 +254,9 @@ const loadPolicyEditorFulfilled = (state, { payload }) => {
   state.deleteModal.success = null;
   state.deleteModal.errorState = null;
   state.isDirty = false;
-  const {
-    siblings,
-    isGrandfatheringSupported,
-    currentPolicy,
-    readOnly,
-    isOrgOwner,
-    isRootOrg,
-    originalProxyStageAction,
-  } = payload;
+  const { siblings, currentPolicy, readOnly, isOrgOwner, isRootOrg, originalProxyStageAction } = payload;
 
   state.siblings = siblings;
-  state.isGrandfatheringSupported = isGrandfatheringSupported;
   state.currentPolicy = currentPolicy;
   state.originalPolicy = currentPolicy;
   state.readOnly = readOnly;

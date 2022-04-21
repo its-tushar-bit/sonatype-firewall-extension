@@ -15,7 +15,6 @@ import permissionServiceModule from '../util/PermissionService';
 import validatorsModule from '../util/Validators';
 import storesModule from '../util/Stores';
 import ownerPolicyList from './summary/ownerPolicyList/ownerPolicyList';
-import ProductFeaturesModule from '../util/ProductFeatures';
 
 import licenseThreatGroupModule from '../policy/LicenseThreatGroupsController';
 import roleMembershipModule from '../role.membership/role.membership.module';
@@ -102,7 +101,6 @@ export default angular
     validatorsModule.name,
     roleMembershipModule.name,
     moveApplicationModule.name,
-    ProductFeaturesModule.name,
     PolicyViolationGrandfatheringModule.name,
     retentionModule.name,
     sourceControlModule.name,

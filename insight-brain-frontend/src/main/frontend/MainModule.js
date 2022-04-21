@@ -9,7 +9,6 @@ import formsModule from './FormsModule';
 import CLMLocationModule from './util/CLMLocation';
 import { httpInterceptors, unauthenticatedResponseHttpInterceptor } from './util/HttpInterceptors';
 import IqHttpInterceptorsModule from './util/IqHttpInterceptors';
-import productFeaturesModule from './util/ProductFeatures';
 import configurationModule, { GETTING_STARTED_STATE } from './configuration/module';
 import {
   DEPARTED_ACTION,
@@ -64,7 +63,6 @@ export const InitModule = angular
       'ngRoute',
       unauthenticatedResponseHttpInterceptor.name,
       'xeditable',
-      productFeaturesModule.name,
       httpInterceptors.name,
       IqHttpInterceptorsModule.name,
       dashboardModule.name,

@@ -17,7 +17,6 @@ import {
   selectDeleteModal,
   selectLoading,
   selectLoadError,
-  selectIsGrandfatheringSupported,
   selectIsDirty,
   selectOriginalCategories,
   selectHasPolicyCategories,
@@ -167,21 +166,6 @@ describe('policySelectors', () => {
     });
   });
 
-  describe('selectIsGrandfatheringSupported', () => {
-    it('is composed from the following selector', () => {
-      expect(selectIsGrandfatheringSupported.dependencies).toEqual([selectPolicySlice]);
-    });
-
-    it('selects isGrandfatheringSupported', () => {
-      const policySlice = {
-        isGrandfatheringSupported: true,
-      };
-
-      const selected = selectIsGrandfatheringSupported.resultFunc(policySlice);
-
-      expect(selected).toBeTrue();
-    });
-  });
   describe('selectLoadError', () => {
     it('is composed from the following selector', () => {
       expect(selectLoadError.dependencies).toEqual([selectPolicySlice]);

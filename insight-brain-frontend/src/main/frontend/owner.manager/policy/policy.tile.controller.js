@@ -45,21 +45,18 @@ export default function PolicyTileController(
   vm.inheritedProprietaryCount = 0;
   vm.grandfatheringStatusMessage = undefined;
   vm.isRootOrg = CLMContextLocations.isRootOrg();
-  vm.isMonitoringSupported = undefined;
-  vm.isGrandfatheringSupported = undefined;
   vm.isEnforcementSupportedForStage = isEnforcementSupportedForStage;
   vm.editPolicy = editPolicy;
   vm.doLoad = doLoad;
 
-  vm.$onInit = function () {
-    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-      loadApplicablePolicyMonitoring: actions.loadApplicablePolicyMonitoring,
-      loadPropietaryConfig: propiertaryConfigActions.loadProprietaryConfig,
-      loadActionStageTypes: stagesActions.loadActionStages,
-      loadApplicablePoliciesByOwner: policyActions.loadApplicablePoliciesByOwner,
-    })(vm);
-    vm.doLoad();
-  };
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadApplicablePolicyMonitoring: actions.loadApplicablePolicyMonitoring,
+    loadPropietaryConfig: propiertaryConfigActions.loadProprietaryConfig,
+    loadActionStageTypes: stagesActions.loadActionStages,
+    loadApplicablePoliciesByOwner: policyActions.loadApplicablePoliciesByOwner,
+  })(vm);
+
+  vm.doLoad();
 
   $scope.$on('$destroy', function () {
     vm.unsubscribe();
@@ -80,33 +77,37 @@ export default function PolicyTileController(
       promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
     }
 
-    $q.all(promises).then(
-      function (results) {
-        vm.policiesByOwner = unwrapResult(results[0]).policiesByOwner;
-        vm.actionStages = unwrapResult(results[1]).data;
-        unwrapResult(results[2]);
-        unwrapResult(results[3]);
+    $q.all(promises)
+      .then(
+        function (results) {
+          vm.policiesByOwner = unwrapResult(results[0]).policiesByOwner;
+          vm.actionStages = unwrapResult(results[1]).data;
+          unwrapResult(results[2]);
+          unwrapResult(results[3]);
 
-        vm.policiesByOwner.forEach(function (policyOwner, index) {
-          policyOwner.inherited = index > 0;
-          policyOwner.policies.forEach(function (policy) {
-            policy.enforcementAction = {};
-            vm.actionStages.forEach(function (actionStage) {
-              if (policy.actions[actionStage.stageTypeId]) {
-                policy.enforcementAction[actionStage.stageTypeId] = policy.actions[actionStage.stageTypeId];
-              }
+          vm.policiesByOwner.forEach(function (policyOwner, index) {
+            policyOwner.inherited = index > 0;
+            policyOwner.policies.forEach(function (policy) {
+              policy.enforcementAction = {};
+              vm.actionStages.forEach(function (actionStage) {
+                if (policy.actions[actionStage.stageTypeId]) {
+                  policy.enforcementAction[actionStage.stageTypeId] = policy.actions[actionStage.stageTypeId];
+                }
+              });
             });
           });
-        });
 
-        if (vm.isAppOrOrg) {
-          vm.grandfatheringStatusMessage = PolicyViolationGrandfatheringService.getStatusMessage(results[4]);
+          if (vm.isAppOrOrg) {
+            vm.grandfatheringStatusMessage = PolicyViolationGrandfatheringService.getStatusMessage(results[4]);
+          }
+        },
+        function (error) {
+          vm.loadError = error;
         }
-      },
-      function (error) {
+      )
+      .catch((error) => {
         vm.loadError = error;
-      }
-    );
+      });
   }
 
   function editPolicy(policyId) {

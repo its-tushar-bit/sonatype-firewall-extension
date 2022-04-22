@@ -26,6 +26,7 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.credential.AllowAllCredentialsMatcher;
+import org.junit.After;
 import org.junit.Test;
 import org.keycloak.adapters.saml.SamlPrincipal;
 import org.keycloak.common.util.MultivaluedHashMap;
@@ -50,6 +51,11 @@ public class SamlRealmTest
   public void configure(Binder binder) {
     binder.bind(ProductLicense.class).toInstance(mockProductLicense);
     super.configure(binder);
+  }
+
+  @After
+  public void after() {
+    samlUserDAO.getAll().forEach(samlUserDAO::delete);
   }
 
   @Test

@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.KeycloakLoginPage;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationService;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Group;
@@ -71,6 +72,8 @@ public class SamlTest
     keycloak.clean();
     try {
       apiSamlConfigurationService.deleteSamlConfiguration();
+      SamlUserDAO samlUserDAO = new SamlUserDAO();
+      samlUserDAO.getAll().forEach(samlUserDAO::delete);
     }
     catch (NotFoundException ignored) {
       // fine

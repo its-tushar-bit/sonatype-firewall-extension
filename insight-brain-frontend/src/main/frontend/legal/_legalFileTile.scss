@@ -67,11 +67,7 @@
   margin-bottom: var(--nx-spacing-8x);
 }
 
-#edit-licenses-attribution-scope-selection-group {
-  margin-top: var(--nx-spacing-6x);
-}
-
-#edit-notices-attribution-scope-selection-group {
+.legal-modal-scope-selection-group {
   margin-top: var(--nx-spacing-6x);
 }
 
@@ -83,4 +79,9 @@
   border: solid 1px #d1d6f0;
   border-radius: 6px;
   padding: var(--nx-spacing-4x);
+}
+
+.legal-modal-override-input-content {
+  width: 100%;
+  margin-bottom: var(--nx-spacing-6x);
 }

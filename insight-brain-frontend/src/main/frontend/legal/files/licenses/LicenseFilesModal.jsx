@@ -228,7 +228,7 @@ export default function LicenseFilesModal(props) {
             <ObligationStatusComponent existingObligation={existingObligation} onChange={onObligationChange} />
           )}
           <NxFormGroup
-            id="edit-licenses-attribution-scope-selection-group"
+            className="legal-modal-scope-selection-group"
             label="Scope"
             sublabel="Apply changes to"
             isRequired

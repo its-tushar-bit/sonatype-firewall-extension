@@ -15,6 +15,7 @@ import ComponentLegalOverviewPage from 'MainRoot/legal/ComponentLegalOverviewPag
 import LicenseObligationsTileContainer from 'MainRoot/legal/obligation/LicenseObligationsTileContainer';
 import NoticeTextsTile from 'MainRoot/legal/files/notices/NoticeTextsTile';
 import LicenseFilesTile from 'MainRoot/legal/files/licenses/LicenseFilesTile';
+import OriginalSourcesTile from 'MainRoot/legal/originalSources/OriginalSourcesTile';
 
 describe('ComponentLegalOverviewPage', function () {
   let minimalProps,
@@ -262,6 +263,11 @@ describe('ComponentLegalOverviewPage', function () {
   it('renders the CopyrightStatementsTile', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find(CopyrightStatementsTile)).toExist();
+  });
+
+  it('renders the OriginalSourcesTile', function () {
+    const wrapper = getShallowComponent();
+    expect(wrapper.find(OriginalSourcesTile)).toExist();
   });
 
   it('renders the LicenseDetailsTile', function () {

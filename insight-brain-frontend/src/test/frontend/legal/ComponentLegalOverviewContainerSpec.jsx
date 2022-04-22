@@ -43,6 +43,9 @@ describe('ComponentLegalOverviewContainer', function () {
       copyrightOverrides: {
         showEditCopyrightOverrideModal: false,
       },
+      originalSourcesForm: {
+        showOriginalSourcesModal: false,
+      },
     };
 
     loadComponentActionMock = jasmine.createSpy('loadComponent').and.returnValue({ type: 'FOO' });
@@ -77,6 +80,7 @@ describe('ComponentLegalOverviewContainer', function () {
     expect(wrapper).toHaveProp('organizationId', 'organizationId');
     expect(wrapper).toHaveProp('applicationPublicId', 'applicationPublicId');
     expect(wrapper).toHaveProp('stageTypeId', 'stage-type-id');
+    expect(wrapper).toHaveProp('showOriginalSourcesModal', false);
     expect(wrapper).toHaveProp('availableScopes', {
       loading: false,
       error: null,

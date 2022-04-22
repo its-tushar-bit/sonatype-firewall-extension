@@ -24,6 +24,7 @@ import LicenseObligationsTileContainer from './obligation/LicenseObligationsTile
 import NoticeTextsTile from './files/notices/NoticeTextsTile';
 import { createSubtitle } from './legalUtility';
 import LicenseFilesTile from './files/licenses/LicenseFilesTile';
+import OriginalSourcesTile from 'MainRoot/legal/originalSources/OriginalSourcesTile';
 
 export default function ComponentLegalOverviewPage(props) {
   const {
@@ -33,6 +34,7 @@ export default function ComponentLegalOverviewPage(props) {
     loading,
     licenseFiles,
     noticeFiles,
+    sourceLinks,
     error,
     organizationId,
     applicationPublicId,
@@ -44,6 +46,7 @@ export default function ComponentLegalOverviewPage(props) {
     showNoticesModal,
     showLicenseFilesModal,
     showLicensesModal,
+    showOriginalSourcesModal,
     ecosystem,
     $state,
     prevState,
@@ -57,6 +60,7 @@ export default function ComponentLegalOverviewPage(props) {
     setShowNoticesModal,
     setShowLicenseFilesModal,
     setShowLicensesModal,
+    setDisplayOriginalSourcesOverrideModal,
   } = props;
 
   function load() {
@@ -191,6 +195,11 @@ export default function ComponentLegalOverviewPage(props) {
                     componentIdentifier,
                   }}
                 />
+                <OriginalSourcesTile
+                  sourceLinks={sourceLinks}
+                  showOriginalSourcesModal={showOriginalSourcesModal}
+                  setDisplayOriginalSourcesOverrideModal={setDisplayOriginalSourcesOverrideModal}
+                />
                 {obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer)}
                 <LicenseObligationAttributionTileContainer name={null} />
               </div>
@@ -214,6 +223,7 @@ ComponentLegalOverviewPage.propTypes = {
   licenseLegalMetadata: licenseLegalMetadataPropType,
   obligations: licenseObligationsPropType,
   noticeFiles: legalFilesPropType,
+  sourceLinks: PropTypes.any,
   licenseFiles: legalFilesPropType,
   loadComponent: PropTypes.func,
   loadComponentByComponentIdentifier: PropTypes.func,
@@ -227,6 +237,8 @@ ComponentLegalOverviewPage.propTypes = {
   showLicenseFilesModal: PropTypes.bool.isRequired,
   setShowLicensesModal: PropTypes.func.isRequired,
   showLicensesModal: PropTypes.bool.isRequired,
+  setDisplayOriginalSourcesOverrideModal: PropTypes.func.isRequired,
+  showOriginalSourcesModal: PropTypes.bool.isRequired,
   ecosystem: PropTypes.string,
   $state: PropTypes.shape({
     href: PropTypes.func,

@@ -33,6 +33,7 @@ import {
   ADVANCED_LEGAL_SET_SHOW_LICENSE_FILES_MODAL,
   ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL,
   ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL,
+  ADVANCED_LEGAL_SET_SHOW_ORIGINAL_SOURCES_MODAL,
 } from '../../../../main/frontend/legal/files/advancedLegalFileActions';
 
 describe('advancedLegalFileReducer', function () {
@@ -50,6 +51,22 @@ describe('advancedLegalFileReducer', function () {
         payload: true,
       });
       expect(newState.component.component.licenseLegalData.showLicensesModal).toBe(true);
+    });
+  });
+  describe('ADVANCED_LEGAL_SET_SHOW_ORIGINAL_SOURCES_MODAL action', function () {
+    it('sets the modal visibility to the payload', function () {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {},
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SET_SHOW_ORIGINAL_SOURCES_MODAL,
+        payload: true,
+      });
+      expect(newState.component.component.licenseLegalData.showOriginalSourcesModal).toBe(true);
     });
   });
 

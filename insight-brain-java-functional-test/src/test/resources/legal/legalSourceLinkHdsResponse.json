@@ -10,6 +10,6 @@
         "version": "v"
       }
     },
-    "sourceLinks": []
+    "sourceLinks": ["http://link1.com", "https://link2.com", "link3"]
   }
 ]

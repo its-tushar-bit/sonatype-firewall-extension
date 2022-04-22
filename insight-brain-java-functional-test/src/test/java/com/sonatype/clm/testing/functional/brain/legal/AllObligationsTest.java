@@ -102,7 +102,7 @@ public class AllObligationsTest
     assertThat(componentObligationDAO.getByOwnerIdAndComponentIdentifier(app.getId(), componentId)).isEmpty();
 
     Obligations obligations = ComponentLegalOverviewPage.obligations();
-    obligations.all().shouldHaveSize(9);
+    obligations.all().shouldHaveSize(10);
     for (int i = 0; i < obligations.all().size(); i++) {
       assertThat(obligations.at(i).getObligationStatus()).isEqualTo("Unreviewed");
     }
@@ -120,12 +120,12 @@ public class AllObligationsTest
     modal.shouldNotBe(Condition.visible);
 
     obligations = ComponentLegalOverviewPage.obligations();
-    obligations.all().shouldHaveSize(9);
+    obligations.all().shouldHaveSize(10);
     for (int i = 0; i < obligations.all().size(); i++) {
       assertThat(obligations.at(i).getObligationStatus()).isEqualTo("Fulfilled");
     }
     List<ComponentObligation> componentObligations = componentObligationDAO.getAll();
-    assertThat(componentObligations).hasSize(9);
+    assertThat(componentObligations).hasSize(10);
     componentObligations.forEach(co -> {
       assertThat(co.getStatus()).isEqualTo(ObligationStatus.FULFILLED);
       assertThat(co.getComment()).isEqualTo("my comment");
@@ -155,7 +155,7 @@ public class AllObligationsTest
     refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
 
     Obligations obligations = ComponentLegalOverviewPage.obligations();
-    obligations.all().shouldHaveSize(9);
+    obligations.all().shouldHaveSize(10);
     assertThat(obligations.at(0).getObligationStatus()).isEqualTo("Flagged");
     for (int i = 1; i < obligations.all().size(); i++) {
       assertThat(obligations.at(i).getObligationStatus()).isEqualTo("Unreviewed");
@@ -172,12 +172,12 @@ public class AllObligationsTest
     modal.shouldNotBe(Condition.visible);
 
     obligations = ComponentLegalOverviewPage.obligations();
-    obligations.all().shouldHaveSize(9);
+    obligations.all().shouldHaveSize(10);
     for (int i = 0; i < obligations.all().size(); i++) {
       assertThat(obligations.at(i).getObligationStatus()).isEqualTo("Fulfilled");
     }
     List<ComponentObligation> componentObligations = componentObligationDAO.getAll();
-    assertThat(componentObligations).hasSize(9);
+    assertThat(componentObligations).hasSize(10);
     componentObligations.forEach(co -> {
       assertThat(co.getStatus()).isEqualTo(ObligationStatus.FULFILLED);
       assertThat(co.getComment()).isEmpty();
@@ -194,7 +194,7 @@ public class AllObligationsTest
     refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
 
     Obligations obligations = ComponentLegalOverviewPage.obligations();
-    obligations.all().shouldHaveSize(9);
+    obligations.all().shouldHaveSize(10);
     assertThat(obligations.at(0).getObligationStatus()).isEqualTo("Flagged");
     assertThat(obligations.at(1).getObligationStatus()).isEqualTo("Fulfilled");
     for (int i = 2; i < obligations.all().size(); i++) {
@@ -218,7 +218,7 @@ public class AllObligationsTest
     modal.shouldNotBe(Condition.visible);
 
     obligations = ComponentLegalOverviewPage.obligations();
-    obligations.all().shouldHaveSize(9);
+    obligations.all().shouldHaveSize(10);
     for (int i = 0; i < obligations.all().size(); i++) {
       assertThat(obligations.at(i).getObligationStatus()).isEqualTo("Unreviewed");
     }
@@ -229,7 +229,7 @@ public class AllObligationsTest
   @Test
   public void testCancel() {
     Obligations obligations = ComponentLegalOverviewPage.obligations();
-    obligations.all().shouldHaveSize(9);
+    obligations.all().shouldHaveSize(10);
     for (int i = 0; i < obligations.all().size(); i++) {
       assertThat(obligations.at(i).getObligationStatus()).isEqualTo("Unreviewed");
     }
@@ -255,7 +255,7 @@ public class AllObligationsTest
     modal.shouldNotBe(Condition.visible);
 
     obligations = ComponentLegalOverviewPage.obligations();
-    obligations.all().shouldHaveSize(9);
+    obligations.all().shouldHaveSize(10);
     for (int i = 0; i < obligations.all().size(); i++) {
       assertThat(obligations.at(i).getObligationStatus()).isEqualTo("Unreviewed");
     }
@@ -268,7 +268,7 @@ public class AllObligationsTest
     refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
     AttributionSummaryTile attributionSummaryTile = new AttributionSummaryTile();
     ElementsCollection accordions = attributionSummaryTile.getAllAccordions();
-    accordions.shouldHaveSize(6);
+    accordions.shouldHaveSize(7);
     SelenideElement accordion;
     for (int i = 0; i < accordions.size(); i++) {
       accordion = attributionSummaryTile.getAccordionByIndex(i);
@@ -282,7 +282,7 @@ public class AllObligationsTest
     refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
     AttributionSummaryTile attributionSummaryTile = new AttributionSummaryTile();
     ElementsCollection accordions = attributionSummaryTile.getAllAccordions();
-    accordions.shouldHaveSize(6);
+    accordions.shouldHaveSize(7);
     SelenideElement accordion;
     for (int i = 0; i < accordions.size(); i++) {
       accordion = attributionSummaryTile.getAccordionByIndex(i);
@@ -297,7 +297,7 @@ public class AllObligationsTest
     refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
     AttributionSummaryTile attributionSummaryTile = new AttributionSummaryTile();
     ElementsCollection accordions = attributionSummaryTile.getAllAccordions();
-    accordions.shouldHaveSize(6);
+    accordions.shouldHaveSize(7);
     SelenideElement accordion;
     SelenideElement openModal;
     for (int i = 1; i < accordions.size(); i++) {
@@ -316,7 +316,7 @@ public class AllObligationsTest
     refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
     AttributionSummaryTile attributionSummaryTile = new AttributionSummaryTile();
     ElementsCollection accordions = attributionSummaryTile.getAllAccordions();
-    accordions.shouldHaveSize(6);
+    accordions.shouldHaveSize(7);
     SelenideElement accordion;
     SelenideElement openModal;
     for (int i = 1; i < accordions.size(); i++) {

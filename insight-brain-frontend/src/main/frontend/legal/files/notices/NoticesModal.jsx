@@ -223,7 +223,7 @@ export default function NoticesModal(props) {
             <ObligationStatusComponent existingObligation={existingObligation} onChange={onObligationChange} />
           )}
           <NxFormGroup
-            id="edit-notices-attribution-scope-selection-group"
+            clasName="legal-modal-scope-selection-group"
             label="Scope"
             sublabel="Apply changes to"
             isRequired

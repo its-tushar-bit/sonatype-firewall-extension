@@ -9,10 +9,11 @@ import { pick } from 'ramda';
 import ComponentLegalOverviewPage from './ComponentLegalOverviewPage';
 import { loadAvailableScopes, loadComponent, loadComponentByComponentIdentifier } from './advancedLegalActions';
 import * as copyrightOverrideFormActions from './copyright/copyrightOverrideFormActions';
+import * as originalSourcesFormActions from './originalSources/originalSourcesFormActions';
 import { setShowLicenseFilesModal, setShowNoticesModal, setShowLicensesModal } from './files/advancedLegalFileActions';
 import { path } from 'ramda';
 
-function mapStateToProps({ advancedLegal, router, copyrightOverrides }) {
+function mapStateToProps({ advancedLegal, router, copyrightOverrides, originalSourcesForm }) {
   let component = advancedLegal.component;
   let availableScopes = advancedLegal.availableScopes;
   return {
@@ -26,12 +27,14 @@ function mapStateToProps({ advancedLegal, router, copyrightOverrides }) {
     showLicensesModal: component.component ? component.component.licenseLegalData.showLicensesModal : false,
     noticeFiles: component.component ? component.component.licenseLegalData.noticeFiles : null,
     licenseFiles: component.component ? component.component.licenseLegalData.licenseFiles : null,
+    sourceLinks: component.component ? component.component.licenseLegalData.sourceLinks : null,
     ...pick(
       ['hash', 'organizationId', 'applicationPublicId', 'stageTypeId', 'componentIdentifier'],
       router.currentParams
     ),
     ...pick(['prevState', 'prevParams'], router),
     ...pick(['showEditCopyrightOverrideModal'], copyrightOverrides),
+    ...pick(['showOriginalSourcesModal'], originalSourcesForm),
     ecosystem: path(['component', 'componentIdentifier', 'format'], component),
   };
 }
@@ -44,6 +47,7 @@ const mapDispatchToProps = {
   setShowLicenseFilesModal,
   setShowLicensesModal,
   ...copyrightOverrideFormActions,
+  ...originalSourcesFormActions,
 };
 
 const ComponentLegalOverviewContainer = connect(mapStateToProps, mapDispatchToProps)(ComponentLegalOverviewPage);

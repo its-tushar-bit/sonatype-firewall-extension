@@ -32,6 +32,7 @@ import {
   ADVANCED_LEGAL_SET_SHOW_LICENSE_FILES_MODAL,
   ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL,
   ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL,
+  ADVANCED_LEGAL_SET_SHOW_ORIGINAL_SOURCES_MODAL,
 } from './advancedLegalFileActions';
 import { __, find, lensPath, merge, over, propEq } from 'ramda';
 import { Messages } from '../../util/CommonServices';
@@ -177,6 +178,14 @@ const setShowLicenseFilesModal = (payload, state) =>
   updateLicenseFilesLegalData(
     {
       showLicenseFilesModal: payload,
+    },
+    state
+  );
+
+const setShowOriginalSourcesModal = (payload, state) =>
+  updateLicenseFilesLegalData(
+    {
+      showOriginalSourcesModal: payload,
     },
     state
   );
@@ -377,6 +386,7 @@ export const advancedLegalFileReducerActionMap = {
   [ADVANCED_LEGAL_SAVE_NOTICES_FAILED]: saveNoticesFailed,
   [ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE]: saveNoticesSubmitMaskDone,
   [ADVANCED_LEGAL_SET_SHOW_LICENSE_FILES_MODAL]: setShowLicenseFilesModal,
+  [ADVANCED_LEGAL_SET_SHOW_ORIGINAL_SOURCES_MODAL]: setShowOriginalSourcesModal,
   [ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED]: saveLicensesRequested,
   [ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED]: saveLicensesSucceeded,
   [ADVANCED_LEGAL_SAVE_LICENSES_FAILED]: saveLicensesFailed,

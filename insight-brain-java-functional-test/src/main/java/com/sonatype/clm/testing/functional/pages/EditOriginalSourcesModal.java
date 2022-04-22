@@ -14,35 +14,35 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class EditCopyrightsModal
-    extends BasicElement<EditCopyrightsModal>
+public class EditOriginalSourcesModal
+    extends BasicElement<EditOriginalSourcesModal>
 {
-  public EditCopyrightsModal() {
-    super("#edit-copyright-attribution-modal");
+  public EditOriginalSourcesModal() {
+    super("#edit-original-sources-attribution-modal");
   }
 
-  public Button addCopyrightButton() {
-    return new Button("#add-copyright");
+  public Button addSourceButton() {
+    return new Button("#add-source-link");
   }
 
-  public SelenideElement copyrightInputAt(int index) {
-    return $("#copyright-" + index);
+  public SelenideElement originalSourceInputAt(int index) {
+    return $("#source-" + index);
   }
 
-  public ElementsCollection copyrightInputs() {
+  public ElementsCollection originalSourceInputs() {
     return children(".legal-modal-override-input-content input");
   }
 
-  public SelenideElement copyrightStatusToggleAt(int index) {
-    return child("#copyright-status-toggle-" + index).parent();
+  public SelenideElement originalSourceStatusToggleAt(int index) {
+    return child("#source-status-toggle-" + index).parent();
   }
 
-  public SelenideElement copyrightStatusCheckboxAt(int index) {
-    return child("#copyright-status-toggle-" + index);
+  public SelenideElement originalSourceStatusCheckboxAt(int index) {
+    return child("#source-status-toggle-" + index);
   }
 
   public SelenideElement scopeDropdown() {
-    return $("#edit-copyright-scope-selection");
+    return $("#edit-original-sources-scope-selection");
   }
 
   public StatusDropdown statusDropdown() {

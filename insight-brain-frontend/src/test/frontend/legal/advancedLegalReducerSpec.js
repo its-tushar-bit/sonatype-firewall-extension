@@ -319,6 +319,7 @@ describe('advancedLegalReducer', function () {
         ],
         noticesError: null,
         saveNoticesSubmitMask: null,
+        showOriginalSourcesModal: false,
         showLicenseFilesModal: false,
         showLicensesModal: false,
         componentLicensesScopeOwnerId: 'appId',

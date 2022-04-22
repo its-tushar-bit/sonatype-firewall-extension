@@ -555,7 +555,7 @@ public class ComponentLegalService
    * @param ownerId - the owner id we are applying the ComponentSourceLink from.
    * @param componentSourceLinkDTO - the ComponentSourceLinkDTO to be persisted
    * @return the persisted ComponentSourceLinkDTO.
-   * 
+   *
    * @since 1.133
    */
   @Authorize(permission = Permission.LEGAL_REVIEWER)
@@ -573,7 +573,7 @@ public class ComponentLegalService
     componentSourceLink.setId(componentSourceLinkDTO.getId());
     List<SourceLinkOverride> sourceLinkOverrides = componentSourceLinkDTO.getSourceLinkOverrides().stream().map(dto -> {
       final String content = StringUtils.isBlank(dto.getContent()) ? "" : dto.getContent();
-      final String originalContent = StringUtils.isBlank(dto.getId()) ? dto.getContent() : dto.getOriginalContent();
+      final String originalContent = StringUtils.defaultIfBlank(dto.getOriginalContent(), dto.getContent());
       SourceLinkOverride sourceLinkOverride =
           new SourceLinkOverride(content, originalContent, dto.getStatus(), componentSourceLinkDTO.getId());
       sourceLinkOverride.setId(dto.getId());
@@ -582,19 +582,19 @@ public class ComponentLegalService
     try (TransactionContext tx = componentSourceLinkDAO.createTransactionContext()) {
       tx.begin();
       save(tx,
-          componentSourceLink, 
+          componentSourceLink,
           componentSourceLinkDAO.getById(tx, componentSourceLink.getId()),
           componentSourceLinkDAO.getByOwnerIdAndComponentIdentifier(tx, componentSourceLink.getOwnerId(),
               componentSourceLink.getComponentIdentifier()),
-          componentSourceLinkDAO, 
-          sourceLinkOverrides, 
-          SourceLinkOverride::setComponentSourceLinkId);
-      saveOverrides(tx, 
+          componentSourceLinkDAO,
           sourceLinkOverrides,
-          sourceLinkOverrideDAO.getByComponentSourceLinkId(tx, componentSourceLink.getId()), 
+          SourceLinkOverride::setComponentSourceLinkId);
+      saveOverrides(tx,
+          sourceLinkOverrides,
+          sourceLinkOverrideDAO.getByComponentSourceLinkId(tx, componentSourceLink.getId()),
           sourceLinkOverrideDAO,
-          sourceLinkOverrideDAO::getById, 
-          SourceLinkOverride::getContent, 
+          sourceLinkOverrideDAO::getById,
+          SourceLinkOverride::getContent,
           SourceLinkOverride::isUserCreated);
       tx.commit();
     }
@@ -843,7 +843,7 @@ public class ComponentLegalService
             .filter(c -> c.getStatus() == ComponentLegalPartStatus.ENABLED)
             .map(CopyrightOverride::getContent).collect(Collectors.toList()));
   }
-  
+
   private void auditComponentSourceLink(
       final ComponentSourceLink componentSourceLink,
       final List<SourceLinkOverride> sourceLinkOverrides)

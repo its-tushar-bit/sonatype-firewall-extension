@@ -133,6 +133,7 @@ function loadComponentFulfilled(payload, state) {
     noticesError: null,
     saveNoticesSubmitMask: null,
     showLicenseFilesModal: false,
+    showOriginalSourcesModal: false,
     showLicensesModal: false,
     componentLicensesScopeOwnerId: componentLicenseFilesScopeOwnerId,
     originalComponentLicensesScopeOwnerId: componentLicenseFilesScopeOwnerId,

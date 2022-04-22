@@ -84,6 +84,44 @@ public class ComponentLegalOverviewPage
     }
   }
 
+  public static OriginalSources originalSources() {
+    return new OriginalSources();
+  }
+
+  public static SelenideElement editOriginalSourcesButton() {
+    return $("#edit-original-sources");
+  }
+
+  public static class OriginalSources
+      extends BasicElement<OriginalSources>
+  {
+    private static final String ORIGINAL_SOURCES_SECTION = "#original-sources-tile";
+
+    OriginalSources() {
+      super(ROOT, ORIGINAL_SOURCES_SECTION);
+    }
+
+    public CopyrightStatementElement at(int index) {
+      return new CopyrightStatementElement(childSelector(".nx-list li", nthChild(index + 1)));
+    }
+
+    public ElementsCollection all() {
+      return children(".nx-list li");
+    }
+  }
+
+  public static class OriginalSourceElement
+      extends BasicElement<OriginalSourceElement>
+  {
+    OriginalSourceElement(String selector) {
+      super(selector);
+    }
+
+    public String value() {
+      return getElement().innerText();
+    }
+  }
+
   public static Notices notices() {
     return new Notices();
   }

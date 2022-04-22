@@ -62,7 +62,7 @@ export default function CopyrightOverrideForm(props) {
           {...copyright.content}
           maxLength="1000"
           onChange={onCopyrightContentChange(index)}
-          className="copyright-override-input-content"
+          className="legal-modal-override-input-content"
           disabled={copyright.status === 'disabled'}
         />
       </td>
@@ -218,7 +218,7 @@ export default function CopyrightOverrideForm(props) {
           <h2 className="nx-h2">{isCopyrightPresent() ? 'Edit Copyright Notices' : 'Add Copyright Notices'}</h2>
         </header>
         <div className="nx-modal-content">
-          <table id="edit-copyrights-override-table">
+          <table className="legal-file-override-table">
             <thead>
               <tr>
                 <th id="edit-copyright-override-copyright-text-title">Copyright Text</th>
@@ -239,7 +239,12 @@ export default function CopyrightOverrideForm(props) {
           {existingObligation && (
             <ObligationStatusComponent existingObligation={existingObligation} onChange={onObligationChange} />
           )}
-          <NxFormGroup id="edit-copyright-scope-selection-group" label="Scope" sublabel="Apply changes to" isRequired>
+          <NxFormGroup
+            className="legal-modal-scope-selection-group"
+            label="Scope"
+            sublabel="Apply changes to"
+            isRequired
+          >
             <select
               className="nx-form-select nx-form-select--long"
               id="edit-copyright-scope-selection"

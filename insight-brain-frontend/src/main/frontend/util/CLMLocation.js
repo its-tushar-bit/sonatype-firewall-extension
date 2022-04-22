@@ -476,6 +476,10 @@ export function getDeleteComponentObligationAttributionUrl(componentObligationAt
 ${componentObligationAttributionId}`;
 }
 
+export function getSaveComponentOriginalSourcesOverrideUrl(orgOrApp, ownerId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/sourceLink`;
+}
+
 export function getSaveComponentCopyrightOverrideUrl(orgOrApp, ownerId) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/copyright`;
 }

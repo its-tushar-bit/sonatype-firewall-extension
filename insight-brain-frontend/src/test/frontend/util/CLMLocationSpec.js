@@ -384,6 +384,12 @@ describe('CLMLocation.js', function () {
     );
   });
 
+  it('should return the save original sources override url', function () {
+    expect(CLMLocation.getSaveComponentOriginalSourcesOverrideUrl('orgOrApp', 'ownerId')).toBe(
+      '/api/experimental/licenseLegalMetadata/orgOrApp/ownerId/component/sourceLink'
+    );
+  });
+
   it('should return the save component obligation url', function () {
     expect(CLMLocation.getSaveComponentObligationUrl('ownerType', 'ownerId')).toBe(
       '/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation'

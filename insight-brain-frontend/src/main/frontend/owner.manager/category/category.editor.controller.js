@@ -17,7 +17,7 @@ import {
   selectDeleteModal,
 } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
 
-export default function CategoryEditorController($scope, Modal, DeleteModalService, ApplicationStore, $ngRedux) {
+export default function CategoryEditorController($scope, Modal, DeleteModalService, $ngRedux) {
   var vm = this;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
@@ -59,9 +59,7 @@ export default function CategoryEditorController($scope, Modal, DeleteModalServi
     },
 
     doLoad() {
-      const categoryEditorPromises = [ApplicationStore.get()];
-
-      vm.loadCategoryEditor({ categoryEditorPromises });
+      vm.loadCategoryEditor();
     },
     onDescriptionChange() {
       vm.setCategoryDescription(vm.dirtyCategory.description);
@@ -109,4 +107,4 @@ export const mapStateToThis = (state) => ({
   associatedApplicationNames: selectAssociatedApplicationNames(state),
 });
 
-CategoryEditorController.$inject = ['$scope', 'Modal', 'DeleteModalService', 'ApplicationStore', '$ngRedux'];
+CategoryEditorController.$inject = ['$scope', 'Modal', 'DeleteModalService', '$ngRedux'];

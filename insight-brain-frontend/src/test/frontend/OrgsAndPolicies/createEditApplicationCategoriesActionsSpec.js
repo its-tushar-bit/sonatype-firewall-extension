@@ -7,6 +7,7 @@ import axios from 'axios';
 
 import { actions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import * as applicationsSelectors from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
 import * as selectors from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
@@ -16,6 +17,7 @@ import {
   getDeleteCategoriesUrl,
   getOrganizationAppliedTagUrl,
   getOrganizationPolicyTagUrl,
+  getApplicationsUrl,
 } from 'MainRoot/util/CLMLocation';
 import TagResourceMockData from 'TestRoot/owner.manager/mock.data/tag.resource.mock.data';
 
@@ -42,6 +44,7 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
       ownerId: mockOwnerId,
       ownerType: 'ownerType',
     });
+    spyOn(applicationsSelectors, 'selectApplications').and.returnValue([]);
   });
 
   describe('loadOrganizationPolicyTags', () => {
@@ -353,8 +356,6 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
         tagId: '7ce9b4fb7a47409f96a438ab7163cae8',
       },
     ];
-    const getAllApplicationPromise = jasmine.createSpy().and.returnValue(allApplications);
-    const editCategoryPromises = [getAllApplicationPromise()];
 
     const policiesByOwner = [
       {
@@ -436,31 +437,32 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
         },
       });
 
-      store
-        .dispatch(
-          actions.loadCategoryEditor({
-            categoryEditorPromises: editCategoryPromises,
-          })
-        )
-        .then(() => {
-          expect(axios.get).toHaveBeenCalledTimes(1);
+      store.dispatch(actions.loadCategoryEditor()).then(() => {
+        expect(axios.get).toHaveBeenCalledTimes(1);
 
-          const actions = store.getActions();
+        const actions = store.getActions();
+        expect(actions.length).toBe(4);
+        expect(actions).toHaveActionTypesInOrder([
+          'applicationCategories/createEdit/loadCategoryEditor/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
+          'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
+        ]);
 
-          expect(actions.length).toBe(4);
-          expect(actions).toHaveActionTypesInOrder([
-            'applicationCategories/createEdit/loadCategoryEditor/pending',
-            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
-            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
-            'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
-          ]);
+        expect(actions.length).toBe(4);
+        expect(actions).toHaveActionTypesInOrder([
+          'applicationCategories/createEdit/loadCategoryEditor/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
+          'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
+        ]);
 
-          expect(actions[3].payload).toEqual({
-            siblings: flattenedApplicationCategories,
-          });
-
-          done();
+        expect(actions[3].payload).toEqual({
+          siblings: flattenedApplicationCategories,
         });
+
+        done();
+      });
     });
 
     it('load category editor for editing an existing category', (done) => {
@@ -478,49 +480,51 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
           [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
             data: { policiesByOwner },
           }),
+          [getApplicationsUrl()]: Promise.resolve({
+            data: allApplications,
+          }),
         },
       });
 
-      store
-        .dispatch(
-          actions.loadCategoryEditor({
-            categoryEditorPromises: editCategoryPromises,
-          })
-        )
-        .then(() => {
-          expect(axios.get).toHaveBeenCalledTimes(4);
+      store.dispatch(actions.loadCategoryEditor()).then(() => {
+        expect(axios.get).toHaveBeenCalledTimes(5);
 
-          const actions = store.getActions();
+        const actions = store.getActions();
 
-          expect(actions.length).toBe(10);
-          expect(actions).toHaveActionTypesInOrder([
-            'applicationCategories/createEdit/loadCategoryEditor/pending',
-            'applicationCategories/createEdit/loadOrganizationAppliedTag/pending',
-            'policy/loadApplicablePoliciesByOwner/pending',
-            'applicationCategories/createEdit/loadOrganizationPolicyTags/pending',
-            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
-            'applicationCategories/createEdit/loadOrganizationAppliedTag/fulfilled',
-            'policy/loadApplicablePoliciesByOwner/fulfilled',
-            'applicationCategories/createEdit/loadOrganizationPolicyTags/fulfilled',
-            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
-            'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
-          ]);
+        expect(actions.length).toBe(15);
+        expect(actions).toHaveActionTypesInOrder([
+          'applicationCategories/createEdit/loadCategoryEditor/pending',
+          'applicationCategories/createEdit/loadOrganizationAppliedTag/pending',
+          'applications/loadApplicationsIfNeeded/pending',
+          'applications/loadApplications/pending',
+          'policy/loadApplicablePoliciesByOwner/pending',
+          'applicationCategories/createEdit/loadOrganizationPolicyTags/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+          'applications/setOwnerName',
+          'applicationCategories/createEdit/loadOrganizationAppliedTag/fulfilled',
+          'applications/loadApplications/fulfilled',
+          'policy/loadApplicablePoliciesByOwner/fulfilled',
+          'applicationCategories/createEdit/loadOrganizationPolicyTags/fulfilled',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
+          'applications/loadApplicationsIfNeeded/fulfilled',
+          'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
+        ]);
 
-          expect(actions[9].payload).toEqual({
-            siblings: flattenedApplicationCategories,
-            associatedApplicationNames: ['activemq'],
-            currentCategory: {
-              color: 'black',
-              description: 'Description 1',
-              id: 'appCategoryId_1',
-              name: 'Category 1',
-              organizationId: 'orgownerid',
-            },
-            tagPolicyList: ['Architecture-Quality'],
-          });
-
-          done();
+        expect(actions[14].payload).toEqual({
+          siblings: flattenedApplicationCategories,
+          associatedApplicationNames: ['activemq'],
+          currentCategory: {
+            color: 'black',
+            description: 'Description 1',
+            id: 'appCategoryId_1',
+            name: 'Category 1',
+            organizationId: 'orgownerid',
+          },
+          tagPolicyList: ['Architecture-Quality'],
         });
+
+        done();
+      });
     });
 
     it('dispatches reject action if save request fails', (done) => {
@@ -534,27 +538,21 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
         },
       });
 
-      store
-        .dispatch(
-          actions.loadCategoryEditor({
-            categoryEditorPromises: editCategoryPromises,
-          })
-        )
-        .then(() => {
-          expect(axios.get).toHaveBeenCalledTimes(1);
+      store.dispatch(actions.loadCategoryEditor()).then(() => {
+        expect(axios.get).toHaveBeenCalledTimes(1);
 
-          const actions = store.getActions();
+        const actions = store.getActions();
 
-          expect(actions.length).toBe(4);
-          expect(actions).toHaveActionTypesInOrder([
-            'applicationCategories/createEdit/loadCategoryEditor/pending',
-            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
-            'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
-            'applicationCategories/createEdit/loadCategoryEditor/rejected',
-          ]);
+        expect(actions.length).toBe(4);
+        expect(actions).toHaveActionTypesInOrder([
+          'applicationCategories/createEdit/loadCategoryEditor/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
+          'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
+          'applicationCategories/createEdit/loadCategoryEditor/rejected',
+        ]);
 
-          done();
-        });
+        done();
+      });
     });
   });
 

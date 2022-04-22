@@ -36,6 +36,7 @@ import { pathSet, propSet } from '../util/jsUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { actions as orgsAndPoliciesRootActions } from './orgsAndPoliciesRootSlice';
 import { actions as policyActions } from './policySlice';
+import { actions as applicationActions } from './applicationsSlice';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { deriveEditRoute } from './utility/util';
 
@@ -210,13 +211,13 @@ const getAssociatedApplicationNames = (applicationTagsByOwner, allApplication, c
 
 const loadCategoryEditor = createAsyncThunk(
   `${REDUCER_NAME}/loadCategoryEditor`,
-  ({ categoryEditorPromises }, { getState, rejectWithValue, dispatch }) => {
+  (_, { getState, rejectWithValue, dispatch }) => {
     const isEditMode = selectIsEditMode(getState());
 
     const editCategoryPromises = isEditMode
       ? [
           dispatch(loadOrganizationAppliedTag()),
-          ...categoryEditorPromises,
+          dispatch(applicationActions.loadApplicationsIfNeeded()),
           dispatch(policyActions.loadApplicablePoliciesByOwner()),
           dispatch(loadOrganizationPolicyTags()),
         ]
@@ -228,11 +229,10 @@ const loadCategoryEditor = createAsyncThunk(
         const [
           applicationCategoriesByOwnerActionPayload,
           applicationTagsByOwnerActionPayload,
-          allApplication,
+          allApplicationPayload,
           loadApplicablePoliciesByOwnerActionPayload,
           policyTagActionPayload,
         ] = results;
-
         const { applicationCategoriesByOwner = [] } = unwrapResult(applicationCategoriesByOwnerActionPayload);
         const siblingsFromAllOwners = getAllApplicationCategories(applicationCategoriesByOwner);
 
@@ -242,9 +242,9 @@ const loadCategoryEditor = createAsyncThunk(
           };
         }
 
+        const allApplication = unwrapResult(allApplicationPayload);
         const { applicationTagsByOwner = [] } = unwrapResult(applicationTagsByOwnerActionPayload);
         const policyTags = unwrapResult(policyTagActionPayload);
-
         const { categoryId } = selectRouterCurrentParams(getState());
         const categoryToEdit = findCategoryToEdit(categoryId, applicationCategoriesByOwner);
         const associatedApplicationNames = getAssociatedApplicationNames(

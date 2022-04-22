@@ -588,7 +588,7 @@ describe('originalSourcesFormActions', function () {
       },
     ];
 
-    fit('dispatches the expected actions on success', function (done) {
+    it('dispatches the expected actions on success', function (done) {
       store = SpecUtil.mockReduxStore(initialState);
       const expectedPostBody = {
         componentIdentifier: 'componentIdentifier',

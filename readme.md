@@ -97,5 +97,12 @@ to not support this slow motion mode properly so other browsers should be used.
 
 ## Experimental Feature Flags ##
 
-As new work is being developed, it can be hidden behind experimental feature flags. References to the currently available
-experimental feature flags can be maintained in `insight-brain-service/src/test/resources/config-dev.yml`.
+As new work is being developed, it can be hidden behind feature flags. New feature flags should be stored in the 
+database.
+
+An easy way to do this is to add it to the `SystemConfigurationPropertyFeature` enum. When adding you can set 
+`enabledWhenAbsent` to `false` if you want the feature to only be enabled if it's inside the database, or `true` 
+if you want the feature to only be enabled if it's not inside the database. Typically, an experimental feature would 
+start with `enabledWhenAbsent` set to `false`. When it's production-ready, it would either be removed from the enum, or 
+have its `enabledWhenAbsent` changed to `true` (to still be able to disable it). This would be alongside an incremental 
+script to delete it from the `system_configuration_property` table.

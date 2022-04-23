@@ -7,6 +7,7 @@ import sourceControlModule from 'MainRoot/owner.manager/source.control/module';
 import utilityModule from 'MainRoot/utility/utility.module';
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 
 describe('source.control.editor', function () {
   const ROOT_ORG_ID = 'rootOrganizationId';
@@ -26,7 +27,6 @@ describe('source.control.editor', function () {
     $componentController,
     mockCLMContextLocations,
     mockOrganizationStore,
-    mockApplicationStore,
     getByIdDeferred,
     vm,
     mockSourceControlService,
@@ -123,7 +123,6 @@ describe('source.control.editor', function () {
       'isRootOrg',
     ]);
     mockOrganizationStore = jasmine.createSpyObj('mockOrganizationStore', ['getById']);
-    mockApplicationStore = jasmine.createSpyObj('mockApplicationsStore', ['getById']);
     mockSourceControlService = jasmine.createSpyObj('mockSourceControlService', [
       'getCompositeSourceControlRecord',
       'getProviderTypes',
@@ -143,6 +142,18 @@ describe('source.control.editor', function () {
     $timeout = _$timeout_;
 
     spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+    spyOn(applicationActions, 'loadApplicationsIfNeeded').and.returnValue({
+      payload: [
+        {
+          contact: null,
+          id: APPLICATION_ID,
+          name: APPLICATION_NAME,
+          organizationId: '0a4ca3e6b672406892170481ef79799e',
+          organizationName: 'org',
+          publicId: APPLICATION_ID,
+        },
+      ],
+    });
 
     mockSourceControlService.getProviderTypesMap.and.returnValue({
       azure: 'Azure DevOps',
@@ -263,7 +274,6 @@ describe('source.control.editor', function () {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
         OrganizationStore: mockOrganizationStore,
-        ApplicationStore: mockApplicationStore,
         SourceControlService: mockSourceControlService,
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
@@ -292,7 +302,6 @@ describe('source.control.editor', function () {
           $scope: $scope,
           CLMContextLocations: mockCLMContextLocations,
           OrganizationStore: mockOrganizationStore,
-          ApplicationStore: mockApplicationStore,
           SourceControlService: mockSourceControlService,
         });
         vm.isAutomationSupported = true;
@@ -867,7 +876,6 @@ describe('source.control.editor', function () {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
         OrganizationStore: mockOrganizationStore,
-        ApplicationStore: mockApplicationStore,
         SourceControlService: mockSourceControlService,
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
@@ -896,7 +904,6 @@ describe('source.control.editor', function () {
           $scope: $scope,
           CLMContextLocations: mockCLMContextLocations,
           OrganizationStore: mockOrganizationStore,
-          ApplicationStore: mockApplicationStore,
           SourceControlService: mockSourceControlService,
         });
         vm.isAutomationSupported = true;
@@ -1513,6 +1520,33 @@ describe('source.control.editor', function () {
     });
   });
 
+  describe('application not found', function () {
+    const UNKNOWN_APP_ID = 'unknown_app_id';
+
+    beforeEach(function () {
+      mockCLMContextLocations.isOrganization.and.returnValue(false);
+      mockCLMContextLocations.isRootOrg.and.returnValue(false);
+      mockCLMContextLocations.isApplication.and.returnValue(true);
+      mockCLMContextLocations.getEntityId.and.returnValue(UNKNOWN_APP_ID);
+
+      vm = $componentController('sourceControlEditor', {
+        $scope: $scope,
+        CLMContextLocations: mockCLMContextLocations,
+        OrganizationStore: mockOrganizationStore,
+        SourceControlService: mockSourceControlService,
+        DeleteModalService: mockDeleteService,
+        SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
+        UpdateSourceControlModalService: mockUpdateUrlService,
+      });
+      $scope.$digest();
+    });
+
+    it('sets the error message on failure for the application owner id', function () {
+      expect(vm.ownerName).toBeUndefined();
+      expect(vm.loadError).toEqual(`Could not find an application with ID ${UNKNOWN_APP_ID}.`);
+    });
+  });
+
   describe('application', function () {
     const compositeSourceControl = {
       usernameInheritedValue: null,
@@ -1611,9 +1645,6 @@ describe('source.control.editor', function () {
       mockCLMContextLocations.getEntityId.and.returnValue(APPLICATION_ID);
       mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
-      mockApplicationStore.getById.and.callFake(function (id) {
-        return id === APPLICATION_ID ? getByIdDeferred.promise : null;
-      });
       mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
         return ownerType === 'application' && id === APPLICATION_ID ? getSourceControlDeferred.promise : null;
       });
@@ -1622,7 +1653,6 @@ describe('source.control.editor', function () {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
         OrganizationStore: mockOrganizationStore,
-        ApplicationStore: mockApplicationStore,
         SourceControlService: mockSourceControlService,
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
@@ -1651,7 +1681,6 @@ describe('source.control.editor', function () {
           $scope: $scope,
           CLMContextLocations: mockCLMContextLocations,
           OrganizationStore: mockOrganizationStore,
-          ApplicationStore: mockApplicationStore,
           SourceControlService: mockSourceControlService,
         });
         vm.isAutomationSupported = true;
@@ -1667,18 +1696,8 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID);
 
         expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-        expect(mockApplicationStore.getById).toHaveBeenCalledWith(APPLICATION_ID);
         expect(vm.ownerName).toBe(APPLICATION_NAME);
         expect(vm.loadError).toBeUndefined();
-      });
-
-      it('sets the error message on failure for the application owner id', function () {
-        getByIdDeferred.reject({ status: 404, data: 'not found' });
-
-        $scope.$digest();
-
-        expect(vm.ownerName).toBeUndefined();
-        expect(vm.loadError).toEqual('not found');
       });
 
       it('sets the error message on failure for the application source control', function () {

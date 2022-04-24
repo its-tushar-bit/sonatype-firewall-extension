@@ -704,9 +704,7 @@ public class ApiLicenseLegalService
     sourceLinks = sourceLinks.stream()
         .filter(sourceLinkHDS -> sourceLinkOverrides.stream()
             .noneMatch(customSourceLink -> customSourceLink.originalContent.equals(sourceLinkHDS.originalContent)))
-        .sorted(
-            Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.originalContent,
-                String.CASE_INSENSITIVE_ORDER))
+        .sorted(Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.content, String.CASE_INSENSITIVE_ORDER))
         .collect(Collectors.toCollection(LinkedHashSet::new));
     sourceLinks.addAll(sourceLinkOverrides);
     return sourceLinks;
@@ -1073,7 +1071,7 @@ public class ApiLicenseLegalService
         .collect(Collectors.toMap(Function.identity(),
             compIdentifier -> mergeLegalSourceLinkAndSourceLinkOverride(compIdentifier, owner).stream()
                 .filter(sl -> sl.status == ComponentLegalPartStatus.ENABLED)
-                .sorted(Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.originalContent,
+                .sorted(Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.content,
                     String.CASE_INSENSITIVE_ORDER))
                 .collect(Collectors.toCollection(LinkedHashSet::new)))
         );

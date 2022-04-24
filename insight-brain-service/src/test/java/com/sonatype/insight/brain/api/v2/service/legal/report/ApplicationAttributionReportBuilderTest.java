@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -528,10 +530,11 @@ public class ApplicationAttributionReportBuilderTest
 
     LegalSourceLinkDTO linkDTOMultiShortLink2 = new LegalSourceLinkDTO();
     linkDTOMultiShortLink2.id = "2";
-    linkDTOMultiShortLink2.content = "http://abc";
+    linkDTOMultiShortLink2.content = "http://abcd";
     linkDTOMultiShortLink2.status = ComponentLegalPartStatus.ENABLED;
 
-    HashSet<LegalSourceLinkDTO> sourceLinkDTOSMultiShortLink = new HashSet<LegalSourceLinkDTO>();
+    Set<LegalSourceLinkDTO> sourceLinkDTOSMultiShortLink = new TreeSet<LegalSourceLinkDTO>(
+        Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.content, String.CASE_INSENSITIVE_ORDER));
     sourceLinkDTOSMultiShortLink.add(linkDTOMultiShortLink1);
     sourceLinkDTOSMultiShortLink.add(linkDTOMultiShortLink2);
     licenseLegalData4.sourceLinks = sourceLinkDTOSMultiShortLink;

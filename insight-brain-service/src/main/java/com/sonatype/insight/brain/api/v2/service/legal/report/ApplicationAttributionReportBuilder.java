@@ -10,6 +10,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -317,8 +319,10 @@ public class ApplicationAttributionReportBuilder
     if (CollectionUtils.isEmpty(sourceLinks)) {
       return new HashSet<>();
     }
-    return sourceLinks.stream().filter(l -> l.status
-        .equals(ComponentLegalPartStatus.ENABLED)).collect(Collectors.toSet());
+    return sourceLinks.stream()
+        .filter(l -> l.status.equals(ComponentLegalPartStatus.ENABLED))
+        .collect(Collectors.toCollection(() -> new TreeSet<LegalSourceLinkDTO>(
+            Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.content, String.CASE_INSENSITIVE_ORDER))));
   }
 
   public static String formatSourceLink(Set<LegalSourceLinkDTO> sourceLinks) {

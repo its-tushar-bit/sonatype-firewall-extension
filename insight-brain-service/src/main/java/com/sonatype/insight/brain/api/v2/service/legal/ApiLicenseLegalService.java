@@ -1073,7 +1073,9 @@ public class ApiLicenseLegalService
         .collect(Collectors.toMap(Function.identity(),
             compIdentifier -> mergeLegalSourceLinkAndSourceLinkOverride(compIdentifier, owner).stream()
                 .filter(sl -> sl.status == ComponentLegalPartStatus.ENABLED)
-                .collect(Collectors.toSet()))
+                .sorted(Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.originalContent,
+                    String.CASE_INSENSITIVE_ORDER))
+                .collect(Collectors.toCollection(LinkedHashSet::new)))
         );
   }
 

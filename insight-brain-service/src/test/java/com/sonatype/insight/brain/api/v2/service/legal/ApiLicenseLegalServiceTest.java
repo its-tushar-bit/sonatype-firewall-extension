@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -1366,7 +1367,21 @@ public class ApiLicenseLegalServiceTest
     ApiReportRawDataDTOV2 rawReport =
         apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
     apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
-    testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS, null);
+    testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS, null,
+        false);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationReport_WithInnerSource() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluation);
+    ApiReportRawDataDTOV2 rawReport =
+        apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
+    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
+    testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS,
+        BuildStageType.ID, true);
   }
 
   @Test
@@ -1382,7 +1397,7 @@ public class ApiLicenseLegalServiceTest
         apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation2.getScanId());
     apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
     testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS,
-        ReleaseStageType.ID);
+        ReleaseStageType.ID, false);
   }
 
   @Test
@@ -1392,7 +1407,7 @@ public class ApiLicenseLegalServiceTest
     apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
     doReturn(Optional.of(rawReport)).when(apiLicenseLegalServiceSpy).getLastRawApplicationReport(anyString());
     testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata-multilicense.json",
-        EXPECTED_LICENSE_IDS_FOR_MULTILICENSE, null);
+        EXPECTED_LICENSE_IDS_FOR_MULTILICENSE, null, false);
   }
 
   @Test
@@ -1424,12 +1439,14 @@ public class ApiLicenseLegalServiceTest
       ApiReportRawDataDTOV2 rawReport,
       String licenseMetadataResource,
       String[] expectedLicenseFiles,
-      String stageId)
+      String stageId,
+      boolean includeInnerSource)
       throws Exception
   {
     ComponentIdentifier[] expectedComponentIdentifiers = rawReport.components.stream()
         .filter(c -> c.componentIdentifier != null)
-        .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
+        .filter(c -> includeInnerSource
+            || !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
         .map(component -> component.componentIdentifier.toComponentIdentifier())
         .distinct()
         .toArray(ComponentIdentifier[]::new);
@@ -1463,11 +1480,11 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
         stageId == null ? apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app) : apiLicenseLegalServiceSpy
-            .getLicenseLegalApplicationReport(app, stageId);
+            .getLicenseLegalApplicationReport(app, stageId, includeInnerSource);
 
     assertThat(licenseMetadataReport).isNotNull();
     assertLicenseLegalMetadata(licenseMetadataReport.components, licenseMetadataReport.licenseLegalMetadata, rawReport,
-        expectedLicenseFiles);
+        expectedLicenseFiles, includeInnerSource);
     assertObligationsArePresent(licenseMetadataReport.licenseLegalMetadata, Arrays.asList(licenseMetadata));
     assertComponentLegalComments(licenseMetadataReport.components,
         new LinkedHashSet<>(Arrays.asList(componentLegalComments)));
@@ -1481,7 +1498,7 @@ public class ApiLicenseLegalServiceTest
         componentIdentifiers -> assertThat(componentIdentifiers)
             .containsExactlyInAnyOrder(expectedComponentIdentifiers));
 
-    assertApplicationTelemetry(app, rawReport);
+    assertApplicationTelemetry(app, rawReport, includeInnerSource);
 
     List<ComponentIdentifier> sourceLinkComponents = componentIdentifierArgumentCaptor.getAllValues();
     assertThat(sourceLinkComponents).hasSize(expectedComponentIdentifiers.length);
@@ -1491,6 +1508,15 @@ public class ApiLicenseLegalServiceTest
     assertThat(licenseMetadataReport.components.stream().flatMap(c -> c.licenseLegalData.sourceLinks.stream())
         .collect(Collectors.toSet())).hasSize(3).map(sl -> sl.status).areExactly(3,
         new Condition<>(status -> status == ComponentLegalPartStatus.ENABLED, "All source links are enabled"));
+
+    if (includeInnerSource) {
+      assertThat(licenseMetadataReport.components)
+          .anyMatch(dto -> dto.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER));
+    }
+    else {
+      assertThat(licenseMetadataReport.components)
+          .noneMatch(dto -> dto.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER));
+    }
   }
 
   @Test
@@ -1511,7 +1537,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(licenseMetadataReport.components).hasSize(3);
     assertThat(licenseMetadataReport.licenseLegalMetadata).isEmpty();
 
-    assertApplicationTelemetry(app, rawReport);
+    assertApplicationTelemetry(app, rawReport, false);
   }
 
   @Test
@@ -2763,11 +2789,14 @@ public class ApiLicenseLegalServiceTest
       List<ApiLicenseLegalComponentDTO> components,
       Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata,
       ApiReportRawDataDTOV2 rawReport,
-      String[] expectedLicenseIds)
+      String[] expectedLicenseIds,
+      boolean includeInnerSource)
   {
     assertThat(components).hasSize((int) rawReport.components.stream()
         .filter(c -> c.componentIdentifier != null)
-        .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER)).count());
+        .filter(c -> includeInnerSource
+            || !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
+        .count());
     List<Collection<String>> licenseIds = licenseIdArgumentCaptor.getAllValues();
     assertThat(licenseIds).hasSize(1);
     assertThat(licenseIds.get(0)).containsExactlyInAnyOrder(expectedLicenseIds);
@@ -3001,7 +3030,11 @@ public class ApiLicenseLegalServiceTest
     }
   }
 
-  private void assertApplicationTelemetry(Application application, ApiReportRawDataDTOV2 rawReport) {
+  private void assertApplicationTelemetry(
+      Application application,
+      ApiReportRawDataDTOV2 rawReport,
+      boolean includeInnerSource)
+  {
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
     TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
@@ -3009,14 +3042,14 @@ public class ApiLicenseLegalServiceTest
     expectedAttributes.put(ApplicationLicenseUsageTelemetry.ATTRIBUTE_NAME, new ApplicationLicenseUsageTelemetry(
         application.getPublicId(),
         rawReport.components.stream()
-            .filter(c -> Objects.isNull(c.componentIdentifier) ||
-                !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
+            .filter(c -> Objects.isNull(c.componentIdentifier) || includeInnerSource
+                || !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
             .map(component -> component.hash)
             .filter(StringUtils::isNotBlank)
             .collect(Collectors.toCollection(LinkedHashSet::new)),
         rawReport.components.stream()
-            .filter(c -> Objects.isNull(c.componentIdentifier) ||
-                !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
+            .filter(c -> Objects.isNull(c.componentIdentifier) || includeInnerSource
+                || !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
             .filter(component -> component.licenseData != null)
             .map(component -> component.licenseData)
             .flatMap(licenseData -> Stream.concat(

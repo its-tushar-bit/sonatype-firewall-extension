@@ -158,26 +158,26 @@ public class ApiLicenseLegalServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetLicenseLegalApplicationReportByStage_Unauthenticated() {
-    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID);
+    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID, false);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetLicenseLegalApplicationReportByStage_Unauthorized() {
     login();
-    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID);
+    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID, false);
   }
 
   @Test(expected = NotFoundException.class)
   public void testGetLicenseLegalApplicationReportByStage_Authorized() {
     grantLegalReviewerPermission(app.getId());
-    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID);
+    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID, false);
   }
 
   @Test
   public void testGetLicenseLegalApplicationReportNoException() {
     grantLegalReviewerPermission(app.getId());
     Optional<ApiLicenseLegalApplicationReportDTO> report =
-        apiLicenseLegalService.getLicenseLegalApplicationReportNoException(app, BuildStageType.ID);
+        apiLicenseLegalService.getLicenseLegalApplicationReportNoException(app, BuildStageType.ID, false);
     assertThat(report).isEmpty();
   }
 

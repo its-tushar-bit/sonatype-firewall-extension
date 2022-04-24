@@ -580,7 +580,7 @@ public class ApiLegalReportResourceV2Test
             "testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE",
             "testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER",
             "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER",
-            false, false, false);
+            false, false, false, false);
 
     HttpResponse response =
         restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
@@ -612,7 +612,7 @@ public class ApiLegalReportResourceV2Test
     AttributionReportTemplate template = tempEntity.createNewAttributionReportTemplate("Template Name",
         "testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE",
         "testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER",
-        "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER", false, false, false);
+        "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER", false, false, false, false);
 
     File file = createNoticeFile();
 
@@ -648,7 +648,7 @@ public class ApiLegalReportResourceV2Test
     AttributionReportTemplate template = tempEntity.createNewAttributionReportTemplate("Template Name",
         "testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE",
         "testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER",
-        "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER", false, false, false);
+        "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER", false, false, false, false);
 
     HttpResponse response = restRequest()
         .path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER_TEMPLATE_PATH)
@@ -679,7 +679,7 @@ public class ApiLegalReportResourceV2Test
             "testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE",
             "testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER",
             "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER",
-            false, false, false);
+            false, false, false, false);
 
     File file = createNoticeFile();
 
@@ -710,7 +710,7 @@ public class ApiLegalReportResourceV2Test
             "testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE",
             "testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER",
             "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER",
-            false, false, false);
+            false, false, false, false);
 
     File file = createNoticeFile();
 

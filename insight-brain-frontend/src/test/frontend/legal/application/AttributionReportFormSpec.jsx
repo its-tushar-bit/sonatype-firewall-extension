@@ -32,6 +32,7 @@ describe('AttributionReportForm component', function () {
             includeTableOfContents: true,
             includeAppendix: true,
             includeStandardLicenseTexts: true,
+            includeInnerSource: true,
             lastUpdatedAt: 1631210819988,
           },
           {
@@ -43,6 +44,7 @@ describe('AttributionReportForm component', function () {
             includeTableOfContents: false,
             includeAppendix: true,
             includeStandardLicenseTexts: true,
+            includeInnerSource: false,
             lastUpdatedAt: 1631210809228,
           },
         ],
@@ -198,6 +200,10 @@ describe('AttributionReportForm component', function () {
     expect(
       wrapper.find('input[name="includeAppendix"]').prop('value') ===
         selectedAttributionReportTemplate.includeAppendix.toString()
+    ).toBe(true);
+    expect(
+      wrapper.find('input[name="includeInnerSource"]').prop('value') ===
+        selectedAttributionReportTemplate.includeInnerSource
     ).toBe(true);
   });
 });

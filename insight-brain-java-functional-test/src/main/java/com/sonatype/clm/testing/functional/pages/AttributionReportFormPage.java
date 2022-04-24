@@ -92,6 +92,10 @@ public final class AttributionReportFormPage
     return child("input[name='includeAppendix']");
   }
 
+  public SelenideElement getIncludeInnerSourceCheckboxInput() {
+    return child("input[name='includeInnerSource']");
+  }
+
   public SelenideElement getTemplatesDropdown() {
     return child(".nx-dropdown__toggle");
   }

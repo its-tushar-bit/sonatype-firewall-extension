@@ -26,12 +26,13 @@ public class LegalCustomReportParametersTest
     assertThat(parameters.isIncludeStandardLicenseTexts()).isTrue();
     assertThat(parameters.isIncludeAppendix()).isTrue();
     assertThat(parameters.getNoticeFiles()).isEmpty();
+    assertThat(parameters.isIncludeInnerSource()).isFalse();
   }
 
   @Test
   public void testFromTemplateDTO() {
     final AttributionReportTemplateDTO templateDTO = new AttributionReportTemplateDTO(
-        "template name", "title", "header", "footer", true, true, true);
+        "template name", "title", "header", "footer", true, true, true, true);
 
     final LegalCustomReportParameters parameters =
         LegalCustomReportParameters.builder().fromAttributionReportTemplateDTO(templateDTO)
@@ -45,5 +46,6 @@ public class LegalCustomReportParametersTest
     assertThat(parameters.isIncludeStandardLicenseTexts()).isTrue();
     assertThat(parameters.isIncludeAppendix()).isTrue();
     assertThat(parameters.getNoticeFiles()).isEqualTo(Arrays.asList("one", "two"));
+    assertThat(parameters.isIncludeInnerSource()).isTrue();
   }
 }

@@ -62,7 +62,8 @@ public class AttributionReportService
         attributionReportTemplateDTO.getFooter(),
         attributionReportTemplateDTO.isIncludeTableOfContents(),
         attributionReportTemplateDTO.isIncludeAppendix(),
-        attributionReportTemplateDTO.isIncludeStandardLicenseTexts());
+        attributionReportTemplateDTO.isIncludeStandardLicenseTexts(),
+        attributionReportTemplateDTO.isIncludeInnerSource());
 
     validateTemplateName(attributionReportTemplate);
 

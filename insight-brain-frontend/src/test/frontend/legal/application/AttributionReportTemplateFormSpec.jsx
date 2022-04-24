@@ -43,6 +43,7 @@ describe('AttributionReportTemplateForm component', function () {
             includeTableOfContents: false,
             includeAppendix: true,
             includeStandardLicenseTexts: true,
+            includeInnerSource: true,
             lastUpdatedAt: 1630351357414,
           },
           {
@@ -54,6 +55,7 @@ describe('AttributionReportTemplateForm component', function () {
             includeTableOfContents: false,
             includeAppendix: false,
             includeStandardLicenseTexts: false,
+            includeInnerSource: false,
             lastUpdatedAt: 1630351372428,
           },
         ],
@@ -127,7 +129,7 @@ describe('AttributionReportTemplateForm component', function () {
     expect(wrapper.find('input[name="title"]').prop('value')).toBe('Application Name 1');
     expect(wrapper.find('input[name="header"]').prop('value')).toBe('custom header');
     expect(wrapper.find('input[name="footer"]').prop('value')).toBe('custom footer');
-    expect(wrapper.find('.tm-checked input[type="checkbox"]').length).toBe(2);
+    expect(wrapper.find('.tm-checked input[type="checkbox"]').length).toBe(3);
   });
 
   it('renders a list of templates with the second one selected and the form showing the second template configuration', function () {

@@ -60,6 +60,7 @@ export default function AttributionReportForm(props) {
     includeTableOfContents: true,
     includeStandardLicenseTexts: true,
     includeAppendix: true,
+    includeInnerSource: false,
   };
   const [formState, setFormState] = React.useState(defaultFormState);
   const rawManageTemplateUrl =
@@ -91,6 +92,7 @@ export default function AttributionReportForm(props) {
       includeTableOfContents,
       includeStandardLicenseTexts,
       includeAppendix,
+      includeInnerSource,
     } = attributionReportTemplates.results[attributionReports.selectedTemplateIndex];
 
     setFormState({
@@ -100,6 +102,7 @@ export default function AttributionReportForm(props) {
       includeTableOfContents,
       includeStandardLicenseTexts,
       includeAppendix,
+      includeInnerSource,
     });
   }
 
@@ -132,6 +135,7 @@ export default function AttributionReportForm(props) {
     includeTableOfContents: formState.includeTableOfContents,
     includeStandardLicenseTexts: formState.includeStandardLicenseTexts,
     includeAppendix: formState.includeAppendix,
+    includeInnerSource: formState.includeInnerSource,
   });
 
   const getTemplatePristinity = (inputToOmit) => {
@@ -348,6 +352,20 @@ export default function AttributionReportForm(props) {
               >
                 Include Appendix that displays all Standard Licence Texts at the end of the report and inserts
                 hyperlinks where relevant.
+              </NxCheckbox>
+            </NxFieldset>
+            <NxFieldset label="InnerSource Components" isRequired>
+              <NxCheckbox
+                onChange={toggle('includeInnerSource')}
+                isChecked={formState.includeInnerSource}
+                id="include-inner-source-checkbox"
+                inputAttributes={{
+                  name: 'includeInnerSource',
+                  value: formState.includeInnerSource,
+                }}
+              >
+                Include InnerSource components. InnerSource components are internally developed components that are
+                shared with other internal projects.
               </NxCheckbox>
             </NxFieldset>
             <input type="hidden" name="includeToc" value={formState.includeTableOfContents.toString()} />

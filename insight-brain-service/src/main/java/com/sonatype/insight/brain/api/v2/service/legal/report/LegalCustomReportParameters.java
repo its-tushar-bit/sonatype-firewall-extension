@@ -30,6 +30,8 @@ public final class LegalCustomReportParameters
 
   private final List<String> noticeFiles;
 
+  private final boolean includeInnerSource;
+
   public static Builder builder() {
     return new Builder();
   }
@@ -39,7 +41,10 @@ public final class LegalCustomReportParameters
       final String header,
       final String footer,
       final boolean includeToc,
-      final boolean includeStandardLicenseTexts, final boolean includeAppendix, final List<String> noticeFiles)
+      final boolean includeStandardLicenseTexts,
+      final boolean includeAppendix,
+      final List<String> noticeFiles,
+      boolean includeInnerSource)
   {
     this.title = title;
     this.header = header;
@@ -48,6 +53,7 @@ public final class LegalCustomReportParameters
     this.includeStandardLicenseTexts = includeStandardLicenseTexts;
     this.includeAppendix = includeAppendix;
     this.noticeFiles = noticeFiles;
+    this.includeInnerSource = includeInnerSource;
   }
 
   public String getTitle() {
@@ -81,6 +87,10 @@ public final class LegalCustomReportParameters
     return noticeFiles;
   }
 
+  public boolean isIncludeInnerSource() {
+    return includeInnerSource;
+  }
+
   public static final class Builder
   {
     private String title = "";
@@ -96,6 +106,8 @@ public final class LegalCustomReportParameters
     private boolean includeAppendix = true;
 
     private List<String> noticeFiles = Collections.emptyList();
+
+    private boolean includeInnerSource = false;
 
     private Builder() { }
 
@@ -134,6 +146,11 @@ public final class LegalCustomReportParameters
       return this;
     }
 
+    public Builder withIncludeInnerSource(boolean includeInnerSource) {
+      this.includeInnerSource = includeInnerSource;
+      return this;
+    }
+
     public Builder fromAttributionReportTemplateDTO(final AttributionReportTemplateDTO templateDTO) {
       return this
           .withHeader(templateDTO.getHeader())
@@ -141,7 +158,8 @@ public final class LegalCustomReportParameters
           .withTitle(templateDTO.getDocumentTitle())
           .withIncludeStandardLicenseTexts(templateDTO.isIncludeAppendix())
           .withIncludeToc(templateDTO.isIncludeTableOfContents())
-          .withIncludeAppendix(templateDTO.isIncludeAppendix());
+          .withIncludeAppendix(templateDTO.isIncludeAppendix())
+          .withIncludeInnerSource(templateDTO.isIncludeInnerSource());
     }
 
     public LegalCustomReportParameters build() {
@@ -152,20 +170,21 @@ public final class LegalCustomReportParameters
           this.includeToc,
           this.includeStandardLicenseTexts,
           this.includeAppendix,
-          this.noticeFiles);
+          this.noticeFiles,
+          this.includeInnerSource);
     }
 
     public LegalCustomReportParameters buildWithDefaults(final String applicationId) {
       return new LegalCustomReportParameters(
           ATTRIBUTION_REPORT_FOR + applicationId,
           "", "",
-          true, true, true, Collections.emptyList()
+          true, true, true, Collections.emptyList(), false
       );
     }
 
     public LegalCustomReportParameters buildMultiApplicationWithDefaults(final Set<String> applicationId) {
       return new LegalCustomReportParameters(ATTRIBUTION_REPORT_FOR + String.join(", ", applicationId), "", "", true,
-          true, true, this.noticeFiles);
+          true, true, this.noticeFiles, false);
     }
   }
 }

@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
@@ -44,6 +45,7 @@ import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
@@ -564,11 +566,12 @@ public class ApplicationAttributionReportBuilderTest
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component5, licenseLegalData5, null));
 
     if (addMultiApp) {
-      when(mockApiLicenseLegalService.getLicenseLegalApplicationReportNoException(application, BuildStageType.ID))
-          .thenReturn(Optional.of(reportDTO));
+      when(
+          mockApiLicenseLegalService.getLicenseLegalApplicationReportNoException(application, BuildStageType.ID, false))
+              .thenReturn(Optional.of(reportDTO));
     }
     else {
-      when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID))
+      when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID, false))
           .thenReturn(reportDTO);
     }
 
@@ -585,7 +588,7 @@ public class ApplicationAttributionReportBuilderTest
     Application application = tempEntity.newApplicationWithParent("appId");
     ApiLicenseLegalApplicationReportDTO reportDTO = new ApiLicenseLegalApplicationReportDTO();
 
-    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID))
+    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID, false))
         .thenReturn(reportDTO);
 
     assertThat(reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
@@ -613,6 +616,39 @@ public class ApplicationAttributionReportBuilderTest
     assertThat(doc.select("#header")).hasToString("<p id=\"header\">!@#$%^&amp;*())_</p>");
     assertThat(doc.select("#footer")).isNotEmpty();
     assertThat(doc.select("#footer")).hasToString("<p id=\"footer\">&lt;h2&gt;title&lt;/h2&gt;</p>");
+  }
+
+  @Test
+  public void testReportWithInnerSourceComponent() {
+    Application application = tempEntity.newApplicationWithParent("appId");
+
+    ApiComponentDTOV2 component = new ApiComponentDTOV2();
+    component.displayName = "InnerSource component";
+    component.packageUrl =
+        PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createNpmCoordinates("p", "v")).toString();
+
+    ApiLicenseLegalDataDTO licenseLegalData = new ApiLicenseLegalDataDTO();
+    licenseLegalData.effectiveLicenses = Collections.emptyList();
+
+    tempEntity.newInnerSourceComponent(component.packageUrl, application);
+
+    ApiLicenseLegalApplicationReportDTO reportDTO = new ApiLicenseLegalApplicationReportDTO();
+    reportDTO.components =
+        Collections.singletonList(new ApiLicenseLegalComponentDTO(component, licenseLegalData, null));
+
+    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID, true))
+        .thenReturn(reportDTO);
+
+    String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
+        LegalCustomReportParameters
+        .builder()
+        .withTitle("test")
+        .withIncludeInnerSource(true)
+        .build());
+
+    Document doc = Jsoup.parse(content);
+    assertThat(doc.select(".componentBox h2").first().toString()).contains(component.displayName);
+    assertThat(doc.select("ul li").first()).hasToString("<li> No licenses detected. </li>");
   }
 
   @SuppressWarnings("unchecked")

@@ -98,6 +98,8 @@ public class DefaultApiLegalReportResourceV2
 
   static final String REPORT_FORM_NOTICE_FILES = "noticeFiles";
 
+  static final String REPORT_FORM_INNER_SOURCE = "includeInnerSource";
+
   static final String FORM_DATA_APPLICATIONS = "applications";
 
   static final String FORM_DATA_STAGES = "stages";
@@ -140,8 +142,8 @@ public class DefaultApiLegalReportResourceV2
   public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
       @PathParam("applicationId") String applicationId, @PathParam("stageId") String stageId)
   {
-    return apiLicenseLegalServiceV2
-        .getLicenseLegalApplicationReport(IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId), stageId);
+    return apiLicenseLegalServiceV2.getLicenseLegalApplicationReport(
+        IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId), stageId, false);
   }
 
   @Override
@@ -178,6 +180,7 @@ public class DefaultApiLegalReportResourceV2
               Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
           .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
           .withNoticeFiles(getNoticeFilesFromFormData(formData))
+          .withIncludeInnerSource(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE, "false")))
           .build();
     }
     catch (final Exception ex) { // if we got exception at this point it's because of invalid request
@@ -208,7 +211,9 @@ public class DefaultApiLegalReportResourceV2
           .withIncludeStandardLicenseTexts(
               Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
           .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
-          .withNoticeFiles(getNoticeFilesFromFormData(formData)).build();
+          .withNoticeFiles(getNoticeFilesFromFormData(formData))
+          .withIncludeInnerSource(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE, "false")))
+          .build();
       applicationsAndStages = getApplicationsAndStagesFromFormData(formData);
     }
     catch (final Exception ex) { // if we got exception at this point it's because of invalid request
@@ -235,6 +240,7 @@ public class DefaultApiLegalReportResourceV2
               Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
           .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
           .withNoticeFiles(getNoticeFilesFromFormData(formData))
+          .withIncludeInnerSource(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE, "false")))
           .build();
     }
     catch (Exception ex) { // if we got exception at this point it's because of invalid request

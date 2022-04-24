@@ -218,6 +218,10 @@
             th:each="license : ${component.licenseLegalData.effectiveLicenses}"
             th:text="${license}">Effective License List
     </li>
+    <li th:if="${component.licenseLegalData.effectiveLicenses == null
+               || #lists.size(component.licenseLegalData.effectiveLicenses) == 0}">
+      No licenses detected.
+    </li>
   </ul>
 
   <!-- Copyrights -->

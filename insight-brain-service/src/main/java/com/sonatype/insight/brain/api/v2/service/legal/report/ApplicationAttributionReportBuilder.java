@@ -101,8 +101,8 @@ public class ApplicationAttributionReportBuilder
   {
     validateReportParameters(reportParameters);
 
-    ApiLicenseLegalApplicationReportDTO applicationReportDTO =
-        apiLicenseLegalService.getLicenseLegalApplicationReport(application, stageId);
+    ApiLicenseLegalApplicationReportDTO applicationReportDTO = apiLicenseLegalService
+        .getLicenseLegalApplicationReport(application, stageId, reportParameters.isIncludeInnerSource());
     Map<String, Object> contextMap = buildContextMap(application, applicationReportDTO, reportParameters);
     return templateEngine.process(APPLICATION_ATTRIBUTION_REPORT, new Context(Locale.getDefault(), contextMap));
   }
@@ -120,7 +120,8 @@ public class ApplicationAttributionReportBuilder
         applicationsAuthz.stream().collect(Collectors.toMap(Application::getPublicId, Function.identity()));
     Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOSet = applicationsAndStages.stream()
         .map(applicationReportDTO -> apiLicenseLegalService.getLicenseLegalApplicationReportNoException(
-            applicationMap.get(applicationReportDTO.applicationPublicId), applicationReportDTO.stageTypeName))
+            applicationMap.get(applicationReportDTO.applicationPublicId), applicationReportDTO.stageTypeName,
+            reportParameters.isIncludeInnerSource()))
         .collect(Collectors.toSet());
     ApiLicenseLegalApplicationReportDTO applicationReportDTO =
         mergeApplicationReports(applicationReportDTOSet, applicationPublicIds);
@@ -170,7 +171,8 @@ public class ApplicationAttributionReportBuilder
 
       Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOSet = applicationsAndStages.stream()
           .map(applicationReportDTO -> apiLicenseLegalService.getLicenseLegalApplicationReportNoException(
-              applicationMap.get(applicationReportDTO.applicationId), applicationReportDTO.stageTypeName))
+              applicationMap.get(applicationReportDTO.applicationId), applicationReportDTO.stageTypeName,
+              reportParameters.isIncludeInnerSource()))
           .collect(Collectors.toSet());
 
       ApiLicenseLegalApplicationReportDTO applicationReportDTO =

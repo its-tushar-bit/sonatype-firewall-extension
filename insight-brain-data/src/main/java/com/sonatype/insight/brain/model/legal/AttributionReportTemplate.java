@@ -50,6 +50,9 @@ public class AttributionReportTemplate
   @Column(name = "last_updated_at")
   private Date lastUpdatedAt;
 
+  @Column(name = "include_inner_source")
+  private boolean includeInnerSource;
+
   public AttributionReportTemplate() {
   }
 
@@ -61,7 +64,8 @@ public class AttributionReportTemplate
       String documentFooter,
       boolean includeTableOfContents,
       boolean includeAppendix,
-      boolean includeStandardLicenseTexts)
+      boolean includeStandardLicenseTexts,
+      boolean includeInnerSource)
   {
     this.id = id;
     this.templateName = templateName;
@@ -71,6 +75,7 @@ public class AttributionReportTemplate
     this.includeTableOfContents = includeTableOfContents;
     this.includeAppendix = includeAppendix;
     this.includeStandardLicenseTexts = includeStandardLicenseTexts;
+    this.includeInnerSource = includeInnerSource;
   }
 
   public AttributionReportTemplate(
@@ -80,7 +85,8 @@ public class AttributionReportTemplate
       String documentFooter,
       boolean includeTableOfContents,
       boolean includeAppendix,
-      boolean includeStandardLicenseTexts)
+      boolean includeStandardLicenseTexts,
+      boolean includeInnerSource)
   {
     this.templateName = templateName;
     this.documentTitle = documentTitle;
@@ -89,6 +95,7 @@ public class AttributionReportTemplate
     this.includeTableOfContents = includeTableOfContents;
     this.includeAppendix = includeAppendix;
     this.includeStandardLicenseTexts = includeStandardLicenseTexts;
+    this.includeInnerSource = includeInnerSource;
   }
 
   @Override
@@ -163,5 +170,13 @@ public class AttributionReportTemplate
 
   public void setLastUpdatedAt(Date lastUpdatedAt) {
     this.lastUpdatedAt = lastUpdatedAt;
+  }
+
+  public boolean isIncludeInnerSource() {
+    return includeInnerSource;
+  }
+
+  public void setIncludeInnerSource(boolean includeInnerSource) {
+    this.includeInnerSource = includeInnerSource;
   }
 }

@@ -24,6 +24,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -472,23 +473,26 @@ public class ApiLicenseLegalService
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
   public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
-      @AuthzContext(Key.OWNER) Owner application, String stageId)
+      @AuthzContext(Key.OWNER) Owner application,
+      String stageId,
+      boolean includeInnerSource)
   {
     checkLicense();
     log.info(PROCESSING_LICENSE_METADATA_REQUEST, application.getId());
     ApiReportRawDataDTOV2 latestRawReport = getLastRawApplicationReportByStageId(application.getPublicId(), stageId)
         .orElseThrow(() -> new NotFoundException(
             "Report for application " + application.getId() + " at stage " + stageId + " not found."));
-    return getApplicationReportFromReportRawData(application, latestRawReport);
+    return getApplicationReportFromReportRawData(application, latestRawReport, includeInnerSource);
   }
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
   public Optional<ApiLicenseLegalApplicationReportDTO> getLicenseLegalApplicationReportNoException(
       @AuthzContext(Key.OWNER) Owner application,
-      String stageId)
+      String stageId,
+      boolean includeInnerSource)
   {
     try {
-      return Optional.of(getLicenseLegalApplicationReport(application, stageId));
+      return Optional.of(getLicenseLegalApplicationReport(application, stageId, includeInnerSource));
     }
     catch (NotFoundException e) {
       return Optional.empty();
@@ -504,13 +508,17 @@ public class ApiLicenseLegalService
     log.info(PROCESSING_LICENSE_METADATA_REQUEST, application.getId());
     ApiReportRawDataDTOV2 latestRawReport = getLastRawApplicationReport(application.getPublicId())
         .orElseThrow(() -> new NotFoundException("Report for application " + application.getId() + " not found."));
-    return getApplicationReportFromReportRawData(application, latestRawReport);
+    return getApplicationReportFromReportRawData(application, latestRawReport, false);
   }
 
   private ApiLicenseLegalApplicationReportDTO getApplicationReportFromReportRawData(
-      final Owner application, final ApiReportRawDataDTOV2 latestRawReport)
+      final Owner application,
+      final ApiReportRawDataDTOV2 latestRawReport,
+      boolean includeInnerSource)
   {
-    filterInnerSourceComponents(latestRawReport);
+    if (!includeInnerSource) {
+      filterInnerSourceComponents(latestRawReport);
+    }
 
     Map<ComponentIdentifier, Set<ApiLicenseDTO>> componentIdentifierToMultiLicenses =
         getReportMultiLicenses(latestRawReport);

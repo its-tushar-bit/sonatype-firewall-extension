@@ -33,6 +33,8 @@ public class AttributionReportTemplateDTO
 
   private Date lastUpdatedAt;
 
+  private boolean includeInnerSource;
+
   public AttributionReportTemplateDTO() {
   }
 
@@ -45,7 +47,8 @@ public class AttributionReportTemplateDTO
       final boolean contents,
       final boolean appendix,
       final boolean includeStandardLicenseTexts,
-      final Date lastUpdatedAt)
+      final Date lastUpdatedAt,
+      final boolean includeInnerSource)
   {
     this.id = id;
     this.templateName = templateName;
@@ -56,6 +59,7 @@ public class AttributionReportTemplateDTO
     this.includeAppendix = appendix;
     this.includeStandardLicenseTexts = includeStandardLicenseTexts;
     this.lastUpdatedAt = lastUpdatedAt;
+    this.includeInnerSource = includeInnerSource;
   }
 
   public AttributionReportTemplateDTO(
@@ -65,7 +69,8 @@ public class AttributionReportTemplateDTO
       final String footer,
       final boolean contents,
       final boolean appendix,
-      final boolean includeStandardLicenseTexts)
+      final boolean includeStandardLicenseTexts,
+      final boolean includeInnerSource)
   {
     this.templateName = templateName;
     this.documentTitle = documentTitle;
@@ -74,6 +79,7 @@ public class AttributionReportTemplateDTO
     this.includeTableOfContents = contents;
     this.includeAppendix = appendix;
     this.includeStandardLicenseTexts = includeStandardLicenseTexts;
+    this.includeInnerSource = includeInnerSource;
   }
 
   public static AttributionReportTemplateDTO fromReportTemplate(
@@ -91,7 +97,8 @@ public class AttributionReportTemplateDTO
         attributionReportTemplate.isIncludeTableOfContents(),
         attributionReportTemplate.isIncludeAppendix(),
         attributionReportTemplate.isIncludeStandardLicenseTexts(),
-        attributionReportTemplate.getLastUpdatedAt()
+        attributionReportTemplate.getLastUpdatedAt(),
+        attributionReportTemplate.isIncludeInnerSource()
     );
   }
 
@@ -167,6 +174,14 @@ public class AttributionReportTemplateDTO
     this.lastUpdatedAt = lastUpdatedAt;
   }
 
+  public boolean isIncludeInnerSource() {
+    return includeInnerSource;
+  }
+
+  public void setIncludeInnerSource(boolean includeInnerSource) {
+    this.includeInnerSource = includeInnerSource;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -180,12 +195,12 @@ public class AttributionReportTemplateDTO
         includeStandardLicenseTexts == that.includeStandardLicenseTexts && Objects.equals(id, that.id) &&
         Objects.equals(templateName, that.templateName) &&
         Objects.equals(documentTitle, that.documentTitle) && Objects.equals(header, that.header) &&
-        Objects.equals(footer, that.footer);
+        Objects.equals(footer, that.footer) && includeInnerSource == that.includeInnerSource;
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(id, templateName, documentTitle, header, footer, includeTableOfContents, includeAppendix,
-        includeStandardLicenseTexts);
+        includeStandardLicenseTexts, includeInnerSource);
   }
 }

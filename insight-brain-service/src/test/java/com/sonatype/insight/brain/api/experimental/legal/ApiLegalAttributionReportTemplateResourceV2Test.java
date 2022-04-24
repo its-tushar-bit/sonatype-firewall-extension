@@ -81,6 +81,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
         "footer",
         false,
         false,
+        false,
         false);
     HttpResponse savedResponse = restRequest()
         .path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
@@ -235,7 +236,7 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
         "<html>title</html>",
         "<html>header</html>",
         "<html>footer</html>",
-        false, false, false
+        false, false, false, false
     );
     HttpResponse response = restRequest().path(DefaultApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
         .body(reportTemplateDTO).post();

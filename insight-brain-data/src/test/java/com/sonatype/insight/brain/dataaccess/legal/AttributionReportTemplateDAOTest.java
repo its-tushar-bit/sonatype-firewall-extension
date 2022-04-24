@@ -31,7 +31,8 @@ public class AttributionReportTemplateDAOTest
       String footer,
       boolean includeAppendix,
       boolean includeTableOfContents,
-      boolean includeStandardLicenseText)
+      boolean includeStandardLicenseText,
+      boolean includeInnerSource)
   {
     Date now = new Date();
     AttributionReportTemplate attributionReportTemplate = new AttributionReportTemplate();
@@ -43,6 +44,7 @@ public class AttributionReportTemplateDAOTest
     attributionReportTemplate.setIncludeAppendix(includeAppendix);
     attributionReportTemplate.setIncludeTableOfContents(includeTableOfContents);
     attributionReportTemplate.setIncludeStandardLicenseTexts(includeStandardLicenseText);
+    attributionReportTemplate.setIncludeInnerSource(includeInnerSource);
 
     return attributionReportTemplate;
   }
@@ -60,7 +62,7 @@ public class AttributionReportTemplateDAOTest
   public void testCRUD() {
     // Create
     AttributionReportTemplate attributionReportTemplate =
-        createTemplate("template name", "doc title", "header", "footer", false, false, false);
+        createTemplate("template name", "doc title", "header", "footer", false, false, false, false);
     dao.insert(attributionReportTemplate);
     assertThat(attributionReportTemplate.getId()).isNotNull();
 
@@ -76,6 +78,7 @@ public class AttributionReportTemplateDAOTest
     attributionReportTemplate.setIncludeAppendix(true);
     attributionReportTemplate.setIncludeTableOfContents(true);
     attributionReportTemplate.setIncludeStandardLicenseTexts(true);
+    attributionReportTemplate.setIncludeInnerSource(true);
     attributionReportTemplate.setLastUpdatedAt(now);
     dao.update(attributionReportTemplate);
     assertThat(dao.getById(attributionReportTemplate.getId())).usingRecursiveComparison()
@@ -97,6 +100,7 @@ public class AttributionReportTemplateDAOTest
             "footer1",
             false,
             false,
+            false,
             false);
     AttributionReportTemplate attributionReportTemplate2 =
         new AttributionReportTemplate(
@@ -104,6 +108,7 @@ public class AttributionReportTemplateDAOTest
             "title2",
             "header2",
             "footer2",
+            false,
             false,
             false,
             false);
@@ -124,6 +129,7 @@ public class AttributionReportTemplateDAOTest
             "footer1",
             false,
             false,
+            false,
             false);
     AttributionReportTemplate attributionReportTemplate2 =
         new AttributionReportTemplate(
@@ -131,6 +137,7 @@ public class AttributionReportTemplateDAOTest
             "title2",
             "header2",
             "footer2",
+            false,
             false,
             false,
             false);
@@ -152,6 +159,7 @@ public class AttributionReportTemplateDAOTest
             "footer",
             false,
             false,
+            false,
             false);
     attributionReportTemplate.setLastUpdatedAt(null);
     Date now = new Date();
@@ -165,7 +173,7 @@ public class AttributionReportTemplateDAOTest
   public void testUpdate_SetsDate() {
     Date now = new Date();
     AttributionReportTemplate attributionReportTemplate =
-        new AttributionReportTemplate("template name", "title", "header", "footer", false, false, false);
+        new AttributionReportTemplate("template name", "title", "header", "footer", false, false, false, false);
     attributionReportTemplate.setLastUpdatedAt(new Date(now.getTime() - 1));
     dao.insert(attributionReportTemplate);
     assertThat(dao.getById(attributionReportTemplate.getId()).getLastUpdatedAt()).isBefore(now);
@@ -178,7 +186,7 @@ public class AttributionReportTemplateDAOTest
   @Test
   public void testUpdate_DoesNotExist() {
     AttributionReportTemplate attributionReportTemplate =
-        new AttributionReportTemplate("template name", "title", "header", "footer", false, false, false);
+        new AttributionReportTemplate("template name", "title", "header", "footer", false, false, false, false);
     attributionReportTemplate.setId("doesNotExist");
 
     assertThatExceptionOfType(BadRequestException.class)

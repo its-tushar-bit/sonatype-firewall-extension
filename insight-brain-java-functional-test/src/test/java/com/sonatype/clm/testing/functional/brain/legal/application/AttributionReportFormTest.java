@@ -12,10 +12,10 @@ import java.time.Duration;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.AttributionReportFormPage;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -68,13 +68,15 @@ public class AttributionReportFormTest
             "Footer 1",
             false,
             false,
-            false);
+            false,
+            true);
     tempEntity.createNewAttributionReportTemplate(
             "Template 2",
             "Report Title 2",
             "Header 2",
             "Footer 2",
             true,
+            false,
             false,
             false);
   }
@@ -192,8 +194,7 @@ public class AttributionReportFormTest
     attrReportFormPage.getFileInputs().get(0).uploadFile(file1.toFile());
     SelenideElement firstListItem = attrReportFormPage.getUploadedFileListItems().get(0);
     firstListItem.has(innerText1);
-    MainHeader mainHeader = new MainHeader();
-    mainHeader.backButton().click();
+    MainHeader.backButton().click();
     UnsavedModal unsavedModal = new UnsavedModal();
     unsavedModal.getElement().should(exist);
   }
@@ -246,8 +247,7 @@ public class AttributionReportFormTest
     attrReportFormPage.getFileInputs().get(0).uploadFile(file1.toFile());
     SelenideElement firstListItem = attrReportFormPage.getUploadedFileListItems().get(0);
     firstListItem.has(text("file1"));
-    MainHeader mainHeader = new MainHeader();
-    mainHeader.backButton().click();
+    MainHeader.backButton().click();
     UnsavedModal unsavedModal = new UnsavedModal();
     unsavedModal.getElement().should(exist);
   }
@@ -261,6 +261,7 @@ public class AttributionReportFormTest
     attrReportFormPage.getTableOfContentsHiddenInput().shouldHave(value("false"));
     attrReportFormPage.getIncludeStandardLicenseTextsHiddenInput().shouldHave(value("false"));
     attrReportFormPage.getAppendixHiddenInput().shouldHave(value("false"));
+    attrReportFormPage.getIncludeInnerSourceCheckboxInput().shouldHave(value("true"));
   }
 
   @Test
@@ -309,6 +310,7 @@ public class AttributionReportFormTest
     attrReportFormPage.getTableOfContentsHiddenInput().shouldHave(value("true"));
     attrReportFormPage.getIncludeStandardLicenseTextsHiddenInput().shouldHave(value("true"));
     attrReportFormPage.getAppendixHiddenInput().shouldHave(value("true"));
+    attrReportFormPage.getIncludeInnerSourceCheckboxInput().shouldHave(value("false"));
     this.testCustomValuesToTemplate(attrReportFormPage);
   }
 

@@ -125,7 +125,7 @@ public abstract class AbstractParameters
     }
     jc.setProgramName(getProgramName());
     StringBuilder buffer = new StringBuilder();
-    jc.usage(buffer);
+    jc.getUsageFormatter().usage(buffer);
     return buffer.toString();
   }
 

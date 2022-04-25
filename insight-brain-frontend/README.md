@@ -22,7 +22,6 @@
     - [ Linting and Formatting ](#linting-and-formatting)
     - [ Re-installing packages with yarn ](#re-installing-packages-with-yarn)
 - [ Supported browsers and resolution ](#supported-browsers-and-resolution)
-- [ Helpful Utilities ](#helpful-utilities)
 - [ Notes on Angular, Redux, & React ](#notes-on-angular-redux--react)
 - [ Code Conventions & Patterns ](#code-conventions--patterns)
 

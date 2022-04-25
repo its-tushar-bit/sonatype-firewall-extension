@@ -3,80 +3,71 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function ApplicationCategoryTileControllerApp(
-  $scope,
-  $q,
-  $http,
-  ApplicationStore,
-  CLMContextLocations,
-  CLMLocations,
-  SameOwnerStateNavigationService,
-  EventNameConstant
-) {
-  var vm = this;
+import { selectLoadApplicationsError, selectLoadingApplications } from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
+import {
+  selectAppliedCategories,
+  selectAreAnyCategoriesDefined,
+  selectLoadApplicableCategoriesError,
+  selectLoadAppliedCategoriesError,
+  selectLoadingApplicableCategories,
+  selectLoadingAppliedCategories,
+} from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
+import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as assignApplicationCategoriesSlice } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
+import { actions as orgsAndPoliciesRootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
+import { selectOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
+export default function ApplicationCategoryTileControllerApp($scope, EventNameConstant, $ngRedux) {
+  $scope.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadApplications: applicationActions.loadApplications,
+    loadApplicableCategories: assignApplicationCategoriesSlice.loadApplicableCategories,
+    loadAppliedCategories: assignApplicationCategoriesSlice.loadAppliedCategories,
+    goToEditCategories: assignApplicationCategoriesSlice.goToEditCategories,
+    updatedOwnerHandlerAction: orgsAndPoliciesRootActions.updatedOwnerHandler,
+  })($scope);
 
-  vm.areAnyCategoriesDefined = undefined;
-  vm.appliedCategories = undefined;
-  vm.assignCategories = assignCategories;
-  vm.doLoad = doLoad;
-  vm.error = undefined;
-  vm.isApp = CLMContextLocations.isApplication();
-  vm.ownerName = undefined;
+  $scope.$on('$destroy', () => {
+    $scope.unsubscribe();
+  });
 
-  vm.doLoad();
-
-  $scope.$on('policy.imported', doLoad);
-  $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
-  $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
-
-  function doLoad() {
-    if (vm.isApp) {
-      $q.all([
-        ApplicationStore[vm.error ? 'refresh' : 'get'](),
-        $http.get(CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId())),
-        $http.get(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId())),
-      ]).then(
-        function (results) {
-          results[0].forEach(function (candidate) {
-            if (candidate.publicId === CLMContextLocations.getEntityId()) {
-              vm.ownerName = candidate.name;
-            }
-          });
-
-          vm.appliedCategories = results[1].data;
-          vm.areAnyCategoriesDefined = results[2].data.length > 0;
-
-          if (!vm.ownerName) {
-            vm.error = 'Could not find an application with ID ' + CLMContextLocations.getEntityId() + '.';
-          }
-        },
-        function (error) {
-          vm.error = error;
-        }
-      );
+  $scope.doLoad = () => {
+    if ($scope.isApp) {
+      $scope.loadApplications();
+      $scope.loadApplicableCategories();
+      $scope.loadAppliedCategories();
     }
+  };
 
-    delete vm.error;
-  }
+  $scope.updatedOwnerHandler = (_, owner) => {
+    $scope.updatedOwnerHandlerAction(owner.name);
+  };
 
-  function assignCategories() {
-    if (vm.areAnyCategoriesDefined) {
-      SameOwnerStateNavigationService.goEdit('category');
+  $scope.$on('policy.imported', $scope.doLoad);
+  $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, $scope.doLoad);
+  $scope.$on(EventNameConstant.OWNER_UPDATED, $scope.updatedOwnerHandler);
+
+  $scope.assignCategories = () => {
+    if ($scope.areAnyCategoriesDefined) {
+      $scope.goToEditCategories();
     }
-  }
+  };
 
-  function updatedOwnerHandler(event, newOwner) {
-    vm.ownerName = newOwner.name;
-  }
+  $scope.doLoad();
 }
 
-ApplicationCategoryTileControllerApp.$inject = [
-  '$scope',
-  '$q',
-  '$http',
-  'ApplicationStore',
-  'CLMContextLocations',
-  'CLMLocations',
-  'SameOwnerStateNavigationService',
-  'event.name.constant',
-];
+export const mapStateToThis = (state) => ({
+  ownerName: selectOwnerName(state),
+  loading:
+    selectLoadingApplications(state) ||
+    selectLoadingApplicableCategories(state) ||
+    selectLoadingAppliedCategories(state),
+  error:
+    selectLoadApplicationsError(state) ||
+    selectLoadApplicableCategoriesError(state) ||
+    selectLoadAppliedCategoriesError(state),
+  appliedCategories: angular.copy(selectAppliedCategories(state)),
+  areAnyCategoriesDefined: selectAreAnyCategoriesDefined(state),
+  isApp: selectIsApplication(state),
+});
+
+ApplicationCategoryTileControllerApp.$inject = ['$scope', 'event.name.constant', '$ngRedux'];

@@ -12,6 +12,9 @@ import { selectAppliedCategories } from './assignApplicationCategoriesSelectors'
 import { Messages } from 'MainRoot/util/CommonServices';
 import { propSet } from '../util/jsUtil';
 import { selectEntityId } from './orgsAndPoliciesSelectors';
+import { selectRouterSlice } from '../reduxUiRouter/routerSelectors';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { deriveEditRoute } from './utility/util';
 
 const REDUCER_NAME = 'applicationCategories/assign';
 
@@ -126,6 +129,13 @@ const computeIsDirty = (state) => {
   return propSet('isDirty', isDirty, state);
 };
 
+const goToEditCategories = createAsyncThunk(`${REDUCER_NAME}/goToEditCategories`, (_, { getState, dispatch }) => {
+  const router = selectRouterSlice(getState());
+  const { to, params } = deriveEditRoute(router, 'category');
+
+  dispatch(stateGo(to, params));
+});
+
 const assignApplicationCategoriesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -151,4 +161,5 @@ export const actions = {
   loadApplicableCategories,
   loadAppliedCategories,
   saveAppliedCategories,
+  goToEditCategories,
 };

@@ -15,6 +15,7 @@ import {
   selectSubmitApplyCategoriesError,
   selectIsDirty,
   selectCategories,
+  selectAreAnyCategoriesDefined,
 } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
 
 describe('assignApplicationCategoriesSelectors', () => {
@@ -201,6 +202,11 @@ describe('assignApplicationCategoriesSelectors', () => {
           isApplied: false,
         },
       ]);
+    });
+  });
+  describe('selectAreAnyCategoriesDefined', () => {
+    it('returns if any categories are defined', () => {
+      expect(selectAreAnyCategoriesDefined(mockState)).toBeTrue();
     });
   });
 });

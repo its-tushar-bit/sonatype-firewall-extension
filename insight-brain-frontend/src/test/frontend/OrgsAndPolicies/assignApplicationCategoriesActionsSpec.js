@@ -7,6 +7,7 @@ import axios from 'axios';
 
 import { actions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 import * as selectors from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getApplicableOrganizationCategories, getApplicationCategoriesUrl } from 'MainRoot/util/CLMLocation';
 
 describe('assignApplicationCategoriesActions', () => {
@@ -271,6 +272,41 @@ describe('assignApplicationCategoriesActions', () => {
 
           done();
         });
+    });
+  });
+  describe('goToEditCategories', () => {
+    beforeEach(() => {
+      spyOn(routerSelectors, 'selectRouterSlice').and.returnValue({
+        currentState: {
+          name: 'application.somewhere',
+        },
+        currentParams: {
+          applicationPublicId: 'applicationPublicId',
+        },
+      });
+    });
+
+    it('redirects to proper edit category path', (done) => {
+      store.dispatch(actions.goToEditCategories()).then(() => {
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(3);
+        expect(actions).toHaveActionTypesInOrder([
+          'applicationCategories/assign/goToEditCategories/pending',
+          '@@reduxUiRouter/stateGo',
+          'applicationCategories/assign/goToEditCategories/fulfilled',
+        ]);
+
+        expect(actions[1].payload).toEqual({
+          to: 'management.edit.application.category',
+          params: {
+            applicationPublicId: 'applicationPublicId',
+          },
+          options: undefined,
+        });
+
+        done();
+      });
     });
   });
 });

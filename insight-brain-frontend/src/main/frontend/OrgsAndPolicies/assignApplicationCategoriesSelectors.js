@@ -5,7 +5,7 @@
  */
 
 import { createSelector } from '@reduxjs/toolkit';
-import { any, map, path, prop, propEq } from 'ramda';
+import { any, compose, map, path, prop, propEq, isEmpty, not } from 'ramda';
 import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
 
 export const selectAssignApplicationCategoriesSlice = createSelector(
@@ -60,3 +60,5 @@ export const selectCategories = createSelector(
     }, applicableCategories);
   }
 );
+
+export const selectAreAnyCategoriesDefined = createSelector(selectApplicableCategories, compose(not, isEmpty));

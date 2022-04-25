@@ -193,17 +193,17 @@
      scrollspy="#owner-summary">
   <div class="iq-tile" id="owner-pill-app-categories">
     <div ng-controller="ApplicationCategoryTileControllerApp as vm">
-      <div ng-if="vm.isApp"
-           load-wrapper="vm.error"
-           loading="!(vm.ownerName && vm.appliedCategories)"
-           reload="vm.doLoad()">
+      <div ng-if="isApp"
+           load-wrapper="error"
+           loading="loading"
+           reload="doLoad()">
         <div class="iq-tile__actions">
           <button class="iq-btn iq-btn--tertiary"
-                  ng-class="{disabled: !vm.areAnyCategoriesDefined}"
-                  data-tooltip="{{:: vm.areAnyCategoriesDefined ? '' : 'No application categories defined.'}}"
+                  ng-class="{disabled: !areAnyCategoriesDefined}"
+                  data-tooltip="{{:: areAnyCategoriesDefined ? '' : 'No application categories defined.'}}"
                   data-tooltip-placement="top"
                   data-tooltip-append-to-body="true"
-                  ng-click="vm.assignCategories()">
+                  ng-click="assignCategories()">
             <i class="fa fa-pencil"></i>Assign App Categories
           </button>
         </div>
@@ -213,16 +213,16 @@
             <h2>Application Categories</h2>
           </div>
           <div class="iq-tile-header__subtitle">
-            assigned to {{vm.ownerName}}
+            assigned to {{ownerName}}
           </div>
         </div>
         <div class="iq-tile-content">
           <div class="iq-list">
-            <div class="iq-list__item iq-list__item--empty" ng-if="vm.appliedCategories.length <= 0">
-              No application categories {{vm.areAnyCategoriesDefined ? 'assigned' : 'defined'}}
+            <div class="iq-list__item iq-list__item--empty" ng-if="appliedCategories.length <= 0">
+              No application categories {{areAnyCategoriesDefined ? 'assigned' : 'defined'}}
             </div>
-            <ul ng-if="vm.appliedCategories.length > 0">
-              <li class="iq-list__item" ng-repeat="category in vm.appliedCategories">
+            <ul ng-if="appliedCategories.length > 0">
+              <li class="iq-list__item" ng-repeat="category in appliedCategories">
                 <span class="test-list-item-title">
                   <hexagon class="size-16px {{category.color}} hexagon--list-item"></hexagon>{{category.name}}
                 </span>

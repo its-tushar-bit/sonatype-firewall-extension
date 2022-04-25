@@ -121,6 +121,10 @@ export function getOrganizationsUrl() {
   return uriTemplate`/rest/organization`;
 }
 
+export function getAllLicensesUrl() {
+  return uriTemplate`/rest/license`;
+}
+
 export function getIsHdsReachable() {
   return uriTemplate`/rest/hdsPing`;
 }

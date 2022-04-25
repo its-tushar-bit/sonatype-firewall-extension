@@ -16,7 +16,6 @@ import validatorsModule from '../util/Validators';
 import storesModule from '../util/Stores';
 import ownerPolicyList from './summary/ownerPolicyList/ownerPolicyList';
 
-import licenseThreatGroupModule from '../policy/LicenseThreatGroupsController';
 import roleMembershipModule from '../role.membership/role.membership.module';
 import AccessEditorController from './access/access.editor.controller';
 import AccessTileController from './access/access.tile.controller';
@@ -88,7 +87,6 @@ import innerSourceRepositoryModule from './innersource.repository/module';
 export default angular
   .module('owner.manager.module', [
     storesModule.name,
-    licenseThreatGroupModule.name,
     'ui.bootstrap',
     'ui.router',
     angularCommonModule.name,

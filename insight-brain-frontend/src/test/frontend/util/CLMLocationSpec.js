@@ -297,6 +297,10 @@ describe('CLMLocation.js', function () {
     );
   });
 
+  it('should return the all licenses url', function () {
+    expect(CLMLocation.getAllLicensesUrl()).toBe('/rest/license');
+  });
+
   it('should return the application save component copyright override url', function () {
     expect(CLMLocation.getSaveComponentCopyrightOverrideUrl('application', 'appId')).toBe(
       '/api/experimental/licenseLegalMetadata/application/appId/component/copyright'

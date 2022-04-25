@@ -3,17 +3,25 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
-import { mapStateToThis } from 'MainRoot/owner.manager/license.threat.group/license.threat.group.editor.controller';
 
-describe('license.threat.group.editor.controller', function () {
-  beforeEach(
-    angular.mock.module(ownerManagerModule.name, ($provide) => {
-      SpecUtil.mockNgRedux($provide);
-    })
-  );
+import {
+  selectIsLoading,
+  selectLicenseThreatGroupLoadError,
+  selectLicenseThreatGroupSubmitError,
+  selectLicenseThreatGroupIsDirty,
+  selectLicenseThreatGroupIsEditMode,
+  selectLicenseThreatGroupId,
+  selectCurrentLicenseThreatGroup,
+  selectNextLicenseThreatGroup,
+  selectApplicableLicenseThreatGroup,
+  selectLicenseThreatGroupSiblings,
+  selectAvailableLicenses,
+  selectDirtyLicenseThreatGroup,
+} from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
 
-  let vm, scope, deleteModalServiceSpy;
+describe('orgsAndPoliciesLabelsSelectors', () => {
+  let mockState;
+
   let currentLTG = {
     id: 'c1411f13f1e045959895a6b8686cd2df',
     name: 'Development Inc LTG1',
@@ -434,137 +442,123 @@ describe('license.threat.group.editor.controller', function () {
     },
   ];
 
-  let mockState = {
-    router: {
-      currentParams: {
-        licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
+  beforeEach(() => {
+    mockState = {
+      router: {
+        currentParams: {
+          licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
+        },
       },
-    },
-    orgsAndPolicies: {
-      licenseThreatGroups: {
-        loadError: null,
-        submitError: null,
-        errorState: null,
-        deleting: false,
-        success: null,
-        loading: false,
-        isDirty: false,
-        applicableLicenseThreatGroups: applicableLTGs,
-        availableLicenses: availableLicense,
-        currentLicenseThreatGroup: currentLTG,
-        nextLicenseThreatGroup: nextLTG,
-        dirtyLTG: dirtyLTG,
-        siblings: siblings,
+      orgsAndPolicies: {
+        licenseThreatGroups: {
+          loadError: 'loadError',
+          submitError: 'submitError',
+          errorState: null,
+          deleting: false,
+          success: null,
+          loading: false,
+          isDirty: false,
+          applicableLicenseThreatGroups: applicableLTGs,
+          availableLicenses: availableLicense,
+          currentLicenseThreatGroup: currentLTG,
+          nextLicenseThreatGroup: nextLTG,
+          dirtyLTG: dirtyLTG,
+          siblings: siblings,
+        },
       },
-    },
-  };
+    };
+  });
 
-  beforeEach(inject((_$rootScope_, $controller) => {
-    scope = _$rootScope_.$new();
-    deleteModalServiceSpy = jasmine.createSpyObj('DeleteModalService', ['deleteRedux']);
-
-    vm = $controller('license.threat.group.editor.controller', {
-      $scope: scope,
-      DeleteModalService: deleteModalServiceSpy,
+  describe('selectIsLoading', () => {
+    it('returns true if loading', () => {
+      mockState.orgsAndPolicies.licenseThreatGroups.loading = true;
+      expect(selectIsLoading(mockState)).toBeTrue();
     });
 
-    scope.vm = vm;
-  }));
-
-  describe('mapStateToThis', () => {
-    it('sets dirtyLTG, loadError, submitError, isEditMode, siblings, isDirty, loading', () => {
-      const output = mapStateToThis(mockState);
-
-      expect(output.loading).toBeFalse();
-      expect(output.loadError).toBeNull();
-      expect(output.submitError).toBeNull();
-      expect(output.isDirty).toBeFalse();
-      expect(output.isEditMode).toBeTrue();
-      expect(output.siblings).toEqual(mockState.orgsAndPolicies.licenseThreatGroups.siblings);
-      expect(output.dirtyLTG).toEqual(mockState.orgsAndPolicies.licenseThreatGroups.dirtyLTG);
+    it('returns false if not loading', () => {
+      expect(selectIsLoading(mockState)).toBeFalse();
     });
   });
 
-  describe('$onInit()', () => {
-    it('subscribes to the redux store', () => {
-      expect(vm.unsubscribe).toBeDefined();
-    });
-
-    it('calls loadLabelsEditor', () => {
-      expect(vm.loadLicenseThreatGroupEditor).toHaveBeenCalledTimes(1);
+  describe('selectLicenseThreatGroupLoadError', () => {
+    it('returns loadError', () => {
+      expect(selectLicenseThreatGroupLoadError(mockState)).toBe('loadError');
     });
   });
 
-  describe('$destroy()', () => {
-    it('unsubscribes from redux store', () => {
-      expect(vm.unsubscribe).not.toHaveBeenCalled();
-      scope.$destroy();
-      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+  describe('selectLicenseThreatGroupSubmitError', () => {
+    it('returns submitError', () => {
+      expect(selectLicenseThreatGroupSubmitError(mockState)).toBe('submitError');
     });
   });
 
-  describe('Page Changes', () => {
-    it('navigates away if form is not dirty', () => {
-      vm.isDirty = false;
-      SpecUtil.expectStateChangeNotPrevented(scope);
-    });
-
-    it('does not navigate away if form is dirty', () => {
-      vm.isDirty = true;
-      SpecUtil.expectStateChangePrevented(scope);
+  describe('selectLicenseThreatGroupIsDirty', () => {
+    it('returns isDirty', () => {
+      expect(selectLicenseThreatGroupIsDirty(mockState)).toBeFalse();
     });
   });
 
-  describe('on save', () => {
-    beforeEach(() => {
-      vm.dirtyLTG = dirtyLTG;
-      vm.saveLabel = jasmine.createSpy('vm.saveLicenseThreatGroup');
-      vm.isEditMode = true;
+  describe('selectLicenseThreatGroupIsEditMode', () => {
+    it('returns true if in edit mode', () => {
+      expect(selectLicenseThreatGroupIsEditMode(mockState)).toBeTrue();
     });
 
-    it('calls saveLicenseThreatGroup', () => {
-      vm.ltgEditorMask = {
-        wrap: jasmine.createSpy('wrap').and.callFake(() => Promise.resolve(currentLTG)),
-      };
-
-      vm.save();
-
-      expect(vm.saveLicenseThreatGroup).toHaveBeenCalledTimes(1);
+    it('returns false if not in edit mode', () => {
+      mockState.router.currentParams = {};
+      expect(selectLicenseThreatGroupIsEditMode(mockState)).toBeFalse();
     });
   });
 
-  describe('on remove', () => {
-    beforeEach(() => {
-      vm.dirtyLTG = dirtyLTG;
-    });
-
-    it('calls resetDeleteModalState', () => {
-      vm.deleteLTG();
-      expect(vm.resetDeleteModalState).toHaveBeenCalledTimes(1);
+  describe('selectLicenseThreatGroupId', () => {
+    it('returns id', () => {
+      expect(selectLicenseThreatGroupId(mockState)).toBe('c1411f13f1e045959895a6b8686cd2df');
     });
   });
 
-  describe('on edit', () => {
-    beforeEach(() => {
-      vm.dirtyLTG = dirtyLTG;
+  describe('selectCurrentLicenseThreatGroup', () => {
+    it('returns current LTG', () => {
+      const result = selectCurrentLicenseThreatGroup(mockState);
+      expect(result).toEqual(currentLTG);
     });
+  });
 
-    it('calls setLicenseThreatGroupName on ltg name change', () => {
-      expect(vm.setLicenseThreatGroupName).not.toHaveBeenCalled();
-      vm.onNameChange();
-      expect(vm.setLicenseThreatGroupName).toHaveBeenCalledOnceWith(dirtyLTG.name);
+  describe('selectNextLicenseThreatGroup', () => {
+    it('returns next LTG', () => {
+      const result = selectNextLicenseThreatGroup(mockState);
+      expect(result).not.toBeNull();
+      expect(result).toEqual(nextLTG);
     });
+  });
 
-    it('calls setLicenseThreatGroupThreatLevel on ltg threat level change', () => {
-      expect(vm.setLicenseThreatGroupThreatLevel).not.toHaveBeenCalled();
-      vm.onThreatLevelChange();
-      expect(vm.setLicenseThreatGroupThreatLevel).toHaveBeenCalledOnceWith(dirtyLTG.threatLevel);
+  describe('selectApplicableLicenseThreatGroup', () => {
+    it('returns applicable LTG', () => {
+      const result = selectApplicableLicenseThreatGroup(mockState);
+      expect(result).not.toBeNull();
+      expect(result).toEqual(applicableLTGs);
     });
+  });
 
-    it('calls setPickedLicenses on ltg picked licenses change', () => {
-      expect(vm.setPickedLicenses).not.toHaveBeenCalled();
-      vm.onPickedLicensesChange();
-      expect(vm.setPickedLicenses).toHaveBeenCalledOnceWith(dirtyLTG.pickedLicenses);
+  describe('selectLicenseThreatGroupSiblings', () => {
+    it('returns all siblings', () => {
+      const result = selectLicenseThreatGroupSiblings(mockState);
+      expect(result).not.toBeNull();
+      expect(result).toEqual(siblings);
+    });
+  });
+
+  describe('selectAvailableLicenses', () => {
+    it('returns all license', () => {
+      const result = selectAvailableLicenses(mockState);
+      expect(result).not.toBeNull();
+      expect(result).toEqual(availableLicense);
+    });
+  });
+
+  describe('selectDirtyLicenseThreatGroup', () => {
+    it('returns dirty ltg', () => {
+      const result = selectDirtyLicenseThreatGroup(mockState);
+      expect(result).not.toBeNull();
+      expect(result).toEqual(dirtyLTG);
     });
   });
 });

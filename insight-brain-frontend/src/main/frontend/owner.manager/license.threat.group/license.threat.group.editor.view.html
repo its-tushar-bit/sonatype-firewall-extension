@@ -1,12 +1,12 @@
 <div id="ltg-editor"
      class="iq-tile iq-tile--form-tile"
      load-wrapper="vm.loadError"
-     loading="!vm.dirtyLTG"
+     loading="vm.loading"
      reload="vm.doLoad()">
   <header class="iq-tile-header">
     <div class="iq-tile-header__title">
       <i class="fa size-20px fa-book slate iq-tile-header__icon"></i>
-      <h2>{{::vm.dirtyLTG.id ? 'Edit' : 'New'}} License Threat Group</h2>
+      <h2>{{::vm.isEditMode ? 'Edit' : 'New'}} License Threat Group</h2>
     </div>
   </header>
   <form name="vm.ltgEditor"
@@ -26,6 +26,7 @@
                  name="ltg"
                  required
                  ng-model="vm.dirtyLTG.name"
+                 ng-change="vm.onNameChange()"
                  ng-maxlength="60"
                  focus-input="true"
                  valid-name-characters
@@ -39,20 +40,23 @@
           <label class="iq-label" for="editor-ltg-threat-level">Threat Level</label>
           <threat-level-selector id="editor-ltg-threat-level"
                                  class="test-threat-level"
-                                 ng-model='vm.dirtyLTG.threatLevel'
-                                 threat-type="ltg">
+                                 ng-model="vm.dirtyLTG.threatLevel"
+                                 threat-type="ltg"
+                                 on-change="vm.onThreatLevelChange"
+                                 >
           </threat-level-selector>
         </div>
       </div>
       <div class="iq-form-group">
         <label class="iq-label" for="editor-ltg-included-licenses">Included Licenses</label>
         <double-column-picker id="editor-ltg-included-licenses"
-                              list="vm.availableLicenses"
+                              list="vm.dirtyLTG.pickedLicenses"
                               filter-placeholder="License Name"
                               left-column-name="Available"
                               right-column-name="Included"
                               item-name-param="fullDisplayName"
-                              tooltip-fn="vm.getTooltip(item)">
+                              tooltip-fn="vm.getTooltip(item)"
+                              on-licenses-picked="vm.onPickedLicensesChange">
         </double-column-picker>
       </div>
     </div>
@@ -61,16 +65,16 @@
               class="iq-btn iq-btn--primary"
               type="submit"
               submit-validation
-              submit-dirty="vm.isLTGDirty()"
+              submit-dirty="vm.isDirty"
               submit-tooltip-target="body"
-              submit-type="vm.dirtyLTG.id ? 'update' : 'create'">
-        {{vm.dirtyLTG.id ? 'Update' : 'Create'}}
+              submit-type="vm.isEditMode ? 'update' : 'create'">
+        {{vm.isEditMode ? 'Update' : 'Create'}}
       </button><!--
    --><button id="delete-ltg-button"
               class="iq-btn iq-btn--tertiary"
               type="button"
               ng-click="vm.deleteLTG()"
-              ng-if="vm.dirtyLTG && !vm.dirtyLTG.$new">
+              ng-if="vm.isEditMode">
         <i class="fa fa-trash"></i>Delete License Threat Group
       </button>
     </div>

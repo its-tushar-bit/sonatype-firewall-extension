@@ -7,6 +7,7 @@ import { combineReducers } from 'redux';
 import createEditApplicationCategoriesSlice from './createEditApplicationCategoriesSlice';
 import assignApplicationCategoriesSlice from './assignApplicationCategoriesSlice';
 import labelsSlice from './orgsAndPoliciesLabelsSlice';
+import licenseThreatGroupsSlice from './licenseThreatGroupSlice';
 import rootSlice from './orgsAndPoliciesRootSlice';
 import policyMonitoring from './orgsAndPoliciesPolicyMonitoringSlice';
 import proprietarySlice from './orgsAndPoliciesProprietarySlice';
@@ -28,4 +29,5 @@ export default combineReducers({
   applications: applicationsSlice,
   stages: stagesSlice,
   policy: policySlice,
+  licenseThreatGroups: licenseThreatGroupsSlice,
 });

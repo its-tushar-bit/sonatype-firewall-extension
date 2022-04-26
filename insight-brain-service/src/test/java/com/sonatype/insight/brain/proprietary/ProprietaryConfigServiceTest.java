@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.proprietary;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import javax.inject.Inject;
@@ -175,5 +176,88 @@ public class ProprietaryConfigServiceTest
 
     ProprietaryConfig persistedProprietaryConfig = proprietaryConfigDAO.getByOwnerId(org.getId());
     assertProprietaryConfig(proprietaryConfig, persistedProprietaryConfig);
+  }
+
+  @Test
+  public void testCreateIsProprietary_NoProprietaryConfig() {
+    Application application = tempEntity.newApplicationWithParent();
+    assertThat(new ProprietaryConfigDAO().getByOwnerId(application.getId())).isNull();
+
+    Predicate<String> isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
+
+    assertThat(isProprietary).rejects("any");
+  }
+
+  @Test
+  public void testCreateIsProprietary_EmptyProprietaryConfig() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newProprietaryConfig(application.getId(), Collections.emptyList(), Collections.emptyList());
+
+    Predicate<String> isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
+
+    assertThat(isProprietary).rejects("any");
+  }
+
+  @Test
+  public void testCreateIsProprietary_WithPackages() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newProprietaryConfig(application.getId(), Arrays.asList("a1", "b1.b2"), Collections.emptyList());
+
+    Predicate<String> isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
+
+    assertThat(isProprietary).accepts("a1");
+    assertThat(isProprietary).rejects("a2");
+    assertThat(isProprietary).accepts("a1.a2");
+    assertThat(isProprietary).rejects("b1");
+    assertThat(isProprietary).accepts("b1.b2");
+    assertThat(isProprietary).rejects("b1.b3");
+    assertThat(isProprietary).accepts("b1.b2.b3");
+  }
+
+  @Test
+  public void testCreateIsProprietary_WithRegexes() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newProprietaryConfig(application.getId(), Collections.emptyList(), Arrays.asList("a1.*", ".*b1", "c1"));
+
+    Predicate<String> isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
+
+    assertThat(isProprietary).accepts("a1");
+    assertThat(isProprietary).accepts("a1.a2");
+    assertThat(isProprietary).accepts("a1.a2.a3");
+    assertThat(isProprietary).rejects("a2");
+    assertThat(isProprietary).rejects("a2.a1");
+    assertThat(isProprietary).rejects("a3.a2.a1");
+    assertThat(isProprietary).accepts("b1");
+    assertThat(isProprietary).rejects("b1.b2");
+    assertThat(isProprietary).rejects("b1.b2.b3");
+    assertThat(isProprietary).rejects("b2");
+    assertThat(isProprietary).accepts("b2.b1");
+    assertThat(isProprietary).accepts("b3.b2.b1");
+    assertThat(isProprietary).accepts("c1");
+    assertThat(isProprietary).rejects("c2");
+    assertThat(isProprietary).rejects("c1.c2");
+    assertThat(isProprietary).rejects("c2.c1");
+  }
+
+  @Test
+  public void testCreateIsProprietary_WithPackagesAndRegexes() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newProprietaryConfig(application.getId(), Collections.singletonList("a1"),
+        Collections.singletonList("b1"));
+
+    Predicate<String> isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
+
+    assertThat(isProprietary).accepts("a1");
+    assertThat(isProprietary).accepts("a1.a2");
+    assertThat(isProprietary).accepts("a1.a2.a3");
+    assertThat(isProprietary).rejects("a2");
+    assertThat(isProprietary).rejects("a2.a1");
+    assertThat(isProprietary).rejects("a3.a2.a1");
+    assertThat(isProprietary).accepts("b1");
+    assertThat(isProprietary).rejects("b1.b2");
+    assertThat(isProprietary).rejects("b1.b2.b3");
+    assertThat(isProprietary).rejects("b2");
+    assertThat(isProprietary).rejects("b2.b1");
+    assertThat(isProprietary).rejects("b3.b2.b1");
   }
 }

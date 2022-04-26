@@ -447,7 +447,7 @@ public final class Report
     objectNode.put(ComponentIdentifier.MAVEN_CLASSIFIER, componentIdentifier.get(ComponentIdentifier.MAVEN_CLASSIFIER));
   }
 
-  private static void setMavenCoordinatesWithExtension(
+  static void setMavenCoordinatesWithExtension(
       final ObjectNode objectNode,
       final ComponentIdentifier componentIdentifier)
   {
@@ -661,14 +661,6 @@ public final class Report
 
     Set<ComponentIdentifier> componentIdentifiers = fixBomComponentIdentifiers(bomJsonData);
 
-    fixComponentIdentifiers(licensesJsonData, componentIdentifiers);
-    Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = applyLicenseOverrides(licensesJsonData,
-        application);
-    ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
-    componentIdentifiersWithLicenseOverrides
-        .addAll(addLicenseOverridesForClaimedComponents(licensesAaData, claimedComponentsByHash.values(), application));
-    saveReportEntry(reportFile, LICENSES_JSON_FILENAME, licensesJsonData);
-
     // now apply any data edits (e.g. modified flag)
     augmentDependenciesGraph(dependenciesJsonData);
     saveReportEntry(reportFile, DEPENDENCIES_JSON_FILENAME, dependenciesJsonData);
@@ -676,7 +668,18 @@ public final class Report
     DependencyResolver
         .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application, telemetrySender)
         .resolve();
-    repositoryMatcher.match(bomJsonData);
+
+    componentIdentifiers.addAll(
+        repositoryMatcher.match(application, bomJsonData, dataJson, summaryJsonData, licensesJsonData,
+            securityJsonData));
+
+    fixComponentIdentifiers(licensesJsonData, componentIdentifiers);
+    Set<ComponentIdentifier> componentIdentifiersWithLicenseOverrides = applyLicenseOverrides(licensesJsonData,
+        application);
+    ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
+    componentIdentifiersWithLicenseOverrides
+        .addAll(addLicenseOverridesForClaimedComponents(licensesAaData, claimedComponentsByHash.values(), application));
+    saveReportEntry(reportFile, LICENSES_JSON_FILENAME, licensesJsonData);
 
     saveReportEntry(reportFile, DATA_JSON_FILENAME, dataJson);
     saveReportEntry(reportFile, SUMMARY_JSON_FILENAME, summaryJsonData);

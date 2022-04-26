@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.proprietary;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import javax.inject.Named;
@@ -28,6 +29,11 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.scan.archive.CompoundSelector;
+import com.sonatype.insight.scan.archive.PathSelector;
+import com.sonatype.insight.scan.archive.RegexSelector;
+import com.sonatype.insight.scan.archive.Selector;
+import com.sonatype.insight.scan.archive.Selector.Selection;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,9 +48,9 @@ public class ProprietaryConfigService
   private OwnerDAO ownerDAO = new OwnerDAO();
 
   @Authorize(permission = Permission.READ)
-  public ProprietaryConfigHierarchy getProprietaryConfigHierarchy(@AuthzContext(Key.TYPE) final OwnerType ownerType,
-                                                                  @AuthzContext(AuthzContext.Key.ID)
-                                                                  final String ownerId)
+  public ProprietaryConfigHierarchy getProprietaryConfigHierarchy(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     ProprietaryConfigHierarchy proprietaryConfigHierarchy = new ProprietaryConfigHierarchy();
@@ -64,9 +70,10 @@ public class ProprietaryConfigService
   }
 
   @Authorize(permission = Permission.MANAGE_PROPRIETARY)
-  public ProprietaryConfig upsertProprietaryConfig(@AuthzContext(Key.TYPE) final OwnerType ownerType,
-                                                   @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-                                                   final ProprietaryConfig proprietaryConfig)
+  public ProprietaryConfig upsertProprietaryConfig(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      final ProprietaryConfig proprietaryConfig)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     ProprietaryConfig existingConfigByOwner = proprietaryConfigDAO.getByOwnerId(internalOwnerId);
@@ -86,9 +93,10 @@ public class ProprietaryConfigService
   }
 
   @Authorize(permission = Permission.MANAGE_PROPRIETARY)
-  public ProprietaryConfig addFilePathRegexToProprietaryConfig(@AuthzContext(Key.TYPE) final OwnerType ownerType,
-                                                               @AuthzContext(AuthzContext.Key.ID) final String ownerId,
-                                                               final FilePathRegex filePathRegex)
+  public ProprietaryConfig addFilePathRegexToProprietaryConfig(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      final FilePathRegex filePathRegex)
   {
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
     ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.getByOwnerId(internalOwnerId);
@@ -199,5 +207,26 @@ public class ProprietaryConfigService
   private void auditProprietaryConfigUpdates(final ProprietaryConfig proprietaryConfig) {
     AuditData.get().setData("packageMatchers", proprietaryConfig.getPackages())
         .setData("regexMatchers", proprietaryConfig.getRegexes());
+  }
+
+  public static Predicate<String> createIsProprietary(String internalOwnerId) {
+    com.sonatype.clm.dto.model.ProprietaryConfig proprietaryConfig =
+        getProprietaryConfig(internalOwnerId, new OwnerDAO(), new ProprietaryConfigDAO());
+    List<Selector> selectors = new ArrayList<>();
+    if (!proprietaryConfig.getPackages().isEmpty()) {
+      selectors.add(PathSelector.forProprietaryPackages(
+          StringUtils.join(proprietaryConfig.getPackages().iterator(),
+              com.sonatype.clm.dto.model.ProprietaryConfig.PACKAGE_DELIM)));
+    }
+    if (!proprietaryConfig.getRegexes().isEmpty()) {
+      selectors.add(RegexSelector.forProprietaryRegexes(
+          StringUtils.join(proprietaryConfig.getRegexes().iterator(),
+              com.sonatype.clm.dto.model.ProprietaryConfig.REGEX_DELIM)));
+    }
+    if (selectors.isEmpty()) {
+      return s -> false;
+    }
+    Selector compoundSelector = new CompoundSelector(PathSelector.PROPERTY_NAME, selectors.toArray(new Selector[0]));
+    return s -> compoundSelector.isSelected(s) == Selection.EXCLUDED;
   }
 }

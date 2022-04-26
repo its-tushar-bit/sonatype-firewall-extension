@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,7 +17,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
-import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
@@ -26,10 +24,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.innersource.InnerSourceProducerComponentTelemetry;
 import com.sonatype.insight.brain.model.Application;
@@ -43,11 +39,6 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.archive.CompoundSelector;
-import com.sonatype.insight.scan.archive.PathSelector;
-import com.sonatype.insight.scan.archive.RegexSelector;
-import com.sonatype.insight.scan.archive.Selector;
-import com.sonatype.insight.scan.archive.Selector.Selection;
 import com.sonatype.insight.scan.util.HashUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -55,7 +46,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -467,29 +457,9 @@ public class DependencyResolver
   // Visible for testing
   boolean isProprietaryComponent(PackageUrlIdentifier componentPurl) {
     if (isProprietary == null) {
-      isProprietary = createIsProprietary(application.getId());
+      isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
     }
     return componentPurl.toComponentIdentifier().getProprietaryCoordinates().stream().anyMatch(isProprietary);
-  }
-
-  // Visible for testing
-  static Predicate<String> createIsProprietary(String internalOwnerId) {
-    ProprietaryConfig proprietaryConfig =
-        ProprietaryConfigService.getProprietaryConfig(internalOwnerId, new OwnerDAO(), new ProprietaryConfigDAO());
-    List<Selector> selectors = new ArrayList<>();
-    if (!proprietaryConfig.getPackages().isEmpty()) {
-      selectors.add(PathSelector.forProprietaryPackages(
-          StringUtils.join(proprietaryConfig.getPackages().iterator(), ProprietaryConfig.PACKAGE_DELIM)));
-    }
-    if (!proprietaryConfig.getRegexes().isEmpty()) {
-      selectors.add(RegexSelector.forProprietaryRegexes(
-          StringUtils.join(proprietaryConfig.getRegexes().iterator(), ProprietaryConfig.REGEX_DELIM)));
-    }
-    if (selectors.isEmpty()) {
-      return s -> false;
-    }
-    Selector compoundSelector = new CompoundSelector(PathSelector.PROPERTY_NAME, selectors.toArray(new Selector[0]));
-    return s -> compoundSelector.isSelected(s) == Selection.EXCLUDED;
   }
 
   private String getHash(PackageUrlIdentifier componentPurl) {

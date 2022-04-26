@@ -18,7 +18,6 @@ export default function DoubleColumnPicker() {
       disabled: '=?ngDisabled',
       iconFn: '&?',
       tooltipFn: '&?',
-      onLicensesPicked: '=?',
     },
     template,
     controller: DoubleColumnPickerController,
@@ -56,7 +55,7 @@ export default function DoubleColumnPicker() {
   }
 }
 
-function DoubleColumnPickerController($filter, $timeout) {
+function DoubleColumnPickerController($filter) {
   var vm = this;
 
   vm.checkAll = checkAll;
@@ -108,12 +107,6 @@ function DoubleColumnPickerController($filter, $timeout) {
     } else {
       vm.checkAllLeft = false;
     }
-
-    $timeout(function () {
-      if (vm.onLicensesPicked) {
-        vm.onLicensesPicked();
-      }
-    });
   }
 
   function toggleLeftSelectAll(isPickedList) {
@@ -166,4 +159,4 @@ function DoubleColumnPickerController($filter, $timeout) {
   }
 }
 
-DoubleColumnPickerController.$inject = ['$filter', '$timeout'];
+DoubleColumnPickerController.$inject = ['$filter'];

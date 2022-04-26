@@ -15,7 +15,6 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
-import { selectLicenseThreatGroupSiblings } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
 
 export default function OwnerDetailTreeViewController(
   $scope,
@@ -127,11 +126,6 @@ export default function OwnerDetailTreeViewController(
       vm.doLoad();
     }
   });
-  $scope.$watch('vm.licenseThreatGroups', (licenseThreatGroups) => {
-    if (licenseThreatGroups) {
-      vm.doLoad();
-    }
-  });
 }
 
 const mapStateToThis = (state) => ({
@@ -140,7 +134,6 @@ const mapStateToThis = (state) => ({
   policies: selectPolicySiblings(state),
   isMonitoringSupported: selectIsMonitoringSupported(state),
   isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
-  licenseThreatGroups: selectLicenseThreatGroupSiblings(state),
 });
 
 OwnerDetailTreeViewController.$inject = [

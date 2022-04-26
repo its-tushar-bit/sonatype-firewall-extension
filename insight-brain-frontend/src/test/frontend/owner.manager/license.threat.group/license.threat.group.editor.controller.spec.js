@@ -3,568 +3,280 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
-import { mapStateToThis } from 'MainRoot/owner.manager/license.threat.group/license.threat.group.editor.controller';
+import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import LicenseResourceMockData from '../mock.data/license.resource.mock.data';
+import LicenseThreatGroupResourceMockData from '../mock.data/licenseThreatGroup.resource.mock.data';
 
-describe('license.threat.group.editor.controller', function () {
+describe('license.threat.group.editor.controller.spec.js', function () {
   beforeEach(
-    angular.mock.module(ownerManagerModule.name, ($provide) => {
-      SpecUtil.mockNgRedux($provide);
+    angular.mock.module(ownerManagerModule.name, function ($provide) {
+      $provide.value('$cookies', {
+        get: angular.noop,
+      });
     })
   );
 
-  let vm, scope, deleteModalServiceSpy;
-  let currentLTG = {
-    id: 'c1411f13f1e045959895a6b8686cd2df',
-    name: 'Development Inc LTG1',
-    threatLevel: 10,
-    licenses: [
-      {
-        id: '33312eb53be24f199d55acee1db74621',
-        ownerId: '48951e9ed78946a6a5308420b5b533a8',
-        licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-        licenseId: 'SAP-TOU',
-      },
-      {
-        id: '71b5f83927944b56bfc6ab203232cf8b',
-        ownerId: '48951e9ed78946a6a5308420b5b533a8',
-        licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-        licenseId: 'SATA',
-      },
-      {
-        id: '2f315618a15243518547a8657dce17b8',
-        ownerId: '48951e9ed78946a6a5308420b5b533a8',
-        licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-        licenseId: 'SautinSoft-Document-.Net-LA',
-      },
-      {
-        id: 'e210c1aa054b4d0ca8f87bd667a4fdf4',
-        ownerId: '48951e9ed78946a6a5308420b5b533a8',
-        licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-        licenseId: 'SautinSoft-Excel-to-PDF-.Net-LA',
-      },
-    ],
-  };
-  let nextLTG = {
-    id: 'fd043f475d644ee69fe0ddc971b75f90',
-    name: 'Remove Me 9',
-    threatLevel: 9,
-    licenses: [
-      {
-        id: '809aa71f5d684a318010e7efdbc4a0a8',
-        ownerId: '48951e9ed78946a6a5308420b5b533a8',
-        licenseThreatGroupId: 'fd043f475d644ee69fe0ddc971b75f90',
-        licenseId: 'ACM-JTF-SLA',
-      },
-      {
-        id: '5bab376ff9fa4a01ae79787c2f3212d3',
-        ownerId: '48951e9ed78946a6a5308420b5b533a8',
-        licenseThreatGroupId: 'fd043f475d644ee69fe0ddc971b75f90',
-        licenseId: 'Accruent-TOU',
-      },
-      {
-        id: '7a24cf88058b4b21bf40e8bfdd758638',
-        ownerId: '48951e9ed78946a6a5308420b5b533a8',
-        licenseThreatGroupId: 'fd043f475d644ee69fe0ddc971b75f90',
-        licenseId: 'Accusoft-SLA',
-      },
-    ],
-  };
-  let dirtyLTG = {
-    id: 'c1411f13f1e045959895a6b8686cd2df',
-    name: 'Development Inc LTG1',
-    threatLevel: 10,
-    licenses: [
-      {
-        id: '33312eb53be24f199d55acee1db74621',
-        ownerId: '48951e9ed78946a6a5308420b5b533a8',
-        licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-        licenseId: 'SAP-TOU',
-      },
-      {
-        id: '71b5f83927944b56bfc6ab203232cf8b',
-        ownerId: '48951e9ed78946a6a5308420b5b533a8',
-        licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-        licenseId: 'SATA',
-      },
-      {
-        id: '2f315618a15243518547a8657dce17b8',
-        ownerId: '48951e9ed78946a6a5308420b5b533a8',
-        licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-        licenseId: 'SautinSoft-Document-.Net-LA',
-      },
-      {
-        id: 'e210c1aa054b4d0ca8f87bd667a4fdf4',
-        ownerId: '48951e9ed78946a6a5308420b5b533a8',
-        licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-        licenseId: 'SautinSoft-Excel-to-PDF-.Net-LA',
-      },
-    ],
-    pickedLicenses: [
-      {
-        id: '0BSD',
-        shortDisplayName: '0BSD',
-        longDisplayName: 'BSD Zero Clause License',
-        fullDisplayName: '(0BSD) BSD Zero Clause License',
-        picked: false,
-        index: 0,
-      },
-      {
-        id: '10tec-Company-License-Agreement',
-        shortDisplayName: '10tec-Company-License-Agreement',
-        longDisplayName: '10tec Company License Agreement',
-        fullDisplayName: '(10tec-Company-License-Agreement) 10tec Company License Agreement',
-        picked: false,
-        index: 1,
-      },
-      {
-        id: '2KSYS-EULA',
-        shortDisplayName: '2KSYS-EULA',
-        longDisplayName: '2KSYS End User License Agreement',
-        fullDisplayName: '(2KSYS-EULA) 2KSYS End User License Agreement',
-        picked: false,
-        index: 2,
-      },
-      {
-        id: 'AAL',
-        shortDisplayName: 'AAL',
-        longDisplayName: 'Attribution Assurance License',
-        fullDisplayName: '(AAL) Attribution Assurance License',
-        picked: false,
-        index: 3,
-      },
-    ],
-  };
-  let availableLicense = [
-    {
-      id: '0BSD',
-      shortDisplayName: '0BSD',
-      longDisplayName: 'BSD Zero Clause License',
-      fullDisplayName: '(0BSD) BSD Zero Clause License',
-      picked: false,
-      index: 0,
+  var vm,
+    $q,
+    scope,
+    $timeout,
+    $httpBackend,
+    $state = {
+      go: jasmine.createSpy('go'),
     },
-    {
-      id: '10tec-Company-License-Agreement',
-      shortDisplayName: '10tec-Company-License-Agreement',
-      longDisplayName: '10tec Company License Agreement',
-      fullDisplayName: '(10tec-Company-License-Agreement) 10tec Company License Agreement',
-      picked: false,
-      index: 1,
+    deleteServiceResourceDefer,
+    mockDeleteService,
+    CLMLocations,
+    CLMContextLocations,
+    SameOwnerStateNavigationService = {
+      goEdit: angular.noop,
     },
-  ];
-  let applicableLTGs = [
-    {
-      ownerId: '48951e9ed78946a6a5308420b5b533a8',
-      ownerName: 'Development Inc',
-      ownerType: 'organization',
-      licenseThreatGroups: [
-        {
-          id: 'c1411f13f1e045959895a6b8686cd2df',
-          name: 'Development Inc LTG1',
-          threatLevel: 10,
-          licenses: [
-            {
-              id: '33312eb53be24f199d55acee1db74621',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-              licenseId: 'SAP-TOU',
-            },
-            {
-              id: '71b5f83927944b56bfc6ab203232cf8b',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-              licenseId: 'SATA',
-            },
-            {
-              id: '2f315618a15243518547a8657dce17b8',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-              licenseId: 'SautinSoft-Document-.Net-LA',
-            },
-            {
-              id: 'e210c1aa054b4d0ca8f87bd667a4fdf4',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-              licenseId: 'SautinSoft-Excel-to-PDF-.Net-LA',
-            },
-          ],
-        },
-        {
-          id: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-          name: 'Development Inc LTG2',
-          threatLevel: 2,
-          licenses: [
-            {
-              id: 'abb7a802aaa1473e8479f0cf2867d087',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-              licenseId: 'ZPL-1.0',
-            },
-            {
-              id: '016877be5fba4b109d1253eee640be7d',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-              licenseId: 'ZPL-1.1',
-            },
-            {
-              id: 'e1813eaa7d6c433f818123a8e74c25b8',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-              licenseId: 'ZPL-2.0',
-            },
-            {
-              id: '63f7276c682743be86f9a2154ba85d89',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-              licenseId: 'ZPL-2.1',
-            },
-            {
-              id: 'e9e5af1604db46fb98c88825ff9ceb31',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-              licenseId: 'ZPL-UNSPECIFIED',
-            },
-            {
-              id: 'f144e4e7fcc4454686fc45544ff7ada1',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-              licenseId: 'ZZZ-Projects-LA',
-            },
-            {
-              id: 'cd65c8e98fd84b85a497caea11429fb4',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-              licenseId: 'Zuora-Inc-DTLA',
-            },
-          ],
-        },
-        {
-          id: '1ef15f07b23c4a0ab524060e44ca5827',
-          name: 'Development Inc LTG3',
-          threatLevel: 8,
-          licenses: [
-            {
-              id: '20f2378d232e40ac8f1577d267de0175',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: '1ef15f07b23c4a0ab524060e44ca5827',
-              licenseId: 'ACM-JTF-SLA',
-            },
-            {
-              id: '78e4e93c1fd642c9b94436900c309553',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: '1ef15f07b23c4a0ab524060e44ca5827',
-              licenseId: 'Accruent-TOU',
-            },
-            {
-              id: 'b4b91adfa64042a7b2bd60f8abc98b0a',
-              ownerId: '48951e9ed78946a6a5308420b5b533a8',
-              licenseThreatGroupId: '1ef15f07b23c4a0ab524060e44ca5827',
-              licenseId: 'Accusoft-SLA',
-            },
-          ],
-        },
-      ],
-      inherited: false,
-    },
-    {
-      ownerId: 'ROOT_ORGANIZATION_ID',
-      ownerName: 'Root Organization',
-      ownerType: 'organization',
-      licenseThreatGroups: [
-        {
-          id: '4da8a978f07249289a690a47898eaa68',
-          name: 'Banned',
-          threatLevel: 10,
-          licenses: [
-            {
-              id: '600e9d43a69947d39da37d14adbc61a3',
-              ownerId: 'ROOT_ORGANIZATION_ID',
-              licenseThreatGroupId: '4da8a978f07249289a690a47898eaa68',
-              licenseId: 'AGPL-1.0',
-            },
-            {
-              id: '1dc24723460e457487224cadfaec00b0',
-              ownerId: 'ROOT_ORGANIZATION_ID',
-              licenseThreatGroupId: '4da8a978f07249289a690a47898eaa68',
-              licenseId: 'AGPL-1.0-or-later',
-            },
-            {
-              id: '33b5b0eb6560499ba7db85491df48f74',
-              ownerId: 'ROOT_ORGANIZATION_ID',
-              licenseThreatGroupId: '4da8a978f07249289a690a47898eaa68',
-              licenseId: 'AGPL-2.0',
-            },
-          ],
-        },
-      ],
-      inherited: true,
-    },
-  ];
-  let siblings = [
-    {
-      id: 'c1411f13f1e045959895a6b8686cd2df',
-      name: 'Development Inc LTG1',
-      threatLevel: 10,
-      licenses: [
-        {
-          id: '33312eb53be24f199d55acee1db74621',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-          licenseId: 'SAP-TOU',
-        },
-        {
-          id: '71b5f83927944b56bfc6ab203232cf8b',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-          licenseId: 'SATA',
-        },
-        {
-          id: '2f315618a15243518547a8657dce17b8',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-          licenseId: 'SautinSoft-Document-.Net-LA',
-        },
-        {
-          id: 'e210c1aa054b4d0ca8f87bd667a4fdf4',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
-          licenseId: 'SautinSoft-Excel-to-PDF-.Net-LA',
-        },
-      ],
-    },
-    {
-      id: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-      name: 'Development Inc LTG2',
-      threatLevel: 2,
-      licenses: [
-        {
-          id: 'abb7a802aaa1473e8479f0cf2867d087',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-          licenseId: 'ZPL-1.0',
-        },
-        {
-          id: '016877be5fba4b109d1253eee640be7d',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-          licenseId: 'ZPL-1.1',
-        },
-        {
-          id: 'e1813eaa7d6c433f818123a8e74c25b8',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-          licenseId: 'ZPL-2.0',
-        },
-        {
-          id: '63f7276c682743be86f9a2154ba85d89',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-          licenseId: 'ZPL-2.1',
-        },
-        {
-          id: 'e9e5af1604db46fb98c88825ff9ceb31',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-          licenseId: 'ZPL-UNSPECIFIED',
-        },
-        {
-          id: 'f144e4e7fcc4454686fc45544ff7ada1',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-          licenseId: 'ZZZ-Projects-LA',
-        },
-        {
-          id: 'cd65c8e98fd84b85a497caea11429fb4',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: '6e3bf2bf8d1449c181d93cf1af3a93a0',
-          licenseId: 'Zuora-Inc-DTLA',
-        },
-      ],
-    },
-    {
-      id: '1ef15f07b23c4a0ab524060e44ca5827',
-      name: 'Development Inc LTG3',
-      threatLevel: 8,
-      licenses: [
-        {
-          id: '20f2378d232e40ac8f1577d267de0175',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: '1ef15f07b23c4a0ab524060e44ca5827',
-          licenseId: 'ACM-JTF-SLA',
-        },
-        {
-          id: '78e4e93c1fd642c9b94436900c309553',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: '1ef15f07b23c4a0ab524060e44ca5827',
-          licenseId: 'Accruent-TOU',
-        },
-        {
-          id: 'b4b91adfa64042a7b2bd60f8abc98b0a',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: '1ef15f07b23c4a0ab524060e44ca5827',
-          licenseId: 'Accusoft-SLA',
-        },
-      ],
-    },
-    {
-      id: 'b548512a7a924d80b6c53b98b427be59',
-      name: 'Intento',
-      threatLevel: 10,
-      licenses: [
-        {
-          id: '300b1e6cba0b42688b386cfcd0a8db99',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: 'b548512a7a924d80b6c53b98b427be59',
-          licenseId: 'Abstyles',
-        },
-        {
-          id: '01770300bf4e4b03b6f9df75bc2ba1f7',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: 'b548512a7a924d80b6c53b98b427be59',
-          licenseId: 'AcceleratXR-EULA',
-        },
-        {
-          id: 'c51e2e98abe546c18008aa6d4545f26d',
-          ownerId: '48951e9ed78946a6a5308420b5b533a8',
-          licenseThreatGroupId: 'b548512a7a924d80b6c53b98b427be59',
-          licenseId: 'Accruent-TOU',
-        },
-      ],
-    },
-  ];
+    mockLicenseGroupStore = StoreUtils().createMockStore('licenseGroupStore'),
+    mockLTG = ResourceUtils().createMockResource();
 
-  let mockState = {
-    router: {
-      currentParams: {
-        licenseThreatGroupId: 'c1411f13f1e045959895a6b8686cd2df',
+  beforeEach(inject(function ($rootScope, _$q_, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMContextLocations_) {
+    scope = $rootScope.$new();
+    $timeout = _$timeout_;
+    $q = _$q_;
+    $httpBackend = _$httpBackend_;
+    CLMLocations = _CLMLocations_;
+    CLMContextLocations = _CLMContextLocations_;
+
+    deleteServiceResourceDefer = $q.defer();
+
+    mockDeleteService = {
+      deleteResource: function () {
+        return deleteServiceResourceDefer.promise;
       },
-    },
-    orgsAndPolicies: {
-      licenseThreatGroups: {
-        loadError: null,
-        submitError: null,
-        errorState: null,
-        deleting: false,
-        success: null,
-        loading: false,
-        isDirty: false,
-        applicableLicenseThreatGroups: applicableLTGs,
-        availableLicenses: availableLicense,
-        currentLicenseThreatGroup: currentLTG,
-        nextLicenseThreatGroup: nextLTG,
-        dirtyLTG: dirtyLTG,
-        siblings: siblings,
-      },
-    },
-  };
+    };
 
-  beforeEach(inject((_$rootScope_, $controller) => {
-    scope = _$rootScope_.$new();
-    deleteModalServiceSpy = jasmine.createSpyObj('DeleteModalService', ['deleteRedux']);
-
-    vm = $controller('license.threat.group.editor.controller', {
-      $scope: scope,
-      DeleteModalService: deleteModalServiceSpy,
-    });
-
-    scope.vm = vm;
+    prepareBackendServices();
   }));
 
-  describe('mapStateToThis', () => {
-    it('sets dirtyLTG, loadError, submitError, isEditMode, siblings, isDirty, loading', () => {
-      const output = mapStateToThis(mockState);
+  const prepareBackendServices = () => {
+    $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
+    $httpBackend
+      .whenGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
+      .respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
+  };
 
-      expect(output.loading).toBeFalse();
-      expect(output.loadError).toBeNull();
-      expect(output.submitError).toBeNull();
-      expect(output.isDirty).toBeFalse();
-      expect(output.isEditMode).toBeTrue();
-      expect(output.siblings).toEqual(mockState.orgsAndPolicies.licenseThreatGroups.siblings);
-      expect(output.dirtyLTG).toEqual(mockState.orgsAndPolicies.licenseThreatGroups.dirtyLTG);
-    });
-  });
+  const flushBackendServices = () => {
+    $httpBackend.flush();
+    $timeout.flush();
+  };
 
-  describe('$onInit()', () => {
-    it('subscribes to the redux store', () => {
-      expect(vm.unsubscribe).toBeDefined();
+  it('Creates new on load', inject(function ($controller) {
+    vm = $controller('license.threat.group.editor.controller', {
+      $scope: scope,
     });
 
-    it('calls loadLabelsEditor', () => {
-      expect(vm.loadLicenseThreatGroupEditor).toHaveBeenCalledTimes(1);
-    });
-  });
+    flushBackendServices();
 
-  describe('$destroy()', () => {
-    it('unsubscribes from redux store', () => {
-      expect(vm.unsubscribe).not.toHaveBeenCalled();
-      scope.$destroy();
-      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
-    });
-  });
+    expect(vm.dirtyLTG).toBeDefined();
+    expect(vm.dirtyLTG.$new).toBe(true);
+  }));
 
-  describe('Page Changes', () => {
-    it('navigates away if form is not dirty', () => {
-      vm.isDirty = false;
+  it('Captures siblings', inject(function ($controller) {
+    vm = $controller('license.threat.group.editor.controller', {
+      $scope: scope,
+    });
+
+    flushBackendServices();
+
+    expect(vm.siblings.length).toBe(1);
+    expect(vm.siblings).toContain(
+      LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl().licenseThreatGroupsByOwner[0]
+        .licenseThreatGroups[0]
+    );
+  }));
+
+  it('Updates siblings list after creating new', inject(function ($controller) {
+    vm = $controller('license.threat.group.editor.controller', {
+      $scope: scope,
+    });
+    spyOn(vm, 'isLTGDirty').and.returnValue(true);
+
+    flushBackendServices();
+
+    mockLTG.$new = true;
+    mockLTG.licenses = [];
+    mockLTG.isDirty = function () {
+      return true;
+    };
+
+    vm.dirtyLTG = mockLTG;
+    vm.ltgEditor = {
+      $valid: true,
+      $setPristine: angular.noop,
+    };
+    vm.ltgEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
+
+    vm.save();
+    mockLTG.resolveSave();
+    $timeout.flush();
+    $timeout(function () {}, 1000); // mask delay = 0.8s
+    $timeout.flush();
+
+    expect(vm.siblings.length).toBe(2);
+    expect(vm.siblings).toContain(mockLTG);
+  }));
+
+  it('Finds match with URL parameter', inject(function ($controller) {
+    vm = $controller('license.threat.group.editor.controller', {
+      $scope: scope,
+      $stateParams: { licenseThreatGroupId: '456' },
+    });
+    mockLTG.id = '456';
+    mockLTG.licenses = [];
+
+    mockLicenseGroupStore.resolveGet([mockLTG, { id: '123' }]);
+
+    flushBackendServices();
+
+    expect(vm.dirtyLTG.$clone).toHaveBeenCalled();
+    expect(vm.dirtyLTG.id).toBe('456');
+  }));
+
+  it('Errors if no match found', inject(function ($controller) {
+    vm = $controller('license.threat.group.editor.controller', {
+      $scope: scope,
+      $stateParams: { licenseThreatGroupId: '456' },
+    });
+
+    mockLicenseGroupStore.resolveGet([{ id: '123' }, { id: '124' }]);
+    flushBackendServices();
+
+    expect(vm.dirtyLTG).toBeUndefined();
+    expect(vm.loadError).toBe('Unable to locate License Threat Group.');
+  }));
+
+  it('Unsuccessful save sets error message', inject(function ($controller) {
+    vm = $controller('license.threat.group.editor.controller', {
+      $scope: scope,
+    });
+
+    flushBackendServices();
+
+    mockLTG.licenses = [];
+    mockLTG.isDirty = function () {
+      return true;
+    };
+
+    vm.dirtyLTG = mockLTG;
+    vm.ltgEditor = {
+      $valid: true,
+    };
+    vm.ltgEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
+
+    vm.save();
+    mockLTG.rejectSave('dagnabbit');
+
+    $timeout.flush();
+    expect(vm.submitError).toBe('dagnabbit');
+  }));
+
+  it('After delete goes to create new license threat group', inject(function ($controller) {
+    spyOn(SameOwnerStateNavigationService, 'goEdit');
+    vm = $controller('license.threat.group.editor.controller', {
+      $scope: scope,
+      SameOwnerStateNavigationService: SameOwnerStateNavigationService,
+      $stateParams: { licenseThreatGroupId: '1' },
+      DeleteModalService: mockDeleteService,
+    });
+
+    mockLTG.id = '1';
+    mockLTG.licenses = [];
+    mockLicenseGroupStore.resolveGet([mockLTG]);
+    flushBackendServices();
+
+    vm.deleteLTG();
+    deleteServiceResourceDefer.resolve();
+    $timeout.flush();
+
+    expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-license-threat-group');
+    SpecUtil.expectStateChangeNotPrevented(scope);
+  }));
+
+  it('After last app LTG delete goes to summary page', inject(function ($controller) {
+    vm = $controller('license.threat.group.editor.controller', {
+      $scope: scope,
+      SameOwnerStateNavigationService: SameOwnerStateNavigationService,
+      $stateParams: { licenseThreatGroupId: '1', applicationPublicId: '123' },
+      $state: $state,
+      DeleteModalService: mockDeleteService,
+    });
+
+    vm.isApp = true;
+
+    mockLTG.id = '1';
+    mockLTG.licenses = [];
+    mockLicenseGroupStore.resolveGet([mockLTG]);
+    flushBackendServices();
+
+    vm.deleteLTG();
+    deleteServiceResourceDefer.resolve();
+    $timeout.flush();
+
+    expect($state.go).toHaveBeenCalledWith('management.view.application', {
+      applicationPublicId: '123',
+    });
+  }));
+
+  it('Picks the licenses that are already included with the LTG', inject(function ($controller) {
+    var licenses = LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl().licenseThreatGroupsByOwner[0]
+      .licenseThreatGroups[0].licenses;
+    vm = $controller('license.threat.group.editor.controller', {
+      $scope: scope,
+      $stateParams: { licenseThreatGroupId: '1' },
+    });
+
+    mockLTG.id = '1';
+    mockLTG.licenses = licenses;
+    mockLicenseGroupStore.resolveGet([mockLTG]);
+    flushBackendServices();
+
+    // All licenses should be picked
+    vm.availableLicenses.forEach(function (license) {
+      expect(license.picked).toBeTruthy();
+    });
+  }));
+
+  it('Adds display name to the licenses on load', inject(function ($controller) {
+    vm = $controller('license.threat.group.editor.controller', {
+      $scope: scope,
+    });
+
+    flushBackendServices();
+
+    const displayNames = vm.availableLicenses.map((license) => license.fullDisplayName);
+    const expectedDisplayNames = ['(AAL) Attribution Assurance License', '(Adobe) Adobe', '(Adobe-AFM) Adobe-AFM'];
+    expect(displayNames).toEqual(expectedDisplayNames);
+  }));
+
+  describe('Page Changes', function () {
+    beforeEach(inject(function ($controller) {
+      vm = $controller('license.threat.group.editor.controller', {
+        $scope: scope,
+      });
+
+      prepareBackendServices();
+      flushBackendServices();
+
+      vm.dirtyLTG = mockLTG;
+    }));
+
+    it('clean', function () {
+      vm.dirtyLTG.isDirty = jasmine.createSpy('isDirty').and.returnValue(false);
+
       SpecUtil.expectStateChangeNotPrevented(scope);
+      expect(vm.dirtyLTG.isDirty).toHaveBeenCalled();
     });
 
-    it('does not navigate away if form is dirty', () => {
-      vm.isDirty = true;
+    it('dirty', function () {
+      vm.dirtyLTG.isDirty = jasmine.createSpy('isDirty').and.returnValue(true);
+
       SpecUtil.expectStateChangePrevented(scope);
-    });
-  });
-
-  describe('on save', () => {
-    beforeEach(() => {
-      vm.dirtyLTG = dirtyLTG;
-      vm.saveLabel = jasmine.createSpy('vm.saveLicenseThreatGroup');
-      vm.isEditMode = true;
-    });
-
-    it('calls saveLicenseThreatGroup', () => {
-      vm.ltgEditorMask = {
-        wrap: jasmine.createSpy('wrap').and.callFake(() => Promise.resolve(currentLTG)),
-      };
-
-      vm.save();
-
-      expect(vm.saveLicenseThreatGroup).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('on remove', () => {
-    beforeEach(() => {
-      vm.dirtyLTG = dirtyLTG;
-    });
-
-    it('calls resetDeleteModalState', () => {
-      vm.deleteLTG();
-      expect(vm.resetDeleteModalState).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('on edit', () => {
-    beforeEach(() => {
-      vm.dirtyLTG = dirtyLTG;
-    });
-
-    it('calls setLicenseThreatGroupName on ltg name change', () => {
-      expect(vm.setLicenseThreatGroupName).not.toHaveBeenCalled();
-      vm.onNameChange();
-      expect(vm.setLicenseThreatGroupName).toHaveBeenCalledOnceWith(dirtyLTG.name);
-    });
-
-    it('calls setLicenseThreatGroupThreatLevel on ltg threat level change', () => {
-      expect(vm.setLicenseThreatGroupThreatLevel).not.toHaveBeenCalled();
-      vm.onThreatLevelChange();
-      expect(vm.setLicenseThreatGroupThreatLevel).toHaveBeenCalledOnceWith(dirtyLTG.threatLevel);
-    });
-
-    it('calls setPickedLicenses on ltg picked licenses change', () => {
-      expect(vm.setPickedLicenses).not.toHaveBeenCalled();
-      vm.onPickedLicensesChange();
-      expect(vm.setPickedLicenses).toHaveBeenCalledOnceWith(dirtyLTG.pickedLicenses);
+      expect(vm.dirtyLTG.isDirty).toHaveBeenCalled();
     });
   });
 });

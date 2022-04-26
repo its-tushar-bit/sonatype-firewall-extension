@@ -6,6 +6,8 @@
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import OwnerUtils from '../owner.utils';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 
 describe('owner.detail.tree.view.directive', function () {
   beforeEach(
@@ -22,28 +24,34 @@ describe('owner.detail.tree.view.directive', function () {
       $scope,
       $timeout,
       $httpBackend,
-      CLMLocations,
       CLMContextLocations,
+      loadApplicationsIfNeededMock,
       mockOwnerStore = storeName ? StoreUtils().createMockStore(storeName) : null;
 
-    beforeEach(inject(function (
-      $rootScope,
-      $controller,
-      _$timeout_,
-      _$httpBackend_,
-      _CLMLocations_,
-      _CLMContextLocations_
-    ) {
+    beforeEach(inject(function ($rootScope, $controller, _$timeout_, _$httpBackend_, _CLMContextLocations_) {
       $scope = $rootScope.$new();
       $timeout = _$timeout_;
       $httpBackend = _$httpBackend_;
-      CLMLocations = _CLMLocations_;
       CLMContextLocations = _CLMContextLocations_;
 
       spyOn(CLMContextLocations, 'isApplication').and.returnValue(type === 'application');
       spyOn(CLMContextLocations, 'isRepositories').and.returnValue(type === 'repositories');
       spyOn(CLMContextLocations, 'getEntityId').and.returnValue(owner[type === 'application' ? 'publicId' : 'id']);
       spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+      spyOn(applicationCategoriesActions, 'loadApplicableCategories').and.returnValue({ payload: [] });
+
+      loadApplicationsIfNeededMock = spyOn(applicationActions, 'loadApplicationsIfNeeded').and.returnValue({
+        payload: [
+          {
+            contact: null,
+            id: '635618f9560042fb80608592c568041d',
+            name: 'PublicId',
+            organizationId: '0a4ca3e6b672406892170481ef79799e',
+            organizationName: 'org',
+            publicId: owner.publicId,
+          },
+        ],
+      });
 
       vm = $controller('OwnerDetailTreeViewController', {
         $scope: $scope,
@@ -54,9 +62,7 @@ describe('owner.detail.tree.view.directive', function () {
 
       vm.isMonitoringSupported = true;
       vm.isGrandfatheringSupported = true;
-
       $scope.vm = vm;
-      vm.$onInit();
     }));
 
     afterEach(function () {
@@ -65,9 +71,15 @@ describe('owner.detail.tree.view.directive', function () {
     });
 
     it('Properly Loading Data', function () {
+      vm.$onInit();
       resolveGet(owner, [SidebarResourceMockData.getOwnerDetailsUrl()]);
 
-      expect(vm.ownerName).toBe(owner.name);
+      if (vm.isApp) {
+        expect(vm.ownerName).toBe('PublicId');
+      } else {
+        expect(vm.ownerName).toBe(owner.name);
+      }
+
       expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
       expect(vm.error).toBeUndefined();
 
@@ -79,6 +91,7 @@ describe('owner.detail.tree.view.directive', function () {
     });
 
     it('Properly Detecting Details Loading Error', function () {
+      vm.$onInit();
       resolveGet(owner, [400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
@@ -87,10 +100,15 @@ describe('owner.detail.tree.view.directive', function () {
     });
 
     it('Properly Displaying Owner Name Loading Error', function () {
+      loadApplicationsIfNeededMock.and.returnValue({ payload: [] });
+      vm.$onInit();
       resolveGet(null, [SidebarResourceMockData.getOwnerDetailsUrl()]);
 
       if (!vm.isRepositories) {
-        expect(vm.ownerName).toBeUndefined();
+        if (!vm.isApp) {
+          expect(vm.ownerName).toBeUndefined();
+        }
+
         expect(vm.error).toBe('Could not find an ' + type + ' with ID ' + CLMContextLocations.getEntityId() + '.');
       } else {
         expect(vm.ownerName).toBe('Repositories');
@@ -99,6 +117,7 @@ describe('owner.detail.tree.view.directive', function () {
     });
 
     it('Properly Updating Data via broadcast', inject(function ($rootScope) {
+      vm.$onInit();
       resolveGet(owner, [400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
@@ -113,21 +132,21 @@ describe('owner.detail.tree.view.directive', function () {
         .expectGET(CLMContextLocations.getOwnerDetailsUrl())
         .respond(SidebarResourceMockData.getOwnerDetailsUrl());
 
-      if (vm.isApp) {
-        $httpBackend
-          .expectGET(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId()))
-          .respond([]);
-      }
-
       $httpBackend.flush();
       $timeout.flush();
 
-      expect(vm.ownerName).toBe(owner.name);
+      if (vm.isApp) {
+        expect(vm.ownerName).toBe('PublicId');
+      } else {
+        expect(vm.ownerName).toBe(owner.name);
+      }
+
       expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
       expect(vm.error).toBeUndefined();
     }));
 
     it('watches vm.labels and calls vm.doLoad on change', function () {
+      vm.$onInit();
       resolveGet(owner, [400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
@@ -137,12 +156,6 @@ describe('owner.detail.tree.view.directive', function () {
       $httpBackend
         .expectGET(CLMContextLocations.getOwnerDetailsUrl())
         .respond(SidebarResourceMockData.getOwnerDetailsUrl());
-
-      if (vm.isApp) {
-        $httpBackend
-          .expectGET(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId()))
-          .respond([]);
-      }
 
       vm.labels = [
         {
@@ -162,12 +175,18 @@ describe('owner.detail.tree.view.directive', function () {
       $httpBackend.flush();
       $timeout.flush();
 
-      expect(vm.ownerName).toBe(owner.name);
+      if (vm.isApp) {
+        expect(vm.ownerName).toBe('PublicId');
+      } else {
+        expect(vm.ownerName).toBe(owner.name);
+      }
+
       expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
       expect(vm.error).toBeUndefined();
     });
 
     it('watches vm.categories and calls vm.doLoad on change', inject(function () {
+      vm.$onInit();
       resolveGet(owner, [400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
@@ -177,12 +196,6 @@ describe('owner.detail.tree.view.directive', function () {
       $httpBackend
         .expectGET(CLMContextLocations.getOwnerDetailsUrl())
         .respond(SidebarResourceMockData.getOwnerDetailsUrl());
-
-      if (vm.isApp) {
-        $httpBackend
-          .expectGET(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId()))
-          .respond([]);
-      }
 
       vm.categories = 'test';
       $scope.$digest();
@@ -194,12 +207,18 @@ describe('owner.detail.tree.view.directive', function () {
       $httpBackend.flush();
       $timeout.flush();
 
-      expect(vm.ownerName).toBe(owner.name);
+      if (vm.isApp) {
+        expect(vm.ownerName).toBe('PublicId');
+      } else {
+        expect(vm.ownerName).toBe(owner.name);
+      }
+
       expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
       expect(vm.error).toBeUndefined();
     }));
 
     it('watches vm.policies and calls vm.doLoad on change', inject(function () {
+      vm.$onInit();
       resolveGet(owner, [400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
@@ -209,12 +228,6 @@ describe('owner.detail.tree.view.directive', function () {
       $httpBackend
         .expectGET(CLMContextLocations.getOwnerDetailsUrl())
         .respond(SidebarResourceMockData.getOwnerDetailsUrl());
-
-      if (vm.isApp) {
-        $httpBackend
-          .expectGET(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId()))
-          .respond([]);
-      }
 
       vm.policies = 'test';
       $scope.$digest();
@@ -226,7 +239,12 @@ describe('owner.detail.tree.view.directive', function () {
       $httpBackend.flush();
       $timeout.flush();
 
-      expect(vm.ownerName).toBe(owner.name);
+      if (vm.isApp) {
+        expect(vm.ownerName).toBe('PublicId');
+      } else {
+        expect(vm.ownerName).toBe(owner.name);
+      }
+
       expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
       expect(vm.error).toBeUndefined();
     }));
@@ -242,12 +260,6 @@ describe('owner.detail.tree.view.directive', function () {
         }
       }
       $httpBackend.expectGET(CLMContextLocations.getOwnerDetailsUrl()).respond.apply(this, detailsDataArray);
-
-      if (vm.isApp) {
-        $httpBackend
-          .expectGET(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId()))
-          .respond([]);
-      }
 
       $httpBackend.flush();
       $timeout.flush();

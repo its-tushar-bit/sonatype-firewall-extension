@@ -29,7 +29,7 @@ export default {
     });
 
     describe('Application', function () {
-      createTestFunction('application', 'ApplicationStore', {
+      createTestFunction('application', null, {
         publicId: 'abcd',
         id: '0000abcd',
         name: 'My App',

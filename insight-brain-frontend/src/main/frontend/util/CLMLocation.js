@@ -165,8 +165,8 @@ export function getAdvancedSearchIndexUrl() {
   return uriTemplate`/api/v2/search/advanced/index`;
 }
 
-export function getAdvancedSearchUrl(query, page) {
-  return uriTemplate`/api/v2/search/advanced?query=${query}&page=${page}`;
+export function getAdvancedSearchUrl(query, page, isShowAllComponents) {
+  return uriTemplate`/api/v2/search/advanced?query=${query}&page=${page}&allComponents=${isShowAllComponents}`;
 }
 
 export function getScmOnboardingConfigUrl() {

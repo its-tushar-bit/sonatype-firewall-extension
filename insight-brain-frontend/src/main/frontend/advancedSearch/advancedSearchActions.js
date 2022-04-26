@@ -44,6 +44,9 @@ export function load() {
 export const ADVANCED_SEARCH_SET_CURRENT_QUERY = 'ADVANCED_SEARCH_SET_CURRENT_QUERY';
 export const setCurrentQuery = payloadParamActionCreator(ADVANCED_SEARCH_SET_CURRENT_QUERY);
 
+export const ADVANCED_SEARCH_SET_SHOW_ALL_COMPONENT_RESULTS = 'ADVANCED_SEARCH_SET_SHOW_ALL_COMPONENT_RESULTS';
+export const setShowAllComponentResults = payloadParamActionCreator(ADVANCED_SEARCH_SET_SHOW_ALL_COMPONENT_RESULTS);
+
 export const ADVANCED_SEARCH_QUERY_REQUESTED = 'ADVANCED_SEARCH_QUERY_REQUESTED';
 export const ADVANCED_SEARCH_QUERY_FULFILLED = 'ADVANCED_SEARCH_QUERY_FULFILLED';
 export const ADVANCED_SEARCH_QUERY_FAILED = 'ADVANCED_SEARCH_QUERY_FAILED';
@@ -63,10 +66,12 @@ export function searchFormSubmit(pageIncrement) {
     const formState = getState().advancedSearch.formState;
     // If next or previous is not requested, request page 0. Requesting page 0 means, firing initial search.
     const page = pageIncrement ? formState.searchResult.page + pageIncrement : 0;
+    const showAllComponents = formState.isShowingAllComponentResults;
 
     dispatch(queryRequested());
-    axios
-      .get(getAdvancedSearchUrl(formState.currentQuery, page))
+
+    return axios
+      .get(getAdvancedSearchUrl(formState.currentQuery, page, showAllComponents))
       .then(({ data }) => {
         dispatch(queryFulfilled(data));
       })

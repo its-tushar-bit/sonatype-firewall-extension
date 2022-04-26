@@ -85,4 +85,12 @@ public class AdvancedSearchPage
   public SelenideElement prefixTagWithId(String id) {
     return child("#advanced-search-query-builder-tag-" +  id);
   }
+
+  public SelenideElement componentSearchRadioButtons() {
+    return $("#filter-component-results-options");
+  }
+
+  public SelenideElement showAllComponentsRadio() {
+    return child("#show-all-components-true");
+  }
 }

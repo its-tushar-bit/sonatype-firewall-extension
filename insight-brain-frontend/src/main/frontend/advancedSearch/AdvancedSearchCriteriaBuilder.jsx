@@ -4,11 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment } from 'react';
-import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
-import { faCaretDown, faCaretRight, faPlusCircle } from '@fortawesome/pro-solid-svg-icons';
-import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxSelectableTag } from '@sonatype/react-shared-components';
+import { faCaretDown, faCaretRight } from '@fortawesome/pro-solid-svg-icons';
 import * as PropTypes from 'prop-types';
-import classnames from 'classnames';
 
 export default function AdvancedSearchCriteriaBuilder(props) {
   const { setCurrentQuery, currentQuery, showCriteriaBuilder, setShowCriteriaBuilder, inputFieldId } = props;
@@ -22,24 +20,26 @@ export default function AdvancedSearchCriteriaBuilder(props) {
 
   function prefixTag(prefix) {
     return (
-      <span
+      <NxSelectableTag
         key={prefix}
         id={'advanced-search-query-builder-tag-' + prefix}
-        className={classnames('iq-tag', {
-          ['selected']: currentQuery.indexOf(prefix) !== -1,
-        })}
-        onClick={prefixTagOnClickHandler(prefix)}
+        onSelect={prefixTagOnClickHandler(prefix)}
+        selected={currentQuery.indexOf(prefix) !== -1}
       >
         {prefix}
-        <NxFontAwesomeIcon icon={faPlusCircle} />
-      </span>
+      </NxSelectableTag>
     );
   }
 
   function queryBuilderGroup(header, ...prefixList) {
+    const headerIdString = header.replace(/\s+/g, '-').toLowerCase();
     return (
-      <div className="iq-adv-search__query-group">
-        <h4>{header}</h4>
+      <div
+        className="iq-adv-search__query-group"
+        aria-labelledby={`iq-adv-search__query-group${headerIdString}`}
+        role="group"
+      >
+        <h4 id={'iq-adv-search__query-group' + headerIdString}>{header}</h4>
         {prefixList.map((prefix) => {
           return prefixTag(prefix);
         })}
@@ -62,7 +62,11 @@ export default function AdvancedSearchCriteriaBuilder(props) {
         </div>
       </div>
       {showCriteriaBuilder && (
-        <div id="advanced-search-query-builder-container" className="iq-adv-search__query-builder">
+        <div
+          id="advanced-search-query-builder-container"
+          className="iq-adv-search__query-builder"
+          aria-label="search term tags"
+        >
           {queryBuilderGroup('Organization', 'organizationId', 'organizationName')}
 
           {queryBuilderGroup('Application', 'applicationId', 'applicationName', 'applicationPublicId')}
@@ -73,6 +77,23 @@ export default function AdvancedSearchCriteriaBuilder(props) {
             'applicationCategoryName',
             'applicationCategoryColor',
             'applicationCategoryDescription'
+          )}
+
+          {queryBuilderGroup(
+            'Component',
+            'componentHash',
+            'componentFormat',
+            'componentName',
+            'componentCoordinateGroupId',
+            'componentCoordinateArtifactId',
+            'componentCoordinateVersion',
+            'componentCoordinateClassifier',
+            'componentCoordinateExtension',
+            'componentCoordinateName',
+            'componentCoordinateQualifier',
+            'componentCoordinatePackageId',
+            'componentCoordinateArchitecture',
+            'componentCoordinatePlatform'
           )}
 
           {queryBuilderGroup(
@@ -89,19 +110,6 @@ export default function AdvancedSearchCriteriaBuilder(props) {
             'Security Vulnerability',
             'reportId',
             'policyEvaluationStage',
-            'componentHash',
-            'componentFormat',
-            'componentName',
-            'componentCoordinateGroupId',
-            'componentCoordinateArtifactId',
-            'componentCoordinateVersion',
-            'componentCoordinateClassifier',
-            'componentCoordinateExtension',
-            'componentCoordinateName',
-            'componentCoordinateQualifier',
-            'componentCoordinatePackageId',
-            'componentCoordinateArchitecture',
-            'componentCoordinatePlatform',
             'vulnerabilityId',
             'vulnerabilityStatus',
             'vulnerabilitySeverity',

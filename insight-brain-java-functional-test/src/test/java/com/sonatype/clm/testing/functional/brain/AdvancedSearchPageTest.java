@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import java.io.IOException;
 import java.util.stream.IntStream;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
@@ -15,7 +16,10 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.index.IndexService;
+import com.sonatype.insight.brain.service.InsightWork;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -38,6 +42,17 @@ public class AdvancedSearchPageTest
   private final AdvancedSearchPage page = new AdvancedSearchPage();
 
   private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
+
+  private InsightWork insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+
+  private PolicyEvaluation newAppReport(String appId, String stageId, String reportId, String reportResourceName)
+      throws Exception
+  {
+    PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(appId, stageId, reportId);
+    ReportTestUtils.createReportFile(policyEval.getApplicationId(), policyEval.getScanId(),
+        ReportTestUtils.zipReportDir(reportResourceName, tempDir), insightWork);
+    return policyEval;
+  }
 
   @BeforeClass
   public static void beforeClass() {
@@ -246,9 +261,9 @@ public class AdvancedSearchPageTest
 
     // test add prefix using pills
     page.queryBuilderButton().click();
-    page.prefixTagWithId("organizationId").shouldNotHave(cssClass("selected")).click();
+    page.prefixTagWithId("organizationId").shouldNotHave(cssClass("nx-tag--selected")).click();
     // when I click on the pill it should get an additional class which fills the pill with green background
-    page.prefixTagWithId("organizationId").shouldHave(cssClass("selected"));
+    page.prefixTagWithId("organizationId").shouldHave(cssClass("nx-tag--selected"));
     page.queryBuilderContainer().shouldBe(visible);  // query builder must remain open
     page.searchInput().shouldHave(value("organizationId:"));
 
@@ -256,5 +271,41 @@ public class AdvancedSearchPageTest
     page.searchInput().sendKeys("ROOT*");
     page.searchButton().click();
     page.queryBuilderContainer().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testSearch_Include_All_Components() throws Exception {
+    newAppReport(tempEntity.newApplicationWithParent().getId(), Stage.ID_RELEASE, "report-id",
+        "/IndexSearchingTest/nonVulnerableComponents");
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+
+    // Radio buttons should not be visible on initial load
+    page.componentSearchRadioButtons().shouldNotBe(visible);
+
+    // Radio buttons should be visible, default search should return
+    // components with vulnerability information
+    page.searchInput().setValue("componentName:*artifact*");
+    page.componentSearchRadioButtons().shouldBe(visible);
+    page.showAllComponentsRadio().shouldBe(visible);
+
+    eyesWatcher.eyesCheck("Show all components radio buttons");
+
+    page.searchButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // Default results should exist (components with vulnerabilities only)
+    // some assertions
+    page.resultCount().shouldBe(text("1"));
+
+    // Rerun search with show all components selected
+    page.showAllComponentsRadio().click();
+    page.searchButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // There should be more results (vulnerable and non-vulnerable
+    page.resultCount().shouldBe(text("2"));
   }
 }

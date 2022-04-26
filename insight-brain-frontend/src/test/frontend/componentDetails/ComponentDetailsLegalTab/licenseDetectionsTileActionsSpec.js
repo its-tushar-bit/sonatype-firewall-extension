@@ -484,6 +484,11 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
     });
   });
 
+  /*
+    See: CLM-21127 (https://issues.sonatype.org/browse/CLM-21127)
+    This test block needs refactoring to manage jasmine clock and promise resolution
+  */
+
   xdescribe('fetchAdvanceLegalPackFeatures', () => {
     let store;
     beforeEach(() => {

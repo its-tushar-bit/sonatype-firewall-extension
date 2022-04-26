@@ -5,7 +5,7 @@
  */
 
 import React, { Fragment, useState } from 'react';
-import { NxButton, NxTextInput } from '@sonatype/react-shared-components';
+import { NxButton, NxTextInput, NxRadio, NxButtonBar } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import AdvancedSearchHelp from './AdvancedSearchHelp';
 import AdvancedSearchCriteriaBuilder from './AdvancedSearchCriteriaBuilder';
@@ -15,15 +15,22 @@ export default function AdvancedSearchForm(props) {
     searchFormSubmit,
     setCurrentQuery,
     currentQuery,
+    setShowAllComponentResults,
+    isShowingAllComponentResults,
+    isToggleComponentResultsEnabled,
     searchResult: { page, totalNumberOfHits },
   } = props;
 
   const [showCriteriaBuilder, setShowCriteriaBuilder] = useState(false);
-
   const inputFieldId = 'advanced-search-input';
 
   function queryInputOnChangeHandler(e) {
     setCurrentQuery(e);
+  }
+
+  function setShowAllComponentResultsHandler(e) {
+    const shouldShowAllComponentResults = e === 'show-all-components-true';
+    setShowAllComponentResults(shouldShowAllComponentResults);
   }
 
   function formOnSubmitHandler(e) {
@@ -65,12 +72,35 @@ export default function AdvancedSearchForm(props) {
               />
             </label>
           </div>
-          <div className="nx-btn-bar">
-            <NxButton id="advanced-search-button" inline variant="primary" disabled={!currentQuery}>
+          <NxButtonBar>
+            <NxButton id="advanced-search-button" variant="primary" disabled={!currentQuery}>
               Search
             </NxButton>
-          </div>
+          </NxButtonBar>
         </div>
+        {isToggleComponentResultsEnabled && (
+          <fieldset className="nx-fieldset" id="filter-component-results-options">
+            <NxRadio
+              name="filter-component-results"
+              value="show-all-components-false"
+              onChange={setShowAllComponentResultsHandler}
+              isChecked={!isShowingAllComponentResults}
+              id="show-all-components-false"
+            >
+              Limit search results to components that have security vulnerabilities
+            </NxRadio>
+            <NxRadio
+              name="filter-component-results"
+              value="show-all-components-true"
+              onChange={setShowAllComponentResultsHandler}
+              isChecked={isShowingAllComponentResults}
+              id="show-all-components-true"
+              aria-label="show all components in search results"
+            >
+              Show all components
+            </NxRadio>
+          </fieldset>
+        )}
       </form>
       <AdvancedSearchCriteriaBuilder
         {...props}
@@ -110,9 +140,12 @@ export default function AdvancedSearchForm(props) {
 AdvancedSearchForm.propTypes = {
   // actions
   setCurrentQuery: PropTypes.func.isRequired,
+  setShowAllComponentResults: PropTypes.func.isRequired,
   searchFormSubmit: PropTypes.func.isRequired,
   // formState
   currentQuery: PropTypes.string.isRequired,
   searchResult: PropTypes.object,
   totalNumberOfHits: PropTypes.number,
+  isShowingAllComponentResults: PropTypes.bool.isRequired,
+  isToggleComponentResultsEnabled: PropTypes.bool.isRequired,
 };

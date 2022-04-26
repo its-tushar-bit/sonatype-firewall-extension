@@ -10,6 +10,7 @@ import {
   ADVANCED_SEARCH_LOAD_FULFILLED,
   ADVANCED_SEARCH_LOAD_REQUESTED,
   ADVANCED_SEARCH_SET_CURRENT_QUERY,
+  ADVANCED_SEARCH_SET_SHOW_ALL_COMPONENT_RESULTS,
   ADVANCED_SEARCH_QUERY_REQUESTED,
   ADVANCED_SEARCH_QUERY_FULFILLED,
   ADVANCED_SEARCH_QUERY_FAILED,
@@ -38,8 +39,44 @@ const initialState = {
       isExactTotalNumberOfHits: false,
     },
     queryError: null,
+    isShowingAllComponentResults: false,
+    isToggleComponentResultsEnabled: false,
   },
 };
+
+const componentToggleCriteria = [
+  'componentHash',
+  'componentFormat',
+  'componentName',
+  'componentCoordinateGroupId',
+  'componentCoordinateArtifactId',
+  'componentCoordinateVersion',
+  'componentCoordinateClassifier',
+  'componentCoordinateExtension',
+  'componentCoordinateName',
+  'componentCoordinateQualifier',
+  'componentCoordinatePackageId',
+  'componentCoordinateArchitecture',
+  'componentCoordinatePlatform',
+];
+
+/*
+  Set current query in state.
+  
+  Determine whether radio buttons for filtering component-related search
+  criteria should be displayed based on whether those criteria exist in the 
+  query.
+*/
+function setCurrentQuery(payload, state) {
+  return {
+    ...state,
+    formState: {
+      ...state.formState,
+      currentQuery: payload,
+      isToggleComponentResultsEnabled: componentToggleCriteria.some((criterion) => payload.includes(criterion)),
+    },
+  };
+}
 
 function loadRequested() {
   return {
@@ -139,7 +176,8 @@ const reducerActionMap = {
   [ADVANCED_SEARCH_LOAD_REQUESTED]: loadRequested,
   [ADVANCED_SEARCH_LOAD_FULFILLED]: loadFulfilled,
   [ADVANCED_SEARCH_LOAD_FAILED]: loadFailed,
-  [ADVANCED_SEARCH_SET_CURRENT_QUERY]: pathSet(['formState', 'currentQuery']),
+  [ADVANCED_SEARCH_SET_CURRENT_QUERY]: setCurrentQuery,
+  [ADVANCED_SEARCH_SET_SHOW_ALL_COMPONENT_RESULTS]: pathSet(['formState', 'isShowingAllComponentResults']),
   [ADVANCED_SEARCH_QUERY_REQUESTED]: queryRequested,
   [ADVANCED_SEARCH_QUERY_FULFILLED]: queryFulfilled,
   [ADVANCED_SEARCH_QUERY_FAILED]: queryFailed,

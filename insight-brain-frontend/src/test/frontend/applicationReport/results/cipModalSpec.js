@@ -64,7 +64,9 @@ describe('cipModal', function () {
             coordinates: 'coordinates',
             format: 'format',
           },
-          dependencyInfo: { isDirectDependency: false },
+          hasDependencyTypeInfo: true,
+          directDependency: true,
+          derivedDependencyType: 'direct',
           innerSource: true,
           innerSourceData: [
             {
@@ -127,23 +129,32 @@ describe('cipModal', function () {
         expect(Properties.setMatchState).toHaveBeenCalledWith('test-match-state');
       });
 
-      it('calls Properties.setDependencyType with "transitive" when isDirectDependency is false', function () {
-        vm.selectedComponent = component;
+      it('calls Properties.setDependencyType with "transitive" when derivedDependencyType is "transitive"', function () {
+        vm.selectedComponent = {
+          ...component,
+          hasDependencyTypeInfo: true,
+          derivedDependencyType: 'transitive',
+        };
         scope.$digest();
         expect(Properties.setDependencyType).toHaveBeenCalledWith('transitive');
       });
 
-      it('calls Properties.setDependencyType with "direct" when isDirectDependency is true', function () {
+      it('calls Properties.setDependencyType with "direct" when derivedDependencyType is "direct"', function () {
         vm.selectedComponent = {
           ...component,
-          dependencyInfo: { isDirectDependency: true },
+          hasDependencyTypeInfo: true,
+          derivedDependencyType: 'direct',
         };
         scope.$digest();
         expect(Properties.setDependencyType).toHaveBeenCalledWith('direct');
       });
 
-      it('calls Properties.setDependencyType with undefined when dependencyInfo is undefined', function () {
-        vm.selectedComponent = { ...component, dependencyInfo: undefined };
+      it('calls Properties.setDependencyType with undefined when derivedDependencyType is unknown', function () {
+        vm.selectedComponent = {
+          ...component,
+          hasDependencyTypeInfo: false,
+          derivedDependencyType: 'unknown',
+        };
         scope.$digest();
         expect(Properties.setDependencyType).toHaveBeenCalledWith(undefined);
       });

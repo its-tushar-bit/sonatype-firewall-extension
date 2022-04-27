@@ -46,7 +46,8 @@ const getAllChildrenKeys = (acc, node) => {
   );
 };
 
-export default function DependencyInfoGenerator(dependencies) {
+export default function DependencyInfoGenerator(dependencies, options = {}) {
+  const { isDependencyDataIncludedInBomData } = options;
   const dependencyTree = dependencies?.dependencyTree?.children;
   if (!dependencyTree) {
     return emptyDependencyInfoGenerator;
@@ -69,13 +70,20 @@ export default function DependencyInfoGenerator(dependencies) {
   const rootAncestorsByChild = map(setToArray, rootAncestorsSetByChild);
 
   return {
-    getDependencyInfo: ({ componentIdentifier }) => {
+    getDependencyInfo: ({ directDependency, componentIdentifier }) => {
       if (!componentIdentifier) {
         return null;
       }
 
       const key = serializeComponentIdentifier(componentIdentifier);
       const rootAncestors = rootAncestorsByChild[key];
+
+      // Returning only root ancestors data when dependency data is included in bom data
+      if (isDependencyDataIncludedInBomData) {
+        if (directDependency) return {};
+        else if (rootAncestors) return { rootAncestors };
+        else return null;
+      }
 
       return directDepIds.has(key)
         ? { isDirectDependency: true }

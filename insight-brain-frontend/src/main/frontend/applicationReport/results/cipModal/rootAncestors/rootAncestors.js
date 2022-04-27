@@ -29,7 +29,7 @@ function RootAncestorsController($scope, $ngRedux, applicationReportActions) {
 
       $scope.$watch('vm.selectedComponent', (selectedComponent) => {
         if (selectedComponent) {
-          vm.rootAncestors = findRootAncestors(selectedComponent.dependencyInfo, vm.selectedReport.allEntries);
+          vm.rootAncestors = findRootAncestors(selectedComponent, vm.selectedReport.allEntries);
           vm.isShowMoreLinkDisplayed = vm.rootAncestors.length > SHOWN_ENTRIES_LIMIT;
         }
       });
@@ -71,8 +71,8 @@ export function mapStateToThis({ applicationReport }) {
 
 // For each key in dependencyInfo.rootAncestors, find last matching component in allEntries.
 // Note, allEntries represent non-aggregated list so there could be multiple entries with the same componentId.
-export function findRootAncestors(dependencyInfo, allEntries) {
-  if (!dependencyInfo || dependencyInfo.isDirectDependency || isNilOrEmpty(dependencyInfo.rootAncestors)) {
+export function findRootAncestors(component, allEntries) {
+  if (!component.dependencyInfo || component.directDependency || isNilOrEmpty(component.dependencyInfo.rootAncestors)) {
     return [];
   }
 
@@ -84,5 +84,5 @@ export function findRootAncestors(dependencyInfo, allEntries) {
 
   const getRootAncestorsFromAllEntries = pipe(map(lookup(allEntriesBySerializedComponentId)), reject(isNil));
 
-  return getRootAncestorsFromAllEntries(dependencyInfo.rootAncestors);
+  return getRootAncestorsFromAllEntries(component.dependencyInfo.rootAncestors);
 }

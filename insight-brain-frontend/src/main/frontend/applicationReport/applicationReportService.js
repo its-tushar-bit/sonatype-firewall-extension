@@ -200,8 +200,8 @@ function augmentInnerSourceIndicator(components) {
         entry.innerSourceTDIndicator = !entry.innerSource;
         entry.dependencyType = entry.innerSource ? 'D' : 'TD';
         let dependencyType = {};
-        if (entry.dependencyInfo) {
-          dependencyType = entry.dependencyInfo.isDirectDependency
+        if (entry.hasDependencyTypeInfo) {
+          dependencyType = entry.directDependency
             ? innerSourceDependencyType.innerSourceDD
             : innerSourceDependencyType.innerSourceTD;
         }
@@ -218,7 +218,7 @@ function augmentInnerSourceIndicator(components) {
 
 function augmentIsOnlyInnerSourceTransitiveDependency(components) {
   components.forEach((component) => {
-    const rootAncestors = findRootAncestors(component.dependencyInfo, components);
+    const rootAncestors = findRootAncestors(component, components);
     component.isOnlyInnerSourceTransitiveDependency = !!(
       !component.innerSource &&
       component.innerSourceData &&
@@ -252,10 +252,11 @@ export function createReportEntries(
   partialMatches = defaultParamValue,
   dependencies
 ) {
+  const isDependencyDataIncludedInBomData = bomResult.dependencyDataIncluded;
   // BOM (and unknownJS) records indexed by their key
   const bomDataByKey = indexByKey(concat(bomResult.aaData, unknownJsResult.aaData)),
     partialMatchesByKey = indexByKey(partialMatches.aaData),
-    dependencyInfoGenerator = DependencyInfoGenerator(dependencies),
+    dependencyInfoGenerator = DependencyInfoGenerator(dependencies, { isDependencyDataIncludedInBomData }),
     // select the right processing function for this version of the data
     makeViolationEntries = violationEntryMakersByPolicyThreatsVersion.get(policyResult.version || null),
     // make entries for all violations
@@ -274,9 +275,9 @@ export function createReportEntries(
     return isNil(violations);
   }
 
-  function getDerivedDependencyType(dependencyInfo) {
-    if (dependencyInfo) {
-      if (dependencyInfo.isDirectDependency) {
+  function getDerivedDependencyType(entry = {}) {
+    if (entry.hasDependencyTypeInfo) {
+      if (entry.directDependency) {
         return 'direct';
       } else {
         return 'transitive';
@@ -291,10 +292,20 @@ export function createReportEntries(
 
   function addDependencyInfo(entry) {
     const dependencyInfo = dependencyInfoGenerator.getDependencyInfo(entry);
-    const derivedDependencyType = getDerivedDependencyType(dependencyInfo);
+    const directDependency = isDependencyDataIncludedInBomData
+      ? entry.directDependency
+      : dependencyInfo?.isDirectDependency;
+    const hasDependencyTypeInfo = typeof directDependency === 'boolean';
+    const entryWithDependencyInfo = dependencyInfo
+      ? { ...entry, directDependency, hasDependencyTypeInfo, dependencyInfo }
+      : { ...entry, directDependency, hasDependencyTypeInfo };
+    const derivedDependencyType = getDerivedDependencyType(entryWithDependencyInfo);
     const derivedInnerSource = getDerivedInnerSource(entry);
-    const entryWithDerivedDependencyType = { ...entry, derivedDependencyType, derivedInnerSource };
-    return dependencyInfo ? { ...entryWithDerivedDependencyType, dependencyInfo } : entryWithDerivedDependencyType;
+    return {
+      ...entryWithDependencyInfo,
+      derivedDependencyType,
+      derivedInnerSource,
+    };
   }
 
   const nonViolatingBomData = map(prop(1), filter(isKeyInactive, toPairs(bomDataByKey))),

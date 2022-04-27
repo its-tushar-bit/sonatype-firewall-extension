@@ -40,7 +40,7 @@ export const RiskRemediation = ({
   const { loading, loadError, remediation, versions, sourceResponse } = versionExplorerData;
   const { loading: selectedVersionLoading, loadError: selectedVersionError, selectedVersion } = selectedVersionData;
   const source = sourceResponse ? sourceResponse.source : null;
-  const isTransitiveDependency = componentInformation.dependencyInfo?.isDirectDependency === false;
+  const isTransitiveDependency = componentInformation.directDependency === false;
   const overviewComponentRiskRemediationTile_header = (
     <header className="nx-tile-header">
       <div className="nx-tile-header__title">

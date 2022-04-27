@@ -81,8 +81,6 @@ export const componentInformationPropType = PropTypes.shape({
     })
   ),
   pathnames: PropTypes.arrayOf(PropTypes.string).isRequired,
-  dependencyInfo: PropTypes.shape({
-    isDirectDependency: PropTypes.bool.isRequired,
-  }),
   website: PropTypes.string,
+  directDependency: PropTypes.bool.isRequired,
 });

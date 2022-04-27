@@ -1311,6 +1311,154 @@ describe('applicationReportService', function () {
         })
       );
     });
+
+    it('generates dependency type info from bom.json', function () {
+      const bomData = {
+        dependencyDataIncluded: true,
+        aaData: [
+          {
+            hash: 'fooHash',
+            directDependency: false,
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1',
+              },
+            },
+            displayName: {
+              parts: [{ field: 'a-name', value: 'foo' }, { value: ' : ' }, { field: 'version', value: '1' }],
+            },
+          },
+          {
+            hash: 'barHash',
+            directDependency: true,
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                groupId: 'barGroup',
+                artifactId: 'bar',
+                version: '2',
+              },
+            },
+            displayName: {
+              parts: [
+                { field: 'Group', value: 'barGroup' },
+                { value: ' : ' },
+                { field: 'Artifact', value: 'bar' },
+                { value: ' : ' },
+                { field: 'Version', value: '2' },
+              ],
+            },
+          },
+        ],
+      };
+      const policyThreatData = {
+        version: 3,
+        aaData: [
+          {
+            hash: 'fooHash',
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1',
+              },
+            },
+            policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+            policyName: 'Security-High',
+            policyThreatLevel: 9,
+            activeViolations: [
+              {
+                policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+                policyName: 'Security-High',
+                policyThreatLevel: 9,
+                waived: false,
+                grandfathered: false,
+              },
+            ],
+            waivedViolations: [
+              {
+                policyId: '546fa744e6434a9e855e1ef5bcaf2068',
+                policyName: 'License-High',
+                policyThreatLevel: 8,
+                waived: true,
+                grandfathered: false,
+              },
+            ],
+            allViolations: [
+              {
+                policyId: '546fa744e6434a9e855e1ef5bcaf2067',
+                policyName: 'Security-High',
+                policyThreatLevel: 9,
+                waived: false,
+                grandfathered: false,
+              },
+              {
+                policyId: '546fa744e6434a9e855e1ef5bcaf2068',
+                policyName: 'License-High',
+                policyThreatLevel: 8,
+                waived: true,
+                grandfathered: true,
+              },
+            ],
+          },
+        ],
+      };
+      const dependencies = {
+        dependencyTree: {
+          children: [
+            {
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo',
+                  version: '1',
+                },
+              },
+              children: [
+                {
+                  componentIdentifier: {
+                    format: 'maven',
+                    coordinates: {
+                      groupId: 'barGroup',
+                      artifactId: 'bar',
+                      version: '2',
+                    },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      };
+
+      const result = applicationReportService.createReportEntries(
+        policyThreatData,
+        bomData,
+        unknownJSData,
+        partialMatchData,
+        dependencies
+      ).policies;
+
+      expect(result).toContain(
+        jasmine.objectContaining({
+          hash: 'fooHash',
+          directDependency: false,
+          derivedDependencyType: 'transitive',
+          hasDependencyTypeInfo: true,
+        })
+      );
+
+      expect(result).toContain(
+        jasmine.objectContaining({
+          hash: 'barHash',
+          directDependency: true,
+          derivedDependencyType: 'direct',
+          hasDependencyTypeInfo: true,
+        })
+      );
+    });
   });
 
   describe('aggregation, filtering and sorting', function () {

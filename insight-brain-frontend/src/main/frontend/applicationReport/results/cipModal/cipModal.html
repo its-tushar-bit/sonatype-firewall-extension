@@ -1,7 +1,7 @@
 <section id="cip-modal">
   <header id="cip-modal-header" class="iq-modal-header">
     <h2 ng-if="vm.selectedComponent.innerSourceTDIndicator || vm.selectedComponent.innerSource"
-        ng-class="vm.selectedComponent.dependencyInfo.isDirectDependency ?
+        ng-class="vm.selectedComponent.directDependency ?
         'iq-modal-header__component-info-direct' : 'iq-modal-header__component-info-transitive'">
       <component-display component="vm.selectedComponent" truncate="true"></component-display>
     </h2>
@@ -20,9 +20,9 @@
     </div>
     <div ng-if="vm.selectedComponent.dependencyInfo"
          class="iq-modal-header__dependency-info iq-dependency-indicator iq-dependency-indicator--long"
-         ng-class="vm.selectedComponent.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
-      <span ng-if="vm.selectedComponent.dependencyInfo.isDirectDependency">Direct Dependency</span>
-      <span ng-if="!vm.selectedComponent.dependencyInfo.isDirectDependency">Transitive Dependency</span>
+         ng-class="vm.selectedComponent.directDependency ? 'direct' : 'transitive'">
+      <span ng-if="vm.selectedComponent.directDependency">Direct Dependency</span>
+      <span ng-if="!vm.selectedComponent.directDependency">Transitive Dependency</span>
     </div>
   </header>
   <cip-tab-panel class="iq-modal-content"

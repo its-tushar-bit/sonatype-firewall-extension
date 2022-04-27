@@ -26,7 +26,8 @@
     "relativePopularity" : 0.0,
     "createTime" : 1164926586000,
     "lastModifiedTime" : null,
-    "lastModifiedEntryTime" : null
+    "lastModifiedEntryTime" : null,
+    "directDependency": false
   }, {
     "filenames" : [ "jetty-6.1.15.jar" ],
     "pathnames" : [ "dependency:/com.sonatype.insight.example:sample-small-application:jar:1.0.0/org.mortbay.jetty:jetty:jar:6.1.15" ],
@@ -98,7 +99,8 @@
     "relativePopularity" : 0.12,
     "createTime" : 1211417575000,
     "lastModifiedTime" : null,
-    "lastModifiedEntryTime" : null
+    "lastModifiedEntryTime" : null,
+    "directDependency": true
   }, {
     "componentIdentifier" : null,
     "groupId" : null,
@@ -139,7 +141,8 @@
     "createTime" : 1276613337000,
     "lastModifiedTime" : 1413088398000,
     "lastModifiedEntryTime" : 1276595330000,
-    "website" : "http://tiles.apache.org/framework/tiles-core/"
+    "website" : "http://tiles.apache.org/framework/tiles-core/",
+    "directDependency": true
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -164,7 +167,8 @@
     "createTime" : 1122870234000,
     "lastModifiedTime" : 1413088396000,
     "lastModifiedEntryTime" : 1079661424000,
-    "website" : "http://aopalliance.sourceforge.net"
+    "website" : "http://aopalliance.sourceforge.net",
+    "directDependency": true
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -191,6 +195,7 @@
     "lastModifiedEntryTime" : 1054324540000,
     "website" : null,
     "innerSource": true,
+    "directDependency": true,
     "innerSourceData": [
       {
         "ownerApplicationName": "ApplicationReportTest",
@@ -222,6 +227,7 @@
     "lastModifiedTime" : 1413088396000,
     "lastModifiedEntryTime" : 1054324540000,
     "innerSource": false,
+    "directDependency": false,
     "innerSourceData": [
       {
         "ownerApplicationName": "ApplicationReportTest"
@@ -287,6 +293,7 @@
       "name" : "javax.inject"
     },
     "innerSource": false,
+    "directDependency": true,
     "innerSourceData": [
       {
         "ownerApplicationName": "ApplicationReportTest2",
@@ -353,6 +360,7 @@
       "name" : "commons-io"
     },
       "innerSource": false,
+      "directDependency": false,
       "innerSourceData": [
         {
           "ownerApplicationName": "ApplicationReportTest2",
@@ -416,6 +424,7 @@
       "name" : "test-business"
     },
       "innerSource": true,
+      "directDependency": true,
       "innerSourceData": [
         {
           "ownerApplicationName": "ApplicationReportTest2",
@@ -479,6 +488,7 @@
       "name" : "test-data"
     },
       "innerSource": false,
+      "directDependency": false,
       "innerSourceData": [
         {
           "ownerApplicationName": "ApplicationReportTest2",

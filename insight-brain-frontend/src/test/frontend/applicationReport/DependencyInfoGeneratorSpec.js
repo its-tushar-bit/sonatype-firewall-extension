@@ -459,5 +459,58 @@ describe('DependencyInfoGenerator', function () {
       const dependencyInfoGenerator = DependencyInfoGenerator(dependencies);
       expect(dependencyInfoGenerator.getDependencyInfo(reportEntry)).toBeNull();
     });
+
+    it('returns empty object for direct dependency when dependency data is included in bom data', function () {
+      const reportEntry = {
+        directDependency: true,
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'logback-access',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'ch.qos.logback',
+            version: '0.6',
+          },
+        },
+      };
+      const dependencyInfoGenerator = DependencyInfoGenerator(dependencies, {
+        isDependencyDataIncludedInBomData: true,
+      });
+      expect(dependencyInfoGenerator.getDependencyInfo(reportEntry)).toEqual({});
+    });
+
+    it('returns only root ancestors data for transitive dependency when dependency data is included in bom data', function () {
+      const reportEntry = {
+        directDependency: false,
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'jetty',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'org.mortbay.jetty',
+            version: '6.1.15',
+          },
+        },
+      };
+      const dependencyInfoGenerator = DependencyInfoGenerator(dependencies, {
+        isDependencyDataIncludedInBomData: true,
+      });
+      expect(dependencyInfoGenerator.getDependencyInfo(reportEntry)).toEqual({
+        rootAncestors: [
+          serializeComponentIdentifier({
+            format: 'maven',
+            coordinates: {
+              artifactId: 'logback-access',
+              classifier: '',
+              extension: 'jar',
+              groupId: 'ch.qos.logback',
+              version: '0.6',
+            },
+          }),
+        ],
+      });
+    });
   });
 });

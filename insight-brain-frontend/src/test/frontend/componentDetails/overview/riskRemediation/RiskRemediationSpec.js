@@ -228,7 +228,7 @@ describe('RiskRemediation', () => {
 
   it('renders Recommended Remediation section if it is a transitive dependency', () => {
     const component = getMounted({
-        componentInformation: { dependencyInfo: { isDirectDependency: false } },
+        componentInformation: { directDependency: false },
       }),
       dependencyInfoTile = component.find('.iq-dependency-information');
 
@@ -242,7 +242,7 @@ describe('RiskRemediation', () => {
   it('renders Recommended Remediation section even if dependencyTreeSubset is empty', () => {
     const component = getMounted({
         dependencyTreeSubset: [],
-        componentInformation: { dependencyInfo: { isDirectDependency: false } },
+        componentInformation: { directDependency: false },
       }),
       dependencyInfoTile = component.find('.iq-dependency-information');
 
@@ -251,7 +251,7 @@ describe('RiskRemediation', () => {
 
   it('does not render Recommended Remediation section if it is a direct dependency', () => {
     const component = getMounted({
-        componentInformation: { dependencyInfo: { isDirectDependency: true } },
+        componentInformation: { directDependency: true },
       }),
       dependencyInfoTile = component.find('.iq-dependency-information');
 

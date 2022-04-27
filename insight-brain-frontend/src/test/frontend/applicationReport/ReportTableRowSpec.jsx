@@ -26,8 +26,8 @@ describe('ReportTableRow component', function () {
       policyThreatLevel: 9,
       waived: false,
       grandfathered: false,
+      directDependency: false,
       dependencyInfo: {
-        isDirectDependency: false,
         rootAncestors: [npmProducerComponentKey],
       },
     },
@@ -35,8 +35,8 @@ describe('ReportTableRow component', function () {
       policyThreatLevel: 9,
       waived: false,
       grandfathered: false,
+      directDependency: false,
       dependencyInfo: {
-        isDirectDependency: false,
         rootAncestors: [npmProducerComponentKey],
       },
     },
@@ -44,8 +44,8 @@ describe('ReportTableRow component', function () {
       policyThreatLevel: 9,
       waived: true,
       grandfathered: false,
+      directDependency: false,
       dependencyInfo: {
-        isDirectDependency: false,
         rootAncestors: [npmProducerComponentKey],
       },
     },
@@ -53,8 +53,8 @@ describe('ReportTableRow component', function () {
       policyThreatLevel: 9,
       waived: false,
       grandfathered: true,
+      directDependency: false,
       dependencyInfo: {
-        isDirectDependency: false,
         rootAncestors: [npmProducerComponentKey],
       },
     },
@@ -62,8 +62,8 @@ describe('ReportTableRow component', function () {
       policyThreatLevel: 0,
       waived: false,
       grandfathered: false,
+      directDependency: false,
       dependencyInfo: {
-        isDirectDependency: false,
         rootAncestors: [npmProducerComponentKey],
       },
     },
@@ -71,9 +71,8 @@ describe('ReportTableRow component', function () {
       policyThreatLevel: 9,
       waived: false,
       grandfathered: false,
-      dependencyInfo: {
-        isDirectDependency: false,
-      },
+      directDependency: false,
+      dependencyInfo: {},
     },
   ];
 

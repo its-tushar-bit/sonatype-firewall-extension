@@ -17,6 +17,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -121,7 +122,8 @@ public class SearchService
         .setData("searchPageSize", pageSize) //
         .setData("searchPageIndex", page - 1);
 
-    try (IndexReader indexReader = DirectoryReader.open(openSearchIndex())) {
+    try (Directory directory = openSearchIndex(); //
+        IndexReader indexReader = DirectoryReader.open(directory)) {
       SearchResultDTO searchResultDTO = new SearchResultDTO();
       searchResultDTO.searchQuery = searchQuery;
       searchResultDTO.page = page;
@@ -210,6 +212,7 @@ public class SearchService
 
   private Directory openSearchIndex() {
     try {
+      @SuppressWarnings("resource")
       Directory directory = luceneComponents.openSearchIndex(true);
       if (directory == null || !DirectoryReader.indexExists(directory)) {
         if (directory != null) {

@@ -23,7 +23,13 @@ const OverriddenField = (props) => {
   }, []);
 
   const selectedTransferItems = new Set(licenseIds);
-  const onSelectTransferItem = (selectedTransferItemSet) => setSelectedLicenses(Array.from(selectedTransferItemSet));
+  const onSelectTransferItem = (selectedTransferItemSet) => {
+    if (selectedTransferItemSet.has('Disabled')) {
+      selectedTransferItemSet.delete('Disabled');
+    } else {
+      setSelectedLicenses(Array.from(selectedTransferItemSet));
+    }
+  };
 
   return (
     <NxTransferList

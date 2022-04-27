@@ -42,7 +42,7 @@ public class SourceControlUtilsTest
 
   private static final String TOKEN = "token";
 
-  private static final String USERNAME = "username";
+  private static final String SCM_USERNAME = "username";
 
   private ApiSourceControlService mockSourceControlService;
 
@@ -379,7 +379,7 @@ public class SourceControlUtilsTest
         .setOwnerId(org.getId())
         .setBaseBranch("base-branch")
         .setToken(TOKEN)
-        .setUsername(USERNAME)
+        .setUsername(SCM_USERNAME)
         .setRemediationPullRequestsEnabled(true)
         .setStatusChecksEnabled(true)
         .setPullRequestCommentingEnabled(true)
@@ -406,7 +406,7 @@ public class SourceControlUtilsTest
     SourceControl rootOrgSourceControl = new SourceControl.Builder()
         .setOwnerId(org.getParentOrganizationId())
         .setToken(TOKEN)
-        .setUsername(USERNAME)
+        .setUsername(SCM_USERNAME)
         .setBaseBranch("base-branch")
         .setRemediationPullRequestsEnabled(true)
         .setStatusChecksEnabled(true)
@@ -432,7 +432,7 @@ public class SourceControlUtilsTest
     assertThat(gitRepositoryInfo.provider).isEqualTo(SourceControlProvider.GITHUB);
     // values inherited from organization/root organization if applicable
     assertThat(gitRepositoryInfo.token).isEqualTo(TOKEN);
-    assertThat(gitRepositoryInfo.username).isEqualTo(USERNAME);
+    assertThat(gitRepositoryInfo.username).isEqualTo(SCM_USERNAME);
     assertThat(gitRepositoryInfo.pullRequestCommentingEnabled).isTrue();
     assertThat(gitRepositoryInfo.sourceControlEvaluationsEnabled).isTrue();
     assertThat(gitRepositoryInfo.sourceControlScanTarget).isEqualTo("/target/*");

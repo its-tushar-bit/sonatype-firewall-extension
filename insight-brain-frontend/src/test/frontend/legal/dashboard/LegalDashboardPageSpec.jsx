@@ -8,6 +8,7 @@ import React from 'react';
 import LegalDashboardApplicationsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationsTab';
 import LegalDashboardComponentsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardComponentsTab';
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
+import { pathSet } from 'MainRoot/util/jsUtil';
 
 describe('LegalDashboardPage', function () {
   let minimalProps,
@@ -17,7 +18,8 @@ describe('LegalDashboardPage', function () {
     loadDashboardUISpy,
     loadFilterSpy,
     getShallowComponent,
-    getMountedComponent;
+    getMountedComponent,
+    stateGoSpy;
   const mockApplications = {
     results: [],
     totalResultsCount: 0,
@@ -39,6 +41,7 @@ describe('LegalDashboardPage', function () {
     loadResultsSpy = jasmine.createSpy('loadResults');
     loadFilterSpy = jasmine.createSpy('loadFilter');
     loadDashboardUISpy = jasmine.createSpy('loadDashboardUISpy');
+    stateGoSpy = jasmine.createSpy('stateGoSpy');
     minimalProps = {
       applications: mockApplications,
       components: mockComponents,
@@ -54,6 +57,7 @@ describe('LegalDashboardPage', function () {
           data: {
             activeTab: 'applications',
             isMultiApp: false,
+            disableCreateAttributionReportBtn: false,
           },
         },
       },
@@ -62,7 +66,7 @@ describe('LegalDashboardPage', function () {
       toggleFilterSidebar: () => {},
       fetchBackendPage: () => {},
       changeSortField: () => {},
-      stateGo: () => {},
+      stateGo: stateGoSpy,
       searchByComponentName: () => {},
       setComponentSearchInputValue: () => {},
     };
@@ -98,6 +102,7 @@ describe('LegalDashboardPage', function () {
 
     let createAttribReportButton = wrapper.find('#create-attribution-report-btn');
     expect(createAttribReportButton).toHaveSize(1);
+    expect(createAttribReportButton).toHaveProp('title', '');
     expect(applicationsTab).toHaveProp('filtersAreDirty', true);
   });
 
@@ -106,12 +111,61 @@ describe('LegalDashboardPage', function () {
     let componentsTab = wrapper.find(LegalDashboardComponentsTab);
     expect(componentsTab).toExist();
     expect(componentsTab).toHaveProp('components', mockComponents);
-    let createAttribReportButton = wrapper.find('#create-attribution-report-btn');
-    expect(createAttribReportButton).toHaveSize(1);
-    expect(createAttribReportButton.props().disabled).toBeTrue();
   });
 
-  it('prompts users with dialog for generating report', function () {
+  it('renders a title on the Create Attribution Report when not in the Applications tab', function () {
+    const propsComponentsTab = pathSet(['router', 'currentState', 'data', 'activeTab'], 'components', minimalProps);
+    const wrapper = enzymeUtils.getShallowComponent(LegalDashboardPage, propsComponentsTab)();
+
+    const createAttribReportButton = wrapper.find('#create-attribution-report-btn');
+    expect(createAttribReportButton).toHaveProp(
+      'title',
+      'Only available for applications. Switch to Applications to use.'
+    );
+  });
+
+  it('omits modal and navigation to the Attribution Report page when the button is disabled', function () {
+    const propsDisableAttributionReportBtn = pathSet(
+      ['router', 'currentState', 'data', 'disableCreateAttributionReportBtn'],
+      true,
+      minimalProps
+    );
+
+    const wrapper = enzymeUtils.getShallowComponent(LegalDashboardPage, propsDisableAttributionReportBtn)();
+    const createAttribReportButton = wrapper.find('#create-attribution-report-btn');
+
+    expect(createAttribReportButton).toHaveClassName('disabled');
+
+    createAttribReportButton.simulate('click');
+    expect(wrapper.find('NxModal')).not.toExist();
+    expect(stateGoSpy).not.toHaveBeenCalled();
+  });
+
+  it('omits modal and navigation to the Attribution Report page when there is no application', function () {
+    const propsNoApplication = pathSet(['applications', 'totalResultsCount'], 0, minimalProps);
+    const wrapper = enzymeUtils.getShallowComponent(LegalDashboardPage, propsNoApplication)();
+
+    const createAttribReportButton = wrapper.find('#create-attribution-report-btn');
+    expect(createAttribReportButton).toHaveClassName('disabled');
+
+    createAttribReportButton.simulate('click');
+    expect(wrapper.find('NxModal')).not.toExist();
+    expect(stateGoSpy).not.toHaveBeenCalled();
+  });
+
+  it('navigates to the Attribution Report page when there is only 1 application', function () {
+    const propsOneApplication = pathSet(['applications', 'totalResultsCount'], 1, minimalProps);
+    const wrapper = enzymeUtils.getShallowComponent(LegalDashboardPage, propsOneApplication)();
+
+    const createAttribReportButton = wrapper.find('#create-attribution-report-btn');
+    expect(createAttribReportButton).not.toHaveClassName('disabled');
+
+    createAttribReportButton.simulate('click');
+    expect(wrapper.find('NxModal')).not.toExist();
+    expect(stateGoSpy).toHaveBeenCalledWith('legal.attributionReportMultiApp');
+  });
+
+  it('prompts users with dialog for generating report with more than 1 application', function () {
     const mockApplications = {
       results: [
         {
@@ -152,8 +206,9 @@ describe('LegalDashboardPage', function () {
 
     const createAttribReportButton = wrapper.find('#create-attribution-report-btn');
     expect(createAttribReportButton).toExist();
-    expect(createAttribReportButton.props().disabled).toBeFalse();
+    expect(createAttribReportButton).not.toHaveClassName('disabled');
     createAttribReportButton.simulate('click');
+    expect(wrapper.find('NxModal')).toExist();
 
     const generateAttribReportButton = wrapper.find('#create-report-generate-report-button');
     expect(generateAttribReportButton).toExist();

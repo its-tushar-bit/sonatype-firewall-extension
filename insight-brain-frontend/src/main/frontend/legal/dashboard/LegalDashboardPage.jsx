@@ -49,7 +49,8 @@ export default function LegalDashboardPage(props) {
   const tabIndexes = ['applications', 'components'];
   const stateIndexes = ['legal.applicationsDashboard', 'legal.componentsDashboard'];
   const defaultActiveTab = tabIndexes.findIndex((tab) => router.currentState?.data?.activeTab === tab);
-  const disableCreateAttributionReportBtn = router.currentState?.data?.disableCreateAttributionReportBtn === true;
+  const disableCreateAttributionReportBtn =
+    router.currentState?.data?.disableCreateAttributionReportBtn === true || applications.totalResultsCount < 1;
   const [showMultiAppAttributionReportModal, setShowMultiAppAttributionReportModal] = useState(false);
   const modalCloseHandler = () => setShowMultiAppAttributionReportModal(false);
   const uiRouterState = useRouterState();
@@ -88,16 +89,19 @@ export default function LegalDashboardPage(props) {
             <NxButton
               id="create-attribution-report-btn"
               variant="primary"
-              disabled={disableCreateAttributionReportBtn || applications.totalResultsCount < 1}
+              className={disableCreateAttributionReportBtn ? 'disabled' : ''}
               title={
-                disableCreateAttributionReportBtn
+                router.currentState?.data?.activeTab !== tabIndexes[0]
                   ? 'Only available for applications. Switch to Applications to use.'
                   : ''
               }
               onClick={() => {
-                setShowMultiAppAttributionReportModal(applications.totalResultsCount > 1);
-                if (applications.totalResultsCount <= 1) {
-                  stateGo('legal.attributionReportMultiApp');
+                if (!disableCreateAttributionReportBtn) {
+                  if (applications.totalResultsCount === 1) {
+                    stateGo('legal.attributionReportMultiApp');
+                  } else {
+                    setShowMultiAppAttributionReportModal(true);
+                  }
                 }
               }}
             >

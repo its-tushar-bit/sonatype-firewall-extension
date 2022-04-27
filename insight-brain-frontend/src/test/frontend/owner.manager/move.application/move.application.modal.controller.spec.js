@@ -5,8 +5,9 @@
  */
 import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
 import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
+import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 
-describe('move.application.modal.controller.js', function () {
+describe('move.application.modal.controller', function () {
   var mockDestinations = [
     {
       id: '1',
@@ -27,20 +28,21 @@ describe('move.application.modal.controller.js', function () {
     scope,
     $rootScope,
     destinationsPromise,
-    moveApplicationResultPromise,
     moveApplicationErrorModal,
-    moveApplicationSuccessModal;
+    moveApplicationSuccessModal,
+    moveApplicationActionSpy;
 
   var moveApplicationServiceMock = {
     getDestinationOrganizations: function () {
       return destinationsPromise;
     },
-    moveApplication: function () {
-      return moveApplicationResultPromise;
-    },
   };
 
-  beforeEach(angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name));
+  beforeEach(
+    angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name, function ($provide) {
+      SpecUtil.mockNgRedux($provide);
+    })
+  );
 
   beforeEach(inject(function (_$rootScope_, $controller, _$q_) {
     $rootScope = _$rootScope_;
@@ -49,7 +51,7 @@ describe('move.application.modal.controller.js', function () {
     scope.$close = jasmine.createSpy('$close');
     moveApplicationErrorModal = jasmine.createSpyObj('errorModal', ['open']);
     moveApplicationSuccessModal = jasmine.createSpyObj('successModal', ['open']);
-
+    moveApplicationActionSpy = spyOn(applicationActions, 'moveApplication');
     initController = function () {
       return $controller('move.application.modal.controller', {
         $scope: scope,
@@ -63,10 +65,34 @@ describe('move.application.modal.controller.js', function () {
   }));
 
   describe('initialization', function () {
+    describe('on component init', () => {
+      it('subscribes to the redux store', () => {
+        destinationsPromise = $q.resolve(mockDestinations);
+
+        const vm = initController();
+
+        expect(vm.unsubscribe).toBeDefined();
+      });
+    });
+
+    describe('on $destroy()', () => {
+      it('unsubscribes from redux store', () => {
+        destinationsPromise = $q.resolve(mockDestinations);
+
+        const vm = initController();
+        expect(vm.unsubscribe).not.toHaveBeenCalled();
+
+        scope.$destroy();
+        expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+      });
+    });
+
     describe('event handlers', function () {
+      let vm;
+
       beforeEach(function () {
         destinationsPromise = $q.resolve(mockDestinations);
-        initController();
+        vm = initController();
       });
 
       describe('pageChangeAccepted event', function () {
@@ -74,6 +100,13 @@ describe('move.application.modal.controller.js', function () {
           scope.$dismiss = jasmine.createSpy('$dismiss');
           $rootScope.$broadcast('pageChangeAccepted');
           expect(scope.$dismiss).toHaveBeenCalled();
+        });
+      });
+
+      describe('$destroy event', function () {
+        it('unsubscribes from ngRedux', function () {
+          scope.$destroy();
+          expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
         });
       });
     });
@@ -159,21 +192,25 @@ describe('move.application.modal.controller.js', function () {
 
     it('prevents submission if form is not valid', function () {
       vm.moveApplicationForm.$valid = false;
-      spyOn(moveApplicationServiceMock, 'moveApplication');
+
       vm.save();
-      expect(moveApplicationServiceMock.moveApplication).not.toHaveBeenCalled();
+
+      expect(moveApplicationActionSpy).not.toHaveBeenCalled();
     });
 
     describe('when error moving application', function () {
       beforeEach(function () {
-        moveApplicationResultPromise = $q.reject({
-          message: 'move application error',
-          incompatibilities: ['incompatibility1', 'incompatibility2'],
-        });
+        moveApplicationActionSpy.and.returnValue(
+          $q.reject({
+            message: 'move application error',
+            incompatibilities: ['incompatibility1', 'incompatibility2'],
+          })
+        );
         vm.save();
       });
 
       it('assigns resulting error message to vm.saveError', function () {
+        expect(moveApplicationActionSpy).toHaveBeenCalledTimes(1);
         expect(vm.saveError).toBeUndefined();
         scope.$apply(); // resolve promises
         expect(vm.saveError).toEqual('move application error');
@@ -204,7 +241,8 @@ describe('move.application.modal.controller.js', function () {
 
     describe('when successfully moved application with no warnings', function () {
       beforeEach(function () {
-        moveApplicationResultPromise = $q.resolve(['warning1', 'warning2']);
+        moveApplicationActionSpy.and.returnValue($q.resolve(['warning1', 'warning2']));
+
         vm.save();
       });
 

@@ -7,11 +7,13 @@ import axios from 'axios';
 import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 
 import { Messages } from 'MainRoot/util/CommonServices';
-import { getApplicationsUrl } from '../util/CLMLocation';
+import { getApplicationsUrl, getMoveApplicationUrl } from '../util/CLMLocation';
 import { isEmpty } from 'ramda';
 import { selectEntityId } from './orgsAndPoliciesSelectors';
 import { selectApplications } from './applicationsSelectors';
 import { getOwnerName } from './utility/util';
+import moveApplicationErrorMessages from 'MainRoot/owner.manager/move.application/move.application.messages';
+
 import { propSet } from 'MainRoot/util/reduxToolkitUtil';
 const REDUCER_NAME = 'applications';
 
@@ -70,7 +72,29 @@ const loadApplicationsIfNeeded = createAsyncThunk(
   }
 );
 
-const orgsAndPoliciesConstrainSlice = createSlice({
+const moveApplication = ({ applicationId, organizationId }) => {
+  return (dispatch) => {
+    return axios
+      .post(getMoveApplicationUrl(applicationId, organizationId))
+      .then((response) => {
+        return dispatch(actions.loadApplications()).then(() => {
+          return response?.data?.warnings;
+        });
+      })
+      .catch((error) => {
+        if (error.response.status === 409 && error.response.data?.errors?.length) {
+          // data.errors is an array of incompatibilities
+          return Promise.reject({
+            message: moveApplicationErrorMessages.ERROR_INCOMPATIBLE_DESTINATION,
+            incompatibilities: error.response.data.errors,
+          });
+        }
+        return Promise.reject(error);
+      });
+  };
+};
+
+const applicationsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
@@ -84,9 +108,10 @@ const orgsAndPoliciesConstrainSlice = createSlice({
 });
 
 export const actions = {
-  ...orgsAndPoliciesConstrainSlice.actions,
+  ...applicationsSlice.actions,
   loadApplications,
   loadApplicationsIfNeeded,
+  moveApplication,
 };
 
-export default orgsAndPoliciesConstrainSlice.reducer;
+export default applicationsSlice.reducer;

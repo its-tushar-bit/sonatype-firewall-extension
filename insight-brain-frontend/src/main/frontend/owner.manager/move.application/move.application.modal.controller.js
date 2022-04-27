@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 export default function MoveApplicationModalController(
   $rootScope,
   $scope,
@@ -10,7 +11,8 @@ export default function MoveApplicationModalController(
   MoveApplicationService,
   MoveApplicationErrorModal,
   EventNameConstant,
-  MoveApplicationSuccessModalService
+  MoveApplicationSuccessModalService,
+  $ngRedux
 ) {
   var vm = this;
 
@@ -27,6 +29,13 @@ export default function MoveApplicationModalController(
   vm.save = save;
   vm.isLoading = isLoading;
   vm.showIncompatibilities = showIncompatibilities;
+  vm.unsubscribe = $ngRedux.connect(null, {
+    moveApplication: applicationActions.moveApplication,
+  })(vm);
+
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
 
   $scope.$on('pageChangeAccepted', function () {
     $scope.$dismiss();
@@ -57,7 +66,7 @@ export default function MoveApplicationModalController(
     vm.incompatibilities = undefined;
 
     vm.formMask
-      .wrap(MoveApplicationService.moveApplication(currentApplication.id, vm.selectedOrganization.id))
+      .wrap(vm.moveApplication({ applicationId: currentApplication.id, organizationId: vm.selectedOrganization.id }))
       .then(function (messages) {
         $scope.$close();
         MoveApplicationSuccessModalService.open(messages);
@@ -96,4 +105,5 @@ MoveApplicationModalController.$inject = [
   'move.application.error.modal.service',
   'event.name.constant',
   'move.application.success.modal.service',
+  '$ngRedux',
 ];

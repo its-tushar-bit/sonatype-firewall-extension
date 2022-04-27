@@ -321,7 +321,7 @@ public class ApplicationAttributionReportBuilder
     }
     return sourceLinks.stream()
         .filter(l -> l.status.equals(ComponentLegalPartStatus.ENABLED))
-        .collect(Collectors.toCollection(() -> new TreeSet<LegalSourceLinkDTO>(
+        .collect(Collectors.toCollection(() -> new TreeSet<>(
             Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.content, String.CASE_INSENSITIVE_ORDER))));
   }
 

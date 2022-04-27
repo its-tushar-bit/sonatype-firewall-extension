@@ -495,7 +495,7 @@ public class ApplicationAttributionReportBuilderTest
     linkDTOShortLink.id = "1";
     linkDTOShortLink.content = "http://localhost";
     linkDTOShortLink.status = ComponentLegalPartStatus.ENABLED;
-    HashSet<LegalSourceLinkDTO> sourceLinkDTOS = new HashSet<LegalSourceLinkDTO>();
+    HashSet<LegalSourceLinkDTO> sourceLinkDTOS = new HashSet<>();
     sourceLinkDTOS.add(linkDTOShortLink);
     licenseLegalData2.sourceLinks = sourceLinkDTOS;
 
@@ -511,7 +511,7 @@ public class ApplicationAttributionReportBuilderTest
     linkDTOLongLink.id = "1";
     linkDTOLongLink.content = "http://test/more/than/56/characters/test/test/test/test/test/test/test/test";
     linkDTOLongLink.status = ComponentLegalPartStatus.ENABLED;
-    HashSet<LegalSourceLinkDTO> sourceLinkDTOSLongLink = new HashSet<LegalSourceLinkDTO>();
+    HashSet<LegalSourceLinkDTO> sourceLinkDTOSLongLink = new HashSet<>();
     sourceLinkDTOSLongLink.add(linkDTOLongLink);
     licenseLegalData3.sourceLinks = sourceLinkDTOSLongLink;
 
@@ -533,7 +533,7 @@ public class ApplicationAttributionReportBuilderTest
     linkDTOMultiShortLink2.content = "http://abcd";
     linkDTOMultiShortLink2.status = ComponentLegalPartStatus.ENABLED;
 
-    Set<LegalSourceLinkDTO> sourceLinkDTOSMultiShortLink = new TreeSet<LegalSourceLinkDTO>(
+    Set<LegalSourceLinkDTO> sourceLinkDTOSMultiShortLink = new TreeSet<>(
         Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.content, String.CASE_INSENSITIVE_ORDER));
     sourceLinkDTOSMultiShortLink.add(linkDTOMultiShortLink1);
     sourceLinkDTOSMultiShortLink.add(linkDTOMultiShortLink2);
@@ -556,7 +556,7 @@ public class ApplicationAttributionReportBuilderTest
     linkDTOMultiLongLink2.content = "http://test/more/than/56/characters/test/test/test/test/test/test/test/test/2";
     linkDTOMultiLongLink2.status = ComponentLegalPartStatus.ENABLED;
 
-    HashSet<LegalSourceLinkDTO> sourceLinkDTOSMultiLongLink = new HashSet<LegalSourceLinkDTO>();
+    HashSet<LegalSourceLinkDTO> sourceLinkDTOSMultiLongLink = new HashSet<>();
     sourceLinkDTOSMultiLongLink.add(linkDTOMultiLongLink1);
     sourceLinkDTOSMultiLongLink.add(linkDTOMultiLongLink2);
     licenseLegalData5.sourceLinks = sourceLinkDTOSMultiLongLink;

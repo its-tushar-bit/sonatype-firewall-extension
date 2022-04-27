@@ -374,7 +374,9 @@ public class SourceControlDAO
   }
 
   public List<SourceControl> getByRepositoryUrl(String repositoryUrl) {
-    return getByRepositoryUrl(null, repositoryUrl);
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByRepositoryUrl(tx, repositoryUrl);
+    }
   }
 
   private List<SourceControl> getByRepositoryUrl(TransactionContext tx, String repositoryUrl) {
@@ -384,9 +386,6 @@ public class SourceControlDAO
 
     repositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl);
     String sQuery = "SELECT entity FROM SourceControl entity WHERE entity.normalizedRepositoryUrl=?1";
-    if (tx == null) {
-      return getList(sQuery, repositoryUrl);
-    }
     return getList(tx, sQuery, repositoryUrl);
   }
 

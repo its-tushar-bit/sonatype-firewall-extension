@@ -146,3 +146,11 @@ export const filterDependencyTreeBySearchTerm = (dependencyTree, searchTerm) => 
 
   return updateTreePath(filteredTree);
 };
+
+export const isFlatDependencyTree = (dependencyTree) => {
+  if (isNilOrEmpty(dependencyTree)) return true;
+
+  const hasNoChildren = pipe(prop('children'), isNilOrEmpty);
+
+  return dependencyTree.every(hasNoChildren);
+};

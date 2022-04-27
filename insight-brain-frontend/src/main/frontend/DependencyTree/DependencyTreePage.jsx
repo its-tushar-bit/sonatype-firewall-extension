@@ -19,6 +19,7 @@ import { debounce } from 'debounce';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import ComponentDetailsReportInfo from 'MainRoot/componentDetails/ComponentDetailsHeader/ComponentDetailsReportInfo';
 import DependencyTree from './DependencyTree';
+import { isFlatDependencyTree } from './dependencyTreeUtil';
 import {
   loadReportIfNeeded,
   setDependencyTreeSearchTerm,
@@ -53,6 +54,7 @@ export default function DependencyTreePage() {
   const loading = useSelector(selectIsDependenciesLoading);
   const error = useSelector(selectLoadError);
   const dependencyTreeIsAvailable = useSelector(selectDependencyTreeIsAvailable);
+  const isFlatTree = isFlatDependencyTree(dependencyTree);
   const loadReport = () => dispatch(loadReportIfNeeded());
   const debouncedSetDependencyTreeSearchTerm = useCallback(
     debounce((value) => dispatch(setDependencyTreeSearchTerm(value)), INPUT_DEBOUNCE_TIME),
@@ -92,10 +94,20 @@ export default function DependencyTreePage() {
                 defaultValue={dependencyTreeSearchTerm}
               />
               <div className="nx-tile__actions">
-                <NxButton id="iq-dependency-tree__expand-all-button" variant="tertiary" onClick={expandAllNodes}>
+                <NxButton
+                  id="iq-dependency-tree__expand-all-button"
+                  variant="tertiary"
+                  disabled={isFlatTree}
+                  onClick={expandAllNodes}
+                >
                   Expand All
                 </NxButton>
-                <NxButton id="iq-dependency-tree__collapse-all-button" variant="tertiary" onClick={collapseAllNodes}>
+                <NxButton
+                  id="iq-dependency-tree__collapse-all-button"
+                  variant="tertiary"
+                  disabled={isFlatTree}
+                  onClick={collapseAllNodes}
+                >
                   Collapse All
                 </NxButton>
               </div>

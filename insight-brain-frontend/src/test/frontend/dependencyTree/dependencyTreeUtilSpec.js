@@ -9,8 +9,14 @@ import {
   filterDependencyTreeBySearchTerm,
   flattenModuleDirectDependencies,
   getDependencyTreeSubset,
+  isFlatDependencyTree,
 } from 'MainRoot/DependencyTree/dependencyTreeUtil';
-import { dependencyTreeData, unextendedDependencyTreeData, indexedEntries } from './dependencyTreeMockData';
+import {
+  dependencyTreeData,
+  unextendedDependencyTreeData,
+  indexedEntries,
+  flatDependencyTreeData,
+} from './dependencyTreeMockData';
 
 describe('dependencyTreeUtil', () => {
   it('extends and sort dependency tree raw data', () => {
@@ -173,6 +179,22 @@ describe('dependencyTreeUtil', () => {
         packageUrl: 'a',
         children: [],
       });
+    });
+  });
+
+  describe('isFlatDependencyTree', () => {
+    it('returns true if its a tree with only one level', () => {
+      expect(isFlatDependencyTree(flatDependencyTreeData)).toBe(true);
+    });
+
+    it('returns true if its an empty tree', () => {
+      expect(isFlatDependencyTree([])).toBe(true);
+      expect(isFlatDependencyTree(null)).toBe(true);
+      expect(isFlatDependencyTree(undefined)).toBe(true);
+    });
+
+    it('returns false if its a tree with more than one level of depth', () => {
+      expect(isFlatDependencyTree(dependencyTreeData)).toBe(false);
     });
   });
 });

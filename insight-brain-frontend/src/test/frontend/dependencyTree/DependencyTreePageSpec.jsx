@@ -11,7 +11,7 @@ import DependencyTreePage from 'MainRoot/DependencyTree/DependencyTreePage';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 import * as componentDetailsSelectors from 'MainRoot/componentDetails/componentDetailsSelectors';
-import { dependencyTreeData } from './dependencyTreeMockData';
+import { dependencyTreeData, flatDependencyTreeData } from './dependencyTreeMockData';
 
 describe('DependencyTreePage', () => {
   let renderComponent;
@@ -25,7 +25,7 @@ describe('DependencyTreePage', () => {
 
   beforeEach(() => {
     spyOn(applicationReportSelectors, 'selectReportParameters').and.returnValue(reportParameters);
-    spyOn(applicationReportSelectors, 'selectDependencyTreeData').and.returnValue(dependencyTreeData);
+    spyOn(applicationReportSelectors, 'selectDisplayedDependencyTree').and.returnValue(dependencyTreeData);
     spyOn(componentDetailsSelectors, 'selectApplicationInfo').and.returnValue({
       applicationName: 'This is a test name',
     });
@@ -98,7 +98,25 @@ describe('DependencyTreePage', () => {
     spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
 
     renderComponent();
-    expect(screen.getByRole('button', { name: /expand all/i })).toBeVisible();
-    expect(screen.getByRole('button', { name: /collapse all/i })).toBeVisible();
+    const expandAlButton = screen.getByRole('button', { name: /expand all/i });
+    const collapseAllButton = screen.getByRole('button', { name: /collapse all/i });
+    expect(expandAlButton).toBeVisible();
+    expect(expandAlButton).toBeEnabled();
+    expect(collapseAllButton).toBeVisible();
+    expect(collapseAllButton).toBeEnabled();
+  });
+
+  it('renders disabled expand all and collapse all buttons', () => {
+    spyOn(applicationReportSelectors, 'selectIsDependenciesLoading').and.returnValue(false);
+    spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
+    applicationReportSelectors.selectDisplayedDependencyTree.and.returnValue(flatDependencyTreeData);
+
+    renderComponent();
+    const expandAlButton = screen.getByRole('button', { name: /expand all/i });
+    const collapseAllButton = screen.getByRole('button', { name: /collapse all/i });
+    expect(expandAlButton).toBeVisible();
+    expect(expandAlButton).toBeDisabled();
+    expect(collapseAllButton).toBeVisible();
+    expect(collapseAllButton).toBeDisabled();
   });
 });

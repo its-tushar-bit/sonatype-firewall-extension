@@ -62,6 +62,45 @@ export const dependencyTreeData = [
   },
 ];
 
+export const flatDependencyTreeData = [
+  {
+    displayName: 'org.apache.commons : commons-lang3 : 3.3.2',
+    children: [],
+    isOpen: false,
+    treePath: [0],
+    originalTreePath: [0],
+    hash: 'qwert3214',
+    policyThreatLevel: 1,
+  },
+  {
+    displayName: 'net.sourceforge.jtds : jtds : 1.2.2',
+    children: null,
+    isOpen: false,
+    treePath: [1],
+    originalTreePath: [1],
+    hash: 'qwert32143',
+    policyThreatLevel: 3,
+  },
+  {
+    displayName: 'axis : axis : 1.2',
+    children: null,
+    isOpen: true,
+    treePath: [2],
+    originalTreePath: [2],
+    hash: 'qwert98',
+    policyThreatLevel: 2,
+  },
+  {
+    displayName: 'taglibs : standard : 1.1.2',
+    children: null,
+    isOpen: true,
+    treePath: [3],
+    originalTreePath: [3],
+    hash: 'qwert56',
+    policyThreatLevel: 10,
+  },
+];
+
 export const unextendedDependencyTreeData = {
   children: [
     {

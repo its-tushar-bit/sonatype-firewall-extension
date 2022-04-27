@@ -27,7 +27,6 @@ import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiFirewallServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -51,17 +50,15 @@ public class ApiFirewallServiceAuthzTest
     assertThat(dto.autoReleaseQuarantineCountMTD).isZero();
   }
 
-  @Test
+  @Test(expected = UnauthorizedException.class)
   public void testGetFirewallQuarantineSummary_Unauthorized() {
     login();
-    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
-        apiFirewallService.getReleaseQuarantineSummary());
+    apiFirewallService.getReleaseQuarantineSummary();
   }
 
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testGetFirewallQuarantineSummary_Unauthenticated() {
-    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
-        apiFirewallService.getReleaseQuarantineSummary());
+    apiFirewallService.getReleaseQuarantineSummary();
   }
 
   @Test
@@ -73,17 +70,15 @@ public class ApiFirewallServiceAuthzTest
     assertThat(dtos).isNotNull().isNotEmpty();
   }
 
-  @Test
+  @Test(expected = UnauthorizedException.class)
   public void testGetFirewallAutoUnquarantineConfig_Unauthorized() {
     login();
-    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
-        apiFirewallService.getReleaseQuarantineConfig());
+    apiFirewallService.getReleaseQuarantineConfig();
   }
 
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testGetFirewallAutoUnquarantineConfig_Unauthenticated() {
-    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
-        apiFirewallService.getReleaseQuarantineConfig());
+    apiFirewallService.getReleaseQuarantineConfig();
   }
 
   @Test
@@ -96,17 +91,15 @@ public class ApiFirewallServiceAuthzTest
     assertThat(dtos).isNotNull().isNotEmpty();
   }
 
-  @Test
+  @Test(expected = UnauthorizedException.class)
   public void testSetFirewallAutoUnquarantineConfig_Unauthorized() {
     login();
-    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
-        apiFirewallService.setReleaseQuarantineConfig(null));
+    apiFirewallService.setReleaseQuarantineConfig(null);
   }
 
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testSetFirewallAutoUnquarantineConfig_Unauthenticated() {
-    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
-        apiFirewallService.setReleaseQuarantineConfig(null));
+    apiFirewallService.setReleaseQuarantineConfig(null);
   }
 
   @Test
@@ -140,24 +133,22 @@ public class ApiFirewallServiceAuthzTest
     assertThat(dto.getTotal()).isZero();
   }
 
-  @Test
+  @Test(expected = UnauthorizedException.class)
   public void testGetComponents_Unauthorized() {
     login();
 
     final FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
             Collections.emptyList());
-    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
-        apiFirewallService.getComponents(filter));
+    apiFirewallService.getComponents(filter);
   }
 
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testGetComponents_Unauthenticated() {
     final FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
             Collections.emptyList());
-    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
-        apiFirewallService.getComponents(filter));
+    apiFirewallService.getComponents(filter);
   }
 
   @Test(expected = UnauthenticatedException.class)

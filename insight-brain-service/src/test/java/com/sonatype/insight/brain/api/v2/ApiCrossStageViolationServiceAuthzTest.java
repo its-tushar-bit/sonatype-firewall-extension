@@ -22,7 +22,6 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiCrossStageViolationServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -43,24 +42,22 @@ public class ApiCrossStageViolationServiceAuthzTest
     assertThat(result.policyViolationId).isEqualTo(violation.getId());
   }
 
-  @Test
+  @Test(expected = UnauthorizedException.class)
   public void testGetCrossStageViolationById_Unauthorized() {
     grantWritePermission(app.getId());
     Policy policy = tempEntity.newPolicy(org.getId(), "p1", 7);
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", new Date());
     PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, componentIdentifier, "1234", "vuln1");
 
-    assertThatExceptionOfType(UnauthorizedException.class)
-        .isThrownBy(() -> service.getCrossStageViolationById(violation.getId()));
+    service.getCrossStageViolationById(violation.getId());
   }
 
-  @Test
+  @Test(expected = UnauthenticatedException.class)
   public void testGetCrossStageViolationById_Unauthenticated() {
     Policy policy = tempEntity.newPolicy(org.getId(), "p1", 7);
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", new Date());
     PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, componentIdentifier, "1234", "vuln1");
 
-    assertThatExceptionOfType(UnauthenticatedException.class)
-        .isThrownBy(() -> service.getCrossStageViolationById(violation.getId()));
+    service.getCrossStageViolationById(violation.getId());
   }
 }

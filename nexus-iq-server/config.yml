@@ -83,6 +83,7 @@ logging:
     org.postgresql.jdbc.PgConnection: INFO
     org.quartz: INFO
     org.zeroturnaround.exec: INFO
+    com.networknt.schema: OFF
   appenders:
   - type: console
     threshold: ${LOGGER_CONSOLE_THRESHOLD:-INFO}

@@ -1545,15 +1545,6 @@ public class SourceControlDAOTest
       return this;
     }
 
-    private TestableHierarchy withUser(String rootUser, String orgUser, String appUser) {
-      rootOrgSourceControl.setUsername(rootUser);
-      orgSourceControl.setUsername(orgUser);
-      appSourceControl.setUsername(appUser);
-      collatedSourceControl.setUsername(resolve(rootUser, orgUser, appUser));
-
-      return this;
-    }
-
     private TestableHierarchy withDefaultBranch(
         String rootDefaultBranch,
         String orgDefaultBranch,

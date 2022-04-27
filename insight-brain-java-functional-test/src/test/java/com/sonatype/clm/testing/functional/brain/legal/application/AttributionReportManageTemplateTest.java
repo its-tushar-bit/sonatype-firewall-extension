@@ -8,10 +8,10 @@ package com.sonatype.clm.testing.functional.brain.legal.application;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ManageTemplatesPage;
-import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.ManageTemplatesPage.DeleteDialog;
 import com.sonatype.clm.testing.functional.pages.ManageTemplatesPage.TemplateList;
 import com.sonatype.clm.testing.functional.pages.ManageTemplatesPage.UnsavedChangesDialog;
@@ -81,8 +81,7 @@ public class AttributionReportManageTemplateTest
     final TemplateList templateList = ManageTemplatesPage.templateList();
     templateList.items().shouldHave(size(0));
     populateTemplate("Template 1", "Report 1", "Header 1", "Footer 1", true, false, false);
-    MainHeader mainHeader = new MainHeader();
-    mainHeader.backButton().click();
+    MainHeader.backButton().click();
     UnsavedModal unsavedModal = new UnsavedModal();
     unsavedModal.getElement().should(exist);
   }

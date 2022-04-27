@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.AdministratorsEditPage;
+import com.sonatype.clm.testing.functional.pages.AdministratorsEditPage.AddMembersForm;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsMappingList;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsMappingList.RoleRow;
@@ -22,7 +23,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public class AdministratorsTest
     extends AbstractFunctionalTest
@@ -279,7 +282,7 @@ public class AdministratorsTest
 
     refreshOrOpen(AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
 
-    addMembersForm.groupAlert().shouldBe(visible).shouldHave(text(addMembersForm.DISABLED_GROUP_SEARCH_WARNING));
+    addMembersForm.groupAlert().shouldBe(visible).shouldHave(text(AddMembersForm.DISABLED_GROUP_SEARCH_WARNING));
 
     // mix servers have group search disabled and disabled
     ldapUserMapping2.setDynamicGroupSearchEnabled(true);
@@ -287,7 +290,7 @@ public class AdministratorsTest
 
     refreshOrOpen(AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
 
-    addMembersForm.groupAlert().shouldBe(visible).shouldHave(text(addMembersForm.DISABLED_GROUP_SEARCH_WARNING));
+    addMembersForm.groupAlert().shouldBe(visible).shouldHave(text(AddMembersForm.DISABLED_GROUP_SEARCH_WARNING));
 
     addMembersForm.addAssociateGroupBtn().shouldHave(cssClass("disabled"));
     addMembersForm.addAssociateGroupInput().setValue("test group").click();

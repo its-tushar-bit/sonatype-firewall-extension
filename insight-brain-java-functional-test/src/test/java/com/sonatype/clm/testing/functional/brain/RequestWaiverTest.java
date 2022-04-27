@@ -11,7 +11,10 @@ import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations;
-import com.sonatype.clm.testing.functional.pages.*;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
+import com.sonatype.clm.testing.functional.pages.RequestWaiverPage;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -22,7 +25,8 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public class RequestWaiverTest
     extends AbstractFunctionalTest
@@ -82,8 +86,7 @@ public class RequestWaiverTest
   @Test
   public void testBackButtonWhenNavigatedFromViolationDetails() {
     refreshOrOpen(DashboardPage.url());
-    DashboardPage dashboardPage = new DashboardPage();
-    dashboardPage.violationsTab().click();
+    DashboardPage.violationsTab().click();
     DashboardViolations.ViolationsResults table = DashboardPage.violationsView().results();
     table.firstViolation().click();
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();

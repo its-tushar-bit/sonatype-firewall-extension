@@ -125,7 +125,7 @@ Map<String, Closure> parallelTests() {
     }
   }]
 
-  ['A': '.*/[A-H].*Test.class', 'B': '.*/[I-R].*Test.class', 'C': '.*/[S-Z].*Test.class'].each { String label, String regex ->
+  ['A': '.*/[A-C].*Test.class', 'B': '.*/[D-H].*Test.class', 'C': '.*/[I-R].*Test.class', 'D': '.*/[S-Z].*Test.class'].each { String label, String regex ->
     def blockName = "Java Functional Tests - (Chrome) ${label}"
     blocks << ["${blockName}": {
       node(InsightConstants.AGENT_LABEL){

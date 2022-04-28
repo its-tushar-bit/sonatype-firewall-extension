@@ -22,13 +22,10 @@ const OverriddenField = (props) => {
     };
   }, []);
 
+  const allLicensesFiltered = allLicenses.filter((license) => license.id !== 'Disabled');
   const selectedTransferItems = new Set(licenseIds);
   const onSelectTransferItem = (selectedTransferItemSet) => {
-    if (selectedTransferItemSet.has('Disabled')) {
-      selectedTransferItemSet.delete('Disabled');
-    } else {
-      setSelectedLicenses(Array.from(selectedTransferItemSet));
-    }
+    setSelectedLicenses(Array.from(selectedTransferItemSet));
   };
 
   return (
@@ -38,7 +35,7 @@ const OverriddenField = (props) => {
       selectedItemsLabel="Selected Licenses"
       availableItemsCountFormatter={availableItemsCountFormatter}
       selectedItemsCountFormatter={selectedItemsCountFormatter}
-      allItems={allLicenses}
+      allItems={allLicensesFiltered}
       selectedItems={selectedTransferItems}
       availableItemsFilter={availableItemsFilter}
       selectedItemsFilter={selectedItemsFilter}

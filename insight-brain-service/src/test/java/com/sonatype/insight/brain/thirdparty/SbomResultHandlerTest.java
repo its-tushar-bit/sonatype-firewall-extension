@@ -90,6 +90,9 @@ public class SbomResultHandlerTest
   @Rule
   public LogOutput logOutput = new LogOutput(loggerName);
 
+  @Rule
+  public LogOutput logOutputUtils = new LogOutput(ThirdPartyUtils.class.getName());
+
   @Test
   public void testHandleAndFilterContents_filterContent_newThirdPartyFileMultipleEntries() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-multiple-components.xml");
@@ -626,6 +629,14 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_invalidSbom_content() throws Exception {
+    testHandleAndFilterContents_invalid_sbom(getSbomXmlFile("scan-with-invalid-license-id.xml"),
+        "scan-with-invalid-sbom-data-cli.xml");
+    assertThat(logOutputUtils.getErrorMessages(ThirdPartyUtils.class.getName()))
+        .contains("The sbom is not valid. There were 2 errors.");
+  }
+
+  @Test
   public void testHandleAndFilterContents_invalidSbom_Xml_v1_2() throws Exception {
     testHandleAndFilterContents_invalid_sbom(getSbomXmlFile("scan-with-invalid-sbom-v1_2.xml"),
         "scan-with-invalid-sbom-v1_2.xml");
@@ -643,9 +654,8 @@ public class SbomResultHandlerTest
     assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> sbomResultHandler.handleAndFilterContents(content, thirdPartyFile))
         .withMessage("Error filtering sbom file " + path);
-    List<ThirdPartyFileCoordinate> coordinates =
-        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
-    assertThat(coordinates).isEmpty();
+
+    assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId())).isEmpty();
   }
 
   @Test

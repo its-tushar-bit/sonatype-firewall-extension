@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
@@ -16,12 +17,16 @@ import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.parsers.Parser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class ThirdPartyUtils
 {
   public static final String XML_SBOM = "XML";
 
   public static final String JSON_SBOM = "JSON";
+
+  private static final Logger log = LoggerFactory.getLogger(ThirdPartyUtils.class);
 
   public static final Map<String, Version> CYCLONEDX_ACCEPTED_VERSIONS_XML = ImmutableMap
       .of(Version.VERSION_11.getVersionString(), Version.VERSION_11,
@@ -49,10 +54,14 @@ public final class ThirdPartyUtils
     validateCycloneDxVersion(type, bom);
 
     Version schemaVersion = getSchemaVersion(bom.getSpecVersion());
-    boolean isValidSbom = parser.isValid(bytes, schemaVersion);
+    List<ParseException> validate = parser.validate(bytes, schemaVersion);
 
-    if (!isValidSbom) {
-      throw new InvalidSbomException("The sbom is not valid.");
+    if (!validate.isEmpty()) {
+      InvalidSbomException invalidSbomException = new InvalidSbomException("The sbom is not valid.");
+      validate.forEach(invalidSbomException::addSuppressed);
+      log.error(invalidSbomException.getMessage() + " There were " + invalidSbomException.getSuppressed().length +
+          " errors." , invalidSbomException);
+      throw invalidSbomException;
     }
     return bom;
   }

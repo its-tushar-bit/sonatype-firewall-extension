@@ -19,7 +19,21 @@
 
   <artifactId>nexus-iq-cli</artifactId>
 
+  <properties>
+    <groovy.version>3.0.10</groovy.version>
+  </properties>
+
   <dependencies>
+    <!--
+    Using different groovy version to build CLI. This will help to add support
+    for gradle scan on Native Images
+    -->
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy</artifactId>
+      <version>${groovy.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>

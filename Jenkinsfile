@@ -98,6 +98,10 @@ def pushDockerImageIfDeployBranch() {
             runSafely "docker push ${latest}"
         }
     }
+    build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging',
+              parameters: [string(
+                name: 'environment', value: 'Staging'), string(name:'imageUrl',
+                value: 'docker-all.repo.sonatype.com/iq/snapshot:latest')], propagate: false)
 }
 
 def runAllTests(Map<String, String> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {

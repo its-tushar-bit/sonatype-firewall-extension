@@ -38,6 +38,12 @@ public class SourceControlConfig
   private String gitExecutable;
 
   /**
+   * @since 1.137
+   * Time in seconds until when a git command can execute before timing out
+   */
+  private int gitTimeoutSeconds;
+
+  /**
    * Hidden config to customize the commit username for SCM features
    * @since 1.121
    */
@@ -97,6 +103,14 @@ public class SourceControlConfig
 
   public void setGitExecutable(final String gitExecutable) {
     this.gitExecutable = gitExecutable;
+  }
+
+  public int getGitTimeoutSeconds() {
+    return gitTimeoutSeconds;
+  }
+
+  public void setGitTimeoutSeconds(final int gitTimeoutSeconds) {
+    this.gitTimeoutSeconds = gitTimeoutSeconds;
   }
 
   public String getCommitUsername() {

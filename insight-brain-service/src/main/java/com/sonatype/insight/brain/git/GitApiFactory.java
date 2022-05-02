@@ -21,7 +21,6 @@ import com.sonatype.nexus.git.utils.api.NativeGitApi;
 import com.sonatype.nexus.git.utils.api.NativeGitUtils;
 
 import com.google.common.annotations.VisibleForTesting;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,10 +62,7 @@ public class GitApiFactory
               "use {} implementation", messageSuffix, JGIT);
           return creatJGitIfAllowed(gitInfo, cloneUrl, isSsh);
         }
-        NativeGitApi nativeGitApi =
-            new NativeGitApi(cloneUrl, gitInfo.token, gitInfo.username, gitExecutable);
-        nativeGitApi.setTempDirectory(insightWork.getTemporaryDirectory());
-        return nativeGitApi;
+        return creatNativeGitApi(gitInfo, cloneUrl, gitExecutable);
       }
       else {
         log.error("Unknown option '{}' for configuration 'sourceControl.gitImplementation'. Available options: {}, {}",
@@ -75,12 +71,22 @@ public class GitApiFactory
     }
 
     if (isNativeGitAvailable(gitExecutable)) {
-      NativeGitApi nativeGitApi =
-          new NativeGitApi(cloneUrl, gitInfo.token, gitInfo.username, gitExecutable);
-      nativeGitApi.setTempDirectory(insightWork.getTemporaryDirectory());
-      return nativeGitApi;
+      return creatNativeGitApi(gitInfo, cloneUrl, gitExecutable);
     }
     return creatJGitIfAllowed(gitInfo, cloneUrl, isSsh);
+  }
+
+  private NativeGitApi creatNativeGitApi(GitRepositoryInfo gitInfo, String cloneUrl, String gitExecutable) {
+    NativeGitApi nativeGitApi;
+    if (sourceControlConfig.getGitTimeoutSeconds() > 0) {
+      nativeGitApi = new NativeGitApi(sourceControlConfig.getGitTimeoutSeconds(),
+          cloneUrl, gitInfo.token, gitInfo.username, gitExecutable);
+    }
+    else {
+      nativeGitApi = new NativeGitApi(cloneUrl, gitInfo.token, gitInfo.username, gitExecutable);
+    }
+    nativeGitApi.setTempDirectory(insightWork.getTemporaryDirectory());
+    return nativeGitApi;
   }
 
   private JGitApi creatJGitIfAllowed(GitRepositoryInfo gitInfo, String cloneUrl, boolean isSsh) {
@@ -89,7 +95,13 @@ public class GitApiFactory
           "which is not a supported combination. Update the system to use native git or disable SSH for this " +
           "application", cloneUrl));
     }
-    return new JGitApi(cloneUrl, gitInfo.token, gitInfo.username);
+    if (sourceControlConfig.getGitTimeoutSeconds() > 0) {
+      return new JGitApi(sourceControlConfig.getGitTimeoutSeconds(),
+          cloneUrl, gitInfo.token, gitInfo.username);
+    }
+    else {
+      return new JGitApi(cloneUrl, gitInfo.token, gitInfo.username);
+    }
   }
 
   /**

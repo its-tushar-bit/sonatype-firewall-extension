@@ -130,6 +130,30 @@ public class GitApiFactoryTest
   }
 
   @Test
+  public void test_NativeGit_gitTimeoutViaConfig() {
+    lenient().when(gitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
+
+    when(sourceControlConfig.getGitTimeoutSeconds()).thenReturn(600);
+
+    GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
+
+    assertThat(gitApi).isInstanceOf(NativeGitApi.class)
+        .extracting("timeout").isEqualTo(600);
+  }
+
+  @Test
+  public void test_JGit_gitTimeoutViaConfig() {
+    lenient().when(gitApiFactory.isNativeGitAvailable(null)).thenReturn(false);
+
+    when(sourceControlConfig.getGitTimeoutSeconds()).thenReturn(600);
+
+    GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
+
+    assertThat(gitApi).isInstanceOf(JGitApi.class)
+        .extracting("timeout").isEqualTo(600);
+  }
+
+  @Test
   public void test_noNativeAvailable_gitExecutable_forceViaConfig() {
     lenient().when(gitApiFactory.isNativeGitAvailable(GIT_EXECUTABLE)).thenReturn(false);
     when(sourceControlConfig.getGitImplementation()).thenReturn(NATIVE_GIT);

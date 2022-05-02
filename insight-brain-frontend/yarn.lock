@@ -1062,6 +1062,11 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
+"@juggle/resize-observer@^3.3.1":
+  version "3.3.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/@juggle/resize-observer/-/resize-observer-3.3.1.tgz#b50a781709c81e10701004214340f25475a171a0"
+  integrity sha512-zMM9Ds+SawiUkakS7y94Ymqx+S0ORzpG3frZirN3l+UlXUmSUR7hF4wxCVqW+ei94JzV5kt0uXBcoOEAuiydrw==
+
 "@material-ui/core@^4.11.2":
   version "4.11.3"
   resolved "https://repo.sonatype.com/repository/npm-all/@material-ui/core/-/core-4.11.3.tgz"
@@ -1162,14 +1167,16 @@
   resolved "https://repo.sonatype.com/repository/npm-all/@react-hook/passive-layout-effect/-/passive-layout-effect-1.2.1.tgz"
   integrity sha512-IwEphTD75liO8g+6taS+4oqz+nnroocNfWVHWz7j+N+ZO2vYrc6PV1q7GQhuahL0IOR7JccFTsFKQ/mb6iZWAg==
 
-"@react-hook/resize-observer@^1.1.0":
-  version "1.1.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/@react-hook/resize-observer/-/resize-observer-1.1.0.tgz"
-  integrity sha512-ERM7omDqG/ZzNQz061XHCfYXxGiX68Y46sVi8/ZHjjz7NbZQSxt+dnGkhfEbfsK+JxIzSqSfiXh2pNUl6aYQWA==
+"@react-hook/resize-observer@^1.2.5":
+  version "1.2.5"
+  resolved "https://repo.sonatype.com/repository/npm-all/@react-hook/resize-observer/-/resize-observer-1.2.5.tgz#b59e2300de98bc6ddc6946942f21243cde10f984"
+  integrity sha512-qa0pPvRxq5VbdI8mMK2apPFsZOckhQ6D3Jc9yLuyHMNhui8yEih4qyFCZBDzzK3ymZS6LAltVSVg3l1Dg9vA0w==
   dependencies:
+    "@juggle/resize-observer" "^3.3.1"
     "@react-hook/latest" "^1.0.2"
     "@react-hook/passive-layout-effect" "^1.2.0"
-    resize-observer-polyfill "^1.5.1"
+    "@types/raf-schd" "^4.0.0"
+    raf-schd "^4.0.2"
 
 "@reduxjs/toolkit@^1.5.1":
   version "1.5.1"
@@ -1217,16 +1224,16 @@
     "@fortawesome/react-fontawesome" "^0.1.14"
     "@material-ui/core" "^4.11.2"
     "@react-hook/merged-ref" "^1.3.0"
-    "@react-hook/resize-observer" "^1.1.0"
+    "@react-hook/resize-observer" "^1.2.5"
     "@rooks/use-mutation-observer" "^4.11.0"
     "@sonatype/react-commonmark" "^3.0.1"
     "@types/classnames" "^2.2.11"
     "@types/prop-types" "^15.7.3"
-    "@types/ramda" "^0.27.34"
+    "@types/ramda" "^0.27.64"
     classnames "^2.2.6"
     fuse.js "^6.4.6"
     prop-types "^15.7.2"
-    ramda "^0.27.1"
+    ramda "^0.28.0"
 
 "@sonatype/version-graph@^1.0.2":
   version "1.0.2"
@@ -1631,10 +1638,15 @@
   resolved "https://repo.sonatype.com/repository/npm-all/@types/prop-types/-/prop-types-15.7.3.tgz"
   integrity sha512-KfRL3PuHmqQLOG+2tGpRO26Ctg+Cq1E01D2DMriKEATHgWLfeNDmq9e29Q9WIky0dQ3NPkd1mzYH8Lm936Z9qw==
 
-"@types/ramda@^0.27.34":
-  version "0.27.38"
-  resolved "https://repo.sonatype.com/repository/npm-all/@types/ramda/-/ramda-0.27.38.tgz"
-  integrity sha512-tZoQ0lv1WKkrpBHemL8yCkI9p8kUk/1PSMwhl0eeyqMQjD+2ePUtVLV8PpNS9Kq3OktObwOx9I3k+HumxTviRg==
+"@types/raf-schd@^4.0.0":
+  version "4.0.1"
+  resolved "https://repo.sonatype.com/repository/npm-all/@types/raf-schd/-/raf-schd-4.0.1.tgz#1f9e03736f277fe9c7b82102bf18570a6ee19f82"
+  integrity sha512-Ha+EnKHFIh9EKW0/XZJPUd3EGDFisEvauaBd4VVCRPKeOqUxNEc9TodiY2Zhk33XCgzJucoFEcaoNcBAPHTQ2A==
+
+"@types/ramda@^0.27.64":
+  version "0.27.66"
+  resolved "https://repo.sonatype.com/repository/npm-all/@types/ramda/-/ramda-0.27.66.tgz#f1a23d13b0087d806a62e3ff941e5e59b3318999"
+  integrity sha512-i2YW+E2U6NfMt3dp0RxNcejox+bxJUNDjB7BpYuRuoHIzv5juPHkJkNgcUOu+YSQEmaWu8cnAo/8r63C0NnuVA==
   dependencies:
     ts-toolbelt "^6.15.1"
 
@@ -7447,6 +7459,11 @@ quick-lru@^4.0.1:
   resolved "https://repo.sonatype.com/repository/npm-all/quick-lru/-/quick-lru-4.0.1.tgz"
   integrity sha512-ARhCpm70fzdcvNQfPoy49IaanKkTlRWF2JMzqhcJbhSFRZv7nPTvZJdcY7301IPmvW+/p0RgIWnQDLJxifsQ7g==
 
+raf-schd@^4.0.2:
+  version "4.0.3"
+  resolved "https://repo.sonatype.com/repository/npm-all/raf-schd/-/raf-schd-4.0.3.tgz#5d6c34ef46f8b2a0e880a8fcdb743efc5bfdbc1a"
+  integrity sha512-tQkJl2GRWh83ui2DiPTJz9wEiMN20syf+5oKfB03yYP7ioZcJwsIK8FjrtLwH1m7C7e+Tt2yYBlrOpdT+dyeIQ==
+
 raf@^3.4.1:
   version "3.4.1"
   resolved "https://repo.sonatype.com/repository/npm-all/raf/-/raf-3.4.1.tgz"
@@ -7459,10 +7476,15 @@ railroad-diagrams@^1.0.0:
   resolved "https://repo.sonatype.com/repository/npm-all/railroad-diagrams/-/railroad-diagrams-1.0.0.tgz"
   integrity sha1-635iZ1SN3t+4mcG5Dlc3RVnN234=
 
-ramda@^0.27.1:
-  version "0.27.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/ramda/-/ramda-0.27.1.tgz"
-  integrity sha512-PgIdVpn5y5Yns8vqb8FzBUEYn98V3xcPgawAkkgj0YJ0qDsnHCiNmZYfOGMgOvoB0eWFLpYbhxUR3mxfDIMvpw==
+ramda@^0.27.2:
+  version "0.27.2"
+  resolved "https://repo.sonatype.com/repository/npm-all/ramda/-/ramda-0.27.2.tgz#84463226f7f36dc33592f6f4ed6374c48306c3f1"
+  integrity sha512-SbiLPU40JuJniHexQSAgad32hfwd+DRUdwF2PlVuI5RZD0/vahUco7R8vD86J/tcEKKF9vZrUVwgtmGCqlCKyA==
+
+ramda@^0.28.0:
+  version "0.28.0"
+  resolved "https://repo.sonatype.com/repository/npm-all/ramda/-/ramda-0.28.0.tgz#acd785690100337e8b063cab3470019be427cc97"
+  integrity sha512-9QnLuG/kPVgWvMQ4aODhsBUFKOUmnbUnsSXACv+NCQZcHbeb+v8Lodp8OVxtRULN1/xOyYLLaL6npE6dMq5QTA==
 
 randexp@0.4.6:
   version "0.4.6"
@@ -7868,11 +7890,6 @@ reselect@^4.0.0:
   version "4.0.0"
   resolved "https://repo.sonatype.com/repository/npm-all/reselect/-/reselect-4.0.0.tgz"
   integrity sha512-qUgANli03jjAyGlnbYVAV5vvnOmJnODyABz51RdBN7M4WaVu8mecZWgyQNkG8Yqe3KRGRt0l4K4B3XVEULC4CA==
-
-resize-observer-polyfill@^1.5.1:
-  version "1.5.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/resize-observer-polyfill/-/resize-observer-polyfill-1.5.1.tgz"
-  integrity sha512-LwZrotdHOo12nQuZlHEmtuXdqGoOD0OhaxopaNFxWzInpEgaLWoVuAMbTzixuosCx2nEG58ngzW3vxdWoxIgdg==
 
 resolve-cwd@^3.0.0:
   version "3.0.0"

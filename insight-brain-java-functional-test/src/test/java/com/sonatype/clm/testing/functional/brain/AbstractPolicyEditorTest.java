@@ -996,6 +996,8 @@ public abstract class AbstractPolicyEditorTest
     addNotification.addButton().shouldNotHave(DISABLED).click();
     addNotification.role().shouldHave(text("All roles are being notified."));
     PolicyEditorPage.savePolicy();
+    addNotification.notificationType().selectedItem().click();
+    addNotification.notificationType().listItem(1).click();
     addNotification.role().shouldHave(text("All roles are being notified."));
     NotificationsSection.notificationFor("Owner").deleteButton().click();
     addNotification.role().shouldBe(visible).selectedItem().click();

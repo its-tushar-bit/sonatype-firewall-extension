@@ -18,6 +18,7 @@ import {
   selectSiblings,
   selectSubmitError,
   selectIsEditMode,
+  selectLoading,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
@@ -74,7 +75,6 @@ export default function PolicyEditorController($scope, DeleteModalService, $root
     vm.policyEditorMask.wrap(
       vm.savePolicy({
         onSaveExistingPolicy: () => {
-          vm.policyEditor.$setPristine();
           $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY, {
             resetScroll: true,
           });
@@ -111,6 +111,7 @@ export const mapStateToThis = (state) => ({
   isEditMode: selectIsEditMode(state),
   isPolicyDirty: selectIsCurrentPolicyDirty(state),
   loadError: selectLoadError(state),
+  loading: selectLoading(state),
   submitError: selectSubmitError(state),
   siblings: selectSiblings(state),
   isOrgOwner: selectIsOrgOwner(state),

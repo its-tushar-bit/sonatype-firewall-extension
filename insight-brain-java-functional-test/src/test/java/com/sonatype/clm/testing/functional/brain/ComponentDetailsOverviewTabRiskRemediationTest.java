@@ -26,6 +26,7 @@ import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -239,8 +240,10 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
         .atUri("rest/component/dependencies");
     testCLMServer.getHdsServer().respondWith(new ComponentDetailsList()).atUri("rest/ci/componentDetails/list");
+    app.setRepositoryConnectionEnabled(true);
+    new ApplicationDAO().update(app);
     RepositoryConnection repositoryConnection =
-        tempEntity.newRepositoryConnection(Organization.ROOT_ORGANIZATION_ID, nxrm3MockSever.baseUrl(), null, null);
+        tempEntity.newRepositoryConnection(app.getId(), nxrm3MockSever.baseUrl(), null, null);
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().riskRemediationTile().versionExplorerSection().repositorySource()
@@ -258,7 +261,9 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
         .atUri("rest/component/dependencies");
     testCLMServer.getHdsServer().respondWith(new ComponentDetailsList()).atUri("rest/ci/componentDetails/list");
-    tempEntity.newRepositoryConnection(Organization.ROOT_ORGANIZATION_ID, nxrm3MockSever.baseUrl(), null, null);
+    app.setRepositoryConnectionEnabled(true);
+    new ApplicationDAO().update(app);
+    tempEntity.newRepositoryConnection(app.getId(), nxrm3MockSever.baseUrl(), null, null);
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
     componentDetailsPage.overviewTab().shouldBe(visible);
 

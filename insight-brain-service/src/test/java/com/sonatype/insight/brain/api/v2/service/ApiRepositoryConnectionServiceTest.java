@@ -162,7 +162,8 @@ public class ApiRepositoryConnectionServiceTest
 
     List<ApiRepositoryConnectionDTO> connections = repositoryConnectionService
         .getOwnerRepositoryConnections(OwnerType.ORGANIZATION, org.getId(), true).repositoryConnections;
-    assertThat(connections).isEmpty();
+    assertThat(connections).hasSize(1).extracting("baseUrl", "username", "ownerType", "ownerId")
+        .containsExactly(tuple("url1", "user1", OwnerType.ORGANIZATION, org.getId()));
   }
 
   @Test
@@ -174,7 +175,8 @@ public class ApiRepositoryConnectionServiceTest
 
     List<ApiRepositoryConnectionDTO> connections = repositoryConnectionService
         .getOwnerRepositoryConnections(OwnerType.ORGANIZATION, rootOrg.getId(), true).repositoryConnections;
-    assertThat(connections).isEmpty();
+    assertThat(connections).hasSize(1).extracting("baseUrl", "username", "ownerType", "ownerId")
+        .containsExactly(tuple("url2", "user2", OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID));
   }
 
   @Test
@@ -206,7 +208,8 @@ public class ApiRepositoryConnectionServiceTest
 
     List<ApiRepositoryConnectionDTO> connections = repositoryConnectionService
         .getOwnerRepositoryConnections(OwnerType.APPLICATION, app.getId(), true).repositoryConnections;
-    assertThat(connections).isEmpty();
+    assertThat(connections).hasSize(1).extracting("baseUrl", "username", "ownerType", "ownerId")
+        .containsExactly(tuple("url1", "user1", OwnerType.APPLICATION, app.getId()));
   }
 
   private void testGetOwnerRepositoryConnections(final String id, final OwnerType ownerType) {

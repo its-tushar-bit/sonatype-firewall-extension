@@ -19,13 +19,13 @@
   </div>
   <div class="iq-tile-content">
     <div class="iq-list">
-      <h4 class="iq-list__title" ng-if="vm.innerSourceRepositories.length > 0">
+      <h4 class="iq-list__title">
         {{vm.innerSourceRepositoriesInheritedFrom ?
               "Inherited from " + vm.innerSourceRepositoriesInheritedFrom : "Local"}}
       </h4>
       <div class="iq-list">
         <ul>
-          <li class="iq-list__item" ng-repeat="innerSourceRepository in vm.innerSourceRepositories">
+          <li class="iq-list__item" ng-if="vm.innerSourceRepositoriesEnabled" ng-repeat="innerSourceRepository in vm.innerSourceRepositories">
             <span class="test-list-item-title">
               <span class="innersource-repository">
                 {{innerSourceRepository.baseUrl}}
@@ -34,9 +34,14 @@
               </span>
             </span>
           </li>
-          <li class="iq-list__item iq-list__item--empty" ng-if="vm.innerSourceRepositories.length === 0">
+          <li class="iq-list__item iq-list__item--empty" ng-if="vm.innerSourceRepositoriesEnabled && vm.innerSourceRepositories.length === 0">
             <span class="test-list-item-title">
               No repositories are configured
+            </span>
+          </li>
+          <li class="iq-list__item iq-list__item--empty" ng-if="!vm.innerSourceRepositoriesEnabled">
+            <span class="test-list-item-title">
+              Repositories are disabled
             </span>
           </li>
         </ul>

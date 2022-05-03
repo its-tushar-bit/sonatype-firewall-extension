@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -43,6 +44,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 public class RepositoryQueryServiceTest
@@ -188,6 +190,73 @@ public class RepositoryQueryServiceTest
 
     //then
     assertThat(results.getLeft().getComponents()).hasSize(3).containsExactly(c1, c2, c3);
+  }
+
+  @Test
+  public void testGetAllVersions_Inherited_Org_Disabled() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    org.setRepositoryConnectionEnabled(false);
+    organizationDAO.update(org);
+    Application app = tempEntity.newApplication(org.getId());
+    app.setRepositoryConnectionEnabled(null);
+    applicationDAO.update(app);
+
+    tempEntity.newRepositoryConnection(org.getId(), "baseUrl", RepositoryFormat.MAVEN, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(org.getId(), "baseUrl2", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(org.getId(), "baseUrl3", RepositoryFormat.NPM, "user2", "pass2".toCharArray());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
+    lenient().when(clientFactory.create()).thenReturn(mockBuilder);
+    lenient().when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
+    Map<String, String> params =
+        ImmutableMap.of("group", "g1", "name", "n1", "maven.extension", "jar", "maven.classifier", "");
+    RepositoryComponentResult c1 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
+    RepositoryComponentResult c2 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
+    RepositoryComponentResult c3 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
+    List<RepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
+    RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
+    lenient().when(mockClient.getAllVersions(params)).thenReturn(mockResults);
+
+    Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
+        repositoryQueryService.getAllVersions(identifier, app);
+
+    assertThat(results.getLeft().getComponents()).isEmpty();
+  }
+  
+  @Test
+  public void testGetAllVersions_Inherited_Org_Disabled_Override() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    org.setRepositoryConnectionEnabled(false);
+    org.setAllowRepositoryConnectionOverride(false);
+    organizationDAO.update(org);
+    Application app = tempEntity.newApplication(org.getId());
+    app.setRepositoryConnectionEnabled(true);
+    applicationDAO.update(app);
+
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.MAVEN, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl2", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl3", RepositoryFormat.NPM, "user2", "pass2".toCharArray());
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
+    lenient().when(clientFactory.create()).thenReturn(mockBuilder);
+    lenient().when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
+    Map<String, String> params =
+        ImmutableMap.of("group", "g1", "name", "n1", "maven.extension", "jar", "maven.classifier", "");
+    RepositoryComponentResult c1 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.1.0"), "c1sha1");
+    RepositoryComponentResult c2 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.2.0"), "c2sha1");
+    RepositoryComponentResult c3 =
+        new RepositoryComponentResult(identifier.createAlternativeVersion("1.3.0"), "c3sha1");
+    List<RepositoryComponentResult> components = Arrays.asList(c1, c2, c3);
+    RepositoryAllVersionsResponse mockResults = new RepositoryAllVersionsResponse(components);
+    lenient().when(mockClient.getAllVersions(params)).thenReturn(mockResults);
+
+    Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> results =
+        repositoryQueryService.getAllVersions(identifier, app);
+
+    assertThat(results.getLeft().getComponents()).isEmpty();
   }
 
   @Test

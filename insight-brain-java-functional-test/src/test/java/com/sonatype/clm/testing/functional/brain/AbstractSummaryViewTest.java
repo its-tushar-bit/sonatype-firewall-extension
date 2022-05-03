@@ -12,11 +12,25 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.*;
+import com.sonatype.clm.testing.functional.elements.AccessTile;
+import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
+import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.DeleteModal;
+import com.sonatype.clm.testing.functional.elements.ErrorBox;
+import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn;
+import com.sonatype.clm.testing.functional.elements.InnerSourceRepositoryTile;
+import com.sonatype.clm.testing.functional.elements.LabelTile;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
+import com.sonatype.clm.testing.functional.elements.PolicyTile;
+import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
+import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList.ThreatGroupTileSimpleListElement;
+import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -137,19 +151,35 @@ public abstract class AbstractSummaryViewTest
     testAccessTile_no_local_access();
     testPolicyTile_no_policies();
   }
-
+  
   @Test
   public void testInnerSourceRepositoryTile_NotConfigured() {
+    setCurrentOwnerRepositoryConnectionStatus(currentOwner, true);
     refresh();
     SidebarNavigation.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
     innerSourceRepositoryTile.should(exist);
-    innerSourceRepositoryTile.listTitle().shouldNot(exist);
+    innerSourceRepositoryTile.listTitle().should(exist);
     ElementsCollection rows = innerSourceRepositoryTile.rows();
     rows.shouldHaveSize(1);
     rows.get(0).shouldBe(text("No repositories are configured"));
+    innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
+  }
+
+  @Test
+  public void testInnerSourceRepositoryTile_Disabled() {
+    refresh();
+    SidebarNavigation.closeNavigationSidebar();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
+    InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
+    innerSourceRepositoryTile.should(exist);
+    innerSourceRepositoryTile.listTitle().should(exist);
+    ElementsCollection rows = innerSourceRepositoryTile.rows();
+    rows.shouldHaveSize(1);
+    rows.get(0).shouldBe(text("Repositories are disabled"));
     innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
   }
 

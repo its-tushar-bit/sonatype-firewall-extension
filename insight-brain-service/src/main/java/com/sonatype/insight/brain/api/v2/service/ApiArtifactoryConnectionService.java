@@ -255,30 +255,21 @@ public class ApiArtifactoryConnectionService
     result.artifactoryConnectionStatus = getOwnerArtifactoryConnectionStatus(ownerType, internalOwnerId);
     result.ownerDTO = ApiOwnerDTO.fromOwner(ownerDAO.getById(internalOwnerId));
     String effectiveOwnerId = resolveEffectiveOwnerId(internalOwnerId, inherit, result);
-
-    if (effectiveOwnerId != null) {
-      result.artifactoryConnections = artifactoryConnectionDAO.getByOwnerId(effectiveOwnerId).stream()
-          .map(this::toArtifactoryConnectionDTO)
-          .collect(Collectors.toList());
-    }
+    result.artifactoryConnections = artifactoryConnectionDAO.getByOwnerId(effectiveOwnerId).stream()
+        .map(this::toArtifactoryConnectionDTO)
+        .collect(Collectors.toList());
     return result;
   }
 
   private String resolveEffectiveOwnerId(
       final String internalOwnerId,
-      final boolean inherit, final ApiOwnerArtifactoryConnectionsDTO result)
+      final boolean inherit,
+      final ApiOwnerArtifactoryConnectionsDTO result)
   {
-    if (inherit) {
-      if (result.artifactoryConnectionStatus.inheritedFromOrganizationId != null) {
-        return result.artifactoryConnectionStatus.inheritedFromOrganizationId;
-      }
-      else {
-        return Boolean.TRUE.equals(result.artifactoryConnectionStatus.enabled) ? internalOwnerId : null;
-      }
+    if (inherit && result.artifactoryConnectionStatus.inheritedFromOrganizationId != null) {
+      return result.artifactoryConnectionStatus.inheritedFromOrganizationId;
     }
-    else {
-      return internalOwnerId;
-    }
+    return internalOwnerId;
   }
 
   @Authorize(permission = Permission.READ)

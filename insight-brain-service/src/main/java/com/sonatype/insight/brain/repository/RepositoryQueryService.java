@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -115,10 +116,11 @@ public class RepositoryQueryService
     ApiRepositoryConnectionStatusDTO statusDTO =
         repositoryConnectionService.getOwnerRepositoryConnectionStatus(owner.getType(), owner.getId());
     String effectiveOwnerId = null;
-    if (statusDTO.enabled == null) {
+
+    if (Boolean.TRUE.equals(statusDTO.inheritedFromOrgEnabled)) {
       effectiveOwnerId = statusDTO.inheritedFromOrganizationId;
     }
-    else if (Boolean.TRUE.equals(statusDTO.enabled)) {
+    else if (statusDTO.allowChange && Boolean.TRUE.equals(statusDTO.enabled)) {
       effectiveOwnerId = owner.getId();
     }
 

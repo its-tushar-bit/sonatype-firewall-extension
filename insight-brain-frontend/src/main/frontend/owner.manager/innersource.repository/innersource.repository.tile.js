@@ -38,6 +38,7 @@ function InnerSourceRepositoryTileController(
   vm.isApp = CLMContextLocations.isApplication();
   vm.innerSourceRepositories = [];
   vm.innerSourceRepositoriesInheritedFrom = undefined;
+  vm.innerSourceRepositoriesEnabled = undefined;
   vm.editLink = undefined;
 
   vm.load();
@@ -78,14 +79,19 @@ function InnerSourceRepositoryTileController(
           }
         })
         .then(function (result) {
-          if (result && Array.isArray(result.repositoryConnections) && result.repositoryConnections.length > 0) {
-            vm.innerSourceRepositories = result.repositoryConnections;
-            if (vm.innerSourceRepositories[0].ownerId !== ownerId) {
-              return OrganizationStore.getById(vm.innerSourceRepositories[0].ownerId).then(function (result) {
-                vm.innerSourceRepositoriesInheritedFrom = result.name;
-              });
-            }
+          if (!result) {
+            return;
           }
+          if (Array.isArray(result.repositoryConnections) && result.repositoryConnections.length > 0) {
+            vm.innerSourceRepositories = result.repositoryConnections;
+          }
+          if (!result.repositoryConnectionStatus) {
+            return;
+          }
+          vm.innerSourceRepositoriesEnabled =
+            result.repositoryConnectionStatus.inheritedFromOrgEnabled ||
+            (result.repositoryConnectionStatus.allowChange && result.repositoryConnectionStatus.enabled);
+          vm.innerSourceRepositoriesInheritedFrom = result.repositoryConnectionStatus.inheritedFromOrganizationName;
         })
         .catch(function (e) {
           vm.error = Messages.getHttpErrorMessage(e);

@@ -169,7 +169,8 @@ public class ApiArtifactoryConnectionServiceTest
 
     List<ApiArtifactoryConnectionDTO> connections = artifactoryConnectionService
         .getOwnerArtifactoryConnections(OwnerType.ORGANIZATION, org.getId(), true).artifactoryConnections;
-    assertThat(connections).isEmpty();
+    assertThat(connections).hasSize(1).extracting("baseUrl", "username", "ownerType", "ownerId")
+        .containsExactly(tuple("url1", "user1", OwnerType.ORGANIZATION, org.getId()));
   }
 
   @Test
@@ -181,7 +182,8 @@ public class ApiArtifactoryConnectionServiceTest
 
     List<ApiArtifactoryConnectionDTO> connections = artifactoryConnectionService
         .getOwnerArtifactoryConnections(OwnerType.ORGANIZATION, rootOrg.getId(), true).artifactoryConnections;
-    assertThat(connections).isEmpty();
+    assertThat(connections).hasSize(1).extracting("baseUrl", "username", "ownerType", "ownerId")
+        .containsExactly(tuple("url2", "user2", OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID));
   }
 
   @Test
@@ -214,7 +216,8 @@ public class ApiArtifactoryConnectionServiceTest
 
     List<ApiArtifactoryConnectionDTO> connections = artifactoryConnectionService
         .getOwnerArtifactoryConnections(OwnerType.APPLICATION, app.getId(), true).artifactoryConnections;
-    assertThat(connections).isEmpty();
+    assertThat(connections).hasSize(1).extracting("baseUrl", "username", "ownerType", "ownerId")
+        .containsExactly(tuple("url1", "user1", OwnerType.APPLICATION, app.getId()));
   }
 
   private void testGetOwnerArtifactoryConnections(final String id, final OwnerType ownerType) {

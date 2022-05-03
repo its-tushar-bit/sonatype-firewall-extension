@@ -157,11 +157,17 @@ describe('innerSourceRepositoryTile', function () {
         mockOrganization();
       }));
 
-      it('loads the repository connections', function () {
+      it('does not load the repository connections if disabled', function () {
         getByIdDeferred1.resolve({
           id: 'organizationId',
         });
         getRepositoryConnectionsDeferred.resolve({
+          repositoryConnectionStatus: {
+            inheritedFromOrganizationName: null,
+            inheritedFromOrgEnabled: null,
+            enabled: false,
+            allowChange: true,
+          },
           repositoryConnections: [
             { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
             { ownerId: 'organizationId', baseUrl: 'https://some.base.url.2' },
@@ -184,16 +190,93 @@ describe('innerSourceRepositoryTile', function () {
           { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
           { ownerId: 'organizationId', baseUrl: 'https://some.base.url.2' },
         ]);
+        expect(vm.innerSourceRepositoriesEnabled).toBeFalsy();
+      });
+
+      it('loads the repository connections', function () {
+        getByIdDeferred1.resolve({
+          id: 'organizationId',
+        });
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnectionStatus: {
+            inheritedFromOrganizationName: null,
+            inheritedFromOrgEnabled: null,
+            enabled: true,
+            allowChange: true,
+          },
+          repositoryConnections: [
+            { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'organizationId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
+
+        $scope.$digest();
+
+        expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
+        expect(mockOrganizationStore.getById).toHaveBeenCalledWith('organizationId');
+        expect(mockInnerSourceRepositoryService.getRepositoryConnections).toHaveBeenCalledWith(
+          'organization',
+          'organizationId',
+          true
+        );
+        expect(vm.error).toBeUndefined();
+        expect(vm.loading).toBeFalsy();
+        expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
+        expect(vm.innerSourceRepositories).toEqual([
+          { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
+          { ownerId: 'organizationId', baseUrl: 'https://some.base.url.2' },
+        ]);
+        expect(vm.innerSourceRepositoriesEnabled).toBeTruthy();
+      });
+
+      it('does not load the repository connections if inherited disabled', function () {
+        getByIdDeferred1.resolve({
+          id: 'organizationId',
+        });
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnectionStatus: {
+            inheritedFromOrganizationName: 'otherOwnerName',
+            inheritedFromOrgEnabled: false,
+            enabled: null,
+            allowChange: true,
+          },
+          repositoryConnections: [
+            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
+
+        $scope.$digest();
+
+        expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
+        expect(mockOrganizationStore.getById).toHaveBeenCalledWith('organizationId');
+        expect(mockInnerSourceRepositoryService.getRepositoryConnections).toHaveBeenCalledWith(
+          'organization',
+          'organizationId',
+          true
+        );
+        expect(vm.error).toBeUndefined();
+        expect(vm.loading).toBeFalsy();
+        expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
+        expect(vm.innerSourceRepositoriesInheritedFrom).toEqual('otherOwnerName');
+        expect(vm.innerSourceRepositories).toEqual([
+          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
+          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
+        ]);
+        expect(vm.innerSourceRepositoriesEnabled).toBeFalsy();
       });
 
       it('sets inherited from to the ownerName if the ownerId is different', function () {
         getByIdDeferred1.resolve({
           id: 'organizationId',
         });
-        getByIdDeferred2.resolve({
-          name: 'otherOwnerName',
-        });
         getRepositoryConnectionsDeferred.resolve({
+          repositoryConnectionStatus: {
+            inheritedFromOrganizationName: 'otherOwnerName',
+            inheritedFromOrgEnabled: true,
+            enabled: null,
+            allowChange: true,
+          },
           repositoryConnections: [
             { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
             { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
@@ -213,6 +296,11 @@ describe('innerSourceRepositoryTile', function () {
         expect(vm.loading).toBeFalsy();
         expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
         expect(vm.innerSourceRepositoriesInheritedFrom).toBe('otherOwnerName');
+        expect(vm.innerSourceRepositories).toEqual([
+          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
+          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
+        ]);
+        expect(vm.innerSourceRepositoriesEnabled).toBeTruthy();
       });
 
       it('sets the error message on getById failure', function () {
@@ -221,24 +309,6 @@ describe('innerSourceRepositoryTile', function () {
           repositoryConnections: [
             { ownerId: 'organizationId', baseUrl: 'https://some.base.url.1' },
             { ownerId: 'organizationId', baseUrl: 'https://some.base.url.2' },
-          ],
-        });
-
-        $scope.$digest();
-
-        expect(vm.error).toEqual('not found');
-        expect(vm.loading).toBeFalsy();
-      });
-
-      it('sets the error message on a nested getById failure', function () {
-        getByIdDeferred1.resolve({
-          id: 'organizationId',
-        });
-        getByIdDeferred2.reject({ status: 404, data: 'not found' });
-        getRepositoryConnectionsDeferred.resolve({
-          repositoryConnections: [
-            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
-            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
           ],
         });
 
@@ -283,11 +353,17 @@ describe('innerSourceRepositoryTile', function () {
         mockApplication();
       }));
 
-      it('loads the repository connections', function () {
+      it('does not load the repository connections if disabled', function () {
         getByIdDeferred1.resolve({
           id: 'applicationInternalId',
         });
         getRepositoryConnectionsDeferred.resolve({
+          repositoryConnectionStatus: {
+            inheritedFromOrganizationName: null,
+            inheritedFromOrgEnabled: null,
+            enabled: false,
+            allowChange: true,
+          },
           repositoryConnections: [
             { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
             { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.2' },
@@ -310,16 +386,93 @@ describe('innerSourceRepositoryTile', function () {
           { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
           { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.2' },
         ]);
+        expect(vm.innerSourceRepositoriesEnabled).toBeFalsy();
+      });
+
+      it('loads the repository connections', function () {
+        getByIdDeferred1.resolve({
+          id: 'applicationInternalId',
+        });
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnectionStatus: {
+            inheritedFromOrganizationName: null,
+            inheritedFromOrgEnabled: null,
+            enabled: true,
+            allowChange: true,
+          },
+          repositoryConnections: [
+            { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
+
+        $scope.$digest();
+
+        expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
+        expect(mockApplicationStore.getById).toHaveBeenCalledWith('applicationId');
+        expect(mockInnerSourceRepositoryService.getRepositoryConnections).toHaveBeenCalledWith(
+          'application',
+          'applicationInternalId',
+          true
+        );
+        expect(vm.error).toBeUndefined();
+        expect(vm.loading).toBeFalsy();
+        expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
+        expect(vm.innerSourceRepositories).toEqual([
+          { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
+          { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.2' },
+        ]);
+        expect(vm.innerSourceRepositoriesEnabled).toBeTruthy();
+      });
+
+      it('does not show the repository connections if inherited disabled', function () {
+        getByIdDeferred1.resolve({
+          id: 'applicationInternalId',
+        });
+        getRepositoryConnectionsDeferred.resolve({
+          repositoryConnectionStatus: {
+            inheritedFromOrganizationName: 'otherOwnerName',
+            inheritedFromOrgEnabled: false,
+            enabled: null,
+            allowChange: true,
+          },
+          repositoryConnections: [
+            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
+            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
+          ],
+        });
+
+        $scope.$digest();
+
+        expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
+        expect(mockApplicationStore.getById).toHaveBeenCalledWith('applicationId');
+        expect(mockInnerSourceRepositoryService.getRepositoryConnections).toHaveBeenCalledWith(
+          'application',
+          'applicationInternalId',
+          true
+        );
+        expect(vm.error).toBeUndefined();
+        expect(vm.loading).toBeFalsy();
+        expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
+        expect(vm.innerSourceRepositoriesInheritedFrom).toEqual('otherOwnerName');
+        expect(vm.innerSourceRepositories).toEqual([
+          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
+          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
+        ]);
+        expect(vm.innerSourceRepositoriesEnabled).toBeFalsy();
       });
 
       it('sets inherited from to the ownerName if the ownerId is different', function () {
         getByIdDeferred1.resolve({
           id: 'applicationInternalId',
         });
-        getByIdDeferred2.resolve({
-          name: 'otherOwnerName',
-        });
         getRepositoryConnectionsDeferred.resolve({
+          repositoryConnectionStatus: {
+            inheritedFromOrganizationName: 'otherOwnerName',
+            inheritedFromOrgEnabled: true,
+            enabled: null,
+            allowChange: true,
+          },
           repositoryConnections: [
             { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
             { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
@@ -339,6 +492,11 @@ describe('innerSourceRepositoryTile', function () {
         expect(vm.loading).toBeFalsy();
         expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
         expect(vm.innerSourceRepositoriesInheritedFrom).toBe('otherOwnerName');
+        expect(vm.innerSourceRepositories).toEqual([
+          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
+          { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
+        ]);
+        expect(vm.innerSourceRepositoriesEnabled).toBeTruthy();
       });
 
       it('sets the error message on getById failure', function () {
@@ -347,24 +505,6 @@ describe('innerSourceRepositoryTile', function () {
           repositoryConnections: [
             { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.1' },
             { ownerId: 'applicationInternalId', baseUrl: 'https://some.base.url.2' },
-          ],
-        });
-
-        $scope.$digest();
-
-        expect(vm.error).toEqual('not found');
-        expect(vm.loading).toBeFalsy();
-      });
-
-      it('sets the error message on a nested getById failure', function () {
-        getByIdDeferred1.resolve({
-          id: 'applicationInternalId',
-        });
-        getByIdDeferred2.reject({ status: 404, data: 'not found' });
-        getRepositoryConnectionsDeferred.resolve({
-          repositoryConnections: [
-            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.1' },
-            { ownerId: 'otherOwnerId', baseUrl: 'https://some.base.url.2' },
           ],
         });
 

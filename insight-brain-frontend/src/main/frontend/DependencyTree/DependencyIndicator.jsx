@@ -30,5 +30,5 @@ export default function DependencyIndicator({ type, tooltip }) {
 
 DependencyIndicator.propTypes = {
   type: PropTypes.oneOf(['direct', 'transitive', 'inner-source']).isRequired,
-  tooltip: PropTypes.string,
+  tooltip: PropTypes.node,
 };

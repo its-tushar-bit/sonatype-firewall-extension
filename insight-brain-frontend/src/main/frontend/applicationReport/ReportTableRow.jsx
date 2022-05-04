@@ -23,7 +23,7 @@ const getInnerSourceParentsTooltipMessage = (component) => {
       This component was brought in by the following InnerSource {componentWord}:
       <ul>
         {innerSourceParentsDerivedComponentNames.map((name) => (
-          <li>{name}</li>
+          <li key={name}>{name}</li>
         ))}
       </ul>
     </Fragment>

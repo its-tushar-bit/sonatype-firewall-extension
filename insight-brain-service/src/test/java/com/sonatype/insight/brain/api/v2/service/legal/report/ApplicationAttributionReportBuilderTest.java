@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -58,6 +57,7 @@ import org.jsoup.nodes.Document;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.LEGAL_SOURCE_LINK_COMPARATOR;
 import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
 import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -533,8 +533,7 @@ public class ApplicationAttributionReportBuilderTest
     linkDTOMultiShortLink2.content = "http://abcd";
     linkDTOMultiShortLink2.status = ComponentLegalPartStatus.ENABLED;
 
-    Set<LegalSourceLinkDTO> sourceLinkDTOSMultiShortLink = new TreeSet<>(
-        Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.content, String.CASE_INSENSITIVE_ORDER));
+    Set<LegalSourceLinkDTO> sourceLinkDTOSMultiShortLink = new TreeSet<>(LEGAL_SOURCE_LINK_COMPARATOR);
     sourceLinkDTOSMultiShortLink.add(linkDTOMultiShortLink1);
     sourceLinkDTOSMultiShortLink.add(linkDTOMultiShortLink2);
     licenseLegalData4.sourceLinks = sourceLinkDTOSMultiShortLink;

@@ -1501,10 +1501,7 @@ public class ApiLicenseLegalServiceTest
     assertApplicationTelemetry(app, rawReport, includeInnerSource);
 
     List<ComponentIdentifier> sourceLinkComponents = componentIdentifierArgumentCaptor.getAllValues();
-    assertThat(sourceLinkComponents).hasSize(expectedComponentIdentifiers.length);
-    assertThat(sourceLinkComponents).containsExactlyInAnyOrder(
-        Arrays.stream(expectedComponentIdentifiers).map(LegalComponentIdentifierUtil::removeClassifierAndExtension)
-            .toArray(ComponentIdentifier[]::new));
+    assertThat(sourceLinkComponents).containsExactlyInAnyOrder(expectedComponentIdentifiers);
     assertThat(licenseMetadataReport.components.stream().flatMap(c -> c.licenseLegalData.sourceLinks.stream())
         .collect(Collectors.toSet())).hasSize(3).map(sl -> sl.status).areExactly(3,
         new Condition<>(status -> status == ComponentLegalPartStatus.ENABLED, "All source links are enabled"));

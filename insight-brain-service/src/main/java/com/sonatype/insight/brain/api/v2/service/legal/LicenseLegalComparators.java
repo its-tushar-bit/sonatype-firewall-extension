@@ -10,12 +10,16 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationDashboardDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDashboardDTO;
+import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
 
 import org.apache.commons.lang3.StringUtils;
 
 public class LicenseLegalComparators
 {
+  public static final Comparator<LegalSourceLinkDTO> LEGAL_SOURCE_LINK_COMPARATOR =
+      Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.content, String.CASE_INSENSITIVE_ORDER);
+
   private LicenseLegalComparators() {
     // utility class
   }

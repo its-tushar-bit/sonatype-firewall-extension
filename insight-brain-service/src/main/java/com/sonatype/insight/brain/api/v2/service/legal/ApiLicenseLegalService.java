@@ -127,6 +127,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.LEGAL_SOURCE_LINK_COMPARATOR;
 import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.newApplicationDashboardComparator;
 import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.newComponentDashboardComparator;
 import static java.util.stream.Collectors.groupingBy;
@@ -704,7 +705,7 @@ public class ApiLicenseLegalService
     sourceLinks = sourceLinks.stream()
         .filter(sourceLinkHDS -> sourceLinkOverrides.stream()
             .noneMatch(customSourceLink -> customSourceLink.originalContent.equals(sourceLinkHDS.originalContent)))
-        .sorted(Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.content, String.CASE_INSENSITIVE_ORDER))
+        .sorted(LEGAL_SOURCE_LINK_COMPARATOR)
         .collect(Collectors.toCollection(LinkedHashSet::new));
     sourceLinks.addAll(sourceLinkOverrides);
     return sourceLinks;
@@ -1065,16 +1066,23 @@ public class ApiLicenseLegalService
       final Owner owner,
       final Collection<ApiReportRawDataDTOV2> rawReports)
   {
-    return getComponentIdentifiers(rawReports).stream()
-        .map(LegalComponentIdentifierUtil::removeClassifierAndExtension)
-        .distinct()
-        .collect(Collectors.toMap(Function.identity(),
-            compIdentifier -> mergeLegalSourceLinkAndSourceLinkOverride(compIdentifier, owner).stream()
-                .filter(sl -> sl.status == ComponentLegalPartStatus.ENABLED)
-                .sorted(Comparator.comparing(legalSourceLinkDTO -> legalSourceLinkDTO.content,
-                    String.CASE_INSENSITIVE_ORDER))
-                .collect(Collectors.toCollection(LinkedHashSet::new)))
-        );
+    Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> result = new HashMap<>();
+
+    for (ComponentIdentifier componentIdentifier : getComponentIdentifiers(rawReports)) {
+      Set<LegalSourceLinkDTO> links = mergeLegalSourceLinkAndSourceLinkOverride(componentIdentifier, owner).stream()
+          .filter(link -> link.status == ComponentLegalPartStatus.ENABLED)
+          .collect(Collectors.toCollection(() -> new TreeSet<>(LEGAL_SOURCE_LINK_COMPARATOR)));
+
+      ComponentIdentifier simpleIdentifier =
+          LegalComponentIdentifierUtil.removeClassifierAndExtension(componentIdentifier);
+
+      result.merge(simpleIdentifier, links, (existing, newValue) -> {
+        existing.addAll(newValue);
+        return existing;
+      });
+    }
+
+    return result;
   }
 
   @VisibleForTesting

@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { find, propEq } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import {
@@ -12,6 +11,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import template from './source.control.editor.view.html';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { selectSelectedOwnerId, selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default {
   template: template,
@@ -42,8 +42,6 @@ function SourceControlEditorController(
     loadApplications: applicationActions.loadApplications,
   })(vm);
 
-  vm.ownerName = undefined;
-  vm.ownerId = undefined;
   vm.ownerType = undefined;
   vm.isApp = CLMContextLocations.isApplication();
   vm.isOrg = CLMContextLocations.isOrganization();
@@ -167,20 +165,8 @@ function SourceControlEditorController(
       $q.all(promises)
         .then(function (results) {
           unwrapResult(results[1]);
-
           if (vm.isApp) {
-            const applications = unwrapResult(results[0]);
-            const entityId = CLMContextLocations.getEntityId();
-
-            const application = find(propEq('publicId', entityId))(applications);
-            if (!application) {
-              throw `Could not find an application with ID ${entityId}.`;
-            }
-            vm.ownerName = application.name;
-            vm.ownerId = application.id;
-          } else {
-            vm.ownerName = results[0].name;
-            vm.ownerId = results[0].id;
+            unwrapResult(results[0]);
           }
 
           if (vm.isSourceControlSupported) {
@@ -627,6 +613,8 @@ function SourceControlEditorController(
 const mapStateToThis = (state) => ({
   isAutomationSupported: selectIsSourceControlSupported(state),
   isSourceControlSupported: selectIsSourceControlForSourceTileSupported(state),
+  ownerName: selectSelectedOwnerName(state),
+  ownerId: selectSelectedOwnerId(state),
 });
 
 SourceControlEditorController.$inject = [

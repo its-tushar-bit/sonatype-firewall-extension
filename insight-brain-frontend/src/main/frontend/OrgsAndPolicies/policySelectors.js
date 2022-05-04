@@ -71,3 +71,6 @@ export const selectIsCurrentPolicyDirty = createSelector(
   selectIsInheritanceDirty,
   (isDirty, isInheritanceDirty) => isDirty || isInheritanceDirty
 );
+
+export const selectCurrentPolicyOwner = createSelector(selectPolicySlice, prop('currentPolicyOwner'));
+export const selectCurrentPolicyOwnerName = createSelector(selectCurrentPolicyOwner, prop('name'));

@@ -67,7 +67,7 @@ describe('application.category.tile.controller.app.spec.js', function () {
 
       describe('mapStateToThis', () => {
         it('sets shouldShowQuarantineWarning to component', () => {
-          spyOn(orgsAndPoliciesSelectors, 'selectOwnerName').and.returnValue('OwnerName');
+          spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwnerName').and.returnValue('OwnerName');
           spyOn(applicationSelectors, 'selectLoadingApplications').and.returnValue(false);
           spyOn(assignApplicationCategoriesSelectors, 'selectLoadingApplicableCategories').and.returnValue(false);
           spyOn(assignApplicationCategoriesSelectors, 'selectLoadingAppliedCategories').and.returnValue(false);
@@ -127,11 +127,6 @@ describe('application.category.tile.controller.app.spec.js', function () {
         expect(scope.loadApplications).toHaveBeenCalledTimes(2);
         expect(scope.loadApplicableCategories).toHaveBeenCalledTimes(2);
         expect(scope.loadAppliedCategories).toHaveBeenCalledTimes(2);
-      });
-
-      it('Updates Owner name on broadcasted updated owner event', function () {
-        $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, { name: 'Bob' });
-        expect(scope.updatedOwnerHandlerAction).toHaveBeenCalledOnceWith('Bob');
       });
     }
   }

@@ -34,7 +34,6 @@ import { selectIsEditMode, selectCurrentCategory } from './createEditApplication
 import { Messages } from 'MainRoot/util/CommonServices';
 import { pathSet, propSet } from '../util/jsUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { actions as orgsAndPoliciesRootActions } from './orgsAndPoliciesRootSlice';
 import { actions as policyActions } from './policySlice';
 import { actions as applicationActions } from './applicationsSlice';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
@@ -101,8 +100,6 @@ const loadApplicableCategories = createAsyncThunk(
     return dispatch(loadApplicableCategoriesByOwner())
       .then((applicationCategoriesByOwnerActionPayload) => {
         const { applicationCategoriesByOwner = [] } = unwrapResult(applicationCategoriesByOwnerActionPayload);
-        const ownerName = path(['0', 'ownerName'], applicationCategoriesByOwner);
-        dispatch(orgsAndPoliciesRootActions.updatedOwnerHandler(ownerName));
 
         const appCategoryOwners = applicationCategoriesByOwner.map((owner, index) => {
           const isParent = index !== 0;

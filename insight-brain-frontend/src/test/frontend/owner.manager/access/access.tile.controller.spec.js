@@ -3,14 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
-import accessMockData from '../../stores/access/access.mock.data';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import accessMockData from 'TestRoot/stores/access/access.mock.data';
 
-describe('access.tile.controller.spec.js', function () {
+describe('access.tile.controller', function () {
   var vm, $rootScope, $httpBackend, CLMContextLocations, EventNameConstant;
 
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
+      SpecUtil.mockNgRedux($provide);
       $provide.value('$cookies', {
         get: angular.noop,
       });
@@ -33,11 +34,18 @@ describe('access.tile.controller.spec.js', function () {
     $httpBackend.verifyNoOutstandingRequest();
   });
 
+  describe('on $destroy()', () => {
+    it('unsubscribes from redux store', () => {
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
+      $rootScope.$destroy();
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('Properly Loading Membership Mappings', function () {
     $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
     $httpBackend.flush();
 
-    expect(vm.ownerName).toEqual(accessMockData.getRoleMappings().membersByRole[0].membersByOwner[0].ownerName);
     expect(vm.membersByRole.length).toEqual(accessMockData.getRoleMappings().membersByRole.length);
     vm.membersByRole.forEach(function (role, roleIndex) {
       expect(role.roleName).toEqual(accessMockData.getRoleMappings().membersByRole[roleIndex].roleName);
@@ -70,16 +78,5 @@ describe('access.tile.controller.spec.js', function () {
 
     $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
     expect($httpBackend.flush).not.toThrow();
-  });
-
-  it('Updates Owner name on broadcasted updated owner event', function () {
-    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
-    $httpBackend.flush();
-
-    expect(vm.ownerName).not.toEqual('Bob');
-
-    $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, { name: 'Bob' });
-
-    expect(vm.ownerName).toEqual('Bob');
   });
 });

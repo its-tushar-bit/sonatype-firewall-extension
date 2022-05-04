@@ -6,7 +6,6 @@
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { mapStateToThis } from 'MainRoot/owner.manager/policy/policy.editor.controller';
 import * as policySelectors from 'MainRoot/OrgsAndPolicies/policySelectors';
-import * as rootPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('policy.editor.controller', function () {
@@ -48,7 +47,7 @@ describe('policy.editor.controller', function () {
       spyOn(policySelectors, 'selectSubmitError').and.returnValue(null);
       spyOn(policySelectors, 'selectSiblings').and.returnValue(null);
       spyOn(policySelectors, 'selectOriginalProxyStageAction').and.returnValue(null);
-      spyOn(rootPoliciesSelectors, 'selectOwnerName').and.returnValue(null);
+      spyOn(policySelectors, 'selectCurrentPolicyOwnerName').and.returnValue(null);
 
       const output = mapStateToThis({});
 

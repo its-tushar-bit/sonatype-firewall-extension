@@ -18,10 +18,10 @@ import {
   selectSiblings,
   selectSubmitError,
   selectIsEditMode,
+  selectCurrentPolicyOwnerName,
   selectLoading,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { propEq } from 'ramda';
 
 export default function PolicyEditorController($scope, DeleteModalService, $rootScope, EventNameConstant, $ngRedux) {
@@ -120,7 +120,7 @@ export const mapStateToThis = (state) => ({
   readOnly: selectReadOnly(state),
   isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
   originalProxyStageAction: selectOriginalProxyStageAction(state),
-  ownerName: selectOwnerName(state),
+  ownerName: selectCurrentPolicyOwnerName(state),
 });
 
 PolicyEditorController.$inject = ['$scope', 'DeleteModalService', '$rootScope', 'event.name.constant', '$ngRedux'];

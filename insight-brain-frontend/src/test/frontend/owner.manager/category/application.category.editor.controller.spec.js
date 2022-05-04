@@ -7,6 +7,7 @@ import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import OwnerUtils from '../owner.utils';
 import { mapStateToThis } from 'MainRoot/owner.manager/category/application.category.editor.controller';
 import * as applicationSelectors from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
+import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import * as assignApplicationCategorySelectors from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
@@ -77,7 +78,7 @@ describe('application.category.editor.controller.spec.js', function () {
 
       describe('mapStateToThis', () => {
         it('returns an object with the given keys for the state', () => {
-          spyOn(applicationSelectors, 'selectOwnerName').and.returnValue('OwnerName');
+          spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwnerName').and.returnValue('OwnerName');
           spyOn(applicationSelectors, 'selectLoadingApplications').and.returnValue(false);
           spyOn(assignApplicationCategorySelectors, 'selectLoadingApplicableCategories').and.returnValue(false);
           spyOn(assignApplicationCategorySelectors, 'selectLoadingAppliedCategories').and.returnValue(false);

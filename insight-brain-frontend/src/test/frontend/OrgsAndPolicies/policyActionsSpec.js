@@ -273,7 +273,7 @@ describe('policy actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(8);
+        expect(actions.length).toBe(7);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadPolicyEditor/pending',
           'policy/loadApplicablePoliciesByOwner/pending',
@@ -281,11 +281,10 @@ describe('policy actions', () => {
           'policy/loadApplicablePoliciesByOwner/fulfilled',
           'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
           'orgsAndPoliciesConstraint/loadConstraint/pending',
-          'orgsAndPolicies/updatedOwnerHandler',
           'policy/loadPolicyEditor/fulfilled',
         ]);
 
-        expect(actions[7].payload).toEqual({
+        expect(actions[6].payload).toEqual({
           readOnly: undefined,
           originalProxyStageAction: undefined,
           siblings: [
@@ -316,6 +315,10 @@ describe('policy actions', () => {
             },
           ],
           currentPolicy: initialState.currentPolicy,
+          currentPolicyOwner: {
+            id: 'f3cea033acf84984ae08d9250db4aa7b',
+            name: 'Org1 Heh',
+          },
           isOrgOwner: false,
           isRootOrg: false,
         });
@@ -341,8 +344,7 @@ describe('policy actions', () => {
         const actions = store.getActions();
 
         expect(actions).toHaveActionType('policy/loadCategoriesForPolicy/pending');
-
-        expect(actions[10].payload).toEqual(jasmine.objectContaining({ isOrgOwner: true }));
+        expect(actions[9].payload).toEqual(jasmine.objectContaining({ isOrgOwner: true }));
 
         done();
       });
@@ -362,7 +364,7 @@ describe('policy actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(11);
+        expect(actions.length).toBe(10);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadPolicyEditor/pending',
           'policy/loadApplicablePoliciesByOwner/pending',
@@ -370,14 +372,13 @@ describe('policy actions', () => {
           'policy/loadApplicablePoliciesByOwner/fulfilled',
           'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
           'orgsAndPoliciesConstraint/loadConstraint/pending',
-          'orgsAndPolicies/updatedOwnerHandler',
           'policy/loadCategoriesForPolicy/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/rejected',
           'policy/loadPolicyEditor/fulfilled',
         ]);
 
-        expect(actions[10].payload).toEqual({
+        expect(actions[9].payload).toEqual({
           siblings: [
             {
               id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
@@ -429,6 +430,10 @@ describe('policy actions', () => {
               proxy: [{ actionTypeId: 'warn', target: null }],
             },
             monitorNotifyActions: null,
+          },
+          currentPolicyOwner: {
+            id: 'f3cea033acf84984ae08d9250db4aa7b',
+            name: 'Org1 Heh',
           },
           readOnly: false,
           isOrgOwner: true,

@@ -15,12 +15,8 @@ import {
   selectLoadingAppliedCategories,
   selectSubmitApplyCategoriesError,
 } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
-import {
-  selectLoadApplicationsError,
-  selectLoadingApplications,
-  selectOwnerName,
-} from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
-
+import { selectLoadApplicationsError, selectLoadingApplications } from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
+import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { omit } from 'ramda';
 
@@ -76,7 +72,7 @@ export default function ApplicationCategoryEditorController($scope, $ngRedux) {
 }
 
 export const mapStateToThis = (state) => ({
-  ownerName: selectOwnerName(state),
+  ownerName: selectSelectedOwnerName(state),
   loading:
     selectLoadingApplications(state) ||
     selectLoadingApplicableCategories(state) ||

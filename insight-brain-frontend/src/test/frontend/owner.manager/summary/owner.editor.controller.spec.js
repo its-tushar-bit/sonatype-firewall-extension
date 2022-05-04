@@ -5,12 +5,14 @@
  */
 import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
 import OwnerUtils from '../owner.utils';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
 
-describe('owner.editor.controller.spec.js', function () {
-  var controllerScope, vm, originalFormData, form;
+describe('owner.editor.controller.js', function () {
+  var controllerScope, vm, originalFormData, form, setSelectedOwnerSpy;
 
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
+      SpecUtil.mockNgRedux($provide);
       $provide.value('$cookies', {
         get: angular.noop,
       });
@@ -22,6 +24,7 @@ describe('owner.editor.controller.spec.js', function () {
     $window.FormData = angular.noop;
     form = angular.element('<form id="custom-icon-form"></form>');
     angular.element('body').append(form);
+    setSelectedOwnerSpy = spyOn(rootActions, 'setSelectedOwner');
   }));
 
   afterEach(inject(function ($window) {
@@ -58,6 +61,22 @@ describe('owner.editor.controller.spec.js', function () {
           name: { $setPristine: jasmine.createSpy() },
         };
       }));
+
+      describe('$onInit()', () => {
+        it('subscribes to the redux store', () => {
+          expect(vm.unsubscribe).toBeDefined();
+        });
+      });
+
+      describe('$destroy()', () => {
+        it('unsubscribes from the redux store', () => {
+          expect(vm.unsubscribe).not.toHaveBeenCalled();
+
+          controllerScope.$destroy();
+
+          expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+        });
+      });
 
       describe('Page Changes', function () {
         it('clean', function () {
@@ -124,6 +143,7 @@ describe('owner.editor.controller.spec.js', function () {
           $httpBackend.flush();
           $timeout.flush();
 
+          expect(setSelectedOwnerSpy).toHaveBeenCalledOnceWith(vm.dirtyOwner);
           expect(vm.error).toBeUndefined();
           expect(vm.iconWarning).toEqual('Server Error');
 
@@ -147,10 +167,12 @@ describe('owner.editor.controller.spec.js', function () {
           spyOn($state, 'go');
 
           $httpBackend.expectPOST('/rest/' + type + '/icon/' + id).respond('');
-          saveDeferred.resolve(angular.extend({ id }, angular.copy(vm.dirtyOwner)));
+          const updatedOwner = angular.extend({ id }, angular.copy(vm.dirtyOwner));
+          saveDeferred.resolve(updatedOwner);
           $httpBackend.flush();
           $timeout.flush();
 
+          expect(setSelectedOwnerSpy).toHaveBeenCalledOnceWith(updatedOwner);
           expect(vm.ownerEditor.name.$setPristine).toHaveBeenCalled();
           expect($state.go).toHaveBeenCalledWith(
             'management.view.' + type,

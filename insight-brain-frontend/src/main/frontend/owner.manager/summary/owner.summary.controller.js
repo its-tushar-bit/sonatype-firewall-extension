@@ -6,12 +6,14 @@
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
 import {
   selectIsGrandfatheringSupported,
   selectIsInnerSourceRepositorySupported,
   selectIsEvaluateApplicationAvailable,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
+import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function OwnerSummaryController(
   $state,
@@ -46,7 +48,6 @@ export default function OwnerSummaryController(
   vm.isApp = CLMContextLocations.isApplication();
   vm.isOrg = CLMContextLocations.isOrganization();
   vm.isRootOrg = CLMContextLocations.isRootOrg();
-  vm.owner = undefined;
   vm.stages = undefined;
   vm.doLoad = doLoad;
   vm.edit = edit;
@@ -82,6 +83,8 @@ export default function OwnerSummaryController(
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
     loadDashboardStageTypes: stagesActions.loadDashboardStages,
+    setSelectedOwner: rootActions.setSelectedOwner,
+    setSelectedOwnerContact: rootActions.setSelectedOwnerContact,
   })(vm);
 
   vm.doLoad();
@@ -120,12 +123,14 @@ export default function OwnerSummaryController(
       function (results) {
         unwrapResult(results[2]);
         siblings = results[0];
-        vm.owner = results[1];
+        vm.setSelectedOwner(results[1]);
 
         if (vm.isApp) {
           unwrapResult(results[3]);
           vm.applicationSummary = results[4].data;
-          vm.owner.contact = vm.applicationSummary.contact;
+
+          vm.setSelectedOwnerContact(vm.applicationSummary.contact);
+
           vm.isGrandfatheringEnabled = results[5].calculatedEnabled;
           getAppChangePermissions();
           getAppEvaluatePermissions();
@@ -273,6 +278,7 @@ const mapStateToThis = (state) => ({
   isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
   isEvaluateApplicationAvailable: selectIsEvaluateApplicationAvailable(state),
   isInnerSourceRepositorySupported: selectIsInnerSourceRepositorySupported(state),
+  owner: selectSelectedOwner(state),
 });
 
 OwnerSummaryController.$inject = [

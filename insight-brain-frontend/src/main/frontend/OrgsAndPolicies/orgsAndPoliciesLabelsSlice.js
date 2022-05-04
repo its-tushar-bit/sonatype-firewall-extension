@@ -17,7 +17,6 @@ import {
   selectPrevOwnerType,
   selectPrevOwnerId,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
-import { actions as rootActions } from './orgsAndPoliciesRootSlice';
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 
@@ -163,7 +162,6 @@ const loadApplicableLabels = createAsyncThunk(
           labels.inherited = idx > 0;
         });
 
-        dispatch(rootActions.updatedOwnerHandler(labelsByOwner[0].ownerName));
         return labelsByOwner;
       })
       .catch(rejectWithValue);

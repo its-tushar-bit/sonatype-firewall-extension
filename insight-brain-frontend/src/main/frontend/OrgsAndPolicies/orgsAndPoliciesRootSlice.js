@@ -8,18 +8,28 @@ import { createSlice } from '@reduxjs/toolkit';
 const REDUCER_NAME = 'orgsAndPolicies';
 
 export const initialState = {
-  ownerName: null,
+  selectedOwner: {},
 };
 
-const updatedOwnerHandler = (state, { payload }) => {
-  state.ownerName = payload;
+// TODO:
+// now payload contains all Request properties
+// ['$clone', '$getOriginal', '$new', '$revert', '$updateOriginal', '$delete', '$save', 'isDirty'];
+// Once we get rid off  EventNameConstant.OWNER_UPDATED and 'owner.deleted' events it won't store
+// those additional values
+const setSelectedOwner = (state, { payload }) => {
+  state.selectedOwner = payload;
+};
+
+const setSelectedOwnerContact = (state, { payload }) => {
+  state.selectedOwner.contact = payload;
 };
 
 const orgsAndPoliciesRootSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
-    updatedOwnerHandler,
+    setSelectedOwner,
+    setSelectedOwnerContact,
   },
 });
 

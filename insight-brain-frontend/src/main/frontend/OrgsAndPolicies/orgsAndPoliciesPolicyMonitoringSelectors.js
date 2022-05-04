@@ -28,12 +28,6 @@ export const selectIsGrandfatheringSupported = createSelector(
   selectPolicyMonitoringSlice,
   prop('isGrandfatheringSupported')
 );
-export const selectPolicyMonitoringOwnerName = createSelector(
-  selectPolicyMonitoringByOwner,
-  (policyMonitoringByOwner = []) => {
-    return policyMonitoringByOwner[0]?.ownerName;
-  }
-);
 export const selectGrandfatheringStatusMessage = createSelector(
   selectPolicyMonitoringSlice,
   prop('grandfatheringStatusMessage')

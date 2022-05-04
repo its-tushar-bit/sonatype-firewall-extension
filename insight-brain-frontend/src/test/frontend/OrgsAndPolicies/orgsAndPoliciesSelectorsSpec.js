@@ -6,7 +6,9 @@
 import {
   selectEntityId,
   selectOrgsAndPoliciesSlice,
-  selectOwnerName,
+  selectSelectedOwner,
+  selectSelectedOwnerName,
+  selectSelectedOwnerId,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 describe('orgsAndPoliciesSelectors', () => {
@@ -16,7 +18,10 @@ describe('orgsAndPoliciesSelectors', () => {
     mockState = {
       orgsAndPolicies: {
         root: {
-          ownerName: 'ownerName',
+          selectedOwner: {
+            name: 'ownerName',
+            id: 'ownerId',
+          },
         },
       },
       router: {
@@ -40,9 +45,27 @@ describe('orgsAndPoliciesSelectors', () => {
     });
   });
 
-  describe('selectOwnerName', () => {
-    it('returns ownerName', () => {
-      expect(selectOwnerName(mockState)).toBe('ownerName');
+  describe('selectSelectedOwner', () => {
+    it('selects selected owner object', () => {
+      const selected = selectSelectedOwner(mockState);
+
+      expect(selected).toEqual({ name: 'ownerName', id: 'ownerId' });
+    });
+  });
+
+  describe('selectSelectedOwnerName', () => {
+    it('selects selected owner name property', () => {
+      const selected = selectSelectedOwnerName(mockState);
+
+      expect(selected).toBe('ownerName');
+    });
+  });
+
+  describe('selectSelectedOwnerId', () => {
+    it('selects selected owner id property', () => {
+      const selected = selectSelectedOwnerId(mockState);
+
+      expect(selected).toBe('ownerId');
     });
   });
 

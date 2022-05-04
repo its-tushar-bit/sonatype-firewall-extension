@@ -52,14 +52,11 @@ describe('orgsAndPoliciesApplicationsActions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(3);
+        expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
           'applications/loadApplications/pending',
-          'applications/setOwnerName',
           'applications/loadApplications/fulfilled',
         ]);
-
-        expect(actions[1].payload).toBe('alpine test');
 
         done();
       });
@@ -129,10 +126,9 @@ describe('orgsAndPoliciesApplicationsActions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(3);
+        expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
           'applications/loadApplications/pending',
-          'applications/setOwnerName',
           'applications/loadApplications/fulfilled',
         ]);
 

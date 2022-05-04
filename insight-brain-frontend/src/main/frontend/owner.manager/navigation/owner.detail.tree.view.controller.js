@@ -3,10 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { find, propEq, isEmpty } from 'ramda';
-import { selectSiblings as selectPolicySiblings } from 'MainRoot/OrgsAndPolicies/policySelectors';
+import { isEmpty, propEq, find } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
+import { selectSiblings as selectPolicySiblings } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
 import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
 import { selectLabelsSiblings } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
 import {
@@ -15,6 +16,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
+import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function OwnerDetailTreeViewController(
   $scope,
@@ -33,7 +35,6 @@ export default function OwnerDetailTreeViewController(
   vm.isOrg = CLMContextLocations.isOrganization();
   vm.isRepositories = CLMContextLocations.isRepositories();
   vm.state = $state;
-  vm.ownerName = undefined;
   vm.details = undefined;
   vm.doLoad = doLoad;
   vm.rolesWithoutLocalMembersExist = undefined;
@@ -48,15 +49,14 @@ export default function OwnerDetailTreeViewController(
     isExpanded: vm.state.$current.name.endsWith('license-threat-group'),
   };
 
-  vm.$onInit = function () {
-    vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-      loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
-      loadApplications: applicationActions.loadApplications,
-      loadApplicableCategories: applicationCategoriesActions.loadApplicableCategories,
-    })(vm);
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+    loadApplications: applicationActions.loadApplications,
+    loadApplicableCategories: applicationCategoriesActions.loadApplicableCategories,
+    setSelectedOwner: rootActions.setSelectedOwner,
+  })(vm);
 
-    vm.doLoad();
-  };
+  vm.doLoad();
 
   $scope.$on('$destroy', () => {
     vm.unsubscribe();
@@ -77,17 +77,6 @@ export default function OwnerDetailTreeViewController(
         vm.details = results[0].data;
         unwrapResult(results[1]);
 
-        if (vm.isApp) {
-          const applications = unwrapResult(results[2]);
-          const entityId = CLMContextLocations.getEntityId();
-
-          const application = find(propEq('publicId', entityId))(applications);
-          if (!application) {
-            throw `Could not find an application with ID ${entityId}.`;
-          }
-          vm.ownerName = application.name;
-        }
-
         var allMembersByRoles = vm.details.roles.membersByRole;
         vm.details.roles = LocalRoleService.getRolesWithLocalMembers(allMembersByRoles);
         vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(allMembersByRoles).length > 0;
@@ -96,11 +85,20 @@ export default function OwnerDetailTreeViewController(
           if (vm.isApp) {
             const applicableCategories = unwrapResult(results[3]);
             vm.areAnyCategoriesDefined = !isEmpty(applicableCategories);
+
+            const applications = unwrapResult(results[2]);
+            const entityId = CLMContextLocations.getEntityId();
+            const owner = find(propEq('publicId', entityId))(applications);
+
+            if (!owner) {
+              throw `Could not find an application with ID ${entityId}.`;
+            }
+            vm.setSelectedOwner(owner);
           } else {
-            vm.ownerName = results[2].name;
+            vm.setSelectedOwner(results[2]);
           }
         } else {
-          vm.ownerName = 'Repositories';
+          vm.setSelectedOwner({ name: 'Repositories' });
         }
       })
       .catch((error) => {
@@ -128,12 +126,13 @@ export default function OwnerDetailTreeViewController(
   });
 }
 
-const mapStateToThis = (state) => ({
+export const mapStateToThis = (state) => ({
   labels: selectLabelsSiblings(state),
   categories: selectApplicationCategoriesSiblings(state),
   policies: selectPolicySiblings(state),
   isMonitoringSupported: selectIsMonitoringSupported(state),
   isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
+  ownerName: selectSelectedOwnerName(state),
 });
 
 OwnerDetailTreeViewController.$inject = [

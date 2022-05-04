@@ -203,11 +203,7 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(5);
-        expect(actions).toHaveAction({
-          type: 'orgsAndPolicies/updatedOwnerHandler',
-          payload: mockOwnerName,
-        });
+        expect(actions.length).toBe(4);
 
         const fulfilledApplicableCategoriesAction = actions.find(
           ({ type }) => type === 'applicationCategories/createEdit/loadApplicableCategories/fulfilled'
@@ -491,7 +487,7 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(13);
+        expect(actions.length).toBe(12);
         expect(actions).toHaveActionTypesInOrder([
           'applicationCategories/createEdit/loadCategoryEditor/pending',
           'applicationCategories/createEdit/loadOrganizationAppliedTag/pending',
@@ -499,7 +495,6 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
           'policy/loadApplicablePoliciesByOwner/pending',
           'applicationCategories/createEdit/loadOrganizationPolicyTags/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
-          'applications/setOwnerName',
           'applicationCategories/createEdit/loadOrganizationAppliedTag/fulfilled',
           'policy/loadApplicablePoliciesByOwner/fulfilled',
           'applicationCategories/createEdit/loadOrganizationPolicyTags/fulfilled',
@@ -508,7 +503,7 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
           'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
         ]);
 
-        expect(actions[12].payload).toEqual({
+        expect(actions[11].payload).toEqual({
           siblings: flattenedApplicationCategories,
           associatedApplicationNames: ['activemq'],
           currentCategory: {

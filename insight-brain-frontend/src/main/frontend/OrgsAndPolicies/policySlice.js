@@ -25,7 +25,6 @@ import {
 } from './policySelectors';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
-import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
 import { deriveEditRoute } from './utility/util';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet, pathSet } from 'MainRoot/util/jsUtil';
@@ -67,6 +66,7 @@ export const initialState = {
       },
     ],
   },
+  currentPolicyOwner: null,
   isDirty: false,
   originalPolicy: null,
   originalCategories: null,
@@ -184,10 +184,10 @@ const loadPolicyEditor = createAsyncThunk(
         const { policyId } = selectRouterCurrentParams(getState());
         let currentPolicy = initialState.currentPolicy,
           readOnly,
-          owner,
           isOrgOwner,
           originalProxyStageAction,
           isRootOrg = selectIsRootOrganization(getState());
+        const currentPolicyOwner = {};
 
         if (policyId) {
           const matchesPolicyId = propEq('id', policyId);
@@ -197,33 +197,26 @@ const loadPolicyEditor = createAsyncThunk(
             if (policies.some(matchesPolicyId)) {
               readOnly = index !== 0;
 
-              owner = {
-                id: ownerId,
-                name: ownerName,
-              };
+              currentPolicyOwner.id = ownerId;
+              currentPolicyOwner.name = ownerName;
 
               isOrgOwner = ownerType === 'organization';
               return true;
             }
           });
 
-          isRootOrg = owner.id === 'ROOT_ORGANIZATION_ID';
+          isRootOrg = currentPolicyOwner.id === 'ROOT_ORGANIZATION_ID';
         } else {
           const localOwner = policiesByOwner[0];
-          owner = {
-            id: localOwner.ownerId, // remove id if not needed.
-            name: localOwner.ownerName,
-          };
+
+          currentPolicyOwner.id = localOwner.ownerId; // remove id if not needed.
+          currentPolicyOwner.name = localOwner.ownerName;
           isOrgOwner = selectIsOrganization(getState());
         }
 
         dispatch(
           constraintActions.loadConstraint({ isNewPolicy: isNil(policyId), constraints: currentPolicy.constraints })
         );
-
-        if (owner) {
-          dispatch(rootActions.updatedOwnerHandler(owner.name));
-        }
 
         if (isOrgOwner) {
           dispatch(loadCategoriesForPolicy(currentPolicy));
@@ -232,6 +225,7 @@ const loadPolicyEditor = createAsyncThunk(
         return {
           siblings,
           currentPolicy,
+          currentPolicyOwner,
           readOnly,
           isOrgOwner,
           isRootOrg,
@@ -254,11 +248,20 @@ const loadPolicyEditorFulfilled = (state, { payload }) => {
   state.deleteModal.success = null;
   state.deleteModal.errorState = null;
   state.isDirty = false;
-  const { siblings, currentPolicy, readOnly, isOrgOwner, isRootOrg, originalProxyStageAction } = payload;
+  const {
+    siblings,
+    currentPolicy,
+    currentPolicyOwner,
+    readOnly,
+    isOrgOwner,
+    isRootOrg,
+    originalProxyStageAction,
+  } = payload;
 
   state.siblings = siblings;
   state.currentPolicy = currentPolicy;
   state.originalPolicy = currentPolicy;
+  state.currentPolicyOwner = currentPolicyOwner;
   state.readOnly = readOnly;
   state.isOrgOwner = isOrgOwner;
   state.isRootOrg = isRootOrg;

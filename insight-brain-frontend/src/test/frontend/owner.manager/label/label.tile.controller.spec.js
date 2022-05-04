@@ -30,7 +30,9 @@ describe('label.tile.controller', () => {
       const state = {
         orgsAndPolicies: {
           root: {
-            ownerName: 'owner',
+            selectedOwner: {
+              name: 'ownerName',
+            },
           },
           labels: {
             loading: false,
@@ -59,7 +61,7 @@ describe('label.tile.controller', () => {
 
       const output = mapStateToThis(state);
 
-      expect(output.ownerName).toBe('owner');
+      expect(output.ownerName).toBe('ownerName');
       expect(output.loading).toBeFalse();
       expect(output.error).toBeNull();
       expect(output.applicableLabels).toEqual(state.orgsAndPolicies.labels.applicableLabels);
@@ -95,12 +97,6 @@ describe('label.tile.controller', () => {
       expect(vm.loadApplicableLabels).toHaveBeenCalledTimes(1);
       scope.$emit(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
       expect(vm.loadApplicableLabels).toHaveBeenCalledTimes(2);
-    });
-
-    it('calls updateOwnerName on broadcasted policy.imported event', () => {
-      expect(vm.updateOwnerName).not.toHaveBeenCalled();
-      scope.$emit(EventNameConstant.OWNER_UPDATED, { name: 'Bob' });
-      expect(vm.updateOwnerName).toHaveBeenCalledTimes(1);
     });
   });
 

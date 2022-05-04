@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
+
 export default function OwnerEditorController(
   $scope,
   $rootScope,
@@ -16,7 +18,8 @@ export default function OwnerEditorController(
   siblings,
   messages,
   CLMContextLocations,
-  EventNameConstant
+  EventNameConstant,
+  $ngRedux
 ) {
   var vm = this,
     deferred,
@@ -24,6 +27,10 @@ export default function OwnerEditorController(
     //default to null as that is the value we use for the 'default selection'
     //keep in mind we aren't currently loading any data to say what the existing icon type is
     originalIconType = null;
+
+  vm.unsubscribe = $ngRedux.connect(null, {
+    setSelectedOwner: rootActions.setSelectedOwner,
+  })(vm);
 
   vm.cancel = cancel;
   vm.csrfTokenName = $http.defaults.xsrfHeaderName;
@@ -85,6 +92,10 @@ export default function OwnerEditorController(
       $scope.$dismiss();
     }
     preventDismiss = false;
+  });
+
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
   });
 
   function isDirty() {
@@ -152,6 +163,7 @@ export default function OwnerEditorController(
       .then(
         function (updatedOwner) {
           originalIconType = vm.icon.type;
+          vm.setSelectedOwner(updatedOwner);
           $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, updatedOwner, ownerType, isNew);
           if (isNew) {
             $state.go(
@@ -172,6 +184,7 @@ export default function OwnerEditorController(
             vm.error = messages.getHttpErrorMessage(error);
           } else {
             preventDismiss = true;
+            vm.setSelectedOwner(vm.dirtyOwner);
             $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, vm.dirtyOwner, ownerType, isNew);
             $state.go(
               'management.view.' + ownerType,
@@ -233,4 +246,5 @@ OwnerEditorController.$inject = [
   'Messages',
   'CLMContextLocations',
   'event.name.constant',
+  '$ngRedux',
 ];

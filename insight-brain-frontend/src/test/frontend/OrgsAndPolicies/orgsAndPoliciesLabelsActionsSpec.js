@@ -256,17 +256,15 @@ describe('orgsAndPoliciesLabelsActions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(5);
+        expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
           'orgsAndPoliciesLabels/loadApplicableLabels/pending',
           'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/pending',
           'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/fulfilled',
-          'orgsAndPolicies/updatedOwnerHandler',
           'orgsAndPoliciesLabels/loadApplicableLabels/fulfilled',
         ]);
 
-        expect(actions[3].payload).toBe('appname');
-        expect(actions[4].payload).toEqual([
+        expect(actions[3].payload).toEqual([
           {
             ownerId: '6b365e8a8000449aa924f194a7ed0d21',
             ownerType: 'APPLICATION',

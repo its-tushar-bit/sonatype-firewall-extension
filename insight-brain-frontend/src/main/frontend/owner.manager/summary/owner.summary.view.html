@@ -77,7 +77,7 @@
                  ng-class="{'disabled': !vm.hasPermissionToEvaluateApp || !vm.isEvaluateApplicationAvailable}">
                 <i class="fa fa-upload fa-fw"></i>Evaluate Binary
               </a>
-              <div ng-repeat="stage in ::vm.stages track by stage.stageTypeId">
+              <div ng-repeat="stage in vm.stages track by stage.stageTypeId">
                 <a class="link iq-dropdown-menu__link tm-stage-{{::stage.stageTypeId}} tm-app-report-link"
                    id="app-report-link"
                    ng-class="{'disabled': !vm.applicationSummary.policyEvaluations[stage.stageTypeId]}"

@@ -8,20 +8,16 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { Messages } from 'MainRoot/util/CommonServices';
 import { getApplicationsUrl, getMoveApplicationUrl } from '../util/CLMLocation';
-import { isEmpty } from 'ramda';
-import { selectEntityId } from './orgsAndPoliciesSelectors';
+import { isEmpty, prop } from 'ramda';
 import { selectApplications } from './applicationsSelectors';
-import { getOwnerName } from './utility/util';
 import moveApplicationErrorMessages from 'MainRoot/owner.manager/move.application/move.application.messages';
 
-import { propSet } from 'MainRoot/util/reduxToolkitUtil';
 const REDUCER_NAME = 'applications';
 
 export const initialState = {
   loadingApplications: false,
   loadApplicationsError: null,
   applications: [],
-  ownerName: '',
 };
 
 const loadApplicationsRequested = (state) => {
@@ -41,20 +37,12 @@ const loadApplicationsFailed = (state, { payload }) => {
 
 const loadApplications = createAsyncThunk(
   `${REDUCER_NAME}/loadApplications`,
-  async (forceReload, { rejectWithValue, getState, dispatch }) => {
+  async (forceReload, { rejectWithValue, getState }) => {
     const state = getState();
     const applications = selectApplications(state);
 
     if (isEmpty(applications) || forceReload) {
-      return axios
-        .get(getApplicationsUrl())
-        .then((response) => {
-          const entityId = selectEntityId(getState());
-          const ownerName = getOwnerName(entityId)(response.data);
-          dispatch(actions.setOwnerName(ownerName));
-          return response.data;
-        })
-        .catch(rejectWithValue);
+      return axios.get(getApplicationsUrl()).then(prop('data')).catch(rejectWithValue);
     } else {
       return Promise.resolve(applications);
     }
@@ -86,9 +74,6 @@ const moveApplication = ({ applicationId, organizationId }) => {
 const applicationsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
-  reducers: {
-    setOwnerName: propSet('ownerName'),
-  },
   extraReducers: {
     [loadApplications.pending]: loadApplicationsRequested,
     [loadApplications.fulfilled]: loadApplicationsFulfilled,

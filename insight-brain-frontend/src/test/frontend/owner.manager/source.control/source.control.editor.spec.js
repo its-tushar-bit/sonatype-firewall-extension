@@ -50,6 +50,7 @@ describe('source.control.editor', function () {
       goEdit: jasmine.createSpy(),
     },
     $timeout;
+  let loadApplicationsIfNeededSpy;
 
   let setExpectations = function (sourceControlName, sourceControlId, sourceControlResult) {
     getByIdDeferred.resolve({
@@ -142,7 +143,7 @@ describe('source.control.editor', function () {
     $timeout = _$timeout_;
 
     spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
-    spyOn(applicationActions, 'loadApplications').and.returnValue({
+    loadApplicationsIfNeededSpy = spyOn(applicationActions, 'loadApplications').and.returnValue({
       payload: [
         {
           contact: null,
@@ -286,6 +287,8 @@ describe('source.control.editor', function () {
         $setPristine: function () {},
       };
       vm.sourceControlEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
+      vm.ownerName = ROOT_ORG_NAME;
+      vm.ownerId = ROOT_ORG_ID;
     }));
 
     describe('doLoad', function () {
@@ -322,6 +325,7 @@ describe('source.control.editor', function () {
       });
 
       it('sets the error message on failure for root organization owner id', function () {
+        vm.ownerName = undefined;
         getByIdDeferred.reject({ status: 404, data: 'not found' });
 
         $scope.$digest();
@@ -332,7 +336,6 @@ describe('source.control.editor', function () {
 
       it('sets the error message on failure for the root organization source control', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, { reject: { status: 400, data: 'bad request' } });
-        expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
         expect(vm.loadError).toEqual('bad request');
       });
 
@@ -888,6 +891,8 @@ describe('source.control.editor', function () {
         $setPristine: function () {},
       };
       vm.sourceControlEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
+      vm.ownerName = SUB_ORG_NAME;
+      vm.ownerId = SUB_ORG_ID;
     }));
 
     describe('doLoad', function () {
@@ -924,6 +929,7 @@ describe('source.control.editor', function () {
       });
 
       it('sets the error message on failure for the sub organization owner id', function () {
+        vm.ownerName = undefined;
         getByIdDeferred.reject({ status: 404, data: 'not found' });
 
         $scope.$digest();
@@ -1529,6 +1535,9 @@ describe('source.control.editor', function () {
       mockCLMContextLocations.isApplication.and.returnValue(true);
       mockCLMContextLocations.getEntityId.and.returnValue(UNKNOWN_APP_ID);
 
+      loadApplicationsIfNeededSpy.and.returnValue({
+        error: `Could not find an application with ID ${UNKNOWN_APP_ID}.`,
+      });
       vm = $componentController('sourceControlEditor', {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
@@ -1665,6 +1674,8 @@ describe('source.control.editor', function () {
         $setPristine: function () {},
       };
       vm.sourceControlEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
+      vm.ownerName = APPLICATION_NAME;
+      vm.ownerId = APPLICATION_ID;
     }));
 
     describe('doLoad', function () {
@@ -1695,7 +1706,6 @@ describe('source.control.editor', function () {
       it('loads the owner name of the application and reports on success', function () {
         digest(APPLICATION_NAME, APPLICATION_ID);
 
-        expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
         expect(vm.ownerName).toBe(APPLICATION_NAME);
         expect(vm.loadError).toBeUndefined();
       });

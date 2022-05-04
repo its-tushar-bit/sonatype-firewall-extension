@@ -3,15 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+
 export default function AccessTileController(
   $scope,
   RoleMappingService,
+  CLMContextLocations,
   SameOwnerStateNavigationService,
   LocalRoleService,
-  EventNameConstant
+  EventNameConstant,
+  $ngRedux
 ) {
   var vm = this;
-  vm.ownerName = undefined;
+
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
+  vm.isRepositories = CLMContextLocations.isRepositories();
   vm.membersByRole = undefined;
   vm.error = undefined;
   vm.rolesWithoutLocalMembersExist = undefined;
@@ -22,10 +28,13 @@ export default function AccessTileController(
 
   vm.doLoad();
 
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
+
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, function () {
     doLoad(true);
   });
-  $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
   function doLoad(reload) {
     RoleMappingService[reload ? 'refresh' : 'get']().then(
@@ -40,7 +49,9 @@ export default function AccessTileController(
           });
         });
 
-        vm.ownerName = vm.membersByRole[0].membersByOwner[0].ownerName;
+        if (vm.isRepositories) {
+          vm.ownerName = vm.membersByRole[0].membersByOwner[0].ownerName;
+        }
         vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(vm.membersByRole).length > 0;
       },
       function (error) {
@@ -68,16 +79,18 @@ export default function AccessTileController(
       SameOwnerStateNavigationService.goEdit('add-access');
     }
   }
-
-  function updatedOwnerHandler(event, newOwner) {
-    vm.ownerName = newOwner.name;
-  }
 }
+
+export const mapStateToThis = (state) => ({
+  ownerName: selectSelectedOwnerName(state),
+});
 
 AccessTileController.$inject = [
   '$scope',
   'role.mapping.service',
+  'CLMContextLocations',
   'SameOwnerStateNavigationService',
   'local.role.service',
   'event.name.constant',
+  '$ngRedux',
 ];

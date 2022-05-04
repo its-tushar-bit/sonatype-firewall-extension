@@ -142,6 +142,9 @@ describe('policy.tile.controller', function () {
             monitoredStage: { stageName: 'Develop', stageTypeId: 1 },
             originalStage: { stageName: 'Build', stageTypeId: 2 },
           },
+          root: {
+            selectedOwner: { name: 'name' },
+          },
         },
       };
 
@@ -187,14 +190,6 @@ describe('policy.tile.controller', function () {
     $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
     expect(vm.loadApplicablePolicyMonitoring).toHaveBeenCalledTimes(2);
-  });
-
-  it('Updates Owner name on broadcasted updated owner event', function () {
-    createController();
-    expect(vm.ownerName).not.toEqual('Bob');
-    $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, { name: 'Bob' });
-
-    expect(vm.ownerName).toEqual('Bob');
   });
 
   it('does not load the grandfathering configuration if not an application or organization', function () {

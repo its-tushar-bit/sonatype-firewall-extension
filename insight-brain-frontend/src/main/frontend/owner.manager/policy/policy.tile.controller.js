@@ -14,16 +14,14 @@ import {
   selectIsEnforcementSupported,
   selectIsFirewallSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import {
-  selectMonitoredStageFromActionStages,
-  selectPolicyMonitoringOwnerName,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSelectors';
+import { selectMonitoredStageFromActionStages } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSelectors';
 import { selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectIsLoading as selectPropietaryConfigIsLoading,
   selectPropietaryConfigInheritedMatchersCount,
   selectPropietaryConfigLocalMatchersCount,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySelectors';
+import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function PolicyTileController(
   $scope,
@@ -36,7 +34,6 @@ export default function PolicyTileController(
 ) {
   var vm = this;
   vm.isAppOrOrg = CLMContextLocations.isApplication() || CLMContextLocations.isOrganization();
-  vm.ownerName = undefined;
   vm.policiesByOwner = undefined;
   vm.loadError = undefined;
   vm.actionStages = undefined;
@@ -64,7 +61,6 @@ export default function PolicyTileController(
 
   $scope.$on('policy.imported', doLoad);
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
-  $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
   function doLoad() {
     const promises = [
@@ -114,10 +110,6 @@ export default function PolicyTileController(
     SameOwnerStateNavigationService.goEdit('policy', { policyId: policyId });
   }
 
-  function updatedOwnerHandler(event, newOwner) {
-    vm.ownerName = newOwner.name;
-  }
-
   function isEnforcementSupportedForStage(stage) {
     return (vm.isFirewallSupported && stage === 'proxy') || vm.isEnforcementSupported;
   }
@@ -125,7 +117,7 @@ export default function PolicyTileController(
 
 export const mapStateToThis = (state) => ({
   ownerProperties: selectOwnerProperties(state),
-  ownerName: selectPolicyMonitoringOwnerName(state),
+  ownerName: selectSelectedOwnerName(state),
   localProprietaryCount: selectPropietaryConfigLocalMatchersCount(state),
   inheritedProprietaryCount: selectPropietaryConfigInheritedMatchersCount(state),
   propietaryConfigIsloading: selectPropietaryConfigIsLoading(state),

@@ -31,7 +31,7 @@ describe('application.category.tile.controller.org.spec.js', function () {
       spyOn(applicationCategoriesSelectors, 'selectAppCategoryOwners').and.returnValue(null);
       spyOn(applicationCategoriesSelectors, 'selectLoadError').and.returnValue(null);
       spyOn(applicationCategoriesSelectors, 'selectIsLoading').and.returnValue(false);
-      spyOn(orgsAndPoliciesRootSelectors, 'selectOwnerName').and.returnValue(null);
+      spyOn(orgsAndPoliciesRootSelectors, 'selectSelectedOwnerName').and.returnValue(null);
       spyOn(routerSelectors, 'selectIsOrganization').and.returnValue(true);
 
       const output = mapStateToThis({});
@@ -97,14 +97,6 @@ describe('application.category.tile.controller.org.spec.js', function () {
       scope.$emit(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
       expect(vm.loadApplicableCategories).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls updateOwnerHandler on broadcasted policy.imported event', () => {
-      expect(vm.updateOwnerHandler).not.toHaveBeenCalled();
-
-      scope.$emit(EventNameConstant.OWNER_UPDATED, { name: 'Bob' });
-
-      expect(vm.updateOwnerHandler).toHaveBeenCalledTimes(1);
     });
   });
 });

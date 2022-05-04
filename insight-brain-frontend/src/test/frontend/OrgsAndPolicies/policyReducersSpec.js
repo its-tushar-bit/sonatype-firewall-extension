@@ -682,6 +682,7 @@ describe('policySlice reducers', () => {
         },
         isDirty: true,
         currentPolicy: null,
+        currentPolicyOwner: null,
         originalPolicy: null,
         siblings: [],
         readOnly: false,
@@ -692,6 +693,7 @@ describe('policySlice reducers', () => {
 
       const fulfilledPayload = {
         currentPolicy: { id: 'someId' },
+        currentPolicyOwner: { id: 'ownerId', name: 'ownerName' },
         siblings: [{ id: 'anotherPolicyId' }],
         readOnly: true,
         isOrgOwner: true,
@@ -705,6 +707,7 @@ describe('policySlice reducers', () => {
         deleteModal,
         isDirty,
         currentPolicy,
+        currentPolicyOwner,
         originalPolicy,
         siblings,
         readOnly,
@@ -725,6 +728,7 @@ describe('policySlice reducers', () => {
       });
       expect(isDirty).toBeFalse();
       expect(currentPolicy).toEqual(fulfilledPayload.currentPolicy);
+      expect(currentPolicyOwner).toEqual(fulfilledPayload.currentPolicyOwner);
       expect(originalPolicy).toEqual(fulfilledPayload.currentPolicy);
       expect(siblings).toEqual(fulfilledPayload.siblings);
       expect(readOnly).toBe(fulfilledPayload.readOnly);

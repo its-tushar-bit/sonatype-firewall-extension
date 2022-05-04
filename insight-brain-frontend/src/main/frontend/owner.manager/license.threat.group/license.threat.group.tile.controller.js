@@ -3,15 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+
 export default function LicenseThreatGroupTileController(
   $scope,
   $http,
   CLMContextLocations,
   SameOwnerStateNavigationService,
-  EventNameConstant
+  EventNameConstant,
+  $ngRedux
 ) {
   var vm = this;
-  vm.ownerName = undefined;
+
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
+
   vm.applicableLicenseGroups = undefined;
   vm.editLTG = editLTG;
   vm.error = undefined;
@@ -21,7 +26,10 @@ export default function LicenseThreatGroupTileController(
 
   $scope.$on('policy.imported', doLoad);
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
-  $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
+
+  $scope.$on('$destroy', () => {
+    vm.unsubscribe();
+  });
 
   function doLoad() {
     $http.get(CLMContextLocations.getApplicableLicenseGroupsUrl()).then(
@@ -31,7 +39,6 @@ export default function LicenseThreatGroupTileController(
           applicableLicenseGroup.inherited = index > 0;
         });
 
-        vm.ownerName = vm.applicableLicenseGroups[0].ownerName;
         vm.isOrg = vm.applicableLicenseGroups[0].ownerType === 'organization';
       },
       function (error) {
@@ -49,11 +56,11 @@ export default function LicenseThreatGroupTileController(
       });
     }
   }
-
-  function updatedOwnerHandler(event, newOwner) {
-    vm.ownerName = newOwner.name;
-  }
 }
+
+export const mapStateToThis = (state) => ({
+  ownerName: selectSelectedOwnerName(state),
+});
 
 LicenseThreatGroupTileController.$inject = [
   '$scope',
@@ -61,4 +68,5 @@ LicenseThreatGroupTileController.$inject = [
   'CLMContextLocations',
   'SameOwnerStateNavigationService',
   'event.name.constant',
+  '$ngRedux',
 ];

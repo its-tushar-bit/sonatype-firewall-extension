@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './retentionTile.html';
+import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default {
   template: template,
@@ -18,16 +19,18 @@ function RetentionTileController(
   OrganizationStore,
   retentionService,
   $q,
-  Messages
+  Messages,
+  $ngRedux
 ) {
   const NOT_APPLICABLE = 'N/A';
   const NOT_ENABLED = "Don't Purge";
 
   const vm = this;
 
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
+
   Object.assign(vm, {
     isOrganization: CLMContextLocations.isOrganization(),
-    ownerName: undefined,
     applicationReports: undefined,
     successMetrics: undefined,
     error: undefined,
@@ -41,9 +44,9 @@ function RetentionTileController(
       const promises = [];
       promises.push(OrganizationStore.getById(CLMContextLocations.getEntityId()));
       promises.push(retentionService.getRetentionPolicies());
+
       $q.all(promises).then(
         function (results) {
-          vm.ownerName = results[0].name;
           vm.applicationReports = results[1].applicationReports;
           vm.successMetrics = results[1].successMetrics;
         },
@@ -76,8 +79,16 @@ function RetentionTileController(
 
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, vm.load);
 
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
+
   vm.load();
 }
+
+export const mapStateToThis = (state) => ({
+  ownerName: selectSelectedOwnerName(state),
+});
 
 RetentionTileController.$inject = [
   'CLMContextLocations',
@@ -87,4 +98,5 @@ RetentionTileController.$inject = [
   'retentionService',
   '$q',
   'Messages',
+  '$ngRedux',
 ];

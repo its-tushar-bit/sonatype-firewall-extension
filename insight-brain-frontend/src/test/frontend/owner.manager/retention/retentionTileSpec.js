@@ -3,9 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import retentionModule from '../../../../main/frontend/owner.manager/retention/module';
+import retentionModule from 'MainRoot/owner.manager/retention/module';
+import utilityModule from 'MainRoot/utility/utility.module';
+import { mapStateToThis } from 'MainRoot/owner.manager/retention/retentionTile';
 import { disabledRetentionPolicies, inheritedRetentionPolicies } from './retentionMockData';
-import utilityModule from '../../../../main/frontend/utility/utility.module';
 
 describe('retentionTile', function () {
   const ORGANIZATION_ID = 'organizationId';
@@ -22,7 +23,11 @@ describe('retentionTile', function () {
     mockRetentionService,
     vm;
 
-  beforeEach(angular.mock.module(retentionModule.name, utilityModule.name));
+  beforeEach(
+    angular.mock.module(retentionModule.name, utilityModule.name, function ($provide) {
+      SpecUtil.mockNgRedux($provide);
+    })
+  );
 
   beforeEach(inject(function (_$rootScope_, $injector, _$q_, _$componentController_) {
     $rootScope = _$rootScope_;
@@ -52,6 +57,31 @@ describe('retentionTile', function () {
     });
   }));
 
+  describe('mapStateToThis', () => {
+    it('sets ownerName', () => {
+      const state = {
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              name: 'ownerName',
+            },
+          },
+        },
+      };
+
+      const output = mapStateToThis(state);
+      expect(output.ownerName).toBe('ownerName');
+    });
+  });
+
+  describe('on $destroy()', () => {
+    it('unsubscribes from redux store', () => {
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
+      $rootScope.$destroy();
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('load', function () {
     it('expects whether or not this is an organization to have been set', function () {
       expect(mockCLMContextLocations.isOrganization).toHaveBeenCalled();
@@ -77,7 +107,6 @@ describe('retentionTile', function () {
 
       expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
       expect(mockOrganizationStore.getById).toHaveBeenCalledWith(ORGANIZATION_ID);
-      expect(vm.ownerName).toBe('organizationName');
       expect(vm.applicationReports).toEqual(inheritedRetentionPolicies.applicationReports);
       expect(vm.successMetrics).toEqual(inheritedRetentionPolicies.successMetrics);
       expect(vm.error).toBeUndefined();
@@ -109,7 +138,6 @@ describe('retentionTile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toBe('organizationNameUpdated');
       expect(vm.applicationReports).toEqual(disabledRetentionPolicies.applicationReports);
       expect(vm.error).toBeUndefined();
     });

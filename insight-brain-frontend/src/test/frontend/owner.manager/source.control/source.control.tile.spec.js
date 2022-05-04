@@ -105,7 +105,6 @@ describe('source.control.tile', function () {
 
       expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
       expect(mockOrganizationStore.getById).toHaveBeenCalledWith(ROOT_ORGANIZATION_ID);
-      expect(vm.ownerName).toBe('rootOrganizationName');
       expect(vm.error).toBeUndefined();
     });
 
@@ -114,7 +113,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toBeUndefined();
       expect(vm.error).toEqual('not found');
     });
 
@@ -127,7 +125,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('rootOrganizationName');
       expect(vm.error).toEqual('bad request');
     });
 
@@ -140,7 +137,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('rootOrganizationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toEqual('github');
     });
@@ -164,7 +160,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toBe('organizationNameUpdated');
       expect(vm.error).toBeUndefined();
     });
 
@@ -177,7 +172,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('rootOrganizationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toBeNull();
       expect(vm.itemText).toEqual('');
@@ -193,7 +187,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('rootOrganizationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('GitHub');
@@ -302,7 +295,6 @@ describe('source.control.tile', function () {
 
       expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
       expect(mockOrganizationStore.getById).toHaveBeenCalledWith(SUB_ORGANIZATION_ID);
-      expect(vm.ownerName).toBe('subOrganizationName');
       expect(vm.error).toBeUndefined();
     });
 
@@ -315,7 +307,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('subOrganizationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toBeNull();
       expect(vm.itemText).toEqual('');
@@ -334,7 +325,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('subOrganizationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('GitHub');
@@ -353,7 +343,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('subOrganizationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('GitHub');
@@ -370,9 +359,9 @@ describe('source.control.tile', function () {
         token: { value: 'token', parentName: 'Root Organization', parentValue: 'token' },
       });
 
+      vm.ownerName = 'subOrganizationName';
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('subOrganizationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('GitHub');
@@ -419,7 +408,6 @@ describe('source.control.tile', function () {
 
       expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
       expect(mockApplicationStore.getById).toHaveBeenCalledWith(APPLICATION_ID);
-      expect(vm.ownerName).toBe('applicationName');
       expect(vm.error).toBeUndefined();
     });
 
@@ -432,7 +420,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toBeNull();
       expect(vm.itemText).toEqual('');
@@ -448,7 +435,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('Repository URL needed');
@@ -464,7 +450,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('Repository URL needed');
@@ -477,10 +462,10 @@ describe('source.control.tile', function () {
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: 'token', parentName: 'Root Organization', parentValue: 'token' },
       });
+      vm.ownerName = 'applicationName';
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('Repository URL needed');
@@ -493,7 +478,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toBeNull();
       expect(vm.itemText).toEqual('');
@@ -509,7 +493,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('Repository URL needed');
@@ -526,7 +509,6 @@ describe('source.control.tile', function () {
 
       $scope.$digest();
 
-      expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
       expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('url');

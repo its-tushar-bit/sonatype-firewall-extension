@@ -12,7 +12,6 @@ import {
   selectIsGrandfatheringSupported,
   selectIsMonitoringSupported,
   selectPolicyMonitoringMonitoredStage,
-  selectPolicyMonitoringOwnerName,
   selectPoliciesByOwner,
   selectPoliciesByOwnerWithEnforcementActions,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSelectors';
@@ -129,12 +128,6 @@ describe('orgsAndPoliciesPolicyMonitoringSelectors', () => {
   describe('selectIsGrandfatheringSupported', () => {
     it('returns isGrandfatheringSupported', () => {
       expect(selectIsGrandfatheringSupported(mockState)).toBe(false);
-    });
-  });
-
-  describe('selectPolicyMonitoringOwnerName', () => {
-    it('returns ownerName', () => {
-      expect(selectPolicyMonitoringOwnerName(mockState)).toBe('Root Organization');
     });
   });
 

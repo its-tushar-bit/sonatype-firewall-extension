@@ -9,6 +9,7 @@ import ownerUtils from '../owner.utils';
 import applicationResourceMockData from '../mock.data/application.resource.mock.data';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
 
 describe('owner.summary.controller', function () {
   beforeEach(
@@ -42,6 +43,9 @@ describe('owner.summary.controller', function () {
       mockGrandfatherModalService,
       mockRevokeGrandfatheringModalService,
       mockEvaluateAppModalService;
+    let setSelectedOwnerSpy;
+    let setSelectedOwnerContactSpy;
+    let mockApplicationSummary;
 
     beforeEach(inject(function (
       $rootScope,
@@ -77,11 +81,14 @@ describe('owner.summary.controller', function () {
       mockPolicyViolationGrandfatheringService = {
         getGrandfathering: jasmine.createSpy().and.returnValue(getGrandfatheringDefer.promise),
       };
+      mockApplicationSummary = applicationResourceMockData.getApplicationSummaryUrl();
 
       spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
       spyOn(CLMContextLocations, 'isApplication').and.returnValue(isApp);
       spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
       spyOn(stagesActions, 'loadDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
+      setSelectedOwnerSpy = spyOn(rootActions, 'setSelectedOwner');
+      setSelectedOwnerContactSpy = spyOn(rootActions, 'setSelectedOwnerContact');
 
       mockState = {
         current: {
@@ -111,6 +118,7 @@ describe('owner.summary.controller', function () {
       vm.isGrandfatheringSupported = true;
       vm.isEvaluateApplicationAvailable = true;
       vm.isInnerSourceRepositorySupported = true;
+      vm.owner = owner;
     }));
 
     afterEach(function () {
@@ -123,7 +131,7 @@ describe('owner.summary.controller', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(true);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
       scope.$digest();
       if (isApp) {
@@ -131,16 +139,17 @@ describe('owner.summary.controller', function () {
       }
       resolveApplicationWritePermission(true);
       resolveApplicationEvaluatePermission(true);
+      expect(setSelectedOwnerSpy).toHaveBeenCalledOnceWith(owner);
 
       if (isApp) {
         $timeout.flush();
-        expect(vm.applicationSummary).toEqual(applicationResourceMockData.getApplicationSummaryUrl());
+        expect(setSelectedOwnerContactSpy).toHaveBeenCalledOnceWith(mockApplicationSummary.contact);
+        expect(vm.applicationSummary).toEqual(mockApplicationSummary);
         expect(vm.hasPermissionToChangeAppId).toEqual(true);
         expect(vm.hasPermissionToEvaluateApp).toEqual(true);
         expect(vm.isGrandfatheringEnabled).toEqual(true);
       }
 
-      expect(vm.owner).toEqual(owner);
       expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
     });
 
@@ -150,7 +159,7 @@ describe('owner.summary.controller', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
       scope.$digest();
       if (isApp) {
@@ -173,7 +182,7 @@ describe('owner.summary.controller', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
       scope.$digest();
       if (isApp) {
@@ -189,10 +198,8 @@ describe('owner.summary.controller', function () {
         vm.openReport(MockData.getDashboardStageData()[0]);
 
         expect(mockState.href).toHaveBeenCalledWith('applicationReport.policy', {
-          publicId: applicationResourceMockData.getApplicationSummaryUrl().publicId,
-          scanId: applicationResourceMockData.getApplicationSummaryUrl().policyEvaluations[
-            MockData.getDashboardStageData()[0].stageTypeId
-          ].scanId,
+          publicId: mockApplicationSummary.publicId,
+          scanId: mockApplicationSummary.policyEvaluations[MockData.getDashboardStageData()[0].stageTypeId].scanId,
         });
         expect(mockWindow.open).toHaveBeenCalled();
       }
@@ -203,7 +210,7 @@ describe('owner.summary.controller', function () {
       mockOwnerStore.rejectGetById('Could not find an ' + type);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationSummary(mockApplicationSummary);
       scope.$digest();
 
       if (isApp) {
@@ -211,30 +218,32 @@ describe('owner.summary.controller', function () {
         $timeout.flush();
       }
 
-      expect(vm.owner).toBeUndefined();
       expect(vm.error).toContain('Could not find an ' + type);
     });
 
     it('Refreshing Owner After Error', function () {
+      vm.owner = undefined;
       mockOwnerStore.rejectGet('Error');
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationSummary(mockApplicationSummary);
 
       if (isApp) {
         $httpBackend.flush();
       }
       $timeout.flush();
 
+      expect(setSelectedOwnerSpy).not.toHaveBeenCalled();
       expect(vm.owner).toBeUndefined();
       expect(vm.error).toBeDefined();
 
       // reload successfully
       vm.doLoad();
+      vm.owner = owner;
       mockOwnerStore.resolveRefresh([owner]);
       mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
       scope.$digest();
 
@@ -247,7 +256,7 @@ describe('owner.summary.controller', function () {
         $timeout.flush();
       }
 
-      expect(vm.owner).toEqual(owner);
+      expect(setSelectedOwnerSpy).toHaveBeenCalledOnceWith(owner);
       expect(vm.error).toBeUndefined();
     });
 
@@ -273,7 +282,7 @@ describe('owner.summary.controller', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       stageTypeStoreDefer.reject('Error');
-      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationSummary(mockApplicationSummary);
       scope.$digest();
 
       if (isApp) {
@@ -290,7 +299,7 @@ describe('owner.summary.controller', function () {
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
       scope.$digest();
 
@@ -321,7 +330,7 @@ describe('owner.summary.controller', function () {
           mockOwnerStore.resolveGetById(owner);
           resolveGetGrandfathering(false);
           resolveStageTypeStore(MockData.getDashboardStageData());
-          resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+          resolveApplicationSummary(mockApplicationSummary);
           resolveCompositeSourceControl();
           scope.$digest();
 
@@ -341,7 +350,7 @@ describe('owner.summary.controller', function () {
           mockOwnerStore.resolveGetById(owner);
           resolveGetGrandfathering(false);
           resolveStageTypeStore(MockData.getDashboardStageData());
-          resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+          resolveApplicationSummary(mockApplicationSummary);
           resolveCompositeSourceControl();
           scope.$digest();
 
@@ -519,7 +528,7 @@ describe('owner.summary.controller', function () {
           mockOwnerStore.resolveGetById(owner);
           resolveGetGrandfathering(true);
           resolveStageTypeStore(MockData.getDashboardStageData());
-          resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+          resolveApplicationSummary(mockApplicationSummary);
           if (isApp) {
             $httpBackend
               .expectGET(CLMLocations.getCompositeSourceControlUrl('application', '0000abcd'))
@@ -597,7 +606,7 @@ describe('owner.summary.controller', function () {
 
       vm.isGrandfatheringSupported = isGrandfatheringSuppored;
 
-      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
       if (isApp) {
         $httpBackend.flush();
@@ -612,7 +621,7 @@ describe('owner.summary.controller', function () {
 
       vm.isEvaluateApplicationAvailable = isEvaluateAppSupported;
 
-      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
+      resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
       $httpBackend.flush();
       resolveApplicationEvaluatePermission(hasEvaluateAppPermission);

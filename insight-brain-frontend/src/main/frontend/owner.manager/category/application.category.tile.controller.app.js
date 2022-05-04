@@ -14,8 +14,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as assignApplicationCategoriesSlice } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
-import { actions as orgsAndPoliciesRootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
-import { selectOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function ApplicationCategoryTileControllerApp($scope, EventNameConstant, $ngRedux) {
@@ -24,7 +23,6 @@ export default function ApplicationCategoryTileControllerApp($scope, EventNameCo
     loadApplicableCategories: assignApplicationCategoriesSlice.loadApplicableCategories,
     loadAppliedCategories: assignApplicationCategoriesSlice.loadAppliedCategories,
     goToEditCategories: assignApplicationCategoriesSlice.goToEditCategories,
-    updatedOwnerHandlerAction: orgsAndPoliciesRootActions.updatedOwnerHandler,
   })($scope);
 
   $scope.$on('$destroy', () => {
@@ -39,13 +37,8 @@ export default function ApplicationCategoryTileControllerApp($scope, EventNameCo
     }
   };
 
-  $scope.updatedOwnerHandler = (_, owner) => {
-    $scope.updatedOwnerHandlerAction(owner.name);
-  };
-
   $scope.$on('policy.imported', $scope.doLoad);
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, $scope.doLoad);
-  $scope.$on(EventNameConstant.OWNER_UPDATED, $scope.updatedOwnerHandler);
 
   $scope.assignCategories = () => {
     if ($scope.areAnyCategoriesDefined) {
@@ -57,7 +50,7 @@ export default function ApplicationCategoryTileControllerApp($scope, EventNameCo
 }
 
 export const mapStateToThis = (state) => ({
-  ownerName: selectOwnerName(state),
+  ownerName: selectSelectedOwnerName(state),
   loading:
     selectLoadingApplications(state) ||
     selectLoadingApplicableCategories(state) ||

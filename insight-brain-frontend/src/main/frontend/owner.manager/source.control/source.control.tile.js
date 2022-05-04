@@ -6,6 +6,8 @@
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { selectIsSourceControlForSourceTileSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+
 import template from './source.control.tile.html';
 import { valueFromHierarchy } from '../../configuration/scmOnboarding/utils/providers';
 
@@ -30,7 +32,6 @@ function SourceControlTileController(
   var vm = this;
 
   vm.ownerType = undefined;
-  vm.ownerName = undefined;
   vm.loading = false;
   vm.error = undefined;
   vm.isApp = CLMContextLocations.isApplication();
@@ -53,7 +54,6 @@ function SourceControlTileController(
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, function () {
     doLoad();
   });
-  $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
   $scope.$on('$destroy', function () {
     vm.unsubscribe();
@@ -79,7 +79,6 @@ function SourceControlTileController(
       $q.all(promises)
         .then(function (results) {
           unwrapResult(results[1]);
-          vm.ownerName = results[0].name;
 
           if (vm.isSourceControlSupported) {
             return getSourceControl(results[0].id);
@@ -103,10 +102,6 @@ function SourceControlTileController(
         vm.itemSubText = getItemSubText();
       }
     });
-  }
-
-  function updatedOwnerHandler(event, newOwner) {
-    vm.ownerName = newOwner.name;
   }
 
   function editSourceControl() {
@@ -156,6 +151,7 @@ ${vm.isApp ? ` (${provider})` : ''}`;
 }
 const mapStateToThis = (state) => ({
   isSourceControlSupported: selectIsSourceControlForSourceTileSupported(state),
+  ownerName: selectSelectedOwnerName(state),
 });
 
 SourceControlTileController.$inject = [

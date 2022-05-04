@@ -39,7 +39,7 @@ function SourceControlEditorController(
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
-    loadApplications: applicationActions.loadApplicationsIfNeeded,
+    loadApplications: applicationActions.loadApplications,
   })(vm);
 
   vm.ownerName = undefined;

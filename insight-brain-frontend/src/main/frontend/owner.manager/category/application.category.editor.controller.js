@@ -28,7 +28,7 @@ export default function ApplicationCategoryEditorController($scope, $ngRedux) {
   const vm = this;
 
   $scope.unsubscribe = $ngRedux.connect(mapStateToThis, {
-    loadApplications: applicationsActions.loadApplicationsIfNeeded,
+    loadApplications: applicationsActions.loadApplications,
     loadApplicableCategories: assignApplicationCategoriesActions.loadApplicableCategories,
     loadAppliedCategories: assignApplicationCategoriesActions.loadAppliedCategories,
     updateAppliedCategories: assignApplicationCategoriesActions.updateAppliedCategories,

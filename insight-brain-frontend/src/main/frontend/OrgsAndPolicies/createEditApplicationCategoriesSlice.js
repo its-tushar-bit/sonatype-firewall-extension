@@ -217,7 +217,7 @@ const loadCategoryEditor = createAsyncThunk(
     const editCategoryPromises = isEditMode
       ? [
           dispatch(loadOrganizationAppliedTag()),
-          dispatch(applicationActions.loadApplicationsIfNeeded()),
+          dispatch(applicationActions.loadApplications()),
           dispatch(policyActions.loadApplicablePoliciesByOwner()),
           dispatch(loadOrganizationPolicyTags()),
         ]

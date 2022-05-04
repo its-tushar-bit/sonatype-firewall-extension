@@ -30,7 +30,6 @@ export const RiskRemediation = ({
   selectedVersionComparisonData,
   resetSelectedVersionData,
   expanded,
-  ancestorOnClick,
   toggleAncestorsList,
 }) => {
   useEffect(() => {
@@ -65,7 +64,6 @@ export const RiskRemediation = ({
             <RecommendedRemediation
               dependencyTreeSubset={dependencyTreeSubset}
               dependencyTreeIsNotSupported={dependencyTreeIsNotSupported}
-              ancestorOnClick={ancestorOnClick}
               toggleAncestorsList={toggleAncestorsList}
               expanded={expanded}
             />
@@ -146,7 +144,6 @@ RiskRemediation.propTypes = {
   routeName: PropTypes.string.isRequired,
   currentVersionComparisonData: PropTypes.object,
   selectedVersionComparisonData: PropTypes.object,
-  ancestorOnClick: PropTypes.func,
   toggleAncestorsList: PropTypes.func,
   expanded: PropTypes.bool,
   versionExplorerData: PropTypes.shape({

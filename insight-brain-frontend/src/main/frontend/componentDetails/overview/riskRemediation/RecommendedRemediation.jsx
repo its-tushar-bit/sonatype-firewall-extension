@@ -11,7 +11,6 @@ import { NxInfoAlert } from '@sonatype/react-shared-components';
 
 export const RecommendedRemediation = ({
   dependencyTreeSubset,
-  ancestorOnClick,
   expanded,
   toggleAncestorsList,
   dependencyTreeIsNotSupported,
@@ -29,7 +28,6 @@ export const RecommendedRemediation = ({
         {dependencyTreeSubset?.length > 0 ? (
           <AncestorsList
             dependencyTreeSubset={dependencyTreeSubset}
-            ancestorOnClick={ancestorOnClick}
             toggleAncestorsList={toggleAncestorsList}
             itemsToShow={3}
             expanded={expanded}
@@ -48,6 +46,5 @@ export const RecommendedRemediation = ({
 
 RecommendedRemediation.propTypes = {
   ...AncestorsList.PropTypes,
-  ancestorOnClick: PropTypes.func.isRequired,
   dependencyTreeIsNotSupported: PropTypes.bool,
 };

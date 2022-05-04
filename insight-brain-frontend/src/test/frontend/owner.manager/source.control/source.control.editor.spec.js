@@ -142,7 +142,7 @@ describe('source.control.editor', function () {
     $timeout = _$timeout_;
 
     spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
-    spyOn(applicationActions, 'loadApplicationsIfNeeded').and.returnValue({
+    spyOn(applicationActions, 'loadApplications').and.returnValue({
       payload: [
         {
           contact: null,

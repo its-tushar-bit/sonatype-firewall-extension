@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { Messages } from 'MainRoot/util/CommonServices';
 import { getApplicationsUrl, getMoveApplicationUrl } from '../util/CLMLocation';
@@ -41,34 +41,23 @@ const loadApplicationsFailed = (state, { payload }) => {
 
 const loadApplications = createAsyncThunk(
   `${REDUCER_NAME}/loadApplications`,
-  (_, { rejectWithValue, getState, dispatch }) => {
-    return axios
-      .get(getApplicationsUrl())
-      .then((response) => {
-        const entityId = selectEntityId(getState());
-        const ownerName = getOwnerName(entityId)(response.data);
-        dispatch(actions.setOwnerName(ownerName));
-        return response.data;
-      })
-      .catch(rejectWithValue);
-  }
-);
-
-const loadApplicationsIfNeeded = createAsyncThunk(
-  `${REDUCER_NAME}/loadApplicationsIfNeeded`,
-  async (reload, { getState, dispatch }) => {
+  async (forceReload, { rejectWithValue, getState, dispatch }) => {
     const state = getState();
-    let applications = selectApplications(state);
+    const applications = selectApplications(state);
 
-    if (isEmpty(applications) || reload) {
-      applications = unwrapResult(await dispatch(actions.loadApplications()));
+    if (isEmpty(applications) || forceReload) {
+      return axios
+        .get(getApplicationsUrl())
+        .then((response) => {
+          const entityId = selectEntityId(getState());
+          const ownerName = getOwnerName(entityId)(response.data);
+          dispatch(actions.setOwnerName(ownerName));
+          return response.data;
+        })
+        .catch(rejectWithValue);
     } else {
-      const entityId = selectEntityId(getState());
-      const ownerName = getOwnerName(entityId)(applications);
-      dispatch(actions.setOwnerName(ownerName));
+      return Promise.resolve(applications);
     }
-
-    return Promise.resolve(applications);
   }
 );
 
@@ -77,7 +66,7 @@ const moveApplication = ({ applicationId, organizationId }) => {
     return axios
       .post(getMoveApplicationUrl(applicationId, organizationId))
       .then((response) => {
-        return dispatch(actions.loadApplications()).then(() => {
+        return dispatch(actions.loadApplications(true)).then(() => {
           return response?.data?.warnings;
         });
       })
@@ -110,7 +99,6 @@ const applicationsSlice = createSlice({
 export const actions = {
   ...applicationsSlice.actions,
   loadApplications,
-  loadApplicationsIfNeeded,
   moveApplication,
 };
 

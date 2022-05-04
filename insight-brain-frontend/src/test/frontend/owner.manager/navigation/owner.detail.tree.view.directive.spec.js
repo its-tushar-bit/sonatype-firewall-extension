@@ -40,7 +40,7 @@ describe('owner.detail.tree.view.directive', function () {
       spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
       spyOn(applicationCategoriesActions, 'loadApplicableCategories').and.returnValue({ payload: [] });
 
-      loadApplicationsIfNeededMock = spyOn(applicationActions, 'loadApplicationsIfNeeded').and.returnValue({
+      loadApplicationsIfNeededMock = spyOn(applicationActions, 'loadApplications').and.returnValue({
         payload: [
           {
             contact: null,

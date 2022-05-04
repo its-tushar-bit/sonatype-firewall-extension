@@ -51,7 +51,7 @@ export default function OwnerDetailTreeViewController(
   vm.$onInit = function () {
     vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
       loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
-      loadApplications: applicationActions.loadApplicationsIfNeeded,
+      loadApplications: applicationActions.loadApplications,
       loadApplicableCategories: applicationCategoriesActions.loadApplicableCategories,
     })(vm);
 

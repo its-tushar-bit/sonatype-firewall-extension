@@ -491,26 +491,24 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(15);
+        expect(actions.length).toBe(13);
         expect(actions).toHaveActionTypesInOrder([
           'applicationCategories/createEdit/loadCategoryEditor/pending',
           'applicationCategories/createEdit/loadOrganizationAppliedTag/pending',
-          'applications/loadApplicationsIfNeeded/pending',
           'applications/loadApplications/pending',
           'policy/loadApplicablePoliciesByOwner/pending',
           'applicationCategories/createEdit/loadOrganizationPolicyTags/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
           'applications/setOwnerName',
           'applicationCategories/createEdit/loadOrganizationAppliedTag/fulfilled',
-          'applications/loadApplications/fulfilled',
           'policy/loadApplicablePoliciesByOwner/fulfilled',
           'applicationCategories/createEdit/loadOrganizationPolicyTags/fulfilled',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
-          'applications/loadApplicationsIfNeeded/fulfilled',
+          'applications/loadApplications/fulfilled',
           'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
         ]);
 
-        expect(actions[14].payload).toEqual({
+        expect(actions[12].payload).toEqual({
           siblings: flattenedApplicationCategories,
           associatedApplicationNames: ['activemq'],
           currentCategory: {

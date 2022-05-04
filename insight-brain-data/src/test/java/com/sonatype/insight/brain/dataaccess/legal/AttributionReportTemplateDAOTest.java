@@ -32,7 +32,8 @@ public class AttributionReportTemplateDAOTest
       boolean includeAppendix,
       boolean includeTableOfContents,
       boolean includeStandardLicenseText,
-      boolean includeInnerSource)
+      boolean includeInnerSource,
+      boolean includeSonatypeSpecialLicenses)
   {
     Date now = new Date();
     AttributionReportTemplate attributionReportTemplate = new AttributionReportTemplate();
@@ -45,6 +46,7 @@ public class AttributionReportTemplateDAOTest
     attributionReportTemplate.setIncludeTableOfContents(includeTableOfContents);
     attributionReportTemplate.setIncludeStandardLicenseTexts(includeStandardLicenseText);
     attributionReportTemplate.setIncludeInnerSource(includeInnerSource);
+    attributionReportTemplate.setIncludeSonatypeSpecialLicenses(includeSonatypeSpecialLicenses);
 
     return attributionReportTemplate;
   }
@@ -62,7 +64,8 @@ public class AttributionReportTemplateDAOTest
   public void testCRUD() {
     // Create
     AttributionReportTemplate attributionReportTemplate =
-        createTemplate("template name", "doc title", "header", "footer", false, false, false, false);
+        createTemplate("template name", "doc title", "header", "footer", false, false, false, false,
+            false);
     dao.insert(attributionReportTemplate);
     assertThat(attributionReportTemplate.getId()).isNotNull();
 
@@ -79,6 +82,7 @@ public class AttributionReportTemplateDAOTest
     attributionReportTemplate.setIncludeTableOfContents(true);
     attributionReportTemplate.setIncludeStandardLicenseTexts(true);
     attributionReportTemplate.setIncludeInnerSource(true);
+    attributionReportTemplate.setIncludeSonatypeSpecialLicenses(true);
     attributionReportTemplate.setLastUpdatedAt(now);
     dao.update(attributionReportTemplate);
     assertThat(dao.getById(attributionReportTemplate.getId())).usingRecursiveComparison()
@@ -101,6 +105,7 @@ public class AttributionReportTemplateDAOTest
             false,
             false,
             false,
+            false,
             false);
     AttributionReportTemplate attributionReportTemplate2 =
         new AttributionReportTemplate(
@@ -108,6 +113,7 @@ public class AttributionReportTemplateDAOTest
             "title2",
             "header2",
             "footer2",
+            false,
             false,
             false,
             false,
@@ -130,13 +136,16 @@ public class AttributionReportTemplateDAOTest
             false,
             false,
             false,
+            false,
             false);
+
     AttributionReportTemplate attributionReportTemplate2 =
         new AttributionReportTemplate(
             "template 2",
             "title2",
             "header2",
             "footer2",
+            false,
             false,
             false,
             false,
@@ -160,7 +169,10 @@ public class AttributionReportTemplateDAOTest
             false,
             false,
             false,
-            false);
+            false,
+            false
+        );
+
     attributionReportTemplate.setLastUpdatedAt(null);
     Date now = new Date();
 
@@ -173,7 +185,7 @@ public class AttributionReportTemplateDAOTest
   public void testUpdate_SetsDate() {
     Date now = new Date();
     AttributionReportTemplate attributionReportTemplate =
-        new AttributionReportTemplate("template name", "title", "header", "footer", false, false, false, false);
+        new AttributionReportTemplate("template name", "title", "header", "footer", false, false, false, false, false);
     attributionReportTemplate.setLastUpdatedAt(new Date(now.getTime() - 1));
     dao.insert(attributionReportTemplate);
     assertThat(dao.getById(attributionReportTemplate.getId()).getLastUpdatedAt()).isBefore(now);
@@ -186,7 +198,9 @@ public class AttributionReportTemplateDAOTest
   @Test
   public void testUpdate_DoesNotExist() {
     AttributionReportTemplate attributionReportTemplate =
-        new AttributionReportTemplate("template name", "title", "header", "footer", false, false, false, false);
+        new AttributionReportTemplate("template name", "title", "header",
+            "footer", false, false, false,
+            false, false);
     attributionReportTemplate.setId("doesNotExist");
 
     assertThatExceptionOfType(BadRequestException.class)

@@ -26,6 +26,8 @@ public final class LegalCustomReportParameters
 
   private final boolean includeStandardLicenseTexts;
 
+  private final boolean includeSonatypeSpecialLicenses;
+
   private final boolean includeAppendix;
 
   private final List<String> noticeFiles;
@@ -44,7 +46,8 @@ public final class LegalCustomReportParameters
       final boolean includeStandardLicenseTexts,
       final boolean includeAppendix,
       final List<String> noticeFiles,
-      boolean includeInnerSource)
+      boolean includeInnerSource,
+      final boolean includeSonatypeSpecialLicenses)
   {
     this.title = title;
     this.header = header;
@@ -54,6 +57,7 @@ public final class LegalCustomReportParameters
     this.includeAppendix = includeAppendix;
     this.noticeFiles = noticeFiles;
     this.includeInnerSource = includeInnerSource;
+    this.includeSonatypeSpecialLicenses = includeSonatypeSpecialLicenses;
   }
 
   public String getTitle() {
@@ -80,6 +84,10 @@ public final class LegalCustomReportParameters
     return includeAppendix;
   }
 
+  public boolean isIncludeSonatypeSpecialLicenses() {
+    return includeSonatypeSpecialLicenses;
+  }
+
   public List<String> getNoticeFiles() {
     if (noticeFiles == null) {
       return Collections.emptyList();
@@ -104,6 +112,8 @@ public final class LegalCustomReportParameters
     private boolean includeStandardLicenseTexts = true;
 
     private boolean includeAppendix = true;
+
+    private boolean includeSonatypeSpecialLicenses = false;
 
     private List<String> noticeFiles = Collections.emptyList();
 
@@ -141,6 +151,11 @@ public final class LegalCustomReportParameters
       return this;
     }
 
+    public Builder withIncludeIncludeSonatypeSpecialLicenses(final boolean includeSonatypeSpecialLicenses) {
+      this.includeSonatypeSpecialLicenses = includeSonatypeSpecialLicenses;
+      return this;
+    }
+
     public Builder withNoticeFiles(final List<String> noticeFiles) {
       this.noticeFiles = noticeFiles;
       return this;
@@ -159,7 +174,8 @@ public final class LegalCustomReportParameters
           .withIncludeStandardLicenseTexts(templateDTO.isIncludeAppendix())
           .withIncludeToc(templateDTO.isIncludeTableOfContents())
           .withIncludeAppendix(templateDTO.isIncludeAppendix())
-          .withIncludeInnerSource(templateDTO.isIncludeInnerSource());
+          .withIncludeInnerSource(templateDTO.isIncludeInnerSource())
+          .withIncludeIncludeSonatypeSpecialLicenses(templateDTO.isIncludeSonatypeSpecialLicenses());
     }
 
     public LegalCustomReportParameters build() {
@@ -171,20 +187,25 @@ public final class LegalCustomReportParameters
           this.includeStandardLicenseTexts,
           this.includeAppendix,
           this.noticeFiles,
-          this.includeInnerSource);
+          this.includeInnerSource,
+          this.includeSonatypeSpecialLicenses
+      );
     }
 
     public LegalCustomReportParameters buildWithDefaults(final String applicationId) {
       return new LegalCustomReportParameters(
           ATTRIBUTION_REPORT_FOR + applicationId,
           "", "",
-          true, true, true, Collections.emptyList(), false
+          true, true, true, Collections.emptyList(),
+          false, false
       );
     }
 
     public LegalCustomReportParameters buildMultiApplicationWithDefaults(final Set<String> applicationId) {
-      return new LegalCustomReportParameters(ATTRIBUTION_REPORT_FOR + String.join(", ", applicationId), "", "", true,
-          true, true, this.noticeFiles, false);
+      return new LegalCustomReportParameters(ATTRIBUTION_REPORT_FOR + String.join(", ",
+          applicationId), "", "", true,
+          true, true, this.noticeFiles, false,
+          false);
     }
   }
 }

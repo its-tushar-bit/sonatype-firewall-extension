@@ -1077,6 +1077,7 @@ CREATE TABLE attribution_report_template (
   include_standard_license_texts boolean DEFAULT TRUE,
   include_appendix boolean DEFAULT TRUE,
   include_inner_source boolean DEFAULT FALSE,
+  include_sonatype_special_licenses boolean DEFAULT FALSE,
   last_updated_at timestamp NOT NULL,
   CONSTRAINT template_name_uk UNIQUE (template_name)
 );

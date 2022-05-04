@@ -69,7 +69,8 @@ public class AttributionReportFormTest
             false,
             false,
             false,
-            true);
+            true,
+            false);
     tempEntity.createNewAttributionReportTemplate(
             "Template 2",
             "Report Title 2",
@@ -78,7 +79,8 @@ public class AttributionReportFormTest
             true,
             false,
             false,
-            false);
+            false,
+            true);
   }
 
   @Test

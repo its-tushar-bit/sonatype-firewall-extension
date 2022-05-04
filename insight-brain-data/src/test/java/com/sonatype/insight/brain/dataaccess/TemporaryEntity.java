@@ -3250,7 +3250,8 @@ public class TemporaryEntity
 
   public AttributionReportTemplate createNewAttributionReportTemplate(String templateName, String docTitle) {
     AttributionReportTemplate template =
-        new AttributionReportTemplate(templateName, docTitle, null, null, true, true, true, false);
+        new AttributionReportTemplate(templateName, docTitle, null, null,true, true, true, false,
+            false);
     template.setId(uuid());
     attributionReportTemplateDAO.insert(template);
     return template;
@@ -3264,7 +3265,9 @@ public class TemporaryEntity
       boolean includeTableOfContents,
       boolean includeAppendix,
       boolean includeStandardLicenseTexts,
-      boolean includeInnerSource)
+      boolean includeInnerSource,
+      boolean includeSonatypeSpecialLicenses
+  )
   {
     AttributionReportTemplate template = new AttributionReportTemplate(templateName,
         documentTitle,
@@ -3272,7 +3275,7 @@ public class TemporaryEntity
         documentFooter,
         includeTableOfContents,
         includeAppendix,
-        includeStandardLicenseTexts, includeInnerSource);
+        includeStandardLicenseTexts, includeInnerSource, includeSonatypeSpecialLicenses);
     attributionReportTemplateDAO.insert(template);
     return template;
   }

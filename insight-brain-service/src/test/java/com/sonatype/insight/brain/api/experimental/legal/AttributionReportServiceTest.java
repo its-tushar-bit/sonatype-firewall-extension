@@ -108,6 +108,7 @@ public class AttributionReportServiceTest
     savedReport.setIncludeTableOfContents(true);
     savedReport.setIncludeAppendix(true);
     savedReport.setIncludeStandardLicenseTexts(true);
+    savedReport.setIncludeSonatypeSpecialLicenses(true);
 
     attributionReportService.saveAttributionReportTemplate(savedReport);
     Optional<AttributionReportTemplateDTO> updatedReport = attributionReportService
@@ -120,6 +121,8 @@ public class AttributionReportServiceTest
     assertThat(savedReport.getId()).isEqualTo(updatedReport.get().getId());
     assertThat(savedReport.isIncludeAppendix()).isEqualTo(updatedReport.get().isIncludeAppendix());
     assertThat(savedReport.isIncludeTableOfContents()).isEqualTo(updatedReport.get().isIncludeTableOfContents());
+    assertThat(savedReport.isIncludeSonatypeSpecialLicenses()).isEqualTo(updatedReport.get()
+        .isIncludeSonatypeSpecialLicenses());
     assertThat(attributionReportService.getAllAttributionReportTemplates().size()).isEqualTo(1);
   }
 }

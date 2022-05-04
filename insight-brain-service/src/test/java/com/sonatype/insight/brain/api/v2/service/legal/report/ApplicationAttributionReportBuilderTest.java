@@ -60,6 +60,7 @@ import org.mockito.Mock;
 import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.LEGAL_SOURCE_LINK_COMPARATOR;
 import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
 import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
+import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -568,13 +569,12 @@ public class ApplicationAttributionReportBuilderTest
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component5, licenseLegalData5, null));
 
     if (addMultiApp) {
-      when(
-          mockApiLicenseLegalService.getLicenseLegalApplicationReportNoException(application, BuildStageType.ID, false))
-              .thenReturn(Optional.of(reportDTO));
+      when(mockApiLicenseLegalService.getLicenseLegalApplicationReportNoException(application, BuildStageType.ID, false,
+              false)).thenReturn(Optional.of(reportDTO));
     }
     else {
-      when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID, false))
-          .thenReturn(reportDTO);
+      when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID,
+          false, false)).thenReturn(reportDTO);
     }
 
     reportDTO.licenseLegalMetadata = new HashSet<>();
@@ -590,8 +590,8 @@ public class ApplicationAttributionReportBuilderTest
     Application application = tempEntity.newApplicationWithParent("appId");
     ApiLicenseLegalApplicationReportDTO reportDTO = new ApiLicenseLegalApplicationReportDTO();
 
-    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID, false))
-        .thenReturn(reportDTO);
+    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID,
+        false, false)).thenReturn(reportDTO);
 
     assertThat(reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
         LegalCustomReportParameters.builder().buildWithDefaults(application.getPublicId())))
@@ -638,8 +638,8 @@ public class ApplicationAttributionReportBuilderTest
     reportDTO.components =
         Collections.singletonList(new ApiLicenseLegalComponentDTO(component, licenseLegalData, null));
 
-    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID, true))
-        .thenReturn(reportDTO);
+    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID,
+        true, false)).thenReturn(reportDTO);
 
     String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
         LegalCustomReportParameters
@@ -651,6 +651,47 @@ public class ApplicationAttributionReportBuilderTest
     Document doc = Jsoup.parse(content);
     assertThat(doc.select(".componentBox h2").first().toString()).contains(component.displayName);
     assertThat(doc.select("ul li").first()).hasToString("<li> No licenses detected. </li>");
+  }
+
+  @Test
+  public void testReportIncludingSonatypeSpecialLicenses() {
+    Application application = tempEntity.newApplicationWithParent("appId");
+
+    ApiComponentDTOV2 component1 = new ApiComponentDTOV2();
+    component1.displayName = "Sonatype Special licences component";
+    component1.packageUrl = PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier
+        .createNpmCoordinates("p", "v")).toString();
+
+    ApiComponentDTOV2 component2 = new ApiComponentDTOV2();
+    component2.displayName = "MIT component";
+    component2.packageUrl = PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier
+        .createNpmCoordinates("p1", "v1")).toString();
+
+    ApiLicenseLegalDataDTO licenseLegalData1 = new ApiLicenseLegalDataDTO();
+    licenseLegalData1.effectiveLicenses = Collections.singletonList( UNSPECIFIED_ID );
+
+    ApiLicenseLegalDataDTO licenseLegalData2 = new ApiLicenseLegalDataDTO();
+    licenseLegalData2.effectiveLicenses = Collections.singletonList( "MIT" );
+
+    ApiLicenseLegalApplicationReportDTO reportDTO = new ApiLicenseLegalApplicationReportDTO();
+    reportDTO.components = Arrays.asList(new ApiLicenseLegalComponentDTO(component1, licenseLegalData1, null),
+        new ApiLicenseLegalComponentDTO(component2, licenseLegalData2, null));
+
+    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID, true,
+        true)).thenReturn(reportDTO);
+
+    String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
+        LegalCustomReportParameters
+            .builder()
+            .withTitle("test")
+            .withIncludeInnerSource(true)
+            .withIncludeIncludeSonatypeSpecialLicenses(true)
+            .build());
+
+    Document doc = Jsoup.parse(content);
+    assertThat(doc.select(".componentBox h2").first().toString()).contains(component1.displayName);
+    assertThat(doc.select("ul li").first()).hasToString("<li>UNSPECIFIED</li>");
+    assertThat(reportDTO.components).hasSize(2);
   }
 
   @SuppressWarnings("unchecked")

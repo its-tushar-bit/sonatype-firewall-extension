@@ -31,6 +31,8 @@ public class AttributionReportTemplateDTO
 
   private boolean includeStandardLicenseTexts;
 
+  private  boolean includeSonatypeSpecialLicenses;
+
   private Date lastUpdatedAt;
 
   private boolean includeInnerSource;
@@ -48,7 +50,8 @@ public class AttributionReportTemplateDTO
       final boolean appendix,
       final boolean includeStandardLicenseTexts,
       final Date lastUpdatedAt,
-      final boolean includeInnerSource)
+      final boolean includeInnerSource,
+      final boolean includeSonatypeSpecialLicenses)
   {
     this.id = id;
     this.templateName = templateName;
@@ -60,6 +63,7 @@ public class AttributionReportTemplateDTO
     this.includeStandardLicenseTexts = includeStandardLicenseTexts;
     this.lastUpdatedAt = lastUpdatedAt;
     this.includeInnerSource = includeInnerSource;
+    this.includeSonatypeSpecialLicenses = includeSonatypeSpecialLicenses;
   }
 
   public AttributionReportTemplateDTO(
@@ -70,7 +74,8 @@ public class AttributionReportTemplateDTO
       final boolean contents,
       final boolean appendix,
       final boolean includeStandardLicenseTexts,
-      final boolean includeInnerSource)
+      final boolean includeInnerSource,
+      final boolean includeSonatypeSpecialLicenses)
   {
     this.templateName = templateName;
     this.documentTitle = documentTitle;
@@ -80,6 +85,7 @@ public class AttributionReportTemplateDTO
     this.includeAppendix = appendix;
     this.includeStandardLicenseTexts = includeStandardLicenseTexts;
     this.includeInnerSource = includeInnerSource;
+    this.includeSonatypeSpecialLicenses = includeSonatypeSpecialLicenses;
   }
 
   public static AttributionReportTemplateDTO fromReportTemplate(
@@ -98,7 +104,8 @@ public class AttributionReportTemplateDTO
         attributionReportTemplate.isIncludeAppendix(),
         attributionReportTemplate.isIncludeStandardLicenseTexts(),
         attributionReportTemplate.getLastUpdatedAt(),
-        attributionReportTemplate.isIncludeInnerSource()
+        attributionReportTemplate.isIncludeInnerSource(),
+        attributionReportTemplate.isIncludeSonatypeSpecialLicenses()
     );
   }
 
@@ -174,6 +181,14 @@ public class AttributionReportTemplateDTO
     this.lastUpdatedAt = lastUpdatedAt;
   }
 
+  public boolean isIncludeSonatypeSpecialLicenses() {
+    return includeSonatypeSpecialLicenses;
+  }
+
+  public void setIncludeSonatypeSpecialLicenses(boolean includeSonatypeSpecialLicenses) {
+    this.includeSonatypeSpecialLicenses = includeSonatypeSpecialLicenses;
+  }
+
   public boolean isIncludeInnerSource() {
     return includeInnerSource;
   }
@@ -195,12 +210,13 @@ public class AttributionReportTemplateDTO
         includeStandardLicenseTexts == that.includeStandardLicenseTexts && Objects.equals(id, that.id) &&
         Objects.equals(templateName, that.templateName) &&
         Objects.equals(documentTitle, that.documentTitle) && Objects.equals(header, that.header) &&
-        Objects.equals(footer, that.footer) && includeInnerSource == that.includeInnerSource;
+        Objects.equals(footer, that.footer) && includeInnerSource == that.includeInnerSource &&
+        Objects.equals(includeSonatypeSpecialLicenses, that.includeSonatypeSpecialLicenses);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(id, templateName, documentTitle, header, footer, includeTableOfContents, includeAppendix,
-        includeStandardLicenseTexts, includeInnerSource);
+        includeStandardLicenseTexts, includeInnerSource, includeSonatypeSpecialLicenses);
   }
 }

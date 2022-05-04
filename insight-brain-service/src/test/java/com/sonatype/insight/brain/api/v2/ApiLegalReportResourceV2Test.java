@@ -580,7 +580,40 @@ public class ApiLegalReportResourceV2Test
             "testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE",
             "testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER",
             "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER",
-            false, false, false, false);
+            false, false, false, false,
+            false);
+
+    HttpResponse response =
+        restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
+            .parameter(application.getId(), BuildStageType.ID, template.getId())
+            .post();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).contains("testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE");
+    assertThat(response.getBodyText()).contains("testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER");
+    assertThat(response.getBodyText()).contains("testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER");
+  }
+
+  @Test
+  public void testPostCustomLicenseLegalApplicationReport_FromTemplate_withSonatypeSpecialLicenses() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluation, getClass().getSimpleName());
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.METADATA_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+    hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
+
+    AttributionReportTemplate template =
+        tempEntity.createNewAttributionReportTemplate(
+            "Template Name",
+            "testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE",
+            "testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER",
+            "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER",
+            false, false, false, false,
+            true);
 
     HttpResponse response =
         restRequest().path(DefaultApiLegalReportResourceV2.APPLICATION_REPORT_FROM_TEMPLATE_PATH)
@@ -612,7 +645,8 @@ public class ApiLegalReportResourceV2Test
     AttributionReportTemplate template = tempEntity.createNewAttributionReportTemplate("Template Name",
         "testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE",
         "testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER",
-        "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER", false, false, false, false);
+        "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER", false,
+        false, false, false, false);
 
     File file = createNoticeFile();
 
@@ -648,7 +682,8 @@ public class ApiLegalReportResourceV2Test
     AttributionReportTemplate template = tempEntity.createNewAttributionReportTemplate("Template Name",
         "testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE",
         "testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER",
-        "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER", false, false, false, false);
+        "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER", false,
+        false, false, false, false);
 
     HttpResponse response = restRequest()
         .path(DefaultApiLegalReportResourceV2.MULTI_APPLICATION_REPORT_FROM_FILTER_TEMPLATE_PATH)
@@ -679,7 +714,8 @@ public class ApiLegalReportResourceV2Test
             "testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE",
             "testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER",
             "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER",
-            false, false, false, false);
+            false, false, false, false,
+            false);
 
     File file = createNoticeFile();
 
@@ -710,7 +746,8 @@ public class ApiLegalReportResourceV2Test
             "testPostCustomLicenseLegalApplicationReport_FromTemplateTITLE",
             "testPostCustomLicenseLegalApplicationReport_FromTemplateHEADER",
             "testPostCustomLicenseLegalApplicationReport_FromTemplateFOOTER",
-            false, false, false, false);
+            false, false, false, false,
+            false);
 
     File file = createNoticeFile();
 

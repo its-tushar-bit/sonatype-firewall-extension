@@ -50,6 +50,9 @@ public class AttributionReportTemplate
   @Column(name = "last_updated_at")
   private Date lastUpdatedAt;
 
+  @Column(name = "include_sonatype_special_licenses")
+  private boolean includeSonatypeSpecialLicenses;
+
   @Column(name = "include_inner_source")
   private boolean includeInnerSource;
 
@@ -65,7 +68,8 @@ public class AttributionReportTemplate
       boolean includeTableOfContents,
       boolean includeAppendix,
       boolean includeStandardLicenseTexts,
-      boolean includeInnerSource)
+      boolean includeInnerSource,
+      boolean includeSonatypeSpecialLicenses)
   {
     this.id = id;
     this.templateName = templateName;
@@ -76,6 +80,7 @@ public class AttributionReportTemplate
     this.includeAppendix = includeAppendix;
     this.includeStandardLicenseTexts = includeStandardLicenseTexts;
     this.includeInnerSource = includeInnerSource;
+    this.includeSonatypeSpecialLicenses = includeSonatypeSpecialLicenses;
   }
 
   public AttributionReportTemplate(
@@ -86,7 +91,8 @@ public class AttributionReportTemplate
       boolean includeTableOfContents,
       boolean includeAppendix,
       boolean includeStandardLicenseTexts,
-      boolean includeInnerSource)
+      boolean includeInnerSource,
+      boolean includeSonatypeSpecialLicenses)
   {
     this.templateName = templateName;
     this.documentTitle = documentTitle;
@@ -96,6 +102,7 @@ public class AttributionReportTemplate
     this.includeAppendix = includeAppendix;
     this.includeStandardLicenseTexts = includeStandardLicenseTexts;
     this.includeInnerSource = includeInnerSource;
+    this.includeSonatypeSpecialLicenses = includeSonatypeSpecialLicenses;
   }
 
   @Override
@@ -170,6 +177,14 @@ public class AttributionReportTemplate
 
   public void setLastUpdatedAt(Date lastUpdatedAt) {
     this.lastUpdatedAt = lastUpdatedAt;
+  }
+
+  public boolean isIncludeSonatypeSpecialLicenses() {
+    return includeSonatypeSpecialLicenses;
+  }
+
+  public void setIncludeSonatypeSpecialLicenses(final boolean includeSonatypeSpecialLicenses) {
+    this.includeSonatypeSpecialLicenses = includeSonatypeSpecialLicenses;
   }
 
   public boolean isIncludeInnerSource() {

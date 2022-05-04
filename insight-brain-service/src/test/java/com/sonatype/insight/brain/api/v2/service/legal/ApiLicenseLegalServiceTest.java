@@ -1417,8 +1417,8 @@ public class ApiLicenseLegalServiceTest
     apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
     doReturn(Optional.of(rawReport)).when(apiLicenseLegalServiceSpy).getLastRawApplicationReport(anyString());
 
-    ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
-        apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app);
+    ApiLicenseLegalApplicationReportDTO licenseMetadataReport = apiLicenseLegalServiceSpy
+        .getLicenseLegalApplicationReport(app);
 
     assertThat(licenseMetadataReport).isNotNull();
     assertThat(licenseMetadataReport.licenseLegalMetadata).isEmpty();
@@ -1479,8 +1479,8 @@ public class ApiLicenseLegalServiceTest
         .thenReturn(new LinkedHashSet<>(Arrays.asList(legalSourceLinks)));
 
     ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
-        stageId == null ? apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app) : apiLicenseLegalServiceSpy
-            .getLicenseLegalApplicationReport(app, stageId, includeInnerSource);
+        stageId == null ? apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app) :
+            apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app, stageId, includeInnerSource, false);
 
     assertThat(licenseMetadataReport).isNotNull();
     assertLicenseLegalMetadata(licenseMetadataReport.components, licenseMetadataReport.licenseLegalMetadata, rawReport,

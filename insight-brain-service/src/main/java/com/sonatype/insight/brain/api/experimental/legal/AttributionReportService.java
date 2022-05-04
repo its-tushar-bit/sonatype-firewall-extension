@@ -63,7 +63,9 @@ public class AttributionReportService
         attributionReportTemplateDTO.isIncludeTableOfContents(),
         attributionReportTemplateDTO.isIncludeAppendix(),
         attributionReportTemplateDTO.isIncludeStandardLicenseTexts(),
-        attributionReportTemplateDTO.isIncludeInnerSource());
+        attributionReportTemplateDTO.isIncludeInnerSource(),
+        attributionReportTemplateDTO.isIncludeSonatypeSpecialLicenses()
+    );
 
     validateTemplateName(attributionReportTemplate);
 

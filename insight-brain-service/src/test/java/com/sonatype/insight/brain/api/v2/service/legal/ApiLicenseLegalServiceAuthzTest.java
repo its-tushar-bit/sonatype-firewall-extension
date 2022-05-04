@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -158,26 +157,29 @@ public class ApiLicenseLegalServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetLicenseLegalApplicationReportByStage_Unauthenticated() {
-    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID, false);
+    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID, false,
+        false);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetLicenseLegalApplicationReportByStage_Unauthorized() {
     login();
-    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID, false);
+    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID, false,
+        false);
   }
 
   @Test(expected = NotFoundException.class)
   public void testGetLicenseLegalApplicationReportByStage_Authorized() {
     grantLegalReviewerPermission(app.getId());
-    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID, false);
+    apiLicenseLegalService.getLicenseLegalApplicationReport(app, BuildStageType.ID, false,
+        false);
   }
 
   @Test
   public void testGetLicenseLegalApplicationReportNoException() {
     grantLegalReviewerPermission(app.getId());
     Optional<ApiLicenseLegalApplicationReportDTO> report =
-        apiLicenseLegalService.getLicenseLegalApplicationReportNoException(app, BuildStageType.ID, false);
+        apiLicenseLegalService.getLicenseLegalApplicationReportNoException(app, BuildStageType.ID, false, false);
     assertThat(report).isEmpty();
   }
 

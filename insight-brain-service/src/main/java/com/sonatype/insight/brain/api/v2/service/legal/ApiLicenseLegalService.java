@@ -8,11 +8,13 @@ package com.sonatype.insight.brain.api.v2.service.legal;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.experimental.legal.ComponentLegalService;
@@ -85,7 +88,6 @@ import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
-import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -130,6 +132,12 @@ import org.slf4j.LoggerFactory;
 import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.LEGAL_SOURCE_LINK_COMPARATOR;
 import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.newApplicationDashboardComparator;
 import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.newComponentDashboardComparator;
+import static com.sonatype.insight.brain.model.license.License.NOT_DECLARED_ID;
+import static com.sonatype.insight.brain.model.license.License.NOT_SUPPORTED_ID;
+import static com.sonatype.insight.brain.model.license.License.NO_SOURCES_ID;
+import static com.sonatype.insight.brain.model.license.License.NO_SOURCE_LICENSE_ID;
+import static com.sonatype.insight.brain.model.license.License.UNKNOWN_ID;
+import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
 import static java.util.stream.Collectors.groupingBy;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -197,6 +205,21 @@ public class ApiLicenseLegalService
   private final LegalDashboardsService legalDashboardService;
 
   private final ComponentLegalService componentLegalService;
+
+  private static final Set<String> SONATYPE_SPECIAL_LICENSES = new HashSet<>(Arrays.asList(
+      UNSPECIFIED_ID,
+      UNKNOWN_ID,
+      NOT_DECLARED_ID,
+      NO_SOURCES_ID,
+      NO_SOURCE_LICENSE_ID,
+      NOT_SUPPORTED_ID,
+      "COMMERCIAL",
+      "Generic-Copyleft-Clause",
+      "Generic-Liberal-Clause",
+      "Generic-Open-Source-Clause",
+      "Generic-Weak-Copyleft-Clause",
+      "See-License-Clause"
+  ));
 
   @Inject
   public ApiLicenseLegalService(
@@ -476,24 +499,29 @@ public class ApiLicenseLegalService
   public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
       @AuthzContext(Key.OWNER) Owner application,
       String stageId,
-      boolean includeInnerSource)
+      boolean includeInnerSource,
+      boolean includeSonatypeSpecialLicenses
+  )
   {
     checkLicense();
     log.info(PROCESSING_LICENSE_METADATA_REQUEST, application.getId());
     ApiReportRawDataDTOV2 latestRawReport = getLastRawApplicationReportByStageId(application.getPublicId(), stageId)
         .orElseThrow(() -> new NotFoundException(
             "Report for application " + application.getId() + " at stage " + stageId + " not found."));
-    return getApplicationReportFromReportRawData(application, latestRawReport, includeInnerSource);
+    return getApplicationReportFromReportRawData(application, latestRawReport, includeInnerSource,
+        includeSonatypeSpecialLicenses);
   }
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
   public Optional<ApiLicenseLegalApplicationReportDTO> getLicenseLegalApplicationReportNoException(
       @AuthzContext(Key.OWNER) Owner application,
       String stageId,
-      boolean includeInnerSource)
+      boolean includeInnerSource,
+      boolean includeSonatypeSpecialLicenses)
   {
     try {
-      return Optional.of(getLicenseLegalApplicationReport(application, stageId, includeInnerSource));
+      return Optional.of(getLicenseLegalApplicationReport(application, stageId, includeInnerSource,
+          includeSonatypeSpecialLicenses));
     }
     catch (NotFoundException e) {
       return Optional.empty();
@@ -509,14 +537,21 @@ public class ApiLicenseLegalService
     log.info(PROCESSING_LICENSE_METADATA_REQUEST, application.getId());
     ApiReportRawDataDTOV2 latestRawReport = getLastRawApplicationReport(application.getPublicId())
         .orElseThrow(() -> new NotFoundException("Report for application " + application.getId() + " not found."));
-    return getApplicationReportFromReportRawData(application, latestRawReport, false);
+
+    return getApplicationReportFromReportRawData(application, latestRawReport, false,
+        false);
   }
 
   private ApiLicenseLegalApplicationReportDTO getApplicationReportFromReportRawData(
       final Owner application,
       final ApiReportRawDataDTOV2 latestRawReport,
-      boolean includeInnerSource)
+      boolean includeInnerSource,
+      boolean includeSonatypeSpecialLicenses)
   {
+    if (!includeSonatypeSpecialLicenses) {
+      filterSonatypeSpecialLicensesComponents(latestRawReport);
+    }
+
     if (!includeInnerSource) {
       filterInnerSourceComponents(latestRawReport);
     }
@@ -586,6 +621,20 @@ public class ApiLicenseLegalService
         Objects.nonNull(c.componentIdentifier) &&
             LegalComponentIdentifierUtil
                 .isComponentAKnownInnerSource(innerSourcePackageUrls, c.componentIdentifier.toComponentIdentifier()));
+  }
+
+  private void filterSonatypeSpecialLicensesComponents(final ApiReportRawDataDTOV2 latestRawReport) {
+    Iterator<ApiReportComponentDTOV2> componentIterator = latestRawReport.components.iterator();
+    while (componentIterator.hasNext()) {
+      ApiReportComponentDTOV2 component = componentIterator.next();
+      if ( Objects.nonNull(component.componentIdentifier) &&
+          Objects.nonNull(component.licenseData) &&
+          Objects.nonNull(component.licenseData.effectiveLicenses)
+          ) {
+        component.licenseData.effectiveLicenses.removeIf(apiLicenseDTO -> SONATYPE_SPECIAL_LICENSES
+            .contains(apiLicenseDTO.licenseId));
+      }
+    }
   }
 
   /**
@@ -1098,12 +1147,12 @@ public class ApiLicenseLegalService
   @VisibleForTesting
   Optional<ApiReportRawDataDTOV2> getLastRawApplicationReportByStageId(String applicationPublicId, String stageId) {
     return Optional.ofNullable(applicationDAO.getByPublicId(applicationPublicId)).flatMap(
-        application -> policyEvaluationDAO
-            .getLastByApplicationIdsAndStageIds(Collections.singleton(application.getId()),
-                Collections.singleton(stageId))
-            .stream()
-            .max(Comparator.comparing(PolicyEvaluation::getTime))
-            .map(policyEvaluation -> getLastRawApplicationReport(application.getPublicId(), policyEvaluation)));
+        application -> policyEvaluationDAO.getLastByApplicationIdsAndStageIds(
+                  Collections.singleton(application.getId()),
+                  Collections.singleton(stageId)
+              ).stream()
+              .max(Comparator.comparing(PolicyEvaluation::getTime))
+              .map(policyEvaluation -> getLastRawApplicationReport(application.getPublicId(), policyEvaluation)));
   }
 
   private ApiReportRawDataDTOV2 getLastRawApplicationReport(

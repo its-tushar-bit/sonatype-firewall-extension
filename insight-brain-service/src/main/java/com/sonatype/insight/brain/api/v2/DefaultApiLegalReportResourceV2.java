@@ -94,6 +94,8 @@ public class DefaultApiLegalReportResourceV2
 
   static final String REPORT_FORM_STANDARD_LICENSE = "includeStandardLicenseTexts";
 
+  static final String REPORT_FORM_SONATYPE_SPECIAL_LICENSES = "includeSonatypeSpecialLicenses";
+
   static final String REPORT_FORM_APPENDIX = "includeAppendix";
 
   static final String REPORT_FORM_NOTICE_FILES = "noticeFiles";
@@ -103,6 +105,8 @@ public class DefaultApiLegalReportResourceV2
   static final String FORM_DATA_APPLICATIONS = "applications";
 
   static final String FORM_DATA_STAGES = "stages";
+
+  static final String DEFAULT_VALUE_FALSE = "false";
 
   private final ApiLicenseLegalService apiLicenseLegalServiceV2;
 
@@ -143,7 +147,8 @@ public class DefaultApiLegalReportResourceV2
       @PathParam("applicationId") String applicationId, @PathParam("stageId") String stageId)
   {
     return apiLicenseLegalServiceV2.getLicenseLegalApplicationReport(
-        IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId), stageId, false);
+        IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId), stageId, false,
+        false);
   }
 
   @Override
@@ -179,8 +184,11 @@ public class DefaultApiLegalReportResourceV2
           .withIncludeStandardLicenseTexts(
               Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
           .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
+          .withIncludeIncludeSonatypeSpecialLicenses(Boolean.parseBoolean(getMultiPartValue(formData,
+              REPORT_FORM_SONATYPE_SPECIAL_LICENSES, DEFAULT_VALUE_FALSE)))
           .withNoticeFiles(getNoticeFilesFromFormData(formData))
-          .withIncludeInnerSource(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE, "false")))
+          .withIncludeInnerSource(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE,
+              DEFAULT_VALUE_FALSE)))
           .build();
     }
     catch (final Exception ex) { // if we got exception at this point it's because of invalid request
@@ -212,7 +220,10 @@ public class DefaultApiLegalReportResourceV2
               Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
           .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
           .withNoticeFiles(getNoticeFilesFromFormData(formData))
-          .withIncludeInnerSource(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE, "false")))
+          .withIncludeInnerSource(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE,
+              DEFAULT_VALUE_FALSE)))
+          .withIncludeIncludeSonatypeSpecialLicenses(Boolean.parseBoolean(getMultiPartValue(formData,
+              REPORT_FORM_SONATYPE_SPECIAL_LICENSES, DEFAULT_VALUE_FALSE)))
           .build();
       applicationsAndStages = getApplicationsAndStagesFromFormData(formData);
     }
@@ -238,9 +249,13 @@ public class DefaultApiLegalReportResourceV2
           .withIncludeToc(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_TOC, "true")))
           .withIncludeStandardLicenseTexts(
               Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
+          .withIncludeIncludeSonatypeSpecialLicenses(
+              Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_SONATYPE_SPECIAL_LICENSES,
+                  DEFAULT_VALUE_FALSE)))
           .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
           .withNoticeFiles(getNoticeFilesFromFormData(formData))
-          .withIncludeInnerSource(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE, "false")))
+          .withIncludeInnerSource(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE,
+              DEFAULT_VALUE_FALSE)))
           .build();
     }
     catch (Exception ex) { // if we got exception at this point it's because of invalid request

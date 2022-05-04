@@ -104,7 +104,8 @@ public class ApplicationAttributionReportBuilder
     validateReportParameters(reportParameters);
 
     ApiLicenseLegalApplicationReportDTO applicationReportDTO = apiLicenseLegalService
-        .getLicenseLegalApplicationReport(application, stageId, reportParameters.isIncludeInnerSource());
+        .getLicenseLegalApplicationReport(application, stageId, reportParameters.isIncludeInnerSource(),
+            reportParameters.isIncludeSonatypeSpecialLicenses());
     Map<String, Object> contextMap = buildContextMap(application, applicationReportDTO, reportParameters);
     return templateEngine.process(APPLICATION_ATTRIBUTION_REPORT, new Context(Locale.getDefault(), contextMap));
   }
@@ -123,7 +124,7 @@ public class ApplicationAttributionReportBuilder
     Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOSet = applicationsAndStages.stream()
         .map(applicationReportDTO -> apiLicenseLegalService.getLicenseLegalApplicationReportNoException(
             applicationMap.get(applicationReportDTO.applicationPublicId), applicationReportDTO.stageTypeName,
-            reportParameters.isIncludeInnerSource()))
+            reportParameters.isIncludeInnerSource(), reportParameters.isIncludeSonatypeSpecialLicenses()))
         .collect(Collectors.toSet());
     ApiLicenseLegalApplicationReportDTO applicationReportDTO =
         mergeApplicationReports(applicationReportDTOSet, applicationPublicIds);
@@ -141,6 +142,7 @@ public class ApplicationAttributionReportBuilder
     List<Application> applicationsAuthz = new ArrayList<>();
     Set<AttributionReportApplicationDTO> applicationsAndStages = new HashSet<>();
     Set<String> applicationIds = new LinkedHashSet<>();
+
     try {
       filterDto = userFilterService.getActiveUserFilterForCurrentUser(UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD);
       if (filterDto.filter != null) {
@@ -174,7 +176,7 @@ public class ApplicationAttributionReportBuilder
       Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOSet = applicationsAndStages.stream()
           .map(applicationReportDTO -> apiLicenseLegalService.getLicenseLegalApplicationReportNoException(
               applicationMap.get(applicationReportDTO.applicationId), applicationReportDTO.stageTypeName,
-              reportParameters.isIncludeInnerSource()))
+              reportParameters.isIncludeInnerSource(), reportParameters.isIncludeSonatypeSpecialLicenses()))
           .collect(Collectors.toSet());
 
       ApiLicenseLegalApplicationReportDTO applicationReportDTO =

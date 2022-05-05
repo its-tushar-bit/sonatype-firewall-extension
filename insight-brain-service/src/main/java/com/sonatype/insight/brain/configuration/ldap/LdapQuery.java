@@ -673,20 +673,20 @@ class LdapQuery
    * 
    * @since 1.14.0
    */
-  public List<LdapUser> getUsersByGroup(String groupName) throws NamingException {
+  public List<LdapUser> getUsersByGroup(String groupDn) throws NamingException {
     try (LdapContextHolder ctxHolder = getSystemLdapContext()) {
       switch (ldapUserMapping.getGroupMappingType()) {
         case DYNAMIC:
-          return getUsersByDynamicGroup(ctxHolder.ctx, groupName);
+          return getUsersByDynamicGroup(ctxHolder.ctx, groupDn);
         case STATIC:
-          return getUsersByStaticGroup(ctxHolder.ctx, groupName);
+          return getUsersByStaticGroup(ctxHolder.ctx, groupDn);
         default:
           throw newUnknownGroupMappingTypeException();
       }
     }
   }
 
-  private List<LdapUser> getUsersByStaticGroup(LdapContext ctx, String groupName) throws NamingException {
+  private List<LdapUser> getUsersByStaticGroup(LdapContext ctx, String groupDn) throws NamingException {
     String groupMemberAttribute = ldapUserMapping.getGroupMemberAttribute();
     if (groupMemberAttribute.endsWith(LDAP_MATCHING_RULE_IN_CHAIN_SUFFIX)) {
       groupMemberAttribute =
@@ -696,7 +696,7 @@ class LdapQuery
         pickAttributes(ldapUserMapping.getGroupIDAttribute(), groupMemberAttribute);
     Multimap<String, String> attributeValues = ArrayListMultimap.create();
     attributeValues.put(escapeAttribute(ldapUserMapping.getGroupIDAttribute(), false),
-        escapeAttribute(groupName, false));
+        escapeAttribute(getSimpleName(groupDn), false));
 
     List<LdapUser> users = new ArrayList<>();
     try (SearchResults results = searchGroupsByAttributes(ctx, attributeValues, attributes, 0)) {
@@ -711,12 +711,12 @@ class LdapQuery
     return users;
   }
 
-  private List<LdapUser> getUsersByDynamicGroup(LdapContext ctx, String groupName) throws NamingException {
+  private List<LdapUser> getUsersByDynamicGroup(LdapContext ctx, String groupDn) throws NamingException {
     String[] attributes = pickAttributes(ldapUserMapping.getUserIDAttribute(),
         ldapUserMapping.getUserRealNameAttribute(), ldapUserMapping.getUserEmailAttribute());
     Multimap<String, String> attributeValues = ArrayListMultimap.create();
     attributeValues.put(escapeAttribute(ldapUserMapping.getUserMemberOfGroupAttribute(), false),
-        escapeAttribute(groupName, false));
+        escapeAttribute(groupDn, false));
 
     List<LdapUser> users = new ArrayList<>();
     try (SearchResults results = searchUsersByAttributes(ctx, attributeValues, attributes, 0)) {

@@ -434,6 +434,33 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
+  public void test_Notification_Role_WithGroups_Static() throws Exception {
+    startLdapServer1(true);
+    startLdapServer2(true);
+
+    Application app = tempEntity.newApplicationWithParent("test");
+
+    Role role = tempEntity.newRole(false /* global */, Permission.READ);
+    String groupName = "Epsilon";
+    tempEntity.newMembershipMapping(app.getId(), role.getId(), groupName, MemberType.GROUP);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = "scan-id";
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
+    Policy policy = tempEntity.newPolicy(app);
+    policy.getNotifications().add(new RoleNotification(role.getId(), eval.getStageTypeId()));
+    policyDAO.update(policy);
+    List<PolicyViolation> policyViolations = new ArrayList<>();
+    policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
+    List<PolicyNotification> policyNotifications = PolicyNotificationUtil
+        .createPolicyNotifications(policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
+
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    assertEmailAddresses("test.user1_1@company.com", "test.user2_1@company.com", "test.user1_2@company.com",
+        "test.user2_2@company.com");
+  }
+
+  @Test
   public void test_Notification_Role_WithGroups_WithOneLdapServerFailure() throws Exception {
     startLdapServer1();
     startLdapServer2();
@@ -613,6 +640,10 @@ public class PolicyAlertEmailerTest
   }
 
   private void startLdapServer1() throws Exception {
+    startLdapServer1(false);
+  }
+
+  private void startLdapServer1(boolean useStaticGroups) throws Exception {
     LdapServer ldapServer1 = tempEntity.newLdapServer("Test Server 1");
 
     testLdapServer1.start();
@@ -620,10 +651,14 @@ public class PolicyAlertEmailerTest
 
     ldapService.upsertLdapConnection(createLdapConnection(ldapServer1, testLdapServer1));
 
-    new LdapUserMappingDAO().insert(createUserMapping(ldapServer1));
+    new LdapUserMappingDAO().insert(createUserMapping(ldapServer1, useStaticGroups));
   }
 
   private void startLdapServer2() throws Exception {
+    startLdapServer2(false);
+  }
+
+  private void startLdapServer2(boolean useStaticGroups) throws Exception {
     LdapServer ldapServer2 = tempEntity.newLdapServer("Test Server 2");
 
     testLdapServer2.start();
@@ -631,7 +666,7 @@ public class PolicyAlertEmailerTest
 
     ldapService.upsertLdapConnection(createLdapConnection(ldapServer2, testLdapServer2));
 
-    new LdapUserMappingDAO().insert(createUserMapping(ldapServer2));
+    new LdapUserMappingDAO().insert(createUserMapping(ldapServer2, useStaticGroups));
   }
 
   private LdapConnection createLdapConnection(LdapServer ldapServer, TestLdapServer testLdapServer) {
@@ -646,7 +681,7 @@ public class PolicyAlertEmailerTest
     return ldapConnection;
   }
 
-  private LdapUserMapping createUserMapping(LdapServer ldapServer) {
+  private LdapUserMapping createUserMapping(LdapServer ldapServer, boolean useStaticGroups) {
     LdapUserMapping ldapUserMapping = new LdapUserMapping();
     ldapUserMapping.setServerId(ldapServer.getId());
     ldapUserMapping.setUserBaseDN("ou=users");
@@ -658,8 +693,16 @@ public class PolicyAlertEmailerTest
     ldapUserMapping.setGroupBaseDN("ou=groups");
     ldapUserMapping.setGroupIDAttribute("cn");
     ldapUserMapping.setGroupSubtree(true);
-    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
-    ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
+    if (useStaticGroups) {
+      ldapUserMapping.setGroupMappingType(LdapGroupMappingType.STATIC);
+      ldapUserMapping.setGroupObjectClass("groupOfNames");
+      ldapUserMapping.setGroupMemberAttribute("member");
+      ldapUserMapping.setGroupMemberFormat("${dn}");
+    }
+    else {
+      ldapUserMapping.setGroupMappingType(LdapGroupMappingType.DYNAMIC);
+      ldapUserMapping.setUserMemberOfGroupAttribute("departmentNumber");
+    }
     return ldapUserMapping;
   }
 

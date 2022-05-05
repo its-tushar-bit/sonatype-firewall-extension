@@ -250,8 +250,8 @@ public class LdapService
    * 
    * @since 1.14.0
    */
-  public List<LdapUser> getUsersByGroup(LdapServer ldapServer, String groupName) throws NamingException {
-    return newLdapQuery(ldapServer).getUsersByGroup(groupName);
+  public List<LdapUser> getUsersByGroup(LdapServer ldapServer, String groupDn) throws NamingException {
+    return newLdapQuery(ldapServer).getUsersByGroup(groupDn);
   }
 
   /**

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { actions, matcherTypes } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySlice';
+import { actions, matcherTypes } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 import {
   selectLoadError,
   selectSubmitError,
@@ -15,7 +15,7 @@ import {
   selectRegexMatcher,
   selectMatcherType,
   selectIsDirty,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySelectors';
+} from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
 
 const PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
 

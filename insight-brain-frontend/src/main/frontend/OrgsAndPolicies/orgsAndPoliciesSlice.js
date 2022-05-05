@@ -9,7 +9,7 @@ import assignApplicationCategoriesSlice from './assignApplicationCategoriesSlice
 import labelsSlice from './orgsAndPoliciesLabelsSlice';
 import rootSlice from './orgsAndPoliciesRootSlice';
 import policyMonitoring from './orgsAndPoliciesPolicyMonitoringSlice';
-import proprietarySlice from './orgsAndPoliciesProprietarySlice';
+import proprietarySlice from './proprietarySlice';
 import constraintSlice from './orgsAndPoliciesConstraintSlice';
 import applicationsSlice from './applicationsSlice';
 import stagesSlice from './orgsAndPoliciesStagesSlice';

@@ -5,8 +5,8 @@
  */
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { mapStateToThis } from 'MainRoot/owner.manager/policy/proprietary.config.editor.controller';
-import * as proprietarySelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySelectors';
-import { matcherTypes } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySlice';
+import * as proprietarySelectors from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
+import { matcherTypes } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 
 describe('proprietary.config.editor.controller', () => {
   beforeEach(

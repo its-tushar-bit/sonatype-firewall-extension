@@ -15,10 +15,10 @@ import {
   selectPackageMatcher,
   selectRegexMatcher,
   selectMatcherType,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySelectors';
-import { matcherTypes } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySlice';
+} from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
+import { matcherTypes } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 
-describe('orgsAndPoliciesProprietarySelectors', () => {
+describe('proprietarySelectors', () => {
   let mockState;
 
   beforeEach(() => {

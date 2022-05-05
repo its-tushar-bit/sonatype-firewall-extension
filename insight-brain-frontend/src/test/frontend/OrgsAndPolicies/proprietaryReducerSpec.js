@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer, { initialState, matcherTypes } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySlice';
+import reducer, { initialState, matcherTypes } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 
-describe('orgsAndPoliciesProprietary reducer', () => {
-  describe('orgsAndPoliciesProprietary/removeMatcher', () => {
+describe('proprietary reducer', () => {
+  describe('proprietary/removeMatcher', () => {
     it('sets isDirty, localMatchers, currentConfig properties', () => {
       const state = Object.freeze({
         localMatchers: [
@@ -39,7 +39,7 @@ describe('orgsAndPoliciesProprietary reducer', () => {
       });
 
       const { isDirty, localMatchers, currentConfig } = reducer(state, {
-        type: 'orgsAndPoliciesProprietary/removeMatcher',
+        type: 'proprietary/removeMatcher',
         payload: {
           type: matcherTypes.PACKAGE,
           matcher: 'second',
@@ -66,7 +66,7 @@ describe('orgsAndPoliciesProprietary reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesProprietary/addMatcher', () => {
+  describe('proprietary/addMatcher', () => {
     it('sets isDirty, localMatchers, currentConfig properties', () => {
       const state = Object.freeze({
         localMatchers: [
@@ -99,7 +99,7 @@ describe('orgsAndPoliciesProprietary reducer', () => {
       });
 
       const { isDirty, localMatchers, currentConfig } = reducer(state, {
-        type: 'orgsAndPoliciesProprietary/addMatcher',
+        type: 'proprietary/addMatcher',
         payload: {
           type: matcherTypes.PACKAGE,
           matcher: 'third',
@@ -134,21 +134,21 @@ describe('orgsAndPoliciesProprietary reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesProprietary/resetMatcher', () => {
+  describe('proprietary/resetMatcher', () => {
     it('resets packageMatcher, regexMatcher properties', () => {
       const state = Object.freeze({
         packageMatcher: 'packageMatcher',
         regexMatcher: 'regexMatcher',
       });
 
-      const { packageMatcher, regexMatcher } = reducer(state, { type: 'orgsAndPoliciesProprietary/resetMatcher' });
+      const { packageMatcher, regexMatcher } = reducer(state, { type: 'proprietary/resetMatcher' });
 
       expect(packageMatcher).toBe(initialState.packageMatcher);
       expect(regexMatcher).toBe(initialState.regexMatcher);
     });
   });
 
-  describe('orgsAndPoliciesProprietary/setMatcherType', () => {
+  describe('proprietary/setMatcherType', () => {
     it('resets packageMatcher, regexMatcher properties and sets matcherType', () => {
       const state = Object.freeze({
         packageMatcher: 'packageMatcher',
@@ -157,7 +157,7 @@ describe('orgsAndPoliciesProprietary reducer', () => {
       });
 
       const { packageMatcher, regexMatcher, matcherType } = reducer(state, {
-        type: 'orgsAndPoliciesProprietary/setMatcherType',
+        type: 'proprietary/setMatcherType',
         payload: matcherTypes.PACKAGE,
       });
 
@@ -167,12 +167,12 @@ describe('orgsAndPoliciesProprietary reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesProprietary/setMatcherPackageValue', () => {
+  describe('proprietary/setMatcherPackageValue', () => {
     it('sets packageMatcher property', () => {
       const state = Object.freeze({ packageMatcher: 'packageMatcher' });
 
       const { packageMatcher } = reducer(state, {
-        type: 'orgsAndPoliciesProprietary/setMatcherPackageValue',
+        type: 'proprietary/setMatcherPackageValue',
         payload: 'new value',
       });
 
@@ -180,12 +180,12 @@ describe('orgsAndPoliciesProprietary reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesProprietary/setMatcherRegexValue', () => {
+  describe('proprietary/setMatcherRegexValue', () => {
     it('sets regexMatcher property', () => {
       const state = Object.freeze({ regexMatcher: 'regexMatcher' });
 
       const { regexMatcher } = reducer(state, {
-        type: 'orgsAndPoliciesProprietary/setMatcherRegexValue',
+        type: 'proprietary/setMatcherRegexValue',
         payload: 'new value',
       });
 
@@ -193,7 +193,7 @@ describe('orgsAndPoliciesProprietary reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesProprietary/loadProprietaryConfig/pending', () => {
+  describe('proprietary/loadProprietaryConfig/pending', () => {
     it('resets loading, loadError properties', () => {
       const state = Object.freeze({
         loading: false,
@@ -201,7 +201,7 @@ describe('orgsAndPoliciesProprietary reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'orgsAndPoliciesProprietary/loadProprietaryConfig/pending',
+        type: 'proprietary/loadProprietaryConfig/pending',
       });
 
       expect(loading).toBeTrue();
@@ -209,7 +209,7 @@ describe('orgsAndPoliciesProprietary reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesProprietary/loadProprietaryConfig/fulfilled', () => {
+  describe('proprietary/loadProprietaryConfig/fulfilled', () => {
     let mockCurrentConfig, mockProprietaryConfigByOwners, mockLocalMatchers;
     beforeEach(() => {
       mockCurrentConfig = {
@@ -266,7 +266,7 @@ describe('orgsAndPoliciesProprietary reducer', () => {
       const state = Object.freeze({ ...initialState });
 
       const { loading, localMatchers, currentConfig, serverConfig, proprietaryConfigs } = reducer(state, {
-        type: 'orgsAndPoliciesProprietary/loadProprietaryConfig/fulfilled',
+        type: 'proprietary/loadProprietaryConfig/fulfilled',
         payload: {
           proprietaryConfigs: mockProprietaryConfigByOwners,
           currentConfig: mockCurrentConfig,
@@ -282,7 +282,7 @@ describe('orgsAndPoliciesProprietary reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesProprietary/loadProprietaryConfig/rejected', () => {
+  describe('proprietary/loadProprietaryConfig/rejected', () => {
     it('resets loading, loadError properties', () => {
       const state = Object.freeze({
         loading: true,
@@ -290,7 +290,7 @@ describe('orgsAndPoliciesProprietary reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'orgsAndPoliciesProprietary/loadProprietaryConfig/rejected',
+        type: 'proprietary/loadProprietaryConfig/rejected',
         payload: 'error',
       });
 
@@ -299,19 +299,19 @@ describe('orgsAndPoliciesProprietary reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesProprietary/saveProprietaryConfig/pending', () => {
+  describe('proprietary/saveProprietaryConfig/pending', () => {
     it('resets submitError property', () => {
       const state = Object.freeze({ submitError: 'submitError' });
 
       const { submitError } = reducer(state, {
-        type: 'orgsAndPoliciesProprietary/saveProprietaryConfig/pending',
+        type: 'proprietary/saveProprietaryConfig/pending',
       });
 
       expect(submitError).toBeNull();
     });
   });
 
-  describe('orgsAndPoliciesProprietary/saveProprietaryConfig/fulfilled', () => {
+  describe('proprietary/saveProprietaryConfig/fulfilled', () => {
     it('sets isDirty, currentConfig, serverConfig properties', () => {
       const state = Object.freeze({
         isDirty: true,
@@ -320,7 +320,7 @@ describe('orgsAndPoliciesProprietary reducer', () => {
       });
 
       const { isDirty, currentConfig, serverConfig } = reducer(state, {
-        type: 'orgsAndPoliciesProprietary/saveProprietaryConfig/fulfilled',
+        type: 'proprietary/saveProprietaryConfig/fulfilled',
         payload: {
           id: 'f977bcf69fcb464b84837f643d8f93b7',
           ownerId: '6b365e8a8000449aa924f194a7ed0d27',
@@ -345,12 +345,12 @@ describe('orgsAndPoliciesProprietary reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesProprietary/saveProprietaryConfig/rejected', () => {
+  describe('proprietary/saveProprietaryConfig/rejected', () => {
     it('sets submitError property', () => {
       const state = Object.freeze({ submitError: null });
 
       const { submitError } = reducer(state, {
-        type: 'orgsAndPoliciesProprietary/saveProprietaryConfig/rejected',
+        type: 'proprietary/saveProprietaryConfig/rejected',
         payload: 'error',
       });
 

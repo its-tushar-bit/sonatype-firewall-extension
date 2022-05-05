@@ -155,7 +155,7 @@ describe('policy.tile.controller', function () {
       expect(output.localProprietaryCount).toBe(3);
       expect(output.inheritedProprietaryCount).toBe(1);
       expect(output.inheritedProprietaryCount).toBe(1);
-      expect(output.propietaryConfigIsloading).toBeFalse();
+      expect(output.proprietaryConfigIsLoading).toBeFalse();
       expect(output.monitoredStage).toEqual({ stageName: 'Develop', stageTypeId: 1 });
       expect(output.isEnforcementSupported).toBeTrue();
       expect(output.isFirewallSupported).toBeTrue();

@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySlice';
-import * as proprietarySelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySelectors';
+import { actions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
+import * as proprietarySelectors from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getProprietaryConfigUrl } from 'MainRoot/util/CLMLocation';
 
-describe('orgsAndPoliciesProprietaryActions', () => {
+describe('proprietaryActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let store, state;
 
@@ -73,8 +73,8 @@ describe('orgsAndPoliciesProprietaryActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesProprietary/loadProprietaryConfig/pending',
-          'orgsAndPoliciesProprietary/loadProprietaryConfig/fulfilled',
+          'proprietary/loadProprietaryConfig/pending',
+          'proprietary/loadProprietaryConfig/fulfilled',
         ]);
         expect(actions[1].payload).toEqual({
           proprietaryConfigs: proprietaryConfigByOwners,
@@ -121,8 +121,8 @@ describe('orgsAndPoliciesProprietaryActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesProprietary/loadProprietaryConfig/pending',
-          'orgsAndPoliciesProprietary/loadProprietaryConfig/rejected',
+          'proprietary/loadProprietaryConfig/pending',
+          'proprietary/loadProprietaryConfig/rejected',
         ]);
         expect(actions[1].payload).toBe('could not load matchers');
 
@@ -174,8 +174,8 @@ describe('orgsAndPoliciesProprietaryActions', () => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesProprietary/saveProprietaryConfig/pending',
-          'orgsAndPoliciesProprietary/saveProprietaryConfig/fulfilled',
+          'proprietary/saveProprietaryConfig/pending',
+          'proprietary/saveProprietaryConfig/fulfilled',
         ]);
 
         expect(actions[1].payload).toEqual({
@@ -204,8 +204,8 @@ describe('orgsAndPoliciesProprietaryActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesProprietary/saveProprietaryConfig/pending',
-          'orgsAndPoliciesProprietary/saveProprietaryConfig/rejected',
+          'proprietary/saveProprietaryConfig/pending',
+          'proprietary/saveProprietaryConfig/rejected',
         ]);
 
         expect(actions[1].payload).toEqual('could not update matchers');

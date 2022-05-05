@@ -10,10 +10,10 @@ import { Messages } from 'MainRoot/util/CommonServices';
 import { propSet } from 'MainRoot/util/jsUtil';
 import { propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { getProprietaryConfigUrl } from 'MainRoot/util/CLMLocation';
-import { selectCurrentConfigs } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySelectors';
+import { selectCurrentConfigs } from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 
-const REDUCER_NAME = 'orgsAndPoliciesProprietary';
+const REDUCER_NAME = 'proprietary';
 
 export const matcherTypes = { PACKAGE: 'Package', REGEX: 'Regular Expression' };
 
@@ -169,7 +169,7 @@ const saveProprietaryConfig = createAsyncThunk(
   }
 );
 
-const orgsAndPoliciesProprietarySlice = createSlice({
+const proprietarySlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
@@ -191,9 +191,9 @@ const orgsAndPoliciesProprietarySlice = createSlice({
 });
 
 export const actions = {
-  ...orgsAndPoliciesProprietarySlice.actions,
+  ...proprietarySlice.actions,
   loadProprietaryConfig,
   saveProprietaryConfig,
 };
 
-export default orgsAndPoliciesProprietarySlice.reducer;
+export default proprietarySlice.reducer;

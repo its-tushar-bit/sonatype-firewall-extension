@@ -5,7 +5,7 @@
  */
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSlice';
-import { actions as propiertaryConfigActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySlice';
+import { actions as proprietaryConfigActions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
 import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import {
@@ -17,10 +17,10 @@ import {
 import { selectMonitoredStageFromActionStages } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSelectors';
 import { selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
-  selectIsLoading as selectPropietaryConfigIsLoading,
-  selectPropietaryConfigInheritedMatchersCount,
-  selectPropietaryConfigLocalMatchersCount,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesProprietarySelectors';
+  selectIsLoading as selectProprietaryConfigIsLoading,
+  selectProprietaryConfigInheritedMatchersCount,
+  selectProprietaryConfigLocalMatchersCount,
+} from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function PolicyTileController(
@@ -48,7 +48,7 @@ export default function PolicyTileController(
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadApplicablePolicyMonitoring: actions.loadApplicablePolicyMonitoring,
-    loadPropietaryConfig: propiertaryConfigActions.loadProprietaryConfig,
+    loadProprietaryConfig: proprietaryConfigActions.loadProprietaryConfig,
     loadActionStageTypes: stagesActions.loadActionStages,
     loadApplicablePoliciesByOwner: policyActions.loadApplicablePoliciesByOwner,
   })(vm);
@@ -66,7 +66,7 @@ export default function PolicyTileController(
     const promises = [
       vm.loadApplicablePoliciesByOwner(),
       vm.loadActionStageTypes(),
-      vm.loadPropietaryConfig(),
+      vm.loadProprietaryConfig(),
       vm.loadApplicablePolicyMonitoring(),
     ];
     if (vm.isAppOrOrg) {
@@ -118,9 +118,9 @@ export default function PolicyTileController(
 export const mapStateToThis = (state) => ({
   ownerProperties: selectOwnerProperties(state),
   ownerName: selectSelectedOwnerName(state),
-  localProprietaryCount: selectPropietaryConfigLocalMatchersCount(state),
-  inheritedProprietaryCount: selectPropietaryConfigInheritedMatchersCount(state),
-  propietaryConfigIsloading: selectPropietaryConfigIsLoading(state),
+  localProprietaryCount: selectProprietaryConfigLocalMatchersCount(state),
+  inheritedProprietaryCount: selectProprietaryConfigInheritedMatchersCount(state),
+  proprietaryConfigIsLoading: selectProprietaryConfigIsLoading(state),
   monitoredStage: selectMonitoredStageFromActionStages(state),
   isEnforcementSupported: selectIsEnforcementSupported(state),
   isFirewallSupported: selectIsFirewallSupported(state),

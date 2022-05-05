@@ -152,7 +152,7 @@ describe('InnerSourceRepositoryBaseConfigurations', function () {
 
       expect(screen.queryByText('LOCAL')).toBeNull();
       expect(screen.queryByText('Add a Repository')).toBeNull();
-      expect(screen.queryByText('No repositories are configured')).toBeNull();
+      expect(screen.queryByText('No InnerSource repository connections are configured')).toBeNull();
     });
 
     it('shows disable and no repositories list', function () {
@@ -167,7 +167,7 @@ describe('InnerSourceRepositoryBaseConfigurations', function () {
 
       expect(screen.queryByText('LOCAL')).toBeNull();
       expect(screen.queryByText('Add a Repository')).toBeNull();
-      expect(screen.queryByText('No repositories are configured')).toBeNull();
+      expect(screen.queryByText('No InnerSource repository connections are configured')).toBeNull();
     });
 
     it('shows enable with a repositories list', function () {
@@ -182,7 +182,7 @@ describe('InnerSourceRepositoryBaseConfigurations', function () {
 
       expect(screen.getByText('LOCAL')).toBeVisible();
       expect(screen.getByText('Add a Repository')).toBeVisible();
-      expect(screen.getByText('No repositories are configured')).toBeVisible();
+      expect(screen.getByText('No InnerSource repository connections are configured')).toBeVisible();
     });
 
     it('disables the cancel button if not dirty', function () {

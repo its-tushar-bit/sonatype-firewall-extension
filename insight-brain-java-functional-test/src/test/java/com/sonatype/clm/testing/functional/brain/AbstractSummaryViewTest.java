@@ -164,7 +164,7 @@ public abstract class AbstractSummaryViewTest
     innerSourceRepositoryTile.listTitle().should(exist);
     ElementsCollection rows = innerSourceRepositoryTile.rows();
     rows.shouldHaveSize(1);
-    rows.get(0).shouldBe(text("No repositories are configured"));
+    rows.get(0).shouldBe(text("No InnerSource repository connections are configured"));
     innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
   }
 
@@ -179,7 +179,7 @@ public abstract class AbstractSummaryViewTest
     innerSourceRepositoryTile.listTitle().should(exist);
     ElementsCollection rows = innerSourceRepositoryTile.rows();
     rows.shouldHaveSize(1);
-    rows.get(0).shouldBe(text("Repositories are disabled"));
+    rows.get(0).shouldBe(text("InnerSource repository connections are disabled"));
     innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
   }
 

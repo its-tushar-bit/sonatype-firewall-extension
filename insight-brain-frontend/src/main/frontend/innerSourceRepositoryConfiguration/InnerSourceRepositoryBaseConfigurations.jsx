@@ -228,7 +228,7 @@ export default function InnerSourceRepositoryBaseConfigurations() {
                     </NxButton>
                   </NxTooltip>
                 </div>
-                <NxList emptyMessage="No repositories are configured">
+                <NxList emptyMessage="No InnerSource repository connections are configured">
                   {repositoryConnections &&
                     repositoryConnections.map((repositoryConnection) => {
                       return (

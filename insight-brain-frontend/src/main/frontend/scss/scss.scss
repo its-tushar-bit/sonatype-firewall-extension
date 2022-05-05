@@ -116,6 +116,7 @@
 @use '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModal';
 @use '../innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurations';
 @use '../configuration/administrators/administrators';
+@use '../firewall/firewallComponentDetailsPage/firewallComponentDetailsPage';
 
 // CIP
 @use '../version-graph/icons' as version-graph-icons;

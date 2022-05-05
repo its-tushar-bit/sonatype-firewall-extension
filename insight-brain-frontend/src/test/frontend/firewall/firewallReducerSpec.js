@@ -13,6 +13,11 @@ describe('firewallReducer', function () {
       selectedComponentIndex: null,
       displayedEntries: [],
     }),
+    cdp: Object.freeze({
+      isLoadingComponentDetails: false,
+      componentDetails: null,
+      componentDetailsError: null,
+    }),
     viewState: Object.freeze({
       isShowConfigurationModal: false,
       loadError: null,
@@ -847,6 +852,57 @@ describe('firewallReducer', function () {
           selectedComponent: null,
           selectedComponentIndex: null,
           displayedEntries: [],
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_COMPONENT_DETAILS_REQUESTED action', function () {
+    it('updates the state and sets isLoadingComponentDetails to true', function () {
+      let minimumState = {
+        cdp: { isLoadingComponentDetails: false, componentDetails: null, componentDetailsError: null },
+      };
+      expect(reduce(minimumState, { type: 'FIREWALL_COMPONENT_DETAILS_REQUESTED' })).toEqual({
+        ...minimumState,
+        cdp: {
+          ...minimumState.cdp,
+          isLoadingComponentDetails: true,
+          componentDetails: null,
+          componentDetailsError: null,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_COMPONENT_DETAILS_FULFILLED action', function () {
+    it('updates the state and sets componentDetails with the response results', function () {
+      let minimumState = {
+        cdp: { isLoadingComponentDetails: true, componentDetails: null, componentDetailsError: null },
+      };
+      expect(reduce(minimumState, { type: 'FIREWALL_COMPONENT_DETAILS_FULFILLED', payload: 'payload' })).toEqual({
+        ...minimumState,
+        cdp: {
+          ...minimumState.cdp,
+          isLoadingComponentDetails: false,
+          componentDetails: 'payload',
+          componentDetailsError: null,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_COMPONENT_DETAILS_FAILED action', function () {
+    it('updates the state and sets componentDetailsError with the request error message', function () {
+      let minimumState = {
+        cdp: { isLoadingComponentDetails: true, componentDetails: null, componentDetailsError: null },
+      };
+      expect(reduce(minimumState, { type: 'FIREWALL_COMPONENT_DETAILS_FAILED', payload: 'Error' })).toEqual({
+        ...minimumState,
+        cdp: {
+          ...minimumState.cdp,
+          isLoadingComponentDetails: false,
+          componentDetails: null,
+          componentDetailsError: 'Error',
         },
       });
     });

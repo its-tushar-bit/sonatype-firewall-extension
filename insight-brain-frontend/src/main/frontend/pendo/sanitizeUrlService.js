@@ -13,7 +13,14 @@ import ownerConstant from '../utility/services/owner.constant';
 // should be included in queryParamsToObfuscate. Any query parameters that are enums or contain generic information
 // should be added to queryParamsToShowInPlaintext
 const queryParamsToObfuscate = ['sidebarId'];
-const queryParamsToShowInPlaintext = ['type', 'sidebarReference', 'policyViolationId'];
+const queryParamsToShowInPlaintext = [
+  'type',
+  'sidebarReference',
+  'policyViolationId',
+  'proprietary',
+  'identificationSource',
+  'scanId',
+];
 
 /**
  * Provides a `sanitize` function that removes the baseUrl and any dynamic route parameters from URLs within the

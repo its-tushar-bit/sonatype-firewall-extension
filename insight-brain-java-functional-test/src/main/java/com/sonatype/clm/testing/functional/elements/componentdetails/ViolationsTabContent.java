@@ -12,7 +12,7 @@ import com.codeborne.selenide.SelenideElement;
 public class ViolationsTabContent
     extends BasicElement<ViolationsTabContent>
 {
-  public static final String VIOLATIONS_TAB_SELECTOR = "#component-details-policy-violations";
+  public static final String VIOLATIONS_TAB_SELECTOR = "#component-details-violations-tab-content";
 
   public ViolationsTabContent() {
     super(VIOLATIONS_TAB_SELECTOR);

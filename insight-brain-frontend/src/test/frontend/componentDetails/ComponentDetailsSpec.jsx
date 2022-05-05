@@ -7,7 +7,8 @@ import React from 'react';
 import * as enzymeUtils from '../enzymeUtils';
 import { NxLoadError, NxLoadWrapper } from '@sonatype/react-shared-components';
 
-import ComponentDetails, { getTabIdPerIndex } from 'MainRoot/componentDetails/ComponentDetails';
+import { getTabsConfiguration } from 'MainRoot/componentDetails/ComponentDetails';
+import ComponentDetails from 'MainRoot/componentDetails/ComponentDetails';
 import { ComponentDetailsFooter } from 'MainRoot/componentDetails/ComponentDetailsFooter';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import * as ComponentDetailsTabsFile from 'MainRoot/componentDetails/ComponentDetailsTabs';
@@ -16,16 +17,11 @@ import UnknownComponentAlert from 'MainRoot/componentDetails/UnknownComponentAle
 import * as ComponentDetailsBackButton from 'MainRoot/componentDetails/ComponentDetailsBackButton';
 
 const assertTabs = (component, activeTabId, isUnknown, isClaimed, isExact) => {
-  let tabs;
+  let tabs = component.find(ComponentDetailsTabs);
 
-  tabs = component.find(ComponentDetailsTabs);
-  const tabIdPerIndex = getTabIdPerIndex(isUnknown, isClaimed, isExact);
-
-  expect(tabs).toHaveProp('activeTab', tabIdPerIndex.indexOf(activeTabId));
+  expect(tabs).toHaveProp('activeTabId', activeTabId);
   expect(tabs).toHaveProp('onTabChange', jasmine.any(Function));
-  expect(tabs).toHaveProp('isUnknown', isUnknown);
-  expect(tabs).toHaveProp('isClaimed', isClaimed);
-  expect(tabs).toHaveProp('isExact', isExact);
+  expect(tabs).toHaveProp('tabsConfiguration', getTabsConfiguration(isUnknown, isExact, isClaimed));
 };
 
 describe('ComponentDetails', function () {
@@ -172,23 +168,6 @@ describe('ComponentDetails', function () {
     });
   });
 
-  describe('getTabIdPerIndex', () => {
-    it('returns an array with 3 tab ids if component is unknown', () => {
-      const result = getTabIdPerIndex(true, false, false);
-      expect(result).toEqual(['overview', 'violations', 'claim']);
-    });
-
-    it('returns an array with 7 tab ids if component is either claimed or has matchState other than exact', () => {
-      const result = getTabIdPerIndex(false, true, false);
-      expect(result).toEqual(['overview', 'violations', 'security', 'legal', 'labels', 'claim', 'audit']);
-    });
-
-    it('returns an array with 6 tab ids if component is not unknown or matchState is exact', () => {
-      const result = getTabIdPerIndex(false, false, true);
-      expect(result).toEqual(['overview', 'violations', 'security', 'legal', 'labels', 'audit']);
-    });
-  });
-
   describe('handleTabChange', () => {
     const getOnTabChangeProp = (element) => {
       const tabs = element.find(ComponentDetailsTabs);
@@ -207,26 +186,26 @@ describe('ComponentDetails', function () {
       component = getShallowComponent({ componentDetails, activeTabId: 'overview' });
       changeFn = getOnTabChangeProp(component);
 
-      changeFn(1);
+      changeFn('violations');
       expect(minimalProps.onTabChange).toHaveBeenCalledWith('violations');
 
-      changeFn(2);
+      changeFn('security');
       expect(minimalProps.onTabChange).toHaveBeenCalledWith('security');
 
-      changeFn(3);
+      changeFn('legal');
       expect(minimalProps.onTabChange).toHaveBeenCalledWith('legal');
 
-      changeFn(4);
+      changeFn('labels');
       expect(minimalProps.onTabChange).toHaveBeenCalledWith('labels');
 
-      changeFn(5);
+      changeFn('audit');
       expect(minimalProps.onTabChange).toHaveBeenCalledWith('audit');
 
       // Starting on another tab to be able to check the listener on the default 0 tab
       component = getMountedComponent({ componentDetails, activeTabId: 'violations' });
       changeFn = getOnTabChangeProp(component);
 
-      changeFn(0);
+      changeFn('overview');
       expect(minimalProps.onTabChange).toHaveBeenCalledWith('overview');
     });
 
@@ -242,7 +221,7 @@ describe('ComponentDetails', function () {
       component = getShallowComponent({ componentDetails, activeTabId: 'overview' });
       changeFn = getOnTabChangeProp(component);
 
-      changeFn(0);
+      changeFn('overview');
       expect(minimalProps.onTabChange).not.toHaveBeenCalled();
     });
   });

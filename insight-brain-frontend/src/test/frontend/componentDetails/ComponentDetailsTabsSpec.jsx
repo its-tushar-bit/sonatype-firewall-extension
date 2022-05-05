@@ -6,6 +6,7 @@
 import { NxTab, NxTabs } from '@sonatype/react-shared-components';
 
 import ComponentDetailsTabs from 'MainRoot/componentDetails/ComponentDetailsTabs';
+import { getTabsConfiguration } from 'MainRoot/componentDetails/ComponentDetails';
 import * as enzymeUtils from '../enzymeUtils';
 
 describe('ComponentDetailsTabs', function () {
@@ -17,9 +18,7 @@ describe('ComponentDetailsTabs', function () {
     minimalProps = {
       activeTab: '1',
       onTabChange: onTabChangeSpy,
-      isUnknown: false,
-      isClaimed: false,
-      isExact: true,
+      tabsConfiguration: getTabsConfiguration(false, true, false),
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentDetailsTabs, minimalProps);
@@ -54,7 +53,13 @@ describe('ComponentDetailsTabs', function () {
   });
 
   it('renders 7 tabs with the appropriate names when component is claimed but not unknown', function () {
-    const component = getShallowComponent({ isClaimed: true, isUnknown: false, isExact: false });
+    const customMinimalProps = {
+      ...minimalProps,
+      tabsConfiguration: getTabsConfiguration(false, false, true),
+    };
+
+    const component = enzymeUtils.getShallowComponent(ComponentDetailsTabs, customMinimalProps)();
+
     const tabBar = component.find(NxTabs);
 
     expect(tabBar).toExist();
@@ -71,7 +76,13 @@ describe('ComponentDetailsTabs', function () {
   });
 
   it('renders 3 tabs with the appropriate names when there is an unknown component', function () {
-    const component = getShallowComponent({ isUnknown: true, isExact: false });
+    const customMinimalProps = {
+      ...minimalProps,
+      tabsConfiguration: getTabsConfiguration(true, false, true),
+    };
+
+    const component = enzymeUtils.getShallowComponent(ComponentDetailsTabs, customMinimalProps)();
+
     const tabBar = component.find(NxTabs);
 
     expect(tabBar).toExist();

@@ -149,11 +149,11 @@ public class ComponentDetailsPage
   }
 
   public ManageLabelsContentTab labelsContent() {
-    return new ManageLabelsContentTab("#manage-component-labels");
+    return new ManageLabelsContentTab("#component-details-labels-tab-content");
   }
 
   public AuditLogContent auditLogContent() {
-    return new AuditLogContent("#audit-log-tab-content");
+    return new AuditLogContent("#component-details-audit-tab-content");
   }
 
   public static class ComponentDetailsHeader

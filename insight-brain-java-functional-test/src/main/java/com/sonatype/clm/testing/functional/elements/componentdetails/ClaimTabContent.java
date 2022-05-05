@@ -16,7 +16,7 @@ import com.codeborne.selenide.SelenideElement;
 public class ClaimTabContent
     extends BasicElement<ClaimTabContent>
 {
-  public static final String CLAIM_TAB_SELECTOR = "#component-details-claim-unknown-component";
+  public static final String CLAIM_TAB_SELECTOR = "#component-details-claim-tab-content";
 
   public ClaimTabContent() {
     super(CLAIM_TAB_SELECTOR);

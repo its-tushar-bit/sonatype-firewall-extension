@@ -125,6 +125,16 @@ export function getComponentVersionComparisonInfo(componentDetails) {
   };
 }
 
+export const createTabConfiguration = (tabId, title, component) => ({
+  tabId,
+  title,
+  component,
+});
+
+export const isUnknownComponent = (componentDetails) => componentDetails?.matchState === 'unknown';
+export const isExactComponent = (componentDetails) => componentDetails?.matchState === 'exact';
+export const isClaimedComponent = (componentDetails) => componentDetails?.identificationSource === 'Manual';
+
 export const versionComparisonInfoPropType = PropTypes.shape({
   version: PropTypes.string,
   highestPolicyThreat: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf(['None'])]),

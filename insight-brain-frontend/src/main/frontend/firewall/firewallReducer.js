@@ -37,6 +37,9 @@ import {
   FIREWALL_SAVE_CONFIGURATION_FULFILLED,
   FIREWALL_SELECT_COMPONENT,
   FIREWALL_SET_SHOW_CONFIGURATION_MODAL,
+  FIREWALL_COMPONENT_DETAILS_REQUESTED,
+  FIREWALL_COMPONENT_DETAILS_FULFILLED,
+  FIREWALL_COMPONENT_DETAILS_FAILED,
 } from './firewallActions';
 import { __, always, assoc, curry, dissoc, lensPath, lensProp, merge, over, prop } from 'ramda';
 import { pathSet } from '../util/jsUtil';
@@ -47,6 +50,11 @@ const initialState = Object.freeze({
     selectedComponent: null,
     selectedComponentIndex: null,
     displayedEntries: [],
+  }),
+  cdp: Object.freeze({
+    isLoadingComponentDetails: false,
+    componentDetails: null,
+    componentDetailsError: null,
   }),
   viewState: Object.freeze({
     isShowConfigurationModal: false,
@@ -460,6 +468,40 @@ function cipModalShow(_, state) {
   };
 }
 
+function loadComponentDetailsRequested(_, state) {
+  return {
+    ...state,
+    cdp: {
+      ...state.cdp,
+      isLoadingComponentDetails: true,
+    },
+  };
+}
+
+function loadComponentDetailsFulfilled(payload, state) {
+  return {
+    ...state,
+    cdp: {
+      ...state.cdp,
+      isLoadingComponentDetails: false,
+      componentDetails: payload,
+      componentDetailsError: null,
+    },
+  };
+}
+
+function loadComponentDetailsFailed(payload, state) {
+  return {
+    ...state,
+    cdp: {
+      ...state.cdp,
+      isLoadingComponentDetails: false,
+      componentDetails: null,
+      componentDetailsError: payload,
+    },
+  };
+}
+
 const reducerActionMap = {
   [FIREWALL_LOAD_DATA_REQUESTED]: always(initialState),
   [FIREWALL_SET_SHOW_CONFIGURATION_MODAL]: setShowConfigurationModal,
@@ -492,6 +534,9 @@ const reducerActionMap = {
   [FIREWALL_SELECT_COMPONENT]: setSelectedComponent,
   [FIREWALL_CIP_MODAL_CLOSED]: cipModalClosed,
   [FIREWALL_CIP_MODAL_SHOW]: cipModalShow,
+  [FIREWALL_COMPONENT_DETAILS_REQUESTED]: loadComponentDetailsRequested,
+  [FIREWALL_COMPONENT_DETAILS_FULFILLED]: loadComponentDetailsFulfilled,
+  [FIREWALL_COMPONENT_DETAILS_FAILED]: loadComponentDetailsFailed,
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

@@ -1,0 +1,88 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import React, { useEffect } from 'react';
+import * as PropTypes from 'prop-types';
+import ComponentDetailsTabs from '../../componentDetails/ComponentDetailsTabs';
+import {
+  ComponentDetailsReportInfo,
+  ComponentDetailsHeader,
+  ComponentDetailsTags,
+  Title,
+} from '../../componentDetails/ComponentDetailsHeader';
+import { NxLoadWrapper } from '@sonatype/react-shared-components';
+import { createTabConfiguration } from '../../componentDetails/componentDetailsUtils';
+
+export const tabsConfiguration = [
+  createTabConfiguration('overview', 'Overview'),
+  createTabConfiguration('violations', 'Policy Violations'),
+  createTabConfiguration('security', 'Security'),
+  createTabConfiguration('legal', 'Legal'),
+  createTabConfiguration('labels', 'Labels'),
+];
+
+export default function FirewallComponentDetailPage(props) {
+  const { loadComponentDetails, CDPResponseState, onCDPTabChange, routeParams } = props;
+  const { tabId } = routeParams;
+  const { componentDetails, isLoadingComponentDetails, componentDetailsError } = CDPResponseState;
+  const componentCoordinates =
+    componentDetails?.displayName?.parts?.reduce((prev, part) => prev + part.value, '') || '';
+
+  useEffect(() => {
+    loadComponentDetails(routeParams);
+  }, []);
+
+  const handleTabChange = (tabIdToMoveTo) => {
+    if (tabIdToMoveTo === tabId) {
+      return;
+    }
+    onCDPTabChange(tabIdToMoveTo);
+  };
+
+  return (
+    <main id="firewall-component-details-page" className="nx-page-main">
+      <NxLoadWrapper
+        loading={isLoadingComponentDetails}
+        error={componentDetailsError}
+        retryHandler={() => loadComponentDetails(routeParams)}
+      >
+        {() => (
+          <ComponentDetailsHeader>
+            <Title id="component-details-title">{componentCoordinates}</Title>
+            <ComponentDetailsReportInfo {...componentDetails?.metadata} />
+            <ComponentDetailsTags
+              format={componentDetails?.componentIdentifier?.format}
+              dependencyType={componentDetails?.dependencyType}
+              isInnerSource={componentDetails?.isInnerSource}
+              labels={componentDetails?.labels}
+            />
+          </ComponentDetailsHeader>
+        )}
+      </NxLoadWrapper>
+
+      <ComponentDetailsTabs tabsConfiguration={tabsConfiguration} onTabChange={handleTabChange} activeTabId={tabId} />
+    </main>
+  );
+}
+
+FirewallComponentDetailPage.propTypes = {
+  loadComponentDetails: PropTypes.func,
+  onCDPTabChange: PropTypes.func.isRequired,
+  routeParams: PropTypes.shape({
+    repositoryId: PropTypes.string.isRequired,
+    componentHash: PropTypes.string.isRequired,
+    matchState: PropTypes.string.isRequired,
+    proprietary: PropTypes.string,
+    identificationSource: PropTypes.string,
+    scanId: PropTypes.string,
+    tabId: PropTypes.string.isRequired,
+  }).isRequired,
+  CDPResponseState: PropTypes.shape({
+    componentDetails: PropTypes.object,
+    isLoadingComponentDetails: PropTypes.bool.isRequired,
+    componentDetailsError: PropTypes.string,
+  }).isRequired,
+};

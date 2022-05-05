@@ -6,6 +6,7 @@
 import {
   parseOccurrencePathname,
   getComponentVersionComparisonInfo,
+  createTabConfiguration,
 } from 'MainRoot/componentDetails/componentDetailsUtils';
 
 describe('componentDetailsUtils', function () {
@@ -219,6 +220,13 @@ describe('componentDetailsUtils', function () {
       expect(getComponentVersionComparisonInfo(componentDetails).policyMaxThreatLevelsByCategory).toBe(
         componentDetails.policyMaxThreatLevelsByCategory
       );
+    });
+
+    it('creates a tab configuration object', () => {
+      const component = {};
+      const tabId = 'tabId';
+      const title = 'Tab Name';
+      expect(createTabConfiguration(tabId, title, component)).toEqual({ tabId, title, component });
     });
   });
 });

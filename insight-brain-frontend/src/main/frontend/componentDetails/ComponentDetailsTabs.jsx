@@ -7,66 +7,38 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { NxTab, NxTabList, NxTabPanel, NxTabs } from '@sonatype/react-shared-components';
 
-import AuditLogContainer from './auditLog/AuditLogContainer';
-import { OverviewContainer } from './overview';
-import PolicyViolations from './PolicyViolations/PolicyViolations';
-import ComponentDetailsSecurityTab from './ComponentDetailsSecurityTab/ComponentDetailsSecurityTab';
-import ComponentDetailsLegalTab from './ComponentDetailsLegalTab/ComponentDetailsLegalTab';
-import ManageComponentLabelsContainer from './ManageComponentLabels/ManageComponentLabelsContainer';
-import { ClaimContainer } from './claim/ClaimContainer';
+export default function ComponentDetailsTabs({ activeTabId, onTabChange, tabsConfiguration }) {
+  const handleTabChange = (tabIndex) => {
+    return onTabChange(tabsConfiguration?.[tabIndex]?.tabId);
+  };
 
-export default function ComponentDetailsTabs({ activeTab, onTabChange, isUnknown, isClaimed, isExact }) {
+  const findTabIndexByTabId = (tabIdToFind) => tabsConfiguration.findIndex((tc) => tc.tabId === tabIdToFind);
+
   return (
-    <NxTabs activeTab={activeTab} onTabSelect={onTabChange}>
+    <NxTabs activeTab={findTabIndexByTabId(activeTabId)} onTabSelect={handleTabChange}>
       <NxTabList aria-label="Component detail tabs">
-        <NxTab>Overview</NxTab>
-        <NxTab>Policy Violations</NxTab>
-        {!isUnknown && <NxTab>Security</NxTab>}
-        {!isUnknown && <NxTab>Legal</NxTab>}
-        {!isUnknown && <NxTab>Labels</NxTab>}
-        {!(isExact && !isClaimed) && <NxTab>Claim</NxTab>}
-        {!isUnknown && <NxTab>Audit Log</NxTab>}
+        {tabsConfiguration.map((tabConfiguration) => (
+          <NxTab key={tabConfiguration.tabId}>{tabConfiguration.title}</NxTab>
+        ))}
       </NxTabList>
-      <NxTabPanel id="component-details-overview-tab-content">
-        <OverviewContainer />
-      </NxTabPanel>
-      <NxTabPanel id="component-details-policy-violations">
-        <PolicyViolations />
-      </NxTabPanel>
-      {!isUnknown && (
-        <NxTabPanel id="component-details-security-tab-content">
-          <ComponentDetailsSecurityTab />
+      {tabsConfiguration.map((tabConfiguration) => (
+        <NxTabPanel key={tabConfiguration.tabId} id={`component-details-${tabConfiguration.tabId}-tab-content`}>
+          {tabConfiguration.component}
         </NxTabPanel>
-      )}
-      {!isUnknown && (
-        <NxTabPanel id="component-details-legal-tab-content">
-          <ComponentDetailsLegalTab />
-        </NxTabPanel>
-      )}
-      {!isUnknown && (
-        <NxTabPanel id="manage-component-labels">
-          <ManageComponentLabelsContainer />
-        </NxTabPanel>
-      )}
-      {!(isExact && !isClaimed) && (
-        <NxTabPanel id="component-details-claim-unknown-component">
-          <ClaimContainer />
-        </NxTabPanel>
-      )}
-      {!isUnknown && (
-        <NxTabPanel id="audit-log-tab-content">
-          <AuditLogContainer />
-        </NxTabPanel>
-      )}
+      ))}
     </NxTabs>
   );
 }
 
 ComponentDetailsTabs.propTypes = {
-  // activeTab should be required but marking it as such causes proptype errors when navigating away
-  activeTab: PropTypes.number,
+  // activeTabId should be required but marking it as such causes proptype errors when navigating away
+  activeTabId: PropTypes.string,
   onTabChange: PropTypes.func.isRequired,
-  isUnknown: PropTypes.bool.isRequired,
-  isClaimed: PropTypes.bool.isRequired,
-  isExact: PropTypes.bool.isRequired,
+  tabsConfiguration: PropTypes.arrayOf(
+    PropTypes.shape({
+      tabId: PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      component: PropTypes.element,
+    })
+  ).isRequired,
 };

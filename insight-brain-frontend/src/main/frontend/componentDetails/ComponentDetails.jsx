@@ -5,7 +5,6 @@
  */
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import cx from 'classnames';
 import { NxInfoAlert, NxLoadWrapper, NxTextLink } from '@sonatype/react-shared-components';
 import {
   ComponentDetailsHeader,
@@ -15,21 +14,50 @@ import {
   Title,
 } from './ComponentDetailsHeader';
 import { ComponentDetailsFooter, ComponentDetailsFooterPropTypes as footerPropTypes } from './ComponentDetailsFooter';
+import AuditLogContainer from './auditLog/AuditLogContainer';
+import { OverviewContainer } from './overview';
+import PolicyViolations from './PolicyViolations/PolicyViolations';
+import ComponentDetailsSecurityTab from './ComponentDetailsSecurityTab/ComponentDetailsSecurityTab';
+import ComponentDetailsLegalTab from './ComponentDetailsLegalTab/ComponentDetailsLegalTab';
+import ManageComponentLabelsContainer from './ManageComponentLabels/ManageComponentLabelsContainer';
+import { ClaimContainer } from './claim/ClaimContainer';
 
 import ComponentDetailsBackButton from './ComponentDetailsBackButton';
 import ComponentDetailsTabs from './ComponentDetailsTabs';
 import UnknownComponentAlert from './UnknownComponentAlert';
+import {
+  isUnknownComponent,
+  createTabConfiguration,
+  isExactComponent,
+  isClaimedComponent,
+} from './componentDetailsUtils';
+import cx from 'classnames';
 
-export const getTabIdPerIndex = (isUnknown, isClaimed, isExact) => {
-  if (isUnknown) {
-    return ['overview', 'violations', 'claim'];
+export function getTabsConfiguration(isUnknown, isExact, isClaimed) {
+  let tabsConfiguration = [
+    createTabConfiguration('overview', 'Overview', <OverviewContainer />),
+    createTabConfiguration('violations', 'Policy Violations', <PolicyViolations />),
+  ];
+
+  if (!isUnknown) {
+    tabsConfiguration = [
+      ...tabsConfiguration,
+      createTabConfiguration('security', 'Security', <ComponentDetailsSecurityTab />),
+      createTabConfiguration('legal', 'Legal', <ComponentDetailsLegalTab />),
+      createTabConfiguration('labels', 'Labels', <ManageComponentLabelsContainer />),
+    ];
   }
 
-  return isExact && !isClaimed
-    ? ['overview', 'violations', 'security', 'legal', 'labels', 'audit']
-    : ['overview', 'violations', 'security', 'legal', 'labels', 'claim', 'audit'];
-};
+  if (!(isExact && !isClaimed)) {
+    tabsConfiguration = [...tabsConfiguration, createTabConfiguration('claim', 'Claim', <ClaimContainer />)];
+  }
 
+  if (!isUnknown) {
+    tabsConfiguration = [...tabsConfiguration, createTabConfiguration('audit', 'Audit Log', <AuditLogContainer />)];
+  }
+
+  return tabsConfiguration;
+}
 export default function ComponentDetails({
   componentDetails,
   activeTabId,
@@ -47,34 +75,32 @@ export default function ComponentDetails({
     loadComponentDetails();
   }, []);
 
-  const classes = cx('nx-page-main nx-viewport-sized iq-component-details-page', {
-    'iq-component-details-page--loading': loading,
-    'iq-component-details-page--error': loadError,
-  });
+  const isUnknown = isUnknownComponent(componentDetails);
 
-  const isUnknown = componentDetails?.matchState === 'unknown';
-  const isExact = componentDetails?.matchState === 'exact';
-  const isClaimed = componentDetails?.identificationSource === 'Manual';
-
-  const tabIdPerIndex = getTabIdPerIndex(isUnknown, isClaimed, isExact);
-
-  const handleTabChange = (tabIndex) => {
-    const tabIdToMoveTo = tabIdPerIndex[tabIndex];
+  const handleTabChange = (tabIdToMoveTo) => {
     if (tabIdToMoveTo === activeTabId) {
       return;
     }
     onTabChange(tabIdToMoveTo);
-    if (tabIndex === tabIdPerIndex.indexOf('labels')) {
+    if (tabIdToMoveTo === 'labels') {
       loadComponentDetails();
     }
   };
 
-  const goToClaim = () => {
-    handleTabChange(tabIdPerIndex.indexOf('claim'));
-  };
+  const tabsConfiguration = getTabsConfiguration(
+    isUnknown,
+    isExactComponent(componentDetails),
+    isClaimedComponent(componentDetails)
+  );
+
+  const getClasses = () =>
+    cx('nx-page-main iq-component-details-page', {
+      'iq-component-details-page--loading': loading,
+      'iq-component-details-page--error': loadError,
+    });
 
   return (
-    <main className={classes}>
+    <main className={`nx-viewport-sized ${getClasses()}`}>
       <ComponentDetailsBackButton {...dependencyTreeRouterParams} />
       <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-details-page__content">
         <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadComponentDetails}>
@@ -92,7 +118,7 @@ export default function ComponentDetails({
               </ComponentDetailsHeader>
               {isUnknown && !isProprietary && (
                 <UnknownComponentAlert
-                  onClaimClick={goToClaim}
+                  onClaimClick={() => handleTabChange('claim')}
                   toggleShowMatchersPopover={toggleShowMatchersPopover}
                   pathnames={pathnames}
                 />
@@ -112,11 +138,9 @@ export default function ComponentDetails({
           )}
         </NxLoadWrapper>
         <ComponentDetailsTabs
-          activeTab={tabIdPerIndex.indexOf(activeTabId)}
+          activeTabId={activeTabId}
           onTabChange={handleTabChange}
-          isUnknown={isUnknown}
-          isClaimed={isClaimed}
-          isExact={isExact}
+          tabsConfiguration={tabsConfiguration}
         />
       </div>
       {!dependencyTreeRouterParams && pagination && <ComponentDetailsFooter {...pagination} />}

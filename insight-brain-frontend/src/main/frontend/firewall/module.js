@@ -10,6 +10,7 @@ import FirewallPageContainer from './FirewallPageContainer';
 import FirewallAutoUnqaurantinePageContainer from './autounquarantine/FirewallAutoUnquarantinePageContainer';
 import firewallCipModalModule from './firewallCipModal/module';
 import firewall from './firewall';
+import FirewallComponentDetailsPageContainer from './firewallComponentDetailsPage/FirewallComponentDetailsPageContainer';
 
 export default angular
   .module('firewallModule', [firewallCipModalModule.name, 'ngRedux'])
@@ -22,6 +23,14 @@ export default angular
     'firewallAutoUnquarantinePage',
     react2angular(
       withStoreProvider(withRouterStateProvider(FirewallAutoUnqaurantinePageContainer)),
+      [],
+      ['$ngRedux', '$state']
+    )
+  )
+  .component(
+    'firewallComponentDetailsPage',
+    react2angular(
+      withStoreProvider(withRouterStateProvider(FirewallComponentDetailsPageContainer)),
       [],
       ['$ngRedux', '$state']
     )
@@ -46,6 +55,47 @@ function routes($stateProvider) {
       component: 'firewallAutoUnquarantinePage',
       data: {
         title: 'Auto Release Quarantine',
+      },
+    })
+    .state('firewall.componentDetailPage', {
+      url:
+        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?proprietary&identificationSource&scanId',
+      component: 'firewallComponentDetailsPage',
+      data: {
+        title: 'Firewall Component Details',
+      },
+      params: {
+        tabId: 'overview',
+      },
+    })
+    .state('firewall.componentDetailPage.overview', {
+      url: '/overview',
+      params: {
+        tabId: 'overview',
+      },
+    })
+    .state('firewall.componentDetailPage.violations', {
+      url: '/violations',
+      params: {
+        tabId: 'violations',
+      },
+    })
+    .state('firewall.componentDetailPage.security', {
+      url: '/security',
+      params: {
+        tabId: 'security',
+      },
+    })
+    .state('firewall.componentDetailPage.legal', {
+      url: '/legal',
+      params: {
+        tabId: 'legal',
+      },
+    })
+    .state('firewall.componentDetailPage.labels', {
+      url: '/labels',
+      params: {
+        tabId: 'labels',
       },
     });
 }

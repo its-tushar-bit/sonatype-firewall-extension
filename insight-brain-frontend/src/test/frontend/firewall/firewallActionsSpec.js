@@ -40,6 +40,9 @@ import {
   FIREWALL_SAVE_CONFIGURATION_REQUESTED,
   FIREWALL_SELECT_COMPONENT,
   FIREWALL_SET_SHOW_CONFIGURATION_MODAL,
+  FIREWALL_COMPONENT_DETAILS_REQUESTED,
+  FIREWALL_COMPONENT_DETAILS_FULFILLED,
+  FIREWALL_COMPONENT_DETAILS_FAILED,
   loadAutoUnquarantineData,
   loadConfiguration,
   loadFirewallData,
@@ -59,6 +62,11 @@ import {
   setQuarantineGridPage,
   setQuarantineGridPolicyFilter,
   setQuarantineGridSorting,
+  loadComponentDetails,
+  loadComponentDetailsRequested,
+  loadComponentDetailsFulfilled,
+  loadComponentDetailsFailed,
+  onCDPTabChange,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
   getFirewallConfigurationUrl,
@@ -67,6 +75,7 @@ import {
   getFirewallReleaseQuarantineListUrl,
   getFirewallReleaseQuarantineSummaryUrl,
   getPoliciesUrl,
+  getComponentDetailsUrl,
 } from '../../../main/frontend/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from '../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
@@ -935,6 +944,190 @@ describe('firewallActions', function () {
         components: components,
         componentIndex: 0,
         component: components[0],
+      });
+    });
+  });
+
+  describe('loadComponentDetails', () => {
+    it('immediatly dispatches actions to retrieve the component details that matches with the params', function () {
+      const repositoryId = 'repositoryId',
+        componentIdentifier =
+          '{"format":"maven","coordinates":{"artifactId":"ant","classifier":"","extension":"jar","groupId":"ant","version":"1.6.3"}}',
+        componentHash = 'componentHash',
+        matchState = 'exact',
+        proprietary = true,
+        identificationSource = 'sonatype',
+        scanId = 'scanId';
+      const componentDetailsParams = {
+        repositoryId,
+        componentIdentifier,
+        componentHash,
+        matchState,
+        proprietary,
+        identificationSource,
+        scanId,
+      };
+      const requestParams = {
+        clientType: 'ci',
+        ownerType: 'repository',
+        ownerId: repositoryId,
+        componentIdentifier,
+        hash: componentHash,
+        matchState,
+        proprietary,
+        identificationSource,
+        scanId,
+      };
+      const componentDetailsUrl = getComponentDetailsUrl(requestParams);
+      const mockResponse = {
+        hash: 'b7c953dd67e01c952d79',
+        matchState: 'exact',
+      };
+
+      mockAxiosCalls({
+        get: {
+          [componentDetailsUrl]: Promise.resolve({
+            data: mockResponse,
+          }),
+        },
+      });
+
+      store.dispatch(loadComponentDetails(componentDetailsParams)).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe(FIREWALL_COMPONENT_DETAILS_REQUESTED);
+        expect(actions[0].payload).toBeUndefined();
+        expect(actions[1].type).toBe(FIREWALL_COMPONENT_DETAILS_FULFILLED);
+        expect(actions[1].payload).toBe(mockResponse);
+      });
+    });
+    it('immediatly dispatches actions to handle a component details request error', function () {
+      const repositoryId = 'repositoryId',
+        componentIdentifier =
+          '{"format":"maven","coordinates":{"artifactId":"ant","classifier":"","extension":"jar","groupId":"ant","version":"1.6.3"}}',
+        componentHash = 'componentHash',
+        matchState = 'exact',
+        proprietary = true,
+        identificationSource = 'sonatype',
+        scanId = 'scanId';
+      const componentDetailsParams = {
+        repositoryId,
+        componentIdentifier,
+        componentHash,
+        matchState,
+        proprietary,
+        identificationSource,
+        scanId,
+      };
+      const requestParams = {
+        clientType: 'ci',
+        ownerType: 'repository',
+        ownerId: repositoryId,
+        componentIdentifier,
+        hash: componentHash,
+        matchState,
+        proprietary,
+        identificationSource,
+        scanId,
+      };
+      const componentDetailsUrl = getComponentDetailsUrl(requestParams);
+      const mockResponse = 'error!';
+
+      mockAxiosCalls({
+        get: {
+          [componentDetailsUrl]: Promise.reject(mockResponse),
+        },
+      });
+
+      store.dispatch(loadComponentDetails(componentDetailsParams)).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe(FIREWALL_COMPONENT_DETAILS_REQUESTED);
+        expect(actions[0].payload).toBeUndefined();
+        expect(actions[1].type).toBe(FIREWALL_COMPONENT_DETAILS_FAILED);
+        expect(actions[1].payload).toBe(mockResponse);
+      });
+    });
+  });
+
+  describe('loadComponentDetailsRequested', () => {
+    it('dispatches an action to indicate the request is being solved but not completed yet', () => {
+      const customState = {
+        firewall: Object.freeze({
+          cdp: Object.freeze({
+            isLoadingComponentDetails: false,
+            componentDetails: null,
+            componentDetailsError: null,
+          }),
+        }),
+      };
+
+      store = SpecUtil.mockReduxStore(customState);
+      store.dispatch(loadComponentDetailsRequested());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_COMPONENT_DETAILS_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+  });
+
+  describe('loadComponentDetailsFulfilled', () => {
+    it('dispatches an action to indicate the request was solved successfully', () => {
+      const customState = {
+        firewall: Object.freeze({
+          cdp: Object.freeze({
+            isLoadingComponentDetails: true,
+            componentDetails: null,
+            componentDetailsError: null,
+          }),
+        }),
+      };
+
+      const mockResponse = { hash: 'hash' };
+      store = SpecUtil.mockReduxStore(customState);
+      store.dispatch(loadComponentDetailsFulfilled(mockResponse));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_COMPONENT_DETAILS_FULFILLED);
+      expect(actions[0].payload).toBe(mockResponse);
+    });
+  });
+
+  describe('loadComponentDetailsFailed', () => {
+    it('dispatches an action to indicate the request failed', () => {
+      const customState = {
+        firewall: Object.freeze({
+          cdp: Object.freeze({
+            isLoadingComponentDetails: true,
+            componentDetails: null,
+            componentDetailsError: null,
+          }),
+        }),
+      };
+
+      const mockResponse = 'error!';
+      store = SpecUtil.mockReduxStore(customState);
+      store.dispatch(loadComponentDetailsFailed(mockResponse));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_COMPONENT_DETAILS_FAILED);
+      expect(actions[0].payload).toBe(mockResponse);
+    });
+  });
+
+  describe('onCDPTabChange', () => {
+    it('calls stateGo with the appropriate parameters', () => {
+      store.dispatch(onCDPTabChange('labels'));
+      expect(store.getActions()).toHaveAction({
+        type: '@@reduxUiRouter/stateGo',
+        payload: {
+          to: 'firewall.componentDetailPage.labels',
+          options: undefined,
+          params: undefined,
+        },
       });
     });
   });

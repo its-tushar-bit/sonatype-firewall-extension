@@ -14,8 +14,10 @@ import {
   getFirewallReleaseQuarantineListUrl,
   getFirewallReleaseQuarantineSummaryUrl,
   getPoliciesUrl,
+  getComponentDetailsUrl,
 } from '../util/CLMLocation';
 import { Messages } from '../util/CommonServices';
+import { stateGo } from '../reduxUiRouter/routerActions';
 
 export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';
 
@@ -103,6 +105,14 @@ export const FIREWALL_QUARANTINE_SUMMARY_FAILED = 'FIREWALL_QUARANTINE_SUMMARY_F
 const quarantineSummaryRequested = noPayloadActionCreator(FIREWALL_QUARANTINE_SUMMARY_REQUESTED);
 const quarantineSummaryFulfilled = payloadParamActionCreator(FIREWALL_QUARANTINE_SUMMARY_FULFILLED);
 const quarantineSummaryFailed = payloadParamActionCreator(FIREWALL_QUARANTINE_SUMMARY_FAILED);
+
+export const FIREWALL_COMPONENT_DETAILS_REQUESTED = 'FIREWALL_COMPONENT_DETAILS_REQUESTED';
+export const FIREWALL_COMPONENT_DETAILS_FULFILLED = 'FIREWALL_COMPONENT_DETAILS_FULFILLED';
+export const FIREWALL_COMPONENT_DETAILS_FAILED = 'FIREWALL_COMPONENT_DETAILS_FAILED';
+
+export const loadComponentDetailsRequested = noPayloadActionCreator(FIREWALL_COMPONENT_DETAILS_REQUESTED);
+export const loadComponentDetailsFulfilled = payloadParamActionCreator(FIREWALL_COMPONENT_DETAILS_FULFILLED);
+export const loadComponentDetailsFailed = payloadParamActionCreator(FIREWALL_COMPONENT_DETAILS_FAILED);
 
 export function loadFirewallData() {
   return (dispatch) => {
@@ -269,6 +279,42 @@ export function loadQuarantineList() {
   };
 }
 
+export function loadComponentDetails(componentDetailsParams) {
+  return function (dispatch) {
+    dispatch(loadComponentDetailsRequested());
+    const {
+      repositoryId,
+      componentIdentifier,
+      componentHash,
+      matchState,
+      proprietary,
+      identificationSource,
+      scanId,
+    } = componentDetailsParams;
+
+    const requestParams = {
+      clientType: 'ci',
+      ownerType: 'repository',
+      ownerId: repositoryId,
+      componentIdentifier,
+      hash: componentHash,
+      matchState,
+      proprietary,
+      identificationSource,
+      scanId,
+    };
+
+    return axios
+      .get(getComponentDetailsUrl(requestParams))
+      .then(({ data }) => {
+        dispatch(loadComponentDetailsFulfilled(data));
+      })
+      .catch((error) => {
+        dispatch(loadComponentDetailsFailed(Messages.getHttpErrorMessage(error)));
+      });
+  };
+}
+
 export function setQuarantineGridPage(page) {
   return (dispatch) => {
     dispatch(quarantineGridSetPage({ currentPage: page }));
@@ -328,5 +374,11 @@ export function selectComponent(componentIndex) {
     let components = getState().firewall.cip.displayedEntries;
     let component = components[componentIndex];
     dispatch(setSelectedComponent({ component, componentIndex, components }));
+  };
+}
+
+export function onCDPTabChange(tabId) {
+  return (dispatch) => {
+    return dispatch(stateGo(`firewall.componentDetailPage.${tabId}`));
   };
 }

@@ -678,6 +678,7 @@ public class SbomResultHandlerTest
     String sbomXml = filteredContent.getContent();
     Bom bom = assertFilteredSbomFile(sbomXml, 2);
     assertThat(bom.getMetadata()).isNotNull();
+    assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo("pkg:generic/Acme%20Application@9.1.1");
   }
 
   @Test
@@ -688,6 +689,7 @@ public class SbomResultHandlerTest
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom bom = assertFilteredSbomFile(filteredContent, 2);
     assertThat(bom.getMetadata()).isNotNull();
+    assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo("pkg:generic/Acme%20Application@9.1.1");
   }
 
   @Test
@@ -698,6 +700,7 @@ public class SbomResultHandlerTest
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom bom = assertFilteredSbomFile(filteredContent, 2);
     assertThat(bom.getMetadata()).isNotNull();
+    assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo("pkg:generic/Acme/Acme%20Application@9.1.1");
   }
 
   @Test
@@ -767,48 +770,6 @@ public class SbomResultHandlerTest
         new ThirdPartyFile("test-bom.xml", new Date()));
 
     assertThat(result).isEmpty();
-  }
-
-  @Test
-  public void testProcessDependencyGraph_MissingRootPurl() {
-    Bom sourceBom = new Bom();
-    Bom targetBom = new Bom();
-    Metadata metadata = new Metadata();
-    Component rootComponent = new Component();
-    rootComponent.setName("root");
-    rootComponent.setBomRef("root");
-    rootComponent.setVersion("1.0");
-
-    targetBom.addComponent(new Component());
-
-    metadata.setComponent(rootComponent);
-    targetBom.setMetadata(metadata);
-    Dependency root = createDependencyList("root", "pkg:npm/direct1@1.0", "pkg:npm/direct2@2.0");
-    Dependency d1 =
-        createDependencyList(root.getDependencies().get(0).getRef(), "pkg:npm/d1t1@1.1", "pkg:npm/d1t2@1.1");
-    Dependency d2 = createDependencyList(root.getDependencies().get(1).getRef());
-    Dependency d1t1 = d1.getDependencies().get(0);
-    Dependency d1t2 = d1.getDependencies().get(1);
-    sourceBom.setDependencies(Arrays.asList(root, d1, d2, d1t1, d1t2));
-
-    List<ProjectScanItem> result = new ArrayList<>();
-
-    sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
-        new ThirdPartyFile("test-bom.xml", new Date()));
-
-    assertThat(result).hasSize(1).allSatisfy(projectItem -> {
-      assertThat(projectItem.getKind()).isEqualTo("sbom");
-      assertThat(projectItem.getId()).isEqualTo("root");
-      assertThat(projectItem.getPath()).isEqualTo("test-bom.xml");
-      List<com.sonatype.insight.scan.model.Dependency> rootDependencies = projectItem.getDependencies();
-      assertThat(rootDependencies).hasSize(4)
-          .extracting(com.sonatype.insight.scan.model.Dependency::getId)
-          .containsExactlyInAnyOrder("pkg:npm/direct1@1.0", "pkg:npm/direct2@2.0",
-              "pkg:npm/d1t1@1.1", "pkg:npm/d1t2@1.1");
-      assertParentAndChildDependency(rootDependencies, "pkg:npm/direct1@1.0", "pkg:npm/d1t1@1.1");
-    });
-
-    assertIdentityMetadata(targetBom, metadata);
   }
 
   @Test
@@ -909,7 +870,7 @@ public class SbomResultHandlerTest
     Component projectComponent = targetBom.getMetadata().getComponent();
     Component expectedComponent = metadata.getComponent();
     assertThat(projectComponent.getBomRef()).isEqualTo(expectedComponent.getBomRef());
-    assertThat(projectComponent.getPurl()).isEqualTo(expectedComponent.getPurl());
+    assertThat(projectComponent.getPurl()).isNotNull().isEqualTo(expectedComponent.getPurl());
     assertThat(projectComponent.getGroup()).isEqualTo(expectedComponent.getGroup());
     assertThat(projectComponent.getName()).isEqualTo(expectedComponent.getName());
     assertThat(projectComponent.getVersion()).isEqualTo(expectedComponent.getVersion());

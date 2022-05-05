@@ -15,6 +15,7 @@
       </tool>
     </tools>
     <component type="application" bom-ref="acme-app">
+      <group>Acme</group>
       <name>Acme Application</name>
       <version>9.1.1</version>
     </component>

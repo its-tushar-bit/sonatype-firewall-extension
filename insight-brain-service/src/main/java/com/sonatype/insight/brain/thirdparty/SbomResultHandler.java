@@ -749,10 +749,30 @@ public class SbomResultHandler
       component.setName(metadata.getComponent().getName());
       component.setGroup(metadata.getComponent().getGroup());
       component.setVersion(metadata.getComponent().getVersion());
-      component.setPurl(metadata.getComponent().getPurl());
+      setRootPurl(metadata.getComponent(), component);
       filtered.setComponent(component);
     }
     return filtered;
+  }
+
+  private void setRootPurl(Component componentSource, Component componentTarget) {
+    if (StringUtils.isNotBlank(componentSource.getPurl())) {
+      componentTarget.setPurl(componentSource.getPurl());
+    }
+    else if (StringUtils.isNoneBlank(componentSource.getName(), componentSource.getVersion())) {
+      try {
+        PackageURLBuilder builder = PackageURLBuilder.aPackageURL();
+        builder.withType(ComponentIdentifier.FORMAT_GENERIC).withName(componentSource.getName())
+            .withVersion(componentSource.getVersion());
+        if (StringUtils.isNotBlank(componentSource.getGroup())) {
+          builder.withNamespace(componentSource.getGroup());
+        }
+        componentTarget.setPurl(builder.build().canonicalize());
+      }
+      catch (Exception e) {
+        log.debug("Error building generic purl from metadata", e);
+      }
+    }
   }
 
   private void constructProjectDependencyGraph(

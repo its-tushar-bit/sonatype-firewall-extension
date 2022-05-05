@@ -55,6 +55,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.Sets;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -482,13 +483,10 @@ public class ComponentDAO
     result.addAll(componentsByHash.values());
     result.addAll(unhashedComponents);
 
-    // Load license threat group data
+    // Load license threat group and label data
     for (Component component : result) {
+      setNotDeclaredLicensesForClaimedComponent(component);
       loadLicenseThreatGroups(component);
-    }
-
-    // Load label data
-    for (Component component : result) {
       loadComponentLabels(component);
     }
     return result;
@@ -584,6 +582,15 @@ public class ComponentDAO
     loadLicenseThreatGroups(component);
 
     return component;
+  }
+
+  private void setNotDeclaredLicensesForClaimedComponent(Component component) {
+    if (component.getIdentificationSource() == IdentificationSource.MANUAL) {
+      component.setDeclaredMultiLicenseIds(Sets.newHashSet(License.NO_SOURCES_ID, License.NOT_DECLARED_ID));
+      component.setObservedMultiLicenseIds(Sets.newHashSet(License.NO_SOURCES_ID, License.NOT_DECLARED_ID));
+      component.setDeclaredLicenseIds(Sets.newHashSet(License.NO_SOURCES_ID, License.NOT_DECLARED_ID));
+      component.setObservedLicenseIds(Sets.newHashSet(License.NO_SOURCES_ID, License.NOT_DECLARED_ID));
+    }
   }
 
   private void loadComponentLabels(Component component) {

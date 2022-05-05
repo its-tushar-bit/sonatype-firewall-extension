@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -51,6 +50,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilitySource;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -1325,6 +1325,65 @@ public class ScanPolicyEvaluatorTest
 
     assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(1);
     assertContainsPolicyViolation(componentIdentifier, hash, policy, constraint, Action.ID_FAIL,
+        MatchStateConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+  }
+
+  @Test
+  public void testEvaluate_ClaimedComponentHasLegalNonePolicyViolation() throws Exception {
+
+    Constraint constraintLicense1 =
+        new Constraint(null /* constraintId */, "Constraint License No-Sources", LogicalOperator.AND);
+    Condition condition1 = new Condition(LicenseConditionType.ID, "is", License.NO_SOURCES_ID);
+    constraintLicense1.addCondition(condition1);
+    Constraint constraintLicense2 =
+        new Constraint(null /* constraintId */, "Constraint License Not-Declared", LogicalOperator.AND);
+    Condition condition2 = new Condition(LicenseConditionType.ID, "is", License.NOT_DECLARED_ID);
+    constraintLicense2.addCondition(condition2);
+    Constraint constraintLicense3 =
+        new Constraint(null /* constraintId */, "Constraint Unknown Component", LogicalOperator.AND);
+    Condition condition3 = new Condition(MatchStateConditionType.ID, "is", "unknown");
+    constraintLicense3.addCondition(condition3);
+
+    Policy policy1 = new Policy(null /* policyId */, "License-No-Sources");
+    policy1.setThreatLevel(9);
+    policy1.addConstraint(constraintLicense1);
+    policy1.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
+
+    Policy policy2 = new Policy(null /* policyId */, "License-Not-Declared");
+    policy2.setThreatLevel(9);
+    policy2.addConstraint(constraintLicense2);
+    policy2.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policy2.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy2);
+
+    Policy policy3 = new Policy(null /* policyId */, "Unknown Component");
+    policy3.setThreatLevel(2);
+    policy3.addConstraint(constraintLicense3);
+    policy3.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policy3.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy3);
+
+    constraintLicense1 = policy1.getConstraints().get(0);
+    constraintLicense2 = policy2.getConstraints().get(0);
+    constraintLicense3 = policy3.getConstraints().get(0);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    String hash = "5801a1a27a36f88e2089";
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("G", "A", "V");
+
+    String scanId = simulateReportIsAvailable("ManuallyIdentifiedComponent/report");
+    tempEntity.newClaimedComponent(hash, componentIdentifier);
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI);
+    assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(2);
+    assertContainsPolicyViolation(componentIdentifier, hash, policy1, constraintLicense1, Action.ID_FAIL,
+        LicenseConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+    assertContainsPolicyViolation(componentIdentifier, hash, policy2, constraintLicense2, Action.ID_FAIL,
+        LicenseConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
+    assertNotContainsPolicyViolation(componentIdentifier, hash, policy3, constraintLicense3, Action.ID_FAIL,
         MatchStateConditionType.ID, scanPolicyEvaluatorResults.activeViolations);
   }
 

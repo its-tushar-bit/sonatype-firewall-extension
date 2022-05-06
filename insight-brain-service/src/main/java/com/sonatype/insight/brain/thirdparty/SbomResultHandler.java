@@ -51,6 +51,7 @@ import org.cyclonedx.exception.GeneratorException;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.generators.xml.BomXmlGenerator;
 import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.BomReference;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.ExtensibleType;
@@ -635,7 +636,7 @@ public class SbomResultHandler
         String moduleRef = resolveModuleRef(rootModule, targetBom);
         if (moduleRef != null) {
           processValidDependencyGraph(moduleRef, thirdPartyFile, rootModule, targetBom, dependencyItr,
-              moduleDependencies);
+              moduleDependencies, dependencies);
         }
         else {
           log.debug(String.format("Unable to process dependency graph. " +
@@ -651,7 +652,8 @@ public class SbomResultHandler
       final Dependency rootModule,
       final Bom targetBom,
       final Iterator<Dependency> dependencyItr,
-      final List<ProjectScanItem> moduleDependencies)
+      final List<ProjectScanItem> moduleDependencies,
+      final List<Dependency> dependencies)
   {
     Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph =
         new HashMap<>();
@@ -667,8 +669,11 @@ public class SbomResultHandler
           dependencyGraph.put(ref, Pair.of(true, new ArrayList<>()));
         }
       }
+      Map<String, Dependency> dependencyMap =
+          dependencies.stream().collect(Collectors.toMap(BomReference::getRef, dep -> dep));
 
-      resolveSbomDependenciesAndTypes(thirdPartyFile, dependencyItr, dependencyGraph, bomRefsToPurls, targetBom);
+      resolveSbomDependenciesAndTypes(thirdPartyFile, dependencyItr, dependencyGraph, bomRefsToPurls, targetBom,
+          dependencyMap);
       constructProjectDependencyGraph(dependencyGraph, project);
       moduleDependencies.add(project);
     }
@@ -794,11 +799,13 @@ public class SbomResultHandler
       final Iterator<Dependency> dependencyItr,
       final Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph,
       final Map<String, String> bomRefPurlMap,
-      final Bom targetBom)
+      final Bom targetBom,
+      final Map<String, Dependency> fullDependencyMap)
   {
     dependencyItr.forEachRemaining(dependency -> {
       String ref = getPurlForDependency(dependency, bomRefPurlMap, targetBom);
-      Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>> dependencyPair = dependencyGraph.get(ref);
+      Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>> dependencyPair =
+          getProjectDependencyForRef(ref, dependencyGraph, fullDependencyMap);
       if (dependencyPair != null) {
         copyChildDependenciesForDependency(thirdPartyFile, dependencyGraph, dependency, dependencyPair, bomRefPurlMap,
             targetBom);
@@ -809,6 +816,20 @@ public class SbomResultHandler
             dependency.getRef()));
       }
     });
+  }
+
+  private Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>> getProjectDependencyForRef(
+      final String ref,
+      final Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph,
+      final Map<String, Dependency> fullDependencyMap)
+  {
+    Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>> dependencyPair;
+    dependencyPair = dependencyGraph.get(ref);
+    if (dependencyPair == null && fullDependencyMap.containsKey(ref)) {
+      dependencyPair = Pair.of(false, new ArrayList<>());
+      dependencyGraph.put(ref, dependencyPair);
+    }
+    return dependencyPair;
   }
 
   private void copyChildDependenciesForDependency(

@@ -753,6 +753,51 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testProcessDependencyGraph_WithMessyDependencies() {
+    Bom sourceBom = new Bom();
+    Bom targetBom = new Bom();
+    targetBom.addComponent(new Component());
+    Metadata metadata = new Metadata();
+    Component rootComponent = new Component();
+    rootComponent.setName("NugetProject");
+    rootComponent.setBomRef("NugetProject@0.0.0");
+    rootComponent.setVersion("0.0.0");
+    metadata.setComponent(rootComponent);
+    targetBom.setMetadata(metadata);
+    Dependency root = createDependencyList("NugetProject@0.0.0", "pkg:nuget/NUnit3TestAdapter@3.11.2");
+    Dependency d1 = createDependencyList(
+        "pkg:nuget/Microsoft.DotNet.InternalAbstractions@1.0.0", "pkg:nuget/System.AppContext@4.1.0");
+    Dependency d2 = createDependencyList(
+        "pkg:nuget/NUnit3TestAdapter@3.11.2", "pkg:nuget/Microsoft.DotNet.InternalAbstractions@1.0.0");
+    Dependency d3 = createDependencyList("pkg:nuget/System.AppContext@4.1.0");
+    sourceBom.setDependencies(Arrays.asList(root, d1, d2, d3));
+
+    List<ProjectScanItem> result = new ArrayList<>();
+
+    sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
+        new ThirdPartyFile("messy-bom.xml", new Date()));
+
+    assertThat(result).hasSize(1).allSatisfy(projectItem -> {
+      assertThat(projectItem.getKind()).isEqualTo("sbom");
+      assertThat(projectItem.getId()).isEqualTo("NugetProject@0.0.0");
+      assertThat(projectItem.getPath()).isEqualTo("messy-bom.xml");
+      List<com.sonatype.insight.scan.model.Dependency> rootDependencies = projectItem.getDependencies();
+      assertThat(rootDependencies).hasSize(3)
+          .extracting(com.sonatype.insight.scan.model.Dependency::getId)
+          .containsExactlyInAnyOrder(
+              "pkg:nuget/Microsoft.DotNet.InternalAbstractions@1.0.0", "pkg:nuget/System.AppContext@4.1.0",
+              "pkg:nuget/NUnit3TestAdapter@3.11.2");
+      assertParentAndChildDependency(rootDependencies,
+          "pkg:nuget/NUnit3TestAdapter@3.11.2", "pkg:nuget/Microsoft.DotNet.InternalAbstractions@1.0.0");
+      assertParentAndChildDependency(rootDependencies,
+          "pkg:nuget/Microsoft.DotNet.InternalAbstractions@1.0.0", "pkg:nuget/System.AppContext@4.1.0");
+      assertThat(rootDependencies.stream().filter(dependency -> dependency.isDirect())).hasSize(1);
+      assertThat(rootDependencies.stream().filter(dependency -> !dependency.isDirect())).hasSize(2);
+    });
+    assertIdentityMetadata(targetBom, metadata);
+  }
+
+  @Test
   public void testProcessDependencyGraph_WithModulePurl_NoMetadata() {
     Bom sourceBom = new Bom();
     Bom targetBom = new Bom();

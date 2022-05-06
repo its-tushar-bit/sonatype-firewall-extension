@@ -6,7 +6,7 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import moment from 'moment-timezone';
 
-import ApplicationReportVulnerabilitiesHeader from '../../../../main/frontend/applicationReport/vulnerabilities/ApplicationReportVulnerabilitiesHeader';
+import ApplicationReportVulnerabilitiesHeader from 'MainRoot/applicationReport/vulnerabilities/ApplicationReportVulnerabilitiesHeader';
 
 describe('ApplicationReportVulnerabilitiesHeader', () => {
   let getShallowComponent;

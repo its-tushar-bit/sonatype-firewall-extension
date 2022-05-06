@@ -5,9 +5,7 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import moment from 'moment';
-
-const formatDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss [UTC]Z');
+import { formatDate } from '../../util/dateUtils';
 
 export default function ApplicationReportVulnerabilitiesHeader({ metadata }) {
   return (

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 export const STANDARD_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss [UTC]Z';
 export const STANDARD_DATE_FORMAT = 'MM/DD/YYYY';

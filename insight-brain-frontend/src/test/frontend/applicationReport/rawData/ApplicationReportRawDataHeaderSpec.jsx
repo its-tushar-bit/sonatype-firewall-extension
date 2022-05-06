@@ -6,7 +6,7 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import moment from 'moment-timezone';
 
-import ApplicationReportRawDataHeader from '../../../../main/frontend/applicationReport/rawData/ApplicationReportRawDataHeader';
+import ApplicationReportRawDataHeader from 'MainRoot/applicationReport/rawData/ApplicationReportRawDataHeader';
 
 describe('ApplicationReportRawDataHeader', () => {
   let getShallowComponent;

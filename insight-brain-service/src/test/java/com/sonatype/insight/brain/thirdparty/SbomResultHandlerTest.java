@@ -762,6 +762,7 @@ public class SbomResultHandlerTest
     rootComponent.setName("NugetProject");
     rootComponent.setBomRef("NugetProject@0.0.0");
     rootComponent.setVersion("0.0.0");
+    rootComponent.setPurl("NugetProject@0.0.0");
     metadata.setComponent(rootComponent);
     targetBom.setMetadata(metadata);
     Dependency root = createDependencyList("NugetProject@0.0.0", "pkg:nuget/NUnit3TestAdapter@3.11.2");
@@ -933,7 +934,7 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testProcessDependencyGraph_IncorrectGraph_ResultsOnlyResolvables() {
+  public void testProcessDependencyGraph_UnsortedGraph() {
     //given
     Bom sourceBom = new Bom();
     Bom targetBom = new Bom();
@@ -962,9 +963,9 @@ public class SbomResultHandlerTest
       assertThat(projectItem.getId()).isEqualTo("pkg:npm/root@1.0");
       assertThat(projectItem.getPath()).isEqualTo("test-bom.xml");
       List<com.sonatype.insight.scan.model.Dependency> resultDependencies = projectItem.getDependencies();
-      assertThat(resultDependencies).hasSize(1) // can only resolve the root and its direct dependency
+      assertThat(resultDependencies).hasSize(3) // can resolve direct dependencies from root and transitive dependencies
           .extracting(com.sonatype.insight.scan.model.Dependency::getId)
-          .containsExactlyInAnyOrder("pkg:npm/direct1@1.0");
+          .containsExactlyInAnyOrder("pkg:npm/direct2@2.0", "pkg:npm/direct1@1.0", "pkg:npm/d2t1@1.1");
     });
     assertIdentityMetadata(targetBom, metadata);
   }

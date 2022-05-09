@@ -23,13 +23,15 @@ import {
   selectSelectedVersionData,
   selectCurrentVersionDetails,
   selectShowComponentCoordinatesPopover,
+  selectisLoadingApplicationReportOrComponentDetails,
 } from 'MainRoot/componentDetails/overview/overviewSelectors';
-
+import { selectComponentDetails } from 'MainRoot/componentDetails/componentDetailsSelectors';
 import {
   selectSelectedComponent,
   selectApplicationReportMetaData,
-} from '../../../../main/frontend/applicationReport/applicationReportSelectors';
-import { selectRouterCurrentParams } from '../../../../main/frontend/reduxUiRouter/routerSelectors';
+  selectApplicationReportSlice,
+} from 'MainRoot/applicationReport/applicationReportSelectors';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('overviewSelectors', () => {
   const versionExplorerData = {
@@ -509,6 +511,94 @@ describe('overviewSelectors', () => {
       });
 
       expect(actualSelection).toBe(true);
+    });
+  });
+
+  describe('selectisLoadingApplicationReportOrComponentDetails', () => {
+    const mockState = {
+      router: {
+        currentParams: {
+          hash: 'some-component-hash',
+        },
+        currentState: {
+          name: 'router-state-name',
+        },
+      },
+      applicationReport: {
+        metadata: {
+          application: {
+            name: 'The App',
+            publicId: 'TheApp',
+            organization: {
+              name: 'The Org',
+            },
+          },
+          reportTime: 1623135382098,
+          reportTitle: 'Title of Report',
+          stageId: 'test',
+        },
+        selectedReport: {
+          allEntries: [
+            {
+              derivedComponentName: 'My Component',
+              hash: 'some-component-hash',
+              componentIdentifier: { format: 'maven' },
+              derivedDependencyType: 'transitive',
+              policyThreatLevel: 10,
+            },
+          ],
+        },
+        pendingLoads: new Set(['test']),
+      },
+      componentDetails: {
+        pendingLoads: new Set(['test']),
+      },
+    };
+
+    it('is composed of the following selectors', () => {
+      expect(selectisLoadingApplicationReportOrComponentDetails.dependencies).toEqual([
+        selectApplicationReportSlice,
+        selectComponentDetails,
+      ]);
+    });
+
+    it('returns true if the application report is loading', () => {
+      const state = {
+        ...mockState,
+        applicationReport: {
+          pendingLoads: new Set(['common']),
+        },
+      };
+      const actual = selectisLoadingApplicationReportOrComponentDetails(state);
+      expect(actual).toEqual(true);
+    });
+
+    it('returns true if there are no component details in the state', () => {
+      const state = {
+        ...mockState,
+        router: {
+          currentParams: {
+            hash: 'new-hash',
+          },
+        },
+      };
+      const actual = selectisLoadingApplicationReportOrComponentDetails(state);
+      expect(actual).toEqual(true);
+    });
+
+    it('returns false if app report & component details are loaded', () => {
+      const state = {
+        ...mockState,
+        componentDetails: {
+          pendingLoads: new Set([]),
+        },
+        applicationReport: {
+          ...mockState.applicationReport,
+          pendingLoads: new Set([]),
+        },
+      };
+      const actual = selectisLoadingApplicationReportOrComponentDetails(state);
+      expect(actual).toEqual(false);
     });
   });
 });

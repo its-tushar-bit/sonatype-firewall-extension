@@ -9,7 +9,9 @@ import { prop } from 'ramda';
 import {
   selectSelectedComponent,
   selectApplicationReportMetaData,
+  selectApplicationReportSlice,
 } from '../../applicationReport/applicationReportSelectors';
+import { selectComponentDetails } from '../../componentDetails/componentDetailsSelectors';
 import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
 import { getComponentVersionComparisonInfo } from '../componentDetailsUtils';
 import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
@@ -139,4 +141,10 @@ export const selectComponentDetailsSelectedRequestData = createSelector(
 export const selectShowComponentCoordinatesPopover = createSelector(
   selectComponentDetailsOverviewSlice,
   prop('showComponentCoordinatesPopover')
+);
+
+export const selectisLoadingApplicationReportOrComponentDetails = createSelector(
+  selectApplicationReportSlice,
+  selectComponentDetails,
+  (applicationReportSlice, componentDetails) => !!applicationReportSlice.pendingLoads.size || !componentDetails
 );

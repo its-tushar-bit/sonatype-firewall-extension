@@ -10,16 +10,12 @@ import { selectSelectedComponent } from '../../applicationReport/applicationRepo
 import { actions } from './overviewSlice';
 import { loadReportIfNeeded } from '../../applicationReport/applicationReportActions';
 import { occurrencesPopoverActions } from './occurrencesPopover/occurrencesPopoverSlice';
-import {
-  selectComponentSimilarMatches,
-  selectComponentDetailsLoading,
-  selectComponentDetailsLoadErrors,
-} from '../componentDetailsSelectors';
-import { selectVersionExplorerData } from './overviewSelectors';
+import { selectComponentSimilarMatches, selectComponentDetailsLoadErrors } from '../componentDetailsSelectors';
+import { selectVersionExplorerData, selectisLoadingApplicationReportOrComponentDetails } from './overviewSelectors';
 
 function mapStateToProps(state) {
   return {
-    loading: selectComponentDetailsLoading(state),
+    loading: selectisLoadingApplicationReportOrComponentDetails(state),
     loadError: selectComponentDetailsLoadErrors(state),
     componentInformation: selectSelectedComponent(state),
     similarMatches: selectComponentSimilarMatches(state),

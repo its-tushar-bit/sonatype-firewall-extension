@@ -36,7 +36,7 @@ describe('orgsAndPoliciesPolicyMonitoringActions', () => {
     spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
       applicationPublicId: 'application',
     });
-    productFeaturesSpy = spyOn(productFeaturesSelectors, 'selectProductFeaturesSlice').and.returnValue({});
+    productFeaturesSpy = spyOn(productFeaturesSelectors, 'selectProductFeatures').and.returnValue({});
   });
 
   describe('loadApplicablePolicyMonitoring', () => {

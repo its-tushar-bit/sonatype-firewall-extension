@@ -253,7 +253,9 @@ describe('policy.violations.controller', function () {
     it('sets innerSourceTransitiveWaiver', () => {
       const state = {
         productFeatures: {
-          'inner-source-transitive-waiver': true,
+          productFeatures: {
+            'inner-source-transitive-waiver': true,
+          },
         },
       };
 

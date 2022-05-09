@@ -75,9 +75,11 @@ describe('mainHeaderSpec', function () {
     it('sets applicableLabels, error, loading and ownerName', () => {
       const state = {
         productFeatures: {
-          'webhooks-for-applications': true,
-          'data-insights': true,
-          automation: true,
+          productFeatures: {
+            'webhooks-for-applications': true,
+            'data-insights': true,
+            automation: true,
+          },
         },
       };
 

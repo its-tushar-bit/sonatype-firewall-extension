@@ -11,20 +11,31 @@ import {
   getEnableUnauthenticatedPages,
   getQuarantinedComponentViewAnonymousAccessEnabledState,
 } from 'MainRoot/util/CLMLocation';
-import { selectProductFeaturesSlice } from './productFeaturesSelectors';
+import { selectProductFeatures } from './productFeaturesSelectors';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 const REDUCER_NAME = 'productFeatures';
 
-export const initialState = {};
+export const initialState = {
+  loading: false,
+  loadError: null,
+  productFeatures: {},
+};
 
-const fetchProductFeaturesIfNeededFullfilled = (state, { payload }) => {
-  if (payload) {
-    return {
-      ...state,
-      ...payload,
-    };
-  }
-  return state;
+const fetchProductFeaturesIfNeededFulfilled = (state, { payload }) => {
+  state.loading = false;
+  state.loadError = null;
+  state.productFeatures = { ...state.productFeatures, ...payload };
+};
+
+const fetchProductFeaturesIfNeededPending = (state) => {
+  state.loading = true;
+  state.loadError = null;
+};
+
+const fetchProductFeaturesIfNeededRejected = (state, { payload }) => {
+  state.loading = true;
+  state.loadError = Messages.getHttpErrorMessage(payload);
 };
 
 const fetchProductFeatures = createAsyncThunk(`${REDUCER_NAME}/fetchProductFeatures`, (_, { rejectWithValue }) => {
@@ -43,7 +54,7 @@ const loadIsQuarantinedComponentViewAnonymousAccessEnabled = createAsyncThunk(
 const fetchProductFeaturesIfNeeded = createAsyncThunk(
   `${REDUCER_NAME}/fetchProductFeaturesIfNeeded`,
   (_, { getState, dispatch, rejectWithValue }) => {
-    const productFeatures = selectProductFeaturesSlice(getState());
+    const productFeatures = selectProductFeatures(getState());
     const promise = isEmpty(productFeatures) ? dispatch(fetchProductFeatures()) : Promise.resolve({});
     return promise
       .then((featuresPayload) => {
@@ -73,7 +84,9 @@ const productFeaturesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   extraReducers: {
-    [fetchProductFeaturesIfNeeded.fulfilled]: fetchProductFeaturesIfNeededFullfilled,
+    [fetchProductFeaturesIfNeeded.fulfilled]: fetchProductFeaturesIfNeededFulfilled,
+    [fetchProductFeaturesIfNeeded.pending]: fetchProductFeaturesIfNeededPending,
+    [fetchProductFeaturesIfNeeded.rejected]: fetchProductFeaturesIfNeededRejected,
   },
 });
 

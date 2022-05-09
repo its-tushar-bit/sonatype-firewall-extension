@@ -3,120 +3,85 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { selectIsInnerSourceRepositorySupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsInnerSourceRepositorySupported,
+  selectLoadErrorFeaturesSlice,
+  selectLoadingFeaturesSlice,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import template from './innersource.repository.tile.html';
-
+import { selectIsApplication, selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 export default {
   template: template,
   controllerAs: 'vm',
   controller: InnerSourceRepositoryTileController,
 };
 
-function InnerSourceRepositoryTileController(
-  $scope,
-  EventNameConstant,
-  CLMContextLocations,
-  OrganizationStore,
-  ApplicationStore,
-  $q,
-  Messages,
-  InnerSourceRepositoryService,
-  $ngRedux
-) {
+function InnerSourceRepositoryTileController($scope, Messages, InnerSourceRepositoryService, $ngRedux) {
   var vm = this;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
   })(vm);
 
-  vm.load = load;
-  vm.error = undefined;
   vm.loading = false;
-  vm.isOrg = CLMContextLocations.isOrganization();
-  vm.isApp = CLMContextLocations.isApplication();
   vm.innerSourceRepositories = [];
-  vm.innerSourceRepositoriesInheritedFrom = undefined;
-  vm.innerSourceRepositoriesEnabled = undefined;
-  vm.editLink = undefined;
-
-  vm.load();
-
-  $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, function () {
-    load();
-  });
+  vm.ownerType = vm.isOrg ? 'organization' : 'application';
+  vm.loadRepositoryConnections = loadRepositoryConnections;
 
   $scope.$on('$destroy', function () {
     vm.unsubscribe();
   });
 
-  function load() {
-    vm.error = undefined;
+  $scope.$watch('vm.ownerId', function (newValue, oldValue) {
+    if (newValue && newValue !== oldValue) {
+      vm.editLink = `repositoryBaseConfigurations.${vm.ownerType}({${vm.ownerType}Id:'${vm.ownerId}'})`;
+      if (vm.isInnerSourceRepositorySupported) vm.loadRepositoryConnections();
+    }
+  });
+
+  $scope.$watch('vm.ownerType', function (newValue) {
+    if (newValue) {
+      vm.editLink = `repositoryBaseConfigurations.${vm.ownerType}({${vm.ownerType}Id:'${vm.ownerId}'})`;
+    }
+  });
+
+  function loadRepositoryConnections() {
     vm.loading = true;
-
-    let ownerPromise;
-    let ownerId;
-    let ownerType;
-
-    if (vm.isOrg) {
-      ownerPromise = OrganizationStore.getById(CLMContextLocations.getEntityId());
-      ownerType = 'organization';
-    } else if (vm.isApp) {
-      ownerPromise = ApplicationStore.getById(CLMContextLocations.getEntityId());
-      ownerType = 'application';
-    }
-
-    if (ownerPromise !== undefined) {
-      const promises = [ownerPromise, vm.loadProductFeatures()];
-      $q.all(promises)
-        .then(function (results) {
-          unwrapResult(results[1]);
-          ownerId = results[0].id;
-          vm.editLink = 'repositoryBaseConfigurations.' + ownerType + '({' + ownerType + "Id:'" + ownerId + "'})";
-          if (vm.isInnerSourceRepositorySupported) {
-            return InnerSourceRepositoryService.getRepositoryConnections(ownerType, ownerId, true);
-          }
-        })
-        .then(function (result) {
-          if (!result) {
-            return;
-          }
-          if (Array.isArray(result.repositoryConnections) && result.repositoryConnections.length > 0) {
-            vm.innerSourceRepositories = result.repositoryConnections;
-          }
-          if (!result.repositoryConnectionStatus) {
-            return;
-          }
-          vm.innerSourceRepositoriesEnabled =
-            result.repositoryConnectionStatus.inheritedFromOrgEnabled ||
-            (result.repositoryConnectionStatus.allowChange && result.repositoryConnectionStatus.enabled);
-          vm.innerSourceRepositoriesInheritedFrom = result.repositoryConnectionStatus.inheritedFromOrganizationName;
-        })
-        .catch(function (e) {
-          vm.error = Messages.getHttpErrorMessage(e);
-        })
-        .finally(function () {
-          vm.loading = false;
-        });
-    } else {
-      vm.loading = false;
-    }
+    vm.error = undefined;
+    InnerSourceRepositoryService.getRepositoryConnections(vm.ownerType, vm.ownerId, true)
+      .then(function (result) {
+        if (!result) {
+          return;
+        }
+        if (Array.isArray(result.repositoryConnections) && result.repositoryConnections.length > 0) {
+          vm.innerSourceRepositories = result.repositoryConnections;
+        }
+        if (!result.repositoryConnectionStatus) {
+          return;
+        }
+        vm.innerSourceRepositoriesEnabled =
+          result.repositoryConnectionStatus.inheritedFromOrgEnabled ||
+          (result.repositoryConnectionStatus.allowChange && result.repositoryConnectionStatus.enabled);
+        vm.innerSourceRepositoriesInheritedFrom = result.repositoryConnectionStatus.inheritedFromOrganizationName;
+      })
+      .catch(function (e) {
+        vm.error = Messages.getHttpErrorMessage(e);
+      })
+      .finally(function () {
+        vm.loading = false;
+      });
   }
 }
 
 const mapStateToThis = (state) => ({
   isInnerSourceRepositorySupported: selectIsInnerSourceRepositorySupported(state),
+  isOrg: selectIsOrganization(state),
+  isApp: selectIsApplication(state),
+  ownerId: selectSelectedOwnerId(state),
+  loadingFeatures: selectLoadingFeaturesSlice(state),
+  loadError: selectLoadErrorFeaturesSlice(state),
 });
 
-InnerSourceRepositoryTileController.$inject = [
-  '$scope',
-  'event.name.constant',
-  'CLMContextLocations',
-  'OrganizationStore',
-  'ApplicationStore',
-  '$q',
-  'Messages',
-  'InnerSourceRepositoryService',
-  '$ngRedux',
-];
+InnerSourceRepositoryTileController.$inject = ['$scope', 'Messages', 'InnerSourceRepositoryService', '$ngRedux'];

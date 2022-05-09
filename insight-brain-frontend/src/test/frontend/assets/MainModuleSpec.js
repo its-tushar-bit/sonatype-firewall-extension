@@ -58,7 +58,7 @@ describe('mainModuleSpec', function () {
 
   describe('Validate requests made on initService start', function () {
     beforeEach(() => {
-      $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({ productFeatures: {} });
+      $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({ productFeatures: { productFeatures: {} } });
     });
 
     it('validate state after all requests succeed', inject(function (
@@ -172,7 +172,9 @@ describe('mainModuleSpec', function () {
       $rootScope.isAllowExternalHyperlinks = false;
       $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
         productFeatures: {
-          dashboard: true,
+          productFeatures: {
+            dashboard: true,
+          },
         },
       });
 
@@ -201,7 +203,9 @@ describe('mainModuleSpec', function () {
       $rootScope.isAllowExternalHyperlinks = false;
       $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
         productFeatures: {
-          'reports-list': true,
+          productFeatures: {
+            'reports-list': true,
+          },
         },
       });
 
@@ -230,8 +234,10 @@ describe('mainModuleSpec', function () {
       $rootScope.isAllowExternalHyperlinks = false;
       $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
         productFeatures: {
-          dashboard: true,
-          'reports-list': true,
+          productFeatures: {
+            dashboard: true,
+            'reports-list': true,
+          },
         },
       });
 
@@ -291,7 +297,9 @@ describe('mainModuleSpec', function () {
             },
           },
           productFeatures: {
-            dashboard: true,
+            productFeatures: {
+              dashboard: true,
+            },
           },
         });
 

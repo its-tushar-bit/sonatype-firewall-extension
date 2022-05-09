@@ -103,7 +103,7 @@ export const InitModule = angular
                 .then((results) => {
                   unwrapResult(results[0]);
 
-                  const { productFeatures = {} } = $ngRedux.getState();
+                  const { productFeatures = {} } = $ngRedux.getState().productFeatures;
                   const isDashboardAvailable = productFeatures.dashboard;
                   const isReportsListAvailable = productFeatures['reports-list'];
 

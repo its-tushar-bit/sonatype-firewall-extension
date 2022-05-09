@@ -17,15 +17,15 @@ describe('productFeaturesActions', () => {
 
   beforeEach(() => {
     state = {
-      productFeatures: {},
+      productFeatures: { productFeatures: {} },
     };
     store = SpecUtil.mockReduxStore(state);
   });
 
   describe('fetchProductFeaturesIfNeeded', () => {
-    let selectProductFeaturesSliceSpy;
+    let selectProductFeaturesSpy;
     beforeEach(() => {
-      selectProductFeaturesSliceSpy = spyOn(productFeaturesSelectors, 'selectProductFeaturesSlice').and.returnValue({});
+      selectProductFeaturesSpy = spyOn(productFeaturesSelectors, 'selectProductFeatures').and.returnValue({});
     });
 
     it('load product features successfully if no product features were loaded before', (done) => {
@@ -81,7 +81,7 @@ describe('productFeaturesActions', () => {
     });
 
     it('does not load product features if product features data is available', (done) => {
-      selectProductFeaturesSliceSpy.and.returnValue({
+      selectProductFeaturesSpy.and.returnValue({
         enforcement: true,
         firewall: true,
         'policy-monitoring': true,
@@ -93,7 +93,6 @@ describe('productFeaturesActions', () => {
 
       store.dispatch(actions.fetchProductFeaturesIfNeeded()).then(() => {
         const actions = store.getActions();
-
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
           'productFeatures/fetchProductFeaturesIfNeeded/pending',

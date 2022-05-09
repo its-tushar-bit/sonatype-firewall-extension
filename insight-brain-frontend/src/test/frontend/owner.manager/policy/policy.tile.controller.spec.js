@@ -92,10 +92,12 @@ describe('policy.tile.controller', function () {
       const state = {
         router: { currentParams: { organizationId: 'org id', applicationPublicId: 'app id' } },
         productFeatures: {
-          'policy-monitoring': true,
-          'policy-grandfathering': true,
-          enforcement: true,
-          firewall: true,
+          productFeatures: {
+            'policy-monitoring': true,
+            'policy-grandfathering': true,
+            enforcement: true,
+            firewall: true,
+          },
         },
         orgsAndPolicies: {
           proprietary: {

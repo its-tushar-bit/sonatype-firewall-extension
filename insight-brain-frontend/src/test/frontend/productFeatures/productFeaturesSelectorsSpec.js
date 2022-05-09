@@ -23,6 +23,10 @@ import {
   selectIsDataInsightsSupported,
   selectIsInnerSourceTransitiveWaiverSupported,
   selectIsAllowExternalHyperlinksSupported,
+  selectLoadErrorFeaturesSlice,
+  selectLoadingFeaturesSlice,
+  selectProductFeaturesSlice,
+  selectProductFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('productFeaturesSelectors', () => {
@@ -31,26 +35,54 @@ describe('productFeaturesSelectors', () => {
   beforeEach(() => {
     mockState = {
       productFeatures: {
-        enforcement: true,
-        firewall: true,
-        'policy-monitoring': true,
-        'policy-grandfathering': true,
-        notifications: true,
-        'webhooks-for-applications': true,
-        'webhooks-for-repositories': true,
-        automation: true,
-        'inner-source-repository-integration': true,
-        'cli-integration': true,
-        'reports-list': true,
-        dashboard: true,
-        'advanced-legal-pack': true,
-        'release-integrity': true,
-        'firewall-auto-unquarantine': true,
-        'data-insights': true,
-        'inner-source-transitive-waiver': true,
-        'allow-external-hyperlinks': true,
+        loading: false,
+        loadError: 'error',
+        productFeatures: {
+          enforcement: true,
+          firewall: true,
+          'policy-monitoring': true,
+          'policy-grandfathering': true,
+          notifications: true,
+          'webhooks-for-applications': true,
+          'webhooks-for-repositories': true,
+          automation: true,
+          'inner-source-repository-integration': true,
+          'cli-integration': true,
+          'reports-list': true,
+          dashboard: true,
+          'advanced-legal-pack': true,
+          'release-integrity': true,
+          'firewall-auto-unquarantine': true,
+          'data-insights': true,
+          'inner-source-transitive-waiver': true,
+          'allow-external-hyperlinks': true,
+        },
       },
     };
+  });
+
+  describe('selectProductFeaturesSlice', () => {
+    it('returns selectProductFeaturesSlice', () => {
+      expect(selectProductFeaturesSlice(mockState)).toEqual(mockState.productFeatures);
+    });
+  });
+
+  describe('selectProductFeatures', () => {
+    it('returns productFeatures object', () => {
+      expect(selectProductFeatures(mockState)).toEqual(mockState.productFeatures.productFeatures);
+    });
+  });
+
+  describe('selectLoadingFeaturesSlice', () => {
+    it('returns loading', () => {
+      expect(selectLoadingFeaturesSlice(mockState)).toBeFalse();
+    });
+  });
+
+  describe('selectLoadErrorFeaturesSlice', () => {
+    it('returns loadError', () => {
+      expect(selectLoadErrorFeaturesSlice(mockState)).toBe('error');
+    });
   });
 
   describe('selectIsEnforcementSupported', () => {
@@ -109,14 +141,14 @@ describe('productFeaturesSelectors', () => {
 
   describe('selectIsSourceControlForSourceTileSupported', () => {
     it('returns true if notifications enabled', () => {
-      mockState.productFeatures.notifications = true;
-      mockState.productFeatures.automation = false;
+      mockState.productFeatures.productFeatures.notifications = true;
+      mockState.productFeatures.productFeatures.automation = false;
       expect(selectIsSourceControlForSourceTileSupported(mockState)).toBeTrue();
     });
 
     it('returns true if automation enabled', () => {
-      mockState.productFeatures.notifications = false;
-      mockState.productFeatures.automation = true;
+      mockState.productFeatures.productFeatures.notifications = false;
+      mockState.productFeatures.productFeatures.automation = true;
       expect(selectIsSourceControlForSourceTileSupported(mockState)).toBeTrue();
     });
   });
@@ -157,12 +189,12 @@ describe('productFeaturesSelectors', () => {
     });
 
     it('returns false if firewall-auto-unquarantine is disabled', () => {
-      mockState.productFeatures['firewall-auto-unquarantine'] = false;
+      mockState.productFeatures.productFeatures['firewall-auto-unquarantine'] = false;
       expect(selectIsFirewallSupportedForNavigationContainer(mockState)).toBeFalse();
     });
 
     it('returns false if release-integrity is disabled', () => {
-      mockState.productFeatures['release-integrity'] = false;
+      mockState.productFeatures.productFeatures['release-integrity'] = false;
       expect(selectIsFirewallSupportedForNavigationContainer(mockState)).toBeFalse();
     });
   });

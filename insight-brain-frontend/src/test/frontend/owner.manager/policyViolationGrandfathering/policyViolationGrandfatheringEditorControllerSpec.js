@@ -45,7 +45,9 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
     it('sets isGrandfatheringSupported to component', () => {
       const state = {
         productFeatures: {
-          'policy-grandfathering': true,
+          productFeatures: {
+            'policy-grandfathering': true,
+          },
         },
       };
 

@@ -73,7 +73,9 @@ describe('monitored.stage.editor.controller', function () {
     it('sets policyMonitoringByOwner, stages, originalStage, monitoredStage, loading, loadError, submitError', () => {
       const state = {
         productFeatures: {
-          'policy-monitoring': true,
+          productFeatures: {
+            'policy-monitoring': true,
+          },
         },
         orgsAndPolicies: {
           stages: {

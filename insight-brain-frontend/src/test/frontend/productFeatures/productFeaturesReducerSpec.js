@@ -9,7 +9,9 @@ describe('productFeatures slice', () => {
   describe('productFeatures/fetchProductFeaturesIfNeeded/fulfilled', () => {
     it('sets payload to state', () => {
       const state = Object.freeze({
-        automation: true,
+        productFeatures: {
+          automation: true,
+        },
       });
 
       const newState = reducer(state, {
@@ -19,10 +21,9 @@ describe('productFeatures slice', () => {
           firewall: true,
         },
       });
-
-      expect(newState.enforcement).toBeTrue();
-      expect(newState.firewall).toBeTrue();
-      expect(newState.automation).toBeTrue();
+      expect(newState.productFeatures.enforcement).toBeTrue();
+      expect(newState.productFeatures.firewall).toBeTrue();
+      expect(newState.productFeatures.automation).toBeTrue();
     });
   });
 });

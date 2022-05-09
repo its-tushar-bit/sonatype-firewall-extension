@@ -131,10 +131,12 @@ describe('navigationContainerSpec', function () {
     it('returns isFirewallSupported, isAdvancedLegalPackSupported, isDashboardSupported isReportListSupported properly', function () {
       const state = {
         productFeatures: {
-          'advanced-legal-pack': true,
-          'release-integrity': true,
-          dashboard: true,
-          'reports-list': true,
+          productFeatures: {
+            'advanced-legal-pack': true,
+            'release-integrity': true,
+            dashboard: true,
+            'reports-list': true,
+          },
         },
       };
 

@@ -71,10 +71,6 @@ export default function OwnerSummaryController(
   vm.repositoryUrl = undefined;
   vm.scmProvider = undefined;
 
-  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-    loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
-  })(vm);
-
   var siblings,
     stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
     type = vm.isApp ? ownerConstant.APPLICATION_TYPE : ownerConstant.ORGANIZATION_TYPE,

@@ -5,12 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class ApiOwnerArtifactoryConnectionsDTO
+public class ApiOwnerArtifactoryConnectionDTO
 {
-  public List<ApiArtifactoryConnectionDTO> artifactoryConnections = new ArrayList<>();
+  public ApiArtifactoryConnectionDTO artifactoryConnection;
 
   public ApiArtifactoryConnectionStatusDTO artifactoryConnectionStatus;
 

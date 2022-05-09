@@ -7,14 +7,13 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionsDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory.ArtifactoryClientBuilder;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryClient;
@@ -44,7 +43,6 @@ import static com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnection
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
-import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -140,7 +138,7 @@ public class ApiArtifactoryConnectionServiceTest
   }
 
   @Test
-  public void testGetOwnerArtifactoryConnections_Organization() {
+  public void testGetOwnerArtifactoryConnection_Organization() {
     Organization org = tempEntity.newOrganization();
     org.setArtifactoryConnectionEnabled(true);
     organizationDAO.update(org);
@@ -148,46 +146,46 @@ public class ApiArtifactoryConnectionServiceTest
   }
 
   @Test
-  public void testGetOwnerArtifactoryConnections_Organization_Inherit() {
+  public void testGetOwnerArtifactoryConnection_Organization_Inherit() {
     Organization org = tempEntity.newOrganization();
     tempEntity.newArtifactoryConnection(org.getId(), "url1", "user1", "pass1".toCharArray());
     //add one to the ROOT which will be the effective connection
     tempEntity.newArtifactoryConnection(
         Organization.ROOT_ORGANIZATION_ID, "url2", "user2", "pass2".toCharArray());
-    List<ApiArtifactoryConnectionDTO> connections = artifactoryConnectionService
-        .getOwnerArtifactoryConnections(OwnerType.ORGANIZATION, org.getId(), true).artifactoryConnections;
-    assertThat(connections).hasSize(1).extracting("baseUrl", "username", "ownerType", "ownerId")
-        .containsExactly(tuple("url2", "user2", OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID));
+    ApiArtifactoryConnectionDTO connection = artifactoryConnectionService
+        .getOwnerArtifactoryConnection(OwnerType.ORGANIZATION, org.getId(), true).artifactoryConnection;
+    assertThat(connection).extracting("baseUrl", "username", "ownerType", "ownerId")
+        .containsExactly("url2", "user2", OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Test
-  public void testGetOwnerArtifactoryConnections_Organization_Inherit_Disabled() {
+  public void testGetOwnerArtifactoryConnection_Organization_Inherit_Disabled() {
     Organization org = tempEntity.newOrganization();
     tempEntity.newArtifactoryConnection(org.getId(), "url1", "user1", "pass1".toCharArray());
     org.setArtifactoryConnectionEnabled(false);
     organizationDAO.update(org);
 
-    List<ApiArtifactoryConnectionDTO> connections = artifactoryConnectionService
-        .getOwnerArtifactoryConnections(OwnerType.ORGANIZATION, org.getId(), true).artifactoryConnections;
-    assertThat(connections).hasSize(1).extracting("baseUrl", "username", "ownerType", "ownerId")
-        .containsExactly(tuple("url1", "user1", OwnerType.ORGANIZATION, org.getId()));
+    ApiArtifactoryConnectionDTO connection = artifactoryConnectionService
+        .getOwnerArtifactoryConnection(OwnerType.ORGANIZATION, org.getId(), true).artifactoryConnection;
+    assertThat(connection).extracting("baseUrl", "username", "ownerType", "ownerId")
+        .containsExactly("url1", "user1", OwnerType.ORGANIZATION, org.getId());
   }
 
   @Test
-  public void testGetOwnerArtifactoryConnections_Root_Inherit_Disabled() {
+  public void testGetOwnerArtifactoryConnection_Root_Inherit_Disabled() {
     Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     tempEntity.newArtifactoryConnection(rootOrg.getId(), "url2", "user2", "pass2".toCharArray());
     rootOrg.setArtifactoryConnectionEnabled(null);
     organizationDAO.update(rootOrg);
 
-    List<ApiArtifactoryConnectionDTO> connections = artifactoryConnectionService
-        .getOwnerArtifactoryConnections(OwnerType.ORGANIZATION, rootOrg.getId(), true).artifactoryConnections;
-    assertThat(connections).hasSize(1).extracting("baseUrl", "username", "ownerType", "ownerId")
-        .containsExactly(tuple("url2", "user2", OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID));
+    ApiArtifactoryConnectionDTO connection = artifactoryConnectionService
+        .getOwnerArtifactoryConnection(OwnerType.ORGANIZATION, rootOrg.getId(), true).artifactoryConnection;
+    assertThat(connection).extracting("baseUrl", "username", "ownerType", "ownerId")
+        .containsExactly("url2", "user2", OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Test
-  public void testGetOwnerArtifactoryConnections_Application() {
+  public void testGetOwnerArtifactoryConnection_Application() {
     Application app = tempEntity.newApplicationWithParent();
     app.setArtifactoryConnectionEnabled(true);
     applicationDAO.update(app);
@@ -195,45 +193,43 @@ public class ApiArtifactoryConnectionServiceTest
   }
 
   @Test
-  public void testGetOwnerArtifactoryConnections_Application_Inherit() {
+  public void testGetOwnerArtifactoryConnection_Application_Inherit() {
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newArtifactoryConnection(app.getId(), "url1", "user1", "pass1".toCharArray());
     //add one to the ROOT which will be the effective connection
     tempEntity.newArtifactoryConnection(
         Organization.ROOT_ORGANIZATION_ID, "url2", "user2", "pass2".toCharArray());
-    List<ApiArtifactoryConnectionDTO> connections = artifactoryConnectionService
-        .getOwnerArtifactoryConnections(OwnerType.APPLICATION, app.getId(), true).artifactoryConnections;
-    assertThat(connections).hasSize(1).extracting("baseUrl", "username", "ownerType", "ownerId")
-        .containsExactly(tuple("url2", "user2", OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID));
+    ApiArtifactoryConnectionDTO connection = artifactoryConnectionService
+        .getOwnerArtifactoryConnection(OwnerType.APPLICATION, app.getId(), true).artifactoryConnection;
+    assertThat(connection).extracting("baseUrl", "username", "ownerType", "ownerId")
+        .containsExactly("url2", "user2", OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
   }
 
   @Test
-  public void testGetOwnerArtifactoryConnections_Application_Inherit_Disabled() {
+  public void testGetOwnerArtifactoryConnection_Application_Inherit_Disabled() {
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newArtifactoryConnection(app.getId(), "url1", "user1", "pass1".toCharArray());
     app.setArtifactoryConnectionEnabled(false);
     applicationDAO.update(app);
 
-    List<ApiArtifactoryConnectionDTO> connections = artifactoryConnectionService
-        .getOwnerArtifactoryConnections(OwnerType.APPLICATION, app.getId(), true).artifactoryConnections;
-    assertThat(connections).hasSize(1).extracting("baseUrl", "username", "ownerType", "ownerId")
-        .containsExactly(tuple("url1", "user1", OwnerType.APPLICATION, app.getId()));
+    ApiArtifactoryConnectionDTO connection = artifactoryConnectionService
+        .getOwnerArtifactoryConnection(OwnerType.APPLICATION, app.getId(), true).artifactoryConnection;
+    assertThat(connection).extracting("baseUrl", "username", "ownerType", "ownerId")
+        .containsExactly("url1", "user1", OwnerType.APPLICATION, app.getId());
   }
 
   private void testGetOwnerArtifactoryConnections(final String id, final OwnerType ownerType) {
     tempEntity.newArtifactoryConnection(id, "url1", "user1", "pass1".toCharArray());
-    tempEntity.newArtifactoryConnection(id, "url2", "user2", "pass2".toCharArray());
 
     Owner owner = ownerDAO.getById(id);
-    List<ApiArtifactoryConnectionDTO> connections =
-        artifactoryConnectionService.getOwnerArtifactoryConnections(ownerType, id, false).artifactoryConnections;
-    assertThat(connections).hasSize(2).extracting("baseUrl", "username", "ownerType", "ownerId")
-        .containsExactlyInAnyOrder(tuple("url1", "user1", owner.getType(), owner.getId()),
-            tuple("url2", "user2", owner.getType(), owner.getId()));
+    ApiArtifactoryConnectionDTO connection =
+        artifactoryConnectionService.getOwnerArtifactoryConnection(ownerType, id, false).artifactoryConnection;
+    assertThat(connection).extracting("baseUrl", "username", "ownerType", "ownerId")
+        .containsExactlyInAnyOrder("url1", "user1", owner.getType(), owner.getId());
   }
 
   @Test
-  public void testGetOwnerArtifactoryConnections_InheritTrue_Application() {
+  public void testGetOwnerArtifactoryConnection_InheritTrue_Application() {
     tempEntity.newArtifactoryConnection("other", "url1", "user1", "pass1".toCharArray());
     Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Organization organization = tempEntity.newOrganization();
@@ -243,17 +239,17 @@ public class ApiArtifactoryConnectionServiceTest
     String appId = application.getId();
 
     // None
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.APPLICATION, appId,
-        true).artifactoryConnections).isEmpty();
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.APPLICATION, appId,
+        true).artifactoryConnection).isNull();
 
     // Only root org
     rootOrganization.setAllowArtifactoryConnectionOverride(false);
     organizationDAO.update(rootOrganization);
     ArtifactoryConnection rootOrgArtifactoryConnection = tempEntity.newArtifactoryConnection(
         rootOrgId, "url1", "user1", "pass1".toCharArray());
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.APPLICATION, appId,
-        true).artifactoryConnections)
-        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, rootOrgId));
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.APPLICATION, appId,
+        true).artifactoryConnection)
+        .extracting("ownerType", "ownerId").containsExactly(OwnerType.ORGANIZATION, rootOrgId);
 
     // Root org and org
     rootOrganization.setAllowArtifactoryConnectionOverride(true);
@@ -263,9 +259,9 @@ public class ApiArtifactoryConnectionServiceTest
     organizationDAO.update(organization);
     ArtifactoryConnection orgArtifactoryConnection = tempEntity.newArtifactoryConnection(
         orgId, "url1", "user1", "pass1".toCharArray());
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.APPLICATION, appId,
-        true).artifactoryConnections)
-        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, organization.getId()));
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.APPLICATION, appId,
+        true).artifactoryConnection)
+        .extracting("ownerType", "ownerId").containsExactly(OwnerType.ORGANIZATION, organization.getId());
 
     // Root org, org, and app
     rootOrganization.setAllowArtifactoryConnectionOverride(true);
@@ -276,28 +272,28 @@ public class ApiArtifactoryConnectionServiceTest
         appId, "url1", "user1", "pass1".toCharArray());
     application.setArtifactoryConnectionEnabled(true);
     applicationDAO.update(application);
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.APPLICATION, appId,
-        true).artifactoryConnections)
-        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.APPLICATION, appId));
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.APPLICATION, appId,
+        true).artifactoryConnection)
+        .extracting("ownerType", "ownerId").containsExactly(OwnerType.APPLICATION, appId);
 
     // Org and app
     dao.delete(rootOrgArtifactoryConnection);
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.APPLICATION, appId,
-        true).artifactoryConnections)
-        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.APPLICATION, appId));
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.APPLICATION, appId,
+        true).artifactoryConnection)
+        .extracting("ownerType", "ownerId").containsExactly(OwnerType.APPLICATION, appId);
 
     // Only app
     dao.delete(orgArtifactoryConnection);
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.APPLICATION, appId,
-        true).artifactoryConnections)
-        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.APPLICATION, appId));
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.APPLICATION, appId,
+        true).artifactoryConnection)
+        .extracting("ownerType", "ownerId").containsExactly(OwnerType.APPLICATION, appId);
 
     // Root org and app
     rootOrgArtifactoryConnection = tempEntity.newArtifactoryConnection(
         rootOrgId, "url1", "user1", "pass1".toCharArray());
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.APPLICATION, appId,
-        true).artifactoryConnections)
-        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.APPLICATION, appId));
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.APPLICATION, appId,
+        true).artifactoryConnection)
+        .extracting("ownerType", "ownerId").containsExactly(OwnerType.APPLICATION, appId);
 
     // Only org
     dao.delete(rootOrgArtifactoryConnection);
@@ -306,13 +302,13 @@ public class ApiArtifactoryConnectionServiceTest
         orgId, "url1", "user1", "pass1".toCharArray());
     organization.setAllowArtifactoryConnectionOverride(false);
     organizationDAO.update(organization);
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.APPLICATION, appId,
-        true).artifactoryConnections)
-        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, orgId));
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.APPLICATION, appId,
+        true).artifactoryConnection)
+        .extracting("ownerType", "ownerId").containsExactly(OwnerType.ORGANIZATION, orgId);
   }
 
   @Test
-  public void testGetOwnerArtifactoryConnections_InheritTrue_Organization() {
+  public void testGetOwnerArtifactoryConnection_InheritTrue_Organization() {
     tempEntity.newArtifactoryConnection("other", "url1", "user1", "pass1".toCharArray());
     Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Organization organization = tempEntity.newOrganization();
@@ -320,18 +316,18 @@ public class ApiArtifactoryConnectionServiceTest
     String orgId = organization.getId();
 
     // None
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.ORGANIZATION, orgId,
-        true).artifactoryConnections)
-        .isEmpty();
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.ORGANIZATION, orgId,
+        true).artifactoryConnection)
+        .isNull();
 
     // Only root org
     rootOrganization.setAllowArtifactoryConnectionOverride(false);
     organizationDAO.update(rootOrganization);
     ArtifactoryConnection rootOrgArtifactoryConnection = tempEntity.newArtifactoryConnection(
         rootOrgId, "url1", "user1", "pass1".toCharArray());
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.ORGANIZATION, orgId,
-        true).artifactoryConnections)
-        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, rootOrgId));
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.ORGANIZATION, orgId,
+        true).artifactoryConnection)
+        .extracting("ownerType", "ownerId").containsExactly(OwnerType.ORGANIZATION, rootOrgId);
 
     // Root org and org
     rootOrganization.setAllowArtifactoryConnectionOverride(true);
@@ -339,32 +335,32 @@ public class ApiArtifactoryConnectionServiceTest
     tempEntity.newArtifactoryConnection(orgId, "url1", "user1", "pass1".toCharArray());
     organization.setArtifactoryConnectionEnabled(true);
     organizationDAO.update(organization);
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.ORGANIZATION, orgId,
-        true).artifactoryConnections)
-        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, orgId));
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.ORGANIZATION, orgId,
+        true).artifactoryConnection)
+        .extracting("ownerType", "ownerId").containsExactly(OwnerType.ORGANIZATION, orgId);
 
     // Only org
     dao.delete(rootOrgArtifactoryConnection);
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.ORGANIZATION, orgId,
-        true).artifactoryConnections)
-        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, orgId));
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.ORGANIZATION, orgId,
+        true).artifactoryConnection)
+        .extracting("ownerType", "ownerId").containsExactly(OwnerType.ORGANIZATION, orgId);
   }
 
   @Test
-  public void testGetOwnerArtifactoryConnections_InheritTrue_RootOrganization() {
+  public void testGetOwnerArtifactoryConnection_InheritTrue_RootOrganization() {
     tempEntity.newArtifactoryConnection("other", "url1", "user1", "pass1".toCharArray());
     String rootOrgId = Organization.ROOT_ORGANIZATION_ID;
 
     // None
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.ORGANIZATION, rootOrgId,
-        true).artifactoryConnections)
-        .isEmpty();
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.ORGANIZATION, rootOrgId,
+        true).artifactoryConnection)
+        .isNull();
 
     // Only root org
     tempEntity.newArtifactoryConnection(rootOrgId, "url1", "user1", "pass1".toCharArray());
-    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.ORGANIZATION, rootOrgId,
-        true).artifactoryConnections)
-        .extracting("ownerType", "ownerId").containsExactly(tuple(OwnerType.ORGANIZATION, rootOrgId));
+    assertThat(artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.ORGANIZATION, rootOrgId,
+        true).artifactoryConnection)
+        .extracting("ownerType", "ownerId").containsExactly(OwnerType.ORGANIZATION, rootOrgId);
   }
 
   @Test
@@ -1018,12 +1014,12 @@ public class ApiArtifactoryConnectionServiceTest
     ArtifactoryConnection artifactoryConnection = tempEntity.newArtifactoryConnection(
         application.getId(), "url1", "user1", "pass1".toCharArray());
 
-    ApiOwnerArtifactoryConnectionsDTO dto =
-        artifactoryConnectionService.getOwnerArtifactoryConnections(application.getType(), application.getId(),
+    ApiOwnerArtifactoryConnectionDTO dto =
+        artifactoryConnectionService.getOwnerArtifactoryConnection(application.getType(), application.getId(),
             false);
 
-    assertThat(dto.artifactoryConnections).hasSize(1);
-    ApiArtifactoryConnectionDTO connectionDTO = dto.artifactoryConnections.get(0);
+    assertThat(dto.artifactoryConnection).isNotNull();
+    ApiArtifactoryConnectionDTO connectionDTO = dto.artifactoryConnection;
     assertArtifactoryConnectionDTO(artifactoryConnection, connectionDTO);
     assertThat(dto.artifactoryConnectionStatus.enabled).isTrue();
     assertThat(dto.artifactoryConnectionStatus.inheritedFromOrganizationName).isNull();

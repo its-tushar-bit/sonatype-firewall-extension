@@ -35,7 +35,9 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusDTO;
 import com.sonatype.insight.brain.api.v2.service.AbstractApiComponentDetailsServiceV2;
+import com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResult;
@@ -47,6 +49,7 @@ import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDA
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
@@ -66,8 +69,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
 @Named
 public class RepositoryMatcher
@@ -161,15 +162,19 @@ public class RepositoryMatcher
 
   private final DefaultApiComponentDetailsServiceV2 defaultApiComponentDetailsServiceV2;
 
+  private final ApiArtifactoryConnectionService artifactoryConnectionService;
+
   @Inject
   public RepositoryMatcher(
       final ArtifactoryConnectionDAO artifactoryConnectionDao,
       final ArtifactoryClientFactory artifactoryClientFactory,
+      final ApiArtifactoryConnectionService artifactoryConnectionService,
       final PasswordHandler passwordHandler,
       final DefaultApiComponentDetailsServiceV2 defaultApiComponentDetailsServiceV2)
   {
     this.artifactoryConnectionDao = artifactoryConnectionDao;
     this.artifactoryClientFactory = artifactoryClientFactory;
+    this.artifactoryConnectionService = artifactoryConnectionService;
     this.passwordHandler = passwordHandler;
     this.defaultApiComponentDetailsServiceV2 = defaultApiComponentDetailsServiceV2;
   }
@@ -189,7 +194,7 @@ public class RepositoryMatcher
     Set<ComponentIdentifier> result = new HashSet<>();
     try {
       long start = System.currentTimeMillis();
-      Map<ComponentIdentifier, ObjectNode> sha256Matched = identify(bomJson);
+      Map<ComponentIdentifier, ObjectNode> sha256Matched = identify(application.getId(), bomJson);
       log.debug("performed repository matching in {} seconds with {} identified results",
           (System.currentTimeMillis() - start) / 1000, sha256Matched.size());
       start = System.currentTimeMillis();
@@ -402,24 +407,38 @@ public class RepositoryMatcher
   }
 
   //visible for testing
-  Map<ComponentIdentifier, ObjectNode> identify(final JsonNode bomJson) {
+  Map<ComponentIdentifier, ObjectNode> identify(final String applicationId, final JsonNode bomJson) {
     Map<ComponentIdentifier, ObjectNode> identifiedComponents = new HashMap<>();
     Set<ObjectNode> filteredNodes = filterMatchableNodes(bomJson);
     if (CollectionUtils.isNotEmpty(filteredNodes)) {
-      List<ArtifactoryConnection> artifactoryConnections = artifactoryConnectionDao.getByOwnerId(ROOT_ORGANIZATION_ID);
-      if (CollectionUtils.isNotEmpty(artifactoryConnections)) {
-        ArtifactoryConnection rootConnection = artifactoryConnections.get(0);
+      ArtifactoryConnection connection = getArtifactoryConnection(applicationId);
+      if (connection != null) {
         ArtifactoryClient artifactoryClient = artifactoryClientFactory.create()
-            .forArtifactory(rootConnection.getBaseUrl(), rootConnection.getUsername(),
-                passwordHandler.decryptPassword(rootConnection.getPassword()));
+            .forArtifactory(connection.getBaseUrl(), connection.getUsername(),
+                passwordHandler.decryptPassword(connection.getPassword()));
         for (ObjectNode node : filteredNodes) {
-          if (!matchWithRepository(identifiedComponents, rootConnection, artifactoryClient, node)) {
+          if (!matchWithRepository(identifiedComponents, connection, artifactoryClient, node)) {
             break; // avoid checksum search in case of any connection errors to repository
           }
         }
       }
     }
     return identifiedComponents;
+  }
+
+  private ArtifactoryConnection getArtifactoryConnection(String applicationId) {
+    ApiArtifactoryConnectionStatusDTO statusDTO =
+        artifactoryConnectionService.getOwnerArtifactoryConnectionStatus(OwnerType.APPLICATION, applicationId);
+    String effectiveOwnerId = null;
+
+    if (Boolean.TRUE.equals(statusDTO.inheritedFromOrgEnabled)) {
+      effectiveOwnerId = statusDTO.inheritedFromOrganizationId;
+    }
+    else if (statusDTO.allowChange && Boolean.TRUE.equals(statusDTO.enabled)) {
+      effectiveOwnerId = applicationId;
+    }
+
+    return effectiveOwnerId != null ? artifactoryConnectionDao.getByOwnerId(effectiveOwnerId) : null;
   }
 
   // Visible for testing

@@ -22,7 +22,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionsDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
@@ -126,13 +126,13 @@ public class DefaultArtifactoryConnectionResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path(BY_OWNER)
-  public ApiOwnerArtifactoryConnectionsDTO getOwnerArtifactoryConnections(
+  public ApiOwnerArtifactoryConnectionDTO getOwnerArtifactoryConnection(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId,
       @QueryParam("inherit") @DefaultValue("false") boolean inherit)
   {
     checkArtifactoryIntegrationEnabled();
-    return artifactoryConnectionService.getOwnerArtifactoryConnections(ownerType, internalOwnerId, inherit);
+    return artifactoryConnectionService.getOwnerArtifactoryConnection(ownerType, internalOwnerId, inherit);
   }
 
   @Override

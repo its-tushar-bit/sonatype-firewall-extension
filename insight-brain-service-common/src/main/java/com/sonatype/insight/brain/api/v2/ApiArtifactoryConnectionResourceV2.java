@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionsDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
@@ -34,7 +34,7 @@ public interface ApiArtifactoryConnectionResourceV2
       String internalOwnerId,
       String artifactoryConnectionId);
 
-  ApiOwnerArtifactoryConnectionsDTO getOwnerArtifactoryConnections(
+  ApiOwnerArtifactoryConnectionDTO getOwnerArtifactoryConnection(
       OwnerType ownerType,
       String internalOwnerId,
       boolean inherit);

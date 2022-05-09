@@ -58,10 +58,9 @@ public class ArtifactoryConnectionDAOTest
   @Test
   public void testGetByOwnerId() throws Exception {
     tempEntity.newArtifactoryConnection("ownerId1", "baseUrl1", "username1", "password1".toCharArray());
-    tempEntity.newArtifactoryConnection("ownerId1", "baseUrl2", "username2", "password2".toCharArray());
-    tempEntity.newArtifactoryConnection("ownerId2", "baseUrl3", "username3", "password3".toCharArray());
+    tempEntity.newArtifactoryConnection("ownerId2", "baseUrl2", "username2", "password2".toCharArray());
 
-    assertThat(dao.getByOwnerId("ownerId1")).hasSize(2).extracting("baseUrl").containsOnly("baseUrl1", "baseUrl2");
+    assertThat(dao.getByOwnerId("ownerId1")).extracting(ArtifactoryConnection::getBaseUrl).isEqualTo("baseUrl1");
   }
 
   @Test
@@ -73,8 +72,11 @@ public class ArtifactoryConnectionDAOTest
     ArtifactoryConnection connection3 = tempEntity.newArtifactoryConnection(
         "ownerId2", "baseUrl3", "username3", "password3".toCharArray());
 
-    assertThat(dao.getByIdAndOwnerId(connection1.getId(), "ownerId1")).extracting("baseUrl").isEqualTo("baseUrl1");
-    assertThat(dao.getByIdAndOwnerId(connection2.getId(), "ownerId1")).extracting("baseUrl").isEqualTo("baseUrl2");
-    assertThat(dao.getByIdAndOwnerId(connection3.getId(), "ownerId2")).extracting("baseUrl").isEqualTo("baseUrl3");
+    assertThat(dao.getByIdAndOwnerId(connection1.getId(), "ownerId1")).extracting(ArtifactoryConnection::getBaseUrl)
+        .isEqualTo("baseUrl1");
+    assertThat(dao.getByIdAndOwnerId(connection2.getId(), "ownerId1")).extracting(ArtifactoryConnection::getBaseUrl)
+        .isEqualTo("baseUrl2");
+    assertThat(dao.getByIdAndOwnerId(connection3.getId(), "ownerId2")).extracting(ArtifactoryConnection::getBaseUrl)
+        .isEqualTo("baseUrl3");
   }
 }

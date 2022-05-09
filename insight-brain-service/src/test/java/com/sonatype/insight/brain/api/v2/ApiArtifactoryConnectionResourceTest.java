@@ -11,9 +11,9 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -36,7 +36,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.artifactory.DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
 
 public class ApiArtifactoryConnectionResourceTest
     extends AbstractResourceTest
@@ -175,17 +174,17 @@ public class ApiArtifactoryConnectionResourceTest
   }
 
   @Test
-  public void testGetArtifactoryConnections_Application() throws Exception {
-    testGetArtifactoryConnections(app.getId(), OwnerType.APPLICATION);
+  public void testGetArtifactoryConnection_Application() throws Exception {
+    testGetArtifactoryConnection(app.getId(), OwnerType.APPLICATION);
   }
 
   @Test
-  public void testGetArtifactoryConnections_Organization() throws Exception {
-    testGetArtifactoryConnections(org.getId(), OwnerType.ORGANIZATION);
+  public void testGetArtifactoryConnection_Organization() throws Exception {
+    testGetArtifactoryConnection(org.getId(), OwnerType.ORGANIZATION);
   }
 
   @Test
-  public void testGetArtifactoryConnections_FeatureDisabled() throws Exception {
+  public void testGetArtifactoryConnectionByOwner_FeatureDisabled() throws Exception {
     tempEntity.newArtifactoryConnection(app.getId(), "http://baseurl.com", "user", "pass".toCharArray());
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
@@ -197,7 +196,7 @@ public class ApiArtifactoryConnectionResourceTest
   }
 
   @Test
-  public void testGetArtifactoryConnections_NotFound() throws Exception {
+  public void testGetArtifactoryConnection_NotFound() throws Exception {
     feature(true);
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, "nonExistentId")
@@ -205,28 +204,24 @@ public class ApiArtifactoryConnectionResourceTest
     assertThat(response.getStatusCode()).isEqualTo(404);
   }
 
-  private void testGetArtifactoryConnections(String id, OwnerType ownerType) throws Exception {
+  private void testGetArtifactoryConnection(String id, OwnerType ownerType) throws Exception {
     feature(true);
-    ArtifactoryConnection conn1 =
+    ArtifactoryConnection conn =
         tempEntity.newArtifactoryConnection(id, "http://baseurl1.com", "user1", "pass1".toCharArray());
-    ArtifactoryConnection conn2 =
-        tempEntity.newArtifactoryConnection(id, "http://baseurl2.com", "user2", "pass2".toCharArray());
 
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
         .parameter(ownerType, id)
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(200);
-    ApiOwnerArtifactoryConnectionsDTO result = response.getBody(ApiOwnerArtifactoryConnectionsDTO.class);
-    assertThat(result.artifactoryConnections).hasSize(2)
+    ApiOwnerArtifactoryConnectionDTO result = response.getBody(ApiOwnerArtifactoryConnectionDTO.class);
+    assertThat(result.artifactoryConnection).isNotNull()
         .extracting("artifactoryConnectionId", "baseUrl", "username")
-        .containsExactlyInAnyOrder(
-            tuple(conn1.getId(), "http://baseurl1.com", "user1"),
-            tuple(conn2.getId(), "http://baseurl2.com", "user2"));
+        .containsExactlyInAnyOrder(conn.getId(), "http://baseurl1.com", "user1");
   }
 
   @Test
-  public void testGetArtifactoryConnections_InheritTrue() throws Exception {
+  public void testGetArtifactoryConnection_InheritTrue() throws Exception {
     feature(true);
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
@@ -243,14 +238,14 @@ public class ApiArtifactoryConnectionResourceTest
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(200);
-    ApiOwnerArtifactoryConnectionsDTO result = response.getBody(ApiOwnerArtifactoryConnectionsDTO.class);
-    assertThat(result.artifactoryConnections).hasSize(1)
+    ApiOwnerArtifactoryConnectionDTO result = response.getBody(ApiOwnerArtifactoryConnectionDTO.class);
+    assertThat(result.artifactoryConnection).isNotNull()
         .extracting("artifactoryConnectionId", "ownerId", "baseUrl", "username")
-        .containsExactly(tuple(orgArtifactoryConnection.getId(), organization.getId(), "http://baseurl2.com", "user2"));
+        .containsExactly(orgArtifactoryConnection.getId(), organization.getId(), "http://baseurl2.com", "user2");
   }
 
   @Test
-  public void testGetArtifactoryConnections_InheritFalse() throws Exception {
+  public void testGetArtifactoryConnection_InheritFalse() throws Exception {
     feature(true);
     Application application = tempEntity.newApplicationWithParent();
     String orgId = application.getParentOwnerId();
@@ -262,12 +257,12 @@ public class ApiArtifactoryConnectionResourceTest
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(200);
-    ApiOwnerArtifactoryConnectionsDTO result = response.getBody(ApiOwnerArtifactoryConnectionsDTO.class);
-    assertThat(result.artifactoryConnections).isEmpty();
+    ApiOwnerArtifactoryConnectionDTO result = response.getBody(ApiOwnerArtifactoryConnectionDTO.class);
+    assertThat(result.artifactoryConnection).isNull();
   }
 
   @Test
-  public void testGetArtifactoryConnections_InheritDefault() throws Exception {
+  public void testGetArtifactoryConnection_InheritDefault() throws Exception {
     feature(true);
     Application application = tempEntity.newApplicationWithParent();
     String orgId = application.getParentOwnerId();
@@ -278,7 +273,7 @@ public class ApiArtifactoryConnectionResourceTest
         .get();
 
     assertThat(response.getStatusCode()).isEqualTo(200);
-    ApiOwnerArtifactoryConnectionsDTO result = response.getBody(ApiOwnerArtifactoryConnectionsDTO.class);
+    ApiOwnerArtifactoryConnectionDTO result = response.getBody(ApiOwnerArtifactoryConnectionDTO.class);
     assertThat(result).isNotNull();
   }
 
@@ -299,7 +294,7 @@ public class ApiArtifactoryConnectionResourceTest
   }
 
   @Test
-  public void testGetArtifactoryConnection_FeatureDisabled() throws Exception {
+  public void testGetArtifactoryConnectionByArtifactory_FeatureDisabled() throws Exception {
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY)
         .parameter("application", "appId", "artifactoryConnectionId")
         .get();

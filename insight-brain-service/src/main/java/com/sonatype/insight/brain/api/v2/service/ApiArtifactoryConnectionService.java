@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -16,7 +15,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionsDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryClient;
@@ -101,7 +100,7 @@ public class ApiArtifactoryConnectionService
     validateArtifactoryConnection(artifactoryConnectionDTO);
 
     AuditData.get().setData(ARTIFACTORY_URL_AUDIT_KEY, artifactoryConnectionDTO.baseUrl);
-    if (!artifactoryConnectionDAO.getByOwnerId(ownerId).isEmpty()) {
+    if (artifactoryConnectionDAO.getByOwnerId(ownerId) != null) {
       throw new ConflictException(
           String.format("artifactory connection configuration exists for %s with id: %s", ownerType, ownerId));
     }
@@ -246,25 +245,24 @@ public class ApiArtifactoryConnectionService
   }
 
   @Authorize(permission = Permission.READ)
-  public ApiOwnerArtifactoryConnectionsDTO getOwnerArtifactoryConnections(
+  public ApiOwnerArtifactoryConnectionDTO getOwnerArtifactoryConnection(
       @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       boolean inherit)
   {
-    ApiOwnerArtifactoryConnectionsDTO result = new ApiOwnerArtifactoryConnectionsDTO();
+    ApiOwnerArtifactoryConnectionDTO result = new ApiOwnerArtifactoryConnectionDTO();
     result.artifactoryConnectionStatus = getOwnerArtifactoryConnectionStatus(ownerType, internalOwnerId);
     result.ownerDTO = ApiOwnerDTO.fromOwner(ownerDAO.getById(internalOwnerId));
     String effectiveOwnerId = resolveEffectiveOwnerId(internalOwnerId, inherit, result);
-    result.artifactoryConnections = artifactoryConnectionDAO.getByOwnerId(effectiveOwnerId).stream()
-        .map(this::toArtifactoryConnectionDTO)
-        .collect(Collectors.toList());
+    ArtifactoryConnection connection = artifactoryConnectionDAO.getByOwnerId(effectiveOwnerId);
+    result.artifactoryConnection = connection != null ? toArtifactoryConnectionDTO(connection) : null;
     return result;
   }
 
   private String resolveEffectiveOwnerId(
       final String internalOwnerId,
       final boolean inherit,
-      final ApiOwnerArtifactoryConnectionsDTO result)
+      final ApiOwnerArtifactoryConnectionDTO result)
   {
     if (inherit && result.artifactoryConnectionStatus.inheritedFromOrganizationId != null) {
       return result.artifactoryConnectionStatus.inheritedFromOrganizationId;

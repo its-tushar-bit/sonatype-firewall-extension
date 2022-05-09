@@ -37,6 +37,8 @@ import com.sonatype.insight.brain.artifactory.DefaultArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResults;
 import com.sonatype.insight.brain.artifactory.client.ChecksumType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -58,7 +60,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Binder;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -92,6 +96,11 @@ public class RepositoryMatcherTest
   @Inject
   private RepositoryMatcher matcher;
 
+  private static OrganizationDAO organizationDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
+
   @Mock
   private DefaultApiComponentDetailsServiceV2 mockDefaultApiComponentDetailsServiceV2;
 
@@ -107,12 +116,27 @@ public class RepositoryMatcherTest
     super.configure(binder);
   }
 
+  @BeforeClass
+  public static void beforeClass() {
+    organizationDAO = new OrganizationDAO();
+  }
+
   @Before
   public void before() {
+    application = tempEntity.newApplicationWithParent();
+    Organization rootOrg = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    rootOrg.setArtifactoryConnectionEnabled(true);
+    organizationDAO.update(rootOrg);
     artifactoryConnection = tempEntity.newArtifactoryConnection(Organization.ROOT_ORGANIZATION_ID,
         artifactoryMockServer.getBaseUrl(), "artifactoryUser",
         passwordHandler.encryptPassword("password".toCharArray()));
-    application = tempEntity.newApplicationWithParent();
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    Organization rootOrg = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    rootOrg.setArtifactoryConnectionEnabled(null);
+    organizationDAO.update(rootOrg);
   }
 
   @Test
@@ -139,7 +163,7 @@ public class RepositoryMatcherTest
           spyRepositoryMatcher.match(application, bomJson, dataJson, summaryJson, licensesJson, securityJson);
 
       assertThat(match).containsExactly(identifier);
-      verify(spyRepositoryMatcher).identify(bomJson);
+      verify(spyRepositoryMatcher).identify(application.getId(), bomJson);
       artifactoryMockServer.getWireMockServer()
           .verify(1, anyRequestedFor(urlPathEqualTo(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)));
       verify(spyRepositoryMatcher).getEvaluationByIdentifier(Collections.singletonList(identifier));
@@ -177,7 +201,8 @@ public class RepositoryMatcherTest
         ComponentIdentifier.createMavenCoordinates("g.org", "a", "1.1-SNAPSHOT", null, "jar");
     mockArtifactoryResponse();
 
-    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(readJsonFile("match-sha256/bom.json"));
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-sha256/bom.json"));
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
     artifactoryMockServer.getWireMockServer()
@@ -195,7 +220,8 @@ public class RepositoryMatcherTest
         "http://localhost/artifactory/api/storage/reponame2/g2/org/a2/5.0/a2-5.0.jar"
     );
 
-    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(readJsonFile("match-state/bom.json"));
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-state/bom.json"));
 
     assertThat(sha256Matches).hasSize(2).containsOnlyKeys(id1, id2);
   }
@@ -206,7 +232,8 @@ public class RepositoryMatcherTest
         ComponentIdentifier.createMavenCoordinates("g.org", "a", "1.1-SNAPSHOT", null, "jar");
     mockArtifactoryResponse();
 
-    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(readJsonFile("match-extension/bom.json"));
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-extension/bom.json"));
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
     artifactoryMockServer.getWireMockServer()
@@ -219,7 +246,8 @@ public class RepositoryMatcherTest
         ComponentIdentifier.createMavenCoordinates("g.org", "a", "1.1-SNAPSHOT", null, "jar");
     mockArtifactoryResponse();
 
-    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(readJsonFile("match-proprietary/bom.json"));
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-proprietary/bom.json"));
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
     artifactoryMockServer.getWireMockServer()
@@ -235,7 +263,8 @@ public class RepositoryMatcherTest
     artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256,
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941", mockResult);
 
-    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(readJsonFile("match-proprietary/bom.json"));
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-proprietary/bom.json"));
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
     artifactoryMockServer.getWireMockServer()
@@ -248,7 +277,8 @@ public class RepositoryMatcherTest
     artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256,
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941", mockResult);
 
-    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(readJsonFile("match-proprietary/bom.json"));
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-proprietary/bom.json"));
 
     assertThat(sha256Matches).hasSize(0);
     artifactoryMockServer.getWireMockServer()
@@ -263,7 +293,8 @@ public class RepositoryMatcherTest
     artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256,
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941", mockResult);
 
-    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(readJsonFile("match-proprietary/bom.json"));
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-proprietary/bom.json"));
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
     artifactoryMockServer.getWireMockServer()
@@ -291,11 +322,13 @@ public class RepositoryMatcherTest
   }
 
   private void testIdentify_HasNoResult(String uri) throws Exception {
+
     ArtifactoryChecksumSearchResults mockResult = ArtifactoryChecksumSearchResults.create(uri);
     artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256,
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941", mockResult);
 
-    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(readJsonFile("match-proprietary/bom.json"));
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-proprietary/bom.json"));
 
     assertThat(sha256Matches).isEmpty();
     artifactoryMockServer.getWireMockServer()
@@ -307,7 +340,8 @@ public class RepositoryMatcherTest
     artifactoryMockServer.mockSearchChecksumError(ChecksumType.SHA256,
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941", 502);
 
-    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(readJsonFile("match-state/bom.json"));
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-state/bom.json"));
 
     assertThat(sha256Matches).hasSize(0);
     //although 2 matching components, only 1 search is attempted due to connection error
@@ -321,23 +355,109 @@ public class RepositoryMatcherTest
     artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256,
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941", mockResult);
 
-    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(readJsonFile("match-proprietary/bom.json"));
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-proprietary/bom.json"));
 
     assertThat(sha256Matches).hasSize(0);
   }
 
   @Test
   public void testIdentify_NoBomNodesToMatch() throws Exception {
-    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(readJsonFile("no-match/bom.json"));
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("no-match/bom.json"));
     assertThat(sha256Matches).hasSize(0);
   }
 
   @Test
   public void testIdentify_NoConfiguredArtifactoryConnections() throws Exception {
     new ArtifactoryConnectionDAO().delete(artifactoryConnection);
-    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(readJsonFile("match-proprietary/bom.json"));
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-proprietary/bom.json"));
 
     assertThat(sha256Matches).hasSize(0);
+  }
+
+  @Test
+  public void testIdentify_ArtifactoryConfig_Disabled() throws Exception {
+    application.setArtifactoryConnectionEnabled(false);
+    applicationDAO.update(application);
+
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-sha256/bom.json"));
+
+    assertThat(sha256Matches).isEmpty();
+  }
+
+  @Test
+  public void testIdentify_ArtifactoryConfig_From_Application() throws Exception {
+    Organization org = organizationDAO.getByIdNotNull(Organization.ROOT_ORGANIZATION_ID);
+    org.setArtifactoryConnectionEnabled(false);
+    organizationDAO.update(org);
+    new ArtifactoryConnectionDAO().delete(artifactoryConnection);
+    artifactoryConnection = tempEntity.newArtifactoryConnection(application.getId(),
+        artifactoryMockServer.getBaseUrl(), "artifactoryUser",
+        passwordHandler.encryptPassword("password".toCharArray()));
+    application.setArtifactoryConnectionEnabled(true);
+    applicationDAO.update(application);
+
+    mockArtifactoryResponse();
+
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-sha256/bom.json"));
+
+    assertThat(sha256Matches).hasSize(1);
+  }
+
+  @Test
+  public void testIdentify_ArtifactoryConfig_Inherited_From_Parent_Org() throws Exception {
+    new ArtifactoryConnectionDAO().delete(artifactoryConnection);
+    artifactoryConnection = tempEntity.newArtifactoryConnection(application.getParentOwnerId(),
+        artifactoryMockServer.getBaseUrl(), "artifactoryUser",
+        passwordHandler.encryptPassword("password".toCharArray()));
+    Organization org = organizationDAO.getByIdNotNull(application.getParentOwnerId());
+    org.setArtifactoryConnectionEnabled(true);
+    organizationDAO.update(org);
+    mockArtifactoryResponse();
+
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-sha256/bom.json"));
+
+    assertThat(sha256Matches).hasSize(1);
+  }
+
+  @Test
+  public void testIdentify_ArtifactoryConfig_Inherited_Org_Disabled() throws Exception {
+    artifactoryConnection = tempEntity.newArtifactoryConnection(application.getParentOwnerId(),
+        artifactoryMockServer.getBaseUrl(), "artifactoryUser",
+        passwordHandler.encryptPassword("password".toCharArray()));
+    Organization org = organizationDAO.getByIdNotNull(application.getParentOwnerId());
+    org.setArtifactoryConnectionEnabled(false);
+    organizationDAO.update(org);
+    application.setArtifactoryConnectionEnabled(null);
+    applicationDAO.update(application);
+
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-sha256/bom.json"));
+
+    assertThat(sha256Matches).isEmpty();
+  }
+
+  @Test
+  public void testIdentify_ArtifactoryConfig_Inherited_Org_Disabled_Override() throws Exception {
+    artifactoryConnection = tempEntity.newArtifactoryConnection(application.getParentOwnerId(),
+        artifactoryMockServer.getBaseUrl(), "artifactoryUser",
+        passwordHandler.encryptPassword("password".toCharArray()));
+    Organization org = organizationDAO.getByIdNotNull(application.getParentOwnerId());
+    org.setArtifactoryConnectionEnabled(false);
+    org.setAllowArtifactoryConnectionOverride(false);
+    organizationDAO.update(org);
+    application.setArtifactoryConnectionEnabled(true);
+    applicationDAO.update(application);
+
+    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
+        readJsonFile("match-sha256/bom.json"));
+
+    assertThat(sha256Matches).isEmpty();
   }
 
   @Test

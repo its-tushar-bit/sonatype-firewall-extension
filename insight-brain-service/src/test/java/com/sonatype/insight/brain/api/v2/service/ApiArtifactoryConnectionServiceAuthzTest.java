@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionsDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory.ArtifactoryClientBuilder;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryClient;
@@ -83,33 +83,33 @@ public class ApiArtifactoryConnectionServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetOwnerArtifactoryConnections_Unauthenticated() {
-    artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.ORGANIZATION, org.getId(), false);
+  public void testGetOwnerArtifactoryConnection_Unauthenticated() {
+    artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.ORGANIZATION, org.getId(), false);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetOwnerArtifactoryConnections_Unauthorized() {
+  public void testGetOwnerArtifactoryConnection_Unauthorized() {
     login();
-    artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.ORGANIZATION, org.getId(), false);
+    artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.ORGANIZATION, org.getId(), false);
   }
 
   @Test
-  public void testGetOwnerArtifactoryConnections_Authorized() {
+  public void testGetOwnerArtifactoryConnection_Authorized() {
     grantGlobalPermission(Permission.READ);
-    assertGetOwnerArtifactoryConnections();
+    assertGetOwnerArtifactoryConnection();
   }
 
   @Test
-  public void testGetArtifactoryConnections_Authorized_ByOwner() {
+  public void testGetArtifactoryConnection_Authorized_ByOwner() {
     grantReadPermission(app.getId());
-    assertGetOwnerArtifactoryConnections();
+    assertGetOwnerArtifactoryConnection();
   }
 
-  private void assertGetOwnerArtifactoryConnections() {
+  private void assertGetOwnerArtifactoryConnection() {
     tempEntity.newArtifactoryConnection(app.getId(), "url1", "user1", "pass1".toCharArray());
-    ApiOwnerArtifactoryConnectionsDTO result =
-        artifactoryConnectionService.getOwnerArtifactoryConnections(OwnerType.APPLICATION, app.getId(), false);
-    assertThat(result.artifactoryConnections).hasSize(1);
+    ApiOwnerArtifactoryConnectionDTO result =
+        artifactoryConnectionService.getOwnerArtifactoryConnection(OwnerType.APPLICATION, app.getId(), false);
+    assertThat(result.artifactoryConnection).isNotNull();
   }
 
   @Test(expected = UnauthenticatedException.class)

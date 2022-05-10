@@ -24,12 +24,18 @@ const setSelectedOwnerContact = (state, { payload }) => {
   state.selectedOwner.contact = payload;
 };
 
+const selectedOwnerParentOrganizationUpdated = (state, { payload: { organizationName, organizationId } }) => {
+  state.selectedOwner.organizationName = organizationName;
+  state.selectedOwner.organizationId = organizationId;
+};
+
 const orgsAndPoliciesRootSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
     setSelectedOwner,
     setSelectedOwnerContact,
+    selectedOwnerParentOrganizationUpdated,
   },
 });
 

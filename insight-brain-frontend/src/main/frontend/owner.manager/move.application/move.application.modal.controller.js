@@ -66,7 +66,13 @@ export default function MoveApplicationModalController(
     vm.incompatibilities = undefined;
 
     vm.formMask
-      .wrap(vm.moveApplication({ applicationId: currentApplication.id, organizationId: vm.selectedOrganization.id }))
+      .wrap(
+        vm.moveApplication({
+          applicationId: currentApplication.id,
+          organizationId: vm.selectedOrganization.id,
+          organizationName: vm.selectedOrganization.name,
+        })
+      )
       .then(function (messages) {
         $scope.$close();
         MoveApplicationSuccessModalService.open(messages);

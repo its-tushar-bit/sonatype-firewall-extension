@@ -181,7 +181,7 @@ describe('move.application.modal.controller', function () {
     beforeEach(function () {
       destinationsPromise = $q.resolve(mockDestinations);
       vm = initController();
-      vm.selectedOrganization = { id: 1 };
+      vm.selectedOrganization = { id: 1, name: 'destination org' };
       vm.formMask = {
         wrap: function (promise) {
           return promise;
@@ -254,6 +254,11 @@ describe('move.application.modal.controller', function () {
         expect(scope.$close).toHaveBeenCalled();
         expect(moveApplicationErrorModal.open).not.toHaveBeenCalled();
         expect(moveApplicationSuccessModal.open).toHaveBeenCalledWith(['warning1', 'warning2']);
+        expect(moveApplicationActionSpy).toHaveBeenCalledWith({
+          applicationId: 1,
+          organizationId: 1,
+          organizationName: 'destination org',
+        });
       });
     });
   });

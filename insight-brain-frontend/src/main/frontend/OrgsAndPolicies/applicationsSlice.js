@@ -9,10 +9,9 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getApplicationsUrl, getMoveApplicationUrl } from '../util/CLMLocation';
-import { isEmpty, prop } from 'ramda';
-import { selectApplications } from './applicationsSelectors';
 import { pathSetConst } from 'MainRoot/util/reduxToolkitUtil';
-import { getApplicationsUrl, getMoveApplicationUrl } from '../util/CLMLocation';
+import { selectApplications } from './applicationsSelectors';
+import { actions as rootActions } from './orgsAndPoliciesRootSlice';
 import moveApplicationErrorMessages from 'MainRoot/owner.manager/move.application/move.application.messages';
 
 const REDUCER_NAME = 'applications';
@@ -111,17 +110,18 @@ const resetDeleteModalState = (state) => {
   state.deleteModal.errorState = null;
 };
 
-const moveApplication = ({ applicationId, organizationId }) => {
+const moveApplication = ({ applicationId, organizationId, organizationName }) => {
   return (dispatch) => {
     return axios
       .post(getMoveApplicationUrl(applicationId, organizationId))
       .then((response) => {
         return dispatch(actions.loadApplications(true)).then(() => {
+          dispatch(rootActions.selectedOwnerParentOrganizationUpdated({ organizationName, organizationId }));
           return response?.data?.warnings;
         });
       })
       .catch((error) => {
-        if (error.response.status === 409 && error.response.data?.errors?.length) {
+        if (error.response?.status === 409 && error.response?.data?.errors?.length) {
           // data.errors is an array of incompatibilities
           return Promise.reject({
             message: moveApplicationErrorMessages.ERROR_INCOMPATIBLE_DESTINATION,

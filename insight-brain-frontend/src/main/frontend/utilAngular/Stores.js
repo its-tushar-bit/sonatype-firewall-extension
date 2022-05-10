@@ -23,14 +23,7 @@ storesModule.service('ApplicationStore', [
   'LastSelectedOrganization',
   'OrganizationStore',
   'store.observe.type.constant',
-  function (
-    $rootScope,
-    clmLocations,
-    StoreFactory,
-    LastSelectedOrganization,
-    OrganizationStore,
-    StoreObserveTypeConstant
-  ) {
+  function ($rootScope, clmLocations, StoreFactory, LastSelectedOrganization) {
     var applicationStore = StoreFactory.getStore({
       id: 'publicId',
       url: clmLocations.getApplicationsUrl(),
@@ -49,35 +42,7 @@ storesModule.service('ApplicationStore', [
       },
     });
 
-    OrganizationStore.observe(handleParentOrganizationChanges);
-
     return applicationStore;
-
-    function handleParentOrganizationChanges(type, organizations) {
-      var applications = applicationStore.peek();
-
-      for (var i = applications.length - 1; i >= 0; i--) {
-        findParentOrgAndModifyEntry(applications[i], i);
-      }
-
-      function findParentOrgAndModifyEntry(application, appIndex) {
-        organizations.some(function (organization) {
-          if (organization.id === application.organizationId) {
-            switch (type) {
-              case StoreObserveTypeConstant.UPDATE:
-                application.organizationName = organization.name;
-                application.$getOriginal().organizationName = organization.name;
-                break;
-              case StoreObserveTypeConstant.DELETE:
-                applicationStore._removeFromStoreByIndex(appIndex);
-                break;
-            }
-
-            return true;
-          }
-        });
-      }
-    }
   },
 ]);
 

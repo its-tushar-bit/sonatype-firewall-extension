@@ -698,7 +698,8 @@ public class PdfGeneratorTest
   private String getLicenseText(List<ApiLicenseDTO> licenses) throws Exception {
     PdfGenerator pdfGenerator = new PdfGenerator(null, newPdfData());
     pdfGenerator.initFontStyles(new PDDocument());
-    ParagraphCell paragraphCell = pdfGenerator.buildLicensesCell(PdfGenerator.licensesToString(licenses), false);
+    ParagraphCell paragraphCell =
+        (ParagraphCell) pdfGenerator.buildLicensesCell(PdfGenerator.licensesToString(licenses), false).build();
     paragraphCell.setWidth(1000);
     StringBuilder stringBuilder = new StringBuilder();
     Paragraph paragraph = paragraphCell.getParagraph().getWrappedParagraph();

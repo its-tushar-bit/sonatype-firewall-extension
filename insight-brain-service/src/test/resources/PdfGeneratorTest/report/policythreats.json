@@ -1,6 +1,77 @@
 {
   "version" : 5,
   "aaData" : [ {
+    "hash" : "016238550410fb28cf45",
+    "componentIdentifier" : null,
+    "policyId" : "381fb671d6e34ef3bfa1a83d1f4c07c6",
+    "policyName" : "Component-Unknown",
+    "policyThreatLevel" : 2,
+    "activeViolations" : [ {
+      "policyId" : "381fb671d6e34ef3bfa1a83d1f4c07c6",
+      "policyViolationId" : "8325bd989f7d4d5fb0e090011732179f",
+      "policyName" : "Component-Unknown",
+      "policyThreatLevel" : 2,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"606ade47a9524fb493b285380c8879c4\",\"constraintName\":\"Unknown 3rd party component\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"conditionIndex\":0,\"summary\":\"Match State is unknown\",\"reason\":\"Match state was 'Unknown'\",\"reference\":null,\"triggerJson\":null},{\"conditionTypeId\":\"Proprietary\",\"conditionIndex\":1,\"summary\":\"Proprietary is false\",\"reason\":\"Component does not contain proprietary packages\",\"reference\":null,\"triggerJson\":null},{\"conditionTypeId\":\"DataSource\",\"conditionIndex\":2,\"summary\":\"Data Source has support for identity\",\"reason\":\"Data Source has support for Identity\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "606ade47a9524fb493b285380c8879c4",
+        "constraintName" : "Unknown 3rd party component",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "MatchState",
+          "conditionSummary" : "Match State is unknown",
+          "conditionReason" : "Match state was 'Unknown'",
+          "conditionTriggerReference" : null
+        }, {
+          "conditionType" : "Proprietary",
+          "conditionSummary" : "Proprietary is false",
+          "conditionReason" : "Component does not contain proprietary packages",
+          "conditionTriggerReference" : null
+        }, {
+          "conditionType" : "DataSource",
+          "conditionSummary" : "Data Source has support for identity",
+          "conditionReason" : "Data Source has support for Identity",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "OTHER"
+    } ],
+    "waivedViolations" : [ ],
+    "allViolations" : [ {
+      "policyId" : "381fb671d6e34ef3bfa1a83d1f4c07c6",
+      "policyViolationId" : "8325bd989f7d4d5fb0e090011732179f",
+      "policyName" : "Component-Unknown",
+      "policyThreatLevel" : 2,
+      "waived" : false,
+      "grandfathered" : false,
+      "constraintFactsJson" : "[{\"constraintId\":\"606ade47a9524fb493b285380c8879c4\",\"constraintName\":\"Unknown 3rd party component\",\"operatorName\":\"AND\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"conditionIndex\":0,\"summary\":\"Match State is unknown\",\"reason\":\"Match state was 'Unknown'\",\"reference\":null,\"triggerJson\":null},{\"conditionTypeId\":\"Proprietary\",\"conditionIndex\":1,\"summary\":\"Proprietary is false\",\"reason\":\"Component does not contain proprietary packages\",\"reference\":null,\"triggerJson\":null},{\"conditionTypeId\":\"DataSource\",\"conditionIndex\":2,\"summary\":\"Data Source has support for identity\",\"reason\":\"Data Source has support for Identity\",\"reference\":null,\"triggerJson\":null}]}]",
+      "actions" : [ ],
+      "constraints" : [ {
+        "constraintId" : "606ade47a9524fb493b285380c8879c4",
+        "constraintName" : "Unknown 3rd party component",
+        "constraintOperator" : "AND",
+        "conditions" : [ {
+          "conditionType" : "MatchState",
+          "conditionSummary" : "Match State is unknown",
+          "conditionReason" : "Match state was 'Unknown'",
+          "conditionTriggerReference" : null
+        }, {
+          "conditionType" : "Proprietary",
+          "conditionSummary" : "Proprietary is false",
+          "conditionReason" : "Component does not contain proprietary packages",
+          "conditionTriggerReference" : null
+        }, {
+          "conditionType" : "DataSource",
+          "conditionSummary" : "Data Source has support for identity",
+          "conditionReason" : "Data Source has support for Identity",
+          "conditionTriggerReference" : null
+        } ]
+      } ],
+      "policyThreatCategory" : "OTHER"
+    } ]
+  },{
     "hash" : "a17e8a4d9a1f7fcc5eed",
     "componentIdentifier" : {
       "format" : "maven",

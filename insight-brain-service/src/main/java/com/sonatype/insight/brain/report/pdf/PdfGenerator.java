@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,6 +32,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.component.MatchState;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -51,11 +54,11 @@ import org.vandeseer.easytable.settings.HorizontalAlignment;
 import org.vandeseer.easytable.settings.Settings;
 import org.vandeseer.easytable.settings.VerticalAlignment;
 import org.vandeseer.easytable.structure.Row;
+import org.vandeseer.easytable.structure.Row.RowBuilder;
 import org.vandeseer.easytable.structure.Table;
 import org.vandeseer.easytable.structure.Table.TableBuilder;
-import org.vandeseer.easytable.structure.cell.AbstractCell;
+import org.vandeseer.easytable.structure.cell.AbstractCell.AbstractCellBuilder;
 import org.vandeseer.easytable.structure.cell.TextCell;
-import org.vandeseer.easytable.structure.cell.TextCell.TextCellBuilder;
 import org.vandeseer.easytable.structure.cell.paragraph.ParagraphCell;
 import org.vandeseer.easytable.structure.cell.paragraph.ParagraphCell.Paragraph;
 import org.vandeseer.easytable.structure.cell.paragraph.ParagraphCell.Paragraph.ParagraphBuilder;
@@ -138,6 +141,8 @@ public class PdfGenerator
   private static final Color CELL_BORDER_COLOR = new Color(224, 224, 224);
 
   private static final char GRANDFATHERED_SYMBOL = '\uf1da';
+
+  private static final int MAX_CELL_CHARACTERS = 500;
 
   private final PdfData pdfData;
 
@@ -345,17 +350,17 @@ public class PdfGenerator
     List<PolicyViolationsTableRow> policyViolationsTableRows = createPolicyViolationsTableData();
     policyViolationsTableRows.sort(null);
     for (PolicyViolationsTableRow policyViolationsTableRow : policyViolationsTableRows) {
-      tableBuilder.addRow(Row.builder()
-          .add(cellBuilder("")
-              .backgroundColor(ThreatLevelColor.get(policyViolationsTableRow.threatLevel)).build())
-          .add(cellBuilder(String.valueOf(policyViolationsTableRow.threatLevel))
-              .font(threatLevelFontStyle.getFont())
-              .fontSize((int) threatLevelFontStyle.getFontSize()).textColor(threatLevelFontStyle.getFontColor())
-              .build())
-          .add(cellBuilder(policyViolationsTableRow.policyName).build())
-          .add(cellBuilder(policyViolationsTableRow.policyType).build())
-          .add(cellBuilder(policyViolationsTableRow.componentName).build())
-          .build());
+      List<Row> rows = buildTableRowAndSplitIfNeeded(
+          new TextCellBuilder("",
+              t -> cellBuilder(t).backgroundColor(ThreatLevelColor.get(policyViolationsTableRow.threatLevel))),
+          new TextCellBuilder(String.valueOf(policyViolationsTableRow.threatLevel),
+              t -> cellBuilder(t)
+                  .font(threatLevelFontStyle.getFont())
+                  .fontSize((int) threatLevelFontStyle.getFontSize()).textColor(threatLevelFontStyle.getFontColor())),
+          new TextCellBuilder(policyViolationsTableRow.policyName, this::cellBuilder),
+          new TextCellBuilder(policyViolationsTableRow.policyType, this::cellBuilder),
+          new TextCellBuilder(policyViolationsTableRow.componentName, this::cellBuilder));
+      rows.forEach(tableBuilder::addRow);
     }
 
     return tableBuilder.build();
@@ -421,20 +426,20 @@ public class PdfGenerator
     List<SecurityIssuesTableRow> securityIssuesTableRows = createSecurityIssuesTableData();
     securityIssuesTableRows.sort(null);
     for (SecurityIssuesTableRow securityIssuesTableRow : securityIssuesTableRows) {
-      tableBuilder.addRow(Row.builder()
-          .add(buildVulnerabilityIdCell(securityIssuesTableRow.reference))
-          .add(cellBuilder(securityIssuesTableRow.severity == null ? "" : securityIssuesTableRow.severity.toString())
-              .build())
-          .add(cellBuilder(securityIssuesTableRow.componentName).build())
-          .build());
+      List<Row> rows = buildTableRowAndSplitIfNeeded(
+          new TextCellBuilder(securityIssuesTableRow.reference, this::buildVulnerabilityIdCell),
+          new TextCellBuilder(securityIssuesTableRow.severity == null ? "" : securityIssuesTableRow.severity.toString(),
+              this::cellBuilder),
+          new TextCellBuilder(securityIssuesTableRow.componentName, this::cellBuilder));
+      rows.forEach(tableBuilder::addRow);
     }
 
     return tableBuilder.build();
   }
 
-  private AbstractCell buildVulnerabilityIdCell(String vulnerabilityId) {
+  private AbstractCellBuilder<?, ?> buildVulnerabilityIdCell(String vulnerabilityId) {
     if (pdfData.baseUrl == null) {
-      return cellBuilder(vulnerabilityId).build();
+      return cellBuilder(vulnerabilityId);
     }
 
     String url = pdfData.baseUrl + UserInterfaceLinksHelper.getVulnerabilityDetailsUrl(vulnerabilityId);
@@ -444,7 +449,7 @@ public class PdfGenerator
             Color.BLUE, 0f, Collections.singleton(hyperlink));
     Paragraph paragraph = Paragraph.builder().build();
     paragraph.getWrappedParagraph().add(annotatedStyledText);
-    return paragraphCellBuilder().paragraph(paragraph).build();
+    return paragraphCellBuilder().paragraph(paragraph);
   }
 
   private List<SecurityIssuesTableRow> createSecurityIssuesTableData() {
@@ -512,18 +517,19 @@ public class PdfGenerator
     List<LicensesTableRow> licensesTableRows = createLicensesTableData();
     licensesTableRows.sort(null);
     for (LicensesTableRow licensesTableRow : licensesTableRows) {
-      tableBuilder.addRow(Row.builder()
-          .add(buildLicensesCell(licensesTableRow.effectiveLicenses, licensesTableRow.overridden))
-          .add(buildLicensesCell(licensesTableRow.declaredLicenses, false))
-          .add(buildLicensesCell(licensesTableRow.observedLicenses, false))
-          .add(cellBuilder(licensesTableRow.componentName).build())
-          .build());
+      List<Row> rows = buildTableRowAndSplitIfNeeded(
+          new TextCellBuilder("",
+              t -> buildLicensesCell(licensesTableRow.effectiveLicenses, licensesTableRow.overridden)),
+          new TextCellBuilder("", t -> buildLicensesCell(licensesTableRow.declaredLicenses, false)),
+          new TextCellBuilder("", t -> buildLicensesCell(licensesTableRow.observedLicenses, false)),
+          new TextCellBuilder(licensesTableRow.componentName, this::cellBuilder));
+      rows.forEach(tableBuilder::addRow);
     }
     return tableBuilder.build();
   }
 
   // Visible for testing
-  ParagraphCell buildLicensesCell(String licenses, boolean overridden) {
+  AbstractCellBuilder<?, ?> buildLicensesCell(String licenses, boolean overridden) {
     ParagraphBuilder paragraphBuilder = Paragraph.builder();
     if (!licenses.isEmpty()) {
       paragraphBuilder.append(StyledText.builder()
@@ -541,7 +547,7 @@ public class PdfGenerator
             .build());
       }
     }
-    return paragraphCellBuilder().paragraph(paragraphBuilder.build()).build();
+    return paragraphCellBuilder().paragraph(paragraphBuilder.build());
   }
 
   private List<LicensesTableRow> createLicensesTableData() {
@@ -620,7 +626,8 @@ public class PdfGenerator
     List<BomTableRow> bomTableRows = createBomTableData();
     bomTableRows.sort(null);
     for (BomTableRow bomTableRow : bomTableRows) {
-      tableBuilder.addRow(Row.builder().add(cellBuilder(bomTableRow.componentName).build()).build());
+      List<Row> rows = buildTableRowAndSplitIfNeeded(new TextCellBuilder(bomTableRow.componentName, this::cellBuilder));
+      rows.forEach(tableBuilder::addRow);
     }
 
     return tableBuilder.build();
@@ -751,7 +758,7 @@ public class PdfGenerator
         .build();
   }
 
-  private TextCellBuilder<?, ?> headerCellBuilder() {
+  private TextCell.TextCellBuilder<?, ?> headerCellBuilder() {
     return TextCell.builder()
         .settings(Settings.builder().build())
         .borderWidth(CELL_BORDER_WIDTH)
@@ -774,7 +781,7 @@ public class PdfGenerator
         });
   }
 
-  private TextCellBuilder<?, ?> cellBuilder(String text) {
+  private TextCell.TextCellBuilder<?, ?> cellBuilder(String text) {
     return TextCell.builder()
         .settings(Settings.builder().build())
         .borderWidthBottom(CELL_BORDER_WIDTH)
@@ -809,6 +816,56 @@ public class PdfGenerator
         .verticalAlignment(VerticalAlignment.TOP)
         .paddingTop(0)
         .borderColor(CELL_BORDER_COLOR);
+  }
+
+  private static class TextCellBuilder
+  {
+    private final List<String> textParts;
+
+    private final Function<String, AbstractCellBuilder<?, ?>> textToCellBuilder;
+
+    public TextCellBuilder(
+        final String text,
+        final Function<String, AbstractCellBuilder<?, ?>> textToCellBuilder)
+    {
+      this.textParts =
+          Lists.newArrayList(Splitter.fixedLength(MAX_CELL_CHARACTERS).split(text == null ? "" : text).iterator());
+      this.textToCellBuilder = textToCellBuilder;
+    }
+
+    private String getTextPartOrEmpty(int index) {
+      if (textParts.size() > index) {
+        return textParts.get(index);
+      }
+      return "";
+    }
+  }
+
+  private List<Row> buildTableRowAndSplitIfNeeded(TextCellBuilder... textCellBuilders) {
+    List<Row> result = new ArrayList<>();
+    int rows =
+        Arrays.stream(textCellBuilders).mapToInt(textCellBuilder -> textCellBuilder.textParts.size()).max().orElse(0);
+    for (int row = 0; row < rows; row++) {
+      RowBuilder rowBuilder = Row.builder();
+      for (TextCellBuilder textCellBuilder : textCellBuilders) {
+        AbstractCellBuilder<?, ?> abstractCellBuilder =
+            textCellBuilder.textToCellBuilder.apply(textCellBuilder.getTextPartOrEmpty(row));
+        if (rows > 1) {
+          if (row == 0) {
+            abstractCellBuilder.borderWidthBottom(0);
+          }
+          else if (row == rows - 1) {
+            abstractCellBuilder.borderWidthTop(0);
+          }
+          else {
+            abstractCellBuilder.borderWidthTop(0).borderWidthBottom(0);
+          }
+        }
+        rowBuilder.add(abstractCellBuilder.build());
+      }
+      result.add(rowBuilder.build());
+    }
+    return result;
   }
 
   // Visible for testing

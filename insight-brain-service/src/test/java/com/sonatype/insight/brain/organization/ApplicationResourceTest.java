@@ -210,8 +210,7 @@ public class ApplicationResourceTest
   private void assertApplicationManagementSummaryDTO(ApplicationManagementSummaryDTO actual,
                                                      Application app,
                                                      Organization org,
-                                                     int policyEvaluationCount,
-                                                     ContactDTO contact)
+                                                     int policyEvaluationCount)
   {
     assertThat(actual.getId()).isEqualTo(app.getId());
     assertThat(actual.getPublicId()).isEqualTo(app.getPublicId());
@@ -219,7 +218,6 @@ public class ApplicationResourceTest
     assertThat(actual.getOrganizationId()).isEqualTo(org.getId());
     assertThat(actual.getOrganizationName()).isEqualTo(org.getName());
     assertThat(actual.getPolicyEvaluations()).hasSize(policyEvaluationCount);
-    assertContact(actual.getContact(), contact);
   }
 
   @Test
@@ -262,8 +260,7 @@ public class ApplicationResourceTest
     ApplicationManagementSummaryDTO[] applications = response.getBody(ApplicationManagementSummaryDTO[].class);
 
     assertThat(applications).hasSize(1);
-    ContactDTO expectedContact = new ContactDTO("admin", "Admin BuiltIn", "admin@localhost", "IQ Server");
-    assertApplicationManagementSummaryDTO(applications[0], application, organization, 2, expectedContact);
+    assertApplicationManagementSummaryDTO(applications[0], application, organization, 2);
 
     Map<String, com.sonatype.insight.brain.model.policy.PolicyEvaluation> policyEvaluations = applications[0]
         .getPolicyEvaluations();
@@ -308,7 +305,7 @@ public class ApplicationResourceTest
     assertResponseStatus(200, response);
 
     ApplicationManagementSummaryDTO applicationSummary = response.getBody(ApplicationManagementSummaryDTO.class);
-    assertApplicationManagementSummaryDTO(applicationSummary, application, organization, 2, expectedContact);
+    assertApplicationManagementSummaryDTO(applicationSummary, application, organization, 2);
 
     policyEvaluations = applicationSummary.getPolicyEvaluations();
     stageTypeIds = policyEvaluations.keySet().toArray(new String[0]);

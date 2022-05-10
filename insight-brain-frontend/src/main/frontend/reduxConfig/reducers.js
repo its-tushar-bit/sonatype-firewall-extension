@@ -72,6 +72,7 @@ import otherVersionsSlice from 'MainRoot/quarantinedComponentReport/otherVersion
 import samlConfigurationSlice from '../configuration/saml/samlConfigurationSlice';
 import quarantinedRiskRemediationSlice from 'MainRoot/quarantinedComponentReport/riskRemediationTile/riskRemediationSlice';
 import orgsAndPoliciesSlice from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSlice';
+import reportsSlice from 'MainRoot/report/react/reportsSlice';
 import productFeaturesSlice from 'MainRoot/productFeatures/productFeaturesSlice';
 import originalSourcesFormReducer from 'MainRoot/legal/originalSources/originalSourcesFormReducer';
 import atlassianCrowdConfigurationSlice from '../configuration/crowd/atlassianCrowdConfigurationSlice';
@@ -146,6 +147,7 @@ export default combineReducers({
   quarantinedComponentReportOtherVersions: otherVersionsSlice,
   quarantinedReportRiskRemediation: quarantinedRiskRemediationSlice,
   orgsAndPolicies: orgsAndPoliciesSlice,
+  reports: reportsSlice,
   productFeatures: productFeaturesSlice,
   atlassianCrowdConfiguration: atlassianCrowdConfigurationSlice,
 });

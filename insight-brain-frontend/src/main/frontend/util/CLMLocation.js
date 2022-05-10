@@ -133,8 +133,12 @@ export function getScmOrganizationsUrl() {
   return uriTemplate`/rest/onboarding/organizations`;
 }
 
+function getSummaryUrl() {
+  return uriTemplate`/rest/application/services/summary`;
+}
+
 export function getApplicationSummaryUrl(applicationPublicId) {
-  return uriTemplate`/rest/application/services/summary/${applicationPublicId}`;
+  return `${getSummaryUrl()}/${encodeURIComponent(applicationPublicId)}`;
 }
 
 export function getApplicationTagsUrl() {
@@ -887,6 +891,17 @@ export const getOrganizationPolicyTagUrl = (organizationId) => {
   return getCategoriesUrl('organization', organizationId) + '/policy';
 };
 
+export const getApplicationSummariesUrl = (nameFilter, order, page, pageSize) => {
+  const params = toURIParams({
+    nameFilter,
+    order,
+    page,
+    pageSize,
+  });
+
+  return `${getSummaryUrl()}?` + params;
+};
+
 export const getConditionTypeUrl = () => uriTemplate`/rest/policy/conditionType`;
 export const getConditionValueTypeUrl = (ownerType, ownerId) =>
   uriTemplate`/rest/conditionValueType/${ownerType}/${ownerId}`;
@@ -944,19 +959,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
         return baseUrl.get() + '/rest/application/' + encodeURIComponent(applicationPublicId);
       },
 
-      getApplicationSummariesUrl: function (nameFilter, order, page, pageSize) {
-        return (
-          baseUrl.get() +
-          '/rest/application/services/summary?' +
-          (nameFilter ? 'nameFilter=' + encodeURIComponent(nameFilter) + '&' : '') +
-          'order=' +
-          encodeURIComponent(order) +
-          '&page=' +
-          page +
-          '&pageSize=' +
-          pageSize
-        );
-      },
+      getApplicationSummariesUrl,
 
       getApplicationSummaryUrl,
 

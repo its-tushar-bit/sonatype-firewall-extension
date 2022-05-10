@@ -17,7 +17,6 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
@@ -26,9 +25,11 @@ import static com.codeborne.selenide.Selenide.$$;
 
 public class ReportListPage
 {
-  public static final String ROOT = ".iq-report-list-container";
+  public static final String ROOT = "#iq-report-container";
 
   public static final int RESULTS_PER_PAGE = 50;
+
+  public static final String TABLE_BODY_ROW_SELECTOR = "#iq-violation-table #iq-violation-table-body .nx-table-row";
 
   public static String url() {
     return BaseUrl.resolvePageUrl("/reports/violations");
@@ -74,16 +75,20 @@ public class ReportListPage
   }
 
   public static ReportListRow firstRow() {
-    return new ReportListRow(ROOT, ".iq-report-list-results .iq-table-row");
+    return new ReportListRow(ROOT, TABLE_BODY_ROW_SELECTOR + ":nth-child(1)");
   }
 
   public static ReportListRow row(int number) {
     return new ReportListRow(SelectorUtils
-        .createSelector(ROOT, ".iq-report-list-results .iq-table-row", SelectorUtils.nthChild(number + 1)));
+        .createSelector(ROOT, "#iq-violation-table .iq-violation-table-row", SelectorUtils.nthChild(number)));
   }
 
   public static ElementsCollection rows() {
-    return $$(SelectorUtils.createSelector(ROOT, ".iq-report-list-results .iq-table-row"));
+    return $$(SelectorUtils.createSelector(ROOT, "#iq-violation-table-body .iq-violation-table-row"));
+  }
+
+  public static ElementsCollection tableHeaders() {
+    return $$(SelectorUtils.createSelector(ROOT,"thead > tr > th"));
   }
 
   public static class ReportListRow
@@ -94,59 +99,69 @@ public class ReportListPage
     }
 
     public SelenideElement applicationName() {
-      return child(".tm-report-list-application");
+      return child(".iq-violation-table-report-name");
     }
 
     public Tooltip applicationNameTooltip() {
-      return new Tooltip(".report-application-name-tooltip");
+      return Tooltip.get();
+    }
+
+    public SelenideElement showContactName() {
+      return child(".iq-violation-show-contact-name");
     }
 
     public SelenideElement contactName() {
-      return child(".iq-cell--contact");
+      return child(".iq-violation-contact-name");
     }
 
     public Tooltip contactNameTooltip() {
-      return new Tooltip(".report-contact-name-tooltip");
+      return Tooltip.get();
     }
 
     public SelenideElement organizationName() {
-      return child(".tm-report-list-organization");
+      return child(".iq-violation-table-organization-name");
     }
 
     public Tooltip organizationNameTooltip() {
-      return new Tooltip(".report-organization-name-tooltip");
+      return Tooltip.get();
     }
 
     public SelenideElement sourceStageCell() {
-      return child(".iq-cell:nth-child(4)");
+      return child(".nx-cell:nth-child(3)");
     }
 
     public SelenideElement sourceReportLink() {
-      return child(".iq-cell:nth-child(4) .iq-report-list__report-links a");
+      return child(".nx-cell:nth-child(3) #iq-report-link");
     }
 
     public SelenideElement buildReportLink() {
-      return child(".iq-cell:nth-child(5) .iq-report-list__report-links a");
+      return child(".nx-cell:nth-child(4) #iq-report-link");
     }
 
     public SelenideElement stageReleaseReportLink() {
-      return child(".iq-cell:nth-child(6) .iq-report-list__report-links a");
+      return child(".nx-cell:nth-child(5) #iq-report-link");
     }
 
     public SelenideElement releaseReportLink() {
-      return child(".iq-cell:nth-child(7) .iq-report-list__report-links a");
+      return child(".nx-cell:nth-child(6) #iq-report-link");
     }
 
     public IQThreatIndicators buildReportThreatIndicators() {
-      return new IQThreatIndicators(".iq-cell:nth-child(5) .iq-threat-indicators");
+      return new IQThreatIndicators(
+          TABLE_BODY_ROW_SELECTOR + " .nx-cell:nth-child(4) .nx-small-threat-counter-container"
+      );
     }
 
     public IQThreatIndicators stageReleaseReportThreatIndicators() {
-      return new IQThreatIndicators(".iq-cell:nth-child(6) .iq-threat-indicators");
+      return new IQThreatIndicators(
+          TABLE_BODY_ROW_SELECTOR + " .nx-cell:nth-child(5) .nx-small-threat-counter-container"
+      );
     }
 
     public IQThreatIndicators releaseReportThreatIndicators() {
-      return new IQThreatIndicators(".iq-cell:nth-child(7) .iq-threat-indicators");
+      return new IQThreatIndicators(
+          TABLE_BODY_ROW_SELECTOR + " .nx-cell:nth-child(6) .nx-small-threat-counter-container"
+      );
     }
   }
 
@@ -154,36 +169,7 @@ public class ReportListPage
     return $("#iq-report-list-filter");
   }
 
-  public static SelenideElement search() {
-    return $("#iq-report-list-search-button");
-  }
-
   public static SelenideElement load() {
     return $("#iq-report-list-load-button");
-  }
-
-  public static SelenideElement applicationNameHeader() {
-    return $("#report-list-header-app");
-  }
-
-  public static SelenideElement organizationNameHeader() {
-    return $("#report-list-header-org");
-  }
-
-  public static void sortAscending(SelenideElement header) {
-    if (!header.$(".fa-caret-up").has(Condition.cssClass("up"))) {
-      header.click();
-      header.$(".fa-caret-up").shouldHave(Condition.cssClass("up"));
-    }
-  }
-
-  public static void sortDescending(SelenideElement header) {
-    if (!header.$(".fa-caret-down").has(Condition.cssClass("down"))) {
-      if (!header.$(".fa-caret-up").has(Condition.cssClass("up"))) {
-        header.click();
-      }
-      header.click();
-      header.$(".fa-caret-down").shouldHave(Condition.cssClass("down"));
-    }
   }
 }

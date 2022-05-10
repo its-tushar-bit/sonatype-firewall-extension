@@ -181,13 +181,11 @@ public class ApplicationAdapterTest
       String firstName = userFirstName + "-" + i;
       String lastName = userLastName + "-" + i;
       String email = userEmail + "-" + i;
-      String displayName = firstName + " " + lastName;
 
       Application application = createApplication(orgId, appName, appId, contactName);
       applications.add(application);
 
-      ContactDTO expectedContact = createExpectedContactDTO(contactName, displayName, InternalRealm.DISPLAY_NAME,
-          email);
+      ContactDTO expectedContact = createExpectedContactDTO(contactName, null, null, null);
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
 
       createMember(contactName, firstName, lastName, email);
@@ -287,7 +285,6 @@ public class ApplicationAdapterTest
 
   @Test
   public void testCreateApplicationManagementSummaries_WithSameUser() {
-    String displayName = userFirstName + " " + userLastName;
 
     List<ApplicationManagementSummaryDTO> expectedDTOs = new ArrayList<>();
 
@@ -301,8 +298,7 @@ public class ApplicationAdapterTest
       Application application = createApplication(orgId, appName, appId, contactInternalName);
       applications.add(application);
 
-      ContactDTO expectedContact = createExpectedContactDTO(contactInternalName, displayName,
-          InternalRealm.DISPLAY_NAME, userEmail);
+      ContactDTO expectedContact = createExpectedContactDTO(contactInternalName, null, null, null);
       expectedDTOs.add(createExpectedApplicationManagementSummaryDTO(orgId, orgName, appName, appId, expectedContact));
     }
 
@@ -328,7 +324,6 @@ public class ApplicationAdapterTest
       String firstName = userFirstName + "-" + i;
       String lastName = userLastName + "-" + i;
       String email = userEmail + "-" + i;
-      String displayName = firstName + " " + lastName;
 
       Application application = createApplication(orgId, appName, appId, contactName);
       applications.add(application);
@@ -338,7 +333,7 @@ public class ApplicationAdapterTest
       // All names will be passed to the user directory, but only half of them will be found.
       if (i % 2 == 0) {
         createMember(contactName, firstName, lastName, email);
-        expectedContact = createExpectedContactDTO(contactName, displayName, InternalRealm.DISPLAY_NAME, email);
+        expectedContact = createExpectedContactDTO(contactName, null, null, null);
       }
       else {
         expectedContact = createExpectedContactDTOForNotFoundError(contactName);
@@ -480,7 +475,5 @@ public class ApplicationAdapterTest
     assertThat(actual.getOrganizationId()).isEqualTo(expected.getOrganizationId());
     assertThat(actual.getOrganizationName()).isEqualTo(expected.getOrganizationName());
     assertThat(actual.getPublicId()).isEqualTo(expected.getPublicId());
-
-    assertContactDTO(actual.getContact(), expected.getContact());
   }
 }

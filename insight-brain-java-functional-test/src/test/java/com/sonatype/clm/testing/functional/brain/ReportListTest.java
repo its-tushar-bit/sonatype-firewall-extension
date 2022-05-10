@@ -32,14 +32,10 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
@@ -105,15 +101,26 @@ public class ReportListTest
     firstRow.applicationNameTooltip().should(exist);
     firstRow.applicationNameTooltip().shouldHave(exactText("ApplicationReportTestWithAReallyLongName"));
 
-    firstRow.contactNameTooltip().shouldNot(exist);
-    firstRow.contactName().hover();
-    firstRow.contactNameTooltip().should(exist);
-    firstRow.contactNameTooltip().shouldHave(exactText("reallylongfirst even longer last name junior senior"));
-
-    firstRow.organizationNameTooltip().shouldNot(exist);
     firstRow.organizationName().hover();
     firstRow.organizationNameTooltip().should(exist);
     firstRow.organizationNameTooltip().shouldHave(exactText("ApplicationReportTestOrgWithAReallyLongName"));
+  }
+
+  @Test
+  public void testContactName() throws Exception {
+    ReportListRow firstRow = ReportListPage.firstRow();
+    firstRow.shouldBe(visible);
+
+    firstRow.showContactName().shouldBe(visible);
+    firstRow.showContactName().click();
+    firstRow.contactName().should(visible);
+    firstRow.contactName().shouldHave(exactText("reallylongfirst even longer last name junior senior"));
+
+    eyesWatcher.eyesCheck("Reports list contact name");
+
+    firstRow.contactName().hover();
+    firstRow.contactNameTooltip().should(visible);
+    firstRow.contactNameTooltip().shouldHave(exactText("reallylongfirst even longer last name junior senior"));
   }
 
   @Test
@@ -128,6 +135,7 @@ public class ReportListTest
     buildLink.shouldBe(visible);
     stageReleaseLink.shouldBe(visible);
     releaseLink.shouldNotBe(visible);
+
     ApplicationReportPage reportPage = new ApplicationReportPage();
 
     buildLink.click();
@@ -158,6 +166,8 @@ public class ReportListTest
     // then: source stage should reflect pending scan
     sourceStageCell.should(Condition.text(pendingExpectedText));
 
+    eyesWatcher.eyesCheck("Reports list pending report");
+
     // when: complete source stage policy eval
     sourceControlEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
     new SourceControlEventDAO().update(sourceControlEvent);
@@ -182,17 +192,19 @@ public class ReportListTest
     firstRow.shouldBe(visible);
 
     IQThreatIndicators buildThreatIndicators = firstRow.buildReportThreatIndicators();
-    buildThreatIndicators.critical_old().shouldHave(exactText("22"));
-    buildThreatIndicators.severe_old().shouldHave(exactText("39"));
-    buildThreatIndicators.moderate_old().shouldHave(exactText("4"));
+    buildThreatIndicators.critical().shouldHave(exactText("22"));
+    buildThreatIndicators.severe().shouldHave(exactText("39"));
+    buildThreatIndicators.moderate().shouldHave(exactText("4"));
 
     IQThreatIndicators stageReleaseThreatIndicators = firstRow.stageReleaseReportThreatIndicators();
-    stageReleaseThreatIndicators.critical_old().shouldNotBe(visible);
-    stageReleaseThreatIndicators.severe_old().shouldNotBe(visible);
-    stageReleaseThreatIndicators.moderate_old().shouldHave(exactText("1"));
+    stageReleaseThreatIndicators.critical().shouldNotBe(visible);
+    stageReleaseThreatIndicators.severe().shouldNotBe(visible);
+    stageReleaseThreatIndicators.moderate().shouldHave(exactText("1"));
 
     IQThreatIndicators releaseThreatIndicators = firstRow.releaseReportThreatIndicators();
     releaseThreatIndicators.shouldNotBe(visible);
+
+    eyesWatcher.eyesCheck("Reports list chiclets");
   }
 
   @Test
@@ -210,17 +222,16 @@ public class ReportListTest
     ReportListPage.rows().shouldHaveSize(apps.size()).forEach(selenideElement -> selenideElement.shouldBe(visible));
 
     ReportListPage.filter().setValue(app1.getName());
-    ReportListPage.search().click();
     ReportListPage.rows().shouldHaveSize(1);
     ReportListPage.firstRow().applicationName().shouldHave(text(app1.getName()));
     ReportListPage.firstRow().organizationName().shouldHave(text(org3.getName()));
 
-    ReportListPage.filter().setValue(org2.getName()).sendKeys(Keys.ENTER);
+    ReportListPage.filter().setValue(org2.getName());
     ReportListPage.rows().shouldHaveSize(1);
     ReportListPage.firstRow().applicationName().shouldHave(text(app3.getName()));
     ReportListPage.firstRow().organizationName().shouldHave(text(org2.getName()));
 
-    ReportListPage.filter().setValue("tWo").sendKeys(Keys.ENTER);
+    ReportListPage.filter().setValue("tWo");
     ReportListPage.firstRow().applicationName().shouldHave(text(app3.getName()));
     ReportListPage.firstRow().organizationName().shouldHave(text(org2.getName()));
     ReportListPage.row(2).applicationName().shouldHave(text(app2.getName()));
@@ -259,47 +270,52 @@ public class ReportListTest
     createAlphabeticalOrgsAndApps(orgs, apps);
     refresh();
 
+    ElementsCollection tableHeaders = ReportListPage.tableHeaders();
+
     // App name ascending
-    ReportListPage.sortAscending(ReportListPage.applicationNameHeader());
+    tableHeaders.get(0).click();
     List<String> names = new ArrayList<>();
     ReportListPage.consumeAllRows(row -> names.add(row.applicationName().getText()));
     apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER));
-    assertThat(names).isEqualTo(apps.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Application::getName)
-        .collect(Collectors.toList()));
+    assertThat(names).isEqualTo(
+            apps.stream().map(Application::getName).collect(Collectors.toList())
+                    .subList(0, ReportListPage.RESULTS_PER_PAGE));
 
     // App name descending
-    ReportListPage.sortDescending(ReportListPage.applicationNameHeader());
+    tableHeaders.get(0).click();
     names.clear();
     ReportListPage.consumeAllRows(row -> names.add(row.applicationName().getText()));
     apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER).reversed());
-    assertThat(names).isEqualTo(apps.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Application::getName)
-        .collect(Collectors.toList()));
+    assertThat(names).isEqualTo(
+            apps.stream().map(Application::getName).collect(Collectors.toList())
+                    .subList(0, ReportListPage.RESULTS_PER_PAGE));
 
     // Org name ascending
-    ReportListPage.sortAscending(ReportListPage.organizationNameHeader());
+    tableHeaders.get(1).click();
     names.clear();
     ReportListPage.consumeAllRows(row -> names.add(row.organizationName().getText()));
     orgs.sort(Comparator.comparing(Organization::getName, String.CASE_INSENSITIVE_ORDER));
-    assertThat(names).isEqualTo(orgs.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Organization::getName)
-        .collect(Collectors.toList()));
+    assertThat(names).isEqualTo(
+            orgs.stream().map(Organization::getName).collect(Collectors.toList())
+                    .subList(0, ReportListPage.RESULTS_PER_PAGE));
 
     // Org name descending
-    ReportListPage.sortDescending(ReportListPage.organizationNameHeader());
+    tableHeaders.get(1).click();
     names.clear();
     ReportListPage.consumeAllRows(row -> names.add(row.organizationName().getText()));
     orgs.sort(Comparator.comparing(Organization::getName, String.CASE_INSENSITIVE_ORDER).reversed());
-    assertThat(names).isEqualTo(orgs.subList(0, ReportListPage.RESULTS_PER_PAGE).stream().map(Organization::getName)
-        .collect(Collectors.toList()));
+    assertThat(names).isEqualTo(
+            orgs.stream().map(Organization::getName).collect(Collectors.toList())
+                    .subList(0, ReportListPage.RESULTS_PER_PAGE));
   }
 
   private void createAlphabeticalOrgsAndApps(List<Organization> orgs, List<Application> apps) {
     orgs.addAll(new OrganizationDAO().getAll().stream()
         .filter(org -> !org.getId().equals(Organization.ROOT_ORGANIZATION_ID)).collect(Collectors.toList()));
     apps.addAll(new ApplicationDAO().getAll());
-    int currentSize = apps.size();
-    for (int result = 0; result < ReportListPage.RESULTS_PER_PAGE + 1 - currentSize; result++) {
+    for (int result = 0; result < ReportListPage.RESULTS_PER_PAGE; result++) {
       String orgSuffix = getAlphabeticalSequenceElement(result);
-      String appSuffix = getAlphabeticalSequenceElement(result + 1);
+      String appSuffix = getAlphabeticalSequenceElement(result);
       Organization org = tempEntity.newOrganization("orgName" + orgSuffix);
       orgs.add(org);
       apps.add(tempEntity.newApplication("appName" + appSuffix, "appPublicId" + appSuffix, org.getId()));
@@ -308,5 +324,25 @@ public class ReportListTest
 
   private String getAlphabeticalSequenceElement(int i) {
     return i < 0 ? "" : getAlphabeticalSequenceElement((i / 26) - 1) + (char) (65 + i % 26);
+  }
+
+  @Test
+  public void testHeadersOrder() {
+    ElementsCollection tableHeaders = ReportListPage.tableHeaders();
+
+    List<String> headerNames = new ArrayList<>();
+    for (SelenideElement tableHeader : tableHeaders) {
+      headerNames.add(tableHeader.getText());
+    }
+
+    List<String> expectedHeaderNames = new ArrayList<>();
+    expectedHeaderNames.add("APPLICATION");
+    expectedHeaderNames.add("ORGANIZATION");
+    expectedHeaderNames.add("SOURCE");
+    expectedHeaderNames.add("BUILD");
+    expectedHeaderNames.add("STAGE RELEASE");
+    expectedHeaderNames.add("RELEASE");
+
+    assertThat(headerNames).isEqualTo(expectedHeaderNames);
   }
 }

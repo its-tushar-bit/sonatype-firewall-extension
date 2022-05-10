@@ -42,6 +42,15 @@ public class ContactDTO
     this.realm = realm;
   }
 
+  /**
+   * Constructor for contact DTO
+   *
+   * @param internalName the internal name of the contact user (username)
+   */
+  public ContactDTO(final String internalName) {
+    this(internalName, null, null, null);
+  }
+
   public String getInternalName() {
     return internalName;
   }

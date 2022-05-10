@@ -121,15 +121,10 @@ public class ApplicationAdapter
       summary.setPublicId(application.getPublicId());
       summary.setOrganizationId(organization.getId());
       summary.setOrganizationName(organization.getName());
+      summary.setContact(new ContactDTO(application.getContactInternalName()));
       applicationManagementSummaryDTOList.add(summary);
 
       internalNameList.add(application.getContactInternalName());
-    }
-
-    final ContactDTO[] contacts = applicationContactLoader.getContacts(internalNameList);
-    for (int i = 0; i < applicationManagementSummaryDTOList.size(); i++) {
-      final ApplicationManagementSummaryDTO summary = applicationManagementSummaryDTOList.get(i);
-      summary.setContact(contacts[i]);
     }
 
     return applicationManagementSummaryDTOList;

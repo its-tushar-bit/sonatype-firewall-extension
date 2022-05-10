@@ -308,6 +308,7 @@ export default angular
             url: '/policy',
             data: {
               title: ownerType.name + ' Policy',
+              viewportSized: true,
             },
             views: {
               '@management': {

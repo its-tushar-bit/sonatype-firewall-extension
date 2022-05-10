@@ -223,7 +223,9 @@ public enum AuditEvent
   DELETE_USER_FILTER(Domain.REPORTING_USER_FILTER, Type.DELETE),
 
   CONFIGURE_SECURITY_QUARANTINED_COMPONENT_VIEW_ANON_ACCESS(Domain.SECURITY_QUARANTINED_COMPONENT_VIEW_ANON_ACCESS,
-      Type.CONFIGURE);
+      Type.CONFIGURE),
+
+  DELETE_REPOSITORY_IDENTIFIED_COMPONENT(Domain.GOVERNANCE_REPOSITORY_IDENTIFIED_COMPONENT, Type.DELETE);
 
   private final String domain;
 
@@ -332,6 +334,8 @@ public enum AuditEvent
 
     String GOVERNANCE_VULNERABILITY_SIGNATURES_REACHABILITY =
         join(join(GOVERNANCE, "vulnerability-signatures"), "reachability");
+    
+    String GOVERNANCE_REPOSITORY_IDENTIFIED_COMPONENT = join(GOVERNANCE, "repository-identified-component");
 
     String SECURITY = "security";
 

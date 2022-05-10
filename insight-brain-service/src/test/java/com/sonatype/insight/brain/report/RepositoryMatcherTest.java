@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -37,15 +38,18 @@ import com.sonatype.insight.brain.artifactory.DefaultArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResults;
 import com.sonatype.insight.brain.artifactory.client.ChecksumType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.component.RepositoryIdentifiedComponentCache;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -60,6 +64,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Binder;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -96,6 +101,12 @@ public class RepositoryMatcherTest
   @Inject
   private RepositoryMatcher matcher;
 
+  @Inject
+  private RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO;
+
+  @Inject
+  private RepositoryIdentifiedComponentCache repositoryIdentifiedComponentCache;
+
   private static OrganizationDAO organizationDAO;
 
   @Inject
@@ -130,6 +141,12 @@ public class RepositoryMatcherTest
     artifactoryConnection = tempEntity.newArtifactoryConnection(Organization.ROOT_ORGANIZATION_ID,
         artifactoryMockServer.getBaseUrl(), "artifactoryUser",
         passwordHandler.encryptPassword("password".toCharArray()));
+  }
+
+  @After
+  public void after() {
+    repositoryIdentifiedComponentDAO.getAll().forEach(repositoryIdentifiedComponentDAO::delete);
+    repositoryIdentifiedComponentCache.getLoadingCache().invalidateAll();
   }
 
   @AfterClass
@@ -290,15 +307,39 @@ public class RepositoryMatcherTest
     ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", null, "jar");
     ArtifactoryChecksumSearchResults mockResult =
         ArtifactoryChecksumSearchResults.create("http://localhost/artifactory/api/storage/r/g/a/v/x.jar");
-    artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256,
-        "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941", mockResult);
+    String sha256 = "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941";
+    artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256, sha256, mockResult);
+    assertThat(repositoryIdentifiedComponentCache.get(sha256)).isNull();
+    assertThat(repositoryIdentifiedComponentDAO.getByHash(sha256)).isNull();
+    Date date = new Date();
 
-    Map<ComponentIdentifier, ObjectNode> sha256Matches = matcher.identify(application.getId(),
-        readJsonFile("match-proprietary/bom.json"));
+    Map<ComponentIdentifier, ObjectNode> sha256Matches =
+        matcher.identify(application.getId(), readJsonFile("match-proprietary/bom.json"));
 
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
     artifactoryMockServer.getWireMockServer()
         .verify(1, anyRequestedFor(urlPathEqualTo(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)));
+    assertThat(repositoryIdentifiedComponentCache.get(sha256)).isEqualTo(identifier);
+    RepositoryIdentifiedComponent repositoryIdentifiedComponent = repositoryIdentifiedComponentDAO.getByHash(sha256);
+    assertThat(repositoryIdentifiedComponent).isNotNull();
+    assertThat(repositoryIdentifiedComponent.getComponentIdentifier()).isEqualTo(identifier);
+    assertThat(repositoryIdentifiedComponent.getCreateTime()).isAfterOrEqualTo(date);
+    assertThat(repositoryIdentifiedComponent.getLastAccessTime()).isEqualTo(
+        repositoryIdentifiedComponent.getCreateTime());
+  }
+
+  @Test
+  public void testIdentify_FromCache() throws Exception {
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", null, "jar");
+    repositoryIdentifiedComponentCache.put("eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941",
+        identifier);
+
+    Map<ComponentIdentifier, ObjectNode> sha256Matches =
+        matcher.identify(application.getId(), readJsonFile("match-proprietary/bom.json"));
+
+    assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
+    artifactoryMockServer.getWireMockServer()
+        .verify(0, anyRequestedFor(urlPathEqualTo(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)));
   }
 
   @Test

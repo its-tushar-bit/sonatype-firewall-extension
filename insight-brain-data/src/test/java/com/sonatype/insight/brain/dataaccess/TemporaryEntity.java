@@ -39,6 +39,7 @@ import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
@@ -127,6 +128,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProductLicense;
@@ -225,6 +227,7 @@ import com.sonatype.insight.model.HasStringId;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Table;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.openjpa.enhance.PersistenceCapable;
 import org.codehaus.plexus.util.IOUtil;
@@ -436,6 +439,9 @@ public class TemporaryEntity
   private final RepositoryClientConfigurationDAO repositoryClientConfigurationDAO =
       new RepositoryClientConfigurationDAO();
 
+  private final RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO =
+      new RepositoryIdentifiedComponentDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -520,6 +526,8 @@ public class TemporaryEntity
 
   private Collection<ArtifactoryConnection> artifactoryConnections;
 
+  private Collection<RepositoryIdentifiedComponent> repositoryIdentifiedComponents;
+
   @Override
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -565,6 +573,7 @@ public class TemporaryEntity
     quarantinedComponentAccesses = new ArrayList<>();
     repositoryConnections = new ArrayList<>();
     artifactoryConnections = new ArrayList<>();
+    repositoryIdentifiedComponents = new ArrayList<>();
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -622,6 +631,7 @@ public class TemporaryEntity
     delete(sourceControlDefaultBranchCommitHistories, sourceControlDefaultBranchCommitHistoryDAO);
     delete(repositoryConnections, repositoryConnectionDAO);
     delete(artifactoryConnections, artifactoryConnectionDAO);
+    delete(repositoryIdentifiedComponents, repositoryIdentifiedComponentDAO);
     productLicenseDAO.delete();
     firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
     persistedPolicyEvaluationPollingResultDAO.deleteAll();
@@ -897,6 +907,10 @@ public class TemporaryEntity
 
   public void register(ArtifactoryConnection... artifactoryConnections) {
     Collections.addAll(this.artifactoryConnections, artifactoryConnections);
+  }
+
+  public void register(RepositoryIdentifiedComponent... repositoryIdentifiedComponents) {
+    Collections.addAll(this.repositoryIdentifiedComponents, repositoryIdentifiedComponents);
   }
 
   public Application newApplicationWithParent() {
@@ -3395,5 +3409,34 @@ public class TemporaryEntity
     repositoryClientConfiguration.setSocketTimeout(socketTimeout);
     repositoryClientConfigurationDAO.insert(repositoryClientConfiguration);
     return repositoryClientConfiguration;
+  }
+
+  public RepositoryIdentifiedComponent newRepositoryIdentifiedComponent() {
+    return newRepositoryIdentifiedComponent(new Date());
+  }
+
+  public RepositoryIdentifiedComponent newRepositoryIdentifiedComponent(ComponentIdentifier componentIdentifier) {
+    return newRepositoryIdentifiedComponent(DigestUtils.sha256Hex(UUID.randomUUID().toString()), componentIdentifier,
+        new Date(), new Date());
+  }
+
+  public RepositoryIdentifiedComponent newRepositoryIdentifiedComponent(Date lastAccessTime) {
+    String hash = DigestUtils.sha256Hex(UUID.randomUUID().toString());
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("g" + hash, "a" + hash, "v" + hash, "c" + hash, "e" + hash);
+    return newRepositoryIdentifiedComponent(hash, componentIdentifier, new Date(), lastAccessTime);
+  }
+
+  public RepositoryIdentifiedComponent newRepositoryIdentifiedComponent(
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      Date createTime,
+      Date lastAccessTime)
+  {
+    RepositoryIdentifiedComponent repositoryIdentifiedComponent =
+        new RepositoryIdentifiedComponent(hash, componentIdentifier, createTime, lastAccessTime);
+    repositoryIdentifiedComponentDAO.insert(repositoryIdentifiedComponent);
+    repositoryIdentifiedComponents.add(repositoryIdentifiedComponent);
+    return repositoryIdentifiedComponent;
   }
 }

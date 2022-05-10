@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchRe
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.client.ChecksumType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.component.RepositoryIdentifiedComponentCache;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
@@ -164,19 +165,23 @@ public class RepositoryMatcher
 
   private final ApiArtifactoryConnectionService artifactoryConnectionService;
 
+  private final RepositoryIdentifiedComponentCache repositoryIdentifiedComponentCache;
+
   @Inject
   public RepositoryMatcher(
       final ArtifactoryConnectionDAO artifactoryConnectionDao,
       final ArtifactoryClientFactory artifactoryClientFactory,
       final ApiArtifactoryConnectionService artifactoryConnectionService,
       final PasswordHandler passwordHandler,
-      final DefaultApiComponentDetailsServiceV2 defaultApiComponentDetailsServiceV2)
+      final DefaultApiComponentDetailsServiceV2 defaultApiComponentDetailsServiceV2,
+      final RepositoryIdentifiedComponentCache repositoryIdentifiedComponentCache)
   {
     this.artifactoryConnectionDao = artifactoryConnectionDao;
     this.artifactoryClientFactory = artifactoryClientFactory;
     this.artifactoryConnectionService = artifactoryConnectionService;
     this.passwordHandler = passwordHandler;
     this.defaultApiComponentDetailsServiceV2 = defaultApiComponentDetailsServiceV2;
+    this.repositoryIdentifiedComponentCache = repositoryIdentifiedComponentCache;
   }
 
   public Set<ComponentIdentifier> match(
@@ -460,30 +465,39 @@ public class RepositoryMatcher
     return result;
   }
 
-  private static boolean matchWithRepository(
+  private boolean matchWithRepository(
       final Map<ComponentIdentifier, ObjectNode> identifiedComponents,
       final ArtifactoryConnection rootConnection,
       final ArtifactoryClient artifactoryClient,
       final ObjectNode node)
   {
     String sha256 = node.get(FIELD_SHA256).asText();
-    try {
-      ArtifactoryChecksumSearchResults artifactoryChecksumSearchResults =
-          artifactoryClient.searchByChecksum(ChecksumType.SHA256, sha256);
-      if (CollectionUtils.isNotEmpty(artifactoryChecksumSearchResults.results)) {
-        ComponentIdentifier resolvedId = resolveComponentIdentifier(artifactoryChecksumSearchResults);
-        if (resolvedId != null) {
-          identifiedComponents.put(resolvedId, node);
-        }
-        else {
-          log.debug("no recognizable artifact found in repository for sha256={}", sha256);
-        }
-      }
+    ComponentIdentifier resolvedId = repositoryIdentifiedComponentCache.get(sha256);
+    if (resolvedId != null) {
+      identifiedComponents.put(resolvedId, node);
       return true;
+    }
+    resolvedId = resolveComponentIdentifierFromArtifactory(rootConnection, artifactoryClient, sha256);
+    if (resolvedId != null) {
+      repositoryIdentifiedComponentCache.put(sha256, resolvedId);
+      identifiedComponents.put(resolvedId, node);
+      return true;
+    }
+    log.debug("no recognizable artifact found in repository for sha256={}", sha256);
+    return false;
+  }
+
+  private static ComponentIdentifier resolveComponentIdentifierFromArtifactory(
+      ArtifactoryConnection rootConnection,
+      ArtifactoryClient artifactoryClient,
+      String sha256)
+  {
+    try {
+      return resolveComponentIdentifier(artifactoryClient.searchByChecksum(ChecksumType.SHA256, sha256));
     }
     catch (IOException e) {
       log.error("Checksum search error for repository connection uri {}", rootConnection.getBaseUrl(), e);
-      return false;
+      return null;
     }
   }
 

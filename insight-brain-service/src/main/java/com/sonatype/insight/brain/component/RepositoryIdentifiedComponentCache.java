@@ -1,0 +1,99 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.component;
+
+import java.time.Duration;
+import java.util.Date;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
+import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
+import com.sonatype.insight.error.exception.NotFoundException;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.LoadingCache;
+
+@Named
+@Singleton
+public class RepositoryIdentifiedComponentCache
+{
+  // Visible for testing
+  static final Duration MAX_AGE = Duration.ofDays(1);
+
+  private final RepositoryIdentifiedComponentCacheLoader repositoryIdentifiedComponentCacheLoader;
+
+  private final RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO;
+
+  private final LoadingCache<String, ComponentIdentifier> loadingCache;
+
+  @Inject
+  public RepositoryIdentifiedComponentCache(
+      RepositoryIdentifiedComponentCacheLoader repositoryIdentifiedComponentCacheLoader,
+      RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO)
+  {
+    this.repositoryIdentifiedComponentCacheLoader = repositoryIdentifiedComponentCacheLoader;
+    this.repositoryIdentifiedComponentDAO = repositoryIdentifiedComponentDAO;
+    loadingCache = createLoadingCache();
+  }
+
+  // Visible for testing
+  LoadingCache<String, ComponentIdentifier> createLoadingCache() {
+    return newCacheBuilder()
+        .expireAfterWrite(MAX_AGE.toMillis(), TimeUnit.MILLISECONDS)
+        .build(repositoryIdentifiedComponentCacheLoader);
+  }
+
+  // Visible for testing
+  CacheBuilder<Object, Object> newCacheBuilder() {
+    return CacheBuilder.newBuilder();
+  }
+
+  public ComponentIdentifier get(String hash) {
+    try {
+      return loadingCache.getUnchecked(hash);
+    }
+    catch (Exception e) {
+      if (e.getCause() instanceof NotFoundException) {
+        return null;
+      }
+      throw e;
+    }
+  }
+
+  public void put(String hash, ComponentIdentifier componentIdentifier) {
+    Date date = new Date();
+    RepositoryIdentifiedComponent repositoryIdentifiedComponent =
+        new RepositoryIdentifiedComponent(hash, componentIdentifier, date, date);
+    repositoryIdentifiedComponentDAO.update(repositoryIdentifiedComponent);
+    loadingCache.put(hash, componentIdentifier);
+  }
+
+  public ComponentIdentifier removeByHash(String hash) {
+    return loadingCache.asMap().remove(hash);
+  }
+
+  public int removeByComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    Set<String> toRemove = loadingCache.asMap().entrySet().stream()
+        .filter(e -> e.getValue().equals(componentIdentifier))
+        .map(Entry::getKey)
+        .collect(Collectors.toSet());
+    toRemove.forEach(loadingCache::invalidate);
+    return toRemove.size();
+  }
+
+  // Visible for testing
+  public LoadingCache<String, ComponentIdentifier> getLoadingCache() {
+    return loadingCache;
+  }
+}

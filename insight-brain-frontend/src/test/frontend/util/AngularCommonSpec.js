@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import angularCommonModule from '../../../main/frontend/util/AngularCommon';
+import angularCommonModule from '../../../main/frontend/utilAngular/AngularCommon';
 import utilityServicesModule from '../../../main/frontend/utility/services/utility.services.module';
 
 describe('AngularCommon', function () {

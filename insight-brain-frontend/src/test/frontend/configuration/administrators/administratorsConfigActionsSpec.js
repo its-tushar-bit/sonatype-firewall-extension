@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { getGlobalRoleMappingUrl } from 'MainRoot/util/CLMContextLocation';
+import { getGlobalRoleMappingUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 import { getFindUsersUrl, getRoleMappingUrl } from 'MainRoot/util/CLMLocation';
 import { loadRolesIfNeeded } from 'MainRoot/configuration/administrators/administratorsSlice';
 import * as administratorsSelectors from 'MainRoot/configuration/administrators/administratorsSelectors';

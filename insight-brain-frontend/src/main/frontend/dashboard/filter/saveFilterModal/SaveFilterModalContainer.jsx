@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 
 import SaveFilterModalContent from './SaveFilterModalContent';
 import { saveFilter, cancelSaveFilter } from '../manageFiltersActions';
-import { Messages } from '../../../util/CommonServices';
+import { Messages } from '../../../utilAngular/CommonServices';
 
 const mapDispatchToProps = {
   saveFilter,

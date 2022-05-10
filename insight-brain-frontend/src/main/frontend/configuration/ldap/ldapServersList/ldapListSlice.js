@@ -9,7 +9,7 @@ import { checkPermissions } from '../../../util/authorizationUtil';
 import axios from 'axios';
 import { getLdapConfigUrl, getLdapPriority } from '../../../util/CLMLocation';
 import { propSetConst } from '../../../util/reduxToolkitUtil';
-import { Messages } from '../../../util/CommonServices';
+import { Messages } from '../../../utilAngular/CommonServices';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 const REDUCER_NAME = 'ldapList';

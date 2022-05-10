@@ -6,7 +6,7 @@
 import axios from 'axios';
 
 import { getPermissions, checkPermissions, authErrorMessage } from '../../../main/frontend/util/authorizationUtil';
-import { getGlobalPermissionTestUrl } from '../../../main/frontend/util/CLMContextLocation';
+import { getGlobalPermissionTestUrl } from '../../../main/frontend/utilAngular/CLMContextLocation';
 
 const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 

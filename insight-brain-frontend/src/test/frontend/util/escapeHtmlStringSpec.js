@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import escapeHtmlString from '../../../main/frontend/util/escapeHtmlString';
+import escapeHtmlString from '../../../main/frontend/utilAngular/escapeHtmlString';
 
 describe('escapeHtmlString', function () {
   it('escapes HTML special characters in the string', function () {

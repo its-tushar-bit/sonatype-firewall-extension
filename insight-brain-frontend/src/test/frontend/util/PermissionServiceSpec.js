@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import permissionServiceModule from '../../../main/frontend/util/PermissionService';
+import permissionServiceModule from '../../../main/frontend/utilAngular/PermissionService';
 
 describe('PermissionService.js', function () {
   var successSpy, errorSpy;

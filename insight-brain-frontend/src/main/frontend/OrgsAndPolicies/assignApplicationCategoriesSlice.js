@@ -9,7 +9,7 @@ import { append, curryN, equals, find, ifElse, map, omit, prop, propEq, without 
 
 import { getApplicableOrganizationCategories, getApplicationCategoriesUrl } from '../util/CLMLocation';
 import { selectAppliedCategories } from './assignApplicationCategoriesSelectors';
-import { Messages } from 'MainRoot/util/CommonServices';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { propSet } from '../util/jsUtil';
 import { selectEntityId } from './orgsAndPoliciesSelectors';
 import { selectRouterSlice } from '../reduxUiRouter/routerSelectors';

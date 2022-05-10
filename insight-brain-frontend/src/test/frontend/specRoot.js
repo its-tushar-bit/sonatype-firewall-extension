@@ -41,7 +41,7 @@ import './mock.data/jira.service.mock.data';
 import './assets/MockData';
 import customMatchers from './customMatchers';
 
-import '../../main/frontend/util/Globals';
+import '../../main/frontend/utilAngular/Globals';
 
 importAll(require.context('.', true, /[sS]pec.jsx?$/));
 

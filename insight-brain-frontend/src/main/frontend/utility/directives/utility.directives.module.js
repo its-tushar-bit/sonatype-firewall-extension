@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import AngularCommonModule from '../../util/AngularCommon';
-import CommonServicesModule from '../../util/CommonServices';
+import AngularCommonModule from '../../utilAngular/AngularCommon';
+import CommonServicesModule from '../../utilAngular/CommonServices';
 import copiedTooltip from './copied.tooltip.directive';
 import copyToClipboard from './copy.to.clipboard.directive';
 import detectScrollbar from './detect.scrollbar.directive';

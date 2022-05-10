@@ -15,7 +15,7 @@ describe('LoadError', function () {
     mockMessages = jasmine.createSpyObj('Messages', ['getHttpErrorMessage']);
 
     LoadError = require('inject-loader!../../../main/frontend/react/LoadError')({
-      '../util/CommonServices': { Messages: mockMessages },
+      '../utilAngular/CommonServices': { Messages: mockMessages },
     }).default;
 
     getShallowComponent = enzymeUtils.getShallowComponent(LoadError, {});

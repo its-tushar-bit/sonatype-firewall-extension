@@ -6,7 +6,7 @@
 import retentionService from './retentionService';
 import retentionTile from './retentionTile';
 import retentionEditor from './retentionEditor';
-import clmContextLocationModule from '../../util/CLMContextLocation';
+import clmContextLocationModule from '../../utilAngular/CLMContextLocation';
 import utilityModule from '../../utility/utility.module';
 
 export default angular

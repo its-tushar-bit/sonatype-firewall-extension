@@ -20,7 +20,7 @@ import {
   removeLabel,
 } from '../util/CLMLocation';
 import { selectComponentDetailsRequestData } from './overview/overviewSelectors';
-import { Messages } from '../util/CommonServices';
+import { Messages } from '../utilAngular/CommonServices';
 import { toggleBooleanProp } from '../util/reduxUtil';
 import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';

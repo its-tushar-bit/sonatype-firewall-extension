@@ -7,7 +7,7 @@ import { react2angular } from 'react2angular';
 import successMetricsDataService from './successMetricsDataService';
 import CLMLocationModule from '../../util/CLMLocation';
 import directivesModule from '../../directives/module';
-import commonServicesModule from '../../util/CommonServices';
+import commonServicesModule from '../../utilAngular/CommonServices';
 import componentsModule from '../../components/module';
 import withStoreProvider from '../../reactAdapter/StoreProvider';
 import withRouterStateProvider from '../../reactAdapter/RouterStateProvider';

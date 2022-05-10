@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import angularCommonModule from './AngularCommon';
-import CLMLocationModule from './CLMLocation';
+import CLMLocationModule from '../util/CLMLocation';
 import utilityServicesModule from '../utility/services/utility.services.module';
 import loginModalModule from 'MainRoot/user/LoginModal/module';
 

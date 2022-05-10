@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import stores from '../../../main/frontend/util/Stores';
+import stores from '../../../main/frontend/utilAngular/Stores';
 
 describe('Stores', function () {
   var getUrlSpy, cachedStore;

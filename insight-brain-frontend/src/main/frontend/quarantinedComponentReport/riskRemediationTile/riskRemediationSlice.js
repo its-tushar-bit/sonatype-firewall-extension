@@ -7,7 +7,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getQuarantinedComponentRemediationUrl, getQuarantinedComponentDetailsUrl } from 'MainRoot/util/CLMLocation';
 import { pathSet } from 'MainRoot/util/reduxToolkitUtil';
-import { Messages } from 'MainRoot/util/CommonServices';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectCurrentVersion, selectSelectedVersion } from './riskRemediationSelectors';
 
 const REDUCER_NAME = 'quarantinedReportRiskRemediation';

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-import PermissionServiceModule from '../../util/PermissionService';
+import PermissionServiceModule from '../../utilAngular/PermissionService';
 import addWaiverController from './add.waiver.controller';
 import cipPolicyViolationsDirective from './cip.policy.violations.directive';
 import policyViolationsController from './policy.violations.controller';

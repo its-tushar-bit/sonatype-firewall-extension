@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { faBell, faExclamationCircle } from '@fortawesome/pro-solid-svg-icons';
 
-import { timeAgo } from '../../../util/CommonServices';
+import { timeAgo } from '../../../utilAngular/CommonServices';
 import { MenuButton, MenuTitle } from '../MenuButton/MenuButton';
 import { NotificationDetails } from './NotificationDetails';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';

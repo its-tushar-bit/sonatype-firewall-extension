@@ -43,7 +43,7 @@ describe('SaveFilterModalContainer', function () {
     SaveFilterModalContainer = require('inject-loader!../../../../../main/frontend/dashboard/' +
       'filter/saveFilterModal/SaveFilterModalContainer')({
       './SaveFilterModalContent': MockSaveFilterModalContent,
-      '../../../util/CommonServices': { Messages: mockMessages },
+      '../../../utilAngular/CommonServices': { Messages: mockMessages },
     }).default;
 
     state = {

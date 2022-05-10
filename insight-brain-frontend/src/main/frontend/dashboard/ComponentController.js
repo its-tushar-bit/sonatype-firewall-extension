@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global d3 */
-import commonServicesModule from '../util/CommonServices';
+import commonServicesModule from '../utilAngular/CommonServices';
 import CLMLocationModule from '../util/CLMLocation';
-import storesModule from '../util/Stores';
+import storesModule from '../utilAngular/Stores';
 import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
 import {
   selectDashboardStagesLoadError,

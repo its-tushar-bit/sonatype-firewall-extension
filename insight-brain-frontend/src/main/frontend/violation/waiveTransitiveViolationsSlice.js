@@ -8,7 +8,7 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { propSet, propSetConst } from '../util/reduxToolkitUtil';
 import { getWaiveTransitiveViolationsUrl } from '../util/CLMLocation';
-import { Messages } from '../util/CommonServices';
+import { Messages } from '../utilAngular/CommonServices';
 import { getExpiryTime } from '../util/waiverUtils';
 import { TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE } from './transitiveViolationsActions';
 

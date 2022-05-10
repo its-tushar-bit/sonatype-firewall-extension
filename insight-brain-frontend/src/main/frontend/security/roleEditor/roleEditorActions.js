@@ -10,7 +10,7 @@ import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/re
 import { getPermissions, authErrorMessage } from '../../util/authorizationUtil';
 import { getRoleByIdUrl, getRoleForNewUrl, getRoleListUrl } from '../../util/CLMLocation';
 import { stateGo } from '../../reduxUiRouter/routerActions';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 import { mapObjIndexed, prop } from 'ramda';
 
 export const ROLE_EDITOR_SET_READONLY = 'ROLE_EDITOR_SET_READONLY';

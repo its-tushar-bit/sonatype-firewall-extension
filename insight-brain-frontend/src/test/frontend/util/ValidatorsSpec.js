@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import validators from '../../../main/frontend/util/Validators';
+import validators from '../../../main/frontend/utilAngular/Validators';
 
 describe('ValidatorsSpec', function () {
   beforeEach(angular.mock.module(validators.name));

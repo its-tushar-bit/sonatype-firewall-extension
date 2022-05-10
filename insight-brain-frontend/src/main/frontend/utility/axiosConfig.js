@@ -5,7 +5,7 @@
  */
 
 import axios from 'axios';
-import isIqIframe from '../util/isIqFrame';
+import isIqIframe from '../utilAngular/isIqFrame';
 
 /**
  * @param setServerDate   Angular service SessionSecurityService setServerDate method.

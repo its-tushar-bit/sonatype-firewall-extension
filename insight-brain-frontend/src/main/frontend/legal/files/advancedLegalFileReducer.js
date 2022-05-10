@@ -35,7 +35,7 @@ import {
   ADVANCED_LEGAL_SET_SHOW_ORIGINAL_SOURCES_MODAL,
 } from './advancedLegalFileActions';
 import { __, find, lensPath, merge, over, propEq } from 'ramda';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 
 const updateLicenseFilesLegalData = (newLicenseLegalData, state) =>
   over(lensPath(['component', 'component', 'licenseLegalData']), merge(__, newLicenseLegalData), state);

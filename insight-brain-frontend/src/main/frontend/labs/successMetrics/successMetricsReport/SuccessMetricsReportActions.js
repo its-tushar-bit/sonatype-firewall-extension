@@ -7,7 +7,7 @@ import axios from 'axios';
 import { compose } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { Messages } from 'MainRoot/util/CommonServices';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { noPayloadActionCreator, payloadParamActionCreator } from 'MainRoot/util/reduxUtil';
 import {
   getApplicationsUrl,

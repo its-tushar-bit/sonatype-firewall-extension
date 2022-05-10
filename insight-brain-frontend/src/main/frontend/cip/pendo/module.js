@@ -5,7 +5,7 @@
  */
 import * as angular from 'angular';
 
-import commonServicesModule from '../../util/CommonServices';
+import commonServicesModule from '../../utilAngular/CommonServices';
 import clmLocationModule from '../../util/CLMLocation';
 import pendoService from '../../pendo/pendoService';
 import sanitizeUrlService from './sanitizeUrlService';

@@ -7,7 +7,7 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { NxTableCell, NxTableRow, NxThreatIndicator, NxOverflowTooltip } from '@sonatype/react-shared-components';
 
-import { terseAgo } from '../../../util/CommonServices';
+import { terseAgo } from '../../../utilAngular/CommonServices';
 import ComponentDisplay from '../../../ComponentDisplay/ReactComponentDisplay';
 
 export default function DashboardViolationsTableRow({ stateGo, violation }) {

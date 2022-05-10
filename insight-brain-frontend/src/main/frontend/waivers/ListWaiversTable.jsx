@@ -24,7 +24,7 @@ import ComponentDisplay from '../ComponentDisplay/ReactComponentDisplay';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
 import NxExternalLink from '../react/NxExternalLink';
-import { Messages } from '../util/CommonServices';
+import { Messages } from '../utilAngular/CommonServices';
 import { waiverType, displayWaiverScope } from '../util/waiverUtils';
 
 export default function ListWaiversTable(props) {

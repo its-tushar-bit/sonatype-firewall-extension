@@ -7,8 +7,8 @@ import { react2angular } from 'react2angular';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 
-import angularCommonModule from '../util/AngularCommon';
-import storesModule from '../util/Stores';
+import angularCommonModule from '../utilAngular/AngularCommon';
+import storesModule from '../utilAngular/Stores';
 import ComponentModule from './ComponentController';
 import ComponentDisplayModule from '../ComponentDisplay/module';
 import template from './dashboard.view.html';

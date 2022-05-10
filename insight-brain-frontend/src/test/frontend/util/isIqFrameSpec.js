@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import isIqIframe from '../../../main/frontend/util/isIqFrame';
+import isIqIframe from '../../../main/frontend/utilAngular/isIqFrame';
 
 describe('isIqIframe', function () {
   it('returns false if the window is its own top', function () {

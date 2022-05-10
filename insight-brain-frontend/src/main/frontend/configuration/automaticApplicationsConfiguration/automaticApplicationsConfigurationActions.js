@@ -12,7 +12,7 @@ import {
   getAutomaticApplicationsConfigurationUrl,
   getCompositeSourceControlUrl,
 } from '../../util/CLMLocation';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 import { checkPermissions } from '../../util/authorizationUtil';
 import { compose } from 'ramda';
 

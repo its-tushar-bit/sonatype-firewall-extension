@@ -10,7 +10,7 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { checkPermissions } from '../../util/authorizationUtil';
 import { getSystemNoticeFetchUrl, getSystemNoticeUrl } from '../../util/CLMLocation';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 
 export const SYSTEM_NOTICE_CONFIGURATION_LOAD_REQUESTED = 'SYSTEM_NOTICE_CONFIGURATION_LOAD_REQUESTED';
 export const SYSTEM_NOTICE_CONFIGURATION_LOAD_FULFILLED = 'SYSTEM_NOTICE_CONFIGURATION_LOAD_FULFILLED';

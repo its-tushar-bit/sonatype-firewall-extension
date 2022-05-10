@@ -5,9 +5,9 @@
  */
 import { contains, split } from 'ramda';
 
-import commonServicesModule from '../util/CommonServices';
+import commonServicesModule from '../utilAngular/CommonServices';
 import CLMLocationModule from '../util/CLMLocation';
-import { getBaseUrl, uriTemplate } from './urlUtil';
+import { getBaseUrl, uriTemplate } from '../util/urlUtil';
 
 var locationModule = angular.module('CLMContextLocation', [
   commonServicesModule.name,

@@ -6,7 +6,7 @@
 import axios from 'axios';
 import { map, pick, compose } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 
 import { getProxyConfigUrl, getValidateLicenseUrl } from '../../util/CLMLocation';
 import { checkPermissions } from '../../util/authorizationUtil';

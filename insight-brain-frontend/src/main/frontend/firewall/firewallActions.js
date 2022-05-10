@@ -16,7 +16,7 @@ import {
   getPoliciesUrl,
   getComponentDetailsUrl,
 } from '../util/CLMLocation';
-import { Messages } from '../util/CommonServices';
+import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
 
 export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';

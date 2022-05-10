@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import resourceModule from '../../../main/frontend/Resource';
-import clmContextLocationModule from '../../../main/frontend/util/CLMContextLocation';
+import clmContextLocationModule from '../../../main/frontend/utilAngular/CLMContextLocation';
 
 describe('HierarchyStoreFactory', function () {
   var store,

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import pendoModule from './pendo/module';
-import isIqIframe from '../util/isIqFrame';
+import isIqIframe from '../utilAngular/isIqFrame';
 
 /* global $, window, CLM, document, Insight, angular, Base64, Brain */
 (function () {

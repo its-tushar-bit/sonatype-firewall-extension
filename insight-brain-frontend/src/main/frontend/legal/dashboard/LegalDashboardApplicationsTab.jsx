@@ -18,7 +18,7 @@ import LegalDashboardApplicationRow from './LegalDashboardApplicationRow';
 import { applicationsTabPropType } from '../advancedLegalPropTypes';
 import { DASHBOARD } from '../advancedLegalConstants';
 import { isNilOrEmpty } from '../../util/jsUtil';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 import DashboardMask from '../../dashboard/results/dashboardMask/DashboardMask';
 
 export default function LegalDashboardApplicationsTab({

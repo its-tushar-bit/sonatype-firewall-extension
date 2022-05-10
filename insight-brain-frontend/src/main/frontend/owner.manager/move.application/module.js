@@ -5,7 +5,7 @@
  */
 
 import CLMLocationModule from '../../util/CLMLocation';
-import AngularCommonModule from '../../util/AngularCommon';
+import AngularCommonModule from '../../utilAngular/AngularCommon';
 
 import messages from './move.application.messages';
 import moveApplicationService from './move.application.service';

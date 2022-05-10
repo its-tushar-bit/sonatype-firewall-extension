@@ -7,7 +7,9 @@ import axios from 'axios';
 import { findIndex, isEmpty, pick, prop, propEq, reject } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { Messages } from 'MainRoot/util/CommonServices';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { getApplicationsUrl, getMoveApplicationUrl } from '../util/CLMLocation';
+import { isEmpty, prop } from 'ramda';
 import { selectApplications } from './applicationsSelectors';
 import { pathSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { getApplicationsUrl, getMoveApplicationUrl } from '../util/CLMLocation';

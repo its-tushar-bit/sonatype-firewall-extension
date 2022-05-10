@@ -6,7 +6,7 @@
 import axios from 'axios';
 import { prop, filter, equals } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { Messages } from 'MainRoot/util/CommonServices';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { propSet } from 'MainRoot/util/jsUtil';
 import { propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { getProprietaryConfigUrl } from 'MainRoot/util/CLMLocation';

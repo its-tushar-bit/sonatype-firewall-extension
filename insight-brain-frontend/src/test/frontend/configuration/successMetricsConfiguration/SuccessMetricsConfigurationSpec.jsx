@@ -9,7 +9,7 @@ import axios from 'axios';
 import { render, waitFor, fireEvent, screen } from '../../SpecUtil';
 import SuccessMetricsConfigurationContainer from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfigurationContainer';
 import { getSuccessMetricsConfigUrl } from 'MainRoot/util/CLMLocation';
-import { getGlobalPermissionTestUrl } from 'MainRoot/util/CLMContextLocation';
+import { getGlobalPermissionTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 
 describe('SuccessMetricsConfigurationSpec', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);

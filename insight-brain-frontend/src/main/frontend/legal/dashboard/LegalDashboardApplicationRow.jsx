@@ -8,7 +8,7 @@ import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 import { join } from 'ramda';
 import * as PropTypes from 'prop-types';
 import { applicationPropType } from '../advancedLegalPropTypes';
-import { terseAgo } from '../../util/CommonServices';
+import { terseAgo } from '../../utilAngular/CommonServices';
 import LegalBinaryDonutChart from '../shared/LegalBinaryDonutChart';
 
 export default function LegalDashboardApplicationRow({ row, stateGo }) {

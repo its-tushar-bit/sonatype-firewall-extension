@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import { compose } from 'ramda';
-import { Messages } from '../util/CommonServices';
+import { Messages } from '../utilAngular/CommonServices';
 import { getPermissions, authErrorMessage } from '../util/authorizationUtil';
 
 import { getRoleListUrl } from '../util/CLMLocation';

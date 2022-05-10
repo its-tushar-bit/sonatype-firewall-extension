@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { getGlobalPermissionTestUrl } from './CLMContextLocation';
+import { getGlobalPermissionTestUrl } from '../utilAngular/CLMContextLocation';
 
 export const authErrorMessage = `It appears you do not have permission to access this page.
   If you believe this to be incorrect please contact your administrator.`;

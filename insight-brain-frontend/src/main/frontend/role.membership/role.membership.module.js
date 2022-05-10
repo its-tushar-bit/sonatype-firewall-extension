@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import commonServicesModule from '../util/CommonServices';
-import CLMContextLocationModule from '../util/CLMContextLocation';
+import commonServicesModule from '../utilAngular/CommonServices';
+import CLMContextLocationModule from '../utilAngular/CLMContextLocation';
 import RoleMembershipDirective from './role.membership.directive';
 import RoleMembershipController from './role.membership.controller';
 

@@ -9,7 +9,7 @@ import { always, omit, equals } from 'ramda';
 import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { uriTemplate } from '../../util/urlUtil';
 import { getSamlConfigurationUrl } from '../../util/CLMLocation';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import { selectConfigurationValues } from './samlConfigurationSelectors';
 import { propSetConst } from '../../util/reduxToolkitUtil';

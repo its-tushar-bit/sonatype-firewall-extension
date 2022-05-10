@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import utilityServicesModule from './services/utility.services.module';
-import commonServicesModule from '../util/CommonServices';
+import commonServicesModule from '../utilAngular/CommonServices';
 import formsModule from '../FormsModule';
 import utilityDirectivesModule from '../utility/directives/utility.directives.module';
 import FuseFilterFactory from './filters/fuzzy.filter';

@@ -31,7 +31,7 @@ describe('LegalDashboardApplicationRow component', function () {
   beforeEach(function () {
     LegalDashboardApplicationRow = require('inject-loader!../../../../main/frontend/legal/dashboard/LegalDashboardApplicationRow')(
       {
-        '../../util/CommonServices': { terseAgo: terseAgoSpy },
+        '../../utilAngular/CommonServices': { terseAgo: terseAgoSpy },
       }
     ).default;
 

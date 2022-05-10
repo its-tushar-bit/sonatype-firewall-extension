@@ -9,11 +9,11 @@ import { insert, propEq, find, not, equals, compose } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { getGlobalRoleMappingUrl } from 'MainRoot/util/CLMContextLocation';
+import { getGlobalRoleMappingUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { getFindUsersUrl, getRoleMappingUrl } from 'MainRoot/util/CLMLocation';
 import { pathSet, propSet, propSetConst, pathSetConst } from 'MainRoot/util/reduxToolkitUtil';
-import { Messages } from 'MainRoot/util/CommonServices';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 

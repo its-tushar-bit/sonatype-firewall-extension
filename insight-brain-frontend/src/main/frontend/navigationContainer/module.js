@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import utilityServicesModule from '../utility/services/utility.services.module';
-import angularCommonModule from '../util/AngularCommon';
+import angularCommonModule from '../utilAngular/AngularCommon';
 import telemetryServiceModule from '../services/telemetryService';
 import currentUserService from '../user/CurrentUserService';
 import navigationContainer from './navigationContainer';

@@ -5,7 +5,7 @@
  */
 import InnerSourceRepositoryService from './innersource.repository.service';
 import innerSourceRepositoryTile from './innersource.repository.tile';
-import clmContextLocationModule from '../../util/CLMContextLocation';
+import clmContextLocationModule from '../../utilAngular/CLMContextLocation';
 import utilityModule from '../../utility/utility.module';
 
 export default angular

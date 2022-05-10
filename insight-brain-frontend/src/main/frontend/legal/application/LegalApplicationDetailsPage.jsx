@@ -17,7 +17,7 @@ import {
   NxTableHead,
   NxTableRow,
 } from '@sonatype/react-shared-components';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 import { getLicenseThreatGroupsFromLicense } from '../legalUtility';
 import LegalApplicationDetailsComponentRow from './LegalApplicationDetailsComponentRow';
 import LegalApplicationDetailsFilterContainer from './filter/LegalApplicationDetailsFilterContainer';

@@ -5,7 +5,7 @@
  */
 import resourceModule from '../Resource';
 import CLMLocationModule from '../util/CLMLocation';
-import CLMContextLocationModule from '../util/CLMContextLocation';
+import CLMContextLocationModule from '../utilAngular/CLMContextLocation';
 
 var storesModule = angular.module('Stores', [
   CLMLocationModule.name,

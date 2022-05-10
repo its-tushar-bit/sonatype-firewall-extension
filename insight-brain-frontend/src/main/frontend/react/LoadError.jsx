@@ -6,7 +6,7 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { NxLoadError } from '@sonatype/react-shared-components';
-import { Messages } from '../util/CommonServices';
+import { Messages } from '../utilAngular/CommonServices';
 
 /**
  * A wrapper component that renders standardized DOM for error messages, optionally with a retry button.

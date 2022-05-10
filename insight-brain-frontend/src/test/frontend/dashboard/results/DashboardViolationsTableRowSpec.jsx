@@ -27,7 +27,7 @@ describe('DashboardViolationsTableRow', function () {
 
     DashboardViolationsTableRow = require('inject-loader!../../../../main/frontend/dashboard/results/violations/DashboardViolationsTableRow')(
       {
-        '../../../util/CommonServices': { terseAgo: terseAgoSpy },
+        '../../../utilAngular/CommonServices': { terseAgo: terseAgoSpy },
       }
     ).default;
 

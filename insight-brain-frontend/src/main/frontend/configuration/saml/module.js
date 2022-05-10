@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import clmContextLocationModule from '../../util/CLMContextLocation';
+import clmContextLocationModule from '../../utilAngular/CLMContextLocation';
 import utilityModule from '../../utility/utility.module';
 import SAMLConfigurationPage from './SAMLConfigurationPage';
 import { react2angular } from 'react2angular';

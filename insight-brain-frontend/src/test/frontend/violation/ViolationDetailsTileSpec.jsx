@@ -93,8 +93,8 @@ describe('ViolationDetailsTile', function () {
     };
 
     ViolationDetailsTile = require('inject-loader!../../../main/frontend/violation/ViolationDetailsTile')({
-      '../util/CommonServices': { timeAgo: timeAgoMock },
-      '../util/CLMContextLocation': {
+      '../utilAngular/CommonServices': { timeAgo: timeAgoMock },
+      '../utilAngular/CLMContextLocation': {
         getOwnerImageUrl: getOwnerImageUrlMock,
       },
     }).default;

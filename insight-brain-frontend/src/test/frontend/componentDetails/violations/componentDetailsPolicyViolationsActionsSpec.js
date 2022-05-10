@@ -12,7 +12,7 @@ import {
   getReportPolicyThreatsUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 import { omit } from 'ramda';
-import { getPermissionContextTestUrl } from '../../../../main/frontend/util/CLMContextLocation';
+import { getPermissionContextTestUrl } from '../../../../main/frontend/utilAngular/CLMContextLocation';
 
 describe('componentDetailsPolicyViolationsActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);

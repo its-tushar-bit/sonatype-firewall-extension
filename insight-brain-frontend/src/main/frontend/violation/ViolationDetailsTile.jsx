@@ -11,9 +11,9 @@ import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/u
 import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 import ViolationExclamation from '../react/ViolationExclamation';
-import { timeAgo } from '../util/CommonServices';
+import { timeAgo } from '../utilAngular/CommonServices';
 import { capitalize } from '../util/jsUtil';
-import { getOwnerImageUrl } from '../util/CLMContextLocation';
+import { getOwnerImageUrl } from '../utilAngular/CLMContextLocation';
 import ViolationDetailsSubtitle from './ViolationDetailsSubtitle';
 import StageDisplay from './StageDisplay';
 import { faEye } from '@fortawesome/pro-solid-svg-icons/faEye';

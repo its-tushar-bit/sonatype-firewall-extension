@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import StableBodyService from './StableBodyService';
-import { getBaseUrl } from './urlUtil';
+import { getBaseUrl } from '../util/urlUtil';
 
 var services = angular.module('CommonServices', []);
 

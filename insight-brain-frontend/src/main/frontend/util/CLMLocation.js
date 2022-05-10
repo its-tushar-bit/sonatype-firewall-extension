@@ -5,7 +5,7 @@
  */
 import { pick } from 'ramda';
 
-import commonServicesModule from '../util/CommonServices';
+import commonServicesModule from '../utilAngular/CommonServices';
 import { toURIParams, uriTemplate } from './urlUtil';
 
 /**

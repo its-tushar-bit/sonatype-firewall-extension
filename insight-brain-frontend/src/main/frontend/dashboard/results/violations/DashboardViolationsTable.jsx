@@ -10,7 +10,7 @@ import { equals } from 'ramda';
 
 import DashboardViolationsTableRow, { violationPropTypes } from './DashboardViolationsTableRow';
 import { extractSortFieldName } from '../../../util/sortUtils';
-import { Messages } from '../../../util/CommonServices';
+import { Messages } from '../../../utilAngular/CommonServices';
 import MaxResultsInfoRow from '../MaxResultsInfoRow';
 import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
 import { isNilOrEmpty } from '../../../util/jsUtil';

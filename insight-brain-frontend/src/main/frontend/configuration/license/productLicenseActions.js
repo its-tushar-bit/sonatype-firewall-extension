@@ -9,7 +9,7 @@ import axios from 'axios';
 import { compose } from 'ramda';
 import { checkPermissions } from '../../util/authorizationUtil';
 import { getLicenseSummaryUrl, getLicenseUploadUrl } from '../../util/CLMLocation';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 import { getDaysFromNow } from '../../util/jsUtil';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import angularCommonModule from './util/AngularCommon';
+import angularCommonModule from './utilAngular/AngularCommon';
 
 var module = angular
   .module('FormsModule', [angularCommonModule.name])

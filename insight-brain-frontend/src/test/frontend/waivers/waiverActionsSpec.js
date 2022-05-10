@@ -18,7 +18,7 @@ import {
   getViolationDetailsUrl,
   getWaiveTransitiveViolationsUrl,
 } from '../../../main/frontend/util/CLMLocation';
-import { getPermissionContextTestUrl } from '../../../main/frontend/util/CLMContextLocation';
+import { getPermissionContextTestUrl } from '../../../main/frontend/utilAngular/CLMContextLocation';
 import {
   deleteWaiver,
   hideDeleteWaiverModal,

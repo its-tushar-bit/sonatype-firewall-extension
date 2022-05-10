@@ -7,7 +7,7 @@ import axios from 'axios';
 import { prop, curryN, isEmpty, isNil, any, reject, propEq, filter, findIndex, equals } from 'ramda';
 import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import { selectRouterSlice, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { Messages } from 'MainRoot/util/CommonServices';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getApplicableLabelsUrl, getLabelsUrl, getDeleteLabelsUrl } from 'MainRoot/util/CLMLocation';
 import { pathSet, propSet } from 'MainRoot/util/jsUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';

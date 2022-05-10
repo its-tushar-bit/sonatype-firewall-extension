@@ -54,7 +54,7 @@ describe('ComponentOverviewTile', function () {
       $state,
     };
     ComponentOverviewTile = require('inject-loader!../../../main/frontend/legal/ComponentOverviewTile')({
-      '../util/CommonServices': {
+      '../utilAngular/CommonServices': {
         terseAgo: terseAgoSpy,
         timeAgo: timeAgoSpy,
       },

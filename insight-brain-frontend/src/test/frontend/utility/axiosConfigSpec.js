@@ -5,7 +5,7 @@
  */
 
 import loginModalModule from 'MainRoot/user/LoginModal/module';
-import * as isIqIframeUtil from 'MainRoot/util/isIqFrame';
+import * as isIqIframeUtil from 'MainRoot/utilAngular/isIqFrame';
 import utilityServicesModule from 'MainRoot/utility/services/utility.services.module';
 
 describe('axiosConfig', () => {

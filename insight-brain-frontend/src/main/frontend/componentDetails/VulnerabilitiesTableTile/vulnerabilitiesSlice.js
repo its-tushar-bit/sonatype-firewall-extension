@@ -14,7 +14,7 @@ import {
   getVulnerabilityJsonDetailUrl,
   getVulnerabilityOverrideUrl,
 } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/util/CommonServices';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import {
   selectSelectedVulnerability,
   selectVulnerabilitiesRequestData,

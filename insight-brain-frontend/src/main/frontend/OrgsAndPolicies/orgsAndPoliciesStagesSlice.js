@@ -7,7 +7,7 @@ import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { fromPairs, keys, map, pair, __ } from 'ramda';
 
-import { Messages } from 'MainRoot/util/CommonServices';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getDashboardStageUrl, getActionStageUrl, getCliStageUrl } from 'MainRoot/util/CLMLocation';
 
 const REDUCER_NAME = 'orgsAndPoliciesStages';

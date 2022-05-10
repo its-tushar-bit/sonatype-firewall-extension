@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import commonServicesModule from './util/CommonServices';
-import angularCommonModule from './util/AngularCommon';
-import CLMContextLocationModule from './util/CLMContextLocation';
-import storesModule from './util/Stores';
+import commonServicesModule from './utilAngular/CommonServices';
+import angularCommonModule from './utilAngular/AngularCommon';
+import CLMContextLocationModule from './utilAngular/CLMContextLocation';
+import storesModule from './utilAngular/Stores';
 
 var module = angular.module('EditorTools', [
   commonServicesModule.name,

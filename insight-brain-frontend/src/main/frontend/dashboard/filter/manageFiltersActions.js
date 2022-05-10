@@ -10,7 +10,7 @@ import { filterToJson } from './dashboardFilterService';
 import { SET_DISPLAY_SAVE_FILTER_MODAL } from './dashboardFilterActions';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { getDashboardDeleteFilterUrl, getDashboardSavedFilters } from '../../util/CLMLocation';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 
 export const FETCH_SAVED_FILTERS_FULFILLED = 'FETCH_SAVED_FILTERS_FULFILLED';
 export const FETCH_SAVED_FILTERS_FAILED = 'FETCH_SAVED_FILTERS_FAILED';

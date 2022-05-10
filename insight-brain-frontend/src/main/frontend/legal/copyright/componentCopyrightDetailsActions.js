@@ -6,7 +6,7 @@
 import { payloadParamActionCreator } from '../../util/reduxUtil';
 import axios from 'axios';
 import { getCopyrightContextUrl, getCopyrightFileCountUrl, getCopyrightFilePathsUrl } from '../../util/CLMLocation';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 import { FILE_PATH_PAGE_SIZE, pageOffset } from './copyrightDetailsUtils';
 import { loadAvailableScopes, loadComponent, loadComponentByComponentIdentifier } from '../advancedLegalActions';
 

@@ -15,7 +15,7 @@ import {
   validateNonEmpty,
   validatePatternMatch,
 } from '../../util/validationUtil';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 
 import {
   PROXY_CONFIG_DELETE_FAILED,

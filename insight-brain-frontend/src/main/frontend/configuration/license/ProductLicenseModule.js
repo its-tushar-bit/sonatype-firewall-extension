@@ -6,7 +6,7 @@
 import { react2angular } from 'react2angular';
 import withRouterStateProvider from '../../reactAdapter/RouterStateProvider';
 import withStoreProvider from '../../reactAdapter/StoreProvider';
-import angularCommonModule from '../../util/AngularCommon';
+import angularCommonModule from '../../utilAngular/AngularCommon';
 import CLMLocationModule from '../../util/CLMLocation';
 import ProductLicenseContainer from './ProductLicenseContainer';
 

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import iqHttpInterceptors from '../../../main/frontend/util/IqHttpInterceptors';
+import iqHttpInterceptors from '../../../main/frontend/utilAngular/IqHttpInterceptors';
 
 describe('IqHttpInterceptors', function () {
   var $httpBackend, $http;

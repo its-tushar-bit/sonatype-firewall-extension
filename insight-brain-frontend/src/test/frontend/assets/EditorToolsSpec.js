@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import editorToolsModule from '../../../main/frontend/EditorTools';
-import { httpInterceptors } from '../../../main/frontend/util/HttpInterceptors';
+import { httpInterceptors } from '../../../main/frontend/utilAngular/HttpInterceptors';
 
 describe('EditorToolsSpec', function () {
   var scope = null;

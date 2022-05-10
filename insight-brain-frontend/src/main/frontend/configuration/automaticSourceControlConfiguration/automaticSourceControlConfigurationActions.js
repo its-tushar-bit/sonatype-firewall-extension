@@ -15,7 +15,7 @@ import {
   getOrganizationsUrl,
 } from '../../util/CLMLocation';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 
 export const AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_REQUESTED =
   'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_REQUESTED';

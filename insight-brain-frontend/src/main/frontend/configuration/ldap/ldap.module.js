@@ -8,11 +8,11 @@ import withStoreProvider from '../../reactAdapter/StoreProvider';
 import withRouterStateProvider from '../../reactAdapter/RouterStateProvider';
 
 import resourceModule from '../../Resource';
-import commonServicesModule from '../../util/CommonServices';
-import angularCommonModule from '../../util/AngularCommon';
+import commonServicesModule from '../../utilAngular/CommonServices';
+import angularCommonModule from '../../utilAngular/AngularCommon';
 import CLMLocationModule from '../../util/CLMLocation';
 import EditorToolsModule from '../../EditorTools';
-import BootstrapAddonsModule from '../../util/BootstrapAddonsModule';
+import BootstrapAddonsModule from '../../utilAngular/BootstrapAddonsModule';
 import CreateLdapContainer from '../ldap/CreateLdapContainer';
 import EditLdapConnectionContainer from '../ldap/EditLdapConnectionContainer';
 import EditLdapUsermappingContainer from '../ldap/EditLdapUsermappingContainer';

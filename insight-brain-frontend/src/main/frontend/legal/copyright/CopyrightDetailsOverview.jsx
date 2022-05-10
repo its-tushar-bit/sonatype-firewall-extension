@@ -9,7 +9,7 @@ import {
   componentPropType,
 } from '../advancedLegalPropTypes';
 import React from 'react';
-import { timeAgo } from '../../util/CommonServices';
+import { timeAgo } from '../../utilAngular/CommonServices';
 import { getRelevantScope } from '../legalUtility';
 
 export default function CopyrightDetailsOverview(props) {

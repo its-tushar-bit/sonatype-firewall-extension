@@ -9,11 +9,11 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 
 import { capitalize } from '../util/jsUtil';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
-import { Messages } from '../util/CommonServices';
+import { Messages } from '../utilAngular/CommonServices';
 import { getAddPolicyViolationWaiverUrl, getOwnerContextHierarchyUrl, deleteWaiverUrl } from '../util/CLMLocation';
 
 import { stateGo } from '../reduxUiRouter/routerActions';
-import { getPermissionContextTestUrl } from '../util/CLMContextLocation';
+import { getPermissionContextTestUrl } from '../utilAngular/CLMContextLocation';
 import { getApplicationSummaryUrl } from '../util/CLMLocation';
 import { fetchCrossStageViolation, fetchApplicableWaivers } from '../violation/violationActions';
 import { getExpiryTime } from '../util/waiverUtils';

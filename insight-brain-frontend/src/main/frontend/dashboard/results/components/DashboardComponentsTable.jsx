@@ -15,7 +15,7 @@ import {
 } from '@sonatype/react-shared-components';
 
 import DashboardComponentsTableRow, { componentPropTypes } from './DashboardComponentsTableRow';
-import { Messages } from '../../../util/CommonServices';
+import { Messages } from '../../../utilAngular/CommonServices';
 import { heatMapColorStylerPropTypes } from '../DashboardHeatMapCell';
 import { extractSortFieldName, getColumnDirection, sortColumn } from '../../../util/sortUtils';
 import MaxResultsInfoRow from '../MaxResultsInfoRow';

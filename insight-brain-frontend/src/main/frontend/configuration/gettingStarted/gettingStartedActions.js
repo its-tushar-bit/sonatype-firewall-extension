@@ -8,7 +8,7 @@ import { compose } from 'ramda';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { getIsHdsReachable, getLicenseSummaryUrl } from '../../util/CLMLocation';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 import { getPermissions } from '../../util/authorizationUtil';
 
 export const GETTING_STARTED_LOAD_REQUESTED = 'GETTING_STARTED_LOAD_REQUESTED';

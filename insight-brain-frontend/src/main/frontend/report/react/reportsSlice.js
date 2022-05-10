@@ -7,7 +7,7 @@
 import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getActionStageUrl, getApplicationSummariesUrl, getApplicationSummaryUrl } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/util/CommonServices';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { prop, propEq } from 'ramda';
 import { debounce } from 'debounce';
 

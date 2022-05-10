@@ -11,7 +11,7 @@ import * as atlassianCrowdConfigurationSelectors from 'MainRoot/configuration/cr
 import { render, screen, fireEvent, waitFor } from 'TestRoot/SpecUtil';
 import axios from 'axios';
 import { getCrowdConfigurationTestUrl, getCrowdConfigurationUrl } from 'MainRoot/util/CLMLocation';
-import { getGlobalPermissionTestUrl } from 'MainRoot/util/CLMContextLocation';
+import { getGlobalPermissionTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 
 describe('AtlassianCrowdConfiguration', () => {
   let renderComponent;

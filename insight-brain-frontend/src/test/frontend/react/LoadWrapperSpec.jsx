@@ -16,7 +16,7 @@ describe('LoadWrapper', function () {
     mockMessages = jasmine.createSpyObj('Messages', ['getHttpErrorMessage']);
 
     LoadWrapper = require('inject-loader!../../../main/frontend/react/LoadWrapper')({
-      '../util/CommonServices': { Messages: mockMessages },
+      '../utilAngular/CommonServices': { Messages: mockMessages },
     }).default;
 
     getShallowComponent = enzymeUtils.getShallowComponent(LoadWrapper, {});

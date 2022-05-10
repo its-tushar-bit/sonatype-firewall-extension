@@ -19,7 +19,7 @@ import { initialState, userInput } from '@sonatype/react-shared-components/compo
 import { isNil, reject } from 'ramda';
 import { validateMaxLength, validateNonEmpty, validatePatternMatch } from '../../../util/validationUtil';
 import LoadError from '../../../react/LoadError';
-import { Messages } from '../../../util/CommonServices';
+import { Messages } from '../../../utilAngular/CommonServices';
 
 /*
  * Displays a modal to allow creation of a new IQ organization.

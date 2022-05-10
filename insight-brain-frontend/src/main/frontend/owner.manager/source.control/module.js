@@ -7,7 +7,7 @@ import SourceControlService from './source.control.service';
 import inheritableEnableDisable from './inheritableEnableDisable';
 import sourceControlTile from './source.control.tile';
 import sourceControlEditor from './source.control.editor';
-import clmContextLocationModule from '../../util/CLMContextLocation';
+import clmContextLocationModule from '../../utilAngular/CLMContextLocation';
 import utilityModule from '../../utility/utility.module';
 import UpdateSourceControlModalService from './update.source.control.modal.service';
 import UpdateSourceControlModalController from './update.source.control.modal.controller';

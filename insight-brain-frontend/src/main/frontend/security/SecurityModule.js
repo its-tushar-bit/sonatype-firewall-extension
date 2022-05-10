@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import angularCommonModule from '../util/AngularCommon';
-import permissionServiceModule from '../util/PermissionService';
+import angularCommonModule from '../utilAngular/AngularCommon';
+import permissionServiceModule from '../utilAngular/PermissionService';
 
 export const SecurityModule = angular.module(
   'SecurityModule',

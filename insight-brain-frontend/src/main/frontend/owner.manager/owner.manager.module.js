@@ -6,14 +6,14 @@
 
 import moveApplicationModule from './move.application/module';
 import formsModule from '../FormsModule';
-import angularCommonModule from '../util/AngularCommon';
+import angularCommonModule from '../utilAngular/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
 import utilityDirectivesModule from '../utility/directives/utility.directives.module';
 import utilityServicesModule from '../utility/services/utility.services.module';
 import utilityModule from '../utility/utility.module';
-import permissionServiceModule from '../util/PermissionService';
-import validatorsModule from '../util/Validators';
-import storesModule from '../util/Stores';
+import permissionServiceModule from '../utilAngular/PermissionService';
+import validatorsModule from '../utilAngular/Validators';
+import storesModule from '../utilAngular/Stores';
 import ownerPolicyList from './summary/ownerPolicyList/ownerPolicyList';
 
 import licenseThreatGroupModule from '../policy/LicenseThreatGroupsController';

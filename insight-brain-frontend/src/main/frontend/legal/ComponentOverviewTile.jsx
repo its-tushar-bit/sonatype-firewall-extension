@@ -6,7 +6,7 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { componentPropType } from './advancedLegalPropTypes';
-import { terseAgo, timeAgo } from '../util/CommonServices';
+import { terseAgo, timeAgo } from '../utilAngular/CommonServices';
 import { EFFECTIVELY_UNSPECIFIED_LICENSES, STAGE_NAME_TO_DISPLAY, STAGE_NAME_TO_ID } from './advancedLegalConstants';
 import { NxPolicyViolationIndicator } from '@sonatype/react-shared-components';
 import { inc, prop, reduceBy } from 'ramda';

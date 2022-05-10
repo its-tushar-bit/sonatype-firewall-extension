@@ -12,7 +12,7 @@ import {
   getQuarantinedComponentViewAnonymousAccessEnabledState,
 } from 'MainRoot/util/CLMLocation';
 import { selectProductFeatures } from './productFeaturesSelectors';
-import { Messages } from 'MainRoot/util/CommonServices';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 const REDUCER_NAME = 'productFeatures';
 

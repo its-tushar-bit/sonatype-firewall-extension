@@ -5,8 +5,8 @@
  */
 import { pick } from 'ramda';
 
-import commonServicesModule from '../util/CommonServices';
-import angularCommonModule from '../util/AngularCommon';
+import commonServicesModule from '../utilAngular/CommonServices';
+import angularCommonModule from '../utilAngular/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
 import RepositoryReEvaluateModalController from './repository.reevaluate.modal.controller';
 import ReEvaluateModalService from './repository.reevaluate.service';

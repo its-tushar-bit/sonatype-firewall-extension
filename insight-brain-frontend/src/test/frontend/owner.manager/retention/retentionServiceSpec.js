@@ -5,7 +5,7 @@
  */
 import retentionModule from '../../../../main/frontend/owner.manager/retention/module';
 import { inheritedRetentionPolicies, customRetentionPolicies } from './retentionMockData';
-import clmContextLocationModule from '../../../../main/frontend/util/CLMContextLocation';
+import clmContextLocationModule from '../../../../main/frontend/utilAngular/CLMContextLocation';
 
 describe('retentionService', function () {
   beforeEach(angular.mock.module(retentionModule.name, clmContextLocationModule.name));

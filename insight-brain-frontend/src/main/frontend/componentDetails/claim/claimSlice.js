@@ -16,7 +16,7 @@ import {
 import { propSetConst } from '../../util/reduxToolkitUtil';
 import { isNilOrEmpty, pathSet } from '../../util/jsUtil';
 import { toggleBooleanProp } from '../../util/reduxUtil';
-import { Messages } from '../../util/CommonServices';
+import { Messages } from '../../utilAngular/CommonServices';
 import { validateForm, validateNonEmpty, validatePatternMatch } from '../../util/validationUtil';
 import { getClaimComponentUrl } from '../../util/CLMLocation';
 import { selectSelectedComponentHash, selectClaimRequestData, selectClaimId, DATE_FORMAT } from './claimSelectors';

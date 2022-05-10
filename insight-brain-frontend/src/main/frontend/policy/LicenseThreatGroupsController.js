@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import CLMContextLocationModule from '../util/CLMContextLocation';
-import storesModule from '../util/Stores';
+import CLMContextLocationModule from '../utilAngular/CLMContextLocation';
+import storesModule from '../utilAngular/Stores';
 
 var licenseGroupModule = angular.module('LicenseThreatGroup', [storesModule.name, CLMContextLocationModule.name]);
 

@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angularDebug */
-import commonServicesModule from './util/CommonServices';
+import commonServicesModule from './utilAngular/CommonServices';
 import formsModule from './FormsModule';
 import CLMLocationModule from './util/CLMLocation';
-import { httpInterceptors, unauthenticatedResponseHttpInterceptor } from './util/HttpInterceptors';
-import IqHttpInterceptorsModule from './util/IqHttpInterceptors';
+import { httpInterceptors, unauthenticatedResponseHttpInterceptor } from './utilAngular/HttpInterceptors';
+import IqHttpInterceptorsModule from './utilAngular/IqHttpInterceptors';
 import configurationModule, { GETTING_STARTED_STATE } from './configuration/module';
 import {
   DEPARTED_ACTION,

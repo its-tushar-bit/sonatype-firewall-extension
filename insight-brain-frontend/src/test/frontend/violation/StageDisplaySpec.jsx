@@ -34,7 +34,7 @@ describe('StageDisplay', function () {
     };
 
     StageDisplay = require('inject-loader!../../../main/frontend/violation/StageDisplay')({
-      '../util/CommonServices': { terseAgo: terseAgoMock },
+      '../utilAngular/CommonServices': { terseAgo: terseAgoMock },
     }).default;
 
     getShallowComponent = enzymeUtils.getShallowComponent(StageDisplay, minimalProps);

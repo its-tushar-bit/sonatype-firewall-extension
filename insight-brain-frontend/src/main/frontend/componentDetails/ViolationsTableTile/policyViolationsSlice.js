@@ -9,7 +9,7 @@ import { always, equals, flatten } from 'ramda';
 
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getComponentWaivers, getProductFeaturesUrl, getReportPolicyThreatsUrl } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/util/CommonServices';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet } from 'MainRoot/util/reduxToolkitUtil';
 import { getAddWaiverPermissionForApplicationPromiseBuilder } from 'MainRoot/waivers/waiverActions';

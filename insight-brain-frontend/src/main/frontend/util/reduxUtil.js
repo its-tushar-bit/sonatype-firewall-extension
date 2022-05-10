@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { always, curry, lensPath, lensProp, set } from 'ramda';
-import { Messages } from '../util/CommonServices';
+import { Messages } from '../utilAngular/CommonServices';
 /*
  * like `./jsUtil.js#propSet` but is meant to be partially applied in 2 args.
  * The payload is ignored and is only an argument to conform to the interface needed by reducerActionMap

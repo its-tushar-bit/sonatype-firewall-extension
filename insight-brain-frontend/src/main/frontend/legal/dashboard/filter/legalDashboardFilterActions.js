@@ -12,7 +12,7 @@ import {
   getLegalDashboardFilters,
   getOrganizationsUrl,
 } from '../../../util/CLMLocation';
-import { Messages } from '../../../util/CommonServices';
+import { Messages } from '../../../utilAngular/CommonServices';
 import { loadResults } from '../legalDashboardActions';
 import { fetchStageTypes } from '../../../stages/stagesActions';
 import { filterToJson } from './legalDashboardFilterService';

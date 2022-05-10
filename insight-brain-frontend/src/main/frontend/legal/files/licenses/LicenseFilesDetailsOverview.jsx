@@ -9,7 +9,7 @@ import {
   componentLicenseDetailsPropType,
   componentPropType,
 } from '../../advancedLegalPropTypes';
-import { timeAgo } from '../../../util/CommonServices';
+import { timeAgo } from '../../../utilAngular/CommonServices';
 import * as PropTypes from 'prop-types';
 import { LegalFileOverviewHeader } from '../common/LegalFileOverviewHeader';
 

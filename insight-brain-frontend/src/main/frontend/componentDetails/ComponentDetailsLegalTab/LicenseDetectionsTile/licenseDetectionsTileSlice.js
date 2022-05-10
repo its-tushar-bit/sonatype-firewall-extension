@@ -19,7 +19,7 @@ import {
   getLicensesWithSyntheticFilterUrl,
   getProductFeaturesUrl,
 } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/util/CommonServices';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { propSet } from 'MainRoot/util/jsUtil';
 import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
 import { selectComponentDetailsRequestData } from 'MainRoot/componentDetails/overview/overviewSelectors';
